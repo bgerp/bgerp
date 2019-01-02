@@ -146,6 +146,12 @@ class email_Accounts extends core_Master
             $row->sending = $mvc->getVerbal($rec, 'smtpServer');
             $row->sending .= '<br>' . $mvc->getVerbal($rec, 'smtpUser');
         }
+        
+        if ($fields['-single']) {
+            if (!$rec->deleteAfterPeriod) {
+                $row->deleteAfterPeriod .= tr('Никога');
+            }
+        }
     }
     
     

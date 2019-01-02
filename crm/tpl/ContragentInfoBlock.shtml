@@ -5,10 +5,10 @@
 <!--ET_END customerSince-->
 <!--ET_BEGIN totalDealsBlock-->
 [#totalDealsBlock#]
-<div class="richtext">|Общо продажби|*: [#totalDealsCount#]/[#totalDealsAmount#]</div>
+<div class="richtext">|Общо продажби|*: [#totalDealsCount#] |за|* [#totalDealsAmount#]</div>
 <!--ET_END totalDealsBlock-->
 
 <!--ET_BEGIN overdueDealsBlock-->
 [#overdueDealsBlock#]
-<div class="richtext" style='background-color:red;color:white;padding:2px;'>|Просрочени|*: [#overdueDealsCount#]/[#overdueDealsAmount#]</div>
+<div class="richtext" style='background-color:red;color:white;padding:2px;'>|Просрочени|*: [#overdueDealsCount#] |за|* [#overdueDealsAmount#]</div>
 <!--ET_END overdueDealsBlock-->

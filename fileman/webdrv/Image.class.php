@@ -42,7 +42,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         $tabsArr = parent::getTabs($fRec);
         
         // URL за показване на преглед на файловете
-        $previewUrl = toUrl(array(get_called_class(), 'preview', $fRec->fileHnd), true);
+        $previewUrl = toUrl(array(get_called_class(), 'preview', $fRec->fileHnd));
 
         // Таб за преглед
         $tabsArr['preview'] = (object)
@@ -54,7 +54,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         
         if (self::canShowTab($fRec->fileHnd, 'text') || self::canShowTab($fRec->fileHnd, 'textOcr', true, true)) {
             // URL за показване на текстовата част на файловете
-            $textPart = toUrl(array('fileman_webdrv_Pdf', 'text', $fRec->fileHnd), true);
+            $textPart = toUrl(array('fileman_webdrv_Pdf', 'text', $fRec->fileHnd));
             
             // Таб за текстовата част
             $tabsArr['text'] = new stdClass();

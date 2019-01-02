@@ -1135,7 +1135,7 @@ en,Неномериран списък,Unnumbered list
 en,Непарсируеми,Unparsable
 en,Неплатени,Unpaid
 en,Непознат форма_627b,Unknown format for duration
-en,Непопълнено за_dfe6,Blank required field
+en,Непопълнено за_dfe6,Empty mandatory field
 en,Непрозрачност,Opacity
 en,Неработен,Playday
 en,Неразгледани и_cb5d,Pending notifications
@@ -2537,11 +2537,14 @@ en,Товара,loads
 en,ЛЕ,LU
 en,На посочения от вас имейл ще получите линк за избор на паролата за достъп,"At the email you specify, you will receive a link to select the password"
 en,Регистриране на нов потребител в,Register new user in
-en,"След като попълните полетата по-долу, натиснете бутона 'Регистрирай'","After filling in the fields below, click the 'Register'"
+en,"След като попълните полетата по-долу натиснете бутона 'Регистрирай'","After filling in the fields below, click the 'Register'"
+en,Регистрирай,Register
 en,Активиране на акаунт,Account activation
 en,"За съжаление възникна грешка и не успяхме да изпратим имейла за активиране. Опитайте по-късно или се свържете със системния администратор","Unfortunately, there was an error and we were unable to send the activation email. Try it later or contact your system administrator"
-en,Вече има регистриран потребител с този имейл,There is already a registered user with this email
-en,"Вече има регистриран потребител с този ник. Изберете друг, например","There is already a registered user with this nick. Choose another, for example"
+en,"Има вече такъв потребител. Ако това сте Вие, може да се логнете от","There is already a registered user with this email. If this is you, you may log in from"
+en,"Вече има регистриран потребител с този имейл. Ако това сте Вие, може да се логнете от","There is already a registered user with this email. If this is you, you may log in from"
+en,"Вече има регистриран потребител с този ник. Ако това сте Вие, може да се логнете от","There is already a registered user with this nick. If this is you, you may log in from"
+en,"Изберете друг, например","Choose another e.g."
 en,"Моля проверете всички папки, в т.ч. и папката за СПАМ, за имейл със заглавие 'Activation'","Please check all folders, incl. and the SPAM folder for an email with the subject 'Activation'"
 en,В него се съдържат инструкции за активиране на вашата сметка,It contains instructions for activating your account
 en,"Ако не откриете писмото, опитайте да се регистрирате чрез друг ваш имейл адрес или направете опит с този след няколко дни","If you do not find the letter, try signing up with another email address or try this one within a few days"
@@ -2633,7 +2636,7 @@ en,"Логнете се,за да видите нишката","Login to see the
 en,"Не, благодаря","No, thanks!"
 en,Отворени сделки,Open deals
 en,Системата,The System
-en,Изпратете запитване за,Send inquiry about
+en,Изпратете запитване за,Send an enquiry about
 en,общо тегло,total weight
 en,тегло на ролка,roll weight
 en,тегло на 1 кв. м,weight per sq. m.
@@ -2806,8 +2809,36 @@ en,Дълготраен материален актив,Tangible fixed asset,
 en,Дълготраен нематериален актив,Intangible fixed asset,
 en,Дълготрайни нематериални активи,Intangible fixed assets
 en,Търсене на баркод,Search barcodes
-en,"Съгласно избрания начин на плащане, моля преведете сумата за плащане по тази сметка","According to the chosen payment method, please transfer the amount to be paid to this bank account"
+en,"Избрано е плащане по банков път. Моля, преведете дължимата сума по сметка","You've selected bank payment. Please transfer the amount to be paid to the following account"
 en,"Плащането трябва да се извърши по следния начин","Payment must be made in the following way"
 en,"Благодарим за поръчката","Thank you for your order"
 en,"Изпратихме Ви имейл с инструкции за плащането","We've sent you an email with payment instructions"
 en,Нов файл,New file
+en,Без фактура,Without invoice
+en,"Премахване на всички артикули","Remove all items"
+en,"ч.","h"
+en,Без фактуриране,Without invoice
+en,Титуляр,Holder
+en,"Може да свалите попълнено платежно нареждане","You can download a filled payment order"
+en,Информация за плащането,Payment information
+en,Поръчката е направена успешно,The order was placed successfully
+en,Вижте също,See also
+en,Фактура на лице,Person invoice
+en,Фактура на фирма,Company invoice
+en,Фактуриране,Billing
+en,"Има проблем при изчислението на доставката. Моля, обърнете се към нас","There is a problem with the delivery calculation. Please, contact us"
+en,Липсва двубуквен префикс,Missing two-letter prefix
+en,"Поръчката ще бъде изпълнена след получаване на плащането","The order will be completed after the payment is received"
+en,Данни за фактуриране,Billing information
+en,Липсват данните за фактуриране,Missing billing information
+en,"Нямате избрани артикули","You haven't selected any items"
+en,изпращане на запитването,send the enquiry
+en,Безплатна,Free
+en,"Моля, завършете поръчката, като направите плащането от бутона","Place the order after you make a payment from"
+en,"Ако имате клиентска карта, може да я въведете от","If you have a client card, you may input it from"
+en,Невалиден номер на карта,The card number is not valid
+en,Картата вече не е активна,The card is no longer active
+en,Въвеждане на клиентска карта,Input client card
+en,Въведи,Enter
+en,Сканирай,Scan
+en,Регистриране на нов акаунт на партньор,Register a new partner account

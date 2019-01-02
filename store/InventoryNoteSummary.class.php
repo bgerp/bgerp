@@ -657,6 +657,7 @@ class store_InventoryNoteSummary extends doc_Detail
             
             return;
         }
+        
         $ordered = array();
         
         // Вербализираме и подреждаме групите
@@ -704,20 +705,17 @@ class store_InventoryNoteSummary extends doc_Detail
         }
         
         // Правилна подредба
-        if(is_array($ordered)){
-            uasort($ordered, function ($a, $b) use ($codeFld, $nameFld, $groupFld) {
-                if ($a->groupName == $b->groupName) {
-                    $orderProductBy = cat_Groups::fetchField($a->_groupId, 'orderProductBy');
-                    $field = ($orderProductBy === 'code') ? $codeFld : $nameFld;
-                    
-                    $result = strcasecmp($a->{$field}, $b->{$field});
-                } else {
-                    $result = $a->groupName > $b->groupName;
-                }
+        uasort($ordered, function ($a, $b) use ($codeFld, $nameFld) {
+             if ($a->groupName == $b->groupName) {
+                  $orderProductBy = cat_Groups::fetchField($a->_groupId, 'orderProductBy');
+                  $field = ($orderProductBy === 'code') ? $codeFld : $nameFld;
+                  $result = strcasecmp($a->{$field}, $b->{$field});
+             } else {
+                  $result = $a->groupName > $b->groupName;
+             }
                 
-                return $result;
-            });
-        }
+             return $result;
+        });
         
         // В $recs трябва да са останали несортираните
         $rest = $recs;

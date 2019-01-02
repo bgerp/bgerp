@@ -125,8 +125,15 @@ class sens2_RemoteDriver extends sens2_ProtoDriver
      *               о writable - дали порта може да се записва
      */
     public function discovery()
-    {
-        $this->loadState();
+    {   
+        $key = 'RD' . $this->driverRec->id;
+
+        if((!$this->state) && !($this->state = core_Cache::get('RemoteDriver', $key))) {
+
+            $this->loadState();
+
+            core_Cache::set('RemoteDriver', $key, $this->state, 10);
+        }
  
         return $this->state;
     }

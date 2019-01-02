@@ -42,7 +42,7 @@ class fileman_webdrv_Debug extends fileman_webdrv_Txt
         $tabsArr = parent::getTabs($fRec);
         
         // URL за показване на преглед на файловете
-        $previewUrl = toUrl(array(get_called_class(), 'preview', $fRec->fileHnd), true);
+        $previewUrl = toUrl(array(get_called_class(), 'preview', $fRec->fileHnd));
         
         // Таб за преглед
         $tabsArr['preview'] = (object)

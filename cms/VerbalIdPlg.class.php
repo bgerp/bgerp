@@ -40,13 +40,16 @@ class cms_VerbalIdPlg extends core_Plugin
         $mvc->FLD($this->fieldName, 'varchar(' . EF_VID_LEN . ')', 'caption=SEO->Вербално ID, column=none, width=100%,autohide=any');
         
         // SEO Заглавие
-        $mvc->FLD('seoTitle', 'varchar(64)', 'caption=SEO->Title,column=none, width=100%,autohide');
+        $mvc->FLD('seoTitle', 'varchar(128)', 'caption=SEO->Title,column=none, width=100%,autohide');
         
         // SEO Описание
-        $mvc->FLD('seoDescription', 'text(255,rows=3)', 'caption=SEO->Description,column=none, width=100%,autohide');
+        $mvc->FLD('seoDescription', 'text(500,rows=3)', 'caption=SEO->Description,column=none, width=100%,autohide');
         
         // SEO Ключови думи
-        $mvc->FLD('seoKeywords', 'text(255,rows=3)', 'caption=SEO->Keywords,column=none, width=100%,autohide');
+        $mvc->FLD('seoKeywords', 'text(500,rows=3)', 'caption=SEO->Keywords,column=none, width=100%,autohide');
+        
+        // SEO Илюстрация
+        $mvc->FLD('seoThumb', 'fileman_FileType(bucket=cmsFiles)', 'caption=SEO->Илюстрация,column=none, width=100%,autohide');
         
         $mvc->setDbUnique($this->fieldName);
         

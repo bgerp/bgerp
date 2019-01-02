@@ -1058,9 +1058,6 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
             
-            // За да се използва езика на фактурата
-            $noInvStr = tr('без фактуриране');
-            
             $row->username = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy);
             $row->username = core_Lg::transliterate($row->username);
             $row->responsible = core_Lg::transliterate($row->responsible);
@@ -1073,14 +1070,11 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
             
-            core_Lg::pop();
-        }
-        
-        if ($rec->makeInvoice == 'no') {
-            if (!$noInvStr) {
-                $noInvStr = tr('без фактуриране');
+            if ($rec->makeInvoice == 'no') {
+                $row->amountToInvoice = "<span style='font-size:0.7em'>" . tr('без фактуриране') . '</span>';
             }
-            $row->amountToInvoice = "<span style='font-size:0.7em'>" . $noInvStr . '</span>';
+            
+            core_Lg::pop();
         }
     }
     
@@ -1343,7 +1337,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Подготовка на формата за избор на опция
         $form = cls::get('core_Form');
-        $form->title = '|Активиране на|* <b>' . $this->getTitleById($id). '</b>' . ' ?';
+        $form->title = '|Активиране на|* <b>' . $this->getFormTitleLink($id) . '</b>' . ' ?';
         $form->info = tr('|*<b>|Контиране на извършени на момента действия|*</b> (|опционално|*):');
         
         // Извличане на позволените операции
@@ -1385,6 +1379,8 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // След като формата се изпрати
         if ($form->isSubmitted()) {
+            
+            
             
             // обновяване на записа с избраните операции
             $form->rec->action = 'activate' . (($form->rec->action) ? ',' : '') . $form->rec->action;

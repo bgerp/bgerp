@@ -188,7 +188,7 @@ function eshopActions() {
 
 
 
-	$('.eshop-btn').on('click', function () {
+	$('.eshop-product .eshop-btn, .eshop-product-list .eshop-btn').on('click', function () {
 		if($('.eshop-product-option').hasClass('inputError')) return;
 		var cart = $('.logoutBlock #cart-external-status');
 		if($('.eshop-product-list').length) {

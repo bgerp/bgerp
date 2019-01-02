@@ -174,6 +174,20 @@ class sens2_Scripts extends core_Master
             self::save($rec);
         }
     }
+
+
+    /**
+     * Връща контекста от променливи и индикатори за дадения скрипт
+     */
+    public static function getContext($scriptId)
+    {
+        // Намираме и сортираме контекста
+        $context = sens2_Indicators::getContex();
+        $context += sens2_script_DefinedVars::getContex($scriptId);
+        uksort($context, 'str::sortByLengthReverse');
+        
+        return $context;
+    }
     
     
     /**
@@ -181,13 +195,11 @@ class sens2_Scripts extends core_Master
      */
     public static function calcExpr($expr, $scriptId)
     {
-        // Намираме и сортираме контекста
-        $contex = sens2_Indicators::getContex();
-        $contex += sens2_script_DefinedVars::getContex($scriptId);
-        uksort($contex, 'str::sortByLengthReverse');
+        // Вземаме контекста
+        $context = self::getContext($scriptId);
         
         // Заместваме променливите и индикаторите
-        $expr = strtr($expr, $contex);
+        $expr = strtr($expr, $context);
         
         if (str::prepareMathExpr($expr) === false) {
             $res = self::CALC_ERROR;
@@ -267,7 +279,7 @@ class sens2_Scripts extends core_Master
         if (!Mode::isReadOnly()) {
             
             // Изчистваме нотификацията за събуждане
-            $url = array($mvc, 'single', $data->rec->id);
+            $url = array($mvc, 'single', $data->rec->id, 'order' => Request::get('order', 'int'));
  
             bgerp_Notifications::clear($url);
         }

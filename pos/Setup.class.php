@@ -107,7 +107,6 @@ class pos_Setup extends core_ProtoSetup
         'pos_FavouritesCategories',
         'pos_Reports',
         'pos_Stocks',
-        'pos_Cards',
         'migrate::migrateCronSettings'
     );
     

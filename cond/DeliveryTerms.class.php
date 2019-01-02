@@ -27,7 +27,7 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'codeName, term, costCalc=Транспорт->Калкулатор, calcCost=Транспорт->Скрито,allowCmr, lastUsedOn=Последно, state, createdBy,createdOn';
+    public $listFields = 'codeName, term, costCalc=Транспорт->Калкулатор, calcCost=Транспорт->Скрито,properties, lastUsedOn=Последно, state, createdBy,createdOn';
     
     
     /**
@@ -109,6 +109,14 @@ class cond_DeliveryTerms extends core_Master
     
     
     /**
+     * Шаблон (ET) за заглавие на продукт
+     *
+     * @var string
+     */
+    public $recTitleTpl = '[#codeName#]';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -122,7 +130,7 @@ class cond_DeliveryTerms extends core_Master
         $this->FLD('calcCost', 'enum(yes=Включено,no=Изключено)', 'caption=Изчисляване на транспортна себестойност->Скрито,notNull,value=no');
         $this->FLD('address', 'enum(none=Без,receiver=Локацията на получателя,supplier=Локацията на доставчика)', 'caption=Показване на мястото на доставка->Избор,notNull,value=none,default=none');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
-        $this->FLD('allowCmr', 'enum(yes=Да,no=Не)', 'caption=Документи->ЧМР', 'notNull,value=yes,tdClass=centered');
+        $this->FLD('properties', 'set(cmr=ЧМР,transport=Транспорт,insurance=Застраховка)', 'caption=Свойства');
         
         $this->setDbUnique('codeName');
     }
@@ -221,7 +229,7 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    public static function on_AfterSetupMvc($mvc, &$res)
+    protected static function on_AfterSetupMvc($mvc, &$res)
     {
         $file = 'cond/csv/DeliveryTerms.csv';
         $fields = array(
@@ -231,7 +239,7 @@ class cond_DeliveryTerms extends core_Master
             3 => 'forBuyer',
             4 => 'transport',
             5 => 'address',
-            6 => 'allowCmr',
+            6 => 'properties',
         );
         
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);

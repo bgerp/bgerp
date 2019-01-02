@@ -63,7 +63,7 @@ class support_TaskType extends core_Mvc
      *
      * @return array
      */
-    public function getProgressSuggestions($tRec)
+    public static function getProgressSuggestions($tRec)
     {
         static $progressArr = array();
         
@@ -178,6 +178,45 @@ class support_TaskType extends core_Mvc
     public static function on_AfterGetThreadState($Driver, $mvc, &$res, $id)
     {
         $res = 'opened';
+    }
+    
+    
+    /**
+     * Променяме някои параметри на бутона в папката
+     *
+     * @param int $folderId
+     */
+    public function getButtonParamsForNewInFolder($folderId)
+    {
+        $res = array();
+        
+        if (!$folderId) {
+            
+            return $res;
+        }
+        
+        $rec = doc_Folders::fetch($folderId);
+        
+        if (!$rec) {
+            
+            return $res;
+        }
+        if (!$rec->coverClass) {
+            
+            return $res;
+        }
+        
+        if (!cls::load($rec->coverClass, true)) {
+            
+            return $res;
+        }
+        
+        if (cls::get($rec->coverClass) instanceof support_Systems) {
+            $res['btnTitle'] = 'Сигнал';
+            $res['ef_icon'] = 'img/16/support.png';
+        }
+        
+        return $res;
     }
     
     
@@ -312,6 +351,41 @@ class support_TaskType extends core_Mvc
         $data->form->setField('timeStart', 'autohide');
         $data->form->setField('timeDuration', 'autohide');
         $data->form->setField('timeEnd', 'autohide');
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param support_TaskType $Driver
+     * @param core_Mvc         $mvc
+     * @param stdClass         $row    Това ще се покаже
+     * @param stdClass         $rec    Това е записа в машинно представяне
+     * @param array|null       $fields Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($Driver, $mvc, &$row, $rec, $fields = array())
+    {
+        if ($rec->assetResourceId) {
+            $row->assetResourceId = planning_AssetResources::getLinkToSingle($rec->assetResourceId, 'codeAndName');
+        }
+    }
+    
+    
+    /**
+     *
+     *
+     * @param support_TaskType $Driver
+     * @param core_Mvc         $mvc
+     * @param string           $res
+     * @param int              $id
+     */
+    public function on_AfterGetIcon($Driver, $mvc, &$res, $id)
+    {
+        $res = 'img/16/support.png';
+        
+        if (log_Browsers::isRetina()) {
+            $res = 'img/32/support.png';
+        }
     }
     
     

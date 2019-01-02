@@ -166,7 +166,7 @@ class cms_DefaultTheme extends core_ProtoInner
             }
         }
         
-        $visitedFontColor = phpcolor_Adapter::changeColor($fontColor, 'mix', 1, '#661199');
+        $visitedFontColor = phpcolor_Adapter::changeColor($fontColor, 'mix', 1, '#6611BB');
         
         if (strlen($visitedFontColor) != 6) {
             $visitedFontColor = '660099';

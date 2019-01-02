@@ -387,14 +387,14 @@ class colab_FolderToPartners extends core_Manager
         }
         
         // Можем ли да изпратим автоматичен имейл до обекта
-        if ($action == 'sendemail' && isset($rec->className) && isset($rec->objectId)) {
-            if(!cls::haveInterface('crm_ContragentAccRegIntf', $rec->className)){
+        if ($action == 'sendemail' && isset($rec->className, $rec->objectId)) {
+            if (!cls::haveInterface('crm_ContragentAccRegIntf', $rec->className)) {
                 $requiredRoles = 'no_one';
-            } else{
+            } else {
                 $objectRec = cls::get($rec->className)->fetch($rec->objectId);
-                if(empty($objectRec)){
+                if (empty($objectRec)) {
                     $requiredRoles = 'no_one';
-                } elseif(!doc_Folders::haveRightToObject($objectRec)){
+                } elseif (!doc_Folders::haveRightToObject($objectRec)) {
                     $requiredRoles = 'no_one';
                 } else {
                     $emailsFrom = email_Inboxes::getAllowedFromEmailOptions(null);
@@ -404,7 +404,6 @@ class colab_FolderToPartners extends core_Manager
                 }
             }
         }
-        
     }
     
     
@@ -471,25 +470,25 @@ class colab_FolderToPartners extends core_Manager
             $dTpl->append($ht, 'addBtn');
         }
         
-        // Само за фирми
-        Request::setProtected(array('companyId', 'className'));
-        
-        if (haveRole('admin')) {
-            // Добавяме бутон за създаването на нов партньор, визитка и профил
-            $ht = ht::createBtn('Нов партньор', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'ret_url' => true), false, false, 'ef_icon=img/16/star_2.png,title=Създаване на нов партньор');
-            $btns->append($ht);
-        }
+        if(cls::haveInterface('crm_ContragentAccRegIntf', $data->masterMvc)){
+            Request::setProtected(array('companyId', 'className'));
+            if (haveRole('admin')) {
+                // Добавяме бутон за създаването на нов партньор, визитка и профил
+                $ht = ht::createBtn('Нов партньор', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'ret_url' => true), false, false, 'ef_icon=img/16/star_2.png,title=Създаване на нов партньор');
+                $btns->append($ht);
+            }
             
-        // Ако фирмата има имейли и имаме имейл кутия, слагаме бутон за изпращане на имейл за регистрация
-        if ($me->haveRightFor('sendemail', (object)array('className' => $data->masterMvc->className, 'objectId' => $data->masterId))) {
-            $ht = ht::createBtn('Имейл', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'ret_url' => true), false, false, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за регистрация на партньори към фирмата');
-            $btns->append($ht);
-        } else {
-            $ht = ht::createErrBtn('Имейл', 'Фирмата няма имейли, или нямате имейл кутия');
-            $btns->append($ht);
+            // Ако фирмата има имейли и имаме имейл кутия, слагаме бутон за изпращане на имейл за регистрация
+            if ($me->haveRightFor('sendemail', (object) array('className' => $data->masterMvc->className, 'objectId' => $data->masterId))) {
+                $ht = ht::createBtn('Имейл', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'ret_url' => true), false, false, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за регистрация на партньори към фирмата');
+                $btns->append($ht);
+            } else {
+                $ht = ht::createErrBtn('Имейл', 'Фирмата няма имейли, или нямате имейл кутия');
+                $btns->append($ht);
+            }
+            
+            Request::removeProtected(array('companyId', 'className'));
         }
-        
-        Request::removeProtected(array('companyId', 'className'));
         
         $dTpl->append($btns, 'PARTNER_BTNS');
         $dTpl->removeBlocks();
@@ -523,13 +522,13 @@ class colab_FolderToPartners extends core_Manager
         $objectId = Request::get('companyId', 'int');
         
         $this->requireRightFor('sendemail');
-        $this->requireRightFor('sendemail', (object)array('className' => $className, 'objectId' => $objectId));
+        $this->requireRightFor('sendemail', (object) array('className' => $className, 'objectId' => $objectId));
         $Class = cls::get($className);
         $objectRec = $Class->fetch($objectId);
         
         $contragentName = $Class->getVerbal($objectId, 'name');
         $form = cls::get('core_Form');
-        $form->title = "Изпращане на регистрация на партньори в|* " . $Class->getFormTitleLink($objectId);
+        $form->title = 'Изпращане на регистрация на партньори в|* ' . $Class->getFormTitleLink($objectId);
         
         $form->FNC('to', 'email', 'caption=До имейл, width=100%, mandatory, input');
         $form->FNC('from', 'key(mvc=email_Inboxes,select=email)', 'caption=От имейл, width=100%, mandatory, optionsFunc=email_Inboxes::getAllowedFromEmailOptions, input');
@@ -555,7 +554,7 @@ class colab_FolderToPartners extends core_Manager
         $placeHolder = '{{' . tr('линк||link') . '}}';
         
         $middleMsg = tr('За да се регистрираш като служител на фирма||To have registration as a member of company') . ' "[#company#]", ';
-        $middleMsg = ($Class instanceof crm_Companies) ? $middleMsg : tr("За да се регистрираш||For registration") . " ";
+        $middleMsg = ($Class instanceof crm_Companies) ? $middleMsg : tr('За да се регистрираш||For registration') . ' ';
         $body = new ET(
             tr('Уважаеми потребителю||Dear User') . ",\n\n" .
             $middleMsg .
@@ -684,7 +683,7 @@ class colab_FolderToPartners extends core_Manager
     public function act_Createnewcontractor()
     {
         Request::setProtected(array('companyId', 'rand', 'fromEmail', 'email', 'userNames', 'className'));
-       
+        
         if (!$email = Request::get('email', 'email')) {
             Request::removeProtected(array('email'));
         }
@@ -699,7 +698,7 @@ class colab_FolderToPartners extends core_Manager
         $Users = cls::get('core_Users');
         core_Lg::push(drdata_Countries::getLang($contragentRec->country));
         $rand = Request::get('rand');
-        $companyName = $Class->getVerbal($objectId, 'name');
+        $contragentName = $Class->getTitleById($objectId);
         
         // Ако не сме дошли от имейл, трябва потребителя да има достъп до обекта
         $fromEmail = Request::get('fromEmail');
@@ -707,11 +706,13 @@ class colab_FolderToPartners extends core_Manager
             requireRole('powerUser');
             expect(doc_Folders::haveRightToObject($contragentRec));
         } else {
-            vislog_History::add("Форма за регистрация на партньор в «{$companyName}»");
+            vislog_History::add("Форма за регистрация на партньор в «{$contragentName}»");
         }
-        
+        //core_Users::
         $form = $Users->getForm();
-        $form->title = "Нов партньор от|* <b>{$companyName}</b>";
+        $form->title = "Регистриране на нов акаунт на партньор";
+        $form->FLD('contragentName', 'varchar', "caption=Папка,after=passRe");
+        $form->setReadOnly('contragentName',  $contragentName);
         $form->setDefault('country', $contragentRec->country);
         
         // Ако има готово име, попълва се
@@ -778,13 +779,14 @@ class colab_FolderToPartners extends core_Manager
         
         if ($form->isSubmitted()) {
             if (!$Users->isUnique($form->rec, $fields)) {
-                $form->setError($fields, 'Вече съществува запис със същите данни');
+                $loginLink = ht::createLink(tr('тук'), array('core_Users', 'login'));
+                $form->setError($fields, 'Има вече такъв потребител. Ако това сте Вие, може да се логнете от|* ' . $loginLink);
             }
         }
         
         if ($form->isSubmitted()) {
-            if (core_Users::isForbiddenNick($form->rec->nick)) {
-                $form->setError('nick', 'Вече съществува запис със същите данни');
+            if (core_Users::isForbiddenNick($form->rec->nick, $errorMsg)) {
+                $form->setError('nick', $errorMsg);
             }
         }
         
@@ -811,9 +813,28 @@ class colab_FolderToPartners extends core_Manager
         
         // След събмит ако всичко е наред създаваме потребител, лице и профил
         if ($form->isSubmitted()) {
+            
+            $force = true;
+            
+            // Ако регистрацията ще е към папка на лице
+            if($Class instanceof crm_Persons){
+                if(empty(crm_Profiles::fetch("#personId = {$objectId}"))){
+                    $personEmails = arr::make(type_Emails::toArray($contragentRec->email), true);
+                    if(in_array($form->rec->email, $personEmails)){
+                        
+                        // И потребителя е със същия имейл и име, то ще му се присвои въпросната папка като лична
+                        if(trim($contragentRec->name) == trim($form->rec->names)){
+                            $form->rec->personId = $objectId;
+                            $force = false;
+                            crm_Persons::forceGroup($objectId, 'users');
+                        }
+                    }
+                }
+            }
+            
             $uId = $Users->save($form->rec);
             
-            if($Class instanceof crm_Companies){
+            if ($Class instanceof crm_Companies) {
                 $personId = crm_Profiles::fetchField("#userId = {$uId}", 'personId');
                 $personRec = crm_Persons::fetch($personId);
                 
@@ -832,15 +853,21 @@ class colab_FolderToPartners extends core_Manager
             }
             
             $folderId = $Class->forceCoverAndFolder($objectId);
-            static::save((object) array('contractorId' => $uId, 'folderId' => $folderId));
+            if($force === true){
+                static::save((object) array('contractorId' => $uId, 'folderId' => $folderId));
+            }
             
             $Class->logInAct('Регистрация на нов партньор', $objectId);
-            vislog_History::add("Регистрация на нов партньор «{$form->rec->nick}» |в|* «{$companyName}»" );
+            vislog_History::add("Регистрация на нов партньор «{$form->rec->nick}» |в|* «{$contragentName}»");
             
             // Изтриваме линка, да не може друг да се регистрира с него
             core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => (int) $objectId, 'email' => $email, 'rand' => $rand, 'userNames' => $userNames, 'className' => $requestClassName), 604800);
             
-            return followRetUrl(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
+            if($fromEmail){
+                return new Redirect(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
+            } else {
+                return followRetUrl(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
+            }
         }
         
         $form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис');
@@ -859,6 +886,7 @@ class colab_FolderToPartners extends core_Manager
         core_Lg::pop();
         
         $Class->logInAct('Разглеждане на формата за регистрация на нов партньор', $objectId, 'read');
+        vislog_History::add("Разглеждане на форма за регистрация на нов партньор");
         
         return $tpl;
     }
@@ -911,5 +939,50 @@ class colab_FolderToPartners extends core_Manager
             
             core_Users::save($uRec, null, 'IGNORE');
         }
+    }
+    
+    
+    /**
+     * Линк за регистрация на нов партньор към контрагент
+     * 
+     * @param mixed $class
+     * @param int $objectId
+     * @param mixed $retUrl
+     * 
+     * @return string|array|string
+     */
+    public static function getRegisterUserUrlByCardNumber($class, $objectId, $retUrl = null)
+    {
+        $Class = cls::get($class);
+        expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
+        
+        $url = array('colab_FolderToPartners', 'Createnewcontractor', 'fromEmail' => true, 'companyId' => $objectId, 'className' => $Class->className, 'rand' => str::getRand());
+        if(isset($retUrl)){
+            $url['ret_url'] = $retUrl;
+        }
+        
+        if(core_Packs::isInstalled('eshop')){
+            if($cartId = eshop_Carts::force(null, null, false)){
+                $cartRec = eshop_Carts::fetch($cartId, 'personNames,email');
+                $url['userNames'] = $cartRec->personNames;
+                $url['email'] = $cartRec->email;
+            }
+        }
+            
+        if($Class instanceof crm_Persons){
+            $personRec = crm_Persons::fetch($objectId);
+            $url['userNames'] = $personRec->name;
+            
+            $emails = type_Emails::toArray($personRec->email);
+            if(array_key_exists(0, $emails)){
+                $url['email'] = $emails[0];
+            }
+        }
+        
+        Request::setProtected('companyId,rand,className,fromEmail,userNames,email');
+        $url = toUrl($url);
+        Request::removeProtected('companyId,rand,className,fromEmail,userNames,email');
+        
+        return $url;
     }
 }

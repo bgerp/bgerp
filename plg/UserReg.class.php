@@ -102,9 +102,9 @@ class plg_UserReg extends core_Plugin
             }
             
             if ($invoker->haveRightFor('registernewuserout')) {
-                $tpl->append("<p>&nbsp;<A HREF='" .
+                $tpl->append("<!--ET_BEGIN NEW_USER--><p>&nbsp;<a HREF='" .
                 toUrl(array($invoker, 'registerNewUser')) .
-                "'  {$className} rel='nofollow'>»&nbsp;" . tr('Нова регистрация||Create account') . '</A>', 'FORM');
+                "'  {$className} rel='nofollow'>»&nbsp;" . tr('Нова регистрация||Create account') . '</a><!--ET_END NEW_USER-->', 'FORM');
             }
         }
     }
@@ -202,12 +202,15 @@ class plg_UserReg extends core_Plugin
                         foreach ($nicks as $n) {
                             $htmlNicks .= ($htmlNicks ? ', ' : '') . "<B>{$n}</B>";
                         }
-                        $form->setError('nick', 'Вече има регистриран потребител с този ник. Изберете друг, например|*: ' . $htmlNicks);
+                        
+                        $loginLink = ht::createLink(tr('тук'), array('core_Users', 'login'));
+                        $form->setError('nick', 'Вече има регистриран потребител с този ник. Ако това сте Вие, може да се логнете от|* ' . $loginLink . '. |Изберете друг, например|*: ' . $htmlNicks);
                     }
                 } else {
                     // проверка дали имейлът не се повтаря
                     if ($mvc->fetch("#email = '{$rec->email}'")) {
-                        $form->setError('email', 'Вече има регистриран потребител с този имейл|*.');
+                        $loginLink = ht::createLink(tr('тук'), array('core_Users', 'login'));
+                        $form->setError('email', 'Вече има регистриран потребител с този имейл. Ако това сте Вие, може да се логнете от|* ' . $loginLink . '.');
                     }
                 }
                 

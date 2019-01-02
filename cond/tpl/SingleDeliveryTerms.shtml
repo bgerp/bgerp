@@ -2,6 +2,9 @@
     [#SingleToolbar#]
     <h2 style="line-height:30px" class=" [#STATE_CLASS#]"> |Условие на доставка|* <span style="color:green;">[#codeName#]</span></h2>
     <p>[#term#]</p>
+    <!--ET_BEGIN address-->
+    <b>|Свойства|*</b>: [#address#]
+    <!--ET_END address-->
     <!--ET_BEGIN costCalc-->
     <p><b>|Калкулатор|*:</b> [#costCalc#]</p>
     <!--ET_END costCalc-->

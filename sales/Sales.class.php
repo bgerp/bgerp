@@ -1502,14 +1502,14 @@ class sales_Sales extends deals_DealMaster
         while ($tRec = $tCostQuery->fetch()) {
             $dRec = sales_SalesDetails::fetch($tRec->recId, 'productId,quantity');
             if (!array_key_exists($dRec->productId, $res)) {
-                $costs[$dRec->productId] = new stdClass();
+                $res[$dRec->productId] = new stdClass();
             }
             
-            $costs[$dRec->productId]->fee += $tRec->fee;
-            $costs[$dRec->productId]->quantity += $dRec->quantity;
+            $res[$dRec->productId]->fee += $tRec->fee;
+            $res[$dRec->productId]->quantity += $dRec->quantity;
         }
         
-        return $costs;
+        return $res;
     }
     
     
@@ -1524,18 +1524,25 @@ class sales_Sales extends deals_DealMaster
      *
      * @return void
      */
-    public static function on_AfterInputSelectActionForm($mvc, &$form, $rec)
+    protected static function on_AfterInputSelectActionForm($mvc, &$form, $rec)
     {
         if ($form->isSubmitted()) {
             $action = type_Set::toArray($form->rec->action);
             if (isset($action['ship'])) {
+                
                 $dQuery = sales_SalesDetails::getQuery();
                 $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
                 $dQuery->where("#saleId = {$rec->id} AND #canStore = 'yes'");
                 $dQuery->show('productId,quantity');
-                
-                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->shipmentStoreId, $rec->state)) {
+                $details = $dQuery->fetchAll();
+                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($details, $rec->shipmentStoreId, $rec->state)) {
                     $form->setWarning('action', $warning);
+                }
+                
+                $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($details, 'productId'), 'canSell');
+                if($productCheck['metasError']){
+                    $warning1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
+                    $form->setError('action', $warning1);
                 }
             }
         }

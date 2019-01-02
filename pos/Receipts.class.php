@@ -500,7 +500,6 @@ class pos_Receipts extends core_Master
         $this->requireRightFor('terminal');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
-        $this->requireRightFor('terminal', $rec);
         
         // Имаме ли достъп до терминала
         if (!$this->haveRightFor('terminal', $rec)) {
@@ -917,11 +916,9 @@ class pos_Receipts extends core_Master
         $data->recs = $data->rows = array();
         
         $searchString = plg_Search::normalizeText($string);
-        
         foreach (array('person' => 'crm_Persons', 'company' => 'crm_Companies') as $type1 => $class) {
             if ($type1 === $type || !$type) {
                 $query = $class::getQuery();
-                
                 if ($type1 == 'company') {
                     $ownId = crm_Setup::BGERP_OWN_COMPANY_ID;
                     $query->where("#id != {$ownId}");
@@ -944,12 +941,15 @@ class pos_Receipts extends core_Master
                     $rec1->icon = cls::get($class)->singleIcon;
                     $data->recs["${type1}|{$rec1->id}"] = $rec1;
                 }
-                
-                if ($type1 == 'person') {
-                    if ($Contragent = pos_Cards::getContragent($searchString, crm_Persons::getClassId())) {
-                        $data->recs["{$type1}|{$Contragent->that}"] = $Contragent->rec();
-                    }
-                }
+            }
+        }
+        
+        // Ако има клиентска карта с този номер, то контрагента се показва винаги в резултата
+        if ($info = crm_ext_Cards::getInfo($searchString)) {
+            if(is_object($info['contragent'])){
+                $tp = ($info['contragent']->className == crm_Persons) ? 'person' : 'company';
+                $data->recs["{$tp}|{$info['contragent']->that}"] = $info['contragent']->rec();
+                $data->recs["{$tp}|{$info['contragent']->that}"]->class = $info['contragent']->className;
             }
         }
         
@@ -1423,7 +1423,7 @@ class pos_Receipts extends core_Master
         $pQuery->where("#canSell = 'yes' AND #state = 'active'");
         $pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
         $pQuery->where(array("#searchKeywords LIKE '%[#1#]%'", $data->searchString));
-        $pQuery->show('id,name,isPublic,code');
+        $pQuery->show('id,name,isPublic,nameInt,code');
         $pQuery->limit($this->maxSearchProducts);
         $sellable = $pQuery->fetchAll();
         if (!count($sellable)) {

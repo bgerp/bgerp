@@ -988,7 +988,7 @@ class price_ListRules extends core_Detail
             $pQuery->limit($limit);
         }
         
-        $pQuery->show('id,name,code,isPublic');
+        $pQuery->show('id,name,code,isPublic,nameInt');
         
         while ($pRec = $pQuery->fetch()) {
             $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);

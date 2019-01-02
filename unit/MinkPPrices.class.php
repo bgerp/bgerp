@@ -177,18 +177,20 @@ class unit_MinkPPrices extends core_Manager
         $browser->click('Всички');
         $browser->click('Други проекти');
         $browser->press('Справка');
-        $browser->setValue('driverClass', 'Продажби » Ценоразписи');
+        $browser->setValue('driverClass', 'Продажби » Ценоразпис');
         $browser->press('Refresh');   
         $browser->setValue('policyId', 'Ценова политика 2017');
         $browser->press('Запис');
         
-        
-        if (strpos($browser->gettext(), 'Труд час 18,48960')) {
+        //if (strpos($browser->gettext(), 'Труд час 18,48960')) {
+        if (strpos($browser->gettext(), '18,48960')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис 1', 'warning');
         }
-        if (strpos($browser->gettext(), 'Артикул ДДС 9 	бр.	11,66300')) {
+        
+        //if (strpos($browser->gettext(), 'Артикул ДДС 9 	бр.	11,66300')) {
+        if (strpos($browser->gettext(), '11,66300')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис 2', 'warning');
@@ -256,20 +258,20 @@ class unit_MinkPPrices extends core_Manager
         // Създаване на ценоразпис в папката на клиента
         $browser->press('Справка');
         
-        $browser->setValue('source', 'Ценоразписи');
+        $browser->setValue('source', 'Ценоразпис');
         $browser->press('Refresh');  
         //$browser->setValue('driverClass', 'Продажби » Ценоразписи');
         $browser->setValue('policyId', 'Ценова политика за Фирма с локация');
         $browser->press('Запис');
         
-        if (strpos($browser->gettext(), 'Плик 7 л бр. 0,66126')) {
+        if (strpos($browser->gettext(), '0,66126')) {	
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис 1', 'warning');
         }
         
         //Проверка за ДДС 9%
-        if (strpos($browser->gettext(), 'Артикул ДДС 9 бр. 12,01289')) {
+        if (strpos($browser->gettext(), '12,01289')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис 2', 'warning');

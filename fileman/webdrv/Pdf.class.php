@@ -113,7 +113,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         $tabsArr = parent::getTabs($fRec);
         
         if (self::canShowTab($fRec->fileHnd, 'barcodes')) {
-            $barcodeUrl = toUrl(array('fileman_webdrv_Pdf', 'barcodes', $fRec->fileHnd), true);
+            $barcodeUrl = toUrl(array('fileman_webdrv_Pdf', 'barcodes', $fRec->fileHnd));
             $tabsArr['barcodes'] = (object)
             array(
                 'title' => 'Баркодове',

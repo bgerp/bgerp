@@ -159,7 +159,6 @@ class acc_Setup extends core_ProtoSetup
     public $managers = array(
         'acc_Lists',
         'acc_Items',
-        
         'acc_Periods',
         'acc_Accounts',
         'acc_Limits',
@@ -179,6 +178,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_ValueCorrections',
         'acc_FeatureTitles',
         'acc_CostAllocations',
+        'migrate::updateFeatures'
     );
     
     
@@ -529,5 +529,54 @@ class acc_Setup extends core_ProtoSetup
         $options = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
         
         return $options;
+    }
+    
+    
+    /**
+     * Миграция на свойствата
+     */
+    function updateFeatures()
+    {
+        $FeatureTitles = cls::get('acc_FeatureTitles');
+        $FeatureTitles->setupMvc();
+        
+        $Features = cls::get('acc_Features');
+        $Features->setupMvc();
+        
+        if(!acc_Features::count()) return;
+        core_App::setTimeLimit(700);
+        
+        $titleToSave = array();
+        $tQuery = acc_FeatureTitles::getQuery();
+        $tQuery->where("LOCATE('||', #title)");
+        $tQuery->show('title');
+        while($tRec = $tQuery->fetch()){
+            $exploded = explode('||', $tRec->title);
+            if(count($exploded) == 2){
+                $tRec->title = $exploded[0];
+                $titleToSave[$tRec->id] = $tRec;
+            }
+        }
+        
+        $valuesToSave = array();
+        $fQuery = acc_Features::getQuery();
+        $fQuery->where("LOCATE('||', #value)");
+        $fQuery->show('value');
+        
+        while($fRec = $fQuery->fetch()){
+            $exploded = explode('||', $fRec->value);
+            if(count($exploded) == 2){
+                $fRec->value = $exploded[0];
+                $valuesToSave[$fRec->id] = $fRec;
+            }
+        }
+        
+        if(count($titleToSave)){
+            $FeatureTitles->saveArray($titleToSave, 'id,title');
+        }
+        
+        if(count($valuesToSave)){
+            $Features->saveArray($valuesToSave, 'id,value');
+        }
     }
 }

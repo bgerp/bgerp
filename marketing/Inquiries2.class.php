@@ -929,8 +929,9 @@ class marketing_Inquiries2 extends embed_Manager
                 $rec->brid = log_Browsers::getBrid();
                 
                 // Винаги се рутира към правилната папка
+                $domainId = cms_Domains::getPublicDomain()->id;
                 $routerExplanation = null;
-                $rec->folderId = marketing_InquiryRouter::route($rec->company, $rec->personNames, $rec->email, $rec->tel, $rec->country, $rec->pCode, $rec->place, $rec->address, $rec->brid, null, null, $routerExplanation);
+                $rec->folderId = marketing_InquiryRouter::route($rec->company, $rec->personNames, $rec->email, $rec->tel, $rec->country, $rec->pCode, $rec->place, $rec->address, $rec->brid, null, null, $routerExplanation, $domainId);
                 
                 // Запис и редирект
                 if ($this->haveRightFor('new')) {
@@ -1101,7 +1102,7 @@ class marketing_Inquiries2 extends embed_Manager
         if ($cu && !haveRole('powerUser')) {
             $personId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
             $personRec = crm_Persons::fetch($personId);
-            $inCharge = marketing_Router::getInChargeUser($form->rec->place, $form->rec->country);
+            $inCharge = marketing_Router::getInChargeUser($form->rec->place, $form->rec->country, cms_Domains::getPublicDomain()->id);
             
             // Ако лицето е обвързано с фирма, документа отива в нейната папка
             if ($personCompanyId = $personRec->buzCompanyId) {

@@ -269,22 +269,14 @@ class cms_Articles extends core_Master
             
             $lArr = explode('.', self::getVerbal($rec, 'level'));
             
-            $content = new ET('[#1#]', $desc = self::getVerbal($rec, 'body'));
-            
-            
-            // Подготвяме информаията за ографа на статията
-            $ogp = $this->prepareOgraph($rec);
+            $content = new ET('[#1#]', self::getVerbal($rec, 'body'));
         }
         
         // Задава текущото меню, съответстващо на страницата
         if ($menuId) {
             cms_Content::setCurrent($menuId);
         }
-        
-        
-        Mode::set('SOC_TITLE', $ogp->siteInfo['Title']);
-        Mode::set('SOC_SUMMARY', $ogp->siteInfo['Description']);
-        
+                
         if (!$content) {
             $content = new ET();
         }
@@ -348,7 +340,7 @@ class cms_Articles extends core_Master
                 
                 $lArr = explode('.', self::getVerbal($rec, 'level'));
                 
-                $content = new ET('[#1#]', $desc = self::getVerbal($rec, 'body'));
+                $content = new ET('[#1#]', self::getVerbal($rec, 'body'));
                 
                 $ptitle = self::getVerbal($rec, 'title') . ' » ';
                 
@@ -400,31 +392,15 @@ class cms_Articles extends core_Master
                 'ret_url' => array('cms_Articles', 'Article', 'menuId' => $menuId)));
         }
         
+        // Подготвяме SEO елементите
+        cms_Content::prepareSeo($rec, array('seoDescription' => $rec->body, 'seoTitle' => $rec->title));
+
         if ($cnt + Mode::is('screenMode', 'wide') > 1) {
             $content->append($this->renderNavigation($navData), 'NAVIGATION');
         }
-        
-        expect($rec);
-        
-        // SEO
-        if (is_object($rec) && !$rec->seoTitle) {
-            $rec->seoTitle = self::getVerbal($rec, 'title');
-        }
-        
-        if (is_object($rec) && !$rec->seoDescription) {
-            $rec->seoDescription = ht::escapeAttr(str::truncate(ht::extractText($desc), 200, false));
-        }
-        
+                
         // Задаване на SEO елементите
-        cms_Content::setSeo($content, $rec);
-        
-        
-        if ($ogp) {
-            // Генерираме ограф мета таговете
-            $ogpHtml = ograph_Factory::generateOgraph($ogp);
-            $content->append($ogpHtml);
-        }
-        
+        cms_Content::renderSeo($content, $rec);
         
         if ($rec && $rec->id) {
             if (core_Packs::fetch("#name = 'vislog'")) {
@@ -504,50 +480,6 @@ class cms_Articles extends core_Master
         }
         
         return $navTpl;
-    }
-    
-    
-    /**
-     * Подготвя Информацията за генериране на Ографа
-     *
-     * @param stdClass $rec
-     *
-     * @return stdClass $ogp
-     */
-    public function prepareOgraph($rec)
-    {
-        $ogp = new stdClass();
-        $conf = core_Packs::getConfig('cms');
-        
-        // Добавяме изображението за ографа ако то е дефинирано от потребителя
-        if ($conf->CMS_OGRAPH_IMAGE != '') {
-            $file = fileman_Files::fetchByFh($conf->CMS_OGRAPH_IMAGE);
-            $type = fileman_Files::getExt($file->name);
-            
-            $img = new thumb_Img(array($file->fileHnd, 200, 200, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
-            $imageURL = $img->getUrl('forced');
-            
-            $ogp->imageInfo = array('url' => $imageURL,
-                'type' => "image/{$type}",
-            );
-        }
-        
-        $richText = cls::get('type_Richtext');
-        $desc = ht::extractText($richText->toHtml($rec->body));
-        
-        // Ако преглеждаме единична статия зареждаме и нейния Ograph
-        $ogp->siteInfo = array('Locale' => 'bg_BG',
-            'SiteName' => $_SERVER['HTTP_HOST'],
-            'Title' => self::getVerbal($rec, 'title'),
-            'Description' => $desc,
-            'Type' => 'article',
-            'Url' => toUrl(self::getUrl($rec, true), 'absolute'),
-            'Determiner' => 'the',);
-        
-        // Създаваме Open Graph Article  обект
-        $ogp->recInfo = array('published' => $rec->createdOn);
-        
-        return $ogp;
     }
     
     
@@ -917,7 +849,7 @@ class cms_Articles extends core_Master
         // Всички активни статии към домейна с информация за добавяне във футъра
         $query = self::getQuery();
         $query->EXT('domainId', 'cms_Content', 'externalName=domainId,externalKey=menuId');
-        $query->where("#domainId = {$domainId} AND #state = 'active'");
+        $query->where("#domainId = '{$domainId}' AND #state = 'active'");
         $query->where("#footerTitleLink IS NOT NULL AND #footerTitleLink != ''");
         $query->orderBy('id', 'ASC');
         

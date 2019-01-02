@@ -3122,13 +3122,20 @@ function render_google(){
  */
 function efae() {
     var efaeInst = this;
-
+    
+    // Флак за спиране на заявките
+    Experta.prototype.preventRequest = 0;
+    
     // Добавяме ивенти за ресетване при действие
     getEO().addEvent(document, 'mousemove', function() {
-        efaeInst.resetTimeout()
+    	efaeInst.resetTimeout()
     });
     getEO().addEvent(document, 'keypress', function() {
         efaeInst.resetTimeout()
+    });
+    
+    getEO().addEvent(window, 'beforeunload', function() {
+		efaeInst.preventRequest = 5;
     });
     
     getEO().addEvent(document, 'beforeunload', function() {
@@ -3187,9 +3194,6 @@ function efae() {
     // Флаг, който указва дали все още се чака резултат от предишна AJAX заявка
     Experta.prototype.isWaitingResponse = false;
     
-    // Флак за спиране на заявките
-    Experta.prototype.preventRequest = 0;
-	
     // Флаг, който указва колко време да не може да се прави AJAX заявки по часовник
     efae.prototype.waitPeriodicAjaxCall = 0;
 }
@@ -3368,10 +3372,9 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
             data: dataObj,
             dataType: 'json'
         }).done(function(res) {
-            
             // Ако са спрени заявките - нищо не правим
-            if (this.preventRequest > 0) {
-                this.preventRequest--;
+            if (thisEfaeInst.preventRequest > 0) {
+            	thisEfaeInst.preventRequest--;
                 return;
             }
 
@@ -5082,9 +5085,9 @@ function mailServerSettings() {
 		    	server.value = "pop3.abv.bg:995";
 			    protocol.value = "pop3";
 			    security.value = "ssl";
-			    cert.value = "validate";
+			    cert.value = "noValidate";
 			    smtpServer.value = "smtp.abv.bg:465";
-			    smtpSecure.value = "tls";
+			    smtpSecure.value = "ssl";
 			    smtpAuth.value = "LOGIN";
 			    user.value = email.value;
 			    smtpUser.value = email.value;

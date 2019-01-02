@@ -69,6 +69,12 @@ class tcost_Setup extends core_ProtoSetup
     
     
     /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'tcost_reports_ComparisonOfTransportCosts';
+    
+    
+    /**
      * Роли за достъп до модула
      */
     public $roles = 'tcost';

@@ -30,7 +30,7 @@ class core_Type extends core_BaseClass
      *
      * @var array
      */
-    public $options;
+   // public $options;
     
     
     /**

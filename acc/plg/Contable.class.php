@@ -465,7 +465,7 @@ class acc_plg_Contable extends core_Plugin
             $handle = $mvc->getHandle($rec->id);
             $cRes = 'НЕ Е контиран';
             status_Messages::newStatus("#{$handle} |" . $cRes);
-        } elseif($rec->brState != 'rejected') {
+        } elseif ($rec->state == 'active' && $rec->_reconto !== true) {
             $mvc->logWrite('Контиране на документ', $id);
         }
         
@@ -540,13 +540,11 @@ class acc_plg_Contable extends core_Plugin
     public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        
         if ($rec->state == 'active' || $rec->state == 'closed') {
-            $rec = $mvc->fetchRec($id);
-            
             try {
                 // Ре-контиране на документа след възстановяването му
-                $mvc->reConto($id);
+                $rec->_reconto = true;
+                $mvc->reConto($rec);
             } catch (acc_journal_RejectRedirect $e) {
                 $mvc->reject($rec);
                 

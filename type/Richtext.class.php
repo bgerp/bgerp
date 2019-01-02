@@ -610,7 +610,7 @@ class type_Richtext extends type_Blob
     /**
      *
      *
-     * @param unknown_type $html
+     * @param string $html
      */
     public function replaceTags($html)
     {
@@ -981,7 +981,7 @@ class type_Richtext extends type_Blob
         // Ако нямаме схема на URL-то
         if (!preg_match("/^[a-z0-9]{0,12}\:\/\//i", $url)) {
             if ($url{0} == '/') {
-                $httpBoot = getBoot(true, false, true);                
+                $httpBoot = getBoot(true, false, true);
                 $url = $httpBoot . $url;
             } else {
                 $url = "http://{$url}";
@@ -1547,7 +1547,7 @@ class type_Richtext extends type_Blob
     /**
      * Парсира вътрешното URL
      *
-     * @param URL $res - Вътрешното URL, което ще парсираме
+     * @param string $res - Вътрешното URL, което ще парсираме
      *
      * @return array $params - Масив с парсираното URL
      */

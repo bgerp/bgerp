@@ -324,7 +324,7 @@ abstract class deals_DealBase extends core_Master
         
         // Подготовка на формата за избор на опция
         $form = cls::get('core_Form');
-        $form->title = '|Активиране на|* <b>' . $this->getTitleById($id). '</b>' . ' ?';
+        $form->title = '|Активиране на|* <b>' . $this->getFormTitleLink($id). '</b>' . ' ?';
         $form->info = 'Посочете кои сделки желаете да обедините с тази сделка';
         $form->FLD('closeWith', "keylist(mvc={$this->className})", 'caption=Приключи и,column=1,mandatory');
         $form->setSuggestions('closeWith', $options);
@@ -617,7 +617,7 @@ abstract class deals_DealBase extends core_Master
         
         if (count($productIds)) {
             foreach ($productIds as $productId) {
-                $pRec = cat_Products::fetch($productId, 'measureId,isPublic,code,name,canStore');
+                $pRec = cat_Products::fetch($productId, 'measureId,isPublic,nameInt,code,name,canStore');
                 $expRec = (object) array('code' => ($pRec->code) ? $pRec->code : "Art{$productId}",
                     'productId' => $productId,
                     'measureId' => $pRec->measureId,

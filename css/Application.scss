@@ -3364,7 +3364,16 @@ fieldset.sharing-history {
 .eshop-product>table {
    width:100%;
 }
-
+.subgroups {
+	.eshop-group-button {
+		margin-right: 1%;
+		margin-left: 1%;
+		width: 48%;
+		.eshop-group-button-title a {
+			color: #444;
+		}
+	}
+}
 .optionsTable {
 	color: #222;
 	min-width: 320px;
@@ -3506,13 +3515,20 @@ fieldset.sharing-history {
 }
 
 .textInfo {
-	padding-top: 20px;
+	margin-top: 10px;
+	display: inline-block;
 	line-height: 1.5em;
-	text-align: right;
 	color: #222;
 	font-size: 0.9em;
 	.richtext-holder .richtext {
 		color: #222 !important;
+	}
+	div.attention {
+		font-weight: bold;
+		margin-top: 15px;
+	}
+	div {
+		margin-top: 5px;
 	}
 }
 .narrow .textInfo {
@@ -3575,6 +3591,10 @@ fieldset.sharing-history {
 			border-color: red;
 		}
 	}
+}
+
+.end-price {
+	font-weight: bold;
 }
 
 .narrow .quantity-input-column input {
@@ -3900,10 +3920,15 @@ table .eshop-btn {
 }
 
 #cmsNavigation .level3 {
-	margin-top: 1px;
-	margin-bottom: 2px;
-	font-size: 14px;
 	margin-left: 20px;
+}
+
+#cmsNavigation .level4 {
+	margin-left: 40px;
+}
+
+#cmsNavigation .level5 {
+	margin-left: 60px;
 }
 
 #cmsNavigation div.nav_item {
@@ -5408,6 +5433,17 @@ div.location.public {
 		display: table-cell;
 	}
 }
+.info-block {
+	border: 1px solid #38d0ff;
+	background: #c6f1ff;
+	color: #00526b;
+	border-radius: 5px;
+	padding: 5px;
+}
+
+.narrow .cart-view-buttons-right {
+	margin-top: 10px;
+}
 
 .epayBtn {
 	border: none;
@@ -6472,6 +6508,17 @@ row-fluid {
 		page-break-after: always;
 		max-height: 267mm !important;
 	}
+	.belejka_container .belejka div.line div.text {
+		font-family: "Courier New";
+		font-size: 20px;
+		letter-spacing: 0 !important;
+	}
+	.belejka_container .small_text_top_left, .belejka_container  .label_mid {
+		font-size: 13px !important;
+		color: #333 !important;
+		font-family: Verdana !important;
+	}
+
 }
 
 .printing {

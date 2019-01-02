@@ -42,7 +42,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $tabsArr = parent::getTabs($fRec);
         
         // URL за показване на преглед на файловете
-        $previewUrl = toUrl(array('fileman_webdrv_Office', 'preview', $fRec->fileHnd), true);
+        $previewUrl = toUrl(array('fileman_webdrv_Office', 'preview', $fRec->fileHnd));
         
         // Таб за преглед
         $tabsArr['preview'] = (object)
@@ -53,7 +53,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             );
         
         // URL за показване на текстовата част на файловете
-        $textPart = toUrl(array('fileman_webdrv_Office', 'text', $fRec->fileHnd), true);
+        $textPart = toUrl(array('fileman_webdrv_Office', 'text', $fRec->fileHnd));
         
         if (self::canShowTab($fRec->fileHnd, 'text') || self::canShowTab($fRec->fileHnd, 'textOcr', true, true)) {
             // Таб за текстовата част
@@ -69,7 +69,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             $content = fileman_Indexes::getInfoContentByFh($fRec->fileHnd, 'html');
             
             if (($content === false) || (is_object($content) && $content->errorProc)) {
-                $htmlUrl = toUrl(array('fileman_webdrv_Office', 'html', $fRec->fileHnd), true);
+                $htmlUrl = toUrl(array('fileman_webdrv_Office', 'html', $fRec->fileHnd));
                 
                 // Таб за информация
                 $tabsArr['html'] = (object)

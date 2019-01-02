@@ -62,6 +62,15 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
             'entries' => $entries,
         );
         
+        if (Mode::get('saveTransaction')) {
+            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), 'canBuy');
+            if(count($productCheck['notActive'])){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
+            } elseif($productCheck['metasError']){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са купуваеми|*!");
+            }
+        }
+        
         return $transaction;
     }
     

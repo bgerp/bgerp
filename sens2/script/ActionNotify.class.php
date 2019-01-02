@@ -95,15 +95,17 @@ class sens2_script_ActionNotify
             }
         }
         
-        // Проверяваме дали е удобно да се пращат SMS-и по това време
-        
+        // Заменяме променливите от контекста
+        $context = sens2_Scripts::getContext($rec->scriptId);
+        $message = strtr($rec->message, $context);
+
         // Задаваме го на изхода
         $userList = keylist::toArray($rec->users);
-        
+        core_Users::sudo(core_Users::SYSTEM_USER);
         foreach ($userList as $userId) {
-            $res = bgerp_Notifications::add($rec->message, array('sens2_Scripts', 'Single', $rec->scriptId), $userId, $rec->priority);
+            $res = bgerp_Notifications::add($message, array('sens2_Scripts', 'Single', $rec->scriptId, 'order' => $rec->order), $userId, $rec->priority);  
         }
-        
+        core_Users::exitSudo(core_Users::SYSTEM_USER);
         
         if ($res !== false) {
             

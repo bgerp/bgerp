@@ -25,6 +25,7 @@ class drdata_Address extends core_MVC
     public static $titles;
     public static $noStart;
     
+    public static $countryCode = 359;
     
     /**
      * Конвертира дадения текст към масив от не-празни, тримнати линии
@@ -52,7 +53,7 @@ class drdata_Address extends core_MVC
      */
     public static function lineToWords($line)
     {
-        $line = str_replace(array('|', ',', '-'), array(' ', ' ', ' '), $line);
+        $line = str_replace(array('|', ',', '-', '/', '\\'), array(' ', ' ', ' ', ' ', ' '), $line);
         $line = str_replace(array(',', '(', ')'), array(', ', ' (', ') '), $line);
         
         $words = explode(' ', $line);
@@ -126,7 +127,7 @@ class drdata_Address extends core_MVC
                 continue;
             }
             
-            $res = $Phones->parseTel($tel, '359');
+            $res = $Phones->parseTel($tel, self::$countryCode);
             
             
             foreach ($res as $telInfo) {
@@ -402,6 +403,83 @@ class drdata_Address extends core_MVC
      */
     public function extractContact($text, $assumed = array(), $avoid = array())
     {
+        // Опитваме се да намерим държавата на изпращача
+        // Подготваме данни за държавите
+        if(!($cData = core_Cache::get('drdata', 'cData'))) {
+            $query = drdata_Countries::getQuery();
+            while($rec = $query->fetch("#type = 'Independent State'")) {
+                $cData->domains[trim($rec->domain, '.')] = $rec->id;
+                $lgArr = explode(',', $rec->languages);
+                foreach($lgArr as $lg) {
+                    $cData->languages[$lg][] = $rec->id;
+                }
+                if(drdata_Countries::isEu($rec->id)) {
+                    $cData->isEU[$rec->id] = true;
+                }
+                $cData->names[$rec->commonName] = $rec->id;
+                $cData->telCodes[$rec->telCode] = $rec->id;
+            }
+            core_Cache::set('drdata', 'cData', $cData, 10000);
+        }
+
+        $res = array();
+
+        // Ако писмото не е на английски - търсим суверенните държави, които говорят този език и разпределяме 100% върху тях
+        if($assumed['lg'] != 'en' && $assumed['lg']) {
+            $cbLang = $cData->languages[$assumed['lg']];
+            if(is_array($cbLang)) {
+                foreach($cbLang as $cId) {
+                    if($cData->isEU[$cId]) {
+                        $res[$cId] += 30;
+                    } else {
+                        $res[$cId] += 50;
+                    }
+                }
+            }
+        }
+
+        // Ако IP-то не е US - даваме 50% на държавата, от която е ИП-то
+        if($assumed['country']) {
+            $ipCountryRec = drdata_Countries::fetch($assumed['country']);
+            if($ipCountryRec->letterCode2 != 'US') {
+                $res[$assumed['country']] += 50;
+            }
+        }
+
+        // Ако имейлът е с национален TLD - даваме 50 точки на държавата от където е
+        if($assumed['email']) {
+            $tld = fileman_Files::getExt($assumed['email']);
+            if($cId = $cData->domains[$tld]) {
+                $res[$cId] += 50;
+            }
+        }
+
+        // Проверяваме имената на европейските държави без България дали се съдържат в писмото. Ако се съдържа + 50 точки
+        foreach($cData->names as $name => $cid) {
+            if($cid == 26) continue;
+            if(stripos($text, $name) !== false) {
+                $res[$cid] += 20;
+            }
+        }
+
+        // Проверяваме телефонните кодове дали се съдържат
+        foreach($cData->telCodes as $code => $cid) {
+            if($cid == 26) continue;
+            if(stripos($text, "+ {$code}") !== false || stripos($text, "+{$code}") !== false || stripos($text, "00{$code}") !== false) {
+                $res[$cid] += 10;
+            }
+        }
+ 
+        arsort($res);
+        
+        if(count($res)) {
+            $countryId = key($res);  
+            $countryRec = drdata_Countries::fetch($countryId);  
+            self::$countryCode = $countryRec->telCode;
+        }
+
+        // Вземаме държавата с най-много точки
+
         // Добавяме стринговете, които се избягват в адреса от конфигурационните данни
         $conf = core_Packs::getConfig('drdata');
         if ($avoidLines = $conf->DRDATA_AVOID_IN_EXT_ADDRESS) {
@@ -577,9 +655,10 @@ class drdata_Address extends core_MVC
                     if (preg_match('/[a-zA-Z]{2,15}(ov|ova|ev|eva)$/', $w)) {
                         $nameCnt += $strlen > 6 ? 0.6 : 0.4;
                     }
-                    
-                    if (preg_match('/(zdravey|zdraveyte|dear|hi|uvazhaemi|hello)$/', $w)) {
-                        --$nameCnt;
+                    $sss[] = $w;
+                    if (preg_match('/(zdravey|zdraveyte|dear|hi|uvazhaemi|hello|regards)$/', $w)) {
+                        --$nameCnt; 
+                        --$companyCnt;
                     }
                     
                     if (strpos($addresses, "|${w}|")) {
@@ -699,7 +778,8 @@ class drdata_Address extends core_MVC
                 }
             }
         }
-        
+      
+ 
         // Отделяме блоковете с данни
         $blocks = array();
         $i = 1;
@@ -771,6 +851,7 @@ class drdata_Address extends core_MVC
             }
         }
         
+      
         
         $points = array(
             'company' => 10,
@@ -819,7 +900,7 @@ class drdata_Address extends core_MVC
                 $res->address = $maxBlock['address'][0];
             }
             if (is_array($maxBlock['country']) && count($maxBlock['country'])) {
-                $res->country = $maxBlock['country'][0];
+                $res->country = $maxBlock['country'][0]; 
             }
             if (is_array($maxBlock['pCode']) && count($maxBlock['pCode'])) {
                 $res->pCode = $maxBlock['pCode'][0];
@@ -836,6 +917,11 @@ class drdata_Address extends core_MVC
             if (is_array($maxBlock['mob']) && count($maxBlock['mob'])) {
                 $res->mob = implode(', ', $maxBlock['mob']);
             }
+        }
+        
+        if($countryRec) {
+            $res->country = $countryRec->commonName;
+            $res->countryId = $countryRec->id;
         }
         
         return $res;

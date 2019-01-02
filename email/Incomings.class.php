@@ -267,10 +267,10 @@ class email_Incomings extends core_Master
         
         while (($accRec = $accQuery->fetch("#state = 'active'")) && ($deadline > time())) {
             if (Request::get('forced') != 'yes' && $time > 0) {
-                if (!$period) {
-                    $period = 60;
+                if (!$accRec->fetchingPeriod) {
+                    $accRec->fetchingPeriod = 60;
                 }
-                $period = round($accRec->period / 30) * 30;
+                $period = round($accRec->fetchingPeriod / 30) * 30;
                 if ($period > 0 && ($time % $period) > 0) {
                     continue;
                 }
@@ -2374,8 +2374,8 @@ class email_Incomings extends core_Master
         $footer = email_Outgoings::getFooter();
         
         $avoid = array('html') + array_filter(explode("\n", str_replace(array('Тел.:', 'Факс:', 'Tel.:', 'Fax:'), array('', '', '', ''), trim($footer))));
-        
-        $contragentData = $addrParse->extractContact($textPart, array('email' => $msg->fromEml), $avoid);
+ 
+        $contragentData = $addrParse->extractContact($textPart, array('email' => $msg->fromEml, 'lg' => $msg->lg, 'country' => $msg->country), $avoid);
         
         $headersArr = array();
         
@@ -2426,7 +2426,9 @@ class email_Incomings extends core_Master
         $contragentData->email = email_Mime::getAllEmailsFromStr($msg->fromEml);
         
         // Държавата
-        $contragentData->countryId = $msg->country;
+        if(!$contragentData->countryId) {
+            $contragentData->countryId = $msg->country;
+        }
         
         // Името на класа
         $coverClass = strtolower(doc_Folders::fetchCoverClassName($msg->folderId));
@@ -2837,8 +2839,12 @@ class email_Incomings extends core_Master
     
     /**
      * Връща иконата на документа
+     * 
+     * @param int|null $id
+     * 
+     * @return string|null
      */
-    public function getIcon_($id)
+    public function getIcon_($id = null)
     {
         $rec = self::fetch($id);
         

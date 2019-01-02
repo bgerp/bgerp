@@ -404,7 +404,7 @@ class planning_ProductionTaskDetails extends core_Detail
             $row->ROW_ATTR['title'] = tr('Оттеглено от') . ' ' . core_Users::getVerbal($rec->modifiedBy, 'nick');
         }
         
-        $pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,name');
+        $pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,nameInt,name');
         $code = cat_Products::getVerbal($pRec, 'code');
         $code = ht::createHint($code, cat_Products::getVerbal($pRec, 'name'), 'notice', false);
         $row->productId = ht::createLinkRef($code, cat_Products::getSingleUrlArray($rec->productId));
