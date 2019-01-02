@@ -394,12 +394,15 @@ class blogm_Articles extends core_Master
         // Подготвяме лейаута за статията
         $layout = $this->getArticleLayout($data);
         
+        // Подготвяме SEO данните
+        $rec = clone($data->rec);
+        cms_Content::prepareSeo($rec, array('seoTitle' => $rec->title, 'seoDescription' => $rec->body));
+
         // Рендираме статията във вид за публично разглеждане
         $tpl = $this->renderArticle($data, $layout);
         
-        $rec = clone($data->rec);
-        
-        cms_Content::setSeo($tpl, $rec, array('seoTitle' => $rec->title, 'seoDescription' => $rec->body));
+        // Рендираме SEO данните
+        cms_Content::renderSeo($tpl, $rec);
         
         // Записваме, че потребителя е разглеждал тази статия
         $this->logRead('Разгледана статия', $id);
@@ -551,15 +554,18 @@ class blogm_Articles extends core_Master
         // Подготвяме данните необходими за списъка със стаии
         $this->prepareBrowse($data);
         
+        // Подготвяме seo параметрите
+        $rec = new stdClass();
+        cms_Content::prepareSeo($rec, array('seoTitle' => $data->title));
+
         // Рендираме списъка
         $tpl = $this->renderBrowse($data);
         
         // Добавяме стиловете от темата
         $tpl->push($data->ThemeClass->getStyles(), 'CSS');
         
-        // SEO
-        $rec = new stdClass();
-        cms_Content::setSeo($tpl, $rec, array('seoTitle' => $data->title));
+        // Задаваме SEO параметрите
+        cms_Content::renderSeo($tpl, $rec);
         
         if (core_Packs::fetch("#name = 'vislog'")) {
             vislog_History::add($data->title ? str_replace('&nbsp;', ' ', strip_tags($data->title)) : tr('БЛОГ'));

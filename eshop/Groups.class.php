@@ -255,12 +255,14 @@ class eshop_Groups extends core_Master
             $this->prepareNavigation($data);
             $this->prepareAllGroups($data);
             $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
+            
+            $seoRec = new stdClass();
             $cRec = cms_Content::fetch($data->menuId);
+            $seoRec->seoTitle = $cRec->title;
+            cms_Content::prepareSeo($seoRec);
             $layout->append('<h1>' . type_Varchar::escape($cRec->title) . '</h1>', 'PAGE_CONTENT');
             $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
-            $seoRec = new stdClass();
-            $seoRec->seoTitle = $cRec->title;
-            cms_Content::setSeo($layout, $seoRec);
+            cms_Content::renderSeo($layout, $seoRec);
         } else {
             eshop_Products::prepareAllProducts($data);
             $layout->append(eshop_Products::renderAllProducts($data), 'PAGE_CONTENT');
@@ -458,16 +460,16 @@ class eshop_Groups extends core_Master
             $groupTpl->append(self::renderAllGroups($data), 'PRODUCTS');
             $groupTpl->append('</div>', 'PRODUCTS');
         }
-        
-        $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');
-        
-        if (!$data->rec->seoTitle) {
-            $data->rec->seoTitle = $data->rec->name;
-        }
-        
+
         $rec = $data->rec;
-        
-        cms_Content::setSeo($groupTpl, $rec, array('seoTitle' => $rec->name, 'seoDescription' => $rec->info, 'seoThumb' => $rec->image ? $rec->image : $rec->icon));
+
+        // Подготвяме данните за SEO
+        cms_Content::prepareSeo($rec, array('seoTitle' => $rec->name, 'seoDescription' => $rec->info, 'seoThumb' => $rec->image ? $rec->image : $rec->icon));
+       
+        $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');
+                
+        // Рендираме данните за seo
+        cms_Content::renderSeo($groupTpl, $rec);
         
         return $groupTpl;
     }

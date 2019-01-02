@@ -79,7 +79,7 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        //$data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
+        $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
     }
     
     /**
@@ -97,6 +97,32 @@ class docarch_Archives extends core_Master
        return $minDefType;
     }
     
+    /**
+     * Взема името на типа на архива
+     *
+     * @param string $type -ключа на името на типа
+     * @return string
+     */
+    public static function getArchiveTypeName($type)
+    {
+        
+        switch ($type){
+            
+            case 'folder':$typeName = 'Папка'; break;
+            
+            case 'box':$typeName = 'Кутия'; break;
+            
+            case 'case':$typeName = 'Кашон'; break;
+            
+            case 'pallet':$typeName = 'Палет'; break;
+            
+            case 'warehouse':$typeName = 'Склад'; break;
+            
+        }
+        
+        return $typeName;
+    }
+    
     
     /**
      * @return string
@@ -107,6 +133,7 @@ class docarch_Archives extends core_Master
          * Установява необходима роля за да се стартира екшъна
          */
         requireRole('admin');
+        
         
         return 'Action';
     }

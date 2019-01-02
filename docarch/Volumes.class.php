@@ -19,15 +19,17 @@ class docarch_Volumes extends core_Master
     
     public $loadList = 'plg_Created, plg_RowTools2,plg_Modified';
     
+    public $types = '';
+    
     public $listFields = 'number,type,inCharge,archive,createdOn=Създаден,modifiedOn=Модифициране';
     
     protected function description()
     {
         //Определя в кой архив се съхранява конкретния том
-        $this->FLD('archive', 'key(mvc=docarch_Archives,allowEmpty)', 'caption=В архив');
+        $this->FLD('archive', 'key(mvc=docarch_Archives,allowEmpty)', 'caption=В архив,placeholder=Всички,refreshForm,silent');
         
         //В какъв тип контейнер/том от избрания архив се съхранява документа
-        $this->FLD('type', 'enum(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)', 'caption=Тип');
+        $this->FLD('type', "enum(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)", 'caption=Тип');
         
         //Това е номера на дадения вид том в дадения архив
         $this->FLD('number', 'int', 'caption=Номер,smartCenter');
@@ -39,8 +41,8 @@ class docarch_Volumes extends core_Master
         $this->FLD('isForDocuments', 'enum(yes,no)', 'caption=Съдържа ли документи,input=none');
         
         //Показва в кой по-голям том/контейнер е включен
-        $this->FLD('includeIn', 'key(mvc=docarch_Volumes)', 'caption=По-големия том,input=hidden');
-        $this->FLD('position', 'varchar(32)', 'caption=Позиция в по-големия том,input=hidden');
+        $this->FLD('includeIn', 'key(mvc=docarch_Volumes)', 'caption=По-големия том,input=none');
+        $this->FLD('position', 'varchar(32)', 'caption=Позиция в по-големия том,input=none');
         
         //Състояние
         $this->FLD('state', 'enum(active=Активен,rejected=Изтрит,closed=Приключен)', 'caption=Статус,input=none,notSorting');
@@ -63,15 +65,14 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
+        $data->toolbar->addBtn('Бутон', array('docarch_Movements', 'Add'));
     }
     
     
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param frame2_driver_Proto $Driver
-     *                                      $Driver
+     * 
      * @param embed_Manager       $Embedder
      * @param stdClass            $data
      */
@@ -89,12 +90,31 @@ class docarch_Volumes extends core_Master
             $form->setReadOnly('number');
             
             
-        } 
+        }else{
+            
+            
+             if ($form->cmd == 'refresh' && $rec->archive) {
+                 
+                  $typesArr= arr::make(docarch_Archives::fetch($rec->archive)->volType,true);
+               
+                  foreach ($typesArr as $key => $v){
+                      $volName = self::getVolumeTypeName($v);
+                      $types .=$key.'='.$volName.','; 
+                  }
+                  
+                  $types = (trim($types,',')); 
+                  $form->setFieldType('type',"enum($types)");
+              }
+              
+              
+            $form->setDefault('state', 'active');
+            
+        }
         
     }
     
     
-    /**$form->rec->number = self::getNextNumber($archive,$type );
+    /**
      * След рендиране на единичния изглед
      *
      * @param cat_ProductDriver $Driver
@@ -105,15 +125,21 @@ class docarch_Volumes extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) { 
-            
+           
             $type = $form->rec->type;
+            if (is_null($form->rec->archive)) {
+                $form->rec->archive = 0;
+            }
             $archive = $form->rec->archive;
             
             if (is_null($form->rec->number)) {
-              $form->rec->number = self::getNextNumber($archive,$type );
+              $form->rec->number = $mvc->getNextNumber($archive,$type );
             }
-            
            
+        }else{
+           
+            
+            
         }
     }
     
@@ -128,11 +154,11 @@ class docarch_Volumes extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-       
-        if($rec->type == docarch_Archives::minDefType($rec->archive)){
-            $rec->isForDocuments = 'yes';
+        
+        if($rec->type != docarch_Archives::minDefType($rec->archive) || $rec->archive == 0){
+            $rec->isForDocuments = 'no';
         }else{
-                $rec->isForDocuments = 'no';
+                $rec->isForDocuments = 'yes';
              }
              
     }
@@ -180,8 +206,7 @@ class docarch_Volumes extends core_Master
          */
         requireRole('admin');
         
-        $a = (docarch_Volumes::fetchField(9,'type'));
-        $b='pallet';
+        docarch_Movements::Add();
         
         return 'action';
     }
@@ -205,6 +230,17 @@ class docarch_Volumes extends core_Master
         ++$number;
         
         return $number;
+    }
+    
+    /**
+     * Взема името на типа на тома
+     *
+     * @param string $type -ключа на името на типа
+     * @return string
+     */
+    public static function getVolumeTypeName($type)
+    {
+        return docarch_Archives::getArchiveTypeName($type);
     }
     
 }

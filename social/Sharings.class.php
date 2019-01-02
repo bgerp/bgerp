@@ -90,7 +90,7 @@ class social_Sharings extends core_Master
             
             return;
         }
-        
+
         $cUrl = cms_Content::getShortUrl();
         $cntUrl = toUrl($cUrl, 'absolute');
         $selfUrl = substr(rawurlencode($cntUrl), 4);

@@ -750,6 +750,28 @@ class core_Master extends core_Manager
     
     
     /**
+     * Метод по подразбиране
+     * Връща иконата на документа
+     * 
+     * @param int|null $id
+     * 
+     * @return string|null
+     */
+    public function getIcon_($id = null)
+    {
+        $res = '';
+        $res = $this->singleIcon;
+        if ($res && log_Browsers::isRetina()) {
+            $icon2 = str_replace('/16/', '/32/', $res);
+            
+            if (getFullPath($icon2)) {
+                $res = $icon2;
+            }
+        }
+    }
+    
+    
+    /**
      * Създава хиперлинк към единичния изглед
      *
      * @param int  $id    - ид на запис
