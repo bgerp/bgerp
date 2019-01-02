@@ -173,7 +173,7 @@ class cat_UoM extends core_Manager
             $mvc->currentTab = 'Мерки->Опаковки';
             $mvc->title = 'Опаковки';
             $data->listFields['name'] = 'Опаковка';
-            arr::placeInAssocArray($data->listFields, array('isBasic' => 'Тип'), 'sysId')
+            arr::placeInAssocArray($data->listFields, array('isBasic' => 'Тип'), 'sysId');
         } else {
             $mvc->currentTab = 'Мерки->Мерки';
         }
