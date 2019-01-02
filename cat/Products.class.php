@@ -1661,28 +1661,44 @@ class cat_Products extends embed_Manager
         // Колко е нетото за търсеното количество
         $weight = $netto * $quantity;
         
-        // Обикаляне на всички опаковки със зададена тара
         $foundTare = false;
         $packQuery = cat_products_Packagings::getQuery();
         $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
         $packQuery->where("#productId = '{$productId}' AND #type = 'packaging' AND #tareWeight IS NOT NULL");
         $packQuery->show('quantity,tareWeight');
-        while ($packRec = $packQuery->fetch()) {
-            
-            // Какво е отношението на търсеното к-во към това в опаковката
-            $coeficient = $quantity / $packRec->quantity;
-            
-            // Ако е много малко, тарата на опаковката се пропуска
-            if (round($coeficient, 2) < 0.5) {
-                continue;
-            }
-            
-            // Ако е достатъчно, тарата се добавя към нетното тегло, умножена по коефицента
-            $coeficient = ceil($coeficient);
-            $tare = $packRec->tareWeight * $coeficient;
+        
+        // Проверява се първо има ли най-голяма първична опаковка с тара
+        $packQueryBase = clone $packQuery;
+        $packQueryBase->EXT('isBasic', 'cat_UoM', 'externalName=isBasic,externalKey=packagingId');
+        $packQueryBase->where("#isBasic = 'yes'");
+        $packQueryBase->orderBy('quantity', 'DESC');
+        $basicPackRec = $packQueryBase->fetch();
+        
+        // Ако има взима се само нейната тара
+        if(is_object($basicPackRec)){
             $foundTare = true;
+            $coeficient = $quantity / $basicPackRec->quantity;
+            $weight += $basicPackRec->tareWeight * $coeficient;
+        } else {
             
-            $weight += $tare;
+            // Ако няма първична и всичките са други, тогава се приема че са вложени
+            while ($packRec = $packQuery->fetch()) {
+                
+                // Какво е отношението на търсеното к-во към това в опаковката
+                $coeficient = $quantity / $packRec->quantity;
+                
+                // Ако е много малко, тарата на опаковката се пропуска
+                if (round($coeficient, 2) < 0.5) {
+                    continue;
+                }
+                
+                // Ако е достатъчно, тарата се добавя към нетното тегло, умножена по коефицента
+                $coeficient = ceil($coeficient);
+                $tare = $packRec->tareWeight * $coeficient;
+                $foundTare = true;
+                
+                $weight += $tare;
+            }
         }
         
         // Ако има намерена поне една тара, транспортното тегло се връща
