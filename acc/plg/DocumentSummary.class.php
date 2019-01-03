@@ -210,8 +210,10 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         if ($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)) {
             $data->listFilter->FNC('users', "users(rolesForAll={$mvc->filterRolesForAll},rolesForTeams={$mvc->filterRolesForTeam}, showClosedGroups)", 'caption=Потребители,silent,autoFilter,remember');
-            $cKey = $mvc->className . core_Users::getCurrent();
+            $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,allowEmpty)', 'caption=Папка,silent,after=users');
+            $data->listFilter->showFields .= ',folder';
             
+            $cKey = $mvc->className . core_Users::getCurrent();
             $haveUsers = false;
             
             if ($lastUsers = core_Permanent::get('userFilter' . $cKey)) {
@@ -305,9 +307,6 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
             
             if ($dateRange[0] && $dateRange[1]) {
-                
-                //$extraFld1 = (!empty($mvc->termDateFld)) ? " AND #{$mvc->termDateFld} IS NULL" : '';
-                
                 if ($fromField) {
                     $where = "((#{$fromField} >= '[#1#]' AND #{$fromField} <= '[#2#] 23:59:59'))";
                 }
@@ -316,12 +315,11 @@ class acc_plg_DocumentSummary extends core_Plugin
                     $where .= " OR ((#{$toField} >= '[#1#]' AND #{$toField} <= '[#2#] 23:59:59'))";
                 }
                 
-                if (!empty($mvc->termDateFld)) {
-                    //	$extraField = (!empty($mvc->termDateFld)) ? " OR (#{$mvc->termDateFld} >= '[#1#]' AND #{$mvc->termDateFld} <= '[#2#] 23:59:59')" : '';
-                //	$where .= $extraField;
-                }
-                
                 $data->query->where(array($where, $dateRange[0], $dateRange[1]));
+            }
+            
+            if (isset($filter->folder)) {
+                $data->query->where("#folderId = '{$filter->folder}'");
             }
         }
     }
