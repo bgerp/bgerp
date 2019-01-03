@@ -67,12 +67,13 @@ class sales_transaction_Service extends acc_DocumentTransactionSource
         if (Mode::get('saveTransaction')) {
             // Проверка на артикулите
             $property = ($rec->isReverse == 'yes') ? 'canBuy' : 'canSell';
+            $msg = ($rec->isReverse == 'yes') ? 'купуваеми услуги' : 'продаваеми услуги';
             $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), $property);
             
             if(count($productCheck['notActive'])){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са услуги|*!");
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |{$msg}|*!");
             }
         }
         
