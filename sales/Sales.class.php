@@ -1529,17 +1529,21 @@ class sales_Sales extends deals_DealMaster
         if ($form->isSubmitted()) {
             $action = type_Set::toArray($form->rec->action);
             if (isset($action['ship'])) {
-                
                 $dQuery = sales_SalesDetails::getQuery();
                 $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-                $dQuery->where("#saleId = {$rec->id} AND #canStore = 'yes'");
+                $dQuery->where("#saleId = {$rec->id}");
                 $dQuery->show('productId,quantity');
-                $details = $dQuery->fetchAll();
-                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($details, $rec->shipmentStoreId, $rec->state)) {
+                
+                $dQuery2 = clone $dQuery;
+                $dQuery->where("#canStore = 'yes'");
+                
+                $detailsStorable = $dQuery->fetchAll();
+                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($detailsStorable, $rec->shipmentStoreId, $rec->state)) {
                     $form->setWarning('action', $warning);
                 }
                 
-                $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($details, 'productId'), 'canSell');
+                $detailsAll = $dQuery2->fetchAll();
+                $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($detailsAll, 'productId'), 'canSell');
                 
                 if($productCheck['metasError']){
                     $error1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
