@@ -673,8 +673,7 @@ class sales_Quotations extends core_Master
             if (isset($rec->deliveryTermId)) {
                 $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id') : null; 
                 
-                if ($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $locationId)) {
-                   
+                if (sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $locationId)) {
                     unset($row->deliveryTermId);
                     $row->deliveryError = tr('За транспортните разходи, моля свържете се с представител на фирмата');
                 }
@@ -929,7 +928,7 @@ class sales_Quotations extends core_Master
      *
      * @param int $id - ид на оферта
      *
-     * @return param $res - масив с използваните документи
+     * @return array $res - масив с използваните документи
      *               ['class'] - Инстанция на документа
      *               ['id'] - ид на документа
      */
@@ -1613,8 +1612,8 @@ class sales_Quotations extends core_Master
     /**
      * Функция, която се извиква преди активирането на документа
      *
-     * @param unknown_type $mvc
-     * @param unknown_type $rec
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
      */
     protected static function on_BeforeActivation($mvc, $res)
     {
