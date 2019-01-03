@@ -63,7 +63,8 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             }
             
             // Проверка на артикулите
-            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), 'canStore');
+            $property = ($rec->isReverse == 'yes') ? 'canBuy' : 'canSell';
+            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), "canStore,{$property}");
             if(count($productCheck['notActive'])){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
