@@ -994,6 +994,11 @@ class rack_Movements extends core_Manager
             if ($toPallet = rack_Pallets::getByPosition($transaction->to, $transaction->storeId)) {
                 $toProductId = $toPallet->productId;
                 $toQuantity = $toPallet->quantity;
+                
+                if($transaction->batch != $toPallet->batch){
+                    $res->errors = "На позицията артикулът е с друга партида";
+                    $res->errorFields[] = 'positionTo,productId';
+                }
             }
             
             // Ако има нова позиция и тя е заета от различен продукт - грешка
