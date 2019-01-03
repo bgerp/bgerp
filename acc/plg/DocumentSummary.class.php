@@ -172,6 +172,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
         
         if (is_array($mvc->filterDateField) || strpos($mvc->filterDateField, ',')) {
+            $opt = array();
             $flds = arr::make($mvc->filterDateField);
             $defaultFilterDateField = null;
             foreach ($flds as $f) {
