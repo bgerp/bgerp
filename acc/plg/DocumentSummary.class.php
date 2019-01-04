@@ -413,13 +413,9 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         foreach ($fieldsArr as $fld) {
             if (!array_key_exists($fld->name, $res)) {
-                $captionArr = explode('->', $fld->caption);
-                if (count($captionArr) == 2) {
-                    $caption = tr($captionArr[0]) . ': ' . tr($captionArr[1]);
-                } else {
-                    $caption = tr($fld->caption);
-                }
-                
+                $captionValue = (isset($fld->summaryCaption)) ? $fld->summaryCaption : $fld->caption;
+                $captionArr = explode('->', $captionValue);
+                $caption = (count($captionArr) == 2) ? tr($captionArr[0]) . ': ' . tr($captionArr[1]) : tr($captionValue);
                 $res[$fld->name] = (object) array('caption' => $caption, 'measure' => '', 'number' => 0);
             }
             
