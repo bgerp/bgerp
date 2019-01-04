@@ -103,14 +103,34 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
         $mvc->FLD('vatRate', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Данъчни параметри->ДДС,input=hidden');
         $mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
-        $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden,summary=amount');
+        $mvc->FNC('dealValueWithoutDiscount', 'double(decimals=2)', 'caption=Дан. основа,summary=amount');
+        $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden');
         $mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
-        $mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
+        $mvc->FNC('totalValue', 'double(decimals=2)', 'caption=Общо,summary=amount');
+        $mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none');
         $mvc->FLD('sourceContainerId', 'key(mvc=doc_Containers,allowEmpty)', 'input=hidden,silent');
         $mvc->FLD('paymentMethodId', 'int', 'input=hidden,silent');
         
         $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин,before=accountId,mandatory');
         $mvc->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,mixed=Смесено)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
+    }
+    
+    
+    /**
+     * Изчисляване на общото
+     */
+    protected static function on_CalcDealValueWithoutDiscount($mvc, &$rec)
+    {
+        $rec->dealValueWithoutDiscount = $rec->dealValue - $rec->discountAmount;
+    }
+    
+    
+    /**
+     * Изчисляване на общото
+     */
+    protected static function on_CalcTotalValue($mvc, &$rec)
+    {
+        $rec->totalValue = $rec->dealValue - $rec->discountAmount + $rec->vatAmount;
     }
     
     
