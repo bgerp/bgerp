@@ -145,8 +145,8 @@ class docarch_Movements extends core_Master
         $data->listFilter->input(null, true);
          
         if ($data->listFilter->isSubmitted() || $data->listFilter->rec->document) {  
-            if ($data->listFilter->rec->toVolumeId) {
-                $data->query->where(array("#toVolumeId = '[#1#]'", $data->listFilter->rec->toVolumeId));
+            if ($data->listFilter->rec->toVolume) {
+                $data->query->where(array("#toVolumeId = '[#1#]'", $data->listFilter->rec->toVolume));
             }
             
             if ($data->listFilter->rec->document) {
