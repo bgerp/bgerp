@@ -19,8 +19,6 @@ class docarch_Volumes extends core_Master
     
     public $loadList = 'plg_Created, plg_RowTools2,plg_Modified';
     
-    public $types = '';
-    
     public $listFields = 'number,type,inCharge,archive,createdOn=Създаден,modifiedOn=Модифициране';
     
     protected function description()
@@ -29,8 +27,7 @@ class docarch_Volumes extends core_Master
         $this->FLD('archive', 'key(mvc=docarch_Archives,allowEmpty)', 'caption=В архив,placeholder=Всички,refreshForm,silent');
         
         //В какъв тип контейнер/том от избрания архив се съхранява документа
-        $types='folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад';
-        $this->FLD('type', "enum($types)", 'caption=Тип');
+        $this->FLD('type', 'enum(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)', 'caption=Тип');
         
         //Това е номера на дадения вид том в дадения архив
         $this->FLD('number', 'int', 'caption=Номер,smartCenter');
@@ -53,6 +50,8 @@ class docarch_Volumes extends core_Master
         $this->FLD('lastDocDate', 'date', 'caption=Дата на последния документ в тома,input=none');
         $this->FLD('docCnt', 'int', 'caption=Дата на първия документ,input=none');
         
+        $this->FNC('title', 'varchar', 'caption=Име');
+        
         
         $this->setDbUnique('archive,type,number');
     }
@@ -66,49 +65,57 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
+        $data->toolbar->addBtn('Бутон', array($mvc,'Action'));
+        
+        //  $data->toolbar->addBtn('Бутон', array('docarch_Movements', 'Add'));
     }
     
     
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param frame2_driver_Proto $Driver
-     *                                      $Driver
-     * @param embed_Manager       $Embedder
-     * @param stdClass            $data
+     *
+     * @param embed_Manager $Embedder
+     * @param stdClass      $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
         $rec = $form->rec;
-       
         
-        
-     
-       
         if ($rec->id) {
+            $rec->_isCreated = true;
             
-            $rec->isCreated = true;
+            $mQuery = docarch_Movements::getQuery();
             
-            $form->setReadOnly('archive');
-            $form->setReadOnly('type');
-            $form->setReadOnly('number');
+            $mQuery->where("#toVolumeId = {$rec->id}");
+            
+            if ($mQuery->count() > 0) {
+                $form->setReadOnly('archive');
+                $form->setReadOnly('type');
+                $form->setReadOnly('number');
+            }
+        } else {
+            if ($form->cmd == 'refresh' && $rec->archive) {
+                $typesArr = arr::make(docarch_Archives::fetch($rec->archive)->volType, true);
+                
+                foreach ($typesArr as $key => $v) {
+                    $volName = self::getVolumeTypeName($v);
+                    $types .= $key.'='.$volName.',';
+                }
+                
+                $types = (trim($types, ','));
+                $form->setFieldType('type', "enum(${types})");
+            }
             
             
-        }else{
-            
-             if ($form->cmd == 'refresh' && $rec->archive) {
-                  $typesArr= arr::make(docarch_Archives::fetch($rec->archive)->volType,true);
-                  $form->setSuggestions('type',$typesArr);
-              }
-              
-              
             $form->setDefault('state', 'active');
-            
-            $form->setDefault('archive', null);
         }
-        
+    }
+    
+    public function on_CalcTitle($mvc, $rec)
+    {
+        $rec->title = self::getRecTitle($rec);
     }
     
     
@@ -122,41 +129,40 @@ class docarch_Volumes extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        if ($form->isSubmitted()) { 
-           
+        if ($form->isSubmitted()) {
             $type = $form->rec->type;
+            
+            if (is_null($form->rec->archive)) {
+                $form->rec->archive = 0;
+            }
+            
             $archive = $form->rec->archive;
             
             if (is_null($form->rec->number)) {
-              $form->rec->number = $mvc->getNextNumber($archive,$type );
+                $form->rec->number = $mvc->getNextNumber($archive, $type);
             }
-           
-        }else{
-           
-            
-            
         }
     }
+    
     
     /**
      * Извиква се преди запис в модела
      *
-     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
-     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
-     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
-     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
-     * @param string       $mode    Режим на записа: replace, ignore
+     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
+     * @param int          $id     Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec    Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode   Режим на записа: replace, ignore
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        
-        if($rec->type == docarch_Archives::minDefType($rec->archive)){
+        if ($rec->type != docarch_Archives::minDefType($rec->archive) || $rec->archive == 0) {
+            $rec->isForDocuments = 'no';
+        } else {
             $rec->isForDocuments = 'yes';
-        }else{
-                $rec->isForDocuments = 'no';
-             }
-             
+        }
     }
+    
     
     /**
      * Извиква се след успешен запис в модела
@@ -167,18 +173,15 @@ class docarch_Volumes extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-    
-        
-        if ($rec->isCreated !== true) {
+        if ($rec->_isCreated !== true) {
             
             // Прави запис в модела на движенията
             $mRec = (object) array('type' => 'creating',);
             
-            docarch_Movements::save($mRec);           
-            
+            docarch_Movements::save($mRec);
         }
-        
     }
+    
     
     /**
      * Филтър
@@ -201,18 +204,21 @@ class docarch_Volumes extends core_Master
          */
         requireRole('admin');
         
+        bp(docarch_Movements::getQuery()->fetchAll());
+        
         return 'action';
     }
+    
     
     /**
      * Намира следващия номер на том
      *
-     * @param int $archive
+     * @param int    $archive
      * @param string $type
      *
      * @return int
      */
-    private function getNextNumber($archive,$type)
+    private function getNextNumber($archive, $type)
     {
         $query = $this->getQuery();
         $cond = "#archive = {$archive} AND";
@@ -225,4 +231,36 @@ class docarch_Volumes extends core_Master
         return $number;
     }
     
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $arch = docarch_Archives::fetch($rec->archive)->name;
+        
+        $title = docarch_Volumes::getVolumeTypeName($rec->type);
+        
+        $title .= '-No'.$rec->number.' в архив: '.$arch;
+        
+        
+        if ($escaped) {
+            $title = type_Varchar::escape($title);
+        }
+        
+        return $title;
+    }
+    
+    
+    /**
+     * Взема името на типа на тома
+     *
+     * @param string $type -ключа на името на типа
+     *
+     * @return string
+     */
+    public static function getVolumeTypeName($type)
+    {
+        return docarch_Archives::getArchiveTypeName($type);
+    }
 }

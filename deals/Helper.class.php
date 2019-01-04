@@ -135,7 +135,9 @@ abstract class deals_Helper
                 $withoutVatAndDisc = $noVatAmount;
             }
             
-            $vatRow = round($withoutVatAndDisc * $vat, 2);
+            $vatDecimals = sales_Setup::get('SALE_INV_VAT_DISPLAY', true) == 'yes' ? 20 : 2;
+
+            $vatRow = round($withoutVatAndDisc * $vat, $vatDecimals);
             
             $rec->{$map['amountFld']} = $noVatAmount;
             if ($masterRec->{$map['chargeVat']} == 'yes' && !$map['alwaysHideVat']) {

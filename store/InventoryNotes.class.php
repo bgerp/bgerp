@@ -550,7 +550,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Масив с артикулите срещани в счетоводството
      *
-     * @param stClass $rec
+     * @param stdClass $rec
      *
      * @return array
      *               o productId      - ид на артикул
@@ -904,7 +904,7 @@ class store_InventoryNotes extends core_Master
      * Метод за създаване на нов протокол за инвентаризация
      *
      * @param int       $storeId     - склад
-     * @param date|NULL $valior      - вальор
+     * @param datetime|NULL $valior      - вальор
      * @param bool      $loadCurrent - дали да се заредят всички артикули в склада
      *
      * @return int $id             - ид на протокола

@@ -146,12 +146,11 @@ class unit_MinkPbgERP extends core_Manager
         $browser = cls::get('unit_Browser');
         $host = unit_Setup::get('DEFAULT_HOST');
         
-        //$browser->start('http://localhost/');
         $browser->start($host);
         
-        //$browser->start('http://' . $_SERVER['HTTP_HOST']);
+        $browser->click('2. Обновяване');
+        //return $browser->getHtml();
         //if(strpos($browser->gettext(), 'Ако приемате лиценза по-долу, може да продължите') !== FALSE) {
-        //$browser->click('☒ Ако приемате лиценза по-долу, може да продължите »');
         //$browser->click('Продължаване без обновяване »');
         //$browser->click('✓ Всичко е наред. Продължете с инициализирането »');
         //$browser->click('Стартиране инициализация »');
@@ -159,9 +158,10 @@ class unit_MinkPbgERP extends core_Manager
         //$browser->click('Вход');
         //}
         //$this->reportErr($browser->gettext());
-        
+        if (strpos($browser->gettext(), 'Имена:') == false) {
+            $this->reportErr('Първоначална регистрация на администратор');
+        }
         if (strpos($browser->gettext(), 'Първоначална регистрация на администратор') !== false) {
-            //$this->reportErr('Първоначална регистрация на администратор');
             //Проверка Първоначална регистрация на администратор - създаване на потребител bgerp
             $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
             $browser->setValue('passNew', unit_Setup::get('DEFAULT_USER_PASS'));
@@ -177,8 +177,8 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
-        sleep(3);
-        set_time_limit(800);
+        sleep(40);
+        set_time_limit(9000);
         
         return $browser;
     }
@@ -1515,7 +1515,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '#BG11CREX92603114548401');
         $browser->setValue('note', 'MinkPbgErpCreateSale');
-        $browser->setValue('deliveryTermId', 'DDP');
+        $browser->setValue('deliveryTermId', 'EXW');
         
         //$browser->setValue('deliveryLocationId', '1');
         $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');

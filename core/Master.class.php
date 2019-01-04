@@ -760,7 +760,7 @@ class core_Master extends core_Manager
     public function getIcon_($id = null)
     {
         $res = '';
-        $res = $mvc->singleIcon;
+        $res = $this->singleIcon;
         if ($res && log_Browsers::isRetina()) {
             $icon2 = str_replace('/16/', '/32/', $res);
             
