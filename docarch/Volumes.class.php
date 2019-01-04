@@ -50,6 +50,8 @@ class docarch_Volumes extends core_Master
         $this->FLD('lastDocDate', 'date', 'caption=Дата на последния документ в тома,input=none');
         $this->FLD('docCnt', 'int', 'caption=Дата на първия документ,input=none');
         
+        $this->FNC('title', 'varchar', 'caption=Име');
+        
         
         $this->setDbUnique('archive,type,number');
     }
@@ -109,6 +111,11 @@ class docarch_Volumes extends core_Master
             
             $form->setDefault('state', 'active');
         }
+    }
+    
+    public function on_CalcTitle($mvc, $rec)
+    {
+        $rec->title = self::getRecTitle($rec);
     }
     
     
@@ -222,6 +229,26 @@ class docarch_Volumes extends core_Master
         ++$number;
         
         return $number;
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $arch = docarch_Archives::fetch($rec->archive)->name;
+        
+        $title = docarch_Volumes::getVolumeTypeName($rec->type);
+        
+        $title .= '-No'.$rec->number.' в архив: '.$arch;
+        
+        
+        if ($escaped) {
+            $title = type_Varchar::escape($title);
+        }
+        
+        return $title;
     }
     
     

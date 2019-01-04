@@ -31,10 +31,10 @@ class docarch_Movements extends core_Master
         $this->FLD('documentId', 'key(mvc=doc_Containers)', 'caption=Документ,input=hidden,silent');
         
         //Изходящ том участващ в движението
-        $this->FLD('fromVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Изходящ том');
+        $this->FLD('fromVolumeId', 'key(mvc=docarch_Volumes,select=title,allowEmpty)', 'caption=Изходящ том');
         
         //Входящ том участващ в движението
-        $this->FLD('toVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Входящ том');
+        $this->FLD('toVolumeId', 'key(mvc=docarch_Volumes,select=title,allowEmpty)', 'caption=Входящ том');
         
         //Потребител получил документа или контейнера
         $this->FLD('userID', 'key(mvc=core_Users)', 'caption=Потребител');
@@ -143,8 +143,8 @@ class docarch_Movements extends core_Master
         $data->listFilter->showFields .= ',search,document';
         
         $data->listFilter->input(null, true);
-         
-        if ($data->listFilter->isSubmitted() || $data->listFilter->rec->document) {  
+        
+        if ($data->listFilter->isSubmitted() || $data->listFilter->rec->document) {
             if ($data->listFilter->rec->toVolume) {
                 $data->query->where(array("#toVolumeId = '[#1#]'", $data->listFilter->rec->toVolume));
             }
@@ -168,6 +168,8 @@ class docarch_Movements extends core_Master
          * Установява необходима роля за да се стартира екшъна
          */
         requireRole('admin');
+        
+        bp(docarch_Volumes::getQuery()->fetchAll());
         
         return 'action';
     }
