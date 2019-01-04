@@ -293,7 +293,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Помощна ф-я връщаща линкове към заявките в които участва артикула
      *
-     * @param date $valior
+     * @param datetime $valior
      * @param int  $storeId
      *
      * @return array $res

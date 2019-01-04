@@ -673,8 +673,8 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Връща сумата на ддс-то на платените в брой фактури, в основната валута
      *
-     * @param date $from - от
-     * @param date $to   - до
+     * @param datetime $from - от
+     * @param datetime $to   - до
      *
      * @return float $amount - сумата на ддс-то на платените в брой фактури
      */

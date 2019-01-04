@@ -17,9 +17,9 @@ class docarch_Movements extends core_Master
 {
     public $title = 'Движения в архива';
     
-    public $loadList = 'plg_Created, plg_RowTools2,plg_Modified';
+    public $loadList = 'plg_Created, plg_RowTools2,plg_Modified,plg_Search';
     
-    public $listFields = 'type,userID,fromVolumeId,toVolumeId,createdOn=Създаден,modifiedOn=Модифициране';
+    public $listFields = 'type,documentId,userID,fromVolumeId,toVolumeId,createdOn=Създаден,modifiedOn=Модифициране';
     
     protected function description()
     {
@@ -51,50 +51,61 @@ class docarch_Movements extends core_Master
     {
         $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
         
-
+        
+        //  $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
     }
     
     
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param embed_Manager       $Embedder
-     * @param stdClass            $data
+     * @param embed_Manager $Embedder
+     * @param stdClass      $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
         $rec = $form->rec;
         
-        if (($rec->documentId)) {
-        $volumeSuggestionsArr=array();
+        
+        $volumeSuggestionsArr = array();
         
         $volQuery = docarch_Volumes::getQuery();
         $currentUser = core_Users::getCurrent();
-        $volQuery->where("#isForDocuments = 'yes' AND #state = 'active' AND #inCharge = '{$currentUser}'"); 
+        $volQuery->where("#isForDocuments = 'yes' AND #state = 'active' AND #inCharge = '{$currentUser}'");
         
-        while ($vRec = $volQuery->fetch()){
+        while ($vRec = $volQuery->fetch()) {
             if ($vRec->archive == 0) {
                 $arch = 'Сборен';
-            }else {
-                 $arch = docarch_Archives::fetch($vRec->archive)->name;
+            } else {
+                $arch = docarch_Archives::fetch($vRec->archive)->name;
             }
             
             $volName = docarch_Volumes::getVolumeTypeName($vRec->type);
-       
-            $volumeSuggestionsArr[$vRec->id]=$volName .'-No'.$vRec->number.' / архив: '.$arch;
+            
+            $volumeSuggestionsArr[$vRec->id] = $volName .'-No'.$vRec->number.' / архив: '.$arch;
         }
-       
-        $form->setOptions('toVolumeId',$volumeSuggestionsArr);
+        if (($rec->documentId && !$rec->id)) {
+            $form->setOptions('toVolumeId', $volumeSuggestionsArr);
+            
+            $form->setField('fromVolumeId', 'input=none');
+            
+            $form->setFieldType('type', 'enum(archiving=Архивиране)');
+            
+            $form->setField('userID', 'input=none');
+        }
         
-     //  if (($rec->documentId)) {
-           $form->setField('fromVolumeId','input=none');
-           $form->setFieldType('type','enum(archiving=Архивиране)');
-           $form->setField('userID','input=none');
-       }
-        
-        
+        if (($rec->documentId && $rec->id)) {
+            $form->setOptions('toVolumeId', $volumeSuggestionsArr);
+            
+            $form->setField('fromVolumeId', 'input=none');
+            
+            $form->setFieldType('type', 'enum(archiving=Архивиране)');
+            
+            $form->setField('userID', 'input=none');
+        }
     }
+    
     
     /**
      * След рендиране на единичния изглед
@@ -106,9 +117,7 @@ class docarch_Movements extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        
         if ($form->isSubmitted()) {
-         
         }
     }
     
@@ -121,9 +130,34 @@ class docarch_Movements extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->FNC('toVolume', 'key(mvc=docarch_Volumes,allowEmpty)', 'caption=Входящ том,placeholder=Входящ том');
+        
+        $data->listFilter->showFields = 'toVolume';
+        
+        $data->listFilter->FNC('document', 'key(mvc=doc_Containers)', 'caption=Документ,input=hidden,silent');
+        
+        $data->listFilter->showFields .= ',search,document';
+        
+        $data->listFilter->input(null, true);
+         
+        if ($data->listFilter->isSubmitted() || $data->listFilter->rec->document) {  
+            if ($data->listFilter->rec->toVolume) {
+                $data->query->where(array("#toVolumeId = '[#1#]'", $data->listFilter->rec->toVolume));
+            }
+            
+            if ($data->listFilter->rec->document) {
+                $data->query->where(array("#documentId = '[#1#]'", $data->listFilter->rec->document));
+            }
+            
+            // Сортиране на записите по дата на създаване
+            $data->query->orderBy('#createdOn', 'DESC');
+        }
     }
     
-   
     
     /**
      * @return string
@@ -134,7 +168,42 @@ class docarch_Movements extends core_Master
          * Установява необходима роля за да се стартира екшъна
          */
         requireRole('admin');
-      
+        
         return 'action';
+    }
+    
+    
+    /**
+     * Връща възможно типа на възможното движение
+     *
+     * @param int $archive
+     * @param int $document
+     *
+     * @return string
+     */
+    public static function getMovingBalance($arhive, $document)
+    {
+        $mQuery = docarch_Movements::getQuery();
+        $mQuery->orderBy('modifiedOn', 'ASC');
+        
+        while ($move = $mQuery->fetch()) {
+            if (!is_null($move->documentId)) {
+                $lastDocMove[$move->documentId] = $move->type;
+            }
+        }
+        
+        switch ($lastDocMove[$document]) {
+            
+            case 'archiving':$possibleMove = 'taking'; break;
+            
+            case 'taking':$possibleMove = 'include'; break;
+            
+            case 'include':$possibleMove = 'taking'; break;
+            
+            case 'exclude':$possibleMove = 'destruction'; break;
+        
+        }
+        
+        return $possibleMove;
     }
 }
