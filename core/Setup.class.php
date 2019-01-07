@@ -339,6 +339,7 @@ class core_Setup extends core_ProtoSetup
         'core_Forwards',
         'core_Updates',
         'core_Permanent',
+        'core_UserTranslates',
     );
     
     

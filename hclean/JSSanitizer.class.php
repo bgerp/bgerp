@@ -50,14 +50,13 @@ class hclean_JSSanitizer extends core_Manager
     /**
      * Подготвяме HTML
      *
-     * @param link $htmlLink - Линк към HTML файла
+     * @param string $htmlLink - Линк към HTML файла
      */
     public static function prepareHtml($htmlLink)
     {
         // Вземаме съдържанието на линка
         $content = static::getHtmlFromLink($htmlLink);
         
-        $content = preg_replace('/\\xA0|\\x00/', '', $content);
         $content = trim($content);
         
         $content = i18n_Charset::convertToUtf8($content, array(), true);
