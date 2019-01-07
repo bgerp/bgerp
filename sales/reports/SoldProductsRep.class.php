@@ -1038,9 +1038,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             if ($rec->compare == 'year') {
                 $res->primeCostCompare = $dRec->totalPrimeCostLastYear;
-                $res->deltaCompare = $dRec->$totalDeltaLastYear;
+                $res->deltaCompare = $dRec->totalDeltaLastYear;
                 $res->changeSales = ($dRec->primeCost - $dRec->totalPrimeCostLastYear);
-                $res->changeDeltas = ($dRec->delta - $dRec->$totalDeltaLastYear);
+                $res->changeDeltas = ($dRec->delta - $dRec->totalDeltaLastYear);
             }
         }
     }

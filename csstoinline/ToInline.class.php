@@ -58,7 +58,7 @@ class csstoinline_ToInline
                 $value = trim($value);
                 
                 //Проверяваме дали е валидно URL или е файл
-                if (is_file($value) || (core_Url::isValidUrl($value))) {
+                if (@is_file($value) || (core_Url::isValidUrl($value))) {
                     
                     //Проверява разширението дали е CSS
                     if (($dotPos = mb_strrpos($value, '.')) !== false) {
@@ -67,7 +67,7 @@ class csstoinline_ToInline
                         if ($ext == 'css') {
                             
                             //Вземаме съдържанието на файла
-                            $css = file_get_contents($value);
+                            $css = @file_get_contents($value);
                             
                             ////Шаблона за намиране на CSS в html документа
                             $html = static::cssToInline($html, $css);
