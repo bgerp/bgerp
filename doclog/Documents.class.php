@@ -2436,6 +2436,8 @@ class doclog_Documents extends core_Manager
         
         $html .= doc_ExpensesSummary::getSummary($containerId);
         
+        $html .= plg_Archiving::getSummary($containerId);
+        
         if (strlen($html) != 0) {
             $html = "<ul class=\"history summary\">{$html}</ul>";
         }

@@ -17,9 +17,9 @@ class docarch_Movements extends core_Master
 {
     public $title = 'Движения в архива';
     
-    public $loadList = 'plg_Created, plg_RowTools2,plg_Modified,plg_Search';
+    public $loadList = 'plg_Created,plg_Search';
     
-    public $listFields = 'type,documentId,userID,fromVolumeId,toVolumeId,createdOn=Създаден,modifiedOn=Модифициране';
+    public $listFields = 'type,documentId,toVolumeId,fromVolumeId,userID,createdOn=Създаден,modifiedOn=Модифициране';
     
     protected function description()
     {
@@ -49,7 +49,18 @@ class docarch_Movements extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
+        
+        
         $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
+        
+        if($data->filterCheck){
+            
+            $data->toolbar->addBtn('Вземане', array($mvc, 'Action')); ;
+            $data->toolbar->addBtn('Унищожаване', array($mvc, 'Action')); ;
+            
+        }
+        
+       
         
         
         //  $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
@@ -96,14 +107,11 @@ class docarch_Movements extends core_Master
         }
         
         if (($rec->documentId && $rec->id)) {
-            $form->setOptions('toVolumeId', $volumeSuggestionsArr);
-            
-            $form->setField('fromVolumeId', 'input=none');
-            
-            $form->setFieldType('type', 'enum(archiving=Архивиране)');
-            
-            $form->setField('userID', 'input=none');
+
         }
+        
+        
+        
     }
     
     
@@ -151,11 +159,15 @@ class docarch_Movements extends core_Master
             
             if ($data->listFilter->rec->document) {
                 $data->query->where(array("#documentId = '[#1#]'", $data->listFilter->rec->document));
+              
+                $data->filterCheck = true;
             }
             
             // Сортиране на записите по дата на създаване
             $data->query->orderBy('#createdOn', 'DESC');
         }
+        
+        
     }
     
     

@@ -17,7 +17,7 @@ class docarch_Volumes extends core_Master
 {
     public $title = 'Томове и контейнери';
     
-    public $loadList = 'plg_Created, plg_RowTools2,plg_Modified';
+    public $loadList = 'plg_Created, plg_RowTools2,plg_Modified, plg_State2';
     
     public $listFields = 'number,type,inCharge,archive,createdOn=Създаден,modifiedOn=Модифициране';
     
@@ -208,6 +208,23 @@ class docarch_Volumes extends core_Master
         
         return 'action';
     }
+    
+    
+    /**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+
+        if(($row->archive == '??????????????')) {
+            
+            $row->archive = 'Сборен'; 
+        }
+
+        
+        
+    }
+    
     
     
     /**
