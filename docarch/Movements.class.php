@@ -51,8 +51,20 @@ class docarch_Movements extends core_Master
     {
         $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
         
+        $documentContainerId = ($data->listFilter->rec->document);
+        if ($documentContainerId) {
+          
+            $mQuery = $mvc->getQuery();
+            $mQuery->where("#documentId = $documentContainerId");
+            $mQuery->orderBy('createdOn', 'ASC');
+            while ($move = $mQuery->fetch()) {
+                $lastVolume = $move->toVolumeId;
+            }
+        }
         if ($data->filterCheck) {
-            $data->toolbar->addBtn('Вземане', array($mvc, 'Action'));
+            $data->toolbar->addBtn('Вземане', array($mvc, 'Taking',
+                'documentId' => $documentContainerId,
+                'ret_url' => true));
             $data->toolbar->addBtn('Унищожаване', array($mvc, 'Action'));
         }
         
@@ -91,7 +103,10 @@ class docarch_Movements extends core_Master
             $volumeSuggestionsArr[$vRec->id] = $volName .'-No'.$vRec->number.' / архив: '.$arch;
         }
         if (($rec->documentId && !$rec->id)) {
+            
             $document = doc_Containers::getDocument($rec->documentId);
+            
+            expect($document->haveRightFor('single'),'Недостатъчни права за този документ.');
             
             $form->setOptions('toVolumeId', $volumeSuggestionsArr);
             
@@ -100,6 +115,7 @@ class docarch_Movements extends core_Master
             $form->setFieldType('type', 'enum(archiving=Архивиране)');
             
             $form->setField('userID', 'input=none');
+            
         }
         
         if (($rec->documentId && $rec->id)) {
@@ -167,18 +183,15 @@ class docarch_Movements extends core_Master
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         if ($rec->documentId){
+            
         $Document = doc_Containers::getDocument($rec->documentId);
-        $handle = $Document->getHandle();
         $className = $Document->className;
+        $handle =$Document->singleTitle.'-'.$Document->getHandle();
         
-//         $url = toUrl(array("$className",'single', $Document->that));
-//         $row->documentId = ht::createLink($handle, $url, false, array('ef_icon' => 'img/16/invoice.png'));
-       
-       // $link = ht::createLink("<span>{$handle}</span>", array("${className}",$Document->that));
+        $url = toUrl(array("$className",'single', $Document->that));
         
-         $row->documentId = doc_Containers::getLinkForObject($rec->documentId);
-      //  $row->documentId = $link;
-      
+        $row->documentId = ht::createLink($handle, $url, false, array());
+        
         }
     }
     
@@ -193,7 +206,7 @@ class docarch_Movements extends core_Master
          */
         requireRole('admin');
         
-        bp(docarch_Volumes::getQuery()->fetchAll());
+       
         
         return 'action';
     }
@@ -210,14 +223,7 @@ class docarch_Movements extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-//         if ($rec->id && $action == 'list') {
-//             $rec = $mvc->fetch($rec->id);bp($rec);
 
-//             if ($rec->lastUseOn) {
-//                 // Използвана сметка - забранено изтриване
-//                 $requiredRoles = 'no_one';
-//             }
-//         }
     }
     
     
@@ -276,7 +282,7 @@ class docarch_Movements extends core_Master
             $actionTitle = 'Показване на архивите към документа';
             $document = doc_Containers::getDocument($containerId);
             
-            if (haveRole('ceo, acc, purchase') && $document->haveRightFor('single')) {
+            if ($document->haveRightFor('single')) {
                 $linkArr = array('docarch_Movements', 'document' => $containerId, 'ret_url' => true);
             }
             $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr, false, array('title' => $actionTitle));
@@ -286,4 +292,41 @@ class docarch_Movements extends core_Master
         
         return $html;
     }
+    
+    /**
+     * @return string
+     */
+    public function act_Taking()
+    {
+        /**
+         * Установява необходима роля за да се стартира екшъна
+         */
+       // requireRole('admin');
+        $cRec = new stdClass();
+        $form = cls::get('core_Form');
+        $form->title = "Вземане на документ";
+        
+        $form->FLD('type', 'enum(taking=Изваждане)', 'caption=Действие');
+        
+        $form->FLD('toVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Входящ том');
+        
+        $form->FLD('fromVolumeId', 'int', 'input=hidden,silent');
+        
+        $form->FLD('documentId', 'int', 'input=hidden,silent');
+       
+       
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+        $cRec = $form->input();
+        
+        if ($form->isSubmitted()) {
+            
+            return new Redirect(getRetUrl());
+        }
+        
+        return $this->renderWrapping($form->renderHtml());
+    }
+
+
 }

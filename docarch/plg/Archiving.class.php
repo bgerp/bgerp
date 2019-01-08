@@ -57,7 +57,7 @@ class docarch_plg_Archiving extends core_Plugin
             $mQuery->in('documentId', $documentContainerId);
             
             
-            if (($mCnt = $mQuery->count()) == 0) {
+            if ((($mCnt = $mQuery->count()) == 0) && ($mvc->haveRightFor('single'))) {;
                 $data->toolbar->addBtn('Архивиране', array('docarch_Movements', 'Add', 'documentId' => $documentContainerId, 'ret_url' => true), 'ef_icon=img/16/archive.png,row=2');
             }
             
