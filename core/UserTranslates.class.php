@@ -334,8 +334,8 @@ class core_UserTranslates extends core_Manager
     /**
      * За коректна работа на plg_PrevAndNext
      *
-     * @param core_Mvc $mvc
      * @param stdClass $data
+     * @param int|null $id
      */
     public function prepareRetUrl($data, $id = null)
     {
@@ -355,7 +355,7 @@ class core_UserTranslates extends core_Manager
                 $nextId = $selArr[$selId + 1];
             }
             
-            $rUrl = array($mvc, 'add', 'PrevAndNext' => 'on', 'ret_url' => getRetUrl(), 'classId' => $classId, 'recId' => $prevId, 'Selected' => $sel, 'lang' => $data->form->rec->lang);
+            $rUrl = array($this, 'add', 'PrevAndNext' => 'on', 'ret_url' => getRetUrl(), 'classId' => $classId, 'recId' => $prevId, 'Selected' => $sel, 'lang' => $data->form->rec->lang);
             
             if (isset($Cmd['save_n_prev']) && $prevId) {
                 $data->retUrl = $rUrl;
