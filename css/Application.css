@@ -2453,6 +2453,8 @@ ul.history {
       background-color: #3377ff; }
     ul.history .action.expenseSummary b {
       background-color: orange; }
+    ul.history .action.archiveSummary b {
+      background-color: #796b5c; }
   ul.history .detailed b {
     background-color: #cccccc; }
   ul.history a {
