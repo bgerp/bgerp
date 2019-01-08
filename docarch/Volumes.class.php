@@ -115,7 +115,9 @@ class docarch_Volumes extends core_Master
     
     public function on_CalcTitle($mvc, $rec)
     {
-        $rec->title = self::getRecTitle($rec);
+        if ($rec->archive !=0){
+            $rec->title = self::getRecTitle($rec);
+        }
     }
     
     
@@ -254,6 +256,10 @@ class docarch_Volumes extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
+        expect(($rec->archive), 'Няма регистрирани архиви');
+        
+        
+        
         $arch = docarch_Archives::fetch($rec->archive)->name;
         
         $title = docarch_Volumes::getVolumeTypeName($rec->type);
