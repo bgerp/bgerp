@@ -217,7 +217,7 @@ class cat_Products extends embed_Manager
     /**
      *  Полета по които ще се търси
      */
-    public $searchFields = 'name, code, info, innerClass, nameInt';
+    public $searchFields = 'name, code, info, innerClass, nameEn';
     
     
     /**
@@ -334,8 +334,8 @@ class cat_Products extends embed_Manager
         $this->FLD('proto', 'key(mvc=cat_Products,allowEmpty,select=name)', 'caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,groupByDiv=»');
         
         $this->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
-        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=user|tr|transliterate');
-        $this->FLD('nameInt', 'varchar', 'caption=Международно,width=100%,after=name');
+        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field|tr|transliterate');
+        $this->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
@@ -542,7 +542,7 @@ class cat_Products extends embed_Manager
             $form->setField('measureId', 'input=hidden');
             $form->setField('code', 'input=hidden');
             $form->setField('name', 'input=hidden');
-            $form->setField('nameInt', 'input=hidden');
+            $form->setField('nameEn', 'input=hidden');
             $form->setField('measureId', 'input=hidden');
             $form->setField('info', 'input=hidden');
         }
@@ -1416,7 +1416,7 @@ class cat_Products extends embed_Manager
             cat_products_SharedInFolders::limitQuery($query, $folderId);
         }
         
-        $query->show('isPublic,folderId,meta,id,code,name,nameInt');
+        $query->show('isPublic,folderId,meta,id,code,name,nameEn');
         
         // Ограничаваме заявката при нужда
         if (isset($limit)) {
@@ -1872,8 +1872,8 @@ class cat_Products extends embed_Manager
         $name = $rec->name;
         
         $lg = core_Lg::getCurrent();
-        if ($lg == 'en' && !empty($rec->nameInt)) {
-            $name = $rec->nameInt;
+        if ($lg == 'en' && !empty($rec->nameEn)) {
+            $name = $rec->nameEn;
         }
         
         // Иначе го връщаме такова, каквото е
@@ -1917,7 +1917,7 @@ class cat_Products extends embed_Manager
     {
         // Предефиниране на метода, за да е подсигурено само фечването на нужните полета
         // За да се намали натоварването, при многократни извиквания
-        $rec = self::fetch($id, 'name,code,isPublic,nameInt');
+        $rec = self::fetch($id, 'name,code,isPublic,nameEn');
         
         return parent::getTitleById($rec, $escaped);
     }
@@ -2965,7 +2965,7 @@ class cat_Products extends embed_Manager
     public static function setAutoCloneFormFields(&$form, $id, $driverId = null)
     {
         $form->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
-        $form->FLD('nameInt', 'varchar', 'caption=Международно,width=100%,after=name');
+        $form->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name');
         $form->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
         $form->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
         $form->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');

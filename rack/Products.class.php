@@ -105,7 +105,7 @@ class rack_Products extends store_Products
         }
         
         // Добавяне на бутони за преизчисляване на кешираните количества
-        if($mvc->haveRightFor('recalccachecquantity', $rec->id)){
+        if ($mvc->haveRightFor('recalccachecquantity', $rec->id)) {
             $row->_rowTools->addLink('К-во по зони', array('rack_Products', 'recalcquantityonzones', 'id' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на количеството по зони');
             $row->_rowTools->addLink('К-во по палети', array('rack_Products', 'recalcquantityonpallets', 'id' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на количеството по палети');
         }
@@ -125,7 +125,7 @@ class rack_Products extends store_Products
         // Преизчисляване на количеството по палети
         rack_Pallets::recalc($rec->productId, $rec->storeId);
         
-        return followRetUrl(NULL, 'Количеството по палети е преизчислено успешно|*!');
+        return followRetUrl(null, 'Количеството по палети е преизчислено успешно|*!');
     }
     
     
@@ -143,7 +143,7 @@ class rack_Products extends store_Products
         $rec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($rec->productId, $rec->storeId);
         $this->save($rec, 'id,quantityOnZones');
         
-        return followRetUrl(NULL, 'Количеството по зони е преизчислено успешно|*!');
+        return followRetUrl(null, 'Количеството по зони е преизчислено успешно|*!');
     }
     
     
@@ -224,21 +224,22 @@ class rack_Products extends store_Products
             $pQuery->limit($limit);
         }
         
-        $pQuery->show('id,name,code,isPublic,nameInt,searchFieldXpr');
+        $pQuery->show('id,name,code,isPublic,nameEn,searchFieldXpr');
         
         while ($pRec = $pQuery->fetch()) {
             $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);
         }
-       
+        
         return $products;
     }
     
     
     /**
      * Рекалкулира какво количество има по зони
-     * 
+     *
      * @param int|array $productArr - ид на артикул или масив от ид-та на артикули
-     * @param int $storeId          - избрания склад
+     * @param int       $storeId    - избрания склад
+     *
      * @return void
      */
     public static function recalcQuantityOnZones($productArr, $storeId = null)
@@ -249,9 +250,9 @@ class rack_Products extends store_Products
         $saveArr = array();
         $query = self::getQuery();
         $query->where("#storeId = {$storeId}");
-        $query->in("productId", $productArr);
+        $query->in('productId', $productArr);
         
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()) {
             $rec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($rec->productId, $storeId);
             $saveArr[$rec->id] = $rec;
         }

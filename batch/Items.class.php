@@ -354,7 +354,7 @@ class batch_Items extends core_Master
             $dQuery->where('#productId IS NOT NULL');
             $dQuery->show('productId');
             while ($dRec = $dQuery->fetch()) {
-                $pRec = cat_Products::fetch($dRec->productId, 'name,isPublic,code,nameInt');
+                $pRec = cat_Products::fetch($dRec->productId, 'name,isPublic,code,nameEn');
                 $storable[$dRec->productId] = cat_Products::getRecTitle($pRec, false);
             }
             core_Cache::set('batch_Defs', 'products', $storable, 60);
