@@ -2805,8 +2805,8 @@ en,по фактура,according to invoice
 en,по проформи,according to proforma invoices
 en,по проформа,according to proforma invoice
 en,Данъчно събитие,Tax event
-en,Дълготраен материален актив,Tangible fixed asset,
-en,Дълготраен нематериален актив,Intangible fixed asset,
+en,Дълготраен материален актив,Tangible fixed asset
+en,Дълготраен нематериален актив,Intangible fixed asset
 en,Дълготрайни нематериални активи,Intangible fixed assets
 en,Търсене на баркод,Search barcodes
 en,"Избрано е плащане по банков път. Моля, преведете дължимата сума по сметка","You've selected bank payment. Please transfer the amount to be paid to the following account"
