@@ -31,7 +31,7 @@ class cat_Groups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_TreeObject';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_TreeObject, core_UserTranslatePlg';
     
     
     /**
@@ -99,7 +99,7 @@ class cat_Groups extends core_Manager
      */
     public function description()
     {
-        $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование->Основно, mandatory');
+        $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование->Основно, mandatory, translate=field|user|tr|transliterate');
         $this->FLD('nameEn', 'varchar(64,ci,nullIfEmpty)', 'caption=Наименование->Международно');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('productCnt', 'int', 'input=none,caption=Артикули');
