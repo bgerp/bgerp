@@ -31,10 +31,10 @@ class docarch_Movements extends core_Master
         $this->FLD('documentId', 'key(mvc=doc_Containers)', 'caption=Документ,input=hidden,silent');
         
         //Изходящ том участващ в движението
-        $this->FLD('fromVolumeId', 'key(mvc=docarch_Volumes,select=title,allowEmpty)', 'caption=Изходящ том');
+        $this->FLD('fromVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Изходящ том');
         
         //Входящ том участващ в движението
-        $this->FLD('toVolumeId', 'key(mvc=docarch_Volumes,select=title,allowEmpty)', 'caption=Входящ том');
+        $this->FLD('toVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Входящ том');
         
         //Потребител получил документа или контейнера
         $this->FLD('userID', 'key(mvc=core_Users)', 'caption=Потребител');
@@ -49,18 +49,12 @@ class docarch_Movements extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        
-        
         $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
         
-        if($data->filterCheck){
-            
-            $data->toolbar->addBtn('Вземане', array($mvc, 'Action')); ;
-            $data->toolbar->addBtn('Унищожаване', array($mvc, 'Action')); ;
-            
+        if ($data->filterCheck) {
+            $data->toolbar->addBtn('Вземане', array($mvc, 'Action'));
+            $data->toolbar->addBtn('Унищожаване', array($mvc, 'Action'));
         }
-        
-       
         
         
         //  $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
@@ -97,7 +91,6 @@ class docarch_Movements extends core_Master
             $volumeSuggestionsArr[$vRec->id] = $volName .'-No'.$vRec->number.' / архив: '.$arch;
         }
         if (($rec->documentId && !$rec->id)) {
-            
             $document = doc_Containers::getDocument($rec->documentId);
             
             $form->setOptions('toVolumeId', $volumeSuggestionsArr);
@@ -110,11 +103,7 @@ class docarch_Movements extends core_Master
         }
         
         if (($rec->documentId && $rec->id)) {
-
         }
-        
-        
-        
     }
     
     
@@ -162,15 +151,35 @@ class docarch_Movements extends core_Master
             
             if ($data->listFilter->rec->document) {
                 $data->query->where(array("#documentId = '[#1#]'", $data->listFilter->rec->document));
-              
+                
                 $data->filterCheck = true;
             }
             
             // Сортиране на записите по дата на създаване
             $data->query->orderBy('#createdOn', 'DESC');
         }
+    }
+    
+    
+    /**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        if ($rec->documentId){
+        $Document = doc_Containers::getDocument($rec->documentId);
+        $handle = $Document->getHandle();
+        $className = $Document->className;
         
+//         $url = toUrl(array("$className",'single', $Document->that));
+//         $row->documentId = ht::createLink($handle, $url, false, array('ef_icon' => 'img/16/invoice.png'));
+       
+       // $link = ht::createLink("<span>{$handle}</span>", array("${className}",$Document->that));
         
+         $row->documentId = doc_Containers::getLinkForObject($rec->documentId);
+      //  $row->documentId = $link;
+      
+        }
     }
     
     
@@ -189,6 +198,7 @@ class docarch_Movements extends core_Master
         return 'action';
     }
     
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -200,17 +210,15 @@ class docarch_Movements extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        
-        if ($rec->id && $action == 'list') {
-            $rec = $mvc->fetch($rec->id);
-            
-            if ($rec->lastUseOn) {
-                // Използвана сметка - забранено изтриване
-                $requiredRoles = 'no_one';
-            }
-        }
+//         if ($rec->id && $action == 'list') {
+//             $rec = $mvc->fetch($rec->id);bp($rec);
+
+//             if ($rec->lastUseOn) {
+//                 // Използвана сметка - забранено изтриване
+//                 $requiredRoles = 'no_one';
+//             }
+//         }
     }
-    
     
     
     /**
@@ -246,6 +254,7 @@ class docarch_Movements extends core_Master
         
         return $possibleMove;
     }
+    
     
     /**
      * Връща броя архиви към документа

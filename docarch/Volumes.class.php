@@ -27,7 +27,7 @@ class docarch_Volumes extends core_Master
         $this->FLD('archive', 'key(mvc=docarch_Archives,allowEmpty)', 'caption=В архив,placeholder=Всички,refreshForm,silent');
         
         //В какъв тип контейнер/том от избрания архив се съхранява документа
-        $this->FLD('type', 'enum(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)', 'caption=Тип');
+        $this->FLD('type', 'enum(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)', 'caption=Тип,mandatory');
         
         //Това е номера на дадения вид том в дадения архив
         $this->FLD('number', 'int', 'caption=Номер,smartCenter');
@@ -83,6 +83,9 @@ class docarch_Volumes extends core_Master
         $form = $data->form;
         $rec = $form->rec;
         
+        $currentUser = core_Users::getCurrent();
+        $form->setDefault('inCharge', "{$currentUser}");
+        
         if ($rec->id) {
             $rec->_isCreated = true;
             
@@ -115,9 +118,7 @@ class docarch_Volumes extends core_Master
     
     public function on_CalcTitle($mvc, $rec)
     {
-        if ($rec->archive !=0){
-            $rec->title = self::getRecTitle($rec);
-        }
+        $rec->title = self::getRecTitle($rec);
     }
     
     
@@ -158,9 +159,10 @@ class docarch_Volumes extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if ($rec->type != docarch_Archives::minDefType($rec->archive) || $rec->archive == 0) {
-            $rec->isForDocuments = 'no';
-        } else {
+        if (($rec->type == docarch_Archives::minDefType($rec->archive)) || $rec->archive == 0) {
+            $rec->isForDocuments = 'yes';
+        }
+        if (($rec->type != docarch_Archives::minDefType($rec->archive)) && $rec->archive != 0) {
             $rec->isForDocuments = 'yes';
         }
     }
@@ -217,16 +219,10 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-
-        if(($row->archive == '??????????????')) {
-            
-            $row->archive = 'Сборен'; 
+        if (($rec->archive == 0)) {
+            $row->archive = 'Сборен';
         }
-
-        
-        
     }
-    
     
     
     /**
@@ -256,11 +252,11 @@ class docarch_Volumes extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        expect(($rec->archive), 'Няма регистрирани архиви');
-        
-        
-        
-        $arch = docarch_Archives::fetch($rec->archive)->name;
+        if ($rec->archive != 0) {
+            $arch = docarch_Archives::fetch($rec->archive)->name;
+        } else {
+            $arch = 'Сборен';
+        }
         
         $title = docarch_Volumes::getVolumeTypeName($rec->type);
         
