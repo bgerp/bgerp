@@ -141,7 +141,7 @@ class core_UserTranslates extends core_Manager
         
         $hashStr = $clsId . '|' . $oField . '|' . $recId;
         
-        if (isset($hashArr[$hashStr])) {
+        if (!$clsId || isset($hashArr[$hashStr])) {
             
             return $hashArr[$hashStr];
         }
