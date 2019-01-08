@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'plg_Archiving' -Плъгин за архивиране на документи
+ * Клас 'docarch_plg_Archiving' -Плъгин за архивиране на документи
  *
  *
  * @category  bgerp
@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class plg_Archiving extends core_Plugin
+class docarch_plg_Archiving extends core_Plugin
 {
     /**
      * Добавя бутон за архивиране към единичния изглед на документа
@@ -64,33 +64,15 @@ class plg_Archiving extends core_Plugin
     }
     
     /**
-     * Връща броя разходи към документа
+     * Показва допълнителни действие в doclog история
      *
-     * @param int $containerId - ид на контейнера
-     *
-     * @return string $html - броя документи
+     * @param core_Master $mvc
+     * @param string|null $html
+     * @param int         $containerId
+     * @param int         $threadId
      */
-    public static function getSummary($containerId)
+    public static function on_RenderOtherSummary($mvc, &$html, $containerId, $threadId)
     {
-        $html = '';
-        
-        $mQuery = docarch_Movements::getQuery();
-        $mQuery->in('documentId', $containerId);
-        $mCnt = $mQuery->count();
-        if ($mCnt > 0) {
-            $count = cls::get('type_Int')->toVerbal($mCnt);
-            $actionVerbal = tr('архиви');
-            $actionTitle = 'Показване на архивите към документа';
-            $document = doc_Containers::getDocument($containerId);
-            
-            if (haveRole('ceo, acc, purchase') && $document->haveRightFor('single')) {
-                $linkArr = array('docarch_Movements', 'document' => $containerId, 'ret_url' => true);
-            }
-            $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr, false, array('title' => $actionTitle));
-            
-            $html .= "<li class=\"action expenseSummary\">{$link}</li>";
-         }
-        
-        return $html;
+        $html .= docarch_Movements::getSummary($containerId);
     }
 }

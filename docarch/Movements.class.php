@@ -97,6 +97,9 @@ class docarch_Movements extends core_Master
             $volumeSuggestionsArr[$vRec->id] = $volName .'-No'.$vRec->number.' / архив: '.$arch;
         }
         if (($rec->documentId && !$rec->id)) {
+            
+            $document = doc_Containers::getDocument($rec->documentId);
+            
             $form->setOptions('toVolumeId', $volumeSuggestionsArr);
             
             $form->setField('fromVolumeId', 'input=none');
@@ -186,6 +189,29 @@ class docarch_Movements extends core_Master
         return 'action';
     }
     
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        
+        if ($rec->id && $action == 'list') {
+            $rec = $mvc->fetch($rec->id);
+            
+            if ($rec->lastUseOn) {
+                // Използвана сметка - забранено изтриване
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+    
+    
     
     /**
      * Връща възможно типа на възможното движение
@@ -219,5 +245,36 @@ class docarch_Movements extends core_Master
         }
         
         return $possibleMove;
+    }
+    
+    /**
+     * Връща броя архиви към документа
+     *
+     * @param int $containerId - ид на контейнера
+     *
+     * @return string $html - броя документи
+     */
+    public static function getSummary($containerId)
+    {
+        $html = '';
+        
+        $mQuery = self::getQuery();
+        $mQuery->in('documentId', $containerId);
+        $mCnt = $mQuery->count();
+        if ($mCnt > 0) {
+            $count = cls::get('type_Int')->toVerbal($mCnt);
+            $actionVerbal = tr('архиви');
+            $actionTitle = 'Показване на архивите към документа';
+            $document = doc_Containers::getDocument($containerId);
+            
+            if (haveRole('ceo, acc, purchase') && $document->haveRightFor('single')) {
+                $linkArr = array('docarch_Movements', 'document' => $containerId, 'ret_url' => true);
+            }
+            $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr, false, array('title' => $actionTitle));
+            
+            $html .= "<li class=\"action expenseSummary\">{$link}</li>";
+        }
+        
+        return $html;
     }
 }
