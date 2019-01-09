@@ -170,9 +170,12 @@ class docarch_Movements extends core_Master
         }
         if (in_array($rec->type, $incrementMoves)) {
             
+            $volRec->_isCreated = true;
+            
             if(is_null($volRec->docCnt)){
                 
                 $volRec->firstDocDate = $rec->createdOn;
+                
                 
                 docarch_Volumes::save($volRec, 'firstDocDate'); ;
             }
