@@ -51,7 +51,7 @@ class docarch_Movements extends core_Master
     {
         $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
         
-        $documentContainerId = ($data->listFilter->rec->document);//bp($documentContainerId);
+        $documentContainerId = ($data->listFilter->rec->document);
         if ($documentContainerId) {
             $mQuery = $mvc->getQuery();
             $mQuery->where("#documentId = ${documentContainerId}");
@@ -351,7 +351,7 @@ class docarch_Movements extends core_Master
         
         $form->FLD('toVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Входящ том');
         
-        $form->FLD('fromVolumeId', 'int', 'input=hidden,silent');
+       // $form->FLD('fromVolumeId', 'int', 'input=hidden,silent');
         
         $form->FLD('documentId', 'int', 'input=hidden,silent');
         
