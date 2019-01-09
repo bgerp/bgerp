@@ -172,11 +172,12 @@ class docarch_Volumes extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
+        
         if (($rec->type == docarch_Archives::minDefType($rec->archive)) || $rec->archive == 0) {
             $rec->isForDocuments = 'yes';
         }
         if (($rec->type != docarch_Archives::minDefType($rec->archive)) && $rec->archive != 0) {
-            $rec->isForDocuments = 'yes';
+            $rec->isForDocuments = 'no';
         }
     }
     
@@ -190,6 +191,7 @@ class docarch_Volumes extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+       
         if ($rec->_isCreated !== true) {
             
             // Прави запис в модела на движенията

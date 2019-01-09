@@ -93,7 +93,7 @@ class docarch_Movements extends core_Master
         $form = $data->form;
         $rec = $form->rec;
         
-        
+        //Подготовка на масива с предложеня на том за архивиране на документа
         $volumeSuggestionsArr = array();
         
         $volQuery = docarch_Volumes::getQuery();
@@ -143,13 +143,43 @@ class docarch_Movements extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
-            $volRec = docarch_Volumes::fetch($form->rec->toVolumeId);
             
-            if ($form->rec->type == archiving) {
-                $volRec->docCnt++;
+           
+        }
+    }
+    
+    
+    /**
+     * Извиква се преди запис в модела
+     *
+     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
+     * @param int          $id     Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec    Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode   Режим на записа: replace, ignore
+     */
+    public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        //Масив с дейности, които увеличават броя на документите в тома
+        $incrementMoves = array('archiving');
+        
+        if (!is_null($rec->toVolumeId)){
+        
+            $volRec = docarch_Volumes::fetch($rec->toVolumeId);
+            
+        }
+        if (in_array($rec->type, $incrementMoves)) {
+            
+            if(is_null($volRec->docCnt)){
                 
-                docarch_Volumes::save($volRec, 'docCnt');
+                $volRec->firstDocDate = $rec->createdOn;
+                
+                docarch_Volumes::save($volRec, 'firstDocDate'); ;
             }
+        
+            $volRec->docCnt++;
+            
+            docarch_Volumes::save($volRec, 'docCnt');
         }
     }
     
@@ -287,7 +317,6 @@ class docarch_Movements extends core_Master
         if ($mCnt > 0) {
             $count = cls::get('type_Int')->toVerbal($mCnt);
             $actionVerbal = tr('архиви');
-            $actionTitle = 'Показване на архивите към документа';
             $document = doc_Containers::getDocument($containerId);
             
             if ($document->haveRightFor('single')) {
