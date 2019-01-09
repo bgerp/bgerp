@@ -4,7 +4,7 @@
 /**
  *
  *
- * @category  vendors
+ * @category  bgerp
  * @package   peripheral
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>

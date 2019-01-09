@@ -216,7 +216,7 @@ class type_User extends type_Key
     /**
      * Рендира HTML инпут поле
      */
-    public function renderInput_($name, $value = '', &$attr = array())
+    public function renderInput($name, $value = '', &$attr = array())
     {
         if (is_null($value) && !$this->params['allowEmpty']) {
             $value = core_Users::getCurrent();
@@ -230,7 +230,7 @@ class type_User extends type_Key
             $this->params['reserve'] = $value;
         }
         
-        return parent::renderInput_($name, $value, $attr);
+        return parent::renderInput($name, $value, $attr);
     }
     
     

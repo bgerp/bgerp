@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'plg_Archiving' -Плъгин за архивиране на документи
+ * Клас 'docarch_plg_Archiving' -Плъгин за архивиране на документи
  *
  *
  * @category  bgerp
@@ -14,15 +14,20 @@
  *
  * @since     v 0.1
  */
-class plg_Archiving extends core_Plugin
+class docarch_plg_Archiving extends core_Plugin
 {
     /**
      * Добавя бутон за архивиране към единичния изглед на документа
      */
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
+        if (!(core_Packs::isInstalled('docarch'))) {
+            
+            return;
+        }
         $rec = &$data->rec;
         $arcivesArr = array();
+        
         
         // има ли архиви дефинирани за документи от този клас , или за всякакви документи
         $docClassId = $mvc->getClassId();
@@ -38,7 +43,6 @@ class plg_Archiving extends core_Plugin
         
         if (! empty($archQuery->fetchAll())) {
             while ($arcives = $archQuery->fetch()) {
-                
                 $arcivesArr[] = $arcives->id;
             }
             
@@ -53,13 +57,29 @@ class plg_Archiving extends core_Plugin
             $mQuery->in('documentId', $documentContainerId);
             
             
-            if ($volQuery->count() > 0) {
-                if (($mCnt = $mQuery->count()) == 0) {
-                    $data->toolbar->addBtn('Архивиране', array('docarch_Movements', 'Add', 'documentId' => $documentContainerId, 'ret_url' => true), 'ef_icon=img/16/archive.png,row=2');
-                } else {  
-                    $data->toolbar->addBtn('Архив|* (' . $mCnt . ')', array('docarch_Movements', 'document' => $documentContainerId, 'ret_url' => true), 'ef_icon=img/16/archive.png,row=2');
-                }
+            if ((($mCnt = $mQuery->count()) == 0) && ($mvc->haveRightFor('single'))) {;
+                $data->toolbar->addBtn('Архивиране', array('docarch_Movements', 'Add', 'documentId' => $documentContainerId, 'ret_url' => true), 'ef_icon=img/16/archive.png,row=2');
             }
+            
+            //  $data->toolbar->addBtn('Архив|* (' . $mCnt . ')', array('docarch_Movements', 'document' => $documentContainerId, 'ret_url' => true), 'ef_icon=img/16/archive.png,row=2');
         }
+    }
+    
+    
+    /**
+     * Показва допълнителни действие в doclog история
+     *
+     * @param core_Master $mvc
+     * @param string|null $html
+     * @param int         $containerId
+     * @param int         $threadId
+     */
+    public static function on_RenderOtherSummary($mvc, &$html, $containerId, $threadId)
+    {
+        if (!(core_Packs::isInstalled('docarch'))) {
+            
+            return;
+        }
+        $html .= docarch_Movements::getSummary($containerId);
     }
 }

@@ -17,9 +17,9 @@ class docarch_Movements extends core_Master
 {
     public $title = 'Движения в архива';
     
-    public $loadList = 'plg_Created, plg_RowTools2,plg_Modified,plg_Search';
+    public $loadList = 'plg_Created,plg_Search';
     
-    public $listFields = 'type,documentId,userID,fromVolumeId,toVolumeId,createdOn=Създаден,modifiedOn=Модифициране';
+    public $listFields = 'type,documentId,toVolumeId,fromVolumeId,userID,createdOn=Създаден,modifiedOn=Модифициране';
     
     protected function description()
     {
@@ -31,10 +31,10 @@ class docarch_Movements extends core_Master
         $this->FLD('documentId', 'key(mvc=doc_Containers)', 'caption=Документ,input=hidden,silent');
         
         //Изходящ том участващ в движението
-        $this->FLD('fromVolumeId', 'key(mvc=docarch_Volumes,select=title,allowEmpty)', 'caption=Изходящ том');
+        $this->FLD('fromVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Изходящ том');
         
         //Входящ том участващ в движението
-        $this->FLD('toVolumeId', 'key(mvc=docarch_Volumes,select=title,allowEmpty)', 'caption=Входящ том');
+        $this->FLD('toVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Входящ том');
         
         //Потребител получил документа или контейнера
         $this->FLD('userID', 'key(mvc=core_Users)', 'caption=Потребител');
@@ -50,6 +50,23 @@ class docarch_Movements extends core_Master
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
+        
+        $documentContainerId = ($data->listFilter->rec->document);
+        if ($documentContainerId) {
+          
+            $mQuery = $mvc->getQuery();
+            $mQuery->where("#documentId = $documentContainerId");
+            $mQuery->orderBy('createdOn', 'ASC');
+            while ($move = $mQuery->fetch()) {
+                $lastVolume = $move->toVolumeId;
+            }
+        }
+        if ($data->filterCheck) {
+            $data->toolbar->addBtn('Вземане', array($mvc, 'Taking',
+                'documentId' => $documentContainerId,
+                'ret_url' => true));
+            $data->toolbar->addBtn('Унищожаване', array($mvc, 'Action'));
+        }
         
         
         //  $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
@@ -86,6 +103,11 @@ class docarch_Movements extends core_Master
             $volumeSuggestionsArr[$vRec->id] = $volName .'-No'.$vRec->number.' / архив: '.$arch;
         }
         if (($rec->documentId && !$rec->id)) {
+            
+            $document = doc_Containers::getDocument($rec->documentId);
+            
+            expect($document->haveRightFor('single'),'Недостатъчни права за този документ.');
+            
             $form->setOptions('toVolumeId', $volumeSuggestionsArr);
             
             $form->setField('fromVolumeId', 'input=none');
@@ -93,16 +115,10 @@ class docarch_Movements extends core_Master
             $form->setFieldType('type', 'enum(archiving=Архивиране)');
             
             $form->setField('userID', 'input=none');
+            
         }
         
         if (($rec->documentId && $rec->id)) {
-            $form->setOptions('toVolumeId', $volumeSuggestionsArr);
-            
-            $form->setField('fromVolumeId', 'input=none');
-            
-            $form->setFieldType('type', 'enum(archiving=Архивиране)');
-            
-            $form->setField('userID', 'input=none');
         }
     }
     
@@ -151,10 +167,31 @@ class docarch_Movements extends core_Master
             
             if ($data->listFilter->rec->document) {
                 $data->query->where(array("#documentId = '[#1#]'", $data->listFilter->rec->document));
+                
+                $data->filterCheck = true;
             }
             
             // Сортиране на записите по дата на създаване
             $data->query->orderBy('#createdOn', 'DESC');
+        }
+    }
+    
+    
+    /**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        if ($rec->documentId){
+            
+        $Document = doc_Containers::getDocument($rec->documentId);
+        $className = $Document->className;
+        $handle =$Document->singleTitle.'-'.$Document->getHandle();
+        
+        $url = toUrl(array("$className",'single', $Document->that));
+        
+        $row->documentId = ht::createLink($handle, $url, false, array());
+        
         }
     }
     
@@ -169,9 +206,24 @@ class docarch_Movements extends core_Master
          */
         requireRole('admin');
         
-        bp(docarch_Volumes::getQuery()->fetchAll());
+       
         
         return 'action';
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+
     }
     
     
@@ -208,4 +260,73 @@ class docarch_Movements extends core_Master
         
         return $possibleMove;
     }
+    
+    
+    /**
+     * Връща броя архиви към документа
+     *
+     * @param int $containerId - ид на контейнера
+     *
+     * @return string $html - броя документи
+     */
+    public static function getSummary($containerId)
+    {
+        $html = '';
+        
+        $mQuery = self::getQuery();
+        $mQuery->in('documentId', $containerId);
+        $mCnt = $mQuery->count();
+        if ($mCnt > 0) {
+            $count = cls::get('type_Int')->toVerbal($mCnt);
+            $actionVerbal = tr('архиви');
+            $actionTitle = 'Показване на архивите към документа';
+            $document = doc_Containers::getDocument($containerId);
+            
+            if ($document->haveRightFor('single')) {
+                $linkArr = array('docarch_Movements', 'document' => $containerId, 'ret_url' => true);
+            }
+            $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr, false, array('title' => $actionTitle));
+            
+            $html .= "<li class=\"action expenseSummary\">{$link}</li>";
+        }
+        
+        return $html;
+    }
+    
+    /**
+     * @return string
+     */
+    public function act_Taking()
+    {
+        /**
+         * Установява необходима роля за да се стартира екшъна
+         */
+       // requireRole('admin');
+        $cRec = new stdClass();
+        $form = cls::get('core_Form');
+        $form->title = "Вземане на документ";
+        
+        $form->FLD('type', 'enum(taking=Изваждане)', 'caption=Действие');
+        
+        $form->FLD('toVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Входящ том');
+        
+        $form->FLD('fromVolumeId', 'int', 'input=hidden,silent');
+        
+        $form->FLD('documentId', 'int', 'input=hidden,silent');
+       
+       
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+        $cRec = $form->input();
+        
+        if ($form->isSubmitted()) {
+            
+            return new Redirect(getRetUrl());
+        }
+        
+        return $this->renderWrapping($form->renderHtml());
+    }
+
+
 }

@@ -212,7 +212,7 @@ abstract class deals_DealDetail extends doc_Detail
                 if (isset($listId)) {
                     $allProducts = cat_Listings::getAll($listId);
                     foreach ($allProducts as $o) {
-                        $pRec = cat_Products::fetch($o->productId, 'name,nameInt,isPublic,code,createdOn');
+                        $pRec = cat_Products::fetch($o->productId, 'name,nameEn,isPublic,code,createdOn');
                         $products[$o->productId] = cat_Products::getRecTitle($pRec, false);
                     }
                 }
@@ -491,7 +491,10 @@ abstract class deals_DealDetail extends doc_Detail
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
         $meta = cat_Products::fetchField($pRec->productId, $this->metaProducts);
-        if($meta != 'yes') return null;
+        if ($meta != 'yes') {
+            
+            return;
+        }
         
         $price = null;
         

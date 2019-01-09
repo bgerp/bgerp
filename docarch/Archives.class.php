@@ -79,7 +79,7 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
+        $data->toolbar->addBtn('Бутон', array($mvc, 'Action','ret_url' => true));
     }
     
     /**
@@ -133,8 +133,21 @@ class docarch_Archives extends core_Master
          * Установява необходима роля за да се стартира екшъна
          */
         requireRole('admin');
+        $cRec = new stdClass();
+        $form = cls::get('core_Form');
+        $form->title = "Форма тест|* Ala Bala|*";
+        $form->FNC('test', 'varchar', 'caption=Тест, mandatory, input');
         
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         
-        return 'Action';
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+        $cRec = $form->input();
+        
+        if ($form->isSubmitted()) {
+           
+            return new Redirect(getRetUrl());
+        }
+        
+        return $this->renderWrapping($form->renderHtml());
     }
 }

@@ -189,8 +189,10 @@ class rack_Pallets extends core_Manager
         $bestPos = '';
 
         $nearProds = array($pId => 1);
-
-        $relData = sales_ProductRelations::fetchField("#productId = {$pId}", 'data');
+        
+        if(isset($pId)){
+            $relData = sales_ProductRelations::fetchField("#productId = {$pId}", 'data');
+        }
 
         if(is_array($relData)) {
             $i = 2;
