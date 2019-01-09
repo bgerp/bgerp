@@ -190,7 +190,7 @@ class type_UserOrRole extends type_User
      *
      * @return core_ET
      */
-    public function renderInput_($name, $value = '', &$attr = array())
+    public function renderInput($name, $value = '', &$attr = array())
     {
         if ($value < 0) {
             $value = self::getRoleIdFromSys($value);
@@ -203,7 +203,7 @@ class type_UserOrRole extends type_User
             $value = '';
         }
         
-        return parent::renderInput_($name, $value, $attr);
+        return parent::renderInput($name, $value, $attr);
     }
     
     
