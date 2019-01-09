@@ -17,9 +17,22 @@ class docarch_Volumes extends core_Master
 {
     public $title = 'Томове и контейнери';
     
-    public $loadList = 'plg_Created, plg_RowTools2,plg_Modified, plg_State2';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, plg_State2, plg_Rejected';
     
     public $listFields = 'number,type,inCharge,archive,createdOn=Създаден,modifiedOn=Модифициране';
+    
+    
+    /**
+     * Кой може да оттегля?
+     */
+    public $canReject = 'ceo, admin';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    public $canDelete = 'no_one';
+    
     
     protected function description()
     {
@@ -48,7 +61,7 @@ class docarch_Volumes extends core_Master
         //Оща информация
         $this->FLD('firstDocDate', 'date', 'caption=Дата на първия документ в тома,input=none');
         $this->FLD('lastDocDate', 'date', 'caption=Дата на последния документ в тома,input=none');
-        $this->FLD('docCnt', 'int', 'caption=Дата на първия документ,input=none');
+        $this->FLD('docCnt', 'int', 'caption=Брой на документите в тома,input=none');
         
         $this->FNC('title', 'varchar', 'caption=Име');
         
@@ -221,6 +234,25 @@ class docarch_Volumes extends core_Master
     {
         if (($rec->archive == 0)) {
             $row->archive = 'Сборен';
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'reject' && isset($rec)) {
+            if (1) {
+                $requiredRoles = 'no_one' ;
+            }
         }
     }
     
