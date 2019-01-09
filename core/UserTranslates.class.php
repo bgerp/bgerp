@@ -431,4 +431,13 @@ class core_UserTranslates extends core_Manager
             $rec->id = $cRecId;
         }
     }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        $data->toolbar->removeBtn('btnAdd');
+    }
 }
