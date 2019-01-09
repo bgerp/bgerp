@@ -238,9 +238,17 @@ class rack_Movements extends core_Manager
     {
         // Ако се създава запис в чернова със зони, в зоните се създава празен запис
         if($rec->state == 'pending' && $rec->_canceled !== true){
+            $batch = $rec->batch;
+            if(empty($batch) && isset($rec->palletId)){
+                $palletBatch = rack_Pallets::fetchField($rec->palletId, 'batch');
+                if(!empty($palletBatch)){
+                    $batch = $palletBatch;
+                }
+            }
+            
             $zonesQuantityArr = self::getZoneArr($rec);
             foreach ($zonesQuantityArr as $zoneRec){
-                rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $rec->packagingId, 0);
+                rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $rec->packagingId, 0, $batch);
             }
         }
     }
@@ -284,7 +292,7 @@ class rack_Movements extends core_Manager
         
         if (is_array($transaction->zonesQuantityArr)) {
             foreach ($transaction->zonesQuantityArr as $obj) {
-                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity);
+                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity, $transaction->batch);
             }
         }
         
@@ -974,6 +982,7 @@ class rack_Movements extends core_Manager
             }
             
             $fromQuantity = $fromPallet->quantity;
+            
             if ($fromPallet->quantity - $transaction->quantity < 0) {
                 $res->errors = 'Няма достатъчна наличност на изходящия палет';
                 $res->errorFields[] = 'packQuantity,palletId';
