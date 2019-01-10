@@ -7,7 +7,7 @@
  * @package   docart
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -179,33 +179,31 @@ class docarch_Movements extends core_Master
         $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
         
         $documentContainerId = ($data->listFilter->rec->document);
+        
         if ($documentContainerId) {
-            $mQuery = $mvc->getQuery();
-            $mQuery->where("#documentId = ${documentContainerId}");
-            $mQuery->orderBy('createdOn', 'ASC');
-            while ($move = $mQuery->fetch()) {
-                $lastVolume = $move->toVolumeId;
-            }
+            
+            $lastDocMovie=self::getLastDocumentMove($documentContainerId);
+            $lastVolume = $lastDocMovie[$documentContainerId]->toVolumeId;
+           
         }
-        
-        
+       
         if ($data->filterCheck) {
             $Document = doc_Containers::getDocument($documentContainerId);
             $documentName = $Document->singleTitle.'-'.$Document->getHandle();
             $data->title = "Движение в архива на: {$documentName}";
             
-            
-            $data->toolbar->addBtn('Вземане', array($mvc, 'Taking',
-                'documentId' => $documentContainerId,
-                'fromVolumeId' => $lastVolume,
-                'ret_url' => true));
-            
-            
-            $data->toolbar->addBtn('Унищожаване', array($mvc, 'Action'));
+            //Извежда бутона "Вземане" ако докумета е в поне един том
+            if (!is_null($lastVolume)) {
+                $data->toolbar->addBtn('Вземане', array($mvc, 'Taking',
+                    'documentId' => $documentContainerId,
+                    'fromVolumeId' => $lastVolume,
+                    'ret_url' => true));
+                
+                $data->toolbar->addBtn('Унищожаване', array($mvc, 'Action'));
+            }
+           
         }
         
-        
-        //  $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
     }
     
     
@@ -254,8 +252,11 @@ class docarch_Movements extends core_Master
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         if ($rec->documentId) {
+            
             $Document = doc_Containers::getDocument($rec->documentId);
+            
             $className = $Document->className;
+            
             $handle = $Document->singleTitle.'-'.$Document->getHandle();
             
             $url = toUrl(array("${className}",'single', $Document->that));
@@ -298,7 +299,7 @@ class docarch_Movements extends core_Master
     
     
     /**
-     * Връща възможно типа на възможното движение
+     * Връща типа на възможното движение
      *
      * @param int $archive
      * @param int $document
@@ -307,24 +308,7 @@ class docarch_Movements extends core_Master
      */
     public static function getMovingBalance($arhive, $document)
     {
-        $mQuery = docarch_Movements::getQuery();
-        $mQuery->orderBy('createdOn', 'ASC');
-        
-        while ($move = $mQuery->fetch()) {
-            if (!is_null($move->documentId)) {
-                $lastDocMove[$move->documentId] = $move->type;
-            }
-        }
-        
-        switch ($lastDocMove[$document]) {
-            
-            case 'archiving':$possibleMove = 'taking'; break;
-            
-            case 'taking':$possibleMove = 'include'; break;
-        
-        
-        }
-        
+      
         return $possibleMove;
     }
     
@@ -341,9 +325,13 @@ class docarch_Movements extends core_Master
         $html = '';
         
         $mQuery = self::getQuery();
+        
         $mQuery->in('documentId', $containerId);
+        
         $mCnt = $mQuery->count();
+        
         if ($mCnt > 0) {
+            
             $count = cls::get('type_Int')->toVerbal($mCnt);
             $actionVerbal = tr('архиви');
             $document = doc_Containers::getDocument($containerId);
@@ -351,6 +339,7 @@ class docarch_Movements extends core_Master
             if ($document->haveRightFor('single')) {
                 $linkArr = array('docarch_Movements', 'document' => $containerId, 'ret_url' => true);
             }
+            
             $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr, false, array());
             
             $html .= "<li class=\"action archiveSummary\">{$link}</li>";
@@ -365,17 +354,12 @@ class docarch_Movements extends core_Master
      */
     public function act_Taking()
     {
-        /**
-         * Установява необходима роля за да се стартира екшъна
-         */
-        // requireRole('admin');
+       
         $takingRec = new stdClass();
         $form = cls::get('core_Form');
         $form->title = 'Вземане на документ';
         
         $form->FLD('type', 'enum(taking=Изваждане)', 'caption=Действие');
-        
-        //  $form->FLD('toVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Входящ том');
         
         $form->FLD('fromVolumeId', 'int', 'input=hidden,silent');
         
@@ -390,7 +374,6 @@ class docarch_Movements extends core_Master
         
         $form->input(null, true);
         
-        
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
@@ -398,6 +381,7 @@ class docarch_Movements extends core_Master
         $takingRec = $form->input();
         
         if ($form->isSubmitted()) {
+            
             $this->save($takingRec);
             
             return new Redirect(getRetUrl());
@@ -447,7 +431,7 @@ class docarch_Movements extends core_Master
     {
         $lastDocMove = null;
         
-        $mQuery = docarch_Movements::getQuery();
+        $mQuery = self::getQuery();
         
         $mQuery->where('#documentId IS NOT NULL');
         
@@ -456,10 +440,17 @@ class docarch_Movements extends core_Master
         $mQuery->orderBy('createdOn', 'ASC');
         
         while ($move = $mQuery->fetch()) {
+            
+           
+            
             if (!is_null($move->documentId)) {
+                
+                $archive = (!is_null($move->toVolumeId)) ? docarch_Volumes::fetch($move->toVolumeId):'';
+         
                 $lastDocMove[$move->documentId] = (object) array(
                     'movingType' => $move->type,
-                    'toVolumeId' => $move->toVolumeId
+                    'toVolumeId' => $move->toVolumeId,
+                    'archive' => $archive
                 
                 );
             }

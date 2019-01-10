@@ -7,7 +7,7 @@
  * @package   docart
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -257,7 +257,10 @@ class docarch_Volumes extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'reject' && isset($rec)) {
-            if (!is_null($rec->docCnt) || ($rec->docCnt != 0)) {
+           
+            if (!is_null($rec->docCnt)) {
+                $requiredRoles = 'no_one' ;
+            }elseif (($rec->docCnt == 0)){
                 $requiredRoles = 'no_one' ;
             }
         }
