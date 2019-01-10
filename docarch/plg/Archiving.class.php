@@ -32,13 +32,14 @@ class docarch_plg_Archiving extends core_Plugin
         // има ли архиви дефинирани за документи от този клас , или за всякакви документи
         $docClassId = $mvc->getClassId();
         
-        
         $documentContainerId = ($rec->containerId);
         
-        
         $archQuery = docarch_Archives::getQuery();
+        
         $archQuery->show('documents');
+        
         $archQuery->likeKeylist('documents', $docClassId);
+        
         $archQuery->orWhere('#documents IS NULL');
         
         if (! empty($archQuery->fetchAll())) {
@@ -48,20 +49,25 @@ class docarch_plg_Archiving extends core_Plugin
             
             // Има ли в тези архиви томове дефинирани да архивират документи, с отговорник текущия потребител
             $volQuery = docarch_Volumes::getQuery();
+            
             $volQuery->in('archive', $arcivesArr);
+            
             $currentUser = core_Users::getCurrent();
+            
             $volQuery->where("#isForDocuments = 'yes' AND #inCharge = ${currentUser} AND #state = 'active'");
             
             //Архивиран ли е този документ
             $mQuery = docarch_Movements::getQuery();
+            
             $mQuery->in('documentId', $documentContainerId);
             
+            $mCnt = $mQuery->count();
             
-            if ((($mCnt = $mQuery->count()) == 0) && ($mvc->haveRightFor('single'))) {;
+            $lastDocMove = docarch_Movements::getLastDocumentMove($documentContainerId);
+            
+            if ((is_null($lastDocMove[$documentContainerId]->toVolumeId)) && ($mvc->haveRightFor('single'))) {
                 $data->toolbar->addBtn('Архивиране', array('docarch_Movements', 'Add', 'documentId' => $documentContainerId, 'ret_url' => true), 'ef_icon=img/16/archive.png,row=2');
             }
-            
-            //  $data->toolbar->addBtn('Архив|* (' . $mCnt . ')', array('docarch_Movements', 'document' => $documentContainerId, 'ret_url' => true), 'ef_icon=img/16/archive.png,row=2');
         }
     }
     

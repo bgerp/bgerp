@@ -24,8 +24,7 @@ class docarch_Movements extends core_Master
     protected function description()
     {
         //Избор на типа движение в архива
-        $this->FLD('type', 'enum(creating=Създаване, archiving=Архивиране, taking=Изваждане, 
-                                      destruction=Унищожаване, include=Включване, exclude=Изключване)', 'caption=Действиe');
+        $this->FLD('type', 'varchar(set options)', 'caption=Действиe');
         
         //Документ - ако движението е на документ
         $this->FLD('documentId', 'key(mvc=doc_Containers)', 'caption=Документ,input=hidden,silent');
@@ -38,6 +37,134 @@ class docarch_Movements extends core_Master
         
         //Потребител получил документа или контейнера
         $this->FLD('userID', 'key(mvc=core_Users)', 'caption=Потребител');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param embed_Manager $Embedder
+     * @param stdClass      $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = $data->form;
+        $rec = $form->rec;
+        
+        $types = array('creating' => 'Създаване', 'archiving' => 'Архивиране', 'taking' => 'Изваждане',
+            'destruction' => 'Унищожаване', 'include' => 'Включване', 'exclude' => 'Изключване');
+        $form->setOptions('type', $types);
+        
+        //Архивиране на документ
+        if (($rec->documentId && !$rec->id)) {
+            $Document = doc_Containers::getDocument($rec->documentId);
+            
+            $documentClassName = $Document->className;
+            
+            $documentClassId = core_Classes::getId($documentClassName);
+            
+            //Подготовка на масива с предложеня на том за архивиране на документа
+            $volumeSuggestionsArr = array();
+            
+            $volQuery = docarch_Volumes::getQuery();
+            $currentUser = core_Users::getCurrent();
+            $volQuery->where("#isForDocuments = 'yes' AND #state = 'active' AND #inCharge = '{$currentUser}'");
+            $cond = '';
+            
+            while ($vRec = $volQuery->fetch()) {
+                $classArrId = explode('|', trim(docarch_Archives::fetch($vRec->archive)->documents, '|'));
+                
+                if ((!is_null(docarch_Archives::fetch($vRec->archive)->documents)) && (!in_array($documentClassId, $classArrId))) {
+                    continue;
+                }
+                
+                $arch = ($vRec->archive == 0) ? 'Сборен' : docarch_Archives::fetch($vRec->archive)->name;
+                
+                $volName = docarch_Volumes::getVolumeTypeName($vRec->type);
+                
+                $volumeSuggestionsArr[$vRec->id] = $volName .'-No'.$vRec->number.' / архив: '.$arch;
+            }
+            
+            expect($Document->haveRightFor('single'), 'Недостатъчни права за този документ.');
+            
+            $form->setOptions('toVolumeId', $volumeSuggestionsArr);
+            
+            $form->setField('fromVolumeId', 'input=none');
+            
+            $types = array('archiving' => 'Архивиране');
+            $form->setOptions('type', $types);
+            
+            $form->setField('userID', 'input=none');
+        }
+        
+        if (($rec->documentId && $rec->id)) {
+        }
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager     $Embedder
+     * @param core_Form         $form
+     * @param stdClass          $data
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted()) {
+        }
+    }
+    
+    
+    /**
+     * Извиква се преди запис в модела
+     *
+     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
+     * @param int          $id     Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec    Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode   Режим на записа: replace, ignore
+     */
+    public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        //Брояч на документи в томовете
+        //Масив с дейности, които увеличават броя на документите в тома
+        $incrementMoves = array('archiving');
+        
+        //Масив с дейности, които намаляват броя на документите в тома
+        $decrementMoves = array('taking');
+        
+        if (in_array($rec->type, $incrementMoves)) {
+            if (!is_null($rec->toVolumeId)) {
+                $volRec = docarch_Volumes::fetch($rec->toVolumeId);
+            }
+            
+            $volRec->_isCreated = true;
+            
+            if (is_null($volRec->docCnt)) {
+                $volRec->firstDocDate = $rec->createdOn;
+                
+                
+                docarch_Volumes::save($volRec, 'firstDocDate');
+            }
+            
+            $volRec->docCnt++;
+            
+            docarch_Volumes::save($volRec, 'docCnt');
+        }
+        
+        if (in_array($rec->type, $decrementMoves)) {
+            if (!is_null($rec->fromVolumeId)) {
+                $volRec = docarch_Volumes::fetch($rec->fromVolumeId);
+            }
+            
+            $volRec->_isCreated = true;
+            
+            $volRec->docCnt--;
+            
+            docarch_Volumes::save($volRec, 'docCnt');
+        }
     }
     
     
@@ -83,111 +210,6 @@ class docarch_Movements extends core_Master
     
     
     /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param embed_Manager $Embedder
-     * @param stdClass      $data
-     */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        $form = $data->form;
-        $rec = $form->rec;
-        
-        //Подготовка на масива с предложеня на том за архивиране на документа
-        $volumeSuggestionsArr = array();
-        
-        $volQuery = docarch_Volumes::getQuery();
-        $currentUser = core_Users::getCurrent();
-        $volQuery->where("#isForDocuments = 'yes' AND #state = 'active' AND #inCharge = '{$currentUser}'");
-        
-        while ($vRec = $volQuery->fetch()) {
-            if ($vRec->archive == 0) {
-                $arch = 'Сборен';
-            } else {
-                $arch = docarch_Archives::fetch($vRec->archive)->name;
-            }
-            
-            $volName = docarch_Volumes::getVolumeTypeName($vRec->type);
-            
-            $volumeSuggestionsArr[$vRec->id] = $volName .'-No'.$vRec->number.' / архив: '.$arch;
-        }
-        
-        //Архивиране на документ
-        if (($rec->documentId && !$rec->id)) {
-            $document = doc_Containers::getDocument($rec->documentId);
-            
-            expect($document->haveRightFor('single'), 'Недостатъчни права за този документ.');
-            
-            $form->setOptions('toVolumeId', $volumeSuggestionsArr);
-            
-            $form->setField('fromVolumeId', 'input=none');
-            
-            $form->setFieldType('type', 'enum(archiving=Архивиране)');
-            
-            $form->setField('userID', 'input=none');
-        }
-        
-        if (($rec->documentId && $rec->id)) {
-        }
-    }
-    
-    
-    /**
-     * След рендиране на единичния изглед
-     *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_Form         $form
-     * @param stdClass          $data
-     */
-    protected static function on_AfterInputEditForm($mvc, &$form)
-    {
-        if ($form->isSubmitted()) {
-            
-           
-        }
-    }
-    
-    
-    /**
-     * Извиква се преди запис в модела
-     *
-     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
-     * @param int          $id     Тук се връща първичния ключ на записа, след като бъде направен
-     * @param stdClass     $rec    Съдържащ стойностите, които трябва да бъдат записани
-     * @param string|array $fields Имена на полетата, които трябва да бъдат записани
-     * @param string       $mode   Режим на записа: replace, ignore
-     */
-    public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
-    {
-        //Масив с дейности, които увеличават броя на документите в тома
-        $incrementMoves = array('archiving');
-        
-        if (!is_null($rec->toVolumeId)){
-        
-            $volRec = docarch_Volumes::fetch($rec->toVolumeId);
-            
-        }
-        if (in_array($rec->type, $incrementMoves)) {
-            
-            $volRec->_isCreated = true;
-            
-            if(is_null($volRec->docCnt)){
-                
-                $volRec->firstDocDate = $rec->createdOn;
-                
-                
-                docarch_Volumes::save($volRec, 'firstDocDate'); ;
-            }
-        
-            $volRec->docCnt++;
-            
-            docarch_Volumes::save($volRec, 'docCnt');
-        }
-    }
-    
-    
-    /**
      * Филтър
      *
      * @param core_Mvc $mvc
@@ -199,7 +221,7 @@ class docarch_Movements extends core_Master
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $data->listFilter->FNC('toVolume', 'key(mvc=docarch_Volumes,allowEmpty)', 'caption=Входящ том,placeholder=Входящ том');
+        $data->listFilter->FNC('toVolume', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Входящ том,placeholder=Входящ том');
         
         $data->listFilter->showFields = 'toVolume';
         
@@ -240,6 +262,8 @@ class docarch_Movements extends core_Master
             
             $row->documentId = ht::createLink($handle, $url, false, array());
         }
+        
+        $row->type = self::getMoveName($row->type);
     }
     
     
@@ -252,6 +276,8 @@ class docarch_Movements extends core_Master
          * Установява необходима роля за да се стартира екшъна
          */
         requireRole('admin');
+        
+        bp(docarch_Movements::getQuery()->fetchAll());
         
         return 'action';
     }
@@ -349,9 +375,9 @@ class docarch_Movements extends core_Master
         
         $form->FLD('type', 'enum(taking=Изваждане)', 'caption=Действие');
         
-        $form->FLD('toVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Входящ том');
+        //  $form->FLD('toVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Входящ том');
         
-       // $form->FLD('fromVolumeId', 'int', 'input=hidden,silent');
+        $form->FLD('fromVolumeId', 'int', 'input=hidden,silent');
         
         $form->FLD('documentId', 'int', 'input=hidden,silent');
         
@@ -378,5 +404,67 @@ class docarch_Movements extends core_Master
         }
         
         return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Взема името на действието
+     *
+     * @param string $type -ключа на името на типа
+     *
+     * @return string
+     */
+    public static function getMoveName($type)
+    {
+        switch ($type) {
+            
+            case 'creating':$typeName = 'Създаване'; break;
+            
+            case 'archiving':$typeName = 'Архивиране'; break;
+            
+            case 'taking':$typeName = 'Изваждане'; break;
+            
+            case 'destruction':$typeName = 'Унищожаване'; break;
+            
+            case 'include':$typeName = 'Включване'; break;
+            
+            case 'exclude':$typeName = 'Изключване'; break;
+        
+        }
+        
+        return $typeName;
+    }
+    
+    
+    /**
+     * Връща последното движение на документ
+     *
+     * @param string $containerId -контернер Id на документа
+     *
+     * @return array
+     */
+    public static function getLastDocumentMove($containerId)
+    {
+        $lastDocMove = null;
+        
+        $mQuery = docarch_Movements::getQuery();
+        
+        $mQuery->where('#documentId IS NOT NULL');
+        
+        $mQuery->where("#documentId = ${containerId}");
+        
+        $mQuery->orderBy('createdOn', 'ASC');
+        
+        while ($move = $mQuery->fetch()) {
+            if (!is_null($move->documentId)) {
+                $lastDocMove[$move->documentId] = (object) array(
+                    'movingType' => $move->type,
+                    'toVolumeId' => $move->toVolumeId
+                
+                );
+            }
+        }
+        
+        return $lastDocMove;
     }
 }
