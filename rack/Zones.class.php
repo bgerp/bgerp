@@ -797,12 +797,12 @@ class rack_Zones extends core_Master
         while ($mRec = $mQuery->fetch()) {
            rack_Movements::delete($mRec->id);
         }
-        
+
         $floor = rack_PositionType::FLOOR;
         foreach ($expected->products as $pRec) {
-            
             // Какви са наличните палети за избор
-            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, true);
+            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, $pRec->batch, true);
+          
             $quantityOnPallets = arr::sumValuesArray($pallets, 'quantity');
             $requiredQuantityOnZones = array_sum($pRec->zones);
             
@@ -898,9 +898,9 @@ class rack_Zones extends core_Master
                 continue;
             }
             
-            $key = "{$dRec->productId}|{$dRec->packagingId}";
+            $key = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->batch}";
             if (!array_key_exists($key, $res->products)) {
-                $res->products[$key] = (object) array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'zones' => array());
+                $res->products[$key] = (object) array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'zones' => array(), 'batch' => $dRec->batch);
                 $res->zones[$dRec->zoneId] = $dRec->zoneId;
             }
             

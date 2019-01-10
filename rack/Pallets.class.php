@@ -111,16 +111,21 @@ class rack_Pallets extends core_Manager
      *
      * @param int  $productId               - ид на артикул
      * @param int  $storeId                 - ид на склад
+     * @param mixed $batch                  - null за всички партиди, стринг за конкретна (включително и без партида)
      * @param bool $withoutPendingMovements - към които да има или няма чакащи движения
      *
      * @return array $pallets - масив с палети
      */
-    public static function getAvailablePallets($productId, $storeId, $withoutPendingMovements = false)
+    public static function getAvailablePallets($productId, $storeId, $batch = null, $withoutPendingMovements = false)
     {
         $pallets = array();
         $query = self::getQuery();
         $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #state != 'closed'");
         $query->show('quantity,position');
+        if(!is_null($batch)){
+            $query->where("#batch = '{$batch}'");
+        }
+        
         $query->orderBy('createdOn', 'ASC');
         while ($rec = $query->fetch()) {
             
@@ -624,7 +629,7 @@ class rack_Pallets extends core_Manager
             $query = self::getQuery();
             while ($rec = $query->fetch("#storeId = {$storeId} AND #state != 'closed'")) {
                 if ($rec->position) {
-                    $res[$rec->position] = $rec->productId;
+                    $res[$rec->position] = (object)array('productId' => $rec->productId, 'batch' => $rec->batch);
                 }
             }
             core_Cache::set('UsedRacksPossitions', $storeId, $res, 1440);

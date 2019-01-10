@@ -401,8 +401,12 @@ class rack_Racks extends core_Master
                 $pId = null;
                 
                 // Ако е заето с нещо
-                if (!isset($title) && ($pId = $used[$posFull])) {
-                    $prodTitle = cat_Products::getTitleById($pId);
+                if (!isset($title) && ($pRec = $used[$posFull])) {
+                    $prodTitle = cat_Products::getTitleById($pRec->productId);
+                    if(!empty($pRec->batch)){
+                        $prodTitle .= " / {$pRec->batch}";
+                    }
+                    
                     $attrA = array();
                     $attrA['title'] = $prodTitle;
                     $color = self::getColor($prodTitle, 0, 110);
