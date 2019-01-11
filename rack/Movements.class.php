@@ -238,9 +238,17 @@ class rack_Movements extends core_Manager
     {
         // Ако се създава запис в чернова със зони, в зоните се създава празен запис
         if($rec->state == 'pending' && $rec->_canceled !== true){
+            $batch = $rec->batch;
+            if(empty($batch) && isset($rec->palletId)){
+                $palletBatch = rack_Pallets::fetchField($rec->palletId, 'batch');
+                if(!empty($palletBatch)){
+                    $batch = $palletBatch;
+                }
+            }
+            
             $zonesQuantityArr = self::getZoneArr($rec);
             foreach ($zonesQuantityArr as $zoneRec){
-                rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $rec->packagingId, 0);
+                rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $rec->packagingId, 0, $batch);
             }
         }
     }
@@ -256,7 +264,7 @@ class rack_Movements extends core_Manager
         // Ако има начална позиция и тя не е пода обновява се палета на нея
         if (!empty($transaction->from) && $transaction->from != rack_PositionType::FLOOR) {
             try {
-                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, -1 * $transaction->quantity);
+                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, -1 * $transaction->quantity, $transaction->batch);
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 
@@ -269,12 +277,12 @@ class rack_Movements extends core_Manager
         if (!empty($transaction->to) && $transaction->to != rack_PositionType::FLOOR) {
             try {
                 $restQuantity = $transaction->quantity - $transaction->zonesQuantityTotal;
-                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->to, $restQuantity);
+                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->to, $restQuantity, $transaction->batch);
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 
                 // Ако има проблем ревърт на предното движение
-                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, $transaction->quantity);
+                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, $transaction->quantity, $transaction->batch);
                 
                 return false;
             }
@@ -284,7 +292,7 @@ class rack_Movements extends core_Manager
         
         if (is_array($transaction->zonesQuantityArr)) {
             foreach ($transaction->zonesQuantityArr as $obj) {
-                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity);
+                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity, $transaction->batch);
             }
         }
         
@@ -351,6 +359,7 @@ class rack_Movements extends core_Manager
         $form->setDefault('storeId', store_Stores::getCurrent());
         $form->setField('storeId', 'input=hidden');
         $form->setField('workerId', 'input=none');
+        $form->setDefault('productId', '89');
         
         $defZones = Request::get('defaultZones', 'varchar');
         
@@ -973,6 +982,7 @@ class rack_Movements extends core_Manager
             }
             
             $fromQuantity = $fromPallet->quantity;
+            
             if ($fromPallet->quantity - $transaction->quantity < 0) {
                 $res->errors = 'Няма достатъчна наличност на изходящия палет';
                 $res->errorFields[] = 'packQuantity,palletId';
@@ -983,7 +993,7 @@ class rack_Movements extends core_Manager
         
         $toPallet = $toProductId = null;
         if (!empty($transaction->to) && $transaction->to != rack_PositionType::FLOOR) {
-            if (!rack_Racks::checkPosition($transaction->to, $transaction->productId, $transaction->storeId, $error)) {
+            if (!rack_Racks::checkPosition($transaction->to, $transaction->productId, $transaction->storeId, $transaction->batch, $error)) {
                 $res->errors = $error;
                 $res->errorFields[] = 'positionTo,productId';
                 
@@ -993,6 +1003,11 @@ class rack_Movements extends core_Manager
             if ($toPallet = rack_Pallets::getByPosition($transaction->to, $transaction->storeId)) {
                 $toProductId = $toPallet->productId;
                 $toQuantity = $toPallet->quantity;
+                
+                if($transaction->batch != $toPallet->batch){
+                    $res->errors = "На позицията артикулът е с друга партида";
+                    $res->errorFields[] = 'positionTo,productId';
+                }
             }
             
             // Ако има нова позиция и тя е заета от различен продукт - грешка
@@ -1130,6 +1145,15 @@ class rack_Movements extends core_Manager
         $transaction->id = $rec->id;
         $transaction->storeId = $rec->storeId;
         $transaction->productId = $rec->productId;
+        $transaction->batch = (!empty($rec->batch)) ? $rec->batch : null;
+        
+        if(empty($transaction->batch) && isset($rec->palletId)){
+            $palletBatch = rack_Pallets::fetchField($rec->palletId, 'batch');
+            if(!empty($palletBatch)){
+                $transaction->batch = $palletBatch;
+            }
+        }
+        
         $transaction->quantity = $sign * $rec->quantity;
         $transaction->packagingId = $rec->packagingId;
         $transaction->from = $rec->position;

@@ -61,7 +61,7 @@ class rack_Pallets extends core_Manager
     /**
      * Кои полета ще се виждат в листовия изглед
      */
-    public $listFields = 'label,position,productId,uom=Мярка,quantity,closedOn';
+    public $listFields = 'label,position,productId,batch=Партида,uom=Мярка,quantity,closedOn';
     
     
     /**
@@ -91,6 +91,7 @@ class rack_Pallets extends core_Manager
         $this->FLD('rackId', 'key(mvc=rack_Racks,select=num)', 'caption=Стелаж,input=none');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell');
         $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter,input=none');
+        $this->FLD('batch', 'text', 'smartCenter');
         $this->FLD('label', 'varchar(32)', 'caption=Палет,tdClass=rightCol,smartCenter');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter,input=none,after=productId');
@@ -110,16 +111,21 @@ class rack_Pallets extends core_Manager
      *
      * @param int  $productId               - ид на артикул
      * @param int  $storeId                 - ид на склад
+     * @param mixed $batch                  - null за всички партиди, стринг за конкретна (включително и без партида)
      * @param bool $withoutPendingMovements - към които да има или няма чакащи движения
      *
      * @return array $pallets - масив с палети
      */
-    public static function getAvailablePallets($productId, $storeId, $withoutPendingMovements = false)
+    public static function getAvailablePallets($productId, $storeId, $batch = null, $withoutPendingMovements = false)
     {
         $pallets = array();
         $query = self::getQuery();
         $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #state != 'closed'");
         $query->show('quantity,position');
+        if(!is_null($batch)){
+            $query->where("#batch = '{$batch}'");
+        }
+        
         $query->orderBy('createdOn', 'ASC');
         while ($rec = $query->fetch()) {
             
@@ -377,24 +383,23 @@ class rack_Pallets extends core_Manager
      * @param int  $storeId   - ид на склад
      * @param int  $position  - на коя позиция?
      * @param int  $quantity  - количество от основната мярка в палета
-     * @param bool $reverse   - дали да е наобратно движениет
+     * @param bool $batch    - партида ако има
      *
      * @return stdClass $rec  - записа на палета
      */
-    public static function increment($productId, $storeId, $position, $quantity, $reverse = false)
+    public static function increment($productId, $storeId, $position, $quantity, $batch)
     {
         // Ако няма палет се създава нов
         $rec = self::fetch(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
         if (empty($rec)) {
-            $rec = self::create($productId, $storeId, $quantity, $position);
+            $rec = self::create($productId, $storeId, $quantity, $position, $batch);
         } else {
             
             // Ако има променя му се количеството
             expect($rec->productId == $productId, 'Артикулът е различен');
             expect($rec->storeId == $storeId, 'Склада е различен');
             
-            $sign = ($reverse === false) ? 1 : -1;
-            $incrementQuantity = $sign * $quantity;
+            $incrementQuantity = $quantity;
             $rec->quantity += $incrementQuantity;
             $rec->quantity = round($rec->quantity, 5);
             
@@ -412,14 +417,15 @@ class rack_Pallets extends core_Manager
      * @param int $storeId   - ид на склад
      * @param int $quantity  - количество от основната мярка в палета
      * @param int $position  - на коя позиция?
+     * @param int $batch     - партида
      * @param int $label     - етикет
      *
      * @return stdClass $rec - записа на палета
      */
-    public static function create($productId, $storeId, $quantity, $position, $label = null)
+    public static function create($productId, $storeId, $quantity, $position, $batch = null, $label = null)
     {
-        expect(rack_Racks::isPlaceUsable($position, $productId, $storeId, $error), $error);
-        $rec = (object) array('productId' => $productId, 'storeId' => $storeId, 'label' => $label, 'position' => $position, 'quantity' => $quantity, 'state' => 'active');
+        expect(rack_Racks::isPlaceUsable($position, $productId, $storeId, $batch, $error), $error);
+        $rec = (object) array('productId' => $productId, 'storeId' => $storeId, 'label' => $label, 'position' => $position, 'quantity' => $quantity, 'state' => 'active', 'batch' => $batch);
         
         list($num, , ) = explode('-', $rec->position);
         $rRec = rack_Racks::getByNum($num);
@@ -569,6 +575,22 @@ class rack_Pallets extends core_Manager
             if (isset($rec->rackId)) {
                 $row->rackId = rack_Racks::getHyperlink($rec->rackId, true);
             }
+            
+            if ($Definition = batch_Defs::getBatchDef($rec->productId)) {
+                if(!empty($rec->batch)){
+                    $row->batch = $Definition->toVerbal($rec->batch);
+                    
+                    if (batch_Movements::haveRightFor('list')) {
+                        $link = array('batch_Movements', 'list', 'batch' => $rec->batch);
+                        if (isset($fields['-list'])) {
+                            $link += array('productId' => $rec->productId, 'storeId' => $rec->storeId);
+                        }
+                        $row->batch = ht::createLink($row->batch, $link);
+                    }
+                } else {
+                    $row->batch = "<span class='quiet'>" . tr('Без партида') . "</span>";
+                }
+            }
         }
     }
     
@@ -583,6 +605,10 @@ class rack_Pallets extends core_Manager
         if (!empty($rec->position)) {
             $position = self::getVerbal($rec, 'position');
             $title .= "/{$position}";
+        }
+        
+        if (!empty($rec->batch)) {
+            $title .= "/{$rec->batch}";
         }
         
         return $title;
@@ -603,7 +629,7 @@ class rack_Pallets extends core_Manager
             $query = self::getQuery();
             while ($rec = $query->fetch("#storeId = {$storeId} AND #state != 'closed'")) {
                 if ($rec->position) {
-                    $res[$rec->position] = $rec->productId;
+                    $res[$rec->position] = (object)array('productId' => $rec->productId, 'batch' => $rec->batch);
                 }
             }
             core_Cache::set('UsedRacksPossitions', $storeId, $res, 1440);
@@ -729,7 +755,7 @@ class rack_Pallets extends core_Manager
         
         $rec = self::fetch(array("#position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
         
-        return is_object($rec) ? (object) array('id' => $rec->id, 'productId' => $rec->productId, 'quantity' => $rec->quantity, 'state' => $rec->state) : null;
+        return is_object($rec) ? (object) array('id' => $rec->id, 'productId' => $rec->productId, 'batch' => $rec->batch, 'quantity' => $rec->quantity, 'state' => $rec->state) : null;
     }
     
     
