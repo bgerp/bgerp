@@ -359,7 +359,6 @@ class rack_Movements extends core_Manager
         $form->setDefault('storeId', store_Stores::getCurrent());
         $form->setField('storeId', 'input=hidden');
         $form->setField('workerId', 'input=none');
-        $form->setDefault('productId', '89');
         
         $defZones = Request::get('defaultZones', 'varchar');
         
