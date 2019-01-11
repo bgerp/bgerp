@@ -173,10 +173,10 @@ class rack_Pallets extends core_Manager
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
                 
         // Ако намерим палет с този продукт и свободно място към края на стелажа - вземаме него
-        $racks = array();
+        $haveInRack = $nearProds = array();
         $inFirstRow = 0;
-        foreach ($used as $pos => $pId) {
-            if ($productId != $pId) {
+        foreach ($used as $pos => $pRec) {
+            if ($productId != $pRec->productId) {
                 continue;
             }
             
@@ -193,10 +193,9 @@ class rack_Pallets extends core_Manager
         $bestScore = 0;
         $bestPos = '';
 
-        $nearProds = array($pId => 1);
-        
-        if(isset($pId)){
-            $relData = sales_ProductRelations::fetchField("#productId = {$pId}", 'data');
+        if(isset($pRec->productId)){
+            $nearProds[$pRec->productId] = 1;
+            $relData = sales_ProductRelations::fetchField("#productId = {$pRec->productId}", 'data');
         }
 
         if(is_array($relData)) {
@@ -213,7 +212,7 @@ class rack_Pallets extends core_Manager
                     
                     $pos = "{$rRec->num}-{$rInd}-{$cInd}";
 
-                    if ($used[$pos] || $unusable[$pos] || ($reserved[$pos] && $reserved[$pos] != $pId) || $movedTo[$pos]) {
+                    if ($used[$pos] || $unusable[$pos] || ($reserved[$pos] && $reserved[$pos] != $pRec->productId) || $movedTo[$pos]) {
                         continue;
                     }
                     
@@ -230,7 +229,7 @@ class rack_Pallets extends core_Manager
                     }
 
                     // Ако имаме резервирана позиция за този продукт
-                    if($reserved[$pos] == $pId) {
+                    if($reserved[$pos] == $pRec->productId) {
                         $score += 6;
                     }
 
@@ -247,20 +246,20 @@ class rack_Pallets extends core_Manager
                     $score += 1 - (ord($rInd) - ord('A'))/10;
                     
                     // Ако горния или долния са от този продукт
-                    if($used[$posUp] == $pId) {
+                    if($used[$posUp] == $pRec->productId) {
                         $score += 3;
                     }
                     
-                    if($used[$posDw] == $pId) {
+                    if($used[$posDw] == $pRec->productId) {
                         $score += 3.5;
                     }
            
                     // Ако левия или десния са от този продукт или близки на него
-                    if($weight = $nearProds[$used[$posRg]]) {
+                    if($weight = $nearProds[$used[$posRg]->productId]) {
                         $score += $weight;
                     }
 
-                    if($weight = $nearProds[$used[$posLf]]) {
+                    if($weight = $nearProds[$used[$posLf]->productId]) {
                         $score += 1.2 * $weight;
                     }
 
