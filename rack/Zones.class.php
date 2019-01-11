@@ -827,7 +827,7 @@ class rack_Zones extends core_Master
             $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
             
             // Ако има генерирани движения се записват
-            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $storeId);
+            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId);
             
             // Движенията се създават от името на системата
             core_Users::forceSystemUser();
