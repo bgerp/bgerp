@@ -348,8 +348,9 @@ class rack_ZoneDetails extends core_Detail
         $Movements->setField('workerId', "tdClass=inline-workerId");
         $skipClosed = ($masterRec->_isSingle === true) ? false : true;
         $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $skipClosed);
-        list($productId, $packagingId) = array($rec->productId, $rec->packagingId);
-        $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId){return $o->productId == $productId && $o->packagingId == $packagingId;});
+        
+        list($productId, $packagingId, $batch) = array($rec->productId, $rec->packagingId, $rec->batch);
+        $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId, $batch){return $o->productId == $productId && $o->packagingId == $packagingId && $o->batch == $batch;});
         $rec->_movements = $data->recs;
         $requestedProductId = Request::get('productId', 'int');
         
