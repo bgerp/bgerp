@@ -207,8 +207,10 @@ class core_UserTranslatePlg extends core_Plugin
         if ($tr) {
             $normalizedText = plg_Search::normalizeText($tr);
             
-            if (strpos($searchKeywords, $normalizedText) === false) {
-                $searchKeywords .= ' ' . $normalizedText;
+            if ($normalizedText) {
+                if (!$searchKeywords || (strpos($searchKeywords, $normalizedText) === false)) {
+                    $searchKeywords .= ' ' . $normalizedText;
+                }
             }
         }
     }
