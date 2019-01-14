@@ -3278,7 +3278,7 @@ class doc_DocumentPlg extends core_Plugin
             $handleNormalized = plg_Search::normalizeText($handle);
             
             if (strpos($searchKeywords, $handleNormalized) === false) {
-                $searchKeywords .= ' ' . plg_Search::normalizeText($handle);
+                $searchKeywords .= ' ' . $handleNormalized;
             }
         }
     }

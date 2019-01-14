@@ -110,11 +110,15 @@ class core_UserTranslatePlg extends core_Plugin
      * @param stdClass $rec
      * @param string   $part
      */
-    public static function on_AfterGetVerbal($mvc, &$res, $rec, $part)
+    public static function on_BeforeGetVerbal($mvc, &$res, $rec, $part)
     {
         $uTranslateFields = core_UserTranslates::getUserTranslateFields($mvc->getClassId(), '*', $rec->id);
         
-        if ($uTranslateFields[$part] && $rec->{$part}) {
+        if ($rec) {
+            $rec = $mvc->fetchRec($rec);
+        }
+        
+        if (!Mode::is('forSearch') && $part && $uTranslateFields[$part] && $rec->{$part}) {
             $trArr = explode('|', $uTranslateFields[$part]->translate);
             
             $val = $rec->{$part};
@@ -123,13 +127,15 @@ class core_UserTranslatePlg extends core_Plugin
             
             foreach ($trArr as $tName) {
                 if ($tName == 'tr') {
-                    $tr = tr($val);
-                    if ($tr != $val) {
+                    $trVal = tr($val);
+                    if ($trVal != $val) {
+                        $tr = $trVal;
                         break;
                     }
                 } elseif ($tName == 'transliterate') {
-                    $tr = core_Lg::transliterate($val);
-                    if ($tr != $val) {
+                    $translit = core_Lg::transliterate($val);
+                    if ($translit != $val) {
+                        $tr = $translit;
                         break;
                     }
                 } elseif ($tName == 'field') {
@@ -153,6 +159,56 @@ class core_UserTranslatePlg extends core_Plugin
             
             if (isset($tr)) {
                 $res = $tr;
+                
+                $cRec = clone $rec;
+                $cRec->{$part} = $tr;
+                
+                $res = $mvc->getVerbal_($cRec, $part);
+                
+                return false;
+            }
+        }
+    }
+    
+    
+    /**
+     * След извличане на ключовите думи
+     *
+     * @param core_Mvc $mvc
+     * @param string   $searchKeywords
+     * @param stdClass $rec
+     */
+    public function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        
+        if (!isset($searchKeywords)) {
+            $searchKeywords = plg_Search::getKeywords($mvc, $rec);
+        }
+        
+        // Добавяме и преведените думи към списъка
+        $tr = '';
+        $searchFields = $mvc->getSearchFields();
+        if (!empty($searchFields)) {
+            $fieldsArr = $mvc->selectFields('', $searchFields);
+            
+            $uTrFields = core_UserTranslates::getUserTranslateFields($mvc->getClassId(), 'user', $rec->id);
+            $currLg = core_Lg::getCurrent();
+            foreach ($uTrFields as $fName => $fType) {
+                if ($fieldsArr[$fName]) {
+                    $uTranslate = core_UserTranslates::getUserTranslatedStr($mvc->getClassId(), $rec->id, $currLg, $fName, $rec->{$fName});
+                    if ($uTranslate != $rec->{$fName}) {
+                        $tr .= ' ' . $uTranslate;
+                    }
+                }
+            }
+        }
+        
+        if ($tr) {
+            $normalizedText = plg_Search::normalizeText($tr);
+            
+            if (strpos($searchKeywords, $normalizedText) === false) {
+                $searchKeywords .= ' ' . $normalizedText;
             }
         }
     }
