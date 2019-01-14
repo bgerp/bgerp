@@ -800,9 +800,12 @@ class rack_Zones extends core_Master
 
         $floor = rack_PositionType::FLOOR;
         foreach ($expected->products as $pRec) {
+            $BatchClass = batch_Defs::getBatchDef($pRec->productId);
+            $batch = (is_object($BatchClass)) ? $pRec->batch : null;
+            
             // Какви са наличните палети за избор
-            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, $pRec->batch, true);
-          
+            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, $batch, true);
+            
             $quantityOnPallets = arr::sumValuesArray($pallets, 'quantity');
             $requiredQuantityOnZones = array_sum($pRec->zones);
             

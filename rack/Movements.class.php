@@ -1144,7 +1144,13 @@ class rack_Movements extends core_Manager
         $transaction->id = $rec->id;
         $transaction->storeId = $rec->storeId;
         $transaction->productId = $rec->productId;
-        $transaction->batch = (!empty($rec->batch)) ? $rec->batch : null;
+        
+        $BatchClass = batch_Defs::getBatchDef($rec->productId);
+        if(is_object($BatchClass)){
+            $transaction->batch = !empty($rec->batch) ? $rec->batch : '';
+        } else {
+            $transaction->batch = null;
+        }
         
         if(empty($transaction->batch) && isset($rec->palletId)){
             $palletBatch = rack_Pallets::fetchField($rec->palletId, 'batch');
