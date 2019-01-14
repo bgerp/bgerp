@@ -49,7 +49,7 @@ class cat_Categories extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected, plg_Modified';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected, plg_Modified, core_UserTranslatePlg';
     
     
     /**
@@ -183,7 +183,7 @@ class cat_Categories extends core_Master
      */
     public function description()
     {
-        $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование, mandatory,translate');
+        $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование, mandatory, translate=user|tr|transliterate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes,rows=4)', 'caption=Бележки');
         $this->FLD('useAsProto', 'enum(no=Не,yes=Да)', 'caption=Използване на артикулите като шаблони->Използване');

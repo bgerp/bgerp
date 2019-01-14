@@ -7,7 +7,7 @@
  * @package   docart
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -20,6 +20,13 @@ class docarch_Archives extends core_Master
     public $loadList = 'plg_Created, plg_RowTools2,plg_Modified';
     
     public $listFields = 'id,name,volType,modifiedOn=Модифициране';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    public $canDelete = 'no_one';
+    
     
     protected function description()
     {
@@ -79,34 +86,37 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
+        $data->toolbar->addBtn('Бутон', array($mvc, 'Action','ret_url' => true));
     }
+    
     
     /**
      * Най-малкия дефиниран тип за архива
-     * 
+     *
      * @param int $id -id на архива
+     *
      * @return string
      */
     public static function minDefType($id)
     {
-       $typesArr = arr::make(self::fetch($id)->volType,false);
-       
-       $minDefType = $typesArr[0];
-       
-       return $minDefType;
+        $typesArr = arr::make(self::fetch($id)->volType, false);
+        
+        $minDefType = $typesArr[0];
+        
+        return $minDefType;
     }
+    
     
     /**
      * Взема името на типа на архива
      *
      * @param string $type -ключа на името на типа
+     *
      * @return string
      */
     public static function getArchiveTypeName($type)
     {
-        
-        switch ($type){
+        switch ($type) {
             
             case 'folder':$typeName = 'Папка'; break;
             
@@ -117,7 +127,7 @@ class docarch_Archives extends core_Master
             case 'pallet':$typeName = 'Палет'; break;
             
             case 'warehouse':$typeName = 'Склад'; break;
-            
+        
         }
         
         return $typeName;
@@ -133,8 +143,21 @@ class docarch_Archives extends core_Master
          * Установява необходима роля за да се стартира екшъна
          */
         requireRole('admin');
+        $cRec = new stdClass();
+        $form = cls::get('core_Form');
+        $form->title = 'Форма тест|* Ala Bala|*';
+        $form->FNC('test', 'varchar', 'caption=Тест, mandatory, input');
         
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         
-        return 'Action';
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+        $cRec = $form->input();
+        
+        if ($form->isSubmitted()) {
+            
+            return new Redirect(getRetUrl());
+        }
+        
+        return $this->renderWrapping($form->renderHtml());
     }
 }

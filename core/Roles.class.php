@@ -73,7 +73,7 @@ class core_Roles extends core_Manager
     public $listFields = 'id,role, inheritInput, type';
     
     
-    public $loadList = 'plg_Sorting, plg_State2, plg_Created, plg_SystemWrapper, plg_RowTools2, plg_Search';
+    public $loadList = 'plg_Sorting, plg_State2, plg_Created, plg_SystemWrapper, plg_RowTools2, plg_Search, core_UserTranslatePlg';
     
     
     public $searchFields = 'role, inherit, inheritInput, type';
@@ -84,7 +84,7 @@ class core_Roles extends core_Manager
      */
     public function description()
     {
-        $this->FLD('role', 'varchar(64)', 'caption=Роля,mandatory,translate');
+        $this->FLD('role', 'varchar(64)', 'caption=Роля,mandatory, translate=user|tr|transliterate');
         $this->FLD('inheritInput', 'keylist(mvc=core_Roles,select=role,groupBy=type,where=#type !\\= \\\'rang\\\' AND #type !\\= \\\'team\\\',orderBy=orderByRole)', 'caption=Наследяване,notNull,');
         $this->FLD('inherit', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Калкулирано наследяване,input=none,notNull');
         $this->FLD('type', 'enum(job=Модул,team=Екип,rang=Ранг,system=Системна,position=Длъжност,external=Външен достъп)', 'caption=Тип,notNull');

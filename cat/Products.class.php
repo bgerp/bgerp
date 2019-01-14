@@ -50,7 +50,7 @@ class cat_Products extends embed_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Clone,doc_plg_Prototype, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping, bgerp_plg_Blank,
-                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export,plg_ExpandInput';
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg';
     
     
     /**
@@ -217,7 +217,7 @@ class cat_Products extends embed_Manager
     /**
      *  Полета по които ще се търси
      */
-    public $searchFields = 'name, code, info, innerClass, nameInt';
+    public $searchFields = 'name, code, info, innerClass, nameEn';
     
     
     /**
@@ -334,8 +334,8 @@ class cat_Products extends embed_Manager
         $this->FLD('proto', 'key(mvc=cat_Products,allowEmpty,select=name)', 'caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,groupByDiv=»');
         
         $this->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
-        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
-        $this->FLD('nameInt', 'varchar', 'caption=Международно,width=100%,after=name');
+        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field|tr|transliterate');
+        $this->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
@@ -542,7 +542,7 @@ class cat_Products extends embed_Manager
             $form->setField('measureId', 'input=hidden');
             $form->setField('code', 'input=hidden');
             $form->setField('name', 'input=hidden');
-            $form->setField('nameInt', 'input=hidden');
+            $form->setField('nameEn', 'input=hidden');
             $form->setField('measureId', 'input=hidden');
             $form->setField('info', 'input=hidden');
         }
@@ -1416,7 +1416,7 @@ class cat_Products extends embed_Manager
             cat_products_SharedInFolders::limitQuery($query, $folderId);
         }
         
-        $query->show('isPublic,folderId,meta,id,code,name,nameInt');
+        $query->show('isPublic,folderId,meta,id,code,name,nameEn');
         
         // Ограничаваме заявката при нужда
         if (isset($limit)) {
@@ -1464,18 +1464,18 @@ class cat_Products extends embed_Manager
     
     /**
      * Добавя филтър по свойства към артикулите
-     * 
-     * @param core_Query $query          - заявка към модела
-     * @param mixed    $hasProperties    - свойства, които да имат артикулите
-     * @param mixed    $hasnotProperties - свойства, които да нямат артикулите
-     * @param bool     $orHasProperties  - Дали трябва да имат всички свойства от зададените или поне едно
+     *
+     * @param core_Query $query            - заявка към модела
+     * @param mixed      $hasProperties    - свойства, които да имат артикулите
+     * @param mixed      $hasnotProperties - свойства, които да нямат артикулите
+     * @param bool       $orHasProperties  - Дали трябва да имат всички свойства от зададените или поне едно
      */
     private static function filterQueryByMeta(&$query, $hasProperties = null, $hasnotProperties = null, $orHasProperties = false)
     {
         $metaArr = arr::make($hasProperties);
         $hasnotProperties = arr::make($hasnotProperties);
         
-        // Търси се всяко свойство  
+        // Търси се всяко свойство
         if (count($metaArr)) {
             $count = 0;
             foreach ($metaArr as $meta) {
@@ -1501,17 +1501,18 @@ class cat_Products extends embed_Manager
     /**
      * Връща себестойноста на артикула
      *
-     * @param int $productId            - ид на артикул
-     * @param int $packagingId          - ид на опаковка
-     * @param double $quantity          - количество
+     * @param int      $productId       - ид на артикул
+     * @param int      $packagingId     - ид на опаковка
+     * @param float    $quantity        - количество
      * @param datetime $date            - към коя дата
      * @param int|null $primeCostlistId - по коя ценова политика да се смята себестойноста
-     * @return double|NULL $primeCost   - себестойност
+     *
+     * @return float|NULL $primeCost   - себестойност
      */
     public static function getPrimeCost($productId, $packagingId = null, $quantity = 1, $date = null, $primeCostlistId = null)
     {
         // Опитваме се да намерим запис в в себестойностти за артикула
-       
+        
         $primeCostlistId = (isset($primeCostlistId)) ? $primeCostlistId : price_ListRules::PRICE_LIST_COST;
         
         // Ако няма цена се опитва да намери от драйвера
@@ -1527,7 +1528,7 @@ class cat_Products extends embed_Manager
         
         // Ако няма себестойност, но има прототип, гледа се неговата себестойност
         if (!$primeCost) {
-            if($proto = cat_Products::fetchField($productId, 'proto')){
+            if ($proto = cat_Products::fetchField($productId, 'proto')) {
                 $primeCost = price_ListRules::getPrice($primeCostlistId, $proto, $packagingId, $date);
             }
         }
@@ -1675,7 +1676,7 @@ class cat_Products extends embed_Manager
         $basicPackRec = $packQueryBase->fetch();
         
         // Ако има взима се само нейната тара
-        if(is_object($basicPackRec)){
+        if (is_object($basicPackRec)) {
             $foundTare = true;
             $coeficient = $quantity / $basicPackRec->quantity;
             $weight += $basicPackRec->tareWeight * $coeficient;
@@ -1871,8 +1872,8 @@ class cat_Products extends embed_Manager
         $name = $rec->name;
         
         $lg = core_Lg::getCurrent();
-        if($lg == 'en' && !empty($rec->nameInt)){
-            $name = $rec->nameInt;
+        if ($lg == 'en' && !empty($rec->nameEn)) {
+            $name = $rec->nameEn;
         }
         
         // Иначе го връщаме такова, каквото е
@@ -1916,7 +1917,7 @@ class cat_Products extends embed_Manager
     {
         // Предефиниране на метода, за да е подсигурено само фечването на нужните полета
         // За да се намали натоварването, при многократни извиквания
-        $rec = self::fetch($id, 'name,code,isPublic,nameInt');
+        $rec = self::fetch($id, 'name,code,isPublic,nameEn');
         
         return parent::getTitleById($rec, $escaped);
     }
@@ -2176,7 +2177,7 @@ class cat_Products extends embed_Manager
         }
         
         // Ако потребителя няма определени роли не може да добавя или променя записи в папка на категория
-        if (($action == 'add' || $action == 'edit' || $action == 'write' || $action == 'clonerec' || $action =='close') && isset($rec)) {
+        if (($action == 'add' || $action == 'edit' || $action == 'write' || $action == 'clonerec' || $action == 'close') && isset($rec)) {
             if ($rec->isPublic == 'yes') {
                 if (!haveRole('ceo,cat')) {
                     $res = 'no_one';
@@ -2964,7 +2965,7 @@ class cat_Products extends embed_Manager
     public static function setAutoCloneFormFields(&$form, $id, $driverId = null)
     {
         $form->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
-        $form->FLD('nameInt', 'varchar', 'caption=Международно,width=100%,after=name');
+        $form->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name');
         $form->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
         $form->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
         $form->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
@@ -3662,32 +3663,35 @@ class cat_Products extends embed_Manager
     
     /**
      * Показване на хинтове към името на артикула
-     * 
+     *
      * @param mixed $name
-     * @param int $id
+     * @param int   $id
      * @param mixed $meta
      */
     public static function styleDisplayName(&$name, $id, $meta = null)
     {
-        if(Mode::isReadOnly()) return;
+        if (Mode::isReadOnly()) {
+            
+            return;
+        }
         
         $hint = '';
         $meta = arr::make($meta, true);
         $metaString = implode(',', $meta);
         $pRec = cat_Products::fetchRec($id, "state,{$metaString}");
         $pRec->canSell = 'no';
-        if($pRec->state != 'active'){
-            $hint .= tr("Артикулът не е активен|*!");
+        if ($pRec->state != 'active') {
+            $hint .= tr('Артикулът не е активен|*!');
         }
         
-        foreach ($meta as $m){
-            if($pRec->{$m} != 'yes'){
-                $hint = (empty($hint) ? "" : " ") . tr('Артикулът има премахнати свойства|*!');
+        foreach ($meta as $m) {
+            if ($pRec->{$m} != 'yes') {
+                $hint = (empty($hint) ? '' : ' ') . tr('Артикулът има премахнати свойства|*!');
                 break;
             }
         }
         
-        if(!empty($hint)){
+        if (!empty($hint)) {
             $name = ht::createHint($name, $hint);
         }
     }

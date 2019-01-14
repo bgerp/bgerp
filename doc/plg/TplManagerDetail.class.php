@@ -25,11 +25,8 @@ class doc_plg_TplManagerDetail extends core_Plugin
     public static function on_BeforeRecToVerbal($mvc, &$row, &$rec)
     {
         if ($rec->id) {
-            
-            // Ако няма шаблон, за шаблон се приема първия такъв за модела
             $template = $mvc->Master->getTemplate($rec->{$mvc->masterKey});
-            $rec->tplLang = doc_TplManager::fetchField($template, 'lang');
-            core_Lg::push($rec->tplLang);
+            $rec->tplLang = $mvc->Master->pushTemplateLg($template);
         }
     }
     
