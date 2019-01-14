@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджър на aртикул от е-магазина.
+ * Мениджър на артикул от е-магазина.
  *
  *
  * @category  bgerp
@@ -603,11 +603,11 @@ class eshop_Products extends core_Master
         cms_Content::setCurrent($data->groups->rec->menuId);
         
         $this->prepareProduct($data);
-
+        
         // Подготвяме SEO данните
         $rec = clone($data->rec);
         cms_Content::prepareSeo($rec, array('seoDescription' => $rec->info, 'seoTitle' => $rec->name, 'seoThumb' => $rec->image));
-
+        
         eshop_Groups::prepareNavigation($data->groups);
         
         $tpl = eshop_Groups::getLayout();
@@ -1113,7 +1113,7 @@ class eshop_Products extends core_Master
      */
     public static function canLinkProduct($productId)
     {
-        $productRec = cat_Products::fetch($productId, 'canSell,isPublic,nameInt,state');
+        $productRec = cat_Products::fetch($productId, 'canSell,isPublic,nameEn,state');
         $res = ($productRec->state != 'closed' && $productRec->state != 'rejected' && $productRec->state != 'template' && $productRec->isPublic == 'yes' && $productRec->canSell == 'yes');
         
         return $res;
@@ -1354,7 +1354,7 @@ class eshop_Products extends core_Master
                         }
                     }
                     
-                    if(is_array($r[$epId])){
+                    if (is_array($r[$epId])) {
                         arsort($r[$epId]);
                     }
                     

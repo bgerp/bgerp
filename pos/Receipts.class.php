@@ -400,7 +400,7 @@ class pos_Receipts extends core_Master
         $data->query->orderBy($filterDateFld, 'DESC');
         
         foreach (array('valior', 'createdOn', 'modifiedOn') as $fld) {
-            if($fld != $data->listFilter->rec->filterDateField){
+            if ($fld != $data->listFilter->rec->filterDateField) {
                 unset($data->listFields[$fld]);
             }
         }
@@ -416,7 +416,7 @@ class pos_Receipts extends core_Master
         if ($action == 'terminal' && isset($rec)) {
             if ($rec->state != 'draft') {
                 $res = 'no_one';
-            } elseif(!pos_Points::haveRightFor('select', $rec->pointId)){
+            } elseif (!pos_Points::haveRightFor('select', $rec->pointId)) {
                 $res = 'no_one';
             }
         }
@@ -946,7 +946,7 @@ class pos_Receipts extends core_Master
         
         // Ако има клиентска карта с този номер, то контрагента се показва винаги в резултата
         if ($info = crm_ext_Cards::getInfo($searchString)) {
-            if(is_object($info['contragent'])){
+            if (is_object($info['contragent'])) {
                 $tp = ($info['contragent']->className == crm_Persons) ? 'person' : 'company';
                 $data->recs["{$tp}|{$info['contragent']->that}"] = $info['contragent']->rec();
                 $data->recs["{$tp}|{$info['contragent']->that}"]->class = $info['contragent']->className;
@@ -1423,7 +1423,7 @@ class pos_Receipts extends core_Master
         $pQuery->where("#canSell = 'yes' AND #state = 'active'");
         $pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
         $pQuery->where(array("#searchKeywords LIKE '%[#1#]%'", $data->searchString));
-        $pQuery->show('id,name,isPublic,nameInt,code');
+        $pQuery->show('id,name,isPublic,nameEn,code');
         $pQuery->limit($this->maxSearchProducts);
         $sellable = $pQuery->fetchAll();
         if (!count($sellable)) {
@@ -1623,7 +1623,7 @@ class pos_Receipts extends core_Master
         $query->where("#pointId = {$data->masterId}");
         $query->where("#state = 'waiting' OR #state = 'draft'");
         $query->orderBy('#state');
-        if($count = $query->count()){
+        if ($count = $query->count()) {
             $data->count = core_Type::getByName('int')->toVerbal($count);
         }
         $conf = core_Packs::getConfig('pos');
@@ -1634,7 +1634,7 @@ class pos_Receipts extends core_Master
             
             if (!Mode::isReadOnly()) {
                 if ($this->haveRightFor('terminal', $rec)) {
-                    $num = ht::createLink($num, array($this, 'terminal', $rec->id), false, "title=Продължаване на бележката");
+                    $num = ht::createLink($num, array($this, 'terminal', $rec->id), false, 'title=Продължаване на бележката');
                 } elseif ($this->haveRightFor('single', $rec)) {
                     $num = ht::createLink($num, array($this, 'single', $rec->id), false, "title=Към бележка №{$rec->id}");
                 }

@@ -15,8 +15,6 @@
  */
 class core_UserTranslates extends core_Manager
 {
-    
-    
     /**
      * Заглавие на мениджъра
      */
@@ -83,9 +81,6 @@ class core_UserTranslates extends core_Manager
     private $tFPrefix = '_t_';
     
     
-    /**
-     * 
-     */
     public function description()
     {
         $this->FLD('classId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull,caption=Клас,silent');
@@ -97,13 +92,13 @@ class core_UserTranslates extends core_Manager
     
     /**
      * Връща преведения стринг за съответния език
-     * 
-     * @param integer $classId
-     * @param integer $recId
-     * @param string $lg
-     * @param string $fldName
+     *
+     * @param int         $classId
+     * @param int         $recId
+     * @param string      $lg
+     * @param string      $fldName
      * @param null|string $checkValStr
-     * 
+     *
      * @return NULL|string
      */
     public static function getUserTranslatedStr($classId, $recId, $lg, $fldName, $checkValStr = null)
@@ -134,9 +129,9 @@ class core_UserTranslates extends core_Manager
     /**
      * Помощна функция, която да връща всички полета, които могат да се превеждат от потребителя
      *
-     * @param integer $clsId
-     * @param string $oField
-     * @param null|integer $recId
+     * @param int      $clsId
+     * @param string   $oField
+     * @param null|int $recId
      *
      * @return array
      */
@@ -144,9 +139,17 @@ class core_UserTranslates extends core_Manager
     {
         static $hashArr = array();
         
+        if (!$clsId) {
+            
+            return array();
+        }
+        
         $hashStr = $clsId . '|' . $oField . '|' . $recId;
         
-        if (isset($hashArr[$hashStr])) return $hashArr[$hashStr];
+        if (isset($hashArr[$hashStr])) {
+            
+            return $hashArr[$hashStr];
+        }
         
         $clsInst = cls::get($clsId);
         
@@ -162,7 +165,9 @@ class core_UserTranslates extends core_Manager
             foreach ($tFields as $k => $f) {
                 $f->translate = trim($f->translate);
                 $f->translate = strtolower($f->translate);
-                if (!$f->translate) continue;
+                if (!$f->translate) {
+                    continue;
+                }
                 $tArr = explode('|', $f->translate);
                 
                 if (array_search('user', $tArr) === false) {
@@ -191,10 +196,10 @@ class core_UserTranslates extends core_Manager
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_UserTranslates $mvc
-     * @param string   $requiredRoles
-     * @param string   $action
-     * @param stdClass $rec
-     * @param int      $userId
+     * @param string              $requiredRoles
+     * @param string              $action
+     * @param stdClass            $rec
+     * @param int                 $userId
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
@@ -257,18 +262,24 @@ class core_UserTranslates extends core_Manager
         
         // Добавяме полетата за оригиналния текст и за превода
         foreach ($tFields as $name => $tField) {
-            if (!$oRec->{$name}) continue;
+            if (!$oRec->{$name}) {
+                continue;
+            }
             
             $fldName = $mvc->fPrefix . $name;
             $tFldName = $mvc->tFPrefix . $name;
             
-            $form->FNC($fldName, $tField->type, array('input', 'caption' => $tField->caption . '->Текст'));
+            $fName = $tField->caption;
+            
+            $fName = str_replace('->', '|*: |', $fName);
+            
+            $form->FNC($fldName, $tField->type, array('input', 'caption' => $fName . '->Текст'));
             $form->setDefault($fldName, $oRec->{$name});
             $form->setReadOnly($fldName);
             
             $inpFields .= ',' . $fldName;
             
-            $form->FNC($tFldName, 'varchar', array('input', 'caption' => $tField->caption . '->Превод'));
+            $form->FNC($tFldName, 'varchar', array('input', 'caption' => $fName . '->Превод'));
             
             $form->fields['lang']->removeAndRefreshForm .= $tFldName . '|';
         }
@@ -318,7 +329,7 @@ class core_UserTranslates extends core_Manager
      */
     public static function on_BeforePrepareEditForm($mvc, &$res, &$data)
     {
-        // Махаме id-то добавено от plg_PrevAndNext 
+        // Махаме id-то добавено от plg_PrevAndNext
         if (Request::get('Selected')) {
             Request::push(array('id' => 0));
         }
@@ -328,15 +339,14 @@ class core_UserTranslates extends core_Manager
     /**
      * За коректна работа на plg_PrevAndNext
      *
-     * @param core_Mvc $mvc
      * @param stdClass $data
+     * @param int|null $id
      */
     public function prepareRetUrl($data, $id = null)
     {
         $data = parent::prepareRetUrl_($data, $id);
         
         if ($sel = Request::get('Selected')) {
-            
             $Cmd = Request::get('Cmd');
             
             $recId = Request::get('recId');
@@ -350,7 +360,7 @@ class core_UserTranslates extends core_Manager
                 $nextId = $selArr[$selId + 1];
             }
             
-            $rUrl = array($mvc, 'add', 'PrevAndNext' => 'on', 'ret_url' => getRetUrl(), 'classId' => $classId, 'recId' => $prevId, 'Selected' => $sel, 'lang' => $data->form->rec->lang);
+            $rUrl = array($this, 'add', 'PrevAndNext' => 'on', 'ret_url' => getRetUrl(), 'classId' => $classId, 'recId' => $prevId, 'Selected' => $sel, 'lang' => $data->form->rec->lang);
             
             if (isset($Cmd['save_n_prev']) && $prevId) {
                 $data->retUrl = $rUrl;
@@ -361,7 +371,7 @@ class core_UserTranslates extends core_Manager
                 $clsInst = cls::get($classId);
                 if (($clsInst instanceof core_Master) && ($clsInst->haveRightFor('single', $recId))) {
                     $data->retUrl = array($clsInst, 'single', $recId);
-                } elseif (($clsInst instanceof core_Manager) && ($clsInst->haveRightFor('list', $recId))) { 
+                } elseif (($clsInst instanceof core_Manager) && ($clsInst->haveRightFor('list', $recId))) {
                     $data->retUrl = array($clsInst, 'list');
                 } else {
                     $data->retUrl = getRetUrl();
@@ -375,8 +385,8 @@ class core_UserTranslates extends core_Manager
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_UserTranslates $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param stdClass            $row Това ще се покаже
+     * @param stdClass            $rec Това е записа в машинно представяне
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
@@ -392,18 +402,18 @@ class core_UserTranslates extends core_Manager
     /**
      * Извиква се преди запис в модела
      *
-     * @param core_UserTranslates     $mvc     Мениджър, в който възниква събитието
-     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
-     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
-     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
-     * @param string       $mode    Режим на записа: replace, ignore
+     * @param core_UserTranslates $mvc    Мениджър, в който възниква събитието
+     * @param int                 $id     Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass            $rec    Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array        $fields Имена на полетата, които трябва да бъдат записани
+     * @param string              $mode   Режим на записа: replace, ignore
      */
     public static function on_BeforeSave($mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         if ($rec->id === 0) {
             $rec->id = null;
         }
-        $recArr = (array)$rec;
+        $recArr = (array) $rec;
         if (!$rec->data) {
             $rec->data = array();
         }
@@ -420,5 +430,14 @@ class core_UserTranslates extends core_Manager
         if ($cRecId) {
             $rec->id = $cRecId;
         }
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        $data->toolbar->removeBtn('btnAdd');
     }
 }

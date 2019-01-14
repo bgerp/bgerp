@@ -7,7 +7,7 @@
  * @package   docart
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -17,9 +17,22 @@ class docarch_Volumes extends core_Master
 {
     public $title = 'Томове и контейнери';
     
-    public $loadList = 'plg_Created, plg_RowTools2,plg_Modified';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, plg_State2, plg_Rejected';
     
     public $listFields = 'number,type,inCharge,archive,createdOn=Създаден,modifiedOn=Модифициране';
+    
+    
+    /**
+     * Кой може да оттегля?
+     */
+    public $canReject = 'ceo, admin';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    public $canDelete = 'no_one';
+    
     
     protected function description()
     {
@@ -27,7 +40,7 @@ class docarch_Volumes extends core_Master
         $this->FLD('archive', 'key(mvc=docarch_Archives,allowEmpty)', 'caption=В архив,placeholder=Всички,refreshForm,silent');
         
         //В какъв тип контейнер/том от избрания архив се съхранява документа
-        $this->FLD('type', 'enum(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)', 'caption=Тип');
+        $this->FLD('type', 'varchar(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)', 'caption=Тип,mandatory');
         
         //Това е номера на дадения вид том в дадения архив
         $this->FLD('number', 'int', 'caption=Номер,smartCenter');
@@ -48,7 +61,7 @@ class docarch_Volumes extends core_Master
         //Оща информация
         $this->FLD('firstDocDate', 'date', 'caption=Дата на първия документ в тома,input=none');
         $this->FLD('lastDocDate', 'date', 'caption=Дата на последния документ в тома,input=none');
-        $this->FLD('docCnt', 'int', 'caption=Дата на първия документ,input=none');
+        $this->FLD('docCnt', 'int', 'caption=Брой на документите в тома,input=none');
         
         $this->FNC('title', 'varchar', 'caption=Име');
         
@@ -83,6 +96,13 @@ class docarch_Volumes extends core_Master
         $form = $data->form;
         $rec = $form->rec;
         
+        $types = array('folder' => 'Папка','box' => 'Кутия', 'case' => 'Кашон', 'pallet' => 'Палет', 'warehouse' => 'Склад');
+        $form->setOptions('type', $types);
+        
+        
+        $currentUser = core_Users::getCurrent();
+        $form->setDefault('inCharge', "{$currentUser}");
+        
         if ($rec->id) {
             $rec->_isCreated = true;
             
@@ -98,14 +118,15 @@ class docarch_Volumes extends core_Master
         } else {
             if ($form->cmd == 'refresh' && $rec->archive) {
                 $typesArr = arr::make(docarch_Archives::fetch($rec->archive)->volType, true);
-                
+                $types = '';
                 foreach ($typesArr as $key => $v) {
                     $volName = self::getVolumeTypeName($v);
                     $types .= $key.'='.$volName.',';
                 }
                 
-                $types = (trim($types, ','));
-                $form->setFieldType('type', "enum(${types})");
+                $types = arr::make(trim($types, ','), true);
+                
+                $form->setOptions('type', $types);
             }
             
             
@@ -156,10 +177,11 @@ class docarch_Volumes extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if ($rec->type != docarch_Archives::minDefType($rec->archive) || $rec->archive == 0) {
-            $rec->isForDocuments = 'no';
-        } else {
+        if (($rec->type == docarch_Archives::minDefType($rec->archive)) || $rec->archive == 0) {
             $rec->isForDocuments = 'yes';
+        }
+        if (($rec->type != docarch_Archives::minDefType($rec->archive)) && $rec->archive != 0) {
+            $rec->isForDocuments = 'no';
         }
     }
     
@@ -204,9 +226,44 @@ class docarch_Volumes extends core_Master
          */
         requireRole('admin');
         
-        bp(docarch_Movements::getQuery()->fetchAll());
+        bp(docarch_Volumes::getQuery()->fetchAll());
         
         return 'action';
+    }
+    
+    
+    /**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        if (($rec->archive == 0)) {
+            $row->archive = 'Сборен';
+        }
+        
+        $row->type = self::getVolumeTypeName($row->type);
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'reject' && isset($rec)) {
+           
+            if (!is_null($rec->docCnt)) {
+                $requiredRoles = 'no_one' ;
+            }elseif (($rec->docCnt == 0)){
+                $requiredRoles = 'no_one' ;
+            }
+        }
     }
     
     
@@ -237,7 +294,7 @@ class docarch_Volumes extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $arch = docarch_Archives::fetch($rec->archive)->name;
+        $arch = ($rec->archive == 0) ? 'Сборен' : docarch_Archives::fetch($rec->archive)->name;
         
         $title = docarch_Volumes::getVolumeTypeName($rec->type);
         

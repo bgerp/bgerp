@@ -259,29 +259,32 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Миграция на имената на артикулите
      */
-    function updateIntName()
+    public function updateIntName()
     {
         $Products = cls::get('cat_Products');
         $Products->setupMvc();
         
-        if(!cat_Products::count()) return;
+        if (!cat_Products::count()) {
+            
+            return;
+        }
         
         core_App::setTimeLimit(700);
         $toSave = array();
         $query = cat_Products::getQuery();
         $query->where("LOCATE('||', #name)");
-        $query->show('name,nameInt');
-        while($rec = $query->fetch()){
+        $query->show('name,nameEn');
+        while ($rec = $query->fetch()) {
             $exploded = explode('||', $rec->name);
-            if(count($exploded) == 2){
+            if (count($exploded) == 2) {
                 $rec->name = $exploded[0];
-                $rec->nameInt = $exploded[1];
+                $rec->nameEn = $exploded[1];
                 $toSave[$rec->id] = $rec;
             }
         }
         
-        if(count($toSave)){
-            $Products->saveArray($toSave, 'id,name,nameInt');
+        if (count($toSave)) {
+            $Products->saveArray($toSave, 'id,name,nameEn');
         }
     }
 }

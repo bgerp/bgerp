@@ -1528,7 +1528,7 @@ class doclog_Documents extends core_Manager
     /**
      * Връща масив с IP-адреси от които е видян/свален документа
      *
-     * @param unknown           $cid
+     * @param int               $cid
      * @param NULL|string|array $action
      *
      * @return array
@@ -1981,8 +1981,8 @@ class doclog_Documents extends core_Manager
     /**
      * Маркира файла, че е свален
      *
-     * @param string  $mid
-     * @param fileHnd $fh  - Манипулатор на файла, който се сваля
+     * @param string $mid
+     * @param string $fh  - Манипулатор на файла, който се сваля
      *
      * @return object|bool $rec
      */
@@ -2058,9 +2058,9 @@ class doclog_Documents extends core_Manager
     /**
      * Изпълнява се преди всеки запис в модела
      *
-     * @param unknown_type $mvc
-     * @param unknown_type $id
-     * @param unknown_type $rec
+     * @param core_Mvc $mvc
+     * @param int      $id
+     * @param stdClass $rec
      */
     public static function on_BeforeSave($mvc, &$id, $rec)
     {
@@ -2396,8 +2396,8 @@ class doclog_Documents extends core_Manager
     /**
      * Връща линк към сингъла на документа
      *
-     * @param unknown_type $cid
-     * @param unknown_type $action
+     * @param int    $cid
+     * @param string $action
      */
     public static function getLinkToSingle($cid, $action)
     {
@@ -2434,7 +2434,9 @@ class doclog_Documents extends core_Manager
         
         $html = static::renderSummary($data);
         
-        $html .= doc_ExpensesSummary::getSummary($containerId);
+        $doc = doc_Containers::getDocument($containerId);
+        
+        $doc->invoke('renderOtherSummary', array(&$html, $containerId, $threadId));
         
         if (strlen($html) != 0) {
             $html = "<ul class=\"history summary\">{$html}</ul>";
@@ -2447,8 +2449,8 @@ class doclog_Documents extends core_Manager
     /**
      * Връща форматирано виждането на документа
      *
-     * @param unknown_type $rec
-     * @param unknown_type $deep
+     * @param stdClass $rec
+     * @param bool     $deep
      */
     protected static function formatViewReason($rec, $deep = true)
     {
@@ -2550,7 +2552,7 @@ class doclog_Documents extends core_Manager
      * Ако открие записа на документа проверява дали има родител.
      * Ако има родител връща cid'а на родителя.
      *
-     * @param URL $url - URL от системата, в който ще се търси
+     * @param string $url - URL от системата, в който ще се търси
      *
      * @return int|NULL $cid - Container id на документа
      */

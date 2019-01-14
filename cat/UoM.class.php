@@ -19,7 +19,7 @@ class cat_UoM extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting, plg_Translate';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting, plg_Translate, core_UserTranslatePlg';
     
     
     /**
@@ -105,8 +105,8 @@ class cat_UoM extends core_Manager
      */
     public function description()
     {
-        $this->FLD('name', 'varchar(36)', 'caption=Мярка, export,translate,mandatory');
-        $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export,translate,mandatory');
+        $this->FLD('name', 'varchar(36)', 'caption=Мярка, export, translate=user|tr|transliterate, mandatory');
+        $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export, translate=user|tr|transliterate, mandatory');
         $this->FLD('type', 'enum(uom=Мярка,packaging=Опаковка)', 'notNull,value=uom,caption=Тип,silent,input=hidden');
         $this->FLD('baseUnitId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Базова мярка, export');
         $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
@@ -168,7 +168,7 @@ class cat_UoM extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $type = core_Request::get('type', 'enum(uom,packaging)');
-       
+        
         if ($type == 'packaging') {
             $mvc->currentTab = 'Мерки->Опаковки';
             $mvc->title = 'Опаковки';

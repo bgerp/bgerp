@@ -15,8 +15,6 @@
  */
 class core_UserTranslatePlg extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -79,17 +77,17 @@ class core_UserTranslatePlg extends core_Plugin
     {
         if (core_UserTranslates::haveRightFor('add', (object) array('classId' => $mvc->getClassId(), 'recId' => $data->rec->id))) {
             Request::setProtected(array('classId', 'recId'));
-            $data->toolbar->addBtn('Превод', array('core_UserTranslates', 'add', 'classId' => $mvc->getClassId(), 'recId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/font.png, title = Добавяне на превод, row=2');
+            $data->toolbar->addBtn('Превод', toUrl(array('core_UserTranslates', 'add', 'classId' => $mvc->getClassId(), 'recId' => $data->rec->id, 'ret_url' => true)), 'ef_icon=img/16/font.png, title = Добавяне на превод, row=2');
         }
     }
     
     
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
+     *
+     * @param core_Mvc    $mvc
+     * @param stdClass    $row
+     * @param stdClass    $rec
      * @param null|string $fields
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
@@ -98,7 +96,7 @@ class core_UserTranslatePlg extends core_Plugin
             if (core_UserTranslates::haveRightFor('add', (object) array('classId' => $mvc->getClassId(), 'recId' => $rec->id))) {
                 Request::setProtected(array('classId', 'recId'));
                 core_RowToolbar::createIfNotExists($row->_rowTools);
-                $row->_rowTools->addLink('Превод', array('core_UserTranslates', 'add', 'classId' => $mvc->getClassId(), 'recId' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/font.png, title = Добавяне на превод');
+                $row->_rowTools->addLink('Превод', toUrl(array('core_UserTranslates', 'add', 'classId' => $mvc->getClassId(), 'recId' => $rec->id, 'ret_url' => true)), 'ef_icon=img/16/font.png, title = Добавяне на превод');
             }
         }
     }
@@ -108,16 +106,15 @@ class core_UserTranslatePlg extends core_Plugin
      * След като е готово вербалното представяне
      *
      * @param core_Mvc $mvc
-     * @param mixed $res
+     * @param mixed    $res
      * @param stdClass $rec
-     * @param string $part
+     * @param string   $part
      */
     public static function on_AfterGetVerbal($mvc, &$res, $rec, $part)
     {
         $uTranslateFields = core_UserTranslates::getUserTranslateFields($mvc->getClassId(), '*', $rec->id);
         
         if ($uTranslateFields[$part] && $rec->{$part}) {
-            
             $trArr = explode('|', $uTranslateFields[$part]->translate);
             
             $val = $rec->{$part};
@@ -125,7 +122,6 @@ class core_UserTranslatePlg extends core_Plugin
             $tr = null;
             
             foreach ($trArr as $tName) {
-                
                 if ($tName == 'tr') {
                     $tr = tr($val);
                     if ($tr != $val) {
@@ -151,7 +147,7 @@ class core_UserTranslatePlg extends core_Plugin
                         break;
                     }
                 } else {
-                    expect(FALSE, $trArr);
+                    expect(false, $trArr);
                 }
             }
             

@@ -2854,6 +2854,9 @@ ul.history {
 		&.expenseSummary b {
 			background-color: orange;
 		}
+		&.archiveSummary b {
+			background-color: #796b5c;
+		}
 	}
 	.detailed b {
 		background-color: #ccc;
