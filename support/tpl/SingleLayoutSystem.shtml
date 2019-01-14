@@ -28,6 +28,12 @@
                                 <td> [#locationId#]</td>
                             </tr>
                             <!--ET_END locationId-->
+                            <!--ET_BEGIN description-->
+                            <tr>
+                                <td class='dt'>|Описание|*:</td>
+                                <td> [#description#]</td>
+                            </tr>
+                            <!--ET_END description-->
                             <!--ET_BEGIN CloseTime-->
                             <tr>
                                 <td class='dt'>|Затваряне на нишките|*:</td>

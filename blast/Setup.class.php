@@ -226,6 +226,9 @@ class blast_Setup extends core_ProtoSetup
     public function updateEmailsCnt()
     {
         $bQuery = blast_Emails::getQuery();
+        $bQuery->where('#allMailCnt IS NULL');
+        $bQuery->orWhere('#allMailCnt = 0');
+        
         while ($bRec = $bQuery->fetch()) {
             $query = blast_EmailSend::getQuery();
             $query->where("#emailId = '{$bRec->id}'");

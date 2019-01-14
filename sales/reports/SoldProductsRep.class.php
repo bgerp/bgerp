@@ -352,28 +352,42 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $recs[$id] = (object) array(
                     
                     'code' => $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}",
-                    'measure' => cat_Products::getProductInfo($recPrime->productId)->productRec->measureId,
                     'productId' => $recPrime->productId,
+                    'measure' => cat_Products::getProductInfo($recPrime->productId)->productRec->measureId,
+                    
                     'quantity' => $quantity,
+                    'primeCost' => $primeCost,
+                    'delta' => $delta,
+                    
                     'quantityPrevious' => $quantityPrevious,
                     'primeCostPrevious' => $primeCostPrevious,
                     'deltaPrevious' => $deltaPrevious,
+                    
                     'quantityLastYear' => $quantityLastYear,
                     'primeCostLastYear' => $primeCostLastYear,
                     'deltaLastYear' => $deltaLastYear,
-                    'primeCost' => $primeCost,
+                    
                     'group' => $recPrime->groupMat,
                     'groupList' => $recPrime->groupList,
-                    'delta' => $delta
+                    
                 
                 );
             } else {
                 $obj = &$recs[$id];
+                
                 $obj->quantity += $quantity;
-                $obj->quantityPrevious += $quantityPrevious;
-                $obj->quantityLastYear += $quantityLastYear;
                 $obj->primeCost += $primeCost;
                 $obj->delta += $delta;
+                
+                $obj->quantityPrevious += $quantityPrevious;
+                $obj->primeCostPrevious += $primeCostPrevious;
+                $obj->deltaPrevious += $deltaPrevious;
+               
+                $obj->quantityLastYear += $quantityLastYear;
+                $obj->primeCostLastYear += $primeCostLastYear;
+                $obj->deltaLastYear += $deltaLastYear;
+                
+                
             }
         }
         
