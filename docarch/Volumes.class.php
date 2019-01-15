@@ -71,39 +71,6 @@ class docarch_Volumes extends core_Master
     
     
     /**
-     * Преди показване на листовия тулбар
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $data
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
-    {
-        $data->toolbar->addBtn('Бутон', array($mvc,'Action'));
-        
-        //  $data->toolbar->addBtn('Бутон', array('docarch_Movements', 'Add'));
-    }
-    
-    
-    /**
-     * Добавя бутони  към единичния изглед на документа
-     */
-    public static function on_AfterPrepareSingleToolbar($mvc, $data)
-    {
-        $rec = &$data->rec;
-        
-        $volQuery = $mvc->getQuery();
-        
-        $volQuery->where("#state != 'rejected'");
-        
-        $volQuery->where("#id != {$rec->id} AND #archive = {$rec->archive}");
-       
-        if ($rec->id && is_null($rec->includeIn) && $rec->type != 'warehouse') {
-            $data->toolbar->addBtn('Включване', array($mvc,'Include',$rec->id,'ret_url' => true));
-        }
-    }
-    
-    
-    /**
      * Преди показване на форма за добавяне/промяна.
      *
      *
@@ -181,6 +148,33 @@ class docarch_Volumes extends core_Master
             if (is_null($form->rec->number)) {
                 $form->rec->number = $mvc->getNextNumber($archive, $type);
             }
+        }
+    }
+    
+    
+    /**
+     * Преди показване на листовия тулбар
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+        $data->toolbar->addBtn('Бутон', array($mvc,'Action'));
+    }
+    
+    
+    /**
+     * Добавя бутони  към единичния изглед на документа
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        $rec = &$data->rec;
+        
+        $possibleVolArr = self::getVolumePossibleForInclude($rec);
+        
+        if ($rec->id && is_null($rec->includeIn) && $rec->type != 'warehouse' && !is_null($possibleVolArr)) {
+            $data->toolbar->addBtn('Включване', array($mvc,'Include',$rec->id,'ret_url' => true));
         }
     }
     
@@ -275,6 +269,7 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
+        //Тома не може да бъде reject-нат ако не е празен
         if ($action == 'reject' && isset($rec)) {
             if (!is_null($rec->docCnt)) {
                 $requiredRoles = 'no_one' ;
@@ -341,6 +336,53 @@ class docarch_Volumes extends core_Master
     
     
     /**
+     * Връща възможните томове в които да се инклудне подадения
+     *
+     * @param string $id -id на тома за инкудване
+     *
+     * @return array - масив с възможните тoмове / null ако няма
+     */
+    public static function getVolumePossibleForInclude($rec)
+    {
+        $possibleArr= array();
+        $volQuery = docarch_Volumes::getQuery();
+        
+        $volQuery->where("#state != 'rejected'");
+        
+        $volQuery->where("#id != {$rec->id} AND #archive = {$rec->archive} AND #type != 'folder'");
+       
+        switch ($rec->type) {
+            
+            case 'folder':$possibleArr =array('box','case','pallet','warehouse'); break;
+            
+            case 'box':$possibleArr= array('case','pallet','warehouse'); break;
+            
+            case 'case':$possibleArr =  array('pallet','warehouse'); break;
+            
+            case 'pallet':$possibleArr =array('warehouse'); break;
+            
+            case 'warehouse':$possibleArr = array(); break;
+            
+        }
+        
+        $volQuery->in('type',$possibleArr);
+     
+        if(empty($volQuery->fetchAll())){
+            
+            return null;
+            
+        }
+        
+        while ($vol = $volQuery->fetch()){
+            
+            $possibleVolArr[$vol->id]= $vol->title;
+        }
+        
+        
+        return $possibleVolArr;
+    }
+      
+    /**
      * Включва един том в по-голям
      */
     public function act_Include()
@@ -361,17 +403,7 @@ class docarch_Volumes extends core_Master
         //В кой по голям том се включва
         $form->FLD('includeIn', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Включен в');
         
-        $volQuery = docarch_Volumes::getQuery();
-        
-        $volQuery->where("#state != 'rejected'");
-        
-        $volQuery->where("#id != ${thisVolId} AND #archive = {$thisVolRec->archive} AND #type != 'folder'");
-        
-        $options = array();
-        
-        while ($vol = $volQuery->fetch()) {
-            $options[$vol->id] = $vol->title;
-        }
+        $options = self::getVolumePossibleForInclude($thisVolRec);
         
         $form->setOptions('includeIn', $options);
         
