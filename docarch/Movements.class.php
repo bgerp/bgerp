@@ -4,7 +4,7 @@
  *
  *
  * @category  bgerp
- * @package   docart
+ * @package   docarch
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2019 Experta OOD
@@ -19,12 +19,12 @@ class docarch_Movements extends core_Master
     
     public $loadList = 'plg_Created,plg_Search';
     
-    public $listFields = 'type,documentId,toVolumeId,fromVolumeId,userID,createdOn=Създаден,modifiedOn=Модифициране';
+    public $listFields = 'type,documentId,toVolumeId,fromVolumeId,userID,createdOn=Създаден';
     
     protected function description()
     {
         //Избор на типа движение в архива
-        $this->FLD('type', 'varchar(set options)', 'caption=Действиe');
+        $this->FLD('type', 'varchar(set options)', 'caption=Действие');
         
         //Документ - ако движението е на документ
         $this->FLD('documentId', 'key(mvc=doc_Containers)', 'caption=Документ,input=hidden,silent');
@@ -181,12 +181,10 @@ class docarch_Movements extends core_Master
         $documentContainerId = ($data->listFilter->rec->document);
         
         if ($documentContainerId) {
-            
-            $lastDocMovie=self::getLastDocumentMove($documentContainerId);
+            $lastDocMovie = self::getLastDocumentMove($documentContainerId);
             $lastVolume = $lastDocMovie[$documentContainerId]->toVolumeId;
-           
         }
-       
+        
         if ($data->filterCheck) {
             $Document = doc_Containers::getDocument($documentContainerId);
             $documentName = $Document->singleTitle.'-'.$Document->getHandle();
@@ -201,9 +199,7 @@ class docarch_Movements extends core_Master
                 
                 $data->toolbar->addBtn('Унищожаване', array($mvc, 'Action'));
             }
-           
         }
-        
     }
     
     
@@ -252,7 +248,6 @@ class docarch_Movements extends core_Master
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         if ($rec->documentId) {
-            
             $Document = doc_Containers::getDocument($rec->documentId);
             
             $className = $Document->className;
@@ -308,7 +303,6 @@ class docarch_Movements extends core_Master
      */
     public static function getMovingBalance($arhive, $document)
     {
-      
         return $possibleMove;
     }
     
@@ -331,7 +325,6 @@ class docarch_Movements extends core_Master
         $mCnt = $mQuery->count();
         
         if ($mCnt > 0) {
-            
             $count = cls::get('type_Int')->toVerbal($mCnt);
             $actionVerbal = tr('архиви');
             $document = doc_Containers::getDocument($containerId);
@@ -350,11 +343,10 @@ class docarch_Movements extends core_Master
     
     
     /**
-     * @return string
+     * Изважда документ от том
      */
     public function act_Taking()
     {
-       
         $takingRec = new stdClass();
         $form = cls::get('core_Form');
         $form->title = 'Вземане на документ';
@@ -381,7 +373,6 @@ class docarch_Movements extends core_Master
         $takingRec = $form->input();
         
         if ($form->isSubmitted()) {
-            
             $this->save($takingRec);
             
             return new Redirect(getRetUrl());
@@ -440,13 +431,9 @@ class docarch_Movements extends core_Master
         $mQuery->orderBy('createdOn', 'ASC');
         
         while ($move = $mQuery->fetch()) {
-            
-           
-            
             if (!is_null($move->documentId)) {
-                
                 $archive = (!is_null($move->toVolumeId)) ? docarch_Volumes::fetch($move->toVolumeId):'';
-         
+                
                 $lastDocMove[$move->documentId] = (object) array(
                     'movingType' => $move->type,
                     'toVolumeId' => $move->toVolumeId,

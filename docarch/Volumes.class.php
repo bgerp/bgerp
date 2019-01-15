@@ -4,7 +4,7 @@
  *
  *
  * @category  bgerp
- * @package   docart
+ * @package   docarch
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2019 Experta OOD
@@ -81,6 +81,25 @@ class docarch_Volumes extends core_Master
         $data->toolbar->addBtn('Бутон', array($mvc,'Action'));
         
         //  $data->toolbar->addBtn('Бутон', array('docarch_Movements', 'Add'));
+    }
+    
+    
+    /**
+     * Добавя бутони  към единичния изглед на документа
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        $rec = &$data->rec;
+        
+        $volQuery = $mvc->getQuery();
+        
+        $volQuery->where("#state != 'rejected'");
+        
+        $volQuery->where("#id != {$rec->id} AND #archive = {$rec->archive}");
+       
+        if ($rec->id && is_null($rec->includeIn) && $rec->type != 'warehouse') {
+            $data->toolbar->addBtn('Включване', array($mvc,'Include',$rec->id,'ret_url' => true));
+        }
     }
     
     
@@ -257,10 +276,9 @@ class docarch_Volumes extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'reject' && isset($rec)) {
-           
             if (!is_null($rec->docCnt)) {
                 $requiredRoles = 'no_one' ;
-            }elseif (($rec->docCnt == 0)){
+            } elseif (($rec->docCnt == 0)) {
                 $requiredRoles = 'no_one' ;
             }
         }
@@ -298,7 +316,7 @@ class docarch_Volumes extends core_Master
         
         $title = docarch_Volumes::getVolumeTypeName($rec->type);
         
-        $title .= '-No'.$rec->number.' в архив: '.$arch;
+        $title .= '-No'.$rec->number.' от архив: '.$arch;
         
         
         if ($escaped) {
@@ -319,5 +337,58 @@ class docarch_Volumes extends core_Master
     public static function getVolumeTypeName($type)
     {
         return docarch_Archives::getArchiveTypeName($type);
+    }
+    
+    
+    /**
+     * Включва един том в по-голям
+     */
+    public function act_Include()
+    {
+        $includeRec = new stdClass();
+        $form = cls::get('core_Form');
+        
+        $thisVolId = Request::get('id');
+        
+        $thisVolRec = $this->fetch($thisVolId);
+        
+        $thisVolName = $this->getVerbal($thisVolRec, 'title');
+        
+        $form->title = "Включване на том|* ' " . ' ' . $thisVolName . "' ||*";
+        
+        $form->FLD('type', 'enum(taking=Включване)', 'caption=Действие');
+        
+        //В кой по голям том се включва
+        $form->FLD('includeIn', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Включен в');
+        
+        $volQuery = docarch_Volumes::getQuery();
+        
+        $volQuery->where("#state != 'rejected'");
+        
+        $volQuery->where("#id != ${thisVolId} AND #archive = {$thisVolRec->archive} AND #type != 'folder'");
+        
+        $options = array();
+        
+        while ($vol = $volQuery->fetch()) {
+            $options[$vol->id] = $vol->title;
+        }
+        
+        $form->setOptions('includeIn', $options);
+        
+        $form->input(null, true);
+        
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+        
+        $includeRec = $form->input();
+        
+        if ($form->isSubmitted()) {
+            $this->save($includeRec);
+            
+            return new Redirect(getRetUrl());
+        }
+        
+        return $this->renderWrapping($form->renderHtml());
     }
 }
