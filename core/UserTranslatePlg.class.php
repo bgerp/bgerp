@@ -141,7 +141,7 @@ class core_UserTranslatePlg extends core_Plugin
                 } elseif ($tName == 'field') {
                     $lg = ucfirst(core_Lg::getCurrent());
                     $lgPart = $part . $lg;
-                    if (strlen($rec->{$lgPart}) && ($rec->{$lgPart} != $rec->{$part})) {
+                    if (strlen(trim($rec->{$lgPart})) && ($rec->{$lgPart} != $rec->{$part})) {
                         $tr = $rec->{$lgPart};
                         break;
                     }
