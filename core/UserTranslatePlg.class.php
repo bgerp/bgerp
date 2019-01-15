@@ -119,7 +119,6 @@ class core_UserTranslatePlg extends core_Plugin
         }
         
         if (!Mode::is('forSearch') && $part && $uTranslateFields[$part] && $rec->{$part}) {
-            
             $trArr = explode('|', $uTranslateFields[$part]->translate);
             
             $val = $rec->{$part};
@@ -193,13 +192,35 @@ class core_UserTranslatePlg extends core_Plugin
         if (!empty($searchFields)) {
             $fieldsArr = $mvc->selectFields('', $searchFields);
             
+            $fNameArr = array();
+            
             $uTrFields = core_UserTranslates::getUserTranslateFields($mvc->getClassId(), 'user', $rec->id);
-            $currLg = core_Lg::getCurrent();
             foreach ($uTrFields as $fName => $fType) {
                 if ($fieldsArr[$fName]) {
-                    $uTranslate = core_UserTranslates::getUserTranslatedStr($mvc->getClassId(), $rec->id, $currLg, $fName, $rec->{$fName});
-                    if ($uTranslate != $rec->{$fName}) {
-                        $tr .= ' ' . $uTranslate;
+                    $fNameArr[$fName] = $fName;
+                }
+            }
+            
+            // Добавяме всички думи, които се превеждат на всички езици
+            if (!empty($fNameArr)) {
+                $tQuery = core_UserTranslates::getQuery();
+                $tQuery->where(array("#classId = '[#1#]'", $mvc->getClassId()));
+                $tQuery->where(array("#recId = '[#1#]'", $rec->id));
+                
+                while ($tRec = $tQuery->fetch()) {
+                    foreach ((array) $tRec->data as $fNameStr => $fData) {
+                        if (!$rec->{$fNameStr}) {
+                            continue ;
+                        }
+                        
+                        if (!$fNameArr[$fNameStr]) {
+                            continue ;
+                        }
+                        
+                        $checkValSrc = crc32($rec->{$fNameStr});
+                        if ($checkValSrc == $fData['crc']) {
+                            $tr .= ' ' . $fData['tr'];
+                        }
                     }
                 }
             }

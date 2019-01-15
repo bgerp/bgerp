@@ -193,6 +193,31 @@ class core_UserTranslates extends core_Manager
     
     
     /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
+     * @param int          $id     Първичния ключ на направения запис
+     * @param stdClass     $rec    Всички полета, които току-що са били записани
+     * @param string|array $fields Имена на полетата, които sa записани
+     * @param string       $mode   Режим на записа: replace, ignore
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        // Добавяме в ключовите думи на модела
+        if ($rec->recId && $rec->classId && cls::load($rec->classId, true)) {
+            $clsInst = cls::get($rec->classId);
+            
+            $plugins = $clsInst->getPlugins();
+            
+            if (isset($plugins['plg_Search'])) {
+                $iRec = $clsInst->fetch($rec->classId);
+                $clsInst->save($iRec, 'searchKeywords');
+            }
+        }
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_UserTranslates $mvc
