@@ -881,8 +881,7 @@ abstract class deals_Helper
         
         // Името и адреса на 'Моята фирма'
         $Companies = cls::get('crm_Companies');
-        $res['MyCompany'] = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-        $res['MyCompany'] = transliterate(tr($res['MyCompany']));
+        $res['MyCompany'] = $ownCompanyData->companyVerb;
         
         // ДДС и националния номер на 'Моята фирма'
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
@@ -895,7 +894,7 @@ abstract class deals_Helper
         if (isset($contragentClass, $contragentId)) {
             $ContragentClass = cls::get($contragentClass);
             $cData = $ContragentClass->getContragentData($contragentId);
-            $res['contragentName'] = isset($contragentName) ? $contragentName : cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
+            $res['contragentName'] = isset($contragentName) ? $contragentName : (($cData->personVerb) ? $cData->personVerb : $cData->companyVerb);
             $res['inlineContragentName'] = $res['contragentName'];
             
             $res['vatNo'] = $cData->vatNo;

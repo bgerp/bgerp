@@ -4,7 +4,7 @@
  *
  *
  * @category  bgerp
- * @package   docart
+ * @package   docarch
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2019 Experta OOD
@@ -19,7 +19,7 @@ class docarch_Archives extends core_Master
     
     public $loadList = 'plg_Created, plg_RowTools2,plg_Modified';
     
-    public $listFields = 'id,name,volType,modifiedOn=Модифициране';
+    public $listFields = 'name,volType,documents,createdOn=Създаден,modifiedOn=Модифициране';
     
     
     /**
