@@ -113,7 +113,7 @@ class rack_Movements extends core_Manager
         
         // Палет, позиции и зони
         $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->От,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,smartCenter');
-        $this->FLD('batch', 'text', 'silent,input=none,before=positionTo');
+        $this->FLD('batch', 'text', 'silent,input=none,before=positionTo,removeAndRefreshForm');
         $this->FLD('position', 'rack_PositionType', 'caption=Движение->От,input=none');
         $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Към,input=none');
         $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=hidden');
@@ -392,7 +392,7 @@ class rack_Movements extends core_Manager
             $rec->quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             
             // Показване на допустимото количество
-            $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId, $rec->productId, $rec->storeId);
+            $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId, $rec->productId, $rec->storeId, $rec->batch);
             
             if (empty($rec->palletId)) {
                 if ($defQuantity = rack_Pallets::getDefaultQuantity($rec->productId, $rec->storeId)) {
@@ -1114,6 +1114,18 @@ class rack_Movements extends core_Manager
             $res->warningFields[] = 'packQuantity';
             $res->warningFields[] = 'zonesQuantityTotal';
         }
+        
+        // Ако се палетира от пода проверява се дали е налично количеството
+        if($transaction->from == rack_PositionType::FLOOR && !empty($transaction->batch)){
+            $availableQuantity = rack_Pallets::getAvailableQuantity(null, $transaction->productId, $transaction->storeId, $transaction->batch);
+            if($availableQuantity < $transaction->quantity){
+                $availableQuantityV = core_Type::getByName('double(smartRound)')->toVerbal($availableQuantity);
+                $res->errors = "Количеството на партидата е над наличното|*: <b>{$availableQuantityV}</b>";
+                $res->errorFields[] = 'batch';
+                $res->errorFields[] = 'packQuantity';
+            }
+        }
+        
         
         return $res;
     }

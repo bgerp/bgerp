@@ -672,12 +672,32 @@ class rack_Pallets extends core_Manager
      * @param int      $productId
      * @param int      $storeId
      * @param stdClass $data
+     * @param null|double $batch 
      *
      * @return float
      */
-    public static function getAvailableQuantity($id, $productId, $storeId)
+    public static function getAvailableQuantity($id, $productId, $storeId, $batch = null)
     {
-        return isset($id) ? rack_Pallets::fetchField($id, 'quantity') : rack_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantityNotOnPallets');
+        if(isset($id)){
+            
+            return rack_Pallets::fetchField($id, 'quantity');
+        }
+        
+        $quantityOnPallets = rack_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantityNotOnPallets');
+       
+        if(!empty($batch)){
+            $batchQuantity = batch_Items::getQuantity($productId, $batch, $storeId);
+            
+            // От наличното в партидния склад, махаме това което вече е палетирано
+            $query = self::getQuery();
+            $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #batch = {$batch}");
+            $query->XPR("sum", 'double', 'SUM(#quantity)');
+            $batchQuantity -= $query->fetch()->sum;
+            
+            return min($quantityOnPallets, $batchQuantity);
+        }
+        
+        return $quantityOnPallets;
     }
     
     
