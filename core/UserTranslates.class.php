@@ -210,8 +210,10 @@ class core_UserTranslates extends core_Manager
             $plugins = $clsInst->getPlugins();
             
             if (isset($plugins['plg_Search'])) {
-                $iRec = $clsInst->fetch($rec->classId);
-                $clsInst->save($iRec, 'searchKeywords');
+                $iRec = $clsInst->fetch($rec->recId);
+                if ($iRec) {
+                    $clsInst->save($iRec, 'searchKeywords');
+                }
             }
         }
     }
