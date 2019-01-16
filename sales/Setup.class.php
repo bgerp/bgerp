@@ -607,7 +607,7 @@ class sales_Setup extends core_ProtoSetup
      */
     public static function closeZDDSRep()
     {
-        $rec = core_Classes::fetch(array("#state = 'active' AND #name = 'sales_reports_ZDDSRep'", $preffix));
+        $rec = core_Classes::fetch("#state = 'active' AND #name = 'sales_reports_ZDDSRep'");
         if ($rec) {
             $rec->state = 'closed';
             core_Classes::save($rec, 'state');
