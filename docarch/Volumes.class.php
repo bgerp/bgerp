@@ -19,7 +19,7 @@ class docarch_Volumes extends core_Master
     
     public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, plg_State2, plg_Rejected';
     
-    public $listFields = 'number,type,inCharge,archive,createdOn=Създаден,modifiedOn=Модифициране';
+    public $listFields = 'number,type,inCharge,archive,docCnt,createdOn=Създаден,modifiedOn=Модифициране';
     
     
     /**
@@ -61,7 +61,7 @@ class docarch_Volumes extends core_Master
         //Оща информация
         $this->FLD('firstDocDate', 'date', 'caption=Дата на първия документ в тома,input=none');
         $this->FLD('lastDocDate', 'date', 'caption=Дата на последния документ в тома,input=none');
-        $this->FLD('docCnt', 'int', 'caption=Брой на документите в тома,input=none');
+        $this->FLD('docCnt', 'int', 'caption=Брой,input=none');
         
         $this->FNC('title', 'varchar', 'caption=Име');
         
@@ -137,6 +137,8 @@ class docarch_Volumes extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
+            
+            
             $type = $form->rec->type;
             
             if (is_null($form->rec->archive)) {
@@ -174,7 +176,7 @@ class docarch_Volumes extends core_Master
         $possibleVolArr = self::getVolumePossibleForInclude($rec);
         
         if ($rec->id && is_null($rec->includeIn) && $rec->type != 'warehouse' && !is_null($possibleVolArr)) {
-            $data->toolbar->addBtn('Включване', array($mvc,'Include',$rec->id,'ret_url' => true));
+            $data->toolbar->addBtn('Включване', array('docarch_Movements','Include',$rec->id,'ret_url' => true));
         }
     }
     
@@ -190,11 +192,15 @@ class docarch_Volumes extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if (($rec->type == docarch_Archives::minDefType($rec->archive)) || $rec->archive == 0) {
-            $rec->isForDocuments = 'yes';
-        }
-        if (($rec->type != docarch_Archives::minDefType($rec->archive)) && $rec->archive != 0) {
-            $rec->isForDocuments = 'no';
+        if (!is_null($rec->archive)){
+            
+            if (($rec->type == docarch_Archives::minDefType($rec->archive)) || $rec->archive == 0) {
+                $rec->isForDocuments = 'yes';
+            }
+            if (($rec->type != docarch_Archives::minDefType($rec->archive)) && $rec->archive != 0) {
+                $rec->isForDocuments = 'no';
+            }
+            
         }
     }
     
@@ -270,11 +276,11 @@ class docarch_Volumes extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         //Тома не може да бъде reject-нат ако не е празен
-        if ($action == 'reject' && isset($rec)) {
+        if ($action == 'reject' ) {//bp($rec->docCnt);
             if (!is_null($rec->docCnt)) {
                 $requiredRoles = 'no_one' ;
             } elseif (($rec->docCnt == 0)) {
-                $requiredRoles = 'no_one' ;
+               // $requiredRoles = 'no_one' ;
             }
         }
     }
@@ -382,45 +388,5 @@ class docarch_Volumes extends core_Master
         return $possibleVolArr;
     }
       
-    /**
-     * Включва един том в по-голям
-     */
-    public function act_Include()
-    {
-        $includeRec = new stdClass();
-        $form = cls::get('core_Form');
-        
-        $thisVolId = Request::get('id');
-        
-        $thisVolRec = $this->fetch($thisVolId);
-        
-        $thisVolName = $this->getVerbal($thisVolRec, 'title');
-        
-        $form->title = "Включване на том|* ' " . ' ' . $thisVolName . "' ||*";
-        
-        $form->FLD('type', 'enum(taking=Включване)', 'caption=Действие');
-        
-        //В кой по голям том се включва
-        $form->FLD('includeIn', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Включен в');
-        
-        $options = self::getVolumePossibleForInclude($thisVolRec);
-        
-        $form->setOptions('includeIn', $options);
-        
-        $form->input(null, true);
-        
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
-        
-        $includeRec = $form->input();
-        
-        if ($form->isSubmitted()) {
-            $this->save($includeRec);
-            
-            return new Redirect(getRetUrl());
-        }
-        
-        return $this->renderWrapping($form->renderHtml());
-    }
+   
 }
