@@ -167,6 +167,21 @@ class docarch_Movements extends core_Master
         }
     }
     
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListRows($mvc, $data)
+    {
+        $recs = &$data->recs;
+        $rows = &$data->rows;
+        
+        
+        arr::sortObjects($rows, 'createdOn', 'desc');
+    }
+    
     
     /**
      * Преди показване на листовия тулбар
@@ -273,7 +288,11 @@ class docarch_Movements extends core_Master
          */
         requireRole('admin');
         
-        bp(docarch_Movements::getQuery()->fetchAll());
+        $query = docarch_Movements::getQuery();
+        $query->orderBy('createdOn','DESC');
+       // $query->limit(1);
+        
+        bp($query->fetchAll());
         
         return 'action';
     }
@@ -303,7 +322,7 @@ class docarch_Movements extends core_Master
      */
     public static function getMovingBalance($arhive, $document)
     {
-        return $possibleMove;
+        return ;
     }
     
     
@@ -373,7 +392,66 @@ class docarch_Movements extends core_Master
         $takingRec = $form->input();
         
         if ($form->isSubmitted()) {
+            
             $this->save($takingRec);
+            
+            return new Redirect(getRetUrl());
+        }
+        
+        return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Включва един том в по-голям
+     */
+    public function act_Include()
+    {
+        $includeRec = new stdClass();
+        $mRec = new stdClass();
+        
+        $form = cls::get('core_Form');
+        
+        $thisVolId = Request::get('id');
+        
+        $thisVolRec = docarch_Volumes::fetch($thisVolId);
+        
+        $includeRec->id = $thisVolId;
+        
+        $thisVolName = docarch_Volumes::getVerbal($thisVolRec, 'title');
+        
+        $form->FLD('type', 'enum(include=Включване)', 'caption=Действие');
+        
+        $form->title = "Включване на том|* ' " . ' ' . $thisVolName . "' ||*";
+        
+        //В кой по голям том се включва
+        $form->FLD('toVolumeId', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Включен в,input');
+        
+        $options = docarch_Volumes::getVolumePossibleForInclude($thisVolRec);
+        
+        $form->setOptions('toVolumeId', $options);
+        
+        $form->input(null, true);
+        
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+        
+        $mRec = $form->input();
+        
+        $includeRec->id = $thisVolId;
+        
+        if ($form->isSubmitted()) {
+            
+        $includeRec = (object) array(
+                                     'id' => $thisVolId,
+                                     'includeIn' => $mRec->toVolumeId,
+                                     '_isCreated' => true
+                                    );
+        
+            docarch_Volumes::save($includeRec);
+            
+            $this->save($mRec);
             
             return new Redirect(getRetUrl());
         }
@@ -428,7 +506,9 @@ class docarch_Movements extends core_Master
         
         $mQuery->where("#documentId = ${containerId}");
         
-        $mQuery->orderBy('createdOn', 'ASC');
+        $mQuery->orderBy('createdOn', 'DESC');
+        
+        $mQuery->limit(1);
         
         while ($move = $mQuery->fetch()) {
             if (!is_null($move->documentId)) {

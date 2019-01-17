@@ -17,7 +17,7 @@ class docarch_Archives extends core_Master
 {
     public $title = 'Архив';
     
-    public $loadList = 'plg_Created, plg_RowTools2,plg_Modified';
+    public $loadList = 'plg_Created, plg_RowTools2,plg_Modified,docarch_Wrapper';
     
     public $listFields = 'name,volType,documents,createdOn=Създаден,modifiedOn=Модифициране';
     
