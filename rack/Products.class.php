@@ -259,4 +259,43 @@ class rack_Products extends store_Products
         
         self::saveArray($saveArr, 'id,quantityOnZones');
     }
+    
+    
+    /**
+     * Какво е разполагаемото количество от артикула на пода в склада
+     * 
+     * @param int $productId          - ид на артикул
+     * @param int|null $batch         - номер на партида, или празно ако няма партида
+     * @param int|null $storeId       - склад, ако няма, текущия
+     * @return double $floorQuantity  - наличното количестто от партидата (или без партида) на пода в склада
+     */
+    public static function getFloorQuantity($productId, $batch = null, $storeId = null)
+    {
+        // Какво е количеството на пода
+        $storeId = isset($storeId) ? $storeId : store_Stores::getCurrent();
+        $floorQuantity = self::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantityNotOnPallets');
+        
+        $palletQuery = rack_Pallets::getQuery();
+        $palletQuery->where("#productId = {$productId} AND #storeId = {$storeId}");
+        $palletQuery->XPR('sum', 'double', 'SUM(#quantity)');
+        
+        // Ако има конкретна партида
+        if(!empty($batch)){
+            $palletQuery->where("#batch = '{$batch}'");
+            
+            // Очакваното к-во на пода с премахнатото палетирано
+            $expectedBatchQuantity = batch_Items::getQuantity($productId, $batch, $storeId);
+            $batchQuantityOnPallets = $palletQuery->fetch()->sum;
+            $batchQuantityOnTheFloor = $expectedBatchQuantity - $batchQuantityOnPallets;
+            $floorQuantity = min($floorQuantity, $batchQuantityOnTheFloor);
+        } else {
+            
+            // Ако няма партида на пода се смята разликата от к-то на пода минус всичкото палетирано
+            $palletQuery->where("#batch IS NOT NULL AND #batch != ''");
+            $batchQuantityOnPallets = $palletQuery->fetch()->sum;
+            $floorQuantity -= $batchQuantityOnPallets;
+        }
+        
+        return $floorQuantity;
+    }
 }

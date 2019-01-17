@@ -814,7 +814,7 @@ class rack_Zones extends core_Master
             
             // Ако к-то по палети е достатъчно за изпълнение, не се добавя ПОД-а, @TODO да се изнесе в mainP2Q
             if($quantityOnPallets < $requiredQuantityOnZones){
-                $floorQuantity = rack_Pallets::getAvailableQuantity(null, $pRec->productId, $storeId);
+                $floorQuantity = rack_Products::getFloorQuantity($pRec->productId, $batch, $storeId);
                 if ($floorQuantity) {
                     $pallets[$floor] = (object) array('quantity' => $floorQuantity, 'position' => $floor);
                 }

@@ -690,7 +690,7 @@ class rack_Pallets extends core_Manager
             
             // От наличното в партидния склад, махаме това което вече е палетирано
             $query = self::getQuery();
-            $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #batch = {$batch}");
+            $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #batch = '{$batch}'");
             $query->XPR("sum", 'double', 'SUM(#quantity)');
             $batchQuantity -= $query->fetch()->sum;
             
