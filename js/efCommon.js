@@ -5442,6 +5442,7 @@ JSON.parse = JSON.parse || function (str) {
 };
 
 function unregisterServiceWorker() {
+    "use strict";
     if(!$('link[rel="manifest"]').length) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
             for(let registration of registrations) {
