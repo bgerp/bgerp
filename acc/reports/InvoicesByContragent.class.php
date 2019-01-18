@@ -19,7 +19,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,acc';
+    public $canSelectDriver = 'ceo,acc,sales,purchase,repAllGlobal';
     
     
     /**
@@ -39,7 +39,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'contragent,checkDate';
+    protected $changeableFields = 'contragent,checkDate,crmGroup,typeOfInvoice,unpaid';
     
     
     /**
@@ -51,7 +51,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     {
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=title');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
-        $fieldset->FLD('checkDate', 'date', 'caption=Към дата,after=contragent,mandatory');
+        
+        $fieldset->FLD('fromkDate', 'date', 'caption=От,after=crmGroup, placeholder=от началото');
+        $fieldset->FLD('checkDate', 'date', 'caption=Към дата,after=fromkDate,mandatory');
         
         $fieldset->FLD('typeOfInvoice', 'enum(out=Изходящи,in=Входящи)', 'caption=Фактури,after=checkDate,maxRadio=2,mandatory');
         $fieldset->FLD('unpaid', 'enum(all=Всички,unpaid=Неплатени)', 'caption=Плащане,after=typeOfInvoice,maxRadio=2,mandatory');
@@ -79,6 +81,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+        
+        $form->setWarning('title', "СПРАВКАТА Е В ПРОЦЕС НА РАЗРАБОТКА. МОЛЯ ПРОВЕРЯВАЙТЕ РЕЗУЛТАТА ПРЕДИ ДА ГО ИЗПОЛЗВАТЕ. ");
         
         $checkDate = dt::today();
         
@@ -150,7 +154,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $salesQuery->where("#closedDocuments != ''");
         
         
-        // Масив със записи от изходящи фактури
+        //ИЗХОДЯЩИ ФАКТУРИ
         $invQuery = sales_Invoices::getQuery();
         
         $invQuery->where("#state != 'rejected' AND #number IS NOT NULL");
@@ -319,7 +323,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
         }
         
-        // Масив със записи от входящи фактури
+        // ВХОДЯЩИ ФАКТУРИ
         $pRecs = array();
         $iRec = array();
         
@@ -478,6 +482,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
         }
        
+         
         unset($rec->salesTotalNotPaid,
               $rec->salesTotalOverDue,
               $rec->salesTotalOverPaid,
@@ -515,22 +520,72 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         
         if ($rec->unpaid == 'all'){
             
+            //Проверка за фактури в различни валути
+            $contragentCurrency = array();
+            $flagAll = false;
+            
             foreach ($recs as $key => $val){
+                
+                if (! array_key_exists($val->contragent, $contragentCurrency)) {
+                    $contragentCurrency[$val->contragent] = (object) array(
+                        'currency' => null,
+                        'flag' => false,
+                        'contragent' => false,
+                   );
+                }else{
+                  
+                    if (($contragentCurrency[$val->contragent]->currency != $val->currencyId) &&
+                        !is_null($contragentCurrency[$val->contragent]->currency)) {
+                    
+                   $contragentCurrency[$val->contragent]->flag = true ;
+                   
+                   
+                }
+                $contragentCurrency[$val->contragent]->currency = $val->currencyId;
+            }
+            
                  
                 foreach ($totalInvoiceContragent as $k => $v){
                    
                      if($k == $val->contragent){
+                         
+                         if ($contragentCurrency[$k]->flag == true) {
+                             
+                             $recs[$key]->totalInvoiceValue = 'невъзможно' ;
+                             $recs[$key]->totalInvoicePayout = 'невъзможно' ;
+                             
+                         }else{
                         
-                         $recs[$key]->totalInvoiceValue = $v->totalInvoiceValue;
-                         $recs[$key]->totalInvoicePayout = $v->totalInvoicePayout;
-                       
+                             $recs[$key]->totalInvoiceValue = $v->totalInvoiceValue;
+                             $recs[$key]->totalInvoicePayout = $v->totalInvoicePayout;
+                             
+                         }
                     }
                 }
             
             }
-            foreach ($totalInvoiceContragent as $k => $v){
-                $rec->totalInvoiceValueAll += $v -> totalInvoiceValue;
-                $rec->totalInvoicePayoutAll += $v -> totalInvoicePayout;
+            
+            $flagAll = $test = false;
+            foreach ($contragentCurrency as $val){
+               
+                if(($test!= $val->currency) && $test != false){
+                    $flagAll = true;
+                    break;
+                }
+                $test = $val->currency;
+            }
+            
+          
+            if ($flagAll == true) {
+                
+                $rec->totalInvoiceValueAll = 'невъзможно' ;
+                $rec->totalInvoicePayoutAll = 'невъзможно' ;
+                
+            }else{
+                   foreach ($totalInvoiceContragent as $k => $v){
+                        $rec->totalInvoiceValueAll += $v -> totalInvoiceValue;
+                        $rec->totalInvoicePayoutAll += $v -> totalInvoicePayout;
+                   }
             }
         }
  
@@ -761,7 +816,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $fieldTpl = new core_ET(
             tr(
                 "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
-								<fieldset class='detail-info red '><legend class='groupTitle'><small><b>|СПРАВКАТА Е В ПРОЦЕС НА РАЗРАБОТКА !!!|*</b></small></legend>
+								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|СПРАВКАТА Е В ПРОЦЕС НА РАЗРАБОТКА !!!|*</b></small></legend>
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                 <small><div><!--ET_BEGIN contragent-->|Контрагент|*: <b>[#contragent#]</b><!--ET_END contragent--></div></small>
                                 <small><div><!--ET_BEGIN salesTotalNotPaid-->|фактури ПРОДАЖБИ »    НЕПЛАТЕНИ|*: <b>[#salesTotalNotPaid#]</b><!--ET_END salesTotalNotPaid--></div></small>
@@ -846,17 +901,36 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
             
             if (isset($data->rec->totalInvoiceValueAll)) {
-                $fieldTpl->append(
-                    core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->totalInvoiceValueAll),
-                    'totalInvoiceValueAll'
-                    );
+                
+                if(is_numeric($data->rec->totalInvoiceValueAll)){
+                    $fieldTpl->append(
+                        core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->totalInvoiceValueAll),
+                        'totalInvoiceValueAll'
+                        );
+                }else {
+                    
+                    $fieldTpl->append(
+                        ($data->rec->totalInvoiceValueAll),
+                        'totalInvoiceValueAll'
+                        );
+                }
             }
             
             if (isset($data->rec->totalInvoicePayoutAll)) {
-                $fieldTpl->append(
-                    core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->totalInvoicePayoutAll),
-                    'totalInvoicePayoutAll'
-                    );
+                
+                if(is_numeric($data->rec->totalInvoiceValueAll)){
+                 
+                    $fieldTpl->append(
+                        core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->totalInvoicePayoutAll),
+                        'totalInvoicePayoutAll'
+                        );
+                }else {
+                    
+                    $fieldTpl->append(
+                        ($data->rec->totalInvoicePayoutAll),
+                        'totalInvoicePayoutAll'
+                        );
+                }
             }
        
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
