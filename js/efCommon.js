@@ -5451,7 +5451,7 @@ function unregisterServiceWorker() {
     }
 }
 
-runOnLoad(unregisterServiceWorker);
+
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
