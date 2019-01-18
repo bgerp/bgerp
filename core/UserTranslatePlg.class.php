@@ -110,11 +110,15 @@ class core_UserTranslatePlg extends core_Plugin
      * @param stdClass $rec
      * @param string   $part
      */
-    public static function on_AfterGetVerbal($mvc, &$res, $rec, $part)
+    public static function on_BeforeGetVerbal($mvc, &$res, $rec, $part)
     {
         $uTranslateFields = core_UserTranslates::getUserTranslateFields($mvc->getClassId(), '*', $rec->id);
         
-        if ($uTranslateFields[$part] && $rec->{$part}) {
+        if ($rec) {
+            $rec = $mvc->fetchRec($rec);
+        }
+        
+        if (!Mode::is('forSearch') && $part && $uTranslateFields[$part] && $rec->{$part}) {
             $trArr = explode('|', $uTranslateFields[$part]->translate);
             
             $val = $rec->{$part};
@@ -123,19 +127,21 @@ class core_UserTranslatePlg extends core_Plugin
             
             foreach ($trArr as $tName) {
                 if ($tName == 'tr') {
-                    $tr = tr($val);
-                    if ($tr != $val) {
+                    $trVal = tr($val);
+                    if ($trVal != $val) {
+                        $tr = $trVal;
                         break;
                     }
                 } elseif ($tName == 'transliterate') {
-                    $tr = core_Lg::transliterate($val);
-                    if ($tr != $val) {
+                    $translit = core_Lg::transliterate($val);
+                    if ($translit != $val) {
+                        $tr = $translit;
                         break;
                     }
                 } elseif ($tName == 'field') {
                     $lg = ucfirst(core_Lg::getCurrent());
                     $lgPart = $part . $lg;
-                    if (isset($rec->{$lgPart}) && ($rec->{$lgPart} != $rec->{$part})) {
+                    if (strlen(trim($rec->{$lgPart})) && ($rec->{$lgPart} != $rec->{$part})) {
                         $tr = $rec->{$lgPart};
                         break;
                     }
@@ -153,6 +159,80 @@ class core_UserTranslatePlg extends core_Plugin
             
             if (isset($tr)) {
                 $res = $tr;
+                
+                $cRec = clone $rec;
+                $cRec->{$part} = $tr;
+                
+                $res = $mvc->getVerbal_($cRec, $part);
+                
+                return false;
+            }
+        }
+    }
+    
+    
+    /**
+     * След извличане на ключовите думи
+     *
+     * @param core_Mvc $mvc
+     * @param string   $searchKeywords
+     * @param stdClass $rec
+     */
+    public function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        
+        if (!isset($searchKeywords)) {
+            $searchKeywords = plg_Search::getKeywords($mvc, $rec);
+        }
+        
+        // Добавяме и преведените думи към списъка
+        $tr = '';
+        $searchFields = $mvc->getSearchFields();
+        if (!empty($searchFields)) {
+            $fieldsArr = $mvc->selectFields('', $searchFields);
+            
+            $fNameArr = array();
+            
+            $uTrFields = core_UserTranslates::getUserTranslateFields($mvc->getClassId(), 'user', $rec->id);
+            foreach ($uTrFields as $fName => $fType) {
+                if ($fieldsArr[$fName]) {
+                    $fNameArr[$fName] = $fName;
+                }
+            }
+            
+            // Добавяме всички думи, които се превеждат на всички езици
+            if (!empty($fNameArr)) {
+                $tQuery = core_UserTranslates::getQuery();
+                $tQuery->where(array("#classId = '[#1#]'", $mvc->getClassId()));
+                $tQuery->where(array("#recId = '[#1#]'", $rec->id));
+                
+                while ($tRec = $tQuery->fetch()) {
+                    foreach ((array) $tRec->data as $fNameStr => $fData) {
+                        if (!$rec->{$fNameStr}) {
+                            continue ;
+                        }
+                        
+                        if (!$fNameArr[$fNameStr]) {
+                            continue ;
+                        }
+                        
+                        $checkValSrc = crc32($rec->{$fNameStr});
+                        if ($checkValSrc == $fData['crc']) {
+                            $tr .= ' ' . $fData['tr'];
+                        }
+                    }
+                }
+            }
+        }
+        
+        if ($tr) {
+            $normalizedText = plg_Search::normalizeText($tr);
+            
+            if ($normalizedText) {
+                if (!$searchKeywords || (strpos($searchKeywords, $normalizedText) === false)) {
+                    $searchKeywords .= ' ' . $normalizedText;
+                }
             }
         }
     }

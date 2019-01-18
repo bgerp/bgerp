@@ -982,7 +982,7 @@ class crm_Companies extends core_Master
      *
      *
      * @param string        $fileName
-     * @param NULL|stdObjec $cRec
+     * @param NULL|stdClass $cRec
      *
      * @return string
      */
@@ -1676,8 +1676,8 @@ class crm_Companies extends core_Master
     /**
      * Връща данните на фирмата
      *
-     * @param int   $id    - id' то на записа
-     * @param email $email - Имейл
+     * @param int    $id    - id' то на записа
+     * @param string $email - Имейл
      *
      * return object
      */
@@ -1690,6 +1690,7 @@ class crm_Companies extends core_Master
         if ($company) {
             $contrData = new stdClass();
             $contrData->company = $company->name;
+            $contrData->companyVerb = crm_Companies::getVerbal($company, 'name');
             $contrData->companyId = $company->id;
             $contrData->vatNo = $company->vatId;
             $contrData->uicId = $company->uicId;
@@ -1832,9 +1833,9 @@ class crm_Companies extends core_Master
     /**
      * Връща папката на фирмата от имейла, ако имаме достъп до нея
      *
-     * @param email $email - Имейл, за който търсим
+     * @param string $email - Имейл, за който търсим
      *
-     * @return integet|bool $fodlerId - id на папката
+     * @return int|bool $fodlerId - id на папката
      */
     public static function getFolderFromEmail($email)
     {

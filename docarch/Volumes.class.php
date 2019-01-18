@@ -4,7 +4,7 @@
  *
  *
  * @category  bgerp
- * @package   docart
+ * @package   docarch
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2019 Experta OOD
@@ -19,7 +19,7 @@ class docarch_Volumes extends core_Master
     
     public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, plg_State2, plg_Rejected';
     
-    public $listFields = 'number,type,inCharge,archive,createdOn=Създаден,modifiedOn=Модифициране';
+    public $listFields = 'number,type,inCharge,archive,docCnt,createdOn=Създаден,modifiedOn=Модифициране';
     
     
     /**
@@ -61,26 +61,12 @@ class docarch_Volumes extends core_Master
         //Оща информация
         $this->FLD('firstDocDate', 'date', 'caption=Дата на първия документ в тома,input=none');
         $this->FLD('lastDocDate', 'date', 'caption=Дата на последния документ в тома,input=none');
-        $this->FLD('docCnt', 'int', 'caption=Брой на документите в тома,input=none');
+        $this->FLD('docCnt', 'int', 'caption=Брой,input=none');
         
         $this->FNC('title', 'varchar', 'caption=Име');
         
         
         $this->setDbUnique('archive,type,number');
-    }
-    
-    
-    /**
-     * Преди показване на листовия тулбар
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $data
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
-    {
-        $data->toolbar->addBtn('Бутон', array($mvc,'Action'));
-        
-        //  $data->toolbar->addBtn('Бутон', array('docarch_Movements', 'Add'));
     }
     
     
@@ -151,6 +137,8 @@ class docarch_Volumes extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
+            
+            
             $type = $form->rec->type;
             
             if (is_null($form->rec->archive)) {
@@ -167,6 +155,33 @@ class docarch_Volumes extends core_Master
     
     
     /**
+     * Преди показване на листовия тулбар
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+        $data->toolbar->addBtn('Бутон', array($mvc,'Action'));
+    }
+    
+    
+    /**
+     * Добавя бутони  към единичния изглед на документа
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        $rec = &$data->rec;
+        
+        $possibleVolArr = self::getVolumePossibleForInclude($rec);
+        
+        if ($rec->id && is_null($rec->includeIn) && $rec->type != 'warehouse' && !is_null($possibleVolArr)) {
+            $data->toolbar->addBtn('Включване', array('docarch_Movements','Include',$rec->id,'ret_url' => true));
+        }
+    }
+    
+    
+    /**
      * Извиква се преди запис в модела
      *
      * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
@@ -177,11 +192,15 @@ class docarch_Volumes extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if (($rec->type == docarch_Archives::minDefType($rec->archive)) || $rec->archive == 0) {
-            $rec->isForDocuments = 'yes';
-        }
-        if (($rec->type != docarch_Archives::minDefType($rec->archive)) && $rec->archive != 0) {
-            $rec->isForDocuments = 'no';
+        if (!is_null($rec->archive)){
+            
+            if (($rec->type == docarch_Archives::minDefType($rec->archive)) || $rec->archive == 0) {
+                $rec->isForDocuments = 'yes';
+            }
+            if (($rec->type != docarch_Archives::minDefType($rec->archive)) && $rec->archive != 0) {
+                $rec->isForDocuments = 'no';
+            }
+            
         }
     }
     
@@ -256,12 +275,12 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($action == 'reject' && isset($rec)) {
-           
+        //Тома не може да бъде reject-нат ако не е празен
+        if ($action == 'reject' ) {//bp($rec->docCnt);
             if (!is_null($rec->docCnt)) {
                 $requiredRoles = 'no_one' ;
-            }elseif (($rec->docCnt == 0)){
-                $requiredRoles = 'no_one' ;
+            } elseif (($rec->docCnt == 0)) {
+               // $requiredRoles = 'no_one' ;
             }
         }
     }
@@ -298,7 +317,7 @@ class docarch_Volumes extends core_Master
         
         $title = docarch_Volumes::getVolumeTypeName($rec->type);
         
-        $title .= '-No'.$rec->number.' в архив: '.$arch;
+        $title .= '-No'.$rec->number.' от архив: '.$arch;
         
         
         if ($escaped) {
@@ -320,4 +339,54 @@ class docarch_Volumes extends core_Master
     {
         return docarch_Archives::getArchiveTypeName($type);
     }
+    
+    
+    /**
+     * Връща възможните томове в които да се инклудне подадения
+     *
+     * @param string $id -id на тома за инкудване
+     *
+     * @return array - масив с възможните тoмове / null ако няма
+     */
+    public static function getVolumePossibleForInclude($rec)
+    {
+        $possibleArr= array();
+        $volQuery = docarch_Volumes::getQuery();
+        
+        $volQuery->where("#state != 'rejected'");
+        
+        $volQuery->where("#id != {$rec->id} AND #archive = {$rec->archive} AND #type != 'folder'");
+       
+        switch ($rec->type) {
+            
+            case 'folder':$possibleArr =array('box','case','pallet','warehouse'); break;
+            
+            case 'box':$possibleArr= array('case','pallet','warehouse'); break;
+            
+            case 'case':$possibleArr =  array('pallet','warehouse'); break;
+            
+            case 'pallet':$possibleArr =array('warehouse'); break;
+            
+            case 'warehouse':$possibleArr = array(); break;
+            
+        }
+        
+        $volQuery->in('type',$possibleArr);
+     
+        if(empty($volQuery->fetchAll())){
+            
+            return null;
+            
+        }
+        
+        while ($vol = $volQuery->fetch()){
+            
+            $possibleVolArr[$vol->id]= $vol->title;
+        }
+        
+        
+        return $possibleVolArr;
+    }
+      
+   
 }
