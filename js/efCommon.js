@@ -5441,6 +5441,17 @@ JSON.parse = JSON.parse || function (str) {
 	return p;
 };
 
+function unregisterServiceWorker() {
+    if(!$('link[rel="manifest"]').length) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.unregister();
+            }
+        });
+    }
+}
+
+runOnLoad(unregisterServiceWorker);
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
