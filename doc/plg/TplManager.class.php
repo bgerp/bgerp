@@ -296,6 +296,10 @@ class doc_plg_TplManager extends core_Plugin
                 if ($data->rec->template != $form->rec->tplId) {
                     $data->rec->template = $form->rec->tplId;
                     
+                    $lg = doc_TplManager::fetchField($form->rec->tplId, 'lang');
+                    
+                    Mode::set('tplManagerLg', $lg);
+                    
                     // В зависимост от подредбата на плъгините, може и да има вече генериран екшън
                     if ($data->__MID__) {
                         $logRec = doclog_Documents::fetchByMid($data->__MID__);
