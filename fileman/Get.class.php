@@ -189,14 +189,13 @@ class fileman_Get extends core_Manager
         $fh = null;
         
         $fRec = new stdClass();
-        
         if ($data === false) {
             $err[] = 'Грешка при свалянето на файла.';
         } else {
             foreach ($http_response_header as $l) {
                 $hArr = explode(':', $l, 2);
                 if (isset($hArr[1])) {
-                    $h = $headers[strtolower(trim($hArr[0]))] = strtolower(trim($hArr[1]));
+                    $h = $headers[strtolower(trim($hArr[0]))] = trim($hArr[1]);
                     $hArr = explode(';', $h);
                     foreach ($hArr as $part) {
                         if (strpos($part, '=')) {
@@ -206,35 +205,37 @@ class fileman_Get extends core_Manager
                     }
                 }
             }
-            
+           
             // Вземаме миме-типа от хедърите
             if (isset($headers['content-type'])) {
                 $ct = $headers['content-type'];
                 $ct = explode(';', $ct);
                 $ct = $ct[0];
-                $exts = fileman_Mimes::getExtByMime($ct);
-                if (count($exts)) {
-                    foreach ($exts as $e) {
-                        if (stripos($rec->url, '.' . $e)) {
-                            $ext = $e;
-                            break;
+                if(strtolower($ct) != 'application/octet-stream') {
+                    $exts = fileman_Mimes::getExtByMime($ct);
+                    if (count($exts)) {
+                        foreach ($exts as $e) {
+                            if (stripos($rec->url, '.' . $e)) {
+                                $ext = $e;
+                                break;
+                            }
                         }
-                    }
-                    
-                    // Вземаме нещо, което прилича на екстеншън от URL-то
-                    if (!$ext) {
-                        $ext = fileman_Files::getExt($rec->url, 4);
-                    }
-                    
-                    // Вземаме дефолтния екстеншън от МИМЕ-типа
-                    if (!$ext) {
-                        $ext = $exts[0];
+                        
+                        // Вземаме нещо, което прилича на екстеншън от URL-то
+                        if (!$ext) {
+                            $ext = fileman_Files::getExt($rec->url, 4);
+                        }
+                        
+                        // Вземаме дефолтния екстеншън от МИМЕ-типа
+                        if (!$ext) {
+                            $ext = $exts[0];
+                        }
                     }
                 }
             }
             
             $fileName = $headers['filename'];
-            
+             
             if (!$fileName && $ext) {
                 $fPattern = "/[^\\?\\/*:;{}\\\\]+\\.{$ext}/i";
                 
@@ -243,10 +244,12 @@ class fileman_Get extends core_Manager
                 $fileName = decodeUrl($matches[0]);
             }
             
+            $location = $headers['location'] ? $headers['location'] : $rec->url;
+
             // Ако URL-то завършва с нещо като име на файл, го вземаме
             if (!$fileName) {
                 $fPattern = "/[=\/]([a-z0-9_\-]{0,40}\.([a-z]{2,4}))$/i";
-                preg_match($fPattern, $rec->url, $matches);
+                preg_match($fPattern, $location, $matches);
                 if (!in_array(strtolower($matches[2]), array('php', 'asp', 'jsp'))) {
                     $fileName = $matches[1];
                 }
@@ -260,7 +263,7 @@ class fileman_Get extends core_Manager
             if (!$fileName) {
                 $fileName = $tmpFile;
             }
-            
+
             if ($ct && $fileName) {
                 $fileName = fileman_Mimes::addCorrectFileExt($fileName, $ct);
             }

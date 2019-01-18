@@ -1561,7 +1561,7 @@ class cat_Products extends embed_Manager
         // За всяка опаковка, извличаме опциите и намираме имали основна такава
         if (count($pInfo->packagings) && isset($pInfo->meta['canStore'])) {
             foreach ($pInfo->packagings as $packRec) {
-                $options[$packRec->packagingId] = tr(cat_UoM::getTitleById($packRec->packagingId));
+                $options[$packRec->packagingId] = cat_UoM::recToVerbal($packRec->packagingId, 'name')->name;
                 if ($packRec->isBase == 'yes') {
                     $baseId = $packRec->packagingId;
                 }
@@ -1569,7 +1569,7 @@ class cat_Products extends embed_Manager
         }
         
         // Подготвяме опциите
-        $options = array($measureId => tr(cat_UoM::getTitleById($measureId))) + $options;
+        $options = array($measureId => cat_UoM::recToVerbal($measureId, 'name')->name) + $options;
         $firstVal = $options[$baseId];
         
         // Подсигуряваме се че основната опаковка/мярка е първа в списъка

@@ -90,9 +90,9 @@ class store_Products extends core_Detail
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
-        $this->FLD('quantity', 'double(maxDecimals=2)', 'caption=Налично');
-        $this->FLD('reservedQuantity', 'double(maxDecimals=2)', 'caption=Запазено');
-        $this->FNC('freeQuantity', 'double(maxDecimals=2)', 'caption=Разполагаемо');
+        $this->FLD('quantity', 'double(maxDecimals=3)', 'caption=Налично');
+        $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Запазено');
+        $this->FNC('freeQuantity', 'double(maxDecimals=3)', 'caption=Разполагаемо');
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('productId, storeId');

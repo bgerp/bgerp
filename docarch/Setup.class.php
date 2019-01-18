@@ -13,7 +13,7 @@
  * @package   docarch
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -29,7 +29,7 @@ class docarch_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    public $startCtr = 'docarch_Archives';
+    public $startCtr = 'docarch_Movement';
     
     
     /**
@@ -64,9 +64,9 @@ class docarch_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-//    var $menuItems = array(
-//            array(3.995, 'Анализ', 'Анализ', 'myself_Codebase', 'default', "powerUser"),
-//        );
+   var $menuItems = array(
+           array(1.95, 'Документи', 'Архив', 'docarch_Movements', 'default', "ceo"),
+       );
     
     
     /**

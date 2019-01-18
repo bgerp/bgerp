@@ -1361,12 +1361,20 @@ class crm_Persons extends core_Master
         //Вземаме данните
         $person = crm_Persons::fetch($id);
         
+        if ($person->buzCompanyId) {
+            $company = crm_Companies::fetch($person->buzCompanyId);
+        }
+        
         // Заместваме и връщаме данните
         if ($person) {
             $contrData = new stdClass();
             $contrData->company = crm_Persons::getVerbal($person, 'buzCompanyId');
+            if ($company) {
+                $contrData->companyVerb = crm_Companies::getVerbal($company, 'name');
+            }
             $contrData->companyId = $person->buzCompanyId;
             $contrData->person = $person->name;
+            $contrData->personVerb = crm_Persons::getVerbal($person, 'name');
             $contrData->country = crm_Persons::getVerbal($person, 'country');
             $contrData->countryId = $person->country;
             $contrData->pCode = $person->pCode;
@@ -2449,7 +2457,7 @@ class crm_Persons extends core_Master
     /**
      * Връща папката на фирмата от бизнес имейла, ако имаме достъп до нея
      *
-     * @param email $email - Имейл, за който търсим
+     * @param string $email - Имейл, за който търсим
      *
      * @return int|FALSE $fodlerId - id на папката
      */
@@ -2481,9 +2489,9 @@ class crm_Persons extends core_Master
     /**
      * Връща папката на лицето от имейла, ако имаме достъп до нея
      *
-     * @param email $email - Имейл, за който търсим
+     * @param string $email - Имейл, за който търсим
      *
-     * @return integet $fodlerId - id на папката
+     * @return int $fodlerId - id на папката
      */
     public static function getFolderFromEmail($email)
     {
@@ -2865,7 +2873,7 @@ class crm_Persons extends core_Master
      * Преди записване на в модела
      *
      * @param crm_Persons $mvc
-     * @param stdObjec    $rec
+     * @param stdClass    $rec
      */
     public static function on_BeforeImportRec($mvc, &$rec)
     {
@@ -2965,7 +2973,7 @@ class crm_Persons extends core_Master
      *
      * @param mixed $id - ид или запис
      *
-     * @return public|private|template - Стандартен / Нестандартен / Шаблон
+     * @return string - public|private|template - Стандартен / Нестандартен / Шаблон
      */
     public function getProductType($id)
     {
