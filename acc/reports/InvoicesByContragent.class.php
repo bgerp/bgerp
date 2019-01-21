@@ -19,7 +19,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,acc,sales,purchase,repAllGlobal';
+    public $canSelectDriver = 'ceo,debug';
     
     
     /**
@@ -49,8 +49,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=title');
-        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=title');
+        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Всички,after=contragent,single=none');
         
         $fieldset->FLD('typeOfInvoice', 'enum(out=Изходящи,in=Входящи)', 'caption=Фактури,after=crmGroup,maxRadio=2,mandatory,single=none');
         $fieldset->FLD('unpaid', 'enum(all=Всички,unpaid=Неплатени)', 'caption=Плащане,after=typeOfInvoice,removeAndRefreshForm,single=none,mandatory,silent');
@@ -84,14 +84,16 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         Тази справка е в тестов режим. Проверявайте резултата преди да го използвате.
                        </div>";
         
-        if ($form->cmd == 'refresh' && $rec->unpaid == 'unpaid') {
+        if ($rec->unpaid == 'unpaid') {
+            
+            unset($rec->fromDate);
             $form->setField('fromDate', 'input=none');
         }
         
-        
-        $fromDate = (date('d-m-Y', strtotime(date('Y-1-1'))));
-        $form->setDefault('fromDate', "{$fromDate}");
-        
+        if ($rec->unpaid == 'all') {
+            $fromDate = (date('d-m-Y', strtotime(date('Y-1-1'))));
+            $form->setDefault('fromDate', "{$fromDate}");
+        }
         $checkDate = dt::today();
         $form->setDefault('checkDate', "{$checkDate}");
         
@@ -133,6 +135,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if (isset($form->rec->fromDate, $form->rec->checkDate) && ($form->rec->fromDate > $form->rec->checkDate)) {
                 $form->setError('from,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
             }
+            
+            if ($rec->unpaid == 'unpaid') {
+                
+            }
+           
         }
     }
     
@@ -158,7 +165,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $invQuery = sales_Invoices::getQuery();
             
             $invQuery->where("#state != 'rejected' AND #number IS NOT NULL");
-            
+           
             // Ако е посочена начална дата на период
             if ($rec->fromDate) {
                 $invQuery->where(array(
@@ -788,7 +795,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if ($rec->unpaid == 'all') {
             $row->contragent = $dRec->contragent.' »  '."<span class= 'quiet'>".' Общо фактури: '.'</span>'.$dRec->totalInvoiceValue
                                             .' »  '."<span class= 'quiet'>" . ' Платено: ' . '</span>'.$dRec->totalInvoicePayout
-                                            .' »  '."<span class= 'quiet'>" . ' Неплатено: ' . '</span>'.$dRec->totalInvoiceNotPayd;
+                                            .' »  '."<span class= 'quiet'>" . ' Недоплатено: ' . '</span>'.$dRec->totalInvoiceNotPayd;
             if ($dRec->totalInvoiceOverPaid > 0.01) {
                 $row->contragent .= ' »  '."<span class= 'quiet'>" . 'Надплатено:' . '</span>'.$dRec->totalInvoiceOverPaid;
             }
@@ -797,7 +804,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if ($rec->unpaid == 'unpaid') {
             $row->contragent = $dRec->contragent.' »  '."<span class= 'quiet'>" . ' Общо фактури: ' . '</span>'.$dRec->totalInvoiceValue
                                                        .' »  '."<span class= 'quiet'>" . ' Платено: ' . '</span>'.$dRec->totalInvoicePayout
-                                                       .' »  '."<span class= 'quiet'>" . 'Неплатено:' . '</span>'.$dRec->totalInvoiceNotPayd;
+                                                       .' »  '."<span class= 'quiet'>" . 'Недоплатено:' . '</span>'.$dRec->totalInvoiceNotPayd;
             
             
             if ($dRec->totalInvoiceOverPaid > 0.01) {
