@@ -211,6 +211,7 @@ class doc_View extends core_Master
             $clsInst = cls::get($form->rec->clsId);
             expect($clsInst->haveRightFor('single', $form->rec->dataId));
             
+            Mode::push('docView', true);
             Mode::push('text', 'xhtml');
             Mode::push('noBlank', true);
             
@@ -250,6 +251,7 @@ class doc_View extends core_Master
             
             Mode::pop('noBlank');
             Mode::pop('text');
+            Mode::pop('docView');
         }
     }
     
