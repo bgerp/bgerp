@@ -1001,6 +1001,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
         }
         
+        //Само когато е избрано 'НЕПЛАТЕНИ' фактури
+        if($data->rec->unpaid == 'unpaid'){
+            
         //НЕДОплатено по фактури
         if (isset($data->rec->totalInvoiceNotPaydAll)) {
             
@@ -1039,8 +1042,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
   
         //Просрочено по фактури
-        
-        if($data->rec->unpaid == 'unpaid'){
             if (isset($data->rec->totalInvoiceOverDueAll)) {
                 if(is_numeric($data->rec->purchaseTotalOverDueAll)){
                     
