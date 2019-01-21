@@ -401,9 +401,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
         
         $mvc = cls::get(get_called_class());
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-        $lang = doc_TplManager::fetchField($masterRec->template, 'lang');
-        $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
         
+        $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
+        $modeLg = Mode::get('tplManagerLg');
+        $lang = isset($modeLg) ? $modeLg : doc_TplManager::fetchField($masterRec->template, 'lang');
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'invoice', $lang, 1, false);
         
         // Показваме подробната информация за опаковката при нужда
