@@ -1010,6 +1010,34 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
     
+    /**
+     * Връща папките на контрагентите от избраните групи 
+     *
+     * @param stdClass $rec
+     *
+     * @return array
+     */
+    public static function getFoldersInGroups($rec)
+    {
+        $fQuery = doc_Folders::getQuery();
+        
+        $classIds = array(core_Classes::getId('crm_Companies'),core_Classes::getId('crm_Persons'));
+        
+        $fQuery->in('coverClass', $classIds);
+        
+        while ($contr = $fQuery->fetch()) {
+            $className = core_Classes::getName($contr->coverClass);
+            
+            $contrGroups = $className::fetchField($contr->coverId, 'groupList');
+            
+            if (keylist::isIn(keylist::toArray($contrGroups), $rec->crmGroup)) {
+                $foldersInGroups[$contr->id] = $contr->id;
+            }
+        }
+      
+        return $foldersInGroups;
+    }
+    
     
     /**
      * След подготовка на реда за експорт
