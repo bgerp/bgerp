@@ -304,7 +304,7 @@ class docarch_Volumes extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         //Тома не може да бъде reject-нат ако не е празен
-        if ($action == 'reject') {//bp($rec->docCnt);
+        if ($action == 'reject') {
             if (!is_null($rec->docCnt)) {
                 $requiredRoles = 'no_one' ;
             } elseif (($rec->docCnt == 0)) {

@@ -42,7 +42,8 @@ class docarch_plg_Archiving extends core_Plugin
         
         $archQuery->orWhere('#documents IS NULL');
         
-        if (! empty($archQuery->fetchAll())) {
+        if ($archQuery->count() > 0) {
+            
             while ($arcives = $archQuery->fetch()) {
                 $arcivesArr[] = $arcives->id;
             }
@@ -56,16 +57,23 @@ class docarch_plg_Archiving extends core_Plugin
             
             $volQuery->where("#isForDocuments = 'yes' AND #inCharge = ${currentUser} AND #state = 'active'");
             
-            //Архивиран ли е този документ
-            $mQuery = docarch_Movements::getQuery();
+            //Архивиран ли е към настоящия момент този документ.
+            $balanceDocMove = docarch_Movements::getBalanceOfDocumentMovies($documentContainerId);
             
-            $mQuery->in('documentId', $documentContainerId);
+            if(is_array($balanceDocMove)){
+                
+                foreach ($balanceDocMove as $val){
+                    
+                    $balanceMarker =($val->isInVolume != 0) ? false : true;
+                    if ($balanceMarker === true) break; 
+                }
+                
+            }
             
-            $mCnt = $mQuery->count();
+            $balanceMarker = boolval($balanceMarker || (is_null($balanceDocMove))); 
             
-            $lastDocMove = docarch_Movements::getLastDocumentMove($documentContainerId);
-            
-            if ((is_null($lastDocMove[$documentContainerId]->toVolumeId)) && ($mvc->haveRightFor('single'))) {
+            //Ако документа в момента не е архивиран И има том който да отговатя на условията за него, показва бутон за архивиране
+            if (($volQuery->count() > 0) && $balanceMarker){
                 $data->toolbar->addBtn('Архивиране', array('docarch_Movements', 'Add', 'documentId' => $documentContainerId, 'ret_url' => true), 'ef_icon=img/16/archive.png,row=2');
             }
         }
