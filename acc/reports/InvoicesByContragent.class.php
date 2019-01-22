@@ -220,26 +220,41 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             // Обединени продажби
             $salesQuery = sales_Sales::getQuery();
             
-            $salesQuery->where("#closedDocuments != ''");
+            $salesQuery->where("#closedDocuments != '' OR #contoActions IS NOT NULL");
             
             //Масив с затварящи документи по обединени договори //
             $salesUN = array();
             
             while ($sale = $salesQuery->fetch()) {
-                foreach ((keylist::toArray($sale->closedDocuments)) as $v) {
-                    $salesUN[$v] = ($v);
+                
+                if ($sale->closedDocuments != ''){
+                    
+                    foreach ((keylist::toArray($sale->closedDocuments)) as $v) {
+                        $salesUN[$v] = ($v);
+                    }
+               
+                  $salesUN = keylist::fromArray($salesUN);
                 }
+                
+                if (strpos($sale->contoActions, 'pay')){
+                    
+                    
+                    $fastSales[$sale->id] =($sale->amountPaid - $sale->amountVat);
+                }
+                
             }
             
-            $salesUN = keylist::fromArray($salesUN);
-            
             while ($salesInvoice = $invQuery->fetch()) {
+                
                 $firstDocument = doc_Threads::getFirstDocument($salesInvoice->threadId);
+                
+                $firstDocumentArr[$salesInvoice->threadId] = $firstDocument->that;
                 
                 $className = $firstDocument->className;
                 
                 // Ако са избрани само неплатените фактури
                 if ($rec->unpaid == 'unpaid') {
+                    
                     $unitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $salesUN);
                     
                     if (($className::fetchField($firstDocument->that, 'state') == 'closed') &&
@@ -251,17 +266,18 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $threadsId[$salesInvoice->threadId] = $salesInvoice->threadId;
             }
             
-            
+           
             if (is_array($threadsId)) {
-                foreach ($threadsId as $thread) {
+                foreach ($threadsId as $thread) {//if (in_array($firstDocumentArr[$thread], array_keys($fastSales)))bp($firstDocumentArr[$thread],$fastSales);
+                    
                     $salesInvoiceNotPaid = 0;
                     $salesInvoiceOverPaid = 0;
-                    $salesInvoiceOverDue = 0;
+                    $salesInvoiceOverDue = 0; 
                     
                     // масив от фактури в тази нишка //
                     $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
                     
-                    if (is_array($invoicePayments)) {
+                    if (is_array($invoicePayments)) {//if (in_array($firstDocumentArr[$thread], array_keys($fastSales)))bp($invoicePayments,sales_Sales::fetch($firstDocumentArr[$thread]));
                         
                         // фактура от нишката и масив от платежни документи по тази фактура//
                         foreach ($invoicePayments as $inv => $paydocs) {
@@ -285,7 +301,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             $iRec = $Invoice->fetch(
                                     'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,
                                      currencyId,date,dueDate,contragentName'
-                                    
                                     );
                             
                             if (($paydocs->amount - $paydocs->payout) > 0) {
@@ -574,7 +589,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             //Сумира фактурите по контрагент ако са в една валута
             foreach ($totalInvoiceContragent as $k => $v) {
                 if ($k == $val->contragent) {
-                    if (($contragentCurrency[$k]->flag == true) && count($recs > 1)) {
+                    if (($contragentCurrency[$k]->flag === true) && count($recs) > 1) {
                         $recs[$key]->totalInvoiceValue = 'невъзможно' ;
                         $recs[$key]->totalInvoicePayout = 'невъзможно' ;
                         $recs[$key]->totalInvoiceNotPayd = 'невъзможно' ;
@@ -603,7 +618,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
         
         //Сумира стойностите на всички избрани контрагенти, ако са в една валута
-        if ($flagAll == true && count($recs > 1)) {
+        if ($flagAll === true && count($recs) > 1) {
             $rec->totalInvoiceValueAll = 'невъзможно' ;
             $rec->totalInvoicePayoutAll = 'невъзможно' ;
             $rec->totalInvoiceNotPaidAll = 'невъзможно' ;
@@ -833,8 +848,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
         
         $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, true) . '</span>';
+          
+        $cond = $rec->unpaid == 'unpaid' ?$dRec->dueDate && $dRec->invoiceCurrentSumm > 0 :$dRec->invoiceCurrentSumm > 0 ;
         
-        if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0) {
+        if ($cond) {
             $row->ROW_ATTR['class'] = 'bold red';
         }
         

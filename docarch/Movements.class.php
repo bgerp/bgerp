@@ -17,9 +17,48 @@ class docarch_Movements extends core_Master
 {
     public $title = 'Движения в архива';
     
-    public $loadList = 'plg_Created,plg_Search';
+    public $loadList = 'plg_Created,plg_Search,docarch_Wrapper';
     
-    public $listFields = 'type,documentId,toVolumeId,fromVolumeId,userID,createdOn=Създаден';
+    public $listFields = 'type,documentId,toVolumeId,fromVolumeId,position,userID,createdOn=Създаден';
+    
+    /**
+     * Кой има право да чете?
+     *
+     * @var string|array
+     */
+    public $canRead;
+    
+    
+    /**
+     * Кой има право да променя?
+     *
+     * @var string|array
+     */
+    public $canEdit;
+    
+    
+    /**
+     * Кой има право да добавя?
+     *
+     * @var string|array
+     */
+    public $canAdd;
+    
+    
+    /**
+     * Кой може да го види?
+     *
+     * @var string|array
+     */
+    public $canView;
+    
+    
+    /**
+     * Кой може да го изтрие?
+     *
+     * @var string|array
+     */
+    public $canDelete;
     
     protected function description()
     {
@@ -34,6 +73,10 @@ class docarch_Movements extends core_Master
         
         //Входящ том участващ в движението
         $this->FLD('toVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Входящ том');
+        
+        //Позиция в тома
+        $this->FLD('position', 'varchar(32)', 'caption=Позиция,input=none');
+        
         
         //Потребител получил документа или контейнера
         $this->FLD('userID', 'key(mvc=core_Users)', 'caption=Потребител');
@@ -143,10 +186,9 @@ class docarch_Movements extends core_Master
             $volRec->_isCreated = true;
             
             if (is_null($volRec->docCnt)) {
+                
                 $volRec->firstDocDate = $rec->createdOn;
                 
-                
-                docarch_Volumes::save($volRec, 'firstDocDate');
             }
             
             $volRec->docCnt++;
@@ -163,9 +205,13 @@ class docarch_Movements extends core_Master
             
             $volRec->docCnt--;
             
-            docarch_Volumes::save($volRec, 'docCnt');
+            
+            docarch_Volumes::save($volRec,'docCnt');
         }
+        
+        $rec->fromVolumeId = null;
     }
+    
     
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -201,6 +247,7 @@ class docarch_Movements extends core_Master
         }
         
         if ($data->filterCheck) {
+            
             $Document = doc_Containers::getDocument($documentContainerId);
             $documentName = $Document->singleTitle.'-'.$Document->getHandle();
             $data->title = "Движение в архива на: {$documentName}";
@@ -272,6 +319,8 @@ class docarch_Movements extends core_Master
             $url = toUrl(array("${className}",'single', $Document->that));
             
             $row->documentId = ht::createLink($handle, $url, false, array());
+            
+            $row->documentId.= ht::createBtn('Архивиране',array( $mvc,'Action','ret_url' => true), 'ef_icon=img/16/archive.png');
         }
         
         $row->type = self::getMoveName($row->type);
@@ -288,11 +337,12 @@ class docarch_Movements extends core_Master
          */
         requireRole('admin');
         
-        $query = docarch_Movements::getQuery();
-        $query->orderBy('createdOn','DESC');
-       // $query->limit(1);
+//         $query = docarch_Movements::getQuery();
+//         $query->orderBy('createdOn', 'DESC');
         
-        bp($query->fetchAll());
+        // $query->limit(1);
+        
+     //   bp(self::getLastDocumentMove($archive, $containerId));
         
         return 'action';
     }
@@ -322,7 +372,6 @@ class docarch_Movements extends core_Master
      */
     public static function getMovingBalance($arhive, $document)
     {
-        return ;
     }
     
     
@@ -392,7 +441,6 @@ class docarch_Movements extends core_Master
         $takingRec = $form->input();
         
         if ($form->isSubmitted()) {
-            
             $this->save($takingRec);
             
             return new Redirect(getRetUrl());
@@ -427,6 +475,8 @@ class docarch_Movements extends core_Master
         //В кой по голям том се включва
         $form->FLD('toVolumeId', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Включен в,input');
         
+        $form->FLD('position', 'varchar(32)', 'caption=Позиция,after=toVolumeId');
+        
         $options = docarch_Volumes::getVolumePossibleForInclude($thisVolRec);
         
         $form->setOptions('toVolumeId', $options);
@@ -442,13 +492,13 @@ class docarch_Movements extends core_Master
         $includeRec->id = $thisVolId;
         
         if ($form->isSubmitted()) {
+            $includeRec = (object) array(
+                'id' => $thisVolId,
+                'includeIn' => $mRec->toVolumeId,
+                'position' => $mRec->position,
+                '_isCreated' => true
+            );
             
-        $includeRec = (object) array(
-                                     'id' => $thisVolId,
-                                     'includeIn' => $mRec->toVolumeId,
-                                     '_isCreated' => true
-                                    );
-        
             docarch_Volumes::save($includeRec);
             
             $this->save($mRec);
