@@ -277,7 +277,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     // масив от фактури в тази нишка //
                     $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
                     
-                    if (is_array($invoicePayments)) {//if (in_array($firstDocumentArr[$thread], array_keys($fastSales)))bp($invoicePayments,sales_Sales::fetch($firstDocumentArr[$thread]));
+                    if (is_array($invoicePayments)) {
                         
                         // фактура от нишката и масив от платежни документи по тази фактура//
                         foreach ($invoicePayments as $inv => $paydocs) {
@@ -301,7 +301,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             $iRec = $Invoice->fetch(
                                     'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,
                                      currencyId,date,dueDate,contragentName'
-                                    );
+                                    );//if (in_array($firstDocumentArr[$thread], array_keys($fastSales)))bp($iRec->number,$invoicePayments,sales_Sales::fetch($firstDocumentArr[$thread]));
                             
                             if (($paydocs->amount - $paydocs->payout) > 0) {
                                 $salesInvoiceNotPaid = ($paydocs->amount - $paydocs->payout);
