@@ -1,0 +1,99 @@
+/**
+ * Отпечатва фискалния бон
+ * 
+ * @param onSuccess - функция, която да се извика при успех
+ * @param onError - функция, която да се извика при грешка
+ */
+function printFiscalReceipt(onSuccess, onError) {
+    try {
+        // Какво е състоянието на кеша - за да го върнем същото после
+        var ajaxCacheVal = $.ajaxSetup()['cache'];
+        if (ajaxCacheVal == undefined) {
+            ajaxCacheVal = false
+        };
+        
+        // За да се кешират JS файловете
+        $.ajaxSetup({ cache: true });
+        
+        // Добавяме необходимите JS файлове
+        // След добавянето извикваме функциите
+        $.getScript([#FP_CORE_JS#]).done(function() {
+            $.getScript([#FP_JS#]).done(function() {
+                $.getScript([#FISC_PRINT_JS#]).done(function() {
+                    try {
+                        var res = '';
+                        
+                        // Връщаме старата стойност за кеширането
+                        $.ajaxSetup({ cache: ajaxCacheVal });
+                        
+                        // Задаваме настройките на сървъра
+                        fpServerSetSettings([#SERVER_IP#], [#SERVER_TCP_PORT#]);
+                        
+                        // Задаваме настройките за връзка с касовия апарат
+                        fpServerSetDeviceSettings([#TCP_IP#], [#TCP_PORT#], [#TCP_PASS#], [#SERIAL_PORT#], [#SERIAL_BAUD_RATE#], [#SERIAL_KEEP_PORT_OPEN#]);
+                        
+                        // Синхронизиране на времето
+                        <!--ET_BEGIN DATE_TIME-->
+                            try {
+                                fpSetDateTime([#DATE_TIME#]);
+                            } catch(ex) {
+                                console.log('Не може да се синхронизира времето: ' + ex.message);
+                            }
+                        <!--ET_END DATE_TIME-->
+                        
+                        // Проверка на серийния номер
+                        <!--ET_BEGIN SERIAL_NUMBER-->
+                            fpCheckSerialNumber([#SERIAL_NUMBER#]);
+                        <!--ET_END SERIAL_NUMBER-->
+                        
+                        // Опитваме се да отворим бележка
+                        try {
+                            fpOpenFiscReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#RCP_NUM#]);
+                        } catch(ex) {
+                            // Ако не може да се отвори бележка, прекратяваме предишната
+                            var canceled = false;
+                            try {
+                                // Опитваме се да прекратим предишната бележка, ако има такава и да пуснем пак
+                                fpCancelFiscalReceipt();
+                                
+                                canceled = true;
+                            } catch(ex) { }
+                            
+                            if (canceled) {
+                                console.log('Прекратена предишна бележка');
+                                fpOpenFiscReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#RCP_NUM#]);
+                            } else {
+                                console.log('Неуспешен опит за прекратяване на предишна бележката');
+                                throw ex;
+                            }
+                        }
+                        
+                        // Добавяме артикул/продукт към бележката
+                        <!--ET_BEGIN fpSalePLU-->
+                            fpSalePLU([#PLU_NAME#], [#VAT_CLASS#], [#PRICE#], [#QTY#], [#DISC_ADD_P#], [#DISC_ADD_V#]);
+                        <!--ET_END fpSalePLU-->
+                        
+                        // Затваряме касовата бележка
+                        fpCloseReceiptInCash();
+                        
+                        try {
+                            res = fpReadLastReceiptQRcodeData();
+                        } catch(ex) {
+                            console.log('Грешка при прочитане на данните за последния ФБ: ' + ex.message);
+                        }
+                        
+                        // Ако всичко мине добре - викаме функцията за успех
+                        onSuccess(res);
+                    } catch(ex) {
+                        onError(ex.message);
+                    }
+                });
+            });
+        });
+    } catch(ex) {
+        onError(ex.message);
+    }
+}
+
+// Стартираме горната функция
+printFiscalReceipt(fpOnSuccess, fpOnError);
