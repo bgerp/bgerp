@@ -182,18 +182,23 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $contragentsId = array();
                 
                 $invQuery->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
+                $invQuery->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
                 
                 if (!$rec->crmGroup && $rec->contragent) {
                     $contragentsArr = keylist::toArray($rec->contragent);
                     
                     foreach ($contragentsArr as $val) {
-                        $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
+                        $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
+                        $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
                     }
                     
-                    $invQuery->in('coverId', $contragentsId);
+                    $invQuery->in('coverId', $contragentCoversId);
+                    $invQuery->in('coverClass', $contragentCoverClasses);
+               
                 }
                 
                 if ($rec->crmGroup && !$rec->contragent) {
+                  
                     $foldersInGroups = self::getFoldersInGroups($rec);
                     
                     $invQuery->in('folderId', $foldersInGroups);
@@ -202,12 +207,15 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 if ($rec->crmGroup && $rec->contragent) {
                     $contragentsArr = keylist::toArray($rec->contragent);
                     
+                    
                     foreach ($contragentsArr as $val) {
-                        $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
+                        $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
+                        $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
                     }
-                    
-                    $invQuery->in('coverId', $contragentsId);
-                    
+                  
+                    $invQuery->in('coverId', $contragentCoversId);
+                    $invQuery->in('coverClass', $contragentCoverClasses);
+                   
                     $foldersInGroups = self::getFoldersInGroups($rec);
                     
                     $invQuery->in('folderId', $foldersInGroups);
@@ -394,36 +402,44 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $contragentsArr = array();
                 $contragentsId = array();
                 
-                $pQuery->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
+                $invQuery->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
+                $invQuery->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
                 
                 if (!$rec->crmGroup && $rec->contragent) {
                     $contragentsArr = keylist::toArray($rec->contragent);
                     
                     foreach ($contragentsArr as $val) {
-                        $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
+                        $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
+                        $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
                     }
                     
-                    $pQuery->in('coverId', $contragentsId);
+                    $invQuery->in('coverId', $contragentCoversId);
+                    $invQuery->in('coverClass', $contragentCoverClasses);
+                    
                 }
                 
                 if ($rec->crmGroup && !$rec->contragent) {
+                    
                     $foldersInGroups = self::getFoldersInGroups($rec);
                     
-                    $pQuery->in('folderId', $foldersInGroups);
+                    $invQuery->in('folderId', $foldersInGroups);
                 }
                 
                 if ($rec->crmGroup && $rec->contragent) {
                     $contragentsArr = keylist::toArray($rec->contragent);
                     
+                    
                     foreach ($contragentsArr as $val) {
-                        $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
+                        $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
+                        $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
                     }
                     
-                    $pQuery->in('coverId', $contragentsId);
+                    $invQuery->in('coverId', $contragentCoversId);
+                    $invQuery->in('coverClass', $contragentCoverClasses);
                     
                     $foldersInGroups = self::getFoldersInGroups($rec);
                     
-                    $pQuery->in('folderId', $foldersInGroups);
+                    $invQuery->in('folderId', $foldersInGroups);
                 }
             }
             
