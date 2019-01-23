@@ -249,7 +249,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 
                 // Ако са избрани само неплатените фактури
                 if ($rec->unpaid == 'unpaid') {
-                    $unitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $salesUN);
+                   
+                    $unitedCheck = false;
+                    
+                    if (!empty($salesUN)){
+                        $unitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $salesUN);
+                    }
                     
                     if (($className::fetchField($firstDocument->that, 'state') == 'closed') &&
                         ($className::fetchField($firstDocument->that, 'closedOn') <= $rec->checkDate) &&
@@ -457,11 +462,19 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 
                 // Ако са избрани само неплатените фактури
                 if ($rec->unpaid == 'unpaid') {
+                    
+                    $purUnitedCheck = false;
+                    
+                    if (!empty($purchasesUN)){
+                        $purUnitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $purchasesUN);
+                    }
+                
                     if (($className::fetchField($firstDocument->that, 'state') == 'closed') &&
                         ($className::fetchField($firstDocument->that, 'closedOn') <= $rec->checkDate) &&
                         ! $purUnitedCheck) {
                         continue;
                     }
+                   
                 }
                 
                 $pThreadsId[$purchaseInvoices->threadId] = $purchaseInvoices->threadId;
