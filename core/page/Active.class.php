@@ -41,6 +41,9 @@ class core_page_Active extends page_Html
         
         jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
+        if(log_Browsers::getUserAgentBrowserName() != "Internet Explorer") {
+            $this->push('js/noIE.js', 'JS');
+        }
         $this->push('js/overthrow-detect.js', 'JS');
 
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=\"" . getBoot(true, true, true) . '/favicon.ico"' . ' type="image/x-icon">', 'HEAD');
