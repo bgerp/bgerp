@@ -50,7 +50,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'from,to,compare,group,dealers,contragent,crmGroup,articleType';
+    protected $changeableFields = 'from,to,compare,group,dealers,contragent,crmGroup,articleType,seeDelta';
     
     
     /**
@@ -240,18 +240,23 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $contragentsId = array();
             
             $query->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
+            $query->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
             
             if (!$rec->crmGroup && $rec->contragent) {
                 $contragentsArr = keylist::toArray($rec->contragent);
                 
                 foreach ($contragentsArr as $val) {
-                    $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
+                    $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
+                    $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
                 }
                 
-                $query->in('coverId', $contragentsId);
+                $query->in('coverId', $contragentCoversId);
+                $query->in('coverClass', $contragentCoverClasses);
+                
             }
             
             if ($rec->crmGroup && !$rec->contragent) {
+                
                 $foldersInGroups = self::getFoldersInGroups($rec);
                 
                 $query->in('folderId', $foldersInGroups);
@@ -260,11 +265,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if ($rec->crmGroup && $rec->contragent) {
                 $contragentsArr = keylist::toArray($rec->contragent);
                 
+                
                 foreach ($contragentsArr as $val) {
-                    $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
+                    $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
+                    $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
                 }
                 
-                $query->in('coverId', $contragentsId);
+                $query->in('coverId', $contragentCoversId);
+                $query->in('coverClass', $contragentCoverClasses);
                 
                 $foldersInGroups = self::getFoldersInGroups($rec);
                 
@@ -369,7 +377,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     
                     'group' => $recPrime->groupMat,
                     'groupList' => $recPrime->groupList,
-                    
+                
                 
                 );
             } else {
@@ -382,12 +390,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $obj->quantityPrevious += $quantityPrevious;
                 $obj->primeCostPrevious += $primeCostPrevious;
                 $obj->deltaPrevious += $deltaPrevious;
-               
+                
                 $obj->quantityLastYear += $quantityLastYear;
                 $obj->primeCostLastYear += $primeCostLastYear;
                 $obj->deltaLastYear += $deltaLastYear;
-                
-                
             }
         }
         

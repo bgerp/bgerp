@@ -20,11 +20,8 @@ class unit_MinkPSales extends core_Manager
     //http://localhost/unit_MinkPSales/Run/
     public function act_Run()
     {
-        if (!TEST_MODE) {
-            
-            return;
-        }
-        
+
+        if (defined('TEST_MODE') && TEST_MODE) {
         $res = '';
         $res .= '<br>'.'MinkPSales';
         $res .= '  1.'.$this->act_SaleQuantityMinus();
@@ -60,6 +57,7 @@ class unit_MinkPSales extends core_Manager
         $res .= '  31.'.$this->act_CreateSaleService();
         $res .= '  32.'.$this->act_CreateSaleControlQuantity();
         return $res;
+        }
     }
     
     
@@ -573,18 +571,24 @@ class unit_MinkPSales extends core_Manager
         $browser->click('Показване на целия документ');
         
         $browser->press('Възстановяване');
+//         if (strpos($browser->gettext(), 'Фактурата не може да се възстанови')) {
+//         } else {
+            
+//             return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - неправилно възстановяване', 'warning');
+//         }
+        
         
         //проверка на статистиката - не работи
-        if (strpos($browser->gettext(), '0,97 0,97 0,00 0,97')) {
-        } else {
+//         if (strpos($browser->gettext(), '0,97 0,97 0,00 0,97')) {
+//         } else {
             
-            return unit_MinkPbgERP::reportErr('Грешка - неправилно възстановяване', 'warning');
-        }
+//             return unit_MinkPbgERP::reportErr('Грешка - неправилно възстановяване', 'warning');
+//         }
         
-        //if(strpos($browser->gettext(), 'Анулиран')) {
-        //} else {
-        //    return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - неправилно възстановяване', 'warning');
-        //}
+        if(strpos($browser->gettext(), 'Анулиран')) {
+        } else {
+           return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - неправилно възстановяване', 'warning');
+        }
         //return $browser->getHtml();
     }
     

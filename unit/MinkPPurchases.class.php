@@ -20,10 +20,8 @@ class unit_MinkPPurchases extends core_Manager
     //http://localhost/unit_MinkPPurchases/Run/
     public function act_Run()
     {
-        if (!TEST_MODE) {
-            
-            return;
-        }
+        
+        if (defined('TEST_MODE') && TEST_MODE) {
         $res = '';
         $res .= '<br>'.'MinkPPurchases';
         $res .= ' 1.'.$this->act_PurchaseQuantityMinus();
@@ -48,6 +46,7 @@ class unit_MinkPPurchases extends core_Manager
         $res .= '  19.'.$this->act_CreatePurchaseTransport();
         
         return $res;
+        }
     }
     
     

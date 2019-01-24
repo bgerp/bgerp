@@ -36,7 +36,7 @@ class peripheral_Devices extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Sorting, plg_Created, plg_Modified, peripheral_Wrapper, plg_RowTools2';
+    public $loadList = 'plg_Sorting, plg_Created, plg_Modified, peripheral_Wrapper, plg_RowTools2, plg_Search';
     
     
     /**
@@ -80,6 +80,8 @@ class peripheral_Devices extends embed_Manager
      */
     public $canSingle = 'admin, peripheral';
     
+    
+    public $searchFields = 'name, brid, ip, driverClass';
     
     public function description()
     {
@@ -126,17 +128,17 @@ class peripheral_Devices extends embed_Manager
         
         if ($brid) {
             $query->where(array("#brid = '[#1#]'", $brid));
-            $query->orWhere("#brid IS NULL");
+            $query->orWhere('#brid IS NULL');
         } else {
-            $query->where("#brid IS NULL");
+            $query->where('#brid IS NULL');
         }
         $query->orWhere("#brid = ''");
         
         if ($ip) {
             $query->where(array("#ip = '[#1#]'", $ip));
-            $query->orWhere("#ip IS NULL");
+            $query->orWhere('#ip IS NULL');
         } else {
-            $query->where("#ip IS NULL");
+            $query->where('#ip IS NULL');
         }
         $query->orWhere("#ip = ''");
         
@@ -191,5 +193,26 @@ class peripheral_Devices extends embed_Manager
     {
         $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
         $row->brid = log_Browsers::getLink($rec->brid);
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->query->orderBy('modifiedOn', 'DESC');
+        
+        $data->listFilter->showFields = 'search';
+        
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     }
 }
