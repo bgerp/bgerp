@@ -108,9 +108,31 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         
         $salesQuery->show('folderId, contragentId, folderTitle');
         
+        $purchQuery = purchase_Purchases::getQuery();
+        
+        $purchQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
+        
+        $purchQuery->groupBy('folderId');
+        
+        $purchQuery->show('folderId, contragentId, folderTitle');
+        
+        while ($purContragent = $purchQuery->fetch()) {
+            if (!is_null($purContragent->contragentId)) {
+                $purSuggestions[$purContragent->folderId] = $purContragent->folderTitle;
+            }
+        }
+       
         while ($contragent = $salesQuery->fetch()) {
             if (!is_null($contragent->contragentId)) {
                 $suggestions[$contragent->folderId] = $contragent->folderTitle;
+            }
+        }
+        
+        foreach ($purSuggestions as $k => $v){
+            
+            if (!in_array($k, array_keys($suggestions))){
+                
+                $suggestions[$k] = $v;
             }
         }
         
