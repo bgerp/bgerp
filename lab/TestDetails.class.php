@@ -42,6 +42,8 @@ class lab_TestDetails extends core_Detail
      */
     public $listFields = 'methodId,paramName,value,comment=@Коментар';
     
+    public $hideListFieldsIfEmpty = 'comment';
+    
     
     /**
      * Кой има право да добавя?
@@ -115,7 +117,7 @@ class lab_TestDetails extends core_Detail
         $this->FLD(
             'comment',
             'varchar',
-            'caption=Коментари, notSorting,after=results, column=none,class=" w50, rows= 1"'
+            'caption=Коментари, notSorting,after=results, column=none,class=w50, rows= 1'
         );
         
         $this->FLD('better', 'enum(up=по-големия,down=по-малкия)', 'caption=По-добрия е,unit= резултат,after=title');
@@ -234,6 +236,19 @@ class lab_TestDetails extends core_Detail
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted()) {
+        }
+    }
+    
+    
+    /**
      * Обработка на Master детайлите
      *
      * @param core_Mvc $mvc
@@ -244,7 +259,6 @@ class lab_TestDetails extends core_Detail
     {
         // $row->value
         if (is_numeric($row->value)) {
-            // $row->value = "<div style='float: right'>" . number_format($row->value, 2, ',', ' ') . "</div>";
             $row->value = core_Type::getByName('double(decimals=2)')->toVerbal($rec->value);
         } else {
             $row->value = cls::get('type_Text')->toVerbal($rec->results);

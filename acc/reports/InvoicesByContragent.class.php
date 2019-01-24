@@ -194,11 +194,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     
                     $invQuery->in('coverId', $contragentCoversId);
                     $invQuery->in('coverClass', $contragentCoverClasses);
-               
                 }
                 
                 if ($rec->crmGroup && !$rec->contragent) {
-                  
                     $foldersInGroups = self::getFoldersInGroups($rec);
                     
                     $invQuery->in('folderId', $foldersInGroups);
@@ -212,10 +210,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
                         $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
                     }
-                  
+                    
                     $invQuery->in('coverId', $contragentCoversId);
                     $invQuery->in('coverClass', $contragentCoverClasses);
-                   
+                    
                     $foldersInGroups = self::getFoldersInGroups($rec);
                     
                     $invQuery->in('folderId', $foldersInGroups);
@@ -257,10 +255,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 
                 // Ако са избрани само неплатените фактури
                 if ($rec->unpaid == 'unpaid') {
-                   
                     $unitedCheck = false;
                     
-                    if (!empty($salesUN)){
+                    if (!empty($salesUN)) {
                         $unitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $salesUN);
                     }
                     
@@ -401,9 +398,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($rec->contragent || $rec->crmGroup) {
                 $contragentsArr = array();
                 $contragentsId = array();
-                
-                $invQuery->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
-                $invQuery->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
+              
+                $pQuery->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
+                $pQuery->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
                 
                 if (!$rec->crmGroup && $rec->contragent) {
                     $contragentsArr = keylist::toArray($rec->contragent);
@@ -413,13 +410,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
                     }
                     
-                    $invQuery->in('coverId', $contragentCoversId);
-                    $invQuery->in('coverClass', $contragentCoverClasses);
-                    
+                    $pQuery->in('coverId', $contragentCoversId);
+                    $pQuery->in('coverClass', $contragentCoverClasses);
                 }
                 
                 if ($rec->crmGroup && !$rec->contragent) {
-                    
                     $foldersInGroups = self::getFoldersInGroups($rec);
                     
                     $invQuery->in('folderId', $foldersInGroups);
@@ -434,12 +429,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
                     }
                     
-                    $invQuery->in('coverId', $contragentCoversId);
-                    $invQuery->in('coverClass', $contragentCoverClasses);
+                    $pQuery->in('coverId', $contragentCoversId);
+                    $pQuery->in('coverClass', $contragentCoverClasses);
                     
                     $foldersInGroups = self::getFoldersInGroups($rec);
                     
-                    $invQuery->in('folderId', $foldersInGroups);
+                    $pQuery->in('folderId', $foldersInGroups);
                 }
             }
             
@@ -478,19 +473,17 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 
                 // Ако са избрани само неплатените фактури
                 if ($rec->unpaid == 'unpaid') {
-                    
                     $purUnitedCheck = false;
                     
-                    if (!empty($purchasesUN)){
+                    if (!empty($purchasesUN)) {
                         $purUnitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $purchasesUN);
                     }
-                
+                    
                     if (($className::fetchField($firstDocument->that, 'state') == 'closed') &&
                         ($className::fetchField($firstDocument->that, 'closedOn') <= $rec->checkDate) &&
                         ! $purUnitedCheck) {
                         continue;
                     }
-                   
                 }
                 
                 $pThreadsId[$purchaseInvoices->threadId] = $purchaseInvoices->threadId;
@@ -1088,6 +1081,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     public static function getFoldersInGroups($rec)
     {
+        
         $fQuery = doc_Folders::getQuery();
         
         $classIds = array(core_Classes::getId('crm_Companies'),core_Classes::getId('crm_Persons'));
