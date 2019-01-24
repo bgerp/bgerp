@@ -20,11 +20,8 @@ class unit_MinkPSales extends core_Manager
     //http://localhost/unit_MinkPSales/Run/
     public function act_Run()
     {
-        if (!TEST_MODE) {
-            
-            return;
-        }
-        
+
+        if (defined('TEST_MODE') && TEST_MODE) {
         $res = '';
         $res .= '<br>'.'MinkPSales';
         $res .= '  1.'.$this->act_SaleQuantityMinus();
@@ -60,6 +57,7 @@ class unit_MinkPSales extends core_Manager
         $res .= '  31.'.$this->act_CreateSaleService();
         $res .= '  32.'.$this->act_CreateSaleControlQuantity();
         return $res;
+        }
     }
     
     

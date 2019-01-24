@@ -22,10 +22,9 @@ class unit_MinkPPayment extends core_Manager
     //http://localhost/unit_MinkPPayment/Run/
     public function act_Run()
     {
-        if (!TEST_MODE) {
-            
-            return;
-        }
+
+        
+        if (defined('TEST_MODE') && TEST_MODE) {
         $res = '';
         $res .= '<br>'.'MinkPPayment';
         $res .= '  1.'.$this->act_CreateSaleWaitP();
@@ -45,6 +44,7 @@ class unit_MinkPPayment extends core_Manager
         $res .= '  15.'.$this->act_CreatePurchaseMoment();
         
         return $res;
+        }
     }
     
     

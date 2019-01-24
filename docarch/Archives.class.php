@@ -23,10 +23,43 @@ class docarch_Archives extends core_Master
     
     
     /**
-     * Кой може да го изтрие?
+     * Кой има право да чете?
+     *
+     * @var string|array
      */
-    public $canDelete = 'no_one';
+    public $canRead;
     
+    
+    /**
+     * Кой има право да променя?
+     *
+     * @var string|array
+     */
+    public $canEdit;
+    
+    
+    /**
+     * Кой има право да добавя?
+     *
+     * @var string|array
+     */
+    public $canAdd;
+    
+    
+    /**
+     * Кой може да го види?
+     *
+     * @var string|array
+     */
+    public $canView;
+    
+    
+    /**
+     * Кой може да го изтрие?
+     *
+     * @var string|array
+     */
+    public $canDelete;
     
     protected function description()
     {

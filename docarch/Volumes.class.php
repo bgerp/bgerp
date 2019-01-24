@@ -17,7 +17,7 @@ class docarch_Volumes extends core_Master
 {
     public $title = 'Томове и контейнери';
     
-    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, plg_State2, plg_Rejected';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, plg_State2, plg_Rejected,docarch_Wrapper';
     
     public $listFields = 'number,type,inCharge,archive,docCnt,createdOn=Създаден,modifiedOn=Модифициране';
     
@@ -27,13 +27,45 @@ class docarch_Volumes extends core_Master
      */
     public $canReject = 'ceo, admin';
     
+    /**
+     * Кой има право да чете?
+     *
+     * @var string|array
+     */
+    public $canRead;
+    
+    
+    /**
+     * Кой има право да променя?
+     *
+     * @var string|array
+     */
+    public $canEdit;
+    
+    
+    /**
+     * Кой има право да добавя?
+     *
+     * @var string|array
+     */
+    public $canAdd;
+    
+    
+    /**
+     * Кой може да го види?
+     *
+     * @var string|array
+     */
+    public $canView;
+    
     
     /**
      * Кой може да го изтрие?
+     *
+     * @var string|array
      */
-    public $canDelete = 'no_one';
-    
-    
+    public $canDelete;
+   
     protected function description()
     {
         //Определя в кой архив се съхранява конкретния том
@@ -137,8 +169,6 @@ class docarch_Volumes extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
-            
-            
             $type = $form->rec->type;
             
             if (is_null($form->rec->archive)) {
@@ -192,15 +222,13 @@ class docarch_Volumes extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if (!is_null($rec->archive)){
-            
+        if (!is_null($rec->archive)) {
             if (($rec->type == docarch_Archives::minDefType($rec->archive)) || $rec->archive == 0) {
                 $rec->isForDocuments = 'yes';
             }
             if (($rec->type != docarch_Archives::minDefType($rec->archive)) && $rec->archive != 0) {
                 $rec->isForDocuments = 'no';
             }
-            
         }
     }
     
@@ -276,11 +304,11 @@ class docarch_Volumes extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         //Тома не може да бъде reject-нат ако не е празен
-        if ($action == 'reject' ) {//bp($rec->docCnt);
+        if ($action == 'reject') {
             if (!is_null($rec->docCnt)) {
                 $requiredRoles = 'no_one' ;
             } elseif (($rec->docCnt == 0)) {
-               // $requiredRoles = 'no_one' ;
+                // $requiredRoles = 'no_one' ;
             }
         }
     }
@@ -346,47 +374,42 @@ class docarch_Volumes extends core_Master
      *
      * @param string $id -id на тома за инкудване
      *
-     * @return array - масив с възможните тoмове / null ако няма
+     * @return array - масив / null ако няма
      */
     public static function getVolumePossibleForInclude($rec)
     {
-        $possibleArr= array();
+        $possibleArr = array();
         $volQuery = docarch_Volumes::getQuery();
         
         $volQuery->where("#state != 'rejected'");
         
         $volQuery->where("#id != {$rec->id} AND #archive = {$rec->archive} AND #type != 'folder'");
-       
+        
         switch ($rec->type) {
             
-            case 'folder':$possibleArr =array('box','case','pallet','warehouse'); break;
+            case 'folder':$possibleArr = array('box','case','pallet','warehouse'); break;
             
-            case 'box':$possibleArr= array('case','pallet','warehouse'); break;
+            case 'box':$possibleArr = array('case','pallet','warehouse'); break;
             
-            case 'case':$possibleArr =  array('pallet','warehouse'); break;
+            case 'case':$possibleArr = array('pallet','warehouse'); break;
             
-            case 'pallet':$possibleArr =array('warehouse'); break;
+            case 'pallet':$possibleArr = array('warehouse'); break;
             
             case 'warehouse':$possibleArr = array(); break;
-            
+        
         }
         
-        $volQuery->in('type',$possibleArr);
-     
-        if(empty($volQuery->fetchAll())){
+        $volQuery->in('type', $possibleArr);
+        
+        if (empty($volQuery->fetchAll())) {
             
-            return null;
-            
+            return;
         }
         
-        while ($vol = $volQuery->fetch()){
-            
-            $possibleVolArr[$vol->id]= $vol->title;
+        while ($vol = $volQuery->fetch()) {
+            $possibleVolArr[$vol->id] = $vol->title;
         }
-        
         
         return $possibleVolArr;
     }
-      
-   
 }
