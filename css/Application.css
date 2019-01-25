@@ -2877,7 +2877,7 @@ span.sharing-history-title {
   float: none !important;
   width: 100%;
   max-width: 100%;
-  margin: 5px 0; }
+  margin: 5px 0 10px; }
 
 #cart-external-status .count {
   border: 1px solid #526b00;
