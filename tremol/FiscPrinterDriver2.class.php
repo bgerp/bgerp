@@ -221,7 +221,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         }
         
         if (isset($params['END_TEXT'])) {
-            $eTextArr = $this->replaceTextArr($params['END_TEXT'], $js, 'END_TEXT');
+            $this->replaceTextArr($params['END_TEXT'], $js, 'END_TEXT');
         }
         
         $js = $js->getContent();
@@ -236,7 +236,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     /**
      * Помощна фунцкия за заместване на плейсхолдерите за текст
      * 
-     * @param array $tArr
+     * @param array|string $tArr
      * @param core_ET $jTpl
      * @param string $placeName
      */
