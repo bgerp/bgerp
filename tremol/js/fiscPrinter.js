@@ -208,6 +208,21 @@ function fpReadLastReceiptQRcodeData()
 
 
 /**
+ * Отпечатва подадения текст
+ * 
+ * @param text
+ */
+function fpPrintText(text)
+{
+	try {
+        var res = fp.PrintText(text);
+    } catch(ex) {
+        handleException(ex);
+    }
+}
+
+
+/**
  * Обработвач на съобщеният за грешки
  * 
  * @param exception sx

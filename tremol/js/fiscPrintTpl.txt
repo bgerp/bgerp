@@ -68,10 +68,27 @@ function printFiscalReceipt(onSuccess, onError) {
                             }
                         }
                         
+                        <!--ET_BEGIN BEGIN_TEXT-->
+                            fpPrintText([#BEGIN_TEXT#]);
+                        <!--ET_END BEGIN_TEXT-->
+                        
                         // Добавяме артикул/продукт към бележката
                         <!--ET_BEGIN fpSalePLU-->
+                            <!--ET_BEGIN BEFORE_PLU_TEXT-->
+                                fpPrintText([#BEFORE_PLU_TEXT#]);
+                            <!--ET_END BEFORE_PLU_TEXT-->
+                            
                             fpSalePLU([#PLU_NAME#], [#VAT_CLASS#], [#PRICE#], [#QTY#], [#DISC_ADD_P#], [#DISC_ADD_V#]);
+                            
+                            <!--ET_BEGIN AFTER_PLU_TEXT-->
+                                fpPrintText([#AFTER_PLU_TEXT#]);
+                            <!--ET_END AFTER_PLU_TEXT-->
                         <!--ET_END fpSalePLU-->
+                        
+                        <!--ET_BEGIN END_TEXT-->
+                            fpPrintText([#END_TEXT#]);
+                        <!--ET_END END_TEXT-->
+                        
                         
                         // Затваряме касовата бележка
                         fpCloseReceiptInCash();
