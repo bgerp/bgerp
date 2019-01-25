@@ -78,7 +78,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * OPER_NUM - номер на оператор - от 1 до 20
      * OPER_PASS - парола на оператора
      * IS_DETAILED - дали ФБ да е детайлна
-     * IS_PRINT_VAT - дали да се отпечата ДДС
+     * IS_PRINT_VAT - дали да се отпечата ДДС информацията - разбивка за сумите по ДДС
      * PRINT_TYPE_STR - начин на отпечатване - stepByStep, postponed, buffered
      * RCP_NUM - уникален номер на бележката - [a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[0-9]{7}.
      *
@@ -89,12 +89,17 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * QTY - количество
      * DISC_ADD_P - надбавка/отстъпка в проценти - може и с -
      * DISC_ADD_V - надбавка/отстъпка в стойнонст - може и с -
+     * BEFORE_PLU_TEXT - стринг или масив от стрингове с текст, който ще се добавя преди продукта
+     * AFTER_PLU_TEXT - стринг или масив от стрингове с текст, който ще се добавя след продукта
      *
      * DATE_TIME - времето за синхронизира във формат 'd-m-Y H:i:s'. Ако е false - няма да се синхронизира
      *
      * SERIAL_NUMBER - серийния номер на принтера за проверка. Ако е false - няма да се проверява. Ако има разминаване - спира процеса.
      *
      * SERIAL_KEEP_PORT_OPEN - дали порта да се държи отворен при серийна връзка - докато се приключи
+     * 
+     * BEGIN_TEXT - стринг или масив от стрингове с текст, който ще се добавя в началото на бележката - преди продуктите
+     * END_TEXT - стринг или масив от стрингове с текст, който ще се добавя в края на бележката - след продуктите
      *
      * @return string
      *
@@ -177,6 +182,14 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             $fpSalePLU->replace($pArr['DISC_ADD_P'], 'DISC_ADD_P');
             $fpSalePLU->replace($pArr['DISC_ADD_V'], 'DISC_ADD_V');
             
+            if (isset($pArr['BEFORE_PLU_TEXT'])) {
+                $this->replaceTextArr($pArr['BEFORE_PLU_TEXT'], $fpSalePLU, 'BEFORE_PLU_TEXT', true);
+            }
+            
+            if (isset($pArr['AFTER_PLU_TEXT'])) {
+                $this->replaceTextArr($pArr['AFTER_PLU_TEXT'], $fpSalePLU, 'AFTER_PLU_TEXT', true);
+            }
+            
             $fpSalePLU->removeBlocks();
             $fpSalePLU->append2master();
         }
@@ -203,11 +216,56 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             $js->removeBlock('SERIAL_NUMBER');
         }
         
+        if (isset($params['BEGIN_TEXT'])) {
+            $this->replaceTextArr($params['BEGIN_TEXT'], $js, 'BEGIN_TEXT');
+        }
+        
+        if (isset($params['END_TEXT'])) {
+            $this->replaceTextArr($params['END_TEXT'], $js, 'END_TEXT');
+        }
+        
         $js = $js->getContent();
         
         // Минифициране на JS
         $js = minify_Js::process($js);
         
         return $js;
+    }
+    
+    
+    /**
+     * Помощна фунцкия за заместване на плейсхолдерите за текст
+     * 
+     * @param array|string $tArr
+     * @param core_ET $jTpl
+     * @param string $placeName
+     */
+    protected function replaceTextArr($tArr, &$jTpl, $placeName, $removeBlock = false)
+    {
+        $resStrArr = array();
+        if (!is_array($tArr)) {
+            $tArr = array($tArr);
+        }
+        
+        foreach ($tArr as $tStr) {
+            $tStr = hyphen_Plugin::getHyphenWord($tStr, 25, 30, '<wbr>');
+            
+            $resStrArr = array_merge($resStrArr, explode('<wbr>', $tStr));
+        }
+        
+        if (!empty($resStrArr)) {
+            foreach ($resStrArr as $str) {
+                $bTpl = $jTpl->getBlock($placeName);
+                
+                $bTpl->replace(json_encode($str), $placeName);
+                
+                $bTpl->removeBlocks();
+                $bTpl->append2master();
+            }
+            
+            if ($removeBlock) {
+                unset($jTpl->blocks[$placeName]);
+            }
+        }
     }
 }
