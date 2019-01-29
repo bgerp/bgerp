@@ -19,6 +19,10 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     public $title = 'Принтер на тремол';
     
+    protected $canMakeZReport = 'admin, peripheral';
+    
+    protected $canMakeXReport = 'admin, peripheral';
+    
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -97,7 +101,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * SERIAL_NUMBER - серийния номер на принтера за проверка. Ако е false - няма да се проверява. Ако има разминаване - спира процеса.
      *
      * SERIAL_KEEP_PORT_OPEN - дали порта да се държи отворен при серийна връзка - докато се приключи
-     * 
+     *
      * BEGIN_TEXT - стринг или масив от стрингове с текст, който ще се добавя в началото на бележката - преди продуктите
      * END_TEXT - стринг или масив от стрингове с текст, който ще се добавя в края на бележката - след продуктите
      *
@@ -110,36 +114,9 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         // Шаблона за JS
         $js = getTplFromFile('/tremol/js/fiscPrintTpl.txt');
         
-        // Добавяме необходимите JS файлове
-        $js->replace(sbf('tremol/js/' . tremol_Setup::get('FP_DRIVER_VERSION') . '/fp_core.js'), 'FP_CORE_JS');
-        $js->replace(sbf('tremol/js/' . tremol_Setup::get('FP_DRIVER_VERSION') . '/fp.js'), 'FP_JS');
-        $js->replace(sbf('tremol/js/fiscPrinter.js'), 'FISC_PRINT_JS');
+        $this->addTplFile($js);
         
-        // Задаваме настройките за връзка със сървъра
-        $js->replace(json_encode($pRec->serverIp), 'SERVER_IP');
-        $js->replace(json_encode($pRec->serverTcpPort), SERVER_TCP_PORT);
-        
-        // Свързваме се с ФП
-        if ($pRec->type == 'tcp') {
-            $js->replace(json_encode($pRec->tcpIp), 'TCP_IP');
-            $js->replace($pRec->tcpPort, 'TCP_PORT');
-            $js->replace(json_encode($pRec->tcpPass), 'TCP_PASS');
-            
-            $js->replace('false', 'SERIAL_PORT');
-            $js->replace('false', 'SERIAL_BAUD_RATE');
-            $js->replace('false', 'SERIAL_KEEP_PORT_OPEN');
-        } elseif ($pRec->type == 'serial') {
-            $js->replace('false', 'TCP_IP');
-            $js->replace('false', 'TCP_PORT');
-            $js->replace('false', 'TCP_PASS');
-            $js->replace(json_encode($pRec->serialPort), 'SERIAL_PORT');
-            $js->replace($pRec->serialSpeed, 'SERIAL_BAUD_RATE');
-            
-            setIfNot($params['SERIAL_KEEP_PORT_OPEN'], 'true');
-            $js->replace($params['SERIAL_KEEP_PORT_OPEN'], 'SERIAL_KEEP_PORT_OPEN');
-        } else {
-            expect(false, $pRec);
-        }
+        $this->connectToPrinter($js, $pRec, $params['SERIAL_KEEP_PORT_OPEN']);
         
         // Задаваме параметрите за отваряне на ФБ
         setIfNot($params['OPER_NUM'], 1);
@@ -234,11 +211,68 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     
     /**
+     * Помощна функция за добавяне на необходимите JS файлове
+     *
+     * @param core_ET $tpl
+     */
+    protected function addTplFile(&$tpl)
+    {
+        // Добавяме необходимите JS файлове
+        $tpl->replace(sbf('tremol/js/' . tremol_Setup::get('FP_DRIVER_VERSION') . '/fp_core.js'), 'FP_CORE_JS');
+        $tpl->replace(sbf('tremol/js/' . tremol_Setup::get('FP_DRIVER_VERSION') . '/fp.js'), 'FP_JS');
+        $tpl->replace(sbf('tremol/js/fiscPrinter.js'), 'FISC_PRINT_JS');
+    }
+    
+    
+    /**
+     * Помощна фунцкия за връзка с принтер
+     *
+     * @param core_ET   $tpl
+     * @param stdClass  $pRec
+     * @param null|bool $serialKeepPortOpen
+     */
+    protected function connectToPrinter($tpl, $pRec, $serialKeepPortOpen = null)
+    {
+        // Задаваме настройките за връзка със сървъра
+        $tpl->replace(json_encode($pRec->serverIp), 'SERVER_IP');
+        $tpl->replace(json_encode($pRec->serverTcpPort), SERVER_TCP_PORT);
+        
+        // Свързваме се с ФП
+        if ($pRec->type == 'tcp') {
+            $tpl->replace(json_encode($pRec->tcpIp), 'TCP_IP');
+            $tpl->replace($pRec->tcpPort, 'TCP_PORT');
+            $tpl->replace(json_encode($pRec->tcpPass), 'TCP_PASS');
+            
+            $tpl->replace('false', 'SERIAL_PORT');
+            $tpl->replace('false', 'SERIAL_BAUD_RATE');
+            $tpl->replace('false', 'SERIAL_KEEP_PORT_OPEN');
+        } elseif ($pRec->type == 'serial') {
+            $tpl->replace('false', 'TCP_IP');
+            $tpl->replace('false', 'TCP_PORT');
+            $tpl->replace('false', 'TCP_PASS');
+            $tpl->replace(json_encode($pRec->serialPort), 'SERIAL_PORT');
+            $tpl->replace($pRec->serialSpeed, 'SERIAL_BAUD_RATE');
+            
+            setIfNot($serialKeepPortOpen, 'true');
+            if ($serialKeepPortOpen) {
+                $serialKeepPortOpen = 'true';
+            } else {
+                $serialKeepPortOpen = 'false';
+            }
+            
+            $tpl->replace($serialKeepPortOpen, 'SERIAL_KEEP_PORT_OPEN');
+        } else {
+            expect(false, $pRec);
+        }
+    }
+    
+    
+    /**
      * Помощна фунцкия за заместване на плейсхолдерите за текст
-     * 
+     *
      * @param array|string $tArr
-     * @param core_ET $jTpl
-     * @param string $placeName
+     * @param core_ET      $jTpl
+     * @param string       $placeName
      */
     protected function replaceTextArr($tArr, &$jTpl, $placeName, $removeBlock = false)
     {
@@ -266,6 +300,170 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             if ($removeBlock) {
                 unset($jTpl->blocks[$placeName]);
             }
+        }
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param tremol_FiscPrinterDriver2 $Driver
+     * @param peripheral_Devices        $Embedder
+     * @param core_ET                   $tpl
+     * @param stdClass                  $data
+     */
+    protected static function on_AfterRenderSingle(tremol_FiscPrinterDriver2 $Driver, embed_Manager $Embedder, &$tpl, $data)
+    {
+        if ($Embedder instanceof peripheral_Devices && $Embedder->haveRightFor('edit', $data->rec->id)) {
+            $setSerialUrl = toUrl(array($Driver, 'setSerialNumber', $data->rec->id), 'local');
+            $setSerialUrl = urlencode($setSerialUrl);
+            
+            $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                                try {
+                                    [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                    getEfae().process({url: '{$setSerialUrl}'}, {serial: fpSerialNumber()});
+                                } catch(ex) {
+                                    render_showToast({timeOut: 800, text: '" . tr('Грешка при свързване с принтера') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
+                                }
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]");
+            
+            $Driver->addTplFile($jsTpl);
+            $Driver->connectToPrinter($jsTpl, $data->rec, false);
+            
+            jquery_Jquery::run($tpl, $jsTpl);
+        }
+    }
+    
+    
+    /**
+     * Екшън за промяна на серийния номер
+     *
+     * @return array|string
+     */
+    public function act_SetSerialNumber()
+    {
+        expect(Request::get('ajax_mode'));
+        
+        peripheral_Devices::requireRightFor('single');
+        
+        $serial = Request::get('serial');
+        $id = Request::get('id', 'int');
+        
+        expect($id);
+        
+        $pRec = peripheral_Devices::fetch($id);
+        
+        expect($pRec);
+        
+        peripheral_Devices::requireRightFor('single', $id);
+        peripheral_Devices::requireRightFor('edit', $id);
+        
+        $res = array();
+        
+        if ($pRec->serialNumber != $serial) {
+            $oldSerial = $pRec->serialNumber;
+            $pRec->serialNumber = $serial;
+            
+            $statusData = array();
+            
+            if (peripheral_Devices::save($pRec, 'serialNumber')) {
+                if (trim($oldSerial)) {
+                    $statusData['text'] = tr('Променен сериен номер от') . " {$oldSerial} " . tr('на') . " {$serial}";
+                } else {
+                    $statusData['text'] = tr('Добавен сериен номер');
+                }
+                
+                $statusData['type'] = 'notice';
+                $statusData['timeOut'] = 700;
+                $statusData['isSticky'] = 0;
+                $statusData['stayTime'] = 8000;
+            } else {
+                $statusData['text'] = tr('Грешка при промяна на сериен номер');
+                $statusData['type'] = 'error';
+                $statusData['timeOut'] = 700;
+                $statusData['isSticky'] = 1;
+                $statusData['stayTime'] = 15000;
+            }
+            
+            $statusObj = new stdClass();
+            $statusObj->func = 'showToast';
+            $statusObj->arg = $statusData;
+            
+            $res[] = $statusObj;
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед
+     *
+     * @param tremol_FiscPrinterDriver2 $Driver
+     * @param peripheral_Devices        $mvc
+     * @param object                    $res
+     * @param object                    $data
+     */
+    public static function on_AfterPrepareSingleToolbar($Driver, $mvc, &$res, $data)
+    {
+        if (haveRole($Driver->canMakeXReport)) {
+            $data->toolbar->addFnBtn('X отчет', 'fpPrintXReport()', 'ef_icon = img/16/report.png,title=Отпечатване на X отчет');
+            $data->_Xreport = true;
+        }
+        
+        if (haveRole($Driver->canMakeZReport)) {
+            $data->toolbar->addFnBtn('Z отчет', 'fpPrintZReport()', 'ef_icon = img/16/report.png,title=Отпечатване на Z отчет, row=2', array('warning' => 'Сигурни ли сте, че искате да нулирате касовия апарат?'));
+            $data->_Zreport = true;
+        }
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед
+     *
+     * @param tremol_FiscPrinterDriver2 $Driver
+     * @param peripheral_Devices        $mvc
+     * @param core_ET                   $tpl
+     * @param object                    $data
+     */
+    public static function on_AfterRenderSingleToolbar($Driver, $mvc, &$tpl, $data)
+    {
+        if ($data->_Xreport) {
+            $jsTpl = new ET("function fpPrintXReport() {
+                                [#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                                try {
+                                    [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                    fpXReport();
+                                    render_showToast({timeOut: 800, text: '" . tr('Успешно отпечатан X отчет') . "', isSticky: false, stayTime: 8000, type: 'notice'});
+                                } catch(ex) {
+                                    render_showToast({timeOut: 800, text: '" . tr('Грешка при отпечатване на X отчет') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'error'});
+                                }
+                                [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]
+                            }");
+            
+            $Driver->addTplFile($jsTpl);
+            $Driver->connectToPrinter($jsTpl, $data->rec, false);
+            
+            $tpl->appendOnce($jsTpl, 'SCRIPTS');
+        }
+        
+        if ($data->_Zreport) {
+            $jsTpl = new ET("function fpPrintZReport() {
+                                [#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                                try {
+                                    [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                    fpZReport();
+                                    render_showToast({timeOut: 800, text: '" . tr('Успешно отпечатан Z отчет') . "', isSticky: false, stayTime: 8000, type: 'notice'});
+                                } catch(ex) {
+                                    render_showToast({timeOut: 800, text: '" . tr('Грешка при отпечатване на Z отчет') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'error'});
+                                }
+                                [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]
+                            }");
+            
+            $Driver->addTplFile($jsTpl);
+            $Driver->connectToPrinter($jsTpl, $data->rec, false);
+            
+            $tpl->appendOnce($jsTpl, 'SCRIPTS');
         }
     }
 }
