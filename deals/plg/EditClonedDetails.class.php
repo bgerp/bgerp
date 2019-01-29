@@ -190,6 +190,10 @@ class deals_plg_EditClonedDetails extends core_Plugin
         
         if (count($rec->details)) {
             foreach ($rec->details as $det) {
+                if (!empty($det->baseQuantity)) {
+                    $det->quantityInPack = $det->baseQuantity / $det->packQuantity;
+                }
+                
                 $newPackQuantity = $updatePackQuantity = 0;
                 if (is_array($det->batches) && core_Packs::isInstalled('batch')) {
                     foreach ($det->batches as $index => &$bRec) {
