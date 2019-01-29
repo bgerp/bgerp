@@ -18,15 +18,18 @@ class unit_MinkPbgERP extends core_Manager
 {
     public static function reportErr($text, $type = 'warning')
     {
-        $text = 'ГРЕШКА В ' .debug_backtrace()['1']['function'] . ': ' . $text;
+        $text = debug_backtrace()['1']['function'] . ': ' . $text;
         
         if ($type == 'warning') {
+            $text = 'Warning ' . $text;
             self::logWarning($text);
             wp($text);
         } elseif ($type == 'err') {
+            $text = 'Error ' . $text;
             self::logErr($text);
             bp($text);
         } else {
+            $text = 'Info ' . $text;
             self::logInfo($text);
         }
         
