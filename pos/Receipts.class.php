@@ -558,7 +558,7 @@ class pos_Receipts extends core_Master
         }
         
         // Вкарване на css и js файлове
-        $this->pushFiles($tpl);
+        $this->pushTerminalFiles($tpl);
         
         $this->renderWrapping($tpl);
         
@@ -569,7 +569,7 @@ class pos_Receipts extends core_Master
     /**
      * Вкарване на css и js файлове
      */
-    private function pushFiles(&$tpl)
+    public function pushTerminalFiles_(&$tpl)
     {
         $tpl->push('css/Application.css', 'CSS');
         $tpl->push('css/default-theme.css', 'CSS');
@@ -1101,26 +1101,47 @@ class pos_Receipts extends core_Master
         $printUrl = array($this, 'terminal', $rec->id, 'Printing' => 'yes');
         $block->append(ht::createBtn('Печат', $printUrl, null, null, array('class' => 'actionBtn', 'title' => 'Принтиране на бележката')), 'CLOSE_BTNS');
         
-        // Ако може да се издаде касова бележка, активираме бутона
-        if ($this->haveRightFor('printReceipt', $rec)) {
-            $recUrl = array($this, 'printReceipt', $rec->id);
-        }
+        $receiptBtn = $this->getPrintReceiptBtn($rec);
+        $block->append($receiptBtn, 'CLOSE_BTNS');
         
-        $disClass = ($recUrl) ? '' : 'disabledBtn';
-        $block->append(ht::createBtn('Касов бон', $recUrl, null, null, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издаване на касова бележка')), 'CLOSE_BTNS');
-        
-        if ($this->haveRightFor('close', $rec)) {
-            $contoUrl = array('pos_Receipts', 'close', $rec->id);
-            $hint = tr('Приключване на продажбата');
-        } else {
-            $contoUrl = null;
-            $hint = tr('Не може да приключите бележката, докато не е платена');
-        }
-        
-        $disClass = ($contoUrl) ? '' : 'disabledBtn';
-        $block->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-close', 'title' => $hint)), 'CLOSE_BTNS');
+        $closeBtn = $this->getCloseReceiptBtn($rec);
+        $block->append($closeBtn, 'CLOSE_BTNS');
         
         return $block;
+    }
+    
+    
+    /**
+     * Kакво е урл-то за печат на бележката
+     */
+    protected static function on_AfterGetCloseReceiptBtn($mvc, &$tpl, $rec)
+    {
+        if(!$tpl){
+            if ($mvc->haveRightFor('close', $rec)) {
+                $contoUrl = array('pos_Receipts', 'close', $rec->id);
+                $hint = tr('Приключване на продажбата');
+            } else {
+                $contoUrl = null;
+                $hint = tr('Не може да приключите бележката, докато не е платена');
+            }
+            $disClass = ($contoUrl) ? '' : 'disabledBtn';
+            
+            $tpl = ht::createBtn('Приключи', $contoUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-close', 'title' => $hint));
+        }
+    }
+    
+    
+    /**
+     * Kакво е урл-то за печат на бележката
+     */
+    protected static function on_AfterGetPrintReceiptBtn($mvc, &$tpl, $rec)
+    {
+        if(!$tpl){
+            $url = ($mvc->haveRightFor('printReceipt', $rec)) ? array($mvc, 'printReceipt', $rec->id) : array();
+            $disClass = ($url) ? '' : 'disabledBtn';
+            
+            $tpl = ht::createBtn('Касов бон', $url, null, null, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издаване на касова бележка'));
+        }
     }
     
     

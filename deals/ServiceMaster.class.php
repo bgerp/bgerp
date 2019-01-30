@@ -53,7 +53,7 @@ abstract class deals_ServiceMaster extends core_Master
      */
     protected static function setServiceFields($mvc)
     {
-        $mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
+        $mvc->FLD('valior', 'date', 'caption=Дата,oldFieldName=date');
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden');
         $mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=ДДС,input=hidden');
@@ -241,8 +241,6 @@ abstract class deals_ServiceMaster extends core_Master
         // Задаване на стойности на полетата на формата по подразбиране
         $form = &$data->form;
         $rec = &$form->rec;
-        
-        $form->setDefault('valior', dt::now());
         
         $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
