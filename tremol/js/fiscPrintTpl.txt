@@ -78,7 +78,7 @@ function printFiscalReceipt(onSuccess, onError) {
                 try {
                     res = fpReadLastReceiptQRcodeData();
                 } catch(ex) {
-                    render_showToast({timeOut: 800, text: 'Грешка при прочитане на данните за последния ФБ: ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
+                    console.log('Грешка при прочитане на данните за последния ФБ: ' + ex.message);
                 }
                 
                 // Ако всичко мине добре - викаме функцията за успех
