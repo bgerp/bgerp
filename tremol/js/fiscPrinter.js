@@ -171,6 +171,24 @@ function fpSetDateTime(dateTime)
 
 
 /**
+ * Връща серийния номер на устройството
+ * 
+ * @return string
+ */
+function fpSerialNumber()
+{
+	var res = '';
+    try {
+        var res = fp.ReadSerialAndFiscalNums().SerialNumber;
+    } catch(ex) {
+        handleException(ex);
+    }
+    
+    return res;
+};
+
+
+/**
  * Проверява серийния номер на ФП
  * 
  * @param serNumber
@@ -178,7 +196,7 @@ function fpSetDateTime(dateTime)
 function fpCheckSerialNumber(serNumber)
 {
     try {
-        var res = fp.ReadSerialAndFiscalNums().SerialNumber;
+        var res = fpSerialNumber();
         
         if (res != serNumber) {
         	throw new Error('Некоректен сериен номер: ' + res);
@@ -220,6 +238,32 @@ function fpPrintText(text)
         handleException(ex);
     }
 }
+
+
+/**
+ * Отпечатва X отчета
+ */
+function fpXReport()
+{
+    try {
+        fp.PrintDailyReport(Tremol.Enums.OptionZeroing.Without_zeroing);
+    } catch(ex) {
+        handleException(ex);
+    }
+};
+
+
+/**
+ * Отпечатва Z отчета
+ */
+function fpZReport()
+{
+    try {
+        fp.PrintDailyReport(Tremol.Enums.OptionZeroing.Zeroing);
+    } catch(ex) {
+        handleException(ex);
+    }
+};
 
 
 /**

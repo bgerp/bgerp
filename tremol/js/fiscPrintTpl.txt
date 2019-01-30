@@ -5,109 +5,104 @@
  * @param onError - функция, която да се извика при грешка
  */
 function printFiscalReceipt(onSuccess, onError) {
+    var isFiscIsOpen = false;
     try {
-        // Какво е състоянието на кеша - за да го върнем същото после
-        var ajaxCacheVal = $.ajaxSetup()['cache'];
-        if (ajaxCacheVal == undefined) {
-            ajaxCacheVal = false
-        };
-        
-        // За да се кешират JS файловете
-        $.ajaxSetup({ cache: true });
-        
-        // Добавяме необходимите JS файлове
-        // След добавянето извикваме функциите
-        $.getScript([#FP_CORE_JS#]).done(function() {
-            $.getScript([#FP_JS#]).done(function() {
-                $.getScript([#FISC_PRINT_JS#]).done(function() {
+        [#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+            try {
+                var res = '';
+                
+                [#/tremol/js/FiscPrinterTplConnect.txt#]
+                
+                // Синхронизиране на времето
+                <!--ET_BEGIN DATE_TIME-->
                     try {
-                        var res = '';
-                        
-                        // Връщаме старата стойност за кеширането
-                        $.ajaxSetup({ cache: ajaxCacheVal });
-                        
-                        // Задаваме настройките на сървъра
-                        fpServerSetSettings([#SERVER_IP#], [#SERVER_TCP_PORT#]);
-                        
-                        // Задаваме настройките за връзка с касовия апарат
-                        fpServerSetDeviceSettings([#TCP_IP#], [#TCP_PORT#], [#TCP_PASS#], [#SERIAL_PORT#], [#SERIAL_BAUD_RATE#], [#SERIAL_KEEP_PORT_OPEN#]);
-                        
-                        // Синхронизиране на времето
-                        <!--ET_BEGIN DATE_TIME-->
-                            try {
-                                fpSetDateTime([#DATE_TIME#]);
-                            } catch(ex) {
-                                console.log('Не може да се синхронизира времето: ' + ex.message);
-                            }
-                        <!--ET_END DATE_TIME-->
-                        
-                        // Проверка на серийния номер
-                        <!--ET_BEGIN SERIAL_NUMBER-->
-                            fpCheckSerialNumber([#SERIAL_NUMBER#]);
-                        <!--ET_END SERIAL_NUMBER-->
-                        
-                        // Опитваме се да отворим бележка
-                        try {
-                            fpOpenFiscReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#RCP_NUM#]);
-                        } catch(ex) {
-                            // Ако не може да се отвори бележка, прекратяваме предишната
-                            var canceled = false;
-                            try {
-                                // Опитваме се да прекратим предишната бележка, ако има такава и да пуснем пак
-                                fpCancelFiscalReceipt();
-                                
-                                canceled = true;
-                            } catch(ex) { }
-                            
-                            if (canceled) {
-                                console.log('Прекратена предишна бележка');
-                                fpOpenFiscReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#RCP_NUM#]);
-                            } else {
-                                console.log('Неуспешен опит за прекратяване на предишна бележката');
-                                throw ex;
-                            }
-                        }
-                        
-                        <!--ET_BEGIN BEGIN_TEXT-->
-                            fpPrintText([#BEGIN_TEXT#]);
-                        <!--ET_END BEGIN_TEXT-->
-                        
-                        // Добавяме артикул/продукт към бележката
-                        <!--ET_BEGIN fpSalePLU-->
-                            <!--ET_BEGIN BEFORE_PLU_TEXT-->
-                                fpPrintText([#BEFORE_PLU_TEXT#]);
-                            <!--ET_END BEFORE_PLU_TEXT-->
-                            
-                            fpSalePLU([#PLU_NAME#], [#VAT_CLASS#], [#PRICE#], [#QTY#], [#DISC_ADD_P#], [#DISC_ADD_V#]);
-                            
-                            <!--ET_BEGIN AFTER_PLU_TEXT-->
-                                fpPrintText([#AFTER_PLU_TEXT#]);
-                            <!--ET_END AFTER_PLU_TEXT-->
-                        <!--ET_END fpSalePLU-->
-                        
-                        <!--ET_BEGIN END_TEXT-->
-                            fpPrintText([#END_TEXT#]);
-                        <!--ET_END END_TEXT-->
-                        
-                        
-                        // Затваряме касовата бележка
-                        fpCloseReceiptInCash();
-                        
-                        try {
-                            res = fpReadLastReceiptQRcodeData();
-                        } catch(ex) {
-                            console.log('Грешка при прочитане на данните за последния ФБ: ' + ex.message);
-                        }
-                        
-                        // Ако всичко мине добре - викаме функцията за успех
-                        onSuccess(res);
+                        fpSetDateTime([#DATE_TIME#]);
                     } catch(ex) {
-                        onError(ex.message);
+                        console.log('Не може да се синхронизира времето: ' + ex.message);
                     }
-                });
-            });
-        });
+                <!--ET_END DATE_TIME-->
+                
+                // Проверка на серийния номер
+                <!--ET_BEGIN SERIAL_NUMBER-->
+                    fpCheckSerialNumber([#SERIAL_NUMBER#]);
+                <!--ET_END SERIAL_NUMBER-->
+                
+                // Опитваме се да отворим бележка
+                try {
+                    fpOpenFiscReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#RCP_NUM#]);
+                    isFiscIsOpen = true;
+                } catch(ex) {
+                    // Ако не може да се отвори бележка, прекратяваме предишната
+                    var canceled = false;
+                    try {
+                        // Опитваме се да прекратим предишната бележка, ако има такава и да пуснем пак
+                        fpCancelFiscalReceipt();
+                        
+                        canceled = true;
+                    } catch(ex) { }
+                    
+                    if (canceled) {
+                        render_showToast({timeOut: 800, text: 'Прекратена предишна бележка', isSticky: false, stayTime: 8000, type: 'notice'});
+                        fpOpenFiscReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#RCP_NUM#]);
+                        isFiscIsOpen = true;
+                    } else {
+                        render_showToast({timeOut: 800, text: 'Неуспешен опит за прекратяване на предишна бележката', isSticky: true, stayTime: 8000, type: 'error'});
+                        throw ex;
+                    }
+                }
+                
+                <!--ET_BEGIN BEGIN_TEXT-->
+                    fpPrintText([#BEGIN_TEXT#]);
+                <!--ET_END BEGIN_TEXT-->
+                
+                // Добавяме артикул/продукт към бележката
+                <!--ET_BEGIN fpSalePLU-->
+                    <!--ET_BEGIN BEFORE_PLU_TEXT-->
+                        fpPrintText([#BEFORE_PLU_TEXT#]);
+                    <!--ET_END BEFORE_PLU_TEXT-->
+                    
+                    fpSalePLU([#PLU_NAME#], [#VAT_CLASS#], [#PRICE#], [#QTY#], [#DISC_ADD_P#], [#DISC_ADD_V#]);
+                    
+                    <!--ET_BEGIN AFTER_PLU_TEXT-->
+                        fpPrintText([#AFTER_PLU_TEXT#]);
+                    <!--ET_END AFTER_PLU_TEXT-->
+                <!--ET_END fpSalePLU-->
+                
+                <!--ET_BEGIN END_TEXT-->
+                    fpPrintText([#END_TEXT#]);
+                <!--ET_END END_TEXT-->
+                
+                // Затваряме касовата бележка
+                fpCloseReceiptInCash();
+                
+                try {
+                    res = fpReadLastReceiptQRcodeData();
+                } catch(ex) {
+                    console.log('Грешка при прочитане на данните за последния ФБ: ' + ex.message);
+                }
+                
+                // Ако всичко мине добре - викаме функцията за успех
+                onSuccess(res);
+            } catch(ex) {
+                if (isFiscIsOpen) {
+                    try {
+                        // Опитваме се да прекратим предишната бележка, ако има такава и да пуснем пак
+                        fpCancelFiscalReceipt();
+                        render_showToast({timeOut: 800, text: 'Прекратена бележка', isSticky: false, stayTime: 8000, type: 'notice'});
+                    } catch(ex) { }
+                }
+                
+                onError(ex.message);
+            }
+        [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]
     } catch(ex) {
+        if (isFiscIsOpen) {
+            try {
+                // Опитваме се да прекратим предишната бележка, ако има такава и да пуснем пак
+                fpCancelFiscalReceipt();
+                render_showToast({timeOut: 800, text: 'Прекратена бележка', isSticky: false, stayTime: 8000, type: 'notice'});
+            } catch(ex) { }
+        }
         onError(ex.message);
     }
 }

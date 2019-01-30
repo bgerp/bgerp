@@ -56,6 +56,8 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
             }
         }
         
+        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+        
         $transaction = (object) array(
             'reason' => 'Протокол за покупка на услуги #' . $rec->id,
             'valior' => $rec->valior,
