@@ -366,7 +366,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             
             $statusData = array();
             
-            if (peripheral_Devices::save($pRec, 'serialNumber')) {
+            if (peripheral_Devices::save($pRec)) {
                 if (trim($oldSerial)) {
                     $statusData['text'] = tr('Променен сериен номер от') . " {$oldSerial} " . tr('на') . " {$serial}";
                 } else {
