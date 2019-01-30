@@ -55,7 +55,7 @@ class rack_Products extends store_Products
     /**
      * Полета за листовия изглед?
      */
-    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantityOnPallets,quantityOnZones,quantityNotOnPallets,quantity=Количество->Общо';
+    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity=Количество->Разполагаемо,quantityOnPallets,quantityOnZones,quantityNotOnPallets';
     
     
     /**
@@ -75,7 +75,7 @@ class rack_Products extends store_Products
         $this->loadList['plg_RowTools2'] = 'plg_RowTools2';
         parent::description();
         
-        $this->FLD('quantityOnPallets', 'double(maxDecimals=2)', 'caption=Количество->На стелажи,input=hidden,smartCenter');
+        $this->FLD('quantityOnPallets', 'double(maxDecimals=2)', 'caption=Количество->На палети,input=hidden,smartCenter');
         $this->FLD('quantityOnZones', 'double(maxDecimals=2)', 'caption=Количество->В зони,input=hidden,smartCenter');
         $this->XPR('quantityNotOnPallets', 'double(maxDecimals=2)', '#quantity - IFNULL(#quantityOnPallets, 0)- IFNULL(#quantityOnZones, 0)', 'caption=Количество->На пода,input=hidden,smartCenter');
     }
