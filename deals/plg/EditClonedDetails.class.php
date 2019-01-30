@@ -218,6 +218,10 @@ class deals_plg_EditClonedDetails extends core_Plugin
                 $newPackQuantity += $rec->{"quantity||{$det->id}|"};
                 $updatePackQuantity += $rec->{"quantity||{$det->id}|"};
                 if (!empty($newPackQuantity)) {
+                    if (!empty($det->baseQuantity)) {
+                        $det->quantityInPack = $det->baseQuantity / $newPackQuantity;
+                    }
+                    
                     $oldQuantity = $det->quantity;
                     $det->quantity = $newPackQuantity * $det->quantityInPack;
                     $diff = $oldQuantity - $det->quantity;
