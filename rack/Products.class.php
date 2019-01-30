@@ -273,6 +273,8 @@ class rack_Products extends store_Products
     {
         // Какво е количеството на пода
         $storeId = isset($storeId) ? $storeId : store_Stores::getCurrent();
+        
+        // Количество на пода = Общо количество - Количество на палети - Количество в зоните
         $floorQuantity = self::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantityNotOnPallets');
         
         $palletQuery = rack_Pallets::getQuery();
@@ -289,11 +291,27 @@ class rack_Products extends store_Products
             $batchQuantityOnTheFloor = $expectedBatchQuantity - $batchQuantityOnPallets;
             $floorQuantity = min($floorQuantity, $batchQuantityOnTheFloor);
         } else {
-            
             // Ако няма партида на пода се смята разликата от к-то на пода минус всичкото палетирано
             $palletQuery->where("#batch IS NOT NULL AND #batch != ''");
             $batchQuantityOnPallets = $palletQuery->fetch()->sum;
-            $floorQuantity -= $batchQuantityOnPallets;
+            
+            // Очаквано количество на партиди в склада
+            $batchesInStore = batch_Items::getBatchQuantitiesInStore($productId, $storeId);
+            $batchQuantityInStore = array_sum($batchesInStore);
+            
+            // Какво количество има по партиди в зоните
+            $zoneQuery = rack_ZoneDetails::getQuery();
+            $zoneQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
+            $zoneQuery->XPR('sum', 'double', 'sum(#movementQuantity)');
+            $zoneQuery->show('sum');
+            $zoneQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #batch IS NOT NULL AND #batch != ''");
+            $zRec = $zoneQuery->fetch();
+            $batchQuantityOnZones =  ($zRec) ? $zRec->sum : 0;
+            
+            // Количество партиди на пода = Количество от партидния склад - Количество партиди по палети - Количество партиди в зони
+            // Количество без партиди на пода = Количество на пода - Количество партиди на пода
+            $quantityBatchesOnTheFloor = $batchQuantityInStore - $batchQuantityOnPallets - $batchQuantityOnZones;
+            $floorQuantity -= $quantityBatchesOnTheFloor;
         }
         
         return $floorQuantity;
