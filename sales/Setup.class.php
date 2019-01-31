@@ -350,6 +350,7 @@ class sales_Setup extends core_ProtoSetup
         'migrate::updateDeltaStates1',
         'migrate::setContragentFieldKeylist3',
         'migrate::updateDeltaFields',
+        'migrate::closeZDDSRep',
     );
     
     
@@ -597,6 +598,19 @@ class sales_Setup extends core_ProtoSetup
                     reportException($e);
                 }
             }
+        }
+    }
+    
+    
+    /**
+     * Миграция за премахване на sales_reports_ZDDSRep
+     */
+    public static function closeZDDSRep()
+    {
+        $rec = core_Classes::fetch("#state = 'active' AND #name = 'sales_reports_ZDDSRep'");
+        if ($rec) {
+            $rec->state = 'closed';
+            core_Classes::save($rec, 'state');
         }
     }
 }

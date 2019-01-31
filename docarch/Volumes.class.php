@@ -17,22 +17,55 @@ class docarch_Volumes extends core_Master
 {
     public $title = 'Томове и контейнери';
     
-    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, plg_State2, plg_Rejected';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, plg_State2, plg_Rejected,docarch_Wrapper';
     
-    public $listFields = 'number,type,inCharge,archive,createdOn=Създаден,modifiedOn=Модифициране';
+    public $listFields = 'number,type,inCharge,archive,docCnt,createdOn=Създаден,modifiedOn=Модифициране';
     
     
     /**
      * Кой може да оттегля?
      */
-    public $canReject = 'ceo, admin';
+    public $canReject = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
+     * Кой има право да чете?
+     *
+     * @var string|array
+     */
+    public $canRead = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
+     * Кой има право да променя?
+     *
+     * @var string|array
+     */
+    public $canEdit = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
+     * Кой има право да добавя?
+     *
+     * @var string|array
+     */
+    public $canAdd = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
+     * Кой може да го види?
+     *
+     * @var string|array
+     */
+    public $canView = 'ceo,docarchMaster,docarch';
     
     
     /**
      * Кой може да го изтрие?
+     *
+     * @var string|array
      */
-    public $canDelete = 'no_one';
-    
+    public $canDelete = 'ceo,docarchMaster,docarch';
     
     protected function description()
     {
@@ -53,7 +86,7 @@ class docarch_Volumes extends core_Master
         
         //Показва в кой по-голям том/контейнер е включен
         $this->FLD('includeIn', 'key(mvc=docarch_Volumes)', 'caption=По-големия том,input=none');
-        $this->FLD('position', 'varchar(32)', 'caption=Позиция в по-големия том,input=none');
+        $this->FLD('position', 'varchar()', 'caption=Позиция в по-големия том,input=none');
         
         //Състояние
         $this->FLD('state', 'enum(active=Активен,rejected=Изтрит,closed=Приключен)', 'caption=Статус,input=none,notSorting');
@@ -61,7 +94,7 @@ class docarch_Volumes extends core_Master
         //Оща информация
         $this->FLD('firstDocDate', 'date', 'caption=Дата на първия документ в тома,input=none');
         $this->FLD('lastDocDate', 'date', 'caption=Дата на последния документ в тома,input=none');
-        $this->FLD('docCnt', 'int', 'caption=Брой на документите в тома,input=none');
+        $this->FLD('docCnt', 'int', 'caption=Брой,input=none');
         
         $this->FNC('title', 'varchar', 'caption=Име');
         
@@ -171,10 +204,18 @@ class docarch_Volumes extends core_Master
     {
         $rec = &$data->rec;
         
+        
+        //Включване на том в по-голям
         $possibleVolArr = self::getVolumePossibleForInclude($rec);
         
         if ($rec->id && is_null($rec->includeIn) && $rec->type != 'warehouse' && !is_null($possibleVolArr)) {
-            $data->toolbar->addBtn('Включване', array($mvc,'Include',$rec->id,'ret_url' => true));
+            $data->toolbar->addBtn('Включване', array('docarch_Movements','Include',$rec->id,'ret_url' => true));
+        }
+        
+        //Изключване на том от по-голям
+        
+        if ($rec->id && !is_null($rec->includeIn)) {
+            $data->toolbar->addBtn('Изключване', array($mvc,'Exclude',$rec->id,'ret_url' => true));
         }
     }
     
@@ -190,11 +231,13 @@ class docarch_Volumes extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if (($rec->type == docarch_Archives::minDefType($rec->archive)) || $rec->archive == 0) {
-            $rec->isForDocuments = 'yes';
-        }
-        if (($rec->type != docarch_Archives::minDefType($rec->archive)) && $rec->archive != 0) {
-            $rec->isForDocuments = 'no';
+        if (!is_null($rec->archive)) {
+            if (($rec->type == docarch_Archives::minDefType($rec->archive)) || $rec->archive == 0) {
+                $rec->isForDocuments = 'yes';
+            }
+            if (($rec->type != docarch_Archives::minDefType($rec->archive)) && $rec->archive != 0) {
+                $rec->isForDocuments = 'no';
+            }
         }
     }
     
@@ -209,9 +252,12 @@ class docarch_Volumes extends core_Master
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         if ($rec->_isCreated !== true) {
-            
+            $title = self::getRecTitle($rec);
             // Прави запис в модела на движенията
-            $mRec = (object) array('type' => 'creating',);
+            $mRec = (object) array('type' => 'creating',
+                                   'position' => "$title",
+                                  );
+                                
             
             docarch_Movements::save($mRec);
         }
@@ -244,6 +290,47 @@ class docarch_Volumes extends core_Master
         return 'action';
     }
     
+    /**
+     * Изключва един том от по-голям
+     */
+    public function act_Exclude()
+    {
+        
+        $ExcludeRec = new stdClass();
+        $mRec = new stdClass();
+        
+        $thisVolId = Request::get('id');
+        
+        $thisVolRec = $this->fetch($thisVolId);
+        
+        $thisVolName = $this->getVerbal($thisVolRec, 'title');
+        $upVolName = docarch_Volumes::fetch($thisVolRec->includeIn)-> title;
+        
+        $ExcludeRec->includeIn = null;
+        
+        $ExcludeRec->id = $thisVolId;
+        
+        $ExcludeRec->_isCreated = true;
+        
+        $pos =$thisVolName.'|'.$upVolName;
+        
+        
+        $mRec = (object) array(
+                                'type' => 'exclude',
+                                'position' => $thisVolName,
+                               
+                                );
+            
+        docarch_Movements::save($mRec);
+        
+        $this->save($ExcludeRec);
+            
+        return new Redirect(getRetUrl());
+        
+        
+       
+    }
+    
     
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
@@ -270,11 +357,11 @@ class docarch_Volumes extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         //Тома не може да бъде reject-нат ако не е празен
-        if ($action == 'reject' && isset($rec)) {
+        if ($action == 'reject') {
             if (!is_null($rec->docCnt)) {
                 $requiredRoles = 'no_one' ;
             } elseif (($rec->docCnt == 0)) {
-                $requiredRoles = 'no_one' ;
+                // $requiredRoles = 'no_one' ;
             }
         }
     }
@@ -311,7 +398,7 @@ class docarch_Volumes extends core_Master
         
         $title = docarch_Volumes::getVolumeTypeName($rec->type);
         
-        $title .= '-No'.$rec->number.' от архив: '.$arch;
+        $title .= '-No'.$rec->number.' // '.$arch;
         
         
         if ($escaped) {
@@ -340,87 +427,42 @@ class docarch_Volumes extends core_Master
      *
      * @param string $id -id на тома за инкудване
      *
-     * @return array - масив с възможните тoмове / null ако няма
+     * @return array - масив / null ако няма
      */
     public static function getVolumePossibleForInclude($rec)
     {
-        $possibleArr= array();
+        $possibleArr = array();
         $volQuery = docarch_Volumes::getQuery();
         
         $volQuery->where("#state != 'rejected'");
         
         $volQuery->where("#id != {$rec->id} AND #archive = {$rec->archive} AND #type != 'folder'");
-       
+        
         switch ($rec->type) {
             
-            case 'folder':$possibleArr =array('box','case','pallet','warehouse'); break;
+            case 'folder':$possibleArr = array('box'); break;
             
-            case 'box':$possibleArr= array('case','pallet','warehouse'); break;
+            case 'box':$possibleArr = array('case'); break;
             
-            case 'case':$possibleArr =  array('pallet','warehouse'); break;
+            case 'case':$possibleArr = array('pallet'); break;
             
-            case 'pallet':$possibleArr =array('warehouse'); break;
+            case 'pallet':$possibleArr = array('warehouse'); break;
             
             case 'warehouse':$possibleArr = array(); break;
-            
+        
         }
         
-        $volQuery->in('type',$possibleArr);
-     
-        if(empty($volQuery->fetchAll())){
+        $volQuery->in('type', $possibleArr);
+        
+        if (empty($volQuery->fetchAll())) {
             
-            return null;
-            
+            return;
         }
         
-        while ($vol = $volQuery->fetch()){
-            
-            $possibleVolArr[$vol->id]= $vol->title;
+        while ($vol = $volQuery->fetch()) {
+            $possibleVolArr[$vol->id] = $vol->title;
         }
-        
         
         return $possibleVolArr;
-    }
-      
-    /**
-     * Включва един том в по-голям
-     */
-    public function act_Include()
-    {
-        $includeRec = new stdClass();
-        $form = cls::get('core_Form');
-        
-        $thisVolId = Request::get('id');
-        
-        $thisVolRec = $this->fetch($thisVolId);
-        
-        $thisVolName = $this->getVerbal($thisVolRec, 'title');
-        
-        $form->title = "Включване на том|* ' " . ' ' . $thisVolName . "' ||*";
-        
-        $form->FLD('type', 'enum(taking=Включване)', 'caption=Действие');
-        
-        //В кой по голям том се включва
-        $form->FLD('includeIn', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Включен в');
-        
-        $options = self::getVolumePossibleForInclude($thisVolRec);
-        
-        $form->setOptions('includeIn', $options);
-        
-        $form->input(null, true);
-        
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
-        
-        $includeRec = $form->input();
-        
-        if ($form->isSubmitted()) {
-            $this->save($includeRec);
-            
-            return new Redirect(getRetUrl());
-        }
-        
-        return $this->renderWrapping($form->renderHtml());
     }
 }

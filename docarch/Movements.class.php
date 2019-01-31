@@ -17,10 +17,54 @@ class docarch_Movements extends core_Master
 {
     public $title = 'Движения в архива';
     
-    public $loadList = 'plg_Created,plg_Search';
+    public $loadList = 'plg_Created,plg_Search,docarch_Wrapper';
     
-    public $listFields = 'type,documentId,toVolumeId,fromVolumeId,userID,createdOn=Създаден';
+    public $listFields = 'type,position,userID,createdOn=Създаден';
     
+    
+    /**
+     * Кой има право да чете?
+     *
+     * @var string|array
+     */
+    public $canRead;
+    
+    
+    /**
+     * Кой има право да променя?
+     *
+     * @var string|array
+     */
+    public $canEdit = 'no_one';
+    
+    
+    /**
+     * Кой има право да добавя?
+     *
+     * @var string|array
+     */
+    public $canAdd = 'ceo,docarch,docarchMaster';
+    
+    
+    /**
+     * Кой може да го види?
+     *
+     * @var string|array
+     */
+    public $canView = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     *
+     * @var string|array
+     */
+    public $canDelete;
+    
+    
+    /**
+     * Описание на модела (таблицата)
+     */
     protected function description()
     {
         //Избор на типа движение в архива
@@ -30,13 +74,18 @@ class docarch_Movements extends core_Master
         $this->FLD('documentId', 'key(mvc=doc_Containers)', 'caption=Документ,input=hidden,silent');
         
         //Изходящ том участващ в движението
-        $this->FLD('fromVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Изходящ том');
+        $this->FLD('fromVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Контейнер');
         
         //Входящ том участващ в движението
         $this->FLD('toVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Входящ том');
         
+        //Позиция в тома
+        $this->FLD('position', 'varchar()', 'caption=Позиция,input=none');
+        
+        
         //Потребител получил документа или контейнера
         $this->FLD('userID', 'key(mvc=core_Users)', 'caption=Потребител');
+        
     }
     
     
@@ -57,6 +106,8 @@ class docarch_Movements extends core_Master
         
         //Архивиране на документ
         if (($rec->documentId && !$rec->id)) {
+            $arcivesArr = array();
+            
             $Document = doc_Containers::getDocument($rec->documentId);
             
             $documentClassName = $Document->className;
@@ -66,10 +117,44 @@ class docarch_Movements extends core_Master
             //Подготовка на масива с предложеня на том за архивиране на документа
             $volumeSuggestionsArr = array();
             
+            // има ли архиви дефинирани за документи от този клас , или за всякакви документи
+            $documentContainerId = ($rec->documentId);
+            
+            $archQuery = docarch_Archives::getQuery();
+            
+            $archQuery->show('documents');
+            
+            $archQuery->likeKeylist('documents', $documentClassId);
+            
+            $archQuery->orWhere('#documents IS NULL');
+            
+            if ($archQuery->count() > 0) {
+                while ($arcives = $archQuery->fetch()) {
+                    $arcivesArr[] = $arcives->id;
+                }
+            }
+            
+            // Има ли в тези архиви томове дефинирани да архивират документи, с отговорник текущия потребител
             $volQuery = docarch_Volumes::getQuery();
+            
+            //В кои архиви е архивиран към настоящия момент този документ.
+            $balanceDocMove = docarch_Movements::getBalanceOfDocumentMovies($documentContainerId);
+            
+            if (is_array($balanceDocMove)) {
+                foreach ($balanceDocMove as $val) {
+                    if ($val->isInVolume == 1) {
+                        $archVol[$val->toVolumeId] = $val->toVolumeId;
+                    }
+                }
+            }
+            if (!empty($archVol)) {
+                $volQuery->in('id', $archVol, true);
+            }
+            $volQuery->in('archive', $arcivesArr);
+            
             $currentUser = core_Users::getCurrent();
+            
             $volQuery->where("#isForDocuments = 'yes' AND #state = 'active' AND #inCharge = '{$currentUser}'");
-            $cond = '';
             
             while ($vRec = $volQuery->fetch()) {
                 $classArrId = explode('|', trim(docarch_Archives::fetch($vRec->archive)->documents, '|'));
@@ -94,7 +179,9 @@ class docarch_Movements extends core_Master
             $types = array('archiving' => 'Архивиране');
             $form->setOptions('type', $types);
             
-            $form->setField('userID', 'input=none');
+            $form->setField('userID', 'input=hidden');
+            $currentUser = core_Users::getCurrent();
+            $form->setDefault('userID', "{$currentUser}");
         }
         
         if (($rec->documentId && $rec->id)) {
@@ -135,6 +222,7 @@ class docarch_Movements extends core_Master
         //Масив с дейности, които намаляват броя на документите в тома
         $decrementMoves = array('taking');
         
+        
         if (in_array($rec->type, $incrementMoves)) {
             if (!is_null($rec->toVolumeId)) {
                 $volRec = docarch_Volumes::fetch($rec->toVolumeId);
@@ -144,9 +232,6 @@ class docarch_Movements extends core_Master
             
             if (is_null($volRec->docCnt)) {
                 $volRec->firstDocDate = $rec->createdOn;
-                
-                
-                docarch_Volumes::save($volRec, 'firstDocDate');
             }
             
             $volRec->docCnt++;
@@ -155,16 +240,32 @@ class docarch_Movements extends core_Master
         }
         
         if (in_array($rec->type, $decrementMoves)) {
-            if (!is_null($rec->fromVolumeId)) {
-                $volRec = docarch_Volumes::fetch($rec->fromVolumeId);
+            if (!is_null($rec->toVolumeId)) {
+                $volRec = docarch_Volumes::fetch($rec->toVolumeId);
             }
             
             $volRec->_isCreated = true;
             
             $volRec->docCnt--;
             
+            
             docarch_Volumes::save($volRec, 'docCnt');
+            //$rec->toVolumeId = null;
         }
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListRows($mvc, $data)
+    {
+        $recs = &$data->recs;
+        $rows = &$data->rows;
+        
     }
     
     
@@ -178,23 +279,34 @@ class docarch_Movements extends core_Master
     {
         $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
         
-        $documentContainerId = ($data->listFilter->rec->document);
-        
-        if ($documentContainerId) {
-            $lastDocMovie = self::getLastDocumentMove($documentContainerId);
-            $lastVolume = $lastDocMovie[$documentContainerId]->toVolumeId;
-        }
-        
         if ($data->filterCheck) {
+            $documentContainerId = ($data->listFilter->rec->document);
+            
             $Document = doc_Containers::getDocument($documentContainerId);
             $documentName = $Document->singleTitle.'-'.$Document->getHandle();
             $data->title = "Движение в архива на: {$documentName}";
             
+            //Архивиран ли е поне в един том документа
+            if ($documentContainerId) {
+                $archCnt = 0;
+                
+                $balanceDocMove = self::getBalanceOfDocumentMovies($documentContainerId);
+                
+                if (is_array($balanceDocMove)) {
+                    foreach ($balanceDocMove as $val) {
+                        if ($val->isInVolume == 1) {
+                            $archCnt++;
+                        }
+                    }
+                }
+            }
+            
             //Извежда бутона "Вземане" ако докумета е в поне един том
-            if (!is_null($lastVolume)) {
+            if ($archCnt > 0) {
                 $data->toolbar->addBtn('Вземане', array($mvc, 'Taking',
                     'documentId' => $documentContainerId,
-                    'fromVolumeId' => $lastVolume,
+                    
+                    // 'fromVolumeId' => $lastVolume,
                     'ret_url' => true));
                 
                 $data->toolbar->addBtn('Унищожаване', array($mvc, 'Action'));
@@ -236,9 +348,10 @@ class docarch_Movements extends core_Master
                 $data->filterCheck = true;
             }
             
-            // Сортиране на записите по дата на създаване
-            $data->query->orderBy('#createdOn', 'DESC');
+           
         }
+         // Сортиране на записите по дата на създаване
+            $data->query->orderBy('#createdOn', 'DESC');
     }
     
     
@@ -247,7 +360,12 @@ class docarch_Movements extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if ($rec->documentId) {
+        
+        $movieName = self::getMoveName($rec->type);
+        $row->type = $movieName.' »» ';
+        
+        if (($rec->documentId)) {
+            
             $Document = doc_Containers::getDocument($rec->documentId);
             
             $className = $Document->className;
@@ -256,10 +374,120 @@ class docarch_Movements extends core_Master
             
             $url = toUrl(array("${className}",'single', $Document->that));
             
-            $row->documentId = ht::createLink($handle, $url, false, array());
+            $row->type .= ht::createLink($handle, $url, false, array());
+            
+            
+            // има ли архиви дефинирани за документи от този клас , или за всякакви документи
+            $docClassId = core_Classes::getId($className);
+            
+            $documentContainerId = $rec->documentId;
+            
+            $archQuery = docarch_Archives::getQuery();
+            
+            $archQuery->show('documents');
+            
+            $archQuery->likeKeylist('documents', $docClassId);
+            
+            $archQuery->orWhere('#documents IS NULL');
+            
+            if ($archQuery->count() > 0) {
+                while ($arcives = $archQuery->fetch()) {
+                    $arcivesArr[] = $arcives->id;
+                }
+                
+                // Има ли в тези архиви томове дефинирани да архивират документи, с отговорник текущия потребител
+                $volQuery = docarch_Volumes::getQuery();
+                
+                $volQuery->in('archive', $arcivesArr);
+                
+                $currentUser = core_Users::getCurrent();
+                
+                //В кои архиви е архивиран към настоящия момент този документ.
+                $balanceDocMove = docarch_Movements::getBalanceOfDocumentMovies($documentContainerId);
+                
+                if (is_array($balanceDocMove)) {
+                    $archVol = array();
+                    
+                    foreach ($balanceDocMove as $val) {
+                        if ($val->isInVolume == 1) {
+                            $archVol[$val->toVolumeId] = $val->toVolumeId;
+                        }
+                    }
+                }
+                
+                $volQuery->in('id', $archVol, true);
+                
+                $volQuery->where("#isForDocuments = 'yes' AND #inCharge = ${currentUser} AND #state = 'active'");
+                
+                if (($volQuery->count() > 0) && !empty($archVol)) {
+                    $row->type .="<span class = fright>".ht::createBtn('Архив', array($mvc,'Add', 'documentId' => $documentContainerId, 'ret_url' => true)).'</span>';
+                }
+                
+                $row->type .= ' »» ';
+            }
         }
         
-        $row->type = self::getMoveName($row->type);
+        //Ако движението е "Включване"
+        if ($rec->type == 'include'){
+            
+            if ($rec->toVolumeId){
+                
+                $toVolRec =docarch_Volumes::fetch($rec->toVolumeId);
+               
+                $row->type .=docarch_Volumes::getRecTitle($toVolRec).' »» ';
+            }
+            
+            if ($rec->fromVolumeId){
+                
+                $fromVolRec =docarch_Volumes::fetch($rec->fromVolumeId);
+                
+                $row->type .=docarch_Volumes::getRecTitle($fromVolRec);
+            }
+        }
+      
+      
+        //Ако движението е "Изваждане"
+        if ($rec->type == 'taking'){
+           
+            if ($rec->toVolumeId){
+                
+                $fromVolRec =docarch_Volumes::fetch($rec->toVolumeId);
+                
+                $row->type .=docarch_Volumes::getRecTitle($fromVolRec);
+            }
+        }
+        
+        
+        //Ако движението е "Архивиране"
+        if ($rec->type == 'archiving'){
+            
+            if ($rec->toVolumeId){
+                
+                $fromVolRec =docarch_Volumes::fetch($rec->toVolumeId);
+                
+                $row->type .=docarch_Volumes::getRecTitle($fromVolRec);
+            }
+        }
+        
+        
+        //Ако движението е "Изключване"
+        if ($rec->type == 'exclude'){
+            
+            $row->type .=$rec->position.' »» ';
+            $row->position = '';
+        }
+        
+        
+        //Ако движението е "Създаване"
+        if ($rec->type == 'creating'){
+            
+            $row->type .=$rec->position;
+            $row->position = '';
+            
+            
+        }
+        
+       
     }
     
     
@@ -272,9 +500,9 @@ class docarch_Movements extends core_Master
          * Установява необходима роля за да се стартира екшъна
          */
         requireRole('admin');
-        
-        bp(docarch_Movements::getQuery()->fetchAll());
-        
+     //   $Document = doc_Containers::getDocument($documentContainerId);
+        $Document = docarch_Volumes::getDocument($documentContainerId);
+        bp($Document);
         return 'action';
     }
     
@@ -294,20 +522,6 @@ class docarch_Movements extends core_Master
     
     
     /**
-     * Връща типа на възможното движение
-     *
-     * @param int $archive
-     * @param int $document
-     *
-     * @return string
-     */
-    public static function getMovingBalance($arhive, $document)
-    {
-        return $possibleMove;
-    }
-    
-    
-    /**
      * Връща броя архиви към документа
      *
      * @param int $containerId - ид на контейнера
@@ -318,18 +532,24 @@ class docarch_Movements extends core_Master
     {
         $html = '';
         
-        $mQuery = self::getQuery();
+        //На колко места е архивиран този документ.
+        $archCnt = 0;
         
-        $mQuery->in('documentId', $containerId);
+        $balanceDocMove = self::getBalanceOfDocumentMovies($containerId);
         
-        $mCnt = $mQuery->count();
-        
-        if ($mCnt > 0) {
-            $count = cls::get('type_Int')->toVerbal($mCnt);
+        if (is_array($balanceDocMove)) {
+            foreach ($balanceDocMove as $val) {
+                if ($val->isInVolume == 1) {
+                    $archCnt++;
+                }
+            }
+        }
+        if ($archCnt > 0) {
+            $count = cls::get('type_Int')->toVerbal($archCnt);
             $actionVerbal = tr('архиви');
-            $document = doc_Containers::getDocument($containerId);
+            $Document = doc_Containers::getDocument($containerId);
             
-            if ($document->haveRightFor('single')) {
+            if ($Document->haveRightFor('single')) {
                 $linkArr = array('docarch_Movements', 'document' => $containerId, 'ret_url' => true);
             }
             
@@ -347,16 +567,33 @@ class docarch_Movements extends core_Master
      */
     public function act_Taking()
     {
-        $takingRec = new stdClass();
         $form = cls::get('core_Form');
         $form->title = 'Вземане на документ';
+        $form->FLD('documentId', 'int', 'input=hidden,silent');
+        $form->input(null, true);
         
         $form->FLD('type', 'enum(taking=Изваждане)', 'caption=Действие');
         
-        $form->FLD('fromVolumeId', 'int', 'input=hidden,silent');
+        //Подготовка на масива с предложеня на том от който да се извади документа
+        $volumeSuggestionsArr = array();
         
-        $form->FLD('documentId', 'int', 'input=hidden,silent');
+        $form->input(null, 'silent');
         
+        $balanceDocMove = self::getBalanceOfDocumentMovies($form->rec->documentId);
+        
+        if (is_array($balanceDocMove)) {
+            foreach ($balanceDocMove as $val) {
+                if ($val->isInVolume == 1) {
+                    $volRec = docarch_Volumes::fetch($val->toVolumeId);
+                    $volumeSuggestionsArr[$val->toVolumeId] = docarch_Volumes::getRecTitle($volRec);
+                }
+            }
+        }
+        
+        
+        $form->FLD('toVolumeId', 'key(mvc=docarch_Volumes, select=title)', 'caption=От кой том');
+        
+        $form->setOptions('toVolumeId', $volumeSuggestionsArr);
         
         //Потребител получил документа или контейнера
         $form->FLD('userID', 'key(mvc=core_Users)', 'caption=Потребител');
@@ -364,22 +601,90 @@ class docarch_Movements extends core_Master
         $currentUser = core_Users::getCurrent();
         $form->setDefault('userID', "{$currentUser}");
         
-        $form->input(null, true);
-        
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
         
-        $takingRec = $form->input();
+        $form->input();
         
         if ($form->isSubmitted()) {
-            $this->save($takingRec);
+            
+            $this->save($form->rec);
             
             return new Redirect(getRetUrl());
         }
         
         return $this->renderWrapping($form->renderHtml());
     }
+    
+    
+    /**
+     * Включва един том в по-голям
+     */
+    public function act_Include()
+    {
+        $includeRec = new stdClass();
+        $mRec = new stdClass();
+        
+        $form = cls::get('core_Form');
+        
+        $thisVolId = Request::get('id');
+        
+        $thisVolRec = docarch_Volumes::fetch($thisVolId);
+        
+        $includeRec->id = $thisVolId;
+        
+        $thisVolName = docarch_Volumes::getVerbal($thisVolRec, 'title');
+        
+        $form->FLD('type', 'enum(include=Включване)', 'caption=Действие');
+        
+        $form->title = "Включване на том|* ' " . ' ' . $thisVolName . "' ||*";
+        
+        //В кой по голям том се включва
+        $form->FLD('fromVolumeId', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Включен в,input');
+        
+        $form->FLD('position', 'varchar(32)', 'caption=Позиция,after=toVolumeId');
+        
+        $form->FLD('documentId', 'varchar(32)', 'input=hidden');
+        
+        $options = docarch_Volumes::getVolumePossibleForInclude($thisVolRec);
+        
+        $form->setOptions('fromVolumeId', $options);
+        
+        $form->FLD('toVolumeId', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Включен в,input=hidden');
+        
+        $form->setDefault('toVolumeId', $thisVolId);
+        
+        $form->input(null, true);
+        
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+        
+        $mRec = $form->input();
+        
+        $includeRec->id = $thisVolId;
+        
+        if ($form->isSubmitted()) {
+            $includeRec = (object) array(
+                'id' => $thisVolId,
+                'includeIn' => $mRec->fromVolumeId,
+                'position' => $mRec->position,
+                '_isCreated' => true
+            );
+            
+            docarch_Volumes::save($includeRec);
+            
+            $this->save($mRec);
+            
+            return new Redirect(getRetUrl());
+        }
+        
+        return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    
     
     
     /**
@@ -412,15 +717,16 @@ class docarch_Movements extends core_Master
     
     
     /**
-     * Връща последното движение на документ
+     * Връща баланса на движенията на документ в том / томове
      *
      * @param string $containerId -контернер Id на документа
+     * @param int    $volume      -Id на тома. Ако е null връща баланса на движенията във всички томове.
      *
      * @return array
      */
-    public static function getLastDocumentMove($containerId)
+    public static function getBalanceOfDocumentMovies($containerId, $volume = null)
     {
-        $lastDocMove = null;
+        $balanceOfDocumentMovies = array();
         
         $mQuery = self::getQuery();
         
@@ -430,19 +736,43 @@ class docarch_Movements extends core_Master
         
         $mQuery->orderBy('createdOn', 'ASC');
         
-        while ($move = $mQuery->fetch()) {
-            if (!is_null($move->documentId)) {
-                $archive = (!is_null($move->toVolumeId)) ? docarch_Volumes::fetch($move->toVolumeId):'';
+        //Ако документа никога не е архивиран връща null
+        if ($mQuery->count() == 0) {
+            
+            return $balanceOfDocumentMovies = null;
+        }
+        
+        while ($movie = $mQuery->fetch()) {
+            if (!is_null($volume) && $volume != $movie->toVolumeId) {
+                continue;
+            }
+            
+            if (!is_null($movie->documentId) && $movie->documentId == $containerId) {
+                $toVolumeId = $movie->toVolumeId ;
                 
-                $lastDocMove[$move->documentId] = (object) array(
-                    'movingType' => $move->type,
-                    'toVolumeId' => $move->toVolumeId,
-                    'archive' => $archive
+                expect(in_array($movie->type, array('archiving','taking')));
                 
-                );
+                $counter = $movie->type == 'archiving' ? 1 : -1;
+                
+                if ($movie->type == 'taking') {
+                    $toVolumeId = $oldArchive ;
+                }
+                
+                if (! array_key_exists($toVolumeId, $balanceOfDocumentMovies)) {
+                    $balanceOfDocumentMovies[$toVolumeId] = (object) array(
+                        'documentId' => $movie->documentId,
+                        'toVolumeId' => $movie->toVolumeId,
+                        'isInVolume' => $counter
+                    );
+                } else {
+                    $obj = & $balanceOfDocumentMovies[$toVolumeId];
+                    $obj->isInVolume += $counter;
+                }
+                
+                $oldArchive = $toVolumeId;
             }
         }
         
-        return $lastDocMove;
+        return $balanceOfDocumentMovies;
     }
 }
