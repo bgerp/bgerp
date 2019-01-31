@@ -202,7 +202,7 @@ class rack_Products extends store_Products
             $pQuery->where("#id IN (${onlyIds})");
         }
         
-        $xpr = "CONCAT(' ', #name, ' ', #code)";
+        $xpr = "CONCAT(' ', #name, ' ', #code, ' ', #nameEn)";
         $pQuery->XPR('searchFieldXpr', 'text', $xpr);
         $pQuery->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
         
