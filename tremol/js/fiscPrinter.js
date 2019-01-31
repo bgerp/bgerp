@@ -143,6 +143,58 @@ function fpCloseReceiptInCash()
 
 
 /**
+ * Добавяне на плащане
+ * 
+ * @param paymentType
+ * @param change
+ * @param amount
+ * @param changeType
+ */
+function fpPayment(paymentType, change, amount, changeType)
+{
+	if ((paymentType < 0) || (paymentType > 11)) {
+		throw new Error("Типа на плащането може да е от 0 до 11");
+	}
+	
+	if ((change != 0) && (change != 1)) {
+		throw new Error("Рестото може да е 0 или 1");
+	}
+	
+	if ((changeType != 0) && (changeType != 1) && (changeType != 2)) {
+		throw new Error("Непозволен параметър за типа на плащането");
+	}
+	
+    try {
+    	fp.Payment(paymentType, change, amount, changeType);
+    } catch(ex) {
+        handleException(ex);
+    }
+};
+
+
+/**
+ * Добавяне на плащане
+ * 
+ * @param paymentType
+ * @param change
+ * @param amount
+ * @param changeType
+ */
+function fpPayExactSum(paymentType)
+{
+	if ((paymentType < 0) || (paymentType > 11)) {
+		throw new Error("Типа на плащането може да е от 0 до 11");
+	}
+	
+    try {
+    	fp.PayExactSum(paymentType);
+    } catch(ex) {
+        handleException(ex);
+    }
+};
+
+
+/**
  * Прекратява фискалния бон
  */
 function fpCancelFiscalReceipt()

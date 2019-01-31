@@ -105,6 +105,27 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * BEGIN_TEXT - стринг или масив от стрингове с текст, който ще се добавя в началото на бележката - преди продуктите
      * END_TEXT - стринг или масив от стрингове с текст, който ще се добавя в края на бележката - след продуктите
      *
+     * // payments - масив от видовете плащания на бележката - ако не се подаде се приема в брой в лв.
+     * PAYMENT_CHANGE - дали да се изчисли рестото - 0 - с ресто, 1 - без
+     * PAYMENT_AMOUNT - сума на плащането
+     * PAYMENT_CHANGE_TYPE - типа на рестото - 0 - ресто в брой, 1 - същото като плащането, 2 - във валута
+     * PAYMENT_TYPE - типа на плащането, което може да е от 0 до 11
+     * 0 - В брой лв
+     * 1 - Чек
+     * 2 - Талон
+     * 3 - В.Талон
+     * 4 - Амбалаж
+     * 5 - Обслужване
+     * 6 - Повреди
+     * 7 - Карта
+     * 8 - Банка
+     * 9 - Резерв 1 - валута 1
+     * 10 - Резерв 2 - валута 2
+     * 11 - Резерв 3 - валута 3
+     *
+     * PAY_EXACT_SUM_TYPE - лесен начин за плащане на цялата сума в една валута. Параметрите са същити, като PAYMENT_TYPE
+     * Може частично да се плати с един или няколко payments, а остатъка с PAY_EXACT_SUM_TYPE
+     *
      * @return string
      *
      * @see peripheral_FiscPrinter
@@ -199,6 +220,35 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         
         if (isset($params['END_TEXT'])) {
             $this->replaceTextArr($params['END_TEXT'], $js, 'END_TEXT');
+        }
+        
+        // Добавяме начините на плащане
+        if ($params['payments']) {
+            foreach ($params['payments'] as $paymentArr) {
+                $payment = $js->getBlock('PAYMENT');
+                
+                setIfNot($paymentArr['PAYMENT_TYPE'], 0);
+                setIfNot($paymentArr['PAYMENT_CHANGE'], 0);
+                setIfNot($paymentArr['PAYMENT_CHANGE_TYPE'], 0);
+                
+                expect($paymentArr['PAYMENT_AMOUNT']);
+                
+                $payment->replace($paymentArr['PAYMENT_TYPE'], 'PAYMENT_TYPE');
+                $payment->replace($paymentArr['PAYMENT_CHANGE'], 'PAYMENT_CHANGE');
+                $payment->replace($paymentArr['PAYMENT_CHANGE_TYPE'], 'PAYMENT_CHANGE_TYPE');
+                $payment->replace(json_encode($paymentArr['PAYMENT_AMOUNT']), 'PAYMENT_AMOUNT');
+                
+                $payment->removeBlocks();
+                $payment->append2master();
+            }
+        } else {
+            $js->removeBlock('PAYMENT');
+        }
+        
+        if (isset($params['PAY_EXACT_SUM_TYPE'])) {
+            $js->replace($params['PAY_EXACT_SUM_TYPE'], 'PAY_EXACT_SUM_TYPE');
+        } else {
+            $js->removeBlock('PAY_EXACT_SUM_TYPE');
         }
         
         $js = $js->getContent();
