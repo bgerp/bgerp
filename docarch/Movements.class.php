@@ -619,6 +619,7 @@ class docarch_Movements extends core_Master
     {
         $includeRec = new stdClass();
         $mRec = new stdClass();
+        $bigVolRec = new stdClass();
         
         $form = cls::get('core_Form');
         
@@ -658,8 +659,20 @@ class docarch_Movements extends core_Master
         $mRec = $form->input();
         
         $includeRec->id = $thisVolId;
+        $bigVolRec->id = $mRec->fromVolumeId;
         
         if ($form->isSubmitted()) {
+           
+            //по-големия том
+            $bigVolRec =  (object) array(
+                'id' =>  $mRec->fromVolumeId,
+                'includedVolumes' => $thisVolId,
+                '_isCreated' => true
+            );
+            
+            docarch_Volumes::save($bigVolRec);
+            
+            //по-малкия том
             $includeRec = (object) array(
                 'id' => $thisVolId,
                 'includeIn' => $mRec->fromVolumeId,
@@ -668,7 +681,7 @@ class docarch_Movements extends core_Master
             );
             
             docarch_Volumes::save($includeRec);
-            
+           
             $this->save($mRec);
             
             return new Redirect(getRetUrl());
@@ -774,12 +787,13 @@ class docarch_Movements extends core_Master
             if (!is_null($arch) && $arch != docarch_Volumes::fetch($movie->toVolumeId)->archive) {
                 continue;
             }
-            $arr[] = $movie;
+          
             if (!is_null($movie->documentId) && $movie->documentId == $containerId) {
                 expect(in_array($movie->type, array('archiving','taking')));
-                
-                $archive = docarch_Volumes::fetch($movie->toVolumeId)->archive;
-                
+               
+                if(!is_null($movie->toVolumeId)){
+                    $archive = docarch_Volumes::fetch($movie->toVolumeId)->archive;
+                }
                 $toVolumeId = $movie->toVolumeId ;
                 
                 $counter = $movie->type == 'archiving' ? 1 : -1;

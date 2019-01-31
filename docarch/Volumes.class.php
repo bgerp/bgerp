@@ -97,6 +97,7 @@ class docarch_Volumes extends core_Master
         $this->FLD('docCnt', 'int', 'caption=Брой,input=none');
         
         $this->FNC('title', 'varchar', 'caption=Име');
+        $this->FNC('includedVolumes', 'varchar', 'caption=Включени томове');
         
         
         $this->setDbUnique('archive,type,number');
