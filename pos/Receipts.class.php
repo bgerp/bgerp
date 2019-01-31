@@ -1333,14 +1333,12 @@ class pos_Receipts extends core_Master
         
         // Добавяне/обновяване на продукта
         if ($this->pos_ReceiptDetails->save($rec)) {
-            if (Mode::is('screenMode', 'wide')) {
-                $resObj = new stdClass();
-                $resObj->func = 'Sound';
-                $resObj->arg = array('soundOgg' => sbf('sounds/scanner.ogg', ''),
-                    'soundMp3' => sbf('sounds/scanner.mp3', ''),
-                );
-            }
-            
+            $resObj = new stdClass();
+            $resObj->func = 'Sound';
+            $resObj->arg = array('soundOgg' => sbf('sounds/scanner.ogg', ''),
+                'soundMp3' => sbf('sounds/scanner.mp3', ''),
+            );
+
             $resArr = $this->pos_ReceiptDetails->returnResponse($rec->receiptId);
             $resArr[] = $resObj;
             
