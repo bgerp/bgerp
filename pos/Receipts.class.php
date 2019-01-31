@@ -1302,21 +1302,11 @@ class pos_Receipts extends core_Master
             return $this->pos_ReceiptDetails->returnError($receiptId);
         }
         
-        // Ако е забранено продаването на неналични артикули да се проверява
-        $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
-        if ($notInStockChosen != 'yes') {
-            $pointId = $this->fetchField($receiptId, 'pointId');
-            $quantityInStock = pos_Stocks::getQuantity($rec->productId, $pointId);
+        $error = '';
+        if(!self::checkQuantity($rec, $error)){
+            core_Statuses::newStatus($error, 'error');
             
-            $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
-            $quantityInPack = ($pRec) ? $pRec->quantity : 1;
-            $quantityInStock -= $rec->quantity * $quantityInPack;
-            
-            if ($quantityInStock < 0) {
-                core_Statuses::newStatus('Артикулът не е в наличност', 'error');
-                
-                return $this->pos_ReceiptDetails->returnError($receiptId);
-            }
+            return $this->pos_ReceiptDetails->returnError($receiptId);
         }
         
         // Намираме дали този проект го има въведен
@@ -1347,6 +1337,36 @@ class pos_Receipts extends core_Master
         core_Statuses::newStatus('|Проблем при добавяне на артикул|*!', 'error');
         
         return $this->pos_ReceiptDetails->returnError($receiptId);
+    }
+    
+    
+    /**
+     * Проверка на количеството
+     * 
+     * @param stdClass $rec
+     * @param string $error
+     * @return boolean
+     */
+    public static function checkQuantity($rec, &$error)
+    {
+        // Ако е забранено продаването на неналични артикули да се проверява
+        $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
+        if($notInStockChosen == 'yes') return true;
+        
+        $pointId = self::fetchField($rec->receiptId, 'pointId');
+        $quantityInStock = pos_Stocks::getQuantity($rec->productId, $pointId);
+        
+        $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
+        $quantityInPack = ($pRec) ? $pRec->quantity : 1;
+        $quantityInStock -= $rec->quantity * $quantityInPack;
+        
+        if ($quantityInStock < 0) {
+           $error = 'Артикулът не е в наличност';
+           
+           return false;
+        }
+        
+        return true;
     }
     
     

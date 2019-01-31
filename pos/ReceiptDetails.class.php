@@ -292,9 +292,16 @@ class pos_ReceiptDetails extends core_Detail
             return $this->returnResponse($rec->receiptId);
         }
         
-        // Преизчисляваме сумата
+        // Преизчисляване на сумата
         $rec->quantity = $quantityId;
         $rec->amount = $rec->price * $rec->quantity;
+        
+        $error = '';
+        if(!pos_Receipts::checkQuantity($rec, $error)){
+            core_Statuses::newStatus($error, 'error');
+            
+            return $this->returnError($rec->receiptId);
+        }
         
         // Запис на новото количество
         if ($this->save($rec)) {
