@@ -215,7 +215,7 @@ class docarch_Volumes extends core_Master
         //Изключване на том от по-голям
         
         if ($rec->id && !is_null($rec->includeIn)) {
-            $data->toolbar->addBtn('Изключване', array($mvc,'Exclude',$rec->id,'ret_url' => true));
+            $data->toolbar->addBtn('Изключване', array('docarch_Movements','Exclude',$rec->id,'ret_url' => true));
         }
     }
     
@@ -253,11 +253,12 @@ class docarch_Volumes extends core_Master
     {
         if ($rec->_isCreated !== true) {
             $title = self::getRecTitle($rec);
+            
             // Прави запис в модела на движенията
             $mRec = (object) array('type' => 'creating',
-                                   'position' => "$title",
-                                  );
-                                
+                'position' => "${title}",
+            );
+            
             
             docarch_Movements::save($mRec);
         }
@@ -288,47 +289,6 @@ class docarch_Volumes extends core_Master
         bp(docarch_Volumes::getQuery()->fetchAll());
         
         return 'action';
-    }
-    
-    /**
-     * Изключва един том от по-голям
-     */
-    public function act_Exclude()
-    {
-        
-        $ExcludeRec = new stdClass();
-        $mRec = new stdClass();
-        
-        $thisVolId = Request::get('id');
-        
-        $thisVolRec = $this->fetch($thisVolId);
-        
-        $thisVolName = $this->getVerbal($thisVolRec, 'title');
-        $upVolName = docarch_Volumes::fetch($thisVolRec->includeIn)-> title;
-        
-        $ExcludeRec->includeIn = null;
-        
-        $ExcludeRec->id = $thisVolId;
-        
-        $ExcludeRec->_isCreated = true;
-        
-        $pos =$thisVolName.'|'.$upVolName;
-        
-        
-        $mRec = (object) array(
-                                'type' => 'exclude',
-                                'position' => $thisVolName,
-                               
-                                );
-            
-        docarch_Movements::save($mRec);
-        
-        $this->save($ExcludeRec);
-            
-        return new Redirect(getRetUrl());
-        
-        
-       
     }
     
     

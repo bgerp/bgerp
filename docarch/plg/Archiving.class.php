@@ -61,7 +61,7 @@ class docarch_plg_Archiving extends core_Plugin
             
             if (is_array($balanceDocMove)) {
                 foreach ($balanceDocMove as $val) {
-                    $balanceMarker = ($val->isInVolume != 0) ? false : true;
+                    $balanceMarker = ($val->isInArchive != 0) ? false : true;
                     if ($balanceMarker === true) {
                         break;
                     }
