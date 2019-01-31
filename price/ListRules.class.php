@@ -966,7 +966,7 @@ class price_ListRules extends core_Detail
             }
         }
         
-        $xpr = "CONCAT(' ', #name, ' ', #code)";
+        $xpr = "CONCAT(' ', #name, ' ', #code, ' ', #nameEn)";
         $pQuery->XPR('searchFieldXpr', 'text', $xpr);
         $pQuery->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
         
