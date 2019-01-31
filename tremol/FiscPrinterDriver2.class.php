@@ -125,6 +125,8 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      *
      * PAY_EXACT_SUM_TYPE - лесен начин за плащане на цялата сума в една валута. Параметрите са същити, като PAYMENT_TYPE
      * Може частично да се плати с един или няколко payments, а остатъка с PAY_EXACT_SUM_TYPE
+     * 
+     * Ако няма PAY_EXACT_SUM_TYPE и payments плащането ще е "В брой лв" (0)
      *
      * @return string
      *
