@@ -535,7 +535,7 @@ class pos_Receipts extends core_Master
                     $tab = new ET(tr("|*<li [#active#] title='|Търсене на артикул|*'><a href='#tools-search' accesskey='o'>|Търсене|*</a></li><li title='|Всички чернови бележки|*'><a href='#tools-drafts' data-url='{$DraftsUrl}' accesskey='p'>|Бележки|*</a></li>"));
                     
                     if ($selectedFavourites = $this->getSelectFavourites()) {
-                        $tab->prepend(tr("|*<li class='active' title='|Избор на бърз артикул|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a></li>"));
+                        $tab->prepend(tr("|*<li class='active' title='|Избор на най-продавани артикули|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a></li>"));
                         $tpl->replace($selectedFavourites, 'CHOOSE_DIV_WIDE');
                     } else {
                         $tab->replace("class='active'", 'active');
@@ -630,9 +630,8 @@ class pos_Receipts extends core_Master
         }
         
         $tpl->placeObject($data->row);
-        
         $img = ht::createElement('img', array('src' => sbf('pos/img/bgerp.png', '')));
-        $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink'));
+        $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink', 'title' => 'Към портала'));
         $tpl->append($logo, 'LOGO');
         
         // Слагане на детайлите на бележката
@@ -653,21 +652,28 @@ class pos_Receipts extends core_Master
     public function getTools($id)
     {
         $tpl = new ET('');
-        expect($rec = $this->fetchRec($id));
+        expect($this->fetchRec($id));
         
         // Рендиране на пулта
-        $tab = tr("|*<li class='active' title='|Пулт|*'><a href='#tools-form' accesskey='z'>|Пулт|*</a></li><li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='x'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='c'>|Прехвърляне|*</a></li>");
+        if (Mode::is('screenMode', 'narrow')) {
+            $tab = tr("|*<li class='active' title='|Пулт|*'><a href='#tools-form' accesskey='z'>|Пулт|*</a></li>");
+        } else {
+            $tab = tr("|*<li class='active' title='|Пулт|*'><a href='#tools-form' accesskey='z'>|Пулт|*</a></li><li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='x'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='c'>|Прехвърляне|*</a></li>");
+        }
         $tpl->append($this->renderToolsTab($id), 'TAB_TOOLS');
         
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
-            
-            // Добавяне на таба с бързите бутони
-            $tpl->append($this->getSelectFavourites(), 'CHOOSE_DIV');
+            if($selectedFavourites = $this->getSelectFavourites()){
+                // Добавяне на таба с бързите бутони
+                $tab .= tr("|*<li title='|Избор на най-продавани артикули|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a>");
+                $tpl->append($selectedFavourites, 'CHOOSE_DIV');
+            }
             
             // Добавяне на таба с избор
             $tpl->append($this->renderChooseTab($id), 'SEARCH_DIV');
-            $tab .= tr("|*<li title='|Избор на бърз артикул|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a></li><li title='|Търсене на артикул|*'><a href='#tools-search' accesskey='o'>|Търсене|*</a></li><li><a href='#tools-drafts' title='|Всички чернови бележки|*' accesskey='p'>|Бележки|*</a></li>");
+            $tab .= tr("|*<li title='|Търсене на артикул|*'><a href='#tools-search' accesskey='o'>|Търсене|*</a></li>");
+            $tab .= tr("<li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='x'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='c'>|Прехвърляне|*</a></li><li><a href='#tools-drafts' title='|Всички чернови бележки|*' accesskey='p'>|Бележки|*</a></li>");
             
             // Добавяне на таба с черновите
             $tpl->append($this->renderDraftsTab($id), 'DRAFTS');
@@ -678,7 +684,6 @@ class pos_Receipts extends core_Master
         
         // Добавяне на таба за прехвърлянията
         $tpl->append($this->renderTransferTab($id), 'TRANSFERS');
-        
         $tpl->append($tab, 'TABS');
         
         return $tpl;
