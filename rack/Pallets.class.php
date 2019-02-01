@@ -875,4 +875,21 @@ class rack_Pallets extends core_Manager
         
         return $resArr;
     }
+    
+    
+    public static function getFloorToPalletImgLink($storeId, $productId, $packagingId, $packQuantity, $batch = null)
+    {
+        if(store_Stores::getCurrent('id', false) != $storeId) return false;
+        
+        if (rack_Movements::haveRightFor('add', (object) array('productId' => $productId))){
+            $addPalletUrl = array('rack_Movements', 'add', 'productId' => $productId, 'packagingId' => $packagingId, 'packQuantity' => $packQuantity, 'fixedProduct' => true, 'movementType' => 'floor2rack', 'ret_url' => true);
+            if(!empty($batch)){
+                $addPalletUrl['batch'] = $batch;
+            }
+            
+            return  ht::createLink('', $addPalletUrl, false, 'ef_icon=img/16/pallet1.png,title=Палетиране на артикул');
+        }
+        
+        return false;
+    }
 }

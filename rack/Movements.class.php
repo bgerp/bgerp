@@ -361,6 +361,9 @@ class rack_Movements extends core_Manager
         $form->setField('workerId', 'input=none');
         
         $defZones = Request::get('defaultZones', 'varchar');
+        if(Request::get('fixedProduct', 'int')){
+            $form->setReadOnly('productId');
+        }
         
         if (isset($rec->productId)) {
             $form->setField('packagingId', 'input');
@@ -405,6 +408,15 @@ class rack_Movements extends core_Manager
                     
                     $batches = batch_Items::getBatches($rec->productId, $rec->storeId, true);
                     $form->setOptions('batch', array('' => '') + $batches);
+                    
+                    // Ако е фиксиран артикула, фиксира се и партидата
+                    if(Request::get('fixedProduct', 'int')){
+                        if($batch = Request::get('batch', 'varchar')){
+                            $form->setReadOnly('batch', $batch);
+                        } else {
+                            $form->setReadOnly('batch');
+                        }
+                    }
                     
                     $fieldCaption = $BatchClass->getFieldCaption();
                     if (!empty($fieldCaption)) {

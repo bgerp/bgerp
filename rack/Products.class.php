@@ -179,9 +179,11 @@ class rack_Products extends store_Products
             $query->where("#storeId = {$storeId} AND #quantity > 0");
         }
         
-        $inIds = array();
-        while ($rec = $query->fetch()) {
-            $inIds[$rec->productId] = $rec->productId;
+        $inIds = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+        
+        // Подсигуряване че конкретните артикули, ще са винаги заредени в опциите
+        if(ctype_digit($onlyIds) && !array_key_exists($onlyIds, $inIds)){
+            $inIds[$onlyIds] = $onlyIds;
         }
         
         $products = array();
