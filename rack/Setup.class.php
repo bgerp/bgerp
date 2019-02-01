@@ -127,6 +127,7 @@ class rack_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Връзка между протокола за отговорно пазене и палетния склад', 'rack_plg_Shipments', 'store_ConsignmentProtocols', 'private');
         
         $html .= $Plugins->installPlugin('Връзка между СР-то и палетния склад', 'rack_plg_IncomingShipmentDetails', 'store_ReceiptDetails', 'private');
+        $html .= $Plugins->installPlugin('Връзка между МСТ-то и входящия палетен склад ', 'rack_plg_IncomingShipmentDetails', 'store_TransfersDetails', 'private');
         
         return $html;
     }
