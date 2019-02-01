@@ -431,35 +431,19 @@ class core_Packs extends core_Manager
             $opt['core'] = 'core';
         }
         
-        $appDirs = $this->getSubDirs(EF_APP_PATH);
-        
-        if (defined('EF_PRIVATE_PATH')) {
-            $privateDirs = $this->getSubDirs(EF_PRIVATE_PATH);
-        }
-        
-        if (count($appDirs)) {
-            foreach ($appDirs as $dir => $dummy) {
-                $path = EF_APP_PATH . '/' . $dir . '/' . 'Setup.class.php';
-                
-                if (file_exists($path)) {
-                    
-                    // Ако този пакет не е инсталиран -
-                    // добавяме го като опция за инсталиране
-                    $opt[$dir] = $dir;
-                }
-            }
-        }
-        
-        if (count($privateDirs)) {
-            foreach ($privateDirs as $dir => $dummy) {
-                $path = EF_PRIVATE_PATH . '/' . $dir . '/' . 'Setup.class.php';
-                
-                // Ако този пакет не е инсталиран -
-                // добавяме го като опция за инсталиране
-                if (file_exists($path)) {
-                    $opt[$dir] = $dir;
-                }
-            }
+        $reposArr = core_App::getRepos();
+        foreach ($reposArr as $dir){
+           $appDirs = $this->getSubDirs($dir);
+           if (count($appDirs)) {
+               foreach ($appDirs as $subDir => $dummy) {
+                   $path = rtrim($dir, "/\\") . '/' . $subDir . '/' . 'Setup.class.php';
+                   if (file_exists($path)) {
+                       // Ако този пакет не е инсталиран -
+                       // добавяме го като опция за инсталиране
+                       $opt[$subDir] = $subDir;
+                   }
+               }
+           }
         }
         
         return $opt;
