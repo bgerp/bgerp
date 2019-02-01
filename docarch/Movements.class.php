@@ -619,7 +619,6 @@ class docarch_Movements extends core_Master
     {
         $includeRec = new stdClass();
         $mRec = new stdClass();
-        $bigVolRec = new stdClass();
         
         $form = cls::get('core_Form');
         
@@ -659,19 +658,9 @@ class docarch_Movements extends core_Master
         $mRec = $form->input();
         
         $includeRec->id = $thisVolId;
-        $bigVolRec->id = $mRec->fromVolumeId;
         
         if ($form->isSubmitted()) {
            
-            //по-големия том
-            $bigVolRec =  (object) array(
-                'id' =>  $mRec->fromVolumeId,
-                'includedVolumes' => $thisVolId,
-                '_isCreated' => true
-            );
-            
-            docarch_Volumes::save($bigVolRec);
-            
             //по-малкия том
             $includeRec = (object) array(
                 'id' => $thisVolId,
@@ -799,7 +788,7 @@ class docarch_Movements extends core_Master
                 $counter = $movie->type == 'archiving' ? 1 : -1;
                 
                 if ($movie->type == 'taking') {
-                    //      $archive = $oldArchive ;
+                          $archive = $oldArchive ;
                 }
                 
                 if (! array_key_exists($archive, $balanceOfDocumentMovies)) {

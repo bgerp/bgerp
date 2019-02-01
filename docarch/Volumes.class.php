@@ -65,7 +65,7 @@ class docarch_Volumes extends core_Master
      *
      * @var string|array
      */
-    public $canDelete = 'ceo,docarchMaster,docarch';
+    public $canDelete = 'no_one';
     
     protected function description()
     {
@@ -154,10 +154,34 @@ class docarch_Volumes extends core_Master
         }
     }
     
-    public function on_CalcTitle($mvc, $rec)
+    
+    /**
+     * След подготовка на сингъла
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-        $rec->title = self::getRecTitle($rec);
+        $row = &$data->row;
+        $rec = &$data->rec;
+        
+//         $rec->includedVolumes = self::getInludedVolumes($rec);
+//         bp($rec,$row);
     }
+    
+    
+    /**
+     * Изчисляване на заглавието
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     *
+     * @return void
+     */
+    protected static function on_CalcTitle($mvc, $rec)
+    {
+        
+        $rec->title = self::getRecTitle($rec);
+      
+    } 
     
     
     /**
@@ -287,7 +311,7 @@ class docarch_Volumes extends core_Master
          */
         requireRole('admin');
         
-        bp(docarch_Volumes::getQuery()->fetchAll());
+      
         
         return 'action';
     }
@@ -355,6 +379,32 @@ class docarch_Volumes extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
+        $arch = ($rec->archive == 0) ? 'Сборен' : docarch_Archives::fetch($rec->archive)->name;
+        
+        $title = docarch_Volumes::getVolumeTypeName($rec->type);
+        
+        $title .= '-No'.$rec->number.' // '.$arch;
+        
+        
+        if ($escaped) {
+            $title = type_Varchar::escape($title);
+        }
+        
+        return $title;
+    }
+    
+    
+    /**
+     * Връща включените в този том томове
+     */
+    public static function getInludedVolumes($rec, $escaped = true)
+    {
+        $volRec = docarch_Volumes::getQuery();
+        
+        while ($volume = $volRec->fetch()) {
+         bp($volume,$rec);  ;
+        }
+        
         $arch = ($rec->archive == 0) ? 'Сборен' : docarch_Archives::fetch($rec->archive)->name;
         
         $title = docarch_Volumes::getVolumeTypeName($rec->type);
