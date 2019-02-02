@@ -1,0 +1,5 @@
+// Задаваме настройките на сървъра
+fpServerSetSettings([#SERVER_IP#], [#SERVER_TCP_PORT#]);
+
+// Задаваме настройките за връзка с касовия апарат
+fpServerSetDeviceSettings([#TCP_IP#], [#TCP_PORT#], [#TCP_PASS#], [#SERIAL_PORT#], [#SERIAL_BAUD_RATE#], [#SERIAL_KEEP_PORT_OPEN#]);

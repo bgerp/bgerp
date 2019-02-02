@@ -535,7 +535,7 @@ class pos_Receipts extends core_Master
                     $tab = new ET(tr("|*<li [#active#] title='|Търсене на артикул|*'><a href='#tools-search' accesskey='o'>|Търсене|*</a></li><li title='|Всички чернови бележки|*'><a href='#tools-drafts' data-url='{$DraftsUrl}' accesskey='p'>|Бележки|*</a></li>"));
                     
                     if ($selectedFavourites = $this->getSelectFavourites()) {
-                        $tab->prepend(tr("|*<li class='active' title='|Избор на бърз артикул|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a></li>"));
+                        $tab->prepend(tr("|*<li class='active' title='|Избор на най-продавани артикули|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a></li>"));
                         $tpl->replace($selectedFavourites, 'CHOOSE_DIV_WIDE');
                     } else {
                         $tab->replace("class='active'", 'active');
@@ -558,7 +558,7 @@ class pos_Receipts extends core_Master
         }
         
         // Вкарване на css и js файлове
-        $this->pushFiles($tpl);
+        $this->pushTerminalFiles($tpl);
         
         $this->renderWrapping($tpl);
         
@@ -569,7 +569,7 @@ class pos_Receipts extends core_Master
     /**
      * Вкарване на css и js файлове
      */
-    private function pushFiles(&$tpl)
+    public function pushTerminalFiles_(&$tpl)
     {
         $tpl->push('css/Application.css', 'CSS');
         $tpl->push('css/default-theme.css', 'CSS');
@@ -630,9 +630,8 @@ class pos_Receipts extends core_Master
         }
         
         $tpl->placeObject($data->row);
-        
         $img = ht::createElement('img', array('src' => sbf('pos/img/bgerp.png', '')));
-        $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink'));
+        $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink', 'title' => 'Към портала'));
         $tpl->append($logo, 'LOGO');
         
         // Слагане на детайлите на бележката
@@ -653,21 +652,28 @@ class pos_Receipts extends core_Master
     public function getTools($id)
     {
         $tpl = new ET('');
-        expect($rec = $this->fetchRec($id));
+        expect($this->fetchRec($id));
         
         // Рендиране на пулта
-        $tab = tr("|*<li class='active' title='|Пулт|*'><a href='#tools-form' accesskey='z'>|Пулт|*</a></li><li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='x'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='c'>|Прехвърляне|*</a></li>");
+        if (Mode::is('screenMode', 'narrow')) {
+            $tab = tr("|*<li class='active' title='|Пулт|*'><a href='#tools-form' accesskey='z'>|Пулт|*</a></li>");
+        } else {
+            $tab = tr("|*<li class='active' title='|Пулт|*'><a href='#tools-form' accesskey='z'>|Пулт|*</a></li><li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='x'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='c'>|Прехвърляне|*</a></li>");
+        }
         $tpl->append($this->renderToolsTab($id), 'TAB_TOOLS');
         
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
-            
-            // Добавяне на таба с бързите бутони
-            $tpl->append($this->getSelectFavourites(), 'CHOOSE_DIV');
+            if($selectedFavourites = $this->getSelectFavourites()){
+                // Добавяне на таба с бързите бутони
+                $tab .= tr("|*<li title='|Избор на най-продавани артикули|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a>");
+                $tpl->append($selectedFavourites, 'CHOOSE_DIV');
+            }
             
             // Добавяне на таба с избор
             $tpl->append($this->renderChooseTab($id), 'SEARCH_DIV');
-            $tab .= tr("|*<li title='|Избор на бърз артикул|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a></li><li title='|Търсене на артикул|*'><a href='#tools-search' accesskey='o'>|Търсене|*</a></li><li><a href='#tools-drafts' title='|Всички чернови бележки|*' accesskey='p'>|Бележки|*</a></li>");
+            $tab .= tr("|*<li title='|Търсене на артикул|*'><a href='#tools-search' accesskey='o'>|Търсене|*</a></li>");
+            $tab .= tr("<li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='x'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='c'>|Прехвърляне|*</a></li><li><a href='#tools-drafts' title='|Всички чернови бележки|*' accesskey='p'>|Бележки|*</a></li>");
             
             // Добавяне на таба с черновите
             $tpl->append($this->renderDraftsTab($id), 'DRAFTS');
@@ -678,7 +684,6 @@ class pos_Receipts extends core_Master
         
         // Добавяне на таба за прехвърлянията
         $tpl->append($this->renderTransferTab($id), 'TRANSFERS');
-        
         $tpl->append($tab, 'TABS');
         
         return $tpl;
@@ -1101,26 +1106,47 @@ class pos_Receipts extends core_Master
         $printUrl = array($this, 'terminal', $rec->id, 'Printing' => 'yes');
         $block->append(ht::createBtn('Печат', $printUrl, null, null, array('class' => 'actionBtn', 'title' => 'Принтиране на бележката')), 'CLOSE_BTNS');
         
-        // Ако може да се издаде касова бележка, активираме бутона
-        if ($this->haveRightFor('printReceipt', $rec)) {
-            $recUrl = array($this, 'printReceipt', $rec->id);
-        }
+        $receiptBtn = $this->getPrintReceiptBtn($rec);
+        $block->append($receiptBtn, 'CLOSE_BTNS');
         
-        $disClass = ($recUrl) ? '' : 'disabledBtn';
-        $block->append(ht::createBtn('Касов бон', $recUrl, null, null, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издаване на касова бележка')), 'CLOSE_BTNS');
-        
-        if ($this->haveRightFor('close', $rec)) {
-            $contoUrl = array('pos_Receipts', 'close', $rec->id);
-            $hint = tr('Приключване на продажбата');
-        } else {
-            $contoUrl = null;
-            $hint = tr('Не може да приключите бележката, докато не е платена');
-        }
-        
-        $disClass = ($contoUrl) ? '' : 'disabledBtn';
-        $block->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-close', 'title' => $hint)), 'CLOSE_BTNS');
+        $closeBtn = $this->getCloseReceiptBtn($rec);
+        $block->append($closeBtn, 'CLOSE_BTNS');
         
         return $block;
+    }
+    
+    
+    /**
+     * Kакво е урл-то за печат на бележката
+     */
+    protected static function on_AfterGetCloseReceiptBtn($mvc, &$tpl, $rec)
+    {
+        if(!$tpl){
+            if ($mvc->haveRightFor('close', $rec)) {
+                $contoUrl = array('pos_Receipts', 'close', $rec->id);
+                $hint = tr('Приключване на продажбата');
+            } else {
+                $contoUrl = null;
+                $hint = tr('Не може да приключите бележката, докато не е платена');
+            }
+            $disClass = ($contoUrl) ? '' : 'disabledBtn';
+            
+            $tpl = ht::createBtn('Приключи', $contoUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-close', 'title' => $hint));
+        }
+    }
+    
+    
+    /**
+     * Kакво е урл-то за печат на бележката
+     */
+    protected static function on_AfterGetPrintReceiptBtn($mvc, &$tpl, $rec)
+    {
+        if(!$tpl){
+            $url = ($mvc->haveRightFor('printReceipt', $rec)) ? array($mvc, 'printReceipt', $rec->id) : array();
+            $disClass = ($url) ? '' : 'disabledBtn';
+            
+            $tpl = ht::createBtn('Касов бон', $url, null, null, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издаване на касова бележка'));
+        }
     }
     
     
@@ -1276,21 +1302,11 @@ class pos_Receipts extends core_Master
             return $this->pos_ReceiptDetails->returnError($receiptId);
         }
         
-        // Ако е забранено продаването на неналични артикули да се проверява
-        $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
-        if ($notInStockChosen != 'yes') {
-            $pointId = $this->fetchField($receiptId, 'pointId');
-            $quantityInStock = pos_Stocks::getQuantity($rec->productId, $pointId);
+        $error = '';
+        if(!self::checkQuantity($rec, $error)){
+            core_Statuses::newStatus($error, 'error');
             
-            $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
-            $quantityInPack = ($pRec) ? $pRec->quantity : 1;
-            $quantityInStock -= $rec->quantity * $quantityInPack;
-            
-            if ($quantityInStock < 0) {
-                core_Statuses::newStatus('Артикулът не е в наличност', 'error');
-                
-                return $this->pos_ReceiptDetails->returnError($receiptId);
-            }
+            return $this->pos_ReceiptDetails->returnError($receiptId);
         }
         
         // Намираме дали този проект го има въведен
@@ -1307,14 +1323,12 @@ class pos_Receipts extends core_Master
         
         // Добавяне/обновяване на продукта
         if ($this->pos_ReceiptDetails->save($rec)) {
-            if (Mode::is('screenMode', 'wide')) {
-                $resObj = new stdClass();
-                $resObj->func = 'Sound';
-                $resObj->arg = array('soundOgg' => sbf('sounds/scanner.ogg', ''),
-                    'soundMp3' => sbf('sounds/scanner.mp3', ''),
-                );
-            }
-            
+            $resObj = new stdClass();
+            $resObj->func = 'Sound';
+            $resObj->arg = array('soundOgg' => sbf('sounds/scanner.ogg', ''),
+                'soundMp3' => sbf('sounds/scanner.mp3', ''),
+            );
+
             $resArr = $this->pos_ReceiptDetails->returnResponse($rec->receiptId);
             $resArr[] = $resObj;
             
@@ -1323,6 +1337,36 @@ class pos_Receipts extends core_Master
         core_Statuses::newStatus('|Проблем при добавяне на артикул|*!', 'error');
         
         return $this->pos_ReceiptDetails->returnError($receiptId);
+    }
+    
+    
+    /**
+     * Проверка на количеството
+     * 
+     * @param stdClass $rec
+     * @param string $error
+     * @return boolean
+     */
+    public static function checkQuantity($rec, &$error)
+    {
+        // Ако е забранено продаването на неналични артикули да се проверява
+        $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
+        if($notInStockChosen == 'yes') return true;
+        
+        $pointId = self::fetchField($rec->receiptId, 'pointId');
+        $quantityInStock = pos_Stocks::getQuantity($rec->productId, $pointId);
+        
+        $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
+        $quantityInPack = ($pRec) ? $pRec->quantity : 1;
+        $quantityInStock -= $rec->quantity * $quantityInPack;
+        
+        if ($quantityInStock < 0) {
+           $error = 'Артикулът не е в наличност';
+           
+           return false;
+        }
+        
+        return true;
     }
     
     

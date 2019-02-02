@@ -343,7 +343,14 @@ class planning_AssetResources extends core_Master
                             if (++$cnt > $limitForDocs) {
                                 break;
                             }
-                            $issues .= "<div class='state-'{$sRec->state}>" . cal_Tasks::getLinkToSingle($sRec->id) . '</div>';
+                            
+                            $linkTitle = cal_Tasks::getVerbal($sRec->id, 'progress');
+                            $linkTitle .= ' ' . cal_Tasks::getVerbal($sRec->id, 'title');
+                            
+                            // Вземаме линка
+                            $link = ht::createLink($linkTitle, cal_Tasks::getSingleUrlArray($sRec->id), null, array('ef_icon' => cal_Tasks::getIcon($sRec->id)));
+                            
+                            $issues .= "<div class='state-{$sRec->state}'>" . $link . '</div>';
                         }
                     }
                     
@@ -378,7 +385,7 @@ class planning_AssetResources extends core_Master
                         $pQuery->limit($limitForDocs);
                         
                         while ($pRec = $pQuery->fetch()) {
-                            $jobs .= "<div class='state-'{$pRec->state}>" . planning_Tasks::getLinkToSingle($pRec->id) . '</div>';
+                            $jobs .= "<div class='state-{$pRec->state}'>" . planning_Tasks::getLinkToSingle($pRec->id) . '</div>';
                         }
                     }
                     
@@ -421,7 +428,7 @@ class planning_AssetResources extends core_Master
                 if (tracking_Log::haveRightFor('list', $vRec)) {
                     $vehicle = ht::createLinkRef($vehicle, array('tracking_Log', 'vehicleId' => $vRec->id));
                 }
-                $row->tracking = "<div class='state-'{$vRec->state}>{$vehicle}</div>";
+                $row->tracking = "<div class='state-{$vRec->state}'>{$vehicle}</div>";
             }
         }
     }

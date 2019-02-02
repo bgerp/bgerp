@@ -134,6 +134,12 @@ class planning_Tasks extends core_Master
     
     
     /**
+     * Кой може да го активира?
+     */
+    public $canChangestate = 'ceo, taskPlanning';
+    
+    
+    /**
      * Кой може да го редактира?
      */
     public $canEdit = 'ceo, taskPlanning';

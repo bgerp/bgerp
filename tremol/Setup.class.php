@@ -38,6 +38,12 @@ defIfNot('TREMOL_GROUP_G', 3);
 
 
 /**
+ * Версия на драйверите на ФУ
+ */
+defIfNot('TREMOL_FP_DRIVER_VERSION', '11.01');
+
+
+/**
  * class tremol_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -102,6 +108,7 @@ class tremol_Setup extends core_ProtoSetup
         'TREMOL_GROUP_B' => array('int', 'caption=Кодове за синхронизация с фискалния принтер->Група "Б"'),
         'TREMOL_GROUP_V' => array('int', 'caption=Кодове за синхронизация с фискалния принтер->Група "В"'),
         'TREMOL_GROUP_G' => array('int', 'caption=Кодове за синхронизация с фискалния принтер->Група "Г"'),
+        'TREMOL_FP_DRIVER_VERSION' => array('enum(11.01)', 'caption=Тремол->Версия на драйверите на ФУ, customizeBy=peripheral|admin'),
     );
     
     

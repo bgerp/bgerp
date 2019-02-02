@@ -60,7 +60,22 @@ class select2_PluginSelect extends core_Plugin
             if ($value) {
                 if (!isset($invoker->options[$value])) {
                     $allowedListArr = $invoker->getAllowedKeyVal($value);
-                    $value = reset($allowedListArr);
+                    
+                    // Опитваме се да намерим коректната опция
+                    $vFromOpt = null;
+                    foreach ((array)$allowedListArr as $v) {
+                        if ($invoker->options[$v]) {
+                            $vFromOpt = $v;
+                            
+                            break;
+                        }
+                    }
+                    
+                    if ($vFromOpt) {
+                        $value = $vFromOpt;
+                    } else {
+                        $value = reset($allowedListArr);
+                    }
                 }
                 
                 if ($value) {

@@ -869,8 +869,8 @@ class sales_Sales extends deals_DealMaster
         // Отново вкарваме езика на шаблона в сесията
         core_Lg::push($rec->tplLang);
         
-        $hasTransport = !empty($data->row->hiddenTransportCost) || !empty($data->row->expectedTransportCost) || !empty($data->row->visibleTransportCost);
-        if (Mode::isReadOnly() || $hasTransport === false || core_Users::haveRole('partner')) {
+        // Скриване на секцията с транспорт, при определени условия
+        if (Mode::isReadOnly() || core_Users::haveRole('partner') || empty($rec->deliveryTermId) || (!empty($rec->deliveryTermId) && !cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId))) {
             $tpl->removeBlock('TRANSPORT_BAR');
         }
     }

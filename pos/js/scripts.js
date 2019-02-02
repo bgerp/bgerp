@@ -16,6 +16,10 @@ function posActions() {
 		});
 	} 
 
+	// Засветяване на избрания ред и запис в хидън поле
+	$(document.body).on('mouseover', ".pos-sale", function(e){
+		$(this).css( 'cursor', 'pointer' );
+	});
 	
 	// Засветяване на избрания ред и запис в хидън поле
 	$(document.body).on('click', ".pos-sale", function(e){

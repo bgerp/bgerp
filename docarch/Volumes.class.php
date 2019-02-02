@@ -17,7 +17,7 @@ class docarch_Volumes extends core_Master
 {
     public $title = 'Томове и контейнери';
     
-    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, plg_State2, plg_Rejected';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, plg_State2, plg_Rejected,docarch_Wrapper';
     
     public $listFields = 'number,type,inCharge,archive,docCnt,createdOn=Създаден,modifiedOn=Модифициране';
     
@@ -25,14 +25,47 @@ class docarch_Volumes extends core_Master
     /**
      * Кой може да оттегля?
      */
-    public $canReject = 'ceo, admin';
+    public $canReject = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
+     * Кой има право да чете?
+     *
+     * @var string|array
+     */
+    public $canRead = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
+     * Кой има право да променя?
+     *
+     * @var string|array
+     */
+    public $canEdit = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
+     * Кой има право да добавя?
+     *
+     * @var string|array
+     */
+    public $canAdd = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
+     * Кой може да го види?
+     *
+     * @var string|array
+     */
+    public $canView = 'ceo,docarchMaster,docarch';
     
     
     /**
      * Кой може да го изтрие?
+     *
+     * @var string|array
      */
     public $canDelete = 'no_one';
-    
     
     protected function description()
     {
@@ -53,7 +86,7 @@ class docarch_Volumes extends core_Master
         
         //Показва в кой по-голям том/контейнер е включен
         $this->FLD('includeIn', 'key(mvc=docarch_Volumes)', 'caption=По-големия том,input=none');
-        $this->FLD('position', 'varchar(32)', 'caption=Позиция в по-големия том,input=none');
+        $this->FLD('position', 'varchar()', 'caption=Позиция в по-големия том,input=none');
         
         //Състояние
         $this->FLD('state', 'enum(active=Активен,rejected=Изтрит,closed=Приключен)', 'caption=Статус,input=none,notSorting');
@@ -64,6 +97,7 @@ class docarch_Volumes extends core_Master
         $this->FLD('docCnt', 'int', 'caption=Брой,input=none');
         
         $this->FNC('title', 'varchar', 'caption=Име');
+        $this->FNC('includedVolumes', 'varchar', 'caption=Включени томове');
         
         
         $this->setDbUnique('archive,type,number');
@@ -120,10 +154,34 @@ class docarch_Volumes extends core_Master
         }
     }
     
-    public function on_CalcTitle($mvc, $rec)
+    
+    /**
+     * След подготовка на сингъла
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-        $rec->title = self::getRecTitle($rec);
+        $row = &$data->row;
+        $rec = &$data->rec;
+        
+//         $rec->includedVolumes = self::getInludedVolumes($rec);
+//         bp($rec,$row);
     }
+    
+    
+    /**
+     * Изчисляване на заглавието
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     *
+     * @return void
+     */
+    protected static function on_CalcTitle($mvc, $rec)
+    {
+        
+        $rec->title = self::getRecTitle($rec);
+      
+    } 
     
     
     /**
@@ -137,8 +195,6 @@ class docarch_Volumes extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
-            
-            
             $type = $form->rec->type;
             
             if (is_null($form->rec->archive)) {
@@ -173,10 +229,18 @@ class docarch_Volumes extends core_Master
     {
         $rec = &$data->rec;
         
+        
+        //Включване на том в по-голям
         $possibleVolArr = self::getVolumePossibleForInclude($rec);
         
         if ($rec->id && is_null($rec->includeIn) && $rec->type != 'warehouse' && !is_null($possibleVolArr)) {
             $data->toolbar->addBtn('Включване', array('docarch_Movements','Include',$rec->id,'ret_url' => true));
+        }
+        
+        //Изключване на том от по-голям
+        
+        if ($rec->id && !is_null($rec->includeIn)) {
+            $data->toolbar->addBtn('Изключване', array('docarch_Movements','Exclude',$rec->id,'ret_url' => true));
         }
     }
     
@@ -192,15 +256,13 @@ class docarch_Volumes extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if (!is_null($rec->archive)){
-            
+        if (!is_null($rec->archive)) {
             if (($rec->type == docarch_Archives::minDefType($rec->archive)) || $rec->archive == 0) {
                 $rec->isForDocuments = 'yes';
             }
             if (($rec->type != docarch_Archives::minDefType($rec->archive)) && $rec->archive != 0) {
                 $rec->isForDocuments = 'no';
             }
-            
         }
     }
     
@@ -215,9 +277,13 @@ class docarch_Volumes extends core_Master
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         if ($rec->_isCreated !== true) {
+            $title = self::getRecTitle($rec);
             
             // Прави запис в модела на движенията
-            $mRec = (object) array('type' => 'creating',);
+            $mRec = (object) array('type' => 'creating',
+                'position' => "${title}",
+            );
+            
             
             docarch_Movements::save($mRec);
         }
@@ -245,7 +311,7 @@ class docarch_Volumes extends core_Master
          */
         requireRole('admin');
         
-        bp(docarch_Volumes::getQuery()->fetchAll());
+      
         
         return 'action';
     }
@@ -276,11 +342,11 @@ class docarch_Volumes extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         //Тома не може да бъде reject-нат ако не е празен
-        if ($action == 'reject' ) {//bp($rec->docCnt);
+        if ($action == 'reject') {
             if (!is_null($rec->docCnt)) {
                 $requiredRoles = 'no_one' ;
             } elseif (($rec->docCnt == 0)) {
-               // $requiredRoles = 'no_one' ;
+                // $requiredRoles = 'no_one' ;
             }
         }
     }
@@ -317,7 +383,33 @@ class docarch_Volumes extends core_Master
         
         $title = docarch_Volumes::getVolumeTypeName($rec->type);
         
-        $title .= '-No'.$rec->number.' от архив: '.$arch;
+        $title .= '-No'.$rec->number.' // '.$arch;
+        
+        
+        if ($escaped) {
+            $title = type_Varchar::escape($title);
+        }
+        
+        return $title;
+    }
+    
+    
+    /**
+     * Връща включените в този том томове
+     */
+    public static function getInludedVolumes($rec, $escaped = true)
+    {
+        $volRec = docarch_Volumes::getQuery();
+        
+        while ($volume = $volRec->fetch()) {
+         bp($volume,$rec);  ;
+        }
+        
+        $arch = ($rec->archive == 0) ? 'Сборен' : docarch_Archives::fetch($rec->archive)->name;
+        
+        $title = docarch_Volumes::getVolumeTypeName($rec->type);
+        
+        $title .= '-No'.$rec->number.' // '.$arch;
         
         
         if ($escaped) {
@@ -346,47 +438,42 @@ class docarch_Volumes extends core_Master
      *
      * @param string $id -id на тома за инкудване
      *
-     * @return array - масив с възможните тoмове / null ако няма
+     * @return array - масив / null ако няма
      */
     public static function getVolumePossibleForInclude($rec)
     {
-        $possibleArr= array();
+        $possibleArr = array();
         $volQuery = docarch_Volumes::getQuery();
         
         $volQuery->where("#state != 'rejected'");
         
         $volQuery->where("#id != {$rec->id} AND #archive = {$rec->archive} AND #type != 'folder'");
-       
+        
         switch ($rec->type) {
             
-            case 'folder':$possibleArr =array('box','case','pallet','warehouse'); break;
+            case 'folder':$possibleArr = array('box'); break;
             
-            case 'box':$possibleArr= array('case','pallet','warehouse'); break;
+            case 'box':$possibleArr = array('case'); break;
             
-            case 'case':$possibleArr =  array('pallet','warehouse'); break;
+            case 'case':$possibleArr = array('pallet'); break;
             
-            case 'pallet':$possibleArr =array('warehouse'); break;
+            case 'pallet':$possibleArr = array('warehouse'); break;
             
             case 'warehouse':$possibleArr = array(); break;
-            
+        
         }
         
-        $volQuery->in('type',$possibleArr);
-     
-        if(empty($volQuery->fetchAll())){
+        $volQuery->in('type', $possibleArr);
+        
+        if (empty($volQuery->fetchAll())) {
             
-            return null;
-            
+            return;
         }
         
-        while ($vol = $volQuery->fetch()){
-            
-            $possibleVolArr[$vol->id]= $vol->title;
+        while ($vol = $volQuery->fetch()) {
+            $possibleVolArr[$vol->id] = $vol->title;
         }
-        
         
         return $possibleVolArr;
     }
-      
-   
 }

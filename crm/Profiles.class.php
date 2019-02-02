@@ -1518,7 +1518,7 @@ class crm_Profiles extends core_Master
                 $params = arr::combine($arguments[1], $arguments[2]);
                 
                 // Ако не е зададено, че може да се конфигурира или не може да се конфигурира за текущия потребител
-                if (!$params['customizeBy'] || !haveRole($params['customizeBy'], $currUserId)) {
+                if (!$params['customizeBy'] || !haveRole(str_replace('|', ',', $params['customizeBy']), $currUserId)) {
                     continue;
                 }
                 

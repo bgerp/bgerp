@@ -23,11 +23,48 @@ class docarch_Archives extends core_Master
     
     
     /**
-     * Кой може да го изтрие?
+     * Кой има право да чете?
+     *
+     * @var string|array
      */
-    public $canDelete = 'no_one';
+    public $canRead = 'ceo,docarchMaster,docarch';
     
     
+    /**
+     * Кой има право да променя?
+     *
+     * @var string|array
+     */
+    public $canEdit = 'ceo,docarchMaster';
+    
+    
+    /**
+     * Кой има право да добавя?
+     *
+     * @var string|array
+     */
+    public $canAdd = 'ceo,docarchMaster';
+    
+    
+    /**
+     * Кой може да го види?
+     *
+     * @var string|array
+     */
+    public $canView = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     *
+     * @var string|array
+     */
+    public $canDelete = 'ceo,docarchMaster';
+    
+    
+    /**
+     * Описание на модела (таблицата)
+     */
     protected function description()
     {
         //Наименование на архива
@@ -75,6 +112,26 @@ class docarch_Archives extends core_Master
         $docClasses = $temp;
         
         $form->setSuggestions('documents', $docClasses);
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int      $id  първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        
+        // Прави запис в модела на движенията
+        $mRec = (object) array('type' => "creating",
+                               'position' => "$rec->name",
+                              );
+                            
+        docarch_Movements::save($mRec);
+        
     }
     
     
