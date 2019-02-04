@@ -163,8 +163,19 @@ class docarch_Volumes extends core_Master
         $row = &$data->row;
         $rec = &$data->rec;
         
-//         $rec->includedVolumes = self::getInludedVolumes($rec);
-//         bp($rec,$row);
+        $rec->includedVolumes = self::getIncludedVolumes($rec);
+        
+        if ($rec->includeIn) {
+            $row->includeIn = docarch_Volumes::getHyperlink($rec->includeIn);
+        }
+        
+        if (is_array($rec->includedVolumes)) {
+            foreach ($rec->includedVolumes as $val) {
+                list($vol) = explode('/', $val);
+                
+                $row->includedVolumes .= docarch_Volumes::getHyperlink($val).'</br>';
+            }
+        }
     }
     
     
@@ -178,10 +189,8 @@ class docarch_Volumes extends core_Master
      */
     protected static function on_CalcTitle($mvc, $rec)
     {
-        
         $rec->title = self::getRecTitle($rec);
-      
-    } 
+    }
     
     
     /**
@@ -218,7 +227,7 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn('Бутон', array($mvc,'Action'));
+        // $data->toolbar->addBtn('Бутон', array($mvc,'Action'));
     }
     
     
@@ -228,7 +237,8 @@ class docarch_Volumes extends core_Master
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         $rec = &$data->rec;
-        
+       
+        $data->toolbar->removeBtn('Вграждане');
         
         //Включване на том в по-голям
         $possibleVolArr = self::getVolumePossibleForInclude($rec);
@@ -241,7 +251,7 @@ class docarch_Volumes extends core_Master
         
         if ($rec->id && !is_null($rec->includeIn)) {
             $data->toolbar->addBtn('Изключване', array('docarch_Movements','Exclude',$rec->id,'ret_url' => true));
-        }
+        } 
     }
     
     
@@ -280,8 +290,9 @@ class docarch_Volumes extends core_Master
             $title = self::getRecTitle($rec);
             
             // Прави запис в модела на движенията
+            $className = get_class();
             $mRec = (object) array('type' => 'creating',
-                'position' => "${title}",
+                'position' => $rec->id.'|'.$className,
             );
             
             
@@ -302,22 +313,6 @@ class docarch_Volumes extends core_Master
     
     
     /**
-     * @return string
-     */
-    public function act_Action()
-    {
-        /**
-         * Установява необходима роля за да се стартира екшъна
-         */
-        requireRole('admin');
-        
-      
-        
-        return 'action';
-    }
-    
-    
-    /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
@@ -327,6 +322,10 @@ class docarch_Volumes extends core_Master
         }
         
         $row->type = self::getVolumeTypeName($row->type);
+        
+        if ($rec->docCnt == 0) {
+            $row->docCnt = '';
+        }
     }
     
     
@@ -341,12 +340,14 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        //Тома не може да бъде reject-нат ако не е празен
-        if ($action == 'reject') {
+        //Тома не може да бъде изтрит ако не е празен
+        if ($action == 'delete') {
+            
             if (!is_null($rec->docCnt)) {
-                $requiredRoles = 'no_one' ;
-            } elseif (($rec->docCnt == 0)) {
-                // $requiredRoles = 'no_one' ;
+               
+                if (($rec->docCnt != 0)) 
+                    
+                     $requiredRoles = 'no_one' ;
             }
         }
     }
@@ -381,7 +382,7 @@ class docarch_Volumes extends core_Master
     {
         $arch = ($rec->archive == 0) ? 'Сборен' : docarch_Archives::fetch($rec->archive)->name;
         
-        $title = docarch_Volumes::getVolumeTypeName($rec->type);
+        $title = self::getVolumeTypeName($rec->type);
         
         $title .= '-No'.$rec->number.' // '.$arch;
         
@@ -397,26 +398,22 @@ class docarch_Volumes extends core_Master
     /**
      * Връща включените в този том томове
      */
-    public static function getInludedVolumes($rec, $escaped = true)
+    public static function getIncludedVolumes($rec, $escaped = true)
     {
         $volRec = docarch_Volumes::getQuery();
         
+        $volRec->where('#includeIn  IS NOT NULL');
+        
+        $volRec->where("#id != {$rec->id}");
+        
+        
         while ($volume = $volRec->fetch()) {
-         bp($volume,$rec);  ;
+            if ($volume->includeIn == $rec->id) {
+                $includedVolumes[$volume->id] = $volume->id;
+            }
         }
         
-        $arch = ($rec->archive == 0) ? 'Сборен' : docarch_Archives::fetch($rec->archive)->name;
-        
-        $title = docarch_Volumes::getVolumeTypeName($rec->type);
-        
-        $title .= '-No'.$rec->number.' // '.$arch;
-        
-        
-        if ($escaped) {
-            $title = type_Varchar::escape($title);
-        }
-        
-        return $title;
+        return $includedVolumes;
     }
     
     

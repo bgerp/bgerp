@@ -23,6 +23,12 @@ class docarch_Archives extends core_Master
     
     
     /**
+     * Кой може да оттегля?
+     */
+    public $canReject = 'ceo,docarchMaster';
+    
+    
+    /**
      * Кой има право да чете?
      *
      * @var string|array
@@ -77,11 +83,11 @@ class docarch_Archives extends core_Master
         $this->FLD('documents', 'keylist(mvc=core_Classes, select=title,allowEmpty)', 'caption=Документи,placeholder=Всички');
         
         //Кой може да добавя документи в този архив
-        $this->FLD('sharedUsers', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Потребители');
+        $this->FLD('sharedUsers', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Потребители,mandatory');
         
         
         //Срок за съхранение
-        $this->FLD('storageTime', 'time(suggestions=1 година|2 години|3 години|4 години|5 години|10 години)', 'caption=Срок');
+        $this->FLD('storageTime', 'time(suggestions=1 година|2 години|3 години|4 години|5 години|10 години)', 'caption=Срок,mandatory');
     }
     
     
@@ -124,14 +130,13 @@ class docarch_Archives extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        
         // Прави запис в модела на движенията
-        $mRec = (object) array('type' => "creating",
-                               'position' => "$rec->name",
-                              );
-                            
-        docarch_Movements::save($mRec);
+        $className = get_class();
+        $mRec = (object) array('type' => 'creating',
+            'position' => $rec->id.'|'.$className,
+        );
         
+        docarch_Movements::save($mRec);
     }
     
     
@@ -143,7 +148,7 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn('Бутон', array($mvc, 'Action','ret_url' => true));
+        // $data->toolbar->addBtn('Бутон', array($mvc, 'Action','ret_url' => true));
     }
     
     
@@ -188,6 +193,28 @@ class docarch_Archives extends core_Master
         }
         
         return $typeName;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        //Тома не може да бъде reject-нат ако не е празен
+        if ($action == 'reject') {
+            if (!is_null($rec->docCnt)) {
+                $requiredRoles = 'no_one' ;
+            } elseif (($rec->docCnt == 0)) {
+                // $requiredRoles = 'no_one' ;
+            }
+        }
     }
     
     
