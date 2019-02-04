@@ -87,7 +87,9 @@ class cash_NonCashPaymentDetails extends core_Manager
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec);
-            $restAmount -= $rec->amount;
+            
+            $amount = cond_Payments::toBaseCurrency($rec->paymentId, $rec->amount, $data->masterData->rec->valior);
+            $restAmount -= $amount;
         }
         
         if ($restAmount > 0 && count($data->recs)) {

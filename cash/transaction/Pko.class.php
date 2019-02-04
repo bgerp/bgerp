@@ -94,18 +94,21 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
             
             while ($dRec = $dQuery->fetch()) {
                 $amount = $dRec->amount * $rec->rate;
+                $baseAmount = cond_Payments::toBaseCurrency($dRec->paymentId, $amount, $rec->valior);
+                
+                $amount = $dRec->amount * $rec->rate;
                 $type = cond_Payments::getTitleById($dRec->paymentId);
                 
                 $entry[] = array('amount' => $sign * $amount,
                     'debit' => array('502',
                         array('cash_Cases', $rec->peroCase),
                         array('cond_Payments', $dRec->paymentId),
-                        'quantity' => $sign * $amount),
+                        'quantity' => $sign * $dRec->amount),
                     
                     'credit' => array($rec->debitAccount,
                         array('cash_Cases', $rec->peroCase),
                         array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $sign * $dRec->amount),
+                        'quantity' => $sign * $baseAmount),
                     'reason' => "Плащане с '{$type}'",
                 );
             }
