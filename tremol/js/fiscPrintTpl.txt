@@ -29,7 +29,16 @@ function printFiscalReceipt(onSuccess, onError) {
                 
                 // Опитваме се да отворим бележка
                 try {
-                    fpOpenFiscReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#RCP_NUM#]);
+                    <!--ET_BEGIN OPEN_FISC_RECEIPT_1-->
+                        [#OPEN_FISC_RECEIPT_1#]
+                        fpOpenFiscReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#RCP_NUM#]);
+                    <!--ET_END OPEN_FISC_RECEIPT_1-->
+                    
+                    <!--ET_BEGIN OPEN_STORNO_RECEIPT_1-->
+                        [#OPEN_STORNO_RECEIPT_1#]
+                        fpOpenStornoReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#STORNO_REASON#], [#RELATED_TO_RCP_NUM#], [#RELATED_TO_RCP_DATE_TIME#], [#FM_NUM#], [#RELATED_TO_URN#]);
+                    <!--ET_END OPEN_STORNO_RECEIPT_1-->
+                    
                     isFiscIsOpen = true;
                 } catch(ex) {
                     // Ако не може да се отвори бележка, прекратяваме предишната
@@ -43,7 +52,16 @@ function printFiscalReceipt(onSuccess, onError) {
                     
                     if (canceled) {
                         render_showToast({timeOut: 800, text: 'Прекратена предишна бележка', isSticky: false, stayTime: 8000, type: 'notice'});
-                        fpOpenFiscReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#RCP_NUM#]);
+                        <!--ET_BEGIN OPEN_FISC_RECEIPT_2-->
+                            [#OPEN_FISC_RECEIPT_2#]
+                            fpOpenFiscReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#RCP_NUM#]);
+                        <!--ET_END OPEN_FISC_RECEIPT_2-->
+                        
+                        <!--ET_BEGIN OPEN_STORNO_RECEIPT_2-->
+                            [#OPEN_STORNO_RECEIPT_2#]
+                            fpOpenStornoReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#STORNO_REASON#], [#RELATED_TO_RCP_NUM#], [#RELATED_TO_RCP_DATE_TIME#], [#FM_NUM#], [#RELATED_TO_URN#]);
+                        <!--ET_END OPEN_STORNO_RECEIPT_2-->
+                        
                         isFiscIsOpen = true;
                     } else {
                         render_showToast({timeOut: 800, text: 'Неуспешен опит за прекратяване на предишна бележката', isSticky: true, stayTime: 8000, type: 'error'});
