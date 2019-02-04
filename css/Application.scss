@@ -3045,6 +3045,15 @@ fieldset.sharing-history {
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+	&:after {
+		content: '';
+		display: block;
+		clear: both;
+	}
+}
+
+.loginIcon, .langIcon {
+	float: right !important;
 }
 
 .wide #cmsMenu{
