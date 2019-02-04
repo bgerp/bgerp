@@ -81,6 +81,7 @@ class cash_NonCashPaymentDetails extends core_Manager
         $query = $this->getQuery();
         $query->where("#documentId = {$data->masterId}");
         $restAmount = $data->masterData->rec->amount;
+        $toCurrencyCode = currency_Currencies::getCodeById($data->masterData->rec->currencyId);
         
         // Извличане на записите
         $data->recs = $data->rows = array();
@@ -88,7 +89,7 @@ class cash_NonCashPaymentDetails extends core_Manager
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec);
             
-            $amount = cond_Payments::toBaseCurrency($rec->paymentId, $rec->amount, $data->masterData->rec->valior);
+            $amount = cond_Payments::toBaseCurrency($rec->paymentId, $rec->amount, $data->masterData->rec->valior, $toCurrencyCode);
             $restAmount -= $amount;
         }
         

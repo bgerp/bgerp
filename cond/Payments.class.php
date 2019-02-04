@@ -146,14 +146,15 @@ class cond_Payments extends core_Manager
      *
      *  @param int $id - ид на метода
      *  @param double  $amount
+     *  @param string $toCurrencyCode
      *  @return double
      */
-    public static function toBaseCurrency($id, $amount, $date = null)
+    public static function toBaseCurrency($id, $amount, $date = null, $toCurrencyCode = null)
     {
         $fromCurrencyCode = self::fetchField($id, currencyCode);
         $fromCurrencyCode = !empty($fromCurrencyCode) ? $fromCurrencyCode : acc_Periods::getBaseCurrencyCode($date);
         
-        return currency_CurrencyRates::convertAmount($amount, $date, $fromCurrencyCode);
+        return currency_CurrencyRates::convertAmount($amount, $date, $fromCurrencyCode, $toCurrencyCode);
     }
     
     
