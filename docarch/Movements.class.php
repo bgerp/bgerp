@@ -232,13 +232,13 @@ class docarch_Movements extends core_Master
             
             $volRec->_isCreated = true;
             
-            if (is_null($volRec->docCnt)) {
+            if (is_null($volRec->docCnt) || $volRec->docCnt == 0) {
                 $volRec->firstDocDate = $rec->createdOn;
             }
-            
+           
             $volRec->docCnt++;
             
-            docarch_Volumes::save($volRec, 'docCnt');
+            docarch_Volumes::save($volRec);
         }
         
         if (in_array($rec->type, $decrementMoves)) {
@@ -767,7 +767,7 @@ class docarch_Movements extends core_Master
         }
         
         while ($movie = $mQuery->fetch()) {
-            $arr[] = $movie;
+            
             if (!is_null($arch) && $arch != docarch_Volumes::fetch($movie->toVolumeId)->archive) {
                 continue;
             }

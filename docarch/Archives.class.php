@@ -17,7 +17,7 @@ class docarch_Archives extends core_Master
 {
     public $title = 'Архив';
     
-    public $loadList = 'plg_Created, plg_RowTools2,plg_Modified,docarch_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_State2,plg_Modified,docarch_Wrapper';
     
     public $listFields = 'name,volType,documents,createdOn=Създаден,modifiedOn=Модифициране';
     
@@ -148,9 +148,18 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        // $data->toolbar->addBtn('Бутон', array($mvc, 'Action','ret_url' => true));
+        
     }
     
+    
+    /**
+     * Добавя бутони  към единичния изглед на документа
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        $rec = &$data->rec;
+        
+    }
     
     /**
      * Най-малкия дефиниран тип за архива

@@ -23,6 +23,11 @@ class docarch_Volumes extends core_Master
     
     
     /**
+     * Кой може да активира?
+     */
+    public $canActivate = 'ceo,docarchMaster,docarch';
+    
+    /**
      * Кой може да оттегля?
      */
     public $canReject = 'ceo,docarchMaster,docarch';
@@ -65,7 +70,7 @@ class docarch_Volumes extends core_Master
      *
      * @var string|array
      */
-    public $canDelete = 'no_one';
+    public $canDelete ;
     
     protected function description()
     {
@@ -163,7 +168,30 @@ class docarch_Volumes extends core_Master
         $row = &$data->row;
         $rec = &$data->rec;
         
+        if($rec->exState == 'active' && $rec->state == 'closed'){
+            
+            $mQuery = docarch_Movements::getQuery();
+            
+            $mQuery->where('#documentId IS NOT NULL');
+            
+            $mQuery->where("#type = 'archiving'");
+            
+            $mQuery->where("#toVolumeId = $rec->id");
+            
+            $mQuery->orderBy('createdOn', 'DESC');
+            
+            $mQuery->limit(1);
+            
+            while ($movie = $mQuery->fetch()) {
+            $rec->lastDocDate = $movie->createdOn; 
+            }
+            
+           $this->save($rec,'lastDocDate');
+        }
+       
         $rec->includedVolumes = self::getIncludedVolumes($rec);
+        
+        $row->state = $this->getVerbal($rec, 'state');
         
         if ($rec->includeIn) {
             $row->includeIn = docarch_Volumes::getHyperlink($rec->includeIn);
@@ -240,10 +268,28 @@ class docarch_Volumes extends core_Master
        
         $data->toolbar->removeBtn('Вграждане');
         
+        if ($mvc->haveRightFor('close', $data->rec)) {
+            
+          
+                $activeMsg = 'Сигурни ли сте, че искате да отворите този том и да може да се добавят документи в него|*?';
+                $closeMsg = 'Сигурни ли сте, че искате да приключите този том да не може да се добавят документи в него|*?';
+                $closeBtn = 'Приключване||Close';
+          
+           
+            if ($data->rec->state == 'closed') {
+               $data->toolbar->addBtn('Отваряне', array($mvc, 'changeState', $data->rec->id, 'ret_url' => true),"id=btnActivate");
+               $data->toolbar->setWarning('btnActivate', $activeMsg);
+            } elseif ($data->rec->state == 'active' && $data->rec->docCnt > 0) {
+               
+                $data->toolbar->addBtn($closeBtn, array($mvc, 'changeState', $data->rec->id, 'ret_url' => true), "id=btnClose");
+                $data->toolbar->setWarning('btnClose', $closeMsg);
+            }
+        }
+        
         //Включване на том в по-голям
         $possibleVolArr = self::getVolumePossibleForInclude($rec);
         
-        if ($rec->id && is_null($rec->includeIn) && $rec->type != 'warehouse' && !is_null($possibleVolArr)) {
+        if ($rec->id && is_null($rec->includeIn && $rec->includeIn != 'closed') && $rec->type != 'warehouse' && !is_null($possibleVolArr)) {
             $data->toolbar->addBtn('Включване', array('docarch_Movements','Include',$rec->id,'ret_url' => true));
         }
         
@@ -340,14 +386,28 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        //Тома не може да бъде изтрит ако не е празен
+        //Тома не може да бъде изтрит ако е празен
         if ($action == 'delete') {
-            
             if (!is_null($rec->docCnt)) {
-               
                 if (($rec->docCnt != 0)) 
-                    
                      $requiredRoles = 'no_one' ;
+            }
+        }
+        
+       
+        $aaa = docarch_Archives::fetch($rec->archive)->storageTime;
+      //  bp($aaa,type_Time::toVerbal_($aaa));
+        
+        if ($action == 'reject') {
+            if ((!is_null($rec->docCnt) || (!$rec->docCnt == 0)) && ($rec->state != 'closed')) {
+                
+                    $requiredRoles = 'no_one' ;
+            }
+        }
+        
+        if ($action == 'edit') {
+          if (($rec->state == 'closed'))   {
+                    $requiredRoles = 'no_one' ;
             }
         }
     }
