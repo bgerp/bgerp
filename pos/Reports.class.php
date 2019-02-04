@@ -9,7 +9,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -236,7 +236,12 @@ class pos_Reports extends core_Master
                 if ($action == 'sale') {
                     $rec->total += $detail->amount * (1 + $detail->param);
                 } else {
-                    $rec->paid += $detail->amount;
+                    $paidAmount = $detail->amount;
+                    if($detail->value != '-1'){
+                        $paidAmount = cond_Payments::toBaseCurrency($detail->value, $paidAmount, $rec->valior);
+                    }
+                    
+                    $rec->paid += $paidAmount;
                 }
             }
         }
@@ -416,6 +421,10 @@ class pos_Reports extends core_Master
             $row->value = "<b>" . tr('Плащане') . "</b>: &nbsp;<i>{$value}</i>";
             $row->ROW_ATTR['class'] = 'report-payment';
             unset($row->quantity);
+            
+            if($obj->value != '-1'){
+                $obj->amount = cond_Payments::toBaseCurrency($obj->value, $obj->amount, $obj->date);
+            }
         }
         
         $row->value = "<span style='white-space:nowrap;'>{$row->value}</span>";

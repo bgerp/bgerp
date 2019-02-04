@@ -116,42 +116,12 @@ class cond_Payments extends core_Manager
     public function loadSetupData()
     {
         $file = 'cond/csv/Pospayments.csv';
-        
-        $fields = array(
-            0 => 'title',
-            1 => 'state',
-            2 => 'change',
-            3 => 'code',
-            4 => 'currencyCode',
-        );
+        $fields = array(0 => 'title', 1 => 'state', 2 => 'change', 3 => 'code', 4 => 'currencyCode',);
         
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
-        
         $res = $cntObj->html;
         
         return $res;
-    }
-    
-    
-    /**
-     * Връща масив от обекти, които са ид-та и заглавията на методите
-     *
-     * @return array $payments
-     */
-    public static function fetchSelected()
-    {
-        $payments = array();
-        $query = static::getQuery();
-        $query->where("#state = 'active'");
-        $query->orderBy('code');
-        while ($rec = $query->fetch()) {
-            $payment = new stdClass();
-            $payment->id = $rec->id;
-            $payment->title = $rec->title;
-            $payments[] = $payment;
-        }
-        
-        return $payments;
     }
     
     
@@ -168,6 +138,22 @@ class cond_Payments extends core_Manager
         ($rec->change == 'yes') ? $res = true : $res = false;
         
         return $res;
+    }
+    
+    
+    /**
+     *  Равностойноста на платената сума, в основната валута към дата
+     *
+     *  @param int $id - ид на метода
+     *  @param double  $amount
+     *  @return double
+     */
+    public static function toBaseCurrency($id, $amount, $date = null)
+    {
+        $fromCurrencyCode = self::fetchField($id, currencyCode);
+        $fromCurrencyCode = !empty($fromCurrencyCode) ? $fromCurrencyCode : acc_Periods::getBaseCurrencyCode($date);
+        
+        return currency_CurrencyRates::convertAmount($amount, $date, $fromCurrencyCode);
     }
     
     

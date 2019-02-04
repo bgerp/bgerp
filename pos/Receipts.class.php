@@ -371,7 +371,12 @@ class pos_Receipts extends core_Master
                     $rec->total += round($dRec->quantity * $price, 2);
                     break;
                 case 'payment':
-                    $rec->paid += $dRec->amount;
+                    $paidAmount = $dRec->amount;
+                    if($action[1] != '-1'){
+                        $paidAmount = cond_Payments::toBaseCurrency($action[1], $paidAmount, $rec->valior);
+                    }
+                    
+                    $rec->paid += $paidAmount;
                     $rec->change += $dRec->value;
                     break;
             }
@@ -1090,15 +1095,15 @@ class pos_Receipts extends core_Master
         // Показваме всички активни методи за плащания
         $disClass = ($payUrl) ? '' : 'disabledBtn';
         
-        $payments = cond_Payments::fetchSelected();
+        $payments = pos_Points::fetchSelected($rec->pointId);
         $placeholder = (count($payments)) ? 'PAYMENT_TYPE' : 'CLOSE_BTNS';
         $block->append(ht::createFnBtn('В брой', '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => '-1', 'data-url' => $payUrl)), $placeholder);
         
         if (count($payments)) {
             $block->append("<div class=''>", 'PAYMENT_TYPE');
-            foreach ($payments as $payment) {
-                $attr = array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => "{$payment->id}", 'data-url' => $payUrl);
-                $block->append(ht::createFnBtn($payment->title, '', '', $attr), $placeholder);
+            foreach ($payments as $paymentId => $paymentTitle) {
+                $attr = array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => "{$paymentId}", 'data-url' => $payUrl);
+                $block->append(ht::createFnBtn($paymentTitle, '', '', $attr), $placeholder);
             }
             $block->append('</div>', 'PAYMENT_TYPE');
         }
