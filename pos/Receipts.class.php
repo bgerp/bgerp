@@ -1096,16 +1096,15 @@ class pos_Receipts extends core_Master
         $disClass = ($payUrl) ? '' : 'disabledBtn';
         
         $payments = pos_Points::fetchSelected($rec->pointId);
-        $placeholder = (count($payments)) ? 'PAYMENT_TYPE' : 'CLOSE_BTNS';
-        $block->append(ht::createFnBtn('В брой', '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => '-1', 'data-url' => $payUrl)), $placeholder);
         
-        if (count($payments)) {
-            $block->append("<div class=''>", 'PAYMENT_TYPE');
-            foreach ($payments as $paymentId => $paymentTitle) {
-                $attr = array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => "{$paymentId}", 'data-url' => $payUrl);
-                $block->append(ht::createFnBtn($paymentTitle, '', '', $attr), $placeholder);
-            }
-            $block->append('</div>', 'PAYMENT_TYPE');
+        if(!count($payments)){
+            $block->append(ht::createFnBtn('В брой', '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => '-1', 'data-url' => $payUrl)), 'CLOSE_BTNS');
+        } else {
+            $payments = array('-1' => tr('В брой')) + $payments;
+            $attr = (!empty($disClass)) ? array('disabled' => 'disabled', 'class' => 'disabledBtn') : array();
+            $selectHtml = ht::createSmartSelect($payments, 'selectedPayment', '-1', $attr);
+            $block->append($selectHtml, 'CLOSE_BTNS');
+            $block->append(ht::createFnBtn('Плати', '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-url' => $payUrl)), 'CLOSE_BTNS');
         }
         
         $printUrl = array($this, 'terminal', $rec->id, 'Printing' => 'yes');

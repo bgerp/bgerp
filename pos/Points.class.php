@@ -146,7 +146,7 @@ class pos_Points extends core_Master
         
         $payments = array();
         while ($paymentRec = $paymentQuery->fetch()) {
-            $payments[$paymentRec->id] = $paymentRec->title;
+            $payments[$paymentRec->id] = tr($paymentRec->title);
         }
         
         return $payments;
