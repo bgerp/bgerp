@@ -133,8 +133,9 @@ class batch_BatchesInDocuments extends core_Manager
             
             return;
         }
-        $operation = key($rInfo->operation);
-        $showBatchLink = ($operation == 'in') && core_Packs::isInstalled('rack');
+        
+        $showBatchLink = core_Packs::isInstalled('rack') && $rInfo->operation['in'];
+        $palletStoreId = isset($rInfo->operation['in']) ? $rInfo->operation['in'] : $storeId;
         
         $query = self::getQuery();
         $query->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #operation = '{$operation}'");
@@ -177,8 +178,8 @@ class batch_BatchesInDocuments extends core_Manager
                 $quantity .= ' ' . tr(cat_UoM::getShortName($rInfo->packagingId));
                 
                 if($showBatchLink){
-                    if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($storeId, $rInfo->productId, $rInfo->packagingId, $q, $rec->batch)){
-                        $quantity .= $palletImgLink;
+                    if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $q, $rec->batch)){
+                        $label = $palletImgLink . $label;
                     }
                 }
                 
@@ -187,8 +188,8 @@ class batch_BatchesInDocuments extends core_Manager
             
             if ($batchDef instanceof batch_definitions_Serial) {
                 if($showBatchLink){
-                    if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($storeId, $rInfo->productId, $rInfo->packagingId, 1, $rec->batch)){
-                        $batch .= $palletImgLink;
+                    if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, 1, $rec->batch)){
+                        $batch = $palletImgLink . $batch;
                     }
                 }
                 
@@ -217,8 +218,8 @@ class batch_BatchesInDocuments extends core_Manager
                 $quantity .= ' ' . tr(cat_UoM::getShortName($rInfo->packagingId));
                 
                 if($showBatchLink){
-                    if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($storeId, $rInfo->productId, $rInfo->packagingId, $noBatchQuantity)){
-                        $quantity .= $palletImgLink;
+                    if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $noBatchQuantity)){
+                        $batch = $palletImgLink . $batch;
                     }
                 }
                 

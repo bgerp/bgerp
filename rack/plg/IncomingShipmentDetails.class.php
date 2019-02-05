@@ -29,14 +29,17 @@ class rack_plg_IncomingShipmentDetails extends core_Plugin
             
             return;
         }
-       
+        
         $storeId = isset($data->masterMvc->toStoreFieldName) ? $data->masterData->rec->{$data->masterMvc->toStoreFieldName} : $data->masterData->rec->{$data->masterMvc->storeFieldName}; 
         
         foreach ($rows as $id => &$row) {
             $rec = $data->recs[$id];
             
-            if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($storeId, $rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->packQuantityFieldName})){
-                $row->packQuantity .= $palletImgLink;
+            $batchDef = batch_Defs::getBatchDef($rec->{$mvc->productFld});
+            if(empty($batchDef)){
+                if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($storeId, $rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->packQuantityFieldName})){
+                    $row->packQuantity = $palletImgLink . $row->packQuantity;
+                }
             }
         }
     }
