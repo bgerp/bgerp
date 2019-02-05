@@ -829,14 +829,14 @@ class pos_Receipts extends core_Master
         while ($rec = $query->fetch()) {
             $date = dt::mysql2verbal($rec->createdOn, 'H:i');
             $between = dt::daysBetween($now, $rec->valior);
-            $between = ($between != 0) ? " <span>-${between}</span>" : null;
+            $between = ($between != 0) ? " <span class='num'>-${between}</span>" : null;
             
-            $row = ht::createLink("№{$rec->id} <br> {$date}$between", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => 'pos-notes', 'title' => 'Отваряне на бележката'));
+            $row = ht::createLink("<span class='pos-span-name'>№{$rec->id} <br> {$date}$between</span>", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => 'pos-notes', 'title' => 'Отваряне на бележката'));
             $block->append($row);
         }
         
         if ($this->haveRightFor('add')) {
-            $addBtn = ht::createLink(tr('Нова'), array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes');
+            $addBtn = ht::createLink("<span class='pos-span-name'>" . tr('Нова') . "</span>", array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes');
             $block->prepend($addBtn);
         }
         
