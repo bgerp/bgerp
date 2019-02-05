@@ -235,6 +235,11 @@ class docarch_Movements extends core_Master
             if (is_null($volRec->docCnt) || $volRec->docCnt == 0) {
                 $volRec->firstDocDate = $rec->createdOn;
             }
+            
+            if($rec->type == 'archiving' ){
+                
+                $volRec->lastDocDate = $rec->createdOn;
+            }
            
             $volRec->docCnt++;
             

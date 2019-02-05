@@ -27,6 +27,7 @@ class docarch_plg_Archiving extends core_Plugin
         }
         $rec = &$data->rec;
         $arcivesArr = array();
+        $archArr = array();
         
         
         // има ли архиви дефинирани за документи от този клас , или за всякакви документи
