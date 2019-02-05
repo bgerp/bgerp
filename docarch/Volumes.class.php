@@ -289,7 +289,7 @@ class docarch_Volumes extends core_Master
         //Включване на том в по-голям
         $possibleVolArr = self::getVolumePossibleForInclude($rec);
         
-        if ($rec->id && is_null($rec->includeIn && $rec->includeIn != 'closed') && $rec->type != 'warehouse' && !is_null($possibleVolArr)) {
+        if ($rec->id && is_null($rec->includeIn) && $rec->state != 'closed' && $rec->type != 'warehouse' && !is_null($possibleVolArr)) {
             $data->toolbar->addBtn('Включване', array('docarch_Movements','Include',$rec->id,'ret_url' => true));
         }
         
@@ -386,6 +386,8 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
+       
+        
         //Тома не може да бъде изтрит ако е празен
         if ($action == 'delete') {
             if (!is_null($rec->docCnt)) {
@@ -395,10 +397,28 @@ class docarch_Volumes extends core_Master
         }
      
         if ($action == 'reject') {
-            if ((!is_null($rec->docCnt) || (!$rec->docCnt == 0)) && ($rec->state != 'closed')) {
+           
+            $storageTimeMarker = true;
+            $now = dt::now();
+            $storageTime = docarch_Archives::fetchField($rec->archive,'storageTime');
+            //Ако има зададена продължителност
+            if ($rec->lastDocDate) {
+                $endDate = dt::addSecs($storageTime, $rec->lastDocDate);
                 
-                    $requiredRoles = 'no_one' ;
+                // И крайната дата е минала, деактивираме лимита и продължаваме напред
+                if($endDate < $now) {
+                    $storageTimeMarker = false;
+                }
             }
+            
+            if ((!is_null($rec->docCnt) || (!$rec->docCnt == 0)) && ($rec->state != 'closed')) {
+                $requiredRoles = 'no_one' ;
+            }
+            
+            elseif ((!is_null($rec->docCnt) || (!$rec->docCnt == 0)) && ($rec->state == 'closed') &&($storageTimeMarker == 'true') ){
+                $requiredRoles = 'no_one' ; ;
+            }
+            
         }
         
         if ($action == 'edit') {

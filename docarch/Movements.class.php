@@ -557,6 +557,11 @@ class docarch_Movements extends core_Master
      */
     public function act_Taking()
     {
+        /**
+         * Установява необходима роля за да се стартира екшъна
+         */
+        requireRole('docarch');
+        
         $form = cls::get('core_Form');
         $form->title = 'Вземане на документ';
         $form->FLD('documentId', 'int', 'input=hidden,silent');
@@ -612,6 +617,11 @@ class docarch_Movements extends core_Master
      */
     public function act_Include()
     {
+        /**
+         * Установява необходима роля за да се стартира екшъна
+         */
+        requireRole('docarch');
+        
         $includeRec = new stdClass();
         $mRec = new stdClass();
         
@@ -680,6 +690,11 @@ class docarch_Movements extends core_Master
      */
     public function act_Exclude()
     {
+        /**
+         * Установява необходима роля за да се стартира екшъна
+         */
+        requireRole('docarch');
+        
         $ExcludeRec = new stdClass();
         $mRec = new stdClass();
         

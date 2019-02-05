@@ -89,7 +89,7 @@ class docarch_Archives extends core_Master
         //Срок за съхранение
         $this->FLD('storageTime', 'time(suggestions=1 година|2 години|3 години|4 години|5 години|10 години)', 'caption=Срок,mandatory');
     }
-    
+   
     
     /**
      * Преди показване на форма за добавяне/промяна.
