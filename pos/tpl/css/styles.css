@@ -543,6 +543,11 @@
 .narrow #input-search-contragent {
   height: 1.8em; }
 
+select.button {
+  padding-left: 10px !important; }
+  select.button.disabledBtn {
+    color: #999999 !important; }
+
 /*
  * tabs
  */

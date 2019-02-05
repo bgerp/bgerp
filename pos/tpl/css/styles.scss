@@ -404,6 +404,8 @@
         font-size: 0.8em !important;
     }
 }
+
+
 .contragent-btn {
 	display: inline-block;
 	margin-left: 20px;
@@ -592,7 +594,12 @@
     height:1.8em;
 }
 
-
+select.button {
+	padding-left: 10px !important;
+	&.disabledBtn {
+		color: #999 !important;
+	}
+}
 /*tabs */
 .tabs-holder-content {
     position: relative;
