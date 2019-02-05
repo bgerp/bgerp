@@ -415,7 +415,7 @@
 .disabledBtn[type=button]:hover,
 .colum-btn .button.disabledBtn:hover,
 .tools-btn .button.disabledBtn:hover {
-  background: #cccccc !important;
+  background-color: #cccccc !important;
   color: #999999 !important;
   cursor: auto !important;
   border: 1px solid #bbbbbb !important;
@@ -477,9 +477,8 @@
   border-color: #3b742b; }
 
 .narrow .pos-notes {
-  padding: 0.3em 0.5em;
+  padding: 0.3em 1em;
   font-size: 0.7em;
-  min-width: 70px;
   box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset; }
 
 .narrow .pos-notes:hover {
