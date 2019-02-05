@@ -831,7 +831,7 @@ class pos_Receipts extends core_Master
             $between = dt::daysBetween($now, $rec->valior);
             $between = ($between != 0) ? " <span>-${between}</span>" : null;
             
-            $row = ht::createLink("№{$rec->id} <br> {$date}$between", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => 'pos-notes'));
+            $row = ht::createLink("№{$rec->id} <br> {$date}$between", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => 'pos-notes', 'title' => 'Отваряне на бележката'));
             $block->append($row);
         }
         
