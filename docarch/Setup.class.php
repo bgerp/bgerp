@@ -58,7 +58,11 @@ class docarch_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'ceo,powerUser';
+    public $roles = array(
+        array('ceo'),
+        array('docarch'),
+        array('docarchMaster', 'docarch'),
+    );
     
     
     /**

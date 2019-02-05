@@ -53,12 +53,6 @@ class type_Percent extends type_Double
         
         $res = parent::toVerbal($value);
         
-        if (Mode::is('text', 'plain')) {
-            $res .= ' ';
-        } else {
-            $res .= '&nbsp;';
-        }
-        
         $res .= '%';
         
         return $res;

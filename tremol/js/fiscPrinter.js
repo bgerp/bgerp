@@ -61,23 +61,13 @@ function fpServerSetDeviceSettings(ip, tcpPort, password, serialPort, baudRate, 
  */
 function fpOpenFiscReceipt(operNum, operPass, isDetailed, isPrintVat, printTypeStr, rcpNum)
 {
-	if ((operNum < 1) || (operNum > 20)) {
-		throw new Error("Номер на оператор може да е от 1 до 20");
-	}
+	checkOperNum(operNum);
 	
-	if (operPass.length > 6) {
-		throw new Error("Паролата на оператора не трябва да е над 6 символа");
-	}
+	checkOperPass(operPass);
 	
-	var receiptFormat = Tremol.Enums.OptionReceiptFormat.Brief;
-	if (isDetailed) {
-		receiptFormat = Tremol.Enums.OptionReceiptFormat.Detailed;
-	}
+	var receiptFormat = getReceipFormat(isDetailed);
 	
-	var printVat = Tremol.Enums.OptionPrintVAT.No;
-	if (isPrintVat) {
-		printVat = Tremol.Enums.OptionPrintVAT.Yes;
-	}
+	var printVat = getPrintVat(isPrintVat);
 	
 	if (printTypeStr == 'postponed') {
 		var printType = Tremol.Enums.OptionFiscalRcpPrintType.Postponed_printing;
@@ -89,9 +79,7 @@ function fpOpenFiscReceipt(operNum, operPass, isDetailed, isPrintVat, printTypeS
 		throw new Error("Непозволен тип за принтиране");
 	}
 	
-	if (!rcpNum.match(/[a-z0-9]{8}-[a-z0-9]{4}-[0-9]{7}/gi)) {
-		throw new Error("Невалиден номер за касаво бележка");
-	}
+	checkRcpNum(rcpNum);
 	
     try {
         fp.OpenReceipt(operNum, operPass, receiptFormat, printVat, printType, rcpNum);
@@ -99,6 +87,142 @@ function fpOpenFiscReceipt(operNum, operPass, isDetailed, isPrintVat, printTypeS
         handleException(ex);
     }
 };
+
+
+/**
+ * Сторниране на ФБ
+ * 
+ * @param operNum
+ * @param operPass
+ * @param isDetailed
+ * @param isPrintVat
+ * @param printTypeStr
+ * @param stornoReason
+ * @param relatedToRcpNum
+ * @param relatedToRcpDateTime
+ * @param FMNum
+ * @param relatedToURN
+ */
+function fpOpenStornoReceipt(operNum, operPass, isDetailed, isPrintVat, printTypeStr, stornoReason, relatedToRcpNum, relatedToRcpDateTime, FMNum, relatedToURN)
+{
+	checkOperNum(operNum);
+	
+	checkOperPass(operPass);
+	
+	var receiptFormat = getReceipFormat(isDetailed);
+	
+	var printVat = getPrintVat(isPrintVat);
+	
+	if (printTypeStr == 'postponed') {
+		var printType = Tremol.Enums.OptionStornoRcpPrintType.Postponed_Printing;
+	} else if (printTypeStr == 'buffered') {
+		var printType = Tremol.Enums.OptionStornoRcpPrintType.Buffered_Printing;
+	} else if (printTypeStr == 'stepByStep') {
+		var printType = Tremol.Enums.OptionStornoRcpPrintType.Step_by_step_printing;
+	} else {
+		throw new Error("Непозволен тип за принтиране");
+	}
+	
+	if ((stornoReason < 0) || (stornoReason > 2)) {
+		throw new Error("Непозволена причина за сторно");
+	}
+	
+	if (relatedToRcpNum.length > 6) {
+		throw new Error("Дължината на номера на ФБ трябва да е до 6 символа");
+	}
+	
+	if (relatedToRcpDateTime.length > 19) {
+		console.log(relatedToRcpDateTime);
+		console.log(relatedToRcpDateTime.length);
+		throw new Error("Времето на ФБ не може да е над 19 символа");
+	}
+	
+	if (FMNum.length != 8) {
+		throw new Error("Номера на фискалната памет трябва да е 8 символа");
+	}
+	
+	if (relatedToURN) {
+		checkRcpNum(relatedToURN);
+	}
+	
+	try {
+		fp.OpenStornoReceipt(operNum, operPass, receiptFormat, printVat, printType, stornoReason, relatedToRcpNum, relatedToRcpDateTime, FMNum, relatedToURN);
+	} catch(ex) {
+	    handleException(ex);
+	}
+}
+
+
+/**
+ * Помощна фунцкия за проверка на номера на оператор
+ * 
+ * @param operNum
+ */
+function checkOperNum(operNum)
+{
+	if ((operNum < 1) || (operNum > 20)) {
+		throw new Error("Номер на оператор може да е от 1 до 20");
+	}
+}
+
+
+/**
+ * Помощна фунцкия за проверка на паролата на оператора
+ * 
+ * @param operPass
+ */
+function checkOperPass(operPass)
+{
+	if (operPass.length > 6) {
+		throw new Error("Паролата на оператора не трябва да е над 6 символа");
+	}
+}
+
+
+/**
+ * Помощна фунцкия за проверка на УНП
+ * 
+ * @param rcpNum
+ * @returns
+ */
+function checkRcpNum(rcpNum)
+{
+	if (!rcpNum.match(/[a-z0-9]{8}-[a-z0-9]{4}-[0-9]{7}/gi)) {
+		throw new Error("Невалиден номер за касаво бележка");
+	}
+}
+
+
+/**
+ * Помощна функция за връща дали бележката да е детайлна
+ * 
+ * @param isDetailed
+ */
+function getReceipFormat(isDetailed)
+{
+	var receiptFormat = Tremol.Enums.OptionReceiptFormat.Brief;
+	if (isDetailed) {
+		receiptFormat = Tremol.Enums.OptionReceiptFormat.Detailed;
+	}
+	
+	return receiptFormat;
+}
+
+
+/**
+ * Помощна функция - дали да се отпечата детайлно ДДС
+ * 
+ * @param isPrintVat
+ */
+function getPrintVat(isPrintVat)
+{
+	var printVat = Tremol.Enums.OptionPrintVAT.No;
+	if (isPrintVat) {
+		printVat = Tremol.Enums.OptionPrintVAT.Yes;
+	}
+	
+	return printVat;
+}
 
 
 /**
@@ -136,6 +260,58 @@ function fpCloseReceiptInCash()
 {
     try {
        fp.CashPayCloseReceipt();
+    } catch(ex) {
+        handleException(ex);
+    }
+};
+
+
+/**
+ * Добавяне на плащане
+ * 
+ * @param paymentType
+ * @param change
+ * @param amount
+ * @param changeType
+ */
+function fpPayment(paymentType, change, amount, changeType)
+{
+	if ((paymentType < 0) || (paymentType > 11)) {
+		throw new Error("Типа на плащането може да е от 0 до 11");
+	}
+	
+	if ((change != 0) && (change != 1)) {
+		throw new Error("Рестото може да е 0 или 1");
+	}
+	
+	if ((changeType != 0) && (changeType != 1) && (changeType != 2)) {
+		throw new Error("Непозволен параметър за типа на плащането");
+	}
+	
+    try {
+    	fp.Payment(paymentType, change, amount, changeType);
+    } catch(ex) {
+        handleException(ex);
+    }
+};
+
+
+/**
+ * Добавяне на плащане
+ * 
+ * @param paymentType
+ * @param change
+ * @param amount
+ * @param changeType
+ */
+function fpPayExactSum(paymentType)
+{
+	if ((paymentType < 0) || (paymentType > 11)) {
+		throw new Error("Типа на плащането може да е от 0 до 11");
+	}
+	
+    try {
+    	fp.PayExactSum(paymentType);
     } catch(ex) {
         handleException(ex);
     }

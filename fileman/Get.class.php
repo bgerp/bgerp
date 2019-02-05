@@ -205,13 +205,13 @@ class fileman_Get extends core_Manager
                     }
                 }
             }
-           
+            
             // Вземаме миме-типа от хедърите
             if (isset($headers['content-type'])) {
                 $ct = $headers['content-type'];
                 $ct = explode(';', $ct);
                 $ct = $ct[0];
-                if(strtolower($ct) != 'application/octet-stream') {
+                if (strtolower($ct) != 'application/octet-stream') {
                     $exts = fileman_Mimes::getExtByMime($ct);
                     if (count($exts)) {
                         foreach ($exts as $e) {
@@ -235,7 +235,7 @@ class fileman_Get extends core_Manager
             }
             
             $fileName = $headers['filename'];
-             
+            
             if (!$fileName && $ext) {
                 $fPattern = "/[^\\?\\/*:;{}\\\\]+\\.{$ext}/i";
                 
@@ -245,7 +245,7 @@ class fileman_Get extends core_Manager
             }
             
             $location = $headers['location'] ? $headers['location'] : $rec->url;
-
+            
             // Ако URL-то завършва с нещо като име на файл, го вземаме
             if (!$fileName) {
                 $fPattern = "/[=\/]([a-z0-9_\-]{0,40}\.([a-z]{2,4}))$/i";
@@ -263,7 +263,7 @@ class fileman_Get extends core_Manager
             if (!$fileName) {
                 $fileName = $tmpFile;
             }
-
+            
             if ($ct && $fileName) {
                 $fileName = fileman_Mimes::addCorrectFileExt($fileName, $ct);
             }
