@@ -393,11 +393,7 @@ class docarch_Volumes extends core_Master
                      $requiredRoles = 'no_one' ;
             }
         }
-        
-       
-        $aaa = docarch_Archives::fetch($rec->archive)->storageTime;
-      //  bp($aaa,type_Time::toVerbal_($aaa));
-        
+     
         if ($action == 'reject') {
             if ((!is_null($rec->docCnt) || (!$rec->docCnt == 0)) && ($rec->state != 'closed')) {
                 
