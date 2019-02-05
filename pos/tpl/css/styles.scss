@@ -38,7 +38,9 @@
 #receipt-table {
 	width:100%;
 }
-
+.scrolling-vertical {
+	margin-bottom: 20px;
+}
 #receipt-table td, #receipt-table th{
 	padding:5px;
 	border:1px solid #000;
@@ -595,11 +597,11 @@
 
 /*tabs */
 .tabs-holder-content {
-    background-image: url("../terminal/patern.jpg");
     position: relative;
     min-height:285px;
     box-shadow: 4px 4px 4px rgba(0,0,0,0.3) ,inset 0 0 20px rgba(0,0,0,0.1);
     border-radius: 5px;
+	border-top-left-radius: 0;
 }
 
 .narrow .tabs-holder-content{
@@ -611,76 +613,100 @@
 	display:inline-block; 
 }
 
-.pos-tabs{
-	margin: 20px 0 0 3px; 
-	padding: 0;
-}
-
 #tools-wide-tabs{
     margin-top: 10px;
 }
-
-.pos-tabs:after{ 
-	display:block; 
-	clear:both; 
-	content:''
+.wide .pos-tabs {
+	-webkit-flex-flow: row wrap;
+	-moz-flex-flow: row wrap;
+	-ms-flex-flow: row wrap;
+	flex-flow: row wrap;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	-webkit-justify-content: center;
+	-moz-justify-content: center;
+	-ms-justify-content: center;
+	justify-content: center;
 }
 
-.pos-tabs li { 
-	margin:0px 5px;
-	float:left;
-	list-style:none;
+.pos-tabs {
+		position: relative;
+		top: 3px;
+		display: -ms-flexbox;
+		display: -webkit-flex;
+		display: -moz-flex;
+		display: -ms-flex;
+		display: flex;
+		margin: 0 auto;
+		padding: 0;
+		list-style: none;
+		-ms-box-orient: horizontal;
+		-ms-box-pack: center;
+
+		li {
+			position: relative;
+			z-index: 1;
+			display: block;
+			margin: 0;
+			text-align: center;
+			flex: 1;
+		}
+		a {
+			position: relative;
+			text-align: center;
+			padding-right: 35px;
+			display: block;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			line-height: 2.5;
+			color: #333;
+			&:after {
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+				padding-left: 30px;
+				z-index: -1;
+				outline: 1px solid transparent;
+				border-radius: 10px 10px 0 0;
+				background: #ccc;
+				border: 1px solid #aaa;
+				border-bottom: none;
+				content: '';
+				-webkit-transform: perspective(5px) rotateX(0.93deg) translateZ(-1px);
+				transform: perspective(5px) rotateX(0.93deg) translateZ(-1px);
+				-webkit-transform-origin: 0 0;
+				transform-origin: 0 0;
+				-webkit-backface-visibility: hidden;
+				backface-visibility: hidden;
+			}
+
+		}
+	li.active  a{
+		z-index: 10;
+		position: relative;
+		&:after {
+			background: #f6f6f6;
+			border: 1px solid #ccc;
+			border-bottom: none;
+		}
+	}
+
+}
+.narrow .pos-tabs {
+	margin-right: 5px;
+	margin-left: 5px;
+	overflow-x: auto;
+}
+.narrow .pos-tabs a {
+	padding-right: 20px;
+	padding-left: 5px;
+	font-size: 0.8em;
+	text-align: left;
 }
 
-.narrow .pos-tabs li{
-	margin:0;
-}
-
-.pos-tabs a {
-	padding:9px 15px;
-	display:block;
-	border-radius:5px 5px 0px 0px;
-	-moz-border-radius: 5px 5px 0px 0px;
-    -webkit-border-radius: 5px 5px 0px 0px;
-    border-radius: 0 \9;
-	background: rgb(221,221,221);
-	background: -moz-linear-gradient(top,  rgba(221,221,221,1) 1%, rgba(112,112,112,1) 100%, rgba(112,112,112,1) 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(1%,rgba(221,221,221,1)), color-stop(100%,rgba(112,112,112,1)), color-stop(100%,rgba(112,112,112,1)));
-	background: -webkit-linear-gradient(top,  rgba(221,221,221,1) 1%,rgba(112,112,112,1) 100%,rgba(112,112,112,1) 100%);
-	background: -o-linear-gradient(top,  rgba(221,221,221,1) 1%,rgba(112,112,112,1) 100%,rgba(112,112,112,1) 100%);
-	background: -ms-linear-gradient(top,  rgba(221,221,221,1) 1%,rgba(112,112,112,1) 100%,rgba(112,112,112,1) 100%);
-	background: linear-gradient(to bottom,  rgba(221,221,221,1) 1%,rgba(112,112,112,1) 100%,rgba(112,112,112,1) 100%);
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#dddddd', endColorstr='#707070',GradientType=0 );
-    box-shadow: 2px -1px 3px rgba(0,0,0,0.5), inset 0 0 25px rgba(0,0,0,0.4);
-	font-size:16px;
-	color:#fff;
-	text-decoration:none;
-	transition:all linear 0.1s;
-	border-left: 1px solid #ccc;
-	border-bottom:#ccc;
-	outline: none;
-}
- 
-.pos-tabs a:hover, .pos-tabs .active a, .pos-tabs .active a:hover {
-    text-shadow: none;
-    color:#4c4c4c;
-    box-shadow: 2px -1px 3px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.1);
-    background: url("../terminal/patern.jpg");
-    filter: none;
-}
-
-.narrow .pos-tabs a{
-	padding:7px 15px;
-	margin-left: 7px;
-	margin-bottom: 7px;
-	border-radius:5px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-     box-shadow: 2px 1px 3px rgba(0,0,0,0.5), inset 0 0 25px rgba(0,0,0,0.4);
-     &:hover {
-        box-shadow: 2px 0px 3px rgba(0,0,0,0.5), inset 0 0 25px rgba(0,0,0,0.4);
-     }
-}
 
 .pos-tabs a:hover {
 	text-decoration:none;
@@ -690,6 +716,10 @@
     padding:15px;
     border-radius:3px;
     display:none;
+}
+.tabs-holder-content {
+	border: 1px solid #ccc;
+	border-top: none;
 }
 
 .tab-content.active{
@@ -910,10 +940,7 @@
 	}
 }
 @media handheld, only screen and (max-width: 533px) {
-    .narrow .pos-tabs>li>a{
-        padding:4px 3px;
-        font-size: 0.9em;
-    }
+
     .narrow .pos-span-name {
         font-size: 0.8em;
     }
