@@ -1083,12 +1083,12 @@ class pos_Receipts extends core_Master
         expect($rec = $this->fetchRec($id));
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PAYMENTS_BLOCK');
         
-        $payUrl = $recUrl = array();
+        $payUrl = array();
         if ($this->haveRightFor('pay', $rec)) {
             $payUrl = toUrl(array('pos_ReceiptDetails', 'makePayment'), 'local');
         }
         
-        $value = $rec->total - $rec->paid;
+        $value = round($rec->total - $rec->paid, 2);
         $value = ($value > 0) ? $value : null;
         $block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;', 'value' => $value, 'title' => 'Въведи платена сума')) . '<br />', 'INPUT_PAYMENT');
         
