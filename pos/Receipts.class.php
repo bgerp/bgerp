@@ -827,7 +827,7 @@ class pos_Receipts extends core_Master
         $query = $this->getQuery();
         $query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$rec->id}");
         while ($rec = $query->fetch()) {
-            $date = dt::mysql2verbal($rec->createdOn, $mask = 'H:i');
+            $date = dt::mysql2verbal($rec->createdOn, 'H:i');
             $between = dt::daysBetween($now, $rec->valior);
             $between = ($between != 0) ? " <span>-${between}</span>" : null;
             
@@ -836,7 +836,7 @@ class pos_Receipts extends core_Master
         }
         
         if ($this->haveRightFor('add')) {
-            $addBtn = ht::createLink('Нова<br>бележка', array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes');
+            $addBtn = ht::createLink(tr('Нова'), array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes');
             $block->prepend($addBtn);
         }
         
@@ -1104,7 +1104,7 @@ class pos_Receipts extends core_Master
             $attr = (!empty($disClass)) ? array('disabled' => 'disabled', 'class' => 'disabledBtn') : array();
             $selectHtml = ht::createSmartSelect($payments, 'selectedPayment', '-1', $attr);
             $block->append($selectHtml, 'CLOSE_BTNS');
-            $block->append(ht::createFnBtn('Плати', '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-url' => $payUrl)), 'CLOSE_BTNS');
+            $block->append(ht::createFnBtn(tr('Плати'), '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-url' => $payUrl)), 'CLOSE_BTNS');
         }
         
         $printUrl = array($this, 'terminal', $rec->id, 'Printing' => 'yes');
