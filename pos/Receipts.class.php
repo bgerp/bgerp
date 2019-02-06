@@ -1103,8 +1103,10 @@ class pos_Receipts extends core_Master
             $payments = array('-1' => tr('В брой')) + $payments;
             $attr = (!empty($disClass)) ? array('disabled' => 'disabled', 'class' => 'button disabledBtn') : array('class' => 'button');
             $selectHtml = ht::createSelect('selectedPayment', $payments,  '-1', $attr);
-            $block->append($selectHtml, 'CLOSE_BTNS');
-            $block->append(ht::createFnBtn(tr('Плати'), '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-url' => $payUrl)), 'CLOSE_BTNS');
+
+            $block->append('<span class="selectHolder">' . $selectHtml, 'CLOSE_BTNS');
+            $block->append(ht::createFnBtn('>>', '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-url' => $payUrl)) . '</span>', 'CLOSE_BTNS');
+
         }
         
         $printUrl = array($this, 'terminal', $rec->id, 'Printing' => 'yes');

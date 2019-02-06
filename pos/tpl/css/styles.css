@@ -488,7 +488,7 @@
   margin-left: 0px;
   margin-right: 20px;
   float: left;
-  min-width: 90px;
+  min-width: 130px;
   width: 17%;
   margin-top: -52px; }
 
@@ -542,10 +542,38 @@
 .narrow #input-search-contragent {
   height: 1.8em; }
 
-select.button {
-  padding-left: 10px !important; }
-  select.button.disabledBtn {
-    color: #999999 !important; }
+.colum-btn .selectHolder {
+  display: block; }
+  .colum-btn .selectHolder select.button {
+    display: inline-block;
+    width: 78% !important;
+    padding-left: 10px !important; }
+    .colum-btn .selectHolder select.button.disabledBtn {
+      color: #999999 !important;
+      background-color: #bbbbbb !important; }
+  .colum-btn .selectHolder .paymentBtn {
+    display: inline-block;
+    min-width: 28px !important;
+    width: 20%;
+    margin-right: 0 !important;
+    margin-left: 2px !important;
+    float: right;
+    position: relative;
+    top: -1px;
+    text-shadow: 0 1px 0 #eeeeee !important; }
+    .colum-btn .selectHolder .paymentBtn.button.disabledBtn[type=button] {
+      width: 20%;
+      color: #999999 !important;
+      background-image: none !important;
+      background-color: #cccccc !important; }
+
+.narrow .selectHolder select.button {
+  min-width: 82px !important; }
+
+.narrow .selectHolder .paymentBtn {
+  min-width: 26px !important;
+  width: 18%;
+  top: 0; }
 
 /*
  * tabs
