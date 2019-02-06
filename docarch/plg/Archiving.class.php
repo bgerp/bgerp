@@ -119,11 +119,11 @@ class docarch_plg_Archiving extends core_Plugin
      * Определяне дата на документа
      *
      * @param object   $rec
-     * @return string  $documentDate дата на документа
+     * @return string  $docDate дата на документа
      */
     public static function getDocumentDate($rec)
     {
-        $documentDate = null;
+        $docDate = null;
         
         //Възможни дати
         $possibleDate = array('date','valior','closedOn','activatedOn','createdOn');
@@ -132,13 +132,13 @@ class docarch_plg_Archiving extends core_Plugin
             
             if (!is_null($rec-> {$val})) {
                 
-                $documentDate = $rec->{$val};
+                $docDate = $rec->{$val};
                 
-                return $documentDate;
+                return $docDate;
             }
         }
         
-        if (is_null($documentDate)) {
+        if (is_null($docDate)) {
            return null ;
         }
         

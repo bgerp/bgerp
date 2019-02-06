@@ -257,7 +257,7 @@ class docarch_Movements extends core_Master
             $volRec->_isCreated = true;
             
             $volRec->docCnt--;
-            
+      
             
             docarch_Volumes::save($volRec, 'docCnt');
         }
@@ -299,11 +299,9 @@ class docarch_Movements extends core_Master
             //Извежда бутона "Вземане" ако докумета е в поне един том
             if ($archCnt > 0) {
                 $data->toolbar->addBtn('Вземане', array($mvc, 'Taking',
-                    'documentId' => $documentContainerId,
-                    
-                    'ret_url' => true));
+                                                              'documentId' => $documentContainerId,
+                                                              'ret_url' => true));
                 
-                $data->toolbar->addBtn('Унищожаване', array($mvc, 'Action'));
             }
         }
     }
@@ -353,13 +351,13 @@ class docarch_Movements extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $arcivesArr = array();
-        $archArr = array();
-        
+     
         $movieName = self::getMoveName($rec->type);
+        
         $row->type = $movieName;
         
         if (($rec->documentId)) {
+            
             $Document = doc_Containers::getDocument($rec->documentId);
             
             $className = $Document->className;
@@ -369,70 +367,9 @@ class docarch_Movements extends core_Master
             $url = toUrl(array("${className}",'single', $Document->that));
             
             $row->documentId = ht::createLink($handle, $url, false, array());
-            
-            
-            // има ли архиви дефинирани за документи от този клас , или за всякакви документи
-            $docClassId = core_Classes::getId($className);
-            
-            $documentContainerId = $rec->documentId;
-            
-            $archQuery = docarch_Archives::getQuery();
-            
-            $archQuery->show('documents');
-            
-            $archQuery->likeKeylist('documents', $docClassId);
-            
-            $archQuery->orWhere('#documents IS NULL');
-            
-            if ($archQuery->count() > 0) {
-                while ($arcives = $archQuery->fetch()) {
-                    $arcivesArr[$arcives->id] = $arcives->id;
-                }
-                
-                // Има ли в тези архиви томове дефинирани да архивират документи, с отговорник текущия потребител
-                $volQuery = docarch_Volumes::getQuery();
-                
-                $volQuery->in('archive', $arcivesArr);
-                
-                $currentUser = core_Users::getCurrent();
-                
-                // Има ли в тези архиви томове дефинирани да архивират документи, с отговорник текущия потребител
-                $volQuery = docarch_Volumes::getQuery();
-                
-                //В кои архиви е архивиран към настоящия момент този документ.
-                $balanceDocMove = self::getBalanceOfDocumentMovies($documentContainerId);
-                
-                if (is_array($balanceDocMove)) {
-                    foreach ($balanceDocMove as $val) {
-                        if ($val->isInArchive == 1) {
-                            $archArr[$val->archive] = $val->archive;
-                        }
-                    }
-                }
-                
-                if (!empty($archArr)) {
-                    foreach ($archArr as $v) {
-                        unset($arcivesArr[$v]);
-                    }
-                }
-                $volQuery->in('archive', $arcivesArr);
-                
-                $currentUser = core_Users::getCurrent();
-                
-                $volQuery->where("#isForDocuments = 'yes' AND #inCharge = ${currentUser} AND #state = 'active'");
-                
-                $lastMovieMark = false;
-                $lastMovieId = self::getLastMovieOfDocument($documentContainerId);
-                if ($lastMovieId == $rec->id) {
-                    $lastMovieMark = true;
-                }
-                
-                if ((($volQuery->count() > 0) && (!empty($archArr) || is_null($archArr))) && $lastMovieMark) {
-                    //       $row->type .= '<span class = fright>'.ht::createBtn('Архив', array($mvc,'Add', 'documentId' => $documentContainerId, 'ret_url' => true)).'</span>';
-                }
-                
-                $row->documentId .= ' » ';
-            }
+             
+            $row->documentId .= ' » ';
+           
         }
         
         //Ако движението е "Включване"

@@ -194,6 +194,7 @@ class docarch_Volumes extends core_Master
             $row->includeIn = docarch_Volumes::getHyperlink($rec->includeIn);
         }
         
+        $row->includedVolumes = '';
         if (is_array($rec->includedVolumes)) {
             foreach ($rec->includedVolumes as $val) {
                 
@@ -398,41 +399,69 @@ class docarch_Volumes extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         
-        
+        $rec->includedVolumes = self::getIncludedVolumes($rec);
         //Тома  може да бъде изтрит ако е празен
         if ($action == 'delete') {
             if (!is_null($rec->docCnt)) {
                 if (($rec->docCnt != 0)) 
                      $requiredRoles = 'no_one' ;
             }
+            
+            
+            if (!empty($rec->includedVolumes)) {
+                    $requiredRoles = 'no_one' ;
+            }
         }
-     
         //Reject = Унищожаване 
         if ($action == 'reject') {
            
             $storageTimeMarker = true;
-            $now = dt::now();
-            $storageTime = docarch_Archives::fetchField($rec->archive,'storageTime');
-            //Ако има зададена продължителност
-            if ($rec->lastDocDate) {
-                $endDate = dt::addSecs($storageTime, $rec->lastDocDate);
-                
-                // И крайната дата е минала, деактивираме лимита и продължаваме напред
-                if($endDate < $now) {
-                    $storageTimeMarker = false;
-                }
-            }
             
-            if ((!is_null($rec->docCnt) || (!$rec->docCnt == 0)) && ($rec->state != 'closed')) {
+            $now = dt::now();
+            
+            //Срок за съхранение на този том(от срока на архива)
+            $storageTime = docarch_Archives::fetchField($rec->archive,'storageTime');
+            
+            //Датата на най-късния документ в този том -$latestDocumentDate
+            $vQuery = docarch_Movements::getQuery();
+            
+            $vQuery->where("#toVolumeId = $rec->id AND #type = 'archiving'");
+            
+            $vQuery->orderBy('documentDate', 'DESC');
+            
+            $vQuery->limit(1);
+            
+            while ($vRec = $vQuery->fetch()) {
+                
+                $latestDocumentDate = $vRec->documentDate;
+            }
+          
+            //Ако има зададена продължителност
+            if(!is_null($storageTime)){
+                
+                $endDate = dt::addSecs($storageTime, $latestDocumentDate);
+                    
+                    // И крайната дата е минала, деактивираме лимита и продължаваме напред
+                    if($endDate < $now) {
+                        $storageTimeMarker = false;
+                    }
+              
+                if ((!is_null($rec->docCnt) || (!$rec->docCnt == 0)) && ($rec->state != 'closed')) {
+                    $requiredRoles = 'no_one' ;
+                }
+                
+                elseif ((!is_null($rec->docCnt) || (!$rec->docCnt == 0)) && ($rec->state == 'closed') &&($storageTimeMarker == 'true') ){
+                    $requiredRoles = 'no_one' ;
+                }
+            
+            }else{
                 $requiredRoles = 'no_one' ;
             }
             
-            elseif ((!is_null($rec->docCnt) || (!$rec->docCnt == 0)) && ($rec->state == 'closed') &&($storageTimeMarker == 'true') ){
-                $requiredRoles = 'no_one' ; ;
+            if (!empty($rec->includedVolumes)) {
+                $requiredRoles = 'no_one' ;
             }
-            
         }
-        
         if ($action == 'edit') {
           if (($rec->state == 'closed'))   {
                     $requiredRoles = 'no_one' ;
@@ -577,9 +606,9 @@ class docarch_Volumes extends core_Master
         
         $volQuery->where("#state != 'rejected'");
         
-        while ($volume = $volQuery->fetch()) {
+        //while ($volume = $volQuery->fetch()) {
           //bp($volume);  ;
-        }
+       // }
         
         
     }
