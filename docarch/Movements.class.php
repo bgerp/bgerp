@@ -71,7 +71,8 @@ class docarch_Movements extends core_Master
         $this->FLD('type', 'varchar(set options)', 'caption=Действие');
         
         //Документ - ако движението е на документ
-        $this->FLD('documentId', 'key(mvc=doc_Containers)', 'caption=Документ/Том/Потребител,input=hidden,silent');
+        $this->FLD('documentId', 'key(mvc=doc_Containers)', 'caption=Документ/Том/Потребител,input=hidden,silent,tdClass=wideColumn');
+        $this->FLD('documentDate', 'date', 'caption=Дата на документа,input=hidden,silent');
         
         //Изходящ том участващ в движението
         $this->FLD('fromVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Контейнер');
@@ -105,7 +106,9 @@ class docarch_Movements extends core_Master
         
         //Архивиране на документ
         if (($rec->documentId && !$rec->id)) {
+            
             $arcivesArr = array();
+            $archArr = array();
             
             $Document = doc_Containers::getDocument($rec->documentId);
             
@@ -235,6 +238,11 @@ class docarch_Movements extends core_Master
             if (is_null($volRec->docCnt) || $volRec->docCnt == 0) {
                 $volRec->firstDocDate = $rec->createdOn;
             }
+            
+            if($rec->type == 'archiving' ){
+                
+                $volRec->lastDocDate = $rec->createdOn;
+            }
            
             $volRec->docCnt++;
             
@@ -254,20 +262,7 @@ class docarch_Movements extends core_Master
             docarch_Volumes::save($volRec, 'docCnt');
         }
     }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareListRows($mvc, $data)
-    {
-        $recs = &$data->recs;
-        $rows = &$data->rows;
-    }
-    
+   
     
     /**
      * Преди показване на листовия тулбар
@@ -358,6 +353,9 @@ class docarch_Movements extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        $arcivesArr = array();
+        $archArr = array();
+        
         $movieName = self::getMoveName($rec->type);
         $row->type = $movieName;
         
@@ -793,14 +791,9 @@ class docarch_Movements extends core_Master
                 if (!is_null($movie->toVolumeId)) {
                     $archive = docarch_Volumes::fetch($movie->toVolumeId)->archive;
                 }
-                $toVolumeId = $movie->toVolumeId ;
                 
                 $counter = $movie->type == 'archiving' ? 1 : -1;
-                
-                if (($movie->type == 'taking') && ($archive == $oldArchive)) {
-                    //           $archive = $oldArchive ;
-                }
-                
+               
                 if (! array_key_exists($archive, $balanceOfDocumentMovies)) {
                     $balanceOfDocumentMovies[$archive] = (object) array(
                         'documentId' => $movie->documentId,
@@ -815,7 +808,6 @@ class docarch_Movements extends core_Master
                     $obj->isInVolume += $counter;
                 }
                 
-                $oldArchive = $archive;
             }
         }
         
@@ -832,8 +824,7 @@ class docarch_Movements extends core_Master
      */
     public static function getLastMovieOfDocument($containerId)
     {
-        $lastMovie = array();
-        
+       
         $mQuery = self::getQuery();
         
         $mQuery->where('#documentId IS NOT NULL');

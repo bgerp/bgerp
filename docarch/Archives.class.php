@@ -104,14 +104,13 @@ class docarch_Archives extends core_Master
         $form = $data->form;
         $rec = $form->rec;
         
-        
         $docClasses = core_Classes::getOptionsByInterface('doc_DocumentIntf');
         
         $docClasses = array_keys($docClasses);
         
         $temp = array();
         
-        foreach ($docClasses as $k => $v) {
+        foreach ($docClasses as  $v) {
             $temp[$v] = core_Classes::getTitleById($v);
         }
         
@@ -148,7 +147,8 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        
+       
+      $data->toolbar->addBtn('Бутон', array($mvc,'Action','ret_url' => true));
     }
     
     
@@ -236,21 +236,21 @@ class docarch_Archives extends core_Master
          * Установява необходима роля за да се стартира екшъна
          */
         requireRole('admin');
-        $cRec = new stdClass();
-        $form = cls::get('core_Form');
-        $form->title = 'Форма тест|* Ala Bala|*';
-        $form->FNC('test', 'varchar', 'caption=Тест, mandatory, input');
+        $text = 'Това е съобщение за изтекъл срок';
+        $msg = new core_ET($text);
         
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $url = array(
+            'docarch_Volumes',
+            'single',
+            109
+        );
         
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
-        $cRec = $form->input();
+        $msg = $msg->getContent();
+       
+      
+        bgerp_Notifications::add($msg, $url, 1219);
         
-        if ($form->isSubmitted()) {
-            
-            return new Redirect(getRetUrl());
-        }
         
-        return $this->renderWrapping($form->renderHtml());
+
     }
 }
