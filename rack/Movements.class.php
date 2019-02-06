@@ -405,18 +405,19 @@ class rack_Movements extends core_Manager
                 $BatchClass = batch_Defs::getBatchDef($rec->productId);
                 if ($BatchClass) {
                     $form->setField('batch', 'input,placeholder=Без партида');
-                    
                     $batches = batch_Items::getBatches($rec->productId, $rec->storeId, true);
-                    $form->setOptions('batch', array('' => '') + $batches);
+                    if(!empty($rec->batch) && !array_key_exists($rec->batch, $batches)){
+                        $batches[$rec->batch] = $rec->batch;
+                    }
                     
                     // Ако е фиксиран артикула, фиксира се и партидата
                     if(Request::get('fixedProduct', 'int')){
-                        if($batch = Request::get('batch', 'varchar')){
-                            $form->setReadOnly('batch', $batch);
-                        } else {
+                        if(Request::get('batch', 'varchar')){
                             $form->setReadOnly('batch');
                         }
                     }
+                    
+                    $form->setOptions('batch', array('' => '') + $batches);
                     
                     $fieldCaption = $BatchClass->getFieldCaption();
                     if (!empty($fieldCaption)) {
