@@ -655,12 +655,12 @@ class cat_products_Packagings extends core_Detail
         $isUsed = false;
         foreach ($details as $Detail) {
             if ($Detail == 'cat_BomDetails') {
-                if ($rec = $Detail::fetch("#resourceId = {$productId} AND #packagingId = '{$uomId}'", 'id')) {
+                if ($Detail::fetch("#resourceId = {$productId} AND #packagingId = '{$uomId}'", 'id')) {
                     $isUsed = true;
                     break;
                 }
             } else {
-                if ($rec = $Detail::fetch("#productId = {$productId} AND #packagingId = '{$uomId}'", 'id')) {
+                if ($Detail::fetch("#productId = {$productId} AND #packagingId = '{$uomId}'", 'id')) {
                     $isUsed = true;
                     break;
                 }
