@@ -23,9 +23,22 @@ class docarch_Volumes extends core_Master
     
     
     /**
+     * Кой може да променя състоянието
+     */
+    public $canChangestate = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
+     * Кой има право да затваря том
+     */
+    public $canClose = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
      * Кой може да активира?
      */
     public $canActivate = 'ceo,docarchMaster,docarch';
+    
     
     /**
      * Кой може да го възстанови?
@@ -173,27 +186,6 @@ class docarch_Volumes extends core_Master
         $row = &$data->row;
         $rec = &$data->rec;
         
-      //  if($rec->exState == 'active' && $rec->state == 'closed'){
-            
-//             $mQuery = docarch_Movements::getQuery();
-            
-//             $mQuery->where('#documentId IS NOT NULL');
-            
-//             $mQuery->where("#type = 'archiving'");
-            
-//             $mQuery->where("#toVolumeId = $rec->id");
-            
-//             $mQuery->orderBy('createdOn', 'DESC');
-            
-//             $mQuery->limit(1);
-            
-//             while ($movie = $mQuery->fetch()) {
-//             $rec->lastDocDate = $movie->createdOn; 
-//             }
-            
-//            docarch_Volumes::save($rec,'lastDocDate');
-      //  }
-       
         $rec->includedVolumes = self::getIncludedVolumes($rec);
         
         $row->state = docarch_Volumes::getVerbal($rec, 'state');
@@ -290,17 +282,18 @@ class docarch_Volumes extends core_Master
           
                 $activeMsg = 'Сигурни ли сте, че искате да отворите този том и да може да се добавят документи в него|*?';
                 $closeMsg = 'Сигурни ли сте, че искате да приключите този том да не може да се добавят документи в него|*?';
-                $closeBtn = 'Приключване||Close';
+                $closeBtn = 'Затваряне||Close';
           
            
             if ($data->rec->state == 'closed') {
                $data->toolbar->addBtn('Отваряне', array($mvc, 'changeState', $data->rec->id, 'ret_url' => true),"id=btnActivate");
                $data->toolbar->setWarning('btnActivate', $activeMsg);
-            } elseif ($data->rec->state == 'active' && $data->rec->docCnt > 0) {
+            }elseif ($data->rec->state == 'active' && $data->rec->docCnt > 0) {
                
-                $data->toolbar->addBtn($closeBtn, array($mvc, 'changeState', $data->rec->id, 'ret_url' => true), "id=btnClose");
+                $data->toolbar->addBtn($closeBtn, array($mvc, 'changeState', $data->rec->id, 'ret_url' => true), "order=32,id=btnClose");
                 $data->toolbar->setWarning('btnClose', $closeMsg);
             }
+
         }
         
         //Включване на том в по-голям
@@ -312,7 +305,7 @@ class docarch_Volumes extends core_Master
         
         //Изключване на том от по-голям
         
-        if ($rec->id && !is_null($rec->includeIn)) {
+        if ($rec->id && !is_null($rec->includeIn)  && $rec->state != 'closed') {
             $data->toolbar->addBtn('Изключване', array('docarch_Movements','Exclude',$rec->id,'ret_url' => true));
         } 
     }
@@ -404,7 +397,7 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-       
+        
         
         //Тома  може да бъде изтрит ако е празен
         if ($action == 'delete') {
@@ -541,7 +534,7 @@ class docarch_Volumes extends core_Master
         
         $volQuery = docarch_Volumes::getQuery();
         
-        $volQuery->where("#state != 'rejected'");
+        $volQuery->where("#state != 'rejected' AND #state != 'closed'");
         
         $volQuery->where("#id != {$rec->id} AND #archive = {$rec->archive} AND #type != 'folder'");
         
@@ -584,9 +577,9 @@ class docarch_Volumes extends core_Master
         
         $volQuery->where("#state != 'rejected'");
         
-//         while ($volume = $volQuery->fetch()) {
-//           //bp($volume);  ;
-//         }
+        while ($volume = $volQuery->fetch()) {
+          //bp($volume);  ;
+        }
         
         
     }
