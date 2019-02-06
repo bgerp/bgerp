@@ -127,14 +127,15 @@ class batch_BatchesInDocuments extends core_Manager
      */
     public static function renderBatches($detailClassId, $detailRecId, $storeId)
     {
-        $detailClassId = cls::get($detailClassId)->getClassId();
+        $Class = cls::get($detailClassId);
+        $detailClassId = $Class->getClassId();
         $rInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
         if (!count($rInfo->operation)) {
             
             return;
         }
         
-        $showBatchLink = core_Packs::isInstalled('rack') && $rInfo->operation['in'];
+        $showBatchLink = core_Packs::isInstalled('rack') && $rInfo->operation['in'] && $Class->hasPlugin('rack_plg_IncomingShipmentDetails');
         $palletStoreId = isset($rInfo->operation['in']) ? $rInfo->operation['in'] : $storeId;
         $operation = key($rInfo->operation);
         
