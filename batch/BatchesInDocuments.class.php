@@ -135,7 +135,7 @@ class batch_BatchesInDocuments extends core_Manager
             return;
         }
         
-        $showBatchLink = core_Packs::isInstalled('rack') && $rInfo->operation['in'] && $Class->hasPlugin('rack_plg_IncomingShipmentDetails');
+        $showBatchLink = core_Packs::isInstalled('rack') && $rInfo->operation['in'] && ($Class->hasPlugin('rack_plg_IncomingShipmentDetails') || $Class instanceof planning_DirectProductionNote);
         $palletStoreId = isset($rInfo->operation['in']) ? $rInfo->operation['in'] : $storeId;
         $operation = key($rInfo->operation);
         
