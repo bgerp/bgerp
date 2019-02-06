@@ -371,7 +371,12 @@ class pos_Receipts extends core_Master
                     $rec->total += round($dRec->quantity * $price, 2);
                     break;
                 case 'payment':
-                    $rec->paid += $dRec->amount;
+                    $paidAmount = $dRec->amount;
+                    if($action[1] != '-1'){
+                        $paidAmount = cond_Payments::toBaseCurrency($action[1], $paidAmount, $rec->valior);
+                    }
+                    
+                    $rec->paid += $paidAmount;
                     $rec->change += $dRec->value;
                     break;
             }
@@ -673,7 +678,7 @@ class pos_Receipts extends core_Master
             // Добавяне на таба с избор
             $tpl->append($this->renderChooseTab($id), 'SEARCH_DIV');
             $tab .= tr("|*<li title='|Търсене на артикул|*'><a href='#tools-search' accesskey='o'>|Търсене|*</a></li>");
-            $tab .= tr("<li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='x'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='c'>|Прехвърляне|*</a></li><li><a href='#tools-drafts' title='|Всички чернови бележки|*' accesskey='p'>|Бележки|*</a></li>");
+            $tab .= tr("|*<li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='x'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='c'>|Прехвърляне|*</a></li><li><a href='#tools-drafts' title='|Всички чернови бележки|*' accesskey='p'>|Бележки|*</a></li>");
             
             // Добавяне на таба с черновите
             $tpl->append($this->renderDraftsTab($id), 'DRAFTS');
@@ -822,16 +827,16 @@ class pos_Receipts extends core_Master
         $query = $this->getQuery();
         $query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$rec->id}");
         while ($rec = $query->fetch()) {
-            $date = dt::mysql2verbal($rec->createdOn, $mask = 'H:i');
+            $date = dt::mysql2verbal($rec->createdOn, 'H:i');
             $between = dt::daysBetween($now, $rec->valior);
-            $between = ($between != 0) ? " <span>-${between}</span>" : null;
+            $between = ($between != 0) ? " <span class='num'>-${between}</span>" : null;
             
-            $row = ht::createLink("№{$rec->id} <br> {$date}$between", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => 'pos-notes'));
+            $row = ht::createLink("<span class='pos-span-name'>№{$rec->id} <br> {$date}$between</span>", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => 'pos-notes', 'title' => 'Отваряне на бележката'));
             $block->append($row);
         }
         
         if ($this->haveRightFor('add')) {
-            $addBtn = ht::createLink('Нова<br>бележка', array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes');
+            $addBtn = ht::createLink("<span class='pos-span-name'>" . tr('Нова') . "</span>", array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes');
             $block->prepend($addBtn);
         }
         
@@ -1078,29 +1083,28 @@ class pos_Receipts extends core_Master
         expect($rec = $this->fetchRec($id));
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PAYMENTS_BLOCK');
         
-        $payUrl = $recUrl = array();
+        $payUrl = array();
         if ($this->haveRightFor('pay', $rec)) {
             $payUrl = toUrl(array('pos_ReceiptDetails', 'makePayment'), 'local');
         }
         
-        $value = $rec->total - $rec->paid;
+        $value = round($rec->total - $rec->paid, 2);
         $value = ($value > 0) ? $value : null;
         $block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;', 'value' => $value, 'title' => 'Въведи платена сума')) . '<br />', 'INPUT_PAYMENT');
         
         // Показваме всички активни методи за плащания
         $disClass = ($payUrl) ? '' : 'disabledBtn';
         
-        $payments = cond_Payments::fetchSelected();
-        $placeholder = (count($payments)) ? 'PAYMENT_TYPE' : 'CLOSE_BTNS';
-        $block->append(ht::createFnBtn('В брой', '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => '-1', 'data-url' => $payUrl)), $placeholder);
+        $payments = pos_Points::fetchSelected($rec->pointId);
         
-        if (count($payments)) {
-            $block->append("<div class=''>", 'PAYMENT_TYPE');
-            foreach ($payments as $payment) {
-                $attr = array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => "{$payment->id}", 'data-url' => $payUrl);
-                $block->append(ht::createFnBtn($payment->title, '', '', $attr), $placeholder);
-            }
-            $block->append('</div>', 'PAYMENT_TYPE');
+        if(!count($payments)){
+            $block->append(ht::createFnBtn('В брой', '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => '-1', 'data-url' => $payUrl)), 'CLOSE_BTNS');
+        } else {
+            $payments = array('-1' => tr('В брой')) + $payments;
+            $attr = (!empty($disClass)) ? array('disabled' => 'disabled', 'class' => 'button disabledBtn') : array('class' => 'button');
+            $selectHtml = ht::createSelect('selectedPayment', $payments,  '-1', $attr);
+            $block->append($selectHtml, 'CLOSE_BTNS');
+            $block->append(ht::createFnBtn(tr('Плати'), '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-url' => $payUrl)), 'CLOSE_BTNS');
         }
         
         $printUrl = array($this, 'terminal', $rec->id, 'Printing' => 'yes');

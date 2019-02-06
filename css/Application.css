@@ -2618,9 +2618,20 @@ span.sharing-history-title {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none; }
+  #cmsMenu:after {
+    content: '';
+    display: block;
+    clear: both; }
+
+.loginIcon,
+.langIcon {
+  float: right !important; }
 
 .wide #cmsMenu {
   min-width: 500px; }
+
+.narrow #cmsMenu a {
+  margin-left: 5px !important; }
 
 #cmsMenu a {
   font-size: 1.12em;

@@ -17,9 +17,15 @@ class docarch_Archives extends core_Master
 {
     public $title = 'Архив';
     
-    public $loadList = 'plg_Created, plg_RowTools2,plg_Modified,docarch_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_State2,plg_Modified,docarch_Wrapper';
     
     public $listFields = 'name,volType,documents,createdOn=Създаден,modifiedOn=Модифициране';
+    
+    
+    /**
+     * Кой може да оттегля?
+     */
+    public $canReject = 'ceo,docarchMaster';
     
     
     /**
@@ -77,13 +83,13 @@ class docarch_Archives extends core_Master
         $this->FLD('documents', 'keylist(mvc=core_Classes, select=title,allowEmpty)', 'caption=Документи,placeholder=Всички');
         
         //Кой може да добавя документи в този архив
-        $this->FLD('sharedUsers', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Потребители');
+        $this->FLD('sharedUsers', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Потребители,mandatory');
         
         
         //Срок за съхранение
-        $this->FLD('storageTime', 'time(suggestions=1 година|2 години|3 години|4 години|5 години|10 години)', 'caption=Срок');
+        $this->FLD('storageTime', 'time(suggestions=1 година|2 години|3 години|4 години|5 години|10 години)', 'caption=Срок,mandatory');
     }
-    
+   
     
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -98,14 +104,13 @@ class docarch_Archives extends core_Master
         $form = $data->form;
         $rec = $form->rec;
         
-        
         $docClasses = core_Classes::getOptionsByInterface('doc_DocumentIntf');
         
         $docClasses = array_keys($docClasses);
         
         $temp = array();
         
-        foreach ($docClasses as $k => $v) {
+        foreach ($docClasses as  $v) {
             $temp[$v] = core_Classes::getTitleById($v);
         }
         
@@ -124,14 +129,13 @@ class docarch_Archives extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        
         // Прави запис в модела на движенията
-        $mRec = (object) array('type' => "creating",
-                               'position' => "$rec->name",
-                              );
-                            
-        docarch_Movements::save($mRec);
+        $className = get_class();
+        $mRec = (object) array('type' => 'creating',
+            'position' => $rec->id.'|'.$className,
+        );
         
+        docarch_Movements::save($mRec);
     }
     
     
@@ -143,9 +147,19 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn('Бутон', array($mvc, 'Action','ret_url' => true));
+       
+      $data->toolbar->addBtn('Бутон', array($mvc,'Action','ret_url' => true));
     }
     
+    
+    /**
+     * Добавя бутони  към единичния изглед на документа
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        $rec = &$data->rec;
+        
+    }
     
     /**
      * Най-малкия дефиниран тип за архива
@@ -192,6 +206,28 @@ class docarch_Archives extends core_Master
     
     
     /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        //Тома не може да бъде reject-нат ако не е празен
+        if ($action == 'reject') {
+            if (!is_null($rec->docCnt)) {
+                $requiredRoles = 'no_one' ;
+            } elseif (($rec->docCnt == 0)) {
+                // $requiredRoles = 'no_one' ;
+            }
+        }
+    }
+    
+    
+    /**
      * @return string
      */
     public function act_Action()
@@ -200,21 +236,21 @@ class docarch_Archives extends core_Master
          * Установява необходима роля за да се стартира екшъна
          */
         requireRole('admin');
-        $cRec = new stdClass();
-        $form = cls::get('core_Form');
-        $form->title = 'Форма тест|* Ala Bala|*';
-        $form->FNC('test', 'varchar', 'caption=Тест, mandatory, input');
+        $text = 'Това е съобщение за изтекъл срок';
+        $msg = new core_ET($text);
         
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $url = array(
+            'docarch_Volumes',
+            'single',
+            109
+        );
         
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
-        $cRec = $form->input();
+        $msg = $msg->getContent();
+       
+      
+        bgerp_Notifications::add($msg, $url, 1219);
         
-        if ($form->isSubmitted()) {
-            
-            return new Redirect(getRetUrl());
-        }
         
-        return $this->renderWrapping($form->renderHtml());
+
     }
 }

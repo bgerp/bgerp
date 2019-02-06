@@ -23,6 +23,8 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     protected $canMakeXReport = 'admin, peripheral';
     
+    protected $rcpNumPattern = '/^[a-z0-9]{8}-[a-z0-9]{4}-[0-9]{7}$/i';
+    
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -84,7 +86,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * IS_DETAILED - дали ФБ да е детайлна
      * IS_PRINT_VAT - дали да се отпечата ДДС информацията - разбивка за сумите по ДДС
      * PRINT_TYPE_STR - начин на отпечатване - stepByStep, postponed, buffered
-     * RCP_NUM - уникален номер на бележката - [a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[0-9]{7}.
+     * RCP_NUM - уникален номер на бележката - [a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[0-9]{7}
      *
      * // products - масив с артикулите
      * PLU_NAME - име на артикула
@@ -125,8 +127,21 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      *
      * PAY_EXACT_SUM_TYPE - лесен начин за плащане на цялата сума в една валута. Параметрите са същити, като PAYMENT_TYPE
      * Може частично да се плати с един или няколко payments, а остатъка с PAY_EXACT_SUM_TYPE
-     * 
-     * Ако няма PAY_EXACT_SUM_TYPE и payments плащането ще е "В брой лв" (0)
+     *
+     * Ако няма PAY_EXACT_SUM_TYPE и payments, плащането ще е "В брой лв" (0)
+     *
+     * // Параметри за сторниране
+     * IS_STORNO - дали се създава сторно бележка. По подобен начин на ФБ, само, че в бележката е СТОРНО
+     * STORNO_REASON - типа на сторно бележката. 0 - грешка от оператор, 1 - рекламация или връщане, 2 - данъчно облекчение.
+     * Само при операторска грешка не се следи за наличност в склада
+     * RELATED_TO_RCP_NUM - номер на фискалния бон, който ще се сторнира
+     * RELATED_TO_RCP_DATE_TIME - дата и час на фискалния бон, който ще се сторнира
+     * FM_NUM - номер на фискалната памет, от която е издаден фактурата
+     * RELATED_TO_URN - уникален номер на бележката, която се сторнира - [a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[0-9]{7} - подобно на RCP_NUM
+     * Другите параметри са: OPER_NUM, OPER_PASS, IS_DETAILED, IS_PRINT_VAT, PRINT_TYPE_STR - като при издаване на ФБ
+     * QR_CODE_DATA - резултата от ReadLastReceiptQRcodeData. Връща се в fpOnSuccess функцията - FM Number*Receipt Number*Receipt Date*Receipt Hour*Receipt Amount
+     * Може да се подаде този номер и от там автоматично да се извлече FM_NUM, RELATED_TO_RCP_NUM и RELATED_TO_RCP_DATE_TIME, ако не са подадени.
+     * Помощен параметър за определяне на някои стойности
      *
      * @return string
      *
@@ -154,24 +169,76 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         } else {
             $params['IS_PRINT_VAT'] = 'false';
         }
-        setIfNot($params['PRINT_TYPE_STR'], 'buffered'); // postponed || stepByStep
+        setIfNot($params['PRINT_TYPE_STR'], 'buffered');
         
-        expect($params['RCP_NUM']);
+        if (!$params['IS_STORNO']) {
+            expect($params['RCP_NUM'] && preg_match($this->rcpNumPattern, $params['RCP_NUM']));
+            $js->replace(json_encode($params['RCP_NUM']), 'RCP_NUM');
+            
+            $js->removeBlock('OPEN_STORNO_RECEIPT_1');
+            $js->removeBlock('OPEN_STORNO_RECEIPT_2');
+        } else {
+            
+            // Ако ще се прави сторно
+            
+            // Опитваме се да попълним няко от задължителните параметри
+            if ($params['QR_CODE_DATA'] && (!$params['RELATED_TO_RCP_NUM'] || !$params['RELATED_TO_RCP_DATE_TIME'] || !$params['FM_NUM'])) {
+                list($fmNum, $toRcpNum, $toRcpDate, $toRcpTime) = explode('*', $params['QR_CODE_DATA']);
+                
+                setIfNot($params['FM_NUM'], $fmNum);
+                setIfNot($params['RELATED_TO_RCP_NUM'], (int) $toRcpNum);
+                
+                $toRcpDateAndTime = $toRcpDate . ' ' . $toRcpTime;
+                $toRcpDateAndTime = dt::mysql2verbal($toRcpDateAndTime, 'd-m-Y H:i:s', null, false, false);
+                setIfNot($params['RELATED_TO_RCP_DATE_TIME'], $toRcpDateAndTime);
+            }
+            
+            expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_RCP_DATE_TIME'] && $params['FM_NUM']);
+            
+            setIfNot($params['STORNO_REASON'], 1);
+            expect(($params['STORNO_REASON'] >= 0) && ($params['STORNO_REASON'] <= 2));
+            expect(strlen($params['RELATED_TO_RCP_NUM']) <= 6);
+            expect(dt::verbal2mysql($params['RELATED_TO_RCP_DATE_TIME']));
+            expect(strlen($params['FM_NUM']) == 8);
+            
+            $js->replace($params['STORNO_REASON'], 'STORNO_REASON');
+            $js->replace($params['RELATED_TO_RCP_NUM'], 'RELATED_TO_RCP_NUM');
+            $js->replace(json_encode($params['RELATED_TO_RCP_DATE_TIME']), 'RELATED_TO_RCP_DATE_TIME');
+            $js->replace(json_encode($params['FM_NUM']), 'FM_NUM');
+            
+            setIfNot($params['RELATED_TO_URN'], $params['RCP_NUM'], 'null');
+            $js->replace(json_encode($params['RELATED_TO_URN']), 'RELATED_TO_URN');
+            
+            if ($params['RELATED_TO_URN'] != 'null') {
+                expect(preg_match($this->rcpNumPattern, $params['RELATED_TO_URN']));
+            }
+            
+            $js->removeBlock('OPEN_FISC_RECEIPT_1');
+            $js->removeBlock('OPEN_FISC_RECEIPT_2');
+        }
+        
+        expect(($params['OPER_NUM'] >= 1) && ($params['OPER_NUM'] <= 20));
+        expect(strlen($params['OPER_PASS']) <= 6);
+        expect(($params['PRINT_TYPE_STR'] == 'stepByStep') || ($params['PRINT_TYPE_STR'] == 'postponed') || ($params['PRINT_TYPE_STR'] == 'buffered'));
+        
         $js->replace($params['OPER_NUM'], 'OPER_NUM');
         $js->replace(json_encode($params['OPER_PASS']), 'OPER_PASS');
         $js->replace($params['IS_DETAILED'], 'IS_DETAILED');
         $js->replace($params['IS_PRINT_VAT'], 'IS_PRINT_VAT');
         $js->replace(json_encode($params['PRINT_TYPE_STR']), 'PRINT_TYPE_STR');
-        $js->replace(json_encode($params['RCP_NUM']), 'RCP_NUM');
         
         // Добавяме продуктите към бележката
         foreach ($params['products'] as $pArr) {
             setIfNot($pArr['PRICE'], 0);
-            setIfNot($pArr['VAT_CLASS'], 1); // 0 ... 3
+            setIfNot($pArr['VAT_CLASS'], 1);
             setIfNot($pArr['QTY'], 1);
             setIfNot($pArr['DISC_ADD_P'], 0);
             setIfNot($pArr['DISC_ADD_V'], 0);
             setIfNot($pArr['PLU_NAME'], '');
+            
+            expect(($pArr['VAT_CLASS'] >= 0) && ($pArr['VAT_CLASS'] <= 3));
+            
+            expect(is_numeric($pArr['PRICE']) && is_numeric($pArr['QTY']) && is_numeric($pArr['DISC_ADD_P']) && is_numeric($pArr['DISC_ADD_V']));
             
             $fpSalePLU = $js->getBlock('fpSalePLU');
             
@@ -197,6 +264,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         // Синхронизираме времената
         setIfNot($params['DATE_TIME'], date('d-m-Y H:i:s'));
         if ($params['DATE_TIME'] !== false) {
+            expect(dt::verbal2mysql($params['DATE_TIME']));
             $js->replace(json_encode($params['DATE_TIME']), 'DATE_TIME');
         } else {
             $js->removeBlock('DATE_TIME');
@@ -210,7 +278,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
                 list($params['SERIAL_NUMBER']) = explode('-', $params['RCP_NUM'], 2);
             }
             
-            expect($params['SERIAL_NUMBER'], $pRec, $params);
+            expect($params['SERIAL_NUMBER'] && (strlen($params['SERIAL_NUMBER']) == 8), $pRec, $params);
             $js->replace(json_encode($params['SERIAL_NUMBER']), 'SERIAL_NUMBER');
         } else {
             $js->removeBlock('SERIAL_NUMBER');
@@ -233,6 +301,10 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
                 setIfNot($paymentArr['PAYMENT_CHANGE'], 0);
                 setIfNot($paymentArr['PAYMENT_CHANGE_TYPE'], 0);
                 
+                expect(($paymentArr['PAYMENT_TYPE'] >= 0) && ($paymentArr['PAYMENT_TYPE'] <= 11));
+                expect(($paymentArr['PAYMENT_CHANGE'] == 0) || ($paymentArr['PAYMENT_TYPE'] == 1));
+                expect(($paymentArr['PAYMENT_CHANGE_TYPE'] >= 0) && ($paymentArr['PAYMENT_CHANGE_TYPE'] <= 2));
+                
                 expect($paymentArr['PAYMENT_AMOUNT']);
                 
                 $payment->replace($paymentArr['PAYMENT_TYPE'], 'PAYMENT_TYPE');
@@ -249,6 +321,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         
         if (isset($params['PAY_EXACT_SUM_TYPE'])) {
             $js->replace($params['PAY_EXACT_SUM_TYPE'], 'PAY_EXACT_SUM_TYPE');
+            expect(($paymentArr['PAY_EXACT_SUM_TYPE'] >= 0) && ($paymentArr['PAY_EXACT_SUM_TYPE'] <= 11));
         } else {
             $js->removeBlock('PAY_EXACT_SUM_TYPE');
         }
