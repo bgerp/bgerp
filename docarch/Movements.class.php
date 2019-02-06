@@ -71,7 +71,7 @@ class docarch_Movements extends core_Master
         $this->FLD('type', 'varchar(set options)', 'caption=Действие');
         
         //Документ - ако движението е на документ
-        $this->FLD('documentId', 'key(mvc=doc_Containers)', 'caption=Документ/Том/Потребител,input=hidden,silent');
+        $this->FLD('documentId', 'key(mvc=doc_Containers)', 'caption=Документ/Том/Потребител,input=hidden,silent,tdClass=wideColumn');
         $this->FLD('documentDate', 'date', 'caption=Дата на документа,input=hidden,silent');
         
         //Изходящ том участващ в движението
