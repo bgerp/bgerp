@@ -27,6 +27,7 @@ class docarch_plg_Archiving extends core_Plugin
         }
         $rec = &$data->rec;
         $arcivesArr = array();
+        $archArr = array();
         
         
         // има ли архиви дефинирани за документи от този клас , или за всякакви документи
@@ -73,6 +74,9 @@ class docarch_plg_Archiving extends core_Plugin
             
             $volQuery->where("#isForDocuments = 'yes' AND #inCharge = ${currentUser} AND #state = 'active'");
             
+            //Дата на документа
+            $documentDate = self::getDocumentDate($rec);
+            
             //Състояния в които документ неможе да бъде архивиран
             $stateArr = array('draft','pending','stopped');
             
@@ -80,7 +84,15 @@ class docarch_plg_Archiving extends core_Plugin
             
             //Ако има том който да отговатя на условията за него, показва бутон за архивиране
             if (($volQuery->count() > 0) && $stateCond) {
-                $data->toolbar->addBtn('Архивиране', array('docarch_Movements', 'Add', 'documentId' => $documentContainerId, 'ret_url' => true), 'ef_icon=img/16/archive.png,row=2');
+                
+                $data->toolbar->addBtn('Архивиране', array(
+                                                           'docarch_Movements',
+                                                           'Add',
+                                                           'documentId' => $documentContainerId,
+                                                           'documentDate' => $documentDate,
+                                                           'ret_url' => true
+                                                           ),
+                                                             'ef_icon=img/16/archive.png,row=2');
             }
         }
     }
@@ -102,4 +114,37 @@ class docarch_plg_Archiving extends core_Plugin
         }
         $html .= docarch_Movements::getSummary($containerId);
     }
+    
+    /**
+     * Определяне дата на документа
+     *
+     * @param object   $rec
+     * @return string  $documentDate дата на документа
+     */
+    public static function getDocumentDate($rec)
+    {
+        $documentDate = null;
+        
+        //Възможни дати
+        $possibleDate = array('date','valior','closedOn','activatedOn','createdOn');
+       
+        foreach ($possibleDate as $val){
+            
+            if (!is_null($rec-> {$val})) {
+                
+                $documentDate = $rec->{$val};
+                
+                return $documentDate;
+            }
+        }
+        
+        if (is_null($documentDate)) {
+           return null ;
+        }
+        
+        
+        
+    }
+    
+    
 }
