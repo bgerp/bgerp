@@ -136,6 +136,7 @@ class batch_BatchesInDocuments extends core_Manager
         
         $showBatchLink = core_Packs::isInstalled('rack') && $rInfo->operation['in'];
         $palletStoreId = isset($rInfo->operation['in']) ? $rInfo->operation['in'] : $storeId;
+        $operation = key($rInfo->operation);
         
         $query = self::getQuery();
         $query->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #operation = '{$operation}'");
