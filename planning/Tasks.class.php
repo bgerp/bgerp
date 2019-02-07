@@ -537,7 +537,9 @@ class planning_Tasks extends core_Master
 				</table>"));
         
         if ($rec->showadditionalUom == 'yes') {
-            $resArr['quantity']['val'] .= tr("|*<br> <span style='font-weight:normal'>|Общо тегло|*</span> [#totalWeight#]");
+            $resArr['quantity']['val'] .= tr("|*<span style='font-weight:normal'>|Общо тегло|*:</span> [#totalWeight#]");
+        } else {
+            $resArr['quantity']['val'] .= tr("|*<span style='font-weight:normal'>|Без допълнително тегло|*:</span>");
         }
         
         if (!empty($rec->indTime)) {
