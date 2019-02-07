@@ -750,32 +750,5 @@ class docarch_Movements extends core_Master
         
         return $balanceOfDocumentMovies;
     }
-    
-    
-    /**
-     * Връща последното движение на документ
-     *
-     * @param string $containerId -контернер Id на документа
-     *
-     * @return array
-     */
-    public static function getLastMovieOfDocument($containerId)
-    {
-       
-        $mQuery = self::getQuery();
-        
-        $mQuery->where('#documentId IS NOT NULL');
-        
-        $mQuery->where("#documentId = ${containerId}");
-        
-        $mQuery->orderBy('createdOn', 'DESC');
-        
-        $mQuery->limit(1);
-        
-        while ($movie = $mQuery->fetch()) {
-            $lastMovieId = $movie->id;
-        }
-        
-        return $lastMovieId;
-    }
+  
 }

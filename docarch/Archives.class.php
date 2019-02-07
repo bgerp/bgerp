@@ -144,7 +144,7 @@ class docarch_Archives extends core_Master
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
        
-      $data->toolbar->addBtn('Бутон', array($mvc,'Action','ret_url' => true));
+     // $data->toolbar->addBtn('Бутон', array($mvc,'Action','ret_url' => true));
     }
     
     
