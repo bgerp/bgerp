@@ -689,8 +689,11 @@ class planning_ProductionTaskDetails extends core_Detail
                 continue;
             }
             
+            // Количеството ако е прозвеждано е винаги 1-ца от производствената опаковка, ако е влагане или отпадък е колкото е количеството
+            $quantity = ($rec->type == 'production') ? 1 : $rec->quantity;
+            
             // Колко е заработката за 1 човек
-            $timePerson = ($rec->quantity * $rec->norm) / count($persons);
+            $timePerson = ($quantity * $rec->norm) / count($persons);
             
             $date = dt::verbal2mysql($rec->createdOn, false);
             foreach ($persons as $personId) {
