@@ -283,7 +283,7 @@ class docarch_Volumes extends core_Master
             $activeMsg = 'Сигурни ли сте, че искате да отворите този том и да може да се добавят документи в него|*?';
             $closeMsg = 'Сигурни ли сте, че искате да приключите този том да не може да се добавят документи в него|*?';
             $closeBtn = 'Затваряне||Close';
-            $includedVolumes = self::getIncludedVolumes($rec);
+         //   $includedVolumes = self::getIncludedVolumes($rec);
             
             if ($data->rec->state == 'closed') {
                 $data->toolbar->addBtn('Отваряне', array($mvc, 'changeState', $data->rec->id, 'ret_url' => true),"id=btnActivate");
@@ -457,12 +457,12 @@ class docarch_Volumes extends core_Master
                 }
                 
                 
-            }
-                
             }else{
                 //Ако няма определен срок за съхранение
                 $requiredRoles = 'no_one' ;
             }
+                
+            
             
             // Ако в тома има включени други томове разрешава reject само ако всички включени са разрешени
             $includedVolumes = self::getIncludedVolumes($rec);
@@ -491,7 +491,7 @@ class docarch_Volumes extends core_Master
                 if (in_array(false, $checkStorageArr)) {
                     $requiredRoles = 'no_one' ;
                 }
-     
+            }
         }
         
         if ($rec->id && $action == 'edit') {
@@ -563,6 +563,7 @@ class docarch_Volumes extends core_Master
      */
     public static function getIncludedVolumes($rec, $escaped = true)
     {
+        //bp($rec);
         $includedVolumes = array();
         
         $volRec = docarch_Volumes::getQuery();
