@@ -93,18 +93,31 @@ class swiper_Adapter extends core_Manager
 
         // Включваме необходимия JS
         $tpl->push("swiper/{$ver}/js/swiper.min.js", 'JS');
-        $tpl->push("swiper/script.js", 'JS');
 
         // Включваме необходимия CSS
         $tpl->push("swiper/{$ver}/css/swiper.min.css", 'CSS');
 
         // Зареждаме контейнера с thumnails
         if($options['thumbs']) {
-            jquery_Jquery::run($tpl, 'prepareThumbsSwiper();');
+            $tpl->append("var galleryThumbs = new Swiper('.gallery-thumbs', {
+                          spaceBetween: 10,
+                          slidesPerView: 4,
+                          loop: true,
+                          freeMode: true,
+                          loopedSlides: 5,
+                          watchSlidesVisibility: true,
+                          watchSlidesProgress: true,
+                        });", 'SCRIPTS');
         }
 
         // Стартираме swiper
-        jquery_Jquery::run($tpl, 'startSwiper();');
+        $tpl->prepend("var galleryTop = new Swiper('.gallery-top', {
+                spaceBetween: 10,
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+            });", 'SCRIPTS');
         
         $tpl->removeBlocks();
 
