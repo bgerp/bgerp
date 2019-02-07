@@ -399,7 +399,7 @@ class docarch_Volumes extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         
-        $rec->includedVolumes = self::getIncludedVolumes($rec);
+     
         //Тома  може да бъде изтрит ако е празен
         if ($action == 'delete') {
             if (!is_null($rec->docCnt)) {
@@ -407,7 +407,7 @@ class docarch_Volumes extends core_Master
                      $requiredRoles = 'no_one' ;
             }
             
-            
+            $rec->includedVolumes = self::getIncludedVolumes($rec);
             if (!empty($rec->includedVolumes)) {
                     $requiredRoles = 'no_one' ;
             }
@@ -458,6 +458,7 @@ class docarch_Volumes extends core_Master
                 $requiredRoles = 'no_one' ;
             }
             
+            $rec->includedVolumes = self::getIncludedVolumes($rec);
             if (!empty($rec->includedVolumes)) {
                 $requiredRoles = 'no_one' ;
             }
