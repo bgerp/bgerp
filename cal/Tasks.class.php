@@ -1638,6 +1638,20 @@ class cal_Tasks extends embed_Manager
             }
             
             $row->subTitle .= ' (' . self::getLastProgressAuthor($rec) . ')';
+            
+            $row->title .= ' (' . $this->getVerbal($rec, 'progress') . ')';
+        }
+        
+        if ($rec->state == 'closed' && $rec->progress != 1) {
+            $row->title = '✗ ' . trim($row->title);
+        }
+        
+        if ($rec->state == 'closed' && $rec->progress == 1) {
+            $row->title = '✓ ' . trim($row->title);
+        }
+        
+        if ($rec->state == 'stopped' && $rec->progress != 1) {
+            $row->title = '॥ ' . trim($row->title);
         }
         
         $usersArr = type_Keylist::toArray($rec->assign);
@@ -1742,9 +1756,9 @@ class cal_Tasks extends embed_Manager
     
     /**
      * Връща иконата на документа
-     * 
+     *
      * @param int|null $id
-     * 
+     *
      * @return string|null
      */
     public function getIcon_($id = null)
