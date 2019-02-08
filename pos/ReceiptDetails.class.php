@@ -449,6 +449,7 @@ class pos_ReceiptDetails extends core_Detail
         $res = new stdClass();
         $query = $this->getQuery();
         $query->where("#receiptId = '{$receiptId}'");
+        $query->orderBy('id', 'asc');
         while ($rec = $query->fetch()) {
             $res->recs[$rec->id] = $rec;
             $res->rows[$rec->id] = $this->recToVerbal($rec);
@@ -750,15 +751,16 @@ class pos_ReceiptDetails extends core_Detail
     }
     
     
+    /**
+     * Зареждане на артикулите от сторнираната бележка
+     */
     public function act_Load()
     {
         $this->requireRightFor('load');
         expect($receiptId = Request::get('receiptId', 'int'));
         expect($receiptRec = pos_Receipts::fetch($receiptId));
         $this->requireRightFor('load', (object)array('receiptId' => $receiptId));
-        
         $this->delete("#receiptId = {$receiptId}");
-        
         
         $query = $this->getQuery();
         $query->where("#receiptId = {$receiptRec->revertId}");
@@ -769,11 +771,9 @@ class pos_ReceiptDetails extends core_Detail
             if(!empty($rec->amount)) {
                 $rec->amount *= -1;
             }
-            
             if(!empty($rec->quantity)) {
                 $rec->quantity *= -1;
             }
-            
             $rec->receiptId = $receiptId;
             $this->save($rec);
         }
