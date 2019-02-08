@@ -89,6 +89,12 @@ class pos_Receipts extends core_Master
     
     
     /**
+     * Кой може да ревъртва
+     */
+    public $canRevert = 'debug';
+    
+    
+    /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,pos';
@@ -156,6 +162,7 @@ class pos_Receipts extends core_Master
             'caption=Статус, input=none'
         );
         $this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
+        $this->FLD('revertId', 'key(mvc=pos_Receipts)', 'input=none');
         
         $this->setDbIndex('valior');
     }
@@ -193,7 +200,7 @@ class pos_Receipts extends core_Master
     /**
      * Създава нова чернова бележка
      */
-    private function createNew()
+    private function createNew($revertId = null)
     {
         $rec = new stdClass();
         $posId = pos_Points::getCurrent();
@@ -204,6 +211,10 @@ class pos_Receipts extends core_Master
         $rec->pointId = $posId;
         $rec->valior = dt::now();
         $this->requireRightFor('add', $rec);
+        
+        if(!empty($revertId)){
+            $rec->revertId = $revertId;
+        }
         
         return $this->save($rec);
     }
@@ -251,6 +262,15 @@ class pos_Receipts extends core_Master
             }
         }
         
+        $row->RECEIP_CAPTION = tr('Касова бележка');
+        if(isset($rec->revertId)){
+            $row->REVERT_CLASS = 'is-reverted';
+            $row->revertId = pos_Receipts::getHyperlink($rec->revertId, true);
+            if(isset($fields['-terminal'])){
+                $row->RECEIPT_CAPTION = tr('Сторно бележка');
+            }
+        }
+        
         // Слагаме бутон за оттегляне ако имаме права
         if (!Mode::is('printing')) {
             if ($mvc->haveRightFor('reject', $rec)) {
@@ -260,16 +280,15 @@ class pos_Receipts extends core_Master
             }
         }
         
+        
+        // показваме датата на последната модификация на документа, ако е активиран
         if ($rec->state != 'draft') {
-            
-            // показваме датата на последната модификация на документа, ако е активиран
             $row->valior = dt::mysql2verbal($rec->modifiedOn, 'd.m.Y H:i:s');
         }
         
         $cu = core_Users::fetch($rec->createdBy);
         $row->createdBy = ht::createLink(core_Users::recToVerbal($cu)->nick, crm_Profiles::getUrl($rec->createdBy));
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
-        
         $row->time = dt::mysql2verbal(dt::now(), 'H:i');
     }
     
@@ -614,7 +633,9 @@ class pos_Receipts extends core_Master
      */
     private function prepareReceipt(&$data)
     {
-        $data->row = $this->recToverbal($data->rec);
+        $fields = $this->selectFields();
+        $fields['-terminal'] = true;
+        $data->row = $this->recToverbal($data->rec, $fields);
         unset($data->row->contragentName);
         $data->receiptDetails = $this->pos_ReceiptDetails->prepareReceiptDetails($data->rec->id);
     }
@@ -831,7 +852,8 @@ class pos_Receipts extends core_Master
             $between = dt::daysBetween($now, $rec->valior);
             $between = ($between != 0) ? " <span class='num'>-${between}</span>" : null;
             
-            $row = ht::createLink("<span class='pos-span-name'>№{$rec->id} <br> {$date}$between</span>", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => 'pos-notes', 'title' => 'Отваряне на бележката'));
+            $revertClass = isset($rec->revertId) ? 'revert-receipt' : '';
+            $row = ht::createLink("<span class='pos-span-name {$revertClass}'>№{$rec->id} <br> {$date}$between</span>", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => 'pos-notes', 'title' => 'Отваряне на бележката'));
             $block->append($row);
         }
         
@@ -1117,6 +1139,11 @@ class pos_Receipts extends core_Master
         
         $closeBtn = $this->getCloseReceiptBtn($rec);
         $block->append($closeBtn, 'CLOSE_BTNS');
+        
+        if($this->haveRightFor('revert')){
+            $revertUrl = toUrl(array($this, 'revert'), 'local');
+            $block->append(ht::createFnBtn('Сторно', '', '', array('class' => 'actionBtn revertBtn', 'title' => 'Сторниране на бележка', 'data-url' => $revertUrl)), 'CLOSE_BTNS');
+        }
         
         return $block;
     }
@@ -1741,5 +1768,43 @@ class pos_Receipts extends core_Master
         $title = "{$pointIdVerbal}/{$rec->id}/{$valiorVerbal}";
         
         return $title;
+    }
+    
+    public function act_Revert()
+    {
+        if(!$this->haveRightFor('revert')){
+            
+            return $this->pos_ReceiptDetails->returnError(null);
+        }
+        
+        $search = Request::get('search', 'varchar');
+        if(empty($search)){
+            core_Statuses::newStatus('|Не е въведен номер на вече издадена бележка|*!', 'error');
+            
+            return $this->pos_ReceiptDetails->returnError(null);
+        }
+        
+        if($existingReceiptId = $this->findReceiptByNumber($search)){
+            
+            $newReceiptId = $this->createNew($existingReceiptId);
+            
+            return new Redirect(array($this, 'terminal', $newReceiptId));
+            
+        } else {
+            core_Statuses::newStatus("|Не е намерена бележка от номер|* '<b>{$search}</b>'!", 'error');
+            
+            return $this->pos_ReceiptDetails->returnError(null);
+        }
+    }
+    
+    
+    public function findReceiptByNumber_($string)
+    {
+        if(type_Int::isInt($string)){
+            
+            return self::fetchField($string, 'id');
+        }
+        
+        return null;
     }
 }

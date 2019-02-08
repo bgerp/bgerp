@@ -55,6 +55,21 @@ function posActions() {
 	
 	
 	// Използване на числата за въвеждане на суми за плащания
+	$(document.body).on('click', ".revertBtn", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		var searchVal = $("input[name=paysum]").val();
+		var data = {search:searchVal};
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		getEfae().process(resObj, data);
+		$("input[name=paysum]").val("");
+	});
+	
+	// Използване на числата за въвеждане на суми за плащания
 	$(document.body).on('click', "#tools-payment .numPad", function(e){
 		var val = $(this).val();
 		var inpVal = $("input[name=paysum]").val();
