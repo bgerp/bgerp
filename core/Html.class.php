@@ -1164,9 +1164,15 @@ class core_Html
         $scopeArr = array();
         
         if (is_object($o)) {
-            $res = array();
-            
             $class = $r = get_class($o);
+        }
+        
+        if ($i == 1) {
+            $r = "<span class='trigger' style='border-bottom:dotted 1px #bbb;'>" . $r . '</span>';
+        }
+        
+        if (is_object($o)) {
+            $res = array();
             
             // По-подразбиране променливите имат публична видимост
             $scope = '';

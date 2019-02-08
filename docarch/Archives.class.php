@@ -17,9 +17,15 @@ class docarch_Archives extends core_Master
 {
     public $title = 'Архив';
     
-    public $loadList = 'plg_Created, plg_RowTools2,plg_Modified,docarch_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_State2,plg_Modified,docarch_Wrapper';
     
     public $listFields = 'name,volType,documents,createdOn=Създаден,modifiedOn=Модифициране';
+    
+    
+    /**
+     * Кой може да оттегля?
+     */
+    public $canReject = 'ceo,docarchMaster';
     
     
     /**
@@ -59,7 +65,7 @@ class docarch_Archives extends core_Master
      *
      * @var string|array
      */
-    public $canDelete = 'ceo,docarchMaster';
+    public $canDelete = 'no_one';
     
     
     /**
@@ -71,19 +77,15 @@ class docarch_Archives extends core_Master
         $this->FLD('name', 'varchar(32)', 'caption=Наименование');
         
         //Видове томове/обеми/контейнери за съхранение
-        $this->FLD('volType', 'set(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)', 'caption=Видове томове');
+        $this->FLD('volType', 'set(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)', 'caption=Видове томове,maxColumns=3');
         
         //Какъв тип документи ще се съхраняват в този архив
         $this->FLD('documents', 'keylist(mvc=core_Classes, select=title,allowEmpty)', 'caption=Документи,placeholder=Всички');
         
-        //Кой може да добавя документи в този архив
-        $this->FLD('sharedUsers', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Потребители');
-        
-        
         //Срок за съхранение
         $this->FLD('storageTime', 'time(suggestions=1 година|2 години|3 години|4 години|5 години|10 години)', 'caption=Срок');
     }
-    
+   
     
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -93,19 +95,22 @@ class docarch_Archives extends core_Master
      * @param embed_Manager       $Embedder
      * @param stdClass            $data
      */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
         $rec = $form->rec;
-        
-        
+       
+        if ($rec->id) {
+            $rec->typeArr = explode(',',$rec->volType);
+        }
+       
         $docClasses = core_Classes::getOptionsByInterface('doc_DocumentIntf');
         
         $docClasses = array_keys($docClasses);
         
         $temp = array();
         
-        foreach ($docClasses as $k => $v) {
+        foreach ($docClasses as  $v) {
             $temp[$v] = core_Classes::getTitleById($v);
         }
         
@@ -116,22 +121,38 @@ class docarch_Archives extends core_Master
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+     //   $rec = $form->rec;
+        
+        if ($form->isSubmitted()) {
+            
+           // bp(keylist::mixedToString($rec->volType));
+        }
+    }
+    
+    
+    /**
      * Извиква се след успешен запис в модела
      *
      * @param core_Mvc $mvc
      * @param int      $id  първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        
         // Прави запис в модела на движенията
-        $mRec = (object) array('type' => "creating",
-                               'position' => "$rec->name",
-                              );
-                            
-        docarch_Movements::save($mRec);
+        $className = get_class();
+        $mRec = (object) array('type' => 'creating',
+            'position' => $rec->id.'|'.$className,
+        );
         
+        docarch_Movements::save($mRec);
     }
     
     
@@ -143,9 +164,19 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn('Бутон', array($mvc, 'Action','ret_url' => true));
+       
+     // $data->toolbar->addBtn('Бутон', array($mvc,'Action','ret_url' => true));
     }
     
+    
+    /**
+     * Добавя бутони  към единичния изглед на документа
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+       // $rec = &$data->rec;
+        
+    }
     
     /**
      * Най-малкия дефиниран тип за архива
@@ -192,6 +223,28 @@ class docarch_Archives extends core_Master
     
     
     /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        
+        if ($rec->id && $action == 'edit') {
+            
+            if (($rec->state == 'closed')) {
+                $requiredRoles = 'no_one' ;
+            }
+        }
+       
+    }
+    
+    
+    /**
      * @return string
      */
     public function act_Action()
@@ -200,21 +253,22 @@ class docarch_Archives extends core_Master
          * Установява необходима роля за да се стартира екшъна
          */
         requireRole('admin');
-        $cRec = new stdClass();
-        $form = cls::get('core_Form');
-        $form->title = 'Форма тест|* Ala Bala|*';
-        $form->FNC('test', 'varchar', 'caption=Тест, mandatory, input');
+       
+        $text = 'Това е съобщение за изтекъл срок';
+        $msg = new core_ET($text);
         
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $url = array(
+            'docarch_Volumes',
+            'single',
+            109
+        );
         
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
-        $cRec = $form->input();
+        $msg = $msg->getContent();
+       
+      
+        bgerp_Notifications::add($msg, $url, 1219);
         
-        if ($form->isSubmitted()) {
-            
-            return new Redirect(getRetUrl());
-        }
         
-        return $this->renderWrapping($form->renderHtml());
+
     }
 }

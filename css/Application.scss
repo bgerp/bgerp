@@ -2094,6 +2094,10 @@ td.rowtools-column {
 	width: 50%;
 }
 
+.listAction table.listTable>tbody>tr>td, table.listTable.listAction>tbody>tr>td.wideColumn {
+	max-width: none !important;
+}
+
 .morePadding {
 	padding-left: 6px !important;
 	padding-right: 6px !important;
@@ -3045,10 +3049,23 @@ fieldset.sharing-history {
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+	&:after {
+		content: '';
+		display: block;
+		clear: both;
+	}
+}
+
+.loginIcon, .langIcon {
+	float: right !important;
 }
 
 .wide #cmsMenu{
 	min-width: 500px;
+}
+
+.narrow #cmsMenu a {
+	margin-left: 5px !important;
 }
 
 #cmsMenu a {

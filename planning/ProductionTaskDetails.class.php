@@ -676,6 +676,7 @@ class planning_ProductionTaskDetails extends core_Detail
         $result = array();
         $query = self::getQuery();
         $query->where("#modifiedOn >= '{$timeline}' AND #norm IS NOT NULL");
+        $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
         
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();
@@ -689,8 +690,11 @@ class planning_ProductionTaskDetails extends core_Detail
                 continue;
             }
             
+            // Количеството ако е прозвеждано е винаги 1-ца от производствената опаковка, ако е влагане или отпадък е колкото е количеството
+            $quantity = ($rec->type == 'production') ? 1 : $rec->quantity;
+            
             // Колко е заработката за 1 човек
-            $timePerson = ($rec->quantity * $rec->norm) / count($persons);
+            $timePerson = ($rec->indTimeAllocation == 'individual') ? $quantity * $rec->norm : (($quantity * $rec->norm) / count($persons));
             
             $date = dt::verbal2mysql($rec->createdOn, false);
             foreach ($persons as $personId) {

@@ -59,7 +59,7 @@ defIfNot(
     'USERS_UNBLOCK_EMAIL',
                 "\n|Уважаеми|* [#names#]." .
                 "\n" .
-                "\n|Потребителят|*[#nick#]|в|* [#EF_APP_TITLE#] |е блокиран|*." .
+                "\n|Потребителят|* [#nick#] |в|* [#EF_APP_TITLE#] |е блокиран|*." .
                 "\n" .
                 "\n|За да се отблокирате, моля последвайте този линк|*: " .
                 "\n" .
@@ -521,7 +521,7 @@ class core_Users extends core_Manager
     /**
      * Проверява дали подададения ник е в списъка със забранените
      *
-     * @param string $nick
+     * @param string      $nick
      * @param string|null $errorMsg
      *
      * @return bool
@@ -529,7 +529,7 @@ class core_Users extends core_Manager
     public static function isForbiddenNick($nick, &$errorMsg = null)
     {
         if (mb_strlen($nick) < self::$partnerMinLen) {
-            $errorMsg = "|Никът трябва да е поне|* <b>" . self::$partnerMinLen . "</b> |символа|*";
+            $errorMsg = '|Никът трябва да е поне|* <b>' . self::$partnerMinLen . '</b> |символа|*';
             
             return true;
         }
@@ -539,7 +539,7 @@ class core_Users extends core_Manager
         $nick = mb_strtolower($nick);
         
         if ($fNicksArr[$nick]) {
-            $errorMsg = "Не може да бъде създаден потребител с този ник";
+            $errorMsg = 'Не може да бъде създаден потребител с този ник';
             
             return true;
         }

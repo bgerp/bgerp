@@ -19,7 +19,31 @@ class docarch_Volumes extends core_Master
     
     public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, plg_State2, plg_Rejected,docarch_Wrapper';
     
-    public $listFields = 'number,type,inCharge,archive,docCnt,createdOn=Създаден,modifiedOn=Модифициране';
+    public $listFields = 'number,type,inCharge,archive,docCnt,includedVolumes,createdOn=Създаден,modifiedOn=Модифициране';
+    
+    
+    /**
+     * Кой може да променя състоянието
+     */
+    public $canChangestate = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
+     * Кой има право да затваря том
+     */
+    public $canClose = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
+     * Кой може да активира?
+     */
+    public $canActivate = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
+     * Кой може да го възстанови?
+     */
+    public $canRestore = 'ceo,docarchMaster';
     
     
     /**
@@ -65,10 +89,13 @@ class docarch_Volumes extends core_Master
      *
      * @var string|array
      */
-    public $canDelete = 'ceo,docarchMaster,docarch';
+    public $canDelete ;
     
     protected function description()
     {
+        //Име на тома
+        $this->FNC('title', 'varchar', 'caption=Име');
+        
         //Определя в кой архив се съхранява конкретния том
         $this->FLD('archive', 'key(mvc=docarch_Archives,allowEmpty)', 'caption=В архив,placeholder=Всички,refreshForm,silent');
         
@@ -84,19 +111,20 @@ class docarch_Volumes extends core_Master
         //Съдържа ли документи
         $this->FLD('isForDocuments', 'enum(yes,no)', 'caption=Съдържа ли документи,input=none');
         
+        //Състояние
+        $this->FLD('state', 'enum(active=Активен,rejected=Изтрит,closed=Приключен)', 'caption=Статус,input=none,notSorting');
+        
         //Показва в кой по-голям том/контейнер е включен
         $this->FLD('includeIn', 'key(mvc=docarch_Volumes)', 'caption=По-големия том,input=none');
         $this->FLD('position', 'varchar()', 'caption=Позиция в по-големия том,input=none');
         
-        //Състояние
-        $this->FLD('state', 'enum(active=Активен,rejected=Изтрит,closed=Приключен)', 'caption=Статус,input=none,notSorting');
-        
         //Оща информация
         $this->FLD('firstDocDate', 'date', 'caption=Дата на първия документ в тома,input=none');
         $this->FLD('lastDocDate', 'date', 'caption=Дата на последния документ в тома,input=none');
-        $this->FLD('docCnt', 'int', 'caption=Брой,input=none');
+        $this->FLD('docCnt', 'int', 'caption=Документи,input=none,smartCenter');
         
-        $this->FNC('title', 'varchar', 'caption=Име');
+        
+        $this->FNC('includedVolumes', 'varchar', 'caption=Томове,smartCenter');
         
         
         $this->setDbUnique('archive,type,number');
@@ -153,21 +181,39 @@ class docarch_Volumes extends core_Master
         }
     }
     
-    public function on_CalcTitle($mvc, $rec)
+    
+    /**
+     * След подготовка на сингъла
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-        $rec->title = self::getRecTitle($rec);
+        $row = &$data->row;
+        $rec = &$data->rec;
+        
+        $rec->includedVolumes = self::getIncludedVolumes($rec);
+        
+        $row->state = docarch_Volumes::getVerbal($rec, 'state');
+        
+        if ($rec->includeIn) {
+            $row->includeIn = docarch_Volumes::getHyperlink($rec->includeIn);
+        }
+        
+        $row->includedVolumes = '';
+        if (is_array($rec->includedVolumes)) {
+            foreach ($rec->includedVolumes as $val) {
+                $row->includedVolumes .= docarch_Volumes::getHyperlink($val).'</br>';
+            }
+        }
     }
     
     
     /**
-     * След рендиране на единичния изглед
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_Form         $form
-     * @param stdClass          $data
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
      */
-    protected static function on_AfterInputEditForm($mvc, &$form)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             $type = $form->rec->type;
@@ -186,6 +232,20 @@ class docarch_Volumes extends core_Master
     
     
     /**
+     * Изчисляване на заглавието
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     *
+     * @return void
+     */
+    protected static function on_CalcTitle($mvc, $rec)
+    {
+        $rec->title = self::getRecTitle($rec);
+    }
+    
+    
+    /**
      * Преди показване на листовия тулбар
      *
      * @param core_Manager $mvc
@@ -193,7 +253,6 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn('Бутон', array($mvc,'Action'));
     }
     
     
@@ -204,18 +263,49 @@ class docarch_Volumes extends core_Master
     {
         $rec = &$data->rec;
         
+        $data->toolbar->removeBtn('Вграждане');
+        
+        //Reject = Унищожаване
+        if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec)) {
+            $data->toolbar->addBtn(
+                'Унищожаване',
+                array(
+                    $mvc,
+                    'reject',
+                    $data->rec->id,
+                    'ret_url' => true
+                ),
+                'id=btnDelete,class=fright,warning=Наистина ли желаете да унищожите този том?,order=32,row=2,',
+                'ef_icon = img/16/reject.png, title=Унищожаване на том'
+                );
+        }
+        
+        if ($mvc->haveRightFor('close', $data->rec)) {
+            $activeMsg = 'Сигурни ли сте, че искате да отворите този том и да може да се добавят документи в него|*?';
+            $closeMsg = 'Сигурни ли сте, че искате да приключите този том да не може да се добавят документи в него|*?';
+            $closeBtn = 'Затваряне||Close';
+            $includedVolumes = self::getIncludedVolumes($rec);
+            
+            if ($data->rec->state == 'closed') {
+                $data->toolbar->addBtn('Отваряне', array($mvc, 'changeState', $data->rec->id, 'ret_url' => true), 'id=btnActivate');
+                $data->toolbar->setWarning('btnActivate', $activeMsg);
+            } elseif ($data->rec->state == 'active' && ($data->rec->docCnt > 0) || (!empty($includedVolumes))) {
+                $data->toolbar->addBtn($closeBtn, array($mvc, 'changeState', $data->rec->id, 'ret_url' => true), 'order=32,id=btnClose');
+                $data->toolbar->setWarning('btnClose', $closeMsg);
+            }
+        }
         
         //Включване на том в по-голям
         $possibleVolArr = self::getVolumePossibleForInclude($rec);
         
-        if ($rec->id && is_null($rec->includeIn) && $rec->type != 'warehouse' && !is_null($possibleVolArr)) {
+        if ($rec->id && is_null($rec->includeIn) && $rec->state != 'closed' && $rec->type != 'warehouse' && !is_null($possibleVolArr)) {
             $data->toolbar->addBtn('Включване', array('docarch_Movements','Include',$rec->id,'ret_url' => true));
         }
         
         //Изключване на том от по-голям
         
-        if ($rec->id && !is_null($rec->includeIn)) {
-            $data->toolbar->addBtn('Изключване', array($mvc,'Exclude',$rec->id,'ret_url' => true));
+        if ($rec->id && !is_null($rec->includeIn) && $rec->state != 'closed') {
+            $data->toolbar->addBtn('Изключване', array('docarch_Movements','Exclude',$rec->id,'ret_url' => true));
         }
     }
     
@@ -252,12 +342,13 @@ class docarch_Volumes extends core_Master
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         if ($rec->_isCreated !== true) {
-            $title = self::getRecTitle($rec);
+            
             // Прави запис в модела на движенията
+            $className = get_class();
             $mRec = (object) array('type' => 'creating',
-                                   'position' => "$title",
-                                  );
-                                
+                'position' => $rec->id.'|'.$className,
+            );
+            
             
             docarch_Movements::save($mRec);
         }
@@ -272,63 +363,7 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-    }
-    
-    
-    /**
-     * @return string
-     */
-    public function act_Action()
-    {
-        /**
-         * Установява необходима роля за да се стартира екшъна
-         */
-        requireRole('admin');
-        
-        bp(docarch_Volumes::getQuery()->fetchAll());
-        
-        return 'action';
-    }
-    
-    /**
-     * Изключва един том от по-голям
-     */
-    public function act_Exclude()
-    {
-        
-        $ExcludeRec = new stdClass();
-        $mRec = new stdClass();
-        
-        $thisVolId = Request::get('id');
-        
-        $thisVolRec = $this->fetch($thisVolId);
-        
-        $thisVolName = $this->getVerbal($thisVolRec, 'title');
-        $upVolName = docarch_Volumes::fetch($thisVolRec->includeIn)-> title;
-        
-        $ExcludeRec->includeIn = null;
-        
-        $ExcludeRec->id = $thisVolId;
-        
-        $ExcludeRec->_isCreated = true;
-        
-        $pos =$thisVolName.'|'.$upVolName;
-        
-        
-        $mRec = (object) array(
-                                'type' => 'exclude',
-                                'position' => $thisVolName,
-                               
-                                );
-            
-        docarch_Movements::save($mRec);
-        
-        $this->save($ExcludeRec);
-            
-        return new Redirect(getRetUrl());
-        
-        
-       
+      //  self::notifyForOutOfStorageTimeVolume();
     }
     
     
@@ -342,6 +377,19 @@ class docarch_Volumes extends core_Master
         }
         
         $row->type = self::getVolumeTypeName($row->type);
+        
+        if ($rec->docCnt == 0) {
+            $row->docCnt = '';
+        }
+        
+        $rec->includedVolumes = self::getIncludedVolumes($rec);
+        
+        if (is_array($rec->includedVolumes) && !empty($rec->includedVolumes)) {
+            $inclCnt = count($rec->includedVolumes);
+            $row->includedVolumes = $inclCnt;
+        } else {
+            $row->includedVolumes = '';
+        }
     }
     
     
@@ -356,14 +404,99 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        //Тома не може да бъде reject-нат ако не е празен
-        if ($action == 'reject') {
+        //Тома  може да бъде изтрит ако е празен
+        if ($rec->id && $action == 'delete') {
             if (!is_null($rec->docCnt)) {
+                if (($rec->docCnt != 0)) {
+                    $requiredRoles = 'no_one' ;
+                }
+            }
+            
+            $rec->includedVolumes = self::getIncludedVolumes($rec);
+            if (!empty($rec->includedVolumes)) {
                 $requiredRoles = 'no_one' ;
-            } elseif (($rec->docCnt == 0)) {
-                // $requiredRoles = 'no_one' ;
             }
         }
+        
+        //Reject = Унищожаване
+        if ($rec->id && $action == 'reject') {
+            $storageTimeMarker = true;
+            
+            $now = dt::now();
+            
+            //Срок за съхранение на този том(от срока на архива)
+            $storageTime = docarch_Archives::fetchField($rec->archive, 'storageTime');
+            
+            //Датата на най-късния документ в този том -$latestDocumentDate
+            $latestDocumentDate = self::getlatestDocumentDate($rec);
+            
+            //Ако има зададена продължителност
+            if (!is_null($storageTime)) {
+                $endDate = dt::addSecs($storageTime, $latestDocumentDate);
+                
+                // И крайната дата е минала, деактивираме лимита и продължаваме напред
+                if ($endDate < $now) {
+                    $storageTimeMarker = false;
+                }
+                
+                if ((!is_null($rec->docCnt) || (!$rec->docCnt == 0)) && ($rec->state != 'closed')) {
+                    $requiredRoles = 'no_one' ;
+                } elseif ((!is_null($rec->docCnt) || (!$rec->docCnt == 0)) && ($rec->state == 'closed') && ($storageTimeMarker == 'true')) {
+                    $requiredRoles = 'no_one' ;
+                }
+            } else {
+                //Ако няма определен срок за съхранение
+                $requiredRoles = 'no_one' ;
+            }
+            
+            
+            // Ако в тома има включени други томове разрешава reject само ако всички включени са разрешени
+            $includedVolumes = self::getIncludedVolumes($rec);
+            if (is_array($includedVolumes) && !empty($includedVolumes)) {
+                $checkStorageArr = array();
+                foreach ($includedVolumes as $volume) {
+                    $volumeRec = docarch_Volumes::fetch($volume);
+                    
+                    $storageTime = docarch_Archives::fetchField($volumeRec->archive, 'storageTime');
+                    
+                    if (is_null($storageTime)) {
+                        $requiredRoles = 'no_one' ;
+                    }
+                    
+                    $latestDocumentDate = self::getlatestDocumentDate($volumeRec);
+                    $endDate = dt::addSecs($storageTime, $latestDocumentDate);
+                    if ($endDate < $now) {
+                        $checkStorageArr[$volumeRec->id] = true;
+                    } else {
+                        $checkStorageArr[$volumeRec->id] = false;
+                    }
+                }
+                
+                if (in_array(false, $checkStorageArr)) {
+                    $requiredRoles = 'no_one' ;
+                }
+            }
+        }
+        
+        if ($rec->id && $action == 'edit') {
+            if (($rec->state == 'closed')) {
+                $requiredRoles = 'no_one' ;
+            }
+        }
+
+//         if ($rec->id && $action == 'close') {
+
+//             $includedVolumes = self::getIncludedVolumes($rec);
+//             if ((is_null($rec->docCnt)) && empty($includedVolumes))   {
+//                 $requiredRoles = 'no_one' ;
+//             }
+//         }
+
+//         if ($action == 'activate') {  bp($rec,$action);
+//             if ($rec->id && $rec->state != 'closed')   {
+//                 $requiredRoles = 'no_one' ;
+//             }
+//         }
     }
     
     
@@ -396,7 +529,7 @@ class docarch_Volumes extends core_Master
     {
         $arch = ($rec->archive == 0) ? 'Сборен' : docarch_Archives::fetch($rec->archive)->name;
         
-        $title = docarch_Volumes::getVolumeTypeName($rec->type);
+        $title = self::getVolumeTypeName($rec->type);
         
         $title .= '-No'.$rec->number.' // '.$arch;
         
@@ -406,6 +539,31 @@ class docarch_Volumes extends core_Master
         }
         
         return $title;
+    }
+    
+    
+    /**
+     * Връща включените в този том томове
+     */
+    public static function getIncludedVolumes($rec, $escaped = true)
+    {
+        //bp($rec);
+        $includedVolumes = array();
+        
+        $volRec = docarch_Volumes::getQuery();
+        
+        $volRec->where('#includeIn  IS NOT NULL');
+        
+        $volRec->where("#id != {$rec->id}");
+        
+        
+        while ($volume = $volRec->fetch()) {
+            if ($volume->includeIn == $rec->id) {
+                $includedVolumes[$volume->id] = $volume->id;
+            }
+        }
+        
+        return $includedVolumes;
     }
     
     
@@ -432,9 +590,11 @@ class docarch_Volumes extends core_Master
     public static function getVolumePossibleForInclude($rec)
     {
         $possibleArr = array();
+        $possibleVolArr = array();
+        
         $volQuery = docarch_Volumes::getQuery();
         
-        $volQuery->where("#state != 'rejected'");
+        $volQuery->where("#state != 'rejected' AND #state != 'closed'");
         
         $volQuery->where("#id != {$rec->id} AND #archive = {$rec->archive} AND #type != 'folder'");
         
@@ -464,5 +624,84 @@ class docarch_Volumes extends core_Master
         }
         
         return $possibleVolArr;
+    }
+    
+    
+    /**
+     * Връща датата на документа с най-късна дата в даден том
+     *
+     * @param stdClass
+     *
+     * @return string
+     */
+    public static function getlatestDocumentDate($rec)
+    {
+        $vQuery = docarch_Movements::getQuery();
+        
+        $vQuery->where("#toVolumeId = {$rec->id} AND #type = 'archiving'");
+        
+        $vQuery->orderBy('documentDate', 'DESC');
+        
+        $vQuery->limit(1);
+        
+        while ($vRec = $vQuery->fetch()) {
+            $latestDocumentDate = $vRec->documentDate;
+        }
+        
+        return $latestDocumentDate;
+    }
+    
+    
+    /**
+     * Нотифицира за томове с изтекъл срок за съхранение и
+     * разрешени на унищожаване
+     */
+    public function notifyForOutOfStorageTimeVolume()
+    {
+        $volQuery = docarch_Volumes::getQuery();
+        
+        $volQuery->where("#state != 'rejected'");
+        
+        $now = dt::now();
+        $checkStorageArr = array();
+        
+        while ($volumeRec = $volQuery->fetch()){
+        
+            $storageTime = docarch_Archives::fetchField($volumeRec->archive, 'storageTime');
+            
+            if (is_null($storageTime))continue;
+            
+            $latestDocumentDate = self::getlatestDocumentDate($volumeRec);
+            $endDate = dt::addSecs($storageTime, $latestDocumentDate);
+            
+            if ($endDate < $now) {
+                $checkStorageArr[$volumeRec->id] = (object)array(
+                                                                 'id'=>$volumeRec->id,
+                                                                 'state'=>$volumeRec->state,
+                                                                 'inCharge'=>$volumeRec->inCharge,
+                                                                 'title'=>$volumeRec->title,
+                                                                 );
+            }
+        }
+        
+        $roelId = core_Roles::fetchByName('docarchMaster');
+        $docarchMasters = core_Users::getByRole($roelId);
+        
+        foreach ($checkStorageArr as $val){
+            
+            $url = array('docarch_Volumes','single',$val->id);
+            
+            $msg = "Срока за съхранение на "."{$val->title}"." е изтекъл и може да бъде унищожен";
+            
+            bgerp_Notifications::add($msg, $url, $val->inCharge);
+            
+            if(is_array($docarchMasters)){
+                
+                foreach ($docarchMasters as $v){
+                    bgerp_Notifications::add($msg, $url, $v);
+                    
+                }
+            }
+        }
     }
 }

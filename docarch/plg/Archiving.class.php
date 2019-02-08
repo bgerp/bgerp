@@ -27,6 +27,7 @@ class docarch_plg_Archiving extends core_Plugin
         }
         $rec = &$data->rec;
         $arcivesArr = array();
+        $archArr = array();
         
         
         // има ли архиви дефинирани за документи от този клас , или за всякакви документи
@@ -44,11 +45,28 @@ class docarch_plg_Archiving extends core_Plugin
         
         if ($archQuery->count() > 0) {
             while ($arcives = $archQuery->fetch()) {
-                $arcivesArr[] = $arcives->id;
+                $arcivesArr[$arcives->id] = $arcives->id;
             }
             
             // Има ли в тези архиви томове дефинирани да архивират документи, с отговорник текущия потребител
             $volQuery = docarch_Volumes::getQuery();
+            
+            //В кои томове е архивиран към настоящия момент този документ.
+            $balanceDocMove = docarch_Movements::getBalanceOfDocumentMovies($documentContainerId);
+            
+            if (is_array($balanceDocMove)) {
+                foreach ($balanceDocMove as $val) {
+                    if ($val->isInArchive == 1) {
+                        $archArr[$val->archive] = $val->archive;
+                    }
+                }
+            }
+            
+            if (!empty($archArr)) {
+                foreach ($archArr as $v) {
+                    unset($arcivesArr[$v]);
+                }
+            }
             
             $volQuery->in('archive', $arcivesArr);
             
@@ -56,24 +74,27 @@ class docarch_plg_Archiving extends core_Plugin
             
             $volQuery->where("#isForDocuments = 'yes' AND #inCharge = ${currentUser} AND #state = 'active'");
             
-            //Архивиран ли е към настоящия момент този документ.
-            $balanceDocMove = docarch_Movements::getBalanceOfDocumentMovies($documentContainerId);
+            //Дата на документа
+            $documentDate = self::getDocumentDate($rec);
             
-            if (is_array($balanceDocMove)) {
-                foreach ($balanceDocMove as $val) {
-                    $balanceMarker = ($val->isInVolume != 0) ? false : true;
-                    if ($balanceMarker === true) {
-                        break;
-                    }
-                }
-            }
+            //Състояния в които документ неможе да бъде архивиран
             $stateArr = array('draft','pending','stopped');
-            $stateCond = !in_array($rec->state, $stateArr);
-            $archCond = boolval(($balanceMarker || (is_null($balanceDocMove))) && $stateCond);
             
-            //Ако документа в момента не е архивиран И има том който да отговатя на условията за него, показва бутон за архивиране
-            if (($volQuery->count() > 0) && $archCond) {
-                $data->toolbar->addBtn('Архивиране', array('docarch_Movements', 'Add', 'documentId' => $documentContainerId, 'ret_url' => true), 'ef_icon=img/16/archive.png,row=2');
+            $stateCond = !in_array($rec->state, $stateArr);
+            
+            //Ако има том който да отговатя на условията за него, показва бутон за архивиране
+            if (($volQuery->count() > 0) && $stateCond) {
+                $data->toolbar->addBtn(
+                    'Архивиране',
+                    array(
+                        'docarch_Movements',
+                        'Add',
+                        'documentId' => $documentContainerId,
+                        'documentDate' => $documentDate,
+                        'ret_url' => true
+                    ),
+                                                             'ef_icon=img/16/archive.png,row=2'
+                );
             }
         }
     }
@@ -94,5 +115,31 @@ class docarch_plg_Archiving extends core_Plugin
             return;
         }
         $html .= docarch_Movements::getSummary($containerId);
+    }
+    
+    
+    /**
+     * Определяне дата на документа
+     *
+     * @param object $rec
+     *
+     * @return string $docDate дата на документа
+     */
+    public static function getDocumentDate($rec)
+    {
+        $docDate = null;
+        
+        //Възможни дати
+        $possibleDate = array('date','valior','closedOn','activatedOn','createdOn');
+        
+        foreach ($possibleDate as $val) {
+            if (!is_null($rec-> {$val})) {
+                $docDate = $rec->{$val};
+                
+                return $docDate;
+            }
+        }
+        
+        return $docDate ;
     }
 }
