@@ -1631,17 +1631,13 @@ class cal_Tasks extends embed_Manager
             
             $pValStr = $progressArr[$pVal];
             
-            if ($rec->state == 'closed' && $rec->progress != 1) {
-                $row->title .= ' ✗';
+            if ($pValStr && ($pValStr != $pVal)) {
+                $row->subTitle .= $pValStr;
             } else {
-                if ($pValStr && ($pValStr != $pVal)) {
-                    $row->title .= ' ' . $pValStr;
-                } else {
-                    $row->title .= ' ' . $this->getVerbal($rec, 'progress');
-                }
+                $row->subTitle .= $this->getVerbal($rec, 'progress');
             }
             
-            $lastAuthor = $row->subTitle = self::getLastProgressAuthor($rec)  ;
+            $row->subTitle .= ' (' . self::getLastProgressAuthor($rec) . ')';
         }
         
         $usersArr = type_Keylist::toArray($rec->assign);
@@ -1655,19 +1651,10 @@ class cal_Tasks extends embed_Manager
             
             $Users = cls::get('type_userList');
             
-            $uList = $Users->toVerbal(type_userList::fromArray($usersArr));
-            if ($uList) {
-                $uList = explode(',', $uList);
-                if ($lastAuthor && ($key = array_search($lastAuthor, $uList)) !== false) {
-                    unset($uList[$key]);
-                }
-                if (count($uList)) {
-                    // В заглавието добавяме потребителя
-                    $row->subTitle .= $row->subTitle ? ', ' : '';
-                    $row->subTitle .= implode(',', $uList);
-                    $row->subTitle .= $othersStr;
-                }
-            }
+            // В заглавието добавяме потребителя
+            $row->subTitle .= $row->subTitle ? ' - ' : '';
+            $row->subTitle .= $Users->toVerbal(type_userList::fromArray($usersArr));
+            $row->subTitle .= $othersStr;
         }
         
         //Състояние
@@ -1755,9 +1742,9 @@ class cal_Tasks extends embed_Manager
     
     /**
      * Връща иконата на документа
-     *
+     * 
      * @param int|null $id
-     *
+     * 
      * @return string|null
      */
     public function getIcon_($id = null)
