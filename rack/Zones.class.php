@@ -803,8 +803,8 @@ class rack_Zones extends core_Master
             $BatchClass = batch_Defs::getBatchDef($pRec->productId);
             
             // Ако в зоната реда е с определена партидност - то трябва да се подадат само палетите с тази партидност.
-            // Ако в зоната реда е без партидност, но продукта има партидност - подават се всички палети от този продукт, без значение на партидността им.
-            $batch = (is_object($BatchClass) && !empty($pRec->batch)) ? $pRec->batch : null;
+            // Ако в зоната реда е без партидност, но продукта има партидност - се търсят само палетите, които са с празна партидност
+            $batch = (is_object($BatchClass)) ? $pRec->batch : null;
             
             // Какви са наличните палети за избор
             $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, $batch, true);

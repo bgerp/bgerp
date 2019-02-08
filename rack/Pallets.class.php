@@ -123,11 +123,7 @@ class rack_Pallets extends core_Manager
         $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #state != 'closed'");
         $query->show('quantity,position');
         if(!is_null($batch)){
-            if(empty($batch)){
-                $query->where("#batch = '{$batch}' OR #batch IS NULL");
-            } else {
-                $query->where("#batch = '{$batch}'");
-            }
+            $query->where("#batch = '{$batch}'");
         }
         
         $query->orderBy('createdOn', 'ASC');
