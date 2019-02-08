@@ -85,7 +85,7 @@ class docarch_Archives extends core_Master
         //Срок за съхранение
         $this->FLD('storageTime', 'time(suggestions=1 година|2 години|3 години|4 години|5 години|10 години)', 'caption=Срок');
     }
-   
+    
     
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -99,11 +99,11 @@ class docarch_Archives extends core_Master
     {
         $form = $data->form;
         $rec = $form->rec;
-       
+        
         if ($rec->id) {
-            $rec->typeArr = explode(',',$rec->volType);
+            $rec->typeArr = explode(',', $rec->volType);
         }
-       
+        
         $docClasses = core_Classes::getOptionsByInterface('doc_DocumentIntf');
         
         $docClasses = array_keys($docClasses);
@@ -128,11 +128,16 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-     //   $rec = $form->rec;
+        $rec = $form->rec;
         
         if ($form->isSubmitted()) {
+            $typesArr = explode(',', $rec->volType);
             
-           // bp(keylist::mixedToString($rec->volType));
+            foreach ($rec->typeArr as $v) {
+                if (!in_array($v, $typesArr)) {
+                    $form->setError('volType', 'Не може да се премахват дефинирани типове');
+                }
+            }
         }
     }
     
@@ -164,8 +169,7 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-       
-     // $data->toolbar->addBtn('Бутон', array($mvc,'Action','ret_url' => true));
+        // $data->toolbar->addBtn('Бутон', array($mvc,'Action','ret_url' => true));
     }
     
     
@@ -174,9 +178,9 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-       // $rec = &$data->rec;
-        
+        // $rec = &$data->rec;
     }
+    
     
     /**
      * Най-малкия дефиниран тип за архива
@@ -233,14 +237,11 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        
         if ($rec->id && $action == 'edit') {
-            
             if (($rec->state == 'closed')) {
                 $requiredRoles = 'no_one' ;
             }
         }
-       
     }
     
     
@@ -253,7 +254,7 @@ class docarch_Archives extends core_Master
          * Установява необходима роля за да се стартира екшъна
          */
         requireRole('admin');
-       
+        
         $text = 'Това е съобщение за изтекъл срок';
         $msg = new core_ET($text);
         
@@ -264,11 +265,8 @@ class docarch_Archives extends core_Master
         );
         
         $msg = $msg->getContent();
-       
-      
+        
+        
         bgerp_Notifications::add($msg, $url, 1219);
-        
-        
-
     }
 }

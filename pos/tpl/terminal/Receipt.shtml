@@ -1,4 +1,4 @@
-<table id = 'receipt-table'>
+<table id = 'receipt-table' class="[#REVERT_CLASS#]">
 	<tbody>
 		<tr id='receipt-header'>
 			<td colspan='3'>
