@@ -3,7 +3,7 @@
 		<tr id='receipt-header'>
 			<td colspan='3'>
 				<div><span id='receipt-title'>[#RECEIPT_CAPTION#] <span id='receipt-number'> &nbsp;<b>№[#id#]</b> [#rejectBtn#]</span></span></div> 
-				<div class='secondRow'>[#createdBy#] &#124; [#valior#] <span class='hiddenElem'>&#124; </span>[#LOGO#]<span class='newLine'>[#pointId#]</span><!--ET_BEGIN revertId-->  &#124;<span class='terminal-revert-id newLine'>[#revertId#]</span><!--ET_END revertId--></div>
+				<div class='secondRow'>[#createdBy#] &#124; [#valior#] <span class='hiddenElem'>&#124; </span>[#LOGO#]<span class='newLine'>[#pointId#]</span><!--ET_BEGIN revertId-->  &#124;<span class='terminal-revert-id newLine'>[#revertId#]</span>[#loadUrl#]<!--ET_END revertId--></div>
 			</td>
 		</tr>
 		<tr id='receipt-details-th'>

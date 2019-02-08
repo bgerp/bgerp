@@ -47,6 +47,12 @@ class pos_ReceiptDetails extends core_Detail
     
     
     /**
+     * Кой може да зарежда данни от бележката
+     */
+    public $canLoad = 'pos, ceo';
+    
+    
+    /**
      * Кой може да променя?
      */
     public $canList = 'no_one';
@@ -653,7 +659,7 @@ class pos_ReceiptDetails extends core_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if (($action == 'add' || $action == 'delete') && isset($rec->receiptId)) {
-            $masterRec = $mvc->Master->fetch($rec->receiptId);
+            $masterRec = pos_Receipts::fetch($rec->receiptId, 'revertId,state');
             
             if ($masterRec->state != 'draft') {
                 $res = 'no_one';
@@ -665,6 +671,13 @@ class pos_ReceiptDetails extends core_Detail
                         $res = 'no_one';
                     }
                 }
+            }
+        }
+        
+        if($action == 'load' && isset($rec)){
+            $masterRec = pos_Receipts::fetch($rec->receiptId, 'revertId,state');
+            if(empty($masterRec->revertId) || $masterRec->state != 'draft'){
+                $res = 'no_one';
             }
         }
     }
@@ -734,5 +747,39 @@ class pos_ReceiptDetails extends core_Detail
     protected static function on_AfterPrepareListToolbar($mvc, $data)
     {
         unset($data->toolbar->buttons['btnAdd']);
+    }
+    
+    
+    public function act_Load()
+    {
+        $this->requireRightFor('load');
+        expect($receiptId = Request::get('receiptId', 'int'));
+        expect($receiptRec = pos_Receipts::fetch($receiptId));
+        $this->requireRightFor('load', (object)array('receiptId' => $receiptId));
+        
+        $this->delete("#receiptId = {$receiptId}");
+        
+        
+        $query = $this->getQuery();
+        $query->where("#receiptId = {$receiptRec->revertId}");
+        $query->orderBy('id', 'asc');
+        
+        while($rec = $query->fetch()){
+            unset($rec->id);
+            if(!empty($rec->amount)) {
+                $rec->amount *= -1;
+            }
+            
+            if(!empty($rec->quantity)) {
+                $rec->quantity *= -1;
+            }
+            
+            $rec->receiptId = $receiptId;
+            $this->save($rec);
+        }
+        
+        cls::get('pos_Receipts')->updateReceipt($receiptId);
+       
+        followRetUrl();
     }
 }
