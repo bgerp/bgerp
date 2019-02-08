@@ -125,6 +125,7 @@ class rack_Movements extends core_Manager
         
         $this->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
         $this->FLD('zoneList', 'keylist(mvc=rack_Zones, select=num)', 'caption=Зони,input=none');
+        $this->FLD('fromIncomingDocument', 'enum(no,yes)', 'input=hidden,silent,notNull,value=no');
         
         $this->setDbIndex('storeId');
         $this->setDbIndex('palletId');
@@ -174,6 +175,17 @@ class rack_Movements extends core_Manager
                 $clone->quantity = $clone->quantityInPack * $clone->packQuantity;
                 $transaction = $mvc->getTransaction($clone);
                 $transaction = $mvc->validateTransaction($transaction);
+               
+                if($rec->state == 'pending' && $rec->fromIncomingDocument == 'yes'){
+                    
+                    $transaction->warningFields = array_merge($transaction->errorFields, $transaction->warningFields);
+                    if (!empty($transaction->errors)) {
+                        $transaction->warnings[] = $transaction->errors;
+                    }
+                    
+                    unset($transaction->errors);
+                    unset($transaction->errorFields);
+                }
                 
                 if (!empty($transaction->errors)) {
                     $form->setError($transaction->errorFields, $transaction->errors);
@@ -361,7 +373,7 @@ class rack_Movements extends core_Manager
         $form->setField('workerId', 'input=none');
         
         $defZones = Request::get('defaultZones', 'varchar');
-        if(Request::get('fixedProduct', 'int')){
+        if(isset($rec->fromIncomingDocument)){
             $form->setReadOnly('productId');
         }
         
@@ -411,7 +423,7 @@ class rack_Movements extends core_Manager
                     }
                     
                     // Ако е фиксиран артикула, фиксира се и партидата
-                    if(Request::get('fixedProduct', 'int')){
+                    if($rec->fromIncomingDocument){
                         if(Request::get('batch', 'varchar')){
                             $form->setReadOnly('batch');
                         }
