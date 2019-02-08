@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -221,7 +221,8 @@ class planning_Tasks extends core_Master
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap,removeAndRefreshForm,silent');
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Произвеждане->Планирано,after=packagingId');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане->Склад,input=none');
-        $this->FLD('indTime', 'time(noSmart)', 'caption=Произвеждане->Норма,smartCenter');
+        $this->FLD('indTime', 'time(noSmart,decimals=2)', 'caption=Време за произвеждане на една опаковка->Норма,smartCenter');
+        $this->FLD('indTimeAllocation', 'enum(common=Oбщо,individual=Поотделно)', 'caption=Време за произвеждане на една опаковка->Разпределяне,smartCenter,notNull,value=common');
         $this->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
         $this->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
@@ -434,6 +435,10 @@ class planning_Tasks extends core_Master
             $row->employees = implode(', ', $row->employees);
         }
         
+        if(empty($rec->indTime)){
+            unset($row->indTimeAllocation);
+        }
+        
         return $row;
     }
     
@@ -529,19 +534,27 @@ class planning_Tasks extends core_Master
 																		   </table>"));
         $packagingId = cat_UoM::getTitleById($rec->packagingId);
         $resArr['quantity'] = array('name' => tr('Количества'), 'val' => tr("|*<table>
-				<tr><td style='font-weight:normal'>|Планирано|*:</td><td>[#plannedQuantity#]</td></tr>
+                <tr><td style='font-weight:normal'>|Произв. ед.|*:</td><td>{$packagingId}</td></tr>
+				<!--ET_BEGIN indTime--><tr><td style='font-weight:normal'>|Заработка|*:</td><td>[#indTime#]</td></tr>
+                <tr><td style='font-weight:normal'>|Разпределение|*:</td><td>[#indTimeAllocation#]</td></tr>
+                <!--ET_END indTime-->
+				<tr style='border-top:1px solid #bbb'><td style='font-weight:normal'>|Планирано|*:</td><td>[#plannedQuantity#]</td></tr>
 				<tr><td style='font-weight:normal'>|Произведено|*:</td><td>[#totalQuantity#]</td></tr>
 				<tr><td style='font-weight:normal'>|Бракувано|*:</td><td>[#scrappedQuantity#]</td></tr>
-				<tr><td style='font-weight:normal'>|Произв. ед.|*:</td><td>{$packagingId}</td></tr>
-				<!--ET_BEGIN indTime--><tr><td style='font-weight:normal'>|Заработка|*:</td><td>[#indTime#]</td></tr><!--ET_END indTime-->
 				</table>"));
         
         if ($rec->showadditionalUom == 'yes') {
-            $resArr['quantity']['val'] .= tr("|*<br> <span style='font-weight:normal'>|Общо тегло|*</span> [#totalWeight#]");
+            $resArr['quantity']['val'] .= tr("|*<span style='font-weight:normal'>|Общо тегло|*:</span> [#totalWeight#]");
+        } else {
+            $resArr['quantity']['val'] .= tr("|*<span style='font-weight:normal'>|Без допълнително тегло|*</span>");
         }
         
         if (!empty($rec->indTime)) {
             $row->indTime .= '/' . tr($packagingId);
+        }
+        
+        if (empty($rec->totalWeight)) {
+            $row->totalWeight = "<span class='quiet'>N/A</span>";
         }
         
         if (!empty($row->timeStart) || !empty($row->timeDuration) || !empty($row->timeEnd) || !empty($row->expectedTimeStart) || !empty($row->expectedTimeEnd)) {
@@ -673,7 +686,6 @@ class planning_Tasks extends core_Master
                     $def = $tasks[$rec->systemId];
                     
                     // Намираме на коя дефолтна операция отговаря и извличаме продуктите от нея
-                    $r = array();
                     foreach (array('production' => 'product', 'input' => 'input', 'waste' => 'waste') as $var => $type) {
                         if (is_array($def->products[$var])) {
                             foreach ($def->products[$var] as $p) {
@@ -934,7 +946,6 @@ class planning_Tasks extends core_Master
      */
     public function prepareTasks($data)
     {
-        $masterRec = $data->masterData->rec;
         $containerId = $data->masterData->rec->containerId;
         
         $data->recs = $data->rows = array();
@@ -1113,7 +1124,7 @@ class planning_Tasks extends core_Master
         } elseif (isset($rec->timeStart, $rec->timeEnd) && empty($rec->timeDuration)) {
             
             // Ако има начало и край, изчисляваме продължителността
-            $rec->timeDuration = $diff = strtotime($rec->timeEnd) - strtotime($rec->timeStart);
+            $rec->timeDuration = strtotime($rec->timeEnd) - strtotime($rec->timeStart);
         } elseif (isset($rec->timeDuration, $rec->timeEnd) && empty($rec->timeStart)) {
             
             // Ако има продължителност и край, изчисляваме началото
@@ -1149,7 +1160,7 @@ class planning_Tasks extends core_Master
      * Връща количеството произведено по задачи по дадено задание
      *
      * @param mixed                     $jobId
-     * @param product|input|waste|start $type
+     * @param string $type
      *
      * @return float $quantity
      */

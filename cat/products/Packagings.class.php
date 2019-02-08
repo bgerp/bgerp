@@ -44,7 +44,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'packagingId=Наименование, quantity=К-во, eanCode=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити';
+    public $listFields = 'packagingId=Наименование, quantity=К-во, eanCode=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити,createdOn=Създаване||Created,createdBy=От||By';
     
     
     /**
@@ -655,12 +655,12 @@ class cat_products_Packagings extends core_Detail
         $isUsed = false;
         foreach ($details as $Detail) {
             if ($Detail == 'cat_BomDetails') {
-                if ($rec = $Detail::fetch("#resourceId = {$productId} AND #packagingId = '{$uomId}'", 'id')) {
+                if ($Detail::fetch("#resourceId = {$productId} AND #packagingId = '{$uomId}'", 'id')) {
                     $isUsed = true;
                     break;
                 }
             } else {
-                if ($rec = $Detail::fetch("#productId = {$productId} AND #packagingId = '{$uomId}'", 'id')) {
+                if ($Detail::fetch("#productId = {$productId} AND #packagingId = '{$uomId}'", 'id')) {
                     $isUsed = true;
                     break;
                 }

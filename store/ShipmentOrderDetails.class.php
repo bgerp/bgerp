@@ -210,8 +210,9 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             $rec = $data->recs[$id];
             deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $masterRec->storeId, $rec->quantity, $masterRec->state);
             
-            if (!core_Users::haveRole('partner') && isset($row->packPrice)) {
-                if(sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $masterRec->valior)){
+            if (!core_Users::haveRole('ceo,seePrice') && isset($row->packPrice)) {
+                $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
+                if(sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate)){
                     $row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', false);
                 }
             }

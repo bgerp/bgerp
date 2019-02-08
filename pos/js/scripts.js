@@ -16,6 +16,10 @@ function posActions() {
 		});
 	} 
 
+	// Засветяване на избрания ред и запис в хидън поле
+	$(document.body).on('mouseover', ".pos-sale", function(e){
+		$(this).css( 'cursor', 'pointer' );
+	});
 	
 	// Засветяване на избрания ред и запис в хидън поле
 	$(document.body).on('click', ".pos-sale", function(e){
@@ -49,6 +53,21 @@ function posActions() {
 		}
 	});
 	
+	
+	// Използване на числата за въвеждане на суми за плащания
+	$(document.body).on('click', ".revertBtn", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		var searchVal = $("input[name=paysum]").val();
+		var data = {search:searchVal};
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		getEfae().process(resObj, data);
+		$("input[name=paysum]").val("");
+	});
 	
 	// Използване на числата за въвеждане на суми за плащания
 	$(document.body).on('click', "#tools-payment .numPad", function(e){
@@ -156,25 +175,15 @@ function posActions() {
 	    return false; 
 	});
 	
-	
 	// Направата на плащане след натискане на бутон
 	$(document.body).on('click', ".paymentBtn", function(e){
-		var url = $(this).attr("data-url");
-		
-		if(!url) return;
-		
-		var type = $(this).attr("data-type");
-		var amount = $("input[name=paysum]").val();
-		var receiptId = $("input[name=receiptId]").val();
-		
-		var data = {receiptId:receiptId, amount:amount, type:type};
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		getEfae().process(resObj, data);
-	
-		$("input[name=paysum]").val("");
-		scrollRecieptBottom();
+		if(!$(this).hasClass( "disabledBtn")){
+			var url = $(this).attr("data-url");
+			var type = $("[name=selectedPayment]").val();
+			type = (!type) ? '-1' : type;
+			
+			doPayment(url, type);
+		}
 	});
 	
 	
@@ -478,4 +487,21 @@ function scrollRecieptBottom(){
 		var el = $('.scrolling-vertical');
 		setTimeout(function(){el.scrollTop( el.get(0).scrollHeight );},500);
 	}
+}
+
+// Направа на плащане
+function doPayment(url, type){
+	if(!url || !type) return;
+	var amount = $("input[name=paysum]").val();
+	if(!amount) return;
+	
+	var receiptId = $("input[name=receiptId]").val();
+	var data = {receiptId:receiptId, amount:amount, type:type};
+	
+	resObj = new Object();
+	resObj['url'] = url;
+	getEfae().process(resObj, data);
+
+	$("input[name=paysum]").val("");
+	scrollRecieptBottom();
 }

@@ -122,7 +122,34 @@ class pos_Points extends core_Master
         $this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад, mandatory');
         $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory');
+        $this->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Безналични налични на плащане->Позволени,placeholder=Всички');
         $this->FLD('driver', 'class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър');
+    }
+    
+    
+   /**
+    * Разрешените начини за плащане на ПОС-а
+    * 
+    * @param int $pointId 
+    * @return array $payments
+    */
+    public static function fetchSelected($pointId)
+    {
+        $paymentQuery = cond_Payments::getQuery();
+        $paymentQuery->where("#state = 'active'");
+        
+        // Ако са посочени конкретни, само те се разрешават
+        $paymentIds = keylist::toArray(pos_Points::fetchField($pointId, 'payments'));
+        if(count($paymentIds)){
+            $paymentQuery->in('id', $paymentIds);
+        }
+        
+        $payments = array();
+        while ($paymentRec = $paymentQuery->fetch()) {
+            $payments[$paymentRec->id] = tr($paymentRec->title);
+        }
+        
+        return $payments;
     }
     
     
@@ -214,6 +241,10 @@ class pos_Points extends core_Master
     protected static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, $rec, $fields = array())
     {
         unset($row->currentPlg);
+        
+        if(empty($rec->payments)){
+            $row->payments = tr('Всички');
+        }
         
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')) {
             if ($mvc->haveRightFor('select', $rec->id) && pos_Receipts::haveRightFor('terminal')) {

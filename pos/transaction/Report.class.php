@@ -38,11 +38,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         
         $rec = $this->class->fetchRec($id);
         $posRec = pos_Points::fetch($rec->pointId);
-        $entries = array();
-        $totalVat = array();
-        $totalAmount = 0;
-        
-        $paymentsArr = $productsArr = array();
+        $paymentsArr = $productsArr = $totalVat = $entries = array();
         $this->class->extractData($rec);
         
         if (count($rec->details['receiptDetails'])) {
@@ -249,6 +245,12 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         $nonCashPayments = array();
         
         foreach ($paymentsArr as $payment) {
+            
+            if ($payment->value != -1) {
+                $payment->originalAmount = $payment->amount;
+                $payment->amount = cond_Payments::toBaseCurrency($payment->value, $payment->amount, $payment->date);
+            }
+            
             $entries[] = array(
                 'amount' => currency_Currencies::round($payment->amount),
                 
@@ -284,7 +286,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                         '502', // Сметка "502. Каси - безналични плащания"
                         array('cash_Cases', $posRec->caseId),
                         array('cond_Payments', $payment1->value),
-                        'quantity' => currency_Currencies::round($payment1->amount),
+                        'quantity' => currency_Currencies::round($payment1->originalAmount),
                     ),
                     
                     'credit' => array(

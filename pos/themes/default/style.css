@@ -12,6 +12,7 @@
   font-size: 0.8em;
   text-align: center;
   display: block;
+  border: 1px solid #555555;
   float: left;
   background: #646464;
   background: rgba(50, 50, 50, 0.8);
@@ -29,12 +30,18 @@
 .pos-product-category:hover,
 .pos-product-category.active {
   cursor: pointer;
-  color: white;
+  color: black;
+  text-shadow: 1px 1px 0px white;
   position: relative;
-  top: -5px;
-  -webkit-box-shadow: inset 0px -3px 1px white, inset 0 0px 3px rgba(0, 0, 0, 0.9), none;
-  -moz-box-shadow: inset 0px -3px 1px white, inset 0 0px 3px rgba(0, 0, 0, 0.9) .none;
-  box-shadow: inset 0px -3px 1px #f1f1f1, inset 0 0px 3px rgba(0, 0, 0, 0.9), none; }
+  border: 1px solid #aaaaaa;
+  background-color: #eeeeee;
+  background-color: #cccccc !important;
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #eeeeee), color-stop(100%, #cccccc));
+  background-image: -webkit-linear-gradient(top, #eeeeee, #cccccc);
+  background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
+  background-image: -ms-linear-gradient(top, #eeeeee, #cccccc);
+  background-image: -o-linear-gradient(top, #eeeeee, #cccccc);
+  background-image: linear-gradient(top, #eeeeee, #cccccc); }
 
 .narrow .pos-notes {
   max-width: 70px; }
@@ -85,7 +92,7 @@
   left: 0px;
   bottom: 0px;
   font-size: 0.8em;
-  max-height: 16px;
+  max-height: 13px;
   display: block;
   overflow: hidden;
   text-align: center;
