@@ -21,10 +21,10 @@ class test_C extends core_Manager
             $c['room'] = self::getRoom($c);
 
             // Прозореца отворен ли е?
-            $c['window'] = self::getWindow();
+            $c['window'] = self::getWindow($i);
 
             // Вратата отворена ли е?
-            $c['door'] = self::getDoor();
+            $c['door'] = self::getDoor($i);
 
             // Колко процента е отоплителната/охладителната мощност
             $c['power'] = self::getPower($c, $i);
@@ -37,6 +37,8 @@ class test_C extends core_Manager
         }
 
       //  bp($delta, $res); //'
+        
+        $html = '';
         
         foreach($res as $c) {
             if($c['power']) {
@@ -58,8 +60,8 @@ class test_C extends core_Manager
     /**
      * Връща външната температура
      */
-    public function getOutside($i)
-    {   
+    public static function getOutside($i)
+    {
         static $temp;
 
         if($i == 0) {
@@ -78,7 +80,7 @@ class test_C extends core_Manager
     /**
      *
      */
-    public function getRoom($c)
+    public static function getRoom($c)
     {
         static $l1, $l2, $l3;
 
@@ -130,7 +132,7 @@ class test_C extends core_Manager
     /**
      * Дали прозореца в този момент е отворен
      */
-    public static function getWindow()
+    public static function getWindow($i)
     {   
         static $open;
 
@@ -163,7 +165,7 @@ class test_C extends core_Manager
     /**
      * Дали вратата в този момент е отворена
      */
-    public static function getDoor()
+    public static function getDoor($i)
     {   
         static $open;
 

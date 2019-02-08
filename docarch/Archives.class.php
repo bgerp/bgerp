@@ -65,7 +65,7 @@ class docarch_Archives extends core_Master
      *
      * @var string|array
      */
-    public $canDelete = 'ceo,docarchMaster';
+    public $canDelete = 'no_one';
     
     
     /**
@@ -77,17 +77,13 @@ class docarch_Archives extends core_Master
         $this->FLD('name', 'varchar(32)', 'caption=Наименование');
         
         //Видове томове/обеми/контейнери за съхранение
-        $this->FLD('volType', 'set(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)', 'caption=Видове томове');
+        $this->FLD('volType', 'set(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)', 'caption=Видове томове,maxColumns=3');
         
         //Какъв тип документи ще се съхраняват в този архив
         $this->FLD('documents', 'keylist(mvc=core_Classes, select=title,allowEmpty)', 'caption=Документи,placeholder=Всички');
         
-        //Кой може да добавя документи в този архив
-        $this->FLD('sharedUsers', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Потребители,mandatory');
-        
-        
         //Срок за съхранение
-        $this->FLD('storageTime', 'time(suggestions=1 година|2 години|3 години|4 години|5 години|10 години)', 'caption=Срок,mandatory');
+        $this->FLD('storageTime', 'time(suggestions=1 година|2 години|3 години|4 години|5 години|10 години)', 'caption=Срок');
     }
    
     
@@ -99,11 +95,15 @@ class docarch_Archives extends core_Master
      * @param embed_Manager       $Embedder
      * @param stdClass            $data
      */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
         $rec = $form->rec;
-        
+       
+        if ($rec->id) {
+            $rec->typeArr = explode(',',$rec->volType);
+        }
+       
         $docClasses = core_Classes::getOptionsByInterface('doc_DocumentIntf');
         
         $docClasses = array_keys($docClasses);
@@ -121,13 +121,30 @@ class docarch_Archives extends core_Master
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+     //   $rec = $form->rec;
+        
+        if ($form->isSubmitted()) {
+            
+           // bp(keylist::mixedToString($rec->volType));
+        }
+    }
+    
+    
+    /**
      * Извиква се след успешен запис в модела
      *
      * @param core_Mvc $mvc
      * @param int      $id  първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // Прави запис в модела на движенията
         $className = get_class();
@@ -148,7 +165,7 @@ class docarch_Archives extends core_Master
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
        
-      $data->toolbar->addBtn('Бутон', array($mvc,'Action','ret_url' => true));
+     // $data->toolbar->addBtn('Бутон', array($mvc,'Action','ret_url' => true));
     }
     
     
@@ -157,7 +174,7 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        $rec = &$data->rec;
+       // $rec = &$data->rec;
         
     }
     
@@ -216,14 +233,14 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        //Тома не може да бъде reject-нат ако не е празен
-        if ($action == 'reject') {
-            if (!is_null($rec->docCnt)) {
+        
+        if ($rec->id && $action == 'edit') {
+            
+            if (($rec->state == 'closed')) {
                 $requiredRoles = 'no_one' ;
-            } elseif (($rec->docCnt == 0)) {
-                // $requiredRoles = 'no_one' ;
             }
         }
+       
     }
     
     
@@ -236,6 +253,7 @@ class docarch_Archives extends core_Master
          * Установява необходима роля за да се стартира екшъна
          */
         requireRole('admin');
+       
         $text = 'Това е съобщение за изтекъл срок';
         $msg = new core_ET($text);
         

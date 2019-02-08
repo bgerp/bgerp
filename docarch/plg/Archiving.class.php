@@ -84,15 +84,17 @@ class docarch_plg_Archiving extends core_Plugin
             
             //Ако има том който да отговатя на условията за него, показва бутон за архивиране
             if (($volQuery->count() > 0) && $stateCond) {
-                
-                $data->toolbar->addBtn('Архивиране', array(
-                                                           'docarch_Movements',
-                                                           'Add',
-                                                           'documentId' => $documentContainerId,
-                                                           'documentDate' => $documentDate,
-                                                           'ret_url' => true
-                                                           ),
-                                                             'ef_icon=img/16/archive.png,row=2');
+                $data->toolbar->addBtn(
+                    'Архивиране',
+                    array(
+                        'docarch_Movements',
+                        'Add',
+                        'documentId' => $documentContainerId,
+                        'documentDate' => $documentDate,
+                        'ret_url' => true
+                    ),
+                                                             'ef_icon=img/16/archive.png,row=2'
+                );
             }
         }
     }
@@ -115,36 +117,29 @@ class docarch_plg_Archiving extends core_Plugin
         $html .= docarch_Movements::getSummary($containerId);
     }
     
+    
     /**
      * Определяне дата на документа
      *
-     * @param object   $rec
-     * @return string  $documentDate дата на документа
+     * @param object $rec
+     *
+     * @return string $docDate дата на документа
      */
     public static function getDocumentDate($rec)
     {
-        $documentDate = null;
+        $docDate = null;
         
         //Възможни дати
         $possibleDate = array('date','valior','closedOn','activatedOn','createdOn');
-       
-        foreach ($possibleDate as $val){
-            
+        
+        foreach ($possibleDate as $val) {
             if (!is_null($rec-> {$val})) {
+                $docDate = $rec->{$val};
                 
-                $documentDate = $rec->{$val};
-                
-                return $documentDate;
+                return $docDate;
             }
         }
         
-        if (is_null($documentDate)) {
-           return null ;
-        }
-        
-        
-        
+        return $docDate ;
     }
-    
-    
 }

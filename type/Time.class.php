@@ -120,6 +120,7 @@ class type_Time extends type_Varchar
         }
         
         // Извличаме секундите от текста
+        $matches = array();
         if (preg_match(str::utf2ascii('/(\d+)[ ]*(s|second|seconds|sec|секунда|сек|с|секунди)\b/'), $val, $matches)) {
             $secundes = $matches[1];
         }
@@ -264,6 +265,7 @@ class type_Time extends type_Varchar
         
         if (isset($this->params['noSmart'])) {
             $uom = ($this->params['uom']) ? $this->params['uom'] : 'minutes';
+            $decimals = ($this->params['decimals']) ? $this->params['decimals'] : 0;
             
             switch ($uom) {
                 case 'years':
@@ -293,10 +295,11 @@ class type_Time extends type_Varchar
                     break;
             }
             
-            return round($v) . ' ' . $suffix;
+            return round($v, $decimals) . ' ' . $suffix;
         }
         
         if ($format = $this->params['format']) {
+            $repl = array();
             $repl['y'] = "${years}";
             $repl['n'] = "${months}";
             $repl['w'] = "${weeks}";

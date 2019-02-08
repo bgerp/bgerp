@@ -29,6 +29,14 @@
 				<td>[#storeId#]</td>
 			</tr>
 			
+			<!--ET_BEGIN revertId-->
+			<tr>
+				<td>|Сторно на|*:</td>
+				<td></td>
+				<td><b>[#revertId#]</b></td>
+			</tr>
+			<!--ET_END revertId-->
+			
 			<!--ET_BEGIN transferedIn-->
 			<tr>
 				<td>|Прехвълено към|*:</td>

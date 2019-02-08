@@ -23,7 +23,8 @@ class swiper_Adapter extends core_Manager
      */
     public static function renderHtml($images, $options = array())
     {
-      //  $options = array('thums' => true);
+       // $options = array('thums' => true);
+        $options = array('arrows' => true);
 
         // Ако е текстов режим, да не сработва
         if (Mode::is('text', 'plain')) {
@@ -39,8 +40,19 @@ class swiper_Adapter extends core_Manager
                 
         $tpl = new ET("
             <style>
-
+                .swiper-container {
+                  max-width: 880px;
+                  width: 100%;
+                  height: 300px;
+                  margin-left: auto;
+                  margin-right: auto;
+                }
+                .swiper-slide {
+                  background-size: cover;
+                  background-position: center;
+                }
             </style>
+
             <div class=\"swiper-container gallery-top\">
                 <div class=\"swiper-wrapper\">
                     [#SWIPER_SLIDES#]
@@ -58,21 +70,22 @@ class swiper_Adapter extends core_Manager
                 </div>
             </div>
             <!--ET_END SWIPER_THUMBS-->
-             
+
         ");
-                
-        foreach($images as $url) {
-            $slide = "\n   <div class=\"swiper-slide\" style=\"background-image:url({$url})\"></div>";
-            $tpl->append($slide, 'SWIPER_SLIDES');
-            if($options['thumbs']) {
-                $thumb = "\n   <div class=\"swiper-slide\" style=\"background-image:url({$url})\"></div>";
-                $tpl->append($thumb, 'SWIPER_THUMBS');
-            } 
-        }
+
+
+       foreach($images as $url) {
+           $slide = "\n   <div class=\"swiper-slide\" style=\"background-image:url({$url})\"></div>";
+           $tpl->append($slide, 'SWIPER_SLIDES');
+           if($options['thumbs']) {
+               $thumb = "\n   <div class=\"swiper-slide\" style=\"background-image:url({$url})\"></div>";
+               $tpl->append($thumb, 'SWIPER_THUMBS');
+           }
+       }
         
         // Да има ли бутони за навигация?
-        if($options['thumbs']) {
-            $tpl->replace('', 'SWIPPER_ARROWS');
+        if($options['arrows']) {
+            $tpl->append(' ', 'SWIPPER_ARROWS');
         }
 
         // Вземаме актуалната версия
@@ -91,14 +104,20 @@ class swiper_Adapter extends core_Manager
                           slidesPerView: 4,
                           loop: true,
                           freeMode: true,
-                          loopedSlides: 5, 
+                          loopedSlides: 5,
                           watchSlidesVisibility: true,
                           watchSlidesProgress: true,
                         });", 'SCRIPTS');
         }
 
         // Стартираме swiper
-        $tpl->prepend("var galleryTop = new Swiper('.gallery-top');", 'SCRIPTS');
+        $tpl->prepend("var galleryTop = new Swiper('.gallery-top', {
+                spaceBetween: 10,
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+            });", 'SCRIPTS');
         
         $tpl->removeBlocks();
 
