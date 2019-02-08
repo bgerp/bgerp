@@ -806,14 +806,19 @@ class rack_Movements extends core_Manager
         $rec = $this->fetch($id);
         
         if($ajaxMode){
-            if(!$this->haveRightFor('toggle', $rec)){
+            if(empty($rec)){
+                core_Statuses::newStatus('|Записът вече е изтрит|*!', 'error');
+                
+                return status_Messages::returnStatusesArray();
+            } elseif(!$this->haveRightFor('toggle', $rec)){
                 core_Statuses::newStatus('|Нямате права|*!', 'error');
+                
                 return status_Messages::returnStatusesArray();
             }
         } else {
+            expect($rec);
             $this->requireRightFor('toggle', $rec);
         }
-        
         $oldState = $rec->state;
         
         $reverse = false;
