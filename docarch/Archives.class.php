@@ -95,11 +95,15 @@ class docarch_Archives extends core_Master
      * @param embed_Manager       $Embedder
      * @param stdClass            $data
      */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
-      //  $rec = $form->rec;
-        
+        $rec = $form->rec;
+       
+        if ($rec->id) {
+            $rec->typeArr = explode(',',$rec->volType);
+        }
+       
         $docClasses = core_Classes::getOptionsByInterface('doc_DocumentIntf');
         
         $docClasses = array_keys($docClasses);
@@ -117,13 +121,30 @@ class docarch_Archives extends core_Master
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+     //   $rec = $form->rec;
+        
+        if ($form->isSubmitted()) {
+            
+           // bp(keylist::mixedToString($rec->volType));
+        }
+    }
+    
+    
+    /**
      * Извиква се след успешен запис в модела
      *
      * @param core_Mvc $mvc
      * @param int      $id  първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // Прави запис в модела на движенията
         $className = get_class();
@@ -212,6 +233,13 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
+        
+        if ($rec->id && $action == 'edit') {
+            
+            if (($rec->state == 'closed')) {
+                $requiredRoles = 'no_one' ;
+            }
+        }
        
     }
     
