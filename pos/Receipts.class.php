@@ -1141,6 +1141,7 @@ class pos_Receipts extends core_Master
         $closeBtn = $this->getCloseReceiptBtn($rec);
         $block->append($closeBtn, 'CLOSE_BTNS');
         
+        // Добавяне на бутон за сторниране на бележка
         if($this->haveRightFor('revert')){
             $revertUrl = toUrl(array($this, 'revert'), 'local');
             $block->append(ht::createFnBtn('Сторно', '', '', array('class' => 'actionBtn revertBtn', 'title' => 'Сторниране на бележка', 'data-url' => $revertUrl)), 'CLOSE_BTNS');
@@ -1771,6 +1772,10 @@ class pos_Receipts extends core_Master
         return $title;
     }
     
+    
+    /**
+     * Екшън за започване на действие за сторниране на бележка
+     */
     public function act_Revert()
     {
         if(!$this->haveRightFor('revert')){
@@ -1785,12 +1790,11 @@ class pos_Receipts extends core_Master
             return $this->pos_ReceiptDetails->returnError(null);
         }
         
+        // Ако е разпозната бележка по номера, създава се нова сторнираща бележка
         if($existingReceiptId = $this->findReceiptByNumber($search)){
-            
             $newReceiptId = $this->createNew($existingReceiptId);
             
             return new Redirect(array($this, 'terminal', $newReceiptId));
-            
         } else {
             core_Statuses::newStatus("|Не е намерена бележка от номер|* '<b>{$search}</b>'!", 'error');
             
@@ -1799,6 +1803,12 @@ class pos_Receipts extends core_Master
     }
     
     
+    /**
+     * Намира съществуваща бележка по номер
+     * 
+     * @param string $string
+     * @return int|null
+     */
     public function findReceiptByNumber_($string)
     {
         if(type_Int::isInt($string)){
