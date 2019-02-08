@@ -1344,6 +1344,18 @@ class pos_Receipts extends core_Master
             return $this->pos_ReceiptDetails->returnError($receiptId);
         }
         
+        $revertId = pos_Receipts::fetchField($receiptId, 'revertId');
+        if(!empty($revertId)){
+            $rec->quantity *= -1;
+            
+            $originProductRec = $this->pos_ReceiptDetails->findSale($rec->productId, $revertId, $rec->value);
+            if(empty($originProductRec)){
+                core_Statuses::newStatus('Артикулът го няма в оригиналната бележка|*!', 'error');
+                
+                return $this->pos_ReceiptDetails->returnError($receiptId);
+            }
+        }
+        
         // Намираме дали този проект го има въведен
         $sameProduct = $this->pos_ReceiptDetails->findSale($rec->productId, $rec->receiptId, $rec->value);
         if ($sameProduct) {
@@ -1354,6 +1366,12 @@ class pos_Receipts extends core_Master
             $rec->quantity = $newQuantity;
             $rec->amount += $sameProduct->amount;
             $rec->id = $sameProduct->id;
+        }
+        
+        if(!empty($revertId) && abs($originProductRec->quantity) < abs($rec->quantity)){
+            core_Statuses::newStatus("количеството е по-голямо от продаденото|*|* {$originProductRec->quantity}", 'error');
+            
+            return $this->pos_ReceiptDetails->returnError($receiptId);
         }
         
         // Добавяне/обновяване на продукта

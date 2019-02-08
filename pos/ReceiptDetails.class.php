@@ -278,7 +278,6 @@ class pos_ReceiptDetails extends core_Detail
         
         // Трябва да може да се редактира записа
         $this->requireRightFor('add', $rec);
-        
         $quantityId = Request::get('amount');
         
         // Трябва да е подадено валидно количество
@@ -296,6 +295,19 @@ class pos_ReceiptDetails extends core_Detail
             core_Statuses::newStatus('|Артикулът е изтрит успешно|*!');
             
             return $this->returnResponse($rec->receiptId);
+        }
+        
+        $revertId = pos_Receipts::fetchField($rec->receiptId, 'revertId');
+        if(!empty($revertId)){
+            $originProductRec = $this->findSale($rec->productId, $revertId, $rec->value);
+            if(is_object($originProductRec)){
+                $quantityId *= -1;
+                if(abs($originProductRec->quantity) < abs($quantityId)){
+                    core_Statuses::newStatus("Kоличеството е по-голямо от продаденото|* {$originProductRec->quantity}", 'error');
+                    
+                    return $this->returnError($rec->receiptId);
+                }
+            }
         }
         
         // Преизчисляване на сумата
