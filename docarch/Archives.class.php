@@ -65,7 +65,7 @@ class docarch_Archives extends core_Master
      *
      * @var string|array
      */
-    public $canDelete = 'ceo,docarchMaster';
+    public $canDelete = 'no_one';
     
     
     /**
