@@ -119,6 +119,7 @@ class cms_Setup extends core_ProtoSetup
         'cms_VerbalId',
         'cms_GalleryGroups',
         'cms_GalleryImages',
+        'cms_Library',
         'migrate::domainFiles',
     );
     
