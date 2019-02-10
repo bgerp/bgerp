@@ -68,12 +68,12 @@ class support_TaskType extends core_Mvc
         static $progressArr = array();
         
         if (empty($progressArr)) {
-            $progressArr['0 %'] = '0 %';
-            $progressArr['10 %'] = tr('Информация');
-            $progressArr['40 %'] = tr('Корекция');
-            $progressArr['60 %'] = tr('Превенция');
-            $progressArr['80 %'] = tr('Оценка');
-            $progressArr['100 %'] = tr('Резолюция');
+            $progressArr['0%'] = '0%';
+            $progressArr['10%'] = tr('Информация');
+            $progressArr['40%'] = tr('Корекция');
+            $progressArr['60%'] = tr('Превенция');
+            $progressArr['80%'] = tr('Оценка');
+            $progressArr['100%'] = tr('Резолюция');
         }
         
         return $progressArr;

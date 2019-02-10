@@ -88,6 +88,10 @@
 	margin-top: 5px;
 }
 
+.terminal-revert-id a {
+	color: #CC0000 ;
+}
+
 .narrow .portalLink img {
 	margin-top: 7px;
 	 max-height: 24px;
@@ -452,7 +456,24 @@
     box-shadow: 0px 1px 2px #226B9B;
 }
 
-
+.colum-btn .button.revertBtn {
+	color: #fff !important;
+	text-shadow: 0 1px 0 #333 !important;
+	box-shadow: 1px 1px 2px rgba(0,0,0,.5);
+	border: 1px solid #a12b11 !important;
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #fa5223), color-stop(1, #bc3315)) !important;
+	background:-moz-linear-gradient(top, #fa5223 5%, #bc3315 100%) !important;
+	background:-webkit-linear-gradient(top, #fa5223 5%, #bc3315 100%) !important;
+	background:-o-linear-gradient(top, #fa5223 5%, #bc3315 100%) !important;
+	background:-ms-linear-gradient(top, #fa5223 5%, #bc3315 100%) !important;
+	background:linear-gradient(to bottom, #fa5223 5%, #bc3315 100%) !important;
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#fa5223', endColorstr='#bc3315',GradientType=0) !important;
+	background-color:#fa5223 !important;
+	&:hover {
+		background: #bc3315 !important;
+	}
+}
+.
 .disabledBtn[type=button], .disabledBtn[type=button]:hover, .colum-btn .button.disabledBtn:hover, .tools-btn .button.disabledBtn:hover{
 	background-color: #ccc !important;
 	color: #999 !important;
@@ -497,6 +518,20 @@
 	color: #FFF !important;
 	font-weight: bold;
 	text-shadow: #458632 0 1px 2px;
+	&.revert-receipt {
+		background: rgb(255,48,25);
+		background: -moz-linear-gradient(top, rgba(255,48,25,1) 0%, rgba(124,2,2,1) 100%);
+		background: -webkit-linear-gradient(top, rgba(255,48,25,1) 0%,rgba(124,2,2,1) 100%);
+		background: linear-gradient(to bottom, rgba(255,48,25,1) 0%,rgba(124,2,2,1) 100%);
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff3019', endColorstr='#7c0202',GradientType=0 );
+		&:hover {
+			background: rgb(124,2,2);
+			background: -moz-linear-gradient(top, rgba(124,2,2,1) 0%, rgba(255,48,25,1) 100%);
+			background: -webkit-linear-gradient(top, rgba(124,2,2,1) 0%,rgba(255,48,25,1) 100%);
+			background: linear-gradient(to bottom, rgba(124,2,2,1) 0%,rgba(255,48,25,1) 100%);
+			filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#7c0202', endColorstr='#ff3019',GradientType=0 );
+		}
+	}
 }
 
 
@@ -509,6 +544,10 @@
 	border: 1px solid #0f3a00;
 }
 
+.pos-notes.revert-receipt span.num{
+	background: #5b0000;
+	border: 1px solid #280000;
+}
 .pos-notes:hover{
     background: rgb(70,135,51);
     background: -moz-linear-gradient(top,  rgba(70,135,51,1) 0%, rgba(96,178,71,1) 100%);
@@ -558,7 +597,14 @@
 .close-btn .button{
 	font-size: 1.07em;
 }
-
+.is-reverted {
+	.receipt-quantity, .receipt-info-right {
+		color: #c00;
+	}
+	.receipt-payment {
+		background: #feb7b7;
+	}
+}
 .input-field{
 	float: left;
 	margin-left:4px;

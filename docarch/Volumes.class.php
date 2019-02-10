@@ -363,7 +363,7 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-      //  self::notifyForOutOfStorageTimeVolume();
+        //  self::notifyForOutOfStorageTimeVolume();
     }
     
     
@@ -653,6 +653,18 @@ class docarch_Volumes extends core_Master
     
     
     /**
+     * Стартиране от крон-а
+     *
+     * Прави провека през крона за изтекли томове
+     *
+     */
+    public static function cron_chekOutOfStorage()
+    {
+        self::notifyForOutOfStorageTimeVolume();
+    }
+    
+    
+    /**
      * Нотифицира за томове с изтекъл срок за съхранение и
      * разрешени на унищожаване
      */
@@ -665,41 +677,39 @@ class docarch_Volumes extends core_Master
         $now = dt::now();
         $checkStorageArr = array();
         
-        while ($volumeRec = $volQuery->fetch()){
-        
+        while ($volumeRec = $volQuery->fetch()) {
             $storageTime = docarch_Archives::fetchField($volumeRec->archive, 'storageTime');
             
-            if (is_null($storageTime))continue;
+            if (is_null($storageTime)) {
+                continue;
+            }
             
             $latestDocumentDate = self::getlatestDocumentDate($volumeRec);
             $endDate = dt::addSecs($storageTime, $latestDocumentDate);
             
             if ($endDate < $now) {
-                $checkStorageArr[$volumeRec->id] = (object)array(
-                                                                 'id'=>$volumeRec->id,
-                                                                 'state'=>$volumeRec->state,
-                                                                 'inCharge'=>$volumeRec->inCharge,
-                                                                 'title'=>$volumeRec->title,
-                                                                 );
+                $checkStorageArr[$volumeRec->id] = (object) array(
+                    'id' => $volumeRec->id,
+                    'state' => $volumeRec->state,
+                    'inCharge' => $volumeRec->inCharge,
+                    'title' => $volumeRec->title,
+                );
             }
         }
         
         $roelId = core_Roles::fetchByName('docarchMaster');
         $docarchMasters = core_Users::getByRole($roelId);
         
-        foreach ($checkStorageArr as $val){
-            
+        foreach ($checkStorageArr as $val) {
             $url = array('docarch_Volumes','single',$val->id);
             
-            $msg = "Срока за съхранение на "."{$val->title}"." е изтекъл и може да бъде унищожен";
+            $msg = 'Срока за съхранение на '."{$val->title}".' е изтекъл и може да бъде унищожен';
             
             bgerp_Notifications::add($msg, $url, $val->inCharge);
             
-            if(is_array($docarchMasters)){
-                
-                foreach ($docarchMasters as $v){
+            if (is_array($docarchMasters)) {
+                foreach ($docarchMasters as $v) {
                     bgerp_Notifications::add($msg, $url, $v);
-                    
                 }
             }
         }
