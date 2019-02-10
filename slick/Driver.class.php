@@ -43,12 +43,16 @@ class slick_Driver extends core_BaseClass
 
 
     /**
-     * Рендира необходимият HTML за показване на картинките
+     * Връща HTML представянето на обекта 
+     * 
+     * @param stdClass $rec Записа за елемента от модела-библиотека
+     * @param $maxWidth int Максимална широчина на елемента
+     * @param $isAbsolute bool Дали URL-тата да са абсолютни
+     *
+     * @return core_ET Представяне на обекта в HTML шабло
      */
-    public static function render($rec, $maxwidth)
+    public static function render($rec, $maxwidth, $absolute = false)
     {
-        // $options = array('arrows' => true);
-
         // Ако е текстов режим, да не сработва
         if (Mode::is('text', 'plain')) {
             
@@ -71,14 +75,12 @@ class slick_Driver extends core_BaseClass
             </div>
         ");
 
- 
         foreach($images as $fileId) {
-            $img = new thumb_Img(array(fileman::idToFh($fileId), $maxwidth, 2400, 'fileman', 'mode' => 'small-no-change'));
+            $img = new thumb_Img(array(fileman::idToFh($fileId), $maxwidth, 2400, 'fileman', 'mode' => 'small-no-change', 'isAbsolute' => $absolute));
             $imageURL = $img->getUrl('forced');
             $slide = "\n    <div><img style='width:100%;height:auto;' src='{$imageURL}'></div>";
             $tpl->append($slide, 'SLICK_SLIDES');
        }
-
 
         // Вземаме актуалната версия
         $ver = slick_Setup::get('VERSION');
@@ -100,10 +102,10 @@ class slick_Driver extends core_BaseClass
                 'autoplaySpeed' => 1000 * $rec->autoplay,
             );
 
-        $json = json_encode($options);
+        $options = json_encode($options);
 
         // Стартираме slick
-        $tpl->prepend("$('#slick{$rec->id}').slick($json);", 'SCRIPTS');
+        $tpl->prepend("$('#slick{$rec->id}').slick($options);", 'SCRIPTS');
         
         $tpl->removeBlocks();
  

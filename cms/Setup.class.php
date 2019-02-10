@@ -176,6 +176,8 @@ class cms_Setup extends core_ProtoSetup
         
         // Инсталираме плъгина
         $html .= $Plugins->forcePlugin('Показване на обекти', 'cms_ObjectsInRichtextPlg', 'type_Richtext', 'private');
+        $html .= $Plugins->forcePlugin('Показване на елементи', 'cms_LibraryRichTextPlg', 'type_Richtext', 'private');
+        
         $html .= $Plugins->forcePlugin('Копиране с линк към страницата', 'cms_CopyTextPlg', 'cms_page_External', 'private');
         
         // Замества абсолютните линкове с титлата на документа

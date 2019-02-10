@@ -19,10 +19,16 @@ class cms_LibraryIntf extends embed_DriverIntf
 {
     /**
      * Връща HTML представянето на обекта 
+     * 
+     * @param stdClass $rec Записа за елемента от модела-библиотека
+     * @param $maxWidth int Максимална широчина на елемента
+     * @param $isAbsolute bool Дали URL-тата да са абсолютни
+     *
+     * @return core_ET Представяне на обекта в HTML шабло
      */
-    public function render($rec)
+    public function render($rec, $maxWidth, $isAbsolute = false)
     {
-        return $this->class->render($data);
+        return $this->class->render($rec, $maxWidth, $isAbsolute);
     }
     
     
