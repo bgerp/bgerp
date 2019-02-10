@@ -39,6 +39,7 @@ class slick_Driver extends core_BaseClass
         $form->FLD('dots', 'enum(no=Няма,yes=Да)', 'caption=Точки');
         $form->FLD('arrows', 'enum(no=Няма,yes=Да)', 'caption=Стрелки');
         $form->FLD('autoplay', 'time(suggestions=1 сек.|2 сек.|3 сек.|5 сек.|10 сек.,uom=secunds)', 'caption=Смяна през,placeholder=Няма');
+        $form->FLD('maxSize', 'int(min=0)', 'caption=Макс. разм.,placeholder=0,unit=px');
     }
 
 
@@ -51,7 +52,7 @@ class slick_Driver extends core_BaseClass
      *
      * @return core_ET Представяне на обекта в HTML шабло
      */
-    public static function render($rec, $maxwidth, $absolute = false)
+    public static function render($rec, $maxwidth = 1200, $absolute = false)
     {
         // Ако е текстов режим, да не сработва
         if (Mode::is('text', 'plain')) {
@@ -74,9 +75,13 @@ class slick_Driver extends core_BaseClass
                 </div>
             </div>
         ");
+        
+        if($rec->maxSize > 0) {
+            $maxwidth = $rec->maxSize;
+        }
 
         foreach($images as $fileId) {
-            $img = new thumb_Img(array(fileman::idToFh($fileId), $maxwidth, 2400, 'fileman', 'mode' => 'small-no-change', 'isAbsolute' => $absolute));
+            $img = new thumb_Img(array(fileman::idToFh($fileId), $maxwidth, $maxwidth, 'fileman', 'mode' => 'small-no-change', 'isAbsolute' => $absolute));
             $imageURL = $img->getUrl('forced');
             $slide = "\n    <div><img style='width:100%;height:auto;' src='{$imageURL}'></div>";
             $tpl->append($slide, 'SLICK_SLIDES');
