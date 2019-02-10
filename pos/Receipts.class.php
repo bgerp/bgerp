@@ -262,12 +262,13 @@ class pos_Receipts extends core_Master
             }
         }
         
-        $row->RECEIP_CAPTION = tr('Касова бележка');
+        $row->RECEIPT_CAPTION = tr('Касова бележка');
         if(isset($rec->revertId)){
             $row->REVERT_CLASS = 'is-reverted';
             $row->revertId = pos_Receipts::getHyperlink($rec->revertId, true);
             if(isset($fields['-terminal'])){
                 $row->RECEIPT_CAPTION = tr('Сторно бележка');
+                $row->loadUrl = ht::createLink('', array('pos_ReceiptDetails', 'load', "receiptId" => $rec->id, 'from' => $rec->revertId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Зареждане на всички данни от бележката, class=load-btn');
             }
         }
         
@@ -851,9 +852,9 @@ class pos_Receipts extends core_Master
             $date = dt::mysql2verbal($rec->createdOn, 'H:i');
             $between = dt::daysBetween($now, $rec->valior);
             $between = ($between != 0) ? " <span class='num'>-${between}</span>" : null;
-            
+
             $revertClass = isset($rec->revertId) ? 'revert-receipt' : '';
-            $row = ht::createLink("<span class='pos-span-name {$revertClass}'>№{$rec->id} <br> {$date}$between</span>", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => 'pos-notes', 'title' => 'Отваряне на бележката'));
+            $row = ht::createLink("<span class='pos-span-name'>№{$rec->id} <br> {$date}$between</span>", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => "pos-notes {$revertClass}", 'title' => 'Отваряне на бележката'));
             $block->append($row);
         }
         
@@ -1140,6 +1141,7 @@ class pos_Receipts extends core_Master
         $closeBtn = $this->getCloseReceiptBtn($rec);
         $block->append($closeBtn, 'CLOSE_BTNS');
         
+        // Добавяне на бутон за сторниране на бележка
         if($this->haveRightFor('revert')){
             $revertUrl = toUrl(array($this, 'revert'), 'local');
             $block->append(ht::createFnBtn('Сторно', '', '', array('class' => 'actionBtn revertBtn', 'title' => 'Сторниране на бележка', 'data-url' => $revertUrl)), 'CLOSE_BTNS');
@@ -1342,6 +1344,18 @@ class pos_Receipts extends core_Master
             return $this->pos_ReceiptDetails->returnError($receiptId);
         }
         
+        $revertId = pos_Receipts::fetchField($receiptId, 'revertId');
+        if(!empty($revertId)){
+            $rec->quantity *= -1;
+            
+            $originProductRec = $this->pos_ReceiptDetails->findSale($rec->productId, $revertId, $rec->value);
+            if(empty($originProductRec)){
+                core_Statuses::newStatus('Артикулът го няма в оригиналната бележка|*!', 'error');
+                
+                return $this->pos_ReceiptDetails->returnError($receiptId);
+            }
+        }
+        
         // Намираме дали този проект го има въведен
         $sameProduct = $this->pos_ReceiptDetails->findSale($rec->productId, $rec->receiptId, $rec->value);
         if ($sameProduct) {
@@ -1352,6 +1366,12 @@ class pos_Receipts extends core_Master
             $rec->quantity = $newQuantity;
             $rec->amount += $sameProduct->amount;
             $rec->id = $sameProduct->id;
+        }
+        
+        if(!empty($revertId) && abs($originProductRec->quantity) < abs($rec->quantity)){
+            core_Statuses::newStatus("количеството е по-голямо от продаденото|*|* {$originProductRec->quantity}", 'error');
+            
+            return $this->pos_ReceiptDetails->returnError($receiptId);
         }
         
         // Добавяне/обновяване на продукта
@@ -1770,6 +1790,10 @@ class pos_Receipts extends core_Master
         return $title;
     }
     
+    
+    /**
+     * Екшън за започване на действие за сторниране на бележка
+     */
     public function act_Revert()
     {
         if(!$this->haveRightFor('revert')){
@@ -1784,12 +1808,11 @@ class pos_Receipts extends core_Master
             return $this->pos_ReceiptDetails->returnError(null);
         }
         
+        // Ако е разпозната бележка по номера, създава се нова сторнираща бележка
         if($existingReceiptId = $this->findReceiptByNumber($search)){
-            
             $newReceiptId = $this->createNew($existingReceiptId);
             
             return new Redirect(array($this, 'terminal', $newReceiptId));
-            
         } else {
             core_Statuses::newStatus("|Не е намерена бележка от номер|* '<b>{$search}</b>'!", 'error');
             
@@ -1798,6 +1821,12 @@ class pos_Receipts extends core_Master
     }
     
     
+    /**
+     * Намира съществуваща бележка по номер
+     * 
+     * @param string $string
+     * @return int|null
+     */
     public function findReceiptByNumber_($string)
     {
         if(type_Int::isInt($string)){

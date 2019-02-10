@@ -74,6 +74,9 @@
 .wide .secondRow {
   margin-top: 5px; }
 
+.terminal-revert-id a {
+  color: #cc0000; }
+
 .narrow .portalLink img {
   margin-top: 7px;
   max-height: 24px; }
@@ -411,7 +414,21 @@
   box-shadow: 0px 1px 2px #226b9b; }
 
 
-.disabledBtn[type=button],
+.colum-btn .button.revertBtn {
+  color: white !important;
+  text-shadow: 0 1px 0 #333333 !important;
+  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  border: 1px solid #a12b11 !important;
+  background: linear-gradient(to bottom, #fa5223 5%, #bc3315 100%) !important;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fa5223', endColorstr='#bc3315', GradientType=0) !important;
+  background-color: #fa5223 !important; }
+
+
+
+  .colum-btn .button.revertBtn:hover {
+    background: #bc3315 !important; }
+
+..disabledBtn[type=button],
 .disabledBtn[type=button]:hover,
 .colum-btn .button.disabledBtn:hover,
 .tools-btn .button.disabledBtn:hover {
@@ -456,6 +473,18 @@
   color: white !important;
   font-weight: bold;
   text-shadow: #458632 0 1px 2px; }
+  .pos-notes.revert-receipt {
+    background: #ff3019;
+    background: -moz-linear-gradient(top, #ff3019 0%, #7c0202 100%);
+    background: -webkit-linear-gradient(top, #ff3019 0%, #7c0202 100%);
+    background: linear-gradient(to bottom, #ff3019 0%, #7c0202 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff3019', endColorstr='#7c0202', GradientType=0); }
+    .pos-notes.revert-receipt:hover {
+      background: #7c0202;
+      background: -moz-linear-gradient(top, #7c0202 0%, #ff3019 100%);
+      background: -webkit-linear-gradient(top, #7c0202 0%, #ff3019 100%);
+      background: linear-gradient(to bottom, #7c0202 0%, #ff3019 100%);
+      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#7c0202', endColorstr='#ff3019', GradientType=0); }
 
 .pos-notes span.num {
   margin-left: 5px;
@@ -464,6 +493,10 @@
   padding: 0 2px;
   background: #1a5407;
   border: 1px solid #0f3a00; }
+
+.pos-notes.revert-receipt span.num {
+  background: #5b0000;
+  border: 1px solid #280000; }
 
 .pos-notes:hover {
   background: #468733;
@@ -510,6 +543,12 @@
 
 .close-btn .button {
   font-size: 1.07em; }
+
+  .is-reverted .receipt-quantity,
+  .is-reverted .receipt-info-right {
+    color: #cc0000; }
+  .is-reverted .receipt-payment {
+    background: #feb7b7; }
 
 .input-field {
   float: left;

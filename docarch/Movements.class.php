@@ -106,7 +106,6 @@ class docarch_Movements extends core_Master
         
         //Архивиране на документ
         if (($rec->documentId && !$rec->id)) {
-            
             $arcivesArr = array();
             $archArr = array();
             
@@ -135,6 +134,9 @@ class docarch_Movements extends core_Master
                     $arcivesArr[$arcives->id] = $arcives->id;
                 }
             }
+            if (!key_exists(0, $arcivesArr)) {
+                array_unshift($arcivesArr, '0');
+            }
             
             // Има ли в тези архиви томове дефинирани да архивират документи, с отговорник текущия потребител
             $volQuery = docarch_Volumes::getQuery();
@@ -155,6 +157,7 @@ class docarch_Movements extends core_Master
                     unset($arcivesArr[$v]);
                 }
             }
+            
             $volQuery->in('archive', $arcivesArr);
             
             $currentUser = core_Users::getCurrent();
@@ -239,11 +242,10 @@ class docarch_Movements extends core_Master
                 $volRec->firstDocDate = $rec->createdOn;
             }
             
-            if($rec->type == 'archiving' ){
-                
+            if ($rec->type == 'archiving') {
                 $volRec->lastDocDate = $rec->createdOn;
             }
-           
+            
             $volRec->docCnt++;
             
             docarch_Volumes::save($volRec);
@@ -257,12 +259,12 @@ class docarch_Movements extends core_Master
             $volRec->_isCreated = true;
             
             $volRec->docCnt--;
-      
+            
             
             docarch_Volumes::save($volRec, 'docCnt');
         }
     }
-   
+    
     
     /**
      * Преди показване на листовия тулбар
@@ -299,9 +301,8 @@ class docarch_Movements extends core_Master
             //Извежда бутона "Вземане" ако докумета е в поне един том
             if ($archCnt > 0) {
                 $data->toolbar->addBtn('Вземане', array($mvc, 'Taking',
-                                                              'documentId' => $documentContainerId,
-                                                              'ret_url' => true));
-                
+                    'documentId' => $documentContainerId,
+                    'ret_url' => true));
             }
         }
     }
@@ -351,13 +352,11 @@ class docarch_Movements extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-     
         $movieName = self::getMoveName($rec->type);
         
         $row->type = $movieName;
         
         if (($rec->documentId)) {
-            
             $Document = doc_Containers::getDocument($rec->documentId);
             
             $className = $Document->className;
@@ -367,9 +366,8 @@ class docarch_Movements extends core_Master
             $url = toUrl(array("${className}",'single', $Document->that));
             
             $row->documentId = ht::createLink($handle, $url, false, array());
-             
+            
             $row->documentId .= ' » ';
-           
         }
         
         //Ако движението е "Включване"
@@ -717,7 +715,6 @@ class docarch_Movements extends core_Master
         }
         
         while ($movie = $mQuery->fetch()) {
-            
             if (!is_null($arch) && $arch != docarch_Volumes::fetch($movie->toVolumeId)->archive) {
                 continue;
             }
@@ -730,7 +727,7 @@ class docarch_Movements extends core_Master
                 }
                 
                 $counter = $movie->type == 'archiving' ? 1 : -1;
-               
+                
                 if (! array_key_exists($archive, $balanceOfDocumentMovies)) {
                     $balanceOfDocumentMovies[$archive] = (object) array(
                         'documentId' => $movie->documentId,
@@ -744,11 +741,9 @@ class docarch_Movements extends core_Master
                     $obj->isInArchive += $counter;
                     $obj->isInVolume += $counter;
                 }
-                
             }
         }
         
         return $balanceOfDocumentMovies;
     }
-  
 }
