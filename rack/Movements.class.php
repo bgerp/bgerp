@@ -369,6 +369,7 @@ class rack_Movements extends core_Manager
         $rec = &$form->rec;
         
         $form->setDefault('storeId', store_Stores::getCurrent());
+        $form->setDefault('fromIncomingDocument', 'no');
         $form->setField('storeId', 'input=hidden');
         $form->setField('workerId', 'input=none');
         
