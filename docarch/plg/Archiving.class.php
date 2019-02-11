@@ -23,7 +23,7 @@ class docarch_plg_Archiving extends core_Plugin
     {
         $intfCond = in_array('doc_DocumentIntf',cls::get($mvc)->interfaces);
         
-        if (!(core_Packs::isInstalled('docarch'))  && !$intfCond) {
+        if ((!core_Packs::isInstalled('docarch'))  || !$intfCond) {
             
             return;
         }
