@@ -372,9 +372,29 @@ class pos_ReceiptDetails extends core_Detail
             return $this->returnError($recId);
         }
         
-        //@TODO Проверка спрямо оригиналната бележка
+        $checkedPayments = array();
         if(!empty($receipt->revertId)){
+            $rQuery = pos_ReceiptDetails::getQuery();
+            $rQuery->where("#receiptId = {$receipt->revertId}");
+            $rQuery->where("#action LIKE '%payment%'");
+            while($rRec = $rQuery->fetch()){
+                list(,$paymentId) = explode('|', $rRec->action);
+                $checkedPayments[$paymentId] += $rRec->amount;
+            }
+            
+            if(!array_key_exists($type, $checkedPayments)){
+                core_Statuses::newStatus('|В оригиналната бележка, няма такова плащане|*!', 'error');
+                
+                return $this->returnError($recId);
+            }
+            
             $amount *= -1;
+            
+            if($checkedPayments[$type] + $amount < 0){
+                core_Statuses::newStatus('|Не може да се върне повече отколкото е платено|*!', 'error');
+                
+                return $this->returnError($recId);
+            }
         }
         
         $diff = abs($receipt->paid - $receipt->total);
@@ -483,19 +503,20 @@ class pos_ReceiptDetails extends core_Detail
     {
         $Double = cls::get('type_Double');
         $Double->params['smartRound'] = true;
-        $receiptDate = $mvc->Master->fetchField($rec->receiptId, 'createdOn');
-        $row->currency = acc_Periods::getBaseCurrencyCode($receiptDate);
+        $receiptRec = $mvc->Master->fetch($rec->receiptId, 'createdOn,revertId');
+        $row->currency = acc_Periods::getBaseCurrencyCode($receiptRec->createdOn);
         
         $action = $mvc->getAction($rec->action);
         switch ($action->type) {
             case 'sale':
-                $mvc->renderSale($rec, $row, $receiptDate, $fields);
+                $mvc->renderSale($rec, $row, $receiptRec->createdOn, $fields);
                 if ($fields['-list']) {
                     $row->quantity = ($rec->value) ? $row->quantity : $row->quantity;
                 }
                 break;
             case 'payment':
                 $row->actionValue = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr('В брой');
+                $row->paymentCaption = (empty($receiptRec->revertId)) ? tr('Плащане') : tr('Връщане');
                 
                 if ($fields['-list']) {
                     $row->productId = tr('Плащане') . ': ' . $row->actionValue;
