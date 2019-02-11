@@ -5405,6 +5405,7 @@ $.fn.isInViewport = function() {
  * Фокусира еднократно върху посоченото id пи зададения rand
  */
 function focusOnce(id, rand) {
+	
     if (typeof(Storage) !== "undefined") {
         if(localStorage.getItem(rand) !== null) {
             return;
@@ -5412,7 +5413,7 @@ function focusOnce(id, rand) {
         localStorage.setItem(rand, 1);
     }
     
-    if($(id).isInViewpor && $(id).isInViewport()) {
+    if($(id).isInViewport && $(id).isInViewport()) {
         $(id).focus();
     }
 }
