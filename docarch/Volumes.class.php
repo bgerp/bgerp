@@ -668,7 +668,7 @@ class docarch_Volumes extends core_Master
      * Нотифицира за томове с изтекъл срок за съхранение и
      * разрешени на унищожаване
      */
-    public function notifyForOutOfStorageTimeVolume()
+    public static function notifyForOutOfStorageTimeVolume()
     {
         $volQuery = docarch_Volumes::getQuery();
         
