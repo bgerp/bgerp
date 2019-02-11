@@ -372,6 +372,11 @@ class pos_ReceiptDetails extends core_Detail
             return $this->returnError($recId);
         }
         
+        //@TODO Проверка спрямо оригиналната бележка
+        if(!empty($receipt->revertId)){
+            $amount *= -1;
+        }
+        
         $diff = abs($receipt->paid - $receipt->total);
         
         $paidAmount = $amount;

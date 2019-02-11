@@ -491,8 +491,10 @@ class pos_Receipts extends core_Master
         
         // Може ли да бъде направено плащане по бележката
         if ($action == 'pay' && isset($rec)) {
-            if (!$rec->total || ($rec->total && $rec->paid >= $rec->total)) {
-                $res = 'no_one';
+            if(!isset($rec->revertId)){
+                if (!$rec->total || ($rec->total && $rec->paid >= $rec->total)) {
+                    $res = 'no_one';
+                }
             }
         }
         
