@@ -65,7 +65,7 @@ class cal_TaskType extends core_Mvc
         
         if (empty($progressArr)) {
             for ($i = 0; $i <= 100; $i += 10) {
-                $p = $i . ' %';
+                $p = $i . '%';
                 $progressArr[$p] = $p;
             }
         }

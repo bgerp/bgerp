@@ -315,7 +315,7 @@ class cms_Content extends core_Manager
                 $tpl->append(ht::createLink($img, $url, null, $attr));
             }
         } elseif (count($usedLangsArr) > 1) {
-            $attr['class'] = 'selectLang';
+            $attr['class'] = 'selectLang langIcon';
             $attr['title'] = implode(', ', $usedLangsArr);
             if (Request::get('Ctr') == 'cms_Content' && Request::get('Act') == 'selectLang') {
                 $attr['class'] = 'selected';
