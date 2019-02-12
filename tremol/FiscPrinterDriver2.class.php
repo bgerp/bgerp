@@ -57,8 +57,13 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             }
         }
         
-        $fieldset->FLD('headerText', 'varchar(32)', 'caption=Надпис хедър->Текст');
-        $fieldset->FLD('headerPos', 'int(min=1, max=7)', 'caption=Надпис хедър->Позиция');
+        $fieldset->FLD('headerText1', 'varchar(32)', 'caption=Надпис хедър->Текст 1');
+        $fieldset->FLD('headerText2', 'varchar(32)', 'caption=Надпис хедър->Текст 2');
+        $fieldset->FLD('headerText3', 'varchar(32)', 'caption=Надпис хедър->Текст 3');
+        $fieldset->FLD('headerText4', 'varchar(32)', 'caption=Надпис хедър->Текст 4');
+        $fieldset->FLD('headerText5', 'varchar(32)', 'caption=Надпис хедър->Текст 5');
+        $fieldset->FLD('headerText6', 'varchar(32)', 'caption=Надпис хедър->Текст 6');
+        $fieldset->FLD('headerText7', 'varchar(32)', 'caption=Надпис хедър->Текст 7');
         $fieldset->FLD('footerText', 'varchar(32)', 'caption=Надпис футър->Текст');
     }
     
@@ -478,23 +483,18 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             
             // След запис, обновяваме хедър и футъра
             if (Request::get('update')) {
-                $headerText = json_encode((string) $data->rec->headerText);
                 $footerText = json_encode((string) $data->rec->footerText);
                 
-                setIfNot($headerPos, $data->rec->headerPos, 1);
-                
                 // Нулираме другихте хедъри
-                $otherHeadersStr = '';
-                for ($i = 1;$i <= 7;$i++) {
-                    if ($i == $headerPos) {
-                        continue;
-                    }
-                    $otherHeadersStr .= "fpProgramHeader('', {$i});";
+                $headersTextStr = '';
+                for ($i = 1; $i <= 7; $i++) {
+                    $h = headerText . $i;
+                    $ht = json_encode((string) $data->rec->{$h});
+                    $headersTextStr .= "fpProgramHeader({$ht}, {$i});";
                 }
                 
                 $headerText = "try {
-                                {$otherHeadersStr}
-                                fpProgramHeader({$headerText}, {$headerPos});
+                                {$headersTextStr}
                                 
                             } catch(ex) {
                                 render_showToast({timeOut: 800, text: '" . tr('Грешка при програмиране на хедъра на устройството') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
