@@ -46,7 +46,25 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
     {
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=title,single=none');
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=group');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     *
+     * @param embed_Manager $Embedder
+     * @param stdClass      $data
+     */
+    protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
+    {
+        $form = $data->form;
+        $rec = $form->rec;
         
+        
+        if ($rec->id) {
+            $form->setReadOnly('storeId');
+        }
     }
     
     
@@ -80,8 +98,9 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         
         // за всеки един индикатор
         while ($recMaterial = $query->fetch()) {
-            
-            if ($rec->storeId != $recMaterial->storeId)continue;
+            if ($rec->storeId != $recMaterial->storeId) {
+                continue;
+            }
             
             $id = $recMaterial->productId;
             
