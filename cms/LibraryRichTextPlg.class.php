@@ -86,7 +86,7 @@ class cms_LibraryRichTextPlg extends core_Plugin
      */
     public static function getImages($rt)
     {
-        preg_match_all(static::IMG_PATTERN, $rt, $matches);
+        preg_match_all(static::ELM_PATTERN, $rt, $matches);
         
         $imagesArr = array();
         

@@ -1441,6 +1441,7 @@ class pos_Receipts extends core_Master
         $this->requireRightFor('close', $rec);
         
         $rec->state = 'waiting';
+        $rec->__closed = true;
         if ($this->save($rec)) {
             
             // Обновяваме складовите наличности

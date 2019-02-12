@@ -497,7 +497,7 @@ class plg_TreeObject extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'delete' && isset($rec)) {
-            if ($mvc->fetch("#{$mvc->parentFieldName} = {$rec->id}")) {
+            if ($mvc->fetchField("#{$mvc->parentFieldName} = {$rec->id}")) {
                 $requiredRoles = 'no_one';
             }
         }

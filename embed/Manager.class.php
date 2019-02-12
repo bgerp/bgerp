@@ -331,6 +331,7 @@ class embed_Manager extends core_Master
                     }
                     break;
                 
+                case 'afterpreparereturl':
                 case 'afterprepareeditform':
                     $driverClass = $args[0]->form->rec->{$this->driverClassField};
                     break;

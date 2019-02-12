@@ -147,16 +147,15 @@ class cat_Groups extends core_Manager
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->FNC('product', 'key(mvc=cat_Products, select=name, allowEmpty=TRUE)', 'caption=Продукт');
+        //$data->listFilter->FNC('product', 'key(mvc=cat_Products, select=name, allowEmpty=TRUE)', 'caption=Продукт');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
-        $data->listFilter->showFields = 'search,product';
-        $rec = $data->listFilter->input(null, 'silent');
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->input(null, 'silent');
         
         $data->query->orderBy('#name');
-        
         if ($data->listFilter->rec->product) {
             $groupList = cat_Products::fetchField($data->listFilter->rec->product, 'groups');
             $data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");
