@@ -98,7 +98,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         
         // за всеки един индикатор
         while ($recMaterial = $query->fetch()) {
-            if ($rec->storeId != $recMaterial->storeId) {
+            if (!is_null($rec->storeId) && ($rec->storeId != $recMaterial->storeId)) {
                 continue;
             }
             
