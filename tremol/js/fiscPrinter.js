@@ -371,8 +371,6 @@ function fpProgramHeader(text, fPos)
 {
     try {
         fp.ProgHeader(fPos, text);
-        console.log(text);
-        console.log(fPos);
     } catch(ex) {
         handleException(ex);
     }
