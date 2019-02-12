@@ -35,7 +35,7 @@ class lab_Tests extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2,doc_ActivatePlg,plg_Clone,doc_DocumentPlg,plg_Printing,
-                     lab_Wrapper, plg_Sorting,plg_Search, bgerp_plg_Blank, doc_plg_SelectFolder,planning_plg_StateManager';
+                     lab_Wrapper, plg_Sorting,plg_Search,docarch_plg_Archiving, bgerp_plg_Blank, doc_plg_SelectFolder,planning_plg_StateManager';
     
     
     /**
@@ -264,12 +264,24 @@ class lab_Tests extends core_Master
     /**
      * Преди запис в модела
      */
-    public static function on_BeforeSave($mvc, $id, $rec) //
+    public static function on_BeforeSave($mvc, $id, $rec)
     {
         if ($rec->foreignId) {
             $rec->originId = $rec->foreignId;
         }
     }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave($mvc, &$id, $rec)
+    {
+        if ($rec->state == 'active') {
+            self::sendNotification($rec);
+        }
+    }
+    
     
     public static function on_AfterSavePendingDocument($mvc, &$rec)
     {
@@ -581,33 +593,59 @@ class lab_Tests extends core_Master
      */
     public static function sendNotification($rec)
     {
-        // Ако няма избрани потребители за нотифициране, не се прави нищо
-        $userArr = keylist::toArray($rec->sharedUsers);
-        if (! count($userArr)) {
-            
-            return;
-        }
-        
         $handle = (lab_Tests::getHandle($rec->id));
-        $user = core_Users::getTitleById(core_Users::getCurrent());
-        $text = self::$defaultNotificationText . $handle;
-        if ($rec->bringing == 'performer') {
-            $text .= '.  Трябва да вземете мострата от ' . "{$user}";
-        } else {
-            $text .= '.  Мострата ще Ви бъде доставена';
-        }
-        $msg = new core_ET($text);
         
         $url = array(
             'lab_Tests',
             'single',
             $rec->id
         );
-        $msg = $msg->getContent();
         
-        // На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
-        foreach ($userArr as $userId) {
-            bgerp_Notifications::add($msg, $url, $userId, $rec->priority);
+        
+        //Нотификация при заявка на тест
+        if ($rec->state == 'pending') {
+            $labCoverClassName = cls::getClassName(doc_Folders::fetch($rec->folderId)->coverClass);
+            $labCoverId = doc_Folders::fetch($rec->folderId)->coverId;
+            
+            $labUser = $labCoverClassName::fetch($labCoverId)->inCharge;
+            
+            $text = self::$defaultNotificationText . $handle;
+            if ($rec->bringing == 'performer') {
+                $text .= '.  Трябва да вземете мострата от ' . "{$user}";
+            } else {
+                $text .= '.  Мострата ще Ви бъде доставена';
+            }
+            $msg = new core_ET($text);
+            
+            
+            $msg = $msg->getContent();
+            
+            bgerp_Notifications::add($msg, $url, $labUser);
+            
+            return;
+        }
+        
+        //Нотификация за готов тест
+        if ($rec->state == 'active') {
+            
+            
+            // Ако няма избрани потребители за нотифициране, не се прави нищо
+            $userArr = keylist::toArray(lab_Tests::fetch($rec->id)->sharedUsers);
+            if (! count($userArr)) {
+                
+                return;
+            }
+            
+            
+            $msg = ' Лабораторен тест '.$handle.' е готов и резултатите са достъпни.';
+            
+            
+            // На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
+            foreach ($userArr as $userId) {
+                bgerp_Notifications::add($msg, $url, $userId);
+            }
+            
+            return;
         }
     }
     

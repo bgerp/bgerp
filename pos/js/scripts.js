@@ -458,9 +458,16 @@ function calculateWidth(){
 	}
 	
 	//задаване на ширина на двете колони
-	$('#single-receipt').css('width', maxColWidth);
-	$('.tabs-holder-content').css('width', maxColWidth);
-	$('.tools-wide-select-content').css('width', maxColWidth);
+	if (maxColWidth > 700 && $('body').hasClass('wide')) {
+		$('#single-receipt').css('width', 600);
+		$('.tabs-holder-content').css('width', 600);
+		$('.tools-wide-select-content').css('width', winWidth - 670);
+	} else {
+		$('#single-receipt').css('width', maxColWidth);
+		$('.tabs-holder-content').css('width', maxColWidth);
+		$('.tools-wide-select-content').css('width', maxColWidth);
+	}
+
 	
 	//максимална височина на дясната колона и на елементите й
 	$('.tools-wide-select-content').css('maxHeight', winHeight-85);

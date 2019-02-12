@@ -94,7 +94,7 @@ function printFiscalReceipt(onSuccess, onError) {
                     try {
                         fpPayment([#PAYMENT_TYPE#], [#PAYMENT_CHANGE#], [#PAYMENT_AMOUNT#], [#PAYMENT_CHANGE_TYPE#]);
                     } catch(ex) {
-                        render_showToast({timeOut: 800, text: 'Грешка при добавяне на вид плащане: ' + ex.message, isSticky: true, stayTime: 8000, type: 'error'});
+                        render_showToast({timeOut: 800, text: 'Грешка при добавяне на вид плащане: ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
                     }
                 <!--ET_END PAYMENT-->
                 
@@ -102,7 +102,7 @@ function printFiscalReceipt(onSuccess, onError) {
                     try {
                         fpPayExactSum([#PAY_EXACT_SUM_TYPE#]);
                     } catch(ex) {
-                        render_showToast({timeOut: 800, text: 'Грешка при добавяне на вид плащане: ' + ex.message, isSticky: true, stayTime: 8000, type: 'error'});
+                        render_showToast({timeOut: 800, text: 'Грешка при добавяне на вид плащане: ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
                     }
                 <!--ET_END PAY_EXACT_SUM_TYPE-->
                 

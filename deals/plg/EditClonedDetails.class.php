@@ -184,7 +184,6 @@ class deals_plg_EditClonedDetails extends core_Plugin
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFileds = null)
     {
-        $fields = (array) $rec;
         $Detail = cls::get($mvc->mainDetail);
         $detailClassId = $Detail->getClassId();
         
@@ -192,11 +191,12 @@ class deals_plg_EditClonedDetails extends core_Plugin
             foreach ($rec->details as $det) {
                 if (!empty($det->baseQuantity)) {
                     $det->quantityInPack = $det->baseQuantity / $det->packQuantity;
+                    $det->price = $det->packPrice / $det->quantityInPack;
                 }
                 
                 $newPackQuantity = $updatePackQuantity = 0;
                 if (is_array($det->batches) && core_Packs::isInstalled('batch')) {
-                    foreach ($det->batches as $index => &$bRec) {
+                    foreach ($det->batches as &$bRec) {
                         $b = str_replace(',', '', $bRec->batch);
                         $b = str_replace('.', '', $b);
                         $key = "quantity|{$b}|{$det->id}|";
@@ -220,6 +220,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
                 if (!empty($newPackQuantity)) {
                     if (!empty($det->baseQuantity)) {
                         $det->quantityInPack = $det->baseQuantity / $newPackQuantity;
+                        $det->price = $det->packPrice / $det->quantityInPack;
                     }
                     
                     $oldQuantity = $det->quantity;
