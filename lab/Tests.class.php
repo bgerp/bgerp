@@ -250,6 +250,7 @@ class lab_Tests extends core_Master
     {
         $rec = $form->rec;
         
+        
         if ($rec->foreignId) {
             $firstDocument = doc_Threads::getFirstDocument(doc_Containers::fetch($rec->foreignId)->threadId);
             
@@ -290,10 +291,13 @@ class lab_Tests extends core_Master
     
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
+       
         if ($data->rec->id && $data->rec->state == 'active') {
+            
+           
             $handle = $mvc->getHandle($data->rec->id);
             
-            $msg = 'Лабораторен тест ' . $handle . ' е активиран';
+            $msg = 'Лабораторен тест ' . $handle . ' е активиран и резултатите са достъпни.';
             
             $url = array(
                 'lab_Tests',
@@ -601,7 +605,7 @@ class lab_Tests extends core_Master
             $rec->id
         );
         
-        
+        $currentUser = core_Users::getCurrent();
         //Нотификация при заявка на тест
         if ($rec->state == 'pending') {
             $labCoverClassName = cls::getClassName(doc_Folders::fetch($rec->folderId)->coverClass);
@@ -611,7 +615,7 @@ class lab_Tests extends core_Master
             
             $text = self::$defaultNotificationText . $handle;
             if ($rec->bringing == 'performer') {
-                $text .= '.  Трябва да вземете мострата от ' . "{$user}";
+                $text .= '.  Трябва да вземете мострата от ' . "{$currentUser}";
             } else {
                 $text .= '.  Мострата ще Ви бъде доставена';
             }
@@ -637,10 +641,12 @@ class lab_Tests extends core_Master
             }
             
             
-            $msg = ' Лабораторен тест '.$handle.' е готов и резултатите са достъпни.';
+            $msg = ' Лабораторен тест '.$handle.' е активиран и резултатите са достъпни.';
             
             
             // На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
+            $currentUser = core_Users::getCurrent();
+            $userArr[$currentUser] = $currentUser;
             foreach ($userArr as $userId) {
                 bgerp_Notifications::add($msg, $url, $userId);
             }
