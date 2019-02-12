@@ -363,6 +363,38 @@ function fpSerialNumber()
 
 
 /**
+ * Връща серийния номер на устройството
+ * 
+ * @return string
+ */
+function fpProgramHeader(text, fPos)
+{
+    try {
+        fp.ProgHeader(fPos, text);
+        console.log(text);
+        console.log(fPos);
+    } catch(ex) {
+        handleException(ex);
+    }
+};
+
+
+/**
+ * Връща серийния номер на устройството
+ * 
+ * @return string
+ */
+function fpProgramFooter(text)
+{
+    try {
+        fp.ProgFooter(text);
+    } catch(ex) {
+        handleException(ex);
+    }
+};
+
+
+/**
  * Проверява серийния номер на ФП
  * 
  * @param serNumber

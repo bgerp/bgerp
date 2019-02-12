@@ -56,6 +56,10 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
                 $fieldset->setField('tcpPass', 'input=none');
             }
         }
+        
+        $fieldset->FLD('headerText', 'varchar(32)', 'caption=Надпис хедър->Текст');
+        $fieldset->FLD('headerPos', 'int(min=1, max=7)', 'caption=Надпис хедър->Позиция');
+        $fieldset->FLD('footerText', 'varchar(32)', 'caption=Надпис футър->Текст');
     }
     
     
@@ -428,6 +432,21 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param tremol_FiscPrinterDriver2 $Driver
+     * @param peripheral_Devices        $Embedder
+     * @param stdClass                  $data
+     */
+    protected static function on_AfterPrepareEditForm($Driver, $Embedder, &$data)
+    {
+        if (!$data->form->rec->id) {
+            $data->form->setDefault('footerText', 'Отпечатано с bgERP');
+        }
+    }
+    
+    
+    /**
      * След рендиране на единичния изглед
      *
      * @param tremol_FiscPrinterDriver2 $Driver
@@ -435,7 +454,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * @param core_ET                   $tpl
      * @param stdClass                  $data
      */
-    protected static function on_AfterRenderSingle(tremol_FiscPrinterDriver2 $Driver, embed_Manager $Embedder, &$tpl, $data)
+    protected static function on_AfterRenderSingle($Driver, $Embedder, &$tpl, $data)
     {
         if ($Embedder instanceof peripheral_Devices && $Embedder->haveRightFor('edit', $data->rec->id)) {
             $setSerialUrl = toUrl(array($Driver, 'setSerialNumber', $data->rec->id), 'local');
@@ -444,14 +463,55 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
                                 try {
                                     [#/tremol/js/FiscPrinterTplConnect.txt#]
-                                    getEfae().process({url: '{$setSerialUrl}'}, {serial: fpSerialNumber()});
+                                    
+                                    try {
+                                        getEfae().process({url: '{$setSerialUrl}'}, {serial: fpSerialNumber()});
+                                    } catch(ex) {
+                                        render_showToast({timeOut: 800, text: '" . tr('Грешка при обновяване на серийния номер') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
+                                    }
+
+                                    [#OTHER#]
                                 } catch(ex) {
                                     render_showToast({timeOut: 800, text: '" . tr('Грешка при свързване с принтера') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
                                 }
                             [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]");
             
+            // След запис, обновяваме хедър и футъра
+            if (Request::get('update')) {
+                $headerText = json_encode((string) $data->rec->headerText);
+                $footerText = json_encode((string) $data->rec->footerText);
+                
+                setIfNot($headerPos, $data->rec->headerPos, 1);
+                
+                // Нулираме другихте хедъри
+                $otherHeadersStr = '';
+                for ($i = 1;$i <= 7;$i++) {
+                    if ($i == $headerPos) {
+                        continue;
+                    }
+                    $otherHeadersStr .= "fpProgramHeader('', {$i});";
+                }
+                
+                $headerText = "try {
+                                {$otherHeadersStr}
+                                fpProgramHeader({$headerText}, {$headerPos});
+                                
+                            } catch(ex) {
+                                render_showToast({timeOut: 800, text: '" . tr('Грешка при програмиране на хедъра на устройството') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
+                            }
+                            
+                            try {
+                                fpProgramFooter({$footerText});
+                            } catch(ex) {
+                                render_showToast({timeOut: 800, text: '" . tr('Грешка при програмиране на футъра на устройството') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
+                            }";
+                $jsTpl->append($headerText, 'OTHER');
+            }
+            
             $Driver->addTplFile($jsTpl);
             $Driver->connectToPrinter($jsTpl, $data->rec, false);
+            
+            $jsTpl->removePlaces();
             
             jquery_Jquery::run($tpl, $jsTpl);
         }
@@ -520,6 +580,20 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     
     /**
+     *
+     * @param tremol_FiscPrinterDriver2 $Driver
+     * @param peripheral_Devices        $Embedder
+     * @param object                    $data
+     */
+    public static function on_AfterPrepareRetUrl($Driver, $Embedder, &$data)
+    {
+        if ($data->form->cmd == 'save') {
+            $data->retUrl = array($Embedder, 'single', $data->form->rec->id, 'update' => true);
+        }
+    }
+    
+    
+    /**
      * След подготовка на тулбара на единичен изглед
      *
      * @param tremol_FiscPrinterDriver2 $Driver
@@ -537,7 +611,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     /**
      * Екшън за отпечатване/записване на отчети
-     * 
+     *
      * @return core_ET
      */
     public function act_Reports()
@@ -545,6 +619,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         expect(haveRole($this->canMakeReport));
         
         $submitTitle = 'Отпечатване';
+        $closeBtnName = 'Отказ';
         
         $pId = Request::get('pId', 'int');
         
@@ -555,7 +630,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         peripheral_Devices::requireRightFor('single', $pRec);
         
         $form = cls::get('core_Form');
-
+        
         $form->FLD('report', 'enum(day=Дневен,operator=Операторски (дневен),period=Период,month=Месечен,year=Годишен,klen=КЛЕН,csv=CSV)', 'caption=Отчет->Вид, mandatory, removeAndRefreshForm=zeroing,isDetailed,operNum,fromDate,toDate,flagReports,flagReceipts,csvFormat,printIn,saveType,printType');
         
         $form->input('report');
@@ -648,7 +723,6 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         }
         
         if ($form->isSubmitted()) {
-            
             Mode::setPermanent($randStr, $hash);
             
             $rVerb = $form->getFieldType('report')->toVerbal($rec->report);
@@ -708,6 +782,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             $fnc .= ';';
             
             $jsTpl = new ET("function fpPrintReport() {
+                                $('.fullScreenBg').fadeIn();
                                 [#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
                                 try {
                                     [#/tremol/js/FiscPrinterTplConnect.txt#]
@@ -717,12 +792,19 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
                                     render_showToast({timeOut: 800, text: '" . tr("Грешка при отпечатване на {$rVerb} отчет") . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'error'});
                                 }
                                 [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]
+                                $('.fullScreenBg').fadeOut();
                             }
                                                     
                             fpPrintReport();");
             
+            $jsTpl->prepend('$(\'body\').append(\'<div class="fullScreenBg" style="position: fixed; top: 0; z-index: 10; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"></div>\');');
+            
             $this->addTplFile($jsTpl);
             $this->connectToPrinter($jsTpl, $pRec, false);
+            
+            $closeBtnName = 'Назад';
+        } else {
+            $form->toolbar->addSbBtn($submitTitle, 'save', 'ef_icon = img/16/print_go.png');
         }
         
         $form->title = 'Генериране на отчет в касовия апарат|* ' . peripheral_Devices::getLinkToSingle($pRec->id, 'name');
@@ -732,8 +814,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             $retUrl = array('peripheral_Devices', 'single', $pId);
         }
         
-        $form->toolbar->addSbBtn($submitTitle, 'save', 'ef_icon = img/16/print_go.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
+        $form->toolbar->addBtn($closeBtnName, $retUrl, 'ef_icon = img/16/close-red.png');
         
         $html = $form->renderHtml();
         
