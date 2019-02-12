@@ -19,9 +19,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     public $title = 'Принтер на тремол';
     
-    protected $canMakeZReport = 'admin, peripheral';
-    
-    protected $canMakeXReport = 'admin, peripheral';
+    protected $canMakeReport = 'admin, peripheral';
     
     protected $rcpNumPattern = '/^[a-z0-9]{8}-[a-z0-9]{4}-[0-9]{7}$/i';
     
@@ -531,64 +529,222 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      */
     public static function on_AfterPrepareSingleToolbar($Driver, $mvc, &$res, $data)
     {
-        if (haveRole($Driver->canMakeXReport)) {
-            $data->toolbar->addFnBtn('X отчет', 'fpPrintXReport()', 'ef_icon = img/16/report.png,title=Отпечатване на X отчет');
-            $data->_Xreport = true;
-        }
-        
-        if (haveRole($Driver->canMakeZReport)) {
-            $data->toolbar->addFnBtn('Z отчет', 'fpPrintZReport()', 'ef_icon = img/16/report.png,title=Отпечатване на Z отчет, row=2', array('warning' => 'Сигурни ли сте, че искате да нулирате касовия апарат?'));
-            $data->_Zreport = true;
+        if (haveRole($Driver->canMakeReport)) {
+            $data->toolbar->addBtn('Отчети', array($Driver, 'Reports', 'pId' => $data->rec->id, 'ret_url' => true, 'rand' => str::getRand()), 'ef_icon = img/16/report.png, title=Отпечатване на отчети, row=2');
         }
     }
     
     
     /**
-     * След подготовка на тулбара на единичен изглед
-     *
-     * @param tremol_FiscPrinterDriver2 $Driver
-     * @param peripheral_Devices        $mvc
-     * @param core_ET                   $tpl
-     * @param object                    $data
+     * Екшън за отпечатване/записване на отчети
+     * 
+     * @return core_ET
      */
-    public static function on_AfterRenderSingleToolbar($Driver, $mvc, &$tpl, $data)
+    public function act_Reports()
     {
-        if ($data->_Xreport) {
-            $jsTpl = new ET("function fpPrintXReport() {
-                                [#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
-                                try {
-                                    [#/tremol/js/FiscPrinterTplConnect.txt#]
-                                    fpXReport();
-                                    render_showToast({timeOut: 800, text: '" . tr('Успешно отпечатан X отчет') . "', isSticky: false, stayTime: 8000, type: 'notice'});
-                                } catch(ex) {
-                                    render_showToast({timeOut: 800, text: '" . tr('Грешка при отпечатване на X отчет') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'error'});
-                                }
-                                [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]
-                            }");
+        expect(haveRole($this->canMakeReport));
+        
+        $submitTitle = 'Отпечатване';
+        
+        $pId = Request::get('pId', 'int');
+        
+        $pRec = peripheral_Devices::fetch($pId);
+        
+        expect($pRec);
+        
+        peripheral_Devices::requireRightFor('single', $pRec);
+        
+        $form = cls::get('core_Form');
+
+        $form->FLD('report', 'enum(day=Дневен,operator=Операторски (дневен),period=Период,month=Месечен,year=Годишен,klen=КЛЕН,csv=CSV)', 'caption=Отчет->Вид, mandatory, removeAndRefreshForm=zeroing,isDetailed,operNum,fromDate,toDate,flagReports,flagReceipts,csvFormat,printIn,saveType,printType');
+        
+        $form->input('report');
+        
+        $form->FLD('zeroing', 'enum(no=Не, yes=Да)', 'caption=Отчет->Нулиране, mandatory');
+        $form->FLD('isDetailed', 'enum(no=Не, yes=Да)', 'caption=Отчет->Детайлен, mandatory');
+        
+        if ($form->rec->report == 'operator') {
+            $form->FLD('operNum', 'int(min=0, max=20)', 'caption=Отчет->Оператор, mandatory');
+            $form->setField('isDetailed', 'input=none');
+            $form->setDefault('operNum', 1);
+        } elseif (($form->rec->report == 'period') || ($form->rec->report == 'month') || ($form->rec->report == 'year') || ($form->rec->report == 'klen') || ($form->rec->report == 'csv')) {
+            $form->FLD('fromDate', 'date', 'caption=Дата->От, mandatory');
+            $form->FLD('toDate', 'date', 'caption=Дата->До, mandatory');
             
-            $Driver->addTplFile($jsTpl);
-            $Driver->connectToPrinter($jsTpl, $data->rec, false);
-            
-            $tpl->appendOnce($jsTpl, 'SCRIPTS');
+            if ($form->rec->report == 'period') {
+                $form->setDefault('fromDate', date('d-m-Y', strtotime('this week')));
+                $form->setDefault('toDate', dt::now(false));
+            } elseif ($form->rec->report == 'month') {
+                if (date('d') <= 20) {
+                    $form->setDefault('fromDate', date('d-m-Y', strtotime('first day of previous month')));
+                    $form->setDefault('toDate', date('d-m-Y', strtotime('last day of previous month')));
+                } else {
+                    $form->setDefault('fromDate', date('d-m-Y', strtotime('first day of this month')));
+                    $form->setDefault('toDate', dt::now(false));
+                }
+            } elseif (($form->rec->report == 'year') || ($form->rec->report == 'klen') || ($form->rec->report == 'csv')) {
+                $y = date('Y');
+                if ((date('n') <= 11) && (($form->rec->report != 'klen') && ($form->rec->report != 'csv'))) {
+                    $y--;
+                    $form->setDefault('fromDate', date('d-m-Y', strtotime(date('01-01-' . $y))));
+                    $form->setDefault('toDate', date('d-m-Y', strtotime(date('31-12-' . $y))));
+                } else {
+                    $form->setDefault('fromDate', date('d-m-Y', strtotime(date('01-01-' . $y))));
+                    $form->setDefault('toDate', dt::now(false));
+                }
+            } elseif (($form->rec->report == 'klen') || ($form->rec->report == 'csv')) {
+                $form->FLD('printType', 'enum(print=Отпечатване, save=Запис)', 'caption=Действие, mandatory, removeAndRefreshForm=saveType');
+                
+                $form->input('printType');
+                
+                if ($form->rec->printType == 'save') {
+                    $form->FLD('saveType', 'enum(sd=SD карта, usb=USB)', 'caption=Запис в, mandatory');
+                    
+                    $submitTitle = 'Запис';
+                } else {
+                    $form->FLD('printIn', 'enum(PC=Компютър, FP=Фискално устройство)', 'caption=Отпечатване в, mandatory');
+                }
+                
+                $form->setField('zeroing', 'input=none');
+                
+                if ($form->rec->report == 'csv') {
+                    $form->setField('isDetailed', 'input=none');
+                    $form->FLD('csvFormat', 'enum(yes=Да, no=Не)', 'caption=CSV формат, mandatory');
+                    
+                    $form->FLD('flagReceipts', 'int(min=0, max=7)', 'caption=Флаг->ФБ, mandatory');
+                    $form->FLD('flagReports', 'int(min=0, max=7)', 'caption=Флаг->Отчет, mandatory');
+                    
+                    $form->setDefault('flagReceipts', 1);
+                    $form->setDefault('flagReports', 1);
+                    
+                    if ($form->rec->printType != 'save') {
+                        $form->setOptions('printIn', array('PC' => 'Компютър'));
+                    }
+                }
+            }
         }
         
-        if ($data->_Zreport) {
-            $jsTpl = new ET("function fpPrintZReport() {
+        $form->input();
+        
+        $rec = $form->rec;
+        
+        $jsTpl = null;
+        
+        if ($form->isSubmitted()) {
+            if ($rec->zeroing == 'yes') {
+                $form->setWarning('report, zeroing', 'Отчетът ще бъде нулиран');
+            }
+        }
+        
+        $rand = Request::get('rand');
+        
+        $hash = md5(serialize($rec));
+        
+        $randStr = 'tremol_' . $rand;
+        
+        // Защита от случайно повторно отпечатване
+        if (($rVal = Mode::get($randStr)) && ($rVal == $hash)) {
+            $form->setWarning('report', 'Този отчет вече е отпечатан');
+        }
+        
+        if ($form->isSubmitted()) {
+            
+            Mode::setPermanent($randStr, $hash);
+            
+            $rVerb = $form->getFieldType('report')->toVerbal($rec->report);
+            $rVerb = mb_strtolower($rVerb);
+            
+            $fnc = '';
+            
+            $isDetailed = 'false';
+            if ($rec->isDetailed == 'yes') {
+                $isDetailed = 'true';
+            }
+            
+            $isZeroing = 'false';
+            if ($rec->zeroing == 'yes') {
+                $isZeroing = 'true';
+            }
+            
+            if ($rec->report == 'day') {
+                $fnc = "fpDayReport({$isZeroing},{$isDetailed})";
+            }
+            
+            if ($rec->report == 'operator') {
+                $operator = (int) $rec->operNum;
+                $fnc = "fpOperatorReport({$isZeroing}, {$operator})";
+            }
+            
+            if (($rec->report == 'period') || ($rec->report == 'month') || ($rec->report == 'year') || ($rec->report == 'klen') || ($rec->report == 'csv')) {
+                $fromDate = json_encode(dt::mysql2verbal($rec->fromDate, 'd-m-Y H:i:s'));
+                $toDate = json_encode(dt::mysql2verbal($rec->toDate . ' 23:59:59', 'd-m-Y H:i:s'));
+                $fnc = "fpPeriodReport({$fromDate}, {$toDate}, {$isDetailed})";
+                
+                if (($rec->report == 'klen') || ($rec->report == 'csv')) {
+                    if ($rec->printType == 'save') {
+                        $outType = $rec->saveType;
+                    } else {
+                        $outType = $rec->printIn;
+                    }
+                    
+                    if (!$outType) {
+                        $outType = 'pc';
+                    }
+                    
+                    $outType = strtolower($outType);
+                    $outType = json_encode($outType);
+                    
+                    if ($rec->report == 'csv') {
+                        $csfFormat = json_encode($rec->csvFormat);
+                        $fnc = "fpOutputCSV({$outType}, {$fromDate}, {$toDate}, {$csfFormat}, {$rec->flagReceipts}, {$rec->flagReports})";
+                    } else {
+                        $fnc = "fpOutputKLEN({$outType}, {$fromDate}, {$toDate}, {$isDetailed})";
+                    }
+                }
+            }
+            
+            expect($fnc);
+            
+            $fnc .= ';';
+            
+            $jsTpl = new ET("function fpPrintReport() {
                                 [#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
                                 try {
                                     [#/tremol/js/FiscPrinterTplConnect.txt#]
-                                    fpZReport();
-                                    render_showToast({timeOut: 800, text: '" . tr('Успешно отпечатан Z отчет') . "', isSticky: false, stayTime: 8000, type: 'notice'});
+                                    {$fnc}
+                                    render_showToast({timeOut: 800, text: '" . tr("Успешно отпечатан {$rVerb} отчет") . "', isSticky: false, stayTime: 8000, type: 'notice'});
                                 } catch(ex) {
-                                    render_showToast({timeOut: 800, text: '" . tr('Грешка при отпечатване на Z отчет') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'error'});
+                                    render_showToast({timeOut: 800, text: '" . tr("Грешка при отпечатване на {$rVerb} отчет") . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'error'});
                                 }
                                 [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]
-                            }");
+                            }
+                                                    
+                            fpPrintReport();");
             
-            $Driver->addTplFile($jsTpl);
-            $Driver->connectToPrinter($jsTpl, $data->rec, false);
-            
-            $tpl->appendOnce($jsTpl, 'SCRIPTS');
+            $this->addTplFile($jsTpl);
+            $this->connectToPrinter($jsTpl, $pRec, false);
         }
+        
+        $form->title = 'Генериране на отчет в касовия апарат|* ' . peripheral_Devices::getLinkToSingle($pRec->id, 'name');
+        
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = array('peripheral_Devices', 'single', $pId);
+        }
+        
+        $form->toolbar->addSbBtn($submitTitle, 'save', 'ef_icon = img/16/print_go.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
+        
+        $html = $form->renderHtml();
+        
+        if ($jsTpl) {
+            $html->appendOnce($jsTpl, 'SCRIPTS');
+        }
+        
+        $tpl = cls::get('peripheral_Devices')->renderWrapping($html);
+        
+        core_Form::preventDoubleSubmission($tpl, $form);
+        
+        return $tpl;
     }
 }
