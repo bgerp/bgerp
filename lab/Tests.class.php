@@ -352,7 +352,7 @@ class lab_Tests extends core_Master
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-        // $data->toolbar->removeBtn('btnClose');
+        $data->toolbar->removeBtn('btnClose');
         
         if ($mvc->haveRightFor('compare', $data->rec)) {
             $url = array(
