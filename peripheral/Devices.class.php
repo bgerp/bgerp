@@ -94,6 +94,7 @@ class peripheral_Devices extends embed_Manager
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
         $this->FLD('brid', 'varchar(8)', 'caption=Компютър->Браузър, removeAndRefreshForm=saoParentId|saoOrder|saoLevel');
         $this->FLD('ip', 'ip', 'caption=Компютър->IP, removeAndRefreshForm=saoParentId|saoOrder|saoLevel');
+        $this->FLD('isDefault', 'enum(no=Не,yes=Да)', 'caption=По подразбиране, notNull');
         
         $this->setDbUnique('name, brid, ip');
     }
@@ -175,6 +176,7 @@ class peripheral_Devices extends embed_Manager
         }
         $query->orWhere("#ip = ''");
         
+        $query->orderBy('isDefault', 'DESC');
         $query->orderBy('saoOrder');
         $query->orderBy('createdOn', 'DESC');
         
@@ -231,6 +233,50 @@ class peripheral_Devices extends embed_Manager
     {
         $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
         $row->brid = log_Browsers::getLink($rec->brid);
+        
+        if ($fields['-list']) {
+            $urlArr = array();
+            if ($rec->isDefault != 'yes' && $mvc->haveRightFor('single', $rec->id)) {
+                $urlArr = array($mvc, 'setDefault', $rec->id, 'ret_url' => true);
+            }
+            
+            if ($rec->isDefault == 'yes') {
+                $row->ROW_ATTR['class'] = 'state-active';
+            } else {
+                $row->ROW_ATTR['class'] = 'state-closed';
+            }
+            
+            $row->isDefault = ht::createBtn('Избор', $urlArr, null, null, 'ef_icon = img/16/hand-point.png, title=Избор по подразбиране');
+        }
+    }
+    
+    
+    /**
+     * Екшън за избор на устройство по подразбиране
+     */
+    public function act_SetDefault()
+    {
+        $id = Request::get('id', 'int');
+        
+        expect($id);
+        
+        $rec = $this->fetch($id);
+        
+        expect($rec);
+        
+        $this->requireRightFor('single', $rec);
+        
+        $retUrl = getRetUrl();
+        
+        if (empty($retUrl)) {
+            $retUrl = array($this, 'single', $id);
+        }
+        
+        $rec->isDefault = 'yes';
+        
+        $this->save($rec, 'isDefault');
+        
+        return new Redirect($retUrl, '|Успешно избран като текущ');
     }
     
     
@@ -252,6 +298,51 @@ class peripheral_Devices extends embed_Manager
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
+     * @param int          $id     Първичния ключ на направения запис
+     * @param stdClass     $rec    Всички полета, които току-що са били записани
+     * @param string|array $fields Имена на полетата, които sa записани
+     * @param string       $mode   Режим на записа: replace, ignore
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        // След избор на текущ, другите текущи ги премахваме
+        if ($rec->isDefault == 'yes' && $rec->driverClass) {
+            $query = $mvc->getQuery();
+            
+            $query->where(array("#{$mvc->driverClassField} = '[#1#]'", $rec->{$mvc->driverClassField}));
+            
+            if ($rec->brid) {
+                $query->where(array("#brid = '[#1#]'", $rec->brid));
+                $query->orWhere('#brid IS NULL');
+            } else {
+                $query->where('#brid IS NULL');
+            }
+            $query->orWhere("#brid = ''");
+            
+            if ($rec->ip) {
+                $query->where(array("#ip = '[#1#]'", $rec->ip));
+                $query->orWhere('#ip IS NULL');
+            } else {
+                $query->where('#ip IS NULL');
+            }
+            $query->orWhere("#ip = ''");
+            
+            $query->where(array('#id != [#1#]', $rec->id));
+            
+            $query->where("#isDefault = 'yes'");
+            
+            while ($oRec = $query->fetch()) {
+                $oRec->isDefault = 'no';
+                $mvc->save($oRec, 'isDefault');
+            }
+        }
     }
     
     
