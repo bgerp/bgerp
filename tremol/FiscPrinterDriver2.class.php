@@ -58,6 +58,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         }
         
         $fieldset->FLD('header', 'enum(yes=Да, no=Не)', 'caption=Надпис хедър->Добавяне, mandatory, notNull, removeAndRefreshForm');
+        $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър->Позиция, mandatory, notNull');
         $fieldset->FLD('headerText1', 'varchar(32)', 'caption=Надпис хедър->Текст 1');
         $fieldset->FLD('headerText2', 'varchar(32)', 'caption=Надпис хедър->Текст 2');
         $fieldset->FLD('headerText3', 'varchar(32)', 'caption=Надпис хедър->Текст 3');
@@ -75,15 +76,18 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
                 $fieldset->setField('headerText5', 'input=none');
                 $fieldset->setField('headerText6', 'input=none');
                 $fieldset->setField('headerText7', 'input=none');
+                $fieldset->setField('headerPos', 'input=none');
             }
         }
         
         $fieldset->FLD('footer', 'enum(yes=Да, no=Не)', 'caption=Надпис футър->Добавяне, mandatory, notNull, removeAndRefreshForm');
+        $fieldset->FLD('footerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис футър->Позиция, mandatory, notNull');
         $fieldset->FLD('footerText', 'varchar(32)', 'caption=Надпис футър->Текст');
         if ($fieldset instanceof core_Form) {
             $fieldset->input('footer');
             if ($fieldset->rec->footer == 'no') {
                 $fieldset->setField('footerText', 'input=none');
+                $fieldset->setField('footerPos', 'input=none');
             }
         }
     }
@@ -510,13 +514,17 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
                 if ($data->rec->header == 'yes') {
                     for ($i = 1; $i <= 7; $i++) {
                         $h = headerText . $i;
-                        $ht = json_encode((string) $data->rec->{$h});
+                        $ht = (string) $data->rec->{$h};
+                        $ht = self::formatText($ht, $data->rec->headerPos);
+                        $ht = json_encode($ht);
                         $headersTextStr .= "fpProgramHeader({$ht}, {$i});";
                     }
                 }
                 $footerTextStr = '';
                 if ($data->rec->footer == 'yes') {
-                    $ft = json_encode((string) $data->rec->footerText);
+                    $ft = (string) $data->rec->footerText;
+                    $ft = self::formatText($ft, $data->rec->footerPos);
+                    $ft = json_encode($ft);
                     $footerTextStr = "fpProgramFooter({$ft});";
                 }
                 
@@ -544,7 +552,24 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             jquery_Jquery::run($tpl, $jsTpl);
         }
     }
-    
+    protected static function formatText($text, $pos, $maxLen = 32)
+    {
+        $text = trim($text);
+                
+        if ($pos == 'right') {
+            $l = mb_strlen($text);
+            if ($maxLen > $l) {
+                $text = str_repeat(' ', $maxLen - $l) . $text;
+            }
+        } elseif ($pos == 'center') {
+            $l = mb_strlen($text);
+            if ($maxLen > $l) {
+                $text = str_repeat(' ', (int)(($maxLen - $l)/2)) . $text;
+            }
+        }
+        
+        return $text;
+    }
     
     /**
      * Екшън за промяна на серийния номер
