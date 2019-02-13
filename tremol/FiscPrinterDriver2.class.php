@@ -368,6 +368,40 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     
     /**
+     * Връща JS функция, която да провери дали има връзка с устройството
+     * При успех вика `fpOnConnectionSuccess`, а при грешка fpOnConnectionErr
+     *
+     * @param stdClass $pRec - запис от peripheral_Devices
+     *
+     * @return string
+     *
+     * @see peripheral_FiscPrinter
+     */
+    public function getJsIsWorking($pRec)
+    {
+        $jsTpl = new ET('[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                                try {
+                                    [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                    fpSerialNumber();
+                                    fpOnConnectionSuccess();
+                                } catch(ex) {
+                                    fpOnConnectionErr(ex.message);
+                                }
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]');
+        
+        $this->addTplFile($jsTpl);
+        $this->connectToPrinter($jsTpl, $pRec, false);
+        
+        $js = $jsTpl->getContent();
+        
+        // Минифициране на JS
+        $js = minify_Js::process($js);
+        
+        return $js;
+    }
+    
+    
+    /**
      * Помощна функция за добавяне на необходимите JS файлове
      *
      * @param core_ET $tpl
