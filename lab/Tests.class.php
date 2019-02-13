@@ -408,7 +408,6 @@ class lab_Tests extends core_Master
         // Prepare form
         $form->title = "Сравнение на тест|* 'No " . $leftTestId . '. ' . $leftTestName . "' |с друг тест|*";
         
-        // $form->FNC('leftTestId', 'int', 'input=none');
         $form->FNC('rightTestId', 'int', 'caption=Избери тест, mandatory, input');
         
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
@@ -585,6 +584,15 @@ class lab_Tests extends core_Master
         $row->recTitle = $title;
         
         return $row;
+    }
+    
+    
+    /**
+     * Реализация  на интерфейсния метод ::getThreadState()
+     */
+    public static function getThreadState($id)
+    {
+        return 'opened';
     }
     
     
