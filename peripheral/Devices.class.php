@@ -36,7 +36,7 @@ class peripheral_Devices extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Sorting, plg_Created, plg_Modified, peripheral_Wrapper, plg_RowTools2, plg_Search';
+    public $loadList = 'plg_Sorting, plg_Created, plg_Modified, peripheral_Wrapper, plg_RowTools2, plg_Search, plg_StructureAndOrder';
     
     
     /**
@@ -83,28 +83,61 @@ class peripheral_Devices extends embed_Manager
     
     public $searchFields = 'name, brid, ip, driverClass';
     
+    public $saoTitleField = 'name';
+    
+    
+    /**
+     * Описание на модела
+     */
     public function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('brid', 'varchar(8)', 'caption=Компютър->Браузър');
-        $this->FLD('ip', 'ip', 'caption=Компютър->IP');
+        $this->FLD('brid', 'varchar(8)', 'caption=Компютър->Браузър, removeAndRefreshForm=saoParentId|saoOrder|saoLevel');
+        $this->FLD('ip', 'ip', 'caption=Компютър->IP, removeAndRefreshForm=saoParentId|saoOrder|saoLevel');
         
         $this->setDbUnique('name, brid, ip');
     }
     
     
     /**
-     *
+     * Връща едно устройство към този BRID и/или IP
      *
      * @param string      $intfName
      * @param null|string $brid
      * @param null|string $ip
+     * @param null|int    $limit
+     *
+     * @return false|stdClass
      */
-    public static function getDevices($intfName, $brid = null, $ip = null)
+    public static function getDevice($intfName, $brid = null, $ip = null, $limit = null)
+    {
+        $deviceArr = self::getDevices($intfName, $brid, $ip, 1);
+        
+        $dRec = false;
+        
+        if (!empty($deviceArr)) {
+            $dRec = reset($deviceArr);
+        }
+        
+        return $dRec;
+    }
+    
+    
+    /**
+     * Връща всички устройства към този BRID и/или IP
+     *
+     * @param string      $intfName
+     * @param null|string $brid
+     * @param null|string $ip
+     * @param null|int    $limit
+     *
+     * @return array
+     */
+    public static function getDevices($intfName, $brid = null, $ip = null, $limit = null)
     {
         static $cArr = array();
         
-        $hash = md5($intfName . '|' . $brid . '|' . $ip);
+        $hash = md5($intfName . '|' . $brid . '|' . $ip . '|' . $limit);
         
         if (isset($cArr[$hash])) {
             
@@ -142,7 +175,12 @@ class peripheral_Devices extends embed_Manager
         }
         $query->orWhere("#ip = ''");
         
+        $query->orderBy('saoOrder');
         $query->orderBy('createdOn', 'DESC');
+        
+        if ($limit) {
+            $query->limit($limit);
+        }
         
         $cArr[$hash] = $query->fetchAll();
         
@@ -214,5 +252,37 @@ class peripheral_Devices extends embed_Manager
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+    }
+    
+    
+    /**
+     * Необходим метод за подреждането
+     */
+    public static function getSaoItems($rec)
+    {
+        $query = self::getQuery();
+        
+        if ($rec->brid) {
+            $query->where(array("#brid = '[#1#]'", $rec->brid));
+        }
+        
+        if ($rec->ip) {
+            $query->where(array("#ip = '[#1#]'", $rec->ip));
+        }
+        
+        if ($rec->driverClass) {
+            $query->where(array("#driverClass = '[#1#]'", $rec->driverClass));
+        }
+        
+        if ($rec->id) {
+            $query->where(array("#id != '[#1#]'", $rec->id));
+        }
+        
+        $res = array();
+        while ($rRec = $query->fetch()) {
+            $res[$rRec->id] = $rRec;
+        }
+        
+        return $res;
     }
 }
