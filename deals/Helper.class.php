@@ -196,6 +196,16 @@ abstract class deals_Helper
         } else {
             $mvc->_total->discount = round($discount, 2);
         }
+
+        // "Просто" изчисляване на ДДС-то в документа, ако има само една ставка
+        if(count($vats) == 1) {
+            $vat = key($vats);
+            $vats[$vat]->sum = round($vats[$vat]->sum, 2);
+            $vats[$vat]->amount = round($vats[$vat]->sum * $vat, 2);
+            $mvc->_total->amount = $vats[$vat]->sum;
+            $mvc->_total->vat = $vats[$vat]->amount;
+            $mvc->_total->vats = $vats;
+        }
     }
     
     
