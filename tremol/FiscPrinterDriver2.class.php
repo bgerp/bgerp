@@ -552,10 +552,21 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             jquery_Jquery::run($tpl, $jsTpl);
         }
     }
+    
+    
+    /**
+     * Помощна функция за позициониране на текст - добавя интервали в началото
+     *
+     * @param string $text
+     * @param string $pos
+     * @param int    $maxLen
+     *
+     * @return string
+     */
     protected static function formatText($text, $pos, $maxLen = 32)
     {
         $text = trim($text);
-                
+        
         if ($pos == 'right') {
             $l = mb_strlen($text);
             if ($maxLen > $l) {
@@ -564,12 +575,13 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         } elseif ($pos == 'center') {
             $l = mb_strlen($text);
             if ($maxLen > $l) {
-                $text = str_repeat(' ', (int)(($maxLen - $l)/2)) . $text;
+                $text = str_repeat(' ', (int) (($maxLen - $l) / 2)) . $text;
             }
         }
         
         return $text;
     }
+    
     
     /**
      * Екшън за промяна на серийния номер
