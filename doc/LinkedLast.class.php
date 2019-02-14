@@ -138,22 +138,39 @@ class doc_LinkedLast extends core_Mvc
         $query->where(array("#createdOn >= '[#1#]'", dt::subtractSecs($this->showBeforeSec)));
         $query->where(array("#outType = '[#1#]'", $type));
         
-        $query->where(array("#outType = '[#1#]' AND #outVal != '[#2#]' OR #outType != '[#1#]'", $type, $id));
-        $query->where(array("#inType = '[#1#]' AND #inVal != '[#2#]' OR #inType != '[#1#]'", $type, $id));
-        
-        $query->groupBy('inType,inVal');
-        
-        $query->limit($this->showLimit);
-        
         $query->orderBy('createdOn', 'DESC');
         
         $addTo = tr('Добавяне към') . ' ';
         
         $resArr = array();
         
+        $lQuery = doc_Linked::getQuery();
+        $lQuery->where(array("#outType = '[#1#]'", $type));
+        $lQuery->where(array("#outVal = '[#1#]'", $id));
+        
+        while ($lRec = $lQuery->fetch()) {
+            $lStr = $lRec->inType . '|' . $lRec->inVal;
+            $skipArr[$lStr] = $lStr;
+        }
+        
         while ($rec = $query->fetch()) {
+            if (($rec->inType == $type) && ($rec->inVal == $id)) {
+                continue;
+            }
+            if (($rec->outType == $type) && ($rec->outVal == $id)) {
+                continue;
+            }
+            
+            $sStr = $rec->inType . '|' . $rec->inVal;
+            if ($skipArr[$sStr]) {
+                continue;
+            }
+            
             if ($rec->inType == 'file') {
                 $fName = fileman::fetchField($rec->inVal, 'name');
+                if ($resArr['last_file_' . $rec->inVal]) {
+                    continue;
+                }
                 $resArr['last_file_' . $rec->inVal] = $addTo . tr('файл') . ' ' . str::limitLen($fName, 32);
             } elseif ($rec->inType == 'doc') {
                 $doc = doc_Containers::getDocument($rec->inVal);
@@ -163,8 +180,14 @@ class doc_LinkedLast extends core_Mvc
                 $hnd = '#' . $doc->getHandle();
                 $dRow = $doc->getDocumentRow();
                 $title = $dRow->recTitle ? $dRow->recTitle : $dRow->title;
-                
+                if ($resArr['last_doc_' . $rec->inVal]) {
+                    continue;
+                }
                 $resArr['last_doc_' . $rec->inVal] = $addTo . $hnd . ' - ' . $title;
+            }
+            
+            if (!--$this->showLimit) {
+                break;
             }
         }
         
