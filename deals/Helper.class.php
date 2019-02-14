@@ -198,11 +198,11 @@ abstract class deals_Helper
         }
 
         // "Просто" изчисляване на ДДС-то в документа, ако има само една ставка
-        if(count($vats) == 1 && $masterRec->type === 'invoice') {
+        if(count($vats) == 1 && ($masterRec->type == 'invoice' || $masterRec->type == 'dc_note')) {
             $vat = key($vats);
             $vats[$vat]->sum = round($vats[$vat]->sum, 2);
             $vats[$vat]->amount = round($vats[$vat]->sum * $vat, 2);
-            $mvc->_total->amount = $vats[$vat]->sum;
+            //$mvc->_total->amount = $vats[$vat]->sum;
             $mvc->_total->vat = $vats[$vat]->amount;
             $mvc->_total->vats = $vats;
         }
