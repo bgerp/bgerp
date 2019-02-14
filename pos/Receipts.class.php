@@ -1811,32 +1811,45 @@ class pos_Receipts extends core_Master
             return $this->pos_ReceiptDetails->returnError(null);
         }
         
-        // Ако е разпозната бележка по номера, създава се нова сторнираща бележка
-        if($existingReceiptId = $this->findReceiptByNumber($search)){
-            $newReceiptId = $this->createNew($existingReceiptId);
-            
-            return new Redirect(array($this, 'terminal', $newReceiptId));
-        } else {
-            core_Statuses::newStatus("|Не е намерена бележка от номер|* '<b>{$search}</b>'!", 'error');
+        // Ако не е разпозната бележка, не се прави нищо
+        $search = trim($search);
+        $foundArr = $this->findReceiptByNumber($search, true);
+        if(!is_object($foundArr['rec'])){
+            core_Statuses::newStatus($foundArr['notFoundError'], 'error');
             
             return $this->pos_ReceiptDetails->returnError(null);
         }
+       
+        $newReceiptId = $this->createNew($foundArr['rec']->id);
+            
+        return new Redirect(array($this, 'terminal', $newReceiptId));
     }
     
     
     /**
-     * Намира съществуваща бележка по номер
-     * 
-     * @param string $string
-     * @return int|null
+     * Опит за намиране на ПОС бележка по даден стринг
      */
-    public function findReceiptByNumber_($string)
+    protected function on_AfterFindReceiptByNumber($mvc, &$res, $string, $forRevert = false)
     {
-        if(type_Int::isInt($string)){
-            
-            return self::fetchField($string, 'id');
+        if(!isset($res['rec']) && empty($res['notFoundError'])) {
+            if(type_Int::isInt($string)){
+                $res['rec'] = self::fetch($string);
+                
+                if(!is_object($res['rec'])){
+                    $res['notFoundError'] = "|Не е намерена бележка от номер|* '<b>{$string}</b>'!";
+                    $res['rec'] = false;
+                }
+            }
         }
         
-        return null;
+        if(is_object($res['rec'])){
+            if($res['rec']->pointId != pos_Points::getCurrent()){
+                $res['notFoundError'] = "|Може да бъде сторнира само бележка от същия POS|*!";
+                $res['rec'] = false;
+            } elseif(self::fetchField("#revertId = {$res['rec']->id}") && $forRevert === true){
+                $res['notFoundError'] = "|Има създадена бележкам, сторнираща търсената|*!";
+                $res['rec'] = false;
+            }
+        }
     }
 }
