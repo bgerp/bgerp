@@ -261,8 +261,10 @@ class planning_ProductionTaskDetails extends core_Detail
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
-            $rec->serial = plg_Search::normalizeText($rec->serial);
-            $rec->serial = str::removeWhitespaces($rec->serial);
+            if(!empty($rec->serial)){
+                $rec->serial = plg_Search::normalizeText($rec->serial);
+                $rec->serial = str::removeWhitespaces($rec->serial);
+            }
             
             $masterRec = planning_Tasks::fetch($rec->taskId);
             if (empty($rec->serial) && empty($rec->productId)) {
