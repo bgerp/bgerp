@@ -228,10 +228,9 @@ class pos_Receipts extends core_Master
         $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         
         if ($fields['-list']) {
-            $row->title = "{$mvc->singleTitle} №{$rec->id}";
-            $row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), null, "ef_icon={$mvc->singleIcon}");
+            $row->title = $mvc->getHyperlink($rec->id, true);
         } elseif ($fields['-single']) {
-            $row->title = "{$mvc->singleTitle} <b>№{$row->id}</b>";
+            $row->title = self::getRecTitle($rec);
             $row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
             $row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), true);
             $row->storeId = store_Stores::getHyperLink(pos_Points::fetchField($rec->pointId, 'storeId'), true);
@@ -260,6 +259,10 @@ class pos_Receipts extends core_Master
                     }
                 }
             }
+        }
+        
+        foreach (array('total', 'paid', 'change') as $fld){
+            $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
         }
         
         $row->RECEIPT_CAPTION = tr('Касова бележка');
@@ -1790,6 +1793,10 @@ class pos_Receipts extends core_Master
         $pointIdVerbal = self::getVerbal($rec, 'pointId');
         $title = "{$pointIdVerbal}/{$rec->id}/{$valiorVerbal}";
         
+        if(isset($rec->revertId)){
+            $title = $title . " <span class='stamp'>" . tr('сторно') . "</span>";
+        }
+        
         return $title;
     }
     
@@ -1846,9 +1853,14 @@ class pos_Receipts extends core_Master
             if($res['rec']->pointId != pos_Points::getCurrent()){
                 $res['notFoundError'] = "|Може да бъде сторнира само бележка от същия POS|*!";
                 $res['rec'] = false;
-            } elseif(self::fetchField("#revertId = {$res['rec']->id}") && $forRevert === true){
-                $res['notFoundError'] = "|Има създадена бележкам, сторнираща търсената|*!";
-                $res['rec'] = false;
+            } elseif($forRevert === true){
+                if(self::fetchField("#revertId = {$res['rec']->id}")){
+                    $res['notFoundError'] = "|Има създадена бележкам, сторнираща търсената|*!";
+                    $res['rec'] = false;
+                } elseif(self::fetchField("#id = {$res['rec']->id} AND #revertId IS NOT NULL")){
+                    $res['notFoundError'] = "|Не може да сторнирате сторнираща бележка|*!";
+                    $res['rec'] = false;
+                }
             }
         }
     }
