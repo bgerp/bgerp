@@ -252,6 +252,7 @@ class doc_Setup extends core_ProtoSetup
         'doc_Linked',
         'doc_LinkedTemplates',
         'doc_FolderResources',
+        'doc_LinkedLast'
     );
     
     

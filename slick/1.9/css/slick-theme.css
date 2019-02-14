@@ -199,7 +199,8 @@
     text-align: center;
 
     opacity: .3;
-    color: black;
+    color: #fff;
+    text-shadow: 0 0 1px #000;
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -207,7 +208,7 @@
 .slick-dots li.slick-active button:before
 {
     opacity: .75;
-    color: black;
+    color: #fff;
 }
 
 /*custom styles*/
@@ -254,3 +255,6 @@ button {
     bottom: -25px;
 }
 
+.outerDots .slick-dots li button:before {
+    color: #000;
+}
