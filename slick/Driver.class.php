@@ -36,10 +36,8 @@ class slick_Driver extends core_BaseClass
     public static function addFields(&$form)
     {
         $form->FLD('images', 'fileman_type_Files(bucket=gallery_Pictures,align=vertical)', 'caption=Картинки');
-        $form->FLD('dots', 'enum(no=Няма,yes=Да)', 'caption=Точки');
-        $form->FLD('dotsPosition', 'enum(out=Отвън,inner=Отвътре)', 'caption=Позиция на точки');
-        $form->FLD('arrows', 'enum(no=Няма,yes=Да)', 'caption=Стрелки');
-        $form->FLD('arrowsPosition', 'enum(out=Отвън,inner=Отвътре)', 'caption=Позиция на стрелки');
+        $form->FLD('dots', 'enum(no=Няма,out=Отвън,inner=Отвътре)', 'caption=Точки');
+        $form->FLD('arrows', 'enum(no=Няма,out=Отвън,inner=Отвътре)', 'caption=Стрелки');
         $form->FLD('autoplay', 'time(suggestions=1 сек.|2 сек.|3 сек.|5 сек.|10 сек.,uom=secunds)', 'caption=Смяна през,placeholder=Няма');
         $form->FLD('maxSize', 'int(min=0)', 'caption=Макс. разм.,placeholder=0,unit=px');
     }
@@ -81,11 +79,11 @@ class slick_Driver extends core_BaseClass
         if($rec->maxSize > 0) {
             $maxwidth = $rec->maxSize;
         }
-        if($rec->arrowsPosition == "out") {
+        if($rec->arrows == "out") {
             $tpl->replace('outerArrows', 'OUTER_ARROWS');
         }
 
-        if($rec->dotsPosition == "out" ) {
+        if($rec->dots == "out" ) {
             $tpl->replace('outerDots', 'OUTER_DOTS');
         }
 
