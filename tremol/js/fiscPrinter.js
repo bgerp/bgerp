@@ -646,7 +646,7 @@ function handleException(sx) {
 		} else if (sx.type === Tremol.ServerErrorType.ServerConnectionError) {
 			msg = "Не може да се осъществи връзка със ZfpLab сървъра";
 		} else if (sx.type === Tremol.ServerErrorType.ServSockConnectionFailed) {
-			msg = "Сървъра не може да се свърже с ФУ";
+			msg = "Сървърът не може да се свърже с ФУ";
 		} else if (sx.type === Tremol.ServerErrorType.ServTCPAuth) {
 			msg = "Грешна TCP парола на устройството";
 		} else if (sx.type === Tremol.ServerErrorType.ServWaitOtherClientCmdProcessingTimeOut) {
