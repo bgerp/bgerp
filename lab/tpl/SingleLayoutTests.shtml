@@ -94,7 +94,7 @@
             </div>
             <!--ET_END providerNote-->
         </div>
-          <div class='half-width fleft' style='width:50%'>
+          <div class='half-width fleft' style='width:50%; clear:both; margin-top: 10px;'>
             <!--ET_BEGIN vendorNote-->
             <div class='clear_both'><b>|Споделени потребители|*</b></div>
             <div class='clear_l note'>
