@@ -3,7 +3,7 @@
 
 /**
  * Показване на последните свързани документи
- * 
+ *
  * @category  bgerp
  * @package   doc
  *
@@ -126,8 +126,8 @@ class doc_LinkedLast extends core_Mvc
     /**
      * Помощна функция за вземане на шаблоните
      *
-     * @param int $id
-     * @param NULL|int   $userId
+     * @param int      $id
+     * @param NULL|int $userId
      *
      * @return array
      */
@@ -157,7 +157,9 @@ class doc_LinkedLast extends core_Mvc
                 $resArr['last_file_' . $rec->inVal] = $addTo . tr('файл') . ' ' . str::limitLen($fName, 32);
             } elseif ($rec->inType == 'doc') {
                 $doc = doc_Containers::getDocument($rec->inVal);
-                if (!$doc->haveRightFor('single')) continue;
+                if (!$doc->haveRightFor('single')) {
+                    continue;
+                }
                 $hnd = '#' . $doc->getHandle();
                 $dRow = $doc->getDocumentRow();
                 $title = $dRow->recTitle ? $dRow->recTitle : $dRow->title;
@@ -179,8 +181,6 @@ class doc_LinkedLast extends core_Mvc
      */
     protected function prepareFormFor(&$form, $cId, $activity, $type = 'doc')
     {
-        
-        return ;
     }
     
     
@@ -206,18 +206,19 @@ class doc_LinkedLast extends core_Mvc
             return ;
         }
         
-        list(,$type,$id) = explode('_', $form->rec->act);
+        list(, $typeStr, $id) = explode('_', $form->rec->act);
         
-        if ($type == 'doc') {
+        if ($typeStr == 'doc') {
             $form->rec->linkContainerId = $id;
             $linkType = 'linkDoc';
-        } elseif ($type == 'file') {
+        } elseif ($typeStr == 'file') {
             $linkType = 'linkFile';
-            $form->rec->linkFileId = $id;
+            $form->rec->linkFileId = fileman::fetchField($id, 'fileHnd');
         } else {
+            
             return ;
         }
-         
+        
         $res = cls::get('doc_Linked')->onSubmitFormForAct($form, $linkType, $type, $cId, $form->rec->act);
         
         return $res;
