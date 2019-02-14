@@ -1734,12 +1734,14 @@ class pos_Receipts extends core_Master
         while ($rec = $query->fetch()) {
             $num = substr($rec->id, -1 * $conf->POS_SHOW_RECEIPT_DIGITS);
             $stateClass = ($rec->state == 'draft') ? 'state-draft' : 'state-waiting';
+            $num = (isset($rec->revertId)) ? "<span class='red'>{$num}</span>" : $num;
+            $borderColor = (isset($rec->revertId)) ? "red" : "#a6a8a7";
             
             if (!Mode::isReadOnly()) {
                 if ($this->haveRightFor('terminal', $rec)) {
-                    $num = ht::createLink($num, array($this, 'terminal', $rec->id), false, 'title=Продължаване на бележката');
+                    $num = ht::createLink($num, array($this, 'terminal', $rec->id), false, "title=Довършване на бележката,ef_icon=img/16/cash-register.png");
                 } elseif ($this->haveRightFor('single', $rec)) {
-                    $num = ht::createLink($num, array($this, 'single', $rec->id), false, "title=Към бележка №{$rec->id}");
+                    $num = ht::createLink($num, array($this, 'single', $rec->id), false, "title=Преглед на бележка №{$rec->id},ef_icon=img/16/view.png");
                 }
             }
             
@@ -1748,7 +1750,7 @@ class pos_Receipts extends core_Master
                     $num = ht::createHint($num, 'Бележката е започната, но не е приключена', 'warning', false);
                 }
             }
-            $num = " <span class='open-note {$stateClass}' style='border:1px solid #a6a8a7'>{$num}</span>";
+            $num = " <span class='open-note {$stateClass}' style='border:1px solid {$borderColor}'>{$num}</span>";
             
             $data->rows[$rec->id] = $num;
         }
