@@ -921,13 +921,7 @@ class cal_Tasks extends embed_Manager
     protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if ($mvc->canAddProgress($data->rec)) {
-            // Ако прогреса е 100%, да е на втори ред
-            $progressRow = 1;
-            if ($data->rec->progress == 1) {
-                $progressRow = 2;
-            }
-            
-            $data->toolbar->addBtn('Прогрес', array('doc_Comments', 'add', 'originId' => $data->rec->containerId, cls::get('doc_Comments')->driverClassField => cal_Progresses::getClassId(), 'ret_url' => true), 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '"), ef_icon=img/16/progressbar.png', "title=Добавяне на прогрес към задачата, row={$progressRow}");
+            $data->toolbar->addBtn('Прогрес', array('doc_Comments', 'add', 'originId' => $data->rec->containerId, cls::get('doc_Comments')->driverClassField => cal_Progresses::getClassId(), 'ret_url' => true), 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '"), ef_icon=img/16/progressbar.png', "title=Добавяне на прогрес към задачата, row=1");
         }
         
         if (cal_TaskConditions::haveRightFor('add', (object) array('baseId' => $data->rec->id))) {
