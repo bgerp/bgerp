@@ -1147,11 +1147,12 @@ class rack_Movements extends core_Manager
         }
         
         // Ако се палетира от пода проверява се дали е налично количеството
-        if($transaction->from == rack_PositionType::FLOOR && !empty($transaction->batch)){
-            $availableQuantity = rack_Pallets::getAvailableQuantity(null, $transaction->productId, $transaction->storeId, $transaction->batch);
+        if($transaction->from == rack_PositionType::FLOOR && isset($transaction->batch)){
+            $bMsg = isset($transaction->batch) ? 'на партидата' : 'без партида';
+            $availableQuantity = rack_Products::getFloorQuantity($transaction->productId, $transaction->batch, $transaction->storeId);
             if($availableQuantity < $transaction->quantity){
                 $availableQuantityV = core_Type::getByName('double(smartRound)')->toVerbal($availableQuantity);
-                $res->errors = "Количеството на партидата е над наличното|*: <b>{$availableQuantityV}</b>";
+                $res->errors = "Количеството {$bMsg} е над наличното|*: <b>{$availableQuantityV}</b>";
                 $res->errorFields[] = 'batch';
                 $res->errorFields[] = 'packQuantity';
             }
