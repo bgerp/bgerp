@@ -333,9 +333,8 @@ class pos_Points extends core_Master
     {
         $filter->FNC('point', 'key(mvc=pos_Points, select=name, allowEmpty)', 'caption=Точка,width=12em,silent');
         $filter->showFields .= ',point';
-        
-        // Активиране на филтъра
-        $filter->input(null, 'silent');
+        $filter->setDefault('point', static::getCurrent('id', false));
+        $filter->input();
         
         if ($filterRec = $filter->rec) {
             if ($filterRec->point) {

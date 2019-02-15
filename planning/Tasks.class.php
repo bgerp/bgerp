@@ -227,7 +227,7 @@ class planning_Tasks extends core_Master
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
         $this->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Описание');
-        $this->FLD('showadditionalUom', 'enum(no=Не,yes=Да)', 'caption=Допълнително->Тегло');
+        $this->FLD('showadditionalUom', 'enum(no=Не,yes=Да,mandatory=Задължително)', 'caption=Допълнително->Тегло');
         
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Времена->Начало, changable, tdClass=leftColImportant,formOrder=101');
         $this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност,changable,formOrder=102');
@@ -545,6 +545,8 @@ class planning_Tasks extends core_Master
         
         if ($rec->showadditionalUom == 'yes') {
             $resArr['quantity']['val'] .= tr("|*<span style='font-weight:normal'>|Общо тегло|*:</span> [#totalWeight#]");
+        } elseif($rec->showadditionalUom == 'mandatory'){
+            $resArr['quantity']['val'] .= tr("|*<span style='font-weight:normal'>|Задължително допълнително тегло|*</span>");
         } else {
             $resArr['quantity']['val'] .= tr("|*<span style='font-weight:normal'>|Без допълнително тегло|*</span>");
         }
