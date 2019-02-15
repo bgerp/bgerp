@@ -120,6 +120,14 @@ class planning_ProductionTaskDetails extends core_Detail
     
     
     /**
+     * Брой записи на страница
+     *
+     * @var int
+     */
+    public $listItemsPerPage = 30;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -235,8 +243,8 @@ class planning_ProductionTaskDetails extends core_Detail
             }
         }
         
-        // Връща служителите избрани в папката
-        $employees = planning_Hr::getPersonsCodesArr($masterRec->employees);
+        // Връща избрани служители от операцията, или ако няма всички от центъра
+        $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
         if (count($employees)) {
             $form->setSuggestions('employees', $employees);
             if (count($employees) == 1) {
@@ -247,8 +255,10 @@ class planning_ProductionTaskDetails extends core_Detail
         }
         
         // Показване на допълнителна мярка при нужда
-        if ($masterRec->showadditionalUom != 'yes') {
+        if ($masterRec->showadditionalUom == 'no') {
             $form->setField('weight', 'input=none');
+        } elseif($masterRec->showadditionalUom == 'mandatory'){
+            $form->setField('weight', 'mandatory');
         }
     }
     
@@ -592,7 +602,7 @@ class planning_ProductionTaskDetails extends core_Detail
             $data->listFilter->showFields = 'search,fixedAsset,employees';
             
             $data->listFilter->setOptions('fixedAsset', array('' => '') + planning_AssetResources::getByFolderId());
-            $data->listFilter->setOptions('employees', array('' => '') + crm_Persons::getEmployeesOptions());
+            $data->listFilter->setOptions('employees', array('' => '') + crm_Persons::getEmployeesOptions(false, true));
             $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
             $data->listFilter->input('');
             
