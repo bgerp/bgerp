@@ -630,10 +630,12 @@ abstract class deals_InvoiceMaster extends core_Master
         
         // При създаване на нова ф-ра зареждаме полетата на формата с разумни стойности по подразбиране.
         expect($firstDocument = doc_Threads::getFirstDocument($form->rec->threadId), $form->rec);
-        
         $coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
         $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
-        $form->setDefault('contragentName', $coverClass::fetchField($coverId, 'name'));
+       
+        $mvc->pushTemplateLg($form->rec->template);
+        $form->setDefault('contragentName', $coverClass::getVerbal($coverId, 'name'));
+        core_Lg::pop();
         
         if (!$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
             $className = doc_Folders::fetchCoverClassName($form->rec->folderId);
