@@ -525,7 +525,7 @@ class doc_Linked extends core_Manager
         $enumInst->options = $actTypeArr;
         $form->FNC('act', $enumInst, 'caption=Действие, input, removeAndRefreshForm=linkContainerId|linkFolderId|linkThreadId|linkDocType|comment, mandatory, silent');
         
-        $defAct = $this->getDefaultActionFor($originFId, $type);
+        $defAct = $this->getDefaultActionFor($originFId, $type, $actTypeArr);
         if ($defAct) {
             $form->setDefault('act', $defAct);
         }
@@ -809,12 +809,13 @@ class doc_Linked extends core_Manager
      *
      * @param int      $docId
      * @param string   $type
+     * @param array    $actTypeArrOpt
      * @param int|NULL $folderId
      * @param int|NULL $userId
      *
      * @return string|mixed
      */
-    protected static function getDefaultActionFor($docId, $type, $folderId = null, $userId = null)
+    protected static function getDefaultActionFor($docId, $type, $actTypeArrOpt, $folderId = null, $userId = null)
     {
         $qLimit = 3;
         $minBestCnt = $qLimit - 1;
@@ -832,11 +833,23 @@ class doc_Linked extends core_Manager
         }
         
         $query = self::getQuery();
-        $query->state = 'active';
+        $query->where("#state = 'active'");
         $query->orderBy('createdOn', 'DESC');
         $query->limit($qLimit);
         
         $query->where(array("#outType = '[#1#]'", $type));
+        
+        // Търсим само в наличните опции
+        $or = false;
+        foreach ((array) $actTypeArrOpt as $aTypeStr => $aTypeVerb) {
+            $aTypeStr = trim($aTypeStr);
+            if (!$aTypeStr) {
+                continue;
+            }
+            
+            $query->where(array("#actType = '[#1#]'", $aTypeStr), $or);
+            $or = true;
+        }
         
         if ($type == 'doc') {
             

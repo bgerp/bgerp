@@ -36,7 +36,7 @@ class peripheral_Devices extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Sorting, plg_Created, plg_Modified, peripheral_Wrapper, plg_RowTools2, plg_Search';
+    public $loadList = 'plg_Sorting, plg_Created, plg_Modified, peripheral_Wrapper, plg_RowTools2, plg_Search, plg_StructureAndOrder';
     
     
     /**
@@ -83,28 +83,62 @@ class peripheral_Devices extends embed_Manager
     
     public $searchFields = 'name, brid, ip, driverClass';
     
+    public $saoTitleField = 'name';
+    
+    
+    /**
+     * Описание на модела
+     */
     public function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('brid', 'varchar(8)', 'caption=Компютър->Браузър');
-        $this->FLD('ip', 'ip', 'caption=Компютър->IP');
+        $this->FLD('brid', 'varchar(8)', 'caption=Компютър->Браузър, removeAndRefreshForm=saoParentId|saoOrder|saoLevel');
+        $this->FLD('ip', 'ip', 'caption=Компютър->IP, removeAndRefreshForm=saoParentId|saoOrder|saoLevel');
+        $this->FLD('isDefault', 'enum(no=Не,yes=Да)', 'caption=По подразбиране, notNull');
         
         $this->setDbUnique('name, brid, ip');
     }
     
     
     /**
-     *
+     * Връща едно устройство към този BRID и/или IP
      *
      * @param string      $intfName
      * @param null|string $brid
      * @param null|string $ip
+     * @param null|int    $limit
+     *
+     * @return false|stdClass
      */
-    public static function getDevices($intfName, $brid = null, $ip = null)
+    public static function getDevice($intfName, $brid = null, $ip = null, $limit = null)
+    {
+        $deviceArr = self::getDevices($intfName, $brid, $ip, 1);
+        
+        $dRec = false;
+        
+        if (!empty($deviceArr)) {
+            $dRec = reset($deviceArr);
+        }
+        
+        return $dRec;
+    }
+    
+    
+    /**
+     * Връща всички устройства към този BRID и/или IP
+     *
+     * @param string      $intfName
+     * @param null|string $brid
+     * @param null|string $ip
+     * @param null|int    $limit
+     *
+     * @return array
+     */
+    public static function getDevices($intfName, $brid = null, $ip = null, $limit = null)
     {
         static $cArr = array();
         
-        $hash = md5($intfName . '|' . $brid . '|' . $ip);
+        $hash = md5($intfName . '|' . $brid . '|' . $ip . '|' . $limit);
         
         if (isset($cArr[$hash])) {
             
@@ -142,7 +176,13 @@ class peripheral_Devices extends embed_Manager
         }
         $query->orWhere("#ip = ''");
         
+        $query->orderBy('isDefault', 'DESC');
+        $query->orderBy('saoOrder');
         $query->orderBy('createdOn', 'DESC');
+        
+        if ($limit) {
+            $query->limit($limit);
+        }
         
         $cArr[$hash] = $query->fetchAll();
         
@@ -193,6 +233,50 @@ class peripheral_Devices extends embed_Manager
     {
         $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
         $row->brid = log_Browsers::getLink($rec->brid);
+        
+        if ($fields['-list']) {
+            $urlArr = array();
+            if ($rec->isDefault != 'yes' && $mvc->haveRightFor('single', $rec->id)) {
+                $urlArr = array($mvc, 'setDefault', $rec->id, 'ret_url' => true);
+            }
+            
+            if ($rec->isDefault == 'yes') {
+                $row->ROW_ATTR['class'] = 'state-active';
+            } else {
+                $row->ROW_ATTR['class'] = 'state-closed';
+            }
+            
+            $row->isDefault = ht::createBtn('Избор', $urlArr, null, null, 'ef_icon = img/16/hand-point.png, title=Избор по подразбиране');
+        }
+    }
+    
+    
+    /**
+     * Екшън за избор на устройство по подразбиране
+     */
+    public function act_SetDefault()
+    {
+        $id = Request::get('id', 'int');
+        
+        expect($id);
+        
+        $rec = $this->fetch($id);
+        
+        expect($rec);
+        
+        $this->requireRightFor('single', $rec);
+        
+        $retUrl = getRetUrl();
+        
+        if (empty($retUrl)) {
+            $retUrl = array($this, 'single', $id);
+        }
+        
+        $rec->isDefault = 'yes';
+        
+        $this->save($rec, 'isDefault');
+        
+        return new Redirect($retUrl, '|Успешно избран като текущ');
     }
     
     
@@ -214,5 +298,82 @@ class peripheral_Devices extends embed_Manager
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
+     * @param int          $id     Първичния ключ на направения запис
+     * @param stdClass     $rec    Всички полета, които току-що са били записани
+     * @param string|array $fields Имена на полетата, които sa записани
+     * @param string       $mode   Режим на записа: replace, ignore
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        // След избор на текущ, другите текущи ги премахваме
+        if ($rec->isDefault == 'yes' && $rec->driverClass) {
+            $query = $mvc->getQuery();
+            
+            $query->where(array("#{$mvc->driverClassField} = '[#1#]'", $rec->{$mvc->driverClassField}));
+            
+            if ($rec->brid) {
+                $query->where(array("#brid = '[#1#]'", $rec->brid));
+                $query->orWhere('#brid IS NULL');
+            } else {
+                $query->where('#brid IS NULL');
+            }
+            $query->orWhere("#brid = ''");
+            
+            if ($rec->ip) {
+                $query->where(array("#ip = '[#1#]'", $rec->ip));
+                $query->orWhere('#ip IS NULL');
+            } else {
+                $query->where('#ip IS NULL');
+            }
+            $query->orWhere("#ip = ''");
+            
+            $query->where(array('#id != [#1#]', $rec->id));
+            
+            $query->where("#isDefault = 'yes'");
+            
+            while ($oRec = $query->fetch()) {
+                $oRec->isDefault = 'no';
+                $mvc->save($oRec, 'isDefault');
+            }
+        }
+    }
+    
+    
+    /**
+     * Необходим метод за подреждането
+     */
+    public static function getSaoItems($rec)
+    {
+        $query = self::getQuery();
+        
+        if ($rec->brid) {
+            $query->where(array("#brid = '[#1#]'", $rec->brid));
+        }
+        
+        if ($rec->ip) {
+            $query->where(array("#ip = '[#1#]'", $rec->ip));
+        }
+        
+        if ($rec->driverClass) {
+            $query->where(array("#driverClass = '[#1#]'", $rec->driverClass));
+        }
+        
+        if ($rec->id) {
+            $query->where(array("#id != '[#1#]'", $rec->id));
+        }
+        
+        $res = array();
+        while ($rRec = $query->fetch()) {
+            $res[$rRec->id] = $rRec;
+        }
+        
+        return $res;
     }
 }

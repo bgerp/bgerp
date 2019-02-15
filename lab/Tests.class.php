@@ -250,6 +250,7 @@ class lab_Tests extends core_Master
     {
         $rec = $form->rec;
         
+        
         if ($rec->foreignId) {
             $firstDocument = doc_Threads::getFirstDocument(doc_Containers::fetch($rec->foreignId)->threadId);
             
@@ -290,10 +291,13 @@ class lab_Tests extends core_Master
     
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
+       
         if ($data->rec->id && $data->rec->state == 'active') {
+            
+           
             $handle = $mvc->getHandle($data->rec->id);
             
-            $msg = 'Лабораторен тест ' . $handle . ' е активиран';
+            $msg = 'Лабораторен тест ' . $handle . ' е активиран и резултатите са достъпни.';
             
             $url = array(
                 'lab_Tests',
@@ -348,7 +352,7 @@ class lab_Tests extends core_Master
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-        // $data->toolbar->removeBtn('btnClose');
+        $data->toolbar->removeBtn('btnClose');
         
         if ($mvc->haveRightFor('compare', $data->rec)) {
             $url = array(
@@ -404,7 +408,6 @@ class lab_Tests extends core_Master
         // Prepare form
         $form->title = "Сравнение на тест|* 'No " . $leftTestId . '. ' . $leftTestName . "' |с друг тест|*";
         
-        // $form->FNC('leftTestId', 'int', 'input=none');
         $form->FNC('rightTestId', 'int', 'caption=Избери тест, mandatory, input');
         
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
@@ -585,6 +588,15 @@ class lab_Tests extends core_Master
     
     
     /**
+     * Реализация  на интерфейсния метод ::getThreadState()
+     */
+    public static function getThreadState($id)
+    {
+        return 'opened';
+    }
+    
+    
+    /**
      * Изпращане на нотификации на споделените потребители
      *
      * @param stdClass $rec
@@ -601,7 +613,7 @@ class lab_Tests extends core_Master
             $rec->id
         );
         
-        
+        $currentUser = core_Users::getCurrent();
         //Нотификация при заявка на тест
         if ($rec->state == 'pending') {
             $labCoverClassName = cls::getClassName(doc_Folders::fetch($rec->folderId)->coverClass);
@@ -611,7 +623,7 @@ class lab_Tests extends core_Master
             
             $text = self::$defaultNotificationText . $handle;
             if ($rec->bringing == 'performer') {
-                $text .= '.  Трябва да вземете мострата от ' . "{$user}";
+                $text .= '.  Трябва да вземете мострата от ' . "{$currentUser}";
             } else {
                 $text .= '.  Мострата ще Ви бъде доставена';
             }
@@ -637,10 +649,12 @@ class lab_Tests extends core_Master
             }
             
             
-            $msg = ' Лабораторен тест '.$handle.' е готов и резултатите са достъпни.';
+            $msg = ' Лабораторен тест '.$handle.' е активиран и резултатите са достъпни.';
             
             
             // На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
+            $currentUser = core_Users::getCurrent();
+            $userArr[$currentUser] = $currentUser;
             foreach ($userArr as $userId) {
                 bgerp_Notifications::add($msg, $url, $userId);
             }

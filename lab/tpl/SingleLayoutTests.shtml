@@ -94,10 +94,16 @@
             </div>
             <!--ET_END providerNote-->
         </div>
+          <div class='half-width fleft' style='width:50%; clear:both; margin-top: 10px;'>
+            <!--ET_BEGIN vendorNote-->
+            <div class='clear_both'><b>|Споделени потребители|*</b></div>
+            <div class='clear_l note'>
+                [#sharedUsers#]
+            </div>
+            <!--ET_END vendorNote-->
+        </div>
         <div style='clear: both;'></div>
         <div style='clear: both;'></div>
-
-
     <table class='signature-table half-width fleft' style='width:50%;'>
         <tr>
             <td class="nowrap" style='width:1%;'>|За получателя|*:  </td>
@@ -105,7 +111,7 @@
         </tr>
         <tr>
             <td></td>
-            <td><span class="sign_names nowrap">/[#createdBy#]/</span></td>
+            <td><span class="sign_names nowrap"></span></td>
         </tr>
     </table>
         <table style='width:50%' class='fright half-width signature-table'>
@@ -115,7 +121,7 @@
             </tr>
             <tr>
                 <td></td>
-                <td><span class="sign_names nowrap"><!--ET_BEGIN activatedBy-->/ [#activatedBy#] /<!--ET_END activatedBy--></span></td>
+                <td><span class="sign_names nowrap"><!--ET_BEGIN activatedBy--><!--ET_END activatedBy--></span></td>
             </tr>
         </table>
     </div>
