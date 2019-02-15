@@ -1843,7 +1843,6 @@ class pos_Receipts extends core_Master
         if(!isset($res['rec']) && empty($res['notFoundError'])) {
             if(type_Int::isInt($string)){
                 $res['rec'] = self::fetch($string);
-                
                 if(!is_object($res['rec'])){
                     $res['notFoundError'] = "|Не е намерена бележка от номер|* '<b>{$string}</b>'!";
                     $res['rec'] = false;
@@ -1857,7 +1856,7 @@ class pos_Receipts extends core_Master
                 $res['rec'] = false;
             } elseif($forRevert === true){
                 if(self::fetchField("#revertId = {$res['rec']->id}")){
-                    $res['notFoundError'] = "|Има създадена бележкам, сторнираща търсената|*!";
+                    $res['notFoundError'] = "|Има вече създадена бележка, сторнираща търсената|*!";
                     $res['rec'] = false;
                 } elseif(self::fetchField("#id = {$res['rec']->id} AND #revertId IS NOT NULL")){
                     $res['notFoundError'] = "|Не може да сторнирате сторнираща бележка|*!";

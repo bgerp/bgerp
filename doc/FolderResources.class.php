@@ -233,7 +233,7 @@ class doc_FolderResources extends core_Manager
         $this->requireRightFor('selectresource');
         expect($folderId = Request::get('folderId', 'int'));
         expect($type = Request::get('type', 'enum(employee,asset)'));
-        expect($folderRec = doc_Folders::fetch($folderId));
+        expect(doc_Folders::fetch($folderId));
         $this->requireRightFor('selectresource', (object) array('folderId' => $folderId, 'type' => $type));
         $this->load('planning_Wrapper');
         
@@ -256,7 +256,7 @@ class doc_FolderResources extends core_Manager
             $classId = planning_Hr::getClassId();
             $typeTitle = 'служителите';
             $form->FLD('select', 'keylist(mvc=crm_Persons,select=name)', 'caption=Служители');
-            $options = crm_Persons::getEmployeesOptions();
+            $options = crm_Persons::getEmployeesOptions(false, true);
             $default = array_keys(planning_Hr::getByFolderId($folderId));
         }
         
