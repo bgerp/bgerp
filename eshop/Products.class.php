@@ -450,9 +450,10 @@ class eshop_Products extends core_Master
             // Детайлите на артикула
             $dQuery = eshop_ProductDetails::getQuery();
             $dQuery->where("#eshopProductId = {$pRec->id}");
+            $count = $dQuery->count();
             
             // Ако има само един артикул
-            if ($dQuery->count() == 1) {
+            if ($count == 1) {
                 $dRec = $dQuery->fetch();
                 $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
                 $packagings = cat_Products::getProductInfo($dRec->productId)->packagings;
@@ -495,6 +496,8 @@ class eshop_Products extends core_Master
                         $pRow->btn = $dRow->btn;
                     }
                 }
+            } elseif($count > 1){
+                $pRow->btn = ht::createBtn($settings->addToCartBtn . "...", self::getUrl($pRec->id), false, false, "title=Избор на артикул,class=productBtn,ef_icon=img/16/cart_go.png");
             }
             
             $commonParams = self::getCommonParams($pRec->id);

@@ -258,7 +258,7 @@ class cat_ListingDetails extends doc_Detail
                 } else {
                     $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($Cover->getClassId(), $Cover->that, $rec->productId, $rec->packagingId, 1);
                     $hint = 'Артикулът няма цена по ценовата политика на контрагента';
-                    $hint2 = 'Цената е според ценовата политика на контрагента';
+                    $hint2 = 'Актуалната цена по политика';
                 }
                 
                 if (!isset($rec->price)) {
@@ -269,10 +269,14 @@ class cat_ListingDetails extends doc_Detail
                         $vat = cat_Products::getVat($rec->productId);
                         $date = null;
                         $rate = currency_CurrencyRates::getRate($date, $listRec->currencyId, null);
-                        
+                        $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
                         $rec->price = deals_Helper::getDisplayPrice($policyInfo->price, $vat, $rate, $listRec->vat);
+                        $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+                        
+                        $rec->price *= $quantityInPack;
                         $row->price = $mvc->getFieldType('price')->toVerbal($rec->price);
-                        $row->price = ht::createHint($row->price, $hint2);
+                        $row->price = "<span style='color:blue'>{$row->price}</span>";
+                        $row->price = ht::createHint($row->price, $hint2, 'notice', false);
                     }
                 }
             }

@@ -228,10 +228,9 @@ class pos_Receipts extends core_Master
         $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         
         if ($fields['-list']) {
-            $row->title = "{$mvc->singleTitle} №{$rec->id}";
-            $row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), null, "ef_icon={$mvc->singleIcon}");
+            $row->title = $mvc->getHyperlink($rec->id, true);
         } elseif ($fields['-single']) {
-            $row->title = "{$mvc->singleTitle} <b>№{$row->id}</b>";
+            $row->title = self::getRecTitle($rec);
             $row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
             $row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), true);
             $row->storeId = store_Stores::getHyperLink(pos_Points::fetchField($rec->pointId, 'storeId'), true);
@@ -260,6 +259,10 @@ class pos_Receipts extends core_Master
                     }
                 }
             }
+        }
+        
+        foreach (array('total', 'paid', 'change') as $fld){
+            $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
         }
         
         $row->RECEIPT_CAPTION = tr('Касова бележка');
@@ -1731,12 +1734,14 @@ class pos_Receipts extends core_Master
         while ($rec = $query->fetch()) {
             $num = substr($rec->id, -1 * $conf->POS_SHOW_RECEIPT_DIGITS);
             $stateClass = ($rec->state == 'draft') ? 'state-draft' : 'state-waiting';
+            $num = (isset($rec->revertId)) ? "<span class='red'>{$num}</span>" : $num;
+            $borderColor = (isset($rec->revertId)) ? "red" : "#a6a8a7";
             
             if (!Mode::isReadOnly()) {
                 if ($this->haveRightFor('terminal', $rec)) {
-                    $num = ht::createLink($num, array($this, 'terminal', $rec->id), false, 'title=Продължаване на бележката');
+                    $num = ht::createLink($num, array($this, 'terminal', $rec->id), false, "title=Довършване на бележката,ef_icon=img/16/cash-register.png");
                 } elseif ($this->haveRightFor('single', $rec)) {
-                    $num = ht::createLink($num, array($this, 'single', $rec->id), false, "title=Към бележка №{$rec->id}");
+                    $num = ht::createLink($num, array($this, 'single', $rec->id), false, "title=Преглед на бележка №{$rec->id},ef_icon=img/16/view.png");
                 }
             }
             
@@ -1745,7 +1750,7 @@ class pos_Receipts extends core_Master
                     $num = ht::createHint($num, 'Бележката е започната, но не е приключена', 'warning', false);
                 }
             }
-            $num = " <span class='open-note {$stateClass}' style='border:1px solid #a6a8a7'>{$num}</span>";
+            $num = " <span class='open-note {$stateClass}' style='border:1px solid {$borderColor}'>{$num}</span>";
             
             $data->rows[$rec->id] = $num;
         }
@@ -1790,6 +1795,10 @@ class pos_Receipts extends core_Master
         $pointIdVerbal = self::getVerbal($rec, 'pointId');
         $title = "{$pointIdVerbal}/{$rec->id}/{$valiorVerbal}";
         
+        if(isset($rec->revertId)){
+            $title = $title . " <span class='stamp'>" . tr('сторно') . "</span>";
+        }
+        
         return $title;
     }
     
@@ -1811,32 +1820,50 @@ class pos_Receipts extends core_Master
             return $this->pos_ReceiptDetails->returnError(null);
         }
         
-        // Ако е разпозната бележка по номера, създава се нова сторнираща бележка
-        if($existingReceiptId = $this->findReceiptByNumber($search)){
-            $newReceiptId = $this->createNew($existingReceiptId);
-            
-            return new Redirect(array($this, 'terminal', $newReceiptId));
-        } else {
-            core_Statuses::newStatus("|Не е намерена бележка от номер|* '<b>{$search}</b>'!", 'error');
+        // Ако не е разпозната бележка, не се прави нищо
+        $search = trim($search);
+        $foundArr = $this->findReceiptByNumber($search, true);
+        if(!is_object($foundArr['rec'])){
+            core_Statuses::newStatus($foundArr['notFoundError'], 'error');
             
             return $this->pos_ReceiptDetails->returnError(null);
         }
+       
+        $newReceiptId = $this->createNew($foundArr['rec']->id);
+            
+        return new Redirect(array($this, 'terminal', $newReceiptId));
     }
     
     
     /**
-     * Намира съществуваща бележка по номер
-     * 
-     * @param string $string
-     * @return int|null
+     * Опит за намиране на ПОС бележка по даден стринг
      */
-    public function findReceiptByNumber_($string)
+    protected function on_AfterFindReceiptByNumber($mvc, &$res, $string, $forRevert = false)
     {
-        if(type_Int::isInt($string)){
-            
-            return self::fetchField($string, 'id');
+        if(!isset($res['rec']) && empty($res['notFoundError'])) {
+            if(type_Int::isInt($string)){
+                $res['rec'] = self::fetch($string);
+                
+                if(!is_object($res['rec'])){
+                    $res['notFoundError'] = "|Не е намерена бележка от номер|* '<b>{$string}</b>'!";
+                    $res['rec'] = false;
+                }
+            }
         }
         
-        return null;
+        if(is_object($res['rec'])){
+            if($res['rec']->pointId != pos_Points::getCurrent()){
+                $res['notFoundError'] = "|Може да бъде сторнира само бележка от същия POS|*!";
+                $res['rec'] = false;
+            } elseif($forRevert === true){
+                if(self::fetchField("#revertId = {$res['rec']->id}")){
+                    $res['notFoundError'] = "|Има създадена бележкам, сторнираща търсената|*!";
+                    $res['rec'] = false;
+                } elseif(self::fetchField("#id = {$res['rec']->id} AND #revertId IS NOT NULL")){
+                    $res['notFoundError'] = "|Не може да сторнирате сторнираща бележка|*!";
+                    $res['rec'] = false;
+                }
+            }
+        }
     }
 }

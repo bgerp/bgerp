@@ -57,6 +57,8 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             }
         }
         
+        $fieldset->FLD('header', 'enum(yes=Да, no=Не)', 'caption=Надпис хедър->Добавяне, mandatory, notNull, removeAndRefreshForm');
+        $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър->Позиция, mandatory, notNull');
         $fieldset->FLD('headerText1', 'varchar(32)', 'caption=Надпис хедър->Текст 1');
         $fieldset->FLD('headerText2', 'varchar(32)', 'caption=Надпис хедър->Текст 2');
         $fieldset->FLD('headerText3', 'varchar(32)', 'caption=Надпис хедър->Текст 3');
@@ -64,7 +66,30 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         $fieldset->FLD('headerText5', 'varchar(32)', 'caption=Надпис хедър->Текст 5');
         $fieldset->FLD('headerText6', 'varchar(32)', 'caption=Надпис хедър->Текст 6');
         $fieldset->FLD('headerText7', 'varchar(32)', 'caption=Надпис хедър->Текст 7');
+        if ($fieldset instanceof core_Form) {
+            $fieldset->input('header');
+            if ($fieldset->rec->header == 'no') {
+                $fieldset->setField('headerText1', 'input=none');
+                $fieldset->setField('headerText2', 'input=none');
+                $fieldset->setField('headerText3', 'input=none');
+                $fieldset->setField('headerText4', 'input=none');
+                $fieldset->setField('headerText5', 'input=none');
+                $fieldset->setField('headerText6', 'input=none');
+                $fieldset->setField('headerText7', 'input=none');
+                $fieldset->setField('headerPos', 'input=none');
+            }
+        }
+        
+        $fieldset->FLD('footer', 'enum(yes=Да, no=Не)', 'caption=Надпис футър->Добавяне, mandatory, notNull, removeAndRefreshForm');
+        $fieldset->FLD('footerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис футър->Позиция, mandatory, notNull');
         $fieldset->FLD('footerText', 'varchar(32)', 'caption=Надпис футър->Текст');
+        if ($fieldset instanceof core_Form) {
+            $fieldset->input('footer');
+            if ($fieldset->rec->footer == 'no') {
+                $fieldset->setField('footerText', 'input=none');
+                $fieldset->setField('footerPos', 'input=none');
+            }
+        }
     }
     
     
@@ -343,6 +368,40 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     
     /**
+     * Връща JS функция, която да провери дали има връзка с устройството
+     * При успех вика `fpOnConnectionSuccess`, а при грешка fpOnConnectionErr
+     *
+     * @param stdClass $pRec - запис от peripheral_Devices
+     *
+     * @return string
+     *
+     * @see peripheral_FiscPrinter
+     */
+    public function getJsIsWorking($pRec)
+    {
+        $jsTpl = new ET('[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                                try {
+                                    [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                    fpSerialNumber();
+                                    fpOnConnectionSuccess();
+                                } catch(ex) {
+                                    fpOnConnectionErr(ex.message);
+                                }
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]');
+        
+        $this->addTplFile($jsTpl);
+        $this->connectToPrinter($jsTpl, $pRec, false);
+        
+        $js = $jsTpl->getContent();
+        
+        // Минифициране на JS
+        $js = minify_Js::process($js);
+        
+        return $js;
+    }
+    
+    
+    /**
      * Помощна функция за добавяне на необходимите JS файлове
      *
      * @param core_ET $tpl
@@ -483,29 +542,40 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             
             // След запис, обновяваме хедър и футъра
             if (Request::get('update')) {
-                $footerText = json_encode((string) $data->rec->footerText);
-                
                 // Нулираме другихте хедъри
                 $headersTextStr = '';
-                for ($i = 1; $i <= 7; $i++) {
-                    $h = headerText . $i;
-                    $ht = json_encode((string) $data->rec->{$h});
-                    $headersTextStr .= "fpProgramHeader({$ht}, {$i});";
+                
+                if ($data->rec->header == 'yes') {
+                    for ($i = 1; $i <= 7; $i++) {
+                        $h = headerText . $i;
+                        $ht = (string) $data->rec->{$h};
+                        $ht = self::formatText($ht, $data->rec->headerPos);
+                        $ht = json_encode($ht);
+                        $headersTextStr .= "fpProgramHeader({$ht}, {$i});";
+                    }
+                }
+                $footerTextStr = '';
+                if ($data->rec->footer == 'yes') {
+                    $ft = (string) $data->rec->footerText;
+                    $ft = self::formatText($ft, $data->rec->footerPos);
+                    $ft = json_encode($ft);
+                    $footerTextStr = "fpProgramFooter({$ft});";
                 }
                 
-                $headerText = "try {
-                                {$headersTextStr}
-                                
-                            } catch(ex) {
-                                render_showToast({timeOut: 800, text: '" . tr('Грешка при програмиране на хедъра на устройството') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
-                            }
-                            
-                            try {
-                                fpProgramFooter({$footerText});
-                            } catch(ex) {
-                                render_showToast({timeOut: 800, text: '" . tr('Грешка при програмиране на футъра на устройството') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
-                            }";
-                $jsTpl->append($headerText, 'OTHER');
+                if ($headersTextStr || $footerTextStr) {
+                    $headerText = "try {
+                                        {$headersTextStr}
+                                    } catch(ex) {
+                                        render_showToast({timeOut: 800, text: '" . tr('Грешка при програмиране на хедъра на устройството') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
+                                    }
+                                    
+                                    try {
+                                        {$footerTextStr}
+                                    } catch(ex) {
+                                        render_showToast({timeOut: 800, text: '" . tr('Грешка при програмиране на футъра на устройството') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
+                                    }";
+                    $jsTpl->append($headerText, 'OTHER');
+                }
             }
             
             $Driver->addTplFile($jsTpl);
@@ -515,6 +585,35 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             
             jquery_Jquery::run($tpl, $jsTpl);
         }
+    }
+    
+    
+    /**
+     * Помощна функция за позициониране на текст - добавя интервали в началото
+     *
+     * @param string $text
+     * @param string $pos
+     * @param int    $maxLen
+     *
+     * @return string
+     */
+    protected static function formatText($text, $pos, $maxLen = 32)
+    {
+        $text = trim($text);
+        
+        if ($pos == 'right') {
+            $l = mb_strlen($text);
+            if ($maxLen > $l) {
+                $text = str_repeat(' ', $maxLen - $l) . $text;
+            }
+        } elseif ($pos == 'center') {
+            $l = mb_strlen($text);
+            if ($maxLen > $l) {
+                $text = str_repeat(' ', (int) (($maxLen - $l) / 2)) . $text;
+            }
+        }
+        
+        return $text;
     }
     
     
