@@ -274,6 +274,9 @@ class planning_ProductionTaskDetails extends core_Detail
             if(!empty($rec->serial)){
                 $rec->serial = plg_Search::normalizeText($rec->serial);
                 $rec->serial = str::removeWhitespaces($rec->serial);
+                if ($rec->productId && ($Driver = cat_Products::getDriver($rec->productId))) {
+                    $rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
+                }
             }
             
             $masterRec = planning_Tasks::fetch($rec->taskId);
