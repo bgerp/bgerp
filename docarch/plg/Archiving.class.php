@@ -21,7 +21,9 @@ class docarch_plg_Archiving extends core_Plugin
      */
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        if (!(core_Packs::isInstalled('docarch'))) {
+        $intfCond = in_array('doc_DocumentIntf',cls::get($mvc)->interfaces);
+        
+        if ((!core_Packs::isInstalled('docarch'))  || !$intfCond) {
             
             return;
         }

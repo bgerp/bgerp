@@ -79,11 +79,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
         
-        // Информация, че справката не е готова
-        $form->info = "<div style='margin:10px;color:red; background-color:yellow; border: dotted 1px red; padding:5px; font-size:1.3em;'>
-                        Тази справка е в тестов режим. Проверявайте резултата преди да го използвате.
-                       </div>";
-        
         if ($rec->unpaid == 'unpaid') {
             unset($rec->fromDate);
             $form->setField('fromDate', 'input=none');
@@ -940,8 +935,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 								
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                 <small><div><!--ET_BEGIN contragent-->|Контрагент|*: <b>[#contragent#]</b><!--ET_END contragent--></div></small>
-                                <small><div><!--ET_BEGIN info-->|ВНИМАНИЕ|*: <b  class= red>[#info#]</b><!--ET_END info--></div></small>
-                                
+                              
                                 <small><div><!--ET_BEGIN typeOfInvoice-->|Фактури|*: <b>[#typeOfInvoice#]</b><!--ET_END typeOfInvoice--></div></small>
                                 <small><div><!--ET_BEGIN unpaid-->|Плащане|*: <b>[#unpaid#]</b><!--ET_END unpaid--></div></small>
                                
@@ -955,42 +949,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 </fieldset><!--ET_END BLOCK-->"
                 )
             );
-
-//         if (isset($data->rec->contragent) || isset($data->rec->crmGroup)) {
-//             $marker = 0;
-//             if (isset($data->rec->crmGroup)) {
-//                 foreach (type_Keylist::toArray($data->rec->crmGroup) as $group) {
-//                     $marker++;
-
-//                     $groupVerb .= (crm_Groups::getTitleById($group));
-
-//                     if ((count((type_Keylist::toArray($data->rec->crmGroup))) - $marker) != 0) {
-//                         $groupVerb .= ', ';
-//                     }
-//                 }
-
-//                 $fieldTpl->append('<b>' . $groupVerb . '</b>', 'crmGroup');
-//             }
-
-//             $marker = 0;
-
-//             if (isset($data->rec->contragent)) {
-//                 foreach (type_Keylist::toArray($data->rec->contragent) as $contragent) {
-//                     $marker++;
-
-//                     $contragentVerb .= (doc_Folders::getTitleById($contragent));
-
-//                     if ((count(type_Keylist::toArray($data->rec->contragent))) - $marker != 0) {
-//                         $contragentVerb .= ', ';
-//                     }
-//                 }
-
-//                 $fieldTpl->append('<b>' . $contragentVerb . '</b>', 'contragent');
-//             }
-//         } else {
-//             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'contragent');
-//         }
-        
+   
         if (isset($data->rec->typeOfInvoice)) {
             $inv = $data->rec->typeOfInvoice == 'out' ? 'ИЗХОДЯЩИ' : 'ВХОДЯЩИ';
             
@@ -999,10 +958,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 'typeOfInvoice'
                 );
         }
-        
-        $data->rec->info = 'СРАВКАТА Е В ТЕСТОВ РЕЖИМ';
-        $fieldTpl->append($data->rec->info, 'info');
-        
         
         if (isset($data->rec->unpaid)) {
             $paid = $data->rec->unpaid == 'unpaid' ? 'НЕПЛАТЕНИ' : 'ВСИЧКИ';

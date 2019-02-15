@@ -423,7 +423,7 @@ class plg_StructureAndOrder extends core_Plugin
         
         if (!count($selArr)) {
             
-            return;
+            return array();
         }
         
         // Подредба на подмножеството с еднакъв родител

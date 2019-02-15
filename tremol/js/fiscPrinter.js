@@ -132,8 +132,6 @@ function fpOpenStornoReceipt(operNum, operPass, isDetailed, isPrintVat, printTyp
 	}
 	
 	if (relatedToRcpDateTime.length > 19) {
-		console.log(relatedToRcpDateTime);
-		console.log(relatedToRcpDateTime.length);
 		throw new Error("Времето на ФБ не може да е над 19 символа");
 	}
 	
@@ -365,6 +363,36 @@ function fpSerialNumber()
 
 
 /**
+ * Връща серийния номер на устройството
+ * 
+ * @return string
+ */
+function fpProgramHeader(text, fPos)
+{
+    try {
+        fp.ProgHeader(fPos, text);
+    } catch(ex) {
+        handleException(ex);
+    }
+};
+
+
+/**
+ * Връща серийния номер на устройството
+ * 
+ * @return string
+ */
+function fpProgramFooter(text)
+{
+    try {
+        fp.ProgFooter(text);
+    } catch(ex) {
+        handleException(ex);
+    }
+};
+
+
+/**
  * Проверява серийния номер на ФП
  * 
  * @param serNumber
@@ -417,12 +445,22 @@ function fpPrintText(text)
 
 
 /**
- * Отпечатва X отчета
+ * Отпечатва X и Z отчета
+ * Дневен отчет с и без нулиране. Може да е детайлен или не.
  */
-function fpXReport()
+function fpDayReport(isZeroing, isDetailed)
 {
     try {
-        fp.PrintDailyReport(Tremol.Enums.OptionZeroing.Without_zeroing);
+    	var zeroing = Tremol.Enums.OptionZeroing.Without_zeroing;
+    	if (isZeroing) {
+    		zeroing = Tremol.Enums.OptionZeroing.Zeroing;
+    	}
+    	
+    	if (isDetailed) {
+    		fp.PrintDetailedDailyReport(zeroing);
+    	} else {
+    		fp.PrintDailyReport(zeroing);
+    	}
     } catch(ex) {
         handleException(ex);
     }
@@ -430,16 +468,129 @@ function fpXReport()
 
 
 /**
- * Отпечатва Z отчета
+ * Отпечатва операторски отчет - дневен с и без нулиране
  */
-function fpZReport()
+function fpOperatorReport(isZeroing, number)
 {
     try {
-        fp.PrintDailyReport(Tremol.Enums.OptionZeroing.Zeroing);
+    	var zeroing = Tremol.Enums.OptionZeroing.Without_zeroing;
+    	if (isZeroing) {
+    		zeroing = Tremol.Enums.OptionZeroing.Zeroing;
+    	}
+    	fp.PrintOperatorReport(zeroing, number);
     } catch(ex) {
         handleException(ex);
     }
 };
+
+
+/**
+ * Отпечатва отчет за съответния период - с и без нулиране
+ */
+function fpPeriodReport(startDate, endDate, isDetailed)
+{
+    try {
+    	if (isDetailed) {
+    		fp.PrintDetailedFMReportByDate(startDate, endDate);
+    	} else {
+    		fp.PrintBriefFMReportByDate(startDate, endDate);
+    	}
+    } catch(ex) {
+        handleException(ex);
+    }
+};
+
+
+/**
+ * Отпечатва/записва КЛЕН отчет за съответния период - с и без нулиране
+ */
+function fpOutputKLEN(outType, startDate, endDate, isDetailed)
+{
+    try {
+    	if (outType == 'pc') {
+    		var detailType = Tremol.Enums.OptionReportFormat.Detailed_EJ;
+    		if (!isDetailed) {
+    			detailType = Tremol.Enums.OptionReportFormat.Brief_EJ;
+    		}
+    		
+    		fp.ReadEJByDate(detailType, startDate, endDate);
+    		
+    		printToPc();
+    	} else {
+    		var reportStorage = Tremol.Enums.OptionReportStorage.Printing;
+    		
+    		if (outType == 'sd') {
+    			reportStorage = Tremol.Enums.OptionReportStorage.USB_storage;
+    		}
+    		
+    		if (outType == 'usb') {
+    			reportStorage = Tremol.Enums.OptionReportStorage.SD_card_storage;
+    		}
+			
+    		fp.PrintOrStoreEJByDate(reportStorage, startDate, endDate);
+    	}
+    } catch(ex) {
+        handleException(ex);
+    }
+};
+
+/**
+ * Отпечатва/записва CSV отчет за съответния период - с и без нулиране
+ */
+function fpOutputCSV(outType, startDate, endDate, csvFormat, flagReceipts, flagReports)
+{
+	try {
+		var outTypeStr = Tremol.Enums.OptionStorageReport.To_PC;
+		
+		if (outType == 'sd') {
+			outTypeStr = Tremol.Enums.OptionStorageReport.To_SD_card;
+		} else if (outType == 'usb') {
+			outTypeStr = Tremol.Enums.OptionStorageReport.To_USB_Flash_Drive;
+		}
+		
+		var csvFormatStr = Tremol.Enums.OptionCSVformat.Yes;
+		if (csvFormat == 'no') {
+			csvFormatStr = Tremol.Enums.OptionCSVformat.No;
+		}
+		
+		fp.ReadEJByDateCustom(outTypeStr, csvFormatStr, flagReceipts, flagReports, startDate, endDate);
+		
+		if (outType == 'pc') {
+			printToPc();
+		}
+		
+	} catch(ex) {
+        handleException(ex);
+    }
+};
+
+
+/**
+ * Помощна фунцкия за отпечатване на резултата в екрана
+ */
+function printToPc()
+{
+	var lRes = fp.RawRead(0, "@");
+	var string = new TextDecoder("windows-1251").decode(lRes);
+	splitStr = string.split("\n");
+	resStr = "";
+	splitStr.forEach(function(l) { 
+	    resStr += "<tr><td>" + l.substring(4, l.length - 2) + "</td></tr>";
+	});
+	resStr = resStr.trim();
+	resStr = resStr.replace(/\t/g, '</td><td>');
+	
+	resStr = "<table>" + resStr + "</table>";
+	
+	openWindow('', 'klenReport', 'width=1000,height=700');
+	var popWin = popupWindows['klenReport'];
+	
+	if (popWin) {
+		popWin.document.documentElement.innerHTML = resStr;
+	} else {
+		$('.tab-page').append(resStr);
+	}
+}
 
 
 /**
@@ -495,7 +646,7 @@ function handleException(sx) {
 		} else if (sx.type === Tremol.ServerErrorType.ServerConnectionError) {
 			msg = "Не може да се осъществи връзка със ZfpLab сървъра";
 		} else if (sx.type === Tremol.ServerErrorType.ServSockConnectionFailed) {
-			msg = "Сървъра не може да се свърже с ФУ";
+			msg = "Сървърът не може да се свърже с ФУ";
 		} else if (sx.type === Tremol.ServerErrorType.ServTCPAuth) {
 			msg = "Грешна TCP парола на устройството";
 		} else if (sx.type === Tremol.ServerErrorType.ServWaitOtherClientCmdProcessingTimeOut) {

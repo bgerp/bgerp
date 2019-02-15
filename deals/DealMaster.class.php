@@ -465,7 +465,7 @@ abstract class deals_DealMaster extends deals_DealBase
                         $data->query->where("#state = 'active' OR #state = 'closed'");
                         break;
                     case 'invoiced':
-                        $data->query->where('#invRound >= #deliveredRound');
+                        $data->query->where('#invRound >= #deliveredRound AND #invRound >= 0.05');
                         $data->query->where("#state = 'active' OR #state = 'closed'");
                         break;
                     case 'notInvoiced':

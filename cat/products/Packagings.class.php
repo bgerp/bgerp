@@ -44,21 +44,27 @@ class cat_products_Packagings extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'packagingId=Наименование, quantity=К-во, eanCode=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити,createdOn=Създаване||Created,createdBy=От||By';
+    public $listFields = 'packagingId=Наименование, quantity=К-во, eanCode=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити,user=Потребител';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created';
+    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created,plg_Modified';
     
     
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo,sales,purchase,packEdit';
+
+
     /**
      * Кой може да качва файлове
      */
     public $canAdd = 'ceo,sales,purchase,packEdit';
     
-    
+
     /**
      * Кой може да качва файлове
      */
@@ -295,13 +301,6 @@ class cat_products_Packagings extends core_Detail
                 $requiredRoles = 'no_one';
             }
         }
-        
-        // Ако потребителя не е създал записа, трябва да има cat или ceo за да го промени
-        if (($action == 'edit' || $action == 'delete') && isset($rec)) {
-            if ($rec->createdBy != $userId && !haveRole('ceo,packEdit', $userId)) {
-                $requiredRoles = 'no_one';
-            }
-        }
     }
     
     
@@ -425,7 +424,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
     {
         foreach (array('sizeWidth', 'sizeHeight', 'sizeDepth') as $sizeFld) {
             if ($rec->{$sizeFld} == 0) {
@@ -454,6 +453,14 @@ class cat_products_Packagings extends core_Detail
         
         if ($rec->isBase == 'yes') {
             $row->packagingId = '<b>' . $row->packagingId . '</b>';
+        }
+
+        if($fields['-list']) {
+            if($rec->modifiedOn) {
+                $row->user = crm_Profiles::createLink($rec->modifiedBy) . ', ' . $mvc->getVerbal($rec, 'modifiedOn');
+            } else {
+                $row->user = crm_Profiles::createLink($rec->createdBy) . ', ' . $mvc->getVerbal($rec, 'createdOn');
+            }
         }
     }
     
