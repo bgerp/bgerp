@@ -107,7 +107,7 @@ class planning_Hr extends core_Master
         
         if (empty($rec->personId)) {
             $form->setField('personId', 'input');
-            $form->setOptions('personId', array('' => '') + crm_Persons::getEmployeesOptions(true, true));
+            $form->setOptions('personId', array('' => '') + crm_Persons::getEmployeesOptions(true, false));
         }
     }
     

@@ -256,7 +256,7 @@ class doc_FolderResources extends core_Manager
             $classId = planning_Hr::getClassId();
             $typeTitle = 'служителите';
             $form->FLD('select', 'keylist(mvc=crm_Persons,select=name)', 'caption=Служители');
-            $options = crm_Persons::getEmployeesOptions(false, true);
+            $options = crm_Persons::getEmployeesOptions();
             $default = array_keys(planning_Hr::getByFolderId($folderId));
         }
         
