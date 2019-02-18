@@ -516,10 +516,12 @@ class planning_ProductionTaskDetails extends core_Detail
             if(!empty($rec->weight)){
                 $transportWeight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
                 
+                
                 // Проверка има ли отклонение спрямо очакваното транспортно тегло
                 if(!empty($transportWeight)){
-                    $deviation = round(($transportWeight - $rec->weight) / ($transportWeight + $rec->weight) / 2, 2);
+                    $deviation = abs(round(($transportWeight - $rec->weight) / ($transportWeight + $rec->weight) / 2, 2));
                     $weightTolerancePercent = planning_Setup::get('ALLOWED_WEIGHT_TOLERANCE');
+                    
                     if($deviation > $weightTolerancePercent){
                         $row->weight = ht::createHint($row->weight, 'Разминаване спрямо очакваното транспортно тегло', 'warning', false);
                     }
@@ -604,29 +606,26 @@ class planning_ProductionTaskDetails extends core_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
+        $data->listFilter->setField('type', 'input=none');
+        unset($data->listFields['modified']);
+        $data->listFilter->class = 'simpleForm';
         if (isset($data->masterMvc)) {
-            unset($data->listFields['modifiedOn']);
-            unset($data->listFields['modifiedBy']);
-            unset($data->listFields['taskId']);
-        } else {
-            $data->listFilter->setField('type', 'input=none');
-            unset($data->listFields['modified']);
-            $data->listFilter->class = 'simpleForm';
-            $data->listFilter->showFields = 'search,fixedAsset,employees';
-            
-            $data->listFilter->setOptions('fixedAsset', array('' => '') + planning_AssetResources::getByFolderId());
-            $data->listFilter->setOptions('employees', array('' => '') + crm_Persons::getEmployeesOptions(false, true));
-            $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-            $data->listFilter->input('');
-            
-            if ($filter = $data->listFilter->rec) {
-                if (isset($filter->fixedAsset)) {
-                    $data->query->where("#fixedAsset = '{$filter->fixedAsset}'");
-                }
-                
-                if (isset($filter->employees)) {
-                    $data->query->where("LOCATE('|{$filter->employees}|', #employees)");
-                }
+            $data->listFilter->FLD('threadId', 'int', 'silent,input=hidden');
+            $data->listFilter->view = 'horizontal';
+            $data->listFilter->input(null, 'silent');
+        }
+        
+        $data->listFilter->showFields = 'search,fixedAsset,employees';
+        $data->listFilter->setOptions('fixedAsset', array('' => '') + planning_AssetResources::getByFolderId());
+        $data->listFilter->setOptions('employees', array('' => '') + crm_Persons::getEmployeesOptions(false, true));
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+        if ($filter = $data->listFilter->rec) {
+            if (isset($filter->fixedAsset)) {
+                $data->query->where("#fixedAsset = '{$filter->fixedAsset}'");
+            }
+            if (isset($filter->employees)) {
+                $data->query->where("LOCATE('|{$filter->employees}|', #employees)");
             }
         }
     }
