@@ -101,7 +101,7 @@ class label_Prints extends core_Master
     /**
      * Кои полета да не се клонират
      */
-    public $fieldsNotToClone = 'searchKeywords,printedCnt,modifiedOn,modifiedBy,state,exState,lastUsedOn,createdOn,createdBy, rows';
+    public $fieldsNotToClone = 'searchKeywords,printedCnt,modifiedOn,modifiedBy,state,exState,lastUsedOn,createdOn,createdBy,rows,printHistory';
     
     
     /**
@@ -165,6 +165,8 @@ class label_Prints extends core_Master
         $this->FLD('params', 'blob(serialize,compress)', 'caption=Параметри, input=none');
         
         $this->FLD('rows', 'blob(1000000,serialize,compress)', 'caption=Кеш, input=none');
+        
+        $this->FLD('printHistory', 'blob(serialize,compress)', 'caption=Отпечатвания, input=none');
         
         $this->setDbIndex('createdOn');
         $this->setDbIndex('templateId');
@@ -840,9 +842,9 @@ class label_Prints extends core_Master
                     }
                 } elseif (cls::haveInterface('doc_DocumentIntf', $clsInst)) {
                     $row->source = $clsInst->getLink($rec->objectId, 0);
-                } elseif($clsInst instanceof core_Master) {
+                } elseif ($clsInst instanceof core_Master) {
                     $row->source = $clsInst->getHyperlink($rec->objectId, true);
-                } elseif(cls::haveInterface('frame2_ReportIntf', $clsInst)){
+                } elseif (cls::haveInterface('frame2_ReportIntf', $clsInst)) {
                     $row->source = frame2_Reports::getLink($rec->objectId, 0);
                 }
             }
@@ -1251,10 +1253,25 @@ class label_Prints extends core_Master
         
         $to = max($to, 1);
         
+        $from = 1;
+        $maxTo = 0;
+        if ($rec->printHistory) {
+            foreach ($rec->printHistory as $pArr) {
+                $maxTo = max($maxTo, $pArr['to']);
+            }
+            
+            if ($maxTo) {
+                ++$maxTo;
+                if ($maxTo < $to) {
+                    $from = $maxTo;
+                }
+            }
+        }
+        
         $form->FNC('from', 'int(min=1)', 'caption=От, input, mandatory, silent');
         $form->FNC('to', "int(max={$to})", 'caption=До, input, mandatory, silent');
         
-        $form->setDefault('from', 1);
+        $form->setDefault('from', $from);
         $form->setDefault('to', $to);
         
         $form->input();
@@ -1264,12 +1281,33 @@ class label_Prints extends core_Master
         }
         
         if ($form->isSubmitted()) {
-            $labelsCnt = label_Media::getCountInPage($rec->mediaId);
-            
-            $allPirntsCnt = $form->rec->to - $form->rec->from + 1;
-            
-            if ($allPirntsCnt % $labelsCnt) {
-                $form->setWarning('from, to', "|Броят на страниците не се дели на|* {$labelsCnt}. |Ще има неизползвана част от медията|*.");
+            if ($rec->printHistory) {
+                $errArr = array();
+                foreach ($rec->printHistory as $pArr) {
+                    if ((($form->rec->from >= $pArr['from']) && ($form->rec->from <= $pArr['to'])) || (($form->rec->from <= $pArr['from']) && ($form->rec->to >= $pArr['from']))) {
+                        $errArr[] = $pArr;
+                    }
+                }
+                
+                if (!empty($errArr)) {
+                    $warningStr = 'Вече има отпечатвания в този диапазон. Ще има дублирани етикети.|* |Отпечатано|*: ';
+                    
+                    $isFirst = true;
+                    foreach ($errArr as $pArr) {
+                        if (!$isFirst) {
+                            $warningStr .= ', ';
+                        }
+                        $warningStr .= $pArr['from'] . '-' . $pArr['to'];
+                        $isFirst = false;
+                    }
+                    $form->setWarning('_range, from, to', $warningStr, false);
+                }
+                
+                $labelsCnt = label_Media::getCountInPage($rec->mediaId);
+                $allPirntsCnt = $form->rec->to - $form->rec->from + 1;
+                if ($allPirntsCnt % $labelsCnt) {
+                    $form->setWarning('_notUsed, from, to', "|Броят на страниците не се дели на|* {$labelsCnt}. |Ще има неизползвана част от медията|*.", false);
+                }
             }
         }
         
@@ -1315,7 +1353,9 @@ class label_Prints extends core_Master
         // Обновяваме броя на отпечатванията и за текущия отпечатък
         $rec->printedCnt += $pData->allCnt;
         
-        $this->save($rec, 'printedCnt');
+        $rec->printHistory[] = array('from' => $form->rec->from, 'to' => $form->rec->to, 'printedBy' => core_Users::getCurrent(), 'printedOn' => dt::now());
+        
+        $this->save($rec, 'printedCnt, printHistory');
         
         $this->logRead('Отпечатване', $rec->id);
         
@@ -1329,10 +1369,10 @@ class label_Prints extends core_Master
      * @param string $str
      *
      * @return array
-     * ->title - заглавие на резултата
-     * ->url - линк за хипервръзка
-     * ->comment - html допълнителна информация
-     * ->priority - приоритет
+     *               ->title - заглавие на резултата
+     *               ->url - линк за хипервръзка
+     *               ->comment - html допълнителна информация
+     *               ->priority - приоритет
      */
     public function searchByCode($str)
     {
@@ -1345,8 +1385,10 @@ class label_Prints extends core_Master
         $counterItemsQuery = label_CounterItems::getQuery();
         $counterItemsQuery->where(array("#number = '[#1#]'", $str));
         
-        while($cRec = $counterItemsQuery->fetch()) {
-            if (!$cRec->printId) continue;
+        while ($cRec = $counterItemsQuery->fetch()) {
+            if (!$cRec->printId) {
+                continue;
+            }
             
             $pRec = $this->fetch($cRec->printId);
             
@@ -1361,7 +1403,7 @@ class label_Prints extends core_Master
             $res->priority = 1;
             if ($pRec->state == 'active') {
                 $res->priority = 2;
-            } else if ($pRec->state == 'rejected') {
+            } elseif ($pRec->state == 'rejected') {
                 $res->priority = 0;
             }
             

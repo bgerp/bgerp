@@ -494,10 +494,8 @@ class pos_Receipts extends core_Master
         
         // Може ли да бъде направено плащане по бележката
         if ($action == 'pay' && isset($rec)) {
-            if(!isset($rec->revertId)){
-                if (!$rec->total || ($rec->total && $rec->paid >= $rec->total)) {
-                    $res = 'no_one';
-                }
+            if (!$rec->total || ($rec->total && abs($rec->paid) >= abs($rec->total))) {
+                $res = 'no_one';
             }
         }
         
@@ -1116,7 +1114,7 @@ class pos_Receipts extends core_Master
             $payUrl = toUrl(array('pos_ReceiptDetails', 'makePayment'), 'local');
         }
         
-        $value = round($rec->total - $rec->paid, 2);
+        $value = round(abs($rec->total) - abs($rec->paid), 2);
         $value = ($value > 0) ? $value : null;
         $block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;', 'value' => $value, 'title' => 'Въведи платена сума')) . '<br />', 'INPUT_PAYMENT');
         

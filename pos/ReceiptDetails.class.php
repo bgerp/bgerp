@@ -372,31 +372,6 @@ class pos_ReceiptDetails extends core_Detail
             return $this->returnError($recId);
         }
         
-        $checkedPayments = array();
-        if(!empty($receipt->revertId)){
-            $rQuery = pos_ReceiptDetails::getQuery();
-            $rQuery->where("#receiptId = {$receipt->revertId}");
-            $rQuery->where("#action LIKE '%payment%'");
-            while($rRec = $rQuery->fetch()){
-                list(,$paymentId) = explode('|', $rRec->action);
-                $checkedPayments[$paymentId] += $rRec->amount;
-            }
-            
-            if(!array_key_exists($type, $checkedPayments)){
-                core_Statuses::newStatus('|В оригиналната бележка, няма такова плащане|*!', 'error');
-                
-                return $this->returnError($recId);
-            }
-            
-            $amount *= -1;
-            
-            if($checkedPayments[$type] + $amount < 0){
-                core_Statuses::newStatus('|Не може да се върне повече отколкото е платено|*!', 'error');
-                
-                return $this->returnError($recId);
-            }
-        }
-        
         $diff = abs($receipt->paid - $receipt->total);
         
         $paidAmount = $amount;
