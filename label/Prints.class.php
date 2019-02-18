@@ -1260,10 +1260,11 @@ class label_Prints extends core_Master
                 $maxTo = max($maxTo, $pArr['to']);
             }
             
-            ++$maxTo;
-            
-            if ($maxTo && $maxTo < $to) {
-                $from = $maxTo;
+            if ($maxTo) {
+                ++$maxTo;
+                if ($maxTo < $to) {
+                    $from = $maxTo;
+                }
             }
         }
         
