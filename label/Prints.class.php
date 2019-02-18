@@ -842,9 +842,9 @@ class label_Prints extends core_Master
                     }
                 } elseif (cls::haveInterface('doc_DocumentIntf', $clsInst)) {
                     $row->source = $clsInst->getLink($rec->objectId, 0);
-                } elseif($clsInst instanceof core_Master) {
+                } elseif ($clsInst instanceof core_Master) {
                     $row->source = $clsInst->getHyperlink($rec->objectId, true);
-                } elseif(cls::haveInterface('frame2_ReportIntf', $clsInst)){
+                } elseif (cls::haveInterface('frame2_ReportIntf', $clsInst)) {
                     $row->source = frame2_Reports::getLink($rec->objectId, 0);
                 }
             }
@@ -1276,12 +1276,25 @@ class label_Prints extends core_Master
         }
         
         if ($form->isSubmitted() && $rec->printHistory) {
-            foreach ($rec->printHistory as $pArr) {  
+            $errArr = array();
+            foreach ($rec->printHistory as $pArr) {
                 if ((($form->rec->from >= $pArr['from']) && ($form->rec->from <= $pArr['to'])) || (($form->rec->from <= $pArr['from']) && ($form->rec->to >= $pArr['from']))) {
-                    $form->setWarning('from, to', "Вече има отпечатвания в този диапазон. Ще има дублирани етикети.|* |Отпечатано от| " . $pArr['from'] . " |до|* " . $pArr['to']);
-                    
-                    break;
+                    $errArr[] = $pArr;
                 }
+            }
+            
+            if (!empty($errArr)) {
+                $warningStr = 'Вече има отпечатвания в този диапазон. Ще има дублирани етикети.|* |Отпечатано|*: ';
+                
+                $isFirst = true;
+                foreach ($errArr as $pArr) {
+                    if (!$isFirst) {
+                        $warningStr .= ', ';
+                    }
+                    $warningStr .= $pArr['from'] . '-' . $pArr['to'];
+                    $isFirst = false;
+                }
+                $form->setWarning('from, to', $warningStr);
             }
         }
         
@@ -1343,10 +1356,10 @@ class label_Prints extends core_Master
      * @param string $str
      *
      * @return array
-     * ->title - заглавие на резултата
-     * ->url - линк за хипервръзка
-     * ->comment - html допълнителна информация
-     * ->priority - приоритет
+     *               ->title - заглавие на резултата
+     *               ->url - линк за хипервръзка
+     *               ->comment - html допълнителна информация
+     *               ->priority - приоритет
      */
     public function searchByCode($str)
     {
@@ -1359,8 +1372,10 @@ class label_Prints extends core_Master
         $counterItemsQuery = label_CounterItems::getQuery();
         $counterItemsQuery->where(array("#number = '[#1#]'", $str));
         
-        while($cRec = $counterItemsQuery->fetch()) {
-            if (!$cRec->printId) continue;
+        while ($cRec = $counterItemsQuery->fetch()) {
+            if (!$cRec->printId) {
+                continue;
+            }
             
             $pRec = $this->fetch($cRec->printId);
             
@@ -1375,7 +1390,7 @@ class label_Prints extends core_Master
             $res->priority = 1;
             if ($pRec->state == 'active') {
                 $res->priority = 2;
-            } else if ($pRec->state == 'rejected') {
+            } elseif ($pRec->state == 'rejected') {
                 $res->priority = 0;
             }
             
