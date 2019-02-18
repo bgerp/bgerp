@@ -166,6 +166,8 @@ class label_Prints extends core_Master
         
         $this->FLD('rows', 'blob(1000000,serialize,compress)', 'caption=Кеш, input=none');
         
+        $this->FLD('printHistory', 'blob(serialize,compress)', 'caption=Отпечатвания, input=none');
+        
         $this->setDbIndex('createdOn');
         $this->setDbIndex('templateId');
     }
@@ -1273,6 +1275,16 @@ class label_Prints extends core_Master
             }
         }
         
+        if ($form->isSubmitted() && $rec->printHistory) {
+            foreach ($rec->printHistory as $pArr) {  
+                if ((($form->rec->from >= $pArr['from']) && ($form->rec->from <= $pArr['to'])) || (($form->rec->from <= $pArr['from']) && ($form->rec->to >= $pArr['from']))) {
+                    $form->setWarning('from, to', "Вече има отпечатвания в този диапазон. Ще има дублирани етикети.|* |Отпечатано от| " . $pArr['from'] . " |до|* " . $pArr['to']);
+                    
+                    break;
+                }
+            }
+        }
+        
         // Ако не са зададени страниците, показваме форма за избора им
         if (($to > 1) && ($form->gotErrors() || !Request::get('from') || !Request::get('to'))) {
             $retUrl = getRetUrl();
@@ -1315,7 +1327,9 @@ class label_Prints extends core_Master
         // Обновяваме броя на отпечатванията и за текущия отпечатък
         $rec->printedCnt += $pData->allCnt;
         
-        $this->save($rec, 'printedCnt');
+        $rec->printHistory[] = array('from' => $form->rec->from, 'to' => $form->rec->to, 'printedBy' => core_Users::getCurrent(), 'printedOn' => dt::now());
+        
+        $this->save($rec, 'printedCnt, printHistory');
         
         $this->logRead('Отпечатване', $rec->id);
         
