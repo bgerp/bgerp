@@ -606,6 +606,8 @@ class planning_ProductionTaskDetails extends core_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
+        if(Mode::is('getLinkedFiles')) return;
+        
         $data->listFilter->setField('type', 'input=none');
         unset($data->listFields['modified']);
         $data->listFilter->class = 'simpleForm';
