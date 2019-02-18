@@ -10,19 +10,13 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 class planning_ProductionTaskDetails extends core_Detail
 {
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'planning_drivers_ProductionTaskDetails';
-    
-    
     /**
      * Заглавие
      */
@@ -317,6 +311,7 @@ class planning_ProductionTaskDetails extends core_Detail
             if (!$form->gotErrors()) {
                 $rec->quantity = (empty($rec->quantity)) ? 1 : $rec->quantity;
                 
+                $limit = '';
                 if (isset($rec->productId) && $rec->type !== 'production') {
                     if (!$mvc->checkLimit($rec, $limit)) {
                         $limit = core_Type::getByName('double(smartRound)')->toVerbal($limit);
@@ -390,6 +385,7 @@ class planning_ProductionTaskDetails extends core_Detail
             }
         }
         
+        $error = '';
         if ($res['productId'] != $productId) {
             $res['error'] = 'Серийния номер е към друг артикул|*: <b>' . cat_Products::getHyperlink($res['productId'], true) . '</b>';
         } elseif (!$Driver->checkSerial($productId, $serial, $error)) {
@@ -515,6 +511,20 @@ class planning_ProductionTaskDetails extends core_Detail
                     $row->quantity = ht::createHint($row->quantity, $hint, 'warning', false, 'width=14px;height=14px');
                 }
             }
+            
+            
+            if(!empty($rec->weight)){
+                $transportWeight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
+                
+                // Проверка има ли отклонение спрямо очакваното транспортно тегло
+                if(!empty($transportWeight)){
+                    $deviation = round(($transportWeight - $rec->weight) / ($transportWeight + $rec->weight) / 2, 2);
+                    $weightTolerancePercent = planning_Setup::get('ALLOWED_WEIGHT_TOLERANCE');
+                    if($deviation > $weightTolerancePercent){
+                        $row->weight = ht::createHint($row->weight, 'Разминаване спрямо очакваното транспортно тегло', 'warning', false);
+                    }
+                }
+            }
         }
     }
     
@@ -522,7 +532,7 @@ class planning_ProductionTaskDetails extends core_Detail
     /**
      * Показва вербалното име на служителите
      *
-     * @param text $employees - кейлист от служители
+     * @param string $employees - кейлист от служители
      *
      * @return string $verbalEmployees
      */
@@ -677,7 +687,7 @@ class planning_ProductionTaskDetails extends core_Detail
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param datetime $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
      *
      * @return array $result  - масив с обекти
      *
@@ -738,7 +748,7 @@ class planning_ProductionTaskDetails extends core_Detail
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
      *
-     * @param date $date
+     * @param datetime $date
      *
      * @return array $result
      */
@@ -793,6 +803,7 @@ class planning_ProductionTaskDetails extends core_Detail
     {
         $rec = $mvc->fetchRec($id);
         
+        $limit = '';
         if (!$mvc->checkLimit($rec, $limit)) {
             $limit = core_Type::getByName('double(smartRound)')->toVerbal($limit);
             core_Statuses::newStatus("Не може да се възстанови, защото ще се надвиши максималното количество от|*: <b>{$limit}</b>", 'error');
