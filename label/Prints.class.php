@@ -101,7 +101,7 @@ class label_Prints extends core_Master
     /**
      * Кои полета да не се клонират
      */
-    public $fieldsNotToClone = 'searchKeywords,printedCnt,modifiedOn,modifiedBy,state,exState,lastUsedOn,createdOn,createdBy, rows';
+    public $fieldsNotToClone = 'searchKeywords,printedCnt,modifiedOn,modifiedBy,state,exState,lastUsedOn,createdOn,createdBy,rows,printHistory';
     
     
     /**
@@ -1253,10 +1253,24 @@ class label_Prints extends core_Master
         
         $to = max($to, 1);
         
+        $from = 1;
+        $maxTo = 0;
+        if ($rec->printHistory) {
+            foreach ($rec->printHistory as $pArr) {
+                $maxTo = max($maxTo, $pArr['to']);
+            }
+            
+            ++$maxTo;
+            
+            if ($maxTo && $maxTo < $to) {
+                $from = $maxTo;
+            }
+        }
+        
         $form->FNC('from', 'int(min=1)', 'caption=От, input, mandatory, silent');
         $form->FNC('to', "int(max={$to})", 'caption=До, input, mandatory, silent');
         
-        $form->setDefault('from', 1);
+        $form->setDefault('from', $from);
         $form->setDefault('to', $to);
         
         $form->input();
