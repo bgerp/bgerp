@@ -46,4 +46,18 @@ class peripheral_FiscPrinter
     {
         return $this->class->getJsIsWorking($pRec);
     }
+    
+    
+    /**
+     * Връща цената с ддс и приспадната отстъпка, подходяща за касовия апарат
+     * 
+     * @param double $priceWithoutVat
+     * @param double $vat
+     * @param double|null $discountPercent
+     * @return double
+     */
+    public function getDisplayPrice($priceWithoutVat, $vat, $discountPercent)
+    {
+        return $this->class->getDisplayPrice($priceWithoutVat, $vat, $discountPercent);
+    }
 }

@@ -927,4 +927,25 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         
         return $tpl;
     }
+    
+    
+    /**
+     * Връща цената с ддс и приспадната отстъпка, подходяща за касовия апарат
+     *
+     * @param double $priceWithoutVat
+     * @param double $vat
+     * @param double|null $discountPercent
+     * @return double
+     */
+    public function getDisplayPrice($priceWithoutVat, $vat, $discountPercent)
+    {
+        $displayPrice = $priceWithoutVat * (1 + $vat);
+        
+        if(!empty($discountPercent)){
+            $discountedPrice = round($displayPrice * $discountPercent, 2);
+            $displayPrice = $displayPrice - $discountedPrice;
+        }
+        
+        return $displayPrice;
+    }
 }
