@@ -524,10 +524,9 @@ class pos_ReceiptDetails extends core_Detail
         $productInfo = cat_Products::getProductInfo($rec->productId);
         $perPack = ($productInfo->packagings[$rec->value]) ? $productInfo->packagings[$rec->value]->quantity : 1;
         
-        $rec->price = $rec->price * (1 + $rec->param) * (1 - $rec->discountPercent);
-        $rec->price = round($rec->price, 2);
-        $row->price = $Double->toVerbal($rec->price);
-        $row->amount = $Double->toVerbal($rec->price * $rec->quantity);
+        $price = $this->Master->getDisplayPrice($rec->price, $rec->param, $rec->discountPercent);
+        $row->price = $Double->toVerbal($price);
+        $row->amount = $Double->toVerbal($price * $rec->quantity);
         if ($rec->discountPercent < 0) {
             $row->discountPercent = '+' . trim($row->discountPercent, '-');
         }
