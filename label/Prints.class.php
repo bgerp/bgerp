@@ -1280,36 +1280,34 @@ class label_Prints extends core_Master
             $form->setError('from, to', '"От" трябва да е по-малко от "До"');
         }
         
-        if ($form->isSubmitted() && $rec->printHistory) {
-            $errArr = array();
-            foreach ($rec->printHistory as $pArr) {
-                if ((($form->rec->from >= $pArr['from']) && ($form->rec->from <= $pArr['to'])) || (($form->rec->from <= $pArr['from']) && ($form->rec->to >= $pArr['from']))) {
-                    $errArr[] = $pArr;
-                }
-            }
-            
-            if (!empty($errArr)) {
-                $warningStr = 'Вече има отпечатвания в този диапазон. Ще има дублирани етикети.|* |Отпечатано|*: ';
-                
-                $isFirst = true;
-                foreach ($errArr as $pArr) {
-                    if (!$isFirst) {
-                        $warningStr .= ', ';
-                    }
-                    $warningStr .= $pArr['from'] . '-' . $pArr['to'];
-                    $isFirst = false;
-                }
-                $form->setWarning('_range, from, to', $warningStr, false);
-            }
-        }
-        
         if ($form->isSubmitted()) {
-            $labelsCnt = label_Media::getCountInPage($rec->mediaId);
-            
-            $allPirntsCnt = $form->rec->to - $form->rec->from + 1;
-            
-            if ($allPirntsCnt % $labelsCnt) {
-                $form->setWarning('_notUsed, from, to', "|Броят на страниците не се дели на|* {$labelsCnt}. |Ще има неизползвана част от медията|*.", false);
+            if ($rec->printHistory) {
+                $errArr = array();
+                foreach ($rec->printHistory as $pArr) {
+                    if ((($form->rec->from >= $pArr['from']) && ($form->rec->from <= $pArr['to'])) || (($form->rec->from <= $pArr['from']) && ($form->rec->to >= $pArr['from']))) {
+                        $errArr[] = $pArr;
+                    }
+                }
+                
+                if (!empty($errArr)) {
+                    $warningStr = 'Вече има отпечатвания в този диапазон. Ще има дублирани етикети.|* |Отпечатано|*: ';
+                    
+                    $isFirst = true;
+                    foreach ($errArr as $pArr) {
+                        if (!$isFirst) {
+                            $warningStr .= ', ';
+                        }
+                        $warningStr .= $pArr['from'] . '-' . $pArr['to'];
+                        $isFirst = false;
+                    }
+                    $form->setWarning('_range, from, to', $warningStr, false);
+                }
+                
+                $labelsCnt = label_Media::getCountInPage($rec->mediaId);
+                $allPirntsCnt = $form->rec->to - $form->rec->from + 1;
+                if ($allPirntsCnt % $labelsCnt) {
+                    $form->setWarning('_notUsed, from, to', "|Броят на страниците не се дели на|* {$labelsCnt}. |Ще има неизползвана част от медията|*.", false);
+                }
             }
         }
         
