@@ -1280,16 +1280,6 @@ class label_Prints extends core_Master
             $form->setError('from, to', '"От" трябва да е по-малко от "До"');
         }
         
-        if ($form->isSubmitted()) {
-            $labelsCnt = label_Media::getCountInPage($rec->mediaId);
-            
-            $allPirntsCnt = $form->rec->to - $form->rec->from + 1;
-            
-            if ($allPirntsCnt % $labelsCnt) {
-                $form->setWarning('from, to', "|Броят на страниците не се дели на|* {$labelsCnt}. |Ще има неизползвана част от медията|*.");
-            }
-        }
-        
         if ($form->isSubmitted() && $rec->printHistory) {
             $errArr = array();
             foreach ($rec->printHistory as $pArr) {
@@ -1309,7 +1299,17 @@ class label_Prints extends core_Master
                     $warningStr .= $pArr['from'] . '-' . $pArr['to'];
                     $isFirst = false;
                 }
-                $form->setWarning('from, to', $warningStr);
+                $form->setWarning('_range, from, to', $warningStr, false);
+            }
+        }
+        
+        if ($form->isSubmitted()) {
+            $labelsCnt = label_Media::getCountInPage($rec->mediaId);
+            
+            $allPirntsCnt = $form->rec->to - $form->rec->from + 1;
+            
+            if ($allPirntsCnt % $labelsCnt) {
+                $form->setWarning('_notUsed, from, to', "|Броят на страниците не се дели на|* {$labelsCnt}. |Ще има неизползвана част от медията|*.", false);
             }
         }
         
