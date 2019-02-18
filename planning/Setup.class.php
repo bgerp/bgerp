@@ -14,6 +14,12 @@ defIfNot('PLANNING_TASK_LABEL_PREVIEW_WIDTH', 90);
 
 
 /**
+ * Допустим толеранс на тегллото при ПО
+ */
+defIfNot('PLANNING_ALLOWED_WEIGHT_TOLERANCE', 0.05);
+
+
+/**
  * Височина на превюто на артикула в етикета
  */
 defIfNot('PLANNING_TASK_LABEL_PREVIEW_HEIGHT', 170);
@@ -92,6 +98,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_CONSUMPTION_USE_AS_RESOURCE' => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
         'PLANNING_PRODUCTION_NOTE_REJECTION' => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
         'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределен център на дейност->Име'),
+        'PLANNING_ALLOWED_WEIGHT_TOLERANCE' => array('percent', 'caption=Допустим толеранс на теглото в ПО->Стойност'),
     );
     
     
