@@ -2932,8 +2932,8 @@ class crm_Persons extends core_Master
     /**
      * Лицата от група 'Служители'
      *
-     * @param bool $withAccess   - да се филтрира ли по права за редакция или не
-     * @param bool $showCodes - да имат ли кодове или не
+     * @param bool $withAccess - да се филтрира ли по права за редакция или не
+     * @param bool $showCodes  - да имат ли кодове или не
      *
      * @return array $options        - опции
      */
@@ -2946,7 +2946,7 @@ class crm_Persons extends core_Master
         $query->like('groupList', "|{$emplGroupId}|");
         
         // Ако е указано, само тези които нямат кодове в производствените ресурси
-        if ($withoutCodes === true) {
+        if ($showCodes === true) {
             $hrQuery = planning_Hr::getQuery();
             $hrQuery->show('personId');
             $exceptIds = arr::extractValuesFromArray($hrQuery->fetchAll(), 'personId');
@@ -2958,8 +2958,8 @@ class crm_Persons extends core_Master
                 continue;
             }
             $options[$rec->id] = self::getVerbal($rec, 'name');
-            if($showCodes === true){
-                $options[$rec->id] .= " ($rec->id)";
+            if ($showCodes === true) {
+                $options[$rec->id] .= " ({$rec->id})";
             }
         }
         
