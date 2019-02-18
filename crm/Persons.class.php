@@ -2933,7 +2933,7 @@ class crm_Persons extends core_Master
      * Лицата от група 'Служители'
      *
      * @param bool $withAccess - да се филтрира ли по права за редакция или не
-     * @param bool $withoutHrCodes  - дали да имат кодове като човешки ресурси или не
+     * @param bool|false $hrCode  - null за всички, bool за дали да са с кодове като човешки ресурси или не 
      *
      * @return array $options        - опции
      */
