@@ -608,6 +608,9 @@ class planning_ProductionTaskDetails extends core_Detail
     {
         if(Mode::is('getLinkedFiles')) return;
         
+        $data->query->orWhere("#state = 'rejected'");
+        $data->query->orderBy('createdOn', 'DESC');
+        
         $data->listFilter->setField('type', 'input=none');
         unset($data->listFields['modified']);
         $data->listFilter->class = 'simpleForm';
@@ -630,16 +633,6 @@ class planning_ProductionTaskDetails extends core_Detail
                 $data->query->where("LOCATE('|{$filter->employees}|', #employees)");
             }
         }
-    }
-    
-    
-    /**
-     * Преди извличане на записите от БД
-     */
-    protected static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $data->query->orWhere("#state = 'rejected'");
-        $data->query->orderBy('createdOn', 'DESC');
     }
     
     
