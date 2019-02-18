@@ -632,10 +632,14 @@ abstract class deals_InvoiceMaster extends core_Master
         expect($firstDocument = doc_Threads::getFirstDocument($form->rec->threadId), $form->rec);
         $coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
         $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
-       
-        $mvc->pushTemplateLg($form->rec->template);
+        
+        if ($form->rec->template) {
+            $mvc->pushTemplateLg($form->rec->template);
+        }
         $form->setDefault('contragentName', $coverClass::getVerbal($coverId, 'name'));
-        core_Lg::pop();
+        if ($form->rec->template) {
+            core_Lg::pop();
+        }
         
         if (!$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
             $className = doc_Folders::fetchCoverClassName($form->rec->folderId);
@@ -744,7 +748,7 @@ abstract class deals_InvoiceMaster extends core_Master
             if (strlen($rec->contragentVatNo) && !strlen($rec->uicNo) && $rec->contragentClassId == crm_Companies::getClassId()) {
                 $rec->uicNo = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
             } elseif (!strlen($rec->contragentVatNo) && !strlen($rec->uicNo)) {
-                if($rec->contragentClassId != crm_Persons::getClassId()){
+                if ($rec->contragentClassId != crm_Persons::getClassId()) {
                     $form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
                 } else {
                     $form->setWarning('contragentVatNo,uicNo', 'Сигурни ли сте, че не трябва да въведете поне един от номерата|*?');
@@ -760,10 +764,10 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             
             // Проверка дали националния номер е валиден за държавата
-            if($rec->contragentClassId == crm_Companies::getClassId() && !empty($rec->uicNo)){
+            if ($rec->contragentClassId == crm_Companies::getClassId() && !empty($rec->uicNo)) {
                 crm_Companies::checkUicId($rec->uicNo, $rec->contragentCountryId, $msg1, $isError);
-                if(!empty($msg)){
-                    if($isError === true){
+                if (!empty($msg)) {
+                    if ($isError === true) {
                         $form->setError('uicNo', $msg1);
                     } else {
                         $form->setWarning('uicNo', $msg1);
@@ -1009,7 +1013,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $row->username = core_Lg::transliterate($row->username);
             
             // От потребителя се прави уникален код
-            if(!empty($issuerId)){
+            if (!empty($issuerId)) {
                 $row->userCode = abs(crc32("{$row->username}|{$issuerId}"));
                 $row->userCode = substr($row->userCode, 0, 6);
             }
@@ -1075,8 +1079,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             
             if (!empty($row->paymentType)) {
-                
-                if($rec->paymentType == 'postal'){
+                if ($rec->paymentType == 'postal') {
                     $arr = array('cash' => 'в брой', 'bank' => 'по банков път', 'card' => 'с карта', 'factoring' => 'факторинг', 'intercept' => 'с прихващане');
                     $row->paymentType = tr('Пощенски паричен превод');
                 } else {
