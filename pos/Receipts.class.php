@@ -266,7 +266,10 @@ class pos_Receipts extends core_Master
         }
         
         $row->RECEIPT_CAPTION = tr('Касова бележка');
+        $row->PAID_CAPTION = tr('Платено');
+        
         if(isset($rec->revertId)){
+            $row->PAID_CAPTION = tr('Върнато');
             $row->REVERT_CLASS = 'is-reverted';
             $row->revertId = pos_Receipts::getHyperlink($rec->revertId, true);
             if(isset($fields['-terminal'])){
@@ -274,7 +277,7 @@ class pos_Receipts extends core_Master
                 $row->loadUrl = ht::createLink('', array('pos_ReceiptDetails', 'load', "receiptId" => $rec->id, 'from' => $rec->revertId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Зареждане на всички данни от бележката, class=load-btn');
             }
         }
-        
+        //bp($row->PAID_CAPTION);
         // Слагаме бутон за оттегляне ако имаме права
         if (!Mode::is('printing')) {
             if ($mvc->haveRightFor('reject', $rec)) {

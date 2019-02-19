@@ -379,11 +379,15 @@ class pos_ReceiptDetails extends core_Detail
             $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receipt->valior);
             
             // Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
-            if (!cond_Payments::returnsChange($type) && (string) $paidAmount > (string) $diff) {
+            if (!cond_Payments::returnsChange($type) && (string) abs($paidAmount) > (string) $diff) {
                 core_Statuses::newStatus('|Платежния метод не позволява да се плати по-голяма сума от общата|*!', 'error');
                 
                 return $this->returnError($recId);
             }
+        }
+        
+        if($receipt->revertId){
+            $amount *= -1;
         }
         
         // Подготвяме записа на плащането
@@ -395,11 +399,11 @@ class pos_ReceiptDetails extends core_Detail
         $paidAmount = $rec->amount;
         if($type != -1){
             $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receipt->valior);
-        } 
+        }
         
         // Отбелязваме, че на това плащане ще има ресто
         $paid = $receipt->paid + $paidAmount;
-        if (($paid) > $receipt->total) {
+        if (abs($paid) > abs($receipt->total)) {
             $rec->value = 'change';
         }
         
