@@ -411,7 +411,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * @param stdClass $pRec
      * @param int      $operNum
      * @param string   $operPass
-     * @param float    $amount
+     * @param float    $amount   - ако е минус - изкрва пари, а с плюс - вкарва
      * @param string   $text
      *
      * @return string
