@@ -106,13 +106,13 @@ class peripheral_Devices extends embed_Manager
      * @param string      $intfName
      * @param null|string $brid
      * @param null|string $ip
-     * @param null|int    $limit
+     * @param array       $checkFieldArr
      *
      * @return false|stdClass
      */
-    public static function getDevice($intfName, $brid = null, $ip = null, $limit = null)
+    public static function getDevice($intfName, $brid = null, $ip = null, $checkFieldArr = array())
     {
-        $deviceArr = self::getDevices($intfName, $brid, $ip, 1);
+        $deviceArr = self::getDevices($intfName, $brid, $ip, $checkFieldArr, 1);
         
         $dRec = false;
         
@@ -130,15 +130,16 @@ class peripheral_Devices extends embed_Manager
      * @param string      $intfName
      * @param null|string $brid
      * @param null|string $ip
+     * @param array       $checkFieldArr
      * @param null|int    $limit
      *
      * @return array
      */
-    public static function getDevices($intfName, $brid = null, $ip = null, $limit = null)
+    public static function getDevices($intfName, $brid = null, $ip = null, $checkFieldArr = array(), $limit = null)
     {
         static $cArr = array();
         
-        $hash = md5($intfName . '|' . $brid . '|' . $ip . '|' . $limit);
+        $hash = md5($intfName . '|' . $brid . '|' . $ip . '|' . $limit . '|' . serialize($checkFieldArr));
         
         if (isset($cArr[$hash])) {
             
@@ -160,33 +161,80 @@ class peripheral_Devices extends embed_Manager
         $query = self::getQuery();
         $query->in($me->driverClassField, $clsArr);
         
-        if ($brid) {
-            $query->where(array("#brid = '[#1#]'", $brid));
-            $query->orWhere('#brid IS NULL');
-        } else {
-            $query->where('#brid IS NULL');
+        if ($brid || $ip) {
+            if ($brid) {
+                $query->where(array("#brid = '[#1#]'", $brid));
+                $query->orWhere('#brid IS NULL');
+            } else {
+                $query->where('#brid IS NULL');
+            }
+            $query->orWhere("#brid = ''");
+            
+            if ($ip) {
+                $query->where(array("#ip = '[#1#]'", $ip));
+                $query->orWhere('#ip IS NULL');
+            } else {
+                $query->where('#ip IS NULL');
+            }
+            $query->orWhere("#ip = ''");
         }
-        $query->orWhere("#brid = ''");
-        
-        if ($ip) {
-            $query->where(array("#ip = '[#1#]'", $ip));
-            $query->orWhere('#ip IS NULL');
-        } else {
-            $query->where('#ip IS NULL');
-        }
-        $query->orWhere("#ip = ''");
         
         $query->orderBy('isDefault', 'DESC');
         $query->orderBy('saoOrder');
         $query->orderBy('createdOn', 'DESC');
         
-        if ($limit) {
+        if ($limit && empty($checkFieldArr)) {
             $query->limit($limit);
         }
         
         $cArr[$hash] = $query->fetchAll();
         
+        if (!empty($checkFieldArr)) {
+            foreach ($checkFieldArr as $fName => $fVal) {
+                $fVal = trim($fVal);
+                $fVal = mb_strtolower($fVal);
+                
+                foreach ((array) $cArr[$hash] as $id => $rec) {
+                    if ($fVal != mb_strtolower($rec->{$fName})) {
+                        unset($cArr[$hash][$id]);
+                    }
+                }
+                
+                if (empty($cArr[$hash])) {
+                    break;
+                }
+            }
+        }
+        
+        if ($limit && !empty($checkFieldArr) && (count($cArr[$hash]) > 1)) {
+            $cArr[$hash] = array_slice($cArr[$hash], 0, $limit, true);
+        }
+        
         return $cArr[$hash];
+    }
+    
+    
+    /**
+     * Връща масив с всички резултати - ключа е полето, а стойността е името
+     *
+     * @param string      $intfName
+     * @param string      $fName
+     * @param null|string $brid
+     * @param null|string $ip
+     *
+     * @return array
+     */
+    public static function getDevicesArrByField($intfName, $fName, $brid = null, $ip = null)
+    {
+        $allDevicesArr = self::getDevices($intfName, $brid, $ip);
+        
+        $resArr = array();
+        
+        foreach ($allDevicesArr as $dRec) {
+            $resArr[$dRec->{$fName}] = $dRec->name;
+        }
+        
+        return $resArr;
     }
     
     
