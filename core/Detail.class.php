@@ -37,6 +37,12 @@ class core_Detail extends core_Manager
     
     
     /**
+     * Дали да се рендира мастъра под формата за добавяне/редакция на детайла
+     */
+    public $renderMasterBellowForm = false;
+    
+    
+    /**
      * Изпълнява се след началното установяване на модела
      */
     public static function on_AfterDescription(&$mvc)

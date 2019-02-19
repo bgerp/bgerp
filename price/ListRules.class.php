@@ -503,7 +503,7 @@ class price_ListRules extends core_Detail
     /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
-    protected static function on_AfterPrepareEditToolbar($mvc, &$res, &$data)
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         $form = &$data->form;
         if (Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh') {

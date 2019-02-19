@@ -15,7 +15,7 @@
  *
  * @since     v 0.1
  */
-class planning_ProductionTaskDetails extends core_Detail
+class planning_ProductionTaskDetails extends doc_Detail
 {
     /**
      * Заглавие
@@ -118,7 +118,13 @@ class planning_ProductionTaskDetails extends core_Detail
      *
      * @var int
      */
-    public $listItemsPerPage = 30;
+    public $listItemsPerPage = 7;
+    
+    
+    /**
+     * Рендиране на мастъра под формата за редактиране/добавяне
+     */
+    public $renderMasterBellowForm = true;
     
     
     /**
