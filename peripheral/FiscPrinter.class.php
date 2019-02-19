@@ -49,12 +49,30 @@ class peripheral_FiscPrinter
     
     
     /**
+     * Връща JS функция за добавяне/изкарване на пари от касата
+     *
+     * @param stdClass $pRec
+     * @param int      $operNum
+     * @param string   $operPass
+     * @param float    $amount
+     * @param string   $text
+     *
+     * @return string
+     */
+    public function getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $text = '')
+    {
+        return $this->class->getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $text);
+    }
+    
+    
+    /**
      * Връща цената с ддс и приспадната отстъпка, подходяща за касовия апарат
-     * 
-     * @param double $priceWithoutVat
-     * @param double $vat
-     * @param double|null $discountPercent
-     * @return double
+     *
+     * @param float      $priceWithoutVat
+     * @param float      $vat
+     * @param float|null $discountPercent
+     *
+     * @return float
      */
     public function getDisplayPrice($priceWithoutVat, $vat, $discountPercent)
     {
