@@ -424,7 +424,16 @@
 .different-btns.disabledBtn[type=button] {
   color: #cccccc !important;
   text-shadow: 0 1px 0 #333333 !important;
-  border: 1px solid #40a1f8 !important; }
+  border: 1px solid #40a1f8 !important;
+  background: #65a9d7 !important;
+  background: ();
+  background: -moz-linear-gradient(top, #65a9d7 0%, #3e779d 100%) !important;
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #65a9d7), color-stop(100%, #3e779d)) !important;
+  background: -webkit-linear-gradient(top, #65a9d7 0%, #3e779d 100%) !important;
+  background: -o-linear-gradient(top, #65a9d7 0%, #3e779d 100%) !important;
+  background: -ms-linear-gradient(top, #65a9d7 0%, #3e779d 100%) !important;
+  background: linear-gradient(to bottom, #65a9d7 0%, #3e779d 100%) !important; }
+
   .different-btns.disabledBtn[type=button]:hover {
     background: #65a9d7 !important;
     background: ();
