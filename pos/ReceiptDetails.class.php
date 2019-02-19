@@ -357,7 +357,6 @@ class pos_ReceiptDetails extends core_Detail
         
         // Трябва да е подаден валидно ид на начин на плащане
         $type = Request::get('type', 'int');
-        
         if (!cond_Payments::fetch($type) && $type != -1) {
             
             return $this->returnError($recId);
@@ -366,7 +365,11 @@ class pos_ReceiptDetails extends core_Detail
         // Трябва да е подадена валидна сума
         $amount = Request::get('amount');
         $amount = $this->getFieldType('amount')->fromVerbal($amount);
-        if (!$amount || $amount <= 0) {
+        if(empty($amount)){
+            core_Statuses::newStatus('|Липсва сума|*!', 'error');
+            
+            return $this->returnError($recId);
+        } elseif($amount < 0){
             core_Statuses::newStatus('|Сумата трябва да е положителна|*!', 'error');
             
             return $this->returnError($recId);

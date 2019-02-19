@@ -500,7 +500,6 @@ function scrollRecieptBottom(){
 function doPayment(url, type){
 	if(!url || !type) return;
 	var amount = $("input[name=paysum]").val();
-	if(!amount) return;
 	
 	var receiptId = $("input[name=receiptId]").val();
 	var data = {receiptId:receiptId, amount:amount, type:type};
