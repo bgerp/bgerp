@@ -142,7 +142,7 @@ class doc_FolderResources extends core_Manager
         
         if ($DetailName == 'planning_AssetResources') {
             if (planning_AssetResources::haveRightFor('add')) {
-                $data->newUrl = array('planning_AssetResources', 'add', 'folderId' => $folderId, 'ret_url' => true);
+                $data->newUrl = array('planning_AssetResources', 'add', 'defaultFolderId' => $folderId, 'ret_url' => true);
             }
         }
         
