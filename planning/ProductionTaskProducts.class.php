@@ -480,7 +480,7 @@ class planning_ProductionTaskProducts extends core_Detail
             
             if (cat_Products::getByProperty('canManifacture', null, 1)) {
                 if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'production'))) {
-                    $data->toolbar->addBtn('За произвеждане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на вложим артикул');
+                    $data->toolbar->addBtn('За произвеждане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на производим артикул');
                 }
             }
             
