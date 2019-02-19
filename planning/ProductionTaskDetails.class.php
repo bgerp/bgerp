@@ -118,7 +118,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      *
      * @var int
      */
-    public $listItemsPerPage = 7;
+    public $listItemsPerPage = 50;
     
     
     /**
@@ -612,33 +612,86 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        if(Mode::is('getLinkedFiles')) return;
-        
-        $data->query->orWhere("#state = 'rejected'");
         $data->query->orderBy('createdOn', 'DESC');
+        if(Mode::is('getLinkedFiles') || Mode::is('inlineDocument')) return;
         
         $data->listFilter->setField('type', 'input=none');
-        unset($data->listFields['modified']);
         $data->listFilter->class = 'simpleForm';
         if (isset($data->masterMvc)) {
             $data->listFilter->FLD('threadId', 'int', 'silent,input=hidden');
             $data->listFilter->view = 'horizontal';
             $data->listFilter->input(null, 'silent');
+            $data->query->orWhere("#state = 'rejected'");
+            unset($data->listFields['taskId']);
+            unset($data->listFields['modifiedOn']);
+            unset($data->listFields['modifiedBy']);
+        }
+        $data->listFilter->showFields = 'search';
+        
+        // Ако има използвани служители, добавят се за филтриране
+        $usedFixedAssets = self::getResourcesInDetails($data->masterId, 'fixedAsset');
+        if(count($usedFixedAssets)){
+            $data->listFilter->setOptions('fixedAsset', array('' => '') + $usedFixedAssets);
+            $data->listFilter->showFields .= ",fixedAsset";
         }
         
-        $data->listFilter->showFields = 'search,fixedAsset,employees';
-        $data->listFilter->setOptions('fixedAsset', array('' => '') + planning_AssetResources::getByFolderId());
-        $data->listFilter->setOptions('employees', array('' => '') + crm_Persons::getEmployeesOptions(false, true));
+        // Ако има използвани служители, добавят се за филтриране
+        $usedEmployeeIds = self::getResourcesInDetails($data->masterId, 'employees');
+        if(count($usedEmployeeIds)){
+            $data->listFilter->setOptions('employees', array('' => '') + $usedEmployeeIds);
+            $data->listFilter->showFields .= ",employees";
+        }
+        
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
+        
+        // Филтър по избраните стойности
         if ($filter = $data->listFilter->rec) {
-            if (isset($filter->fixedAsset)) {
+            if (!empty($filter->fixedAsset)) {
                 $data->query->where("#fixedAsset = '{$filter->fixedAsset}'");
             }
-            if (isset($filter->employees)) {
+            if (!empty($filter->employees)) {
                 $data->query->where("LOCATE('|{$filter->employees}|', #employees)");
             }
         }
+    }
+    
+    
+    /**
+     * Извлича използваните ресурси в детайлите
+     * 
+     * @param int|null $taskId
+     * @param string $type
+     * @return array $array
+     */
+    private function getResourcesInDetails($taskId, $type)
+    {
+        expect(in_array($type, array('fixedAsset', 'employees')));
+        $query = self::getQuery();
+        $query->where("#{$type} IS NOT NULL AND #{$type} != ''");
+        if(!empty($taskId)){
+            $query->where("#taskId = {$taskId}");
+        }
+        $query->show($type);
+        $recs = $query->fetchAll();
+        
+        // Обединяват се всички записи
+        $keylist = '';
+        array_walk($recs, function ($obj) use (&$keylist, $type) {
+            $keylist = keylist::merge($keylist, $obj->{$type});
+        });
+        
+        // Вербализирането на опциите
+        $array = array();
+        $keylist = keylist::toArray($keylist);
+        foreach ($keylist as $key){
+            if(!array_key_exists($key, $array)){
+                $value = ($type == 'fixedAsset') ? planning_AssetResources::getTitleById($key) : (crm_Persons::getVerbal($key, 'name') . " ($key)");
+                $array[$key] = $value;
+            }
+        }
+        
+        return $array;
     }
     
     
