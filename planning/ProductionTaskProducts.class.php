@@ -116,7 +116,7 @@ class planning_ProductionTaskProducts extends core_Detail
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
         $this->FLD('quantityInPack', 'double', 'mandatory,input=none');
         $this->FLD('totalQuantity', 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter,oldFieldName=realQuantity');
-        $this->FLD('indTime', 'time(noSmart)', 'caption=Норма,smartCenter');
+        $this->FLD('indTime', 'time(noSmart,decimals=2)', 'caption=Норма,smartCenter');
         $this->FLD('limit', 'double(min=0)', 'caption=Макс. к-во,input=none');
         $this->FLD('totalTime', 'time(noSmart)', 'caption=Норма->Общо,smartCenter,input=none');
         
