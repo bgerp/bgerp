@@ -177,8 +177,8 @@ class planning_ProductionTaskProducts extends core_Detail
             }
             
             // Поле за бързо добавяне на прогрес, ако може
-            if (empty($rec->id) && planning_ProductionTaskDetails::haveRightFor('add', (object) array('taskId' => $masterRec->id))) {
-                $caption = ($rec->type == 'input') ? 'Вложено' : (($rec->type == 'waste') ? 'Отпадък' : 'Произведено');
+            if (empty($rec->id) && $rec->type != 'waste' && planning_ProductionTaskDetails::haveRightFor('add', (object) array('taskId' => $masterRec->id))) {
+                $caption = ($rec->type == 'input') ? 'Вложено' : 'Произведено';
                 $form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},before=storeId");
             }
             

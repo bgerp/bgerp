@@ -118,7 +118,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      *
      * @var int
      */
-    public $listItemsPerPage = 50;
+    public $listItemsPerPage = 40;
     
     
     /**
