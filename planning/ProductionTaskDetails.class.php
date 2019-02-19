@@ -664,7 +664,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      * @param string $type
      * @return array $array
      */
-    private function getResourcesInDetails($taskId, $type)
+    private static function getResourcesInDetails($taskId, $type)
     {
         expect(in_array($type, array('fixedAsset', 'employees')));
         $query = self::getQuery();
