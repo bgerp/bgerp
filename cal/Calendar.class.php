@@ -252,35 +252,69 @@ class cal_Calendar extends core_Master
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px,autoFilter');
         $data->listFilter->FNC('selectedUsers', 'users(rolesForAll = ceo|hrMaster, rolesForTeams = manager|hrSickdays|hrLeaves|hrTrips, showClosedGroups)', 'caption=Потребител,input,silent,autoFilter');
+        $data->listFilter->FNC('types', 'varchar(32)', 'caption=Тип,autoFilter,silent');
+        
         $data->listFilter->setdefault('from', date('Y-m-d'));
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        //Масив с типове събития за избор
+        $eventTypes= array('task'=>'Задачи','reminder'=>'Напомняния','religian'=>'Религиозни');
         
+        $data->listFilter->setOptions('types', array('' => ' ') + $eventTypes);
+        
+        
+           
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+     
         if(strtolower(Request::get('Act')) == 'show'){
             
             $data->listFilter->showFields = $mvc->searchInputField;
             
             bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
+            
         } elseif ($data->action === "list"){
+            
             // Показваме само това поле. Иначе и другите полета 
             // на модела ще се появят
-        	$data->listFilter->showFields = "from, {$mvc->searchInputField}, selectedUsers";
+        	$data->listFilter->showFields = "from, types,selectedUsers,{$mvc->searchInputField}";
+        	
+        	
+        	
         } else{
         	$data->listFilter->showFields = 'from, selectedUsers';
         }
         
-        $data->listFilter->input('selectedUsers, from', 'silent');
+        $data->listFilter->input('selectedUsers, from, types', 'silent');
         
         $data->query->orderBy("#time=ASC,#priority=DESC");
         
+        //Филтър по тип
+        if(!$data->listFilter->rec->types == ''){ 
+            
+            if ($data->listFilter->rec->types == 'religian'){
+                
+                $religianArr = array('orthodox','muslim');
+                $data->query->in('type', $religianArr);
+                
+            }else{
+                  $data->query->where("#type = '{$data->listFilter->rec->types}'");
+            }
+            
+            
+        }
+        
+        //Изключваме приключените
+        $data->query->where("#state != 'closed'");
+        
         if($data->action == 'list' || $data->action == 'day' || $data->action == 'week'){
-	        if($from = $data->listFilter->rec->from) {
+            if($from = $data->listFilter->rec->from) {
 	            
-	            $data->query->where("#time >= date('$from')");
+                
+                $data->query->where("#time >= date('$from')");bp($data->query->fetchAll());
+	            
 	       
 	       }
         }
-      	
+        
       	if(!$data->listFilter->rec->selectedUsers) {
 		  
 		  $data->listFilter->rec->selectedUsers =
@@ -289,7 +323,7 @@ class cal_Calendar extends core_Master
       	
       	$data->query->likeKeylist('users', $data->listFilter->rec->selectedUsers);
 	    $data->query->orWhere('#users IS NULL OR #users = ""');
-    
+  
     }
     
     
@@ -370,7 +404,7 @@ class cal_Calendar extends core_Master
          	$i = "img/16/{$lowerType}.png";
          	$img = "<img class='calImg' src=". sbf($i) .">&nbsp;";
     	
-    	} elseif($rec->type = 'reminder') {
+    	} elseif($rec->type = ' ') {
          	$attr['ef_icon'] = "img/16/alarm_clock.png";
          	
          	$i = "img/16/alarm_clock.png";
