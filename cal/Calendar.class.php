@@ -309,7 +309,7 @@ class cal_Calendar extends core_Master
             if($from = $data->listFilter->rec->from) {
 	            
                 
-                $data->query->where("#time >= date('$from')");bp($data->query->fetchAll());
+                $data->query->where("#time >= date('$from')");
 	            
 	       
 	       }
