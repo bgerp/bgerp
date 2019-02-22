@@ -109,7 +109,8 @@ class core_TableView extends core_BaseClass
         $addRows = '';
         $colspan = 0;
         $maxColHeaders = 1;
-        
+        $addRowArr = array();
+
         $i = 0;
         
         $fieldList = array();
@@ -235,6 +236,7 @@ class core_TableView extends core_BaseClass
                     
                     // Допълнителни цели редове, ако колоната няма заглавие
                     $addRows .= "<tr [#COMMON_ROW_ATTR#]><td {$attr} colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
+                    $addRowArr[$place] = "<tr [#COMMON_ROW_ATTR#]><td {$attr} colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
                 }
             }
         }
@@ -280,7 +282,10 @@ class core_TableView extends core_BaseClass
         }
         
         $addRows = str_replace('[#COLSPAN#]', $colspan, $addRows);
-        
+        foreach($addRowArr as &$addRow) {
+            $addRow = str_replace('[#COLSPAN#]', $colspan, $addRow);
+        }
+
         $this->colspan = $colspan;
         
         $row .= "</tr>\n";
@@ -322,7 +327,13 @@ class core_TableView extends core_BaseClass
                     if ($value === null) {
                         $value = '&nbsp;';
                     }
+
+                    if(isset($addRowArr[$name]) && $value == '') {
+                        $rowTpl->content = str_replace($addRowArr[$name], '',  $rowTpl->content);
+                    }
+
                     $rowTpl->replace($value, $name);
+                    
                 }
                 
                 // Добавяме атрибутите на реда от таблицата, ако има такива
