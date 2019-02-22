@@ -1548,20 +1548,21 @@ class cat_Products extends embed_Manager
     public static function getPacks($productId)
     {
         $options = array();
-        $pInfo = static::getProductInfo($productId);
-        if (!$pInfo) {
+        $productRec = cat_Products::fetch($productId, 'measureId,canStore');
+        if(empty($productRec)) {
             
-            return $options;
+            return;
         }
-        
+       
         // Определяме основната мярка
-        $measureId = $pInfo->productRec->measureId;
-        $baseId = $measureId;
-        
-        // За всяка опаковка, извличаме опциите и намираме имали основна такава
-        if (count($pInfo->packagings) && isset($pInfo->meta['canStore'])) {
-            foreach ($pInfo->packagings as $packRec) {
-                $options[$packRec->packagingId] = cat_UoM::recToVerbal($packRec->packagingId, 'name')->name;
+        $baseId = $productRec->measureId;
+        if($productRec->canStore == 'yes'){
+            $packQuery = cat_products_Packagings::getQuery();
+            $packQuery->where("#productId = {$productRec->id}");
+            $packQuery->show('packagingId,isBase');
+            
+            while($packRec = $packQuery->fetch()){
+                $options[$packRec->packagingId] = cat_UoM::getTitleById($packRec->packagingId, false);
                 if ($packRec->isBase == 'yes') {
                     $baseId = $packRec->packagingId;
                 }
@@ -1569,14 +1570,14 @@ class cat_Products extends embed_Manager
         }
         
         // Подготвяме опциите
-        $options = array($measureId => cat_UoM::recToVerbal($measureId, 'name')->name) + $options;
+        $options = array($productRec->measureId => cat_UoM::getTitleById($productRec->measureId, 'name'), false) + $options;
         $firstVal = $options[$baseId];
         
         // Подсигуряваме се че основната опаковка/мярка е първа в списъка
         unset($options[$baseId]);
         $options = array($baseId => $firstVal) + $options;
         
-        // Връщаме опциите
+        // Връщане на опциите
         return $options;
     }
     

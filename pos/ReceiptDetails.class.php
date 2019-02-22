@@ -357,7 +357,6 @@ class pos_ReceiptDetails extends core_Detail
         
         // Трябва да е подаден валидно ид на начин на плащане
         $type = Request::get('type', 'int');
-        
         if (!cond_Payments::fetch($type) && $type != -1) {
             
             return $this->returnError($recId);
@@ -366,35 +365,14 @@ class pos_ReceiptDetails extends core_Detail
         // Трябва да е подадена валидна сума
         $amount = Request::get('amount');
         $amount = $this->getFieldType('amount')->fromVerbal($amount);
-        if (!$amount || $amount <= 0) {
+        if(empty($amount)){
+            core_Statuses::newStatus('|Липсва сума|*!', 'error');
+            
+            return $this->returnError($recId);
+        } elseif($amount < 0){
             core_Statuses::newStatus('|Сумата трябва да е положителна|*!', 'error');
             
             return $this->returnError($recId);
-        }
-        
-        $checkedPayments = array();
-        if(!empty($receipt->revertId)){
-            $rQuery = pos_ReceiptDetails::getQuery();
-            $rQuery->where("#receiptId = {$receipt->revertId}");
-            $rQuery->where("#action LIKE '%payment%'");
-            while($rRec = $rQuery->fetch()){
-                list(,$paymentId) = explode('|', $rRec->action);
-                $checkedPayments[$paymentId] += $rRec->amount;
-            }
-            
-            if(!array_key_exists($type, $checkedPayments)){
-                core_Statuses::newStatus('|В оригиналната бележка, няма такова плащане|*!', 'error');
-                
-                return $this->returnError($recId);
-            }
-            
-            $amount *= -1;
-            
-            if($checkedPayments[$type] + $amount < 0){
-                core_Statuses::newStatus('|Не може да се върне повече отколкото е платено|*!', 'error');
-                
-                return $this->returnError($recId);
-            }
         }
         
         $diff = abs($receipt->paid - $receipt->total);
@@ -404,11 +382,15 @@ class pos_ReceiptDetails extends core_Detail
             $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receipt->valior);
             
             // Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
-            if (!cond_Payments::returnsChange($type) && (string) $paidAmount > (string) $diff) {
+            if (!cond_Payments::returnsChange($type) && (string) abs($paidAmount) > (string) $diff) {
                 core_Statuses::newStatus('|Платежния метод не позволява да се плати по-голяма сума от общата|*!', 'error');
                 
                 return $this->returnError($recId);
             }
+        }
+        
+        if($receipt->revertId){
+            $amount *= -1;
         }
         
         // Подготвяме записа на плащането
@@ -420,11 +402,11 @@ class pos_ReceiptDetails extends core_Detail
         $paidAmount = $rec->amount;
         if($type != -1){
             $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receipt->valior);
-        } 
+        }
         
         // Отбелязваме, че на това плащане ще има ресто
         $paid = $receipt->paid + $paidAmount;
-        if (($paid) > $receipt->total) {
+        if (abs($paid) > abs($receipt->total)) {
             $rec->value = 'change';
         }
         
@@ -549,10 +531,9 @@ class pos_ReceiptDetails extends core_Detail
         $productInfo = cat_Products::getProductInfo($rec->productId);
         $perPack = ($productInfo->packagings[$rec->value]) ? $productInfo->packagings[$rec->value]->quantity : 1;
         
-        $rec->price = $rec->price * (1 + $rec->param) * (1 - $rec->discountPercent);
-        $rec->price = round($rec->price, 2);
-        $row->price = $Double->toVerbal($rec->price);
-        $row->amount = $Double->toVerbal($rec->price * $rec->quantity);
+        $price = $this->Master->getDisplayPrice($rec->price, $rec->param, $rec->discountPercent);
+        $row->price = $Double->toVerbal($price);
+        $row->amount = $Double->toVerbal($price * $rec->quantity);
         if ($rec->discountPercent < 0) {
             $row->discountPercent = '+' . trim($row->discountPercent, '-');
         }

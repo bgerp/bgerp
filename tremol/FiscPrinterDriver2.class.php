@@ -19,6 +19,10 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     public $title = 'Принтер на тремол';
     
+    protected $canCashReceived = 'admin, peripheral';
+    
+    protected $canCashPaidOut = 'admin, peripheral';
+    
     protected $canMakeReport = 'admin, peripheral';
     
     protected $rcpNumPattern = '/^[a-z0-9]{8}-[a-z0-9]{4}-[0-9]{7}$/i';
@@ -402,6 +406,73 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     
     /**
+     * Връща JS функция за добавяне/изкарване на пари от касата
+     *
+     * @param stdClass $pRec
+     * @param int      $operNum
+     * @param string   $operPass
+     * @param float    $amount   - ако е минус - изкрва пари, а с плюс - вкарва
+     * @param string   $text
+     *
+     * @return string
+     *
+     * @see peripheral_FiscPrinter
+     */
+    public function getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $text = '')
+    {
+        expect(($operNum >= 1) && ($operNum <= 20));
+        $jsTpl = new ET('[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                                try {
+                                    [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                    fp.ReceivedOnAccount_PaidOut([#OPER_NUM#], [#OPER_PASS#], [#AMOUNT#], [#TEXT#]);
+                                    fpOnCashReceivedOrPaidOut();
+                                } catch(ex) {
+                                    fpOnCashReceivedOrPaidOutErr(ex.message);
+                                }
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]');
+        
+        $this->addTplFile($jsTpl);
+        $this->connectToPrinter($jsTpl, $pRec, false);
+        
+        $jsTpl->replace(json_encode($operNum), 'OPER_NUM');
+        $jsTpl->replace(json_encode($operPass), 'OPER_PASS');
+        $jsTpl->replace(json_encode($amount), 'AMOUNT');
+        $jsTpl->replace(json_encode($text), 'TEXT');
+        
+        $js = $jsTpl->getContent();
+        
+        // Минифициране на JS
+        $js = minify_Js::process($js);
+        
+        return $js;
+    }
+    
+    
+    /**
+     * Връща цената с ддс и приспадната отстъпка, подходяща за касовия апарат
+     *
+     * @param float      $priceWithoutVat
+     * @param float      $vat
+     * @param float|null $discountPercent
+     *
+     * @return float
+     *
+     * @see peripheral_FiscPrinter
+     */
+    public function getDisplayPrice($priceWithoutVat, $vat, $discountPercent)
+    {
+        $displayPrice = $priceWithoutVat * (1 + $vat);
+        
+        if (!empty($discountPercent)) {
+            $discountedPrice = round($displayPrice * $discountPercent, 2);
+            $displayPrice = $displayPrice - $discountedPrice;
+        }
+        
+        return $displayPrice;
+    }
+    
+    
+    /**
      * Помощна функция за добавяне на необходимите JS файлове
      *
      * @param core_ET $tpl
@@ -705,6 +776,10 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         if (haveRole($Driver->canMakeReport)) {
             $data->toolbar->addBtn('Отчети', array($Driver, 'Reports', 'pId' => $data->rec->id, 'ret_url' => true, 'rand' => str::getRand()), 'ef_icon = img/16/report.png, title=Отпечатване на отчети, row=2');
         }
+        
+        if (haveRole($Driver->canCashReceived) || haveRole($Driver->canCashPaidOut)) {
+            $data->toolbar->addBtn('Средства', array($Driver, 'CashReceivedOrPaidOut', 'pId' => $data->rec->id, 'ret_url' => true, 'rand' => str::getRand()), 'ef_icon = img/16/money.png, title=Вкарване или изкарване на пари от касата, row=1');
+        }
     }
     
     
@@ -814,7 +889,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         
         $hash = md5(serialize($rec));
         
-        $randStr = 'tremol_' . $rand;
+        $randStr = 'tremol_reports_' . $rand;
         
         // Защита от случайно повторно отпечатване
         if (($rVal = Mode::get($randStr)) && ($rVal == $hash)) {
@@ -906,7 +981,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             $form->toolbar->addSbBtn($submitTitle, 'save', 'ef_icon = img/16/print_go.png');
         }
         
-        $form->title = 'Генериране на отчет в касовия апарат|* ' . peripheral_Devices::getLinkToSingle($pRec->id, 'name');
+        $form->title = 'Генериране на отчет в ФУ|* ' . peripheral_Devices::getLinkToSingle($pRec->id, 'name');
         
         $retUrl = getRetUrl();
         if (empty($retUrl)) {
@@ -914,6 +989,119 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         }
         
         $form->toolbar->addBtn($closeBtnName, $retUrl, 'ef_icon = img/16/close-red.png');
+        
+        $html = $form->renderHtml();
+        
+        if ($jsTpl) {
+            $html->appendOnce($jsTpl, 'SCRIPTS');
+        }
+        
+        $tpl = cls::get('peripheral_Devices')->renderWrapping($html);
+        
+        core_Form::preventDoubleSubmission($tpl, $form);
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Екшън за вкарване/изкараване на пари от касата
+     *
+     * @return core_ET
+     */
+    public function act_CashReceivedOrPaidOut()
+    {
+        $cancelBtn = 'Отказ';
+        $canReceived = haveRole($this->canCashReceived);
+        $canCashPaidOut = haveRole($this->canCashPaidOut);
+        expect($canReceived || $canCashPaidOut);
+        
+        $pId = Request::get('pId', 'int');
+        
+        $pRec = peripheral_Devices::fetch($pId);
+        
+        expect($pRec);
+        
+        peripheral_Devices::requireRightFor('single', $pRec);
+        
+        $form = cls::get('core_Form');
+        
+        $enumStr = '';
+        if ($canReceived) {
+            $enumStr .= 'received=Захранване';
+        }
+        
+        if ($canCashPaidOut) {
+            $enumStr .= $enumStr ? ',' : '';
+            $enumStr .= 'paidOut=Изплащане';
+        }
+        
+        $form->FLD('type', "enum({$enumStr})", 'caption=Действие, mandatory, removeAndRefreshForm');
+        
+        $form->FLD('amount', 'double(min=0)', 'caption=Сума, mandatory');
+        $form->FLD('text', 'varchar(30)', 'caption=Текст');
+        
+        $form->input();
+        
+        $rec = $form->rec;
+        
+        $jsTpl = null;
+        
+        $rand = Request::get('rand');
+        
+        $hash = md5(serialize($rec));
+        
+        $randStr = 'tremol_cashRAndP_' . $rand;
+        
+        // Защита от случайно повторно отпечатване
+        if (($rVal = Mode::get($randStr)) && ($rVal == $hash)) {
+            $form->setWarning('report', 'Това действие вече е извършено');
+        }
+        
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = array('peripheral_Devices', 'single', $pId);
+        }
+        
+        if ($form->isSubmitted()) {
+            Mode::setPermanent($randStr, $hash);
+            
+            $operator = 1;
+            $operPass = '123456';
+            
+            $amount = $rec->amount;
+            if ($amount && $rec->type == 'paidOut') {
+                $amount *= -1;
+            }
+            
+            $jsFunc = $this->getJsForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $rec->text);
+            
+            $actTypeVerb = $form->fields['type']->type->toVerbal($rec->type);
+            $actTypeVerb = tr(mb_strtolower($actTypeVerb));
+            
+            $retUrlDecoded = toUrl($retUrl);
+            
+            $jsTpl = new ET("function fpOnCashReceivedOrPaidOut() {render_redirect({url: '{$retUrlDecoded}'}); };
+                             function fpOnCashReceivedOrPaidOutErr(message) { $('.fullScreenBg').fadeOut(); render_showToast({timeOut: 800, text: '" . tr('Грешка при') . ' ' . tr($actTypeVerb) . ' ' . tr('във ФУ') . ": ' + message, isSticky: true, stayTime: 8000, type: 'error'});}");
+            
+            $jsTpl->prepend('$(\'body\').append(\'<div class="fullScreenBg" style="position: fixed; top: 0; z-index: 10; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"></div>\'); $(".fullScreenBg").fadeIn();');
+            
+            $jsTpl->append($jsFunc);
+            $cancelBtn = 'Назад';
+        }
+        
+        $submitTitle = 'Захранване';
+        $submitIcon = 'img/16/money_add.png';
+        if ($rec->type == 'paidOut') {
+            $submitTitle = 'Изплащане';
+            $submitIcon = 'img/16/money_delete.png';
+        }
+        
+        $form->toolbar->addSbBtn($submitTitle, 'save', "ef_icon = {$submitIcon}");
+        
+        $form->title = 'Вкарване или изкарване на пари от касата|* ' . peripheral_Devices::getLinkToSingle($pRec->id, 'name');
+        
+        $form->toolbar->addBtn($cancelBtn, $retUrl, 'ef_icon = img/16/close-red.png');
         
         $html = $form->renderHtml();
         

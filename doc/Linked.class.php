@@ -1042,11 +1042,21 @@ class doc_Linked extends core_Manager
                                 continue;
                             }
                             
-                            $oRow = $dInst->getDocumentRow($cRec->docId);
-                            $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
-                            $title = trim($title);
-                            $title = str::limitLen($title, self::$titleLen);
-                            $sArr[$cRec->id] = $title . ' (' . $dInst->getHandle($cRec->docId) . ')';
+                            $title = '';
+                            
+                            if ($cRec->docId) {
+                                $oRow = $dInst->getDocumentRow($cRec->docId);
+                                $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
+                                $title = trim($title);
+                                $title = str::limitLen($title, self::$titleLen);
+                            }
+                            
+                            if ($title) {
+                                $sArr[$cRec->id] = $title . ' (' . $dInst->getHandle($cRec->docId) . ')';
+                            } else {
+                                $sArr[$cRec->id] = $dInst->getHandle($cRec->docId);
+                            }
+                            
                         } catch (core_exception_Expect $e) {
                             reportException($e);
                             continue;

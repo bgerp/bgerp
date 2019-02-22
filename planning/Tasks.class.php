@@ -739,6 +739,7 @@ class planning_Tasks extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
+        $form->setDefault('showadditionalUom', 'mandatory');
         
         if (isset($rec->systemId)) {
             $form->setField('prototypeId', 'input=none');

@@ -23,7 +23,7 @@
 						<td colspan='2' id = 'receipt-total-sum' class = 'receipt-info-right'>[#total#] [#currency#]</td>
 					</tr>
 					<tr>
-						<td>|Платено|*:</td>
+						<td>[#PAID_CAPTION#]:</td>
 						<td colspan='2' class = 'receipt-info-right'><b>[#paid#]</b> <small>[#currency#]</small></td>
 					</tr>
 					<tr>

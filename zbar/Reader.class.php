@@ -62,6 +62,13 @@ class zbar_Reader
                 
                 // Разделяме типа на баркода от съдържанието му
                 list($barcodeType, $barcodeStr) = explode(':', $barcode, 2);
+                
+                $barcodeType = trim($barcodeType);
+                
+                if (($barcodeType == '**** Error') || ($barcodeType == 'Output may be incorrect.')) {
+                    continue;
+                }
+                
                 $isBarcodeType = false;
                 foreach (self::$barcodesArr as $bStr) {
                     if (stripos($barcodeType, $bStr) === 0) {
@@ -90,6 +97,8 @@ class zbar_Reader
                 $barcodesArr[$key]->type = $barcodeType;
                 $barcodesArr[$key]->code = $barcodeStr;
             }
+            
+            $barcodesArr = array_reverse($barcodesArr);
             
             if (!empty($fBarcodeStr)) {
                 if (!empty($barcodesArr)) {

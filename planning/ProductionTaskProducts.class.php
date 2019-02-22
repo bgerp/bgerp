@@ -116,7 +116,7 @@ class planning_ProductionTaskProducts extends core_Detail
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
         $this->FLD('quantityInPack', 'double', 'mandatory,input=none');
         $this->FLD('totalQuantity', 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter,oldFieldName=realQuantity');
-        $this->FLD('indTime', 'time(noSmart)', 'caption=Норма,smartCenter');
+        $this->FLD('indTime', 'time(noSmart,decimals=2)', 'caption=Норма,smartCenter');
         $this->FLD('limit', 'double(min=0)', 'caption=Макс. к-во,input=none');
         $this->FLD('totalTime', 'time(noSmart)', 'caption=Норма->Общо,smartCenter,input=none');
         
@@ -177,8 +177,8 @@ class planning_ProductionTaskProducts extends core_Detail
             }
             
             // Поле за бързо добавяне на прогрес, ако може
-            if (empty($rec->id) && planning_ProductionTaskDetails::haveRightFor('add', (object) array('taskId' => $masterRec->id))) {
-                $caption = ($rec->type == 'input') ? 'Вложено' : (($rec->type == 'waste') ? 'Отпадък' : 'Произведено');
+            if (empty($rec->id) && $rec->type != 'waste' && planning_ProductionTaskDetails::haveRightFor('add', (object) array('taskId' => $masterRec->id))) {
+                $caption = ($rec->type == 'input') ? 'Вложено' : 'Произведено';
                 $form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},before=storeId");
             }
             
@@ -480,7 +480,7 @@ class planning_ProductionTaskProducts extends core_Detail
             
             if (cat_Products::getByProperty('canManifacture', null, 1)) {
                 if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'production'))) {
-                    $data->toolbar->addBtn('За произвеждане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на вложим артикул');
+                    $data->toolbar->addBtn('За произвеждане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на производим артикул');
                 }
             }
             

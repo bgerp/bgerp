@@ -142,7 +142,7 @@ class doc_FolderResources extends core_Manager
         
         if ($DetailName == 'planning_AssetResources') {
             if (planning_AssetResources::haveRightFor('add')) {
-                $data->newUrl = array('planning_AssetResources', 'add', 'folderId' => $folderId, 'ret_url' => true);
+                $data->newUrl = array('planning_AssetResources', 'add', 'defaultFolderId' => $folderId, 'ret_url' => true);
             }
         }
         
@@ -256,7 +256,7 @@ class doc_FolderResources extends core_Manager
             $classId = planning_Hr::getClassId();
             $typeTitle = 'служителите';
             $form->FLD('select', 'keylist(mvc=crm_Persons,select=name)', 'caption=Служители');
-            $options = crm_Persons::getEmployeesOptions(false, true);
+            $options = crm_Persons::getEmployeesOptions();
             $default = array_keys(planning_Hr::getByFolderId($folderId));
         }
         

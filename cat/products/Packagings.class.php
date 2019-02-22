@@ -311,7 +311,7 @@ class cat_products_Packagings extends core_Detail
      * @param stdClass     $res
      * @param stdClass     $data
      */
-    protected static function on_AfterPrepareEditToolbar($mvc, $data)
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         if (!(count($mvc::getRemainingOptions($data->form->rec->productId)) - 1)) {
             $data->form->toolbar->removeBtn('saveAndNew');
