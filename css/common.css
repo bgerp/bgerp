@@ -2946,7 +2946,7 @@ div.richtext ol {
   margin: 0; }
 
 div.richtext > ul {
-  padding-left: 0.5em; }
+  padding-left: 1.5em; }
 
 div.richtext ul {
   list-style-type: disc; }
@@ -2958,7 +2958,7 @@ div.richtext ul ul ul {
   list-style-type: square; }
 
 div.richtext > ol {
-  padding-left: 0.7em; }
+  padding-left: 0.5em; }
 
 div.richtext ol {
   list-style-type: decimal; }

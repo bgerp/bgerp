@@ -257,7 +257,7 @@ class cal_Calendar extends core_Master
         $data->listFilter->setdefault('from', date('Y-m-d'));
         
         //Масив с типове събития за избор
-        $eventTypes= array('task'=>'Задачи','reminder'=>'Напомняния','religian'=>'Религиозни');
+        $eventTypes= array('task'=>'Задачи','alarm_clock'=>'Напомняния','religian'=>'Религиозни','birthday'=>'Рожденни дни');
         
         $data->listFilter->setOptions('types', array('' => ' ') + $eventTypes);
         
@@ -306,13 +306,15 @@ class cal_Calendar extends core_Master
         $data->query->where("#state != 'closed'");
         
         if($data->action == 'list' || $data->action == 'day' || $data->action == 'week'){
+            
             if($from = $data->listFilter->rec->from) {
 	            
                 
-                $data->query->where("#time >= date('$from')");
+                $data->query->where("#time >= date('$from') OR #duration >= date('$from')");
 	            
 	       
 	       }
+	       
         }
         
       	if(!$data->listFilter->rec->selectedUsers) {
@@ -325,6 +327,17 @@ class cal_Calendar extends core_Master
 	    $data->query->orWhere('#users IS NULL OR #users = ""');
   
     }
+    
+    /**
+     * Извиква се след вкарване на запис в таблицата на модела
+     */
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    {
+      //  bp($rec);
+        
+        
+    }
+    
     
     
     protected static function on_AfterRenderWrapping($mvc, &$tpl)
