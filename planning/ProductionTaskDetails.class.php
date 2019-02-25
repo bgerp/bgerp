@@ -409,7 +409,6 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->fixedAsset = planning_AssetResources::getHyperlink($rec->fixedAsset);
         }
         
-        $taskRec = planning_Tasks::fetch($rec->taskId, 'productId');
         $row->taskId = planning_Tasks::getLink($rec->taskId, 0);
         $row->modified = "<div class='nowrap'>" . $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
         $row->modified .= ' ' . tr('от||by') . ' ' . crm_Profiles::createLink($rec->modifiedBy) . '</div>';
@@ -438,7 +437,6 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->scrappedQuantity = " (" . tr('Брак') . ": {$row->scrappedQuantity})";
         }
         $row->quantity = "<b>{$row->quantity}</b> <span style='font-weight:normal'>{$row->measureId}</span> {$row->scrappedQuantity}";
-        
         
         if (!empty($rec->notes)) {
             $notes = $mvc->getFieldType('notes')->toVerbal($rec->notes);
