@@ -10,19 +10,13 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 class planning_ProductionTaskProducts extends core_Detail
 {
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'planning_drivers_ProductionTaskProducts';
-    
-    
     /**
      * Заглавие в единствено число
      */
@@ -38,7 +32,7 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type,productId,packagingId=Единица,plannedQuantity=Количества->Планирано,limit=Количества->Макс.,totalQuantity=Количества->Изпълнено,measureId=Количества->Мярка,storeId,indTime=Норма,totalTime=Общо';
+    public $listFields = 'type,productId,plannedQuantity=Количества->Планирано,limit=Количества->Макс.,totalQuantity=Количества->Изпълнено,packagingId=Количества->Мярка,storeId,indTime=Норма,totalTime=Общо';
     
     
     /**
@@ -183,9 +177,9 @@ class planning_ProductionTaskProducts extends core_Detail
             }
             
             $Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
-            $shortUom = cat_UoM::getShortName($masterRec->packagingId);
-            $measureUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
-            $unit = tr($measureUom) . ' ' . tr('за') . ' ' . $Double->toVerbal($masterRec->plannedQuantity) . ' ' . $shortUom;
+            $shortUomId = cat_Products::fetchField($masterRec->productId, 'measureId');
+            $shortUom = cat_UoM::getShortName($shortUomId);
+            $unit = tr('за') . ' ' . $Double->toVerbal($masterRec->plannedQuantity) . ' ' . $shortUom;
             $unit = str_replace('&nbsp;', ' ', $unit);
             $form->setField('plannedQuantity', array('unit' => $unit));
             
@@ -260,9 +254,9 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->measureId = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
         $row->productId = cat_Products::getShortHyperlink($rec->productId);
         $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'waste') ? 'row-removed' : 'state-active');
+        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         
         if (isset($rec->storeId)) {
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
@@ -332,8 +326,8 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Намира всички допустими артикули от дадения тип за една операция
      *
-     * @param int                 $taskId
-     * @param input|product|waste $type
+     * @param int       $taskId
+     * @param string    $type
      *
      * @return array
      */
@@ -411,7 +405,7 @@ class planning_ProductionTaskProducts extends core_Detail
         expect(in_array($type, array('input', 'waste', 'production')));
         
         // Ако артикула е същия като от операцията, връща се оттам
-        $taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,fixedAssets,productId,indTime,packagingId,quantityInPack,plannedQuantity');
+        $taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,fixedAssets,productId,indTime,packagingId,plannedQuantity');
         if ($taskRec->productId == $productId) {
             
             return $taskRec;
@@ -420,7 +414,7 @@ class planning_ProductionTaskProducts extends core_Detail
         // Ако има запис в артикули за него, връща се оттам
         $query = self::getQuery();
         $query->where("#taskId = {$taskRec->id} AND #productId = {$productId} AND #type = '{$type}'");
-        $query->show('productId,indTime,packagingId,quantityInPack,plannedQuantity,totalQuantity,limit');
+        $query->show('productId,indTime,packagingId,plannedQuantity,totalQuantity,limit');
         
         if ($rec = $query->fetch()) {
             
@@ -431,7 +425,7 @@ class planning_ProductionTaskProducts extends core_Detail
         if ($type == 'input') {
             $tQuery = planning_Tasks::getQuery();
             $tQuery->where("#productId = {$productId} AND #inputInTask = {$taskRec->id} AND #state != 'rejected' AND #state != 'closed' AND #state != 'draft' AND #state != 'pending'");
-            $tQuery->show('productId,packagingId,quantityInPack,plannedQuantity,totalQuantity');
+            $tQuery->show('productId,packagingId,plannedQuantity,totalQuantity');
             if ($tRec = $tQuery->fetch()) {
                 $tRec->totalQuantity = (!empty($tRec->totalQuantity)) ? $tRec->totalQuantity : 0;
                 

@@ -344,7 +344,6 @@ class planning_Hr extends core_Master
         }
         
         $link = ht::createLink($code, $singleUrl, false, "title=Към визитката на|* '{$name}'");
-        $link = ht::createHint($link, '|*' . $name, 'img/16/vcard.png', false);
         
         return $link;
     }
