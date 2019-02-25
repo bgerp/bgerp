@@ -1359,9 +1359,9 @@ class eshop_Products extends core_Master
                     
                     if (is_array($r[$epId])) {
                         arsort($r[$epId]);
+                        
+                        $r[$epId] = array_slice($r[$epId], 0, 10, true);
                     }
-                    
-                    $r[$epId] = array_slice($r[$epId], 0, 10, true);
                 }
             }
         }
