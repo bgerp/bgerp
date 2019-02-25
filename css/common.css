@@ -1430,30 +1430,30 @@ table.listTable {
 .wide .singleView table.listTable {
   max-width: 915px !important; }
 
-table.listTable:not(.noHoverTable) > tbody:hover {
+table.listTable:not(.noHoverTable) > tbody:hover > tr {
   background-color: #ffffcc; }
-  table.listTable:not(.noHoverTable) > tbody:hover.state-draft {
+  table.listTable:not(.noHoverTable) > tbody:hover > tr.state-draft {
     background-color: #88ffff; }
-  table.listTable:not(.noHoverTable) > tbody:hover.state-active {
+  table.listTable:not(.noHoverTable) > tbody:hover > tr.state-active {
     background: rgba(247, 197, 139, 0.5); }
-  table.listTable:not(.noHoverTable) > tbody:hover.state-opened {
+  table.listTable:not(.noHoverTable) > tbody:hover > tr.state-opened {
     background-color: #97ffb1; }
-  table.listTable:not(.noHoverTable) > tbody:hover.state-pending {
+  table.listTable:not(.noHoverTable) > tbody:hover > tr.state-pending {
     background-color: #e6b3ff; }
-  table.listTable:not(.noHoverTable) > tbody:hover.state-closed {
+  table.listTable:not(.noHoverTable) > tbody:hover > tr.state-closed {
     background-color: #e4e4e4; }
-  table.listTable:not(.noHoverTable) > tbody:hover.state-stopped,
-  table.listTable:not(.noHoverTable) > tbody:hover.state-blocked {
+  table.listTable:not(.noHoverTable) > tbody:hover > tr.state-stopped,
+  table.listTable:not(.noHoverTable) > tbody:hover > tr.state-blocked {
     background-color: #f5a300; }
-  table.listTable:not(.noHoverTable) > tbody:hover.state-rejected {
+  table.listTable:not(.noHoverTable) > tbody:hover > tr.state-rejected {
     background-color: #bf4040; }
-  table.listTable:not(.noHoverTable) > tbody:hover.state-free {
+  table.listTable:not(.noHoverTable) > tbody:hover > tr.state-free {
     background-color: #0bbbea; }
-  table.listTable:not(.noHoverTable) > tbody:hover.state-hidden {
+  table.listTable:not(.noHoverTable) > tbody:hover > tr.state-hidden {
     background-color: #ffe42b; }
-  table.listTable:not(.noHoverTable) > tbody:hover.state-revert {
+  table.listTable:not(.noHoverTable) > tbody:hover > tr.state-revert {
     background-color: #a37a29; }
-  table.listTable:not(.noHoverTable) > tbody:hover.state-wakeup {
+  table.listTable:not(.noHoverTable) > tbody:hover > tr.state-wakeup {
     background-color: #269b43; }
 
 .listTitle {
