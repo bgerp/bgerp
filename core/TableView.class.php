@@ -240,6 +240,7 @@ class core_TableView extends core_BaseClass
                 }
             }
         }
+
         
         $curTH = 0;
         
@@ -288,13 +289,14 @@ class core_TableView extends core_BaseClass
 
         $this->colspan = $colspan;
         
-        $row .= "</tr>\n";
+        $row .= "</tr>";
 
         if($this->mvc->commonFirst) {
             $row = "{$addRows}{$row}";
         } else {
             $row = "{$row}{$addRows}";
         }
+        $row = "<tbody>{$row}</tbody>\n";
             
         $row = "\n<!--ET_BEGIN ROW-->{$row}<!--ET_END ROW-->";
         if (!$this->tableClass) {
@@ -324,16 +326,15 @@ class core_TableView extends core_BaseClass
                 foreach ($fieldList as $name => $dummy) {
                     $value = $r[$name];
                     
+                    if(isset($addRowArr[$name]) && $value == '') {
+                        $rowTpl->content = str_replace($addRowArr[$name], '',  $rowTpl->content);
+                    }
+                    
                     if ($value === null) {
                         $value = '&nbsp;';
                     }
 
-                    if(isset($addRowArr[$name]) && $value == '') {
-                        $rowTpl->content = str_replace($addRowArr[$name], '',  $rowTpl->content);
-                    }
-
                     $rowTpl->replace($value, $name);
-                    
                 }
                 
                 // Добавяме атрибутите на реда от таблицата, ако има такива
