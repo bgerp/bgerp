@@ -144,6 +144,9 @@ class cal_Calendar extends core_Master
         // Дата на събититието
         $this->FLD('time', 'datetime(format=smartTime)', 'caption=Време,tdClass=portal-date');
         
+        // Очакван край на събититието
+        $this->FLD('timeEnd', 'datetime(format=smartTime)', 'caption=Край,tdClass=portal-date');
+        
         // Продължителност на събитието
         $this->FLD('duration', 'time', 'caption=Продължителност');
         
@@ -235,6 +238,25 @@ class cal_Calendar extends core_Master
         return $res;
     }
     
+    /**
+     * Преди подготовката на полетата за листовия изглед
+     */
+    public static function on_BeforePrepareListFields($mvc, &$res, &$data)
+    {
+//         $cQuery = cal_Calendar::getQuery();
+//         $cQuery->where("#type = 'task'");
+        
+//         while($cRec =$cQuery->fetch()){
+            
+//            if(count(keylist::toArray($cRec->users))>1){
+//                $data->query->mvc->listFields.=', users';
+//                break;
+//            }
+//        }
+     
+    }
+   
+    
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -245,6 +267,7 @@ class cal_Calendar extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
+       
     	$cu = core_Users::getCurrent();
     	
     	$data->listFilter->view = 'horizontal';
@@ -257,7 +280,7 @@ class cal_Calendar extends core_Master
         $data->listFilter->setdefault('from', date('Y-m-d'));
         
         //Масив с типове събития за избор
-        $eventTypes= array('task'=>'Задачи','alarm_clock'=>'Напомняния','religian'=>'Религиозни','birthday'=>'Рожденни дни');
+        $eventTypes= array('task'=>'Задачи','alarm_clock'=>'Напомняния','religian'=>'Религиозни','birthday'=>'Рожденни дни','leaves'=>'Отпуски');
         
         $data->listFilter->setOptions('types', array('' => ' ') + $eventTypes);
         
@@ -310,7 +333,7 @@ class cal_Calendar extends core_Master
             if($from = $data->listFilter->rec->from) {
 	            
                 
-                $data->query->where("#time >= date('$from') OR #duration >= date('$from')");
+                $data->query->where("#time >= date('$from') OR #timeEnd >= date('$from')");
 	            
 	       
 	       }
@@ -323,7 +346,10 @@ class cal_Calendar extends core_Master
 		  keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
       	}
       	
-      	$data->query->likeKeylist('users', $data->listFilter->rec->selectedUsers);
+      //	if((count(keylist::toArray($data->listFilter->rec->selectedUsers))) > 1 || $data->listFilter->rec->selectedUsers != core_Users::getCurrent()){
+      	   
+     // 	}
+     	$data->query->likeKeylist('users', $data->listFilter->rec->selectedUsers);
 	    $data->query->orWhere('#users IS NULL OR #users = ""');
   
     }
@@ -333,7 +359,7 @@ class cal_Calendar extends core_Master
      */
     public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
     {
-      //  bp($rec);
+       
         
         
     }
@@ -346,6 +372,8 @@ class cal_Calendar extends core_Master
     	$tpl->push('cal/js/mouseEvent.js', 'JS');
     
     }
+    
+   
     
     
     /**
@@ -494,8 +522,21 @@ class cal_Calendar extends core_Master
             $row->ROW_ATTR['style'] .= 'background-color:#ddd;';
         }
         
+        //Ако изпълнителте са няколко те се показват в инфото за задачата
+        if(count(keylist::toArray($rec->users))>1) {
+            
+            $users='';
+            foreach (keylist::toArray($rec->users) as $v){
+                
+                $users.=core_Users::getLinkForObject($v).', ';
+            }
+            $users = trim($users,', ');
+            
+            $row->event = $row->event."</br>"."<span class = fright>".'Възложено на: '.$users."</span>";
+        }
         return $row;
     }
+    
     
     
     /**
