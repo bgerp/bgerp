@@ -103,7 +103,7 @@ class docarch_Volumes extends core_Master
         $this->FLD('type', 'varchar(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)', 'caption=Тип,mandatory');
         
         //Това е номера на дадения вид том в дадения архив
-        $this->FLD('number', 'int', 'caption=Номер,smartCenter');
+        $this->FLD('number', 'int', 'caption=Номер,placeholder=От системата,smartCenter');
         
         //Отговорник на този том/контейнер
         $this->FLD('inCharge', 'key(mvc=core_Users)', 'caption=Отговорник');
@@ -183,6 +183,32 @@ class docarch_Volumes extends core_Master
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        //Поставя автоматична номерация на тома, ако не е въведена ръчно
+        if ($form->isSubmitted()) {
+            
+            $type = $form->rec->type;
+            
+            if (is_null($form->rec->archive)) {
+                $form->rec->archive = 0;
+            }
+            
+            $archive = $form->rec->archive;
+            
+            if (is_null($form->rec->number)) {
+                $form->rec->number = $mvc->getNextNumber($archive, $type);
+            }
+        }
+    }
+    
+    
+    /**
      * След подготовка на сингъла
      */
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
@@ -205,31 +231,7 @@ class docarch_Volumes extends core_Master
             }
         }
     }
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc  $mvc
-     * @param core_Form $form
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-        if ($form->isSubmitted()) {
-            $type = $form->rec->type;
-            
-            if (is_null($form->rec->archive)) {
-                $form->rec->archive = 0;
-            }
-            
-            $archive = $form->rec->archive;
-            
-            if (is_null($form->rec->number)) {
-                $form->rec->number = $mvc->getNextNumber($archive, $type);
-            }
-        }
-    }
-    
+       
     
     /**
      * Изчисляване на заглавието
