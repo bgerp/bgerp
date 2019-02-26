@@ -81,7 +81,7 @@ class docarch_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(1.95, 'Документи', 'Архив', 'docarch_Movements', 'default', 'ceo'),
+        array(1.95, 'Документи', 'Архив', 'docarch_Movements', 'default', 'docarch'),
     );
     
     
@@ -109,8 +109,6 @@ class docarch_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Плъгин за архивиране на документи', 'docarch_plg_Archiving', 'core_Manager', 'family');
         
         return $html;
-        
-        
     }
     
     

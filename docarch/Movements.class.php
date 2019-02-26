@@ -29,6 +29,11 @@ class docarch_Movements extends core_Master
      */
     public $canRead;
     
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,docarch,docarchMaster';
+    
     
     /**
      * Кой има право да променя?

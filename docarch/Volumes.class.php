@@ -45,6 +45,11 @@ class docarch_Volumes extends core_Master
      */
     public $canRestore = 'ceo,docarchMaster';
     
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,docarch,docarchMaster';
+    
     
     /**
      * Кой може да оттегля?
@@ -255,6 +260,9 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
+        if(empty(docarch_Archives::getQuery()->fetchAll())){
+          $data->toolbar->removeBtn('btnAdd');
+        }
     }
     
     
@@ -266,6 +274,7 @@ class docarch_Volumes extends core_Master
         $rec = &$data->rec;
         
         $data->toolbar->removeBtn('Вграждане');
+        
         
         //Reject = Унищожаване
         if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec)) {
