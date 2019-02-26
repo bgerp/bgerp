@@ -3959,6 +3959,9 @@ table .eshop-btn {
   .planning_ProductionTaskDetails .listRowsDetail td {
     max-width: none !important; }
 
+.document table.listTable>tbody>tr>td.task-row-info {
+  padding: 4px 7px 3px !important; }
+
 .document .scrolling-holder {
   margin-bottom: 0; }
 
