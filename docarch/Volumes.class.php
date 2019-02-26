@@ -45,6 +45,11 @@ class docarch_Volumes extends core_Master
      */
     public $canRestore = 'ceo,docarchMaster';
     
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,docarch,docarchMaster';
+    
     
     /**
      * Кой може да оттегля?
