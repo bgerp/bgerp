@@ -313,8 +313,8 @@ class planning_Tasks extends core_Master
         $blue = new color_Object('green');
         $grey = new color_Object('#bbb');
         
-        $progressPx = min(100, round(100 * $rec->progress));
-        $progressRemainPx = 100 - $progressPx;
+        $progressPx = min(200, round(200 * $rec->progress));
+        $progressRemainPx = 200 - $progressPx;
         
         $color = ($rec->progress <= 1) ? $blue : $red;
         $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
