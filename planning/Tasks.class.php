@@ -363,7 +363,6 @@ class planning_Tasks extends core_Master
         }
         
         // Ако няма зададено очаквано начало и край, се приема, че са стандартните
-        $row->packagingId = cat_UoM::getShortName($rec->packagingId);
         $rec->expectedTimeStart = ($rec->expectedTimeStart) ? $rec->expectedTimeStart : ((isset($rec->timeStart)) ? $rec->timeStart : null);
         $rec->expectedTimeEnd = ($rec->expectedTimeEnd) ? $rec->expectedTimeEnd : ((isset($rec->timeEnd)) ? $rec->timeEnd : null);
         
@@ -532,17 +531,26 @@ class planning_Tasks extends core_Master
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#packagingId#]</td></tr>
                 </table>"));
         
+        $resArr['indTimes'] = array('name' => tr('Заработка'), 'val' => tr("|*<table>
+                <tr><td style='font-weight:normal'>|Норма|*:</td><td>[#indTime#]</td></tr>
+                <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#indPackagingId#]</td></tr>
+                <tr><td style='font-weight:normal'>|Разпределяне|*:</td><td>[#indTimeAllocation#]</td></tr>
+                </table>"));
+        
         if(empty($rec->weightDeviationWarning)){
             $row->weightDeviationWarning = core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING'));
         }
     }
 
-    function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr)
+    
+    /**
+     * След подготовка на антетката
+     */
+    protected static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr)
     {
-       // return;
-        if(Mode::is('screenMode', 'narrow') && !Mode::is('printing')) {
+       if(Mode::is('screenMode', 'narrow') && !Mode::is('printing')) {
             $res = new ET("<table class='lqlql'>");
-            foreach ((array) $headerArr as $key => $value) {
+            foreach ((array) $headerArr as $value) {
                 $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 10px;\"><b>{$value['val']}</b></td>");
                 $name = new ET("<td class='nowrap' style='width: 1%;border-bottom: 1px solid #ccc; font-weight: bold;'>{$value['name']}</td>");
 

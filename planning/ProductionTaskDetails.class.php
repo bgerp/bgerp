@@ -429,7 +429,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $packagingId = (!empty($foundRec->packagingId)) ? $foundRec->packagingId : $pRec->measureId;
         $packagingName = cat_UoM::getShortName($packagingId);
         
-        if ($pRec->measureId != $packagingId && $rec->type != 'production') {
+        if ($rec->type != 'production') {
             $row->measureId = str::getPlural($rec->quantity, $packagingName, true);
         } elseif ($rec->type == 'production') {
             $row->type = (!empty($packagingId)) ? tr("Произв.|* {$packagingName}") : tr('Произвеждане');
