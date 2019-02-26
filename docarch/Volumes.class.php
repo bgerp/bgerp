@@ -94,7 +94,7 @@ class docarch_Volumes extends core_Master
      *
      * @var string|array
      */
-    public $canDelete ;
+    public $canDelete = 'ceo,docarchMaster,docarch';
     
     protected function description()
     {
