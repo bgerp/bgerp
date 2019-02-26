@@ -761,7 +761,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query = self::getQuery();
         $query->where("#modifiedOn >= '{$timeline}' AND #norm IS NOT NULL");
         $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
-        $query->EXT('quantityInPack', 'planning_Tasks', 'externalName=quantityInPack,externalKey=taskId');
+        $query->EXT('indPackagingId', 'planning_Tasks', 'externalName=indPackagingId,externalKey=taskId');
+        
         
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();
@@ -775,8 +776,17 @@ class planning_ProductionTaskDetails extends doc_Detail
                 continue;
             }
             
-            // Количеството ако е прозвеждано е винаги 1-ца от производствената опаковка, ако е влагане или отпадък е колкото е количеството
-            $quantity = ($rec->type == 'production') ? round(($rec->quantity / $rec->quantityInPack), 2) : $rec->quantity;
+            $quantity = $rec->quantity;
+            if($rec->type == 'production'){
+                $quantityInPack = 1;
+                if(isset($rec->indPackagingId)){
+                    if($packRec = cat_products_Packagings::getPack($rec->productId, $rec->indPackagingId)){
+                        $quantityInPack = $packRec->quantity;
+                    }
+                }
+                
+                $quantity = round(($rec->quantity / $quantityInPack), 2);
+            }
             
             // Колко е заработката за 1 човек
             $timePerson = ($rec->indTimeAllocation == 'individual') ? $quantity * $rec->norm : (($quantity * $rec->norm) / count($persons));
@@ -840,7 +850,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->where("#taskId = {$rec->taskId} AND #productId = {$rec->productId} AND #fixedAsset = '{$rec->fixedAsset}' AND #id != '{$rec->id}' AND #state = 'active'");
         $query->show('sum');
         $sum = $query->fetch()->sum;
-        
         $sum += $rec->quantity;
         
         if ($sum > $info->limit) {
