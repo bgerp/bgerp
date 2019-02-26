@@ -27,6 +27,11 @@ class docarch_Volumes extends core_Master
      */
     public $canChangestate = 'ceo,docarchMaster,docarch';
     
+    /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    public $fetchFieldsBeforeDelete = 'id, title';
+    
     
     /**
      * Кой има право да затваря том
@@ -332,6 +337,8 @@ class docarch_Volumes extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
+        
+        
         if (!is_null($rec->archive)) {
             if (($rec->type == docarch_Archives::minDefType($rec->archive)) || $rec->archive == 0) {
                 $rec->isForDocuments = 'yes';
@@ -353,7 +360,7 @@ class docarch_Volumes extends core_Master
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         if ($rec->_isCreated !== true) {
-            
+           
             // Прави запис в модела на движенията
             $className = get_class();
             $mRec = (object) array('type' => 'creating',
@@ -362,6 +369,26 @@ class docarch_Volumes extends core_Master
             
             
             docarch_Movements::save($mRec);
+        }
+    }
+    
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $id => $rec) {
+            
+            // Прави запис в модела на движенията
+            $className = get_class();
+            $mRec = (object) array('type' => 'deleting',
+                'position' => $rec->title,
+            );
+            
+            
+            docarch_Movements::save($mRec);
+           
+            
         }
     }
     
@@ -374,7 +401,7 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        //  self::notifyForOutOfStorageTimeVolume();
+      
     }
     
     
@@ -494,6 +521,22 @@ class docarch_Volumes extends core_Master
                 $requiredRoles = 'no_one' ;
             }
         }
+        
+        if ($rec->id && ($action == 'single' || 
+                         $action == 'delete' || 
+                         $action == 'reject' ||
+                         $action == 'edit'   ||
+                         $action == 'close'  ||
+                         $action == 'activate'
+                        )) {
+            
+            $cu = core_Users::getCurrent();
+            
+            if (($cu != $rec->inCharge) && (!haveRole('docarchMaster'))) {
+                $requiredRoles = 'no_one' ;
+            }
+        }
+        
 
 //         if ($rec->id && $action == 'close') {
 

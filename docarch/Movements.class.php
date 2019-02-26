@@ -408,6 +408,13 @@ class docarch_Movements extends core_Master
             }
         }
         
+        //Ако движението е "Изтриване"
+        if ($rec->type == 'deleting') {
+            
+                $row->documentId .= $rec->position;
+                $row->position = '';
+        }
+        
         
         //Ако движението е "Изключване"
         if ($rec->type == 'exclude') {
@@ -426,9 +433,9 @@ class docarch_Movements extends core_Master
             
             expect($className, $id);
             
-            $className = cls::get($className);
+            $className = cls::get($className)->className;
             
-            $row->documentId .= $className->getHyperlink($id);
+            $row->documentId .= $className::getHyperlink($id);
             
             $row->position = '';
         }
@@ -686,6 +693,8 @@ class docarch_Movements extends core_Master
             case 'include':$typeName = 'Включване'; break;
             
             case 'exclude':$typeName = 'Изключване'; break;
+            
+            case 'deleting':$typeName = 'Изтриване'; break;
         
         }
         
