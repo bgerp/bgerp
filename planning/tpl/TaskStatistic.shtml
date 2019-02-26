@@ -35,9 +35,6 @@
                   <!--ET_BEGIN employees-->
                   <span style='font-weight:normal'>|Слижители|*</span>: [#employees#]<br>
                   <!--ET_END employees-->
-                  
-                  
-                  <span style='font-weight:normal'>|Слижители|*</span>: [#employees#]<br>
     			</td>
            </tr>
            <tr><td colspan='3'>[#progressBar#] [#progress#]</td></tr>
