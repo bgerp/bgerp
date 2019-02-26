@@ -115,7 +115,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, 0, $masterRec->rate, 'no');
         }
         
-        if ($masterRec->state != 'draft') {
+        if ($masterRec->state != 'draft' and !haveRole('no_one')) {
             $fields = $data->form->selectFields("#name != 'notes' AND #name != 'productId' AND #name != 'id' AND #name != 'invoiceId'");
             $data->singleTitle = 'забележка';
             $data->form->editActive = true;
