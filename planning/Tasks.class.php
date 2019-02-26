@@ -894,6 +894,8 @@ class planning_Tasks extends core_Master
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $row = planning_Tasks::recToVerbal($rec, $fields);
+            $row->plannedQuantity .= " " . $row->measureId;
+            $row->totalQuantity .= " " . $row->measureId;
             
             $subArr = array();
             if (!empty($row->fixedAssets)) {
@@ -943,7 +945,7 @@ class planning_Tasks extends core_Master
         // Ако няма намерени записи, не се рендира нищо
         // Рендираме таблицата с намерените задачи
         $table = cls::get('core_TableView', array('mvc' => $this));
-        $fields = 'title=Операция,progress=Прогрес,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано,info=@info';
+        $fields = 'title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано,info=@info';
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         
