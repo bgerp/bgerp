@@ -536,7 +536,25 @@ class planning_Tasks extends core_Master
             $row->weightDeviationWarning = core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING'));
         }
     }
-    
+
+    function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr)
+    {
+       // return;
+        if(Mode::is('screenMode', 'narrow') && !Mode::is('printing')) {
+            $res = new ET("<table class='lqlql'>");
+            foreach ((array) $headerArr as $key => $value) {
+                $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 10px;\"><b>{$value['val']}</b></td>");
+                $name = new ET("<td class='nowrap' style='width: 1%;border-bottom: 1px solid #ccc; font-weight: bold;'>{$value['name']}</td>");
+
+                $res->append('<tr>');
+                $res->append($name);
+                $res->append('</tr><tr>');
+                $res->append($val);
+                $res->append('</tr>');
+            }
+            $res->append("</table>");
+        }
+    }
     
     /**
      * Обновява данни в мастъра
