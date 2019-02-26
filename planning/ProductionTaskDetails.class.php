@@ -221,15 +221,16 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $form->setDefault('quantity', $rest);
                 }
             }
-            $masterRec->packagingId = null;
+            
             $shortMeasure = cat_UoM::getShortName($pRec->measureId);
             if($rec->type == 'production' && isset($masterRec->packagingId) && $masterRec->packagingId != $pRec->measureId){
                 $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->packagingId);
                 $form->setField('quantity', "unit={$unit}");
                 
                 $packRec = cat_products_Packagings::getPack($masterRec->productId, $masterRec->packagingId);
-                $defaultQuantity = is_object($packRec) ? $packRec->quanity : 1;
+                $defaultQuantity = is_object($packRec) ? $packRec->quantity : 1;
                 $form->setField('quantity', "placeholder={$defaultQuantity}");
+                $form->rec->_defaultQuantity = $defaultQuantity;
             } else {
                 $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
                 $unit = cat_UoM::getShortName($info->packagingId);
@@ -279,43 +280,45 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $form->setError('serial,productId', 'Трябва да е въведен артикул или сериен номер');
             }
             
-            $rec->_generateSerial = false;
-            $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-            if($canStore == 'yes' && $rec->type == 'production' && !empty($masterRec->packagingId)){
-                $rec->_generateSerial = true;
-            }
-            
-            if ($canStore == 'yes') {
-                if ($rec->type == 'production' && !empty($masterRec->packagingId) && !empty($rec->serial)) {
-                    if (self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}'")) {
-                        $form->setError('serial', 'Сер. № при произвеждане трябва да е уникален');
-                    }
+            if(isset($rec->productId)){
+                $rec->_generateSerial = false;
+                $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+                if($canStore == 'yes' && $rec->type == 'production' && !empty($masterRec->packagingId)){
+                    $rec->_generateSerial = true;
                 }
                 
-                if (!empty($rec->serial)) {
-                    $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->packagingId, $rec->id);
-                    $rec->serialType = $serialInfo['type'];
+                if ($canStore == 'yes') {
+                    if ($rec->type == 'production' && !empty($masterRec->packagingId) && !empty($rec->serial)) {
+                        if (self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}'")) {
+                            $form->setError('serial', 'Сер. № при произвеждане трябва да е уникален');
+                        }
+                    }
                     
-                    if (isset($serialInfo['error'])) {
-                        $form->setError('serial', $serialInfo['error']);
+                    if (!empty($rec->serial)) {
+                        $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->packagingId, $rec->id);
+                        $rec->serialType = $serialInfo['type'];
+                        
+                        if (isset($serialInfo['error'])) {
+                            $form->setError('serial', $serialInfo['error']);
+                        }
                     }
-                }
-            } elseif ($rec->type == 'input') {
-                
-                // Ако артикула е действие към оборудването
-                $inTp = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #type = 'input' AND #productId = {$rec->productId}");
-                $inInputTask = planning_Tasks::fetchField("#originId = {$masterRec->originId} AND #inputInTask = {$rec->taskId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'pending' AND #productId = {$rec->productId}");
-                
-                // Подсигуряване че трябва да има норма
-                if (empty($inTp) && empty($inInputTask)) {
-                    if (!planning_AssetResources::getNormRec($rec->fixedAsset, $rec->productId)) {
-                        $form->setError('productId,fixedAsset', 'Изберете оборудване, което има норма за действието');
+                } elseif ($rec->type == 'input') {
+                    
+                    // Ако артикула е действие към оборудването
+                    $inTp = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #type = 'input' AND #productId = {$rec->productId}");
+                    $inInputTask = planning_Tasks::fetchField("#originId = {$masterRec->originId} AND #inputInTask = {$rec->taskId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'pending' AND #productId = {$rec->productId}");
+                    
+                    // Подсигуряване че трябва да има норма
+                    if (empty($inTp) && empty($inInputTask)) {
+                        if (!planning_AssetResources::getNormRec($rec->fixedAsset, $rec->productId)) {
+                            $form->setError('productId,fixedAsset', 'Изберете оборудване, което има норма за действието');
+                        }
                     }
                 }
             }
             
             if (!$form->gotErrors()) {
-                $rec->quantity = (empty($rec->quantity)) ? 1 : $rec->quantity;
+                $rec->quantity = (!empty($rec->quantity)) ? $rec->quantity : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1);
                 
                 $limit = '';
                 if (isset($rec->productId) && $rec->type !== 'production') {
@@ -324,11 +327,11 @@ class planning_ProductionTaskDetails extends doc_Detail
                         $form->setError('quantity', "Надвишаване на допустимото максимално количество|* <b>{$limit}</b>");
                     }
                 }
-            }
-            
-            $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
-            if (isset($info->indTime)) {
-                $rec->norm = $info->indTime;
+                
+                $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
+                if (isset($info->indTime)) {
+                    $rec->norm = $info->indTime;
+                }
             }
         }
     }
@@ -424,11 +427,12 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         $foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
         $packagingId = (!empty($foundRec->packagingId)) ? $foundRec->packagingId : $pRec->measureId;
+        $packagingName = cat_UoM::getShortName($packagingId);
         
         if ($pRec->measureId != $packagingId && $rec->type != 'production') {
-            $row->measureId = str::getPlural($rec->quantity, cat_UoM::getShortName($packagingId), true);
+            $row->measureId = str::getPlural($rec->quantity, $packagingName, true);
         } elseif ($rec->type == 'production') {
-            $row->type = tr('Произвеждане');
+            $row->type = (!empty($packagingId)) ? tr("Произв.|* {$packagingName}") : tr('Произвеждане');
         }
         
         $row->scrappedQuantity = '';
