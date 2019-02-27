@@ -571,20 +571,35 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             unset($v,$gro);
         }
         
+        
+        //Когато имаме избрано групирано показване правим нов масив
         if ($rec->grouping == 'yes') {
             $recs = array();
             foreach ($groupValues as $k => $v) {
                 $recs[$k] = (object) array(
-                                            'group' => $k,
-                                            'primeCost' => $v,
-                                            'delta' => $groupDeltas[$k],
-                                            'groupPrimeCostPrevious' => $groupPrimeCostPrevious[$k],
-                                            'groupDeltaPrevious' => $groupDeltaPrevious[$k],
-                                            'groupPrimeCostLastYear' => $groupPrimeCostLastYear[$k],
-                                            'groupDeltaLastYear' => $groupDeltaLastYear[$k]
-                                        
+                                            'group'                        => $k,                                         //Група артикули
+                                            'primeCost'                    => $v,                                         //Продажби за текущия период за групата
+                                            'delta'                        => $groupDeltas[$k],                           //Делта за текущия период за групата         
+                                            
+                                            'groupPrimeCostPrevious'       => $groupPrimeCostPrevious[$k],                //Продажби за предходен период за групата
+                                            'changeGroupPrimeCostPrevious' => $groupPrimeCostPrevious[$k]-$v,             //Промяна в продажбите спрямо предходен период за групата
+                                            'groupDeltaPrevious'           => $groupDeltaPrevious[$k],                    //Делта за предходен период за групата
+                                            'changeGroupDeltaPrevious'     => $groupDeltaPrevious[$k]-$groupDeltas[$k],   //Промяна в делтите спрямо предходен период за групата
+                                            
+                                            'groupPrimeCostLastYear'       => $groupPrimeCostLastYear[$k],                //Продажби за предходна година за групата
+                                            'changeGroupPrimeCostLastYear' => $groupPrimeCostLastYear[$k]-$v,             //Промяна в продажбите спрямо предходна година за групата
+                                            'groupDeltaLastYear'           => $groupDeltaLastYear[$k],                    //Делта за предходна година за групата
+                                            'changeGroupDeltaLastYear'     => $groupDeltaLastYear[$k]-$groupDeltas[$k],   //Промяна в делтите спрямо предходна година за групата
                                         );
             }
+            
+            if($rec->compare && (($rec->compare == 'previous') || ($rec->compare == 'month'))){
+               
+                $changePrimeCost = 'changeGroupPrimeCostPrevious';
+            }
+            
+            
+            
         }
         
         //Подредба на резултатите
@@ -607,7 +622,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                                         );
         
         array_unshift($recs, $totalArr['total']);
-    
+    bp($recs);
         return $recs;
     }
     
