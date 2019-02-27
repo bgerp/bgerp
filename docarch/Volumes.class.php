@@ -27,6 +27,7 @@ class docarch_Volumes extends core_Master
      */
     public $canChangestate = 'ceo,docarchMaster,docarch';
     
+    
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
@@ -49,6 +50,7 @@ class docarch_Volumes extends core_Master
      * Кой може да го възстанови?
      */
     public $canRestore = 'ceo,docarchMaster';
+    
     
     /**
      * Кой може да го разглежда?
@@ -92,6 +94,12 @@ class docarch_Volumes extends core_Master
      * @var string|array
      */
     public $canView = 'ceo,docarchMaster,docarch';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,docarchMaster,docarch';
     
     
     /**
@@ -202,7 +210,6 @@ class docarch_Volumes extends core_Master
     {
         //Поставя автоматична номерация на тома, ако не е въведена ръчно
         if ($form->isSubmitted()) {
-            
             $type = $form->rec->type;
             
             if (is_null($form->rec->archive)) {
@@ -241,7 +248,7 @@ class docarch_Volumes extends core_Master
             }
         }
     }
-       
+    
     
     /**
      * Изчисляване на заглавието
@@ -265,8 +272,8 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        if(empty(docarch_Archives::getQuery()->fetchAll())){
-          $data->toolbar->removeBtn('btnAdd');
+        if (empty(docarch_Archives::getQuery()->fetchAll())) {
+            $data->toolbar->removeBtn('btnAdd');
         }
     }
     
@@ -337,8 +344,6 @@ class docarch_Volumes extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        
-        
         if (!is_null($rec->archive)) {
             if (($rec->type == docarch_Archives::minDefType($rec->archive)) || $rec->archive == 0) {
                 $rec->isForDocuments = 'yes';
@@ -360,17 +365,19 @@ class docarch_Volumes extends core_Master
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         if ($rec->_isCreated !== true) {
-           
+            
             // Прави запис в модела на движенията
             $className = get_class();
+            
             $mRec = (object) array('type' => 'creating',
-                'position' => $rec->id.'|'.$className,
+                'position' => $rec->id.'|'.$className.'|'. self::getRecTitle($rec),
             );
             
             
             docarch_Movements::save($mRec);
         }
     }
+    
     
     /**
      * След изтриване на запис
@@ -387,8 +394,6 @@ class docarch_Volumes extends core_Master
             
             
             docarch_Movements::save($mRec);
-           
-            
         }
     }
     
@@ -401,7 +406,6 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-      
     }
     
     
@@ -522,35 +526,20 @@ class docarch_Volumes extends core_Master
             }
         }
         
-        if ($rec->id && ($action == 'single' || 
-                         $action == 'delete' || 
+        if ($rec->id && (
+            $action == 'delete' ||
                          $action == 'reject' ||
-                         $action == 'edit'   ||
-                         $action == 'close'  ||
+                         $action == 'edit' ||
+                         $action == 'close' ||
+                         $action == 'single' ||
                          $action == 'activate'
                         )) {
-            
             $cu = core_Users::getCurrent();
             
-            if (($cu != $rec->inCharge) && (!haveRole('docarchMaster'))) {
+            if (($cu != $rec->inCharge) && (!haveRole('docarchMaster')) && (!haveRole('ceo'))) {
                 $requiredRoles = 'no_one' ;
             }
         }
-        
-
-//         if ($rec->id && $action == 'close') {
-
-//             $includedVolumes = self::getIncludedVolumes($rec);
-//             if ((is_null($rec->docCnt)) && empty($includedVolumes))   {
-//                 $requiredRoles = 'no_one' ;
-//             }
-//         }
-
-//         if ($action == 'activate') {  bp($rec,$action);
-//             if ($rec->id && $rec->state != 'closed')   {
-//                 $requiredRoles = 'no_one' ;
-//             }
-//         }
     }
     
     
