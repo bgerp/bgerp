@@ -334,7 +334,7 @@ class cat_Products extends embed_Manager
         $this->FLD('proto', 'key(mvc=cat_Products,allowEmpty,select=name)', 'caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,groupByDiv=»');
         
         $this->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
-        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field|tr|transliterate');
+        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field|transliterate');
         $this->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
@@ -1549,19 +1549,19 @@ class cat_Products extends embed_Manager
     {
         $options = array();
         $productRec = cat_Products::fetch($productId, 'measureId,canStore');
-        if(empty($productRec)) {
+        if (empty($productRec)) {
             
             return;
         }
-       
+        
         // Определяме основната мярка
         $baseId = $productRec->measureId;
-        if($productRec->canStore == 'yes'){
+        if ($productRec->canStore == 'yes') {
             $packQuery = cat_products_Packagings::getQuery();
             $packQuery->where("#productId = {$productRec->id}");
             $packQuery->show('packagingId,isBase');
             
-            while($packRec = $packQuery->fetch()){
+            while ($packRec = $packQuery->fetch()) {
                 $options[$packRec->packagingId] = cat_UoM::getTitleById($packRec->packagingId, false);
                 if ($packRec->isBase == 'yes') {
                     $baseId = $packRec->packagingId;
