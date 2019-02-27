@@ -490,6 +490,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (isset($data->masterMvc)) {
             $data->listTableMvc->FNC('shortUoM', 'varchar', 'tdClass=nowrap');
             $data->listTableMvc->setField('productId', 'tdClass=nowrap');
+            $data->listTableMvc->FNC('modified', 'varchar', 'smartCenter');
             $data->listTableMvc->FNC('info', 'varchar', 'tdClass=task-row-info');
             unset($data->listFields['productId']);
         }
