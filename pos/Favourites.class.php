@@ -263,7 +263,7 @@ class pos_Favourites extends core_Manager
             foreach ($categories as $catObj){
                 $categoryOptions[$catObj->id] = $catObj->name;
             }
-            $selectHtml = ht::createSelect('favouriteCategories', $categoryOptions,  '', array('class' => 'pos-product-category', 'title' => 'Показване на артикулите от категория'));
+            $selectHtml = ht::createSelect('favouriteCategories', $categoryOptions,  '', array('class' => 'button', 'title' => 'Показване на артикулите от категория'));
             $tpl->append($selectHtml, 'CATEGORY_SELECT');
         } else {
             $blockTpl = $tpl->getBlock('CAT');

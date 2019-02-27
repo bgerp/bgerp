@@ -372,7 +372,7 @@
 .button {
 	color: #333 !important;
 }
-.colum-btn .button , .tools-btn .button,  #tools-form form[method="post"] input[type="submit"],.tools-btn input, #webScan, .contragent-btn .button{
+.colum-btn .button , .tools-btn .button,  #tools-form form[method="post"] input[type="submit"],.tools-btn input, #webScan, .contragent-btn .button, #tools-choose .button {
 	width: 100%;
 	height: 41px;
     margin-bottom: 10px !important;
@@ -667,6 +667,11 @@
 
 .narrow .input-field input[type=text],  .narrow #input-search-contragent{
     height:1.8em;
+}
+
+#tools-choose select {
+	max-width: 300px;
+	padding-left: 10px !important;
 }
 
 .colum-btn .selectHolder {
