@@ -17,7 +17,7 @@
 	display:inline-block;
 }
 
-.wide #single-receipt{ 
+.wide #single-receipt{
 	min-width:295px;
 }
 
@@ -403,7 +403,7 @@
 
 .narrow {
     .colum-btn .button , .tools-btn .button,  #tools-form form[method="post"] input[type="submit"],.tools-btn input,
-    .tools-btn .button.disabledBtn:hover, .colum-btn .button.disabledBtn:hover, #webScan, .contragent-btn .button{	
+    .tools-btn .button.disabledBtn:hover, .colum-btn .button.disabledBtn:hover, #webScan, .contragent-btn .button{
         margin-bottom: 9px !important;
         font-size: 0.8em !important;
     }
@@ -419,7 +419,7 @@
 	    top: -1px;
 	}
 }
- 
+
 
 .colum-btn .button:hover , .tools-btn .button:hover, #webScan:hover{
 	background-color: #DDD;
@@ -713,9 +713,10 @@
 .tabs-holder-content {
     position: relative;
     min-height:285px;
-    box-shadow: 4px 4px 4px rgba(0,0,0,0.3) ,inset 0 0 20px rgba(0,0,0,0.1);
+    box-shadow: 4px 4px 4px rgba(0,0,0,0.3);
     border-radius: 5px;
 	border-top-left-radius: 0;
+	background: #f6f6f6;
 }
 
 .narrow .tabs-holder-content{
@@ -723,8 +724,8 @@
 }
 
 .tabs-holder .tab{
-	width:100%; 
-	display:inline-block; 
+	width:100%;
+	display:inline-block;
 }
 
 #tools-wide-tabs{
@@ -756,7 +757,6 @@
 		list-style: none;
 		-ms-box-orient: horizontal;
 		-ms-box-pack: center;
-
 		li {
 			position: relative;
 			z-index: 1;
@@ -810,17 +810,17 @@
 
 }
 .narrow .pos-tabs {
-	margin-right: 5px;
-	margin-left: 5px;
+	margin-right: 0px !important;
+	margin-left: 0px;
 	overflow-x: auto;
 }
+
 .narrow .pos-tabs a {
 	padding-right: 20px;
 	padding-left: 5px;
 	font-size: 0.8em;
 	text-align: left;
 }
-
 
 .pos-tabs a:hover {
 	text-decoration:none;
@@ -921,8 +921,8 @@
 }
 
 .pos-add-res-btn{
-	font-weight: bold;  
-	color:#333; 
+	font-weight: bold;
+	color:#333;
 }
 
 .pos-add-res-btn:hover{
@@ -976,7 +976,7 @@
 	}
 }
 /*media queries за клавиатурата*/
-@media handheld, only screen and (max-width: 1600px) { 
+@media handheld, only screen and (max-width: 1600px) {
     .keyboard{
        font-size:1em !important;
     }
@@ -985,7 +985,7 @@
     }
 }
 
-@media handheld, only screen and (max-width: 1400px) { 
+@media handheld, only screen and (max-width: 1400px) {
     .keyboard{
        font-size:0.9em !important;
     }
@@ -995,7 +995,7 @@
     }
 }
 
-@media handheld, only screen and (max-width: 1200px) { 
+@media handheld, only screen and (max-width: 1200px) {
     .keyboard{
        font-size:0.8em !important;
     }
@@ -1005,7 +1005,7 @@
     }
 }
 
-@media handheld, only screen and (max-width: 1000px) { 
+@media handheld, only screen and (max-width: 1000px) {
     .keyboard{
        font-size:0.7em !important;
     }
@@ -1015,7 +1015,7 @@
     }
 }
 
-@media handheld, only screen and (max-width: 900px) { 
+@media handheld, only screen and (max-width: 900px) {
     .keyboard{
        font-size:0.6em !important;
     }
@@ -1025,7 +1025,7 @@
     }
 }
 
-@media handheld, only screen and (max-width: 800px) { 
+@media handheld, only screen and (max-width: 800px) {
 	.keyboard{
 	   font-size:0.5em !important;
 	}
