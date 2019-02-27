@@ -716,15 +716,11 @@ class core_FieldSet extends core_BaseClass
     
     
     /**
-     * Комбинира полетата на фийлдсета с други
-     *
-     * @param string $where
-     *
-     * @return array $fieldsArr
+     * Добавя нов обект на  поле към фийлдсета
      */
-    public function mergeFields($fields)
+    public function addFieldObject($name, $field)
     {
-        expect(is_array($fields));
-        $this->fields = $this->fields + $fields;
+        expect(is_object($field));
+        $this->fields = $this->fields + array($name => $field);
     }
 }
