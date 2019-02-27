@@ -713,4 +713,18 @@ class core_FieldSet extends core_BaseClass
         
         return $fieldsArr;
     }
+    
+    
+    /**
+     * Комбинира полетата на фийлдсета с други
+     *
+     * @param string $where
+     *
+     * @return array $fieldsArr
+     */
+    public function mergeFields($fields)
+    {
+        expect(is_array($fields));
+        $this->fields = $this->fields + $fields;
+    }
 }
