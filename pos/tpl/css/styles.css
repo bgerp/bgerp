@@ -642,9 +642,10 @@
 .tabs-holder-content {
   position: relative;
   min-height: 285px;
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.3);
   border-radius: 5px;
-  border-top-left-radius: 0; }
+  border-top-left-radius: 0;
+  background: #f6f6f6; }
 
 .narrow .tabs-holder-content {
   width: 100%; }
@@ -727,8 +728,8 @@
       border-bottom: none; }
 
 .narrow .pos-tabs {
-  margin-right: 5px;
-  margin-left: 5px;
+  margin-right: 0px !important;
+  margin-left: 0px;
   overflow-x: auto; }
 
 .narrow .pos-tabs a {

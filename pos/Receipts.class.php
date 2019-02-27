@@ -779,7 +779,7 @@ class pos_Receipts extends core_Master
             $block->append($htmlScan, 'FIRST_TOOLS_ROW');
         }
         
-        $block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въвеждане')), 'INPUT_FLD');
+        $block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въвеждане', 'readonly' => 'readonly')), 'INPUT_FLD');
         $block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
         $block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
         $block->append(ht::createFnBtn('Код', null, null, array('class' => "{$disClass} buttonForm", 'id' => 'addProductBtn', 'data-url' => $addUrl, 'title' => 'Продуктов код или баркод')), 'FIRST_TOOLS_ROW');
