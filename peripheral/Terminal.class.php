@@ -172,7 +172,8 @@ class peripheral_Terminal extends core_Master
         // Ако не е избран терминал или няма зададен потребител
         if (!$terminalId) {
             $form = cls::get('core_Form');
-            
+            $form->class = 'simpleForm simplePortalLogin';
+
             $form->FLD('terminalId', 'key(mvc=peripheral_Terminal, select=name)', 'caption=Терминал, removeAndRefreshForm=user|pin, mandatory, silent');
             
             $brid = log_Browsers::getBrid();
@@ -298,11 +299,14 @@ class peripheral_Terminal extends core_Master
             
             $form->toolbar->addSbBtn('Вход', 'save', 'ef_icon = img/16/doc_stand.png, title = Запис на документа');
             $form->toolbar->addBtn('Затвори', array('Index', 'Default'), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
-            
+
             if (!$terminalId) {
                 $htmlRes = $form->renderHtml();
                 $htmlRes->replace(tr('Отваряне на терминал'), 'PAGE_TITLE');
-                
+                $htmlRes->push('peripheral/css/styles.css', 'CSS');
+                $htmlRes->replace('terminalWrapper', 'BODY_CLASS_NAME');
+
+
                 return $htmlRes;
             }
         }

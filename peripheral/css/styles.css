@@ -1,0 +1,60 @@
+body {
+    background-color:  rgba(0,0,0,0.7);
+}
+
+.wide .vertical .formTable {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    margin-left: -215px;
+    margin-top: -100px;
+    margin-bottom: 0 !important;
+    background-color: #fff !important;
+    border: 1px solid #ccc !important;
+    padding: 0 0 20px 0;
+    box-shadow: 2px 2px 10px #000 !important;
+    font-family: "Consolas", monospace;
+    font-size: 1.1em;
+}
+.narrow .vertical {
+    display: block;
+}
+.narrow .simpleForm .vertical .formTable {
+    font-size: 0.9em !important;
+    min-width: 300px !important;
+    margin: 30px auto !important;
+    background-color: #fff !important;
+    border: 1px solid #ccc !important;
+    padding: 0 0 20px 0;
+    box-shadow: 2px 2px 10px #000 !important;
+    font-family: "Consolas", monospace;
+    font-size: 1.1em;
+}
+.formSection, .formToolbar {
+    padding: 10px  20px 0 !important;
+}
+.formTitle {
+    padding: 10px 20px 10px 20px !important;
+    border-bottom: 1px solid #ccc !important;
+    margin-bottom: 10px;
+}
+.narrow .vertical .formTitle  {
+    font-size: 1.1em;
+}
+.formTitle a {
+    color: rgb(0, 0, 238);
+}
+.narrow .vertical .formToolbar {
+    padding: 20px 20px 0 !important;
+}
+.select2-container--default .select2-selection--single, input[type=password], select {
+    border: 1px solid #999 !important;
+    width: 100%;
+    outline: none;
+}
+.select2-selection:focus, .formFields input:focus, select:focus {
+    box-shadow: 0 0 5px #333 !important;
+}
+.vertical .formFields .w25 {
+    width: 100%;
+}
