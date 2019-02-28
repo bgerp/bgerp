@@ -48,9 +48,13 @@ class core_Mode
         
         self::prepareMode();
         
-        self::$mode[$name] = $value;
+        $Session = cls::get('core_Session');
         
-        return self::$mode[$name];
+        $sessPrefix = $Session->getDecoratePrefix();
+        
+        self::$mode[$sessPrefix][$name] = $value;
+        
+        return self::$mode[$sessPrefix][$name];
     }
     
     
@@ -132,8 +136,12 @@ class core_Mode
         self::prepareMode();
         
         $res = null;
-        if (isset(self::$mode[$name])) {
-            $res = self::$mode[$name];
+        
+        $Session = cls::get('core_Session');
+        $sessPrefix = $Session->getDecoratePrefix();
+        
+        if (isset(self::$mode[$sessPrefix][$name])) {
+            $res = self::$mode[$sessPrefix][$name];
         }
         
         return $res;
@@ -145,11 +153,14 @@ class core_Mode
      */
     protected static function prepareMode()
     {
-        if (is_null(self::$mode)) {
-            self::$mode = core_Session::get(EF_MODE_SESSION_VAR);
+        $Session = cls::get('core_Session');
+        $sessPrefix = $Session->getDecoratePrefix();
+        
+        if (is_null(self::$mode[$sessPrefix])) {
+            self::$mode[$sessPrefix] = core_Session::get(EF_MODE_SESSION_VAR);
             
-            if (!is_array(self::$mode)) {
-                self::$mode = array();
+            if (!is_array(self::$mode[$sessPrefix])) {
+                self::$mode[$sessPrefix] = array();
             }
         }
     }
@@ -196,10 +207,15 @@ class core_Mode
     /**
      * Унищожава цялата перманентна информация
      */
-    public static function destroy()
+    public static function destroy($sessPrefix = null)
     {
         core_Session::set(EF_MODE_SESSION_VAR, null);
-        self::$mode = null;
+        if (isset($sessPrefix)) {
+            self::$mode[$sessPrefix] = null;
+        } else {
+            self::$mode = null;
+        }
+        
         self::$stack = array();
     }
     
