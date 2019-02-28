@@ -46,6 +46,8 @@ class pos_DefaultTheme extends core_Manager
      */
     public function getFavouritesTpl()
     {
-        return getTplFromFile('pos/themes/default/Favourites.shtml');
+        $tplFile = Mode::is('screenMode', 'narrow') ? 'pos/themes/default/FavouritesNarrow.shtml' : 'pos/themes/default/Favourites.shtml';
+        
+        return getTplFromFile($tplFile);
     }
 }

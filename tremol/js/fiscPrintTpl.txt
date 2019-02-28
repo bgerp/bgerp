@@ -64,7 +64,7 @@ function printFiscalReceipt(onSuccess, onError) {
                         
                         isFiscIsOpen = true;
                     } else {
-                        render_showToast({timeOut: 800, text: 'Неуспешен опит за прекратяване на предишна бележката', isSticky: true, stayTime: 8000, type: 'error'});
+                        render_showToast({timeOut: 800, text: 'Неуспешен опит за прекратяване на предишната бележка', isSticky: true, stayTime: 8000, type: 'error'});
                         throw ex;
                     }
                 }

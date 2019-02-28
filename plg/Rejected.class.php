@@ -41,7 +41,8 @@ class plg_Rejected extends core_Plugin
         
         $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('reject' => '*Оттегляне', 'restore' => '*Възстановяване');
         
-        setIfNot($invoker->canRejectsysdata, 'no_one');
+        setIfNot($mvc->showRejectedRows, false);
+        setIfNot($mvc->canRejectsysdata, 'no_one');
     }
     
     
@@ -89,7 +90,7 @@ class plg_Rejected extends core_Plugin
         if (Request::get('Rejected')) {
             $data->toolbar->removeBtn('*', 'with_selected');
             $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', 'ef_icon = img/16/application_view_list.png,title=Всички ' . mb_strtolower($mvc->title));
-        } else {
+        } elseif($data->showRejectedRows === false) {
             $rejCnt = $data->rejQuery->count();
             
             if ($rejCnt) {
@@ -259,6 +260,8 @@ class plg_Rejected extends core_Plugin
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
+        setIfNot($data->showRejectedRows, $mvc->showRejectedRows);
+        
         // Добавяме скрито полето за оттегляне
         if (!isset($data->listFilter->fields['Rejected'])) {
             $data->listFilter->FNC('Rejected', 'varchar', 'input=hidden,silent');
@@ -285,7 +288,7 @@ class plg_Rejected extends core_Plugin
         if ($data->query) {
             if (Request::get('Rejected')) {
                 $data->query->where("#state = 'rejected'");
-            } else {
+            } elseif($data->showRejectedRows === false) {
                 $data->rejQuery = clone($data->query);
                 $data->query->where("#state != 'rejected' OR #state IS NULL");
                 $data->rejQuery->where("#state = 'rejected'");

@@ -69,7 +69,13 @@ class exif_Reader
     public static function getGps($fileHnd)
     {
         // Ако няма exif информация
-        if (!($exif = static::get($fileHnd))) {
+        try{
+            if (!($exif = static::get($fileHnd))) {
+                
+                return;
+            }
+        } catch(core_exception_Expect $e){
+            reportException($e);
             
             return;
         }

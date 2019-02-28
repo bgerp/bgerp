@@ -34,6 +34,12 @@ class docarch_Archives extends core_Master
     
     
     /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,docarch,docarchMaster';
+    
+    
+    /**
      * Кой има право да чете?
      *
      * @var string|array
@@ -150,6 +156,21 @@ class docarch_Archives extends core_Master
     
     
     /**
+     * Извиква се преди запис в модела
+     *
+     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
+     * @param int          $id     Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec    Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode   Режим на записа: replace, ignore
+     */
+    public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        $rec->isCreated = $rec->id ? true : false;
+    }
+    
+    
+    /**
      * Извиква се след успешен запис в модела
      *
      * @param core_Mvc $mvc
@@ -159,8 +180,11 @@ class docarch_Archives extends core_Master
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // Прави запис в модела на движенията
+        
+        $type = $rec->isCreated ? 'edit' : 'creating';
+        
         $className = get_class();
-        $mRec = (object) array('type' => 'creating',
+        $mRec = (object) array('type' => $type,
             'position' => $rec->id.'|'.$className,
         );
         

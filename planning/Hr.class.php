@@ -107,7 +107,7 @@ class planning_Hr extends core_Master
         
         if (empty($rec->personId)) {
             $form->setField('personId', 'input');
-            $form->setOptions('personId', array('' => '') + crm_Persons::getEmployeesOptions(true, true));
+            $form->setOptions('personId', array('' => '') + crm_Persons::getEmployeesOptions(true, false));
         }
     }
     
@@ -344,7 +344,6 @@ class planning_Hr extends core_Master
         }
         
         $link = ht::createLink($code, $singleUrl, false, "title=Към визитката на|* '{$name}'");
-        $link = ht::createHint($link, '|*' . $name, 'img/16/vcard.png', false);
         
         return $link;
     }

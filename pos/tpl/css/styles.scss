@@ -17,7 +17,7 @@
 	display:inline-block;
 }
 
-.wide #single-receipt{ 
+.wide #single-receipt{
 	min-width:295px;
 }
 
@@ -369,9 +369,10 @@
 	margin-left: 5%;
 	min-width: 95px;
 }
-
-.colum-btn .button , .tools-btn .button,  #tools-form form[method="post"] input[type="submit"],.tools-btn input,
-.tools-btn .button.disabledBtn:hover, .colum-btn .button.disabledBtn:hover, #webScan, .contragent-btn .button{
+.button {
+	color: #333 !important;
+}
+.colum-btn .button , .tools-btn .button,  #tools-form form[method="post"] input[type="submit"],.tools-btn input, #webScan, .contragent-btn .button, #tools-choose .button {
 	width: 100%;
 	height: 41px;
     margin-bottom: 10px !important;
@@ -380,7 +381,6 @@
     padding-right: 3px;
     text-align: center;
     font-size: 0.9em !important;
-    color: #333 !important;
     font-weight: normal;
     background-color: #EEE;
     background-color: #ccc !important;
@@ -394,7 +394,6 @@
 	border: 1px solid #CCC !important;
 	border-bottom: 1px solid #BBB !important;
 	border-radius: 3px;
-	color: #333;
 	font: bold 10px/1 Arial, sans-serif;
 	padding: 8px 0;
 	text-align: center;
@@ -404,7 +403,7 @@
 
 .narrow {
     .colum-btn .button , .tools-btn .button,  #tools-form form[method="post"] input[type="submit"],.tools-btn input,
-    .tools-btn .button.disabledBtn:hover, .colum-btn .button.disabledBtn:hover, #webScan, .contragent-btn .button{	
+    .tools-btn .button.disabledBtn:hover, .colum-btn .button.disabledBtn:hover, #webScan, .contragent-btn .button{
         margin-bottom: 9px !important;
         font-size: 0.8em !important;
     }
@@ -420,9 +419,9 @@
 	    top: -1px;
 	}
 }
- 
 
-.colum-btn .button:hover , .tools-btn .button:hover, #webScan:hover, .wide #tools-form form[method="post"] input[type="submit"]:hover{
+
+.colum-btn .button:hover , .tools-btn .button:hover, #webScan:hover{
 	background-color: #DDD;
 	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #DDD), color-stop(100%, #BBB));
 	background-image: -webkit-linear-gradient(top, #DDD, #BBB);
@@ -435,14 +434,11 @@
 	cursor: pointer;
 }
 
-.different-btns[type=button]:hover{
-    background: #2E6F9B !important;
-}
 
-.different-btns[type=button], .disabledBtn.different-btns[type=button]:hover{
-	color:#fff !important;
-	border-top: 1px solid #96d1f8;
-    text-shadow: 0 1px 0 #333;
+
+.different-btns, .colum-btn .different-btns {
+	color: #fff !important;
+    text-shadow: 0 1px 0 #333 !important;
 	background: rgb(101,169,215) !important;
 	background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzY1YTlkNyIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMzZTc3OWQiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
 	background: -moz-linear-gradient(top,  rgba(101,169,215,1) 0%, rgba(62,119,157,1) 100%) !important;
@@ -452,9 +448,48 @@
 	background: -ms-linear-gradient(top,  rgba(101,169,215,1) 0%,rgba(62,119,157,1) 100%) !important;
 	background: linear-gradient(to bottom,  rgba(101,169,215,1) 0%,rgba(62,119,157,1) 100%) !important;
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#65a9d7', endColorstr='#3e779d',GradientType=0 ) !important;
-	border: 1px solid #226B9B !important;
-    border-bottom: 1px solid #226B9B !important;
+
+	border: 1px solid #226b9b !important;
+	border-bottom: 1px solid #226b9b !important;
     box-shadow: 0px 1px 2px #226B9B;
+}
+.different-btns[type=button]:hover{
+	background: #2E6F9B !important;
+}
+
+
+.disabledBtn.button.actionBtn, .disabledBtn.button:hover{
+	background: #bbb !important;
+	color: #666 !important;
+	cursor: auto !important;
+	border: 1px solid #BBB !important;
+	border-bottom: 1px solid #999 !important;
+	box-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
+	text-shadow: 0 1px 1px #fff !important;
+}
+
+.different-btns.disabledBtn[type=button] {
+	color:#ccc !important;
+	text-shadow: 0 1px 0 #333 !important;
+	border: 1px solid #40a1f8 !important;
+	background: rgb(101,169,215) !important;
+	background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzY1YTlkNyIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMzZTc3OWQiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+	background: -moz-linear-gradient(top,  rgba(101,169,215,1) 0%, rgba(62,119,157,1) 100%) !important;
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(101,169,215,1)), color-stop(100%,rgba(62,119,157,1))) !important;
+	background: -webkit-linear-gradient(top,  rgba(101,169,215,1) 0%,rgba(62,119,157,1) 100%) !important;
+	background: -o-linear-gradient(top,  rgba(101,169,215,1) 0%,rgba(62,119,157,1) 100%) !important;
+	background: -ms-linear-gradient(top,  rgba(101,169,215,1) 0%,rgba(62,119,157,1) 100%) !important;
+	background: linear-gradient(to bottom,  rgba(101,169,215,1) 0%,rgba(62,119,157,1) 100%) !important;
+	&:hover {
+		background: rgb(101,169,215) !important;
+		background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzY1YTlkNyIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMzZTc3OWQiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+		background: -moz-linear-gradient(top,  rgba(101,169,215,1) 0%, rgba(62,119,157,1) 100%) !important;
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(101,169,215,1)), color-stop(100%,rgba(62,119,157,1))) !important;
+		background: -webkit-linear-gradient(top,  rgba(101,169,215,1) 0%,rgba(62,119,157,1) 100%) !important;
+		background: -o-linear-gradient(top,  rgba(101,169,215,1) 0%,rgba(62,119,157,1) 100%) !important;
+		background: -ms-linear-gradient(top,  rgba(101,169,215,1) 0%,rgba(62,119,157,1) 100%) !important;
+		background: linear-gradient(to bottom,  rgba(101,169,215,1) 0%,rgba(62,119,157,1) 100%) !important;
+	}
 }
 
 .colum-btn .button.revertBtn {
@@ -599,15 +634,7 @@
 	}
 }
 
-.disabledBtn[type=button], .disabledBtn[type=button]:hover, .colum-btn .button.disabledBtn:hover, .tools-btn .button.disabledBtn:hover{
-	background-color: #ccc !important;
-	color: #999 !important;
-	cursor: auto !important;
-	border: 1px solid #BBB !important;
-	border-bottom: 1px solid #999 !important;
-	box-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
-	text-shadow: 0 1px 0 #EEE !important;
-}
+
 .input-field{
 	float: left;
 	margin-left:4px;
@@ -642,6 +669,11 @@
     height:1.8em;
 }
 
+#tools-choose select {
+	max-width: 300px;
+	padding-left: 10px !important;
+}
+
 .colum-btn .selectHolder {
 	display: block;
 	select.button {
@@ -666,8 +698,6 @@
 		&.button.disabledBtn[type=button] {
 			width: 20%;
 			color: #999 !important;
-			background-image: none !important;
-			background-color: #ccc !important;
 		}
 	}
 }
@@ -683,9 +713,10 @@
 .tabs-holder-content {
     position: relative;
     min-height:285px;
-    box-shadow: 4px 4px 4px rgba(0,0,0,0.3) ,inset 0 0 20px rgba(0,0,0,0.1);
+    box-shadow: 4px 4px 4px rgba(0,0,0,0.3);
     border-radius: 5px;
 	border-top-left-radius: 0;
+	background: #f6f6f6;
 }
 
 .narrow .tabs-holder-content{
@@ -693,8 +724,8 @@
 }
 
 .tabs-holder .tab{
-	width:100%; 
-	display:inline-block; 
+	width:100%;
+	display:inline-block;
 }
 
 #tools-wide-tabs{
@@ -726,7 +757,6 @@
 		list-style: none;
 		-ms-box-orient: horizontal;
 		-ms-box-pack: center;
-
 		li {
 			position: relative;
 			z-index: 1;
@@ -780,17 +810,17 @@
 
 }
 .narrow .pos-tabs {
-	margin-right: 5px;
-	margin-left: 5px;
+	margin-right: 0px !important;
+	margin-left: 0px;
 	overflow-x: auto;
 }
+
 .narrow .pos-tabs a {
 	padding-right: 20px;
 	padding-left: 5px;
 	font-size: 0.8em;
 	text-align: left;
 }
-
 
 .pos-tabs a:hover {
 	text-decoration:none;
@@ -891,8 +921,8 @@
 }
 
 .pos-add-res-btn{
-	font-weight: bold;  
-	color:#333; 
+	font-weight: bold;
+	color:#333;
 }
 
 .pos-add-res-btn:hover{
@@ -946,7 +976,7 @@
 	}
 }
 /*media queries за клавиатурата*/
-@media handheld, only screen and (max-width: 1600px) { 
+@media handheld, only screen and (max-width: 1600px) {
     .keyboard{
        font-size:1em !important;
     }
@@ -955,7 +985,7 @@
     }
 }
 
-@media handheld, only screen and (max-width: 1400px) { 
+@media handheld, only screen and (max-width: 1400px) {
     .keyboard{
        font-size:0.9em !important;
     }
@@ -965,7 +995,7 @@
     }
 }
 
-@media handheld, only screen and (max-width: 1200px) { 
+@media handheld, only screen and (max-width: 1200px) {
     .keyboard{
        font-size:0.8em !important;
     }
@@ -975,7 +1005,7 @@
     }
 }
 
-@media handheld, only screen and (max-width: 1000px) { 
+@media handheld, only screen and (max-width: 1000px) {
     .keyboard{
        font-size:0.7em !important;
     }
@@ -985,7 +1015,7 @@
     }
 }
 
-@media handheld, only screen and (max-width: 900px) { 
+@media handheld, only screen and (max-width: 900px) {
     .keyboard{
        font-size:0.6em !important;
     }
@@ -995,7 +1025,7 @@
     }
 }
 
-@media handheld, only screen and (max-width: 800px) { 
+@media handheld, only screen and (max-width: 800px) {
 	.keyboard{
 	   font-size:0.5em !important;
 	}

@@ -36,6 +36,12 @@ class docarch_Movements extends core_Master
     
     
     /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,docarch,docarchMaster';
+    
+    
+    /**
      * Кой има право да променя?
      *
      * @var string|array
@@ -213,6 +219,7 @@ class docarch_Movements extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
+            $form->rec->position = docarch_Volumes::fetch($form->rec->toVolumeId)->title;
         }
     }
     
@@ -360,7 +367,7 @@ class docarch_Movements extends core_Master
         $movieName = self::getMoveName($rec->type);
         
         $row->type = $movieName;
-        
+        $row->documentId = '';
         if (($rec->documentId)) {
             $Document = doc_Containers::getDocument($rec->documentId);
             
@@ -370,20 +377,34 @@ class docarch_Movements extends core_Master
             
             $url = toUrl(array("${className}",'single', $Document->that));
             
-            $row->documentId = ht::createLink($handle, $url, false, array());
+            $row->documentId .= ht::createLink($handle, $url, false, array());
             
             $row->documentId .= ' » ';
         }
         
         //Ако движението е "Включване"
         if ($rec->type == 'include') {
-            if ($rec->toVolumeId) {
-                $row->documentId = docarch_Volumes::getHyperlink($rec->toVolumeId).' » ';
+            list($position, $volumes) = explode('»', $rec->position);
+            
+            list($downVol, $upVol) = explode('|', $volumes);
+            
+            list($downVolId, $downVolTitle) = explode('*', $downVol);
+            
+            list($upVolId, $upVolTitle) = explode('*', $upVol);
+            
+            if (docarch_Volumes::fetch($downVolId) === false) {
+                $row->documentId .= $downVolTitle.'(Изтрит)'.' » ';
+            } else {
+                $row->documentId .= docarch_Volumes::getHyperlink($downVolId).' » ';
             }
             
-            if ($rec->fromVolumeId) {
-                $row->documentId .= docarch_Volumes::getHyperlink($rec->fromVolumeId);
+            if (docarch_Volumes::fetch($upVolId) === false) {
+                $row->documentId .= $upVolTitle.'(Изтрит)'.' » ';
+            } else {
+                $row->documentId .= docarch_Volumes::getHyperlink($upVolId);
             }
+            
+            $row->position = $position;
         }
         
         
@@ -393,43 +414,85 @@ class docarch_Movements extends core_Master
                 $userUrl = crm_Profiles::getUrl($rec->userID);
                 $userNick = core_Users::getNick($rec->userID);
                 
-                
-                $row->documentId .= docarch_Volumes::getHyperlink($rec->toVolumeId).'</br>';
-                
+                if (docarch_Volumes::fetch($rec->toVolumeId) === false) {
+                    $row->documentId .= $rec->position.'(Изтрит)'.'</br>';
+                } else {
+                    $row->documentId .= docarch_Volumes::getHyperlink($rec->toVolumeId).'</br>';
+                }
                 $row->documentId .= 'Получил:'.ht::createLink($userNick, $userUrl, false, array());
             }
-        }
-        
-        
-        //Ако движението е "Архивиране"
-        if ($rec->type == 'archiving') {
-            if ($rec->toVolumeId) {
-                $row->documentId .= docarch_Volumes::getHyperlink($rec->toVolumeId);
-            }
-        }
-        
-        
-        //Ако движението е "Изключване"
-        if ($rec->type == 'exclude') {
-            list($vol, $upvol) = explode('|', $rec->position);
-            
-            $row->documentId .= docarch_Volumes::getHyperlink($vol).' » ';
-            $row->documentId .= docarch_Volumes::getHyperlink($upvol);
             
             $row->position = '';
         }
         
+        //Ако движението е "Архивиране"
+        if ($rec->type == 'archiving') {
+            if ($rec->toVolumeId) {
+                if (docarch_Volumes::fetch($rec->toVolumeId) === false) {
+                    $row->documentId .= $rec->position.'(Изтрит)'.'</br>';
+                } else {
+                    $row->documentId .= docarch_Volumes::getHyperlink($rec->toVolumeId).'</br>';
+                }
+            }
+            $row->position = '';
+        }
+        
+        //Ако движението е "Изтриване"
+        if ($rec->type == 'deleting') {
+            $row->documentId .= $rec->position;
+            $row->position = '';
+        }
+        
+        //Ако движението е "Изключване"
+        if ($rec->type == 'exclude') {
+            list($downVol, $upVol) = explode('|', $rec->position);
+            
+            list($downVolId, $downVolTitle) = explode('*', $downVol);
+            
+            list($upVolId, $upVolTitle) = explode('*', $upVol);
+            
+            if (docarch_Volumes::fetch($downVolId) === false) {
+                $row->documentId .= $downVolTitle.'(Изтрит)'.' » ';
+            } else {
+                $row->documentId .= docarch_Volumes::getHyperlink($downVolId).' » ';
+            }
+            
+            if (docarch_Volumes::fetch($upVolId) === false) {
+                $row->documentId .= $upVolTitle.'(Изтрит)'.' » ';
+            } else {
+                $row->documentId .= docarch_Volumes::getHyperlink($upVolId);
+            }
+            
+            $row->position = '';
+        }
         
         //Ако движението е "Създаване"
         if ($rec->type == 'creating') {
-            list($id, $className) = explode('|', $rec->position);
+            list($id, $className, $title) = explode('|', $rec->position);
             
             expect($className, $id);
             
-            $className = cls::get($className);
+            $className = cls::get($className)->className;
+            if (!$className::fetch($id)) {
+                $row->documentId .= $title.'(Изтрит)';
+            } else {
+                $row->documentId .= $className::getHyperlink($id);//bp($rec,$className,$id,$className::fetch($id));
+            }
+            $row->position = '';
+        }
+        
+        //Ако движението е "Редактиране"
+        if ($rec->type == 'edit') {
+            list($id, $className, $title) = explode('|', $rec->position);
             
-            $row->documentId .= $className->getHyperlink($id);
+            expect($className, $id);
             
+            $className = cls::get($className)->className;
+            if (!$className::fetch($id)) {
+                $row->documentId .= $title.'(Изтрит)';
+            } else {
+                $row->documentId .= $className::getHyperlink($id);//bp($rec,$className,$id,$className::fetch($id));
+            }
             $row->position = '';
         }
     }
@@ -491,7 +554,7 @@ class docarch_Movements extends core_Master
     
     
     /**
-     * Изважда документ от том
+     * Вземане документ от том
      */
     public function act_Taking()
     {
@@ -541,6 +604,8 @@ class docarch_Movements extends core_Master
         $form->input();
         
         if ($form->isSubmitted()) {
+            $form->rec->position = docarch_Volumes::fetch($form->rec->toVolumeId)->title;
+            
             $this->save($form->rec);
             
             return new Redirect(getRetUrl());
@@ -598,6 +663,7 @@ class docarch_Movements extends core_Master
         
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
         
+        
         $mRec = $form->input();
         
         $includeRec->id = $thisVolId;
@@ -613,6 +679,12 @@ class docarch_Movements extends core_Master
             );
             
             docarch_Volumes::save($includeRec);
+            
+            $upVolId = $mRec->fromVolumeId;
+            $upVolTitle = $upVolTitle = docarch_Volumes::fetch($upVolId)-> title;
+            
+            
+            $mRec->position .= '»'.$thisVolId.'*'.$thisVolRec->title.'|'.$upVolId.'*'.$upVolTitle;
             
             $this->save($mRec);
             
@@ -641,6 +713,7 @@ class docarch_Movements extends core_Master
         $thisVolRec = docarch_Volumes::fetch($thisVolId);
         
         $upVolId = docarch_Volumes::fetch($thisVolRec->includeIn)-> id;
+        $upVolTitle = docarch_Volumes::fetch($thisVolRec->includeIn)-> title;
         
         $ExcludeRec->includeIn = null;
         
@@ -648,7 +721,7 @@ class docarch_Movements extends core_Master
         
         $ExcludeRec->_isCreated = true;
         
-        $pos = $thisVolId.'|'.$upVolId;
+        $pos = $thisVolId.'*'.$thisVolRec->title.'|'.$upVolId.'*'.$upVolTitle;
         
         
         $mRec = (object) array(
@@ -686,6 +759,10 @@ class docarch_Movements extends core_Master
             case 'include':$typeName = 'Включване'; break;
             
             case 'exclude':$typeName = 'Изключване'; break;
+            
+            case 'deleting':$typeName = 'Изтриване'; break;
+            
+            case 'edit':$typeName = 'Редактиране'; break;
         
         }
         

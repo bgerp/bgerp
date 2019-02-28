@@ -266,7 +266,10 @@ class pos_Receipts extends core_Master
         }
         
         $row->RECEIPT_CAPTION = tr('Касова бележка');
+        $row->PAID_CAPTION = tr('Платено');
+        
         if(isset($rec->revertId)){
+            $row->PAID_CAPTION = tr('Върнато');
             $row->REVERT_CLASS = 'is-reverted';
             $row->revertId = pos_Receipts::getHyperlink($rec->revertId, true);
             if(isset($fields['-terminal'])){
@@ -274,7 +277,7 @@ class pos_Receipts extends core_Master
                 $row->loadUrl = ht::createLink('', array('pos_ReceiptDetails', 'load', "receiptId" => $rec->id, 'from' => $rec->revertId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Зареждане на всички данни от бележката, class=load-btn');
             }
         }
-        
+        //bp($row->PAID_CAPTION);
         // Слагаме бутон за оттегляне ако имаме права
         if (!Mode::is('printing')) {
             if ($mvc->haveRightFor('reject', $rec)) {
@@ -388,9 +391,7 @@ class pos_Receipts extends core_Master
             $action = explode('|', $dRec->action);
             switch ($action[0]) {
                 case 'sale':
-                    $vat = cat_Products::getVat($dRec->productId, $rec->createdOn);
-                    $price = $dRec->price * (1 - $dRec->discountPercent) * (1 + $vat);
-                    $price = round($price, 2);
+                    $price = $this->getDisplayPrice($dRec->price, $dRec->param, $dRec->discountPercent);
                     $rec->total += round($dRec->quantity * $price, 2);
                     break;
                 case 'payment':
@@ -778,7 +779,7 @@ class pos_Receipts extends core_Master
             $block->append($htmlScan, 'FIRST_TOOLS_ROW');
         }
         
-        $block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въвеждане')), 'INPUT_FLD');
+        $block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въвеждане', 'readonly' => 'readonly')), 'INPUT_FLD');
         $block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
         $block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
         $block->append(ht::createFnBtn('Код', null, null, array('class' => "{$disClass} buttonForm", 'id' => 'addProductBtn', 'data-url' => $addUrl, 'title' => 'Продуктов код или баркод')), 'FIRST_TOOLS_ROW');
@@ -1116,7 +1117,7 @@ class pos_Receipts extends core_Master
         
         $value = round(abs($rec->total) - abs($rec->paid), 2);
         $value = ($value > 0) ? $value : null;
-        $block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;', 'value' => $value, 'title' => 'Въведи платена сума')) . '<br />', 'INPUT_PAYMENT');
+        $block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;', 'value' => $value, 'title' => 'Въведете сума за плащане или номер на бележка за сторниране')) . '<br />', 'INPUT_PAYMENT');
         
         // Показваме всички активни методи за плащания
         $disClass = ($payUrl) ? '' : 'disabledBtn';
@@ -1861,6 +1862,22 @@ class pos_Receipts extends core_Master
                     $res['rec'] = false;
                 }
             }
+        }
+    }
+    
+    
+    /**
+     * Обработване на цената
+     */
+    protected function on_AfterGetDisplayPrice($mvc, &$res, $priceWithoutVat, $vat, $discountPercent)
+    {
+        if(empty($res)){
+            $res = $priceWithoutVat * (1 + $vat);
+            if(!empty($discountPercent)){
+                $res *= (1 - $discountPercent);
+            }
+            
+            $res = round($res, 2);
         }
     }
 }

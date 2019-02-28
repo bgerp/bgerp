@@ -116,6 +116,7 @@ class core_Plugins extends core_Manager
     }
     
     
+    
     /**
      * Инсталира нов плъгин, към определен клас
      */
@@ -160,20 +161,28 @@ class core_Plugins extends core_Manager
     /**
      * Деинсталира даден плъгин
      */
-    public function deinstallPlugin($plugin)
+    public function deinstallPlugin($plugin, $className = null)
     {
         foreach ($this->attachedPlugins as $class => $r1) {
             foreach ($r1 as $cover => $r2) {
                 foreach ($r2 as $name => $cPlg) {
                     if ($cPlg == $plugin) {
+                        if(isset($className) && $class != $className) continue;
+                       
                         unset($this->attachedPlugins[$class][$cover][$name]);
                     }
                 }
             }
         }
+       
+        if(isset($className)){
+            
+            return $this->delete("#plugin = '{$plugin}' AND #class = '{$className}'");
+        }
         
         return $this->delete("#plugin = '{$plugin}'");
     }
+    
     
     /****************************************************************************************
      *                                                                                      *

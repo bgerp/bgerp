@@ -109,7 +109,8 @@ class core_TableView extends core_BaseClass
         $addRows = '';
         $colspan = 0;
         $maxColHeaders = 1;
-        
+        $addRowArr = array();
+
         $i = 0;
         
         $fieldList = array();
@@ -235,9 +236,11 @@ class core_TableView extends core_BaseClass
                     
                     // Допълнителни цели редове, ако колоната няма заглавие
                     $addRows .= "<tr [#COMMON_ROW_ATTR#]><td {$attr} colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
+                    $addRowArr[$place] = "<tr [#COMMON_ROW_ATTR#]><td {$attr} colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
                 }
             }
         }
+
         
         $curTH = 0;
         
@@ -280,16 +283,20 @@ class core_TableView extends core_BaseClass
         }
         
         $addRows = str_replace('[#COLSPAN#]', $colspan, $addRows);
-        
+        foreach($addRowArr as &$addRow) {
+            $addRow = str_replace('[#COLSPAN#]', $colspan, $addRow);
+        }
+
         $this->colspan = $colspan;
         
-        $row .= "</tr>\n";
+        $row .= "</tr>";
 
         if($this->mvc->commonFirst) {
             $row = "{$addRows}{$row}";
         } else {
             $row = "{$row}{$addRows}";
         }
+        $row = "<tbody>{$row}</tbody>\n";
             
         $row = "\n<!--ET_BEGIN ROW-->{$row}<!--ET_END ROW-->";
         if (!$this->tableClass) {
@@ -319,9 +326,14 @@ class core_TableView extends core_BaseClass
                 foreach ($fieldList as $name => $dummy) {
                     $value = $r[$name];
                     
+                    if(isset($addRowArr[$name]) && $value == '') {
+                        $rowTpl->content = str_replace($addRowArr[$name], '',  $rowTpl->content);
+                    }
+                    
                     if ($value === null) {
                         $value = '&nbsp;';
                     }
+
                     $rowTpl->replace($value, $name);
                 }
                 

@@ -632,7 +632,7 @@ abstract class deals_InvoiceMaster extends core_Master
         expect($firstDocument = doc_Threads::getFirstDocument($form->rec->threadId), $form->rec);
         $coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
         $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
-        
+
         if ($form->rec->template) {
             $mvc->pushTemplateLg($form->rec->template);
         }
