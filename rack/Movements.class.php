@@ -782,6 +782,7 @@ class rack_Movements extends core_Manager
             $data->query->where("#palletId = {$palletId}");
         }
         
+        $data->listFilter->setField('fromIncomingDocument', 'input=none');
         $data->listFilter->FLD('state1', 'enum(,pending=Чакащи,active=Активни,closed=Приключени)');
         $data->listFilter->setField('state1', 'placeholder=Всички');
         $data->listFilter->input();
