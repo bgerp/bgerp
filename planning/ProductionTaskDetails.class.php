@@ -520,7 +520,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 
                 // Проверка има ли отклонение спрямо очакваното транспортно тегло
                 if(!empty($transportWeight)){
-                    $deviation = abs(round(($transportWeight - $rec->weight) / ($transportWeight + $rec->weight) / 2, 2));
+                    $deviation = abs(round(($transportWeight - $rec->weight) / (($transportWeight + $rec->weight) / 2), 2));
                     
                     // Показване на предупреждение или нотификация, ако има разминаване в теглото
                     if($deviation > $weightWarningPercent){
