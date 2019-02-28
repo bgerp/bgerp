@@ -656,6 +656,7 @@ en,Зареждане EURIBOR,Load EURIBOR
 en,Зареждане SOFIBID _633f,Load SOFIBID & SOFIBOR
 en,Заскладено,Stored
 en,Затваряне,Close
+en,Затвори,Close
 en,Затворен,Closed
 en,Затворено,Closed
 en,Заявка,Request
@@ -2848,3 +2849,8 @@ en,Без партида,Without batch
 en,Никът трябва да е поне,The nick must be
 en,Нова,New
 en,Плати,Pay
+en,Избор на терминал в,Select terminal in
+en,Терминал,Terminal
+en,ПИН,PIN
+en,ПИН код,PIN code
+en,Грешен ПИН код,Wrong PIN code
