@@ -76,6 +76,12 @@ class peripheral_Terminal extends core_Master
     
     
     /**
+     * Разделител за потребителско име и ПИН код, когато са в едно поле
+     */
+    protected $userPinSeparator = '÷';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -91,10 +97,10 @@ class peripheral_Terminal extends core_Master
     
     /**
      * Задава префикс за нова сесия и връща предишния, ако успее да зададе
-     * 
-     * @param boolean $force
+     *
+     * @param bool   $force
      * @param string $sessName
-     * 
+     *
      * @return NULL|string
      */
     public static function setSessionPrefix($force = false, $sessName = 'terminal_')
@@ -137,7 +143,7 @@ class peripheral_Terminal extends core_Master
     /**
      * Екшън по подразбиране
      */
-    function act_Default()
+    public function act_Default()
     {
         $titleUrl = array('Index', 'Default');
         
@@ -149,7 +155,14 @@ class peripheral_Terminal extends core_Master
         
         $cuOutTerminal = core_Users::getCurrent();
         
+        $screenMode = core_Mode::get('screenMode');
+        
         $oPrefix = $this->setSessionPrefix(true);
+        
+        // Сетваме екрана, както е бил зададен в главната сесия
+        if (!core_Mode::is('screenMode')) {
+            core_Mode::set('screenMode', $screenMode);
+        }
         
         Mode::set('wrapper', 'page_Empty');
         
@@ -158,7 +171,6 @@ class peripheral_Terminal extends core_Master
         
         // Ако не е избран терминал или няма зададен потребител
         if (!$terminalId) {
-            
             $form = cls::get('core_Form');
             
             $form->FLD('terminalId', 'key(mvc=peripheral_Terminal, select=name)', 'caption=Терминал, removeAndRefreshForm=user|pin, mandatory, silent');
@@ -172,17 +184,21 @@ class peripheral_Terminal extends core_Master
             
             // Достъпните опции за терминал за потребителя
             while ($rec = $query->fetch()) {
-                if (!$rec->classId || !cls::load($rec->classId, true)) continue;
+                if (!$rec->classId || !cls::load($rec->classId, true)) {
+                    continue;
+                }
                 
                 try {
                     $Intf = cls::getInterface('peripheral_TerminalIntf', $rec->classId);
-                } catch(core_exception_Expect $ex) {
+                } catch (core_exception_Expect $ex) {
                     continue;
                 }
                 
                 $tOptArr = $Intf->getTerminalOptions();
                 
-                if (!isset($tOptArr[$rec->pointId])) continue;
+                if (!isset($tOptArr[$rec->pointId])) {
+                    continue;
+                }
                 
                 $defTerminalIdArr[$rec->id] = $tOptArr[$rec->pointId];
             }
@@ -232,6 +248,19 @@ class peripheral_Terminal extends core_Master
             $form->input();
             
             if ($form->isSubmitted()) {
+                // Ако се подаде потребител и ПИН код заедно в полето за ПИН код
+                if ($form->rec->pin) {
+                    if (stripos($form->rec->pin, $this->userPinSeparator) !== false) {
+                        list($userName, $userPin) = explode($this->userPinSeparator, $form->rec->pin);
+                        
+                        if ($userName && $userPin) {
+                            $nickId = core_Users::fetchField(array("#nick = '[#1#]'", $userName));
+                            $form->rec->user = $nickId;
+                            $form->rec->pin = $userPin;
+                        }
+                    }
+                }
+                
                 $uRec = core_Users::fetch($form->rec->user);
                 if ($tRec->usePin && (!$uRec->pinCode || ($uRec->pinCode != $form->rec->pin))) {
                     $form->setError('pin', 'Грешен ПИН код');
@@ -271,7 +300,6 @@ class peripheral_Terminal extends core_Master
             $form->toolbar->addBtn('Затвори', array('Index', 'Default'), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
             
             if (!$terminalId) {
-                
                 $htmlRes = $form->renderHtml();
                 $htmlRes->replace(tr('Отваряне на терминал'), 'PAGE_TITLE');
                 
