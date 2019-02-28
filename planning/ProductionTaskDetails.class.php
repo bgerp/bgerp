@@ -524,7 +524,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     
                     // Показване на предупреждение или нотификация, ако има разминаване в теглото
                     if($deviation > $weightWarningPercent){
-                        $row->weight = ht::createHint($row->weight, 'Значително разминаване спрямо очакването тегло', 'warning', false);
+                        $row->weight = ht::createHint($row->weight, 'Значително разминаване спрямо очакваното транспортно тегло', 'warning', false);
                     } elseif(!empty($masterRec->weightDeviationNotice) && $deviation > $masterRec->weightDeviationNotice){
                         $row->weight = ht::createHint($row->weight, 'Разминаване спрямо очакваното транспортно тегло', 'notice', false);
                     }

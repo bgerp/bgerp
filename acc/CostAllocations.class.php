@@ -525,7 +525,7 @@ class acc_CostAllocations extends core_Manager
         
         if ($action == 'add' && isset($rec)) {
             
-            // Ако е разпределено очакването, не може да се разпределят разходи
+            // Ако е разпределено очакваното, не може да се разпределят разходи
             if (isset($rec->detailClassId, $rec->detailRecId)) {
                 $maxQuantity = cls::get($rec->detailClassId)->getMaxQuantity($rec->detailRecId);
                 $allocatedByFar = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId);
