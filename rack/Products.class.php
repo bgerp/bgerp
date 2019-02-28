@@ -55,7 +55,7 @@ class rack_Products extends store_Products
     /**
      * Полета за листовия изглед?
      */
-    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantityOnPallets,quantityOnZones,quantityNotOnPallets,quantity=Количество->Общо';
+    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity=Количество->Разполагаемо,quantityOnPallets,quantityOnZones,quantityNotOnPallets';
     
     
     /**
@@ -75,7 +75,7 @@ class rack_Products extends store_Products
         $this->loadList['plg_RowTools2'] = 'plg_RowTools2';
         parent::description();
         
-        $this->FLD('quantityOnPallets', 'double(maxDecimals=2)', 'caption=Количество->На стелажи,input=hidden,smartCenter');
+        $this->FLD('quantityOnPallets', 'double(maxDecimals=2)', 'caption=Количество->На палети,input=hidden,smartCenter');
         $this->FLD('quantityOnZones', 'double(maxDecimals=2)', 'caption=Количество->В зони,input=hidden,smartCenter');
         $this->XPR('quantityNotOnPallets', 'double(maxDecimals=2)', '#quantity - IFNULL(#quantityOnPallets, 0)- IFNULL(#quantityOnZones, 0)', 'caption=Количество->На пода,input=hidden,smartCenter');
     }
@@ -179,9 +179,11 @@ class rack_Products extends store_Products
             $query->where("#storeId = {$storeId} AND #quantity > 0");
         }
         
-        $inIds = array();
-        while ($rec = $query->fetch()) {
-            $inIds[$rec->productId] = $rec->productId;
+        $inIds = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+        
+        // Подсигуряване че конкретните артикули, ще са винаги заредени в опциите
+        if(ctype_digit($onlyIds) && !array_key_exists($onlyIds, $inIds)){
+            $inIds[$onlyIds] = $onlyIds;
         }
         
         $products = array();
@@ -202,7 +204,7 @@ class rack_Products extends store_Products
             $pQuery->where("#id IN (${onlyIds})");
         }
         
-        $xpr = "CONCAT(' ', #name, ' ', #code)";
+        $xpr = "CONCAT(' ', #name, ' ', #code, ' ', #nameEn)";
         $pQuery->XPR('searchFieldXpr', 'text', $xpr);
         $pQuery->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
         
@@ -258,5 +260,62 @@ class rack_Products extends store_Products
         }
         
         self::saveArray($saveArr, 'id,quantityOnZones');
+    }
+    
+    
+    /**
+     * Какво е разполагаемото количество от артикула на пода в склада
+     * 
+     * @param int $productId          - ид на артикул
+     * @param int|null $batch         - номер на партида, или празно ако няма партида
+     * @param int|null $storeId       - склад, ако няма, текущия
+     * @return double $floorQuantity  - наличното количестто от партидата (или без партида) на пода в склада
+     */
+    public static function getFloorQuantity($productId, $batch = null, $storeId = null)
+    {
+        // Какво е количеството на пода
+        $storeId = isset($storeId) ? $storeId : store_Stores::getCurrent();
+        
+        // Количество на пода = Общо количество - Количество на палети - Количество в зоните
+        $floorQuantity = self::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantityNotOnPallets');
+        
+        $palletQuery = rack_Pallets::getQuery();
+        $palletQuery->where("#productId = {$productId} AND #storeId = {$storeId}");
+        $palletQuery->XPR('sum', 'double', 'SUM(#quantity)');
+        
+        // Ако има конкретна партида
+        if(!empty($batch)){
+            $palletQuery->where("#batch = '{$batch}'");
+            
+            // Очакваното к-во на пода с премахнатото палетирано
+            $expectedBatchQuantity = batch_Items::getQuantity($productId, $batch, $storeId);
+            $batchQuantityOnPallets = $palletQuery->fetch()->sum;
+            $batchQuantityOnTheFloor = $expectedBatchQuantity - $batchQuantityOnPallets;
+            $floorQuantity = min($floorQuantity, $batchQuantityOnTheFloor);
+        } else {
+            // Ако няма партида на пода се смята разликата от к-то на пода минус всичкото палетирано
+            $palletQuery->where("#batch IS NOT NULL AND #batch != ''");
+            $batchQuantityOnPallets = $palletQuery->fetch()->sum;
+            
+            // Очаквано количество на партиди в склада
+            $batchesInStore = batch_Items::getBatchQuantitiesInStore($productId, $storeId);
+            $batchQuantityInStore = array_sum($batchesInStore);
+            
+            // Какво количество има по партиди в зоните
+            $zoneQuery = rack_ZoneDetails::getQuery();
+            $zoneQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
+            $zoneQuery->XPR('sum', 'double', 'sum(#movementQuantity)');
+            $zoneQuery->show('sum');
+            $zoneQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #batch IS NOT NULL AND #batch != ''");
+            $zRec = $zoneQuery->fetch();
+            $batchQuantityOnZones =  ($zRec) ? $zRec->sum : 0;
+            
+            // Количество партиди на пода = Количество от партидния склад - Количество партиди по палети - Количество партиди в зони
+            // Количество без партиди на пода = Количество на пода - Количество партиди на пода
+            $quantityBatchesOnTheFloor = $batchQuantityInStore - $batchQuantityOnPallets - $batchQuantityOnZones;
+            $floorQuantity -= $quantityBatchesOnTheFloor;
+        }
+        
+        return $floorQuantity;
     }
 }

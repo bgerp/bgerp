@@ -227,7 +227,7 @@ class rack_Racks extends core_Master
      *
      * @return bool
      */
-    public static function checkPosition($position, $productId, $storeId, &$error = null, &$rec = null)
+    public static function checkPosition($position, $productId, $storeId, $batch = null, &$error = null, &$rec = null)
     {
         list($num, $row, $col) = explode('-', $position);
         if (!($num && $row && $col)) {
@@ -263,12 +263,12 @@ class rack_Racks extends core_Master
     /**
      * Използваемо ли е посоченото стелажно място?
      */
-    public static function isPlaceUsable($position, $productId = null, $storeId = null, &$error = null)
+    public static function isPlaceUsable($position, $productId = null, $storeId = null, $batch = null, &$error = null)
     {
         expect($position);
         $storeId = $storeId ?? store_Stores::getCurrent();
         
-        if (!self::checkPosition($position, $productId, $storeId, $error, $rec)) {
+        if (!self::checkPosition($position, $productId, $storeId, $batch, $error, $rec)) {
             
             return;
         }
@@ -401,8 +401,12 @@ class rack_Racks extends core_Master
                 $pId = null;
                 
                 // Ако е заето с нещо
-                if (!isset($title) && ($pId = $used[$posFull])) {
-                    $prodTitle = cat_Products::getTitleById($pId);
+                if (!isset($title) && ($pRec = $used[$posFull])) {
+                    $prodTitle = cat_Products::getTitleById($pRec->productId);
+                    if(!empty($pRec->batch)){
+                        $prodTitle .= " / {$pRec->batch}";
+                    }
+                    
                     $attrA = array();
                     $attrA['title'] = $prodTitle;
                     $color = self::getColor($prodTitle, 0, 110);

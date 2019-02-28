@@ -365,14 +365,16 @@ class batch_Items extends core_Master
     
     
     /**
-     * Чръща всички складируеми артикули с дефинирани видове партидност
+     * Връща всички складируеми артикули с дефинирани видове партидност
      *
      * @param int      $productId - артикул
      * @param int|NULL $storeId   - склад
+     * @param boolean  $pureText  - дали да са само текст
+     *
      *
      * @return array $res       - масив с артикули
      */
-    public static function getBatches($productId, $storeId = null)
+    public static function getBatches($productId, $storeId = null, $pureText = false)
     {
         $res = array();
         
@@ -384,10 +386,12 @@ class batch_Items extends core_Master
         }
         
         $query->show('batch,productId');
-        
         while ($rec = $query->fetch()) {
             $Def = batch_Defs::getBatchDef($rec->productId);
-            $res[$rec->batch] = $Def->toVerbal($rec->batch);
+            $value = $Def->toVerbal($rec->batch);
+            $value = ($pureText) ? strip_tags($value) : $value;
+            
+            $res[$rec->batch] = $value;
         }
         
         return $res;

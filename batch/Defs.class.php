@@ -177,7 +177,9 @@ class batch_Defs extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        if(isset($rec->productId)){
+            $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        }
         $row->ROW_ATTR['class'] = 'state-active';
         $row->templateId = batch_Templates::getHyperlink($rec->templateId, true);
     }
@@ -188,7 +190,7 @@ class batch_Defs extends core_Manager
      *
      * @param int $productId - ид на продукт
      *
-     * @return batch_drivers_Proto|FALSE $BatchClass - инстанцията на класа или FALSE ако няма
+     * @return mixed $BatchClass - инстанцията на класа или FALSE ако няма
      */
     public static function getBatchDef($productId)
     {
