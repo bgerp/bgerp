@@ -17,21 +17,10 @@
 class vkeyboard_Plugin extends core_Plugin
 {
     /**
-     * Извиква се преди рендирането на HTML input
-     */
-    public function on_BeforeRenderInput(&$invoker, &$ret, $name, $value, &$attr, $options = array())
-    {
-        $conf = core_Packs::getConfig('vkeyboard');
-    }
-    
-    
-    /**
      * Извиква се след рендирането на HTML input
      */
     public function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr, $options = array())
     {
-        $conf = core_Packs::getConfig('vkeyboard');
-        
         $tpl->push('vkeyboard/js/jquery.keyboard.js', 'JS');
         $tpl->push('vkeyboard/js/bulgarian.js', 'JS');
         $tpl->push('vkeyboard/js/script.js', 'JS');

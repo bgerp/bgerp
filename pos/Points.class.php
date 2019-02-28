@@ -114,6 +114,12 @@ class pos_Points extends core_Master
     
     
     /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'peripheral_TerminalIntf';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -127,12 +133,13 @@ class pos_Points extends core_Master
     }
     
     
-   /**
-    * Разрешените начини за плащане на ПОС-а
-    * 
-    * @param int $pointId 
-    * @return array $payments
-    */
+    /**
+     * Разрешените начини за плащане на ПОС-а
+     *
+     * @param int $pointId
+     *
+     * @return array $payments
+     */
     public static function fetchSelected($pointId)
     {
         $paymentQuery = cond_Payments::getQuery();
@@ -140,7 +147,7 @@ class pos_Points extends core_Master
         
         // Ако са посочени конкретни, само те се разрешават
         $paymentIds = keylist::toArray(pos_Points::fetchField($pointId, 'payments'));
-        if(count($paymentIds)){
+        if (count($paymentIds)) {
             $paymentQuery->in('id', $paymentIds);
         }
         
@@ -228,6 +235,9 @@ class pos_Points extends core_Master
     {
         expect($pointId = Request::get('id', 'int'));
         expect($rec = $this->fetch($pointId));
+        
+        peripheral_Terminal::setSessionPrefix();
+        
         $this->requireRightFor('select', $pointId);
         $this->selectCurrent($pointId);
         
@@ -242,7 +252,7 @@ class pos_Points extends core_Master
     {
         unset($row->currentPlg);
         
-        if(empty($rec->payments)){
+        if (empty($rec->payments)) {
             $row->payments = tr('Всички');
         }
         
@@ -258,7 +268,7 @@ class pos_Points extends core_Master
         
         if ($fields['-single']) {
             $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
-            if($defaultContragent = self::defaultContragent($rec->id)){
+            if ($defaultContragent = self::defaultContragent($rec->id)) {
                 $row->contragent = crm_Persons::getHyperlink($defaultContragent, true);
             }
         }
@@ -324,12 +334,12 @@ class pos_Points extends core_Master
     
     /**
      * Добавя филтър по точка към тулбар
-     * 
+     *
      * @param core_Fieldset $filter
-     * @param core_Query $query
-     * @param string $pointFld
+     * @param core_Query    $query
+     * @param string        $pointFld
      */
-    public static function addPointFilter(core_Fieldset &$filter,core_Query &$query, $pointFld = 'pointId')
+    public static function addPointFilter(core_Fieldset &$filter, core_Query &$query, $pointFld = 'pointId')
     {
         $filter->FNC('point', 'key(mvc=pos_Points, select=name, allowEmpty)', 'caption=Точка,width=12em,silent');
         $filter->showFields .= ',point';
@@ -341,5 +351,42 @@ class pos_Points extends core_Master
                 $query->where("#{$pointFld} = {$filterRec->point}");
             }
         }
+    }
+    
+    
+    /**
+     * Връща всички достъпни за текущия потребител id-та на обекти, отговарящи на записи
+     *
+     * @return array
+     *
+     * @see peripheral_TerminalIntf
+     */
+    public function getTerminalOptions()
+    {
+        $query = $this->getQuery();
+        $query->where("#state != 'rejected'");
+        
+        $resArr = array();
+        
+        $query->showFields = 'id,name';
+        
+        while ($rec = $query->fetchAndCache()) {
+            $resArr[$rec->id] = $rec->name;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Редиректва към посочения терминал в посочената точка и за посочения потребител
+     *
+     * @return Redirect
+     *
+     * @see peripheral_TerminalIntf
+     */
+    public function openTerminal($pointId, $userId)
+    {
+        return new Redirect(array($this, 'openTerminal', $pointId));
     }
 }
