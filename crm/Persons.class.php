@@ -2932,12 +2932,12 @@ class crm_Persons extends core_Master
     /**
      * Лицата от група 'Служители'
      *
-     * @param bool $withAccess   - да се филтрира ли по права за редакция или не
-     * @param bool $showCodes - да имат ли кодове или не
+     * @param bool $withAccess - да се филтрира ли по права за редакция или не
+     * @param bool|false $hrCode  - null за всички, bool за дали да са с кодове като човешки ресурси или не 
      *
      * @return array $options        - опции
      */
-    public static function getEmployeesOptions($withAccess = false, $showCodes = false)
+    public static function getEmployeesOptions($withAccess = false, $hrCodes = null)
     {
         $options = array();
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
@@ -2946,21 +2946,24 @@ class crm_Persons extends core_Master
         $query->like('groupList', "|{$emplGroupId}|");
         
         // Ако е указано, само тези които нямат кодове в производствените ресурси
-        if ($withoutCodes === true) {
+        if(!is_null($hrCodes)){
             $hrQuery = planning_Hr::getQuery();
             $hrQuery->show('personId');
-            $exceptIds = arr::extractValuesFromArray($hrQuery->fetchAll(), 'personId');
-            $query->notIn('id', $exceptIds);
+            $hrIds = arr::extractValuesFromArray($hrQuery->fetchAll(), 'personId');
+            if ($hrCodes === true) {
+                $query->in('id', $hrIds);
+            } else {
+                $query->notIn('id', $hrIds);
+            }
         }
         
         while ($rec = $query->fetch()) {
             if ($withAccess === true && !crm_Persons::haveRightFor('edit', $rec->id)) {
                 continue;
             }
-            $options[$rec->id] = self::getVerbal($rec, 'name');
-            if($showCodes === true){
-                $options[$rec->id] .= " ($rec->id)";
-            }
+            
+            // Показва се името с ид-то след него заради служителите с еднакви имена
+            $options[$rec->id] = self::getVerbal($rec, 'name') . " ({$rec->id})";
         }
         
         if (count($options)) {

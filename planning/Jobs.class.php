@@ -126,7 +126,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ, dueDate, packQuantity=Количество->|*<small>|Планирано|*</small>,quantityFromTasks=Количество->|*<small>|Произведено|*</small>, quantityProduced=Количество->|*<small>|Заскладено|*</small>, quantityNotStored=Количество->|*<small>|Незаскладено|*</small>, packagingId,folderId, state, modifiedOn,modifiedBy';
+    public $listFields = 'title=@Документ, dueDate, packQuantity=Количество->|*<small>|Планирано|*</small>,quantityFromTasks=Количество->|*<small>|Произведено|*</small>, quantityProduced=Количество->|*<small>|Заскладено|*</small>, quantityNotStored=Количество->|*<small>|Незаскладено|*</small>, packagingId,folderId, state, modifiedOn,modifiedBy';
     
     
     /**
@@ -146,7 +146,19 @@ class planning_Jobs extends core_Master
      */
     public $details = 'Tasks=planning_Tasks';
     
-    
+
+    /**
+     * Отделния ред в листовия изглед да е отгоре
+     */
+    public $commonFirst = true;
+
+
+    /**
+     * Клас за отделния ред в листовия изглед
+     */
+    public $commonRowClass = 'separateRowTable';
+
+
     /**
      * Вербални наименования на състоянията
      */

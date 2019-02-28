@@ -713,4 +713,14 @@ class core_FieldSet extends core_BaseClass
         
         return $fieldsArr;
     }
+    
+    
+    /**
+     * Добавя нов обект на  поле към фийлдсета
+     */
+    public function addFieldObject($name, $field)
+    {
+        expect(is_object($field));
+        $this->fields = $this->fields + array($name => $field);
+    }
 }

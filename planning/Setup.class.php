@@ -16,7 +16,13 @@ defIfNot('PLANNING_TASK_LABEL_PREVIEW_WIDTH', 90);
 /**
  * Допустим толеранс на тегллото при ПО
  */
-defIfNot('PLANNING_ALLOWED_WEIGHT_TOLERANCE', 0.05);
+defIfNot('PLANNING_TASK_WEIGHT_TOLERANCE_WARNING', 0.05);
+
+
+/**
+ * Отчитане на теглото в ПО->Режим
+ */
+defIfNot('PLANNING_TASK_WEIGHT_MODE', 'yes');
 
 
 /**
@@ -98,7 +104,8 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_CONSUMPTION_USE_AS_RESOURCE' => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
         'PLANNING_PRODUCTION_NOTE_REJECTION' => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
         'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределен център на дейност->Име'),
-        'PLANNING_ALLOWED_WEIGHT_TOLERANCE' => array('percent', 'caption=Допустим толеранс на теглото в ПО->Стойност'),
+        'PLANNING_TASK_WEIGHT_TOLERANCE_WARNING' => array('percent', 'caption=Отчитане на теглото в ПО->Предупреждение'),
+        'PLANNING_TASK_WEIGHT_MODE' => array('enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото в ПО->Режим'),
     );
     
     
@@ -125,6 +132,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_Hr',
         'planning_FoldersWithResources',
         'migrate::assetResourceFields',
+        'migrate::updateTasks'
     );
     
     
@@ -163,7 +171,6 @@ class planning_Setup extends core_ProtoSetup
         $html = parent::install();
         
         // Кофа за снимки
-        $Bucket = cls::get('fileman_Buckets');
         $html .= fileman_Buckets::createBucket('planningImages', 'Илюстрации в производство', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'every_one', 'powerUser');
         
         return $html;
@@ -232,6 +239,34 @@ class planning_Setup extends core_ProtoSetup
             }
             
             $inst->save($rec, 'systemFolderId, systemUsers, assetFolderId, assetUsers');
+        }
+    }
+    
+    
+    /**
+     * Обновява новите полета на ПО
+     */
+    public static function updateTasks()
+    {
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+        
+        $TaskDetails = cls::get('planning_ProductionTaskDetails');
+        $TaskDetails->setupMvc();
+        
+        if(!count($Tasks)) return;
+        
+        $updateArr = array();
+        $query = $Tasks->getQuery();
+        $query->where("#indPackagingId IS NULL");
+        $query->show('packagingId');
+        while($rec = $query->fetch()){
+            $rec->indPackagingId = $rec->packagingId;
+            $updateArr[$rec->id] = $rec;
+        }
+        
+        if(count($updateArr)){
+            $Tasks->saveArray($updateArr, 'id,indPackagingId');
         }
     }
 }

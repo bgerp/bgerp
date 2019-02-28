@@ -397,7 +397,7 @@ class rack_MovementGenerator extends core_Manager
     }
     
     
-    public static function getMovements($allocatedArr, $productId, $packagingId, $storeId)
+    public static function getMovements($allocatedArr, $productId, $packagingId, $batch, $storeId)
     {
         $res = array();
         if (!is_array($allocatedArr)) {
@@ -414,6 +414,7 @@ class rack_MovementGenerator extends core_Manager
                 'storeId' => $storeId,
                 'quantityInPack' => $quantityInPack,
                 'state' => 'pending',
+                'batch' => $batch,
                 'workerId' => $cu,
                 'quantity' => $obj->quantity,
                 'position' => $obj->pallet,
@@ -422,6 +423,7 @@ class rack_MovementGenerator extends core_Manager
             if ($palletRec = rack_Pallets::getByPosition($obj->pallet, $storeId)) {
                 $newRec->palletId = $palletRec->id;
                 $newRec->palletToId = $palletRec->id;
+                $newRec->batch = $palletRec->batch;
                 $newRec->positionTo = $obj->pallet;
             }
             

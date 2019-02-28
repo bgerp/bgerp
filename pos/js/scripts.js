@@ -226,31 +226,17 @@ function posActions() {
 	
 	// Скриване на бързите бутони спрямо избраната категория
 	$(".pos-product-category[data-id='']").addClass('active');
-	$(document.body).on('click', ".pos-product-category", function(e){
-		var value = $(this).attr("data-id");
-		
-		$(this).addClass('active').siblings().removeClass('active');
-		
-		var counter = 0;
-		if(value) {
-			var nValue = "|" + value + "|";
-			
-			$("div.pos-product[data-cat != '"+nValue+"']").each(function() {
-				$(this).hide();
-			});
-			
-			$("div.pos-product[data-cat *= '"+nValue+"']").each(function() {
-				$(this).show();
-				counter++;
-			});
-		} else {
-			$("div.pos-product").each(function() {
-				$(this).show();
-				counter++;
-			});
-		}
+	
+	$(document.body).on('change', "select.pos-product-category", function(e){
+		var value = $(this).val();
+		showFavouriteButtons($(this), value);
 	});
 	
+	// Скриване на бързите бутони спрямо избраната категория
+	$(document.body).on('click', "div.pos-product-category", function(e){
+		var value = $(this).attr("data-id");
+		showFavouriteButtons($(this), value);
+	});
 	
 	// При клик на бутон изтрива запис от бележката
 	$(document.body).on('click', ".pos-del-btn", function(e){
@@ -500,7 +486,6 @@ function scrollRecieptBottom(){
 function doPayment(url, type){
 	if(!url || !type) return;
 	var amount = $("input[name=paysum]").val();
-	if(!amount) return;
 	
 	var receiptId = $("input[name=receiptId]").val();
 	var data = {receiptId:receiptId, amount:amount, type:type};
@@ -512,3 +497,25 @@ function doPayment(url, type){
 	$("input[name=paysum]").val("");
 	scrollRecieptBottom();
 }
+
+// Показване на определени любими бутони
+function showFavouriteButtons(element, value){
+	element.addClass('active').siblings().removeClass('active');
+	
+	if(value) {
+		var nValue = "|" + value + "|";
+		
+		$("div.pos-product[data-cat != '"+nValue+"']").each(function() {
+			$(this).hide();
+		});
+		
+		$("div.pos-product[data-cat *= '"+nValue+"']").each(function() {
+			$(this).show();
+		});
+	} else {
+		$("div.pos-product").each(function() {
+			$(this).show();
+		});
+	}
+}
+

@@ -801,23 +801,23 @@ class cal_Tasks extends embed_Manager
     {
         $pArr = array();
         
-        if (cal_TaskProgresses::isInstalled()) {
-            $pQuery = cal_TaskProgresses::getQuery();
-            $pQuery->where(array('#taskId = [#1#]', $data->rec->id));
-            $pQuery->orderBy('createdOn', 'ASC');
+//         if (cal_TaskProgresses::isInstalled()) {
+//             $pQuery = cal_TaskProgresses::getQuery();
+//             $pQuery->where(array('#taskId = [#1#]', $data->rec->id));
+//             $pQuery->orderBy('createdOn', 'ASC');
             
-            while ($pRec = $pQuery->fetch()) {
-                $pRow = cal_TaskProgresses::recToVerbal($pRec);
+//             while ($pRec = $pQuery->fetch()) {
+//                 $pRow = cal_TaskProgresses::recToVerbal($pRec);
                 
-                $rowAttr = array();
+//                 $rowAttr = array();
                 
-                if ($pRec->state == 'rejected') {
-                    $rowAttr['class'] = 'state-' . $pRec->state;
-                }
+//                 if ($pRec->state == 'rejected') {
+//                     $rowAttr['class'] = 'state-' . $pRec->state;
+//                 }
                 
-                $pArr[] = array('ROW_ATTR' => $rowAttr, 'progress' => $pRow->progress, 'workingTime' => $pRow->workingTime, 'createdOn' => $pRow->createdOn, 'createdBy' => $pRow->createdBy, 'message' => $pRow->message);
-            }
-        }
+//                 $pArr[] = array('ROW_ATTR' => $rowAttr, 'progress' => $pRow->progress, 'workingTime' => $pRow->workingTime, 'createdOn' => $pRow->createdOn, 'createdBy' => $pRow->createdBy, 'message' => $pRow->message);
+//             }
+//         }
         
         if ($pClsId = cal_Progresses::getClassId() && $data->rec->containerId) {
             $cQuery = doc_Comments::getQuery();
@@ -1433,7 +1433,7 @@ class cal_Tasks extends embed_Manager
         if ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'waiting') {
             $calRec = new stdClass();
             
-            setIfNot($calRec->time, $rec->timeStart, $rec->timeCalc, $rec->expectationTimeStart);
+            setIfNot($calRec->time, $rec->timeStart, $rec->timeCalc, $rec->expectationTimeStart, $calRec->timeEnd);
             
             // В чии календари да влезе?
             $calRec->users = $rec->assign;
@@ -1448,6 +1448,9 @@ class cal_Tasks extends embed_Manager
                 } else {
                     $calRec->time = $rec->timeCalc;
                 }
+                
+                //Запис на очакван край в календара
+                $calRec->timeEnd = $rec->expectationTimeEnd;
                 
                 // Дали е цял ден?
                 $calRec->allDay = $rec->allDay;
@@ -1491,6 +1494,9 @@ class cal_Tasks extends embed_Manager
                 
                 // Начало на задачата
                 $calRec->time = $rec->timeEnd;
+                
+                //Запис на очакван край в календара
+                $calRec->timeEnd = $rec->expectationTimeEnd;
                 
                 // Дали е цял ден?
                 $calRec->allDay = $rec->allDay;

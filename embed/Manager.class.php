@@ -179,7 +179,7 @@ class embed_Manager extends core_Master
                 
                 $driver = cls::get($rec->{$mvc->driverClassField}, array('Embedder' => $mvc));
                 
-                return $driver->invoke('AfterRead', array(&$rec));
+                return $driver->invoke('AfterRead', array($mvc, &$rec));
             }
         } catch (core_exception_Expect $e) {
         }
