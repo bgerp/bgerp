@@ -73,9 +73,16 @@ class plg_RowTools2 extends core_Plugin
             $ddTools->addLink('Разглеждане', $singleUrl, "ef_icon={$singleIcon},title=Разглеждане на|* {$singleTitle},id=single{$rec->id}");
         }
         
-        if ($mvc->haveRightFor('edit', $rec)) {
+        $editUrl = $mvc->getEditUrl($rec);
+        if(!empty($editUrl)){
             $editUrl = $mvc->getEditUrl($rec);
             $ddTools->addLink('Редактиране', $editUrl, "ef_icon=img/16/edit-icon.png,title=Редактиране на|* {$singleTitle},id=edt{$rec->id}");
+        }
+        
+        $deleteUrl = $mvc->getDeleteUrl($rec);
+        if(!empty($deleteUrl)){
+            $deleteUrl = $deleteUrl;
+            $ddTools->addLink('Изтриване', $deleteUrl, "ef_icon=img/16/delete.png,warning=Наистина ли желаете записът да бъде изтрит?,id=del{$rec->id},title=Изтриване на|* {$singleTitle}");
         }
         
         if ($mvc->haveRightFor('delete', $rec)) {
@@ -136,12 +143,8 @@ class plg_RowTools2 extends core_Plugin
      */
     public static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
     {
-        // URL за връщане след редакция
-        if (cls::existsMethod($mvc, 'getRetUrl')) {
-            $retUrl = $mvc->getRetUrl($rec);
-        } else {
-            $retUrl = true;
-        }
+        if (!$mvc->haveRightFor('edit', $rec)) return null;
+        $retUrl = (cls::existsMethod($mvc, 'getRetUrl')) ? $mvc->getRetUrl($rec) : true;
         
         $editUrl = array(
             $mvc,
@@ -161,12 +164,8 @@ class plg_RowTools2 extends core_Plugin
      */
     public static function on_BeforeGetDeleteUrl($mvc, &$deleteUrl, $rec)
     {
-        // URL за връщане след редакция
-        if (cls::existsMethod($mvc, 'getDeleteUrl')) {
-            $retUrl = $mvc->getDeleteUrl($rec);
-        } else {
-            $retUrl = true;
-        }
+        if (!$mvc->haveRightFor('delete', $rec)) return null;
+        $retUrl = (cls::existsMethod($mvc, 'getDeleteUrl')) ? $mvc->getDeleteUrl($rec) : true;
         
         $deleteUrl = array(
             $mvc,
