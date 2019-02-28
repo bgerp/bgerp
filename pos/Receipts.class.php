@@ -147,6 +147,8 @@ class pos_Receipts extends core_Master
      */
     public function description()
     {
+        peripheral_Terminal::setSessionPrefix();
+        
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Дата,input=none');
         $this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка на продажба');
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
@@ -157,10 +159,10 @@ class pos_Receipts extends core_Master
         $this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0, summary=amount');
         $this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
         $this->FLD(
-            'state',
-            'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,waiting=Чакащ,pending)',
-            'caption=Статус, input=none'
-        );
+                        'state',
+                        'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,waiting=Чакащ,pending)',
+                        'caption=Статус, input=none'
+                        );
         $this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
         $this->FLD('revertId', 'key(mvc=pos_Receipts)', 'input=none');
         
@@ -212,7 +214,7 @@ class pos_Receipts extends core_Master
         $rec->valior = dt::now();
         $this->requireRightFor('add', $rec);
         
-        if(!empty($revertId)){
+        if (!empty($revertId)) {
             $rec->revertId = $revertId;
         }
         
@@ -261,22 +263,23 @@ class pos_Receipts extends core_Master
             }
         }
         
-        foreach (array('total', 'paid', 'change') as $fld){
+        foreach (array('total', 'paid', 'change') as $fld) {
             $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
         }
         
         $row->RECEIPT_CAPTION = tr('Касова бележка');
         $row->PAID_CAPTION = tr('Платено');
         
-        if(isset($rec->revertId)){
+        if (isset($rec->revertId)) {
             $row->PAID_CAPTION = tr('Върнато');
             $row->REVERT_CLASS = 'is-reverted';
             $row->revertId = pos_Receipts::getHyperlink($rec->revertId, true);
-            if(isset($fields['-terminal'])){
+            if (isset($fields['-terminal'])) {
                 $row->RECEIPT_CAPTION = tr('Сторно бележка');
-                $row->loadUrl = ht::createLink('', array('pos_ReceiptDetails', 'load', "receiptId" => $rec->id, 'from' => $rec->revertId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Зареждане на всички данни от бележката, class=load-btn');
+                $row->loadUrl = ht::createLink('', array('pos_ReceiptDetails', 'load', 'receiptId' => $rec->id, 'from' => $rec->revertId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Зареждане на всички данни от бележката, class=load-btn');
             }
         }
+        
         //bp($row->PAID_CAPTION);
         // Слагаме бутон за оттегляне ако имаме права
         if (!Mode::is('printing')) {
@@ -309,18 +312,18 @@ class pos_Receipts extends core_Master
             
             // Добавяме бутон за достъп до 'List' изгледа
             $data->toolbar->addBtn(
-                'Всички',
-                array($mvc, 'list', 'ret_url' => true),
-                                   'ef_icon=img/16/application_view_list.png, order=18'
-            );
+                            'Всички',
+                            array($mvc, 'list', 'ret_url' => true),
+                            'ef_icon=img/16/application_view_list.png, order=18'
+                            );
         }
         
         if ($mvc->haveRightFor('terminal', $data->rec)) {
             $data->toolbar->addBtn(
-                'Терминал',
-                array($mvc, 'Terminal', $data->rec->id, 'ret_url' => true),
-                    'ef_icon=img/16/forward16.png, order=18,target=_blank'
-            );
+                            'Терминал',
+                            array($mvc, 'Terminal', $data->rec->id, 'ret_url' => true),
+                            'ef_icon=img/16/forward16.png, order=18,target=_blank'
+                            );
         }
     }
     
@@ -396,7 +399,7 @@ class pos_Receipts extends core_Master
                     break;
                 case 'payment':
                     $paidAmount = $dRec->amount;
-                    if($action[1] != '-1'){
+                    if ($action[1] != '-1') {
                         $paidAmount = cond_Payments::toBaseCurrency($action[1], $paidAmount, $rec->valior);
                     }
                     
@@ -665,6 +668,10 @@ class pos_Receipts extends core_Master
         $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink', 'title' => 'Към портала'));
         $tpl->append($logo, 'LOGO');
         
+        if (Mode::get('terminalId')) {
+            $tpl->replace(ht::createLink('X', array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала'), 'EXIT_TERMINAL');
+        }
+        
         // Слагане на детайлите на бележката
         $detailsTpl = $this->pos_ReceiptDetails->renderReceiptDetail($data->receiptDetails);
         $tpl->append($detailsTpl, 'DETAILS');
@@ -695,7 +702,7 @@ class pos_Receipts extends core_Master
         
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
-            if($selectedFavourites = $this->getSelectFavourites()){
+            if ($selectedFavourites = $this->getSelectFavourites()) {
                 // Добавяне на таба с бързите бутони
                 $tab .= tr("|*<li title='|Избор на най-продавани артикули|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a>");
                 $tpl->append($selectedFavourites, 'CHOOSE_DIV');
@@ -856,14 +863,14 @@ class pos_Receipts extends core_Master
             $date = dt::mysql2verbal($rec->createdOn, 'H:i');
             $between = dt::daysBetween($now, $rec->valior);
             $between = ($between != 0) ? " <span class='num'>-${between}</span>" : null;
-
+            
             $revertClass = isset($rec->revertId) ? 'revert-receipt' : '';
             $row = ht::createLink("<span class='pos-span-name'>№{$rec->id} <br> {$date}$between</span>", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => "pos-notes {$revertClass}", 'title' => 'Отваряне на бележката'));
             $block->append($row);
         }
         
         if ($this->haveRightFor('add')) {
-            $addBtn = ht::createLink("<span class='pos-span-name'>" . tr('Нова') . "</span>", array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes');
+            $addBtn = ht::createLink("<span class='pos-span-name'>" . tr('Нова') . '</span>', array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes');
             $block->prepend($addBtn);
         }
         
@@ -1124,16 +1131,15 @@ class pos_Receipts extends core_Master
         
         $payments = pos_Points::fetchSelected($rec->pointId);
         
-        if(!count($payments)){
+        if (!count($payments)) {
             $block->append(ht::createFnBtn('В брой', '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => '-1', 'data-url' => $payUrl)), 'CLOSE_BTNS');
         } else {
             $payments = array('-1' => tr('В брой')) + $payments;
             $attr = (!empty($disClass)) ? array('disabled' => 'disabled', 'class' => 'button disabledBtn') : array('class' => 'button');
-            $selectHtml = ht::createSelect('selectedPayment', $payments,  '-1', $attr);
-
+            $selectHtml = ht::createSelect('selectedPayment', $payments, '-1', $attr);
+            
             $block->append('<span class="selectHolder">' . $selectHtml, 'CLOSE_BTNS');
             $block->append(ht::createFnBtn('>>', '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-url' => $payUrl)) . '</span>', 'CLOSE_BTNS');
-
         }
         
         $printUrl = array($this, 'terminal', $rec->id, 'Printing' => 'yes');
@@ -1146,7 +1152,7 @@ class pos_Receipts extends core_Master
         $block->append($closeBtn, 'CLOSE_BTNS');
         
         // Добавяне на бутон за сторниране на бележка
-        if($this->haveRightFor('revert')){
+        if ($this->haveRightFor('revert')) {
             $revertUrl = toUrl(array($this, 'revert'), 'local');
             $block->append(ht::createFnBtn('Сторно', '', '', array('class' => 'actionBtn revertBtn', 'title' => 'Сторниране на бележка', 'data-url' => $revertUrl)), 'CLOSE_BTNS');
         }
@@ -1156,11 +1162,11 @@ class pos_Receipts extends core_Master
     
     
     /**
-     * Kакво е урл-то за печат на бележката
+     * Какво е урл-то за печат на бележката
      */
     protected static function on_AfterGetCloseReceiptBtn($mvc, &$tpl, $rec)
     {
-        if(!$tpl){
+        if (!$tpl) {
             if ($mvc->haveRightFor('close', $rec)) {
                 $contoUrl = array('pos_Receipts', 'close', $rec->id);
                 $hint = tr('Приключване на продажбата');
@@ -1176,11 +1182,11 @@ class pos_Receipts extends core_Master
     
     
     /**
-     * Kакво е урл-то за печат на бележката
+     * Какво е урл-то за печат на бележката
      */
     protected static function on_AfterGetPrintReceiptBtn($mvc, &$tpl, $rec)
     {
-        if(!$tpl){
+        if (!$tpl) {
             $url = ($mvc->haveRightFor('printReceipt', $rec)) ? array($mvc, 'printReceipt', $rec->id) : array();
             $disClass = ($url) ? '' : 'disabledBtn';
             
@@ -1342,18 +1348,18 @@ class pos_Receipts extends core_Master
         }
         
         $error = '';
-        if(!self::checkQuantity($rec, $error)){
+        if (!self::checkQuantity($rec, $error)) {
             core_Statuses::newStatus($error, 'error');
             
             return $this->pos_ReceiptDetails->returnError($receiptId);
         }
         
         $revertId = pos_Receipts::fetchField($receiptId, 'revertId');
-        if(!empty($revertId)){
+        if (!empty($revertId)) {
             $rec->quantity *= -1;
             
             $originProductRec = $this->pos_ReceiptDetails->findSale($rec->productId, $revertId, $rec->value);
-            if(empty($originProductRec)){
+            if (empty($originProductRec)) {
                 core_Statuses::newStatus('Артикулът го няма в оригиналната бележка|*!', 'error');
                 
                 return $this->pos_ReceiptDetails->returnError($receiptId);
@@ -1372,7 +1378,7 @@ class pos_Receipts extends core_Master
             $rec->id = $sameProduct->id;
         }
         
-        if(!empty($revertId) && abs($originProductRec->quantity) < abs($rec->quantity)){
+        if (!empty($revertId) && abs($originProductRec->quantity) < abs($rec->quantity)) {
             core_Statuses::newStatus("количеството е по-голямо от продаденото|*|* {$originProductRec->quantity}", 'error');
             
             return $this->pos_ReceiptDetails->returnError($receiptId);
@@ -1385,7 +1391,7 @@ class pos_Receipts extends core_Master
             $resObj->arg = array('soundOgg' => sbf('sounds/scanner.ogg', ''),
                 'soundMp3' => sbf('sounds/scanner.mp3', ''),
             );
-
+            
             $resArr = $this->pos_ReceiptDetails->returnResponse($rec->receiptId);
             $resArr[] = $resObj;
             
@@ -1399,16 +1405,20 @@ class pos_Receipts extends core_Master
     
     /**
      * Проверка на количеството
-     * 
+     *
      * @param stdClass $rec
-     * @param string $error
-     * @return boolean
+     * @param string   $error
+     *
+     * @return bool
      */
     public static function checkQuantity($rec, &$error)
     {
         // Ако е забранено продаването на неналични артикули да се проверява
         $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
-        if($notInStockChosen == 'yes') return true;
+        if ($notInStockChosen == 'yes') {
+            
+            return true;
+        }
         
         $pointId = self::fetchField($rec->receiptId, 'pointId');
         $quantityInStock = pos_Stocks::getQuantity($rec->productId, $pointId);
@@ -1418,9 +1428,9 @@ class pos_Receipts extends core_Master
         $quantityInStock -= $rec->quantity * $quantityInPack;
         
         if ($quantityInStock < 0) {
-           $error = 'Артикулът не е в наличност';
-           
-           return false;
+            $error = 'Артикулът не е в наличност';
+            
+            return false;
         }
         
         return true;
@@ -1734,11 +1744,11 @@ class pos_Receipts extends core_Master
             $num = substr($rec->id, -1 * $conf->POS_SHOW_RECEIPT_DIGITS);
             $stateClass = ($rec->state == 'draft') ? 'state-draft' : 'state-waiting';
             $num = (isset($rec->revertId)) ? "<span class='red'>{$num}</span>" : $num;
-            $borderColor = (isset($rec->revertId)) ? "red" : "#a6a8a7";
+            $borderColor = (isset($rec->revertId)) ? 'red' : '#a6a8a7';
             
             if (!Mode::isReadOnly()) {
                 if ($this->haveRightFor('terminal', $rec)) {
-                    $num = ht::createLink($num, array($this, 'terminal', $rec->id), false, "title=Довършване на бележката,ef_icon=img/16/cash-register.png");
+                    $num = ht::createLink($num, array($this, 'terminal', $rec->id), false, 'title=Довършване на бележката,ef_icon=img/16/cash-register.png');
                 } elseif ($this->haveRightFor('single', $rec)) {
                     $num = ht::createLink($num, array($this, 'single', $rec->id), false, "title=Преглед на бележка №{$rec->id},ef_icon=img/16/view.png");
                 }
@@ -1794,8 +1804,8 @@ class pos_Receipts extends core_Master
         $pointIdVerbal = self::getVerbal($rec, 'pointId');
         $title = "{$pointIdVerbal}/{$rec->id}/{$valiorVerbal}";
         
-        if(isset($rec->revertId)){
-            $title = $title . " <span class='stamp'>" . tr('сторно') . "</span>";
+        if (isset($rec->revertId)) {
+            $title = $title . " <span class='stamp'>" . tr('сторно') . '</span>';
         }
         
         return $title;
@@ -1807,13 +1817,13 @@ class pos_Receipts extends core_Master
      */
     public function act_Revert()
     {
-        if(!$this->haveRightFor('revert')){
+        if (!$this->haveRightFor('revert')) {
             
             return $this->pos_ReceiptDetails->returnError(null);
         }
         
         $search = Request::get('search', 'varchar');
-        if(empty($search)){
+        if (empty($search)) {
             core_Statuses::newStatus('|Не е въведен номер на вече издадена бележка|*!', 'error');
             
             return $this->pos_ReceiptDetails->returnError(null);
@@ -1822,14 +1832,14 @@ class pos_Receipts extends core_Master
         // Ако не е разпозната бележка, не се прави нищо
         $search = trim($search);
         $foundArr = $this->findReceiptByNumber($search, true);
-        if(!is_object($foundArr['rec'])){
+        if (!is_object($foundArr['rec'])) {
             core_Statuses::newStatus($foundArr['notFoundError'], 'error');
             
             return $this->pos_ReceiptDetails->returnError(null);
         }
-       
+        
         $newReceiptId = $this->createNew($foundArr['rec']->id);
-            
+        
         return new Redirect(array($this, 'terminal', $newReceiptId));
     }
     
@@ -1839,26 +1849,26 @@ class pos_Receipts extends core_Master
      */
     protected function on_AfterFindReceiptByNumber($mvc, &$res, $string, $forRevert = false)
     {
-        if(!isset($res['rec']) && empty($res['notFoundError'])) {
-            if(type_Int::isInt($string)){
+        if (!isset($res['rec']) && empty($res['notFoundError'])) {
+            if (type_Int::isInt($string)) {
                 $res['rec'] = self::fetch($string);
-                if(!is_object($res['rec'])){
+                if (!is_object($res['rec'])) {
                     $res['notFoundError'] = "|Не е намерена бележка от номер|* '<b>{$string}</b>'!";
                     $res['rec'] = false;
                 }
             }
         }
         
-        if(is_object($res['rec'])){
-            if($res['rec']->pointId != pos_Points::getCurrent()){
-                $res['notFoundError'] = "|Може да бъде сторнира само бележка от същия POS|*!";
+        if (is_object($res['rec'])) {
+            if ($res['rec']->pointId != pos_Points::getCurrent()) {
+                $res['notFoundError'] = '|Може да бъде сторнира само бележка от същия POS|*!';
                 $res['rec'] = false;
-            } elseif($forRevert === true){
-                if(self::fetchField("#revertId = {$res['rec']->id}")){
-                    $res['notFoundError'] = "|Има вече създадена бележка, сторнираща търсената|*!";
+            } elseif ($forRevert === true) {
+                if (self::fetchField("#revertId = {$res['rec']->id}")) {
+                    $res['notFoundError'] = '|Има вече създадена бележка, сторнираща търсената|*!';
                     $res['rec'] = false;
-                } elseif(self::fetchField("#id = {$res['rec']->id} AND #revertId IS NOT NULL")){
-                    $res['notFoundError'] = "|Не може да сторнирате сторнираща бележка|*!";
+                } elseif (self::fetchField("#id = {$res['rec']->id} AND #revertId IS NOT NULL")) {
+                    $res['notFoundError'] = '|Не може да сторнирате сторнираща бележка|*!';
                     $res['rec'] = false;
                 }
             }
@@ -1871,9 +1881,9 @@ class pos_Receipts extends core_Master
      */
     protected function on_AfterGetDisplayPrice($mvc, &$res, $priceWithoutVat, $vat, $discountPercent)
     {
-        if(empty($res)){
+        if (empty($res)) {
             $res = $priceWithoutVat * (1 + $vat);
-            if(!empty($discountPercent)){
+            if (!empty($discountPercent)) {
                 $res *= (1 - $discountPercent);
             }
             
