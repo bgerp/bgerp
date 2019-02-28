@@ -205,7 +205,7 @@ class cal_Holidays extends core_Master
 										LU=Люксембург,
 										MU=Мавриций, 
 										MG=Мадагаскар,                                   
-										MK=Македония,
+										MK=Северна Македония,
 										MY=Малайзия,
 										MV=Малдиви,
 										ML=Мали,
