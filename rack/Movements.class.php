@@ -31,7 +31,7 @@ class rack_Movements extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_SaveAndNew, plg_State, plg_Sorting,plg_Search,plg_AlignDecimals2,plg_Modified';
+    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_SaveAndNew, plg_State, plg_Sorting,plg_Search,plg_AlignDecimals2,plg_Modified,plg_SelectPeriod';
     
     
     /**
@@ -73,7 +73,7 @@ class rack_Movements extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,createdOn,createdBy,modifiedOn,modifiedBy';
+    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,createdOn,createdBy,modifiedOn,modifiedBy,documents';
     
     
     /**
@@ -132,6 +132,7 @@ class rack_Movements extends core_Manager
         $this->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
         $this->FLD('zoneList', 'keylist(mvc=rack_Zones, select=num)', 'caption=Зони,input=none');
         $this->FLD('fromIncomingDocument', 'enum(no,yes)', 'input=hidden,silent,notNull,value=no');
+        $this->FLD('documents', 'keylist(mvc=doc_Containers,select=id)', 'input=none,caption=Документи');
         
         $this->setDbIndex('storeId');
         $this->setDbIndex('palletId');
@@ -244,6 +245,18 @@ class rack_Movements extends core_Manager
                 core_Statuses::newStatus('Проблем при записа на движението');
                 
                 return false;
+            }
+        }
+        
+        if ($rec->state == 'active' || $rec->_isCreatedClosed === true){
+            if(is_array($zonesArr)){
+                $documents = array();
+                foreach ($zonesArr as $zoneId){
+                    $zoneContainerId = rack_Zones::fetchField($zoneId, 'containerId');
+                    $documents[$zoneContainerId] = $zoneContainerId;
+                }
+                
+                $rec->documents = (count($documents)) ? keylist::fromArray($documents) : null;
             }
         }
     }
@@ -666,6 +679,15 @@ class rack_Movements extends core_Manager
         
         $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт");
         $row->movement = $mvc->getMovementDescription($rec);
+        
+        if(!empty($rec->documents)){
+            $documents = array();
+            $arr = keylist::toArray($rec->documents);
+            foreach ($arr as $containerId){
+                $documents[$containerId] = doc_Containers::getDocument($containerId)->getLink(0);
+            }
+            $row->documents = implode(',', $documents);
+        }
     }
     
     
@@ -790,23 +812,42 @@ class rack_Movements extends core_Manager
         $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
         $data->query->where("#storeId = {$storeId}");
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 ELSE 3 END)");
-        
         if ($palletId = Request::get('palletId', 'int')) {
             $data->query->where("#palletId = {$palletId}");
         }
         
+        $data->listFilter->setFieldTypeParams('workerId', array('allowEmpty' => 'allowEmpty'));
         $data->listFilter->setField('fromIncomingDocument', 'input=none');
-        $data->listFilter->FLD('state1', 'enum(,pending=Чакащи,active=Активни,closed=Приключени)');
-        $data->listFilter->setField('state1', 'placeholder=Всички');
-        $data->listFilter->input();
+        $data->listFilter->FLD('from', 'date');
+        $data->listFilter->FLD('to', 'date');
+        $data->listFilter->FLD('state1', 'enum(,pending=Чакащи,active=Активни,closed=Приключени)', 'placeholder=Всички');
         
-        $data->listFilter->showFields = 'search,state1';
+        $data->listFilter->showFields = 'selectPeriod,workerId,search,state1';
+        $data->listFilter->input();
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        if ($state = $data->listFilter->rec->state1) {
-            if (in_array($state, array('active', 'closed', 'pending'))) {
-                $data->query->where("#state = '{$state}'");
+        if ($filterRec = $data->listFilter->rec) {
+            if (in_array($filterRec->state1, array('active', 'closed', 'pending'))) {
+                $data->query->where("#state = '{$filterRec->state1}'");
+            }
+            
+            if(!empty($filterRec->from)){
+                $data->query->where("#createdOn >= '{$filterRec->from} 00:00'");
+            }
+            
+            if(!empty($filterRec->to)){
+                $data->query->where("#createdOn <= '{$filterRec->to} 59:59'");
+            }
+            
+            if(!empty($filterRec->workerId)){
+                $data->query->where("#workerId = '{$filterRec->workerId}'");
+            }
+            
+            if(!empty($filterRec->search)){
+                if($foundDocument = doc_Containers::getDocumentByHandle($filterRec->search)){
+                    $data->query->where("LOCATE('|{$foundDocument->fetchField('containerId')}|', #documents)");
+                }
             }
         }
         
@@ -871,7 +912,7 @@ class rack_Movements extends core_Manager
         
         // Записва се служителя и се обновява движението
         $rec->workerId = core_Users::getCurrent();
-        $this->save($rec, 'state,workerId,modifiedOn,modifiedBy');
+        $this->save($rec, 'state,workerId,modifiedOn,modifiedBy,documents');
         
         $msg = (count($transaction->warnings)) ? implode(', ', $transaction->warnings) : null;
         $type = (count($transaction->warnings)) ? 'warning' : 'notice';
