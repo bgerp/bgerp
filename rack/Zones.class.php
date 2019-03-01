@@ -161,6 +161,7 @@ class rack_Zones extends core_Master
                 $row->pendingHtml = $pendingHtml;
             }
         }
+        $row->ROW_ATTR['class'] = $row->ROW_ATTR['class'] . " rack-zone-head";
         
         $row->num = $mvc->getHyperlink($rec->id);
         
