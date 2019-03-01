@@ -110,8 +110,9 @@ class embed_plg_Extender extends core_Plugin
         // Ако има запис в екстендъра обновява се
         $exRec = $Extender->getRec($Embedder->getClassId(), $rec->id);
         if(is_object($exRec)){
-            $extenderFields = $Extender->getExtenderFields();
-            foreach ($extenderFields as $k => $v){
+            $extenderFields = array_keys($Extender->getExtenderFields());
+            
+            foreach ($extenderFields as $k){
                 $rec->{"{$Extender->className}_{$k}"} = $exRec->{$k};
             }
         }
@@ -127,7 +128,7 @@ class embed_plg_Extender extends core_Plugin
      * @param stdClass          $rec
      * @param array             $fields
      */
-    protected static function on_AfterRecToVerbal($Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
+    public static function on_AfterRecToVerbal($Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
         expect($Extender = cls::get($Driver->extenderClass));
         $exRec = $Extender->getRec($Embedder->getClassId(), $rec->id);
@@ -138,6 +139,25 @@ class embed_plg_Extender extends core_Plugin
             foreach ($exRowArr as $exFld => $exRow){
                 $row->{"{$Extender->className}_{$exFld}"} = $exRow;
             }
+        }
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager     $Embedder
+     * @param core_ET           $tpl
+     * @param stdClass          $data
+     */
+    public static function on_AfterRenderSingle($Driver, embed_Manager $Embedder, &$tpl, $data)
+    {
+        expect($Extender = cls::get($Driver->extenderClass));
+        $exRec = $Extender->getRec($Embedder->getClassId(), $data->rec->id);
+        
+        if(is_object($exRec)){
+            $Extender->invoke('AfterRenderSingle', array(&$tpl, &$data));
         }
     }
 }
