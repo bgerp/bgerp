@@ -33,6 +33,7 @@ class planning_Wrapper extends plg_ProtoWrapper
         $this->TAB(array('planning_AssetResources', 'type' => 'nonMaterial'), 'Ресурси->Нематериални', 'ceo,planning');
         $this->TAB('planning_Hr', 'Ресурси->Хора', 'ceo,planning');
         $this->TAB('planning_AssetGroups', 'Ресурси->Групи', 'ceo,planning');
+        $this->TAB('planning_Stages', 'Ресурси->Етапи', 'ceo,planning');
         
         $this->TAB('planning_FoldersWithResources', 'Настройки->Папки с ресурси', 'ceo,planning');
         $this->TAB('planning_AssetResourcesNorms', 'Настройки->Норми', 'ceo,planning');
