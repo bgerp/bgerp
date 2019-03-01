@@ -702,6 +702,7 @@ class rack_Movements extends core_Manager
         }
         if (!empty($packQuantity)) {
             $packQuantityRow = ht::styleIfNegative($packQuantityRow, $packQuantity);
+            
             $movementArr[] = "{$position} (<span {$class}>{$packQuantityRow}</span> {$packagingRow})";
         }
         
@@ -711,11 +712,13 @@ class rack_Movements extends core_Manager
             
             Mode::push('shortZoneName', true);
             foreach ($zones as $zoneRec) {
+                $class = ($rec->state == 'active') ? "class='movement-position-notice'" : "";
+                
                 $zoneTitle = rack_Zones::getRecTitle($zoneRec->zone);
                 $zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
                 $zoneQuantity = $Double->toVerbal($zoneRec->quantity);
                 $zoneQuantity = ht::styleIfNegative($zoneQuantity, $zoneRec->quantity);
-                $movementArr[] = "<span>{$zoneTitle} ({$zoneQuantity})</span>";
+                $movementArr[] = "<span {$class}>{$zoneTitle} ({$zoneQuantity})</span>";
             }
             Mode::pop('shortZoneName');
         }
@@ -723,6 +726,10 @@ class rack_Movements extends core_Manager
         if (!empty($positionTo) && $restQuantity) {
             $resQuantity = $Double->toVerbal($restQuantity);
             $movementArr[] = "{$positionTo} ({$resQuantity})";
+        }
+      
+        if($rec->state == 'pending' && isset($movementArr[0])){
+            $movementArr[0] = "<span class='movement-position-notice'>{$movementArr[0]}</span>";
         }
         
         $res = implode(' » ', $movementArr);
