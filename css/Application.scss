@@ -2078,6 +2078,10 @@ a.tOld {
 	white-space: nowrap;
 }
 
+.separateRowTable {
+	font-weight: bold;
+}
+
 td.rowtools-column {
     width:1%;
 }
@@ -4518,6 +4522,10 @@ table .eshop-btn {
 	td {
 		max-width: none !important;
 	}
+}
+
+.document table.listTable>tbody>tr>td.task-row-info {
+	padding: 4px 7px 3px !important;
 }
 
 .document .scrolling-holder {

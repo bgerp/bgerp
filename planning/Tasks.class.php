@@ -234,10 +234,9 @@ class planning_Tasks extends core_Master
         $this->FLD('weightDeviationNotice', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Отбелязване,unit=+/-');
         $this->FLD('weightDeviationWarning', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Предупреждение,unit=+/-');
         
-        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Времена за планиране->Начало, changable, tdClass=leftColImportant,formOrder=101');
-        $this->FLD('timeDuration', 'time', 'caption=Времена за планиране->Продължителност,changable,formOrder=102');
+        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Времена за планиране->Начало, changable, tdClass=leftColImportant');
+        $this->FLD('timeDuration', 'time', 'caption=Времена за планиране->Продължителност,changable');
         $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Времена за планиране->Край,changable, tdClass=leftColImportant,formOrder=103');
-        $this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Описание,autoHide');
         
         $this->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
         $this->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
@@ -246,6 +245,7 @@ class planning_Tasks extends core_Master
         $this->FNC('systemId', 'int', 'silent,input=hidden');
         $this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
         $this->FLD('inputInTask', 'int', 'caption=Произвеждане->Влагане в,input=none,after=indTime');
+        $this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Описание,autoHide');
         
         $this->setDbIndex('inputInTask');
     }
@@ -313,8 +313,8 @@ class planning_Tasks extends core_Master
         $blue = new color_Object('green');
         $grey = new color_Object('#bbb');
         
-        $progressPx = min(100, round(100 * $rec->progress));
-        $progressRemainPx = 100 - $progressPx;
+        $progressPx = min(200, round(200 * $rec->progress));
+        $progressRemainPx = 200 - $progressPx;
         
         $color = ($rec->progress <= 1) ? $blue : $red;
         $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
@@ -363,7 +363,6 @@ class planning_Tasks extends core_Master
         }
         
         // Ако няма зададено очаквано начало и край, се приема, че са стандартните
-        $row->packagingId = cat_UoM::getShortName($rec->packagingId);
         $rec->expectedTimeStart = ($rec->expectedTimeStart) ? $rec->expectedTimeStart : ((isset($rec->timeStart)) ? $rec->timeStart : null);
         $rec->expectedTimeEnd = ($rec->expectedTimeEnd) ? $rec->expectedTimeEnd : ((isset($rec->timeEnd)) ? $rec->timeEnd : null);
         
@@ -532,11 +531,38 @@ class planning_Tasks extends core_Master
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#packagingId#]</td></tr>
                 </table>"));
         
+        $resArr['indTimes'] = array('name' => tr('Заработка'), 'val' => tr("|*<table>
+                <tr><td style='font-weight:normal'>|Норма|*:</td><td>[#indTime#]</td></tr>
+                <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#indPackagingId#]</td></tr>
+                <tr><td style='font-weight:normal'>|Разпределяне|*:</td><td>[#indTimeAllocation#]</td></tr>
+                </table>"));
+        
         if(empty($rec->weightDeviationWarning)){
             $row->weightDeviationWarning = core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING'));
         }
     }
+
     
+    /**
+     * След подготовка на антетката
+     */
+    protected static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr)
+    {
+       if(Mode::is('screenMode', 'narrow') && !Mode::is('printing')) {
+            $res = new ET("<table class='lqlql'>");
+            foreach ((array) $headerArr as $value) {
+                $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 10px;\"><b>{$value['val']}</b></td>");
+                $name = new ET("<td class='nowrap' style='width: 1%;border-bottom: 1px solid #ccc; font-weight: bold;'>{$value['name']}</td>");
+
+                $res->append('<tr>');
+                $res->append($name);
+                $res->append('</tr><tr>');
+                $res->append($val);
+                $res->append('</tr>');
+            }
+            $res->append("</table>");
+        }
+    }
     
     /**
      * Обновява данни в мастъра
@@ -662,7 +688,7 @@ class planning_Tasks extends core_Master
                                 $nRec->taskId = $rec->id;
                                 $nRec->packagingId = $p->packagingId;
                                 $nRec->quantityInPack = $p->quantityInPack;
-                                $nRec->plannedQuantity = $p->packQuantity * $rec->plannedQuantity * $rec->quantityInPack * $p->quantityInPack;
+                                $nRec->plannedQuantity = $p->packQuantity * $rec->plannedQuantity;
                                 $nRec->productId = $p->productId;
                                 $nRec->type = $type;
                                 $nRec->storeId = $rec->storeId;
@@ -868,6 +894,8 @@ class planning_Tasks extends core_Master
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $row = planning_Tasks::recToVerbal($rec, $fields);
+            $row->plannedQuantity .= " " . $row->measureId;
+            $row->totalQuantity .= " " . $row->measureId;
             
             $subArr = array();
             if (!empty($row->fixedAssets)) {
@@ -917,7 +945,7 @@ class planning_Tasks extends core_Master
         // Ако няма намерени записи, не се рендира нищо
         // Рендираме таблицата с намерените задачи
         $table = cls::get('core_TableView', array('mvc' => $this));
-        $fields = 'title=Операция,progress=Прогрес,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано,info=@info';
+        $fields = 'title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано,info=@info';
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         

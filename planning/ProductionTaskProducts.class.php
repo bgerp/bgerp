@@ -176,10 +176,9 @@ class planning_ProductionTaskProducts extends core_Detail
                 $form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},before=storeId");
             }
             
-            $Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
             $shortUomId = cat_Products::fetchField($masterRec->productId, 'measureId');
             $shortUom = cat_UoM::getShortName($shortUomId);
-            $unit = tr('за') . ' ' . $Double->toVerbal($masterRec->plannedQuantity) . ' ' . $shortUom;
+            $unit = tr('за') . ' ' . core_Type::getByName('double(smartRound)')->toVerbal($masterRec->plannedQuantity) . ' ' . $shortUom;
             $unit = str_replace('&nbsp;', ' ', $unit);
             $form->setField('plannedQuantity', array('unit' => $unit));
             
@@ -260,10 +259,6 @@ class planning_ProductionTaskProducts extends core_Detail
         
         if (isset($rec->storeId)) {
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
-        }
-        
-        if (empty($rec->totalTime)) {
-            unset($row->totalTime);
         }
     }
     
