@@ -93,7 +93,13 @@ class rack_Movements extends core_Manager
      */
     public $canDeletesysdata = 'ceo,rack';
     
+
+    /**
+     * Шаблон за реда в листовия изглед
+     */
+    public $tableRowTpl = "[#ROW#][#ADD_ROW#]\n";
     
+
     /**
      * Колко време след като са приключени движенията да се изтриват
      */
@@ -1152,7 +1158,7 @@ class rack_Movements extends core_Manager
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         if (Mode::is('screenMode', 'narrow') && array_key_exists('productId', $data->listFields)) {
-            $data->listTableMvc->commonFirst = true;
+            $data->listTableMvc->tableRowTpl = "[#ADD_ROW#][#ROW#]\n";
             $data->listFields['productId'] = '@Артикул';
         }
     }
