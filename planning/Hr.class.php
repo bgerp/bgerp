@@ -24,7 +24,7 @@ class planning_Hr extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Служебни информации';
+    public $title = 'Информация за служителите';
     
     
     /**

@@ -19,7 +19,7 @@ class planning_AssetResources extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Оборудване';
+    public $title = 'Машини, съоръжения, сгради';
     
     
     /**

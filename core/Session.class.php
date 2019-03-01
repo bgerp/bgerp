@@ -32,6 +32,12 @@ class core_Session
     
     
     /**
+     * Префикс за декорация
+     */
+    protected $decoratePrefix = 'sess_';
+    
+    
+    /**
      * @var bool
      * @access private
      */
@@ -270,15 +276,36 @@ class core_Session
         static $prefix;
         
         if (!$prefix) {
-
             $prefix = strtolower(str_replace('www.', '', $_SERVER['HTTP_HOST']));
             
             $prefix = md5($prefix . EF_APP_NAME . EF_DB_NAME . EF_SALT);
             $prefix = substr($prefix, 0, 10);
         }
         
-        $decoratedVar = 'sess_' . $prefix . '_' . $varName;
+        $decoratedVar = $this->getDecoratePrefix() . $prefix . '_' . $varName;
         
         return $decoratedVar;
+    }
+    
+    
+    /**
+     * Сеттър за decoratePrefix
+     *
+     * @param string $prefix
+     */
+    public function setDecoratePrefix($prefix)
+    {
+        $this->decoratePrefix = $prefix;
+    }
+    
+    
+    /**
+     * Геттър за decoratePrefix
+     *
+     * @return string
+     */
+    public function getDecoratePrefix()
+    {
+        return $this->decoratePrefix;
     }
 }
