@@ -131,7 +131,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_Centers',
         'planning_Hr',
         'planning_FoldersWithResources',
-        'planning_Stages',
+        //'planning_Stages',
         'migrate::assetResourceFields',
         'migrate::updateTasks'
     );
