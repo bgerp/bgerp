@@ -1238,6 +1238,7 @@ class rack_Movements extends core_Manager
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+        $data->listTableMvc->FLD('movement', 'varchar', 'tdClass=movement-description');
         if (Mode::is('screenMode', 'narrow') && array_key_exists('productId', $data->listFields)) {
             $data->listTableMvc->tableRowTpl = "[#ADD_ROWS#][#ROW#]\n";
             $data->listFields['productId'] = '@Артикул';
