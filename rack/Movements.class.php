@@ -380,7 +380,7 @@ class rack_Movements extends core_Manager
         $form->setField('workerId', 'input=none');
         
         $defZones = Request::get('defaultZones', 'varchar');
-        if(isset($rec->fromIncomingDocument)){
+        if($rec->fromIncomingDocument == 'yes'){
             $form->setReadOnly('productId');
         }
         
