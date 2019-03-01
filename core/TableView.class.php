@@ -350,10 +350,10 @@ class core_TableView extends core_BaseClass
                         $attrs1 .= " ${attrName}=\"{$attrValue}\"";
                     }
                     
-                    $rowTpl->replace($attrs, 'ROW_ATTR');
-                    $rowTpl->replace($attrs1, 'COMMON_ROW_ATTR');
+                    $rowTpl->replace($attrs, 'ROW_ATTR', null, false, false);
+                    $rowTpl->replace($attrs1, 'COMMON_ROW_ATTR', null, false, false);
                 } else {
-                    $rowTpl->replace(" class='{$this->mvc->commonRowClass}'", 'COMMON_ROW_ATTR');
+                    $rowTpl->replace(" class='{$this->mvc->commonRowClass}'", 'COMMON_ROW_ATTR', null, false, false);
                 }
                 
                 $rowTpl->append2Master();
