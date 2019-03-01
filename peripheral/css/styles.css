@@ -85,12 +85,12 @@ input[type=button] {
     float: right;
 }
 
-.formError {
+.formError, .inputLackOfChoiceMandatory {
     padding: 10px;
     color: #9b0707;
     margin: 5px 0 0 !important;
-    border: 1px solid #9b0707;
-    background-color: #ff8484;
+    border: 1px solid #9b0707 !important;
+    background-color: #feadad !important;
 }
 
 .formError ul {
