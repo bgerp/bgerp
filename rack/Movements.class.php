@@ -97,7 +97,7 @@ class rack_Movements extends core_Manager
     /**
      * Шаблон за реда в листовия изглед
      */
-    public $tableRowTpl = "[#ROW#][#ADD_ROW#]\n";
+    public $tableRowTpl = "[#ROW#][#ADD_ROWS#]\n";
     
 
     /**
@@ -1231,7 +1231,7 @@ class rack_Movements extends core_Manager
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         if (Mode::is('screenMode', 'narrow') && array_key_exists('productId', $data->listFields)) {
-            $data->listTableMvc->tableRowTpl = "[#ADD_ROW#][#ROW#]\n";
+            $data->listTableMvc->tableRowTpl = "[#ADD_ROWS#][#ROW#]\n";
             $data->listFields['productId'] = '@Артикул';
         }
     }

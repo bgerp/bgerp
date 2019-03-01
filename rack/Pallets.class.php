@@ -751,7 +751,7 @@ class rack_Pallets extends core_Manager
     {
         $data->listTableMvc->FLD('uom', 'varchar', 'smartCenter');
         if (Mode::is('screenMode', 'narrow')) {
-            $data->listTableMvc->commonFirst = "<tbody>[#ADD_ROW#][#ROW#]</tbody>\n";;
+            $data->listTableMvc->commonFirst = "<tbody>[#ADD_ROWS#][#ROW#]</tbody>\n";;
             $data->listFields['productId'] = '@Артикул';
         }
     }

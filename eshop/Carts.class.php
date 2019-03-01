@@ -1558,7 +1558,7 @@ class eshop_Carts extends core_Master
 
         if (Mode::is('screenMode', 'narrow')) {
             $data->listTableMvc->commonRowClass = 'ecartCommonRow';
-            $data->listTableMvc->tableRowTpl = "<tbody>[#ADD_ROW#][#ROW#]</tbody>\n";;
+            $data->listTableMvc->tableRowTpl = "<tbody>[#ADD_ROWS#][#ROW#]</tbody>\n";;
             $data->listFields['productId'] = '@Артикул';
         }
 

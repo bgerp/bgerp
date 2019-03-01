@@ -119,7 +119,13 @@ class rack_Zones extends core_Master
      */
     public $refreshRowsTime = 5000;
     
-    
+
+    /**
+     * Шаблон за реда в листовия изглед
+     */
+    public $tableRowTpl = "[#ROW#][#ADD_ROWS#]\n";
+
+
     /**
      * Описание на модела (таблицата)
      */

@@ -292,7 +292,7 @@ class core_TableView extends core_BaseClass
         $row .= "</tr>";
 
         setIfNot($this->mvc->tableRowTpl, "<tbody class='rowBlock'>[#ROW#][#ADD_ROWS#]</tbody>\n");
-        $row = str_replace(array('[#ROW#]', '[#ADD_ROW#]'), array($row, $addRows), $this->mvc->tableRowTpl);
+        $row = str_replace(array('[#ROW#]', '[#ADD_ROWS#]'), array($row, $addRows), $this->mvc->tableRowTpl);
         
         $row = "\n<!--ET_BEGIN ROW-->{$row}<!--ET_END ROW-->";
         if (!$this->tableClass) {
