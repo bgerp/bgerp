@@ -183,8 +183,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             // Ако е посочена начална дата на период
             if ($rec->fromDate) {
                 $invQuery->where(array(
-                    "#date > '[#1#]'",
-                    $rec->fromDate . ' 00:00:01'
+                    "#date >= '[#1#]'",
+                    $rec->fromDate
                 ));
             }
             

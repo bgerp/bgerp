@@ -231,7 +231,7 @@ class rack_Products extends store_Products
         while ($pRec = $pQuery->fetch()) {
             $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);
         }
-        
+        //bp($products);
         return $products;
     }
     

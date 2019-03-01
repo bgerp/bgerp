@@ -669,7 +669,7 @@ class pos_Receipts extends core_Master
         $tpl->append($logo, 'LOGO');
         
         if (Mode::get('terminalId')) {
-            $tpl->replace(ht::createLink('X', array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала'), 'EXIT_TERMINAL');
+            $tpl->replace(ht::createLink('', array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
         }
         
         // Слагане на детайлите на бележката

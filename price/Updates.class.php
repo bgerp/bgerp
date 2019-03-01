@@ -594,7 +594,7 @@ class price_Updates extends core_Manager
     public static function renderUpdateData($data)
     {
         // Рендираме таблицата
-        $table = cls::get('core_TableView', array('mvc' => 'price_Updates'));
+        $table = cls::get('core_TableView', array('mvc' => cls::get('price_Updates')));
         $fields = 'tools=Пулт,costSource1=Източник->Първи,costSource2=Източник->Втори,costSource3=Източник->Трети,costAdd=Добавка,costValue=Стойност,updateMode=Обновяване,createdOn=Създаване->На,createdBy=Създаване->От';
         $fields = core_TableView::filterEmptyColumns($data->rows, $fields, 'costAdd');
         $details = $table->get($data->rows, $fields);
