@@ -4853,11 +4853,7 @@ td.rack-same {
   font-family: Times New Roman, Georgia, serif; }
 
 .movement-position-notice {
-  background: white;
-  padding: 3px;
-  font-weight: bold;
-  border: 1px solid #cccccc;
-  border-radius: 3px; }
+  font-weight: bold; }
 
 .wide .app-name {
   left: 3%;
