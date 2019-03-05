@@ -751,7 +751,7 @@ class planning_Tasks extends core_Master
         if(!array_key_exists($originRec->productId, $options)){
             $options = array("{$originRec->productId}" => cat_Products::getTitleById($originRec->productId, false)) + $options;
         }
-        if(!array_key_exists($rec->productId, $options)){
+        if(isset($rec->productId) && !array_key_exists($rec->productId, $options)){
             $options = array("{$rec->productId}" => cat_Products::getTitleById($rec->productId, false)) + $options;
         }
         

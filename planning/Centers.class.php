@@ -365,7 +365,7 @@ class planning_Centers extends core_Master
     {
         $options = array();
         $sQuery = planning_Stages::getQuery();
-        $sQuery->where("LOCATE('|{$folderId}|', #folders) AND #state != 'closed' AND #state != 'rejected'");
+        $sQuery->where("LOCATE('|{$folderId}|', #folders) AND #state != 'closed' AND #state != 'rejected' AND #classId = " . cat_Products::getClassId());
         while($sRec = $sQuery->fetch()){
             $options[$sRec->objectId] = cls::get($sRec->classId)->getRecTitle($sRec, false);
         }

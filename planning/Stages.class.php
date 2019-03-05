@@ -261,6 +261,8 @@ class planning_Stages extends core_Extender
         $query = self::getQuery();
         $query->where("LOCATE('|{$data->masterData->rec->folderId}|', #folders)");
         $query->where("#state != 'rejected'");
+        $query->orderBy('state', "ASC");
+        
         while($rec = $query->fetch()){
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
@@ -291,7 +293,7 @@ class planning_Stages extends core_Extender
         $tpl->append($tableHtml, 'content');
         
         if(count($data->addUrl)){
-            $addBtn = ht::createLink('', $data->addUrl, false, "title=ssss,ef_icon=img/16/add.png");
+            $addBtn = ht::createLink('', $data->addUrl, false, "title=Добавяне на нов производствен етап в центъра на дейност,ef_icon=img/16/add.png");
             $tpl->append($addBtn, 'title');
         }
         
