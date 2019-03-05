@@ -494,7 +494,7 @@ class cal_Calendar extends core_Master
         }
         
         //Ако изпълнителте са няколко те се показват в инфото за задачата
-        if((count(keylist::toArray($rec->users))>1)  && ($cUrl['Act']!='month' && $cUrl['Act']!='week')) {
+        if((count(keylist::toArray($rec->users))>1)  && ($cUrl['Act']!='month' && $cUrl['Act']!='week') && $cUrl['Act']!='day') {
             
             $users='';
             foreach (keylist::toArray($rec->users) as $v){
