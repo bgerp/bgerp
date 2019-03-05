@@ -105,12 +105,12 @@ class core_TableView extends core_BaseClass
         $fields = arr::make($fields, true);
         
         $header = array();
-        $row = "<tr [#ROW_ATTR#]>";
+        $row = '<tr [#ROW_ATTR#]>';
         $addRows = '';
         $colspan = 0;
         $maxColHeaders = 1;
         $addRowArr = array();
-
+        
         $i = 0;
         
         $fieldList = array();
@@ -240,7 +240,7 @@ class core_TableView extends core_BaseClass
                 }
             }
         }
-
+        
         
         $curTH = 0;
         
@@ -283,14 +283,14 @@ class core_TableView extends core_BaseClass
         }
         
         $addRows = str_replace('[#COLSPAN#]', $colspan, $addRows);
-        foreach($addRowArr as &$addRow) {
+        foreach ($addRowArr as &$addRow) {
             $addRow = str_replace('[#COLSPAN#]', $colspan, $addRow);
         }
-
+        
         $this->colspan = $colspan;
         
-        $row .= "</tr>";
-
+        $row .= '</tr>';
+        
         setIfNot($this->mvc->tableRowTpl, "<tbody class='rowBlock'>[#ROW#][#ADD_ROWS#]</tbody>\n");
         $row = str_replace(array('[#ROW#]', '[#ADD_ROWS#]'), array($row, $addRows), $this->mvc->tableRowTpl);
         
@@ -304,7 +304,7 @@ class core_TableView extends core_BaseClass
             $tableId = " id = \"{$this->tableId}\"";
         }
         
-        $theadStyle = ($this->thHide === true) ? 'style="display:none"' : "";
+        $theadStyle = ($this->thHide === true) ? 'style="display:none"' : '';
         $tpl = new ET("\n<table [#TABLE_ATTR#] {$tableId} class=\"{$this->tableClass}\"><thead {$theadStyle}>{$tableHeader}</thead>[#ROW_BEFORE#]{$row}[#ROW_AFTER#]</table>\n");
         
         if (count($rows)) {
@@ -322,27 +322,27 @@ class core_TableView extends core_BaseClass
                 foreach ($fieldList as $name => $dummy) {
                     $value = $r[$name];
                     
-                    if(isset($addRowArr[$name]) && $value == '') {
-                        $rowTpl->content = str_replace($addRowArr[$name], '',  $rowTpl->content);
+                    if (isset($addRowArr[$name]) && $value == '') {
+                        $rowTpl->content = str_replace($addRowArr[$name], '', $rowTpl->content);
                     }
                     
                     if ($value === null) {
                         $value = '&nbsp;';
                     }
-
+                    
                     $rowTpl->replace($value, $name);
                 }
                 
                 // Добавяме атрибутите на реда от таблицата, ако има такива
                 if (count($r['ROW_ATTR'])) {
                     $attrs = $attrs1 = '';
-
+                    
                     
                     foreach ($r['ROW_ATTR'] as $attrName => $attrValue) {
-                        $attrs .= " ${attrName}=\"{$attrValue}\"";                       
+                        $attrs .= " ${attrName}=\"{$attrValue}\"";
                     }
                     
-                    if($this->mvc->commonRowClass){
+                    if ($this->mvc->commonRowClass) {
                         $r['ROW_ATTR']['class'] .= ' ' . $this->mvc->commonRowClass;
                     }
                     
@@ -350,10 +350,10 @@ class core_TableView extends core_BaseClass
                         $attrs1 .= " ${attrName}=\"{$attrValue}\"";
                     }
                     
-                    $rowTpl->replace($attrs, 'ROW_ATTR', null, false, false);
-                    $rowTpl->replace($attrs1, 'COMMON_ROW_ATTR', null, false, false);
+                    $rowTpl->replace($attrs, 'ROW_ATTR', false, false);
+                    $rowTpl->replace($attrs1, 'COMMON_ROW_ATTR', false, false);
                 } else {
-                    $rowTpl->replace(" class='{$this->mvc->commonRowClass}'", 'COMMON_ROW_ATTR', null, false, false);
+                    $rowTpl->replace(" class='{$this->mvc->commonRowClass}'", 'COMMON_ROW_ATTR', false, false);
                 }
                 
                 $rowTpl->append2Master();
