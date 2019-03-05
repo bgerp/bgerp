@@ -1867,7 +1867,7 @@ class cal_Calendar extends core_Master
 				$dayKey = "d".date('N', $recT);
 				
 				// Добавяме звезда там където имаме събитие
-				$yearDate->yearArr[$recMonth][$weekKey][$dayKey] = "<img class='starImg' src=". sbf('img/16/star_3.png') .">" . $recDay;
+				$yearDate->yearArr[$recMonth][$weekKey][$dayKey] = "<img class='starImg' src=". sbf('img/16/star_1.png') .">" . $recDay;
 	        }
         }
         
