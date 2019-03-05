@@ -39,4 +39,24 @@ class planning_interface_StageDriver extends cat_GeneralProductDriver
      * @param string $defaultMetaData
      */
     public $extenderClass = 'planning_Stages';
+    
+    
+    /**
+     * Икона на артикулите
+     */
+    protected $icon = 'img/16/paste_plain.png';
+    
+    
+    /**
+     * Подготвяне на вербалните стойности
+     *
+     * @param cal_Progresses $Driver
+     * @param doc_Comments   $mvc
+     * @param stdClass       $row
+     * @param stdClass       $rec
+     */
+    protected function on_AfterRecToVerbal(cat_ProductDriver $Driver, $mvc, $row, $rec)
+    {
+        unset($row->editMetaBtn);
+    }
 }
