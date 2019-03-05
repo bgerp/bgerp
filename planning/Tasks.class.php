@@ -747,12 +747,15 @@ class planning_Tasks extends core_Master
         $originRec = $origin->fetch();
         
         // Добавяме допустимите опции
-        $products = cat_Products::getByProperty('canManifacture');
-        $form->setOptions('productId', array('' => '') + $products);
-        if (count($products) == 1) {
-            $form->setDefault('productId', key($products));
+        $options = planning_Centers::getManifacturableOptions($rec->folderId);
+        if(!array_key_exists($originRec->productId, $options)){
+            $options = array("{$originRec->productId}" => cat_Products::getTitleById($originRec->productId, false)) + $options;
+        }
+        if(!array_key_exists($rec->productId, $options)){
+            $options = array("{$rec->productId}" => cat_Products::getTitleById($rec->productId, false)) + $options;
         }
         
+        $form->setOptions('productId', $options);
         $tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
         
         if (isset($rec->systemId, $tasks[$rec->systemId])) {

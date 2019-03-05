@@ -353,4 +353,27 @@ class planning_Centers extends core_Master
             }
         }
     }
+    
+    
+    /**
+     * Производствени етапи в папката на центъра на дейност
+     * 
+     * @param int $folderId
+     * @return array $options
+     */
+    public static function getManifacturableOptions($folderId)
+    {
+        $options = array();
+        $sQuery = planning_Stages::getQuery();
+        $sQuery->where("LOCATE('|{$folderId}|', #folders) AND #state != 'closed' AND #state != 'rejected'");
+        while($sRec = $sQuery->fetch()){
+            $options[$sRec->objectId] = cls::get($sRec->classId)->getRecTitle($sRec, false);
+        }
+        
+        if(count($options)){
+            $options = array('pu' => (object)array('group' => true, 'title' => 'Производствени етапи')) + $options;
+        }
+        
+        return $options;
+    }
 }
