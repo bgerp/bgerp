@@ -249,20 +249,7 @@ class cal_Calendar extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-//         $query    = self::getQuery();
-//         $arr = array();
-//         while($rec = $query->fetch()) {
-            
-//             if(!in_array($rec->type,$arr)){
-//                 $arr[] = $rec->type;
-//             }
-            
-           
-            
-//         }
-        
-//         bp($arr);
-        
+
     	$cu = core_Users::getCurrent();
     	
     	$data->listFilter->view = 'horizontal';
@@ -526,7 +513,7 @@ class cal_Calendar extends core_Master
             }
             $users = trim($users,', ');
             
-            $row->event = $row->event."</br>"."<span class = fright>".tr('Възложено на ').': '.$users."</span>";
+            $row->event = $row->event."</br>"."<span class = fright>".tr('Възложено на').': '.$users."</span>";
         }
         
         return $row;
