@@ -30,7 +30,7 @@ class planning_Stages extends core_Extender
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'planning_Wrapper,plg_RowTools2,plg_Search';
+    public $loadList = 'planning_Wrapper,plg_RowTools2,plg_Search,plg_Rejected';
     
     
     /**
@@ -42,7 +42,7 @@ class planning_Stages extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Етап,folders=Центрове,objectId=Артикул,canStore=Засклаждане,norm=Норма,modifiedOn=Модифицирано->На,modifiedBy=Модифицирано->От||By';
+    public $listFields = 'name=Етап,folders=Центрове,canStore=Засклаждане,norm=Норма,state,modifiedOn=Модифицирано->На,modifiedBy=Модифицирано->От||By';
     
     
     /**
@@ -71,9 +71,12 @@ class planning_Stages extends core_Extender
     public function description()
     {
         $this->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty,makeLinks)', 'caption=Използване в производството->Центрове на дейност, remember,mandatory,silent');
-        $this->FLD('name', 'varchar', 'caption=Използване в производството->Наименование,placeholder=Ако не се попълни - името на артикула');
+        $this->FLD('name', 'varchar', 'caption=Използване в производството->Наименование,placeholder=Ако не се попълни - името на артикула,tdClass=leftCol');
         $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Използване в производството->Засклаждане,notNull,value=yes');
         $this->FLD('norm', 'time', 'caption=Използване в производството->Норма');
+        $this->FLD('state', 'enum(draft=Чернова, active=Активен, rejected=Оттеглен, closed=Затворен)', 'caption=Състояние');
+        
+        $this->setDbIndex('state');
     }
     
     
@@ -136,16 +139,41 @@ class planning_Stages extends core_Extender
     }
     
     
+    /**
+     * Синхронизиране на екстендъра с мениджъра, към който е
+     */
+    protected static function on_AfterSyncWithManager($mvc, $rec, $managerRec)
+    {
+        // Състоянието на екстендъра се синхронизира с това на мениджъра
+        $rec->state = $managerRec->state;
+        $mvc->save_($rec, 'state');
+    }
+    
+    
+    /**
+     * Какво е урл-то за добавяне на нов производствен етап
+     * 
+     * @return array $addUrl
+     */
+    private static function getAddUrl()
+    {
+        $addUrl = array();
+        $driverId = planning_interface_StageDriver::getClassId();
+        if (cat_Products::haveRightFor('add', (object)array('innerClass' => $driverId)) && cls::get($driverId)->canSelectDriver()) {
+            $addUrl = array('cat_Products', 'add', 'innerClass' => $driverId, 'ret_url' => true);
+        }
+        
+        return $addUrl;
+    }
     
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-        // Документа не може да се създава  в нова нишка, ако е възоснова на друг
-        $driverId = planning_interface_StageDriver::getClassId();
-        if (cat_Products::haveRightFor('add', (object)array('innerClass' => $driverId)) && cls::get($driverId)->canSelectDriver()) {
-            $data->toolbar->addBtn('Нов запис', array('cat_Products', 'add', 'innerClass' => $driverId, 'ret_url' => true), false, 'ef_icon = img/16/star_2.png,title=Добавяне на произведен артикул');
+        $addUrl = self::getAddUrl();
+        if(count($addUrl) && !Request::get('Rejected', 'int')){
+            $data->toolbar->addBtn('Нов запис', $addUrl, false, 'ef_icon = img/16/star_2.png,title=Добавяне на производствен етап');
         }
     }
     
@@ -159,15 +187,17 @@ class planning_Stages extends core_Extender
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
+        $Class = cls::get($rec->classId);
+        $singleUrl = $Class->getSingleUrlArray($rec->objectId);
+        $row->name = ht::createLink($row->name, $singleUrl, false, "ef_icon={$Class->singleIcon}");
         
         if(isset($fields['-list'])){
-            $prodRec = cls::get($rec->classId)->fetch($rec->objectId, 'modifiedOn,modifiedBy,state');
+            $prodRec = cls::get($rec->classId)->fetch($rec->objectId, 'modifiedOn,modifiedBy');
             $prodRow = cat_products::recToVerbal($prodRec, 'modifiedOn,modifiedBy');
             
             $row->modifiedOn = $prodRow->modifiedOn;
             $row->modifiedBy = crm_Profiles::createLink($prodRec->modifiedBy);
-            $row->ROW_ATTR['class'] = "state-{$prodRec->state}";
+            $row->ROW_ATTR['class'] = "state-{$rec->state}";
         }
     }
     
@@ -203,9 +233,68 @@ class planning_Stages extends core_Extender
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
+        // Показване на данните от екстендъра в шаблона
         $blockTpl = getTplFromFile('planning/tpl/StageBlock.shtml');
         $blockTpl->placeObject($data->row);
         $blockTpl->removeBlocksAndPlaces();
         $tpl->append($blockTpl, 'ADDITIONAL_BLOCK');
+    }
+    
+    
+    /**
+     * След подготовка на единичния изглед
+     *
+     * @param core_Manager $mvc
+     * @param core_ET      $tpl
+     * @param stdClass     $data
+     */
+    public function prepareStages_(&$data)
+    {
+        $data->TabCaption = 'Етапи';
+        $data->Order = 100;
+        
+        $data->recs = $data->rows = array();
+        $fields = $this->selectFields();
+        $fields['-list'] = true;
+        
+        // Подготовка на записите
+        $query = self::getQuery();
+        $query->where("LOCATE('|{$data->masterData->rec->folderId}|', #folders)");
+        $query->where("#state != 'rejected'");
+        while($rec = $query->fetch()){
+            $data->recs[$rec->id] = $rec;
+            $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
+        }
+        
+        $this->prepareListFields($data);
+        unset($data->listFields['folders']);
+        $data->addUrl = self::getAddUrl($data->masterData->rec->folderId);
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param core_Manager $mvc
+     * @param core_ET      $tpl
+     * @param stdClass     $data
+     */
+    public function renderStages_(&$data)
+    {
+        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $tpl->append(tr('Производствени етапи'), 'title');
+        
+        // Рендиране на таблицата с резултатите
+        $table = cls::get('core_TableView', array('mvc' => $this));
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $tableHtml = $table->get($data->rows, $data->listFields);
+        $tpl->append($tableHtml, 'content');
+        
+        if(count($data->addUrl)){
+            $addBtn = ht::createLink('', $data->addUrl, false, "title=ssss,ef_icon=img/16/add.png");
+            $tpl->append($addBtn, 'title');
+        }
+        
+        return $tpl;
     }
 }

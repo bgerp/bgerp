@@ -142,6 +142,14 @@ class planning_Centers extends core_Master
     
     
     /**
+     * Детайла, на модела
+     *
+     * @var string|array
+     */
+    public $details = 'stages=planning_Stages';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
