@@ -249,7 +249,6 @@ class cal_Calendar extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-
     	$cu = core_Users::getCurrent();
     	
     	$data->listFilter->view = 'horizontal';
@@ -430,6 +429,7 @@ class cal_Calendar extends core_Master
         // TODO
         // правим линк за изгледите
         if($isLink){
+            $seeUserFlag = true;
             $row->event = ht::createLink($row->title, $url, NULL, $attr);
             
             if($cUrl['Act'] == "day" || $cUrl['Act'] == "week" || $cUrl['Act'] == "month"){
@@ -444,6 +444,8 @@ class cal_Calendar extends core_Master
         
         // или ако нямаме достъп, правим елемент
         } else {
+            
+            $seeUserFlag = false;
             $addEnd = FALSE;
             if ($url['Ctr'] == 'crm_Persons' || $url['Ctr'] == 'hr_Leaves' || $url['Ctr'] == 'hr_Sickdays' || $url['Ctr'] == 'hr_Trips') {
                 $row->event = ht::createElement("span", $attr, $row->title);
@@ -496,13 +498,13 @@ class cal_Calendar extends core_Master
         
         $condUrl = $cUrl['Act']!='month' && $cUrl['Act']!='week' && $cUrl['Act']!='day';
         
-        $condType = $rec->type = 'task' ||
-                    $rec->type = 'end-date'||
-                    $rec->type = 'alarm_clock' ||
-                    $rec->type = 'working-travel' ||
-                    $rec->type = 'leaves' ||
-                    $rec->type = 'sick' ||
-                    $rec->type = 'birthday';
+        $condType = $rec->type == 'task' ||
+                    $rec->type == 'end-date'||
+                    $rec->type == 'alarm_clock' ||
+                    $rec->type == 'working-travel' ||
+                    $rec->type == 'leaves' ||
+                    $rec->type == 'sick' ||
+                    $rec->type == 'birthday';
         
         if(count(keylist::toArray($rec->users))>1 && $condType  && $condUrl){
             
@@ -512,8 +514,10 @@ class cal_Calendar extends core_Master
                 $users.=core_Users::getLinkForObject($v).', ';
             }
             $users = trim($users,', ');
+            if($seeUserFlag){
+                $row->event = $row->event."</br>"."<span class = fright>".tr('Възложено на').': '.$users."</span>";
+            }
             
-            $row->event = $row->event."</br>"."<span class = fright>".tr('Възложено на').': '.$users."</span>";
         }
         
         return $row;
