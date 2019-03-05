@@ -35,6 +35,18 @@ abstract class core_Extender extends core_Manager
     
     
     /**
+     * Кой може да възстановява
+     */
+    public $canRestore = 'no_one';
+    
+    
+    /**
+     * Кой може да оттегля
+     */
+    public $canReject = 'no_one';
+    
+    
+    /**
      * Име на полето за класа на ембедъра
      * 
      * @var string
