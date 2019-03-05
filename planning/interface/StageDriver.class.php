@@ -41,6 +41,11 @@ class planning_interface_StageDriver extends cat_GeneralProductDriver
     public $extenderClass = 'planning_Stages';
     
     
+    /**
+     * Икона на артикулите
+     */
+    protected $icon = 'img/16/paste_plain.png';
+    
     
     /**
      * Подготвяне на вербалните стойности

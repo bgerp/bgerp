@@ -187,11 +187,11 @@ class planning_Stages extends core_Extender
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $Class = cls::get($rec->classId);
-        $singleUrl = $Class->getSingleUrlArray($rec->objectId);
-        $row->name = ht::createLink($row->name, $singleUrl, false, "ef_icon={$Class->singleIcon}");
-        
         if(isset($fields['-list'])){
+            $Class = cls::get($rec->classId);
+            $singleUrl = $Class->getSingleUrlArray($rec->objectId);
+            $row->name = ht::createLink($row->name, $singleUrl, false, "ef_icon={$Class->singleIcon}");
+            
             $prodRec = cls::get($rec->classId)->fetch($rec->objectId, 'modifiedOn,modifiedBy');
             $prodRow = cat_products::recToVerbal($prodRec, 'modifiedOn,modifiedBy');
             
