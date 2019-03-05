@@ -2,12 +2,12 @@
     <legend class="groupTitle">|Използване в производството|*</legend>
     <table>
     	<tr>
-    		<td class='quiet'>|Центрове на дейност|*:</td>
-    		<td>[#planning_Stages_folders#]</td>
+    		<td class='quiet'>|Наименование|*:</td>
+    		<td>[#planning_Stages_name#]</td>
     	</tr>
     	<tr>
-    		<td class='quiet'>|Наименование на етапа|*:</td>
-    		<td>[#planning_Stages_name#]</td>
+    		<td class='quiet'>|Центрове на дейност|*:</td>
+    		<td>[#planning_Stages_folders#]</td>
     	</tr>
     	<tr>
     		<td class='quiet'>|Засклаждане|*:</td>
