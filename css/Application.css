@@ -1180,7 +1180,8 @@ div.acc-detail {
     .portal table.listTable td {
       border: none !important;
       border-top: dotted 1px #cccccc !important;
-      vertical-align: top !important; }
+      vertical-align: top !important;
+      padding: 4px 3px; }
     .portal table.listTable > tbody > tr:first-child > td {
       border-top: none !important; }
     .portal table.listTable th {
