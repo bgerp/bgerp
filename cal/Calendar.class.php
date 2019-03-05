@@ -460,6 +460,10 @@ class cal_Calendar extends core_Master
             if ($addEnd) {
                 $row->event = "<div title='{$row->title}' style='margin-bottom: 5px;font-style=normal;'>" . $row->event . "</div>";
             }
+            
+            if (!$row->event) {
+                $row->event = tr('Липсваща връзка') . ' (' . crm_Profiles::createLink($rec->createdBy) . ')';
+            }
         }
         
         // TODO
