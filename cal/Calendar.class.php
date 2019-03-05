@@ -189,6 +189,7 @@ class cal_Calendar extends core_Master
     public static function updateEvents($events, $fromDate, $toDate, $prefix)
     {
         $query    = self::getQuery();
+        
         $fromTime = $fromDate . ' 00:00:00';
         $toTime   = $toDate   . ' 23:59:59';
         
@@ -248,6 +249,20 @@ class cal_Calendar extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
+//         $query    = self::getQuery();
+//         $arr = array();
+//         while($rec = $query->fetch()) {
+            
+//             if(!in_array($rec->type,$arr)){
+//                 $arr[] = $rec->type;
+//             }
+            
+           
+            
+//         }
+        
+//         bp($arr);
+        
     	$cu = core_Users::getCurrent();
     	
     	$data->listFilter->view = 'horizontal';
@@ -494,7 +509,13 @@ class cal_Calendar extends core_Master
         
         $condUrl = $cUrl['Act']!='month' && $cUrl['Act']!='week' && $cUrl['Act']!='day';
         
-        $condType = $rec->type = 'task' ||$rec->type = 'end-date';
+        $condType = $rec->type = 'task' ||
+                    $rec->type = 'end-date'||
+                    $rec->type = 'alarm_clock' ||
+                    $rec->type = 'working-travel' ||
+                    $rec->type = 'leaves' ||
+                    $rec->type = 'sick' ||
+                    $rec->type = 'birthday';
         
         if(count(keylist::toArray($rec->users))>1 && $condType  && $condUrl){
             
@@ -505,7 +526,7 @@ class cal_Calendar extends core_Master
             }
             $users = trim($users,', ');
             
-            $row->event = $row->event."</br>"."<span class = fright>".'Възложено на: '.$users."</span>";
+            $row->event = $row->event."</br>"."<span class = fright>".tr('Възложено на ').': '.$users."</span>";
         }
         
         return $row;
