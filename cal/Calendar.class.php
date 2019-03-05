@@ -299,16 +299,14 @@ class cal_Calendar extends core_Master
         
         //Филтър по тип
         if(!$data->listFilter->rec->types == ''){
-            
             if ($data->listFilter->rec->types == 'religian'){
-                
                 $religianArr = array('orthodox','muslim');
                 $data->query->in('type', $religianArr);
-            
+            }elseif ($data->listFilter->rec->types == 'task'){
+                $data->query->in('type', array('task','end-date'));
             }else{
-                  $data->query->where("#type = '{$data->listFilter->rec->types}'");
+                $data->query->where("#type = '{$data->listFilter->rec->types}'");
             }
-        
         }
         
         //Изключваме приключените
@@ -317,13 +315,8 @@ class cal_Calendar extends core_Master
         if($data->action == 'list' || $data->action == 'day' || $data->action == 'week'){
             
             if($from = $data->listFilter->rec->from) {
-                
-                
                 $data->query->where("#time >= date('$from') OR #timeEnd >= date('$from')");
-	       
-	       
 	       }
-        
         }
       	
       	if(!$data->listFilter->rec->selectedUsers) {

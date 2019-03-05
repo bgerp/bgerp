@@ -800,21 +800,21 @@ class cal_Tasks extends embed_Manager
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         $pArr = array();
-        
+
 //         if (cal_TaskProgresses::isInstalled()) {
 //             $pQuery = cal_TaskProgresses::getQuery();
 //             $pQuery->where(array('#taskId = [#1#]', $data->rec->id));
 //             $pQuery->orderBy('createdOn', 'ASC');
-            
+
 //             while ($pRec = $pQuery->fetch()) {
 //                 $pRow = cal_TaskProgresses::recToVerbal($pRec);
-                
+
 //                 $rowAttr = array();
-                
+
 //                 if ($pRec->state == 'rejected') {
 //                     $rowAttr['class'] = 'state-' . $pRec->state;
 //                 }
-                
+
 //                 $pArr[] = array('ROW_ATTR' => $rowAttr, 'progress' => $pRow->progress, 'workingTime' => $pRow->workingTime, 'createdOn' => $pRow->createdOn, 'createdBy' => $pRow->createdBy, 'message' => $pRow->message);
 //             }
 //         }
@@ -1445,7 +1445,7 @@ class cal_Tasks extends embed_Manager
                 if ($rec->timeStart) {
                     // Начало на задачата
                     $calRec->time = $rec->timeStart;
-                } else {
+                } elseif ($rec->timeCalc) {
                     $calRec->time = $rec->timeCalc;
                 }
                 
@@ -1492,8 +1492,10 @@ class cal_Tasks extends embed_Manager
                 // Ключ на събитието
                 $calRec->key = $prefix . '-End';
                 
-                // Начало на задачата
-                $calRec->time = $rec->timeEnd;
+                if ($rec->timeEnd) {
+                    // Начало на задачата
+                    $calRec->time = $rec->timeEnd;
+                }
                 
                 //Запис на очакван край в календара
                 $calRec->timeEnd = $rec->expectationTimeEnd;
@@ -1538,8 +1540,10 @@ class cal_Tasks extends embed_Manager
                 // Ключ на събитието
                 $calRec->key = $prefix . '-End';
                 
-                // Начало на задачата
-                $calRec->time = $rec->timeEnd;
+                if ($rec->timeEnd) {
+                    // Начало на задачата
+                    $calRec->time = $rec->timeEnd;
+                }
                 
                 // Дали е цял ден?
                 $calRec->allDay = $rec->allDay;
