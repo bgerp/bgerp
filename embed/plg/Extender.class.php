@@ -93,6 +93,9 @@ class embed_plg_Extender extends core_Plugin
         if($update === true){
             $Extender->save($exRec);
         }
+        
+        // Нотифициране на екстендъра, че мениджъра към който е свързан е обновен
+        $Extender->invoke('AfterSyncWithManager', array($exRec, $rec));
     }
     
     
