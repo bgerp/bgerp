@@ -238,7 +238,7 @@ class cal_Calendar extends core_Master
         return $res;
     }
     
-   
+    
     /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
@@ -248,7 +248,6 @@ class cal_Calendar extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-       
     	$cu = core_Users::getCurrent();
     	
     	$data->listFilter->view = 'horizontal';
@@ -269,29 +268,27 @@ class cal_Calendar extends core_Master
                            'sick'=>'Болнични',
                            'religian'=>'Религиозни',
                            'birthday'=>'Рожденни дни'
-             
+                          
                           );
         
         $data->listFilter->setOptions('types', array('' => ' ') + $eventTypes);
         
         
-           
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-     
+        
         if(strtolower(Request::get('Act')) == 'show'){
             
             $data->listFilter->showFields = $mvc->searchInputField;
             
             bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
-            
+        
         } elseif ($data->action === "list"){
             
             // Показваме само това поле. Иначе и другите полета 
             // на модела ще се появят
         	$data->listFilter->showFields = "from, types,selectedUsers,{$mvc->searchInputField}";
-        	
-        	
-        	
+        
+        
         } else{
         	$data->listFilter->showFields = 'from, selectedUsers';
         }
@@ -301,17 +298,17 @@ class cal_Calendar extends core_Master
         $data->query->orderBy("#time=ASC,#priority=DESC");
         
         //Филтър по тип
-        if(!$data->listFilter->rec->types == ''){ 
+        if(!$data->listFilter->rec->types == ''){
             
             if ($data->listFilter->rec->types == 'religian'){
                 
                 $religianArr = array('orthodox','muslim');
                 $data->query->in('type', $religianArr);
-                
+            
             }else{
                   $data->query->where("#type = '{$data->listFilter->rec->types}'");
             }
-            
+        
         }
         
         //Изключваме приключените
@@ -320,24 +317,24 @@ class cal_Calendar extends core_Master
         if($data->action == 'list' || $data->action == 'day' || $data->action == 'week'){
             
             if($from = $data->listFilter->rec->from) {
-	            
+                
                 
                 $data->query->where("#time >= date('$from') OR #timeEnd >= date('$from')");
-	            
+	       
 	       
 	       }
-	       
-        }
         
+        }
+      	
       	if(!$data->listFilter->rec->selectedUsers) {
 		  
 		  $data->listFilter->rec->selectedUsers =
 		  keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
       	}
-      	
+     	
      	$data->query->likeKeylist('users', $data->listFilter->rec->selectedUsers);
 	    $data->query->orWhere('#users IS NULL OR #users = ""');
-  
+    
     }
     
     protected static function on_AfterRenderWrapping($mvc, &$tpl)
@@ -346,8 +343,6 @@ class cal_Calendar extends core_Master
     	$tpl->push('cal/js/mouseEvent.js', 'JS');
     
     }
-    
-   
     
     
     /**
@@ -443,6 +438,8 @@ class cal_Calendar extends core_Master
             $row->event = ht::createLink($row->title, $url, NULL, $attr);
             
             if($cUrl['Act'] == "day" || $cUrl['Act'] == "week" || $cUrl['Act'] == "month"){
+                
+                
                 if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel'){
                     $row->event = "<div class='task'>" . $img . ht::createLink("<p class='state-{$rec->state}'>".$row->title . "</p>", $url, NULL)."</div>";
                 } else{
@@ -497,7 +494,7 @@ class cal_Calendar extends core_Master
         }
         
         //Ако изпълнителте са няколко те се показват в инфото за задачата
-        if(count(keylist::toArray($rec->users))>1) {
+        if((count(keylist::toArray($rec->users))>1)  && ($cUrl['Act']!='month' && $cUrl['Act']!='week')) {
             
             $users='';
             foreach (keylist::toArray($rec->users) as $v){
@@ -508,9 +505,9 @@ class cal_Calendar extends core_Master
             
             $row->event = $row->event."</br>"."<span class = fright>".'Възложено на: '.$users."</span>";
         }
+        
         return $row;
     }
-    
     
     
     /**
@@ -872,7 +869,7 @@ class cal_Calendar extends core_Master
         if($userId === null) {
             $userId = core_Users::getCurrent();
         }
-
+        
         expect($direction);
         
         do {
@@ -882,27 +879,31 @@ class cal_Calendar extends core_Master
         } while(self::isHoliday($date, $country) || self::isAbsent($date, $userId));
         
         list($date, $time) = explode(' ', $date);
-
+        
         return $date;
     }
-
-
+    
+    
     /**
      * Връща дали дадения служител ще отсъства на уречената дата
      */
     public static function isAbsent($date, $userId)
     {
         // Системните и анонимните потребители не отсъстват
-        if($userId <= 0) return false;
-
+        if($userId <= 0)
+ 
+ return false;
+        
         list($date, $time) = explode(' ', $date);
         $fromTime = $date . ' 00:00:00';
         $toTime   = $date   . ' 23:59:59';
-
+        
         $rec = self::fetch("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND LOCATE('|{$userId}|', #users) AND (#type = 'leaves' OR #type = 'sick')");
-
-        if($rec) return true;
-
+        
+        if($rec)
+ 
+ return true;
+        
         return false;
     }
     
