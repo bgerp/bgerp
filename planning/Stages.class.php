@@ -237,7 +237,7 @@ class planning_Stages extends core_Extender
         $blockTpl = getTplFromFile('planning/tpl/StageBlock.shtml');
         $blockTpl->placeObject($data->row);
         $blockTpl->removeBlocksAndPlaces();
-        $tpl->append($blockTpl, 'ADDITIONAL_BLOCK');
+        $tpl->append($blockTpl, 'ADDITIONAL_TOP_BLOCK');
     }
     
     
