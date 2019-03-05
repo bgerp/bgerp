@@ -55,11 +55,17 @@
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow span {
     color: #000 !important;
 }
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow .quiet, .rack_Zones  .listTable > tbody > tr.zonesCommonRow .rack-zone-batch span {
+    color: #eee !important;
+}
+
 
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow a {
     color: #004488 !important;
 }
-
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow .rack-zone-batch {
+    width: 200px;
+}
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow .iw-contextMenu a {
     color: #222 !important;
 }
