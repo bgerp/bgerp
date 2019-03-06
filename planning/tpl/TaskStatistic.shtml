@@ -20,8 +20,8 @@
               <td class = 'nowrap'>[#totalQuantity#] </td>
               <td class = 'nowrap'>[#scrappedQuantity#]</td>
               <td rowspan = '2' class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left'>
-                  <span style='font-weight:normal'>|Артикул|*</span>: [#productId#] [#toggleBtn#]<br>
                   <span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
+                  <span style='font-weight:normal'>|Артикул|*</span>: [#productId#] [#toggleBtn#]<br>
                   <!--ET_BEGIN inputInTask-->
                   <span style='font-weight:normal'>|Влагане в|*</span>: [#inputInTask#]<br>
                   <!--ET_END inputInTask-->
