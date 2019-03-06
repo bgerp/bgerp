@@ -538,7 +538,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
             
             // Фактури ПОКУПКИ
-            while ($purchaseInvoices = $pQuery->fetch()) {if($purchaseInvoices->type != 'invoice')bp($purchaseInvoices);
+            while ($purchaseInvoices = $pQuery->fetch()) {if($purchaseInvoices->type != 'invoice')
                 $firstDocument = doc_Threads::getFirstDocument($purchaseInvoices->threadId);
                 
                 $firstDocumentArr[$purchaseInvoices->threadId] = $firstDocument->that;
