@@ -14,13 +14,15 @@
  * @since     v 0.1
  * @title     Локален файлов архив
  */
-class h18_CashRko extends core_Manager
+class h18_CashPko extends core_Manager
 {
+    
     public $loadList = 'h18_Wrapper';
+
     /**
      * Заглавие
      */
-    public $title = 'Разходни касови ордери';
+    public $title = 'Приходни касови ордери';
     
     function description()
     {
@@ -48,11 +50,10 @@ class h18_CashRko extends core_Manager
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
         $this->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
         $this->FLD('beneficiary', 'varchar(255)', 'caption=Контрагент->Получил,mandatory');
-        $this->setField("contragentName", "caption=Контрагент->Получател");
-        $this->setField("termDate", "caption=Срок");
+        $this->FLD('depositor', 'varchar(255)', 'caption=Контрагент->Броил,mandatory');
         
         $this->db = cls::get('core_Db',
-            array(  'dbName' => $conf->H18_BGERP_DATABASE,
+            array('dbName' => $conf->H18_BGERP_DATABASE,
                 'dbUser' => $conf->H18_BGERP_USER,
                 'dbPass' => $conf->H18_BGERP_PASS,
                 'dbHost' => $conf->H18_BGERP_HOST,

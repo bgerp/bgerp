@@ -60,9 +60,9 @@ class h18_Setup extends core_ProtoSetup
      */
     public $configDescription = array (
         
-        'H18_BGERP_USER'   => array ('varchar', 'caption=Данни за базата->Потребител'),
-        'H18_BGERP_DATABASE'     => array ('varchar', 'caption=Връзка към MySQL->Хост'),
-        'H18_BGERP_PASS'   => array ('password', 'caption=Връзка към MySQL (с права за бекъп)->Парола'),
+        'H18_BGERP_USER'     => array ('varchar', 'caption=Данни за базата->Потребител'),
+        'H18_BGERP_DATABASE' => array ('varchar', 'caption=Връзка към MySQL->Хост'),
+        'H18_BGERP_PASS'     => array ('password', 'caption=Връзка към MySQL (с права за бекъп)->Парола'),
         'H18_BGERP_HOST'     => array ('varchar', 'caption=Колко пълни бекъп-и да се пазят?->Брой'),
     );
     
@@ -71,9 +71,16 @@ class h18_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-       'h18_CashRko'
+       'h18_CashRko',
+       'h18_CashPko'
     );
     
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    public $menuItems = array(
+        array(1.91, 'Система', 'H18', 'h18_CashRko', 'default', "admin"),
+    );
     
     /**
      * Инсталиране на пакета
