@@ -781,6 +781,8 @@ class draw_Designs extends core_Master
             
             if ($pen->thickness) {
                 $svg->setAttr('stroke-width', $pen->thickness);
+            } else {
+                $svg->setAttr('stroke-width', 0);
             }
             
             if ($pen->dasharray) {
