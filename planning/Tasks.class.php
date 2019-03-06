@@ -38,7 +38,7 @@ class planning_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_plg_BusinessDoc, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RowTools2, plg_LastUsedKeys';
+    public $loadList = 'doc_plg_BusinessDoc, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RowTools2, plg_LastUsedKeys, bgerp_plg_Blank';
     
     
     /**
@@ -427,20 +427,6 @@ class planning_Tasks extends core_Master
         
         if(empty($rec->packagingId)){
             $row->packagingId = "<span class='quiet'>N/A</span>";
-        }
-        
-        if(Mode::is('printworkcard')){
-            $ownCompanyData = crm_Companies::fetchOwnCompany();
-            $row->MyCompany = $ownCompanyData->companyVerb;
-            $qrCode = str::addHash("{$mvc->abbr}{$rec->id}", 3);
-            $qrParams = array('pixelPerPoint' => 6, 'outFileName' => null, 'quality' => 'L', 'outerFrame' => 0, 'absolute' => true,);
-            
-            try {
-                $row->QR_CODE = barcode_Generator::getLink('QR', $qrCode, array('width' => 60, 'height' => 60), $qrParams);
-            } catch (Exception $e) {
-                $row->QR_CODE = "<span class='red'>error</span>";
-                reportException($e);
-            }
         }
         
         return $row;
