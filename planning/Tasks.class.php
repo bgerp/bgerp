@@ -435,7 +435,7 @@ class planning_Tasks extends core_Master
             $qrCode = str::addHash("{$mvc->abbr}{$rec->id}", 3);
             $qrParams = array('pixelPerPoint' => 6, 'outFileName' => null, 'quality' => 'L', 'outerFrame' => 0, 'absolute' => true,);
             
-            try {expect(false);
+            try {
                 $row->QR_CODE = barcode_Generator::getLink('QR', $qrCode, array('width' => 87, 'height' => 87), $qrParams);
             } catch (Exception $e) {
                 $row->QR_CODE = "<span class='red'>error</span>";
