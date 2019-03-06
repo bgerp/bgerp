@@ -427,7 +427,7 @@ class core_Request
         $method = $prefix . $act;
         
         $ctr = cls::getClassName($ctr);
-        
+        if (!cls::load($ctr, FALSE)) bp($ctr);
         if (cls::load($ctr, TRUE) && ($mvc = & cls::get($ctr)) && (is_subclass_of($mvc, 'core_BaseClass'))) {
             $content = $mvc->action(strtolower($act));
         } else {
