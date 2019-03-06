@@ -43,10 +43,10 @@ class core_App
     
             // Ако в момента се извършва инсталация - да не се изпълняват процесите
             core_SystemLock::stopIfBlocked();
-
+            
             // Генерираме съдържанието
             $content = core_Request::forward();
-                        
+            
             // Опакова съдържанието
             $Wrapper = core_Cls::get('core_page_Wrapper');
             $Wrapper->render($content);
