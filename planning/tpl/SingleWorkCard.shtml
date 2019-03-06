@@ -1,8 +1,9 @@
 <div class="fleft" style="margin-right: 20px;"> [#QR_CODE#]</div>
 <div class="fleft" style="line-height: 200%; margin-bottom: 10px;">
     <div>[#MyCompany#]</div>
-    <div>[#title#]
-    [#plannedQuantity#][#measureId#]</div>
+    <div>[#title#] -
+        <b>[#plannedQuantity#][#measureId#]</b>
+    </div>
 </div>
 <div class="clearfix21"></div>
 
