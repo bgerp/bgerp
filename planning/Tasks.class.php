@@ -60,12 +60,6 @@ class planning_Tasks extends core_Master
     
     
     /**
-     * Групиране на документите
-     */
-    public $newBtnGroup = '3.8|Производство';
-    
-    
-    /**
      * Клас обграждащ горния таб
      */
     public $tabTopClass = 'portal planning';
@@ -252,22 +246,31 @@ class planning_Tasks extends core_Master
     
     
     /**
-     * След подготовка на сингъла
+     * Подготвя параметрите
+     * 
+     * @param stdClass $rec
+     * @return stdClass
      */
-    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
+    private function prepareTaskParams($rec)
     {
-        $rec = $data->rec;
-        
         $d = new stdClass();
         $d->masterId = $rec->id;
         $d->masterClassId = planning_Tasks::getClassId();
         if ($rec->state == 'closed' || $rec->state == 'stopped' || $rec->state == 'rejected') {
             $d->noChange = true;
-            unset($data->editUrl);
         }
-        
         cat_products_Params::prepareParams($d);
-        $data->paramData = $d;
+        
+        return $d;
+    }
+    
+    
+    /**
+     * След подготовка на сингъла
+     */
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+        $data->paramData = self::prepareTaskParams($data->rec);
     }
     
     
@@ -275,8 +278,12 @@ class planning_Tasks extends core_Master
      * Извиква се преди рендирането на 'опаковката'
      */
     protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
-    {
-        $tpl->prepend(getTplFromFile('planning/tpl/TaskStatistic.shtml'), 'ABOVE_LETTER_HEAD');
+    { 
+        if(Mode::is('printworkcard')){
+            $tpl = getTplFromFile('planning/tpl/SingleWorkCard.shtml');
+        } else {
+            $tpl->prepend(getTplFromFile('planning/tpl/TaskStatistic.shtml'), 'ABOVE_LETTER_HEAD');
+        }
     }
     
     
@@ -422,6 +429,20 @@ class planning_Tasks extends core_Master
             $row->packagingId = "<span class='quiet'>N/A</span>";
         }
         
+        if(Mode::is('printworkcard')){
+            $ownCompanyData = crm_Companies::fetchOwnCompany();
+            $row->MyCompany = $ownCompanyData->companyVerb;
+            $qrCode = str::addHash("{$mvc->abbr}{$rec->id}", 3);
+            $qrParams = array('pixelPerPoint' => 6, 'outFileName' => null, 'quality' => 'L', 'outerFrame' => 0, 'absolute' => true,);
+            
+            try {expect(false);
+                $row->QR_CODE = barcode_Generator::getLink('QR', $qrCode, array('width' => 87, 'height' => 87), $qrParams);
+            } catch (Exception $e) {
+                $row->QR_CODE = "<span class='red'>error</span>";
+                reportException($e);
+            }
+        }
+        
         return $row;
     }
     
@@ -446,7 +467,7 @@ class planning_Tasks extends core_Master
     
     
     /**
-     * Прави заглавие на МО от данните в записа
+     * Прави заглавие на ПО от данните в записа
      */
     public static function getRecTitle($rec, $escaped = true)
     {
@@ -1173,9 +1194,7 @@ class planning_Tasks extends core_Master
         while($dRec = $taskDetilQuery->fetch()) {
             
             $res = new stdClass();
-            
             $tRec = $this->fetch($dRec->taskId);
-            
             $res->title = $tRec->title;
             
             if ($this->haveRightFor('single', $tRec)) {
@@ -1201,5 +1220,30 @@ class planning_Tasks extends core_Master
         }
         
         return $resArr;
+    }
+    
+    
+    /**
+     * Преди подготовка на сингъла
+     */
+    protected static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
+    {
+        if (Request::get('printworkcard', 'int')) {
+            Mode::set('printworkcard', true);
+        }
+    }
+    
+    
+    /**
+     * Поставя бутони за генериране на други банкови документи възоснова
+     * на този, само ако документа е "чернова"
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+        
+        if ($mvc->haveRightFor('single', $rec)) {
+            $data->toolbar->addBtn('Работна карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/vnb.png,title=Печат на работна карта за операцията');
+        }
     }
 }
