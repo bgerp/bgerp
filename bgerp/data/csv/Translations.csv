@@ -2859,19 +2859,21 @@ en,Известяване при контиране,Notification for conto
 en,Известяване на споделените потребители на папка,Notify shared users to a folder
 en,Известяване за създадени документи,Notification of created documents
 en,Превеждане на имейли от,Translate emails from
-en,"Автоматично попълване на имейлите в полето копие, когато са до","Automatically fill in the emails in the copy field when they are up"
+en,Автоматично попълване на имейлите в полето копие,Automatically fill in the emails in the copy field
+en,когато са до,when they are up
 en,Дължина на артикула в името на продажбата,Length of the item in the name of the sale
-en,"Типове събития, които да се показват в календара","Event types to display on the calendar"
+en,Типове събития,Event types
+en,които да се показват в календара,to display on the calendar
 en,Клавиши за бързо избиране на бутони,Buttons for quick button selection
 en,Изчакване преди сигнализация за нови известия,Waiting before signaling for new notifications
 en,Блокиране на сигнализация за нови известия,Block alert for new notifications
 en,Формат за експорт на CSV,CSV export format
 en,Получаване на нотификации от отдалечени системи,Get notifications from remote systems
-en,Критични:,Critical:
-en,Спешни:,Urgent:
+en,Критични,Critical
+en,Спешни,Urgent
 en,Нормални,Normal
-en,Задължително:,Mandatory:
-en,Портал:,Portal:
+en,Задължително,Mandatory
+en,Портал,Portal
 en,Свързване,Connect
 en,Свързване на онлайн услуга,Connect an online service
 en,Свързване на онлайн услуги,Connect online services
