@@ -37,7 +37,7 @@ defIfNot('H18_BGERP_HOST', 'localhost');
  * @license   GPL 3
  * @since     v 0.1
  */
-class H18_Setup extends core_ProtoSetup
+class h18_Setup extends core_ProtoSetup
 {
     
     
@@ -71,7 +71,7 @@ class H18_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-        'H18_CashRko'
+       'h18_CashRko'
     );
     
     

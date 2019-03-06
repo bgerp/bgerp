@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Локален файлов архив
  */
-class H18_CashRko extends core_BaseClass
+class h18_CashRko extends core_Manager
 {
     
     /**
@@ -24,6 +24,8 @@ class H18_CashRko extends core_BaseClass
     
     function description()
     {
+        $conf = core_Packs::getConfig('h18');
+
         $this->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
         $this->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
         $this->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
@@ -49,7 +51,6 @@ class H18_CashRko extends core_BaseClass
         $this->setField("contragentName", "caption=Контрагент->Получател");
         $this->setField("termDate", "caption=Срок");
         
-        $conf = core_Packs::getConfig('H18');
         
         $this->db = cls::get('core_Db',
             array(  'dbName' => $conf->H18_BGERP_DATABASE,
@@ -58,6 +59,6 @@ class H18_CashRko extends core_BaseClass
                 'dbHost' => $conf->H18_BGERP_HOST,
             ));
         
-    }
+     }
     
 }
