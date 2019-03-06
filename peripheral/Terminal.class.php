@@ -267,7 +267,7 @@ class peripheral_Terminal extends core_Master
                 }
                 
                 $uRec = core_Users::fetch($form->rec->user);
-                if ($tRec->usePin && (!$uRec->pinCode || ($uRec->pinCode != $form->rec->pin))) {
+                if ($tRec->usePin == 'yes' && (!$uRec->pinCode || ($uRec->pinCode != $form->rec->pin))) {
                     $form->setError('pin', 'Грешен ПИН код');
                     
                     self::logWarning('Грешен ПИН код', $form->rec->terminalId);
