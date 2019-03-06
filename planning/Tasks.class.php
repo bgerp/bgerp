@@ -251,7 +251,7 @@ class planning_Tasks extends core_Master
      * @param stdClass $rec
      * @return stdClass
      */
-    private function prepareTaskParams($rec)
+    private static function prepareTaskParams($rec)
     {
         $d = new stdClass();
         $d->masterId = $rec->id;
