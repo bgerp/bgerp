@@ -394,7 +394,7 @@ class pos_Receipts extends core_Master
             $action = explode('|', $dRec->action);
             switch ($action[0]) {
                 case 'sale':
-                    $price = $this->getDisplayPrice($dRec->price, $dRec->param, $dRec->discountPercent);
+                    $price = $this->getDisplayPrice($dRec->price, $dRec->param, $dRec->discountPercent, $rec->pointId);
                     $rec->total += round($dRec->quantity * $price, 2);
                     break;
                 case 'payment':
@@ -1884,7 +1884,7 @@ class pos_Receipts extends core_Master
     /**
      * Обработване на цената
      */
-    protected function on_AfterGetDisplayPrice($mvc, &$res, $priceWithoutVat, $vat, $discountPercent)
+    protected function on_AfterGetDisplayPrice($mvc, &$res, $priceWithoutVat, $vat, $discountPercent, $pointId)
     {
         if (empty($res)) {
             $res = $priceWithoutVat * (1 + $vat);
