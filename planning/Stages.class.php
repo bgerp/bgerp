@@ -22,6 +22,12 @@ class planning_Stages extends core_Extender
     
     
     /**
+     * Единично заглавие
+     */
+    public $singleTitle = 'Етап в производството';
+    
+    
+    /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
     public $loadList = 'planning_Wrapper,plg_RowTools2,plg_Search,plg_Rejected';
