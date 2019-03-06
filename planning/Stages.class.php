@@ -18,13 +18,7 @@ class planning_Stages extends core_Extender
     /**
      * Заглавие
      */
-    public $title = 'Производствени етапи';
-    
-    
-    /**
-     * Единично заглавие
-     */
-    public $singleTitle = 'Производствен етап';
+    public $title = 'Етапи в производството';
     
     
     /**
@@ -153,9 +147,10 @@ class planning_Stages extends core_Extender
     /**
      * Какво е урл-то за добавяне на нов производствен етап
      * 
+     * @param int|null $centerId
      * @return array $addUrl
      */
-    private static function getAddUrl()
+    private static function getAddUrl($centerId = null)
     {
         $addUrl = array();
         $driverId = planning_interface_StageDriver::getClassId();
@@ -165,6 +160,7 @@ class planning_Stages extends core_Extender
         
         return $addUrl;
     }
+    
     
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
@@ -190,7 +186,7 @@ class planning_Stages extends core_Extender
         if(isset($fields['-list'])){
             $Class = cls::get($rec->classId);
             $singleUrl = $Class->getSingleUrlArray($rec->objectId);
-            $row->name = ht::createLink($row->name, $singleUrl, false, "ef_icon={$Class->singleIcon}");
+            $row->name = ht::createLink($row->name, $singleUrl, false, "ef_icon={$Class->getIcon($rec->objectId)}");
             
             $prodRec = cls::get($rec->classId)->fetch($rec->objectId, 'modifiedOn,modifiedBy');
             $prodRow = cat_products::recToVerbal($prodRec, 'modifiedOn,modifiedBy');
@@ -270,7 +266,7 @@ class planning_Stages extends core_Extender
         
         $this->prepareListFields($data);
         unset($data->listFields['folders']);
-        $data->addUrl = self::getAddUrl($data->masterData->rec->folderId);
+        $data->addUrl = self::getAddUrl($data->masterData->rec->id);
     }
     
     
@@ -284,7 +280,7 @@ class planning_Stages extends core_Extender
     public function renderStages_(&$data)
     {
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        $tpl->append(tr('Производствени етапи'), 'title');
+        $tpl->append(tr('Етапи в производството'), 'title');
         
         // Рендиране на таблицата с резултатите
         $table = cls::get('core_TableView', array('mvc' => $this));
