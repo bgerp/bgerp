@@ -184,7 +184,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($rec->fromDate) {
                 $invQuery->where(array(
                     "#date >= '[#1#]'",
-                    $rec->fromDate
+                    $rec->fromDate . ' 00:00:00'
                 ));
             }
             
