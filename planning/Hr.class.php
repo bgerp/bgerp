@@ -16,11 +16,11 @@
 class planning_Hr extends core_Master
 {
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     * Интерфейси, поддържани от този мениджър
      */
-    public $oldClassName = 'crm_ext_Employees';
-    
-    
+    public $interfaces = 'label_SequenceIntf=planning_interface_HrLabelImpl';
+
+
     /**
      * Заглавие
      */
@@ -36,7 +36,7 @@ class planning_Hr extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'planning_Wrapper,plg_Created,plg_RowTools2,plg_Search';
+    public $loadList = 'planning_Wrapper,plg_Created,plg_RowTools2,plg_Search,label_plg_Print';
     
     
     /**
@@ -79,6 +79,12 @@ class planning_Hr extends core_Master
      * Детайли
      */
     public $details = 'planning_AssetResourceFolders';
+    
+    
+    /**
+     * Поле за единичния изглед
+     */
+    public $rowToolsSingleField = 'code';
     
     
     /**
@@ -197,12 +203,9 @@ class planning_Hr extends core_Master
     public function prepareData_(&$data)
     {
         $rec = self::fetch("#personId = {$data->masterId}");
-        
         if (!empty($rec)) {
+            $data->rec = $rec;
             $data->row = self::recToVerbal($rec);
-            if ($this->haveRightFor('edit', $rec->id)) {
-                $data->editResourceUrl = array($this, 'edit', $rec->id, 'ret_url' => true);
-            }
         } else {
             if ($this->haveRightFor('add', (object) array('personId' => $data->masterId))) {
                 $data->addExtUrl = array($this, 'add', 'personId' => $data->masterId, 'ret_url' => true);
@@ -222,6 +225,10 @@ class planning_Hr extends core_Master
     {
         $tpl = getTplFromFile('crm/tpl/HrDetail.shtml');
         $tpl->append(tr('Служебен код') . ':', 'resTitle');
+        
+        if($data->row->_rowTools instanceof core_RowToolbar){
+            $data->row->code_toolbar = $data->row->_rowTools->renderHtml();
+        }
         $tpl->placeObject($data->row);
         
         if ($eRec = hr_EmployeeContracts::fetch("#personId = {$data->masterId}")) {
@@ -231,11 +238,6 @@ class planning_Hr extends core_Master
         
         if (isset($data->addExtUrl)) {
             $link = ht::createLink('', $data->addExtUrl, false, 'title=Добавяне на служебни данни,ef_icon=img/16/add.png,style=float:right; height: 16px;');
-            $tpl->append($link, 'emBtn');
-        }
-        
-        if (isset($data->editResourceUrl)) {
-            $link = ht::createLink('', $data->editResourceUrl, false, 'title=Редактиране на служебни данни,ef_icon=img/16/edit.png,style=float:right; height: 16px;');
             $tpl->append($link, 'emBtn');
         }
         
