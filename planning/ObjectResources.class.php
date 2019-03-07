@@ -166,8 +166,6 @@ class planning_ObjectResources extends core_Manager
      */
     private function getAvailableSimilarProducts($measureId, $productId)
     {
-        $sameTypeMeasures = cat_UoM::getSameTypeMeasures($measureId);
-        
         // Намираме всички артикули, които са били влагане в производството от документи
         $consumedProducts = array();
         $consumedProducts = cat_Products::getByProperty('canConvert');
@@ -339,7 +337,7 @@ class planning_ObjectResources extends core_Manager
      *
      * @param int  $quantity - к-во
      * @param int  $objectId - ид на артикул
-     * @param date $date     - към коя дата
+     * @param datetime $date     - към коя дата
      *
      * @return float $selfValue - среднопритеглената цена
      */

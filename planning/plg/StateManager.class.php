@@ -395,9 +395,9 @@ class planning_plg_StateManager extends core_Plugin
     /**
      * Подготовка на формата за добавяне на основание към смяната на състоянието
      *
-     * @param core_Mvc                                       $mvc
-     * @param enum(close,stop,activateAgain,activate,wakeup) $action
-     * @param stdClass                                       $rec
+     * @param core_Mvc  $mvc
+     * @param string    $action
+     * @param stdClass  $rec
      *
      * @return core_Form $res
      */
