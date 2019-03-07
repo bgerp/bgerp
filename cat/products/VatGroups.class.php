@@ -263,7 +263,7 @@ class cat_products_VatGroups extends core_Detail
      * Намира артикулите с посочена ДДС ставка към подадената дата
      *
      * @param float     $percent - търсен процент
-     * @param date|NULL $date    - към коя дата
+     * @param datetime|NULL $date    - към коя дата
      *
      * @return array $products - намерените артикули
      */
