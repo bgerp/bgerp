@@ -169,9 +169,12 @@ abstract class deals_InvoiceMaster extends core_Master
             
             if ($rec->invType) {
                 if ($rec->invType != 'all') {
-                    $data->query->where("#type = '{$rec->invType}'");
-                    $sign = ($rec->invType == 'credit_note') ? '<=' : '>';
-                    $data->query->orWhere("#type = 'dc_note' AND #dealValue {$sign} 0");
+                    if ($rec->invType == 'invoice') {
+                        $data->query->where("#type = '{$rec->invType}'");
+                    } else {
+                        $sign = ($rec->invType == 'credit_note') ? '<=' : '>';
+                        $data->query->where("(#type = 'dc_note' AND #dealValue {$sign} 0) || #type = '{$rec->invType}'");
+                    }
                 }
             }
             
