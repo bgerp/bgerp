@@ -173,7 +173,7 @@ class trans_LineDetails extends doc_Detail
         }
         
         // Запис на ЛЕ от документа, ако позволява
-        if ($r = $Document->requireManualCheckInTransportLine()) {
+        if ($Document->requireManualCheckInTransportLine()) {
             $rec->documentLu = $transportInfo['transportUnits'];
         }
         
@@ -437,7 +437,6 @@ class trans_LineDetails extends doc_Detail
         expect($rec = $this->fetch($id));
         $this->requireRightFor('prepare', $rec);
         $Document = doc_Containers::getDocument($rec->containerId);
-        $transInfo = $Document->getTransportLineInfo();
         
         // Подготовка на формата
         $form = cls::get('core_Form');
