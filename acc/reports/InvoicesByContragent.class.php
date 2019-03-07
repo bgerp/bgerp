@@ -85,7 +85,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
         
         if ($rec->unpaid == 'all') {
-            $form->setDefault('fromDate', null);
+            $fromDate = (date('d-m-Y', strtotime(date('Y-1-1'))));
+            $form->setDefault('fromDate', "{$fromDate}");
         }
         $checkDate = dt::today();
         $form->setDefault('checkDate', "{$checkDate}");
@@ -115,15 +116,17 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $purSuggestions[$purContragent->folderId] = $purContragent->folderTitle;
             }
         }
-        
+       
         while ($contragent = $salesQuery->fetch()) {
             if (!is_null($contragent->contragentId)) {
                 $suggestions[$contragent->folderId] = $contragent->folderTitle;
             }
         }
         
-        foreach ($purSuggestions as $k => $v) {
-            if (!in_array($k, array_keys($suggestions))) {
+        foreach ($purSuggestions as $k => $v){
+            
+            if (!in_array($k, array_keys($suggestions))){
+                
                 $suggestions[$k] = $v;
             }
         }
@@ -170,18 +173,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         // Фактури ПРОДАЖБИ
         if ($rec->typeOfInvoice == 'out') {
             $sRecs = array();
-            $sRecsAll = array();
             $isRec = array();
-            $totalInvoiceContragent = $totalInvoiceContragentAll = array();
+            $totalInvoiceContragent = array();
             
             $invQuery = sales_Invoices::getQuery();
             
             $invQuery->where("#state != 'rejected' AND #number IS NOT NULL");
-            
-            //При избрани НЕПЛАТЕНИ махаме дебитните и кредитните известия
-            if($rec->unpaid == 'unpaid'){
-                $invQuery->where("#type = 'invoice'");
-            }
             
             // Ако е посочена начална дата на период
             if ($rec->fromDate) {
@@ -191,7 +188,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 ));
             }
             
-            //Крайна дата / 'към дата'
             $invQuery->where(array(
                 "#date < '[#1#]'",
                 $rec->checkDate . ' 23:59:59'
@@ -251,73 +247,23 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $fastSales = array();
             
             while ($sale = $salesQuery->fetch()) {
-                if ($sale->closedDocuments != '') { 
+                if ($sale->closedDocuments != '') {
                     
                     //Масив със затварящи документи
                     foreach ((keylist::toArray($sale->closedDocuments)) as $v) {
                         $salesUN[$v] = ($v);
                     }
-                   
+                    
+                    $salesUN = keylist::fromArray($salesUN);
                 }
+                
                 //Масив с бързи продажби
                 if (strpos($sale->contoActions, 'pay')) {
                     $fastSales[$sale->id] = ($sale->amountPaid - $sale->amountVat);
                 }
             }
             
-            
-            //Изваждаме нишките за проверка  са избрани НЕПЛАТЕНИ 
-            //Ако са избрани ВСИЧКИ записваме масив $allInvoices със всички фактури
-            $threadsId = array();
-            
             while ($salesInvoice = $invQuery->fetch()) {
-                
-                
-                // Когато е избрано ВСИЧКИ в полето плащане
-                if ($rec->unpaid == 'all'){
-                    
-                    $invoiceValue =  $salesInvoice->dealValue + $salesInvoice->vatAmount;
-                    $Invoice = doc_Containers::getDocument($salesInvoice->containerId);
-                    
-                    // масива с фактурите за показване
-                    if (! array_key_exists($salesInvoice->id, $sRecsAll)) {
-                        $sRecsAll[$salesInvoice->id] = (object) array(
-                      
-                            'threadId' => $salesInvoice->threadId,
-                            'className' => $Invoice->className,
-                            'invoiceId' => $salesInvoice->id,
-                            'invoiceNo' => $salesInvoice->number,
-                            'invoiceDate' => $salesInvoice->date,
-                            'dueDate' => $salesInvoice->dueDate,
-                            'invoiceContainerId' => $salesInvoice->containerId,
-                            'currencyId' => $salesInvoice->currencyId,
-                            'rate' => $salesInvoice->rate,
-                            'invoiceValue' => $invoiceValue,
-                            'invoiceVAT' => $salesInvoice->vatAmount,
-                            'contragent' => $salesInvoice->contragentName,
-                            'type' => $salesInvoice->type
-                        );
-                    }
-                    
-                    // Масив с данни за сумите от фактурите  обединени по контрагенти
-                    if (! array_key_exists($salesInvoice->contragentName, $totalInvoiceContragentAll)) {
-                        $totalInvoiceContragentAll[$salesInvoice->contragentName] = (object) array(
-                            'totalInvoiceValue' => $invoiceValue, //общо стойност на фактурите за контрагента
-                            'totalInvoiceVAT' => $salesInvoice->vatAmount,//общо стойност на ДДС по фактурите за контрагента
-                            
-                        );
-                    } else {
-                        $obj = &$totalInvoiceContragentAll[$salesInvoice->contragentName];
-                        
-                        $obj->totalInvoiceValue += $invoiceValue;
-                        $obj->totalInvoiceVAT += $salesInvoice->vatAmount;
-                        
-                    }
-                    continue;
-                }
-               
-                ///////////////////
-                
                 $firstDocument = doc_Threads::getFirstDocument($salesInvoice->threadId);
                 
                 $firstDocumentArr[$salesInvoice->threadId] = $firstDocument->that;
@@ -326,11 +272,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 
                 // Ако са избрани само неплатените фактури
                 if ($rec->unpaid == 'unpaid') {
-                    
                     $unitedCheck = false;
                     
-                    if (is_array($salesUN)) {
-                        $unitedCheck = in_array($className::fetchField($firstDocument->that), $salesUN);
+                    if (!empty($salesUN)) {
+                        $unitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $salesUN);
                     }
                     
                     if (($className::fetchField($firstDocument->that, 'state') == 'closed') &&
@@ -341,6 +286,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 }
                 $threadsId[$salesInvoice->threadId] = $salesInvoice->threadId;
             }
+            
             
             if (is_array($threadsId)) {
                 foreach ($threadsId as $thread) {
@@ -383,9 +329,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,
                                      currencyId,date,dueDate,contragentName'
                                     );
-                            
-                            //Ако датата на фактурата е по голяма от избраната "към дата" не влиза в масива
-                            if ($rec->checkDate < $iRec->date)continue;
                             
                             if (($invDiff) > 0) {
                                 $salesInvoiceNotPaid = ($invDiff);
@@ -455,11 +398,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             
             $pQuery->where("#state != 'rejected' AND #number IS NOT NULL");
             
-            //При избрани НЕПЛАТЕНИ махаме дебитните и кредитните известия
-            if($rec->unpaid == 'unpaid'){
-                $pQuery->where("#type = 'invoice'");
-            }
-            
             // Ако е посочена начална дата на период
             if ($rec->fromDate) {
                 $pQuery->where(array(
@@ -477,7 +415,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($rec->contragent || $rec->crmGroup) {
                 $contragentsArr = array();
                 $contragentsId = array();
-                
+              
                 $pQuery->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
                 $pQuery->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
                 
@@ -537,20 +475,25 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $fastPur[$purchase->id] = ($purchase->amountPaid - $purchase->amountVat);
             }
             
+            $purchasesUN = keylist::fromArray($purchasesUN);
+            
+            
             // Фактури ПОКУПКИ
-            while ($purchaseInvoices = $pQuery->fetch()) {if($purchaseInvoices->type != 'invoice')
+            while ($purchaseInvoices = $pQuery->fetch()) {
                 $firstDocument = doc_Threads::getFirstDocument($purchaseInvoices->threadId);
                 
                 $firstDocumentArr[$purchaseInvoices->threadId] = $firstDocument->that;
                 
                 $className = $firstDocument->className;
                 
+                $purUnitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $purchasesUN);
+                
                 // Ако са избрани само неплатените фактури
                 if ($rec->unpaid == 'unpaid') {
                     $purUnitedCheck = false;
                     
-                    if (is_array($purchasesUN)) {
-                        $purUnitedCheck = in_array($className::fetchField($firstDocument->that), $purchasesUN);
+                    if (!empty($purchasesUN)) {
+                        $purUnitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $purchasesUN);
                     }
                     
                     if (($className::fetchField($firstDocument->that, 'state') == 'closed') &&
@@ -605,9 +548,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     
                                     );
                             
-                            //Ако датата на фактурата е по голяма от избраната "към дата" не влиза в масива
-                            if ($rec->checkDate < $iRec->date)continue;
-                            
                             if (($invDiff) > 0) {
                                 $purchaseInvoiceNotPaid = ($invDiff);
                             }
@@ -661,14 +601,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
         }
         
-        //Ако е избрано плащане ВСИЧКИ заместваме масива sRecs с sRecsAll
-        if($rec->unpaid == 'all'){
-            $sRecs = array();
-            $sRecs +=$sRecsAll;
-        }
-        
-        
-        //Подрежда се по дата на фактура
         if (count($sRecs)) {
             arr::sortObjects($sRecs, 'invoiceDate', 'asc', 'stri');
         }
@@ -707,13 +639,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 }
                 $contragentCurrency[$val->contragent]->currency = $val->currencyId;
             }
-            
-            if($rec->unpaid == 'all'){
-                
-                $totalInvoiceContragent = $totalInvoiceContragentAll;
-                
-            }
-            
             
             //Сумира фактурите по контрагент ако са в една валута
             foreach ($totalInvoiceContragent as $k => $v) {
@@ -784,15 +709,13 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if ($export === false) {
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,smartCenter');
             $fld->FLD('invoiceNo', 'varchar', 'caption=Фактура No,smartCenter');
-           
             $fld->FLD('invoiceDate', 'varchar', 'caption=Дата');
             $fld->FLD('dueDate', 'varchar', 'caption=Краен срок');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
             $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
-            
+            $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->Сума,smartCenter');
+            $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания,smartCenter');
             if ($rec->unpaid == 'unpaid') {
-                $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->Сума,smartCenter');
-                $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания,smartCenter');
                 $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Неплатено');
                 $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Надплатено');
             }
@@ -939,21 +862,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             
             );
         if ($rec->unpaid == 'all') {
-            
-        if ($dRec->type != 'invoice'){
-            
-            $type =$dRec->invoiceValue < 0 ? 'Кредитно известие': 'Дебитно известие';
-            
-            $row->invoiceNo .= "<span class='quiet'>"."<br>".$type."</span>";
-            
-        }
-        
-        
-            $row->contragent = $dRec->contragent.' »  '."<span class= 'quiet'>".' Общо стойност: '.'</span>'.$dRec->totalInvoiceValue;
+            $row->contragent = $dRec->contragent.' »  '."<span class= 'quiet'>".' Общо фактури: '.'</span>'.$dRec->totalInvoiceValue
+                                            .' »  '."<span class= 'quiet'>" . ' Платено: ' . '</span>'.$dRec->totalInvoicePayout
+                                            .' »  '."<span class= 'quiet'>" . ' Недоплатено: ' . '</span>'.$dRec->totalInvoiceNotPayd;
             if ($dRec->totalInvoiceOverPaid > 0.01) {
                 $row->contragent .= ' »  '."<span class= 'quiet'>" . 'Надплатено:' . '</span>'.$dRec->totalInvoiceOverPaid;
             }
-            
         }
         
         if ($rec->unpaid == 'unpaid') {
@@ -1035,7 +949,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 </fieldset><!--ET_END BLOCK-->"
                 )
             );
-        
+   
         if (isset($data->rec->typeOfInvoice)) {
             $inv = $data->rec->typeOfInvoice == 'out' ? 'ИЗХОДЯЩИ' : 'ВХОДЯЩИ';
             
@@ -1144,6 +1058,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     public static function getFoldersInGroups($rec)
     {
+        
         $fQuery = doc_Folders::getQuery();
         
         $classIds = array(core_Classes::getId('crm_Companies'),core_Classes::getId('crm_Persons'));
