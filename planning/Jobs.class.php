@@ -301,7 +301,6 @@ class planning_Jobs extends core_Master
         }
         
         $form->setReadOnly('productId');
-        $pInfo = cat_Products::getProductInfo($rec->productId);
         
         $packs = cat_Products::getPacks($rec->productId);
         $form->setOptions('packagingId', $packs);
@@ -321,6 +320,7 @@ class planning_Jobs extends core_Master
         }
         
         if (isset($rec->saleId)) {
+            $deliveryDate = null;
             $form->setDefault('dueDate', $mvc->getDefaultDueDate($rec->productId, $rec->saleId, $deliveryDate));
             
             $saleRec = sales_Sales::fetch($rec->saleId);
@@ -706,8 +706,6 @@ class planning_Jobs extends core_Master
         $Double = core_Type::getByName('double(smartRound)');
         
         if (isset($rec->productId) && empty($fields['__isDetail'])) {
-            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
-            $shortUom = cat_UoM::getShortName($measureId);
             $rec->quantityFromTasks = planning_Tasks::getProducedQuantityForJob($rec);
             $rec->quantityFromTasks /= $rec->quantityInPack;
             $row->quantityFromTasks = $Double->toVerbal($rec->quantityFromTasks);
@@ -936,7 +934,7 @@ class planning_Jobs extends core_Master
         
         if ($action == 'close' && $rec) {
             if ($rec->state != 'active' && $rec->state != 'wakeup' && $rec->state != 'stopped') {
-                $requiredRoles = 'no_one';
+                $res = 'no_one';
             }
         }
     }
@@ -1169,7 +1167,6 @@ class planning_Jobs extends core_Master
                 unset($newTask->containerId);
                 if ($Tasks->save($newTask)) {
                     $Tasks->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
-                    $count++;
                 }
                 
                 redirect(array('planning_Tasks', 'single', $newTask->id), false, 'Операцията е клонирана успешно');
@@ -1216,7 +1213,6 @@ class planning_Jobs extends core_Master
             if (count($oldTasks)) {
                 $options1 = array();
                 foreach ($oldTasks as $k1 => $oldTitle) {
-                    $tRec = planning_Tasks::fetch($k1);
                     $options1["c|{$k1}"] = $oldTitle;
                 }
                 
@@ -1264,7 +1260,7 @@ class planning_Jobs extends core_Master
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
      *
-     * @param date $date
+     * @param datetime $date
      *
      * @return array $result
      */
@@ -1285,7 +1281,7 @@ class planning_Jobs extends core_Master
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param datetime $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
      *
      * @return array $result  - масив с обекти
      *
