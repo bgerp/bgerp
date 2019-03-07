@@ -6046,6 +6046,8 @@ only screen and (max-width: 320px) {
       .sale-summary table td .quiet {
         color: #cccccc;
         font-weight: normal; }
+    .sale-summary table .specialLink {
+      white-space: normal; }
 
 .narrow .sale-summary td .quiet {
   font-size: 0.8em; }

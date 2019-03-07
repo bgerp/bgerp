@@ -6766,31 +6766,35 @@ row-fluid {
 /*статистика на продажби*/
 .sale-summary {
     table {
-       width: 100%;
-       td, th {
-           text-align: center;
-           border: 1px solid $gray4;
-           border-collapse: collapse;
-       }
-       .sum-th {
-           background-color: $gray2;
-           font-weight: normal;
-           color: #555;
-           border-bottom: none;
-           padding:0px;
-           font-size:13px;
-       }
-       td {
-           font-size: 1.3em;
-           font-weight: bold;
-           padding: 5px 3px;
-           .quiet {
-               color: #ccc;
-               font-weight: normal;
-           }
-       }
+		width: 100%;
+		td, th {
+		   text-align: center;
+		   border: 1px solid $gray4;
+		   border-collapse: collapse;
+		}
+		.sum-th {
+		   background-color: $gray2;
+		   font-weight: normal;
+		   color: #555;
+		   border-bottom: none;
+		   padding:0px;
+		   font-size:13px;
+		}
+		td {
+		   font-size: 1.3em;
+		   font-weight: bold;
+		   padding: 5px 3px;
+		   .quiet {
+			   color: #ccc;
+			   font-weight: normal;
+		   }
+		}
+		.specialLink {
+			white-space: normal;
+		}
     }
 }
+
 .narrow .sale-summary td .quiet{
     font-size: 0.8em;
 }
