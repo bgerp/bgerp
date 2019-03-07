@@ -1,5 +1,5 @@
 <div class="fleft" style="margin-right: 20px;"> [#QR_CODE#]</div>
-<div class="fleft" style="line-height: 200%; margin-bottom: 10px;">
+<div class="fleft" style="line-height: 200%; margin-bottom: 10px; padding: 15px 0 ">
     <div>[#MyCompany#]</div>
     <div>[#title#] -
         <b>[#plannedQuantity#][#measureId#]</b>
