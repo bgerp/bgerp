@@ -52,6 +52,18 @@ class planning_Hr extends core_Master
     
     
     /**
+     * Кой може да листва
+     */
+    public $canList = 'ceo,planning';
+    
+    
+    /**
+     * Кой има достъп до сингъла?
+     */
+    public $canSingle = 'ceo, planning';
+    
+    
+    /**
      * Кой може да изтрива
      */
     public $canDelete = 'no_one';
@@ -92,7 +104,7 @@ class planning_Hr extends core_Master
      */
     public function description()
     {
-        $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory,caption=Лице');
+        $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory,caption=Служител');
         $this->FLD('code', 'varchar', 'caption=Код');
         
         // TODO - ще се премахне след като минат миграциите
