@@ -246,8 +246,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             
             $salesQuery->where("#closedDocuments != '' OR #contoActions IS NOT NULL");
             
-            if()
-            
             //Масив със затварящи документи по обединени договори и масив с бързи продажби
             $salesUN = array();
             $fastSales = array();
