@@ -271,6 +271,10 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         $data->paramData = self::prepareTaskParams($data->rec);
+        
+        if(Mode::is('printworkcard')){
+            $data->row->QR_CODE = bgerp_plg_Blank::getQrCode($data->rec->containerId, $data->__MID__);
+        }
     }
     
     
