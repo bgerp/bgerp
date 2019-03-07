@@ -273,6 +273,8 @@ class planning_Tasks extends core_Master
         $data->paramData = self::prepareTaskParams($data->rec);
         
         if(Mode::is('printworkcard')){
+            $ownCompanyData = crm_Companies::fetchOwnCompany();
+            $data->row->MyCompany = $ownCompanyData->companyVerb;
             $data->row->QR_CODE = bgerp_plg_Blank::getQrCode($data->rec->containerId, $data->__MID__);
         }
     }
