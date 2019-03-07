@@ -1190,7 +1190,7 @@ class planning_Tasks extends core_Master
             $res->title = $tRec->title;
             
             if ($this->haveRightFor('single', $tRec)) {
-                $res->url = array('planning_Tasks', 'single', $dRec->taskId);
+                $res->url = array('planning_Tasks', 'single', $dRec->taskId, 'Q' => $str);
                 
                 $dRow = planning_ProductionTaskDetails::recToVerbal($dRec);
                 $res->comment = tr('Артикул') . ': ' . $dRow->productId . ' ' . tr('Количество') . ': ' . $dRow->quantity . $dRow->shortUoM;
