@@ -1233,7 +1233,7 @@ class planning_Tasks extends core_Master
         $rec = $data->rec;
         
         if ($mvc->haveRightFor('single', $rec)) {
-            $data->toolbar->addBtn('Работна карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/vnb.png,title=Печат на работна карта за операцията');
+            $data->toolbar->addBtn('Работна карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/print_go.png,title=Печат на работна карта за производствената операция');
         }
     }
 }
