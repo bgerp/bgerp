@@ -1126,6 +1126,7 @@ class sales_Quotations extends core_Master
         
         // Подготовка на формата за филтриране на данните
         $form = $this->getFilterForm($rec->id, $id);
+        $form->input();
         
         if ($form->isSubmitted()) {
             $products = (array) $form->rec;
