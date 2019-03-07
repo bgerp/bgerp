@@ -473,7 +473,7 @@ class trans_LineDetails extends doc_Detail
         $form->layout = $form->renderLayout();
         
         // Показване на оригиналния документ под формата
-        $originTpl = new ET("<div class='preview-holder {$className}'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Оригинален документ') . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
+        $originTpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Оригинален документ') . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
         if ($Document->haveRightFor('single')) {
             $docHtml = $Document->getInlineDocumentBody();
             $originTpl->append($docHtml, 'DOCUMENT');
@@ -671,7 +671,7 @@ class trans_LineDetails extends doc_Detail
      */
     public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
-        foreach ($query->getDeletedRecs() as $id => $rec) {
+        foreach ($query->getDeletedRecs() as $rec) {
             $Document = doc_Containers::getDocument($rec->containerId);
             
             // Изтриване от документа че е към тази линия
