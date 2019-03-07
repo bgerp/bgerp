@@ -1127,8 +1127,6 @@ class sales_Quotations extends core_Master
         // Подготовка на формата за филтриране на данните
         $form = $this->getFilterForm($rec->id, $id);
         
-        $fRec = $form->input();
-        
         if ($form->isSubmitted()) {
             $products = (array) $form->rec;
             
@@ -1515,7 +1513,7 @@ class sales_Quotations extends core_Master
      * @param int   $packagingId  - ид на опаковка (не е задължителна)
      * @param float $price        - цена на единична бройка, без ДДС в основна валута
      * @param bool  $optional     - дали артикула е опционален или не
-     * @param array $fields       - масив с допълнителни параметри
+     * @param array $other        - масив с допълнителни параметри
      *                            double ['discount']       - отстъпка (опционална)
      *                            double ['tolerance']      - толеранс (опционален)
      *                            mixed  ['term']           - срок на доставка (опционален)
