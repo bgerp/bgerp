@@ -147,8 +147,6 @@ class pos_Receipts extends core_Master
      */
     public function description()
     {
-        peripheral_Terminal::setSessionPrefix();
-        
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Дата,input=none');
         $this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка на продажба');
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
@@ -176,6 +174,8 @@ class pos_Receipts extends core_Master
      */
     public function act_New()
     {
+        peripheral_Terminal::setSessionPrefix();
+        
         $cu = core_Users::getCurrent();
         $posId = pos_Points::getCurrent();
         $forced = Request::get('forced', 'int');
@@ -529,6 +529,8 @@ class pos_Receipts extends core_Master
      */
     public function act_Terminal()
     {
+        peripheral_Terminal::setSessionPrefix();
+        
         $this->requireRightFor('terminal');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
@@ -836,6 +838,8 @@ class pos_Receipts extends core_Master
      */
     public function act_ShowDrafts()
     {
+        peripheral_Terminal::setSessionPrefix();
+        
         $this->requireRightFor('terminal');
         expect($id = Request::get('id'));
         expect($rec = $this->fetch($id));
@@ -888,8 +892,9 @@ class pos_Receipts extends core_Master
      */
     public function act_Transfer()
     {
-        $this->requireRightFor('transfer');
+        peripheral_Terminal::setSessionPrefix();
         
+        $this->requireRightFor('transfer');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         
@@ -1055,6 +1060,7 @@ class pos_Receipts extends core_Master
      */
     public function act_SearchContragents()
     {
+        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('terminal');
         
         if (!$receiptId = Request::get('receiptId', 'int')) {
@@ -1205,6 +1211,7 @@ class pos_Receipts extends core_Master
      */
     public function act_printReceipt()
     {
+        peripheral_Terminal::setSessionPrefix();
         expect(haveRole('pos, ceo'));
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
@@ -1245,6 +1252,7 @@ class pos_Receipts extends core_Master
      */
     public function act_addProduct()
     {
+        peripheral_Terminal::setSessionPrefix();
         $this->pos_ReceiptDetails->requireRightFor('add');
         
         // Трябва да има такава бележка
@@ -1447,6 +1455,8 @@ class pos_Receipts extends core_Master
      */
     public function act_Close()
     {
+        peripheral_Terminal::setSessionPrefix();
+        
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         if ($rec->state != 'draft') {
@@ -1475,6 +1485,7 @@ class pos_Receipts extends core_Master
      */
     public function act_getSearchResults()
     {
+        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('terminal');
         
         if ($searchString = Request::get('searchString')) {
@@ -1822,6 +1833,8 @@ class pos_Receipts extends core_Master
      */
     public function act_Revert()
     {
+        peripheral_Terminal::setSessionPrefix();
+        
         if (!$this->haveRightFor('revert')) {
             
             return $this->pos_ReceiptDetails->returnError(null);
