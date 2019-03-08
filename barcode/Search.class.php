@@ -25,7 +25,7 @@ class barcode_Search extends core_Manager
     /**
      * Зареждане на плъгини
      */
-    public $loadList = 'doc_Wrapper';
+    public $loadList = 'doc_Wrapper, recently_Plugin';
     
     
     /**
@@ -53,7 +53,7 @@ class barcode_Search extends core_Manager
         
         $form->title = 'Търсене по баркод';
         
-        $form->FNC('search', 'varchar', 'caption=Баркод...,silent,input');
+        $form->FNC('search', 'varchar', 'caption=Баркод...,silent,input,recently');
         
         $form->show = 'search';
         
@@ -63,7 +63,7 @@ class barcode_Search extends core_Manager
         
         $form->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $form->toolbar->addBtn('Сканирай', $this->getScannerActivateUrl(), 'id=scanBtn', 'ef_icon = img/16/scanner.png');
+        $form->toolbar->addBtn('Сканирай', $this->getScannerActivateUrl(), 'id=scanBtn', 'ef_icon = img/16/barcode-icon.png, title=Сканиране на баркод');
         
         $tpl = $form->renderHtml();
         
