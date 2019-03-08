@@ -245,7 +245,7 @@ class peripheral_Terminal extends core_Master
                 $form->setOptions('user', $usersArr);
                 
                 if ($tRec->usePin == 'yes') {
-                    $form->FLD('pin', 'password', 'caption=ПИН, mandatory, silent,class=w100');
+                    $form->FLD('pin', 'password', 'caption=ПИН, mandatory, silent,class=w100,focus');
                 }
             }
             
