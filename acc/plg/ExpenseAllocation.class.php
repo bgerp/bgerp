@@ -25,9 +25,9 @@ class acc_plg_ExpenseAllocation extends core_Plugin
     {
         // Дефолтни имена на полетата от модела
         setIfNot($mvc->packQuantityFld, 'packQuantity');
-        setIfNot($mvc->packagingIdFld, 'packagingId');
+        setIfNot($mvc->packagingFld, 'packagingId');
         setIfNot($mvc->quantityInPackFld, 'quantityInPack');
-        setIfNot($mvc->productIdFld, 'productId');
+        setIfNot($mvc->productFld, 'productId');
         setIfNot($mvc->quantityFld, 'quantity');
         setIfNot($mvc->expenseItemAfterField, 'notes');
     }
@@ -154,7 +154,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                 'expenseItemId' => $rec->expenseItemId,
                 'allocationBy' => $rec->allocationBy,
                 'detailRecId' => $rec->id,
-                'productId' => $rec->{$mvc->productIdFld},
+                'productId' => $rec->{$mvc->productFld},
                 'quantity' => $rec->{$mvc->quantityFld},
                 'productsData' => $rec->productsData,
                 'containerId' => $containerId);
@@ -203,7 +203,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
             $rec = $data->recs[$id];
             
             // Показване на разпределените разходи за всеки ред
-            $row->productId .= acc_CostAllocations::getAllocatedExpenses($mvc, $rec->id, $data->masterData->rec->containerId, $rec->{$mvc->productIdFld}, $rec->{$mvc->packagingIdFld}, $rec->{$mvc->quantityInPackFld});
+            $row->productId .= acc_CostAllocations::getAllocatedExpenses($mvc, $rec->id, $data->masterData->rec->containerId, $rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityInPackFld});
         }
     }
 }

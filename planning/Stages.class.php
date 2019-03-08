@@ -159,9 +159,10 @@ class planning_Stages extends core_Extender
     private static function getAddUrl($centerId = null)
     {
         $addUrl = array();
-        $driverId = planning_interface_StageDriver::getClassId();
-        if (cat_Products::haveRightFor('add', (object)array('innerClass' => $driverId)) && cls::get($driverId)->canSelectDriver()) {
-            $addUrl = array('cat_Products', 'add', 'innerClass' => $driverId, 'ret_url' => true);
+        if($driverId = planning_interface_StageDriver::getClassId()){
+            if (cat_Products::haveRightFor('add', (object)array('innerClass' => $driverId)) && cls::get($driverId)->canSelectDriver()) {
+                $addUrl = array('cat_Products', 'add', 'innerClass' => $driverId, 'ret_url' => true);
+            }
         }
         
         return $addUrl;
