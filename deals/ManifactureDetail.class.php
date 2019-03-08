@@ -48,6 +48,9 @@ abstract class deals_ManifactureDetail extends doc_Detail
         setIfNot($mvc->quantityInPackFld, 'quantityInPack');
         setIfNot($mvc->productIdFld, 'productId');
         setIfNot($mvc->quantityFld, 'quantity');
+        setIfNot($mvc->packQuantityFieldName, 'packQuantity');
+        setIfNot($mvc->productFld, 'productId');
+        setIfNot($mvc->packagingFld, 'packagingId');
     }
     
     
