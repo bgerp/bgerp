@@ -62,7 +62,8 @@ class rack_Setup extends core_ProtoSetup
         'rack_ZoneDetails',
         'migrate::truncateOldRecs',
         'migrate::updateFloor',
-        'migrate::deleteOldPlugins'
+        'migrate::deleteOldPlugins',
+        'migrate::updateNoBatchRackDetails'
     );
     
     
@@ -206,5 +207,35 @@ class rack_Setup extends core_ProtoSetup
     public function deleteOldPlugins()
     {
         cls::get('core_Plugins')->deinstallPlugin('rack_plg_Document');
+    }
+    
+    
+    /**
+     * Бъгфикс с без партида
+     */
+    public function updateNoBatchRackDetails()
+    {
+        $Zones = cls::get('rack_ZoneDetails');
+        $Zones->setupMvc();
+        
+        if(!$Zones->count()) return;
+        
+        $toSave = $zonesArr = array();
+        $zQuery = rack_ZoneDetails::getQuery();
+        $zQuery->where("#batch IS NULL");
+        while($zRec = $zQuery->fetch()){
+            $zRec->batch = '';
+            
+            $toSave[$zRec->id] = $zRec;
+            $zonesArr[$zRec->zoneId] = $zRec->zoneId;
+        }
+        
+        if(count($toSave)){
+            $Zones->saveArray($toSave, 'id,batch');
+        }
+        
+        foreach ($zonesArr as $zoneId){
+            rack_ZoneDetails::syncWithDoc($zoneId);
+        }
     }
 }
