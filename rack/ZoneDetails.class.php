@@ -63,7 +63,7 @@ class rack_ZoneDetails extends core_Detail
     /**
      * Полета в листовия изглед
      */
-    public $listFields = 'productId, batch, status=Състояние,movementsHtml=@, packagingId, batch';
+    public $listFields = 'id, productId, batch, status=Състояние,movementsHtml=@, packagingId, batch';
     
     
     /**
@@ -324,6 +324,7 @@ class rack_ZoneDetails extends core_Detail
         $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => $masterRec, 'listTableHideHeaders' => true, 'inlineDetail' => true);
         $dData = $me->prepareDetail($dData);
         if(!count($dData->recs)) return $tpl;
+        unset($dData->listFields['id']);
         
         $tpl = $me->renderDetail($dData);
         $tpl->removePlaces();

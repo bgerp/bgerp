@@ -403,4 +403,16 @@ class planning_Hr extends core_Master
         
         return $res;
     }
+    
+    
+    /**
+     * Прави заглавие на МО от данните в записа
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $code = self::getVerbal($rec, 'code');
+        $name = crm_Persons::getVerbal($rec->personId, 'name');
+        
+        return "{$name} ({$code})";
+    }
 }
