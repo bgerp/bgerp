@@ -119,11 +119,15 @@ abstract class core_Extender extends core_Manager
      */
     public static function getRec($classId, $objectId)
     {
-        $Class = cls::get($classId);
-        $me = cls::get(get_called_class());
+        if(cls::load($classId, true)){
+            $Class = cls::get($classId);
+            $me = cls::get(get_called_class());
+            
+            // Връщане на записа от екстендъра за съответния клас
+            return self::fetch("#{$me->mainClassFieldName} = {$Class->getClassId()} && #{$me->mainIdFieldName} = {$objectId}");
+        }
         
-        // Връщане на записа от екстендъра за съответния клас
-        return self::fetch("#{$me->mainClassFieldName} = {$Class->getClassId()} && #{$me->mainIdFieldName} = {$objectId}");
+        return false;
     }
     
     
@@ -136,12 +140,13 @@ abstract class core_Extender extends core_Manager
      */
     protected static function on_AfterGetEditUrl($mvc, &$editUrl, $rec)
     {
-        $Embedder = cls::get($rec->{$mvc->mainClassFieldName});
-
-        // Подмяна на едит урл-то да е към ембедъра
         $editUrl = null;
-        if($Embedder->haveRightFor('edit', $rec->{$mvc->mainIdFieldName})) {
-            $editUrl = array($Embedder, 'edit', 'id' => $rec->{$mvc->mainIdFieldName}, 'ret_url' => true);
+        
+        // Подмяна на едит урл-то да е към ембедъра
+        if($Extended = $mvc->getExtended($rec)){
+            if($Extended->haveRightFor('edit')) {
+                $editUrl = array($Extended->getInstance(), 'edit', 'id' => $Extended->that, 'ret_url' => true);
+            }
         }
     }
     
@@ -155,12 +160,30 @@ abstract class core_Extender extends core_Manager
      */
     protected static function on_AfterGetDeleteUrl($mvc, &$deleteUrl, $rec)
     {
-        $Embedder = cls::get($rec->{$mvc->mainClassFieldName});
-        
-        // Подмяна на урл-то за изтриване да е към ембедъра
         $deleteUrl = null;
-        if($Embedder->haveRightFor('delete', $rec->{$mvc->mainIdFieldName})) {
-            $deleteUrl = array($Embedder, 'delete', 'id' => $rec->{$mvc->mainIdFieldName}, 'ret_url' => true);
+        
+        // Подмяна на урл-то за изтриван да е към ембедъра
+        if($Extended = $mvc->getExtended($rec)){
+            if($Extended->haveRightFor('delete')) {
+                $deleteUrl = array($Extended->getInstance(), 'delete', 'id' => $Extended->that, 'ret_url' => true);
+            }
         }
+    }
+    
+    
+    /**
+     * Инстанциране на референция, към разширеният обект
+     * 
+     * @param stdClass $rec
+     * @return core_ObjectReference|NULL
+     */
+    public static function getExtended($rec)
+    {
+        $me = cls::get(get_called_class());
+        if(cls::load($rec->{$me->mainClassFieldName}, true)){
+            return new core_ObjectReference($rec->{$me->mainClassFieldName}, $rec->{$me->mainIdFieldName});
+        }
+        
+        return null;
     }
 }

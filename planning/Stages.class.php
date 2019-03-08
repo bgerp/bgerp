@@ -191,16 +191,19 @@ class planning_Stages extends core_Extender
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if(isset($fields['-list'])){
-            $Class = cls::get($rec->classId);
-            $singleUrl = $Class->getSingleUrlArray($rec->objectId);
-            $row->name = ht::createLink($row->name, $singleUrl, false, "ef_icon={$Class->getIcon($rec->objectId)}");
-            
-            $prodRec = cls::get($rec->classId)->fetch($rec->objectId, 'modifiedOn,modifiedBy');
-            $prodRow = cat_products::recToVerbal($prodRec, 'modifiedOn,modifiedBy');
-            
-            $row->modifiedOn = $prodRow->modifiedOn;
-            $row->modifiedBy = crm_Profiles::createLink($prodRec->modifiedBy);
-            $row->ROW_ATTR['class'] = "state-{$rec->state}";
+            if($Extended = $mvc->getExtended($rec)){
+                $singleUrl = $Extended->getSingleUrlArray();
+                $row->name = ht::createLink($row->name, $singleUrl, false, "ef_icon={$Extended->getIcon()}");
+                
+                $prodRec = $Extended->fetch('modifiedOn,modifiedBy');
+                $prodRow = cat_Products::recToVerbal($prodRec, 'modifiedOn,modifiedBy');
+                
+                $row->modifiedOn = $prodRow->modifiedOn;
+                $row->modifiedBy = crm_Profiles::createLink($prodRec->modifiedBy);
+                $row->ROW_ATTR['class'] = "state-{$rec->state}";
+            } else {
+                $row->name = "<span class='red'>" . tr('Проблем с показването') . "</span>";
+            }
         }
     }
     
