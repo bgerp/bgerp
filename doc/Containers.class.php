@@ -99,7 +99,7 @@ class doc_Containers extends core_Manager
     const REPAIR_SYSTEM_ID = 'repairDocuments';
 
     /**
-    Шаблон за реда в листовия изглед
+     * Шаблон за реда в листовия изглед
      */
     public $tableRowTpl = "[#ROW#][#ADD_ROWS#]";
 
