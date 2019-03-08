@@ -1655,13 +1655,6 @@ function setFormElementsWidth() {
 
         if (formElWidth > preferredSizeInPx) formElWidth = preferredSizeInPx;
 
-        if($('body').hasClass('terminalWrapper')) {
-            formElWidth = 250;
-
-            $('.select2-container .select2-container--default').css('width', formElWidth);
-            $('input[type=password]').css('width', formElWidth);
-        }
-
         $('.formTable label').each(function() {
             var colsInRow = parseInt($(this).attr('data-colsInRow'));
             if (!colsInRow) {
