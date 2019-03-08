@@ -148,9 +148,9 @@ class planning_Jobs extends core_Master
     
 
     /**
-    Шаблон за реда в листовия изглед
+     * Отделния ред в листовия изглед да е отгоре
      */
-    public $tableRowTpl = "[#ADD_ROWS#][#ROW#]";
+    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
 
 
     /**
