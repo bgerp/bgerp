@@ -845,7 +845,7 @@ class planning_Tasks extends core_Master
             $measureShort = cat_UoM::getShortName($measureId);
             $form->setField('plannedQuantity', "unit={$measureShort}");
             if (isset($productInfo->meta['canStore'])) {
-                $form->setField('storeId', 'input,mandatory');
+                $form->setField('storeId', 'input');
                 $form->setField('packagingId', 'input');
                 $form->setField('indPackagingId', 'input');
             } else {
