@@ -347,9 +347,16 @@ div.folder-cover {
 		color: #333;
 		font-weight: bold;
 	}
+
 	.groupList {
 		font-size: 0.95em;
 		max-width: 725px;
+		.toolbar-btn {
+			margin-top: 0 !important;
+			margin-bottom: 0 !important;
+			position: relative;
+			top: -2px;
+		}
 		.listTopContainer {
 		    min-width: 300px;
 		}
@@ -359,6 +366,7 @@ div.folder-cover {
 		  top: 1px;
 		  position: relative;
 		}
+
 	}
 	.label {
 		color: #777777;
@@ -3065,6 +3073,11 @@ fieldset.sharing-history {
 	float: right !important;
 }
 
+.narrow #cmsMenu a.loginIcon, .narrow #cmsMenu a.langIcon {
+	margin-right: 4px !important;
+	margin-left: 1px !important;
+}
+
 .wide #cmsMenu{
 	min-width: 500px;
 }
@@ -5531,7 +5544,7 @@ body.narrow {
 
 //bootstrap 2.3 grid
 
-row-fluid {
+.row-fluid {
 	width: 100%;
 	*zoom: 1;
 }

@@ -81,7 +81,7 @@ class rack_ZoneDetails extends core_Detail
      */
     public $tableRowTpl = "[#ROW#][#ADD_ROWS#]\n";
 
-    
+    public static $allocatedMovements = array();
     /**
      * Описание на модела (таблицата)
      */
@@ -354,10 +354,18 @@ class rack_ZoneDetails extends core_Detail
         $Movements->setField('workerId', "tdClass=inline-workerId");
         $skipClosed = ($masterRec->_isSingle === true) ? false : true;
         $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $skipClosed);
+        $allocated = rack_ZoneDetails::$allocatedMovements;
         
         list($productId, $packagingId, $batch) = array($rec->productId, $rec->packagingId, $rec->batch);
-        $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId, $batch){return $o->productId == $productId && $o->packagingId == $packagingId && $o->batch == $batch;});
+        $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId, $batch, $allocated){
+            return $o->productId == $productId && $o->packagingId == $packagingId && $o->batch == $batch && !array_key_exists($o->id, $allocated);
+        });
+        
         $rec->_movements = $data->recs;
+        if(count($rec->_movements)){
+            self::$allocatedMovements += $rec->_movements;
+        }
+        
         $requestedProductId = Request::get('productId', 'int');
         
         foreach ($data->recs as $mRec) {

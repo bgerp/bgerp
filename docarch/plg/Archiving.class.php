@@ -72,9 +72,7 @@ class docarch_plg_Archiving extends core_Plugin
             
             $volQuery->in('archive', $arcivesArr);
             
-            $currentUser = core_Users::getCurrent();
-            
-            $volQuery->where("#isForDocuments = 'yes' AND #inCharge = ${currentUser} AND #state = 'active'");
+            $volQuery->where(array("#isForDocuments = 'yes' AND #inCharge = '[#1#]' AND #state = 'active'", core_Users::getCurrent()));
             
             //Дата на документа
             $documentDate = self::getDocumentDate($rec);
