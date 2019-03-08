@@ -131,6 +131,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_Centers',
         'planning_Hr',
         'planning_FoldersWithResources',
+        'planning_Stages',
         'migrate::assetResourceFields',
         'migrate::updateTasks'
     );
@@ -160,7 +161,7 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,planning_interface_ImportFromLastBom';
+    public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,planning_interface_ImportFromLastBom,planning_interface_StageDriver';
     
     
     /**
@@ -172,6 +173,9 @@ class planning_Setup extends core_ProtoSetup
         
         // Кофа за снимки
         $html .= fileman_Buckets::createBucket('planningImages', 'Илюстрации в производство', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'every_one', 'powerUser');
+       
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StageDriver', 'private');
         
         return $html;
     }

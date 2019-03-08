@@ -353,8 +353,6 @@ class trans_Lines extends core_Master
      */
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-        $row = $data->row;
-        
         $amount = $amountReturned = $weight = $volume = 0;
         $sumWeight = $sumVolume = true;
         $transUnits = $calcedUnits = array();
@@ -433,7 +431,7 @@ class trans_Lines extends core_Master
      */
     private static function countDocumentsByState($id, $states)
     {
-        $stateArr = arr::make($states);
+        $states = arr::make($states);
         $query = trans_LineDetails::getQuery();
         $query->where("#lineId = {$id}");
         $query->in('containerState', $states);

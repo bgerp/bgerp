@@ -135,7 +135,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('taskId', 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,caption=Артикул,removeAndRefreshForm=serial|quantity');
         $this->FLD('type', 'enum(input=Влагане,production=Произв.,waste=Отпадък)', 'input=hidden,silent,tdClass=small-field nowrap');
-        $this->FLD('serial', 'varchar(32)', 'caption=Сер. №,smartCenter,focus,autocomplete=off');
+        $this->FLD('serial', 'varchar(32)', 'caption=Сер. №,smartCenter,focus,autocomplete=off,silent');
         $this->FLD('serialType', 'enum(existing=Съществуващ,generated=Генериран,printed=Отпечатан,unknown=Непознат)', 'caption=Тип на серийния номер,input=none');
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество');
         $this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
@@ -200,7 +200,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $form->setField('fixedAsset', 'input=none');
                 $form->setField('notes', 'input=none');
             }
-           
+            
             if(empty($masterRec->packagingId)){
                 $form->setField('serial', 'input=none');
             }
@@ -415,7 +415,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $row->taskId = planning_Tasks::getLink($rec->taskId, 0);
         $row->modified = "<div class='nowrap'>" . $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
         $row->modified .= ' ' . tr('от||by') . ' ' . crm_Profiles::createLink($rec->modifiedBy) . '</div>';
-       
+        
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : 'row-removed'));
         if ($rec->state == 'rejected') {
             $row->ROW_ATTR['title'] = tr('Оттеглено от') . ' ' . core_Users::getVerbal($rec->modifiedBy, 'nick');
@@ -615,7 +615,10 @@ class planning_ProductionTaskDetails extends doc_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('createdOn', 'DESC');
-        if(Mode::is('getLinkedFiles') || Mode::is('inlineDocument')) return;
+        if(Mode::is('getLinkedFiles') || Mode::is('inlineDocument')) {
+            
+            return ;
+        }
         
         $data->listFilter->setField('type', 'input=none');
         $data->listFilter->class = 'simpleForm';
@@ -630,7 +633,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             unset($data->listFields['modifiedBy']);
             unset($data->listFields['productId']);
         }
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->showFields = 'serial';
         
         // Ако има използвани служители, добавят се за филтриране
         $usedFixedAssets = self::getResourcesInDetails($data->masterId, 'fixedAsset');
@@ -656,6 +659,10 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
             if (!empty($filter->employees)) {
                 $data->query->where("LOCATE('|{$filter->employees}|', #employees)");
+            }
+            
+            if (!empty($filter->serial)) {
+                $data->query->like('serial', $filter->serial);
             }
         }
     }

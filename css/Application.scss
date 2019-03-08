@@ -1355,6 +1355,7 @@ table.listTable > tbody > tr {
 			border: none !important;
 			border-top: dotted 1px #ccc !important;
 			vertical-align: top !important;
+			padding: 4px 3px;
 		}
 		> tbody > tr:first-child > td {
 		    border-top: none !important;
@@ -5497,6 +5498,10 @@ td.rack-same {
     font-family: Times New Roman, Georgia, serif;
 }
 
+.movement-position-notice {
+	font-weight: bold;
+}
+
 .wide .app-name{
     left: 3%;
     bottom: 3%;
@@ -6761,31 +6766,35 @@ row-fluid {
 /*статистика на продажби*/
 .sale-summary {
     table {
-       width: 100%;
-       td, th {
-           text-align: center;
-           border: 1px solid $gray4;
-           border-collapse: collapse;
-       }
-       .sum-th {
-           background-color: $gray2;
-           font-weight: normal;
-           color: #555;
-           border-bottom: none;
-           padding:0px;
-           font-size:13px;
-       }
-       td {
-           font-size: 1.3em;
-           font-weight: bold;
-           padding: 5px 3px;
-           .quiet {
-               color: #ccc;
-               font-weight: normal;
-           }
-       }
+		width: 100%;
+		td, th {
+		   text-align: center;
+		   border: 1px solid $gray4;
+		   border-collapse: collapse;
+		}
+		.sum-th {
+		   background-color: $gray2;
+		   font-weight: normal;
+		   color: #555;
+		   border-bottom: none;
+		   padding:0px;
+		   font-size:13px;
+		}
+		td {
+		   font-size: 1.3em;
+		   font-weight: bold;
+		   padding: 5px 3px;
+		   .quiet {
+			   color: #ccc;
+			   font-weight: normal;
+		   }
+		}
+		.specialLink {
+			white-space: normal;
+		}
     }
 }
+
 .narrow .sale-summary td .quiet{
     font-size: 0.8em;
 }

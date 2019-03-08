@@ -1398,7 +1398,7 @@ class label_Prints extends core_Master
                 $res->url = array($this, 'single', $pRec->id);
             }
             
-            $res->title = $pRec->title;
+            $res->title = tr('Етикет') . ': ' . $pRec->title;
             
             $res->priority = 1;
             if ($pRec->state == 'active') {

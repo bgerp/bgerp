@@ -157,7 +157,11 @@ class peripheral_Terminal extends core_Master
         
         $screenMode = core_Mode::get('screenMode');
         
+        $currLg = core_Lg::getCurrent();
+        
         $oPrefix = $this->setSessionPrefix(true);
+        
+        core_Lg::set($currLg);
         
         // Сетваме екрана, както е бил зададен в главната сесия
         if (!core_Mode::is('screenMode')) {
@@ -172,8 +176,9 @@ class peripheral_Terminal extends core_Master
         // Ако не е избран терминал или няма зададен потребител
         if (!$terminalId) {
             $form = cls::get('core_Form');
+            $form->class = 'simpleForm simplePortalLogin';
             
-            $form->FLD('terminalId', 'key(mvc=peripheral_Terminal, select=name)', 'caption=Терминал, removeAndRefreshForm=user|pin, mandatory, silent');
+            $form->FLD('terminalId', 'key(mvc=peripheral_Terminal, select=name)', 'caption=Терминал, removeAndRefreshForm=user|pin, mandatory, silent,class=w100');
             
             $brid = log_Browsers::getBrid();
             
@@ -212,7 +217,7 @@ class peripheral_Terminal extends core_Master
             $form->input('terminalId', true);
             
             if ($form->rec->terminalId) {
-                $form->FLD('user', 'key(mvc=core_Users, select=nick)', 'caption=Потребител, mandatory, silent');
+                $form->FLD('user', 'key(mvc=core_Users, select=nick)', 'caption=Потребител, mandatory, silent,class=w100');
                 
                 $tRec = $this->fetch($form->rec->terminalId);
                 
@@ -240,7 +245,7 @@ class peripheral_Terminal extends core_Master
                 $form->setOptions('user', $usersArr);
                 
                 if ($tRec->usePin == 'yes') {
-                    $form->FLD('pin', 'password', 'caption=Пин, mandatory, silent');
+                    $form->FLD('pin', 'password', 'caption=ПИН, mandatory, silent,class=w100,focus');
                 }
             }
             
@@ -262,7 +267,7 @@ class peripheral_Terminal extends core_Master
                 }
                 
                 $uRec = core_Users::fetch($form->rec->user);
-                if ($tRec->usePin && (!$uRec->pinCode || ($uRec->pinCode != $form->rec->pin))) {
+                if ($tRec->usePin == 'yes' && (!$uRec->pinCode || ($uRec->pinCode != $form->rec->pin))) {
                     $form->setError('pin', 'Грешен ПИН код');
                     
                     self::logWarning('Грешен ПИН код', $form->rec->terminalId);
@@ -296,12 +301,14 @@ class peripheral_Terminal extends core_Master
             
             $form->title = 'Избор на терминал в|* ' . ht::createLink(core_Packs::getConfig('core')->EF_APP_TITLE, $titleUrl);
             
-            $form->toolbar->addSbBtn('Вход', 'save', 'ef_icon = img/16/doc_stand.png, title = Запис на документа');
-            $form->toolbar->addBtn('Затвори', array('Index', 'Default'), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+            $form->toolbar->addSbBtn('Вход', 'save', 'ef_icon = img/16/doc_stand.png, title = Отваряне');
+            $form->toolbar->addBtn('Затвори', array('Index', 'Default'), 'ef_icon = img/16/close-red.png, title=Затваряне');
             
             if (!$terminalId) {
                 $htmlRes = $form->renderHtml();
                 $htmlRes->replace(tr('Отваряне на терминал'), 'PAGE_TITLE');
+                $htmlRes->push('peripheral/css/styles.css', 'CSS');
+                $htmlRes->replace('terminalWrapper', 'BODY_CLASS_NAME');
                 
                 return $htmlRes;
             }

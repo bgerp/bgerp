@@ -29,6 +29,24 @@ abstract class core_Extender extends core_Manager
     
     
     /**
+     * Кой може да редактира
+     */
+    public $canAdd = 'no_one';
+    
+    
+    /**
+     * Кой може да възстановява
+     */
+    public $canRestore = 'no_one';
+    
+    
+    /**
+     * Кой може да оттегля
+     */
+    public $canReject = 'no_one';
+    
+    
+    /**
      * Име на полето за класа на ембедъра
      * 
      * @var string
@@ -71,7 +89,7 @@ abstract class core_Extender extends core_Manager
         
         // Добавяне на задължителните полета за информация на екстендъра
         $mvc->FLD($mvc->mainClassFieldName, "class(interface={$mvc->extenderClassInterfaces})", 'caption=Клас,forceField');
-        $mvc->FLD($mvc->mainIdFieldName, 'int', 'caption=Ид,forceField');
+        $mvc->FLD($mvc->mainIdFieldName, 'int', 'caption=Ид,forceField,tdClass=leftCol');
         
         $mvc->setDbUnique('classId,objectId');
     }

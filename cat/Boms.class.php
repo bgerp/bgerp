@@ -300,6 +300,7 @@ class cat_Boms extends core_Master
             return;
         }
         
+        $activeBom = null;
         cat_BomDetails::addProductComponents($rec->productId, $rec->id, null, $activeBom, true);
     }
     
@@ -558,7 +559,7 @@ class cat_Boms extends core_Master
      */
     public static function getResourceInfo($id, $quantity, $date)
     {
-        $resources = array();
+        $resources = $materials = array();
         
         expect($rec = static::fetchRec($id));
         $resources['quantity'] = ($rec->quantity) ? $rec->quantity : 1;
@@ -612,7 +613,7 @@ class cat_Boms extends core_Master
      *                         ->stageId      - опционално, към кой производствен етап е детайла
      *                         ->baseQuantity - начално количество на ресурса
      *                         ->propQuantity - пропорционално количество на ресурса
-     * @param text  $notes     - забележки
+     * @param string  $notes     - забележки
      * @param float $expenses  - процент режийни разходи
      *
      * @return int $id         - ид на новосъздадената рецепта
@@ -662,7 +663,7 @@ class cat_Boms extends core_Master
         if (count($details)) {
             foreach ($details as $d1) {
                 $d1->bomId = $id;
-                
+                $fields = array();
                 if (cls::get('cat_BomDetails')->isUnique($d1, $fields)) {
                     cat_BomDetails::save($d1);
                 }
@@ -1006,11 +1007,11 @@ class cat_Boms extends core_Master
     /**
      * Връща цената на материала за рецептата
      *
-     * @param sales|production $type        - типа за която рецепта ще проверяваме
-     * @param int              $productId   - ид на артикула
-     * @param float            $quantity    - количество за което искаме цената
-     * @param date             $date        - към коя дата
-     * @param int              $priceListId - по кой ценоразпис
+     * @param string       $type        - типа за която рецепта ще проверяваме
+     * @param int          $productId   - ид на артикула
+     * @param float        $quantity    - количество за което искаме цената
+     * @param datetime     $date        - към коя дата
+     * @param int          $priceListId - по кой ценоразпис
      *
      * @return float|FALSE $price   - намерената цена или FALSE ако няма
      */
@@ -1098,11 +1099,11 @@ class cat_Boms extends core_Master
     /**
      * Изчислява сумата на реда и я записва
      *
-     * @param stdCladd $rec           - Записа на реда
+     * @param stdClass $rec           - Записа на реда
      * @param array    $params        - Параметрите за реда
      * @param float    $t             - Тиража
      * @param float    $q             - Изчислимото количество
-     * @param date     $date          - Към коя дата
+     * @param datetime     $date          - Към коя дата
      * @param int      $priceListId   - ид на ценоразпис
      * @param bool     $savePriceCost - дали да кешираме изчислената цена
      * @param array    $materials     - масив със сумираните вложени материали
@@ -1494,6 +1495,7 @@ class cat_Boms extends core_Master
             
             // Проверка на к-то
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+            $warning = '';
             if (!deals_Helper::checkQuantity($measureId, $rec->quantity, $warning)) {
                 $form->setError('quantity', $warning);
             }

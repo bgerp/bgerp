@@ -119,7 +119,13 @@ class rack_Zones extends core_Master
      */
     public $refreshRowsTime = 5000;
     
-    
+
+    /**
+     * Шаблон за реда в листовия изглед
+     */
+    public $tableRowTpl = "[#ROW#][#ADD_ROWS#]\n";
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -155,6 +161,7 @@ class rack_Zones extends core_Master
                 $row->pendingHtml = $pendingHtml;
             }
         }
+        $row->ROW_ATTR['class'] = $row->ROW_ATTR['class'] . " rack-zone-head";
         
         $row->num = $mvc->getHyperlink($rec->id);
         

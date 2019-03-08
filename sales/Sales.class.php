@@ -1066,12 +1066,10 @@ class sales_Sales extends deals_DealMaster
     {
         $table = cls::get('core_TableView', array('mvc' => cls::get('planning_Jobs')));
         
-        foreach ($data->jobs as &$row) {
-            $jobsTable = $table->get($data->jobs, 'title=Задание,dueDate=Падеж,packQuantity=Планирано,quantityFromTasks=Произведено,quantityProduced=Заскладено,packagingId=Мярка');
-            $jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
-            $jobTpl->replace($jobsTable, 'table');
-            $tpl->replace($jobTpl, 'JOB_INFO');
-        }
+        $jobsTable = $table->get($data->jobs, 'title=Задание,dueDate=Падеж,packQuantity=Планирано,quantityFromTasks=Произведено,quantityProduced=Заскладено,packagingId=Мярка');
+        $jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
+        $jobTpl->replace($jobsTable, 'table');
+        $tpl->replace($jobTpl, 'JOB_INFO');
         
         if (isset($data->addJobUrl)) {
             $addLink = ht::createLink('', $data->addJobUrl, false, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство към артикул');

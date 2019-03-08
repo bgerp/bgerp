@@ -200,7 +200,7 @@ class sales_Routes extends core_Manager
             
             if (self::haveRightFor('add', null, $inCharge)) {
                 // ... има право да създава продажби - той става дилър по подразбиране.
-                return $inChargeUserId;
+                return $inCharge;
             }
         }
         
@@ -266,7 +266,6 @@ class sales_Routes extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->locationId = crm_Locations::getHyperLink($rec->locationId, true);
-        $locationState = crm_Locations::fetchField($rec->locationId, 'state');
         
         if (!$rec->repeat) {
             $row->repeat = "<span class='quiet'>" . tr('еднократно') . '</span>';
@@ -302,12 +301,13 @@ class sales_Routes extends core_Manager
      */
     public function prepareRoutes($data)
     {
+        $data->rows = array();
+        
         // Подготвяме маршрутите ако има налични за тази локация
         $query = $this->getQuery();
         $query->where(array('#locationId = [#1#]', $data->masterData->rec->id));
         $query->where("#state = 'active'");
         
-        $results = array();
         while ($rec = $query->fetch()) {
             $data->rows[$rec->id] = static::recToVerbal($rec);
         }
