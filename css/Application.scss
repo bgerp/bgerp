@@ -3073,6 +3073,11 @@ fieldset.sharing-history {
 	float: right !important;
 }
 
+.narrow #cmsMenu a.loginIcon, .narrow #cmsMenu a.langIcon {
+	margin-right: 4px !important;
+	margin-left: 1px !important;
+}
+
 .wide #cmsMenu{
 	min-width: 500px;
 }
