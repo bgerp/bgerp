@@ -62,7 +62,7 @@ class rack_Setup extends core_ProtoSetup
         'rack_ZoneDetails',
         'migrate::truncateOldRecs',
         'migrate::deleteOldPlugins',
-        'migrate::updateNoBatchRackDetails',
+        'migrate::updateNoBatchRackDetails2',
     );
     
     
@@ -181,7 +181,7 @@ class rack_Setup extends core_ProtoSetup
     /**
      * Бъгфикс с без партида
      */
-    public function updateNoBatchRackDetails()
+    public function updateNoBatchRackDetails2()
     {
         $Zones = cls::get('rack_ZoneDetails');
         $Zones->setupMvc();
@@ -202,8 +202,19 @@ class rack_Setup extends core_ProtoSetup
             $Zones->saveArray($toSave, 'id,batch');
         }
         
-        foreach ($zonesArr as $zoneId){
-            rack_ZoneDetails::syncWithDoc($zoneId);
+        $query2 = $Zones->getQuery();
+        $query2->where("#batch = ''");
+        $query2->orderBy('id', 'ASC');
+        while($rec2 = $query2->fetch()){
+            
+            $exRec = rack_ZoneDetails::fetch("#id != '{$rec2->id}' AND #zoneId = {$rec2->zoneId} AND #productId = {$rec2->productId} AND #packagingId = {$rec2->packagingId} AND #batch = ''");
+            if(!$exRec) continue;
+            
+            $rec2->movementQuantity = !empty($rec2->movementQuantity) ? $rec2->movementQuantity : $exRec->movementQuantity;
+            $rec2->documentQuantity = !empty($rec2->documentQuantity) ? $rec2->documentQuantity : $exRec->documentQuantity;
+            
+            $Zones->save($rec2, 'movementQuantity,documentQuantity');
+            rack_ZoneDetails::delete($exRec->id);
         }
     }
 }
