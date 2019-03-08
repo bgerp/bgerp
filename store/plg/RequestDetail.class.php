@@ -27,7 +27,7 @@ class store_plg_RequestDetail extends core_Plugin
         setIfNot($mvc->requestQuantityFieldName, 'requestedQuantity');
         setIfNot($mvc->quantityFieldName, 'quantity');
         setIfNot($mvc->quantityInPackName, 'quantityInPack');
-        setIfNot($mvc->packQuantityFieldName, 'packQuantity');
+        setIfNot($mvc->packQuantityFld, 'packQuantity');
         
         // Добавяне на поле за заявено количество
         $mvc->FLD($mvc->requestQuantityFieldName, 'double(decimals=2)', 'caption=Заявено,input=none,forceField,smartCenter');
@@ -54,8 +54,8 @@ class store_plg_RequestDetail extends core_Plugin
             $requested = $rec->{$mvc->requestQuantityFieldName};
             
             if (isset($requested)) {
-                if ($requested != $rec->{$mvc->packQuantityFieldName}) {
-                    if ($requested <= $rec->{$mvc->packQuantityFieldName}) {
+                if ($requested != $rec->{$mvc->packQuantityFld}) {
+                    if ($requested <= $rec->{$mvc->packQuantityFld}) {
                         $row->{$mvc->requestQuantityFieldName} = "<span class='red'>{$row->{$mvc->requestQuantityFieldName}}</span>";
                     }
                     $showRequested = true;
