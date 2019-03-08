@@ -312,6 +312,20 @@ class core_Type extends core_BaseClass
                 }
             }
             
+            if (!$res['error'] && isset($this->params['warningMax'])) {
+                if ($value > $this->params['Max']) {
+                    $res['warning'] = 'Стойността е над' . "|* - '" .
+                    $this->toVerbal($this->params['warningMax']) . "'";
+                }
+            }
+            
+            if (!$res['error'] && isset($this->params['warningMin'])) {
+                if ($value < $this->params['Max']) {
+                    $res['warning'] = 'Стойността е под' . "|* - '" .
+                        $this->toVerbal($this->params['warningMax']) . "'";
+                }
+            }
+            
             if ($res['error']) {
                 $this->error = $res['error'];
             }
