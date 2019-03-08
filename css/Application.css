@@ -4715,7 +4715,10 @@ div.location.public {
   margin: 10px 2%;
   text-align: center; }
   .eshop-group-button .eshop-group-button-title {
-    margin-top: 2px; }
+    background: none !important;
+    font-size: 1em;
+    margin-top: 2px;
+    font-weight: normal; }
     .eshop-group-button .eshop-group-button-title a {
       color: #004488; }
   .eshop-group-button .eshop-group-button-img img {
@@ -4813,7 +4816,10 @@ div.location.public {
   .eshop-product-list .eshop-product-list-name {
     font-weight: bold;
     padding: 0 5px 8px 0px;
-    height: 1%; }
+    height: 1%;
+    margin: 0 !important;
+    background: none !important;
+    font-size: 1em; }
   .eshop-product-list:hover {
     border: solid 1px #bbbbbb; }
 
