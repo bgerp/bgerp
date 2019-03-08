@@ -402,6 +402,9 @@ class planning_ProductionTaskProducts extends core_Detail
         // Ако артикула е същия като от операцията, връща се оттам
         $taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,fixedAssets,productId,indTime,packagingId,plannedQuantity');
         if ($taskRec->productId == $productId) {
+            if(empty($taskRec->packagingId)){
+                $taskRec->packagingId = cat_Products::fetchField($taskRec->productId, 'measureId');
+            }
             
             return $taskRec;
         }

@@ -38,28 +38,8 @@ class bgerp_plg_Blank extends core_Plugin
             
             $blank->replace($logo, 'blankImage');
             
-            // Дали режимът е печат?
-            $isPrinting = Mode::is('printing');
-            
-            // ID на контейнера
-            $cid = $data->rec->containerId;
-            
-            // Ако е подаден __MID__, да се използва, вместо плейсхолдера
-            if (!($mid = $data->__MID__)) {
-                $mid = doc_DocumentPlg::getMidPlace();
-            }
-            
-            // URL за за src="..." атрибута, на <img> тага на QR баркода
-            $qrImgSrc = toUrl(array('L', 'B', $cid, 'm' => $mid), 'absolute', true, array('m'));
-            
-            // Създаваме <img> елемент за QR баркода
-            $qrImg = ht::createElement('img', array('alt' => 'View doc', 'width' => 87, 'height' => 87, 'src' => $qrImgSrc));
-            
-            // URL за линка, който стои под QR кода
-            $qrLinkUrl = self::getUrlForShow($cid, $mid);
-            
-            // Под картинката с QR баркод, слагаме хипервръзка към документа
-            $qrA = ht::createElement('a', array('target' => '_blank',  'href' => $qrLinkUrl), $qrImg);
+            // Подготовка на QR кода
+            $qrA = self::getQrCode($data->rec->containerId, $data->__MID__);
             
             //Заместваме стойностите в шаблона
             $blank->replace($qrA, 'blankQr');
@@ -67,6 +47,38 @@ class bgerp_plg_Blank extends core_Plugin
             //Заместваме placeholder' a бланк
             $tpl->replace($blank, 'blank');
         }
+    }
+    
+    
+    /**
+     * Връща QR кода на бланката на документа
+     * 
+     * @param int $cid
+     * @param string|null $mid
+     * @param int $width
+     * @param int $height
+     * @return core_ET
+     */
+    public static function getQrCode($cid, $mid = null, $width = 87, $height = 87)
+    {
+        // Ако е подаден __MID__, да се използва, вместо плейсхолдера
+        if (!$mid) {
+            $mid = doc_DocumentPlg::getMidPlace();
+        }
+        
+        // URL за за src="..." атрибута, на <img> тага на QR баркода
+        $qrImgSrc = toUrl(array('L', 'B', $cid, 'm' => $mid), 'absolute', true, array('m'));
+        
+        // Създаваме <img> елемент за QR баркода
+        $qrImg = ht::createElement('img', array('alt' => 'View doc', 'width' => 87, 'height' => 87, 'src' => $qrImgSrc));
+        
+        // URL за линка, който стои под QR кода
+        $qrLinkUrl = self::getUrlForShow($cid, $mid);
+        
+        // Под картинката с QR баркод, слагаме хипервръзка към документа
+        $res = ht::createElement('a', array('target' => '_blank',  'href' => $qrLinkUrl), $qrImg);
+        
+        return $res;
     }
     
     

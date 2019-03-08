@@ -234,7 +234,6 @@ class pos_Points extends core_Master
     public function act_OpenTerminal()
     {
         expect($pointId = Request::get('id', 'int'));
-        expect($rec = $this->fetch($pointId));
         
         peripheral_Terminal::setSessionPrefix();
         

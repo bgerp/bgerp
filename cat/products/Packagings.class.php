@@ -57,14 +57,14 @@ class cat_products_Packagings extends core_Detail
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'ceo,sales,purchase,packEdit';
-
-
+    
+    
     /**
      * Кой може да качва файлове
      */
     public $canAdd = 'ceo,sales,purchase,packEdit';
     
-
+    
     /**
      * Кой може да качва файлове
      */
@@ -454,7 +454,7 @@ class cat_products_Packagings extends core_Detail
         if ($rec->isBase == 'yes') {
             $row->packagingId = '<b>' . $row->packagingId . '</b>';
         }
-
+        
         if($fields['-list']) {
             if($rec->modifiedOn) {
                 $row->user = crm_Profiles::createLink($rec->modifiedBy) . ', ' . $mvc->getVerbal($rec, 'modifiedOn');
@@ -708,7 +708,9 @@ class cat_products_Packagings extends core_Detail
             return $resArr;
         }
         
-        $obj = (object) array('title' => cat_Products::getHyperlink($productData->productId, true), 'url' => array(), 'priority' => 0, 'comment' => '');
+        $artStr = tr('Артикул');
+        
+        $obj = (object) array('title' => $artStr . ': ' . cat_Products::getHyperlink($productData->productId, true), 'url' => array(), 'priority' => 0, 'comment' => '');
         
         // Извличане на най-важната информация за артикула
         $productRec = cat_Products::fetch($productData->productId, 'canSell,canBuy,canStore,canConvert,nameEn,isPublic,folderId,state,measureId');

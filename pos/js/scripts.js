@@ -314,8 +314,7 @@ function posActions() {
 		var e = jQuery.Event("keyup");
 		$("#select-input-pos").trigger(e);
 	});
-	
-	
+
 	// Време за изчакване
 	var timeout;
 	

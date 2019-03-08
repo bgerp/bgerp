@@ -147,8 +147,6 @@ class pos_Receipts extends core_Master
      */
     public function description()
     {
-        peripheral_Terminal::setSessionPrefix();
-        
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Дата,input=none');
         $this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка на продажба');
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
@@ -176,6 +174,8 @@ class pos_Receipts extends core_Master
      */
     public function act_New()
     {
+        peripheral_Terminal::setSessionPrefix();
+        
         $cu = core_Users::getCurrent();
         $posId = pos_Points::getCurrent();
         $forced = Request::get('forced', 'int');
@@ -394,7 +394,7 @@ class pos_Receipts extends core_Master
             $action = explode('|', $dRec->action);
             switch ($action[0]) {
                 case 'sale':
-                    $price = $this->getDisplayPrice($dRec->price, $dRec->param, $dRec->discountPercent);
+                    $price = $this->getDisplayPrice($dRec->price, $dRec->param, $dRec->discountPercent, $rec->pointId);
                     $rec->total += round($dRec->quantity * $price, 2);
                     break;
                 case 'payment':
@@ -529,6 +529,8 @@ class pos_Receipts extends core_Master
      */
     public function act_Terminal()
     {
+        peripheral_Terminal::setSessionPrefix();
+        
         $this->requireRightFor('terminal');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
@@ -669,7 +671,7 @@ class pos_Receipts extends core_Master
         $tpl->append($logo, 'LOGO');
         
         if (Mode::get('terminalId')) {
-            $tpl->replace(ht::createLink('X', array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала'), 'EXIT_TERMINAL');
+            $tpl->replace(ht::createLink('', array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
         }
         
         // Слагане на детайлите на бележката
@@ -785,8 +787,13 @@ class pos_Receipts extends core_Master
             $htmlScan = "<input type='button' class='webScan {$disClass}' {$disabled} id='webScan' name='scan' onclick=\"document.location = 'http://zxing.appspot.com/scan?ret={$absUrl}?ean={CODE}'\" value='Scan' />";
             $block->append($htmlScan, 'FIRST_TOOLS_ROW');
         }
-        
-        $block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въвеждане', 'readonly' => 'readonly')), 'INPUT_FLD');
+
+        $params = array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въвеждане');
+        if(Mode::is('screenMode', 'narrow')) {
+            $params['readonly'] = 'readonly';
+        }
+
+        $block->append(ht::createElement('input', $params), 'INPUT_FLD');
         $block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
         $block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
         $block->append(ht::createFnBtn('Код', null, null, array('class' => "{$disClass} buttonForm", 'id' => 'addProductBtn', 'data-url' => $addUrl, 'title' => 'Продуктов код или баркод')), 'FIRST_TOOLS_ROW');
@@ -831,6 +838,8 @@ class pos_Receipts extends core_Master
      */
     public function act_ShowDrafts()
     {
+        peripheral_Terminal::setSessionPrefix();
+        
         $this->requireRightFor('terminal');
         expect($id = Request::get('id'));
         expect($rec = $this->fetch($id));
@@ -883,8 +892,9 @@ class pos_Receipts extends core_Master
      */
     public function act_Transfer()
     {
-        $this->requireRightFor('transfer');
+        peripheral_Terminal::setSessionPrefix();
         
+        $this->requireRightFor('transfer');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         
@@ -1050,6 +1060,7 @@ class pos_Receipts extends core_Master
      */
     public function act_SearchContragents()
     {
+        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('terminal');
         
         if (!$receiptId = Request::get('receiptId', 'int')) {
@@ -1200,6 +1211,7 @@ class pos_Receipts extends core_Master
      */
     public function act_printReceipt()
     {
+        peripheral_Terminal::setSessionPrefix();
         expect(haveRole('pos, ceo'));
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
@@ -1240,6 +1252,7 @@ class pos_Receipts extends core_Master
      */
     public function act_addProduct()
     {
+        peripheral_Terminal::setSessionPrefix();
         $this->pos_ReceiptDetails->requireRightFor('add');
         
         // Трябва да има такава бележка
@@ -1442,6 +1455,8 @@ class pos_Receipts extends core_Master
      */
     public function act_Close()
     {
+        peripheral_Terminal::setSessionPrefix();
+        
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         if ($rec->state != 'draft') {
@@ -1470,6 +1485,7 @@ class pos_Receipts extends core_Master
      */
     public function act_getSearchResults()
     {
+        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('terminal');
         
         if ($searchString = Request::get('searchString')) {
@@ -1817,6 +1833,8 @@ class pos_Receipts extends core_Master
      */
     public function act_Revert()
     {
+        peripheral_Terminal::setSessionPrefix();
+        
         if (!$this->haveRightFor('revert')) {
             
             return $this->pos_ReceiptDetails->returnError(null);
@@ -1879,7 +1897,7 @@ class pos_Receipts extends core_Master
     /**
      * Обработване на цената
      */
-    protected function on_AfterGetDisplayPrice($mvc, &$res, $priceWithoutVat, $vat, $discountPercent)
+    protected function on_AfterGetDisplayPrice($mvc, &$res, $priceWithoutVat, $vat, $discountPercent, $pointId)
     {
         if (empty($res)) {
             $res = $priceWithoutVat * (1 + $vat);

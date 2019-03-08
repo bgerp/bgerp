@@ -631,6 +631,7 @@ class label_Templates extends core_Master
                        'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
                        'defaultTplPriceList' => array('title' => 'Ценоразпис без EAN', 'path' => 'label/tpl/DefaultPricelist.shtml', 'lang' => 'bg', 'class' => 'price_reports_PriceList', 'sizes' => array('64.5', '33.5')),
                        'defaultTplPriceListEan' => array('title' => 'Ценоразпис с EAN', 'path' => 'label/tpl/DefaultPricelistEAN.shtml', 'lang' => 'bg', 'class' => 'price_reports_PriceList', 'sizes' => array('64.5', '33.5')),
+                       'defaultTplHrCodes' => array('title' => 'QR на служител', 'path' => 'label/tpl/DefaultHrCodes.shtml', 'lang' => 'bg', 'class' => 'planning_Hr', 'sizes' => array('64.5', '33.5')),
         );
         
         core_Users::forceSystemUser();
@@ -651,6 +652,9 @@ class label_Templates extends core_Master
                             label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
                         } elseif ($placeholder == 'EAN') {
                             $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'ean13', 'Ratio' => '4', 'Width' => '260', 'Height' => '70', 'Rotation' => 'no');
+                            label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+                        } elseif($placeholder == 'QR_CODE'){
+                            $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'qr', 'Ratio' => '4', 'Width' => '60', 'Height' => '60', 'Rotation' => 'no');
                             label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
                         } else {
                             $type = 'caption';

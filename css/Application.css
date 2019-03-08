@@ -1180,7 +1180,8 @@ div.acc-detail {
     .portal table.listTable td {
       border: none !important;
       border-top: dotted 1px #cccccc !important;
-      vertical-align: top !important; }
+      vertical-align: top !important;
+      padding: 4px 3px; }
     .portal table.listTable > tbody > tr:first-child > td {
       border-top: none !important; }
     .portal table.listTable th {
@@ -4851,6 +4852,9 @@ td.rack-same {
   font-weight: bold;
   font-family: Times New Roman, Georgia, serif; }
 
+.movement-position-notice {
+  font-weight: bold; }
+
 .wide .app-name {
   left: 3%;
   bottom: 3%;
@@ -6042,6 +6046,8 @@ only screen and (max-width: 320px) {
       .sale-summary table td .quiet {
         color: #cccccc;
         font-weight: normal; }
+    .sale-summary table .specialLink {
+      white-space: normal; }
 
 .narrow .sale-summary td .quiet {
   font-size: 0.8em; }

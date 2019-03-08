@@ -656,6 +656,7 @@ en,Зареждане EURIBOR,Load EURIBOR
 en,Зареждане SOFIBID _633f,Load SOFIBID & SOFIBOR
 en,Заскладено,Stored
 en,Затваряне,Close
+en,Затвори,Close
 en,Затворен,Closed
 en,Затворено,Closed
 en,Заявка,Request
@@ -2848,3 +2849,33 @@ en,Без партида,Without batch
 en,Никът трябва да е поне,The nick must be
 en,Нова,New
 en,Плати,Pay
+en,Избор на терминал в,Select terminal in
+en,Терминал,Terminal
+en,ПИН,PIN
+en,ПИН код,PIN code
+en,Известяване за добавен документ в нишка,Notification for added document in thread
+en,Известяване при нов документ,Notification for a new document
+en,Известяване при контиране,Notification for conto
+en,Известяване на споделените потребители на папка,Notify shared users to a folder
+en,Известяване за създадени документи,Notification of created documents
+en,Превеждане на имейли от,Translate emails from
+en,Автоматично попълване на имейлите в полето копие,Automatically fill in the emails in the copy field
+en,когато са до,when they are up
+en,Дължина на артикула в името на продажбата,Length of the item in the name of the sale
+en,Типове събития,Event types
+en,които да се показват в календара,to display on the calendar
+en,Клавиши за бързо избиране на бутони,Buttons for quick button selection
+en,Изчакване преди сигнализация за нови известия,Waiting before signaling for new notifications
+en,Блокиране на сигнализация за нови известия,Block alert for new notifications
+en,Формат за експорт на CSV,CSV export format
+en,Получаване на нотификации от отдалечени системи,Get notifications from remote systems
+en,Критични,Critical
+en,Спешни,Urgent
+en,Нормални,Normal
+en,Задължително,Mandatory
+en,Портал,Portal
+en,Свързване,Connect
+en,Свързване на онлайн услуга,Connect an online service
+en,Свързване на онлайн услуги,Connect online services
+en,Краен срок за,Deadline for
+en,Възложено на,Assigned to

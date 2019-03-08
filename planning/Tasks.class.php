@@ -38,7 +38,7 @@ class planning_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_plg_BusinessDoc, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RowTools2, plg_LastUsedKeys';
+    public $loadList = 'doc_plg_BusinessDoc, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RowTools2, plg_LastUsedKeys, bgerp_plg_Blank';
     
     
     /**
@@ -57,12 +57,6 @@ class planning_Tasks extends core_Master
      * Абревиатура
      */
     public $abbr = 'Opr';
-    
-    
-    /**
-     * Групиране на документите
-     */
-    public $newBtnGroup = '3.8|Производство';
     
     
     /**
@@ -228,7 +222,7 @@ class planning_Tasks extends core_Master
         
         $this->FLD('indTime', 'time(noSmart,decimals=2)', 'caption=Време за производство->Норма,smartCenter');
         $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Време за производство->Опаковка,input=hidden,tdClass=small-field nowrap');
-        $this->FLD('indTimeAllocation', 'enum(common=Oбщо,individual=Поотделно)', 'caption=Време за производство->Разпределяне,smartCenter,notNull,value=common');
+        $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Време за производство->Разпределяне,smartCenter,notNull,value=common');
         
         $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото->Режим,notNull,value=yes');
         $this->FLD('weightDeviationNotice', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Отбелязване,unit=+/-');
@@ -252,22 +246,37 @@ class planning_Tasks extends core_Master
     
     
     /**
-     * След подготовка на сингъла
+     * Подготвя параметрите
+     * 
+     * @param stdClass $rec
+     * @return stdClass
      */
-    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
+    private static function prepareTaskParams($rec)
     {
-        $rec = $data->rec;
-        
         $d = new stdClass();
         $d->masterId = $rec->id;
         $d->masterClassId = planning_Tasks::getClassId();
         if ($rec->state == 'closed' || $rec->state == 'stopped' || $rec->state == 'rejected') {
             $d->noChange = true;
-            unset($data->editUrl);
         }
-        
         cat_products_Params::prepareParams($d);
-        $data->paramData = $d;
+        
+        return $d;
+    }
+    
+    
+    /**
+     * След подготовка на сингъла
+     */
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+        $data->paramData = self::prepareTaskParams($data->rec);
+        
+        if(Mode::is('printworkcard')){
+            $ownCompanyData = crm_Companies::fetchOwnCompany();
+            $data->row->MyCompany = $ownCompanyData->companyVerb;
+            $data->row->QR_CODE = bgerp_plg_Blank::getQrCode($data->rec->containerId, $data->__MID__);
+        }
     }
     
     
@@ -276,7 +285,11 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
-        $tpl->prepend(getTplFromFile('planning/tpl/TaskStatistic.shtml'), 'ABOVE_LETTER_HEAD');
+        if(Mode::is('printworkcard')){
+            $tpl = getTplFromFile('planning/tpl/SingleWorkCard.shtml');
+        } else {
+            $tpl->prepend(getTplFromFile('planning/tpl/TaskStatistic.shtml'), 'ABOVE_LETTER_HEAD');
+        }
     }
     
     
@@ -415,7 +428,7 @@ class planning_Tasks extends core_Master
         }
         
         if(empty($rec->indTime)){
-            $row->indTime = "<span class='quiet'>N/A</span>"; 
+            $row->indTime = "<span class='quiet'>N/A</span>";
         }
         
         if(empty($rec->packagingId)){
@@ -446,7 +459,7 @@ class planning_Tasks extends core_Master
     
     
     /**
-     * Прави заглавие на МО от данните в записа
+     * Прави заглавие на ПО от данните в записа
      */
     public static function getRecTitle($rec, $escaped = true)
     {
@@ -541,7 +554,7 @@ class planning_Tasks extends core_Master
             $row->weightDeviationWarning = core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING'));
         }
     }
-
+    
     
     /**
      * След подготовка на антетката
@@ -553,7 +566,7 @@ class planning_Tasks extends core_Master
             foreach ((array) $headerArr as $value) {
                 $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 10px;\"><b>{$value['val']}</b></td>");
                 $name = new ET("<td class='nowrap' style='width: 1%;border-bottom: 1px solid #ccc; font-weight: bold;'>{$value['name']}</td>");
-
+                
                 $res->append('<tr>');
                 $res->append($name);
                 $res->append('</tr><tr>');
@@ -563,6 +576,7 @@ class planning_Tasks extends core_Master
             $res->append("</table>");
         }
     }
+    
     
     /**
      * Обновява данни в мастъра
@@ -747,12 +761,15 @@ class planning_Tasks extends core_Master
         $originRec = $origin->fetch();
         
         // Добавяме допустимите опции
-        $products = cat_Products::getByProperty('canManifacture');
-        $form->setOptions('productId', array('' => '') + $products);
-        if (count($products) == 1) {
-            $form->setDefault('productId', key($products));
+        $options = planning_Centers::getManifacturableOptions($rec->folderId);
+        if(!array_key_exists($originRec->productId, $options)){
+            $options = array("{$originRec->productId}" => cat_Products::getTitleById($originRec->productId, false)) + $options;
+        }
+        if(isset($rec->productId) && !array_key_exists($rec->productId, $options)){
+            $options = array("{$rec->productId}" => cat_Products::getTitleById($rec->productId, false)) + $options;
         }
         
+        $form->setOptions('productId', $options);
         $tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
         
         if (isset($rec->systemId, $tasks[$rec->systemId])) {
@@ -973,7 +990,7 @@ class planning_Tasks extends core_Master
         
         // Филтър по всички налични департаменти
         $folders = doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf');
-       
+        
         if (count($folders)) {
             $data->listFilter->setField('folderId', 'input');
             $data->listFilter->setOptions('folderId', array('' => '') + $folders);
@@ -1170,13 +1187,16 @@ class planning_Tasks extends core_Master
         while($dRec = $taskDetilQuery->fetch()) {
             
             $res = new stdClass();
-            
             $tRec = $this->fetch($dRec->taskId);
-            
-            $res->title = $tRec->title;
+            $res->title = tr('ПО') . ': ' . $tRec->title;
             
             if ($this->haveRightFor('single', $tRec)) {
-                $res->url = array('planning_Tasks', 'single', $dRec->taskId);
+                if (doc_Threads::haveRightFor('single', $tRec->threadId)) {
+                    $hnd = $this->getHandle($tRec->id);
+                    $res->url = array('doc_Containers', 'list', 'threadId' => $tRec->threadId, 'docId' => $hnd, 'serial' => $str, 'Q' => $str, '#' => $hnd);
+                } else {
+                    $res->url = array('planning_Tasks', 'single', $dRec->taskId, 'Q' => $str);
+                }
                 
                 $dRow = planning_ProductionTaskDetails::recToVerbal($dRec);
                 $res->comment = tr('Артикул') . ': ' . $dRow->productId . ' ' . tr('Количество') . ': ' . $dRow->quantity . $dRow->shortUoM;
@@ -1198,5 +1218,30 @@ class planning_Tasks extends core_Master
         }
         
         return $resArr;
+    }
+    
+    
+    /**
+     * Преди подготовка на сингъла
+     */
+    protected static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
+    {
+        if (Request::get('printworkcard', 'int')) {
+            Mode::set('printworkcard', true);
+        }
+    }
+    
+    
+    /**
+     * Поставя бутони за генериране на други банкови документи възоснова
+     * на този, само ако документа е "чернова"
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+        
+        if ($mvc->haveRightFor('single', $rec)) {
+            $data->toolbar->addBtn('Работна карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/print_go.png,title=Печат на работна карта за производствената операция');
+        }
     }
 }

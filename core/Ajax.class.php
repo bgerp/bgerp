@@ -26,9 +26,13 @@ class core_Ajax extends core_Mvc
      */
     public function act_Get()
     {
+        // Ако е пуснат терминала, пускаме сесията
+        if (Request::get('Terminal')) {
+            peripheral_Terminal::setSessionPrefix();
+        }
+        
         // Ако не сме в DEBUG режим
         if (!isDebug()) {
-            
             // Очаквае заявката да е по AJAX - да има такъв хедър
             if (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
                 self::logNotice('Стартиране на core_Ajax::get() извън AJAX' . core_Type::mixedToString(Request::$vars) . '. IP: ' . core_Users::getRealIpAddr() . ' BRID: ' . log_Browsers::getBrid());
@@ -239,6 +243,15 @@ class core_Ajax extends core_Mvc
             $url['Printing'] = $printing;
         } elseif (Mode::get('printing')) {
             $url['Printing'] = 1;
+        }
+        
+        // Ако е пуснат терминала
+        try {
+            if (cls::get('core_Session')->getDecoratePrefix() == 'terminal_') {
+                $url['Terminal'] = 1;
+            }
+        } catch (Throwable $e) {
+            reportException($e);
         }
         
         $url = toUrl($url);

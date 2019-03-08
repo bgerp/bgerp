@@ -144,6 +144,7 @@ class pos_ReceiptDetails extends core_Detail
      */
     public function act_setDiscount()
     {
+        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('add');
         
         if (!$recId = Request::get('recId', 'int')) {
@@ -261,6 +262,7 @@ class pos_ReceiptDetails extends core_Detail
      */
     public function act_setQuantity()
     {
+        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('add');
         
         // Трябва да има избран ред
@@ -338,6 +340,7 @@ class pos_ReceiptDetails extends core_Detail
      */
     public function act_makePayment()
     {
+        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('add');
         
         // Трябва да е избрана бележка
@@ -427,6 +430,7 @@ class pos_ReceiptDetails extends core_Detail
      */
     public function act_DeleteRec()
     {
+        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('delete');
         
         // Трябва да има ид на ред за изтриване
@@ -531,7 +535,7 @@ class pos_ReceiptDetails extends core_Detail
         $productInfo = cat_Products::getProductInfo($rec->productId);
         $perPack = ($productInfo->packagings[$rec->value]) ? $productInfo->packagings[$rec->value]->quantity : 1;
         
-        $price = $this->Master->getDisplayPrice($rec->price, $rec->param, $rec->discountPercent);
+        $price = $this->Master->getDisplayPrice($rec->price, $rec->param, $rec->discountPercent, pos_Receipts::fetchField($rec->receiptId, 'pointId'));
         $row->price = $Double->toVerbal($price);
         $row->amount = $Double->toVerbal($price * $rec->quantity);
         if ($rec->discountPercent < 0) {
@@ -775,7 +779,9 @@ class pos_ReceiptDetails extends core_Detail
      */
     public function act_Load()
     {
+        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('load');
+        
         expect($receiptId = Request::get('receiptId', 'int'));
         expect($receiptRec = pos_Receipts::fetch($receiptId));
         $this->requireRightFor('load', (object)array('receiptId' => $receiptId));

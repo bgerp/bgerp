@@ -247,7 +247,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Изчислява израза
      *
-     * @param text  $expr   - формулата
+     * @param string  $expr   - формулата
      * @param array $params - параметрите
      *
      * @return string $res - изчисленото количество

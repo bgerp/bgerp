@@ -84,7 +84,7 @@ class cal_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'CAL_WAITING_SHOW_TOP_TIME' => array('time(suggestions=12 часа|1 ден|2 дена)', 'caption=Време под което чакащите задачи ще се преместят над останалите в портала->Време'),
-        'CAL_SHOW_HOLIDAY_TYPE' => array('set', 'caption=Типове събития|*&#44; |*които да се показват в календара->Избор, customizeBy=powerUser, optionsFunc=cal_Setup::getHolidayTypeOptions, autohide'),
+        'CAL_SHOW_HOLIDAY_TYPE' => array('set', 'caption=Типове събития|*&#44; |които да се показват в календара->Избор, customizeBy=powerUser, optionsFunc=cal_Setup::getHolidayTypeOptions, autohide'),
     );
     
     

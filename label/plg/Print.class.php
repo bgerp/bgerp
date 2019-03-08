@@ -35,7 +35,7 @@ class label_plg_Print extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if (isset($fields['-list']) && $mvc->hasPlugin('plg_RowTools2')) {
+        if ($mvc->hasPlugin('plg_RowTools2')) {
             $btnParams = self::getLabelBtnParams($mvc, $rec);
             if (!empty($btnParams['url'])) {
                 core_RowToolbar::createIfNotExists($row->_rowTools);
@@ -63,6 +63,7 @@ class label_plg_Print extends core_Plugin
         
         if ($mvc->haveRightFor('printlabel', $rec)) {
             $templates = $mvc->getLabelTemplates($rec);
+            
             $error = (!count($templates)) ? ",error=Няма наличен шаблон за етикети от \"{$mvc->title}\"" : '';
             $Source = $mvc->getLabelSource($rec);
             

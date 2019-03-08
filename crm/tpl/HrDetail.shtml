@@ -1,6 +1,6 @@
 <table>
 <!--ET_BEGIN code-->
-<tr><td  class='quiet'>|Служебен код|*</td><td>[#code#]</td></tr>
+<tr><td  class='quiet'>|Служебен код|*</td><td><span class='persons-hr-code'>[#code#]</span> [#code_toolbar#]</td></tr>
 <!--ET_END code-->
 
 <!--ET_BEGIN contract-->
