@@ -222,7 +222,7 @@ class planning_Tasks extends core_Master
         
         $this->FLD('indTime', 'time(noSmart,decimals=2)', 'caption=Време за производство->Норма,smartCenter');
         $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Време за производство->Опаковка,input=hidden,tdClass=small-field nowrap');
-        $this->FLD('indTimeAllocation', 'enum(common=Oбщо,individual=Поотделно)', 'caption=Време за производство->Разпределяне,smartCenter,notNull,value=common');
+        $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Време за производство->Разпределяне,smartCenter,notNull,value=common');
         
         $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото->Режим,notNull,value=yes');
         $this->FLD('weightDeviationNotice', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Отбелязване,unit=+/-');
@@ -284,7 +284,7 @@ class planning_Tasks extends core_Master
      * Извиква се преди рендирането на 'опаковката'
      */
     protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
-    { 
+    {
         if(Mode::is('printworkcard')){
             $tpl = getTplFromFile('planning/tpl/SingleWorkCard.shtml');
         } else {
@@ -428,7 +428,7 @@ class planning_Tasks extends core_Master
         }
         
         if(empty($rec->indTime)){
-            $row->indTime = "<span class='quiet'>N/A</span>"; 
+            $row->indTime = "<span class='quiet'>N/A</span>";
         }
         
         if(empty($rec->packagingId)){
@@ -554,7 +554,7 @@ class planning_Tasks extends core_Master
             $row->weightDeviationWarning = core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING'));
         }
     }
-
+    
     
     /**
      * След подготовка на антетката
@@ -566,7 +566,7 @@ class planning_Tasks extends core_Master
             foreach ((array) $headerArr as $value) {
                 $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 10px;\"><b>{$value['val']}</b></td>");
                 $name = new ET("<td class='nowrap' style='width: 1%;border-bottom: 1px solid #ccc; font-weight: bold;'>{$value['name']}</td>");
-
+                
                 $res->append('<tr>');
                 $res->append($name);
                 $res->append('</tr><tr>');
@@ -576,6 +576,7 @@ class planning_Tasks extends core_Master
             $res->append("</table>");
         }
     }
+    
     
     /**
      * Обновява данни в мастъра
@@ -989,7 +990,7 @@ class planning_Tasks extends core_Master
         
         // Филтър по всички налични департаменти
         $folders = doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf');
-       
+        
         if (count($folders)) {
             $data->listFilter->setField('folderId', 'input');
             $data->listFilter->setOptions('folderId', array('' => '') + $folders);
@@ -1187,10 +1188,15 @@ class planning_Tasks extends core_Master
             
             $res = new stdClass();
             $tRec = $this->fetch($dRec->taskId);
-            $res->title = $tRec->title;
+            $res->title = tr('ПО') . ': ' . $tRec->title;
             
             if ($this->haveRightFor('single', $tRec)) {
-                $res->url = array('planning_Tasks', 'single', $dRec->taskId, 'Q' => $str);
+                if (doc_Threads::haveRightFor('single', $tRec->threadId)) {
+                    $hnd = $this->getHandle($tRec->id);
+                    $res->url = array('doc_Containers', 'list', 'threadId' => $tRec->threadId, 'docId' => $hnd, 'search' => $str, 'Q' => $str, '#' => $hnd);
+                } else {
+                    $res->url = array('planning_Tasks', 'single', $dRec->taskId, 'Q' => $str);
+                }
                 
                 $dRow = planning_ProductionTaskDetails::recToVerbal($dRec);
                 $res->comment = tr('Артикул') . ': ' . $dRow->productId . ' ' . tr('Количество') . ': ' . $dRow->quantity . $dRow->shortUoM;

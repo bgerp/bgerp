@@ -167,11 +167,11 @@ class rack_Pallets extends core_Manager
         if (!$storeId) {
             $storeId = store_Stores::getCurrent();
         }
-
+        
         list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
         $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
-                
+        
         // Ако намерим палет с този продукт и свободно място към края на стелажа - вземаме него
         $haveInRack = $nearProds = array();
         $inFirstRow = 0;
@@ -192,12 +192,12 @@ class rack_Pallets extends core_Manager
         $rQuery = rack_Racks::getQuery();
         $bestScore = 0;
         $bestPos = '';
-
+        
         if(isset($pRec->productId)){
             $nearProds[$pRec->productId] = 1;
             $relData = sales_ProductRelations::fetchField("#productId = {$pRec->productId}", 'data');
         }
-
+        
         if(is_array($relData)) {
             $i = 2;
             foreach($relData as $npId => $m) {
@@ -211,13 +211,13 @@ class rack_Pallets extends core_Manager
                 for ($rInd = 'A'; $rInd <= $rRec->rows; $rInd++) {
                     
                     $pos = "{$rRec->num}-{$rInd}-{$cInd}";
-
+                    
                     if ($used[$pos] || $unusable[$pos] || ($reserved[$pos] && $reserved[$pos] != $pRec->productId) || $movedTo[$pos]) {
                         continue;
                     }
                     
                     $score = 0;
-
+                    
                     $posUp = "{$rRec->num}-" . chr(ord($rInd)+1) . "-{$cInd}";
                     $posDw = "{$rRec->num}-" . chr(ord($rInd)-1) . "-{$cInd}";
                     $posLf = "{$rRec->num}-{$rInd}-" . ($cInd - 1);
@@ -227,12 +227,12 @@ class rack_Pallets extends core_Manager
                     if($haveInRack[$rRec->num]) {
                         $score += 0.2;
                     }
-
+                    
                     // Ако имаме резервирана позиция за този продукт
                     if($reserved[$pos] == $pRec->productId) {
                         $score += 6;
                     }
-
+                    
                     // Ако нямаме достатъчно на ниска позиция
                     if($rInd == 'A') {
                         if($inFirstRow < 1) {
@@ -241,7 +241,7 @@ class rack_Pallets extends core_Manager
                             $score -= 2;
                         }
                     }
-
+                    
                     // По-ниското е по-добре
                     $score += 1 - (ord($rInd) - ord('A'))/10;
                     
@@ -253,16 +253,16 @@ class rack_Pallets extends core_Manager
                     if($used[$posDw] == $pRec->productId) {
                         $score += 3.5;
                     }
-           
+                    
                     // Ако левия или десния са от този продукт или близки на него
                     if($weight = $nearProds[$used[$posRg]->productId]) {
                         $score += $weight;
                     }
-
+                    
                     if($weight = $nearProds[$used[$posLf]->productId]) {
                         $score += 1.2 * $weight;
                     }
-
+                    
                     // Отделяме най-добрият резултат
                     if ($score > $bestScore) {
                         $bestPos = $pos;
@@ -680,7 +680,7 @@ class rack_Pallets extends core_Manager
         }
         
         $quantityOnPallets = rack_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantityNotOnPallets');
-       
+        
         if(!empty($batch)){
             $batchQuantity = batch_Items::getQuantity($productId, $batch, $storeId);
             
@@ -835,9 +835,9 @@ class rack_Pallets extends core_Manager
         $palletCount = $query->count();
         $palletCountVerbal = core_Type::getByName('int')->toVerbal($palletCount);
         
-        
-        $res = (object)array('title' => cat_Products::getHyperlink($prodAndPack->productId, true), 
-                             'url' => array(), 
+        $artStr = tr('Артикул');
+        $res = (object)array('title' => $artStr . ': ' . cat_Products::getHyperlink($prodAndPack->productId, true),
+                             'url' => array(),
                              'comment' => '',
                              'priority' => 1);
         
@@ -851,7 +851,7 @@ class rack_Pallets extends core_Manager
             $quantityNotOnPalletsVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantityNotOnPallets);
             $measureId = cat_Products::fetchField($prodAndPack->productId, 'measureId');
             $packName = tr(cat_UoM::getVerbal($measureId, 'name'));
-          
+            
             $quantityNotOnPalletsVerbal .= " " . str::getPlural($quantityNotOnPallets, $packName, true);
             $res->comment .= $res->comment ? ' ' . tr('и') . ' ' : '';
             $res->comment .= $quantityNotOnPalletsVerbal . ' ' . tr('непалетирани');
@@ -875,7 +875,10 @@ class rack_Pallets extends core_Manager
     
     public static function getFloorToPalletImgLink($storeId, $productId, $packagingId, $packQuantity, $batch = null)
     {
-        if(store_Stores::getCurrent('id', false) != $storeId) return false;
+        if (store_Stores::getCurrent('id', false) != $storeId) {
+            
+            return false;
+        }
         
         if (rack_Movements::haveRightFor('add', (object) array('productId' => $productId))){
             $addPalletUrl = array('rack_Movements', 'add', 'productId' => $productId, 'packagingId' => $packagingId, 'packQuantity' => $packQuantity, 'fromIncomingDocument' => 'yes', 'movementType' => 'floor2rack', 'ret_url' => true);

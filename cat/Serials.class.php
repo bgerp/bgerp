@@ -249,7 +249,7 @@ class cat_Serials extends core_Manager
             $clsRec = $clsInst->fetch($catRec->sourceObjectId);
             
             $res = new stdClass();
-            $res->title = $clsInst->getTitleById($catRec->sourceObjectId);
+            $res->title = tr('СН') . ': ' . $clsInst->getTitleById($catRec->sourceObjectId);
             
             $res->priority = 1;
             if ($clsRec->state == 'active') {
@@ -278,7 +278,7 @@ class cat_Serials extends core_Manager
             
             $resArr[] = $res;
         }
-       
+        
         return $resArr;
     }
 }
