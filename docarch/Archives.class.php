@@ -27,11 +27,6 @@ class docarch_Archives extends core_Master
      */
     public $canReject = 'ceo,docarchMaster';
     
-    /**
-     * Кой може да го разглежда?
-     */
-    public $canList = 'ceo,docarch,docarchMaster';
-    
     
     /**
      * Кой може да го разглежда?
