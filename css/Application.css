@@ -302,6 +302,11 @@ div.folder-cover {
   div.folder-cover .groupList {
     font-size: 0.95em;
     max-width: 725px; }
+    div.folder-cover .groupList .toolbar-btn {
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      position: relative;
+      top: -2px; }
     div.folder-cover .groupList .listTopContainer {
       min-width: 300px; }
     div.folder-cover .groupList div.rowtools {
@@ -4879,7 +4884,7 @@ td.rack-same {
 body.narrow {
   font-size: 18px; }
 
-row-fluid {
+.row-fluid {
   width: 100%;
   *zoom: 1; }
 
