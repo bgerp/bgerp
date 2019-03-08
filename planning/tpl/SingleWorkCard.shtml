@@ -1,12 +1,16 @@
-<div class="fleft" style="margin-right: 20px;"> [#QR_CODE#]</div>
-<div class="fleft" style="line-height: 200%; margin-bottom: 10px; padding: 15px 0 ">
-    <div>[#MyCompany#]</div>
-    <div>[#title#] -
-        <b>[#plannedQuantity#][#measureId#]</b>
-    </div>
-</div>
-<div class="clearfix21"></div>
+<table style="width: 100%">
+    <tr>
+        <td style="width: 20%; text-align: center;">
+            [#QR_CODE#]
+            <div style="margin-top: 10px;">[#MyCompany#]</div>
+        </td>
+        <td><div style="margin-bottom: 10px;">
+            <b> [#title#] - [#plannedQuantity#][#measureId#]</b>
+            </div>
+            [#productDescription#]
+            <div style="font-size: 0.85em">[#PARAMS#]</div>
+        </td>
 
- [#productDescription#]
-<div style="font-size: 0.85em">[#PARAMS#]</div>
+    </tr>
+</table>
 <hr>
