@@ -178,7 +178,7 @@ class peripheral_Terminal extends core_Master
             $form = cls::get('core_Form');
             $form->class = 'simpleForm simplePortalLogin';
             
-            $form->FLD('terminalId', 'key(mvc=peripheral_Terminal, select=name)', 'caption=Терминал, removeAndRefreshForm=user|pin, mandatory, silent');
+            $form->FLD('terminalId', 'key(mvc=peripheral_Terminal, select=name)', 'caption=Терминал, removeAndRefreshForm=user|pin, mandatory, silent,class=w100');
             
             $brid = log_Browsers::getBrid();
             
@@ -217,7 +217,7 @@ class peripheral_Terminal extends core_Master
             $form->input('terminalId', true);
             
             if ($form->rec->terminalId) {
-                $form->FLD('user', 'key(mvc=core_Users, select=nick)', 'caption=Потребител, mandatory, silent');
+                $form->FLD('user', 'key(mvc=core_Users, select=nick)', 'caption=Потребител, mandatory, silent,class=w100');
                 
                 $tRec = $this->fetch($form->rec->terminalId);
                 
@@ -245,7 +245,7 @@ class peripheral_Terminal extends core_Master
                 $form->setOptions('user', $usersArr);
                 
                 if ($tRec->usePin == 'yes') {
-                    $form->FLD('pin', 'password', 'caption=ПИН, mandatory, silent, focus');
+                    $form->FLD('pin', 'password', 'caption=ПИН, mandatory, silent,class=w100');
                 }
             }
             

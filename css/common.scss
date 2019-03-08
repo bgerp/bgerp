@@ -1528,7 +1528,7 @@ table.listTable {
     max-width: 915px !important;
 }
 
-table.listTable:not(.noHoverTable) > tbody > tr:hover {
+table.listTable:not(.noHoverTable) > tbody > tr:hover, table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
  	background-color: $beige;
     &.state-draft {
         background-color: darken(#bff, 10%);
