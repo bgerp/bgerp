@@ -13,14 +13,14 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Сървърен мониторинг
+ * @title     Мониторинг на сървър
  */
 class sens2_ServMon extends sens2_ProtoDriver
 {
     /**
      * Заглавие на драйвера
      */
-    public $title = 'Сървърен мониторинг';
+    public $title = 'Мониторинг на сървър';
     
     
     /**
