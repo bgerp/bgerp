@@ -1222,12 +1222,9 @@ class planning_Jobs extends core_Master
         
         // За всички цехове, добавя се опция за добавяне
         $options2 = array();
-        $departments = cls::get('planning_Centers')->makeArray4Select('name');
-        foreach ($departments as $dId => $dName) {
-            $depFolderId = planning_Centers::fetchField($dId, 'folderId');
-            if (doc_Folders::haveRightToFolder($depFolderId)) {
-                $options2["new|{$depFolderId}"] = 'В ' . planning_Centers::getTitleById($dId);
-            }
+        $departments = planning_Centers::getCentersForTasks($rec->id);
+        foreach ($departments as $depFolderId => $dName) {
+            $options2["new|{$depFolderId}"] = tr("В|* {$dName}");
         }
         
         $options += array('new' => (object) array('group' => true, 'title' => tr('Нови операции'))) + $options2;
