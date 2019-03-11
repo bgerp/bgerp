@@ -69,7 +69,7 @@ class sens2_DomainMon extends sens2_ProtoDriver
         }
 
         if ($inputs['loadTime']) {
-            $res['loadTime'] = $this->getLoadTime($config);
+            $res['loadTime'] = $this->getLoadTime($config->domain, $config->altDomain);
         }
          
         return $res;
@@ -123,14 +123,14 @@ class sens2_DomainMon extends sens2_ProtoDriver
     {
         $timeStart = microtime(true);
 
-        $txt = @file_get_contents('http://' . $config->domain);
-        if($txt === false) {
+        $txt = @file_get_contents('http://' . $domain);
+        if($txt === false) { bp();
             return -1;
         }
         $c = 1;
         if(strlen($altDomain)) {
-            $txt2 = @file_get_contents('http://www.' . $altDomain);
-            if($txt != $txt2) {
+            $txt2 = @file_get_contents('http://' . $altDomain);
+            if(!strlen($txt2)) {
                 return -1;
             }
             $c = 2;
