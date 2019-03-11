@@ -116,7 +116,7 @@ class cond_Payments extends core_Manager
     public function loadSetupData()
     {
         $file = 'cond/csv/Pospayments.csv';
-        $fields = array(0 => 'title', 1 => 'state', 2 => 'change', 3 => 'code', 4 => 'currencyCode',);
+        $fields = array(0 => 'title', 1 => 'state', 2 => 'change', 3 => 'code', 4 => 'currencyCode');
         
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
         $res = $cntObj->html;
