@@ -990,7 +990,7 @@ class core_Html
         }
         
         if (!isset($attr['alt'])) {
-            $attr['alt'] = '';
+            $attr['alt'] = ' ';
         }
         
         $res = self::createElement('img', $attr);
