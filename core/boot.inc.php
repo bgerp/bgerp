@@ -568,14 +568,20 @@ function bp()
  */
 function wp()
 {
-    return;
-
-    try {
-        $dump = func_get_args();
+    static $isReporting;
     
-        throw new core_exception_Watching('@Наблюдение', 'Наблюдение', $dump);
-    } catch (core_exception_Watching $e) {
-        reportException($e);
+    if (!$isReporting) {
+        $isReporting = true;
+        core_Debug::$isErrorReporting = true;
+        try {
+            $dump = func_get_args();
+            
+            throw new core_exception_Watching('@Наблюдение', 'Наблюдение', $dump);
+        } catch (core_exception_Watching $e) {
+            reportException($e);
+        }
+        core_Debug::$isErrorReporting = false;
+        $isReporting = false;
     }
 }
 

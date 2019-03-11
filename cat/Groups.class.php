@@ -37,7 +37,7 @@ class cat_Groups extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Наименование,productCnt,orderProductBy';
+    public $listFields = 'name=Наименование,productCnt,orderProductBy,createdOn,createdBy';
     
     
     /**

@@ -1,20 +1,20 @@
-<?php
+// <?php
 
 
 /**
- * Мениджър на отчети за Фактури по контрагент
+ * Мениджър на тестови отчети
  *
  * @category  bgerp
- * @package   acc
+ * @package   myself
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Счетоводство » Фактури по контрагент
+ * @title     Тестовe » Тестов отчет
  */
-class acc_reports_InvoicesByContragent extends frame2_driver_TableData
+class myself_reports_TestReports extends frame2_driver_TableData
 {
     /**
      * Кой може да избира драйвъра

@@ -97,9 +97,10 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
             }
             
             if (array_key_exists($key, $combinedDetails)) {
-                $combinedDetails[$key]->quantity += $dRec->quantity;
+                $combinedDetails[$key]->quantity += $dRec->quantity * $dRec->quantityInPack;
             } else {
                 $combinedDetails[$key] = $dRec;
+                $combinedDetails[$key]->quantity *= $dRec->quantityInPack;
             }
         }
         
