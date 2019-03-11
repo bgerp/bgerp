@@ -1542,24 +1542,25 @@ class cat_Products extends embed_Manager
      * Първия елемент на масива е основната опаковка (ако няма основната мярка)
      *
      * @param int $productId - ид на артикул
+     * @param boolean $onlyMeasures - дали да се връщат само мерките на артикула
      *
      * @return array $options - опаковките
      */
-    public static function getPacks($productId)
+    public static function getPacks($productId, $onlyMeasures = false)
     {
         $options = array();
-        $productRec = cat_Products::fetch($productId, 'measureId,canStore');
-        if (empty($productRec)) {
-            
-            return;
-        }
+        expect($productRec = cat_Products::fetch($productId, 'measureId,canStore'));
         
         // Определяме основната мярка
         $baseId = $productRec->measureId;
         if ($productRec->canStore == 'yes') {
             $packQuery = cat_products_Packagings::getQuery();
+            $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
             $packQuery->where("#productId = {$productRec->id}");
             $packQuery->show('packagingId,isBase');
+            if($onlyMeasures === true){
+                $packQuery->where("#type = 'uom'");
+            }
             
             while ($packRec = $packQuery->fetch()) {
                 $options[$packRec->packagingId] = cat_UoM::getTitleById($packRec->packagingId, false);

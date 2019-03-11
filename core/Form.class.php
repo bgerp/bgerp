@@ -577,14 +577,17 @@ class core_Form extends core_FieldSet
             $cntWrn = 0;
             
             foreach ($this->errors as $field => $errRec) {
-                if ($errRec->msg) {
-                    if (!$errRec->ignorable) {
-                        $tpl->append('<li>' . tr($errRec->msg) . '</li>', 'ERROR_ROWS');
-                        $cntErr++;
-                    } else {
-                        $tpl->append('<li>' . tr($errRec->msg) . '</li>', 'WARNING_ROWS');
-                        $cntWrn++;
-                    }
+                if(empty($errRec->msg)){
+                    $fieldCaption = tr($this->fields[$field]->caption);
+                    $errRec->msg = "Има проблем с полето|* <b>{$fieldCaption}</b>";
+                }
+                
+                if (!$errRec->ignorable) {
+                    $tpl->append('<li>' . tr($errRec->msg) . '</li>', 'ERROR_ROWS');
+                    $cntErr++;
+                } else {
+                    $tpl->append('<li>' . tr($errRec->msg) . '</li>', 'WARNING_ROWS');
+                    $cntWrn++;
                 }
             }
             
