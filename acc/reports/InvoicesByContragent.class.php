@@ -447,9 +447,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         
         // ВХОДЯЩИ ФАКТУРИ
         if ($rec->typeOfInvoice == 'in') {
-            $pRecs = array();
+            $pRecs = $pRecsAll = array();
             $isRec = array();
-            $totalInvoiceContragent = array();
+            $totalInvoiceContragent = $totalInvoiceContragentAll = array();
             
             $pQuery = purchase_Invoices::getQuery();
             
@@ -538,7 +538,58 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
             
             // Фактури ПОКУПКИ
-            while ($purchaseInvoices = $pQuery->fetch()) {if($purchaseInvoices->type != 'invoice')
+            while ($purchaseInvoices = $pQuery->fetch()) {
+                
+                // Когато е избрано ВСИЧКИ в полето плащане
+                if ($rec->unpaid == 'all'){
+                    
+                    $invoiceValue =  $purchaseInvoices->dealValue + $purchaseInvoices->vatAmount;
+                    $Invoice = doc_Containers::getDocument($purchaseInvoices->containerId);
+                    
+                    // масива с фактурите за показване
+                    if (! array_key_exists($purchaseInvoices->id, $pRecsAll)) {
+                        $pRecsAll[$purchaseInvoices->id] = (object) array(
+                            
+                            'threadId' => $purchaseInvoices->threadId,
+                            'className' => $Invoice->className,
+                            'invoiceId' => $purchaseInvoices->id,
+                            'invoiceNo' => $purchaseInvoices->number,
+                            'invoiceDate' => $purchaseInvoices->date,
+                            'dueDate' => $purchaseInvoices->dueDate,
+                            'invoiceContainerId' => $purchaseInvoices->containerId,
+                            'currencyId' => $purchaseInvoices->currencyId,
+                            'rate' => $purchaseInvoices->rate,
+                            'invoiceValue' => $invoiceValue,
+                            'invoiceVAT' => $purchaseInvoices->vatAmount,
+                            'contragent' => $purchaseInvoices->contragentName,
+                            'type' => $purchaseInvoices->type
+                        );
+                    }
+                    
+                    // Масив с данни за сумите от фактурите  обединени по контрагенти
+                    if (! array_key_exists($purchaseInvoices->contragentName, $totalInvoiceContragentAll)) {
+                        $totalInvoiceContragentAll[$purchaseInvoices->contragentName] = (object) array(
+                            'totalInvoiceValue' => $invoiceValue, //общо стойност на фактурите за контрагента
+                            'totalInvoiceVAT' => $purchaseInvoices->vatAmount,//общо стойност на ДДС по фактурите за контрагента
+                            
+                        );
+                    } else {
+                        $obj = &$totalInvoiceContragentAll[$purchaseInvoices->contragentName];
+                        
+                        $obj->totalInvoiceValue += $invoiceValue;
+                        $obj->totalInvoiceVAT += $purchaseInvoices->vatAmount;
+                        
+                    }
+                    continue;
+                }
+                
+                ///////////////////
+                
+                
+                
+                
+                
+                
                 $firstDocument = doc_Threads::getFirstDocument($purchaseInvoices->threadId);
                 
                 $firstDocumentArr[$purchaseInvoices->threadId] = $firstDocument->that;
@@ -663,8 +714,16 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         
         //Ако е избрано плащане ВСИЧКИ заместваме масива sRecs с sRecsAll
         if($rec->unpaid == 'all'){
-            $sRecs = array();
-            $sRecs +=$sRecsAll;
+            
+            if ($rec->typeOfInvoice == 'out'){
+                $sRecs = array();
+                $sRecs +=$sRecsAll;
+            }
+            
+            if ($rec->typeOfInvoice == 'in'){
+                $pRecs = array();
+                $pRecs +=$pRecsAll;
+            }
         }
         
         
@@ -678,7 +737,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
         
         $recs = $rec->typeOfInvoice == 'out' ? $sRecs : $pRecs;
-        
+       
         unset(
             $rec->totalInvoiceValueAll,
             $rec->totalInvoicePayoutAll,
@@ -1068,7 +1127,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
         }
         
-        //Платено по фактури
+        
+        
+        //Само когато е избрано 'НЕПЛАТЕНИ' фактури
+        if ($data->rec->unpaid == 'unpaid') {
+            
+            //Платено по фактури
         if (isset($data->rec->totalInvoicePayoutAll)) {
             if (is_numeric($data->rec->totalInvoiceValueAll)) {
                 $fieldTpl->append(
@@ -1082,9 +1146,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     );
             }
         }
-        
-        //Само когато е избрано 'НЕПЛАТЕНИ' фактури
-        if ($data->rec->unpaid == 'unpaid') {
             
             //НЕДОплатено по фактури
             if (isset($data->rec->totalInvoiceNotPaydAll)) {
