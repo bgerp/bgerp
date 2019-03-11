@@ -125,7 +125,7 @@ class planning_ProductionTaskProducts extends core_Detail
      * @param stdClass $rec
      * @return array $res
      */
-    private function getProductOptions($rec)
+    private static function getProductOptions($rec)
     {
         if(empty($rec->id)){
             $meta = ($rec->type == 'input') ? 'canConvert' : (($rec->type == 'waste') ? 'canStore,canConvert' : 'canManifacture');
