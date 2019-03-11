@@ -120,6 +120,34 @@ class planning_ProductionTaskProducts extends core_Detail
     
     
     /**
+     * Дефолтно опции за артикула
+     * 
+     * @param stdClass $rec
+     * @return array $res
+     */
+    private function getProductOptions($rec)
+    {
+        if(empty($rec->id)){
+            $meta = ($rec->type == 'input') ? 'canConvert' : (($rec->type == 'waste') ? 'canStore,canConvert' : 'canManifacture');
+            $options = cat_Products::getByProperty($meta);
+            
+            $query = self::getQuery();
+            $query->where("#taskId = {$rec->taskId}");
+            $query->show('productId');
+            $existingProducts = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+            $res = array_diff_key($options, $existingProducts);
+            
+            return $res;
+        }
+        
+        $productId = planning_ProductionTaskProducts::fetchField($rec->id, 'productId');
+        $res = array($productId => cat_Products::getTitleById($productId, false));
+        
+        return $res;
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
@@ -134,10 +162,8 @@ class planning_ProductionTaskProducts extends core_Detail
         
         // Ако има тип
         if (isset($rec->type)) {
-            $meta = ($rec->type == 'input') ? 'canConvert' : (($rec->type == 'waste') ? 'canStore,canConvert' : 'canManifacture');
-            $products = cat_Products::getByProperty($meta);
-            unset($products[$masterRec->productId]);
-            
+            $products = self::getProductOptions($rec);
+           
             // Задаваме опциите с артикулите за избор
             $form->setOptions('productId', array('' => '') + $products);
             if (count($products) == 1) {
@@ -182,7 +208,7 @@ class planning_ProductionTaskProducts extends core_Detail
             $unit = str_replace('&nbsp;', ' ', $unit);
             $form->setField('plannedQuantity', array('unit' => $unit));
             
-            if ($form->rec != 'refresh' && planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #productId = {$rec->productId}")) {
+            if(isset($rec->id)){
                 $form->setReadOnly('productId');
                 $form->setReadOnly('packagingId');
                 if (!haveRole('ceo,planningMaster')) {
