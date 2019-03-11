@@ -1,4 +1,4 @@
-<?php
+// <?php
 
 
 /**
@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Тестови » Тестов отчет
+ * @title     Тестовe » Тестов отчет1
  */
 class myself_reports_TestReport extends frame2_driver_TableData
 {
