@@ -332,6 +332,7 @@ class rack_Zones extends core_Master
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         $tpl->push('rack/css/style.css', 'CSS');
+        
     }
     
     

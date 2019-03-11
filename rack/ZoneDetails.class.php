@@ -63,7 +63,7 @@ class rack_ZoneDetails extends core_Detail
     /**
      * Полета в листовия изглед
      */
-    public $listFields = 'productId, batch, status=Състояние,movementsHtml=@, packagingId, batch';
+    public $listFields = 'id, productId, batch, status=Състояние,movementsHtml=@, packagingId, batch';
     
     
     /**
@@ -81,7 +81,7 @@ class rack_ZoneDetails extends core_Detail
      */
     public $tableRowTpl = "[#ROW#][#ADD_ROWS#]\n";
 
-    
+    public static $allocatedMovements = array();
     /**
      * Описание на модела (таблицата)
      */
@@ -324,6 +324,7 @@ class rack_ZoneDetails extends core_Detail
         $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => $masterRec, 'listTableHideHeaders' => true, 'inlineDetail' => true);
         $dData = $me->prepareDetail($dData);
         if(!count($dData->recs)) return $tpl;
+        unset($dData->listFields['id']);
         
         $tpl = $me->renderDetail($dData);
         $tpl->removePlaces();
@@ -354,10 +355,19 @@ class rack_ZoneDetails extends core_Detail
         $Movements->setField('workerId', "tdClass=inline-workerId");
         $skipClosed = ($masterRec->_isSingle === true) ? false : true;
         $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $skipClosed);
+        $allocated = &rack_ZoneDetails::$allocatedMovements[$rec->zoneId];
+        $allocated = is_array($allocated) ? $allocated : array();
         
         list($productId, $packagingId, $batch) = array($rec->productId, $rec->packagingId, $rec->batch);
-        $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId, $batch){return $o->productId == $productId && $o->packagingId == $packagingId && $o->batch == $batch;});
+        $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId, $batch, $allocated){
+            return $o->productId == $productId && $o->packagingId == $packagingId && $o->batch == $batch && !array_key_exists($o->id, $allocated);
+        });
+        
         $rec->_movements = $data->recs;
+        if(count($rec->_movements)){
+            $allocated += $rec->_movements;
+        }
+        
         $requestedProductId = Request::get('productId', 'int');
         
         foreach ($data->recs as $mRec) {
