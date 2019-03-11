@@ -64,15 +64,18 @@ class label_plg_Print extends core_Plugin
         if ($mvc->haveRightFor('printlabel', $rec)) {
             $templates = $mvc->getLabelTemplates($rec);
             
-            $error = (!count($templates)) ? ",error=Няма наличен шаблон за етикети от \"{$mvc->title}\"" : '';
-            $Source = $mvc->getLabelSource($rec);
+            $title = tr($mvc->title);
+            $title = mb_strtolower($title);
             
-            if (label_Prints::haveRightFor('add', (object) array('classId' => $Source['class']->getClassid(), 'objectId' => $Source['id']))) {
+            $error = (!count($templates)) ? ",error=Няма наличен шаблон за етикети от|* \"{$title}\"" : '';
+            $source = $mvc->getLabelSource($rec);
+            
+            if (label_Prints::haveRightFor('add', (object) array('classId' => $source['class']->getClassid(), 'objectId' => $source['id']))) {
                 core_Request::setProtected(array('classId, objectId'));
-                $res['url'] = array('label_Prints', 'add', 'classId' => $Source['class']->getClassid(), 'objectId' => $Source['id'], 'ret_url' => true);
+                $res['url'] = array('label_Prints', 'add', 'classId' => $source['class']->getClassid(), 'objectId' => $source['id'], 'ret_url' => true);
                 $res['url'] = toUrl($res['url']);
                 core_Request::removeProtected('classId,objectId');
-                $res['attr'] = "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети от|* |{$mvc->title}|* №{$rec->id}{$error}";
+                $res['attr'] = "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети от|* {$title} №{$rec->id}{$error}";
             }
         }
         
