@@ -820,9 +820,10 @@ class rack_Movements extends core_Manager
         $data->listFilter->setField('fromIncomingDocument', 'input=none');
         $data->listFilter->FLD('from', 'date');
         $data->listFilter->FLD('to', 'date');
+        $data->listFilter->FNC('documentHnd', 'varchar', 'placeholder=Документ,caption=Документ,input,silent,recently');
         $data->listFilter->FLD('state1', 'enum(,pending=Чакащи,active=Активни,closed=Приключени)', 'placeholder=Всички');
         
-        $data->listFilter->showFields = 'selectPeriod,workerId,search,state1';
+        $data->listFilter->showFields = 'selectPeriod,workerId,search,documentHnd,state1';
         $data->listFilter->input();
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -844,8 +845,8 @@ class rack_Movements extends core_Manager
                 $data->query->where("#workerId = '{$filterRec->workerId}'");
             }
             
-            if(!empty($filterRec->search)){
-                if($foundDocument = doc_Containers::getDocumentByHandle($filterRec->search)){
+            if(!empty($filterRec->documentHnd)){
+                if($foundDocument = doc_Containers::getDocumentByHandle($filterRec->documentHnd)){
                     $data->query->where("LOCATE('|{$foundDocument->fetchField('containerId')}|', #documents)");
                 }
             }

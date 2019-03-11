@@ -279,7 +279,7 @@ class cms_Content extends core_Manager
             $filePath .= '.png';
 
             $tpl->append(ht::createLink(
-                ht::createImg(array('path' => $filePath)),
+                ht::createImg(array('path' => $filePath, 'alt' => 'login')),
                 array('Portal', 'Show'),
                 null,
                 array('title' => $title, 'class' => Request::get('Ctr') == 'core_Users' ? 'loginIcon selected' : 'loginIcon')

@@ -1570,7 +1570,7 @@ class cat_Products extends embed_Manager
         }
         
         // Подготвяме опциите
-        $options = array($productRec->measureId => cat_UoM::getTitleById($productRec->measureId, 'name'), false) + $options;
+        $options = array($productRec->measureId => cat_UoM::getTitleById($productRec->measureId, false)) + $options;
         $firstVal = $options[$baseId];
         
         // Подсигуряваме се че основната опаковка/мярка е първа в списъка
