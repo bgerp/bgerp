@@ -129,7 +129,8 @@ class planning_ProductionTaskProducts extends core_Detail
     {
         if(empty($rec->id)){
             $meta = ($rec->type == 'input') ? 'canConvert' : (($rec->type == 'waste') ? 'canStore,canConvert' : 'canManifacture');
-            $options = cat_Products::getByProperty($meta);
+            $onlyInGroups = ($rec->type == 'waste') ? cat_Groups::getKeylistBySysIds('waste') : null;
+            $options = cat_Products::getByProperty($meta, null, null, $onlyInGroups);
             
             $query = self::getQuery();
             $query->where("#taskId = {$rec->taskId}");
@@ -142,6 +143,8 @@ class planning_ProductionTaskProducts extends core_Detail
         
         $productId = planning_ProductionTaskProducts::fetchField($rec->id, 'productId');
         $res = array($productId => cat_Products::getTitleById($productId, false));
+        
+       
         
         return $res;
     }
@@ -508,7 +511,7 @@ class planning_ProductionTaskProducts extends core_Detail
                 }
             }
             
-            if (cat_Products::getByProperty('canStore,canConvert', null, 1)) {
+            if (cat_Products::getByProperty('canStore,canConvert', null, 1, cat_Groups::getKeylistBySysIds('waste'))) {
                 if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'waste'))) {
                     $data->toolbar->addBtn('За отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => true), false, 'ef_icon = img/16/recycle.png,title=Добавяне на отпаден артикул');
                 }
