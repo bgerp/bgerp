@@ -211,16 +211,16 @@ class planning_Tasks extends core_Master
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
         $this->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
         
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,caption=Производство->Артикул,removeAndRefreshForm=packagingId|measureId|quantityInPack|inputInTask|paramcat,silent');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,caption=Производство->Артикул,removeAndRefreshForm=packagingId|measureId|quantityInPack|inputInTask|paramcat|plannedQuantity,silent');
+        $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Производство->Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|packagingId|indPackagingId,silent');
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Производство->Планирано');
-        $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Производство->Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity,silent');
         $this->FLD('quantityInPack', 'double', 'mandatory,caption=Производство->К-во в мярка,input=none');
         
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Производство->Склад,input=none');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks)', 'caption=Производство->Оборудване');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Производство->Служители');
         
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=none,tdClass=small-field nowrap,placeholder=Няма');
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both');
         
         $this->FLD('indTime', 'time(noSmart,decimals=2)', 'caption=Време за производство->Норма,smartCenter');
@@ -747,6 +747,7 @@ class planning_Tasks extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
+        
         $form->setField('weightDeviationWarning', "placeholder=" . core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING')));
         $form->setDefault('showadditionalUom', planning_Setup::get('TASK_WEIGHT_MODE'));
         if (isset($rec->systemId)) {
@@ -771,7 +772,7 @@ class planning_Tasks extends core_Master
         if(isset($rec->productId) && !array_key_exists($rec->productId, $options)){
             $options = array("{$rec->productId}" => cat_Products::getTitleById($rec->productId, false)) + $options;
         }
-        
+       
         $form->setOptions('productId', $options);
         $tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
         
@@ -789,12 +790,13 @@ class planning_Tasks extends core_Master
             $measureOptions = cat_Products::getPacks($rec->productId, true);
             $measuresCount = count($measureOptions);
             $form->setOptions('measureId', $measureOptions);
+            $productRec = cat_Products::fetch($rec->productId, 'canConvert,canStore');
             
             $form->setDefault('measureId', key($measureOptions));
             if($measuresCount == 1){
                 $form->setField('measureId', 'input=hidden');
             }
-            
+           
             if (empty($rec->id)) {
                 
                 // Показване на параметрите за задача във формата, като задължителни полета
@@ -828,19 +830,24 @@ class planning_Tasks extends core_Master
                     $rec->params["paramcat{$pId}"] = (object) array('paramId' => $pId);
                 }
                 
-                if($originRec->packagingId != $rec->measureId){
-                    $form->setDefault('packagingId', $originRec->packagingId);
-                }
-                
-                if(isset($rec->packagingId)){
-                    $form->setDefault('indPackagingId', $rec->packagingId);
+                if ($productRec->canStore == 'yes') {
+                    if($originRec->packagingId != $rec->measureId){
+                        $form->setDefault('packagingId', $rec->measureId);
+                    }
+                    
+                    if(isset($rec->packagingId)){
+                        $form->setDefault('indPackagingId', $rec->packagingId);
+                    }
+                } else {
+                    $form->setDefault('indPackagingId', $rec->measureId);
                 }
             }
-            
-            $packs = cat_Products::getPacks($rec->productId);
-            $form->setOptions('packagingId', array('' => '') + $packs);
-            $form->setOptions('indPackagingId', $packs);
-            $productRec = cat_Products::fetch($rec->productId, 'canConvert,canStore');
+           
+            if ($productRec->canStore == 'yes') {
+                $packs = cat_Products::getPacks($rec->productId);
+                $form->setOptions('packagingId', array('' => '') + $packs);
+                $form->setOptions('indPackagingId', $packs);
+            }
             
             // Ако артикула е вложим, може да се влага по друга операция
             if ($productRec->canConvert == 'yes') {
@@ -856,13 +863,16 @@ class planning_Tasks extends core_Master
                 $measureShort = cat_UoM::getShortName($rec->measureId);
                 $form->setField('plannedQuantity', "unit={$measureShort}");
             }
+            $form->setField('packagingId', 'input');
             
             if ($productRec->canStore == 'yes') {
                 $form->setField('storeId', 'input');
                 $form->setField('packagingId', 'input');
                 $form->setField('indPackagingId', 'input');
             } else {
-                $form->setDefault('packagingId', $rec->measureId);
+                $form->setField('labelType', 'input=none');
+                $form->setField('packagingId', 'input=none');
+                $form->setDefault('indPackagingId', $rec->measureId);
                 $form->setField('indTime', "unit=за|* 1 |{$measureShort}|*");
             }
             
