@@ -430,12 +430,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         $packagingId = (!empty($foundRec->packagingId)) ? $foundRec->packagingId : $pRec->measureId;
         $packagingName = cat_UoM::getShortName($packagingId);
         
-        if ($rec->type != 'production' && cat_UoM::fetchField($packagingId, 'type') != 'uom') {
+        if (cat_UoM::fetchField($packagingId, 'type') != 'uom') {
             $row->measureId = str::getPlural($rec->quantity, $packagingName, true);
-        } elseif ($rec->type == 'production') {
-            $taskRec = planning_Tasks::fetch($rec->taskId, 'measureId');
-            $row->measureId = cat_UoM::getShortName($taskRec->measureId);
-            
+        }
+        
+        if ($rec->type == 'production') {
             $row->type = (!empty($packagingId)) ? tr("Произв.|* {$packagingName}") : tr('Произвеждане');
         }
         
