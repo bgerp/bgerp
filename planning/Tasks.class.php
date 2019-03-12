@@ -871,7 +871,6 @@ class planning_Tasks extends core_Master
                 $form->setField('indPackagingId', 'input');
             } else {
                 $form->setField('labelType', 'input=none');
-                $form->setField('packagingId', 'input=none');
                 $form->setDefault('indPackagingId', $rec->measureId);
                 $form->setField('indTime', "unit=за|* 1 |{$measureShort}|*");
             }
