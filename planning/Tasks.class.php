@@ -211,8 +211,11 @@ class planning_Tasks extends core_Master
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
         $this->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
         
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Производство->Артикул,removeAndRefreshForm=packagingId|inputInTask|paramcat,silent');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,caption=Производство->Артикул,removeAndRefreshForm=packagingId|measureId|quantityInPack|inputInTask|paramcat,silent');
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Производство->Планирано');
+        $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Производство->Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity,silent');
+        $this->FLD('quantityInPack', 'double', 'mandatory,caption=Производство->К-во в мярка,input=none');
+        
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Производство->Склад,input=none');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks)', 'caption=Производство->Оборудване');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Производство->Служители');
@@ -365,7 +368,7 @@ class planning_Tasks extends core_Master
         
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
-        $row->measureId = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
+        
         foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity') as $quantityFld) {
             $row->{$quantityFld} = ($rec->{$quantityFld}) ? $row->{$quantityFld} : 0;
             $row->{$quantityFld} = ht::styleNumber($row->{$quantityFld}, $rec->{$quantityFld});
@@ -494,8 +497,8 @@ class planning_Tasks extends core_Master
                 }
             }
             
-            $pInfo = cat_Products::getProductInfo($rec->productId);
-            $rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
+            $packRec =cat_products_Packagings::getPack($rec->productId, $rec->measureId);
+            $rec->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
             $rec->title = cat_Products::getTitleById($rec->productId);
             
             if (empty($rec->id)) {
@@ -783,7 +786,14 @@ class planning_Tasks extends core_Master
         $form->setDefault('productId', $originRec->productId);
         
         if (isset($rec->productId)) {
-            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+            $measureOptions = cat_Products::getPacks($rec->productId, true);
+            $measuresCount = count($measureOptions);
+            $form->setOptions('measureId', $measureOptions);
+            
+            $form->setDefault('measureId', key($measureOptions));
+            if($measuresCount == 1){
+                $form->setField('measureId', 'input=hidden');
+            }
             
             if (empty($rec->id)) {
                 
@@ -818,7 +828,7 @@ class planning_Tasks extends core_Master
                     $rec->params["paramcat{$pId}"] = (object) array('paramId' => $pId);
                 }
                 
-                if($originRec->packagingId != $measureId){
+                if($originRec->packagingId != $rec->measureId){
                     $form->setDefault('packagingId', $originRec->packagingId);
                 }
                 
@@ -830,10 +840,10 @@ class planning_Tasks extends core_Master
             $packs = cat_Products::getPacks($rec->productId);
             $form->setOptions('packagingId', array('' => '') + $packs);
             $form->setOptions('indPackagingId', $packs);
-            $productInfo = cat_Products::getProductInfo($rec->productId);
+            $productRec = cat_Products::fetch($rec->productId, 'canConvert,canStore');
             
             // Ако артикула е вложим, може да се влага по друга операция
-            if (isset($productInfo->meta['canConvert'])) {
+            if ($productRec->canConvert == 'yes') {
                 $tasks = self::getTasksByJob($origin->that, true);
                 unset($tasks[$rec->id]);
                 if (count($tasks)) {
@@ -842,21 +852,26 @@ class planning_Tasks extends core_Master
                 }
             }
             
-            $measureShort = cat_UoM::getShortName($measureId);
-            $form->setField('plannedQuantity', "unit={$measureShort}");
-            if (isset($productInfo->meta['canStore'])) {
+            if($measuresCount == 1){
+                $measureShort = cat_UoM::getShortName($rec->measureId);
+                $form->setField('plannedQuantity', "unit={$measureShort}");
+            }
+            
+            if ($productRec->canStore == 'yes') {
                 $form->setField('storeId', 'input');
                 $form->setField('packagingId', 'input');
                 $form->setField('indPackagingId', 'input');
             } else {
-                $form->setDefault('packagingId', $measureId);
+                $form->setDefault('packagingId', $rec->measureId);
                 $form->setField('indTime', "unit=за|* 1 |{$measureShort}|*");
             }
             
             if ($rec->productId == $originRec->productId) {
                 $toProduce = ($originRec->quantity - $originRec->quantityProduced);
                 if ($toProduce > 0) {
-                    $form->setDefault('plannedQuantity', $toProduce);
+                    $packRec = cat_products_Packagings::getPack($rec->productId, $rec->measureId);
+                    $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+                    $form->setDefault('plannedQuantity', $toProduce / $quantityInPack);
                 }
             }
         }
@@ -1122,7 +1137,7 @@ class planning_Tasks extends core_Master
         expect($jobRec = planning_Jobs::fetchRec($jobId));
         
         $query = planning_Tasks::getQuery();
-        $query->XPR('sum', 'double', 'SUM((COALESCE(#totalQuantity, 0) - COALESCE(#scrappedQuantity, 0)))');
+        $query->XPR('sum', 'double', 'SUM((COALESCE(#totalQuantity, 0) - COALESCE(#scrappedQuantity, 0)) * #quantityInPack)');
         $query->where("#originId = {$jobRec->containerId} AND #productId = {$jobRec->productId}");
         $query->where("#state != 'rejected' AND #state != 'pending'");
         $query->show('totalQuantity,sum');
