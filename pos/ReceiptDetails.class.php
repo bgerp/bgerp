@@ -47,6 +47,12 @@ class pos_ReceiptDetails extends core_Detail
     
     
     /**
+     * Кой може да зарежда данни от бележката
+     */
+    public $canLoad = 'pos, ceo';
+    
+    
+    /**
      * Кой може да променя?
      */
     public $canList = 'no_one';
@@ -138,6 +144,7 @@ class pos_ReceiptDetails extends core_Detail
      */
     public function act_setDiscount()
     {
+        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('add');
         
         if (!$recId = Request::get('recId', 'int')) {
@@ -255,6 +262,7 @@ class pos_ReceiptDetails extends core_Detail
      */
     public function act_setQuantity()
     {
+        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('add');
         
         // Трябва да има избран ред
@@ -272,7 +280,6 @@ class pos_ReceiptDetails extends core_Detail
         
         // Трябва да може да се редактира записа
         $this->requireRightFor('add', $rec);
-        
         $quantityId = Request::get('amount');
         
         // Трябва да е подадено валидно количество
@@ -292,9 +299,29 @@ class pos_ReceiptDetails extends core_Detail
             return $this->returnResponse($rec->receiptId);
         }
         
-        // Преизчисляваме сумата
+        $revertId = pos_Receipts::fetchField($rec->receiptId, 'revertId');
+        if(!empty($revertId)){
+            $originProductRec = $this->findSale($rec->productId, $revertId, $rec->value);
+            if(is_object($originProductRec)){
+                $quantityId *= -1;
+                if(abs($originProductRec->quantity) < abs($quantityId)){
+                    core_Statuses::newStatus("Kоличеството е по-голямо от продаденото|* {$originProductRec->quantity}", 'error');
+                    
+                    return $this->returnError($rec->receiptId);
+                }
+            }
+        }
+        
+        // Преизчисляване на сумата
         $rec->quantity = $quantityId;
         $rec->amount = $rec->price * $rec->quantity;
+        
+        $error = '';
+        if(!pos_Receipts::checkQuantity($rec, $error)){
+            core_Statuses::newStatus($error, 'error');
+            
+            return $this->returnError($rec->receiptId);
+        }
         
         // Запис на новото количество
         if ($this->save($rec)) {
@@ -313,6 +340,7 @@ class pos_ReceiptDetails extends core_Detail
      */
     public function act_makePayment()
     {
+        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('add');
         
         // Трябва да е избрана бележка
@@ -332,7 +360,6 @@ class pos_ReceiptDetails extends core_Detail
         
         // Трябва да е подаден валидно ид на начин на плащане
         $type = Request::get('type', 'int');
-        
         if (!cond_Payments::fetch($type) && $type != -1) {
             
             return $this->returnError($recId);
@@ -341,7 +368,11 @@ class pos_ReceiptDetails extends core_Detail
         // Трябва да е подадена валидна сума
         $amount = Request::get('amount');
         $amount = $this->getFieldType('amount')->fromVerbal($amount);
-        if (!$amount || $amount <= 0) {
+        if(empty($amount)){
+            core_Statuses::newStatus('|Липсва сума|*!', 'error');
+            
+            return $this->returnError($recId);
+        } elseif($amount < 0){
             core_Statuses::newStatus('|Сумата трябва да е положителна|*!', 'error');
             
             return $this->returnError($recId);
@@ -349,13 +380,20 @@ class pos_ReceiptDetails extends core_Detail
         
         $diff = abs($receipt->paid - $receipt->total);
         
+        $paidAmount = $amount;
         if ($type != -1) {
+            $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receipt->valior);
+            
             // Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
-            if (!cond_Payments::returnsChange($type) && (string) $amount > (string) $diff) {
+            if (!cond_Payments::returnsChange($type) && (string) abs($paidAmount) > (string) $diff) {
                 core_Statuses::newStatus('|Платежния метод не позволява да се плати по-голяма сума от общата|*!', 'error');
                 
                 return $this->returnError($recId);
             }
+        }
+        
+        if($receipt->revertId){
+            $amount *= -1;
         }
         
         // Подготвяме записа на плащането
@@ -364,9 +402,14 @@ class pos_ReceiptDetails extends core_Detail
         $rec->action = "payment|{$type}";
         $rec->amount = $amount;
         
+        $paidAmount = $rec->amount;
+        if($type != -1){
+            $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receipt->valior);
+        }
+        
         // Отбелязваме, че на това плащане ще има ресто
-        $paid = $receipt->paid + $amount;
-        if (($paid) > $receipt->total) {
+        $paid = $receipt->paid + $paidAmount;
+        if (abs($paid) > abs($receipt->total)) {
             $rec->value = 'change';
         }
         
@@ -387,6 +430,7 @@ class pos_ReceiptDetails extends core_Detail
      */
     public function act_DeleteRec()
     {
+        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('delete');
         
         // Трябва да има ид на ред за изтриване
@@ -428,6 +472,7 @@ class pos_ReceiptDetails extends core_Detail
         $res = new stdClass();
         $query = $this->getQuery();
         $query->where("#receiptId = '{$receiptId}'");
+        $query->orderBy('id', 'asc');
         while ($rec = $query->fetch()) {
             $res->recs[$rec->id] = $rec;
             $res->rows[$rec->id] = $this->recToVerbal($rec);
@@ -444,19 +489,20 @@ class pos_ReceiptDetails extends core_Detail
     {
         $Double = cls::get('type_Double');
         $Double->params['smartRound'] = true;
-        $receiptDate = $mvc->Master->fetchField($rec->receiptId, 'createdOn');
-        $row->currency = acc_Periods::getBaseCurrencyCode($receiptDate);
+        $receiptRec = $mvc->Master->fetch($rec->receiptId, 'createdOn,revertId');
+        $row->currency = acc_Periods::getBaseCurrencyCode($receiptRec->createdOn);
         
         $action = $mvc->getAction($rec->action);
         switch ($action->type) {
             case 'sale':
-                $mvc->renderSale($rec, $row, $receiptDate, $fields);
+                $mvc->renderSale($rec, $row, $receiptRec->createdOn, $fields);
                 if ($fields['-list']) {
                     $row->quantity = ($rec->value) ? $row->quantity : $row->quantity;
                 }
                 break;
             case 'payment':
                 $row->actionValue = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr('В брой');
+                $row->paymentCaption = (empty($receiptRec->revertId)) ? tr('Плащане') : tr('Връщане');
                 
                 if ($fields['-list']) {
                     $row->productId = tr('Плащане') . ': ' . $row->actionValue;
@@ -489,10 +535,9 @@ class pos_ReceiptDetails extends core_Detail
         $productInfo = cat_Products::getProductInfo($rec->productId);
         $perPack = ($productInfo->packagings[$rec->value]) ? $productInfo->packagings[$rec->value]->quantity : 1;
         
-        $rec->price = $rec->price * (1 + $rec->param) * (1 - $rec->discountPercent);
-        $rec->price = round($rec->price, 2);
-        $row->price = $Double->toVerbal($rec->price);
-        $row->amount = $Double->toVerbal($rec->price * $rec->quantity);
+        $price = $this->Master->getDisplayPrice($rec->price, $rec->param, $rec->discountPercent, pos_Receipts::fetchField($rec->receiptId, 'pointId'));
+        $row->price = $Double->toVerbal($price);
+        $row->amount = $Double->toVerbal($price * $rec->quantity);
         if ($rec->discountPercent < 0) {
             $row->discountPercent = '+' . trim($row->discountPercent, '-');
         }
@@ -638,7 +683,7 @@ class pos_ReceiptDetails extends core_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if (($action == 'add' || $action == 'delete') && isset($rec->receiptId)) {
-            $masterRec = $mvc->Master->fetch($rec->receiptId);
+            $masterRec = pos_Receipts::fetch($rec->receiptId, 'revertId,state');
             
             if ($masterRec->state != 'draft') {
                 $res = 'no_one';
@@ -650,6 +695,13 @@ class pos_ReceiptDetails extends core_Detail
                         $res = 'no_one';
                     }
                 }
+            }
+        }
+        
+        if($action == 'load' && isset($rec)){
+            $masterRec = pos_Receipts::fetch($rec->receiptId, 'revertId,state');
+            if(empty($masterRec->revertId) || $masterRec->state != 'draft'){
+                $res = 'no_one';
             }
         }
     }
@@ -719,5 +771,40 @@ class pos_ReceiptDetails extends core_Detail
     protected static function on_AfterPrepareListToolbar($mvc, $data)
     {
         unset($data->toolbar->buttons['btnAdd']);
+    }
+    
+    
+    /**
+     * Зареждане на артикулите от сторнираната бележка
+     */
+    public function act_Load()
+    {
+        peripheral_Terminal::setSessionPrefix();
+        $this->requireRightFor('load');
+        
+        expect($receiptId = Request::get('receiptId', 'int'));
+        expect($receiptRec = pos_Receipts::fetch($receiptId));
+        $this->requireRightFor('load', (object)array('receiptId' => $receiptId));
+        $this->delete("#receiptId = {$receiptId}");
+        
+        $query = $this->getQuery();
+        $query->where("#receiptId = {$receiptRec->revertId}");
+        $query->orderBy('id', 'asc');
+        
+        while($rec = $query->fetch()){
+            unset($rec->id);
+            if(!empty($rec->amount)) {
+                $rec->amount *= -1;
+            }
+            if(!empty($rec->quantity)) {
+                $rec->quantity *= -1;
+            }
+            $rec->receiptId = $receiptId;
+            $this->save($rec);
+        }
+        
+        cls::get('pos_Receipts')->updateReceipt($receiptId);
+       
+        followRetUrl();
     }
 }

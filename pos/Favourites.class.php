@@ -258,12 +258,21 @@ class pos_Favourites extends core_Manager
      */
     public function renderCategories($categories, &$tpl)
     {
-        $blockTpl = $tpl->getBlock('CAT');
-        foreach ($categories as $cat) {
-            $rowTpl = clone($blockTpl);
-            $rowTpl->placeObject($cat);
-            $rowTpl->removeBlocks();
-            $rowTpl->append2master();
+        if(Mode::is('screenMode', 'narrow')){
+            $categoryOptions = array('' => tr('Всички'));
+            foreach ($categories as $catObj){
+                $categoryOptions[$catObj->id] = $catObj->name;
+            }
+            $selectHtml = ht::createSelect('favouriteCategories', $categoryOptions,  '', array('class' => 'pos-product-category button', 'title' => 'Показване на артикулите от категория'));
+            $tpl->append($selectHtml, 'CATEGORY_SELECT');
+        } else {
+            $blockTpl = $tpl->getBlock('CAT');
+            foreach ($categories as $cat) {
+                $rowTpl = clone($blockTpl);
+                $rowTpl->placeObject($cat);
+                $rowTpl->removeBlocks();
+                $rowTpl->append2master();
+            }
         }
     }
     

@@ -27,7 +27,7 @@ class rack_Setup extends core_ProtoSetup
     /**
      * Необходими пакети
      */
-    public $depends = 'acc=0.1';
+    public $depends = 'batch=0.1';
     
     
     /**
@@ -61,8 +61,8 @@ class rack_Setup extends core_ProtoSetup
         'rack_Zones',
         'rack_ZoneDetails',
         'migrate::truncateOldRecs',
-        'migrate::updateFloor',
-        'migrate::deleteOldPlugins'
+        'migrate::deleteOldPlugins',
+        'migrate::updateNoBatchRackDetails2',
     );
     
     
@@ -126,6 +126,10 @@ class rack_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Връзка между протокола за влагане в производството и палетния склад', 'rack_plg_Shipments', 'planning_ConsumptionNotes', 'private');
         $html .= $Plugins->installPlugin('Връзка между протокола за отговорно пазене и палетния склад', 'rack_plg_Shipments', 'store_ConsignmentProtocols', 'private');
         
+        $html .= $Plugins->installPlugin('Връзка между СР-то и входящия палетен склад', 'rack_plg_IncomingShipmentDetails', 'store_ReceiptDetails', 'private');
+        $html .= $Plugins->installPlugin('Връзка между МСТ-то и входящия палетен склад', 'rack_plg_IncomingShipmentDetails', 'store_TransfersDetails', 'private');
+        $html .= $Plugins->installPlugin('Връзка между Протокола за влагане и и входящия палетен склад', 'rack_plg_IncomingShipmentDetails', 'planning_ReturnNoteDetails', 'private');
+        
         return $html;
     }
     
@@ -166,41 +170,51 @@ class rack_Setup extends core_ProtoSetup
     
     
     /**
-     * Обновяване на пода
-     */
-    public function updateFloor()
-    {
-        core_App::setTimeLimit(300);
-        $Movements = cls::get('rack_Movements');
-        $Movements->setupMvc();
-        
-        $query = $Movements->getQuery();
-        $query->where("#palletId IS NULL OR #palletToId IS NULL");
-        
-        while($rec = $query->fetch()){
-            $saveFields = array();
-            if(empty($rec->position)){
-                $rec->position = rack_PositionType::FLOOR;
-                $saveFields['position'] = 'position';
-            }
-            
-            if(empty($rec->positionTo)){
-                $rec->positionTo = rack_PositionType::FLOOR;
-                $saveFields['positionTo'] = 'positionTo';
-            }
-            
-            if(count($saveFields)){
-                $Movements->save_($rec, $saveFields);
-            }
-        }
-    }
-    
-    
-    /**
      * Деинсталиране на стари плъгини
      */
     public function deleteOldPlugins()
     {
         cls::get('core_Plugins')->deinstallPlugin('rack_plg_Document');
+    }
+    
+    
+    /**
+     * Бъгфикс с без партида
+     */
+    public function updateNoBatchRackDetails2()
+    {
+        $Zones = cls::get('rack_ZoneDetails');
+        $Zones->setupMvc();
+        
+        if(!$Zones->count()) return;
+        
+        $toSave = $zonesArr = array();
+        $zQuery = rack_ZoneDetails::getQuery();
+        $zQuery->where("#batch IS NULL");
+        while($zRec = $zQuery->fetch()){
+            $zRec->batch = '';
+            
+            $toSave[$zRec->id] = $zRec;
+            $zonesArr[$zRec->zoneId] = $zRec->zoneId;
+        }
+        
+        if(count($toSave)){
+            $Zones->saveArray($toSave, 'id,batch');
+        }
+        
+        $query2 = $Zones->getQuery();
+        $query2->where("#batch = ''");
+        $query2->orderBy('id', 'ASC');
+        while($rec2 = $query2->fetch()){
+            
+            $exRec = rack_ZoneDetails::fetch("#id != '{$rec2->id}' AND #zoneId = {$rec2->zoneId} AND #productId = {$rec2->productId} AND #packagingId = {$rec2->packagingId} AND #batch = ''");
+            if(!$exRec) continue;
+            
+            $rec2->movementQuantity = !empty($rec2->movementQuantity) ? $rec2->movementQuantity : $exRec->movementQuantity;
+            $rec2->documentQuantity = !empty($rec2->documentQuantity) ? $rec2->documentQuantity : $exRec->documentQuantity;
+            
+            $Zones->save($rec2, 'movementQuantity,documentQuantity');
+            rack_ZoneDetails::delete($exRec->id);
+        }
     }
 }

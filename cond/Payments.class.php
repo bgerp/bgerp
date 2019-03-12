@@ -9,7 +9,7 @@
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -23,12 +23,6 @@ class cond_Payments extends core_Manager
     
     
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'pos_Payments';
-    
-    
-    /**
      * Заглавие
      */
     public $title = 'Безналични средства за плащане';
@@ -37,7 +31,7 @@ class cond_Payments extends core_Manager
     /**
      * Заглавие на единичния обект
      */
-    public $singleTitle = 'безналично средство за плащане';
+    public $singleTitle = 'Безналично средство за плащане';
     
     
     /**
@@ -49,7 +43,7 @@ class cond_Payments extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, change, code, state';
+    public $listFields = 'id, title, currencyCode, code, change, state, createdOn,createdBy';
     
     
     /**
@@ -93,11 +87,26 @@ class cond_Payments extends core_Manager
      */
     public function description()
     {
-        $this->FLD('title', 'varchar(255)', 'caption=Наименование');
+        $this->FLD('title', 'varchar(255)', 'caption=Наименование,mandatory');
+        $this->FLD('code', 'int(Min=0)', 'caption=Код,mandatory,tdClass=centerCol');
         $this->FLD('change', 'enum(yes=Да,no=Не)', 'caption=Ресто?,value=no,tdClass=centerCol');
-        $this->FLD('code', 'int', 'caption=Код,mandatory,tdClass=centerCol');
+        $this->FLD('currencyCode', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Валута,smartCenter');
         
         $this->setDbUnique('title');
+    }
+    
+    
+    /**
+     * След вербализиране на данните
+     *
+     * @param stdCLass $row
+     * @param stdCLass $rec
+     */
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        if(empty($rec->currencyCode)){
+            $row->currencyCode = ht::createHint(acc_Periods::getBaseCurrencyCode(), 'Текущата валута за периода', 'notice', false);
+        }
     }
     
     
@@ -107,40 +116,12 @@ class cond_Payments extends core_Manager
     public function loadSetupData()
     {
         $file = 'cond/csv/Pospayments.csv';
-        
-        $fields = array(
-            0 => 'title',
-            1 => 'state',
-            2 => 'change',
-            3 => 'code',);
+        $fields = array(0 => 'title', 1 => 'state', 2 => 'change', 3 => 'code', 4 => 'currencyCode');
         
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
-        
         $res = $cntObj->html;
         
         return $res;
-    }
-    
-    
-    /**
-     * Връща масив от обекти, които са ид-та и заглавията на методите
-     *
-     * @return array $payments
-     */
-    public static function fetchSelected()
-    {
-        $payments = array();
-        $query = static::getQuery();
-        $query->where("#state = 'active'");
-        $query->orderBy('code');
-        while ($rec = $query->fetch()) {
-            $payment = new stdClass();
-            $payment->id = $rec->id;
-            $payment->title = $rec->title;
-            $payments[] = $payment;
-        }
-        
-        return $payments;
     }
     
     
@@ -157,6 +138,23 @@ class cond_Payments extends core_Manager
         ($rec->change == 'yes') ? $res = true : $res = false;
         
         return $res;
+    }
+    
+    
+    /**
+     *  Равностойноста на платената сума, в основната валута към дата
+     *
+     *  @param int $id - ид на метода
+     *  @param double  $amount
+     *  @param string $toCurrencyCode
+     *  @return double
+     */
+    public static function toBaseCurrency($id, $amount, $date = null, $toCurrencyCode = null)
+    {
+        $fromCurrencyCode = self::fetchField($id, currencyCode);
+        $fromCurrencyCode = !empty($fromCurrencyCode) ? $fromCurrencyCode : acc_Periods::getBaseCurrencyCode($date);
+        
+        return currency_CurrencyRates::convertAmount($amount, $date, $fromCurrencyCode, $toCurrencyCode);
     }
     
     

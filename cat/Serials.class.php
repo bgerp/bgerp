@@ -245,13 +245,11 @@ class cat_Serials extends core_Manager
                 continue;
             }
             
-            $clsIntf = cls::getInterface('label_SequenceIntf', $catRec->sourceClassId);
-            
-            $res = new stdClass();
-            $res->title = $clsIntf->getLabelName($catRec->sourceObjectId);
-            
             $clsInst = cls::get($catRec->sourceClassId);
             $clsRec = $clsInst->fetch($catRec->sourceObjectId);
+            
+            $res = new stdClass();
+            $res->title = tr('СН') . ': ' . $clsInst->getTitleById($catRec->sourceObjectId);
             
             $res->priority = 1;
             if ($clsRec->state == 'active') {
@@ -267,13 +265,13 @@ class cat_Serials extends core_Manager
             }
             
             if ($clsInst instanceof core_Master && $clsInst->haveRightFor('single', $clsRec)) {
-                $res->url = array($clsInst, 'single', $clsRec->id);
+                $res->url = array($clsInst, 'single', $clsRec->id, 'Q' => $str);
             } elseif ($clsInst instanceof core_Detail) {
                 if ($mId = $clsRec->{$clsInst->masterKey}) {
                     $clsInst->Master = cls::get($clsInst->Master);
                     $mRec = $clsInst->Master->fetch($mId);
                     if ($clsInst->Master->haveRightFor('single', $mRec)) {
-                        $res->url = array($clsInst->Master, 'single', $mRec->id);
+                        $res->url = array($clsInst->Master, 'single', $mRec->id, 'Q' => $str);
                     }
                 }
             }

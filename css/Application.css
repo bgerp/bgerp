@@ -302,6 +302,11 @@ div.folder-cover {
   div.folder-cover .groupList {
     font-size: 0.95em;
     max-width: 725px; }
+    div.folder-cover .groupList .toolbar-btn {
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      position: relative;
+      top: -2px; }
     div.folder-cover .groupList .listTopContainer {
       min-width: 300px; }
     div.folder-cover .groupList div.rowtools {
@@ -1180,7 +1185,8 @@ div.acc-detail {
     .portal table.listTable td {
       border: none !important;
       border-top: dotted 1px #cccccc !important;
-      vertical-align: top !important; }
+      vertical-align: top !important;
+      padding: 4px 3px; }
     .portal table.listTable > tbody > tr:first-child > td {
       border-top: none !important; }
     .portal table.listTable th {
@@ -1794,6 +1800,9 @@ a.tOld {
 .document .listTable th {
   white-space: nowrap; }
 
+.separateRowTable {
+  font-weight: bold; }
+
 td.rowtools-column {
   width: 1%; }
 
@@ -1805,6 +1814,10 @@ td.rowtools-column {
 
 .large-field {
   width: 50%; }
+
+.listAction table.listTable>tbody>tr>td,
+table.listTable.listAction>tbody>tr>td.wideColumn {
+  max-width: none !important; }
 
 .morePadding {
   padding-left: 6px !important;
@@ -2453,6 +2466,8 @@ ul.history {
       background-color: #3377ff; }
     ul.history .action.expenseSummary b {
       background-color: orange; }
+    ul.history .action.archiveSummary b {
+      background-color: #796b5c; }
   ul.history .detailed b {
     background-color: #cccccc; }
   ul.history a {
@@ -2616,9 +2631,25 @@ span.sharing-history-title {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none; }
+  #cmsMenu:after {
+    content: '';
+    display: block;
+    clear: both; }
+
+.loginIcon,
+.langIcon {
+  float: right !important; }
+
+.narrow #cmsMenu a.loginIcon,
+.narrow #cmsMenu a.langIcon {
+  margin-right: 4px !important;
+  margin-left: 1px !important; }
 
 .wide #cmsMenu {
   min-width: 500px; }
+
+.narrow #cmsMenu a {
+  margin-left: 5px !important; }
 
 #cmsMenu a {
   font-size: 1.12em;
@@ -2875,7 +2906,7 @@ span.sharing-history-title {
   float: none !important;
   width: 100%;
   max-width: 100%;
-  margin: 5px 0; }
+  margin: 5px 0 10px; }
 
 #cart-external-status .count {
   border: 1px solid #526b00;
@@ -3942,6 +3973,9 @@ table .eshop-btn {
   .planning_ProductionTaskDetails .listRowsDetail td {
     max-width: none !important; }
 
+.document table.listTable>tbody>tr>td.task-row-info {
+  padding: 4px 7px 3px !important; }
+
 .document .scrolling-holder {
   margin-bottom: 0; }
 
@@ -4687,12 +4721,14 @@ div.location.public {
 .eshop-group-button {
   float: left;
   width: 46%;
-  min-height: 180px;
-  height: auto \9;
-  margin: 10px 2% 15px;
+  height: 210px;
+  margin: 10px 2%;
   text-align: center; }
   .eshop-group-button .eshop-group-button-title {
-    margin-top: 2px; }
+    background: none !important;
+    font-size: 1em;
+    margin-top: 2px;
+    font-weight: normal; }
     .eshop-group-button .eshop-group-button-title a {
       color: #004488; }
   .eshop-group-button .eshop-group-button-img img {
@@ -4790,7 +4826,10 @@ div.location.public {
   .eshop-product-list .eshop-product-list-name {
     font-weight: bold;
     padding: 0 5px 8px 0px;
-    height: 1%; }
+    height: 1%;
+    margin: 0 !important;
+    background: none !important;
+    font-size: 1em; }
   .eshop-product-list:hover {
     border: solid 1px #bbbbbb; }
 
@@ -4829,6 +4868,9 @@ td.rack-same {
   font-weight: bold;
   font-family: Times New Roman, Georgia, serif; }
 
+.movement-position-notice {
+  font-weight: bold; }
+
 .wide .app-name {
   left: 3%;
   bottom: 3%;
@@ -4847,7 +4889,7 @@ td.rack-same {
 body.narrow {
   font-size: 18px; }
 
-row-fluid {
+.row-fluid {
   width: 100%;
   *zoom: 1; }
 
@@ -6020,6 +6062,8 @@ only screen and (max-width: 320px) {
       .sale-summary table td .quiet {
         color: #cccccc;
         font-weight: normal; }
+    .sale-summary table .specialLink {
+      white-space: normal; }
 
 .narrow .sale-summary td .quiet {
   font-size: 0.8em; }

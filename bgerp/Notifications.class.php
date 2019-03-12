@@ -178,6 +178,8 @@ class bgerp_Notifications extends core_Manager
      * @param array       $url
      * @param int         $userId
      * @param null|string $priority
+     *
+     * @return null
      */
     public static function add($msg, $urlArr, $userId, $priority = null, $customUrl = null, $addOnce = false)
     {

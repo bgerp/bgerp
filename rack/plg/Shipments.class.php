@@ -95,11 +95,37 @@ class rack_plg_Shipments extends core_Plugin
                 $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
                 
                 while($dRec = $dQuery->fetch()){
+                    
                     $key = "{$dRec->{$Detail->productFld}}|{$dRec->packagingId}";
-                    if(!array_key_exists($key, $res)){
-                        $res[$key] = (object)array('productId' => $dRec->{$Detail->productFld}, 'packagingId' => $dRec->packagingId);
+                    $rest = $dRec->{$Detail->quantityFld};
+                    
+                    $Def = batch_Defs::getBatchDef($dRec->productId);
+                    if (is_object($Def)) {
+                        
+                        $bQuery = batch_BatchesInDocuments::getQuery();
+                        $bQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->{$Detail->productFld}}");
+                        while($bRec = $bQuery->fetch()){
+                            $batches = batch_Defs::getBatchArray($bRec->productId, $bRec->batch);
+                            $quantity = (count($batches) == 1) ? $bRec->quantity : $bRec->quantity / count($batches);
+                            
+                            foreach ($batches as $k => $b) {
+                                $key2 = "{$key}|{$k}";
+                                if(!array_key_exists($key2, $res)){
+                                    $res[$key2] = (object)array('productId' => $dRec->{$Detail->productFld}, 'packagingId' => $dRec->packagingId, 'batch' => $k);
+                                }
+                                $res[$key2]->quantity += $quantity;
+                                $rest -= $quantity;
+                            }
+                        }
                     }
-                    $res[$key]->quantity += $dRec->{$Detail->quantityFld};
+                    
+                    if(round($rest, 2) > 0){
+                        $key3 = "{$key}|{$k}||";
+                        if(!array_key_exists($key3, $res)){
+                            $res[$key3] = (object)array('productId' => $dRec->{$Detail->productFld}, 'packagingId' => $dRec->packagingId, 'batch' => '');
+                        }
+                        $res[$key3]->quantity += $rest;
+                    }
                 }
             }
         }

@@ -16,6 +16,10 @@ function posActions() {
 		});
 	} 
 
+	// Засветяване на избрания ред и запис в хидън поле
+	$(document.body).on('mouseover', ".pos-sale", function(e){
+		$(this).css( 'cursor', 'pointer' );
+	});
 	
 	// Засветяване на избрания ред и запис в хидън поле
 	$(document.body).on('click', ".pos-sale", function(e){
@@ -49,6 +53,21 @@ function posActions() {
 		}
 	});
 	
+	
+	// Използване на числата за въвеждане на суми за плащания
+	$(document.body).on('click', ".revertBtn", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		var searchVal = $("input[name=paysum]").val();
+		var data = {search:searchVal};
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		getEfae().process(resObj, data);
+		$("input[name=paysum]").val("");
+	});
 	
 	// Използване на числата за въвеждане на суми за плащания
 	$(document.body).on('click', "#tools-payment .numPad", function(e){
@@ -156,25 +175,15 @@ function posActions() {
 	    return false; 
 	});
 	
-	
 	// Направата на плащане след натискане на бутон
 	$(document.body).on('click', ".paymentBtn", function(e){
-		var url = $(this).attr("data-url");
-		
-		if(!url) return;
-		
-		var type = $(this).attr("data-type");
-		var amount = $("input[name=paysum]").val();
-		var receiptId = $("input[name=receiptId]").val();
-		
-		var data = {receiptId:receiptId, amount:amount, type:type};
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		getEfae().process(resObj, data);
-	
-		$("input[name=paysum]").val("");
-		scrollRecieptBottom();
+		if(!$(this).hasClass( "disabledBtn")){
+			var url = $(this).attr("data-url");
+			var type = $("[name=selectedPayment]").val();
+			type = (!type) ? '-1' : type;
+			
+			doPayment(url, type);
+		}
 	});
 	
 	
@@ -217,31 +226,17 @@ function posActions() {
 	
 	// Скриване на бързите бутони спрямо избраната категория
 	$(".pos-product-category[data-id='']").addClass('active');
-	$(document.body).on('click', ".pos-product-category", function(e){
-		var value = $(this).attr("data-id");
-		
-		$(this).addClass('active').siblings().removeClass('active');
-		
-		var counter = 0;
-		if(value) {
-			var nValue = "|" + value + "|";
-			
-			$("div.pos-product[data-cat != '"+nValue+"']").each(function() {
-				$(this).hide();
-			});
-			
-			$("div.pos-product[data-cat *= '"+nValue+"']").each(function() {
-				$(this).show();
-				counter++;
-			});
-		} else {
-			$("div.pos-product").each(function() {
-				$(this).show();
-				counter++;
-			});
-		}
+	
+	$(document.body).on('change', "select.pos-product-category", function(e){
+		var value = $(this).val();
+		showFavouriteButtons($(this), value);
 	});
 	
+	// Скриване на бързите бутони спрямо избраната категория
+	$(document.body).on('click', "div.pos-product-category", function(e){
+		var value = $(this).attr("data-id");
+		showFavouriteButtons($(this), value);
+	});
 	
 	// При клик на бутон изтрива запис от бележката
 	$(document.body).on('click', ".pos-del-btn", function(e){
@@ -319,8 +314,7 @@ function posActions() {
 		var e = jQuery.Event("keyup");
 		$("#select-input-pos").trigger(e);
 	});
-	
-	
+
 	// Време за изчакване
 	var timeout;
 	
@@ -449,9 +443,16 @@ function calculateWidth(){
 	}
 	
 	//задаване на ширина на двете колони
-	$('#single-receipt').css('width', maxColWidth);
-	$('.tabs-holder-content').css('width', maxColWidth);
-	$('.tools-wide-select-content').css('width', maxColWidth);
+	if (maxColWidth > 700 && $('body').hasClass('wide')) {
+		$('#single-receipt').css('width', 600);
+		$('.tabs-holder-content').css('width', 600);
+		$('.tools-wide-select-content').css('width', winWidth - 670);
+	} else {
+		$('#single-receipt').css('width', maxColWidth);
+		$('.tabs-holder-content').css('width', maxColWidth);
+		$('.tools-wide-select-content').css('width', maxColWidth);
+	}
+
 	
 	//максимална височина на дясната колона и на елементите й
 	$('.tools-wide-select-content').css('maxHeight', winHeight-85);
@@ -479,3 +480,41 @@ function scrollRecieptBottom(){
 		setTimeout(function(){el.scrollTop( el.get(0).scrollHeight );},500);
 	}
 }
+
+// Направа на плащане
+function doPayment(url, type){
+	if(!url || !type) return;
+	var amount = $("input[name=paysum]").val();
+	
+	var receiptId = $("input[name=receiptId]").val();
+	var data = {receiptId:receiptId, amount:amount, type:type};
+	
+	resObj = new Object();
+	resObj['url'] = url;
+	getEfae().process(resObj, data);
+
+	$("input[name=paysum]").val("");
+	scrollRecieptBottom();
+}
+
+// Показване на определени любими бутони
+function showFavouriteButtons(element, value){
+	element.addClass('active').siblings().removeClass('active');
+	
+	if(value) {
+		var nValue = "|" + value + "|";
+		
+		$("div.pos-product[data-cat != '"+nValue+"']").each(function() {
+			$(this).hide();
+		});
+		
+		$("div.pos-product[data-cat *= '"+nValue+"']").each(function() {
+			$(this).show();
+		});
+	} else {
+		$("div.pos-product").each(function() {
+			$(this).show();
+		});
+	}
+}
+

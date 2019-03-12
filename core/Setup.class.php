@@ -331,6 +331,7 @@ class core_Setup extends core_ProtoSetup
         'core_CallOnTime',
         'log_System',
         'core_Lg',
+        'core_UserTranslates',
         'core_Roles',
         'core_Users',
         'core_Locks',

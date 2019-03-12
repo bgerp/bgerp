@@ -58,9 +58,15 @@ class vislog_Referer extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools,plg_Created,vislog_Wrapper';
+    public $loadList = 'plg_RowTools,plg_Created,plg_Search,vislog_Wrapper';
+   
     
-    
+    /**
+     * Полета, по които ще се търси
+     */
+    public $searchFields = "referer,query,ip";
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -121,6 +127,12 @@ class vislog_Referer extends core_Manager
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->orderBy('#createdOn', 'DESC');
+
+        $data->listFilter->title = 'Търсене';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->showFields = 'search';
     }
     
     

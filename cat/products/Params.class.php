@@ -399,7 +399,8 @@ class cat_products_Params extends doc_Detail
                 $pRec = cls::get($rec->classId)->fetch($rec->productId);
                 
                 if ($action == 'add' && $rec->classId == cat_Products::getClassId()) {
-                    if ($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
+                    $InnerClass = cls::load($pRec->innerClass, true);
+                    if ($InnerClass && ($InnerClass instanceof cat_GeneralProductDriver)) {
                         
                         // Добавянето е разрешено само ако драйвера на артикула е универсалния артикул
                         $requiredRoles = 'no_one';

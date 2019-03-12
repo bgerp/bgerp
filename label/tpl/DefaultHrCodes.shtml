@@ -1,0 +1,9 @@
+<div class="label-holder" style="width: 64mm; height: 30mm; padding: 25px 15px 0; box-sizing: border-box;">
+    <div class="fleft" style="display: inline-block; margin-right: 10px;">
+        [#QR_CODE#]
+    </div>
+    <div class="fleft" style="display: inline-block;">
+        <p style="margin: 8px 0">[#HR_CODE#]</p>
+        <p style="margin: 8px 0">[#NAME#]</p>
+    </div>
+</div>

@@ -123,8 +123,8 @@ class sales_QuotationsDetails extends doc_Detail
         
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
         $this->FLD('price', 'double(minDecimals=2,maxDecimals=4)', 'caption=Ед. цена, input=none');
-        $this->FLD('discount', 'percent(smartRound,min=0,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter');
-        $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
+        $this->FLD('discount', 'percent(smartRound,min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
+        $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0,warningMax=0.1)', 'caption=Толеранс,input=none');
         $this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,input=none');
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
@@ -209,7 +209,6 @@ class sales_QuotationsDetails extends doc_Detail
     protected static function on_AfterPrepareListRecs($mvc, $data)
     {
         $recs = &$data->recs;
-        $rows = &$data->rows;
         $masterRec = $data->masterData->rec;
         $notOptional = $optional = array();
         $total = new stdClass();
@@ -420,7 +419,6 @@ class sales_QuotationsDetails extends doc_Detail
         
         // Показваме документа, който е бил източник на мастъра
         if ($masterRec->originId || $rec->originId) {
-            $fType = 'doc';
             $oDocId = $rec->originId;
             
             if (!$oDocId) {
@@ -541,7 +539,6 @@ class sales_QuotationsDetails extends doc_Detail
                 }
             }
             
-            $noPrice = false;
             if (!isset($rec->packPrice)) {
                 $rec->price = null;
             } else {
@@ -552,6 +549,7 @@ class sales_QuotationsDetails extends doc_Detail
             }
             
             // Проверка на цената
+            $msg = '';
             if (!deals_Helper::isPriceAllowed($price, $rec->quantity, false, $msg)) {
                 $form->setError('packPrice,packQuantity', $msg);
             }
@@ -647,7 +645,6 @@ class sales_QuotationsDetails extends doc_Detail
     private function groupResultData(&$data)
     {
         $newRows = array();
-        $dZebra = $oZebra = 'zebra0';
         
         // Подготвяме бутоните за добавяне на нов артикул
         if ($this->haveRightFor('add', (object) array('quotationId' => $data->masterId))) {
@@ -688,7 +685,6 @@ class sales_QuotationsDetails extends doc_Detail
         
         // Подменяме записите за показване с подравнените
         $data->rows = $notOptionalRows + $optionalRows;
-        $masterRec = $data->masterData->rec;
         
         // Групираме записите за по-лесно показване
         foreach ($data->rows as $i => $row) {
@@ -714,6 +710,7 @@ class sales_QuotationsDetails extends doc_Detail
         }
         
         // Подреждане на груприаните записи по к-ва
+        $zebra = 'zebra1';
         foreach ($newRows as &$group) {
             
             // Сортиране по к-во
@@ -797,8 +794,8 @@ class sales_QuotationsDetails extends doc_Detail
         $hasQuantityColOpt = false;
         if ($data->rows) {
             foreach ($data->rows as $index => $arr) {
-                list($pId, $optional) = explode('|', $index);
-                foreach ($arr as $key => $row) {
+                list(, $optional) = explode('|', $index);
+                foreach ($arr as $row) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $row->tools = $row->_rowTools->renderHtml($this->rowToolsMinLinksToShow);
                     
@@ -1064,8 +1061,6 @@ class sales_QuotationsDetails extends doc_Detail
      */
     public static function getPriceInfo($customerClass, $customerId, $date, $productId, $packagingId = null, $quantity = 1)
     {
-        $today = dt::today();
-        
         $query = sales_QuotationsDetails::getQuery();
         $query->EXT('contragentClassId', 'sales_Quotations', 'externalName=contragentClassId,externalKey=quotationId');
         $query->EXT('contragentId', 'sales_Quotations', 'externalName=contragentId,externalKey=quotationId');
@@ -1117,7 +1112,7 @@ class sales_QuotationsDetails extends doc_Detail
     public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
         // Инвалидиране на изчисления транспорт, ако има
-        foreach ($query->getDeletedRecs() as $id => $rec) {
+        foreach ($query->getDeletedRecs() as $rec) {
             sales_TransportValues::sync($mvc->Master, $rec->quotationId, $rec->id, null);
         }
     }

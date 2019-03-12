@@ -19,7 +19,7 @@ class cat_UoM extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting, plg_Translate';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting, plg_Translate, core_UserTranslatePlg';
     
     
     /**
@@ -105,16 +105,18 @@ class cat_UoM extends core_Manager
      */
     public function description()
     {
-        $this->FLD('name', 'varchar(36)', 'caption=Мярка, export,translate,mandatory');
-        $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export,translate,mandatory');
+        $this->FLD('name', 'varchar(36)', 'caption=Мярка, export, translate=user|tr|transliterate, mandatory');
+        $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export, translate=user|tr|transliterate, mandatory');
         $this->FLD('type', 'enum(uom=Мярка,packaging=Опаковка)', 'notNull,value=uom,caption=Тип,silent,input=hidden');
         $this->FLD('baseUnitId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Базова мярка, export');
         $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
         $this->FLD('sysId', 'varchar', 'caption=System Id,input=hidden');
+        $this->FLD('isBasic', 'enum(no=Друга,yes=Първична)', 'caption=Тип,notNull,value=no');
         $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
         $this->FLD('showContents', 'enum(yes=Показване,no=Скриване)', 'caption=Показване в документи->К-во в опаковка,smartCenter');
         $this->FLD('defQuantity', 'double(smartRound)', 'caption=Показване в документи->Дефолтно к-во');
         $this->FLD('round', 'int', 'caption=Точност след десетичната запетая->Цифри');
+        
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
@@ -171,6 +173,7 @@ class cat_UoM extends core_Manager
             $mvc->currentTab = 'Мерки->Опаковки';
             $mvc->title = 'Опаковки';
             $data->listFields['name'] = 'Опаковка';
+            arr::placeInAssocArray($data->listFields, array('isBasic' => 'Тип'), 'sysId');
         } else {
             $mvc->currentTab = 'Мерки->Мерки';
         }
@@ -584,6 +587,8 @@ class cat_UoM extends core_Manager
         if ($rec->type == 'packaging') {
             $mvc->currentTab = 'Мерки->Опаковки';
             $data->form->setField('name', 'caption=Опаковка');
+        } else {
+            $data->form->setField('isBasic', 'input=none');
         }
         
         $data->form->setDefault('showContents', 'no');

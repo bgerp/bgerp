@@ -92,7 +92,7 @@ class crm_Companies extends core_Master
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, plg_Printing,
-                     acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput';
+                     acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg';
     
     
     /**
@@ -280,7 +280,7 @@ class crm_Companies extends core_Master
     public function description()
     {
         // Име на фирмата
-        $this->FLD('name', 'varchar(255,ci)', 'caption=Фирма,class=contactData,mandatory,remember=info,silent,export=Csv');
+        $this->FLD('name', 'varchar(255,ci)', 'caption=Фирма,class=contactData,mandatory,remember=info,silent,export=Csv, translate=user|tr|transliterate');
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
         
         // Адресни данни
@@ -732,8 +732,8 @@ class crm_Companies extends core_Master
             
             if (!empty($rec->uicId)) {
                 static::checkUicId($rec->uicId, $rec->country, $msg, $isError);
-                if(!empty($msg)){
-                    if($isError === true){
+                if (!empty($msg)) {
+                    if ($isError === true) {
                         $form->setError('uicNo', $msg);
                     } else {
                         $form->setWarning('uicNo', $msg);
@@ -799,9 +799,9 @@ class crm_Companies extends core_Master
             
             if (!empty($rec->uicId)) {
                 crm_Companies::checkUicId($rec->uicId, $rec->country, $msg, $isError);
-                if(!empty($msg)){
+                if (!empty($msg)) {
                     $row->uicId = "<span class='red'>{$row->uicId}</span>";
-                    $icon = ($isError === true ) ? 'error' : 'warning';
+                    $icon = ($isError === true) ? 'error' : 'warning';
                     $row->uicId = ht::createHint($row->uicId, $msg, 'error');
                 }
             }
@@ -982,7 +982,7 @@ class crm_Companies extends core_Master
      *
      *
      * @param string        $fileName
-     * @param NULL|stdObjec $cRec
+     * @param NULL|stdClass $cRec
      *
      * @return string
      */
@@ -1410,8 +1410,9 @@ class crm_Companies extends core_Master
     
     /**
      * Връща информацията, която има за нашата фирма
-     * 
+     *
      * @param string $fields
+     *
      * @return null|stdClass $rec
      */
     public static function fetchOurCompany($fields = '*')
@@ -1675,8 +1676,8 @@ class crm_Companies extends core_Master
     /**
      * Връща данните на фирмата
      *
-     * @param int   $id    - id' то на записа
-     * @param email $email - Имейл
+     * @param int    $id    - id' то на записа
+     * @param string $email - Имейл
      *
      * return object
      */
@@ -1689,6 +1690,7 @@ class crm_Companies extends core_Master
         if ($company) {
             $contrData = new stdClass();
             $contrData->company = $company->name;
+            $contrData->companyVerb = crm_Companies::getVerbal($company, 'name');
             $contrData->companyId = $company->id;
             $contrData->vatNo = $company->vatId;
             $contrData->uicId = $company->uicId;
@@ -1831,9 +1833,9 @@ class crm_Companies extends core_Master
     /**
      * Връща папката на фирмата от имейла, ако имаме достъп до нея
      *
-     * @param email $email - Имейл, за който търсим
+     * @param string $email - Имейл, за който търсим
      *
-     * @return integet|bool $fodlerId - id на папката
+     * @return int|bool $fodlerId - id на папката
      */
     public static function getFolderFromEmail($email)
     {
@@ -2368,40 +2370,45 @@ class crm_Companies extends core_Master
      */
     public static function checkUicId($uicNo, $countryId = null, &$msg, &$isError)
     {
-        $msg = NULL;
+        $msg = null;
         expect($uicNo);
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
         
         // Ако няма държава или държавате е България, провряваме дали е валиден ЕИК номер
         if (empty($countryId) || $countryId == $bgId) {
-            switch(mb_strlen($uicNo)){
+            switch (mb_strlen($uicNo)) {
                 case 9:
                 case 13:
                     $res = drdata_Vats::isBulstat($uicNo);
-                    if($res){
+                    if ($res) {
+                        
                         return true;
-                    } else {
+                    }
                         $msg = 'Невалиден ЕИК';
                         $isError = true;
+                        
                         return false;
-                    }
+                    
                     break;
                 case 10:
                     $Egn = cls::get('bglocal_EgnType');
                     $res = $Egn->isValid($uicNo);
-                    if(isset($res['error'])){
+                    if (isset($res['error'])) {
                         $msg = 'ДДС номер (9 или 13 символа): въведени са 10 символа, които не са валидно ЕГН';
                         $isError = true;
+                        
                         return false;
-                    } else {
+                    }
                         $msg = 'ДДС номер (9 или 13 символа): въведени са 10 символа, които са валидно ЕГН|*?';
                         $isError = false;
+                        
                         return true;
-                    }
+                    
                     break;
                 default:
                     $msg = 'Невалиден ЕИК';
                     $isError = true;
+                    
                     return false;
                     break;
             }

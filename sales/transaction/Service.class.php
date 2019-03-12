@@ -57,6 +57,8 @@ class sales_transaction_Service extends acc_DocumentTransactionSource
             }
         }
         
+        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+        
         $transaction = (object) array(
             'reason' => 'Протокол за доставка на услуги #' . $rec->id,
             'valior' => $rec->valior,
@@ -66,12 +68,14 @@ class sales_transaction_Service extends acc_DocumentTransactionSource
         // Ако някой от артикулите не може да бдъе произведем сетваме, че ще правим редирект със съобщението
         if (Mode::get('saveTransaction')) {
             // Проверка на артикулите
-            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), 'canSell', 'canStore');
+            $property = ($rec->isReverse == 'yes') ? 'canBuy' : 'canSell';
+            $msg = ($rec->isReverse == 'yes') ? 'купуваеми услуги' : 'продаваеми услуги';
+            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), $property);
             
             if(count($productCheck['notActive'])){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са услуги|*!");
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са {$msg}|*!");
             }
         }
         

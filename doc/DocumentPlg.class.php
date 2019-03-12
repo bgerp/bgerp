@@ -1672,9 +1672,9 @@ class doc_DocumentPlg extends core_Plugin
      * Ако в Request са зададени coverId и coverClass, а $folderId липсва,
      * Тогава форсира папката на посочената корица и записва в Request id-то й
      *
-     * @param core_Mvc  $mvc
-     * @param std_Class $res
-     * @param std_Class $data
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
      *
      * @return bool
      */
@@ -3278,7 +3278,7 @@ class doc_DocumentPlg extends core_Plugin
             $handleNormalized = plg_Search::normalizeText($handle);
             
             if (strpos($searchKeywords, $handleNormalized) === false) {
-                $searchKeywords .= ' ' . plg_Search::normalizeText($handle);
+                $searchKeywords .= ' ' . $handleNormalized;
             }
         }
     }
@@ -4466,5 +4466,19 @@ class doc_DocumentPlg extends core_Plugin
      */
     public function on_AfterGetDocHiddenStatus($mvc, &$res, $id, $hStatus)
     {
+    }
+    
+    
+    /**
+     * Показва допълнителни действие в doclog история
+     *
+     * @param core_Master $mvc
+     * @param string|null $html
+     * @param int         $containerId
+     * @param int         $threadId
+     */
+    public static function on_RenderOtherSummary($mvc, &$html, $containerId, $threadId)
+    {
+        $html .= doc_ExpensesSummary::getSummary($containerId);
     }
 }

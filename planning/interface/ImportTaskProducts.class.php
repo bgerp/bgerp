@@ -97,9 +97,10 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
             }
             
             if (array_key_exists($key, $combinedDetails)) {
-                $combinedDetails[$key]->quantity += $dRec->quantity;
+                $combinedDetails[$key]->quantity += $dRec->quantity * $dRec->quantityInPack;
             } else {
                 $combinedDetails[$key] = $dRec;
+                $combinedDetails[$key]->quantity *= $dRec->quantityInPack;
             }
         }
         
@@ -200,7 +201,7 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
             $tQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
             $tQuery->XPR('quantity', 'double', '#totalQuantity');
             $tQuery->where("#originId = {$originId} AND #canStore = 'yes' AND #storeId = {$storeId} AND #totalQuantity != 0 AND (#state = 'active' || #state = 'closed' || #state = 'wakeup')");
-            $tQuery->show('productId,quantityInPack,packagingId,quantity,id,storeId');
+            $tQuery->show('productId,packagingId,quantity,id,storeId');
             
             if (isset($limit)) {
                 $tQuery->limit($limit);

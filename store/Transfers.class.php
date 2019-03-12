@@ -209,6 +209,12 @@ class store_Transfers extends core_Master
     
     
     /**
+     * Поле показващо към кой склад ще е движението
+     */
+    public $toStoreFieldName = 'toStore';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

@@ -120,37 +120,38 @@ class type_Time extends type_Varchar
         }
         
         // Извличаме секундите от текста
-        if (preg_match(str::utf2ascii('/(\d+)[ ]*(s|second|seconds|sec|секунда|сек|с|секунди)\b/'), $val, $matches)) {
+        $matches = array();
+        if (preg_match(str::utf2ascii('/(\d+[.|,\d]*)[ ]*(s|second|seconds|sec|секунда|сек|с|секунди)\b/'), $val, $matches)) {
             $secundes = $matches[1];
         }
         
         // Извличаме минутите от текста
-        if (preg_match(str::utf2ascii('/(\d+)[ ]*(m|minute|minutes|min|минута|мин|м|минути)\b/'), $val, $matches)) {
+        if (preg_match(str::utf2ascii('/(\d+[.|,\d]*)[ ]*(m|minute|minutes|min|минута|мин|м|минути)\b/'), $val, $matches)) {
             $minutes = $matches[1];
         }
         
         // Извличаме часовете от текста
-        if (preg_match(str::utf2ascii('/(\d+)[ ]*(h|hour|hours|ч|час|часа|часове)\b/'), $val, $matches)) {
+        if (preg_match(str::utf2ascii('/(\d+[.|,\d]*)[ ]*(h|hour|hours|ч|час|часа|часове)\b/'), $val, $matches)) {
             $hours = $matches[1];
         }
         
         // Извличаме дните от текста
-        if (preg_match(str::utf2ascii('/(\d+)[ ]*(d|day|days|д|ден|дни|дена)\b/'), $val, $matches)) {
+        if (preg_match(str::utf2ascii('/(\d+[.|,\d]*)[ ]*(d|day|days|д|ден|дни|дена)\b/'), $val, $matches)) {
             $days = $matches[1];
         }
         
         // Извличаме седмиците от текста
-        if (preg_match(str::utf2ascii('/(\d+)[ ]*(w|week|weeks|сед|седм|седмица|седмици)\b/'), $val, $matches)) {
+        if (preg_match(str::utf2ascii('/(\d+[.|,\d]*)[ ]*(w|week|weeks|сед|седм|седмица|седмици)\b/'), $val, $matches)) {
             $weeks = $matches[1];
         }
         
         // Извличаме месеците от текста
-        if (preg_match(str::utf2ascii('/(\d+)[ ]*(mon|month|months|мес|месец|месеца|месеци)\b/'), $val, $matches)) {
+        if (preg_match(str::utf2ascii('/(\d+[.|,\d]*)[ ]*(mon|month|months|мес|месец|месеца|месеци)\b/'), $val, $matches)) {
             $months = $matches[1];
         }
         
         // Извличаме годините от текста
-        if (preg_match(str::utf2ascii('/(\d+)[ ]*(y|year|years|г|год|година|години)\b/'), $val, $matches)) {
+        if (preg_match(str::utf2ascii('/(\d+[.|,\d]*)[ ]*(y|year|years|г|год|година|години)\b/'), $val, $matches)) {
             $years = $matches[1];
         }
         
@@ -264,6 +265,7 @@ class type_Time extends type_Varchar
         
         if (isset($this->params['noSmart'])) {
             $uom = ($this->params['uom']) ? $this->params['uom'] : 'minutes';
+            $decimals = ($this->params['decimals']) ? $this->params['decimals'] : 0;
             
             switch ($uom) {
                 case 'years':
@@ -293,10 +295,11 @@ class type_Time extends type_Varchar
                     break;
             }
             
-            return round($v) . ' ' . $suffix;
+            return round($v, $decimals) . ' ' . $suffix;
         }
         
         if ($format = $this->params['format']) {
+            $repl = array();
             $repl['y'] = "${years}";
             $repl['n'] = "${months}";
             $repl['w'] = "${weeks}";

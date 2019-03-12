@@ -3,11 +3,11 @@
 
 /**
  * Клас 'barcode_Search' - Търсене на баркод в системата
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   barcode
- * 
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
@@ -25,7 +25,7 @@ class barcode_Search extends core_Manager
     /**
      * Зареждане на плъгини
      */
-    public $loadList = 'doc_Wrapper';
+    public $loadList = 'doc_Wrapper, recently_Plugin';
     
     
     /**
@@ -53,7 +53,7 @@ class barcode_Search extends core_Manager
         
         $form->title = 'Търсене по баркод';
         
-        $form->FNC('search', 'varchar', 'caption=Баркод...,silent,input');
+        $form->FNC('search', 'varchar', 'caption=Баркод...,silent,input,recently');
         
         $form->show = 'search';
         
@@ -63,22 +63,32 @@ class barcode_Search extends core_Manager
         
         $form->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $form->toolbar->addBtn('Сканирай', $this->getScannerActivateUrl(), 'id=scanBtn', 'ef_icon = img/16/scanner.png');
+        $form->toolbar->addBtn('Сканирай', $this->getScannerActivateUrl(), 'id=scanBtn', 'ef_icon = img/16/barcode-icon.png, title=Сканиране на баркод');
         
         $tpl = $form->renderHtml();
         
         $haveRes = null;
         
         if ($form->rec->search) {
+            // Ако е сканиран баркод към линк към системата
+            if (core_Url::isValidUrl2($form->rec->search)) {
+                if (strpos($form->rec->search, '://' . $_SERVER['HTTP_HOST']) || strpos($form->rec->search, $_SERVER['HTTP_HOST'] === 0)) {
+                    
+                    return new Redirect($form->rec->search);
+                }
+            }
+            
             $haveRes = false;
             
             $intfArr = core_Classes::getOptionsByInterface('barcode_SearchIntf');
-
+            
             $tableTpl = new ET("<div class='barcodeSearchHolder'><table class='listTable barcodeSearch'>");
             $resArr = array();
-
+            
             foreach ($intfArr as $intfClsId => $intfCls) {
-                if (!cls::load($intfClsId, TRUE)) continue;
+                if (!cls::load($intfClsId, true)) {
+                    continue;
+                }
                 
                 $clsInst = cls::get($intfClsId);
                 
@@ -86,15 +96,15 @@ class barcode_Search extends core_Manager
                 
                 $resArr = array_merge($resArr, $Intf->searchByCode($form->rec->search));
             }
-
+            
             if (!empty($resArr)) {
                 core_Array::sortObjects($resArr, 'priority', 'desc');
                 $haveRes = true;
             }
-
+            
             foreach ($resArr as $r) {
-                $resTpl  = new ET("<tr><td>[#title#]</td><td>[#comment#]</td></tr>");
-
+                $resTpl = new ET('<tr><td>[#title#]</td><td>[#comment#]</td></tr>');
+                
                 if (!$r->title) {
                     $r->title = tr('Липсва заглавие');
                 }
@@ -106,11 +116,10 @@ class barcode_Search extends core_Manager
                 $resTpl->removeBlocksAndPlaces();
                 $tableTpl->append($resTpl);
             }
-            $tableTpl->append("</table></div>");
+            $tableTpl->append('</table></div>');
         }
-
-
-
+        
+        
         if ($haveRes === false) {
             $tpl->append(tr('Няма открити съвпадания в базата'));
         } else {
@@ -123,15 +132,15 @@ class barcode_Search extends core_Manager
     
     /**
      * Връща URL, което пуска програмата за сканиране на баркод и връща управлението след това
-     * 
+     *
      * @param null|string $retUrl
-     * 
+     *
      * @return string
      */
     public static function getScannerActivateUrl($retUrl = null)
     {
         if (!$retUrl) {
-            $retUrl = toUrl(array('barcode_Search', 'search' => '__CODE__'), TRUE);
+            $retUrl = toUrl(array('barcode_Search', 'search' => '__CODE__'), true);
         }
         
         $retUrl = str_replace('__CODE__', '{CODE}', $retUrl);

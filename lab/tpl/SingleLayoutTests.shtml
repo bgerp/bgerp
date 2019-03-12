@@ -1,6 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
 <div style="padding: 5px 10px 10px;">
-        <div class='fleft' >
+        <div class='half-width fleft' >
             <table class='top-table'>
                 <!--ET_BEGIN title-->
                 <tr>
@@ -31,7 +31,7 @@
         </div>
         <!--ET_BEGIN XXX-->
         [#XXX#]
-        <div class='fright' style='width:50%'>
+        <div class='half-width fright' style='width:50%'>
             <table class='top-table'>
                 <!--ET_BEGIN RefHandle-->
                 <tr>
@@ -68,7 +68,7 @@
         <!--ET_END XXX-->
         <div class="clearfix21"></div>
         <div class='scrolling-holder'>
-            <div style='margin-top:20px;margin-bottom:20px;'>
+            <div style='margin-top:20px;margin-bottom:20px;display: inline-block'>
                 <div style='background-color:#ddd;border:solid 1px #999; border-bottom:none; padding:5px; font-size:1.2em;'>|Резултати от измерванията|*</div>
                 <!--ET_BEGIN DETAILS-->
                 <div class='details'>
@@ -78,7 +78,7 @@
             </div>
         </div>
 
-        <div class='fleft' style='width:50%'>
+        <div class='half-width fleft' style='width:50%'>
             <!--ET_BEGIN vendorNote-->
             <div class='clear_both'><b>|Информация от ВЪЗЛОЖИТЕЛЯ|*</b></div>
             <div class='clear_l note'>
@@ -86,7 +86,7 @@
             </div>
             <!--ET_END vendorNote-->
         </div>
-        <div class='fright' style='width:50%'>
+        <div class='half-width fleft' style='width:50%'>
             <!--ET_BEGIN providerNote-->
             <div class='clear_both'><b>|Информация от ЛАБОРАНТА|*</b></div>
             <div class='clear_l note'>
@@ -94,28 +94,34 @@
             </div>
             <!--ET_END providerNote-->
         </div>
+          <div class='half-width fleft' style='width:50%; clear:both; margin-top: 10px;'>
+            <!--ET_BEGIN vendorNote-->
+            <div class='clear_both'><b>|Споделени потребители|*</b></div>
+            <div class='clear_l note'>
+                [#sharedUsers#]
+            </div>
+            <!--ET_END vendorNote-->
+        </div>
         <div style='clear: both;'></div>
         <div style='clear: both;'></div>
-
-
-    <table class='signature-table fleft' style='width:50%;'>
+    <table class='signature-table half-width fleft' style='width:50%;'>
         <tr>
             <td class="nowrap" style='width:1%;'>|За получателя|*:  </td>
             <td></td>
         </tr>
         <tr>
             <td></td>
-            <td><span class="sign_names nowrap">/[#createdBy#]/</span></td>
+            <td><span class="sign_names nowrap"></span></td>
         </tr>
     </table>
-        <table style='width:50%' class='fright signature-table'>
+        <table style='width:50%' class='fright half-width signature-table'>
             <tr>
                 <td class="nowrap" style='width:1%;'>|За доставчика|*:  </td>
                 <td></td>
             </tr>
             <tr>
                 <td></td>
-                <td><span class="sign_names nowrap"><!--ET_BEGIN activatedBy-->/ [#activatedBy#] /<!--ET_END activatedBy--></span></td>
+                <td><span class="sign_names nowrap"><!--ET_BEGIN activatedBy--><!--ET_END activatedBy--></span></td>
             </tr>
         </table>
     </div>

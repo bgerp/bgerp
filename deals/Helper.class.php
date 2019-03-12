@@ -116,6 +116,8 @@ abstract class deals_Helper
         $amountJournal = $discount = $amount = $amountVat = $amountTotal = $amountRow = 0;
         $vats = array();
         
+        $vatDecimals = sales_Setup::get('SALE_INV_VAT_DISPLAY', true) == 'yes' ? 20 : 2;
+        
         // Обработваме всеки запис
         foreach ($recs as &$rec) {
             $vat = 0;
@@ -127,19 +129,20 @@ abstract class deals_Helper
             $price = self::calcPrice($rec->{$map['priceFld']}, $vat, $masterRec->{$map['rateFld']});
             $rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
             
-            $noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, 2);
+            $noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, $vatDecimals);
             
             if ($rec->{$map['discount']}) {
-                $withoutVatAndDisc = round($noVatAmount * (1 - $rec->{$map['discount']}), 2);
+                $withoutVatAndDisc = round($noVatAmount * (1 - $rec->{$map['discount']}), $vatDecimals);
             } else {
                 $withoutVatAndDisc = $noVatAmount;
             }
             
-            $vatRow = round($withoutVatAndDisc * $vat, 2);
+            
+            $vatRow = round($withoutVatAndDisc * $vat, $vatDecimals);
             
             $rec->{$map['amountFld']} = $noVatAmount;
             if ($masterRec->{$map['chargeVat']} == 'yes' && !$map['alwaysHideVat']) {
-                $rec->{$map['amountFld']} = round($rec->{$map['amountFld']} + round($noVatAmount * $vat, 2), 2);
+                $rec->{$map['amountFld']} = round($rec->{$map['amountFld']} + round($noVatAmount * $vat, $vatDecimals), $vatDecimals);
             }
             
             if ($rec->{$map['discount']}) {
@@ -184,14 +187,24 @@ abstract class deals_Helper
         }
         
         $mvc->_total = new stdClass();
-        $mvc->_total->amount = $amountRow;
-        $mvc->_total->vat = $amountVat;
+        $mvc->_total->amount = round($amountRow, 2);
+        $mvc->_total->vat = round($amountVat, 2);
         $mvc->_total->vats = $vats;
         
         if (!$map['alwaysHideVat']) {
             $mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
         } else {
-            $mvc->_total->discount = $discount;
+            $mvc->_total->discount = round($discount, 2);
+        }
+
+        // "Просто" изчисляване на ДДС-то в документа, ако има само една ставка
+        if(count($vats) == 1 && ($masterRec->type == 'invoice' || $masterRec->type == 'dc_note')) {
+            $vat = key($vats);
+            $vats[$vat]->sum = round($vats[$vat]->sum, 2);
+            $vats[$vat]->amount = round($vats[$vat]->sum * $vat, 2);
+            //$mvc->_total->amount = $vats[$vat]->sum;
+            $mvc->_total->vat = $vats[$vat]->amount;
+            $mvc->_total->vats = $vats;
         }
     }
     
@@ -537,15 +550,15 @@ abstract class deals_Helper
     /**
      * Проверява имали такъв запис
      *
-     * @param core_Detail  $mvc
-     * @param int          $masterId
-     * @param int          $id
-     * @param int          $productId
-     * @param int          $packagingId
-     * @param float        $price
-     * @param NULL|float   $discount
-     * @param NULL|float   $tolerance
-     * @param NULL|int     $term
+     * @param core_Detail $mvc
+     * @param int         $masterId
+     * @param int         $id
+     * @param int         $productId
+     * @param int         $packagingId
+     * @param float       $price
+     * @param NULL|float  $discount
+     * @param NULL|float  $tolerance
+     * @param NULL|int    $term
      * @param NULL|string $batch
      *
      * @return FALSE|stdClass
@@ -700,14 +713,17 @@ abstract class deals_Helper
      * @param mixed $html
      * @param int   $productId
      * @param int   $storeId
-     * @param double $quantity
+     * @param float $quantity
      * @param string state
      *
      * @return void
      */
     public static function getQuantityHint(&$html, $productId, $storeId, $quantity, $state)
     {
-        if (!in_array($state, array('draft', 'pending'))) return;
+        if (!in_array($state, array('draft', 'pending'))) {
+            
+            return;
+        }
         
         $hint = '';
         $stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
@@ -721,23 +737,23 @@ abstract class deals_Helper
         $class = 'doc-warning-quantiy';
         $makeLink = true;
         
-        if ($futureQuantity < 0 && $freeQuantity < 0){
+        if ($futureQuantity < 0 && $freeQuantity < 0) {
             $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*!";
             $class = 'doc-negative-quantiy';
             $makeLink = false;
-        } elseif($futureQuantity < 0 && $freeQuantity > 0){
+        } elseif ($futureQuantity < 0 && $freeQuantity > 0) {
             $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
             $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
-        } elseif($futureQuantity >= 0 && $freeQuantity < 0){
+        } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
             $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
             $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
         }
         
-        if(!empty($hint)){
+        if (!empty($hint)) {
             $html = ht::createHint($html, $hint, 'warning', false, null, "class={$class}");
             
             // Линк към наличното в склада ако има права
-            if($makeLink === true && store_Stores::haveRightFor('select', $storeId) && store_Products::haveRightFor('list') && !Mode::isReadOnly()){
+            if ($makeLink === true && store_Stores::haveRightFor('select', $storeId) && store_Products::haveRightFor('list') && !Mode::isReadOnly()) {
                 $productName = cat_Products::getVerbal($productId, 'name');
                 $html = ht::createLinkRef($html, array('store_Products', 'list', 'storeId' => $storeId, 'search' => $productName));
             }
@@ -751,9 +767,9 @@ abstract class deals_Helper
      *
      * @see acc_Balances::getBlQuantities
      *
-     * @param array  $array        - масив от обекти с ключ ид на перо на валута и полета amount и quantity
-     * @param string $currencyCode - към коя валута да се конвертират
-     * @param DateTime   $date         - дата
+     * @param array    $array        - масив от обекти с ключ ид на перо на валута и полета amount и quantity
+     * @param string   $currencyCode - към коя валута да се конвертират
+     * @param DateTime $date         - дата
      *
      * @return array $res
      *               ->quantity - Количество във подадената валута
@@ -875,8 +891,7 @@ abstract class deals_Helper
         
         // Името и адреса на 'Моята фирма'
         $Companies = cls::get('crm_Companies');
-        $res['MyCompany'] = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-        $res['MyCompany'] = transliterate(tr($res['MyCompany']));
+        $res['MyCompany'] = $ownCompanyData->companyVerb;
         
         // ДДС и националния номер на 'Моята фирма'
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
@@ -889,7 +904,7 @@ abstract class deals_Helper
         if (isset($contragentClass, $contragentId)) {
             $ContragentClass = cls::get($contragentClass);
             $cData = $ContragentClass->getContragentData($contragentId);
-            $res['contragentName'] = isset($contragentName) ? $contragentName : cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
+            $res['contragentName'] = isset($contragentName) ? $contragentName : (($cData->personVerb) ? $cData->personVerb : $cData->companyVerb);
             $res['inlineContragentName'] = $res['contragentName'];
             
             $res['vatNo'] = $cData->vatNo;
@@ -940,7 +955,7 @@ abstract class deals_Helper
         $uomRec = cat_UoM::fetch($packagingId, 'round,type');
         
         // Ако е указано да се проверява само за опаковка или мярка, и записа не е такъв, не се прави проверка
-        if(isset($type) && $uomRec->type != $type) {
+        if (isset($type) && $uomRec->type != $type) {
             
             return true;
         }
@@ -1043,12 +1058,12 @@ abstract class deals_Helper
     public static function isQuantityBellowMoq(&$form, $productId, $quantity, $quantityInPack, $quantityField = 'packQuantity')
     {
         $moq = $form->rec->_moq;
-
-        if(!$moq) {
+        
+        if (!$moq) {
             $moq = cat_Products::getMoq($productId);
         }
-
-        if (isset($moq) && isset($quantity) && $quantity < $moq) {
+        
+        if (isset($moq, $quantity) && $quantity < $moq) {
             $moq /= $quantityInPack;
             $verbal = core_Type::getByName('double(smartRound)')->toVerbal($moq);
             if (haveRole('powerUser')) {
@@ -1483,7 +1498,7 @@ abstract class deals_Helper
         }
         
         $contragentClassId = $firstDoc->fetchField('contragentClassId');
-        if($contragentClassId == crm_Persons::getClassId()) {
+        if ($contragentClassId == crm_Persons::getClassId()) {
             
             return true;
         }
@@ -1656,7 +1671,8 @@ abstract class deals_Helper
     {
         $coverId = doc_Folders::fetchCoverId($folderId);
         $Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
-        if(cls::haveInterface(crm_ContragentAccRegIntf, $Class)){
+        if (cls::haveInterface(crm_ContragentAccRegIntf, $Class)) {
+            
             return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
         }
         
@@ -1738,10 +1754,11 @@ abstract class deals_Helper
     
     /**
      * Кой потребител да се показва, като съставителя на документа
-     * 
-     * @param int $createdBy       - ид на създателя
-     * @param int $activatedBy     - ид на активаторът
-     * @param int|null $userId     - ид на избрания потребител от двата
+     *
+     * @param int      $createdBy   - ид на създателя
+     * @param int      $activatedBy - ид на активаторът
+     * @param int|null $userId      - ид на избрания потребител от двата
+     *
      * @return null|string $names  - имената на съставителя, или null ако няма
      */
     public static function getIssuer($createdBy, $activatedBy, &$userId = null)
@@ -1751,9 +1768,9 @@ abstract class deals_Helper
         $userId = (!core_Users::isContractor($userId)) ? $userId : $activatedBy;
         
         $names = null;
-        if(isset($userId)){
+        if (isset($userId)) {
             $names = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($userId, 'names'));
-        } 
+        }
         
         return $names;
     }
@@ -1761,43 +1778,44 @@ abstract class deals_Helper
     
     /**
      * Проверки за свойствата на документите
-     * 
+     *
      * @param array $productArr
      * @param mixed $haveMetas
      * @param mixed $haveNotMetas
+     *
      * @return array
      */
     public static function checkProductForErrors($productArr, $haveMetas, $haveNotMetas = null)
     {
         $errorNotActive = $errorMetas = array();
         $productArr = arr::make($productArr, true);
-      
-        if(count($productArr)){
+        
+        if (count($productArr)) {
             $haveMetas = arr::make($haveMetas, true);
             $haveNotMetas = arr::make($haveNotMetas, true);
             
             $pQuery = cat_Products::getQuery();
             $pQuery->in('id', $productArr);
-            $pQuery->show(implode(',', $haveMetas + $haveNotMetas) . ',state,isPublic,name,nameInt');
-            while($pRec = $pQuery->fetch()){
+            $pQuery->show(implode(',', $haveMetas + $haveNotMetas) . ',state,isPublic,name,nameEn');
+            while ($pRec = $pQuery->fetch()) {
                 $error = false;
-                foreach ($haveMetas as $meta){
-                    if($pRec->{$meta} != 'yes'){
+                foreach ($haveMetas as $meta) {
+                    if ($pRec->{$meta} != 'yes') {
                         $error = true;
                         break;
                     }
                 }
                 
-                foreach ($haveNotMetas as $meta1){
-                    if($pRec->{$meta1} != 'no'){
+                foreach ($haveNotMetas as $meta1) {
+                    if ($pRec->{$meta1} != 'no') {
                         $error = true;
                         break;
                     }
                 }
                 
-                if($error){
+                if ($error) {
                     $errorMetas[$pRec->id] = cat_Products::getRecTitle($pRec, false);
-                } elseif($pRec->state != 'active'){
+                } elseif ($pRec->state != 'active') {
                     $errorNotActive[$pRec->id] = cat_Products::getRecTitle($pRec, false);
                 }
             }

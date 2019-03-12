@@ -54,7 +54,7 @@ class planning_Centers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, planning_Wrapper, doc_FolderPlg, plg_State, plg_Rejected, plg_Created, acc_plg_Registry, doc_FolderPlg, plg_Sorting';
+    public $loadList = 'plg_RowTools2, planning_Wrapper, doc_FolderPlg, plg_State, plg_Rejected, plg_Created, acc_plg_Registry, doc_FolderPlg, plg_Sorting, doc_plg_Close';
     
     
     /**
@@ -73,6 +73,12 @@ class planning_Centers extends core_Master
      * Кой може да пише?
      */
     public $canWrite = 'ceo, planningMaster';
+    
+    
+    /**
+     * Кой може да затваря?
+     */
+    public $canClose = 'ceo, planningMaster';
     
     
     /**
@@ -139,6 +145,14 @@ class planning_Centers extends core_Master
      * Поле, в което да се постави връзка към папката в листови изглед
      */
     public $listFieldForFolderLink = 'folder';
+    
+    
+    /**
+     * Детайла, на модела
+     *
+     * @var string|array
+     */
+    public $details = 'stages=planning_Stages';
     
     
     /**
@@ -344,5 +358,63 @@ class planning_Centers extends core_Master
                 $num = planning_Setup::get('UNDEFINED_CENTER_DISPLAY_NAME');
             }
         }
+    }
+    
+    
+    /**
+     * Производствени етапи в папката на центъра на дейност
+     * 
+     * @param int $folderId
+     * @return array $options
+     */
+    public static function getManifacturableOptions($folderId)
+    {
+        $options = array();
+        $sQuery = planning_Stages::getQuery();
+        $sQuery->where("LOCATE('|{$folderId}|', #folders) AND #state != 'closed' AND #state != 'rejected' AND #classId = " . cat_Products::getClassId());
+        while($sRec = $sQuery->fetch()){
+            if($Extended = planning_Stages::getExtended($sRec)){
+                $options[$Extended->that] = $Extended->getTitleById(false);
+            }
+        }
+        
+        if(count($options)){
+            $options = array('pu' => (object)array('group' => true, 'title' => 'Производствени етапи')) + $options;
+        }
+        
+        return $options;
+    }
+    
+    
+    /**
+     * Производствени етапи в папката на центъра на дейност
+     *
+     * @param int|null $jobId
+     * @param int|null $userId
+     * 
+     * @return array $options
+     */
+    public static function getCentersForTasks($jobId = null, $userId = null)
+    {
+        $options = array();
+        if(isset($jobId)){
+            $jobFolderId = planning_Jobs::fetchField($jobId, 'folderId');
+            $Cover = doc_Folders::getCover($jobFolderId);
+            if($Cover->isInstanceOf('planning_Centers')){
+                $options[$jobFolderId] = $Cover->getRecTitle(false);
+            }
+        }
+        
+        $query = self::getQuery();
+        $query->where("#state != 'closed' AND #state != 'rejected'");
+        while($rec = $query->fetch()){
+            if(planning_Stages::fetch("LOCATE('|{$rec->folderId}|', #folders)")){
+                if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
+                    $options[$rec->folderId] = self::getRecTitle($rec, false);
+                }
+            }
+        }
+        
+        return $options;
     }
 }

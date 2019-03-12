@@ -29,17 +29,18 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->TAB('core_Maintenance', 'Код->Миграции', 'admin');
         $this->TAB('core_Users', 'Потребители', 'admin');
         $this->TAB('core_Roles', 'Роли', 'admin');
-        $this->TAB('core_Lg', 'Превод', 'admin');
+        $this->TAB('core_Lg', 'Превод->Система', 'admin');
+        $this->TAB('core_UserTranslates', 'Превод->Потребителски', 'admin');
         
         $this->TAB('log_Data', 'Логове->Потребителски', 'admin');
         $this->TAB('log_System', 'Логове->Системен', 'admin, debug');
-        $this->TAB('log_Actions', 'Логове->Действия', 'admin');
         $this->TAB('log_Debug', 'Логове->Дебъг', 'debug');
+        $this->TAB('core_LoginLog', 'Логове->Логин', 'admin');
+        $this->TAB('log_Actions', 'Логове->Действия', 'admin');
         $this->TAB('log_Browsers', 'Логове->Браузъри', 'admin');
         $this->TAB('log_Classes', 'Логове->Класове', 'admin');
         $this->TAB('log_Ips', 'Логове->IP-та', 'admin');
         $this->TAB('log_Referer', 'Логове->Реферери', 'admin');
-        $this->TAB('core_LoginLog', 'Логове->Логин', 'admin');
         
         $this->TAB('core_Cron', 'Крон', 'admin');
         $this->TAB('core_Plugins', 'Плъгини', 'admin');

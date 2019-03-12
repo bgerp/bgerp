@@ -106,9 +106,9 @@ abstract class deals_DealDetail extends doc_Detail
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
         $mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-        $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter');
+        $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
         
-        $mvc->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
+        $mvc->FLD('tolerance', 'percent(min=0,max=1,decimals=0,warningMax=0.1)', 'caption=Толеранс,input=none');
         $mvc->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,after=tolerance,before=showMode,input=none');
         
         $mvc->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Допълнително->Изглед,notNull,default=auto');
@@ -212,7 +212,7 @@ abstract class deals_DealDetail extends doc_Detail
                 if (isset($listId)) {
                     $allProducts = cat_Listings::getAll($listId);
                     foreach ($allProducts as $o) {
-                        $pRec = cat_Products::fetch($o->productId, 'name,nameInt,isPublic,code,createdOn');
+                        $pRec = cat_Products::fetch($o->productId, 'name,nameEn,isPublic,code,createdOn');
                         $products[$o->productId] = cat_Products::getRecTitle($pRec, false);
                     }
                 }
@@ -491,7 +491,10 @@ abstract class deals_DealDetail extends doc_Detail
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
         $meta = cat_Products::fetchField($pRec->productId, $this->metaProducts);
-        if($meta != 'yes') return null;
+        if ($meta != 'yes') {
+            
+            return;
+        }
         
         $price = null;
         

@@ -92,7 +92,7 @@ class price_ListRules extends core_Detail
         $this->FLD('type', 'enum(value,discount,groupDiscount)', 'caption=Тип,input=hidden,silent');
         
         // Цена за продукт
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,showTemplates,selectSourceArr=price_ListRules::getSellableProducts)', 'caption=Aртикул,mandatory,silent,remember=info');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,showTemplates,selectSourceArr=price_ListRules::getSellableProducts)', 'caption=Артикул,mandatory,silent,remember=info');
         $this->FLD('price', 'double(Min=0)', 'caption=Цена,mandatory,silent');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС');
@@ -503,7 +503,7 @@ class price_ListRules extends core_Detail
     /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
-    protected static function on_AfterPrepareEditToolbar($mvc, &$res, &$data)
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         $form = &$data->form;
         if (Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh') {
@@ -726,13 +726,13 @@ class price_ListRules extends core_Detail
         
         if (isset($rec->productId)) {
             $productRec = cat_Products::fetch($rec->productId, 'isPublic,state');
-            if($productRec->state == 'template'){
+            if ($productRec->state == 'template') {
                 $row->domain = ht::createHint($row->domain, 'Артикулът е шаблонен, и няма да може да бъде избиран в документите|*!', 'warning', false);
                 $state = 'template';
-            } elseif($productRec->state == 'rejected'){
+            } elseif ($productRec->state == 'rejected') {
                 $row->domain = ht::createHint($row->domain, 'Артикулът е оттеглен, и няма да може да бъде избиран в документите|*!', 'warning', false);
                 $state = 'rejected';
-            } elseif($productRec->state == 'closed'){
+            } elseif ($productRec->state == 'closed') {
                 $row->domain = ht::createHint($row->domain, 'Артикулът е вече закрит, и няма да може да бъде избиран в документите|*!', 'warning', false);
                 $state = 'closed';
             } elseif ($productRec->isPublic == 'no') {
@@ -750,11 +750,11 @@ class price_ListRules extends core_Detail
     /**
      * Създава запис на себестойност на артикул
      *
-     * @param int    $productId    - ид на продукт
-     * @param float  $primeCost    - себестойност
-     * @param datetime   $validFrom    - от кога е валидна
-     * @param string $currencyCode - код на валута
-     * @param string $vat          - с ДДС или без
+     * @param int      $productId    - ид на продукт
+     * @param float    $primeCost    - себестойност
+     * @param datetime $validFrom    - от кога е валидна
+     * @param string   $currencyCode - код на валута
+     * @param string   $vat          - с ДДС или без
      *
      * @return int - ид на създадения запис
      */
@@ -927,7 +927,7 @@ class price_ListRules extends core_Detail
         $pQuery = cat_Products::getQuery();
         
         // Ако има зададен лист, ще се избират всички артикули в него (освен ако вече няма филтър)
-        if(isset($params['showAllInListId']) && empty($onlyIds)){
+        if (isset($params['showAllInListId']) && empty($onlyIds)) {
             $query = self::getQuery();
             $query->where("#listId = {$params['showAllInListId']} AND #productId IS NOT NULL");
             $query->show('productId');
@@ -946,27 +946,27 @@ class price_ListRules extends core_Detail
             $pQuery->where("#id = ${onlyIds}");
         } else {
             $pQuery->where("#state != 'closed' AND #state != 'rejected' AND #canSell = 'yes'");
-            if(!isset($params['showTemplates'])){
+            if (!isset($params['showTemplates'])) {
                 $pQuery->where("#state != 'template'");
             }
-            if(isset($params['onlyPublic'])){
+            if (isset($params['onlyPublic'])) {
                 $pQuery->where("#isPublic = 'yes'");
             }
             
             // Нестандартните артикули да се показват само в политика 'Себестойност'
-            if(isset($params['listId'])){
-                if($params['listId'] != price_ListRules::PRICE_LIST_COST){
+            if (isset($params['listId'])) {
+                if ($params['listId'] != price_ListRules::PRICE_LIST_COST) {
                     $pQuery->where("#isPublic = 'yes'");
                 }
             }
             
             // Ако има подадени групи се филтрира по тях
-            if(!empty($params['groups'])){
+            if (!empty($params['groups'])) {
                 $pQuery->likeKeylist('groups', $params['groups']);
             }
         }
         
-        $xpr = "CONCAT(' ', #name, ' ', #code)";
+        $xpr = "CONCAT(' ', #name, ' ', #code, ' ', #nameEn)";
         $pQuery->XPR('searchFieldXpr', 'text', $xpr);
         $pQuery->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
         
@@ -988,7 +988,7 @@ class price_ListRules extends core_Detail
             $pQuery->limit($limit);
         }
         
-        $pQuery->show('id,name,code,isPublic,nameInt');
+        $pQuery->show('id,name,code,isPublic,nameEn');
         
         while ($pRec = $pQuery->fetch()) {
             $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);

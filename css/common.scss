@@ -1528,7 +1528,7 @@ table.listTable {
     max-width: 915px !important;
 }
 
-table.listTable:not(.noHoverTable) > tbody > tr:hover {
+table.listTable:not(.noHoverTable) > tbody > tr:hover, table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
  	background-color: $beige;
     &.state-draft {
         background-color: darken(#bff, 10%);
@@ -3242,7 +3242,7 @@ div.richtext ul, div.richtext ol{
 }
 
 div.richtext > ul{
-	padding-left: 0.5em;
+	padding-left: 1.5em;
 }
 
 div.richtext ul { 
@@ -3258,7 +3258,7 @@ div.richtext ul ul ul{
 }
 
 div.richtext > ol {
-	padding-left: 0.7em;
+	padding-left: 0.5em;
 }
 
 div.richtext ol {

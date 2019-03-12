@@ -252,7 +252,39 @@ class cms_Content extends core_Manager
                 $tpl->append(ht::createLink($rec->menu, $url, null, $attr));
             }
         }
-        
+
+        // Поставяне на иконка за Вход
+        if ($loginLink == false) {
+            $dRec = cms_Domains::getPublicDomain('form');
+
+            if (haveRole('user')) {
+                $filePath = 'img/32/inside';
+                $title = 'Меню||Menu';
+            } else {
+                $filePath = 'img/32/login';
+                $title = 'Вход||Log in';
+            }
+
+            if ((isset($dRec->baseColor) && phpcolor_Adapter::checkColor($dRec->baseColor) && Request::get('Ctr') != 'core_Users') ||
+                (isset($dRec->activeColor) && phpcolor_Adapter::checkColor($dRec->activeColor) && Request::get('Ctr') == 'core_Users')) {
+                $filePath .= 'Dark';
+            } else {
+                $filePath .= 'Light';
+            }
+
+            if (Mode::is('screenMode', 'narrow')) {
+                $filePath .= 'M';
+            }
+
+            $filePath .= '.png';
+
+            $tpl->append(ht::createLink(
+                ht::createImg(array('path' => $filePath, 'alt' => 'login')),
+                array('Portal', 'Show'),
+                null,
+                array('title' => $title, 'class' => Request::get('Ctr') == 'core_Users' ? 'loginIcon selected' : 'loginIcon')
+            ));
+        }
         
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
         $usedLangsArr = cms_Domains::getCmsLangs();
@@ -263,7 +295,7 @@ class cms_Content extends core_Manager
             $lang = self::getLang();
             
             foreach ($usedLangsArr as $lg) {
-                $attr = array('title' => drdata_Languages::fetchField("#code = '{$lg}'", 'nativeName'), 'id' => 'set-lang-' . $lg);
+                $attr = array('title' => drdata_Languages::fetchField("#code = '{$lg}'", 'nativeName'), 'id' => 'set-lang-' . $lg, 'class' => "langIcon");
                 
                 if ($lg == $lang) {
                     continue;
@@ -283,7 +315,7 @@ class cms_Content extends core_Manager
                 $tpl->append(ht::createLink($img, $url, null, $attr));
             }
         } elseif (count($usedLangsArr) > 1) {
-            $attr['class'] = 'selectLang';
+            $attr['class'] = 'selectLang langIcon';
             $attr['title'] = implode(', ', $usedLangsArr);
             if (Request::get('Ctr') == 'cms_Content' && Request::get('Act') == 'selectLang') {
                 $attr['class'] = 'selected';
@@ -291,40 +323,7 @@ class cms_Content extends core_Manager
             $tpl->append(ht::createLink(ht::createElement('img', array('src' => sbf('img/24/globe.png', ''))), array($this, 'selectLang'), null, $attr));
         }
         
-        
-        // Поставяне на иконка за Вход
-        if ($loginLink == false) {
-            $dRec = cms_Domains::getPublicDomain('form');
-            
-            if (haveRole('user')) {
-                $filePath = 'img/32/inside';
-                $title = 'Меню||Menu';
-            } else {
-                $filePath = 'img/32/login';
-                $title = 'Вход||Log in';
-            }
-            
-            if ((isset($dRec->baseColor) && phpcolor_Adapter::checkColor($dRec->baseColor) && Request::get('Ctr') != 'core_Users') ||
-                (isset($dRec->activeColor) && phpcolor_Adapter::checkColor($dRec->activeColor) && Request::get('Ctr') == 'core_Users')) {
-                $filePath .= 'Dark';
-            } else {
-                $filePath .= 'Light';
-            }
-            
-            if (Mode::is('screenMode', 'narrow')) {
-                $filePath .= 'M';
-            }
-            
-            $filePath .= '.png';
-            
-            $tpl->append(ht::createLink(
-                ht::createImg(array('path' => $filePath)),
-                array('Portal', 'Show'),
-                null,
-                array('title' => $title, 'class' => Request::get('Ctr') == 'core_Users' ? 'selected' : '')
-            ));
-        }
-        
+
         return $tpl;
     }
     

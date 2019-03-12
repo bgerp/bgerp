@@ -76,7 +76,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $mvc->FLD('price', 'double', 'caption=Цена, input=none');
         $mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
         $mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-        $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter');
+        $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
     }
     
@@ -115,7 +115,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, 0, $masterRec->rate, 'no');
         }
         
-        if ($masterRec->state != 'draft') {
+        if ($masterRec->state != 'draft' and !haveRole('no_one')) {
             $fields = $data->form->selectFields("#name != 'notes' AND #name != 'productId' AND #name != 'id' AND #name != 'invoiceId'");
             $data->singleTitle = 'забележка';
             $data->form->editActive = true;
@@ -401,9 +401,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
         
         $mvc = cls::get(get_called_class());
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-        $lang = doc_TplManager::fetchField($masterRec->template, 'lang');
-        $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
         
+        $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
+        $modeLg = Mode::get('tplManagerLg');
+        $lang = isset($modeLg) ? $modeLg : doc_TplManager::fetchField($masterRec->template, 'lang');
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'invoice', $lang, 1, false);
         
         // Показваме подробната информация за опаковката при нужда

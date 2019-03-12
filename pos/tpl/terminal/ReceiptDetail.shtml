@@ -1,5 +1,5 @@
 <!--ET_BEGIN sale-->
-<tr data-id='[#id#]' class='pos-sale [#lastRow#]' >
+<tr data-id='[#id#]' class='pos-sale [#lastRow#]' title = '|Селектиране на реда|*'>
 	<td colspan='3' class='receipt-sale name-product'>[#productId#] [#DEL_BTN#]&nbsp;&nbsp;[#perPack#] [#uomId#]</td>
 </tr>
 <tr  data-code='[#code#]'class='pos-sale [#lastRow#]' data-id='[#id#]'>
@@ -15,7 +15,7 @@
 
 <!--ET_BEGIN payment-->
 <tr [#lastRow#]>
-	<td colspan='3' class='receipt-payment'>|Плащане|* [#actionValue#]: &nbsp;&nbsp;[#amount#] [#DEL_BTN#]</td>
+	<td colspan='3' class='receipt-payment'>[#paymentCaption#] [#actionValue#]: &nbsp;&nbsp;[#amount#] [#DEL_BTN#]</td>
 </tr>
 <!--ET_END payment-->
 

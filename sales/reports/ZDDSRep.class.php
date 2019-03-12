@@ -13,6 +13,7 @@
  *
  * @since     v 0.1
  * @title     Продажби » Продажби без фактура
+ * @deprecated
  */
 class sales_reports_ZDDSRep extends frame2_driver_TableData
 {
@@ -469,7 +470,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         
         $id = $recDetail->productId;
         
-        $data->recs[] = (object) array(
+        $data->recs[] = (object) array( 
             'doc' => $class . '|' . $rec->id,
             'docNum' => $rec->id,
             'valior' => $valior,

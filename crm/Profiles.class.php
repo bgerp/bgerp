@@ -323,14 +323,20 @@ class crm_Profiles extends core_Master
                 
                 // Променяме паролата
                 $data->User->row->password = str_repeat('*', 7) . ' ' . $changePasswordLink;
-            
-            // Ако има роля admin
             } else {
-                
                 // Премахваме информацията, която не трябва да се вижда от другите
                 unset($data->User->row->password);
             }
             
+            if ((core_Users::getCurrent() == $data->User->rec->id) || haveRole('admin,ceo')) {
+                if ($data->User->rec->pinCode) {
+                    $data->User->row->pinCode = tr('Да');
+                } else {
+                    $data->User->row->pinCode = tr('Не');
+                }
+            }
+            
+            // Ако има роля admin
             if (haveRole('admin')) {
                 
                 // Иконата за редактиране
@@ -477,7 +483,7 @@ class crm_Profiles extends core_Master
         
         // Заместваме в шаблона
         $tpl->prepend($uTpl, 'userInfo');
-
+        
         if (isset($data->rec->stateInfo, $data->rec->stateDateFrom, $data->rec->stateDateTo)) {
             $status = self::getVerbalStatus($data->rec->stateInfo, $data->rec->stateDateFrom, $data->rec->stateDateTo);
             $tpl->append($status, 'userStatus');
@@ -553,7 +559,7 @@ class crm_Profiles extends core_Master
         }
     }
     
-
+    
     /**
      * Връща вербална инфирмация за отсъствието
      *
@@ -564,29 +570,29 @@ class crm_Profiles extends core_Master
      * @return string;
      */
     public static function getVerbalStatus($type, $from, $to)
-    { 
-            $Date = cls::get('type_Date');
-            
-            list($dateFrom, $hoursFrom) = explode(' ', $from);
-            list($dateTo, $hoursTo) = explode(' ', $to);
-            
-            list($today, $hoursToday) = explode(' ', dt::verbal2mysql());
-            list($yesterday, $hoursYesterday) = explode(' ', dt::addDays(-1));
-            list($tomorrow, $hoursTomorrow) = explode(' ', dt::addDays(1));
-            
-            $status = tr(static::$map[$type]) . ' ';
-
-            if ($dateFrom == $dateTo && ($dateFrom == $yesterday || $dateFrom == $today || $dateFrom == $tomorrow)) {
-                $status .= dt::mysql2verbal($from, 'smartDate');
-            } elseif ($dateFrom == $dateTo) {
-                $status .= tr('на') . ' ' . dt::mysql2verbal($from, 'smartDate');
-            } else {
-                $status .=  tr('от') . ' ' . dt::mysql2verbal($from, 'smartDate') . ' ' . tr('до') . ' ' . dt::mysql2verbal($to, 'smartDate');
-            }
-            
-            return $status;
+    {
+        $Date = cls::get('type_Date');
+        
+        list($dateFrom, $hoursFrom) = explode(' ', $from);
+        list($dateTo, $hoursTo) = explode(' ', $to);
+        
+        list($today, $hoursToday) = explode(' ', dt::verbal2mysql());
+        list($yesterday, $hoursYesterday) = explode(' ', dt::addDays(-1));
+        list($tomorrow, $hoursTomorrow) = explode(' ', dt::addDays(1));
+        
+        $status = tr(static::$map[$type]) . ' ';
+        
+        if ($dateFrom == $dateTo && ($dateFrom == $yesterday || $dateFrom == $today || $dateFrom == $tomorrow)) {
+            $status .= dt::mysql2verbal($from, 'smartDate');
+        } elseif ($dateFrom == $dateTo) {
+            $status .= tr('на') . ' ' . dt::mysql2verbal($from, 'smartDate');
+        } else {
+            $status .= tr('от') . ' ' . dt::mysql2verbal($from, 'smartDate') . ' ' . tr('до') . ' ' . dt::mysql2verbal($to, 'smartDate');
+        }
+        
+        return $status;
     }
-
+    
     
     /**
      * Екшън за смяна на парола
@@ -605,9 +611,10 @@ class crm_Profiles extends core_Master
         if ($form->isSubmitted()) {
             $this->validateChangePasswordForm($form);
             if (!$form->gotErrors()) {
+                $msg = '';
                 
                 // Записваме данните
-                if (core_Users::setPassword($form->rec->passNewHash)) {
+                if ($form->rec->passNewHash && core_Users::setPassword($form->rec->passNewHash)) {
                     // Правим запис в лога
                     self::logWrite('Смяна на парола', $form->rec->id);
 
@@ -619,14 +626,30 @@ class crm_Profiles extends core_Master
 //
                     //	                core_LoginLog::add('pass_change', $userId);
                     
-                    // Редиректваме към предварително установения адрес
-                    return new Redirect(getRetUrl(), '|Паролата е променена успешно');
+                    $msg .= '|Паролата е променена успешно|*.';
                 }
+                
+                $uRec = core_Users::fetch(core_Users::getCurrent());
+                
+                if ($form->rec->pinCode) {
+                    $uRec->pinCode = $form->rec->pinCode;
+                    
+                    core_Users::save($uRec, 'pinCode');
+                    
+                    self::logWrite('Смяна на ПИН код', $form->rec->id);
+                    
+                    $msg .= $msg ? '<br>' : '';
+                    
+                    $msg .= '|ПИН кодът е сменен успешно|*.';
+                }
+                
+                // Редиректваме към предварително установения адрес
+                return new Redirect(getRetUrl(), $msg);
             }
         }
         
         // Кои полета да се показват
-        $form->showFields = (($form->fields['nick']) ? 'nick' : 'email') . ',passEx,passNew,passRe';
+        $form->showFields = (($form->fields['nick']) ? 'nick' : 'email') . ',passEx,passNew,passRe,pinCode';
         
         // Получаваме изгледа на формата
         $tpl = $form->renderHtml();
@@ -671,7 +694,10 @@ class crm_Profiles extends core_Master
         
         // Повторение на новата парола
         $passReHint = 'Въведете отново паролата за потвърждение, че сте я написали правилно';
-        $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола (пак),input,hint={$passReHint},width=15em");
+        $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', 'caption=Нова парола (пак),input,width=15em', array('hint' => $passReHint));
+        
+        $pinCodeHint = 'Промяна на ПИН код';
+        $form->FNC('pinCode', 'password(allowEmpty,autocomplete=off)', "caption=ПИН код,input,hint={$pinCodeHint},width=15em");
         
         // Подготвяме лентата с инструменти на формата
         $form->toolbar->addSbBtn('Запис', 'change_password', 'ef_icon = img/16/disk.png');
@@ -681,6 +707,7 @@ class crm_Profiles extends core_Master
         $form->title = 'Смяна на паролата';
         $form->rec->passExHash = '';
         $form->rec->passNewHash = '';
+        $form->rec->pinCode = '';
         
         core_Users::setUserFormJS($form);
         
@@ -707,8 +734,8 @@ class crm_Profiles extends core_Master
             $form->setError('passNew', 'Паролата трябва да е минимум |* ' . EF_USERS_PASS_MIN_LEN . ' |символа');
         } elseif ($rec->passNew != $rec->passRe) {
             $form->setError('passNew,passRe', 'Двете пароли не съвпадат');
-        } elseif (!$rec->passNewHash) {
-            $form->setError('passNew,passRe', 'Моля, въведете (и повторете) новата парола');
+        } elseif (!$rec->passNewHash && !$rec->pinCode) {
+            $form->setError('passNew,passRe,pinCode', 'Моля, въведете (и повторете) новата парола или въведете ПИН код');
         }
     }
     
@@ -1096,7 +1123,7 @@ class crm_Profiles extends core_Master
             $profRec = self::fetch("#userId = {$userId}");
             
             $attr['class'] .= ' profile';
-
+            
             if ($profRec && $profRec->stateDateFrom) {
                 $attr['class'] .= ' ' . self::getAbsenceClass($profRec->stateDateFrom, $profRec->stateDateTo);
             }
@@ -1154,29 +1181,29 @@ class crm_Profiles extends core_Master
         
         return $cacheArr[$key];
     }
-
-
+    
+    
     /**
      * Връща клас за ника, според началото на отсъствието и края му
      */
     public static function getAbsenceClass($from, $to)
     {
-        list($dateFrom,) = explode(' ', $from);
-        list($dateTo,) = explode(' ', $to);
-        $nextWorkingDay =  cal_Calendar::nextWorkingDay(null, 0);
+        list($dateFrom, ) = explode(' ', $from);
+        list($dateTo, ) = explode(' ', $to);
+        $nextWorkingDay = cal_Calendar::nextWorkingDay(null, 0);
         $today = dt::now(false);
         
         $res = '';
-
+        
         if ($dateFrom <= $today && $today <= $dateTo) {
             $res = 'profile-state';
         } elseif ($dateFrom <= $nextWorkingDay && $nextWorkingDay <= $dateTo) {
             $res = 'profile-state-tomorrow';
         }
-       
+        
         return $res;
     }
-
+    
     
     /**
      * Обработва ника на потребителя, така, че да изглежда добре
@@ -1518,7 +1545,7 @@ class crm_Profiles extends core_Master
                 $params = arr::combine($arguments[1], $arguments[2]);
                 
                 // Ако не е зададено, че може да се конфигурира или не може да се конфигурира за текущия потребител
-                if (!$params['customizeBy'] || !haveRole($params['customizeBy'], $currUserId)) {
+                if (!$params['customizeBy'] || !haveRole(str_replace('|', ',', $params['customizeBy']), $currUserId)) {
                     continue;
                 }
                 
@@ -1617,8 +1644,8 @@ class crm_Profiles extends core_Master
             unset($mvc->details[$remotePackKey]);
         }
     }
-
-
+    
+    
     /**
      * Връща потребителя към дадена визитка на човек. Възможно е да няма такъв
      *
@@ -1629,12 +1656,12 @@ class crm_Profiles extends core_Master
     public static function getUserByPerson($personId)
     {
         $rec = self::fetch("#personId = {$personId}");
-        if($rec) {
-
+        if ($rec) {
+            
             return $rec->userId;
         }
     }
-   
+    
     
     /**
      * Връща id на визитка към потребител
@@ -1646,12 +1673,9 @@ class crm_Profiles extends core_Master
     public static function getPersonByUser($userId)
     {
         $rec = self::fetch("#userId = {$userId}");
-        if($rec) {
-
+        if ($rec) {
+            
             return $rec->peronId;
         }
     }
-
-
-    
 }

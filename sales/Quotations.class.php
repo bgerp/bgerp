@@ -441,7 +441,7 @@ class sales_Quotations extends core_Master
             }
             
             if (isset($rec->deliveryTermId)) {
-                $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id') : null; 
+                $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null; 
                 
                 if ($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $locationId)) {
                     $form->setWarning('deliveryTermId,deliveryAdress,deliveryPlaceId', $error);
@@ -671,12 +671,9 @@ class sales_Quotations extends core_Master
             }
             
             if (isset($rec->deliveryTermId)) {
-                $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id') : null; 
-                
-                if ($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $locationId)) {
-                   
-                    unset($row->deliveryTermId);
-                    $row->deliveryError = tr('За транспортните разходи, моля свържете се с представител на фирмата');
+                $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null; 
+                if (sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $locationId)) {
+                   $row->deliveryError = tr('За транспортните разходи, моля свържете се с представител на фирмата');
                 }
             }
         }
@@ -721,7 +718,7 @@ class sales_Quotations extends core_Master
         
         $locationId = null;
         if (isset($rec->deliveryPlaceId)) {
-            $locationId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id');
+            $locationId = crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id');
         }
         $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode, $rec->contragentCountryId, $locationId ? $locationId : $rec->deliveryAdress);
         
@@ -929,7 +926,7 @@ class sales_Quotations extends core_Master
      *
      * @param int $id - ид на оферта
      *
-     * @return param $res - масив с използваните документи
+     * @return array $res - масив с използваните документи
      *               ['class'] - Инстанция на документа
      *               ['id'] - ид на документа
      */
@@ -1049,7 +1046,7 @@ class sales_Quotations extends core_Master
             'originId' => $rec->containerId,
             'template' => $templateId,
             'deliveryAdress' => $rec->deliveryAdress,
-            'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id'),
+            'deliveryLocationId' => crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id'),
         );
         
         $folderId = cls::get($rec->contragentClassId)->forceCoverAndFolder($rec->contragentId);
@@ -1129,8 +1126,7 @@ class sales_Quotations extends core_Master
         
         // Подготовка на формата за филтриране на данните
         $form = $this->getFilterForm($rec->id, $id);
-        
-        $fRec = $form->input();
+        $form->input();
         
         if ($form->isSubmitted()) {
             $products = (array) $form->rec;
@@ -1518,7 +1514,7 @@ class sales_Quotations extends core_Master
      * @param int   $packagingId  - ид на опаковка (не е задължителна)
      * @param float $price        - цена на единична бройка, без ДДС в основна валута
      * @param bool  $optional     - дали артикула е опционален или не
-     * @param array $fields       - масив с допълнителни параметри
+     * @param array $other        - масив с допълнителни параметри
      *                            double ['discount']       - отстъпка (опционална)
      *                            double ['tolerance']      - толеранс (опционален)
      *                            mixed  ['term']           - срок на доставка (опционален)
@@ -1589,7 +1585,7 @@ class sales_Quotations extends core_Master
         if (core_Packs::isInstalled('tcost')) {
             $form = sales_QuotationsDetails::getForm();
             $clone = clone $rec;
-            $clone->deliveryPlaceId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id') : null; 
+            $clone->deliveryPlaceId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null; 
             
             sales_TransportValues::prepareFee($newRec, $form, $clone, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
         }
@@ -1613,8 +1609,8 @@ class sales_Quotations extends core_Master
     /**
      * Функция, която се извиква преди активирането на документа
      *
-     * @param unknown_type $mvc
-     * @param unknown_type $rec
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
      */
     protected static function on_BeforeActivation($mvc, $res)
     {

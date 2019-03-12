@@ -650,7 +650,7 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ, silent');
+        $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ или контейнер, silent');
         $data->listFilter->showFields = 'documentId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -674,6 +674,8 @@ class sales_PrimeCostByDocument extends core_Manager
                     }
                     
                     $data->query->in('containerId', $in);
+                } elseif(type_Int::isInt($rec->documentId)){
+                    $data->query->where("#containerId = {$rec->documentId}");
                 }
             }
         }

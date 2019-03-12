@@ -869,8 +869,8 @@ class sales_Sales extends deals_DealMaster
         // Отново вкарваме езика на шаблона в сесията
         core_Lg::push($rec->tplLang);
         
-        $hasTransport = !empty($data->row->hiddenTransportCost) || !empty($data->row->expectedTransportCost) || !empty($data->row->visibleTransportCost);
-        if (Mode::isReadOnly() || $hasTransport === false || core_Users::haveRole('partner')) {
+        // Скриване на секцията с транспорт, при определени условия
+        if (Mode::isReadOnly() || core_Users::haveRole('partner') || empty($rec->deliveryTermId) || (!empty($rec->deliveryTermId) && !cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId))) {
             $tpl->removeBlock('TRANSPORT_BAR');
         }
     }
@@ -1066,12 +1066,10 @@ class sales_Sales extends deals_DealMaster
     {
         $table = cls::get('core_TableView', array('mvc' => cls::get('planning_Jobs')));
         
-        foreach ($data->jobs as &$row) {
-            $jobsTable = $table->get($data->jobs, 'title=Задание,dueDate=Падеж,packQuantity=Планирано,quantityFromTasks=Произведено,quantityProduced=Заскладено,packagingId=Мярка');
-            $jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
-            $jobTpl->replace($jobsTable, 'table');
-            $tpl->replace($jobTpl, 'JOB_INFO');
-        }
+        $jobsTable = $table->get($data->jobs, 'title=Задание,dueDate=Падеж,packQuantity=Планирано,quantityFromTasks=Произведено,quantityProduced=Заскладено,packagingId=Мярка');
+        $jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
+        $jobTpl->replace($jobsTable, 'table');
+        $tpl->replace($jobTpl, 'JOB_INFO');
         
         if (isset($data->addJobUrl)) {
             $addLink = ht::createLink('', $data->addJobUrl, false, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство към артикул');
@@ -1382,7 +1380,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
      *
-     * @param date $date
+     * @param datetime $date
      *
      * @return array $result
      */
@@ -1400,7 +1398,7 @@ class sales_Sales extends deals_DealMaster
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param datetime $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
      *
      * @return array $result  - масив с обекти
      *
@@ -1529,20 +1527,28 @@ class sales_Sales extends deals_DealMaster
         if ($form->isSubmitted()) {
             $action = type_Set::toArray($form->rec->action);
             if (isset($action['ship'])) {
-                
                 $dQuery = sales_SalesDetails::getQuery();
                 $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-                $dQuery->where("#saleId = {$rec->id} AND #canStore = 'yes'");
+                $dQuery->where("#saleId = {$rec->id}");
                 $dQuery->show('productId,quantity');
-                $details = $dQuery->fetchAll();
-                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($details, $rec->shipmentStoreId, $rec->state)) {
+                
+                $dQuery2 = clone $dQuery;
+                $dQuery->where("#canStore = 'yes'");
+                
+                $detailsStorable = $dQuery->fetchAll();
+                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($detailsStorable, $rec->shipmentStoreId, $rec->state)) {
                     $form->setWarning('action', $warning);
                 }
                 
-                $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($details, 'productId'), 'canSell');
+                $detailsAll = $dQuery2->fetchAll();
+                $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($detailsAll, 'productId'), 'canSell');
+                
                 if($productCheck['metasError']){
-                    $warning1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
-                    $form->setError('action', $warning1);
+                    $error1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
+                    $form->setError('action', $error1);
+                } elseif($productCheck['notActive']){
+                    $error1 = "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |трябва да са активни|*!";
+                    $form->setError('action', $error1);
                 }
             }
         }

@@ -251,7 +251,7 @@ class blogm_Comments extends core_Detail
         $sr += self::hasWord($rec->comment, array('href=', 'src='));
         
         // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы
-        $sr += self::hasWord($rec->comment, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
+        $sr += self::hasWord($rec->comment, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы,bit.ly');
         
         // Ако в коментара има http://
         $sr += self::hasWord($rec->comment, 'http://');

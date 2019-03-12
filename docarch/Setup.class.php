@@ -2,6 +2,19 @@
 
 
 /**
+ * Период на който се прави проверка за томове с изтекъл срок за съхранение
+ * Всеки петък в 4:00 през нощта
+ */
+defIfNot('STORAGETIME_CHECK_PERIOD', 1 * 24 * 60);
+
+
+/**
+ * Отместване за пълния бекъп
+ */
+defIfNot('STORAGETIME_CHECK_OFFSET', 0 * 0);
+
+
+/**
  * class docarch_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -13,7 +26,7 @@
  * @package   docarch
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -29,7 +42,7 @@ class docarch_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    public $startCtr = 'docarch_Archives';
+    public $startCtr = 'docarch_Movement';
     
     
     /**
@@ -58,15 +71,18 @@ class docarch_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'ceo,powerUser';
+    public $roles = array(
+        array('docarch'),
+        array('docarchMaster', 'docarch'),
+    );
     
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-//    var $menuItems = array(
-//            array(3.995, 'Анализ', 'Анализ', 'myself_Codebase', 'default', "powerUser"),
-//        );
+    public $menuItems = array(
+        array(1.95, 'Документи', 'Архив', 'docarch_Movements', 'default', 'docarch'),
+    );
     
     
     /**
@@ -75,6 +91,22 @@ class docarch_Setup extends core_ProtoSetup
     public function install()
     {
         $html = parent::install();
+        
+        $Plugins = cls::get('core_Plugins');
+        
+        // Залагаме в cron
+        $rec = new stdClass();
+        $rec->systemId = 'DocarchChekOutOfStorageTime';
+        $rec->description = 'Проверка за томове с изтекъл срок на съхранение';
+        $rec->controller = 'docarch_Volumes';
+        $rec->action = 'chekOutOfStorage';
+        $rec->period = STORAGETIME_CHECK_PERIOD;
+        $rec->offset = STORAGETIME_CHECK_OFFSET;
+        $rec->delay = 0;
+        $rec->timeLimit = 2400;
+        $html .= core_Cron::addOnce($rec);
+        
+        $html .= $Plugins->installPlugin('Плъгин за архивиране на документи', 'docarch_plg_Archiving', 'core_Manager', 'family');
         
         return $html;
     }

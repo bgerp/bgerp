@@ -126,7 +126,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ, dueDate, packQuantity=Количество->|*<small>|Планирано|*</small>,quantityFromTasks=Количество->|*<small>|Произведено|*</small>, quantityProduced=Количество->|*<small>|Заскладено|*</small>, quantityNotStored=Количество->|*<small>|Незаскладено|*</small>, packagingId,folderId, state, modifiedOn,modifiedBy';
+    public $listFields = 'title=@Документ, dueDate, packQuantity=Количество->|*<small>|Планирано|*</small>,quantityFromTasks=Количество->|*<small>|Произведено|*</small>, quantityProduced=Количество->|*<small>|Заскладено|*</small>, quantityNotStored=Количество->|*<small>|Незаскладено|*</small>, packagingId,folderId, state, modifiedOn,modifiedBy';
     
     
     /**
@@ -146,7 +146,19 @@ class planning_Jobs extends core_Master
      */
     public $details = 'Tasks=planning_Tasks';
     
-    
+
+    /**
+     * Отделния ред в листовия изглед да е отгоре
+     */
+    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+
+
+    /**
+     * Клас за отделния ред в листовия изглед
+     */
+    public $commonRowClass = 'separateRowTable';
+
+
     /**
      * Вербални наименования на състоянията
      */
@@ -211,7 +223,7 @@ class planning_Jobs extends core_Master
         $this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
         $this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
         $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
-        $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Толеранс,silent');
+        $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
         $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност');
         $this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
@@ -289,7 +301,6 @@ class planning_Jobs extends core_Master
         }
         
         $form->setReadOnly('productId');
-        $pInfo = cat_Products::getProductInfo($rec->productId);
         
         $packs = cat_Products::getPacks($rec->productId);
         $form->setOptions('packagingId', $packs);
@@ -309,6 +320,7 @@ class planning_Jobs extends core_Master
         }
         
         if (isset($rec->saleId)) {
+            $deliveryDate = null;
             $form->setDefault('dueDate', $mvc->getDefaultDueDate($rec->productId, $rec->saleId, $deliveryDate));
             
             $saleRec = sales_Sales::fetch($rec->saleId);
@@ -694,8 +706,6 @@ class planning_Jobs extends core_Master
         $Double = core_Type::getByName('double(smartRound)');
         
         if (isset($rec->productId) && empty($fields['__isDetail'])) {
-            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
-            $shortUom = cat_UoM::getShortName($measureId);
             $rec->quantityFromTasks = planning_Tasks::getProducedQuantityForJob($rec);
             $rec->quantityFromTasks /= $rec->quantityInPack;
             $row->quantityFromTasks = $Double->toVerbal($rec->quantityFromTasks);
@@ -924,7 +934,7 @@ class planning_Jobs extends core_Master
         
         if ($action == 'close' && $rec) {
             if ($rec->state != 'active' && $rec->state != 'wakeup' && $rec->state != 'stopped') {
-                $requiredRoles = 'no_one';
+                $res = 'no_one';
             }
         }
     }
@@ -1157,7 +1167,6 @@ class planning_Jobs extends core_Master
                 unset($newTask->containerId);
                 if ($Tasks->save($newTask)) {
                     $Tasks->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
-                    $count++;
                 }
                 
                 redirect(array('planning_Tasks', 'single', $newTask->id), false, 'Операцията е клонирана успешно');
@@ -1204,7 +1213,6 @@ class planning_Jobs extends core_Master
             if (count($oldTasks)) {
                 $options1 = array();
                 foreach ($oldTasks as $k1 => $oldTitle) {
-                    $tRec = planning_Tasks::fetch($k1);
                     $options1["c|{$k1}"] = $oldTitle;
                 }
                 
@@ -1214,12 +1222,9 @@ class planning_Jobs extends core_Master
         
         // За всички цехове, добавя се опция за добавяне
         $options2 = array();
-        $departments = cls::get('planning_Centers')->makeArray4Select('name');
-        foreach ($departments as $dId => $dName) {
-            $depFolderId = planning_Centers::fetchField($dId, 'folderId');
-            if (doc_Folders::haveRightToFolder($depFolderId)) {
-                $options2["new|{$depFolderId}"] = 'В ' . planning_Centers::getTitleById($dId);
-            }
+        $departments = planning_Centers::getCentersForTasks($rec->id);
+        foreach ($departments as $depFolderId => $dName) {
+            $options2["new|{$depFolderId}"] = tr("В|* {$dName}");
         }
         
         $options += array('new' => (object) array('group' => true, 'title' => tr('Нови операции'))) + $options2;
@@ -1252,7 +1257,7 @@ class planning_Jobs extends core_Master
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
      *
-     * @param date $date
+     * @param datetime $date
      *
      * @return array $result
      */
@@ -1273,7 +1278,7 @@ class planning_Jobs extends core_Master
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param datetime $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
      *
      * @return array $result  - масив с обекти
      *

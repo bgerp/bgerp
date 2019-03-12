@@ -31,13 +31,13 @@ class cat_Groups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_TreeObject';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_TreeObject, core_UserTranslatePlg';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Наименование,productCnt,orderProductBy';
+    public $listFields = 'name=Наименование,productCnt,orderProductBy,createdOn,createdBy';
     
     
     /**
@@ -99,7 +99,7 @@ class cat_Groups extends core_Manager
      */
     public function description()
     {
-        $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование->Основно, mandatory');
+        $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование->Основно, mandatory, translate=field|tr|transliterate');
         $this->FLD('nameEn', 'varchar(64,ci,nullIfEmpty)', 'caption=Наименование->Международно');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('productCnt', 'int', 'input=none,caption=Артикули');
@@ -147,16 +147,15 @@ class cat_Groups extends core_Manager
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->FNC('product', 'key(mvc=cat_Products, select=name, allowEmpty=TRUE)', 'caption=Продукт');
+        //$data->listFilter->FNC('product', 'key(mvc=cat_Products, select=name, allowEmpty=TRUE)', 'caption=Продукт');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
-        $data->listFilter->showFields = 'search,product';
-        $rec = $data->listFilter->input(null, 'silent');
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->input(null, 'silent');
         
         $data->query->orderBy('#name');
-        
         if ($data->listFilter->rec->product) {
             $groupList = cat_Products::fetchField($data->listFilter->rec->product, 'groups');
             $data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");

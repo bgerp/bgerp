@@ -14,6 +14,18 @@ defIfNot('PLANNING_TASK_LABEL_PREVIEW_WIDTH', 90);
 
 
 /**
+ * Допустим толеранс на тегллото при ПО
+ */
+defIfNot('PLANNING_TASK_WEIGHT_TOLERANCE_WARNING', 0.05);
+
+
+/**
+ * Отчитане на теглото в ПО->Режим
+ */
+defIfNot('PLANNING_TASK_WEIGHT_MODE', 'yes');
+
+
+/**
  * Височина на превюто на артикула в етикета
  */
 defIfNot('PLANNING_TASK_LABEL_PREVIEW_HEIGHT', 170);
@@ -92,6 +104,8 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_CONSUMPTION_USE_AS_RESOURCE' => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
         'PLANNING_PRODUCTION_NOTE_REJECTION' => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
         'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределен център на дейност->Име'),
+        'PLANNING_TASK_WEIGHT_TOLERANCE_WARNING' => array('percent', 'caption=Отчитане на теглото в ПО->Предупреждение'),
+        'PLANNING_TASK_WEIGHT_MODE' => array('enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото в ПО->Режим'),
     );
     
     
@@ -117,7 +131,9 @@ class planning_Setup extends core_ProtoSetup
         'planning_Centers',
         'planning_Hr',
         'planning_FoldersWithResources',
+        'planning_Stages',
         'migrate::assetResourceFields',
+        'migrate::updateTasks'
     );
     
     
@@ -145,7 +161,7 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,planning_interface_ImportFromLastBom';
+    public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,planning_interface_ImportFromLastBom,planning_interface_StageDriver';
     
     
     /**
@@ -156,8 +172,10 @@ class planning_Setup extends core_ProtoSetup
         $html = parent::install();
         
         // Кофа за снимки
-        $Bucket = cls::get('fileman_Buckets');
         $html .= fileman_Buckets::createBucket('planningImages', 'Илюстрации в производство', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'every_one', 'powerUser');
+       
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StageDriver', 'private');
         
         return $html;
     }
@@ -225,6 +243,34 @@ class planning_Setup extends core_ProtoSetup
             }
             
             $inst->save($rec, 'systemFolderId, systemUsers, assetFolderId, assetUsers');
+        }
+    }
+    
+    
+    /**
+     * Обновява новите полета на ПО
+     */
+    public static function updateTasks()
+    {
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+        
+        $TaskDetails = cls::get('planning_ProductionTaskDetails');
+        $TaskDetails->setupMvc();
+        
+        if(!count($Tasks)) return;
+        
+        $updateArr = array();
+        $query = $Tasks->getQuery();
+        $query->where("#indPackagingId IS NULL");
+        $query->show('packagingId');
+        while($rec = $query->fetch()){
+            $rec->indPackagingId = $rec->packagingId;
+            $updateArr[$rec->id] = $rec;
+        }
+        
+        if(count($updateArr)){
+            $Tasks->saveArray($updateArr, 'id,indPackagingId');
         }
     }
 }

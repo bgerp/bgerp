@@ -331,8 +331,10 @@ class drdata_Countries extends core_Manager
                 'latvija' => 'latvia',
                 'lithunia' => 'lithuania',
                 'luxemburg' => 'luxembourg',
-                'makedonija' => 'macedonia',
-                'makedoniq' => 'macedonia',
+                'makedonija' => 'north macedonia',
+                'makedoniq' => 'north macedonia',
+                'north makedonija' => 'north macedonia',
+                'north makedoniq' => 'north macedonia',
                 'maroc' => 'morocco',
                 'marocco' => 'morocco',
                 'nederland' => 'netherlands',
@@ -600,8 +602,9 @@ class drdata_Countries extends core_Manager
     
     /**
      * Връща опции за избор на държава
-     * 
+     *
      * @param mixed $countries
+     *
      * @return array $options
      */
     public static function getOptionsArr($countries)
@@ -612,9 +615,9 @@ class drdata_Countries extends core_Manager
         
         $query = self::getQuery();
         $query->in('id', $countriesArr);
-        while($rec = $query->fetch()){
-             $name = ($lg == 'bg') ? $rec->commonNameBg : $rec->commonName;
-             $options[$rec->id]  =core_Type::getByName('varchar')->toVerbal($name);
+        while ($rec = $query->fetch()) {
+            $name = ($lg == 'bg') ? $rec->commonNameBg : $rec->commonName;
+            $options[$rec->id] = core_Type::getByName('varchar')->toVerbal($name);
         }
         
         return $options;

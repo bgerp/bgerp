@@ -18,15 +18,18 @@ class unit_MinkPbgERP extends core_Manager
 {
     public static function reportErr($text, $type = 'warning')
     {
-        $text = 'ГРЕШКА В ' .debug_backtrace()['1']['function'] . ': ' . $text;
+        $text = debug_backtrace()['1']['function'] . ': ' . $text;
         
         if ($type == 'warning') {
+            $text = 'Warning ' . $text;
             self::logWarning($text);
             wp($text);
         } elseif ($type == 'err') {
+            $text = 'Error ' . $text;
             self::logErr($text);
             bp($text);
         } else {
+            $text = 'Info ' . $text;
             self::logInfo($text);
         }
         
@@ -43,7 +46,7 @@ class unit_MinkPbgERP extends core_Manager
     {
 //         set_time_limit(600);
         // core_App::setTimeLimit(600);
-        
+        if (defined('TEST_MODE') && TEST_MODE) {
         $res = '';
         $res .= $this->act_Run();
         $inst = cls::get('unit_MinkPPurchases');
@@ -68,6 +71,7 @@ class unit_MinkPbgERP extends core_Manager
         $res .= $inst->act_Run();
         
         return $res;
+        }
     }
     
     
@@ -77,16 +81,8 @@ class unit_MinkPbgERP extends core_Manager
     //http://localhost/unit_MinkPbgERP/Run/
     public function act_Run()
     {
-//         try {
-
-//         } catch (Exception $e) {
-//             self::reportErr($e->getMessage());
-//         }
-        if (!TEST_MODE) {
-            
-            return;
-        }
-        
+   
+        if (defined('TEST_MODE') && TEST_MODE) {
         $res = '';
         $res .= 'MinkPbgERP ';
         $res .= '  0.'.$this->act_DeinstallSelect2();
@@ -135,6 +131,8 @@ class unit_MinkPbgERP extends core_Manager
         $res .= '  41.'.$this->act_CreateCondParameter();
         
         return $res;
+        }
+        
     }
     
     
@@ -146,12 +144,11 @@ class unit_MinkPbgERP extends core_Manager
         $browser = cls::get('unit_Browser');
         $host = unit_Setup::get('DEFAULT_HOST');
         
-        //$browser->start('http://localhost/');
         $browser->start($host);
         
-        //$browser->start('http://' . $_SERVER['HTTP_HOST']);
+        $browser->click('2. Обновяване');
+        //return $browser->getHtml();
         //if(strpos($browser->gettext(), 'Ако приемате лиценза по-долу, може да продължите') !== FALSE) {
-        //$browser->click('☒ Ако приемате лиценза по-долу, може да продължите »');
         //$browser->click('Продължаване без обновяване »');
         //$browser->click('✓ Всичко е наред. Продължете с инициализирането »');
         //$browser->click('Стартиране инициализация »');
@@ -159,9 +156,10 @@ class unit_MinkPbgERP extends core_Manager
         //$browser->click('Вход');
         //}
         //$this->reportErr($browser->gettext());
-        
+        if (strpos($browser->gettext(), 'Имена:') == false) {
+            $this->reportErr('Първоначална регистрация на администратор');
+        }
         if (strpos($browser->gettext(), 'Първоначална регистрация на администратор') !== false) {
-            //$this->reportErr('Първоначална регистрация на администратор');
             //Проверка Първоначална регистрация на администратор - създаване на потребител bgerp
             $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
             $browser->setValue('passNew', unit_Setup::get('DEFAULT_USER_PASS'));
@@ -177,8 +175,8 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
-        sleep(3);
-        set_time_limit(800);
+        sleep(40);
+        set_time_limit(9000);
         
         return $browser;
     }
@@ -196,7 +194,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('search', 'select2');
         $browser->press('Филтрирай');
         $browser->open($host.'/core_Packs/deinstall/?pack=select2');
-        
+       
         //$browser->open('http://localhost/core_Packs/deinstall/?pack=select2');
     }
     
@@ -283,7 +281,7 @@ class unit_MinkPbgERP extends core_Manager
             $browser->setValue('Ignore', 1);
             $browser->press('Запис');
         }
-        
+       
         // Създаване на папка на Моята фирма
         $browser->press('Папка');
     }
@@ -1515,7 +1513,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '#BG11CREX92603114548401');
         $browser->setValue('note', 'MinkPbgErpCreateSale');
-        $browser->setValue('deliveryTermId', 'DDP');
+        $browser->setValue('deliveryTermId', 'EXW');
         
         //$browser->setValue('deliveryLocationId', '1');
         $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');
@@ -1603,10 +1601,15 @@ class unit_MinkPbgERP extends core_Manager
         $browser->press('Контиране');
         //return $browser->getHtml();
         //Проверка на статистиката
-        if (strpos($browser->gettext(), '43,20 43,20 43,20 43,20')) {
+//         if (strpos($browser->gettext(), '43,20 43,20 43,20 43,20')) { return $this->reportErr('Мастер', 'warning');
+//         } else {
+            
+//             return $this->reportErr('Грешни суми в мастера', 'warning');
+//         }
+        if (strpos($browser->gettext(), 'BGN 0,00 BGN 0,00')) {
         } else {
             
-            return $this->reportErr('Грешни суми в мастера', 'warning');
+            return $this->reportErr('Неприключен договор', 'warning');
         }
     }
     
@@ -1741,7 +1744,11 @@ class unit_MinkPbgERP extends core_Manager
             
             return $this->reportErr('Грешни суми в мастера', 'warning');
         }
-       
+        if (strpos($browser->gettext(), 'BGN 0,00 BGN 0,00')) {
+        } else {
+            
+            return $this->reportErr('Неприключен договор', 'warning');
+        }
     }
     
     
@@ -1905,10 +1912,10 @@ class unit_MinkPbgERP extends core_Manager
         $browser->click('Плащания');
         $browser->press('Нов запис');
         
-        //$browser->setValue('title', 'До 14 дни след фактуриране');
+        $browser->setValue('name', 'До 14 дни след фактуриране 2% отстъпка при плащане до 5 дни');
         $browser->setValue('type', 'По банков път');
         $browser->setValue('eventBalancePayment', 'след датата на фактурата');
-        $browser->setValue('timeBalancePayment', '14 дни');
+        $browser->setValue('timeBalancePayment', '142 дни');
         $browser->setValue('discountPercent', '2');
         $browser->setValue('discountPeriod', '5');
         $browser->press('Запис');

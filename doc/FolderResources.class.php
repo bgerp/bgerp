@@ -142,7 +142,7 @@ class doc_FolderResources extends core_Manager
         
         if ($DetailName == 'planning_AssetResources') {
             if (planning_AssetResources::haveRightFor('add')) {
-                $data->newUrl = array('planning_AssetResources', 'add', 'folderId' => $folderId, 'ret_url' => true);
+                $data->newUrl = array('planning_AssetResources', 'add', 'defaultFolderId' => $folderId, 'ret_url' => true);
             }
         }
         
@@ -233,7 +233,7 @@ class doc_FolderResources extends core_Manager
         $this->requireRightFor('selectresource');
         expect($folderId = Request::get('folderId', 'int'));
         expect($type = Request::get('type', 'enum(employee,asset)'));
-        expect($folderRec = doc_Folders::fetch($folderId));
+        expect(doc_Folders::fetch($folderId));
         $this->requireRightFor('selectresource', (object) array('folderId' => $folderId, 'type' => $type));
         $this->load('planning_Wrapper');
         

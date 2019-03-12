@@ -83,7 +83,7 @@ class crm_Persons extends core_Master
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
-                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput';
+                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg';
     
     
     /**
@@ -270,8 +270,8 @@ class crm_Persons extends core_Master
     {
         // Име на лицето
         $this->FLD('salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение,export=Csv');
-        $this->FLD('name', 'varchar(255,ci)', 'caption=Имена,class=contactData,mandatory,remember=info,silent,export=Csv');
-        $this->FNC('nameList', 'varchar', 'sortingLike=name');
+        $this->FLD('name', 'varchar(255,ci)', 'caption=Имена,class=contactData,mandatory,remember=info,silent,export=Csv, translate=transliterate');
+        $this->FNC('nameList', 'varchar', 'sortingLike=name, translate=transliterate');
         
         // Единен Граждански Номер
         $this->FLD('egn', 'bglocal_EgnType', 'caption=ЕГН,export=Csv');
@@ -1361,12 +1361,20 @@ class crm_Persons extends core_Master
         //Вземаме данните
         $person = crm_Persons::fetch($id);
         
+        if ($person->buzCompanyId) {
+            $company = crm_Companies::fetch($person->buzCompanyId);
+        }
+        
         // Заместваме и връщаме данните
         if ($person) {
             $contrData = new stdClass();
             $contrData->company = crm_Persons::getVerbal($person, 'buzCompanyId');
+            if ($company) {
+                $contrData->companyVerb = crm_Companies::getVerbal($company, 'name');
+            }
             $contrData->companyId = $person->buzCompanyId;
             $contrData->person = $person->name;
+            $contrData->personVerb = crm_Persons::getVerbal($person, 'name');
             $contrData->country = crm_Persons::getVerbal($person, 'country');
             $contrData->countryId = $person->country;
             $contrData->pCode = $person->pCode;
@@ -2449,7 +2457,7 @@ class crm_Persons extends core_Master
     /**
      * Връща папката на фирмата от бизнес имейла, ако имаме достъп до нея
      *
-     * @param email $email - Имейл, за който търсим
+     * @param string $email - Имейл, за който търсим
      *
      * @return int|FALSE $fodlerId - id на папката
      */
@@ -2481,9 +2489,9 @@ class crm_Persons extends core_Master
     /**
      * Връща папката на лицето от имейла, ако имаме достъп до нея
      *
-     * @param email $email - Имейл, за който търсим
+     * @param string $email - Имейл, за който търсим
      *
-     * @return integet $fodlerId - id на папката
+     * @return int $fodlerId - id на папката
      */
     public static function getFolderFromEmail($email)
     {
@@ -2865,7 +2873,7 @@ class crm_Persons extends core_Master
      * Преди записване на в модела
      *
      * @param crm_Persons $mvc
-     * @param stdObjec    $rec
+     * @param stdClass    $rec
      */
     public static function on_BeforeImportRec($mvc, &$rec)
     {
@@ -2924,32 +2932,38 @@ class crm_Persons extends core_Master
     /**
      * Лицата от група 'Служители'
      *
-     * @param bool $withAccess   - да се филтрира ли по права за редакция или не
-     * @param bool $withoutCodes - да имат ли кодове или не
+     * @param bool $withAccess - да се филтрира ли по права за редакция или не
+     * @param bool|false $hrCode  - null за всички, bool за дали да са с кодове като човешки ресурси или не 
      *
      * @return array $options        - опции
      */
-    public static function getEmployeesOptions($withAccess = false, $withoutCodes = false)
+    public static function getEmployeesOptions($withAccess = false, $hrCodes = null)
     {
-        $options = $codes = array();
+        $options = array();
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
         
         $query = self::getQuery();
         $query->like('groupList', "|{$emplGroupId}|");
         
         // Ако е указано, само тези които нямат кодове в производствените ресурси
-        if ($withoutCodes === true) {
+        if(!is_null($hrCodes)){
             $hrQuery = planning_Hr::getQuery();
             $hrQuery->show('personId');
-            $exceptIds = arr::extractValuesFromArray($hrQuery->fetchAll(), 'personId');
-            $query->notIn('id', $exceptIds);
+            $hrIds = arr::extractValuesFromArray($hrQuery->fetchAll(), 'personId');
+            if ($hrCodes === true) {
+                $query->in('id', $hrIds);
+            } else {
+                $query->notIn('id', $hrIds);
+            }
         }
         
         while ($rec = $query->fetch()) {
             if ($withAccess === true && !crm_Persons::haveRightFor('edit', $rec->id)) {
                 continue;
             }
-            $options[$rec->id] = $val = self::getVerbal($rec, 'name');
+            
+            // Показва се името с ид-то след него заради служителите с еднакви имена
+            $options[$rec->id] = self::getVerbal($rec, 'name') . " ({$rec->id})";
         }
         
         if (count($options)) {
@@ -2965,7 +2979,7 @@ class crm_Persons extends core_Master
      *
      * @param mixed $id - ид или запис
      *
-     * @return public|private|template - Стандартен / Нестандартен / Шаблон
+     * @return string - public|private|template - Стандартен / Нестандартен / Шаблон
      */
     public function getProductType($id)
     {

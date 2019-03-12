@@ -25,7 +25,7 @@ class rack_ZoneDetails extends core_Detail
     /**
      * Кой може да листва?
      */
-    public $canList = 'no_one';
+    public $canList = 'no_one,admin';
     
     
     /**
@@ -63,7 +63,7 @@ class rack_ZoneDetails extends core_Detail
     /**
      * Полета в листовия изглед
      */
-    public $listFields = 'productId, status=Състояние,movementsHtml=@, packagingId';
+    public $listFields = 'id, productId, batch, status=Състояние,movementsHtml=@, packagingId, batch';
     
     
     /**
@@ -77,6 +77,12 @@ class rack_ZoneDetails extends core_Detail
     
     
     /**
+     * Шаблон за реда в листовия изглед
+     */
+    public $tableRowTpl = "[#ROW#][#ADD_ROWS#]\n";
+
+    public static $allocatedMovements = array();
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -84,11 +90,12 @@ class rack_ZoneDetails extends core_Detail
         $this->FLD('zoneId', 'key(mvc=rack_Zones)', 'caption=Зона, input=hidden,silent,mandatory');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,tdClass=productCell nowrap');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,removeAndRefreshForm=quantity|quantityInPack|displayPrice,tdClass=nowrap rack-quantity');
+        $this->FLD('batch', 'varchar', 'caption=Партида,smartCenter,tdClass=rack-zone-batch');
         $this->FLD('documentQuantity', 'double(smartRound)', 'caption=Очаквано,mandatory');
         $this->FLD('movementQuantity', 'double(smartRound)', 'caption=Нагласено,mandatory');
         $this->FNC('status', 'varchar', 'tdClass=zone-product-status');
         
-        $this->setDbUnique('zoneId,productId,packagingId');
+        $this->setDbIndex('zoneId,productId,packagingId,batch');
     }
     
     
@@ -133,6 +140,16 @@ class rack_ZoneDetails extends core_Detail
             
             $row->status = ht::createLink('', array('rack_Movements', 'add', 'movementType' => 'zone2floor', 'productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'ret_url' => true, 'defaultZones' => $zonesDefault), false, 'class=minusImg,ef_icon=img/16/minus-white.png,title=Връщане на нагласено количество') . $row->status;
         }
+        
+        if ($Definition = batch_Defs::getBatchDef($rec->productId)) {
+            if(!empty($rec->batch)){
+                $row->batch = $Definition->toVerbal($rec->batch);
+            } else {
+                $row->batch = "<span class='quiet'>" . tr('без партида') . "</span>";
+            }
+        } else {
+            $row->batch = null;
+        }
     }
     
     
@@ -176,14 +193,15 @@ class rack_ZoneDetails extends core_Detail
      * @param int   $productId   - ид на артикул
      * @param int   $packagingId - ид на опаковка
      * @param float $quantity    - количество в основна мярка
+     * @param string $batch      - ид на опаковка
      *
      * @return void
      */
-    public static function recordMovement($zoneId, $productId, $packagingId, $quantity)
+    public static function recordMovement($zoneId, $productId, $packagingId, $quantity, $batch)
     {
-        $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$productId} AND #packagingId = {$packagingId}");
+        $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$productId} AND #packagingId = {$packagingId} AND #batch = '{$batch}'");
         if (empty($newRec)) {
-            $newRec = (object) array('zoneId' => $zoneId, 'productId' => $productId, 'packagingId' => $packagingId, 'movementQuantity' => 0, 'documentQuantity' => null);
+            $newRec = (object) array('zoneId' => $zoneId, 'productId' => $productId, 'packagingId' => $packagingId, 'movementQuantity' => 0, 'documentQuantity' => null, 'batch' => $batch);
         }
         $newRec->movementQuantity += $quantity;
         $newRec->movementQuantity = round($newRec->movementQuantity, 6);
@@ -207,9 +225,9 @@ class rack_ZoneDetails extends core_Detail
             
             if (count($products)) {
                 foreach ($products as $obj) {
-                    $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$obj->productId} AND #packagingId = {$obj->packagingId}");
+                    $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$obj->productId} AND #packagingId = {$obj->packagingId} AND #batch = '{$obj->batch}'");
                     if (empty($newRec)) {
-                        $newRec = (object) array('zoneId' => $zoneId, 'productId' => $obj->productId, 'packagingId' => $obj->packagingId, 'movementQuantity' => null, 'documentQuantity' => 0);
+                        $newRec = (object) array('zoneId' => $zoneId, 'productId' => $obj->productId, 'packagingId' => $obj->packagingId, 'batch' => $obj->batch, 'movementQuantity' => null, 'documentQuantity' => 0);
                     }
                     $newRec->documentQuantity = $obj->quantity;
                     
@@ -306,6 +324,7 @@ class rack_ZoneDetails extends core_Detail
         $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => $masterRec, 'listTableHideHeaders' => true, 'inlineDetail' => true);
         $dData = $me->prepareDetail($dData);
         if(!count($dData->recs)) return $tpl;
+        unset($dData->listFields['id']);
         
         $tpl = $me->renderDetail($dData);
         $tpl->removePlaces();
@@ -336,9 +355,19 @@ class rack_ZoneDetails extends core_Detail
         $Movements->setField('workerId', "tdClass=inline-workerId");
         $skipClosed = ($masterRec->_isSingle === true) ? false : true;
         $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $skipClosed);
-        list($productId, $packagingId) = array($rec->productId, $rec->packagingId);
-        $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId){return $o->productId == $productId && $o->packagingId == $packagingId;});
+        $allocated = &rack_ZoneDetails::$allocatedMovements[$rec->zoneId];
+        $allocated = is_array($allocated) ? $allocated : array();
+        
+        list($productId, $packagingId, $batch) = array($rec->productId, $rec->packagingId, $rec->batch);
+        $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId, $batch, $allocated){
+            return $o->productId == $productId && $o->packagingId == $packagingId && $o->batch == $batch && !array_key_exists($o->id, $allocated);
+        });
+        
         $rec->_movements = $data->recs;
+        if(count($rec->_movements)){
+            $allocated += $rec->_movements;
+        }
+        
         $requestedProductId = Request::get('productId', 'int');
         
         foreach ($data->recs as $mRec) {

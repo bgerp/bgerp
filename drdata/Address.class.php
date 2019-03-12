@@ -27,6 +27,7 @@ class drdata_Address extends core_MVC
     
     public static $countryCode = 359;
     
+    
     /**
      * Конвертира дадения текст към масив от не-празни, тримнати линии
      */
@@ -405,15 +406,15 @@ class drdata_Address extends core_MVC
     {
         // Опитваме се да намерим държавата на изпращача
         // Подготваме данни за държавите
-        if(!($cData = core_Cache::get('drdata', 'cData'))) {
+        if (!($cData = core_Cache::get('drdata', 'cData'))) {
             $query = drdata_Countries::getQuery();
-            while($rec = $query->fetch("#type = 'Independent State'")) {
+            while ($rec = $query->fetch("#type = 'Independent State'")) {
                 $cData->domains[trim($rec->domain, '.')] = $rec->id;
                 $lgArr = explode(',', $rec->languages);
-                foreach($lgArr as $lg) {
+                foreach ($lgArr as $lg) {
                     $cData->languages[$lg][] = $rec->id;
                 }
-                if(drdata_Countries::isEu($rec->id)) {
+                if (drdata_Countries::isEu($rec->id)) {
                     $cData->isEU[$rec->id] = true;
                 }
                 $cData->names[$rec->commonName] = $rec->id;
@@ -421,15 +422,15 @@ class drdata_Address extends core_MVC
             }
             core_Cache::set('drdata', 'cData', $cData, 10000);
         }
-
+        
         $res = array();
-
+        
         // Ако писмото не е на английски - търсим суверенните държави, които говорят този език и разпределяме 100% върху тях
-        if($assumed['lg'] != 'en' && $assumed['lg']) {
+        if ($assumed['lg'] != 'en' && $assumed['lg']) {
             $cbLang = $cData->languages[$assumed['lg']];
-            if(is_array($cbLang)) {
-                foreach($cbLang as $cId) {
-                    if($cData->isEU[$cId]) {
+            if (is_array($cbLang)) {
+                foreach ($cbLang as $cId) {
+                    if ($cData->isEU[$cId]) {
                         $res[$cId] += 30;
                     } else {
                         $res[$cId] += 50;
@@ -437,49 +438,53 @@ class drdata_Address extends core_MVC
                 }
             }
         }
-
+        
         // Ако IP-то не е US - даваме 50% на държавата, от която е ИП-то
-        if($assumed['country']) {
+        if ($assumed['country']) {
             $ipCountryRec = drdata_Countries::fetch($assumed['country']);
-            if($ipCountryRec->letterCode2 != 'US') {
+            if ($ipCountryRec->letterCode2 != 'US') {
                 $res[$assumed['country']] += 50;
             }
         }
-
+        
         // Ако имейлът е с национален TLD - даваме 50 точки на държавата от където е
-        if($assumed['email']) {
+        if ($assumed['email']) {
             $tld = fileman_Files::getExt($assumed['email']);
-            if($cId = $cData->domains[$tld]) {
+            if ($cId = $cData->domains[$tld]) {
                 $res[$cId] += 50;
             }
         }
-
+        
         // Проверяваме имената на европейските държави без България дали се съдържат в писмото. Ако се съдържа + 50 точки
-        foreach($cData->names as $name => $cid) {
-            if($cid == 26) continue;
-            if(stripos($text, $name) !== false) {
+        foreach ($cData->names as $name => $cid) {
+            if ($cid == 26) {
+                continue;
+            }
+            if (stripos($text, $name) !== false) {
                 $res[$cid] += 20;
             }
         }
-
+        
         // Проверяваме телефонните кодове дали се съдържат
-        foreach($cData->telCodes as $code => $cid) {
-            if($cid == 26) continue;
-            if(stripos($text, "+ {$code}") !== false || stripos($text, "+{$code}") !== false || stripos($text, "00{$code}") !== false) {
+        foreach ($cData->telCodes as $code => $cid) {
+            if ($cid == 26) {
+                continue;
+            }
+            if (stripos($text, "+ {$code}") !== false || stripos($text, "+{$code}") !== false || stripos($text, "00{$code}") !== false) {
                 $res[$cid] += 10;
             }
         }
- 
+        
         arsort($res);
         
-        if(count($res)) {
-            $countryId = key($res);  
-            $countryRec = drdata_Countries::fetch($countryId);  
+        if (count($res)) {
+            $countryId = key($res);
+            $countryRec = drdata_Countries::fetch($countryId);
             self::$countryCode = $countryRec->telCode;
         }
-
+        
         // Вземаме държавата с най-много точки
-
+        
         // Добавяме стринговете, които се избягват в адреса от конфигурационните данни
         $conf = core_Packs::getConfig('drdata');
         if ($avoidLines = $conf->DRDATA_AVOID_IN_EXT_ADDRESS) {
@@ -657,7 +662,7 @@ class drdata_Address extends core_MVC
                     }
                     $sss[] = $w;
                     if (preg_match('/(zdravey|zdraveyte|dear|hi|uvazhaemi|hello|regards)$/', $w)) {
-                        --$nameCnt; 
+                        --$nameCnt;
                         --$companyCnt;
                     }
                     
@@ -778,8 +783,8 @@ class drdata_Address extends core_MVC
                 }
             }
         }
-      
- 
+        
+        
         // Отделяме блоковете с данни
         $blocks = array();
         $i = 1;
@@ -851,7 +856,6 @@ class drdata_Address extends core_MVC
             }
         }
         
-      
         
         $points = array(
             'company' => 10,
@@ -900,7 +904,7 @@ class drdata_Address extends core_MVC
                 $res->address = $maxBlock['address'][0];
             }
             if (is_array($maxBlock['country']) && count($maxBlock['country'])) {
-                $res->country = $maxBlock['country'][0]; 
+                $res->country = $maxBlock['country'][0];
             }
             if (is_array($maxBlock['pCode']) && count($maxBlock['pCode'])) {
                 $res->pCode = $maxBlock['pCode'][0];
@@ -919,7 +923,7 @@ class drdata_Address extends core_MVC
             }
         }
         
-        if($countryRec) {
+        if ($countryRec) {
             $res->country = $countryRec->commonName;
             $res->countryId = $countryRec->id;
         }
@@ -933,7 +937,7 @@ class drdata_Address extends core_MVC
      */
     public static function extractCountry($text)
     {
-        $regExpr = "/\b(abkhazia|afghanistan|aland|albania|algeria|american samoa|andorra|angola|anguilla|antarctica|antigua and barbuda|argentina|armenia|aruba|ascension|ashmore and cartier islands|australia|australian antarctic territory|austria|azerbaijan|azerbaijan9|bahamas, the|bahrain|baker island|bangladesh|barbados|belarus|belgique|belgium|belgium\\.|belize|benin|bermuda|bhutan|bolivia|bosnia and hercegowina|bosnia and herzegovina|botswana|bouvet island|brazil|british antarctic territory|british indian ocean territory|british sovereign base areas|british virgin islands|brunei|builgaria and uk|bulgaria|burkina faso|burundi|cambodia|cameroon|canada|cape verde|cayman islands|central african republic|ch|chad|chez republic|chile|china|christmas island|clipperton island|cocos islands|colombia|comoros|cook islands|coral sea islands|costa rica|cote d\\'ivoire|creece|croatia|cuba|cyprus|cz|czech  republic|czech rep\\.|czech republic|danmark|denmark|deutschland|djibouti|dominica|dominican republic|dr congo|east timor|ecuador|egypt|el salvador|england|equatorial guinea|eritrea|espana|españa|estona|estonia|ethiopia|falkland islands|faroe islands|fiji|finand|finland|france|french guiana|french polynesia|french southern and antarctic lands|gabon|gambia, the|gemany|georgia|german|germany|ghana|gibraltar|greece|greeece|greek|greenland|greese|grenada|grèce|guadeloupe|guam|guatemala|guernsey|guinea|guinea-bissau|guyana|haiti|heard island and mcdonald islands|hellas|holland|honduras|hong kong|howland island|hungary|iceland|india|indonesia|iraland|iran|iraq|ireland|isle of man|israel|italia|italy|ittaly|jamaica|japan|jarvis island|jersey|johnston atoll|jordan|kazakhstan|kenya|kingman reef|kiribati|kosovo|kuwait|kyrgyzstan|laos|latvia|latvijas|lebanon|lesotho|liberia|libya|liechtenstein|lithuania|lituanie|luxembourg|luxemburg|macau|macedonia|madagascar|makedonija|malawi|malaysia|maldives|mali|mallorca - spain|malta|marseille france|marseillr france|marshall islands|martinique|mauritania|mauritius|mayotte|mexico|micronesia|midway islands|moldova|monaco|mongolia|montenegro|montserrat|morocco|mozambique|myanmar|nagorno-karabakh|namibia|nauru|navassa island|nederland|nederlands|nepal|netherlands|netherlands antilles|new caledonia|new zealand|nicaragua|niger|nigeria|niue|norawy|norfolk island|north ireland|north korea|northern cyprus|northern ireland|northern mariana islands|norvège|norway|oman|pakistan|palau|palestina|palmyra atoll|panama|papua new guinea|paraguay|peru|peter i island|philippines|pitcairn islands|poland|portugal|pridnestrovie|puerto rico|qatar|queen maud land|republic of korea|republic of the congo|reunion|roamnia|romania|ross dependency|roumanie|russia|rwanda|saint barthelemy|saint helena|saint kitts and nevis|saint lucia|saint martin|saint pierre and miquelon|saint vincent and the grenadines|samoa|san marino|sao tome and principe|saudi arabia|scotland|senegal|serbia|sewden|seychelles|sierra leone|singapore|skopje macedonia|slovak republic|slovakia|slovaquie|slovenia|slovenija|slovenska republika|slowakische republik|slowenia|solomon islands|somalia|somaliland|south africa|south georgia and the south sandwich islands|south ossetia|spain|sri lanka|sudan|suriname|svalbard|svitzerland|svizzera|swaziland|sweden|swiss|switerland|switzerland|swizerland|syria|taiwan|tajikistan|tanzania|thailand|the netherlands|togo|tokelau|tonga|trinidad and tobago|tristan da cunha|tunisia|turkey|turkmenistan|turks and caicos islands|tuvalu|u\\.s\\. virgin islands|uganda|uk|uk and spain|ukraine|united arab emirates|united kingdom|united kingdom, england|united kongdom|united states|untited kingdom|uruguay|uzbekistan|vanuatu|vatican city|venezuela|vietnam|wake island|wallis and futuna|western sahara|yemen|yougoslavie|yugoslavia|zambia|zimbabwe|Абхазия|Австралийската антарктическа територия|Австралия|Австрия|Азербайджан|Акротири и Декелия|Аландски острови|Албания|Алжир|Американска Самоа|Американски Вирджински острови|Ангола|Ангуила|Андора|Антарктида|Антигуа и Барбуда|Аржентина|Армения|Аруба|Атол Джонстън|Афганистан|Бангладеш|Барбадос|Бахамските острови|Бахрейн|Беларус|Белгия|Белиз|Бенин|Бермуда|Боливия|Босна и Херцеговина|Ботсуана|Бразилия|Британска антарктическа територия|Британската територия в Индийския океан|Британски Вирджински острови|Бруней|Буркина Фасо|Бурунди|Бутан|България|Вануату|Ватикана|Великобритания|Венецуела|Виетнам|Габон|Гамбия|Гана|Гваделупа|Гватемала|Гвиана|Гвинея|Гвинея-Бисау|Германия|Гибралтар|Гренада|Гренландия|Грузия|Гуам|Гърнси|Гърция|ДР Конго|Дания|Департаментът Джърси|Джибути|Доминика|Доминиканската република|Египет|Еквадор|Екваториална Гвинея|Ел Салвадор|Еритрея|Естония|Етиопия|Замбия|Западна Сахара|Земята на кралица Мод|Зимбабве|Израел|Източен Тимор|Индия|Индонезия|Ирак|Иран|Ирландия|Исландия|Испания|Италия|Йемен|Йордания|Кабо Верде|Казахстан|Каймановите острови|Камбоджа|Камерун|Канада|Катар|Кения|Кингман|Кипър|Киргизстан|Кирибати|Китай|Кокосови острови|Колумбия|Коморските острови|Коралови острови|Косово|Коста Рика|Кот д\\'Ивоар|Куба|Кувейт|Лаос|Латвия|Лесото|Либерия|Либия|Ливан|Литва|Лихтенщайн|Люксембург|Мавритания|Мавриций|Мадагаскар|Майот|Макао|Македония|Малави|Малайзия|Малдивите|Мали|Малта|Мароко|Мартиника|Маршаловите острови|Мексико|Мианмар|Микронезия|Мозамбик|Молдова|Монако|Монголия|Монсерат|Наваса|Нагорни Карабах|Намибия|Науру|Непал|Нигер|Нигерия|Нидерландските Антили|Никарагуа|Ниуе|Нова Зеландия|Нова Каледония|Норвегия|Норфолк|Обединените арабски емирства|Оман|Остров Бейкър|Остров Буве|Остров Възнесение|Остров Джарвис|Остров Клипертон|Остров Ман|Остров Петър I|Остров Рождество|Коледен остров|Остров Рос |Остров Хауланд|Острови Ашмор и Картие|Острови Кук|Острови Питкерн|Пакистан|Палау|Палестина|Палмира|Панама|Папуа-Нова Гвинея|Парагвай|Перу|Полша|Португалия|Приднестровието|Пуерто Рико|Република Конго|Реюнион|Руанда|Румъния|Русия|САЩ|Самоа|Сан Марино|Сао Томе и Принсипи|Саудитска Арабия|Свазиленд|Свалбард|Света Елена|Северен Кипър|Северна Корея|Северни Мариански острови|Сейнт Винсент и Гренадини|Сейнт Китс и Невис|Сейнт Лусия|Сейшелите|Сен Бартелеми|Сен Мартен|Сен Пиер и Микелон|Сенегал|Сиера Леоне|Сингапур|Сирия|Словакия|Словения|Соломоновите острови|Сомалиленд|Сомалия|Среден Атол|Судан|Суринам|Сърбия|Таджикистан|Тайван|Тайланд|Танзания|Того|Токелау|Тонга|Тринидад и Тобаго|Тристан да Куня|Тувалу|Тунис|Туркменистан|Турция|Търкс и Кайкос|Уганда|Уейк|Узбекистан|Украйна|Унгария|Уолис и Футуна|Уругвай|Фарьорските острови|Фиджи|Филипини|Финландия|Фолклендски острови|Франция|Френска Гвиана|Френска Полинезия|Френски южни и антарктически територии|Хаити|Холандия|Хондурас|Хонконг|Хърватия|Хърд и Макдоналд острови|Централноафриканска република|Чад|Черна гора|Чехия|Чили|Швейцария|Швеция|Шри Ланка|Южна Африка|Южна Джорджия и Южни Сандвичеви острови|Южна Корея|Южна Осетия|Ямайка|Япония|македонија|румъния|холандия)\b/ui";
+        $regExpr = "/\b(abkhazia|afghanistan|aland|albania|algeria|american samoa|andorra|angola|anguilla|antarctica|antigua and barbuda|argentina|armenia|aruba|ascension|ashmore and cartier islands|australia|australian antarctic territory|austria|azerbaijan|azerbaijan9|bahamas, the|bahrain|baker island|bangladesh|barbados|belarus|belgique|belgium|belgium\\.|belize|benin|bermuda|bhutan|bolivia|bosnia and hercegowina|bosnia and herzegovina|botswana|bouvet island|brazil|british antarctic territory|british indian ocean territory|british sovereign base areas|british virgin islands|brunei|builgaria and uk|bulgaria|burkina faso|burundi|cambodia|cameroon|canada|cape verde|cayman islands|central african republic|ch|chad|chez republic|chile|china|christmas island|clipperton island|cocos islands|colombia|comoros|cook islands|coral sea islands|costa rica|cote d\\'ivoire|creece|croatia|cuba|cyprus|cz|czech  republic|czech rep\\.|czech republic|danmark|denmark|deutschland|djibouti|dominica|dominican republic|dr congo|east timor|ecuador|egypt|el salvador|england|equatorial guinea|eritrea|espana|españa|estona|estonia|ethiopia|falkland islands|faroe islands|fiji|finand|finland|france|french guiana|french polynesia|french southern and antarctic lands|gabon|gambia, the|gemany|georgia|german|germany|ghana|gibraltar|greece|greeece|greek|greenland|greese|grenada|grèce|guadeloupe|guam|guatemala|guernsey|guinea|guinea-bissau|guyana|haiti|heard island and mcdonald islands|hellas|holland|honduras|hong kong|howland island|hungary|iceland|india|indonesia|iraland|iran|iraq|ireland|isle of man|israel|italia|italy|ittaly|jamaica|japan|jarvis island|jersey|johnston atoll|jordan|kazakhstan|kenya|kingman reef|kiribati|kosovo|kuwait|kyrgyzstan|laos|latvia|latvijas|lebanon|lesotho|liberia|libya|liechtenstein|lithuania|lituanie|luxembourg|luxemburg|macau|macedonia|north macedonia|madagascar|makedonija|north makedonija|malawi|malaysia|maldives|mali|mallorca - spain|malta|marseille france|marseillr france|marshall islands|martinique|mauritania|mauritius|mayotte|mexico|micronesia|midway islands|moldova|monaco|mongolia|montenegro|montserrat|morocco|mozambique|myanmar|nagorno-karabakh|namibia|nauru|navassa island|nederland|nederlands|nepal|netherlands|netherlands antilles|new caledonia|new zealand|nicaragua|niger|nigeria|niue|norawy|norfolk island|north ireland|north korea|northern cyprus|northern ireland|northern mariana islands|norvège|norway|oman|pakistan|palau|palestina|palmyra atoll|panama|papua new guinea|paraguay|peru|peter i island|philippines|pitcairn islands|poland|portugal|pridnestrovie|puerto rico|qatar|queen maud land|republic of korea|republic of the congo|reunion|roamnia|romania|ross dependency|roumanie|russia|rwanda|saint barthelemy|saint helena|saint kitts and nevis|saint lucia|saint martin|saint pierre and miquelon|saint vincent and the grenadines|samoa|san marino|sao tome and principe|saudi arabia|scotland|senegal|serbia|sewden|seychelles|sierra leone|singapore|skopje macedonia|skopje north macedonia|slovak republic|slovakia|slovaquie|slovenia|slovenija|slovenska republika|slowakische republik|slowenia|solomon islands|somalia|somaliland|south africa|south georgia and the south sandwich islands|south ossetia|spain|sri lanka|sudan|suriname|svalbard|svitzerland|svizzera|swaziland|sweden|swiss|switerland|switzerland|swizerland|syria|taiwan|tajikistan|tanzania|thailand|the netherlands|togo|tokelau|tonga|trinidad and tobago|tristan da cunha|tunisia|turkey|turkmenistan|turks and caicos islands|tuvalu|u\\.s\\. virgin islands|uganda|uk|uk and spain|ukraine|united arab emirates|united kingdom|united kingdom, england|united kongdom|united states|untited kingdom|uruguay|uzbekistan|vanuatu|vatican city|venezuela|vietnam|wake island|wallis and futuna|western sahara|yemen|yougoslavie|yugoslavia|zambia|zimbabwe|Абхазия|Австралийската антарктическа територия|Австралия|Австрия|Азербайджан|Акротири и Декелия|Аландски острови|Албания|Алжир|Американска Самоа|Американски Вирджински острови|Ангола|Ангуила|Андора|Антарктида|Антигуа и Барбуда|Аржентина|Армения|Аруба|Атол Джонстън|Афганистан|Бангладеш|Барбадос|Бахамските острови|Бахрейн|Беларус|Белгия|Белиз|Бенин|Бермуда|Боливия|Босна и Херцеговина|Ботсуана|Бразилия|Британска антарктическа територия|Британската територия в Индийския океан|Британски Вирджински острови|Бруней|Буркина Фасо|Бурунди|Бутан|България|Вануату|Ватикана|Великобритания|Венецуела|Виетнам|Габон|Гамбия|Гана|Гваделупа|Гватемала|Гвиана|Гвинея|Гвинея-Бисау|Германия|Гибралтар|Гренада|Гренландия|Грузия|Гуам|Гърнси|Гърция|ДР Конго|Дания|Департаментът Джърси|Джибути|Доминика|Доминиканската република|Египет|Еквадор|Екваториална Гвинея|Ел Салвадор|Еритрея|Естония|Етиопия|Замбия|Западна Сахара|Земята на кралица Мод|Зимбабве|Израел|Източен Тимор|Индия|Индонезия|Ирак|Иран|Ирландия|Исландия|Испания|Италия|Йемен|Йордания|Кабо Верде|Казахстан|Каймановите острови|Камбоджа|Камерун|Канада|Катар|Кения|Кингман|Кипър|Киргизстан|Кирибати|Китай|Кокосови острови|Колумбия|Коморските острови|Коралови острови|Косово|Коста Рика|Кот д\\'Ивоар|Куба|Кувейт|Лаос|Латвия|Лесото|Либерия|Либия|Ливан|Литва|Лихтенщайн|Люксембург|Мавритания|Мавриций|Мадагаскар|Майот|Макао|Северна Македония|Македония|Малави|Малайзия|Малдивите|Мали|Малта|Мароко|Мартиника|Маршаловите острови|Мексико|Мианмар|Микронезия|Мозамбик|Молдова|Монако|Монголия|Монсерат|Наваса|Нагорни Карабах|Намибия|Науру|Непал|Нигер|Нигерия|Нидерландските Антили|Никарагуа|Ниуе|Нова Зеландия|Нова Каледония|Норвегия|Норфолк|Обединените арабски емирства|Оман|Остров Бейкър|Остров Буве|Остров Възнесение|Остров Джарвис|Остров Клипертон|Остров Ман|Остров Петър I|Остров Рождество|Коледен остров|Остров Рос |Остров Хауланд|Острови Ашмор и Картие|Острови Кук|Острови Питкерн|Пакистан|Палау|Палестина|Палмира|Панама|Папуа-Нова Гвинея|Парагвай|Перу|Полша|Португалия|Приднестровието|Пуерто Рико|Република Конго|Реюнион|Руанда|Румъния|Русия|САЩ|Самоа|Сан Марино|Сао Томе и Принсипи|Саудитска Арабия|Свазиленд|Свалбард|Света Елена|Северен Кипър|Северна Корея|Северни Мариански острови|Сейнт Винсент и Гренадини|Сейнт Китс и Невис|Сейнт Лусия|Сейшелите|Сен Бартелеми|Сен Мартен|Сен Пиер и Микелон|Сенегал|Сиера Леоне|Сингапур|Сирия|Словакия|Словения|Соломоновите острови|Сомалиленд|Сомалия|Среден Атол|Судан|Суринам|Сърбия|Таджикистан|Тайван|Тайланд|Танзания|Того|Токелау|Тонга|Тринидад и Тобаго|Тристан да Куня|Тувалу|Тунис|Туркменистан|Турция|Търкс и Кайкос|Уганда|Уейк|Узбекистан|Украйна|Унгария|Уолис и Футуна|Уругвай|Фарьорските острови|Фиджи|Филипини|Финландия|Фолклендски острови|Франция|Френска Гвиана|Френска Полинезия|Френски южни и антарктически територии|Хаити|Холандия|Хондурас|Хонконг|Хърватия|Хърд и Макдоналд острови|Централноафриканска република|Чад|Черна гора|Чехия|Чили|Швейцария|Швеция|Шри Ланка|Южна Африка|Южна Джорджия и Южни Сандвичеви острови|Южна Корея|Южна Осетия|Ямайка|Япония|македонија|румъния|холандия)\b/ui";
         
         if (preg_match($regExpr, $text, $matches)) {
             
@@ -987,7 +991,6 @@ class drdata_Address extends core_MVC
         return $res;
     }
     
-
     
     /**
      * Парсира място, като се опитва да извлече държава и код

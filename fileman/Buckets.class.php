@@ -58,7 +58,7 @@ class fileman_Buckets extends core_Manager
     public $canDelete = 'no_one';
     
     
-    public $loadList = 'plg_Translate, plg_Created, plg_Modified, Files=fileman_Files, plg_RowTools2, fileman_Wrapper';
+    public $loadList = 'plg_Translate, plg_Created, plg_Modified, Files=fileman_Files, plg_RowTools2, fileman_Wrapper, core_UserTranslatePlg';
     
     
     /**
@@ -67,7 +67,7 @@ class fileman_Buckets extends core_Manager
     public function description()
     {
         $this->FLD('name', 'varchar(255)', 'notNull,caption=Име');
-        $this->FLD('info', 'varchar', 'caption=Информация, translate');
+        $this->FLD('info', 'varchar', 'caption=Информация, translate=user|tr|transliterate');
         $this->FLD('extensions', 'text', 'caption=Допустими разширения');
         $this->FLD('maxSize', 'fileman_FileSize', 'caption=Макс. размер');
         $this->FLD('rolesForAdding', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли->за добавяне');

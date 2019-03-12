@@ -230,7 +230,7 @@ class sales_Setup extends core_ProtoSetup
         ),
         'SALE_INV_VAT_DISPLAY' => array(
             'enum(no=Не,yes=Да)',
-            'caption=Фактури изчисляване на ддс-то като процент от сумата без ддс->Избор'
+            'caption=Без закръгляне на ДДС за всеки ред от фактурите->Избор'
         ),
         'SALE_INV_MIN_NUMBER1' => array(
             'int(min=0)',
@@ -350,6 +350,7 @@ class sales_Setup extends core_ProtoSetup
         'migrate::updateDeltaStates1',
         'migrate::setContragentFieldKeylist3',
         'migrate::updateDeltaFields',
+        'migrate::closeZDDSRep',
     );
     
     
@@ -372,7 +373,7 @@ class sales_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'sales_SalesLastPricePolicy,sales_reports_SalesPriceImpl, sales_reports_OweInvoicesImpl, 
-                       sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_ZDDSRep,sales_reports_OverdueByAdvancePayment,
+                       sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_OverdueByAdvancePayment,
                        sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,sales_reports_OverdueInvoices,sales_reports_SalesByContragents';
     
     /**
@@ -596,6 +597,19 @@ class sales_Setup extends core_ProtoSetup
                     reportException($e);
                 }
             }
+        }
+    }
+    
+    
+    /**
+     * Миграция за премахване на sales_reports_ZDDSRep
+     */
+    public static function closeZDDSRep()
+    {
+        $rec = core_Classes::fetch("#state = 'active' AND #name = 'sales_reports_ZDDSRep'");
+        if ($rec) {
+            $rec->state = 'closed';
+            core_Classes::save($rec, 'state');
         }
     }
 }

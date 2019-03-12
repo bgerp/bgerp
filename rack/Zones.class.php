@@ -119,7 +119,13 @@ class rack_Zones extends core_Master
      */
     public $refreshRowsTime = 5000;
     
-    
+
+    /**
+     * Шаблон за реда в листовия изглед
+     */
+    public $tableRowTpl = "[#ROW#][#ADD_ROWS#]\n";
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -155,6 +161,7 @@ class rack_Zones extends core_Master
                 $row->pendingHtml = $pendingHtml;
             }
         }
+        $row->ROW_ATTR['class'] = $row->ROW_ATTR['class'] . " rack-zone-head";
         
         $row->num = $mvc->getHyperlink($rec->id);
         
@@ -325,6 +332,7 @@ class rack_Zones extends core_Master
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         $tpl->push('rack/css/style.css', 'CSS');
+        
     }
     
     
@@ -797,18 +805,24 @@ class rack_Zones extends core_Master
         while ($mRec = $mQuery->fetch()) {
            rack_Movements::delete($mRec->id);
         }
-        
+
         $floor = rack_PositionType::FLOOR;
         foreach ($expected->products as $pRec) {
+            $BatchClass = batch_Defs::getBatchDef($pRec->productId);
+            
+            // Ако в зоната реда е с определена партидност - то трябва да се подадат само палетите с тази партидност.
+            // Ако в зоната реда е без партидност, но продукта има партидност - се търсят само палетите, които са с празна партидност
+            $batch = (is_object($BatchClass)) ? $pRec->batch : null;
             
             // Какви са наличните палети за избор
-            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, true);
+            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, $batch, true);
+            
             $quantityOnPallets = arr::sumValuesArray($pallets, 'quantity');
             $requiredQuantityOnZones = array_sum($pRec->zones);
             
             // Ако к-то по палети е достатъчно за изпълнение, не се добавя ПОД-а, @TODO да се изнесе в mainP2Q
             if($quantityOnPallets < $requiredQuantityOnZones){
-                $floorQuantity = rack_Pallets::getAvailableQuantity(null, $pRec->productId, $storeId);
+                $floorQuantity = rack_Products::getFloorQuantity($pRec->productId, $batch, $storeId);
                 if ($floorQuantity) {
                     $pallets[$floor] = (object) array('quantity' => $floorQuantity, 'position' => $floor);
                 }
@@ -827,7 +841,7 @@ class rack_Zones extends core_Master
             $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
             
             // Ако има генерирани движения се записват
-            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $storeId);
+            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId);
             
             // Движенията се създават от името на системата
             core_Users::forceSystemUser();
@@ -898,9 +912,9 @@ class rack_Zones extends core_Master
                 continue;
             }
             
-            $key = "{$dRec->productId}|{$dRec->packagingId}";
+            $key = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->batch}";
             if (!array_key_exists($key, $res->products)) {
-                $res->products[$key] = (object) array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'zones' => array());
+                $res->products[$key] = (object) array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'zones' => array(), 'batch' => $dRec->batch);
                 $res->zones[$dRec->zoneId] = $dRec->zoneId;
             }
             

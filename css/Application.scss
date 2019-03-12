@@ -347,9 +347,16 @@ div.folder-cover {
 		color: #333;
 		font-weight: bold;
 	}
+
 	.groupList {
 		font-size: 0.95em;
 		max-width: 725px;
+		.toolbar-btn {
+			margin-top: 0 !important;
+			margin-bottom: 0 !important;
+			position: relative;
+			top: -2px;
+		}
 		.listTopContainer {
 		    min-width: 300px;
 		}
@@ -359,6 +366,7 @@ div.folder-cover {
 		  top: 1px;
 		  position: relative;
 		}
+
 	}
 	.label {
 		color: #777777;
@@ -1355,6 +1363,7 @@ table.listTable > tbody > tr {
 			border: none !important;
 			border-top: dotted 1px #ccc !important;
 			vertical-align: top !important;
+			padding: 4px 3px;
 		}
 		> tbody > tr:first-child > td {
 		    border-top: none !important;
@@ -2078,6 +2087,10 @@ a.tOld {
 	white-space: nowrap;
 }
 
+.separateRowTable {
+	font-weight: bold;
+}
+
 td.rowtools-column {
     width:1%;
 }
@@ -2092,6 +2105,10 @@ td.rowtools-column {
 
 .large-field{
 	width: 50%;
+}
+
+.listAction table.listTable>tbody>tr>td, table.listTable.listAction>tbody>tr>td.wideColumn {
+	max-width: none !important;
 }
 
 .morePadding {
@@ -2854,6 +2871,9 @@ ul.history {
 		&.expenseSummary b {
 			background-color: orange;
 		}
+		&.archiveSummary b {
+			background-color: #796b5c;
+		}
 	}
 	.detailed b {
 		background-color: #ccc;
@@ -3042,10 +3062,28 @@ fieldset.sharing-history {
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+	&:after {
+		content: '';
+		display: block;
+		clear: both;
+	}
+}
+
+.loginIcon, .langIcon {
+	float: right !important;
+}
+
+.narrow #cmsMenu a.loginIcon, .narrow #cmsMenu a.langIcon {
+	margin-right: 4px !important;
+	margin-left: 1px !important;
 }
 
 .wide #cmsMenu{
 	min-width: 500px;
+}
+
+.narrow #cmsMenu a {
+	margin-left: 5px !important;
 }
 
 #cmsMenu a {
@@ -3339,7 +3377,7 @@ fieldset.sharing-history {
 	float: none !important;
 	width: 100%;
 	max-width: 100%;
-	margin: 5px 0;
+	margin: 5px 0 10px;
 }
 
 #cart-external-status .count {
@@ -4500,6 +4538,10 @@ table .eshop-btn {
 	}
 }
 
+.document table.listTable>tbody>tr>td.task-row-info {
+	padding: 4px 7px 3px !important;
+}
+
 .document .scrolling-holder {
     margin-bottom: 0;
 }
@@ -5298,12 +5340,14 @@ div.location.public {
 .eshop-group-button {
     float: left;
     width: 46%;
-    min-height: 180px;
-    height: auto \9;
-    margin: 10px 2% 15px;
+    height: 210px;
+    margin: 10px 2%;
     text-align: center;
     .eshop-group-button-title {
+		background: none !important;
+		font-size: 1em;
         margin-top: 2px;
+		font-weight: normal;
         a{
 	        color: #048;
         }
@@ -5419,6 +5463,9 @@ div.location.public {
 		font-weight: bold;
 		padding: 0 5px 8px 0px;
 		height: 1%;
+		margin: 0 !important;
+		background: none !important;
+		font-size: 1em;
 	}
 	&:hover {
 	    border: solid 1px #bbb;
@@ -5470,6 +5517,10 @@ td.rack-same {
     font-family: Times New Roman, Georgia, serif;
 }
 
+.movement-position-notice {
+	font-weight: bold;
+}
+
 .wide .app-name{
     left: 3%;
     bottom: 3%;
@@ -5493,7 +5544,7 @@ body.narrow {
 
 //bootstrap 2.3 grid
 
-row-fluid {
+.row-fluid {
 	width: 100%;
 	*zoom: 1;
 }
@@ -6734,31 +6785,35 @@ row-fluid {
 /*статистика на продажби*/
 .sale-summary {
     table {
-       width: 100%;
-       td, th {
-           text-align: center;
-           border: 1px solid $gray4;
-           border-collapse: collapse;
-       }
-       .sum-th {
-           background-color: $gray2;
-           font-weight: normal;
-           color: #555;
-           border-bottom: none;
-           padding:0px;
-           font-size:13px;
-       }
-       td {
-           font-size: 1.3em;
-           font-weight: bold;
-           padding: 5px 3px;
-           .quiet {
-               color: #ccc;
-               font-weight: normal;
-           }
-       }
+		width: 100%;
+		td, th {
+		   text-align: center;
+		   border: 1px solid $gray4;
+		   border-collapse: collapse;
+		}
+		.sum-th {
+		   background-color: $gray2;
+		   font-weight: normal;
+		   color: #555;
+		   border-bottom: none;
+		   padding:0px;
+		   font-size:13px;
+		}
+		td {
+		   font-size: 1.3em;
+		   font-weight: bold;
+		   padding: 5px 3px;
+		   .quiet {
+			   color: #ccc;
+			   font-weight: normal;
+		   }
+		}
+		.specialLink {
+			white-space: normal;
+		}
     }
 }
+
 .narrow .sale-summary td .quiet{
     font-size: 0.8em;
 }

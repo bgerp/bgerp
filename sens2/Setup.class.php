@@ -86,6 +86,7 @@ class sens2_Setup extends core_ProtoSetup
         'sens2_reports_DataLog',
         'sens2_MockupDrv',
         'sens2_ServMon',
+        'sens2_DomainMon',
         'sens2_script_ActionSignal',
         'sens2_script_ActionSMS',
         'sens2_script_ActionNotify',

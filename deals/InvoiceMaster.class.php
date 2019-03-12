@@ -103,14 +103,34 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
         $mvc->FLD('vatRate', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Данъчни параметри->ДДС,input=hidden');
         $mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
-        $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden,summary=amount');
+        $mvc->FNC('dealValueWithoutDiscount', 'double(decimals=2)', 'caption=Дан. основа,summary=amount');
+        $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden');
         $mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
-        $mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
+        $mvc->FNC('totalValue', 'double(decimals=2)', 'caption=Общо,summary=amount');
+        $mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none');
         $mvc->FLD('sourceContainerId', 'key(mvc=doc_Containers,allowEmpty)', 'input=hidden,silent');
         $mvc->FLD('paymentMethodId', 'int', 'input=hidden,silent');
         
         $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин,before=accountId,mandatory');
         $mvc->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,mixed=Смесено)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
+    }
+    
+    
+    /**
+     * Изчисляване на общото
+     */
+    protected static function on_CalcDealValueWithoutDiscount($mvc, &$rec)
+    {
+        $rec->dealValueWithoutDiscount = $rec->dealValue - $rec->discountAmount;
+    }
+    
+    
+    /**
+     * Изчисляване на общото
+     */
+    protected static function on_CalcTotalValue($mvc, &$rec)
+    {
+        $rec->totalValue = $rec->dealValue - $rec->discountAmount + $rec->vatAmount;
     }
     
     
@@ -149,9 +169,12 @@ abstract class deals_InvoiceMaster extends core_Master
             
             if ($rec->invType) {
                 if ($rec->invType != 'all') {
-                    $data->query->where("#type = '{$rec->invType}'");
-                    $sign = ($rec->invType == 'credit_note') ? '<=' : '>';
-                    $data->query->orWhere("#type = 'dc_note' AND #dealValue {$sign} 0");
+                    if ($rec->invType == 'invoice') {
+                        $data->query->where("#type = '{$rec->invType}'");
+                    } else {
+                        $sign = ($rec->invType == 'credit_note') ? '<=' : '>';
+                        $data->query->where("(#type = 'dc_note' AND #dealValue {$sign} 0) || #type = '{$rec->invType}'");
+                    }
                 }
             }
             
@@ -610,10 +633,16 @@ abstract class deals_InvoiceMaster extends core_Master
         
         // При създаване на нова ф-ра зареждаме полетата на формата с разумни стойности по подразбиране.
         expect($firstDocument = doc_Threads::getFirstDocument($form->rec->threadId), $form->rec);
-        
         $coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
         $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
-        $form->setDefault('contragentName', $coverClass::fetchField($coverId, 'name'));
+
+        if ($form->rec->template) {
+            $mvc->pushTemplateLg($form->rec->template);
+        }
+        $form->setDefault('contragentName', $coverClass::getVerbal($coverId, 'name'));
+        if ($form->rec->template) {
+            core_Lg::pop();
+        }
         
         if (!$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
             $className = doc_Folders::fetchCoverClassName($form->rec->folderId);
@@ -722,7 +751,7 @@ abstract class deals_InvoiceMaster extends core_Master
             if (strlen($rec->contragentVatNo) && !strlen($rec->uicNo) && $rec->contragentClassId == crm_Companies::getClassId()) {
                 $rec->uicNo = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
             } elseif (!strlen($rec->contragentVatNo) && !strlen($rec->uicNo)) {
-                if($rec->contragentClassId != crm_Persons::getClassId()){
+                if ($rec->contragentClassId != crm_Persons::getClassId()) {
                     $form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
                 } else {
                     $form->setWarning('contragentVatNo,uicNo', 'Сигурни ли сте, че не трябва да въведете поне един от номерата|*?');
@@ -738,10 +767,10 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             
             // Проверка дали националния номер е валиден за държавата
-            if($rec->contragentClassId == crm_Companies::getClassId() && !empty($rec->uicNo)){
+            if ($rec->contragentClassId == crm_Companies::getClassId() && !empty($rec->uicNo)) {
                 crm_Companies::checkUicId($rec->uicNo, $rec->contragentCountryId, $msg1, $isError);
-                if(!empty($msg)){
-                    if($isError === true){
+                if (!empty($msg)) {
+                    if ($isError === true) {
                         $form->setError('uicNo', $msg1);
                     } else {
                         $form->setWarning('uicNo', $msg1);
@@ -987,7 +1016,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $row->username = core_Lg::transliterate($row->username);
             
             // От потребителя се прави уникален код
-            if(!empty($issuerId)){
+            if (!empty($issuerId)) {
                 $row->userCode = abs(crc32("{$row->username}|{$issuerId}"));
                 $row->userCode = substr($row->userCode, 0, 6);
             }
@@ -1053,8 +1082,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             
             if (!empty($row->paymentType)) {
-                
-                if($rec->paymentType == 'postal'){
+                if ($rec->paymentType == 'postal') {
                     $arr = array('cash' => 'в брой', 'bank' => 'по банков път', 'card' => 'с карта', 'factoring' => 'факторинг', 'intercept' => 'с прихващане');
                     $row->paymentType = tr('Пощенски паричен превод');
                 } else {

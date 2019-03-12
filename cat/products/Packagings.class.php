@@ -44,13 +44,19 @@ class cat_products_Packagings extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'packagingId=Наименование, quantity=К-во, eanCode=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити';
+    public $listFields = 'packagingId=Наименование, quantity=К-во, eanCode=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити,user=Потребител';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created';
+    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created,plg_Modified';
+    
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo,sales,purchase,packEdit';
     
     
     /**
@@ -295,13 +301,6 @@ class cat_products_Packagings extends core_Detail
                 $requiredRoles = 'no_one';
             }
         }
-        
-        // Ако потребителя не е създал записа, трябва да има cat или ceo за да го промени
-        if (($action == 'edit' || $action == 'delete') && isset($rec)) {
-            if ($rec->createdBy != $userId && !haveRole('ceo,packEdit', $userId)) {
-                $requiredRoles = 'no_one';
-            }
-        }
     }
     
     
@@ -312,7 +311,7 @@ class cat_products_Packagings extends core_Detail
      * @param stdClass     $res
      * @param stdClass     $data
      */
-    protected static function on_AfterPrepareEditToolbar($mvc, $data)
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         if (!(count($mvc::getRemainingOptions($data->form->rec->productId)) - 1)) {
             $data->form->toolbar->removeBtn('saveAndNew');
@@ -425,7 +424,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
     {
         foreach (array('sizeWidth', 'sizeHeight', 'sizeDepth') as $sizeFld) {
             if ($rec->{$sizeFld} == 0) {
@@ -438,7 +437,7 @@ class cat_products_Packagings extends core_Detail
         }
         
         if (!empty($rec->eanCode)) {
-            if(barcode_Search::haveRightFor('list')){
+            if (barcode_Search::haveRightFor('list')) {
                 $row->eanCode = ht::createLink($row->eanCode, array('barcode_Search', 'search' => $rec->eanCode));
             }
         }
@@ -454,6 +453,14 @@ class cat_products_Packagings extends core_Detail
         
         if ($rec->isBase == 'yes') {
             $row->packagingId = '<b>' . $row->packagingId . '</b>';
+        }
+        
+        if($fields['-list']) {
+            if($rec->modifiedOn) {
+                $row->user = crm_Profiles::createLink($rec->modifiedBy) . ', ' . $mvc->getVerbal($rec, 'modifiedOn');
+            } else {
+                $row->user = crm_Profiles::createLink($rec->createdBy) . ', ' . $mvc->getVerbal($rec, 'createdOn');
+            }
         }
     }
     
@@ -655,12 +662,12 @@ class cat_products_Packagings extends core_Detail
         $isUsed = false;
         foreach ($details as $Detail) {
             if ($Detail == 'cat_BomDetails') {
-                if ($rec = $Detail::fetch("#resourceId = {$productId} AND #packagingId = '{$uomId}'", 'id')) {
+                if ($Detail::fetch("#resourceId = {$productId} AND #packagingId = '{$uomId}'", 'id')) {
                     $isUsed = true;
                     break;
                 }
             } else {
-                if ($rec = $Detail::fetch("#productId = {$productId} AND #packagingId = '{$uomId}'", 'id')) {
+                if ($Detail::fetch("#productId = {$productId} AND #packagingId = '{$uomId}'", 'id')) {
                     $isUsed = true;
                     break;
                 }
@@ -685,10 +692,10 @@ class cat_products_Packagings extends core_Detail
      * @param string $str
      *
      * @return array
-     * ->title - заглавие на резултата
-     * ->url - линк за хипервръзка
-     * ->comment - html допълнителна информация
-     * ->priority - приоритет
+     *               ->title - заглавие на резултата
+     *               ->url - линк за хипервръзка
+     *               ->comment - html допълнителна информация
+     *               ->priority - приоритет
      */
     public function searchByCode($str)
     {
@@ -696,113 +703,142 @@ class cat_products_Packagings extends core_Detail
         
         // Има ли артикул с такъв код?
         $productData = cat_Products::getByCode($str);
-        if(!is_object($productData)) return $resArr;
+        if (!is_object($productData)) {
+            
+            return $resArr;
+        }
         
-        $obj = (object)array('title' => cat_Products::getHyperlink($productData->productId, true), 'url' => array(), 'priority' => 0, 'comment' => '');
+        $artStr = tr('Артикул');
+        
+        $obj = (object) array('title' => $artStr . ': ' . cat_Products::getHyperlink($productData->productId, true), 'url' => array(), 'priority' => 0, 'comment' => '');
         
         // Извличане на най-важната информация за артикула
-        $productRec = cat_Products::fetch($productData->productId, 'canSell,canBuy,canStore,canConvert,nameInt,isPublic,folderId,state,measureId');
+        $productRec = cat_Products::fetch($productData->productId, 'canSell,canBuy,canStore,canConvert,nameEn,isPublic,folderId,state,measureId');
         setIfNot($productData->packagingId, $productRec->measureId);
         
         $packagingName = $packagingNameShort = tr(cat_UoM::getTitleById($productData->packagingId));
         $packRec = (cat_products_Packagings::getPack($productData->productId, $productData->packagingId));
         $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
         deals_helper::getPackInfo($packagingName, $productData->productId, $productData->packagingId, $quantityInPack);
-
+        
         $obj->comment .= $packagingName;
         if ($preview = cat_Products::getPreview($productData->productId, array(200, 200))) {
             if (Mode::is('screenMode', 'wide')) {
-                $obj->comment .=  "<span class='imgPreview'>" . $preview . "</span>";
+                $obj->comment .= "<span class='imgPreview'>" . $preview . '</span>';
             } else {
-                $obj->comment .= "</td><tr><td colspan='2' align = 'left'><span class='imgPreview'>" . $preview . "</span>";
+                $obj->comment .= "</td><tr><td colspan='2' align = 'left'><span class='imgPreview'>" . $preview . '</span>';
             }
         }
-
+        
         $obj->comment .= "</td><tr><td colspan='2' class='noPadding'><div class='scrolling-holder'>";
-
+        
         $resArr[] = $obj;
         
         // Само за активните артикули ще се връщат резултати
-        if($productRec->state != 'active') return $resArr;
+        if ($productRec->state != 'active') {
+            
+            return $resArr;
+        }
         
         // Има ли последно посещавани нишки от текущия потребител?
         $threadIds = bgerp_Recently::getLastThreadsId(null, null, 3600);
-        if (!count($threadIds)) return $resArr;
-       
+        if (!count($threadIds)) {
+            
+            return $resArr;
+        }
+        
         // Кои документи, ще се разглеждат
         $DocumentIds = array();
         $Documents = array('sales_Sales', 'sales_Invoices', 'sales_Services', 'purchase_Purchases', 'purchase_Services', 'purchase_Invoices', 'store_Receipts', 'store_ShipmentOrders', 'store_Transfers', 'planning_ReturnNotes', 'planning_ConsumptionNotes');
-        foreach ($Documents as $docName){
+        foreach ($Documents as $docName) {
             $DocumentIds[$docName] = $docName::getClassId();
         }
         
         // Има ли чернови документи в посочение нишки?
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#state = 'draft'");
-        $cQuery->in("threadId", $threadIds);
-        $cQuery->in("docClass", $DocumentIds);
+        $cQuery->in('threadId', $threadIds);
+        $cQuery->in('docClass', $DocumentIds);
         $cQuery->show('id,folderId');
         $containers = $cQuery->fetchAll();
-        if (!count($containers)) return $resArr;
+        if (!count($containers)) {
+            
+            return $resArr;
+        }
         
         $onlyInFolders = cat_products_SharedInFolders::getSharedFolders($productRec);
         $documentRows = array();
         
         // За всеки намерен документ
-        foreach($containers as $containerRec){
+        foreach ($containers as $containerRec) {
             $isReverse = 'no';
-            try{
+            try {
                 // Извличане на документа и проверка може ли артикула да се добави към него
                 $Doc = doc_Containers::getDocument($containerRec->id);
-                if ($Doc->isInstanceOf('sales_Sales') || $Doc->isInstanceOf('sales_Invoices')){
-                   if($productRec->canSell != 'yes') continue;
-                } elseif($Doc->isInstanceOf('purchase_Purchases') || $Doc->isInstanceOf('purchase_Invoices')){
-                    if($productRec->canBuy != 'yes') continue;
+                if ($Doc->isInstanceOf('sales_Sales') || $Doc->isInstanceOf('sales_Invoices')) {
+                    if ($productRec->canSell != 'yes') {
+                        continue;
+                    }
+                } elseif ($Doc->isInstanceOf('purchase_Purchases') || $Doc->isInstanceOf('purchase_Invoices')) {
+                    if ($productRec->canBuy != 'yes') {
+                        continue;
+                    }
                 }
                 
-                if($Doc->isInstanceOf('store_ShipmentOrders') || $Doc->isInstanceOf('store_Receipts') || $Doc->isInstanceOf('store_Transfers') || $Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes')){
-                    if($productRec->canStore != 'yes') continue;
+                if ($Doc->isInstanceOf('store_ShipmentOrders') || $Doc->isInstanceOf('store_Receipts') || $Doc->isInstanceOf('store_Transfers') || $Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes')) {
+                    if ($productRec->canStore != 'yes') {
+                        continue;
+                    }
                 }
                 
-                if($Doc->isInstanceOf('sales_Services') || $Doc->isInstanceOf('purchase_Services')){
-                    if($productRec->canStore != 'no') continue;
+                if ($Doc->isInstanceOf('sales_Services') || $Doc->isInstanceOf('purchase_Services')) {
+                    if ($productRec->canStore != 'no') {
+                        continue;
+                    }
                 }
                 
-                if($Doc->isInstanceOf('store_ShipmentOrders') || $Doc->isInstanceOf('store_Receipts') || $Doc->isInstanceOf('sales_Services') || $Doc->isInstanceOf('purchase_Services')){
+                if ($Doc->isInstanceOf('store_ShipmentOrders') || $Doc->isInstanceOf('store_Receipts') || $Doc->isInstanceOf('sales_Services') || $Doc->isInstanceOf('purchase_Services')) {
                     $isReverse = $Doc->fetchField('isReverse');
                     $meta = ($Doc->isInstanceOf('store_ShipmentOrders') || $Doc->isInstanceOf('sales_Services')) ? (($isReverse == 'no') ? 'canSell' : 'canBuy') : (($isReverse == 'no') ? 'canBuy' : 'canSell');
-                    if($productRec->{$meta} != 'yes') continue;
+                    if ($productRec->{$meta} != 'yes') {
+                        continue;
+                    }
                 }
                 
-                if($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes')){
-                    if($productRec->canConvert != 'yes') continue;
+                if ($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes')) {
+                    if ($productRec->canConvert != 'yes') {
+                        continue;
+                    }
                 }
                 
                 // Ако артикула е достъпен само към избрани папки, документа трябва да е в тях
-                if(count($onlyInFolders) && !($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))){
+                if (count($onlyInFolders) && !($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))) {
                     $folderId = $Doc->fetchField('folderId');
-                    if(!array_key_exists($folderId, $onlyInFolders)) continue;
+                    if (!array_key_exists($folderId, $onlyInFolders)) {
+                        continue;
+                    }
                 }
                 
-                if(isset($Doc->mainDetail)){
+                if (isset($Doc->mainDetail)) {
                     $Detail = cls::get($Doc->mainDetail);
                     
                     // Ако може да се добавя артикула към детайла на документа
-                    if(!$Detail->haveRightFor('add', (object)array($Detail->masterKey => $Doc->that))) continue;
+                    if (!$Detail->haveRightFor('add', (object) array($Detail->masterKey => $Doc->that))) {
+                        continue;
+                    }
                     
                     $addUrl = array($Detail, 'add', "{$Detail->masterKey}" => $Doc->that, "{$Detail->productFld}" => $productData->productId, 'packagingId' => $productData->packagingId);
-                    $addLink = ht::createBtn("#" . $Doc->getHandle(), $addUrl, false, false, 'ef_icon=img/16/shopping.png');
+                    $addLink = ht::createBtn('#' . $Doc->getHandle(), $addUrl, false, false, 'ef_icon=img/16/shopping.png');
                     
-                    $documentRow = (object)array('addLink' => $addLink);
+                    $documentRow = (object) array('addLink' => $addLink);
                     
                     // Ако ще може да му се показва продажната цена
-                    if(!($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))){
-                        
+                    if (!($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))) {
                         $Policy = ($isReverse == 'yes') ? (($Detail->ReversePolicy) ? $Detail->ReversePolicy : cls::get('price_ListToCustomers')) : (($Detail->Policy) ? $Detail->Policy : cls::get('price_ListToCustomers'));
                         $docRec = $Doc->fetch('contragentClassId, contragentId, chargeVat, valior, currencyRate,currencyId');
                         
                         $policyInfo = $Policy->getPriceInfo($docRec->contragentClassId, $docRec->contragentId, $productData->productId, $productData->packagingId, $quantityInPack, $docRec->valior, $docRec->currencyRate, $docRec->chargeVat);
-                        if(!isset($policyInfo->price)){
+                        if (!isset($policyInfo->price)) {
                             $price = 'N/A';
                         } else {
                             $price = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($policyInfo->price * $quantityInPack);
@@ -812,25 +848,25 @@ class cat_products_Packagings extends core_Detail
                         $documentRow->price = $price;
                     }
                     
-                    if($productRec->canStore == 'yes'){
-                         if($storeId = $Doc->fetchField($Doc->storeFieldName)){
-                             $quantity = store_Products::getQuantity($productRec->id, $storeId, true);
-                             $packQuantity = $quantity / $quantityInPack;
-                             $packQuantityVerbal = (empty($packQuantity)) ? tr("няма наличност") : core_Type::getByName('double(smartRound)')->toVerbal($packQuantity);
-                             
-                             $documentRow->free = $packQuantityVerbal;
-                             $documentRow->storeId = store_Stores::getHyperlink($storeId, true);
-                         }
+                    if ($productRec->canStore == 'yes') {
+                        if ($storeId = $Doc->fetchField($Doc->storeFieldName)) {
+                            $quantity = store_Products::getQuantity($productRec->id, $storeId, true);
+                            $packQuantity = $quantity / $quantityInPack;
+                            $packQuantityVerbal = (empty($packQuantity)) ? tr('няма наличност') : core_Type::getByName('double(smartRound)')->toVerbal($packQuantity);
+                            
+                            $documentRow->free = $packQuantityVerbal;
+                            $documentRow->storeId = store_Stores::getHyperlink($storeId, true);
+                        }
                     }
                     
                     $documentRows[] = $documentRow;
                 }
-            } catch(core_exception_Expect $e){
-              continue;
+            } catch (core_exception_Expect $e) {
+                continue;
             }
         }
         
-        if(count($documentRows)){
+        if (count($documentRows)) {
             $fieldset = new core_FieldSet();
             $fieldset->FLD('addLink', 'varchar', 'tdClass=centered');
             $fieldset->FLD('free', 'varchar', 'smartCenter');
@@ -842,8 +878,8 @@ class cat_products_Packagings extends core_Detail
             $fields = core_TableView::filterEmptyColumns($documentRows, $fields, 'free,price,storeId');
             $docTableTpl = $table->get($documentRows, $fields);
             
-            $resArr[0]->comment .= $docTableTpl .  "</div>";
-            $resArr[0]->comment =  new ET($resArr[0]->comment);
+            $resArr[0]->comment .= $docTableTpl .  '</div>';
+            $resArr[0]->comment = new ET($resArr[0]->comment);
             if (Mode::is('screenMode', 'narrow')) {
                 jquery_Jquery::run($resArr[0]->comment, 'setBarcodeHolderWidth()');
             }

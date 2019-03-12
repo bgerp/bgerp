@@ -1183,9 +1183,13 @@ class eshop_Carts extends core_Master
                     $rec->brid = $newBrid;
                     $updateFields[] = 'brid';
                 }
+                
+                // Kоличката се присвоява на текущия потребител, само ако не е powerUser
                 if($cu = core_Users::getCurrent('id', false)){
-                    $rec->userId = $cu;
-                    $updateFields[] = 'userId';
+                    if(!core_Users::isPowerUser($cu)){
+                        $rec->userId = $cu;
+                        $updateFields[] = 'userId';
+                    }
                 }
                 
                 // Така потребителя вече има достъп до количката
@@ -1554,7 +1558,7 @@ class eshop_Carts extends core_Master
 
         if (Mode::is('screenMode', 'narrow')) {
             $data->listTableMvc->commonRowClass = 'ecartCommonRow';
-            $data->listTableMvc->commonFirst = true;
+            $data->listTableMvc->tableRowTpl = "<tbody>[#ADD_ROWS#][#ROW#]</tbody>\n";;
             $data->listFields['productId'] = '@Артикул';
         }
 

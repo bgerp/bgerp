@@ -59,7 +59,7 @@ defIfNot(
     'USERS_UNBLOCK_EMAIL',
                 "\n|Уважаеми|* [#names#]." .
                 "\n" .
-                "\n|Потребителят|*[#nick#]|в|* [#EF_APP_TITLE#] |е блокиран|*." .
+                "\n|Потребителят|* [#nick#] |в|* [#EF_APP_TITLE#] |е блокиран|*." .
                 "\n" .
                 "\n|За да се отблокирате, моля последвайте този линк|*: " .
                 "\n" .
@@ -218,6 +218,9 @@ class core_Users extends core_Manager
             //Ако не използвам никовете, тогава полето трябва да е задължително
             $this->FLD('nick', 'nick(64, ci)', 'caption=Ник,notNull,mandatory,width=100%');
         }
+        
+        $this->FLD('pinCode', 'password', 'caption=ПИН код');
+        
         $this->FLD(
             'state',
             'enum(active=Активен,draft=Непотвърден,blocked=Блокиран,closed=Затворен,rejected=Заличен)',
@@ -230,10 +233,8 @@ class core_Users extends core_Manager
         // Поле за съхраняване на хеша на паролата
         $this->FLD('ps5Enc', 'varchar(128)', 'caption=Парола хеш,column=none,input=none,crypt');
         
-        
         $this->FLD('rolesInput', 'keylist(mvc=core_Roles,select=role,groupBy=type, autoOpenGroups=team|rang, orderBy=orderByRole)', 'caption=Роли');
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Експандирани роли,input=none');
-        
         
         $this->FLD('lastLoginTime', 'datetime(format=smartTime)', 'caption=Последно->Логване,input=none');
         $this->FLD('lastLoginIp', 'type_Ip', 'caption=Последно->IP,input=none');
@@ -521,7 +522,7 @@ class core_Users extends core_Manager
     /**
      * Проверява дали подададения ник е в списъка със забранените
      *
-     * @param string $nick
+     * @param string      $nick
      * @param string|null $errorMsg
      *
      * @return bool
@@ -529,7 +530,7 @@ class core_Users extends core_Manager
     public static function isForbiddenNick($nick, &$errorMsg = null)
     {
         if (mb_strlen($nick) < self::$partnerMinLen) {
-            $errorMsg = "|Никът трябва да е поне|* <b>" . self::$partnerMinLen . "</b> |символа|*";
+            $errorMsg = '|Никът трябва да е поне|* <b>' . self::$partnerMinLen . '</b> |символа|*';
             
             return true;
         }
@@ -539,7 +540,7 @@ class core_Users extends core_Manager
         $nick = mb_strtolower($nick);
         
         if ($fNicksArr[$nick]) {
-            $errorMsg = "Не може да бъде създаден потребител с този ник";
+            $errorMsg = 'Не може да бъде създаден потребител с този ник';
             
             return true;
         }

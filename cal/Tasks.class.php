@@ -800,24 +800,24 @@ class cal_Tasks extends embed_Manager
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         $pArr = array();
-        
-        if (cal_TaskProgresses::isInstalled()) {
-            $pQuery = cal_TaskProgresses::getQuery();
-            $pQuery->where(array('#taskId = [#1#]', $data->rec->id));
-            $pQuery->orderBy('createdOn', 'ASC');
-            
-            while ($pRec = $pQuery->fetch()) {
-                $pRow = cal_TaskProgresses::recToVerbal($pRec);
-                
-                $rowAttr = array();
-                
-                if ($pRec->state == 'rejected') {
-                    $rowAttr['class'] = 'state-' . $pRec->state;
-                }
-                
-                $pArr[] = array('ROW_ATTR' => $rowAttr, 'progress' => $pRow->progress, 'workingTime' => $pRow->workingTime, 'createdOn' => $pRow->createdOn, 'createdBy' => $pRow->createdBy, 'message' => $pRow->message);
-            }
-        }
+
+//         if (cal_TaskProgresses::isInstalled()) {
+//             $pQuery = cal_TaskProgresses::getQuery();
+//             $pQuery->where(array('#taskId = [#1#]', $data->rec->id));
+//             $pQuery->orderBy('createdOn', 'ASC');
+
+//             while ($pRec = $pQuery->fetch()) {
+//                 $pRow = cal_TaskProgresses::recToVerbal($pRec);
+
+//                 $rowAttr = array();
+
+//                 if ($pRec->state == 'rejected') {
+//                     $rowAttr['class'] = 'state-' . $pRec->state;
+//                 }
+
+//                 $pArr[] = array('ROW_ATTR' => $rowAttr, 'progress' => $pRow->progress, 'workingTime' => $pRow->workingTime, 'createdOn' => $pRow->createdOn, 'createdBy' => $pRow->createdBy, 'message' => $pRow->message);
+//             }
+//         }
         
         if ($pClsId = cal_Progresses::getClassId() && $data->rec->containerId) {
             $cQuery = doc_Comments::getQuery();
@@ -921,13 +921,7 @@ class cal_Tasks extends embed_Manager
     protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if ($mvc->canAddProgress($data->rec)) {
-            // Ако прогреса е 100%, да е на втори ред
-            $progressRow = 1;
-            if ($data->rec->progress == 1) {
-                $progressRow = 2;
-            }
-            
-            $data->toolbar->addBtn('Прогрес', array('doc_Comments', 'add', 'originId' => $data->rec->containerId, cls::get('doc_Comments')->driverClassField => cal_Progresses::getClassId(), 'ret_url' => true), 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '"), ef_icon=img/16/progressbar.png', "title=Добавяне на прогрес към задачата, row={$progressRow}");
+            $data->toolbar->addBtn('Прогрес', array('doc_Comments', 'add', 'originId' => $data->rec->containerId, cls::get('doc_Comments')->driverClassField => cal_Progresses::getClassId(), 'ret_url' => true), 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '"), ef_icon=img/16/progressbar.png', "title=Добавяне на прогрес към задачата, row=1");
         }
         
         if (cal_TaskConditions::haveRightFor('add', (object) array('baseId' => $data->rec->id))) {
@@ -1439,7 +1433,7 @@ class cal_Tasks extends embed_Manager
         if ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'waiting') {
             $calRec = new stdClass();
             
-            setIfNot($calRec->time, $rec->timeStart, $rec->timeCalc, $rec->expectationTimeStart);
+            setIfNot($calRec->time, $rec->timeStart, $rec->timeCalc, $rec->expectationTimeStart, $calRec->timeEnd);
             
             // В чии календари да влезе?
             $calRec->users = $rec->assign;
@@ -1451,9 +1445,12 @@ class cal_Tasks extends embed_Manager
                 if ($rec->timeStart) {
                     // Начало на задачата
                     $calRec->time = $rec->timeStart;
-                } else {
+                } elseif ($rec->timeCalc) {
                     $calRec->time = $rec->timeCalc;
                 }
+                
+                //Запис на очакван край в календара
+                $calRec->timeEnd = $rec->expectationTimeEnd;
                 
                 // Дали е цял ден?
                 $calRec->allDay = $rec->allDay;
@@ -1495,8 +1492,13 @@ class cal_Tasks extends embed_Manager
                 // Ключ на събитието
                 $calRec->key = $prefix . '-End';
                 
-                // Начало на задачата
-                $calRec->time = $rec->timeEnd;
+                if ($rec->timeEnd) {
+                    // Начало на задачата
+                    $calRec->time = $rec->timeEnd;
+                }
+                
+                //Запис на очакван край в календара
+                $calRec->timeEnd = $rec->expectationTimeEnd;
                 
                 // Дали е цял ден?
                 $calRec->allDay = $rec->allDay;
@@ -1538,8 +1540,10 @@ class cal_Tasks extends embed_Manager
                 // Ключ на събитието
                 $calRec->key = $prefix . '-End';
                 
-                // Начало на задачата
-                $calRec->time = $rec->timeEnd;
+                if ($rec->timeEnd) {
+                    // Начало на задачата
+                    $calRec->time = $rec->timeEnd;
+                }
                 
                 // Дали е цял ден?
                 $calRec->allDay = $rec->allDay;
@@ -1638,6 +1642,20 @@ class cal_Tasks extends embed_Manager
             }
             
             $row->subTitle .= ' (' . self::getLastProgressAuthor($rec) . ')';
+            
+            $row->title .= ' (' . $this->getVerbal($rec, 'progress') . ')';
+        }
+        
+        if ($rec->state == 'closed' && $rec->progress != 1) {
+            $row->title = '✗ ' . trim($row->title);
+        }
+        
+        if ($rec->state == 'closed' && $rec->progress == 1) {
+            $row->title = '✓ ' . trim($row->title);
+        }
+        
+        if ($rec->state == 'stopped' && $rec->progress != 1) {
+            $row->title = '॥ ' . trim($row->title);
         }
         
         $usersArr = type_Keylist::toArray($rec->assign);
@@ -1742,9 +1760,9 @@ class cal_Tasks extends embed_Manager
     
     /**
      * Връща иконата на документа
-     * 
+     *
      * @param int|null $id
-     * 
+     *
      * @return string|null
      */
     public function getIcon_($id = null)

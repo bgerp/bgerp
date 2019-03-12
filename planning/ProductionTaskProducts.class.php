@@ -10,19 +10,13 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 class planning_ProductionTaskProducts extends core_Detail
 {
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'planning_drivers_ProductionTaskProducts';
-    
-    
     /**
      * Заглавие в единствено число
      */
@@ -38,7 +32,7 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type,productId,packagingId=Единица,plannedQuantity=Количества->Планирано,limit=Количества->Макс.,totalQuantity=Количества->Изпълнено,measureId=Количества->Мярка,storeId,indTime=Норма,totalTime=Общо';
+    public $listFields = 'type,productId,plannedQuantity=Количества->Планирано,limit=Количества->Макс.,totalQuantity=Количества->Изпълнено,packagingId=Количества->Мярка,storeId,indTime=Норма,totalTime=Общо';
     
     
     /**
@@ -109,19 +103,47 @@ class planning_ProductionTaskProducts extends core_Detail
     public function description()
     {
         $this->FLD('taskId', 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
-        $this->FLD('type', 'enum(input=Влагане,waste=Отпадък,production=Произвждане)', 'caption=За,remember,silent,input=hidden');
+        $this->FLD('type', 'enum(input=Влагане,waste=Отпадък,production=Произвеждане)', 'caption=За,remember,silent,input=hidden');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|limit|indTime,tdClass=productCell leftCol wrap');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Пр. единица,smartCenter,tdClass=small-field nowrap');
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Планирано к-во,smartCenter,oldFieldName=planedQuantity');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
         $this->FLD('quantityInPack', 'double', 'mandatory,input=none');
         $this->FLD('totalQuantity', 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter,oldFieldName=realQuantity');
-        $this->FLD('indTime', 'time(noSmart)', 'caption=Норма,smartCenter');
+        $this->FLD('indTime', 'time(noSmart,decimals=2)', 'caption=Норма,smartCenter');
         $this->FLD('limit', 'double(min=0)', 'caption=Макс. к-во,input=none');
         $this->FLD('totalTime', 'time(noSmart)', 'caption=Норма->Общо,smartCenter,input=none');
         
         $this->setDbUnique('taskId,productId');
         $this->setDbIndex('taskId,productId,type');
+    }
+    
+    
+    /**
+     * Дефолтно опции за артикула
+     * 
+     * @param stdClass $rec
+     * @return array $res
+     */
+    private static function getProductOptions($rec)
+    {
+        if(empty($rec->id)){
+            $meta = ($rec->type == 'input') ? 'canConvert' : (($rec->type == 'waste') ? 'canStore,canConvert' : 'canManifacture');
+            $options = cat_Products::getByProperty($meta);
+            
+            $query = self::getQuery();
+            $query->where("#taskId = {$rec->taskId}");
+            $query->show('productId');
+            $existingProducts = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+            $res = array_diff_key($options, $existingProducts);
+            
+            return $res;
+        }
+        
+        $productId = planning_ProductionTaskProducts::fetchField($rec->id, 'productId');
+        $res = array($productId => cat_Products::getTitleById($productId, false));
+        
+        return $res;
     }
     
     
@@ -140,10 +162,8 @@ class planning_ProductionTaskProducts extends core_Detail
         
         // Ако има тип
         if (isset($rec->type)) {
-            $meta = ($rec->type == 'input') ? 'canConvert' : (($rec->type == 'waste') ? 'canStore,canConvert' : 'canManifacture');
-            $products = cat_Products::getByProperty($meta);
-            unset($products[$masterRec->productId]);
-            
+            $products = self::getProductOptions($rec);
+           
             // Задаваме опциите с артикулите за избор
             $form->setOptions('productId', array('' => '') + $products);
             if (count($products) == 1) {
@@ -177,19 +197,18 @@ class planning_ProductionTaskProducts extends core_Detail
             }
             
             // Поле за бързо добавяне на прогрес, ако може
-            if (empty($rec->id) && planning_ProductionTaskDetails::haveRightFor('add', (object) array('taskId' => $masterRec->id))) {
-                $caption = ($rec->type == 'input') ? 'Вложено' : (($rec->type == 'waste') ? 'Отпадък' : 'Произведено');
+            if (empty($rec->id) && $rec->type != 'waste' && planning_ProductionTaskDetails::haveRightFor('add', (object) array('taskId' => $masterRec->id))) {
+                $caption = ($rec->type == 'input') ? 'Вложено' : 'Произведено';
                 $form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},before=storeId");
             }
             
-            $Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
-            $shortUom = cat_UoM::getShortName($masterRec->packagingId);
-            $measureUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
-            $unit = tr($measureUom) . ' ' . tr('за') . ' ' . $Double->toVerbal($masterRec->plannedQuantity) . ' ' . $shortUom;
+            $shortUomId = cat_Products::fetchField($masterRec->productId, 'measureId');
+            $shortUom = cat_UoM::getShortName($shortUomId);
+            $unit = tr('за') . ' ' . core_Type::getByName('double(smartRound)')->toVerbal($masterRec->plannedQuantity) . ' ' . $shortUom;
             $unit = str_replace('&nbsp;', ' ', $unit);
             $form->setField('plannedQuantity', array('unit' => $unit));
             
-            if ($form->rec != 'refresh' && planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #productId = {$rec->productId}")) {
+            if(isset($rec->id)){
                 $form->setReadOnly('productId');
                 $form->setReadOnly('packagingId');
                 if (!haveRole('ceo,planningMaster')) {
@@ -260,16 +279,12 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->measureId = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
         $row->productId = cat_Products::getShortHyperlink($rec->productId);
         $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'waste') ? 'row-removed' : 'state-active');
+        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         
         if (isset($rec->storeId)) {
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
-        }
-        
-        if (empty($rec->totalTime)) {
-            unset($row->totalTime);
         }
     }
     
@@ -332,8 +347,8 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Намира всички допустими артикули от дадения тип за една операция
      *
-     * @param int                 $taskId
-     * @param input|product|waste $type
+     * @param int       $taskId
+     * @param string    $type
      *
      * @return array
      */
@@ -411,8 +426,11 @@ class planning_ProductionTaskProducts extends core_Detail
         expect(in_array($type, array('input', 'waste', 'production')));
         
         // Ако артикула е същия като от операцията, връща се оттам
-        $taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,fixedAssets,productId,indTime,packagingId,quantityInPack,plannedQuantity');
+        $taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,fixedAssets,productId,indTime,packagingId,plannedQuantity');
         if ($taskRec->productId == $productId) {
+            if(empty($taskRec->packagingId)){
+                $taskRec->packagingId = cat_Products::fetchField($taskRec->productId, 'measureId');
+            }
             
             return $taskRec;
         }
@@ -420,7 +438,7 @@ class planning_ProductionTaskProducts extends core_Detail
         // Ако има запис в артикули за него, връща се оттам
         $query = self::getQuery();
         $query->where("#taskId = {$taskRec->id} AND #productId = {$productId} AND #type = '{$type}'");
-        $query->show('productId,indTime,packagingId,quantityInPack,plannedQuantity,totalQuantity,limit');
+        $query->show('productId,indTime,packagingId,plannedQuantity,totalQuantity,limit');
         
         if ($rec = $query->fetch()) {
             
@@ -431,7 +449,7 @@ class planning_ProductionTaskProducts extends core_Detail
         if ($type == 'input') {
             $tQuery = planning_Tasks::getQuery();
             $tQuery->where("#productId = {$productId} AND #inputInTask = {$taskRec->id} AND #state != 'rejected' AND #state != 'closed' AND #state != 'draft' AND #state != 'pending'");
-            $tQuery->show('productId,packagingId,quantityInPack,plannedQuantity,totalQuantity');
+            $tQuery->show('productId,packagingId,plannedQuantity,totalQuantity');
             if ($tRec = $tQuery->fetch()) {
                 $tRec->totalQuantity = (!empty($tRec->totalQuantity)) ? $tRec->totalQuantity : 0;
                 
@@ -480,7 +498,7 @@ class planning_ProductionTaskProducts extends core_Detail
             
             if (cat_Products::getByProperty('canManifacture', null, 1)) {
                 if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'production'))) {
-                    $data->toolbar->addBtn('За произвеждане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на вложим артикул');
+                    $data->toolbar->addBtn('За произвеждане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на производим артикул');
                 }
             }
             
