@@ -219,7 +219,7 @@ class planning_ProductionTaskProducts extends core_Detail
                 }
             }
         } else {
-            $form->setField('packagingId', 'input=hidden');
+            $form->setField('packagingId', 'input=none');
         }
     }
     
