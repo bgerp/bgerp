@@ -787,13 +787,20 @@ class planning_Tasks extends core_Master
         $form->setDefault('productId', $originRec->productId);
         
         if (isset($rec->productId)) {
-            $measureOptions = cat_Products::getPacks($rec->productId, true);
-            $measuresCount = count($measureOptions);
-            $form->setOptions('measureId', $measureOptions);
-            $productRec = cat_Products::fetch($rec->productId, 'canConvert,canStore');
+            $productRec = cat_Products::fetch($rec->productId, 'canConvert,canStore,measureId');
             
-            $form->setDefault('measureId', key($measureOptions));
-            if($measuresCount == 1){
+            // Ако артикула е различен от този от заданието и има други основни мерки, само тогава се показват за избор
+            if($rec->productId != $originRec->productId){
+                $measureOptions = cat_Products::getPacks($rec->productId, true);
+                $measuresCount = count($measureOptions);
+                $form->setOptions('measureId', $measureOptions);
+                $form->setDefault('measureId', key($measureOptions));
+                if($measuresCount == 1){
+                    $form->setField('measureId', 'input=hidden');
+                }
+            } else {
+                $measuresCount = 1;
+                $form->setDefault('measureId', $productRec->measureId);
                 $form->setField('measureId', 'input=hidden');
             }
            
