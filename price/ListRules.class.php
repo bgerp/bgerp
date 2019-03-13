@@ -966,9 +966,7 @@ class price_ListRules extends core_Detail
             }
         }
         
-        $xpr = "CONCAT(' ', #name, ' ', #code, ' ', #nameEn)";
-        $pQuery->XPR('searchFieldXpr', 'text', $xpr);
-        $pQuery->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
+        $pQuery->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, '')))");
         
         if ($q) {
             if ($q{0} == '"') {
