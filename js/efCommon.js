@@ -5022,8 +5022,15 @@ function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 	
 	addBugReportInput(form, 'title', title);
 	addBugReportInput(form, 'url', url);
-	addBugReportInput(form, 'email', user + '@' + domain);
-	addBugReportInput(form, 'name', name);
+	
+	if (user && domain) {
+		addBugReportInput(form, 'email', user + '@' + domain);
+	}
+	
+	if (name) {
+		addBugReportInput(form, 'name', name);
+	}
+	
 	addBugReportInput(form, 'width', width);
 	addBugReportInput(form, 'height', height);
 	addBugReportInput(form, 'browser', browser);

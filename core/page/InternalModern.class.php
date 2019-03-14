@@ -327,6 +327,11 @@ class core_page_InternalModern extends core_page_Active
             $act = $currUrl['Act'];
             $sysDomain = $_SERVER['HTTP_HOST'];
             $name = core_Users::getCurrent('names');
+            
+            if ($conf->HELP_AUTO_FILL_USER_NAME_AND_EMAIL == 'no') {
+                $user = $name = $domain = '';
+            }
+            
             $form = new ET("<form id='bugReportForm' style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}', '{$ctr}', '{$act}', '{$sysDomain}'); \" action='" . $conf->BGERP_SUPPORT_URL . "'></form>");
             $tpl->append($form);
         }
