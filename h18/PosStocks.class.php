@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Локален файлов архив
  */
-class h18_PosPoints extends core_Manager
+class h18_PosStocks extends core_Manager
 {
     public $loadList = 'h18_Wrapper';
     /**
@@ -32,13 +32,13 @@ class h18_PosPoints extends core_Manager
                 'dbPass' => $conf->H18_BGERP_PASS,
                 'dbHost' => $conf->H18_BGERP_HOST
             ));
-        $this->dbTableName = 'pos_points';
+        $this->dbTableName = 'pos_stocks';
         
-        $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,oldFieldName=title');
-        $this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
-        $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад, mandatory');
-        $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory');
-        $this->FLD('driver', 'class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име,remember=info');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
+        $this->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
+       # $this->FLD('lastUpdated', 'datetime(format=smartTime)', 'caption=Последен ъпдейт,input=none');
+        $this->FLD('state', 'enum(active=Активирано,closed=Затворено)', 'caption=Състояние,input=none');
         
         
      }

@@ -14,13 +14,13 @@
  * @since     v 0.1
  * @title     Локален файлов архив
  */
-class h18_PosPoints extends core_Manager
+class h18_CoreRoles extends core_Manager
 {
     public $loadList = 'h18_Wrapper';
     /**
      * Заглавие
      */
-    public $title = 'Точки на продажби';
+    public $title = 'Роли';
     
     function description()
     {
@@ -32,15 +32,13 @@ class h18_PosPoints extends core_Manager
                 'dbPass' => $conf->H18_BGERP_PASS,
                 'dbHost' => $conf->H18_BGERP_HOST
             ));
-        $this->dbTableName = 'pos_points';
         
-        $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,oldFieldName=title');
-        $this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
-        $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад, mandatory');
-        $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory');
-        $this->FLD('driver', 'class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър');
+        $this->dbTableName = 'core_roles';
         
-        
-     }
+        $this->FLD('role', 'varchar(64)', 'caption=Роля,mandatory,translate');
+        $this->FLD('inheritInput', 'keylist(mvc=core_Roles,select=role,groupBy=type,where=#type !\\= \\\'rang\\\' AND #type !\\= \\\'team\\\',orderBy=orderByRole)', 'caption=Наследяване,notNull,');
+        $this->FLD('inherit', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Калкулирано наследяване,input=none,notNull');
+        $this->FLD('type', 'enum(job=Модул,team=Екип,rang=Ранг,system=Системна,position=Длъжност,external=Външен достъп)', 'caption=Тип,notNull');
+    }
     
 }

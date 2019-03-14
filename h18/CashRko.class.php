@@ -26,6 +26,14 @@ class h18_CashRko extends core_Manager
     {
         $conf = core_Packs::getConfig('h18');
 
+        $this->db = cls::get('core_Db',
+            array(  'dbName' => $conf->H18_BGERP_DATABASE,
+                'dbUser' => $conf->H18_BGERP_USER,
+                'dbPass' => $conf->H18_BGERP_PASS,
+                'dbHost' => $conf->H18_BGERP_HOST,
+            ));
+        $this->dbTableName = 'cash_rko';
+        
         $this->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
         $this->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
         $this->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
@@ -51,12 +59,6 @@ class h18_CashRko extends core_Manager
         $this->setField("contragentName", "caption=Контрагент->Получател");
         $this->setField("termDate", "caption=Срок");
         
-        $this->db = cls::get('core_Db',
-            array(  'dbName' => $conf->H18_BGERP_DATABASE,
-                'dbUser' => $conf->H18_BGERP_USER,
-                'dbPass' => $conf->H18_BGERP_PASS,
-                'dbHost' => $conf->H18_BGERP_HOST,
-            ));
         
      }
     

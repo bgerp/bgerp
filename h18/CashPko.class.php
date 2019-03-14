@@ -27,7 +27,16 @@ class h18_CashPko extends core_Manager
     function description()
     {
         $conf = core_Packs::getConfig('h18');
-
+        
+        $this->db = cls::get('core_Db',
+            array('dbName' => $conf->H18_BGERP_DATABASE,
+                'dbUser' => $conf->H18_BGERP_USER,
+                'dbPass' => $conf->H18_BGERP_PASS,
+                'dbHost' => $conf->H18_BGERP_HOST,
+            ));
+        
+        $this->dbTableName = 'cash_pko';
+        
         $this->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
         $this->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
         $this->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
@@ -49,16 +58,7 @@ class h18_CashPko extends core_Manager
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
         $this->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
-        $this->FLD('beneficiary', 'varchar(255)', 'caption=Контрагент->Получил,mandatory');
         $this->FLD('depositor', 'varchar(255)', 'caption=Контрагент->Броил,mandatory');
-        
-        $this->db = cls::get('core_Db',
-            array('dbName' => $conf->H18_BGERP_DATABASE,
-                'dbUser' => $conf->H18_BGERP_USER,
-                'dbPass' => $conf->H18_BGERP_PASS,
-                'dbHost' => $conf->H18_BGERP_HOST,
-            ));
-        
      }
     
 }
