@@ -154,6 +154,10 @@ class type_Key extends type_Int
             
             $options = $this->options;
             
+            if (!$this->handler) {
+                $this->handler = md5(implode(',', array_keys($this->options)) . '|' . core_Lg::getCurrent());
+            }
+            
             $selOptCache = unserialize(core_Cache::get($this->selectOpt, $this->handler));
             
             if ($selOptCache === false) {
@@ -208,9 +212,14 @@ class type_Key extends type_Int
     public function prepareKey($key)
     {
         // Само числа
-        $key = (int) $key;
+        $tKey = (int) $key;
         
-        return $key;
+        if ($tKey === 0 && $key !== 0 && $key !== '0') {
+            $tKey = preg_replace('/[^0-9]*/', '', $key);
+            $tKey = (int) $tKey;
+        }
+        
+        return $tKey;
     }
     
     
@@ -622,6 +631,10 @@ class type_Key extends type_Int
             if (($optionsCnt > $maxSuggestions) && (!core_Packs::isInstalled('select2'))) {
                 if ($this->params['autocomplete']) {
                     $attr['autocomplete'] = $this->params['autocomplete'];
+                }
+                
+                if (!$this->handler) {
+                    $this->handler = md5(implode(',', array_keys($this->options)) . '|' . core_Lg::getCurrent());
                 }
                 
                 $selOptCache = (array) unserialize(core_Cache::get($this->selectOpt, $this->handler));
