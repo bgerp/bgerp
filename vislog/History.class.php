@@ -80,7 +80,8 @@ class vislog_History extends core_Manager
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър');
         
         $this->FLD('HistoryResourceId', 'key(mvc=vislog_HistoryResources,select=query,allowEmpty)', 'caption=Ресурс');
-        
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt,allowEmpty)', 'caption=Домейн,notNull,autoFilter');
+
         $this->setDbIndex('ip');
     }
     
@@ -100,6 +101,8 @@ class vislog_History extends core_Manager
         $rec->query = $query;
         
         $History = cls::get('vislog_History');
+
+        $rec->domainId = cms_Domains::getPublicDomain('id');
         
         $History->save($rec);
         
@@ -125,7 +128,7 @@ class vislog_History extends core_Manager
      */
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->showFields = 'ip, brid';  //, HistoryResourceId';
+        $data->listFilter->showFields = 'ip, brid,domainId';  //, HistoryResourceId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input($data->listFilter->showFields, 'silent');
@@ -139,6 +142,10 @@ class vislog_History extends core_Manager
             $data->query->where(array("#brid LIKE '[#1#]'", $brid));
         }
         
+        if ($domainId = $data->listFilter->rec->domainId) {
+            $data->query->where(array("#domainId = '[#1#]'", $domainId));
+        }
+
         if ($HistoryResourceId = $data->listFilter->rec->HistoryResourceId) {
             // $data->query->where("#HistoryResourceId = {$HistoryResourceId}");
         }

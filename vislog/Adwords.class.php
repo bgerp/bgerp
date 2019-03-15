@@ -53,7 +53,7 @@ class vislog_Adwords extends core_Manager
     public $canList = 'admin,cms,ceo';
     
     
-    public $listFields = 'id,ip,match,keywords,ad,createdOn,createdBy';
+    public $listFields = 'id,ip,match,keywords,ad,domainId,createdOn,createdBy';
     
     
     /**
@@ -72,7 +72,8 @@ class vislog_Adwords extends core_Manager
         $this->FLD('match', 'enum(b=broad,p=phrase,e=exact)', 'caption=Тип, mandatory');
         $this->FLD('keywords', 'varchar', 'caption=Ключови думи');
         $this->FLD('ad', 'varchar(20)', 'caption=Реклама');
-        
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt,allowEmpty)', 'caption=Домейн,notNull,autoFilter');
+
         $this->setDbUnique('ip, match, keywords, ad');
     }
     
@@ -87,7 +88,8 @@ class vislog_Adwords extends core_Manager
         $rec->match = Request::get('awMatch');
         $rec->keywords = Request::get('awKeywords');
         $rec->ad = Request::get('awAd');
-        
+        $rec->domainId = cms_Domains::getPublicDomain('id');
+
         if ($rec->match || $rec->keywords || $rec->ad) {
             self::save($rec, null, 'IGNORE');
         }
@@ -100,9 +102,16 @@ class vislog_Adwords extends core_Manager
      */
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->showFields = 'search';  //, HistoryResourceId';
+        $data->listFilter->showFields = 'search,domainId';  //, HistoryResourceId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->showFields = 'search,domainId';
+        $data->listFilter->input($data->listFilter->showFields, 'silent');
+        
+        if ($domainId = $data->listFilter->rec->domainId) {
+            $data->query->where(array("#domainId = '[#1#]'", $domainId));
+        }
+
         $data->listFilter->input();
         
         $data->query->orderBy('#createdOn=DESC');
