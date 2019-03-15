@@ -5434,7 +5434,7 @@ JSON.parse = JSON.parse || function (str) {
 
 
 function unregisterServiceWorker() {
-    if($('#main-container').length && !$('link[rel="manifest"]').length && !isIE()) {
+    if($('#main-container').length && !$('link[rel="manifest"]').length && !isIE() && typeof navigator.serviceWorker !== 'undefined') {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
             eval("for(var registration of registrations) {registration.unregister();}");
         });
