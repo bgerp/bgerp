@@ -86,7 +86,12 @@ class cat_Groups extends core_Manager
      * Кой има право да го изтрие?
      */
     public $canDelete = 'cat,ceo';
-    
+
+
+    /**
+     * Отделния ред в листовия изглед да е отгоре
+     */
+    public $tableRowTpl = "[#ROW#]";
     
     /**
      * Кое поле е за името на английски?
