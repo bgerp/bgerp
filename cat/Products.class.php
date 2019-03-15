@@ -1082,12 +1082,13 @@ class cat_Products extends embed_Manager
      * @param mixed $hasnotProperties - комбинация на горе посочените мета
      *                                които не трябва да имат
      * @param int   $limit            - лимит
+     * @param mixed   $groups            - групи
      *
      * @return array - намерените артикули
      */
-    public static function getByProperty($properties, $hasnotProperties = null, $limit = null)
+    public static function getByProperty($properties, $hasnotProperties = null, $limit = null, $groups = null)
     {
-        return static::getProducts(null, null, null, $properties, $hasnotProperties, $limit);
+        return static::getProducts(null, null, null, $properties, $hasnotProperties, $limit, false, $groups);
     }
     
     
@@ -1399,10 +1400,11 @@ class cat_Products extends embed_Manager
      * @param mixed    $hasnotProperties - свойства, които да нямат артикулите
      * @param int|NULL $limit            - лимит
      * @param bool     $orHasProperties  - Дали трябва да имат всички свойства от зададените или поне едно
+     * @param mixed    $groups           - групи в които да участват
      *
      * @return array $products         - артикулите групирани по вида им стандартни/нестандартни
      */
-    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false)
+    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null)
     {
         // Само активни артикули
         $query = static::getQuery();
@@ -1423,13 +1425,14 @@ class cat_Products extends embed_Manager
             $query->limit($limit);
         }
         
-        // Ако има указано записи за игнориране, пропускат се
-        if (is_array($ignoreIds) && count($ignoreIds)) {
-            $query->notIn('id', $ignoreIds);
-        }
-        
         $private = $products = array();
         self::filterQueryByMeta($query, $hasProperties, $hasnotProperties, $orHasProperties);
+        
+        // Ако има изискване за определени групи, филтрира се и по тях
+        if(isset($groups)){
+            $groups = (keylist::isKeylist($groups)) ? $groups : keylist::fromArray($groups);
+            $query->likeKeylist('groups', $groups);
+        }
         
         // Подготвяме опциите
         while ($rec = $query->fetch()) {

@@ -339,7 +339,7 @@ class acc_plg_Contable extends core_Plugin
                 $periodRec = acc_Periods::fetchByDate($valior);
                 
                 // Ако периода на вальора е затворен, забраняваме
-                if ($periodRec->state == 'closed') {
+                if ($periodRec->state == 'closed' && $rec->state != 'draft') {
                     $requiredRoles = 'no_one';
                 } else {
                     
@@ -371,7 +371,7 @@ class acc_plg_Contable extends core_Plugin
                 
                 // Ако сч. период на записа е затворен, документа не може да се възстановява
                 $periodRec = acc_Periods::fetchByDate($mvc->getValiorValue($rec));
-                if ($periodRec->state == 'closed') {
+                if ($periodRec->state == 'closed' && $rec->brState != 'draft') {
                     $requiredRoles = 'no_one';
                 }
             }

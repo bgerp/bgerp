@@ -222,17 +222,18 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
             }
             
+            $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
             $shortMeasure = cat_UoM::getShortName($pRec->measureId);
-            if($rec->type == 'production' && isset($masterRec->packagingId) && $masterRec->packagingId != $pRec->measureId){
+            if($rec->type == 'production' && isset($masterRec->packagingId) && $masterRec->packagingId != $info->packagingId){
+                $shortMeasure = cat_UoM::getShortName($info->packagingId);
                 $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->packagingId);
                 $form->setField('quantity', "unit={$unit}");
                 
                 $packRec = cat_products_Packagings::getPack($masterRec->productId, $masterRec->packagingId);
-                $defaultQuantity = is_object($packRec) ? $packRec->quantity : 1;
+                $defaultQuantity = is_object($packRec) ? ($packRec->quantity / $masterRec->quantityInPack) : 1;
                 $form->setField('quantity', "placeholder={$defaultQuantity}");
                 $form->rec->_defaultQuantity = $defaultQuantity;
             } else {
-                $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
                 $unit = cat_UoM::getShortName($info->packagingId);
                 $form->setField('quantity', "unit={$unit}");
             }
@@ -429,9 +430,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         $packagingId = (!empty($foundRec->packagingId)) ? $foundRec->packagingId : $pRec->measureId;
         $packagingName = cat_UoM::getShortName($packagingId);
         
-        if ($rec->type != 'production' && cat_UoM::fetchField($packagingId, 'type') != 'uom') {
+        if (cat_UoM::fetchField($packagingId, 'type') != 'uom') {
             $row->measureId = str::getPlural($rec->quantity, $packagingName, true);
-        } elseif ($rec->type == 'production') {
+        }
+        
+        if ($rec->type == 'production') {
             $row->type = (!empty($packagingId)) ? tr("Произв.|* {$packagingName}") : tr('Произвеждане');
         }
         

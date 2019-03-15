@@ -133,7 +133,8 @@ class planning_Setup extends core_ProtoSetup
         'planning_FoldersWithResources',
         'planning_Stages',
         'migrate::assetResourceFields',
-        'migrate::updateTasks'
+        'migrate::updateTasks',
+        'migrate::updateTasksPart2'
     );
     
     
@@ -271,6 +272,36 @@ class planning_Setup extends core_ProtoSetup
         
         if(count($updateArr)){
             $Tasks->saveArray($updateArr, 'id,indPackagingId');
+        }
+    }
+    
+    /**
+     * Обновява новите полета на ПО
+     */
+    public static function updateTasksPart2()
+    {
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+        
+        $TaskDetails = cls::get('planning_ProductionTaskDetails');
+        $TaskDetails->setupMvc();
+        
+        if(!count($Tasks)) return;
+        
+        $updateArr = array();
+        $query = $Tasks->getQuery();
+        $query->where("#measureId IS NULL");
+        $query->show('measureId,quantityInPack,productId');
+        while($rec = $query->fetch()){
+            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+            $rec->measureId = $measureId;
+            $rec->quantityInPack = 1;
+            
+            $updateArr[] = $rec;
+        }
+        
+        if(count($updateArr)){
+            $Tasks->saveArray($updateArr, 'id,measureId,quantityInPack');
         }
     }
 }

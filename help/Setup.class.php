@@ -42,6 +42,12 @@ defIfNot('BGERP_SUPPORT_URL', 'https://experta.bg/cal_Tasks/new/?systemId=1');
 
 
 /**
+ * Дали автоматично да се попълват потребителското име и имейла при подаване на сигнал
+ */
+defIfNot('HELP_AUTO_FILL_USER_NAME_AND_EMAIL', 'yes');
+
+
+/**
  * class help_Setup
  *
  * Инсталиране/Деинсталиране на
