@@ -212,14 +212,9 @@ class type_Key extends type_Int
     public function prepareKey($key)
     {
         // Само числа
-        $tKey = (int) $key;
+        $key = (int) $key;
         
-        if ($tKey === 0 && $key !== 0 && $key !== '0') {
-            $tKey = preg_replace('/[^0-9]*/', '', $key);
-            $tKey = (int) $tKey;
-        }
-        
-        return $tKey;
+        return $key;
     }
     
     
@@ -498,7 +493,13 @@ class type_Key extends type_Int
      */
     protected static function getUniqTitle($title, $id)
     {
-        return $title . " ({$id})";
+        if ($id) {
+            
+            return $title . " ({$id})";
+        } else {
+            
+            return $title;
+        }
     }
     
     
@@ -629,6 +630,8 @@ class type_Key extends type_Int
             parent::setFieldWidth($attr);
             
             if (($optionsCnt > $maxSuggestions) && (!core_Packs::isInstalled('select2'))) {
+                $options = $this->prepareOptions($value);
+                
                 if ($this->params['autocomplete']) {
                     $attr['autocomplete'] = $this->params['autocomplete'];
                 }
