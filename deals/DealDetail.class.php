@@ -223,7 +223,7 @@ abstract class deals_DealDetail extends doc_Detail
             }
             expect(count($products));
             
-            $form->setOptions('productId', array('' => ' ') + $products);
+            $form->setOptions('productId', array('' => '') + $products);
         } else {
             // Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
             // напълно определен продукт (клас и ид), който да не може да се променя във формата
