@@ -170,6 +170,22 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
+     * Кой може да филтрира по всички
+     * 
+     * @see acc_plg_DocumentSummary
+     */
+    public $filterRolesForAll = 'ceo,marketing';
+    
+    
+    /**
+     * Кой може да филтрира по екипи
+     * 
+     * @see acc_plg_DocumentSummary
+     */
+    public $filterRolesForTeam = 'ceo,marketing';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -208,6 +224,10 @@ class marketing_Inquiries2 extends embed_Manager
         $this->FLD('ip', 'varchar', 'caption=Ип,input=none');
         $this->FLD('browser', 'varchar(80)', 'caption=UA String,input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
+        
+        if (!acc_plg_DocumentSummary::$rolesAllMap[$this->className]) {
+            acc_plg_DocumentSummary::$rolesAllMap[$this->className] = $this->filterRolesForAll;
+        }
     }
     
     
@@ -698,7 +718,7 @@ class marketing_Inquiries2 extends embed_Manager
      */
     public function act_Send()
     {
-        $this->requireRightFor('resendemail');  
+        $this->requireRightFor('resendemail');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('resendemail', $rec);
