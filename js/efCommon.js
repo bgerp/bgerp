@@ -3971,15 +3971,6 @@ function render_editCopiedTextBeforePaste() {
 
 
 /**
-* Функция, която извиква подготвянето на editCopiedTextBeforePaste
-* Може да се комбинира с efae
-*/
-function render_removeNarrowScroll() {
-	removeNarrowScroll();
-}
-
-
-/**
 * Функция, която извиква подготвянето на показването на тоолтипове
 * Може да се комбинира с efae
  */
@@ -5084,14 +5075,6 @@ function debugLayout() {
 }
 
 
-function removeNarrowScroll() {
-	if($('body').hasClass('narrow-scroll') && !checkNativeSupport()){
-		$('body').removeClass('narrow-scroll');
-	}
-}
-
-
-
 /**
  * Скролиране до определен
  */
@@ -5448,6 +5431,15 @@ JSON.parse = JSON.parse || function (str) {
 	eval("var p=" + str + ";");
 	return p;
 };
+
+
+function unregisterServiceWorker() {
+    if($('#main-container').length && !$('link[rel="manifest"]').length && !isIE()) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            eval("for(var registration of registrations) {registration.unregister();}");
+        });
+    }
+}
 
 
 runOnLoad(maxSelectWidth);

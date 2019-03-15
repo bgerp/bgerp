@@ -50,8 +50,6 @@ class cms_page_External extends core_page_Active
         
         $this->push('cms/css/Wide.css', 'CSS');
         
-        $this->push('js/overthrow-detect.js', 'JS');
-        
         // Евентуално се кешират страници за не user
         if (($expires = Mode::get('BrowserCacheExpires')) && !haveRole('user')) {
             $this->push('Cache-Control: public', 'HTTP_HEADER');
