@@ -831,13 +831,13 @@ class marketing_Inquiries2 extends embed_Manager
         $cu = core_Users::getCurrent('id', false);
         Mode::set('showBulletin', false);
         Request::setProtected('classId, objectId');
-        expect($classId = Request::get('classId', 'int'));
-        expect($objectId = Request::get('objectId', 'int'));
+        expect404($classId = Request::get('classId', 'int'));
+        expect404($objectId = Request::get('objectId', 'int'));
         $Source = cls::getInterface('marketing_InquirySourceIntf', $classId);
         $sourceData = $Source->getInquiryData($objectId);
         
         $this->requireRightFor('new');
-        expect($drvId = $sourceData['drvId']);
+        expect404($drvId = $sourceData['drvId']);
         $proto = $sourceData['protos'];
         $proto = keylist::toArray($proto);
         $title = $sourceData['title'];
