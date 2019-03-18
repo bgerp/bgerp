@@ -87,24 +87,13 @@ class pos_Favourites extends core_Manager
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт, mandatory, silent,refreshForm');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canSell)', 'caption=Продукт, mandatory, silent,refreshForm');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Опаковка,mandatory');
         $this->FLD('catId', 'keylist(mvc=pos_FavouritesCategories, select=name)', 'caption=Категория, mandatory');
         $this->FLD('pointId', 'keylist(mvc=pos_Points, select=name, makeLinks)', 'caption=Точка на продажба');
         $this->FLD('image', 'fileman_FileType(bucket=pos_ProductsImages)', 'caption=Картинка');
         
         $this->setDbUnique('productId, packagingId');
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на формата
-     */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        $form = &$data->form;
-        
-        $form->setOptions('productId', array('' => '') + cat_Products::getByProperty('canSell'));
     }
     
     
