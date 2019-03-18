@@ -275,7 +275,9 @@ class planning_Tasks extends core_Master
         if(Mode::is('printworkcard')){
             $ownCompanyData = crm_Companies::fetchOwnCompany();
             $data->row->MyCompany = $ownCompanyData->companyVerb;
-            $data->row->QR_CODE = bgerp_plg_Blank::getQrCode($data->rec->containerId, $data->__MID__);
+            
+            $absoluteUrl = toUrl(array($mvc, 'single', $data->rec->id), 'absolute');
+            $data->row->QR_CODE = barcode_Generator::getLink('qr', $absoluteUrl, array('width' => 87, 'height' => 87));
         }
     }
     
