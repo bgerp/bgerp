@@ -147,7 +147,13 @@ class crm_Groups extends core_Master
      * Ключ за персонализиране на фирмените данн на лицата от групата
      */
     protected static $pPersonsBiz = 'pb';
-    
+
+
+    /**
+     * Отделния ред в листовия изглед да е отгоре
+     */
+    public $tableRowTpl = "[#ROW#]";
+
     
     /**
      * Описание на модела

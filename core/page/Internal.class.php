@@ -184,7 +184,6 @@ class core_page_Internal extends core_page_Active
                     $notFirst = true;
                 }
             }
-            jquery_Jquery::run($tpl, 'removeNarrowScroll();');
         } else {
             // Ако сме в широк формат
             // Отпечатваме менютата

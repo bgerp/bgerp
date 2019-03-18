@@ -31,9 +31,15 @@ class pos_Favourites extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, pack=Мярка/Опаковка, pointId, catId, createdOn, createdBy, state';
-    
-    
+    public $listFields = 'productId, pack=Мярка/Опаковка, pointId, catId=@Категория, createdOn, createdBy, state';
+
+
+    /**
+     * Отделния ред в листовия изглед да е отгоре
+     */
+    public $tableRowTpl = "<tbody class='rowBlock'>[#ROW#][#ADD_ROWS#]</tbody>";
+
+
     /**
      * Заглавие на единичния обект
      */

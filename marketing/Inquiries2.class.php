@@ -68,9 +68,15 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Заглавие, personNames, company, email, folderId, createdOn, createdBy';
-    
-    
+    public $listFields = 'title=@Заглавие, personNames, company, email, folderId, createdOn, createdBy';
+
+
+    /**
+     * Отделния ред в листовия изглед да е отгоре
+     */
+    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+
+
     /**
      * Групиране на документите
      */
