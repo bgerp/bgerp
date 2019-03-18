@@ -69,7 +69,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
      */
     public static function setInvoiceDetailFields(&$mvc)
     {
-        $mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
+        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'caption=Артикул,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,silent,removeAndRefreshForm=packPrice|discount,mandatory,smartCenter,input=hidden');
         $mvc->FLD('quantity', 'double', 'caption=Количество', 'tdClass=small-field,smartCenter');
         $mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
@@ -91,9 +91,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         
         $data->form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
-        
-        $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
-        $data->form->setOptions('productId', array('' => ' ') + $products);
+        $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts));
         
         if (isset($rec->id)) {
             $data->form->setReadOnly('productId');
