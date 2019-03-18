@@ -105,7 +105,7 @@ class cat_ListingDetails extends doc_Detail
     public function description()
     {
         $this->FLD('listId', 'key(mvc=cat_Listings,select=id)', 'caption=Лист,silent,mandatory');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packagingId,caption=Артикул');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packagingId,caption=Артикул');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field nowrap,silent,caption=Опаковка,input=hidden,mandatory');
         $this->FLD('reff', 'varchar(32)', 'caption=Техен код,smartCenter');
         $this->FLD('moq', 'double(smartRound,Min=0)', 'caption=МКП||MOQ');
@@ -126,23 +126,16 @@ class cat_ListingDetails extends doc_Detail
         $rec = $form->rec;
         $mvc->currentTab = 'Листване';
         $masterRec = $data->masterRec;
-        $meta = $masterRec->type;
         
-        if (empty($rec->id)) {
-            $Cover = doc_Folders::getCover($masterRec->folderId);
-            if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
-                $products = cat_Products::getProducts($Cover->getClassId(), $Cover->that, null, $meta, null, null, true);
-            } else {
-                $products = cat_Products::getProducts(null, null, null, $meta, null, null, true);
-            }
-            
-            $products = array('' => '') + $products;
-        } else {
-            $products = array($rec->productId => cat_Products::getRecTitle(cat_Products::fetch($rec->productId), false));
+        $params = array('hasProperties' => $masterRec->type);
+        $Cover = doc_Folders::getCover($masterRec->folderId);
+        if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
+            $params += array('customerClass' => $Cover->getClassId(), 'customerId' => $Cover->that);
         }
-        
-        $form->productOptions = $products;
-        $form->setOptions('productId', $products);
+        $form->setFieldTypeParams('productId', $params);
+        if (isset($rec->id)) {
+            $form->setReadOnly('productId');
+        }
         
         // Ако е избран артикул, показва се и опаковката му
         if (isset($rec->productId)) {
@@ -164,6 +157,7 @@ class cat_ListingDetails extends doc_Detail
     {
         $rec = $form->rec;
         if ($form->isSubmitted()) {
+            $warning = '';
             
             // Ако няма код
             if (empty($rec->reff)) {
@@ -183,20 +177,6 @@ class cat_ListingDetails extends doc_Detail
                     $form->setError('multiplicity', $warning);
                 }
             }
-        }
-    }
-    
-    
-    /**
-     * След подготовката на заглавието на формата
-     */
-    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
-    {
-        $rec = $data->form->rec;
-        
-        // Махане на бутона запис и нов, ако няма достатъчно записи
-        if (count($data->form->productOptions) <= 1) {
-            $data->form->toolbar->removeBtn('saveAndNew');
         }
     }
     
@@ -509,8 +489,8 @@ class cat_ListingDetails extends doc_Detail
     /**
      * Помщен метод за намиране на всички продадени артикули на контрагента
      *
-     * @param date $from
-     * @param date $to
+     * @param datetime $from
+     * @param datetime $to
      * @param int  $listId
      *
      * @return array $products
