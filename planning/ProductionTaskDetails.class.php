@@ -284,7 +284,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(isset($rec->productId)){
                 $rec->_generateSerial = false;
                 $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-                if($canStore == 'yes' && $rec->type == 'production' && !empty($masterRec->packagingId)){
+                if($canStore == 'yes' && $rec->type == 'production' && !empty($masterRec->packagingId) && empty($rec->serial)){
                     $rec->_generateSerial = true;
                 }
                 
@@ -346,7 +346,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if ($rec->_generateSerial === true) {
+        if ($rec->_generateSerial === true && empty($rec->serial)) {
             if ($Driver = cat_Products::getDriver($rec->productId)) {
                 $rec->serial = $Driver->generateSerial($rec->productId, 'planning_Tasks', $rec->taskId);
                 $rec->serialType = 'generated';
