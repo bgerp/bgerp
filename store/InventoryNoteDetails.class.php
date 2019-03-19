@@ -125,7 +125,7 @@ class store_InventoryNoteDetails extends doc_Detail
     public function description()
     {
         $this->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|packQuantity|batch');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore)', 'caption=Артикул,mandatory,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|packQuantity|batch');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,tdClass=small-field nowrap,removeAndRefreshForm=quantity|quantityInPack|packQuantity|batch,remember,silent');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=hidden,column=none');
@@ -207,9 +207,6 @@ class store_InventoryNoteDetails extends doc_Detail
         $permanentName = cls::getClassName($this) . '_keepProduct';
         $permanentName = (Mode::get($permanentName)) ? Mode::get($permanentName) : 'no';
         $form->setDefault('keepProduct', $permanentName);
-        
-        $products = cat_Products::getByProperty('canStore');
-        $form->setOptions('productId', array('' => '') + $products);
         
         $defProduct = Mode::get("InventoryNoteNextProduct{$rec->noteId}");
         $form->setDefault('productId', $defProduct);
