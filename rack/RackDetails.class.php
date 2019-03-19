@@ -178,8 +178,6 @@ class rack_RackDetails extends core_Detail
                 $x2 = $rec->nextCol;
                 $y2 = ord($rec->nextRow);
                 
-                $_toSave = array();
-                
                 list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
                 $used = rack_Pallets::getUsed();
                 list($movedFrom, $movedTo) = rack_Movements::getExpected();

@@ -188,14 +188,12 @@ class rack_Setup extends core_ProtoSetup
         
         if(!$Zones->count()) return;
         
-        $toSave = $zonesArr = array();
+        $toSave = array();
         $zQuery = rack_ZoneDetails::getQuery();
         $zQuery->where("#batch IS NULL");
         while($zRec = $zQuery->fetch()){
             $zRec->batch = '';
-            
             $toSave[$zRec->id] = $zRec;
-            $zonesArr[$zRec->zoneId] = $zRec->zoneId;
         }
         
         if(count($toSave)){

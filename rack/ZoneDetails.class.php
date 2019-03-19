@@ -81,7 +81,13 @@ class rack_ZoneDetails extends core_Detail
      */
     public $tableRowTpl = "[#ROW#][#ADD_ROWS#]\n";
 
+    
+    /**
+     * Шаблон за реда в листовия изглед
+     */
     public static $allocatedMovements = array();
+    
+    
     /**
      * Описание на модела (таблицата)
      */
