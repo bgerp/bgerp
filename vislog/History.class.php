@@ -94,8 +94,12 @@ class vislog_History extends core_Manager
      */
     public static function add($query, $returnCnt = false)
     {
-        vislog_Adwords::add();
+        $queryAdWords = vislog_Adwords::add();
         
+        if(!$query && strlen($queryAdWords)) {
+            $query = $queryAdWords;
+        }
+
         $rec = new stdClass();
         
         $rec->query = $query;
