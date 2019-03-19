@@ -101,19 +101,6 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
     
     
     /**
-     * Преди показване на форма за добавяне/промяна
-     */
-    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
-    {
-        $form = &$data->form;
-        $rec = &$form->rec;
-        
-        $form->setField('packPrice', 'mandatory');
-        $form->setField('discount', 'input=none');
-    }
-    
-    
-    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
      * @param core_Mvc  $mvc
@@ -138,6 +125,8 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
         $property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
         
         $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property, 'hasnotProperties' => 'canStore'));
+        $form->setField('packPrice', 'mandatory');
+        $form->setField('discount', 'input=none');
     }
     
     
