@@ -32,7 +32,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     protected function setFields($mvc)
     {
-        $mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,caption=Продукт,notNull,mandatory', 'tdClass=productCell leftCol wrap');
+        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'silent,caption=Продукт,notNull,mandatory,removeAndRefreshForm=packPrice|packagingId,tdClass=productCell leftCol wrap');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,after=productId,mandatory,tdClass=small-field nowrap,smartCenter,input=hidden');
         $mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $mvc->FLD('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
@@ -67,18 +67,8 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         $rec = &$data->form->rec;
         $masterRec = $data->masterRec;
         
-        $products = $mvc->getProducts($masterRec);
-        expect(count($products));
-        
-        if (isset($rec->productId) && !array_key_exists($rec->productId, $products)) {
-            $products[$rec->productId] = cat_Products::getTitleById($rec->productId, false);
-        }
-        
-        if (empty($rec->id)) {
-            $data->form->setField('productId', 'removeAndRefreshForm=packPrice|packagingId');
-            $data->form->setOptions('productId', array('' => ' ') + $products);
-        } else {
-            $data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
+        if(isset($rec->id)){
+            $data->form->setReadOnly('productId');
         }
         
         $rec->chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId)) ? 'yes' : 'no';
