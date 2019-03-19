@@ -27,7 +27,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
      */
     public static function setDocumentFields($mvc)
     {
-        $mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|batch|baseQuantity');
+        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|batch|baseQuantity');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка,smartCenter,tdClass=small-field nowrap,after=productId,mandatory,silent,removeAndRefreshForm=packPrice|discount|baseQuantity,input=hidden');
         $mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
         $mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
@@ -49,14 +49,11 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
         $rec = &$data->form->rec;
-        
         $masterRec = $data->masterRec;
         
         $data->form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
         
-        $products = $mvc->getProducts($masterRec);
-        $data->form->setOptions('productId', array('' => ' ') + $products);
         if (isset($rec->id)) {
             $data->form->setReadOnly('productId');
         }
@@ -124,6 +121,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             }
             
             // Проверка на к-то
+            $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
                 $form->setError('packQuantity', $warning);
             }
@@ -195,6 +193,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             }
             
             // Проверка на цената
+            $msg = null;
             if (!deals_Helper::isPriceAllowed($rec->price, $rec->quantity, $autoPrice, $msg)) {
                 $form->setError('packPrice,packQuantity', $msg);
             }
@@ -224,11 +223,6 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
      */
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        $recs = &$data->recs;
-        $rows = &$data->rows;
-        $masterRec = $data->masterData->rec;
-        $firstDocument = doc_Threads::getFirstDocument($masterRec->threadId);
-        
         if (count($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
@@ -275,22 +269,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     {
         if (!empty($data->toolbar->buttons['btnAdd'])) {
             unset($data->toolbar->buttons['btnAdd']);
-            $products = $mvc->getProducts($data->masterData->rec);
-            
-            if (!count($products)) {
-                $error = 'error=Няма артикули, ';
-            }
-            
-            $data->toolbar->addBtn(
-                
-                'Артикул',
-                
-                array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => true),
-                    "id=btnAdd,{$error} order=10,title=Добавяне на артикул",
-                
-                'ef_icon = img/16/shopping.png'
-            
-            );
+            $data->toolbar->addBtn('Артикул', array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => true), "id=btnAdd, order=10,title=Добавяне на артикул,ef_icon = img/16/shopping.png");
         }
     }
     

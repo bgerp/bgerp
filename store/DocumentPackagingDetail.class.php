@@ -110,7 +110,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
      * @param mixed $mvc
      * @param int   $id
      */
-    private static function getRecs($mvc, $id)
+    public static function getRecs($mvc, $id)
     {
         $class = cls::get($mvc);
         $query = self::getQuery();
