@@ -293,7 +293,7 @@ class planning_WorkCards extends core_Master
                     
                     // Ако в момента се извлича баркод
                     $lockId = fileman_webdrv_Generic::getLockId('barcodes', $fRec->dataId);
-                    if (core_Locks::isLocked($params['lockId'])) {
+                    if (core_Locks::isLocked($lockId)) {
                         
                         $continue = true;
                         
@@ -304,7 +304,7 @@ class planning_WorkCards extends core_Master
                     if ($ext == 'pdf') {
                         // Ако в момента се конвертира към JPG
                         $lockId = fileman_webdrv_Generic::getLockId('jpg', $fRec->dataId);
-                        if (core_Locks::isLocked($params['lockId'])) {
+                        if (core_Locks::isLocked($lockId)) {
                             
                             $continue = true;
                             
@@ -331,7 +331,7 @@ class planning_WorkCards extends core_Master
                             }
                             
                             $lockId = fileman_webdrv_Generic::getLockId('barcodes', $jpgFRec->dataId);
-                            if (core_Locks::isLocked($params['lockId'])) {
+                            if (core_Locks::isLocked($lockId)) {
                                 
                                 $continue = true;
                                 
