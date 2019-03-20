@@ -69,10 +69,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         //Сравнение
         $fieldset->FLD('compare', 'enum(no=Без, previous=Предходен, year=Миналогодишен,checked=Избран)', 'caption=Сравнение->Сравнение,after=duration,refreshForm,single=none,silent');
-        $fieldset->FLD('comparePeriod', 'date', 'caption=Сравнение->Начало,after=compare,single=none,silent');
-        $fieldset->FLD('compareDuration', 'time(suggestions=1 седмица| 1 месец| 2 месеца| 3 месеца| 6 месеца| 12 месеца)', 'caption=Сравнение->Продължителност,after=comparePeriod,placeholder=1 месец,single=none,silent');
+        $fieldset->FLD('compareStart', 'date', 'caption=Сравнение->Начало,after=compare,single=none,silent');
         
-        //Контрагенти
+        //Контрагенти и групи контрагенти
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=compareDuration');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
         
@@ -81,10 +80,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,after=group,single=none');
         
         //Покаване на резултата
-        $fieldset->FLD('grouping', 'enum(yes=Групирано, no=По артикули)', 'caption=Показване->Вид,maxRadio=2,after=articleType');
+        $fieldset->FLD('grouping', 'enum(summary=Обобщено,level1=1-во ниво,level2=2-ро ниво,detail=Подробно, art=По артикули)', 'caption=Показване->Вид,maxRadio=2,after=articleType');
    
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(code=Код, primeCost=Продажби, price=Цена)', 'caption=Подреждане на резултата->Показател,maxRadio=5,columns=3,after=grouping');
+        $fieldset->FLD('orderBy', 'enum(code=Код, amount=Стойност, price=Цена)', 'caption=Подреждане на резултата->Показател,maxRadio=5,columns=3,after=grouping');
      
     }
     
@@ -100,15 +99,6 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
-            
-            // Проверка на периоди
-            if (isset($form->rec->compare) && $form->rec->compare == 'year') {
-                $toLastYear = dt::addDays(-365, $form->rec->to);
-                if ($form->rec->from < $toLastYear) {
-                    $form->setError('compare', 'Периода трябва да е по-малък от 365 дни за да сравнявате с "миналогодишен" период.
-                                                  За да сравнявате периоди по-големи от 1 година, използвайте сравнение с "предходен" период');
-                }
-            }
             
             //Проверка за правилна подредба
             if (($form->rec->orderBy == 'code') && ($form->rec->grouping == 'yes')) {
@@ -133,8 +123,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $suggestions = array();
         
         if ($rec->compare != 'checked') {
-            $form->setField('comparePeriod', 'input=none');
-            $form->setField('compareDuration', 'input=none');
+            $form->setField('compareStart', 'input=none');
+         //   $form->setField('compareDuration', 'input=none');
            
         }
         
@@ -144,20 +134,18 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         $form->setDefault('grouping', 'no');
         
-        $form->setDefault('orderBy', 'primeCost');
-        
-        $form->setDefault('order', 'desc');
+        $form->setDefault('orderBy', 'amount');
         
         //Масив с предложения за избор на контрагент $suggestions[]
-        $salesQuery = purchase_Purchases::getQuery();
+        $purchaseQuery = purchase_Purchases::getQuery();
         
-        $salesQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
+        $purchaseQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
         
-        $salesQuery->groupBy('folderId');
+        $purchaseQuery->groupBy('folderId');
         
-        $salesQuery->show('folderId, contragentId, folderTitle');
+        $purchaseQuery->show('folderId, contragentId, folderTitle');
         
-        while ($contragent = $salesQuery->fetch()) {
+        while ($contragent = $purchaseQuery->fetch()) {
             if (!is_null($contragent->contragentId)) {
                 $suggestions[$contragent->folderId] = $contragent->folderTitle;
             }
@@ -179,10 +167,6 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        // Да се показват ли делтите
-        if (is_null($rec->seeDelta)) {
-            $rec->seeDelta = 'no';
-        }
         
         //Показването да бъде ли ГРУПИРАНО
         if (($rec->grouping == 'no') && $rec->group) {
@@ -190,76 +174,153 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         }
         
         $recs = array();
+        $purchasesThreads = $purchasesFastThreads = array();
         
-        $query = sales_PrimeCostByDocument::getQuery();
+        //ПОКУПКИ
+        $purchasesQuery = purchase_Purchases::getQuery();
         
-        $query->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
+        $purchasesQuery->where("#state != 'rejected'");
         
-        $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+         $purchasesQuery->show('threadId,contoActions');
+         
+        while ($purchase = $purchasesQuery->fetch()){
+            
+             
+            if($purchase->contoActions == ''){
+                
+                //Масив с нишките на НЕбързите покупки
+                
+                if (!in_array($purchase->threadId, $purchasesThreads)){
+                    $purchasesThreads[$purchase->threadId]= $purchase->threadId;
+                }
+                
+            }else {
+                
+                //Масив с нишките на бързите продажби
+                if (!in_array($purchase->threadId, $purchasesFastThreads)){
+                    $purchasesFastThreads[$purchase->threadId]= $purchase->threadId;
+                }
+            }
+            
+        }
         
-        $query->where("#state != 'rejected'");
+        //Складови разписки
+        $receiptsDetQuery = store_ReceiptDetails::getQuery();
         
-        //не е бърза продажба//
-        $query->where('#sellCost IS NOT NULL');
+        $receiptsDetQuery->EXT('threadId', 'store_Receipts', 'externalName=threadId,externalKey=receiptId');
         
+        $receiptsDetQuery-> in('threadId',$purchasesThreads);
+        
+        $receiptsDetQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        
+        $receiptsDetQuery->EXT('state', 'store_Receipts', 'externalName=state,externalKey=receiptId');
+        
+        $receiptsDetQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+        
+        $receiptsDetQuery->EXT('valior', 'store_Receipts', 'externalName=valior,externalKey=receiptId');
+        
+        //Продължителност на периода за показване
+        $durationStr = cls::get('type_Time')->toVerbal($rec->duration);
+            
+        list($periodCount, $periodType)= explode(' ', $durationStr);
+        
+        //Край на избрания период за показване $dateEnd
+        core_Lg::push('bg');
+        
+        if ($periodType == 'дни'){
+            $dateEnd = dt::addDays($periodCount-1, $rec->from, false);
+        }
+        
+        if ($periodType == 'мес.'){
+            $dateEnd = dt::addMonths($periodCount, $rec->from, false);
+            $dateEnd = dt::addDays(-1, $dateEnd, false);
+        }
+        
+        if ($periodType == 'год.'){
+            
+            $monts = 12*$periodCount;
+            $dateEnd = dt::addMonths($monts, $rec->from, false);
+            $dateEnd = dt::addDays(-1, $dateEnd, false);
+        }
         
         //Когато е БЕЗ СРАВНЕНИЕ
         if (($rec->compare) == 'no') {
-            $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
+         
+            $receiptsDetQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
         }
         
-        // сравнение с ПРЕДХОДЕН ПЕРИОД  или ПО МЕСЕЦИ
-        if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
+        // сравнение с ПРЕДХОДЕН ПЕРИОД
+        if (($rec->compare == 'previous')) {
             
-            if (($rec->compare == 'previous')) {
+            if ($periodType == 'дни'){
                 
-                $daysInPeriod = dt::daysBetween($rec->to, $rec->from) + 1;
-                
-                $fromPreviuos = dt::addDays(-$daysInPeriod, $rec->from, false);
-                
-                $toPreviuos = dt::addDays(-$daysInPeriod, $rec->to, false);
+                $fromPreviuos = dt::addDays(-$periodCount, $rec->from, false);
+                $toPreviuos = dt::addDays(-$periodCount, $dateEnd, false);
             }
             
-            if (($rec->compare == 'month')) {
+            if ($periodType == 'мес.'){
                 
-                $rec->from = (acc_Periods::fetch($rec->firstMonth)->start);
+                $fromPreviuos = dt::addMonths(-$periodCount, $rec->from, false);
                 
-                $rec->to = (acc_Periods::fetch($rec->firstMonth)->end);
-                
-                $fromPreviuos = (acc_Periods::fetch($rec->secondMonth)->start);
-                
-                $toPreviuos = (acc_Periods::fetch($rec->secondMonth)->end);
+                $toPreviuos = dt::addMonths($periodCount, $fromPreviuos, false);
+                $toPreviuos = dt::addDays(-1, $toPreviuos, false);
             }
             
-            $query->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
+            if ($periodType == 'год.'){
+                
+                $monts = 12*$periodCount;
+                $fromPreviuos = dt::addMonths(-$monts, $rec->from, false);
+                $toPreviuos = dt::addMonths($monts, $fromPreviuos, false);
+                $toPreviuos = dt::addDays(-1, $toPreviuos, false);
+            }
+            
+            $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
         }
         
         // сравнение с ПРЕДХОДНА ГОДИНА
         if (($rec->compare) == 'year') {
-            $fromLastYear = dt::addDays(-365, $rec->from);
-            $toLastYear = dt::addDays(-365, $rec->to);
             
-            $query->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
+            $fromLastYear = dt::addMonths(-12, $rec->from);
+            $toLastYear = dt::addMonths(-12, $dateEnd);
+            
+            $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
         }
         
-        $query->where("#state != 'rejected'");
-        
-        //Филтър за ДИЛЪР
-        if (isset($rec->dealers)) {
-            if ((min(array_keys(keylist::toArray($rec->dealers))) >= 1)) {
-                $dealers = keylist::toArray($rec->dealers);
+        // сравнение с ИЗБРАН ПЕРИОД
+        if (($rec->compare == 'checked')) {
+           
+            if ($periodType == 'дни'){
+                $toChecked = dt::addDays($periodCount-1, $rec->compareStart, false);
                 
-                $query->in('dealerId', $dealers);
             }
+            
+            if ($periodType == 'мес.'){
+                $toChecked = dt::addMonths($periodCount, $rec->compareStart, false);
+                $toChecked = dt::addDays(-1, $toChecked, false);
+            }
+            
+            if ($periodType == 'год.'){
+                
+                $monts = 12*$periodCount;
+                $toChecked = dt::addMonths($monts, $rec->compareStart, false);
+                $toChecked = dt::addDays(-1, $toChecked, false);
+            }
+                $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
         }
+       
+        core_Lg::pop();
         
+        $receiptsDetQuery->where("#state != 'rejected'");
+        
+      
         //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
         if ($rec->contragent || $rec->crmGroup) {
             
             $contragentsArr = $contragentCoversId = $contragentCoverClasses = array();
             
-            $query->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
-            $query->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
+            $receiptsDetQuery->EXT('contragentId', 'store_Receipts', 'externalName=contragentId,externalKey=receiptId');
+            $receiptsDetQuery->EXT('contragentClassId', 'store_Receipts', 'externalName=contragentClassId,externalKey=receiptId');
+            $receiptsDetQuery->EXT('folderId', 'store_Receipts', 'externalName=folderId,externalKey=receiptId');
             
             if (!$rec->crmGroup && $rec->contragent) {
                 $contragentsArr = keylist::toArray($rec->contragent);
@@ -269,8 +330,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                     $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
                 }
                 
-                $query->in('coverId', $contragentCoversId);
-                $query->in('coverClass', $contragentCoverClasses);
+                $receiptsDetQuery->in('contragentId', $contragentCoversId);
+                $receiptsDetQuery->in('contragentClassId', $contragentCoverClasses);
                 
             }
             
@@ -278,7 +339,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 
                 $foldersInGroups = self::getFoldersInGroups($rec);
                 
-                $query->in('folderId', $foldersInGroups);
+                $receiptsDetQuery->in('folderId', $foldersInGroups);
             }
             
             if ($rec->crmGroup && $rec->contragent) {
@@ -290,98 +351,109 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                     $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
                 }
                 
-                $query->in('coverId', $contragentCoversId);
-                $query->in('coverClass', $contragentCoverClasses);
+                $receiptsDetQuery->in('contragentId', $contragentCoversId);
+                $receiptsDetQuery->in('contragentClassId', $contragentCoverClasses);
                 
                 $foldersInGroups = self::getFoldersInGroups($rec);
                 
-                $query->in('folderId', $foldersInGroups);
+                $receiptsDetQuery->in('folderId', $foldersInGroups);
             }
         }
-        
+    
         //Филтър по групи артикули
         if (isset($rec->group)) {
-            $query->likeKeylist('groupMat', $rec->group);
+            $receiptsDetQuery->likeKeylist('groups', $rec->group);
         }
         
+        
+        //Филтър по тип артикул СТАНДАРТНИ / НЕСТАНДАРТНИ
         if ($rec->articleType != 'all') {
-            $query->where("#isPublic = '{$rec->articleType}'");
+            $receiptsDetQuery->where("#isPublic = '{$rec->articleType}'");
         }
         
         // Синхронизира таймлимита с броя записи //
-        $rec->count = $query->count();
+        $rec->count = $receiptsDetQuery->count();
         
-        $timeLimit = $query->count() * 0.05;
+        $timeLimit = $receiptsDetQuery->count() * 0.05;
         
         if ($timeLimit >= 30) {
             core_App::setTimeLimit($timeLimit);
         }
         
+        //Масив избрани дилъри $dealers
+        if ((min(array_keys(keylist::toArray($rec->dealers))) >= 1)) {
+            $dealers = keylist::toArray($rec->dealers);
+        }
         
-        while ($recPrime = $query->fetch()) {
+        while ($receiptsDetRec = $receiptsDetQuery->fetch()) {
             
-            $quantity = $primeCost = $delta = 0;
-            $quantityPrevious = $primeCostPrevious = $deltaPrevious = 0;
-            $quantityLastYear = $primeCostLastYear = $deltaLastYear = 0;
+            $quantity = $amount = 0;
+            $quantityPrevious = $amountPrevious = 0;
+            $quantityLastYear = $amountLastYear = 0;
+            $quantityCheckedPeriod = $amountCheckedPeriod = 0;
             
-            $DetClass = cls::get($recPrime->detailClassId);
             
+            //Филтър за ДИЛЪР
+            if (!is_null($dealers)) {
+                
+            $firstDocument = doc_Threads::getFirstDocument($receiptsDetRec->threadId);
+            
+            $thisClassName = $firstDocument->className;
+            
+            $thisDealerId = $thisClassName::fetch($firstDocument->that)->dealerId;
+           
+                if(!in_array($thisDealerId, $dealers) ){
+                    continue;
+                }
+            }
+           
             //Ключ на масива
-            $id = $recPrime->productId;
+            $id = $receiptsDetRec->productId;
             
             //Код на артикула
-            $artCode = $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}";
+            $artCode = $receiptsDetRec->code ? $receiptsDetRec->code : "Art{$receiptsDetRec->productId}";
             
             //Мярка на артикула
-            $measureArt = cat_Products::getProductInfo($recPrime->productId)->productRec->measureId;
+            $measureArt = cat_Products::getProductInfo($receiptsDetRec->productId)->productRec->measureId;
             
-            //Данни за ПРЕДХОДЕН ПЕРИОД или МЕСЕЦ
-            if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
+            //Данни за ПРЕДХОДЕН ПЕРИОД
+            if ($rec->compare == 'previous') {
                 
-                if ($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos) {
-                    if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
-                        $quantityPrevious = (-1) * $recPrime->quantity;
-                        $primeCostPrevious = (-1) * $recPrime->sellCost * $recPrime->quantity;
-                        $deltaPrevious = (-1) * $recPrime->delta;
-                    } else {
-                        $quantityPrevious = $recPrime->quantity;
-                        $primeCostPrevious = $recPrime->sellCost * $recPrime->quantity;
-                        $deltaPrevious = $recPrime->delta;
-                    }
+                if ($receiptsDetRec->valior >= $fromPreviuos && $receiptsDetRec->valior <= $toPreviuos) {
+                    
+                    $quantityPrevious = $receiptsDetRec->quantity;
+                    $amountPrevious = $receiptsDetRec->amount;
+                   
                 }
             }
             
             //Данни за ПРЕДХОДНА ГОДИНА
             if ($rec->compare == 'year') {
                 
-                if ($recPrime->valior >= $fromLastYear && $recPrime->valior <= $toLastYear) {
-                    if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
-                        $quantityLastYear = (-1) * $recPrime->quantity;
-                        $primeCostLastYear = (-1) * $recPrime->sellCost * $recPrime->quantity;
-                        $deltaLastYear = (-1) * $recPrime->delta;
-                    } else {
-                        $quantityLastYear = $recPrime->quantity;
-                        $primeCostLastYear = $recPrime->sellCost * $recPrime->quantity;
-                        $deltaLastYear = $recPrime->delta;
-                    }
+                if ($receiptsDetRec->valior >= $fromLastYear && $receiptsDetRec->valior <= $toLastYear) {
+                    
+                        $quantityLastYear = $receiptsDetRec->quantity;
+                        $amountLastYear = $receiptsDetRec->amount;
+                       
                 }
             }
             
-            //Данни за ТЕКУЩ период
-            if ($recPrime->valior >= $rec->from && $recPrime->valior <= $rec->to) {
-                if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
-                    $quantity = (-1) * $recPrime->quantity;
+            //Данни за ИЗБРАН ПЕРИОД
+            if ($rec->compare == 'checked') {
+                
+                if ($receiptsDetRec->valior >= $rec->compareStart && $receiptsDetRec->valior <= $toChecked) {
                     
-                    $primeCost = (-1) * $recPrime->sellCost * $recPrime->quantity;
+                    $quantityCheckedPeriod = $receiptsDetRec->quantity;
+                    $amountCheckedPeriod = $receiptsDetRec->amount; 
                     
-                    $delta = (-1) * $recPrime->delta;
-                } else {
-                    $quantity = $recPrime->quantity;
-                    
-                    $primeCost = $recPrime->sellCost * $recPrime->quantity;
-                    
-                    $delta = $recPrime->delta;
                 }
+            }
+           
+            //Данни за ТЕКУЩ период
+            if ($receiptsDetRec->valior >= $rec->from && $receiptsDetRec->valior <= $dateEnd) {
+                
+                    $quantity = $receiptsDetRec->quantity;
+                    $amount = $receiptsDetRec->amount;
             }
             
             // Запис в масива
@@ -389,287 +461,43 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $recs[$id] = (object) array(
                     
                     'code' => $artCode,                                   //Код на артикула
-                    'productId' => $recPrime->productId,                  //Id на артикула
+                    'productId' => $receiptsDetRec->productId,            //Id на артикула
                     'measure' => $measureArt,                             //Мярка
                     
                     'quantity' => $quantity,                              //Текущ период - количество
-                    'primeCost' => $primeCost,                            //Текущ период - стойност на продажбите за артикула
-                    'delta' => $delta,                                    //Текущ период - ДЕЛТА на продажбите за артикула
+                    'amount' => $amount,                                  //Текущ период - стойност на продажбите за артикула
                     
                     'quantityPrevious' => $quantityPrevious,              //Предходен период - количество
-                    'primeCostPrevious' => $primeCostPrevious,            //Предходен период - стойност на продажбите за артикула
-                    'deltaPrevious' => $deltaPrevious,                    //Предходен период - ДЕЛТА на продажбите за артикула
+                    'amountPrevious' => $amountPrevious,                  //Предходен период - стойност на продажбите за артикула
                     
                     'quantityLastYear' => $quantityLastYear,              //Предходна година - количество
-                    'primeCostLastYear' => $primeCostLastYear,            //Предходна година - стойност на продажбите за артикула
-                    'deltaLastYear' => $deltaLastYear,                    //Предходна година - ДЕЛТА на продажбите за артикула
+                    'amountLastYear' => $amountLastYear,                  //Предходна година - стойност на продажбите за артикула
                     
-                    'group' => $recPrime->groupMat,                       // В кои групи е включен артикула
-                    'groupList' => $recPrime->groupList,                  //В кои групи е включен контрагента
+                    'quantityCheckedPeriod' => $quantityCheckedPeriod,    //Избран период - количество
+                    'amountCheckedPeriod' => $amountCheckedPeriod,        //Избран период - стойност на продажбите за артикула
+                    
+                    'group' => $receiptsDetRec->groups,                   // В кои групи е включен артикула
+                    'groupList' => $receiptsDetRec->groupList,            //В кои групи е включен контрагента
                     
                 );
             } else {
                 $obj = &$recs[$id];
                 
                 $obj->quantity += $quantity;
-                $obj->primeCost += $primeCost;
-                $obj->delta += $delta;
+                $obj->amount += $amount;
                 
                 $obj->quantityPrevious += $quantityPrevious;
-                $obj->primeCostPrevious += $primeCostPrevious;
-                $obj->deltaPrevious += $deltaPrevious;
+                $obj->amountPrevious += $amountPrevious;
                 
                 $obj->quantityLastYear += $quantityLastYear;
-                $obj->primeCostLastYear += $primeCostLastYear;
-                $obj->deltaLastYear += $deltaLastYear;
+                $obj->amountLastYear += $amountLastYear;
+                
+                $obj->quantityCheckedPeriod += $quantityCheckedPeriod;
+                $obj->amountCheckedPeriod += $amountCheckedPeriod;
             }
-        }
-        
-        //Изчисляване на промяната в стойността на продажбите и делтите за артикул
-        foreach ($recs as $v) {
-            
-            //Промяна на стийноста и делтата за артикула[$v->productId] за текущ период спряно предходен
-            $v->changePrimeCostPrevious = $v->primeCost - $v->primeCostPrevious;
-            $v->changeDeltaPrevious = $v->delta - $v->deltaPrevious;
-            
-            //Промяна на стийноста и делтата за артикула[$v->productId] за текущ период спряно предходна година
-            $v->changePrimeCostLastYear = $v->primeCost - $v->primeCostLastYear;
-            $v->changeDeltaLastYear = $v->delta - $v->deltaLastYear;
-            
-        }
-        
-        $groupValues = $groupPrimeCostPrevious = $groupPrimeCostLastYear = array();
-        $groupDeltas = $groupDeltaPrevious = $groupDeltaLastYear = array();
-        $tempArr = array();
-        $totalArr = array();
-        $totalValue = $totalDelta = 0;
-        
-        // Изчисляване на общите продажби и продажбите по групи
-        foreach ($recs as $v) {
-            
-            //Когато НЕ СА ИЗБРАНИ групи артикули
-            if (!$rec->group) {
-                
-                if (keylist::isKeylist(($v->group))) {
-                    $v->group = keylist::toArray($v->group); //Кейлиста с гупите го записва като масив
-                } else {
-                    $v->group = array('Без група' => 'Без група'); //Ако артикула не е включен в групи записва 'Без група'
-                }
-                
-                //Изчислява стойността на продажбите и делтата от един артикул
-                //за текущ, предходен период и предходна година във ВСЯКА ГРУПА В КОЯТО Е РЕГИСТРИРАН
-                foreach ($v->group as $k => $gro) {
-                    //За този артикул
-                    $groupValues[$gro] += $v->primeCost;                        //Стойност на продажбите за текущ период
-                    $groupDeltas[$gro] += $v->delta;                            //Стойност на делтите за текущ период
-                    $groupPrimeCostPrevious[$gro] += $v->primeCostPrevious;     //Стойност на продажбите за предходен период
-                    $groupDeltaPrevious[$gro] += $v->deltaPrevious;             //Стойност на делтите за предходен период
-                    $groupPrimeCostLastYear[$gro] += $v->primeCostLastYear;     //Стойност на продажбите за предходна година
-                    $groupDeltaLastYear[$gro] += $v->deltaLastYear;             //Стойност на делтите за предходна година
-                    
-                }
-                unset($gro, $k);
-                
-                //изчислява обща стойност на всички артикули продадени
-                //през текущ, предходен период и предходна година когато не е избрана група
-                $totalValue += $v->primeCost;
-                $totalDelta += $v->delta;
-                $totalPrimeCostPrevious += $v->primeCostPrevious;
-                $totalDeltaPrevious += $v->deltaPrevious;
-                $totalPrimeCostLastYear += $v->primeCostLastYear;
-                $totalDeltaLastYear += $v->deltaLastYear;
-            } else {
-                
-                //КОГАТО ИМА ИЗБРАНИ ГРУПИ
-                //изчислява обща стойност на артикулите от избраните групи продадени
-                //през текущ, предходен период и предходна година, и стойността по групи(само ИЗБРАНИТЕ)
-                
-                
-                $grArr = array();
-                
-                //Масив с избраните групи
-                $checkedGroups = keylist::toArray($rec->group);
-                
-                foreach ($checkedGroups as $key => $val) {
-                    
-                    if (in_array($val, keylist::toArray($v->group))) {
-                        $grArr[$val] = $val;                            //Масив от групите в които е ргистриран артикула АКО СА ЧАСТ ОТ ИЗБРАНИТЕ ГРУПИ
-                    }
-                    
-                }
-                
-                unset($key,$val);
-                
-                $tempArr[$v->productId] = $v;
-                
-                $tempArr[$v->productId]->group = $grArr; //Оставяме в записа за артикула само групите които са избрани
-                
-                //изчислява ОБЩА стойност на всички артикули продадени
-                //през текущ, предходен период и предходна година за ВСИЧКИ избрани групи
-                $totalValue += $v->primeCost;
-                $totalDelta += $v->delta;
-                $totalPrimeCostPrevious += $v->primeCostPrevious;
-                $totalDeltaPrevious += $v->deltaPrevious;
-                $totalPrimeCostLastYear += $v->primeCostLastYear;
-                $totalDeltaLastYear += $v->deltaLastYear;
-                
-                //Изчислява продажбите по артикул за всички артикули във всяка избрана група
-                //Един артикул може да го има в няколко групи
-                foreach ($tempArr[$v->productId]->group as $gro) {
-                    $groupValues[$gro] += $v->primeCost;
-                    $groupDeltas[$gro] += $v->delta;
-                    $groupPrimeCostPrevious[$gro] += $v->primeCostPrevious;
-                    $groupDeltaPrevious[$gro] += $v->deltaPrevious;
-                    $groupPrimeCostLastYear[$gro] += $v->primeCostLastYear;
-                    $groupDeltaLastYear[$gro] += $v->deltaLastYear;
-                }
-                unset($gro);
-                
-                $recs = $tempArr;
-                
-                
-                
-                
-            }
-            
-            if($rec->compare && (($rec->compare == 'previous') || ($rec->compare == 'month'))){
-                
-                $changePrimeCost = 'changePrimeCostPrevious';
-                $changeDelta = 'changeDeltaPrevious';
-            }
-            
-            if($rec->compare && ($rec->compare == 'year')){
-                
-                $changePrimeCost = 'changePrimeCostLastYear';
-                $changeDelta = 'changeDeltaLastYear';
-            }
-            
-        }
-        
-        
-        
-        //при избрани групи включва артикулите във всички групи в които са регистрирани
-        if (!is_null($rec->group)) {
-            
-            $tempArr = array();
-            
-            foreach ($recs as $v) {
-                foreach ($v->group as $val) {
-                    $v = clone $v;
-                    $v->group = (int) $val;
-                    $tempArr[] = $v;
-                }
-            }
-            unset($val,$v);
-            
-            $recs = $tempArr;
-            
-            foreach ($recs as $v) {
-                $v->groupValues = $groupValues[$v->group];
-                $v->groupDeltas = $groupDeltas[$v->group];
-                $v->groupPrimeCostPrevious = $groupPrimeCostPrevious[$v->group];
-                $v->groupDeltaPrevious = $groupDeltaPrevious[$v->group];
-                $v->groupPrimeCostLastYear = $groupPrimeCostLastYear[$v->group];
-                $v->groupDeltaLastYear = $groupDeltaLastYear[$v->group];
-            }
-            unset($v);
-            
-        } else {
-            
-            foreach ($recs as $v) {
-                
-                foreach ($v->group as $gro) {
-                    
-                    $v->groupValues = $groupValues[$gro];
-                    $v->groupDeltas = $groupDeltas[$gro];
-                    
-                    $v->groupPrimeCostPrevious = $groupPrimeCostPrevious[$gro];
-                    $v->groupDeltaPrevious = $groupDeltaPrevious[$gro];
-                    
-                    $v->groupPrimeCostLastYear = $groupPrimeCostLastYear[$gro];
-                    $v->groupDeltaLastYear = $groupDeltaLastYear[$gro];
-                    
-                }
-            }
-            unset($v,$gro);
-        }
-        
-        if($rec->compare && (($rec->compare == 'previous') || ($rec->compare == 'month'))){
-            
-            $changePrimeCost = 'changePrimeCostPrevious';
-            $changeDelta = 'changeDeltaPrevious';
-        }
-        
-        if($rec->compare && ($rec->compare == 'year')){
-            
-            $changePrimeCost = 'changePrimeCostLastYear';
-            $changeDelta = 'changeDeltaLastYear';
-        }
-        
-        //Когато имаме избрано групирано показване правим нов масив
-        if ($rec->grouping == 'yes') {
-            $recs = array();
-            foreach ($groupValues as $k => $v) {
-                $recs[$k] = (object) array(
-                    'group'                        => $k,                                         //Група артикули
-                    'primeCost'                    => $v,                                         //Продажби за текущия период за групата
-                    'delta'                        => $groupDeltas[$k],                           //Делта за текущия период за групата
-                    
-                    'groupPrimeCostPrevious'       => $groupPrimeCostPrevious[$k],                //Продажби за предходен период за групата
-                    'changeGroupPrimeCostPrevious' => $v - $groupPrimeCostPrevious[$k],             //Промяна в продажбите спрямо предходен период за групата
-                    'groupDeltaPrevious'           => $groupDeltaPrevious[$k],                    //Делта за предходен период за групата
-                    'changeGroupDeltaPrevious'     => $groupDeltas[$k] - $groupDeltaPrevious[$k],   //Промяна в делтите спрямо предходен период за групата
-                    
-                    'groupPrimeCostLastYear'       => $groupPrimeCostLastYear[$k],                //Продажби за предходна година за групата
-                    'changeGroupPrimeCostLastYear' => $v - $groupPrimeCostLastYear[$k],             //Промяна в продажбите спрямо предходна година за групата
-                    'groupDeltaLastYear'           => $groupDeltaLastYear[$k],                    //Делта за предходна година за групата
-                    'changeGroupDeltaLastYear'     => $groupDeltas[$k] - $groupDeltaLastYear[$k],   //Промяна в делтите спрямо предходна година за групата
-                );
-            }
-            
-            if($rec->compare && (($rec->compare == 'previous') || ($rec->compare == 'month'))){
-                
-                $changePrimeCost = 'changeGroupPrimeCostPrevious';
-                $changeDelta = 'changeGroupDeltaPrevious';
-            }
-            
-            if($rec->compare && ($rec->compare == 'year')){
-                
-                $changePrimeCost = 'changeGroupPrimeCostLastYear';
-                $changeDelta = 'changeGroupDeltaLastYear';
-            }
-            
-        }
-        
-        //Подредба на резултатите
-        if (!is_null($recs)) {
-            
-            $typeOrder = ($rec->orderBy == 'code') ? 'stri' : 'native';
-            
-            $orderBy =$rec->orderBy;
-            
-            if($rec->orderBy == 'changeDelta'){
-                $orderBy = $changeDelta;
-            }
-            
-            if($rec->orderBy == 'changeCost'){
-                $orderBy = $changePrimeCost;
-            }
-            
-            arr::sortObjects($recs, $orderBy , $rec->order, $typeOrder);
-        }
-        
-        //Добавям ред за ОБЩИТЕ суми
-        $totalArr['total'] = (object) array(
-            'totalValue' => $totalValue,
-            'totalDelta' => $totalDelta,
-            'totalPrimeCostPrevious' => $totalPrimeCostPrevious,
-            'totalDeltaPrevious' => $totalDeltaPrevious,
-            'totalPrimeCostLastYear' => $totalPrimeCostLastYear,
-            'totalDeltaLastYear' => $totalDeltaLastYear
-        );
-        
-        array_unshift($recs, $totalArr['total']);
+        } bp($recs);
+       
+       
         
         return $recs;
     }
@@ -689,118 +517,16 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         
-        if ($rec->compare == 'month') {
-            $name1 = acc_Periods::fetch($rec->firstMonth)->title;
-            $name2 = acc_Periods::fetch($rec->secondMonth)->title;
-        } else {
-            $name1 = 'За периода';
-            $name2 = 'За сравнение';
-        }
-        
-        if ($export === false) {
-            if ($rec->grouping == 'no') {
-                // $fld->FLD('group', 'keylist(mvc=cat_groups,select=name)', 'caption=Група');
-                $fld->FLD('code', 'varchar', 'caption=Код');
+      
                 $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
                 $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-                if ($rec->compare != 'no') {
-                    $fld->FLD('quantity', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Продажби");
-                    $fld->FLD('primeCost', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Стойност");
-                    
-                    if ($rec->seeDelta == 'yes') {
-                        $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Делта");
-                    }
-                    $fld->FLD('quantityCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Продажби,tdClass=newCol");
-                    $fld->FLD('primeCostCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Стойност,tdClass=newCol");
-                    
-                    if ($rec->seeDelta == 'yes') {
-                        $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Делта,tdClass=newCol");
-                    }
-                    
-                    $fld->FLD('changeSales', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Стойност');
-                    
-                    if ($rec->seeDelta == 'yes') {
-                        $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
-                    }
-                } else {
-                    $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Продажби');
-                    $fld->FLD('primeCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Стойност');
-                    
-                    if ($rec->seeDelta == 'yes') {
-                        $fld->FLD('delta', 'double(smartRound,decimals=2)', 'smartCenter,caption=Делта');
-                    }
-                }
-            } else {
-                $fld->FLD('group', 'varchar', 'caption=Група');
-                $fld->FLD('primeCost', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Стойност");
-                
-                
-                if ($rec->seeDelta == 'yes') {
-                    $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Делта");
-                }
-                if ($rec->compare != 'no') {
-                    $fld->FLD('primeCostCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Стойност,tdClass=newCol");
-                    
-                    if ($rec->seeDelta == 'yes') {
-                        $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Делта,tdClass=newCol");
-                    }
-                    $fld->FLD('changeSales', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Стойност');
-                    
-                    if ($rec->seeDelta == 'yes') {
-                        $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
-                    }
-                }
-            }
-        } else {
-            $fld->FLD('group', 'varchar', 'caption=Група');
-            $fld->FLD('code', 'varchar', 'caption=Код');
-            $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-            $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Продажби");
-            $fld->FLD('primeCost', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Стойност");
-            $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Делта");
-            if ($rec->compare != 'no') {
-                $fld->FLD('quantityCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2} Продажби,tdClass=newCol");
-                $fld->FLD('primeCostCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2} Стойност,tdClass=newCol");
-                $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2} Делта,tdClass=newCol");
-                $fld->FLD('changeSales', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна Стойност');
-                $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна Делти');
-            }
-        }
+               
         
         return $fld;
     }
     
     
-    /**
-     * Връща групите
-     *
-     * @param stdClass $dRec
-     * @param bool     $verbal
-     *
-     * @return mixed $dueDate
-     */
-    private static function getGroups($dRec, $verbal = true, $rec)
-    {
-        if ($verbal === true) {
-            if (is_numeric($dRec->group)) {
-                $groupVal = $dRec->groupValues;
-                $groupDeltas = $dRec->groupDeltas;
-                
-                $group = cat_Groups::getVerbal($dRec->group, 'name') . "<span class= 'fright'><span class= ''>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) . ', делта: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupDeltas) . ' )' . '</span>';
-            } else {
-                $group = $dRec->group . "<span class= 'fright'>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues) . ', делта: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupDeltas) . ' )' . '</span>';
-            }
-        } else {
-            if (!is_numeric($dRec->group)) {
-                $group = 'Без група';
-            } else {
-                $group = cat_Groups::getVerbal($dRec->group, 'name');
-            }
-        }
-        
-        return $group;
-    }
+    
     
     
     /**
@@ -821,176 +547,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         $row = new stdClass();
         
-        //Извеждане на реда с ОБЩО
-        if (isset($dRec->totalValue)) {
-            $row->productId = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
-            $row->primeCost = '<b>' . $Double->toVerbal($dRec->totalValue) . '</b>';
-            $row->delta = '<b>' . $Double->toVerbal($dRec->totalDelta) . '</b>';
-            
-            foreach (array('primeCost','delta') as $q) {
-                
-                if (!isset($dRec->{$q})) continue;
-                
-                $row->{$q} = ht::styleNumber($row->{$q}, $dRec->{$q});
-            }
-            
-            if ($rec->compare != 'no') {
-                $changeDeltas = $changeDeltas = 0;
-                
-                if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                    $row->primeCostCompare = '<b>' . $Double->toVerbal($dRec->totalPrimeCostPrevious) . '</b>';
-                    $row->primeCostCompare = ht::styleNumber($row->primeCostCompare, $dRec->totalPrimeCostPrevious);
-                    
-                    $row->deltaCompare = '<b>' . $Double->toVerbal($dRec->totalDeltaPrevious) . '</b>';
-                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->totalDeltaPrevious);
-                    
-                    $changeSales = $dRec->totalValue - $dRec->totalPrimeCostPrevious;
-                    $row->changeSales = '<b>'. $Double->toVerbal($changeSales) . '</b>';
-                    $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
-                    
-                    $changeDeltas = $dRec->totalDelta - $dRec->totalDeltaPrevious;
-                    $row->changeDeltas = '<b>' . $Double->toVerbal($changeDeltas) . '</b>';
-                    $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
-                }
-                if ($rec->compare == 'year') {
-                    $row->primeCostCompare = '<b>' . $Double->toVerbal($dRec->totalPrimeCostLastYear) . '</b>';
-                    $row->primeCostCompare = ht::styleNumber($row->primeCostCompare, $dRec->totalPrimeCostLastYear);
-                    
-                    $row->deltaCompare = '<b>' . $Double->toVerbal($dRec->totalDeltaLastYear) . '</b>';
-                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->totalDeltaLastYear);
-                    
-                    $changeSales = $dRec->totalValue - $dRec->totalPrimeCostLastYear;
-                    $row->changeSales = '<b>'. $Double->toVerbal($changeSales) . '</b>';
-                    $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
-                    
-                    $changeDeltas = $dRec->totalDelta - $dRec->totalDeltaLastYear;
-                    $row->changeDeltas = '<b>'. $Double->toVerbal($changeDeltas) . '</b>';
-                    $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
-                }
-                
-                if( $rec->grouping == 'yes') {
-                    $row->group = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
-                }
-                
-            }
-            
+       
             return $row;
-        }
-        
-        //Ако имаме избрано показване "ГРУПИРАНО"
-        if ($rec->grouping == 'yes') {
-            if (is_numeric($dRec->group)) {
-                $row->group = cat_Groups::getVerbal($dRec->group, 'name');
-            } else {
-                $row->group = 'Без група';
-            }
-            $row->primeCost = $Double->toVerbal($dRec->primeCost);
-            $row->delta = $Double->toVerbal($dRec->delta);
-            
-            if ($rec->compare != 'no') {
-                $changeDeltas = $changeDeltas = 0;
-                
-                if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                    
-                    $row->primeCostCompare = $Double->toVerbal($dRec->groupPrimeCostPrevious);
-                    $row->primeCostCompare = ht::styleNumber($row->primeCostCompare, $dRec->groupPrimeCostPrevious);
-                    
-                    $row->deltaCompare = $Double->toVerbal($dRec->groupDeltaPrevious);
-                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->groupDeltaPrevious);
-                    
-                    $row->changeSales = $Double->toVerbal($dRec->changeGroupPrimeCostPrevious);
-                    $row->changeSales = ht::styleNumber($row->changeSales, $dRec->changeGroupPrimeCostPrevious);
-                    
-                    $row->changeDeltas = '<b>'. $Double->toVerbal($dRec->changeGroupDeltaPrevious) . '</b>';
-                    $row->changeDeltas = ht::styleNumber($row->changeDeltas, $dRec->changeGroupDeltaPrevious);
-                }
-                
-                if ($rec->compare == 'year') {
-                    
-                    $row->primeCostCompare = '<b>' . $Double->toVerbal($dRec->groupPrimeCostLastYear) . '</b>';
-                    $row->primeCostCompare = ht::styleNumber($row->primeCostCompare, $dRec->groupPrimeCostLastYear);
-                    
-                    $row->deltaCompare = '<b>' . $Double->toVerbal($dRec->groupDeltaLastYear) . '</b>';
-                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->groupDeltaLastYear);
-                    
-                    $row->changeSales = '<b>'. $Double->toVerbal($dRec->changeGroupPrimeCostLastYear) . '</b>';
-                    $row->changeSales = ht::styleNumber($row->changeSales, $dRec->changeGroupPrimeCostLastYear);
-                    
-                    $row->changeDeltas = '<b>'. $Double->toVerbal($dRec->changeGroupDeltaLastYear) . '</b>';
-                    $row->changeDeltas = ht::styleNumber($row->changeDeltas, $dRec->changeGroupDeltaLastYear);
-                }
-            }
-            
-            return $row;
-        }
-        
-        //Ако имаме избрано показяне "ПО АРТИКУЛИ"
-        if ($rec->grouping == 'no') {
-            if (isset($dRec->code)) {
-                $row->code = $dRec->code;
-            }
-            if (isset($dRec->productId)) {
-                $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
-            }
-            if (isset($dRec->measure)) {
-                $row->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
-            }
-            
-            foreach (array(
-                'quantity',
-                'primeCost',
-                'delta'
-            ) as $fld) {
-                if (!isset($dRec->{$fld})) {
-                    continue;
-                }
-                
-                $row->{$fld} = $Double->toVerbal($dRec->{$fld});
-                $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
-            }
-            
-            $row->group = self::getGroups($dRec, true, $rec);
-            
-            if ($rec->compare != 'no') {
-                $changeDeltas = $changeDeltas = 0;
-                
-                if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                    $row->quantityCompare = $Double->toVerbal($dRec->quantityPrevious);
-                    $row->quantityCompare = ht::styleNumber($row->quantityCompare, $dRec->quantityPrevious);
-                    
-                    $row->primeCostCompare = $Double->toVerbal($dRec->primeCostPrevious);
-                    $row->primeCostCompare = ht::styleNumber($row->primeCostCompare, $dRec->primeCostPrevious);
-                    
-                    $row->deltaCompare = $Double->toVerbal($dRec->deltaPrevious);
-                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->deltaPrevious);
-                    
-                    $row->changeSales = $Double->toVerbal($dRec->changePrimeCostPrevious);
-                    $row->changeSales = ht::styleNumber($row->changeSales, $dRec->changePrimeCostPrevious);
-                    
-                    $row->changeDeltas = $Double->toVerbal($dRec->changeDeltaPrevious);
-                    $row->changeDeltas = ht::styleNumber($row->changeDeltas, $dRec->changeDeltaPrevious);
-                }
-                
-                if ($rec->compare == 'year') {
-                    $row->quantityCompare = $Double->toVerbal($dRec->quantityLastYear);
-                    $row->quantityCompare = ht::styleNumber($row->quantityCompare, $dRec->quantityLastYear);
-                    
-                    $row->primeCostCompare = $Double->toVerbal($dRec->primeCostLastYear);
-                    $row->primeCostCompare = ht::styleNumber($row->primeCostCompare, $dRec->primeCostLastYear);
-                    
-                    $row->deltaCompare = $Double->toVerbal($dRec->deltaLastYear);
-                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->deltaLastYear);
-                    
-                    $row->changeSales = $Double->toVerbal($dRec->changePrimeCostLastYear);
-                    $row->changeSales = ht::styleNumber($row->changeSales, $dRec->changePrimeCostLastYear);
-                    
-                    $row->changeDeltas = $Double->toVerbal($dRec->changeDeltaLastYear);
-                    $row->changeDeltas = ht::styleNumber($row->changeDeltas, $dRec->changeDeltaLastYear);
-                }
-            }
-            
-            return $row;
-        }
+       
     }
     
     /**
@@ -1003,43 +562,6 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
      */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
-        $groArr = array();
-        $artArr = array();
-        
-        $Date = cls::get('type_Date');
-        
-        $row->from = $Date->toVerbal($rec->from);
-        
-        $row->to = $Date->toVerbal($rec->to);
-        
-        if (isset($rec->group)) {
-            // избраната позиция
-            $groups = keylist::toArray($rec->group);
-            foreach ($groups as &$g) {
-                $gro = cat_Groups::getVerbal($g, 'name');
-                array_push($groArr, $gro);
-            }
-            
-            $row->group = implode(', ', $groArr);
-        }
-        
-        if (isset($rec->article)) {
-            $arts = keylist::toArray($rec->article);
-            foreach ($arts as &$ar) {
-                $art = cat_Products::fetchField("#id = '{$ar}'", 'name');
-                array_push($artArr, $art);
-            }
-            
-            $row->art = implode(', ', $artArr);
-        }
-        
-        $arrCompare = array(
-            'no' => 'Без сравнение',
-            'previous' => 'С предходен период',
-            'year' => 'С миналогодишен период',
-            'month' => 'По месеци'
-        );
-        $row->compare = $arrCompare[$rec->compare];
     }
     
     
@@ -1053,101 +575,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
-        $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
-                                <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
-                                <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN firstMonth-->|Месец 1|*: [#firstMonth#]<!--ET_END firstMonth--></div></small>
-                                <small><div><!--ET_BEGIN secondMonth-->|Месец 2|*: [#secondMonth#]<!--ET_END secondMonth--></div></small>
-                                <small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div></small>
-                                <small><div><!--ET_BEGIN contragent-->|Контрагент|*: [#contragent#]<!--ET_END contragent--></div></small>
-                                <small><div><!--ET_BEGIN crmGroup-->|Група контрагенти|*: [#crmGroup#]<!--ET_END crmGroup--></div></small>
-                                <small><div><!--ET_BEGIN group-->|Групи продукти|*: [#group#]<!--ET_END group--></div></small>
-                                <small><div><!--ET_BEGIN art-->|Артикули|*: [#art#]<!--ET_END art--></div></small>
-                                <small><div><!--ET_BEGIN compare-->|Сравнение|*: [#compare#]<!--ET_END compare--></div></small>
-                                </fieldset><!--ET_END BLOCK-->"));
+      
         
-        if ($data->rec->compare == 'month') {
-            unset($data->rec->from);
-            unset($data->rec->to);
-        } else {
-            unset($data->rec->firstMonth);
-            unset($data->rec->secondMonth);
-        }
-        if (isset($data->rec->from)) {
-            $fieldTpl->append('<b>' . $data->row->from . '</b>', 'from');
-        }
-        
-        if (isset($data->rec->to)) {
-            $fieldTpl->append('<b>' . $data->row->to . '</b>', 'to');
-        }
-        
-        if (isset($data->rec->firstMonth)) {
-            $fieldTpl->append('<b>' . acc_Periods::fetch($data->rec->firstMonth)->title . '</b>', 'firstMonth');
-        }
-        
-        if (isset($data->rec->secondMonth)) {
-            $fieldTpl->append('<b>' . acc_Periods::fetch($data->rec->secondMonth)->title . '</b>', 'secondMonth');
-        }
-        
-        if ((isset($data->rec->dealers)) && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
-            foreach (type_Keylist::toArray($data->rec->dealers) as $dealer) {
-                $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
-            }
-            
-            $fieldTpl->append('<b>' . trim($dealersVerb, ',  ') . '</b>', 'dealers');
-        } else {
-            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'dealers');
-        }
-        
-        if (isset($data->rec->contragent) || isset($data->rec->crmGroup)) {
-            $marker = 0;
-            if (isset($data->rec->crmGroup)) {
-                foreach (type_Keylist::toArray($data->rec->crmGroup) as $group) {
-                    $marker++;
-                    
-                    $groupVerb .= (crm_Groups::getTitleById($group));
-                    
-                    if ((count((type_Keylist::toArray($data->rec->crmGroup))) - $marker) != 0) {
-                        $groupVerb .= ', ';
-                    }
-                }
-                
-                $fieldTpl->append('<b>' . $groupVerb . '</b>', 'crmGroup');
-            }
-            
-            $marker = 0;
-            
-            if (isset($data->rec->contragent)) {
-                foreach (type_Keylist::toArray($data->rec->contragent) as $contragent) {
-                    $marker++;
-                    
-                    $contragentVerb .= (doc_Folders::getTitleById($contragent));
-                    
-                    if ((count(type_Keylist::toArray($data->rec->contragent))) - $marker != 0) {
-                        $contragentVerb .= ', ';
-                    }
-                }
-                
-                $fieldTpl->append('<b>' . $contragentVerb . '</b>', 'contragent');
-            }
-        } else {
-            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'contragent');
-        }
-        
-        if (isset($data->rec->group)) {
-            $fieldTpl->append('<b>' . $data->row->group . '</b>', 'group');
-        }
-        
-        if (isset($data->rec->article)) {
-            $fieldTpl->append($data->rec->art, 'art');
-        }
-        
-        if (isset($data->rec->compare)) {
-            $fieldTpl->append('<b>' . $data->row->compare . '</b>', 'compare');
-        }
-        
-        $tpl->append($fieldTpl, 'DRIVER_FIELDS');
+       
     }
     
     
@@ -1161,47 +591,17 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        $res->group = self::getGroups($dRec, false, $rec);
         
-        if ($rec->compare != 'no') {
-            if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                $res->quantityCompare = $dRec->quantityPrevious;
-                $res->primeCostCompare = $dRec->primeCostPrevious;
-                $res->deltaCompare = $dRec->deltaPrevious;
-                $res->changeSales = $dRec->primeCost - $dRec->primeCostPrevious;
-                $res->changeDeltas = ($dRec->delta - $dRec->deltaPrevious);
-            }
-            
-            if ($rec->compare == 'year') {
-                $res->quantityCompare = $dRec->quantityLastYear;
-                $res->primeCostCompare = $dRec->primeCostLastYear;
-                $res->deltaCompare = $dRec->deltaLastYear;
-                $res->changeSales = ($dRec->primeCost - $dRec->primeCostLastYear);
-                $res->changeDeltas = ($dRec->delta - $dRec->deltaLastYear);
-            }
-        }
-        
-        if ($res->totalValue) {
-            $res->group = 'ОБЩО ЗА ПЕРИОДА:';
-            $res->primeCost = $dRec->totalValue;
-            $res->delta = $dRec->totalDelta;
-            
-            if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                $res->primeCostCompare = $dRec->totalPrimeCostPrevious;
-                $res->deltaCompare = $dRec->totalDeltaPrevious;
-                $res->changeSales = ($dRec->primeCost - $dRec->totalPrimeCostPrevious);
-                $res->changeDeltas = ($dRec->delta - $dRec->totalDeltaPrevious);
-            }
-            
-            if ($rec->compare == 'year') {
-                $res->primeCostCompare = $dRec->totalPrimeCostLastYear;
-                $res->deltaCompare = $dRec->totalDeltaLastYear;
-                $res->changeSales = ($dRec->primeCost - $dRec->totalPrimeCostLastYear);
-                $res->changeDeltas = ($dRec->delta - $dRec->totalDeltaLastYear);
-            }
-        }
     }
     
+    /*
+     * Връща folderId-тата на всички контрагенти,
+     * които имат регистрация в поне една от избраните групи
+     * 
+     * @param stdClass            $rec
+     * 
+     * @return array
+     */
     public static function getFoldersInGroups($rec)
     {
         $foldersInGroups = array();
@@ -1215,7 +615,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         while ($contr = $fQuery->fetch()) {
             $className = core_Classes::getName($contr->coverClass);
             
-            $contrGroups = $className::fetchField($contr->coverId, 'groupList');
+            $contrGroups = $className::fetchField($contr->coverId, 'groupList'); //Групите в които е регистриран контрагента
             
             if (keylist::isIn(keylist::toArray($contrGroups), $rec->crmGroup)) {
                 $foldersInGroups[$contr->id] = $contr->id;
