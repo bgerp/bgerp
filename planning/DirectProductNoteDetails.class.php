@@ -298,7 +298,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             
             return;
         }
-        $storeId = $data->masterData->rec->inputStoreId;
+        
         if ($data->masterData->rec->state == 'active') {
             unset($data->listFields['quantityFromBom']);
             unset($data->listFields['quantityFromTasks']);

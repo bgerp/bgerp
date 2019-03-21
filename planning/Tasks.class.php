@@ -38,7 +38,7 @@ class planning_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_plg_BusinessDoc, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RowTools2, plg_LastUsedKeys, bgerp_plg_Blank';
+    public $loadList = 'doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RowTools2, plg_LastUsedKeys, bgerp_plg_Blank';
     
     
     /**
@@ -93,14 +93,6 @@ class planning_Tasks extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'title, progress, folderId, state, modifiedOn, modifiedBy';
-    
-    
-    /**
-     * Дали винаги да се форсира папка, ако не е зададена
-     *
-     * @see doc_plg_BusinessDoc
-     */
-    public $alwaysForceFolderIfEmpty = true;
     
     
     /**

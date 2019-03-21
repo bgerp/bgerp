@@ -11,7 +11,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -427,6 +427,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $res = array();
         
         // Намираме детайлите от задачите и рецеоптите
+        $bomId = null;
         $bomDetails = $this->getDefaultDetailsFromBom($rec, $bomId);
         $taskDetails = $this->getDefaultDetailsFromTasks($rec);
         
@@ -926,8 +927,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         if (isset($fields['batch'])) {
             if (core_Packs::isInstalled('batch')) {
                 expect($Def = batch_Defs::getBatchDef($productId), 'Опит за задаване на партида на артикул без партида');
-                $Def->isValid($fields['batch'], $quantity, $msg);
-                if ($msg) {
+                $msg = null;
+                if (!$Def->isValid($fields['batch'], $quantity, $msg)) {
                     expect(false, tr($msg));
                 }
                 

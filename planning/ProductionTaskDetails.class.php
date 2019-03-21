@@ -215,7 +215,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Ако е избран артикул
         if (isset($rec->productId)) {
             $pRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
-            if ($pRec->canStore != 'yes') {
+            if ($pRec->canStore != 'yes' && $rec->productId == $masterRec->productId) {
                 $form->setField('serial', 'input=none');
                 if ($rest = $masterRec->plannedQuantity - $masterRec->totalQuantity) {
                     $form->setDefault('quantity', $rest);
@@ -223,7 +223,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
             
             $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
-            $shortMeasure = cat_UoM::getShortName($pRec->measureId);
+            $shortMeasure = ($rec->productId == $masterRec->productId) ? cat_UoM::getShortName($pRec->measureId) : cat_UoM::getShortName($info->packagingId);
+            
             if($rec->type == 'production' && isset($masterRec->packagingId)){
                 $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->packagingId);
                 $form->setField('quantity', "unit={$unit}");
@@ -412,6 +413,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->fixedAsset = planning_AssetResources::getHyperlink($rec->fixedAsset);
         }
         
+        $taskRec = planning_Tasks::fetch($rec->taskId);
         $row->taskId = planning_Tasks::getLink($rec->taskId, 0);
         $row->modified = "<div class='nowrap'>" . $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
         $row->modified .= ' ' . tr('от||by') . ' ' . crm_Profiles::createLink($rec->modifiedBy) . '</div>';
@@ -426,7 +428,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         $row->measureId = cat_UoM::getShortName($pRec->measureId);
         
         $foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
-        $packagingId = (!empty($foundRec->packagingId)) ? $foundRec->packagingId : $pRec->measureId;
+        if($taskRec->productId != $rec->productId){
+            $packagingId = (!empty($foundRec->packagingId)) ? $foundRec->packagingId : $pRec->measureId;
+        } else {
+            $packagingId = $pRec->measureId;
+        }
         $packagingName = cat_UoM::getShortName($packagingId);
         
         if (cat_UoM::fetchField($packagingId, 'type') != 'uom') {

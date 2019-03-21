@@ -207,7 +207,7 @@ class type_Email extends type_Varchar
             ht::setUniqId($attr);
             $spanId = $attr['id'];
             $value = "<span id='{$spanId}'>{$verbal}</span>";
-            $value .= "<script>$('#{$spanId}').html(\"<a href='mailto:{$user}\" + \"{$domain}'><span style='display:none;'>{$verbal}</span>\" + \"{$user}\" + \"{$domain}</a>\");</script>";
+            $value .= "<script> document.getElementById('{$spanId}').innerHTML = \"<a href='mailto:{$user}\" + \"{$domain}'><span style='display:none;'>{$verbal}</span>\" + \"{$user}\" + \"{$domain}</a>\";</script>";
         } else {
             $value = $verbal;
         }
