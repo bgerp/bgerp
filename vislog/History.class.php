@@ -85,7 +85,7 @@ class vislog_History extends core_Manager
         $this->setDbIndex('ip');
     }
     
-    
+
     /**
      * Добавя нов запис в лога
      *
@@ -94,12 +94,8 @@ class vislog_History extends core_Manager
      */
     public static function add($query, $returnCnt = false)
     {
-        $queryAdWords = vislog_Adwords::add();
+        vislog_Adwords::add();
         
-        if(!$query && strlen($queryAdWords)) {
-            $query = $queryAdWords;
-        }
-
         $rec = new stdClass();
         
         $rec->query = $query;
