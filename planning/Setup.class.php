@@ -79,7 +79,7 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    public $startCtr = 'planning_Setup';
+    public $startCtr = 'planning_Wrapper';
     
     
     /**
