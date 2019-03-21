@@ -575,8 +575,11 @@ class core_Form extends core_FieldSet
             
             $cntErr = 0;
             $cntWrn = 0;
-            
+             
             foreach ($this->errors as $field => $errRec) {
+                
+                if($errRec->msg === false) continue;
+
                 if(empty($errRec->msg)){
                     $fieldCaption = tr($this->fields[$field]->caption);
                     $errRec->msg = "Има проблем с полето|* <b>{$fieldCaption}</b>";
