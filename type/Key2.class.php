@@ -190,17 +190,20 @@ class type_Key2 extends type_Int
         // 2. Ако опциите са под MaxSuggestions - показваме обикновен селект
         // 2. Комбобокс с id вградени в титлата, ако нямаме селект 2
         
-        
+        if (defined('TEST_MODE')) {
+            $this->params['maxSuggestions'] = false;
+        }
         if (!$this->params['maxSuggestions']) {
             $maxSuggestions = $this->params['maxSuggestions'] = core_Setup::get('TYPE_KEY_MAX_SUGGESTIONS', true);
         }
         
         $options = array();
-        
+        if (defined('TEST_MODE')) {
+            $this->params['forceAjax']=false;
+        }
         if (!$this->params['forceAjax']) {
             $options = $this->getOptions($maxSuggestions);
         }
-        
         if (ctype_digit("{$value}")) {
             $currentOpt = $this->getOptions(1, '', $value, true);
             $key = reset($currentOpt);
@@ -245,7 +248,7 @@ class type_Key2 extends type_Int
             
             // Добавяме необходимите файлове и стартирам select2
             select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, null, $ajaxUrl);
-        } elseif ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no'))) {
+        } elseif (!defined('TEST_MODE') && ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no')))) {
             // Показваме Combobox
             
             $this->params['inputType'] = 'combo';

@@ -9,7 +9,7 @@
  * @package   label
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -56,7 +56,8 @@ class label_Setup extends core_ProtoSetup
         'label_Counters',
         'label_CounterItems',
         'label_Prints',
-        'migrate::removeEmptyCounterItems'
+        'migrate::removeEmptyCounterItems',
+        'migrate::removeOldPlugin'
     );
     
     
@@ -119,5 +120,15 @@ class label_Setup extends core_ProtoSetup
         }
         
         label_CounterItems::delete("(#printId IS NULL || #printId = ''){$dQuery}");
+    }
+    
+    
+    /**
+     * Махане на излишен плъгин
+     */
+    public function removeOldPlugin()
+    {
+        $Plugins = cls::get('core_Plugins');
+        $Plugins->deinstallPlugin('label_plg_Print', 'planning_Tasks');
     }
 }

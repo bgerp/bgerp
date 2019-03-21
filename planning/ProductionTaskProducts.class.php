@@ -104,7 +104,7 @@ class planning_ProductionTaskProducts extends core_Detail
     {
         $this->FLD('taskId', 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
         $this->FLD('type', 'enum(input=Влагане,waste=Отпадък,production=Произвеждане)', 'caption=За,remember,silent,input=hidden');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|limit|indTime,tdClass=productCell leftCol wrap');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=10,forceAjax)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|limit|indTime,tdClass=productCell leftCol wrap');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Пр. единица,smartCenter,tdClass=small-field nowrap');
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Планирано к-во,smartCenter,oldFieldName=planedQuantity');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
@@ -116,37 +116,6 @@ class planning_ProductionTaskProducts extends core_Detail
         
         $this->setDbUnique('taskId,productId');
         $this->setDbIndex('taskId,productId,type');
-    }
-    
-    
-    /**
-     * Дефолтно опции за артикула
-     * 
-     * @param stdClass $rec
-     * @return array $res
-     */
-    private static function getProductOptions($rec)
-    {
-        if(empty($rec->id)){
-            $meta = ($rec->type == 'input') ? 'canConvert' : (($rec->type == 'waste') ? 'canStore,canConvert' : 'canManifacture');
-            $onlyInGroups = ($rec->type == 'waste') ? cat_Groups::getKeylistBySysIds('waste') : null;
-            $options = cat_Products::getByProperty($meta, null, null, $onlyInGroups);
-            
-            $query = self::getQuery();
-            $query->where("#taskId = {$rec->taskId}");
-            $query->show('productId');
-            $existingProducts = arr::extractValuesFromArray($query->fetchAll(), 'productId');
-            $res = array_diff_key($options, $existingProducts);
-            
-            return $res;
-        }
-        
-        $productId = planning_ProductionTaskProducts::fetchField($rec->id, 'productId');
-        $res = array($productId => cat_Products::getTitleById($productId, false));
-        
-       
-        
-        return $res;
     }
     
     
@@ -165,13 +134,9 @@ class planning_ProductionTaskProducts extends core_Detail
         
         // Ако има тип
         if (isset($rec->type)) {
-            $products = self::getProductOptions($rec);
-           
-            // Задаваме опциите с артикулите за избор
-            $form->setOptions('productId', array('' => '') + $products);
-            if (count($products) == 1) {
-                $form->setDefault('productId', key($products));
-            }
+            $meta = ($rec->type == 'input') ? 'canConvert' : (($rec->type == 'waste') ? 'canStore,canConvert' : 'canManifacture');
+            $onlyInGroups = ($rec->type == 'waste') ? cat_Groups::getKeylistBySysIds('waste') : null;
+            $form->setFieldTypeParams('productId', array('hasProperties' => $meta, 'groups' => $onlyInGroups));
         }
         
         if (isset($rec->productId)) {

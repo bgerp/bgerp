@@ -99,16 +99,20 @@ class vislog_Referer extends core_Manager
             if (stripos($parts['host'], $localHost) === false) {
                 parse_str($parts['query'], $query);
                 
-                $search_engines = array(
-                    'bing' => 'q',
-                    'google' => 'q',
-                    'yahoo' => 'p'
-                );
+                if($query = Mode::get('adWordsQuery')) {
+                    $rec->query = $query;
+                } else {
+                    $search_engines = array(
+                        'bing' => 'q',
+                        'google' => 'q',
+                        'yahoo' => 'p'
+                    );
                 
-                preg_match('/(' . implode('|', array_keys($search_engines)) . ')\./', $parts['host'], $matches);
-                
-                $rec->query = isset($matches[1], $query[$search_engines[$matches[1]]])   ? $query[$search_engines[$matches[1]]] : '';
-                
+                    preg_match('/(' . implode('|', array_keys($search_engines)) . ')\./', $parts['host'], $matches);
+                    
+                    $rec->query = isset($matches[1], $query[$search_engines[$matches[1]]])   ? $query[$search_engines[$matches[1]]] : '';
+                }
+
                 $rec->searchLogResourceId = $resource;
                 
                 // Поставяме IP ако липсва

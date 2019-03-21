@@ -67,7 +67,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
         if (Mode::get('saveTransaction')) {
             $property = ($rec->isReverse == 'yes') ? 'canSell' : 'canBuy';
             $msg = ($rec->isReverse == 'yes') ? 'продаваеми услуги' : 'купуваеми услуги';
-            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), $property);
+            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), $property, 'canStore');
             
             if(count($productCheck['notActive'])){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
