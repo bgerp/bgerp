@@ -224,8 +224,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
             $shortMeasure = cat_UoM::getShortName($pRec->measureId);
-            if($rec->type == 'production' && isset($masterRec->packagingId) && $masterRec->packagingId != $info->packagingId){
-                $shortMeasure = cat_UoM::getShortName($info->packagingId);
+            if($rec->type == 'production' && isset($masterRec->packagingId)){
                 $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->packagingId);
                 $form->setField('quantity', "unit={$unit}");
                 
