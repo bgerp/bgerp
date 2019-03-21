@@ -215,7 +215,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Ако е избран артикул
         if (isset($rec->productId)) {
             $pRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
-            if ($pRec->canStore != 'yes') {
+            if ($pRec->canStore != 'yes' && $rec->productId == $masterRec->productId) {
                 $form->setField('serial', 'input=none');
                 if ($rest = $masterRec->plannedQuantity - $masterRec->totalQuantity) {
                     $form->setDefault('quantity', $rest);
