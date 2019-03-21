@@ -89,6 +89,7 @@ class rack_PositionType extends type_Varchar
         list($n, $r, $c) = explode('-', $value);
         
         $storeId = store_Stores::getCurrent();
+        $error = null;
         if (!rack_Racks::checkPosition($value, null, $storeId, $error)) {
             $res = ht::createHint($value, 'Позицията, вече е премахната от стелажа|*!', 'warning', false);
         } else {

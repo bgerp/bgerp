@@ -121,7 +121,7 @@ class store_TransfersDetails extends doc_Detail
     public function description()
     {
         $this->FLD('transferId', 'key(mvc=store_Transfers)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('newProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore)', 'caption=Продукт,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
+        $this->FLD('newProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,maxSuggestions=20,forceAjax)', 'class=w100,caption=Продукт,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
         $this->FLD('productId', 'key(mvc=store_Products,select=productId)', 'caption=Продукт,input=none,mandatory,silent,refreshForm');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
@@ -271,21 +271,10 @@ class store_TransfersDetails extends doc_Detail
         if (!empty($data->toolbar->buttons['btnAdd'])) {
             unset($data->toolbar->buttons['btnAdd']);
             $products = cat_Products::getByProperty('canStore', null, 1);
-            
             if (!count($products)) {
                 $error = 'error=Няма складируеми артикули, ';
             }
-            
-            $data->toolbar->addBtn(
-                
-                'Артикул',
-                
-                array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => true),
-                    "id=btnAdd,{$error} order=10,title=Добавяне на артикул",
-                
-                'ef_icon = img/16/shopping.png'
-            
-            );
+            $data->toolbar->addBtn('Артикул', array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => true), "id=btnAdd,{$error} order=10,title=Добавяне на артикул",'ef_icon = img/16/shopping.png');
         }
     }
     

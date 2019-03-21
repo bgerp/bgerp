@@ -188,25 +188,23 @@ class rack_Setup extends core_ProtoSetup
         
         if(!$Zones->count()) return;
         
-        $toSave = $zonesArr = array();
+        $toSave = array();
         $zQuery = rack_ZoneDetails::getQuery();
         $zQuery->where("#batch IS NULL");
         while($zRec = $zQuery->fetch()){
             $zRec->batch = '';
-            
             $toSave[$zRec->id] = $zRec;
-            $zonesArr[$zRec->zoneId] = $zRec->zoneId;
         }
         
         if(count($toSave)){
             $Zones->saveArray($toSave, 'id,batch');
         }
         
+        $deleteArr = array();
         $query2 = $Zones->getQuery();
         $query2->where("#batch = ''");
         $query2->orderBy('id', 'ASC');
         while($rec2 = $query2->fetch()){
-            
             $exRec = rack_ZoneDetails::fetch("#id != '{$rec2->id}' AND #zoneId = {$rec2->zoneId} AND #productId = {$rec2->productId} AND #packagingId = {$rec2->packagingId} AND #batch = ''");
             if(!$exRec) continue;
             
@@ -214,7 +212,11 @@ class rack_Setup extends core_ProtoSetup
             $rec2->documentQuantity = !empty($rec2->documentQuantity) ? $rec2->documentQuantity : $exRec->documentQuantity;
             
             $Zones->save($rec2, 'movementQuantity,documentQuantity');
-            rack_ZoneDetails::delete($exRec->id);
+            $deleteArr[$exRec->id] = $exRec->id;
+        }
+        
+        foreach ($deleteArr as $delId) {
+            rack_ZoneDetails::delete($delId);
         }
     }
 }

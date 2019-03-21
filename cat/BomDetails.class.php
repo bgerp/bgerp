@@ -163,7 +163,6 @@ class cat_BomDetails extends doc_Detail
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->modifiedOn);
-        $masterProductUomId = cat_Products::fetchField($data->masterData->rec->productId, 'measureId');
         
         $data->listFields['propQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Формула|*";
         $data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Количество|*";
@@ -271,6 +270,7 @@ class cat_BomDetails extends doc_Detail
         if (str::prepareMathExpr($expr) === false) {
             $res = self::CALC_ERROR;
         } else {
+            $success = null;
             $res = str::calcMathExpr($expr, $success);
             if ($success === false) {
                 $res = self::CALC_ERROR;
@@ -640,6 +640,7 @@ class cat_BomDetails extends doc_Detail
         $rec->type = 'stage';
         $rec->primeCost = null;
         
+        $bomRec = null;
         cat_BomDetails::addProductComponents($rec->resourceId, $rec->bomId, $rec->id, $bomRec);
         if (isset($bomRec)) {
             $rec->coefficient = $bomRec->quantity;
@@ -761,7 +762,6 @@ class cat_BomDetails extends doc_Detail
      */
     private function getDescendents($id, &$res = array())
     {
-        $descendents = array();
         $query = $this->getQuery();
         $query->where("#parentId = {$id}");
         $query->show('resourceId,propQuantity,packagingId,quantityInPack');
@@ -824,7 +824,7 @@ class cat_BomDetails extends doc_Detail
     {
         $children = $bomDetails = array();
         $this->getDescendents($rec->id, $children);
-        $components = $this->getComponents($rec->resourceId, $bomDetails);
+        $this->getComponents($rec->resourceId, $bomDetails);
         ksort($children);
         ksort($bomDetails);
         
@@ -852,6 +852,7 @@ class cat_BomDetails extends doc_Detail
         }
         
         // Подреждаме детайлите
+        $outArr = array();
         self::orderBomDetails($data->recs, $outArr);
         $data->recs = $outArr;
     }
@@ -945,6 +946,7 @@ class cat_BomDetails extends doc_Detail
         
         // Ако сме добавили нов етап
         if ($rec->stageAdded === true) {
+            $bomRec = null;
             static::addProductComponents($rec->resourceId, $rec->bomId, $rec->id, $bomRec);
             if ($bomRec) {
                 $rec->coefficient = $bomRec->quantity;
@@ -969,6 +971,7 @@ class cat_BomDetails extends doc_Detail
         $dRecs = $dQuery->fetchAll();
         
         // Подреждаме ги
+        $outArr = array();
         self::orderBomDetails($dRecs, $outArr);
         
         return $outArr;
@@ -1111,7 +1114,7 @@ class cat_BomDetails extends doc_Detail
     public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
         // Ако изтриваме етап, изтриваме всичките редове от този етап
-        foreach ($query->getDeletedRecs() as $id => $rec) {
+        foreach ($query->getDeletedRecs() as $rec) {
             if ($rec->type == 'stage') {
                 $mvc->delete("#bomId = {$rec->bomId} AND #parentId = {$rec->id}");
             }

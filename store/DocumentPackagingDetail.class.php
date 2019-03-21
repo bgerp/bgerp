@@ -125,7 +125,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($action == 'add') {
+        if ($action == 'add') { 
             if ((empty($rec->documentClassId) || empty($rec->documentId))) {
                 $requiredRoles = 'no_one';
             } elseif (isset($rec->documentClassId, $rec->documentId)) {
@@ -139,8 +139,12 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
                     $requiredRoles = 'no_one';
                 } elseif ($dRec->state != 'draft') {
                     $requiredRoles = 'no_one';
-                } elseif (!self::getPackagingProducts($dRec->folderId, true)) {
-                    $requiredRoles = 'no_one';
+                } else {
+                    $groupId = cat_Groups::fetchField("#sysId = 'packagings'", 'id');
+                    $Cover = doc_Folders::getCover($dRec->folderId);
+                    if(!cat_Products::getProducts($Cover->getClassId(), $Cover->that, null, 'canStore', null, 1, false, $groupId)){
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
@@ -179,47 +183,6 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     
     
     /**
-     * Връща наличния Амбалаж за предаване
-     *
-     * @param string $onlyCount - само бройка или не
-     *
-     * @return int|array
-     */
-    private static function getPackagingProducts($folderId, $onlyCount = false)
-    {
-        $groupId = cat_Groups::fetchField("#sysId = 'packagings'", 'id');
-        $pQuery = cat_Products::getQuery();
-        $pQuery->where("LOCATE('|{$groupId}|', #groups) AND #state = 'active' AND #canStore = 'yes'");
-        cat_products_SharedInFolders::limitQuery($pQuery, $folderId);
-        $pQuery->show('id,name,isPublic,nameEn,code');
-        
-        if ($onlyCount === true) {
-            
-            return $pQuery->count();
-        }
-        
-        $options = array();
-        while ($pRec = $pQuery->fetch()) {
-            $options[$pRec->id] = cat_Products::getRecTitle($pRec, false);
-        }
-        
-        return $options;
-    }
-    
-    
-    /**
-     * Достъпните продукти
-     */
-    protected function getProducts($masterRec)
-    {
-        // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-        $products = self::getPackagingProducts($masterRec->folderId);
-        
-        return $products;
-    }
-    
-    
-    /**
      * Преди подготовка на заглавието на формата
      */
     protected static function on_BeforePrepareEditTitle($mvc, &$res, $data)
@@ -238,10 +201,15 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
         $form = &$data->form;
+        $masterRec = $data->masterRec;
         
         if (isset($form->rec->id)) {
             $form->setField('type', 'input');
         }
+        
+        $groupId = cat_Groups::fetchField("#sysId = 'packagings'", 'id');
+        $Cover = doc_Folders::getCover($masterRec->folderId);
+        $data->form->setFieldTypeParams('productId', array('customerClass' => $Cover->getClassId(), 'customerId' => $Cover->that, 'hasProperties' => 'canStore', 'groups' => $groupId));
     }
     
     
@@ -272,13 +240,10 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     public static function getEntries($mvc, $rec, $isReverse = false)
     {
         $entries = array();
-        $sign = 1;//($isReverse) ? -1 : 1;
+        $sign = 1;
         
-        $recs = self::getRecs($mvc->getClassId(), $rec->id);
-        
-        $dQuery = store_DocumentPackagingDetail::getQuery();
-        $dQuery->where("#documentClassId = {$mvc->getClassId()} AND #documentId = {$rec->id}");
-        while ($dRec = $dQuery->fetch()) {
+        $dRecs = self::getRecs($mvc->getClassId(), $rec->id);
+        foreach ($dRecs as $dRec) {
             $quantity = $dRec->quantityInPack * $dRec->packQuantity;
             $arr323 = array('323', array($rec->contragentClassId, $rec->contragentId),
                 array('cat_Products', $dRec->productId),

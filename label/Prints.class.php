@@ -965,7 +965,7 @@ class label_Prints extends core_Master
                 
                 core_Mode::push('prepareLabel', true);
                 core_Lg::push($lang);
-                $labelDataArr = (array) $intfInst->getLabelData($rec->objectId, $pData->cnt, $preview);
+                $labelDataArr = (array) $intfInst->getLabelData($rec->objectId, $pData->cnt, $preview, $rec);
                 $placeArr = (array) $intfInst->getLabelPlaceholders($rec->objectId);
                 core_Lg::pop();
                 core_Mode::pop('prepareLabel');
