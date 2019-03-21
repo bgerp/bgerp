@@ -1395,7 +1395,6 @@ class cat_Products extends embed_Manager
     {
         $private = $products = array();
         $query = cat_Products::getQuery();
-        $query->where("#state = 'active'");
         
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
@@ -1410,6 +1409,7 @@ class cat_Products extends embed_Manager
         } elseif (ctype_digit("{$onlyIds}")) {
             $query->where("#id = ${onlyIds}");
         } else {
+            $query->where("#state = 'active'");
             $reverseOrder = false;
             
             // Ако е зададен контрагент, оставяме само публичните + частните за него
