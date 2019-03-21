@@ -139,7 +139,7 @@ class cat_BomDetails extends doc_Detail
     {
         $this->FLD('parentId', 'key(mvc=cat_BomDetails,select=id)', 'caption=Етап,remember,removeAndRefreshForm=propQuantity,silent');
         $this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
-        $this->FLD('resourceId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|description');
+        $this->FLD('resourceId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=20,forceAjax)', 'class=w100,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|description');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory,input=hidden');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         
@@ -188,23 +188,9 @@ class cat_BomDetails extends doc_Detail
         $form->setField('resourceId', "caption={$matCaption}");
         
         // Добавяме всички вложими артикули за избор
-        if ($rec->type == 'pop') {
-            $metas = 'canConvert,canStore';
-            $form->setField('description', 'input=none');
-        } else {
-            $metas = 'canConvert';
-        }
-        
         $metas = ($rec->type == 'pop') ? 'canConvert,canStore' : 'canConvert';
-        $products = cat_Products::getByProperty($metas);
-        
-        // Ако артикула е избран, но не присъства в опциите добавяме
-        if (isset($rec->resourceId) && empty($products[$rec->resourceId])) {
-            $products[$rec->resourceId] = cat_Products::getTitleById($rec->resourceId, false);
-        }
-        
-        unset($products[$data->masterRec->productId]);
-        $form->setOptions('resourceId', $products);
+        $groups = ($rec->type == 'pop') ? cat_Groups::getKeylistBySysIds('waste') : null;
+        $form->setFieldTypeParams('resourceId', array('hasProperties' => $metas, 'groups' => $groups));
         
         $form->setDefault('type', 'input');
         $quantity = $data->masterRec->quantity;
@@ -254,7 +240,6 @@ class cat_BomDetails extends doc_Detail
     public static function calcExpr($expr, $params)
     {
         $expr = preg_replace('/\$Начално\s*=\s*/iu', '1/$T*', $expr);
-        
         $expr = preg_replace('/(\d+)+\,(\d+)+/', '$1.$2', $expr);
         
         if (is_array($params)) {
@@ -263,7 +248,6 @@ class cat_BomDetails extends doc_Detail
             $expr = str_replace('1/$T*', '_TEMP_', $expr);
             $expr = str_replace('$T', '$Trr', $expr);
             $expr = str_replace('_TEMP_', '1/$T*', $expr);
-            
             $expr = strtr($expr, $params);
         }
         
