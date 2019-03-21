@@ -139,7 +139,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('serialType', 'enum(existing=Съществуващ,generated=Генериран,printed=Отпечатан,unknown=Непознат)', 'caption=Тип на серийния номер,input=none');
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество');
         $this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
-        $this->FLD('weight', 'double', 'caption=Тегло,smartCenter,unit=кг');
+        $this->FLD('weight', 'double(Min=0)', 'caption=Тегло,smartCenter,unit=кг');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,tdClass=nowrap');
         $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Оборудване,input=none,tdClass=nowrap');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Забележки,autohide');
@@ -222,17 +222,18 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
             }
             
+            $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
             $shortMeasure = cat_UoM::getShortName($pRec->measureId);
-            if($rec->type == 'production' && isset($masterRec->packagingId) && $masterRec->packagingId != $pRec->measureId){
+            if($rec->type == 'production' && isset($masterRec->packagingId) && $masterRec->packagingId != $info->packagingId){
+                $shortMeasure = cat_UoM::getShortName($info->packagingId);
                 $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->packagingId);
                 $form->setField('quantity', "unit={$unit}");
                 
                 $packRec = cat_products_Packagings::getPack($masterRec->productId, $masterRec->packagingId);
-                $defaultQuantity = is_object($packRec) ? $packRec->quantity : 1;
+                $defaultQuantity = is_object($packRec) ? ($packRec->quantity / $masterRec->quantityInPack) : 1;
                 $form->setField('quantity', "placeholder={$defaultQuantity}");
                 $form->rec->_defaultQuantity = $defaultQuantity;
             } else {
-                $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
                 $unit = cat_UoM::getShortName($info->packagingId);
                 $form->setField('quantity', "unit={$unit}");
             }
@@ -283,7 +284,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(isset($rec->productId)){
                 $rec->_generateSerial = false;
                 $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-                if($canStore == 'yes' && $rec->type == 'production' && !empty($masterRec->packagingId)){
+                if($canStore == 'yes' && $rec->type == 'production' && !empty($masterRec->packagingId) && empty($rec->serial)){
                     $rec->_generateSerial = true;
                 }
                 
@@ -345,7 +346,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if ($rec->_generateSerial === true) {
+        if ($rec->_generateSerial === true && empty($rec->serial)) {
             if ($Driver = cat_Products::getDriver($rec->productId)) {
                 $rec->serial = $Driver->generateSerial($rec->productId, 'planning_Tasks', $rec->taskId);
                 $rec->serialType = 'generated';
@@ -429,9 +430,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         $packagingId = (!empty($foundRec->packagingId)) ? $foundRec->packagingId : $pRec->measureId;
         $packagingName = cat_UoM::getShortName($packagingId);
         
-        if ($rec->type != 'production' && cat_UoM::fetchField($packagingId, 'type') != 'uom') {
+        if (cat_UoM::fetchField($packagingId, 'type') != 'uom') {
             $row->measureId = str::getPlural($rec->quantity, $packagingName, true);
-        } elseif ($rec->type == 'production') {
+        }
+        
+        if ($rec->type == 'production') {
             $row->type = (!empty($packagingId)) ? tr("Произв.|* {$packagingName}") : tr('Произвеждане');
         }
         

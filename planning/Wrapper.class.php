@@ -38,6 +38,8 @@ class planning_Wrapper extends plg_ProtoWrapper
         $this->TAB('planning_FoldersWithResources', 'Настройки->Папки с ресурси', 'ceo,planning');
         $this->TAB('planning_AssetResourcesNorms', 'Настройки->Норми', 'ceo,planning');
         
+        $this->TAB('planning_WorkCards', 'Раб. карти', 'ceo,planning,admin');
+        
         $this->title = 'Планиране';
     }
     

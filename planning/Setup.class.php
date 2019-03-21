@@ -132,8 +132,10 @@ class planning_Setup extends core_ProtoSetup
         'planning_Hr',
         'planning_FoldersWithResources',
         'planning_Stages',
+        'planning_WorkCards',
         'migrate::assetResourceFields',
-        'migrate::updateTasks'
+        'migrate::updateTasks',
+        'migrate::updateTasksPart2'
     );
     
     
@@ -173,7 +175,9 @@ class planning_Setup extends core_ProtoSetup
         
         // Кофа за снимки
         $html .= fileman_Buckets::createBucket('planningImages', 'Илюстрации в производство', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'every_one', 'powerUser');
-       
+        
+        $html .= fileman_Buckets::createBucket('workCards', 'Работни карти', 'pdf,jpg,jpeg,png', '200MB', 'powerUser', 'powerUser');
+        
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StageDriver', 'private');
         
@@ -258,7 +262,10 @@ class planning_Setup extends core_ProtoSetup
         $TaskDetails = cls::get('planning_ProductionTaskDetails');
         $TaskDetails->setupMvc();
         
-        if(!count($Tasks)) return;
+        if (!count($Tasks)) {
+            
+            return;
+        }
         
         $updateArr = array();
         $query = $Tasks->getQuery();
@@ -271,6 +278,40 @@ class planning_Setup extends core_ProtoSetup
         
         if(count($updateArr)){
             $Tasks->saveArray($updateArr, 'id,indPackagingId');
+        }
+    }
+    
+    
+    /**
+     * Обновява новите полета на ПО
+     */
+    public static function updateTasksPart2()
+    {
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+        
+        $TaskDetails = cls::get('planning_ProductionTaskDetails');
+        $TaskDetails->setupMvc();
+        
+        if(!count($Tasks)) {
+            
+            return;
+        }
+        
+        $updateArr = array();
+        $query = $Tasks->getQuery();
+        $query->where("#measureId IS NULL");
+        $query->show('measureId,quantityInPack,productId');
+        while($rec = $query->fetch()){
+            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+            $rec->measureId = $measureId;
+            $rec->quantityInPack = 1;
+            
+            $updateArr[] = $rec;
+        }
+        
+        if(count($updateArr)){
+            $Tasks->saveArray($updateArr, 'id,measureId,quantityInPack');
         }
     }
 }

@@ -34,7 +34,7 @@ class core_Session
     /**
      * Префикс за декорация
      */
-    protected $decoratePrefix = 'sess_';
+    protected static $decoratePrefix = 'sess_';
     
     
     /**
@@ -282,7 +282,7 @@ class core_Session
             $prefix = substr($prefix, 0, 10);
         }
         
-        $decoratedVar = $this->getDecoratePrefix() . $prefix . '_' . $varName;
+        $decoratedVar = core_Session::getDecoratePrefix() . $prefix . '_' . $varName;
         
         return $decoratedVar;
     }
@@ -293,9 +293,9 @@ class core_Session
      *
      * @param string $prefix
      */
-    public function setDecoratePrefix($prefix)
+    public static function setDecoratePrefix($prefix)
     {
-        $this->decoratePrefix = $prefix;
+        self::$decoratePrefix = $prefix;
     }
     
     
@@ -304,8 +304,8 @@ class core_Session
      *
      * @return string
      */
-    public function getDecoratePrefix()
+    public static function getDecoratePrefix()
     {
-        return $this->decoratePrefix;
+        return self::$decoratePrefix;
     }
 }

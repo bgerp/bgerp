@@ -87,7 +87,7 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function getDealDetailFields(&$mvc)
     {
-        $mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance|batch');
+        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=20,forceAjax)', 'class=w100,caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance|batch');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field nowrap,silent,removeAndRefreshForm=packPrice|discount,mandatory,input=hidden');
         
         // Количество в основна мярка
@@ -197,38 +197,17 @@ abstract class deals_DealDetail extends doc_Detail
         
         $form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
+        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts));
         
         if (empty($rec->id)) {
-            $products = array();
-            
-            // Ако потребителя е партньор
+            // Ако потребителя е партньор и има листвани артикули за контрагента
             if (haveRole('partner')) {
-                
-                // И има листвани артикули за контрагента
                 $listSysId = ($mvc instanceof sales_SalesDetails) ? 'salesList' : 'purchaseList';
                 $listId = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId);
-                
-                // Взимат се само артикулите от тях
-                if (isset($listId)) {
-                    $allProducts = cat_Listings::getAll($listId);
-                    foreach ($allProducts as $o) {
-                        $pRec = cat_Products::fetch($o->productId, 'name,nameEn,isPublic,code,createdOn');
-                        $products[$o->productId] = cat_Products::getRecTitle($pRec, false);
-                    }
-                }
+                $form->setFieldTypeParams('productId', array('listId' => $listId, 'selectSourceArr' => 'cat_Listings::getProductOptions'));
             }
-            
-            if (!count($products)) {
-                $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
-            }
-            expect(count($products));
-            
-            $form->setOptions('productId', array('' => ' ') + $products);
         } else {
-            // Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
-            // напълно определен продукт (клас и ид), който да не може да се променя във формата
-            // и полето цена да стане задължително
-            $form->setOptions('productId', array($rec->productId => cat_Products::getTitleById($rec->productId, false)));
+            $form->setReadOnly('productId');
         }
         
         if (!empty($rec->packPrice)) {

@@ -163,7 +163,7 @@ class accda_Da extends core_Master
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products)', 'caption=Счетоводство->Артикул,mandatory,silent,refreshForm,remember');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=fixedAsset,maxSuggestions=20,forceAjax)', 'class=w100,caption=Счетоводство->Артикул,mandatory,silent,refreshForm,remember');
         $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Счетоводство->Сметка,mandatory,input=hidden,remember');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Счетоводство->Склад,input=none,silent,refreshForm,remember');
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Счетоводство->В употреба от,mandatory,remember');
@@ -198,11 +198,8 @@ class accda_Da extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
         
-        $assets = cat_Products::getByProperty('fixedAsset');
-        $form->setOptions('productId', array('' => '') + $assets);
         $form->setDefault('valior', dt::today());
-        
-        if (!empty($rec->id)) {
+        if (isset($rec->id)) {
             $form->setReadOnly('productId');
         }
         

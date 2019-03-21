@@ -73,11 +73,12 @@ class label_SequenceIntf
      * @param int  $id
      * @param int  $cnt
      * @param bool $onlyPreview
+     * @param stdClass $lRec
      *
      * @return array - масив от масив с ключ плейсхолдера и стойността
      */
-    public function getLabelData($id, $cnt, $onlyPreview = false)
+    public function getLabelData($id, $cnt, $onlyPreview = false, $lRec = null)
     {
-        return $this->class->getLabelData($id, $cnt, $onlyPreview);
+        return $this->class->getLabelData($id, $cnt, $onlyPreview, $lRec);
     }
 }

@@ -318,7 +318,7 @@ class cms_Content extends core_Manager
             $attr['class'] = 'selectLang langIcon';
             $attr['title'] = implode(', ', $usedLangsArr);
             if (Request::get('Ctr') == 'cms_Content' && Request::get('Act') == 'selectLang') {
-                $attr['class'] = 'selected';
+                $attr['class'] = 'selected langIcon';
             }
             $tpl->append(ht::createLink(ht::createElement('img', array('src' => sbf('img/24/globe.png', ''))), array($this, 'selectLang'), null, $attr));
         }
@@ -626,7 +626,7 @@ class cms_Content extends core_Manager
     /**
      * Подготвя параметрите за SEO оптимизация
      */
-    public static function prepareSeo($rec, $suggestions = array())
+    public static function prepareSeo_($rec, $suggestions = array())
     {
         expect(is_object($rec), $rec);
         
@@ -669,8 +669,6 @@ class cms_Content extends core_Manager
             $rec->seoThumb = cms_Content::getSeoThumb($suggestions['seoDescription']);
         }
   
-        ograph_Factory::prepareOgraph($rec);
- 
         Mode::set('SOC_TITLE', $rec->seoTitle);
         Mode::set('SOC_SUMMARY', $rec->seoDescription);
     }
@@ -679,7 +677,7 @@ class cms_Content extends core_Manager
     /**
      * Добавя параметрите за SEO оптимизация
      */
-    public static function renderSeo($content, $rec)
+    public static function renderSeo_($content, $rec)
     {
         expect(is_object($rec), $rec);
         
@@ -697,7 +695,6 @@ class cms_Content extends core_Manager
             $content->replace($rec->seoKeywords, 'META_KEYWORDS');
         }
         
-        ograph_Factory::renderOgraph($content, $rec);
     }
     
     

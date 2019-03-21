@@ -58,7 +58,16 @@ class cms_VerbalIdPlg extends core_Plugin
         $mvc->searchFields[] = 'seoTitle';
         $mvc->searchFields[] = 'seoDescription';
         $mvc->searchFields[] = 'seoKeywords';
-        
+
+        if($mvc->changableFields) {
+            $mvc->changableFields = arr::make($mvc->changableFields, true);
+            $mvc->changableFields['seoTitle'] = 'seoTitle';
+            $mvc->changableFields['seoDescription'] = 'seoDescription';
+            $mvc->changableFields['seoKeywords'] = 'seoKeywords';
+            $mvc->changableFields['seoThumb'] = 'seoThumb';
+            $mvc->changableFields[$this->fieldName] = $this->fieldName;
+        }
+
         // Да не се кодират id-тата, когато се използва verbalId
         $mvc->protectId = false;
     }

@@ -146,17 +146,19 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     
     
     /**
-     * Достъпните продукти
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
      */
-    protected function getProducts($masterRec)
+    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
+        $form = &$data->form;
+        $masterRec = $data->masterRec;
         $property = ($masterRec->isReverse == 'yes') ? 'canBuy' : 'canSell';
         $property .= ',canStore';
         
-        // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-        $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
-        
-        return $products;
+        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property));
     }
     
     
@@ -176,16 +178,13 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             }
             
             if (isset($rec->productId, $masterRec)) {
+                $foundQuantity = null;
                 $masterStore = $masterRec->storeId;
                 $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore, $foundQuantity);
                 $form->info = $storeInfo->formInfo;
                 if (!empty($foundQuantity) && $foundQuantity > 0) {
                     $form->setSuggestions('baseQuantity', array('' => '', "{$foundQuantity}" => $foundQuantity));
                 }
-            }
-            
-            if ($masterRec->template) {
-                $tplRec = doc_TplManager::fetch($masterRec->template);
             }
         }
         
@@ -210,7 +209,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             $rec = $data->recs[$id];
             deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $masterRec->storeId, $rec->quantity, $masterRec->state);
             
-            if (!core_Users::haveRole('ceo,seePrice') && isset($row->packPrice)) {
+            if (core_Users::haveRole('ceo,seePrice') && isset($row->packPrice)) {
                 $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
                 if(sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate)){
                     $row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', false);
@@ -240,7 +239,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         
         $date = ($data->masterData->rec->state == 'draft') ? null : $data->masterData->rec->modifiedOn;
         if (count($data->rows)) {
-            $totalLU = array();
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
                 

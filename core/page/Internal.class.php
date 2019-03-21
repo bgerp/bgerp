@@ -184,7 +184,6 @@ class core_page_Internal extends core_page_Active
                     $notFirst = true;
                 }
             }
-            jquery_Jquery::run($tpl, 'removeNarrowScroll();');
         } else {
             // Ако сме в широк формат
             // Отпечатваме менютата
@@ -292,6 +291,11 @@ class core_page_Internal extends core_page_Active
             $name = core_Users::getCurrent('names');
             $img = sbf('img/supportmale-20.png', '');
             $btn = "<input title='Сигнал за бъг, въпрос или предложение' alt='Сигнал за бъг' class='bugReport' type=image src='{$img}' name='Cmd[refresh]'>";
+            
+            if ($conf->HELP_AUTO_FILL_USER_NAME_AND_EMAIL == 'no') {
+                $user = $name = $domain = '';
+            }
+            
             $form = new ET("<form style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}', '{$ctr}', '{$act}', '{$sysDomain}');\" action='" . $conf->BGERP_SUPPORT_URL . "'>[#1#]</form>", $btn);
             $tpl->append('&nbsp;<small>|</small>&nbsp;');
             $tpl->append($form);

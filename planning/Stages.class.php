@@ -305,4 +305,9 @@ class planning_Stages extends core_Extender
         
         return $tpl;
     }
+    
+    function act_Test()
+    {
+        cls::get('planning_Setup')->updateTasksPart2();
+    }
 }

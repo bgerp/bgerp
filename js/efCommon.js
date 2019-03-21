@@ -3971,15 +3971,6 @@ function render_editCopiedTextBeforePaste() {
 
 
 /**
-* Функция, която извиква подготвянето на editCopiedTextBeforePaste
-* Може да се комбинира с efae
-*/
-function render_removeNarrowScroll() {
-	removeNarrowScroll();
-}
-
-
-/**
 * Функция, която извиква подготвянето на показването на тоолтипове
 * Може да се комбинира с efae
  */
@@ -5022,8 +5013,15 @@ function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 	
 	addBugReportInput(form, 'title', title);
 	addBugReportInput(form, 'url', url);
-	addBugReportInput(form, 'email', user + '@' + domain);
-	addBugReportInput(form, 'name', name);
+	
+	if (user && domain) {
+		addBugReportInput(form, 'email', user + '@' + domain);
+	}
+	
+	if (name) {
+		addBugReportInput(form, 'name', name);
+	}
+	
 	addBugReportInput(form, 'width', width);
 	addBugReportInput(form, 'height', height);
 	addBugReportInput(form, 'browser', browser);
@@ -5075,14 +5073,6 @@ function debugLayout() {
 
 
 }
-
-
-function removeNarrowScroll() {
-	if($('body').hasClass('narrow-scroll') && !checkNativeSupport()){
-		$('body').removeClass('narrow-scroll');
-	}
-}
-
 
 
 /**
@@ -5441,6 +5431,15 @@ JSON.parse = JSON.parse || function (str) {
 	eval("var p=" + str + ";");
 	return p;
 };
+
+
+function unregisterServiceWorker() {
+    if($('#main-container').length && !$('link[rel="manifest"]').length && !isIE() && typeof navigator.serviceWorker !== 'undefined') {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            eval("for(var registration of registrations) {registration.unregister();}");
+        });
+    }
+}
 
 
 runOnLoad(maxSelectWidth);

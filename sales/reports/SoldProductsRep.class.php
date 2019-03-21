@@ -1217,6 +1217,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
     }
     
+    /*
+     * Връща folderId-тата на всички контрагенти,
+     * които имат регистрация в поне една от избраните групи
+     *
+     * @param stdClass            $rec
+     *
+     * @return array
+     */
     public static function getFoldersInGroups($rec)
     {
         $foldersInGroups = array();

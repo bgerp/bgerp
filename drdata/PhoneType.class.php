@@ -24,6 +24,12 @@ class drdata_PhoneType extends type_Varchar
     
     
     /**
+     * Константа за текста за неразпознат номер
+     */
+    const UNRECOGNIZED_TEXT = 'Неразпознаваем телефонен номер||Unrecognizable phone number';
+    
+    
+    /**
      * Връща подадения номер като стринг като пълен номер
      *
      * @param string $number   - Номера
@@ -165,7 +171,7 @@ class drdata_PhoneType extends type_Varchar
         
         if ($parsedTel == false) {
             
-            return "<span class='red' title='" . tr('Неразпознаваем телефонен номер||Unrecognizable phone number') . "'>{$telNumber}</span>";
+            return "<span class='red' title='" . tr(self::UNRECOGNIZED_TEXT) . "'>{$telNumber}</span>";
         }
         $res = new ET();
         $value = '';
@@ -263,5 +269,39 @@ class drdata_PhoneType extends type_Varchar
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Проверява зададената стойност дали е допустима за този тип.
+     * Стойността е във вътрешен формат (MySQL)
+     * Връща масив с ключове 'warning', 'error' и 'value'.
+     * Ако стойността е съмнителна 'warning' съдържа предупреждение
+     * Ако стойността е невалидна 'error' съдържа съобщение за грешка
+     * Ако стойността е валидна или съмнителна във 'value' може да се
+     * съдържа 'нормализирана' стойност
+     */
+    public function isValid($value)
+    {
+        if ($value !== null) {
+            $res = array();
+            
+            if(!empty($value) && isset($this->params['unrecognized'])){
+                $parsedTel = static::toArray($value, $this->params);
+                if ($parsedTel == false || !count($parsedTel)) {
+                    if($this->params['unrecognized'] == 'warning'){
+                        $res['warning'] = self::UNRECOGNIZED_TEXT;
+                    } else {
+                        $res['error'] = self::UNRECOGNIZED_TEXT;
+                    }
+                }
+                    
+                if ($res['error']) {
+                    $this->error = $res['error'];
+                }
+            }
+            
+            return $res;
+        }
     }
 }

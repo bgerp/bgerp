@@ -134,6 +134,7 @@ class acc_BalanceDetails extends core_Detail
         
         $this->setDbIndex('balanceId');
         $this->setDbIndex('accountId');
+        $this->setDbIndex('balanceId,accountId');
     }
     
     
