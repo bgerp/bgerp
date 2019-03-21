@@ -27,7 +27,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
      */
     public static function setDocumentFields($mvc)
     {
-        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=20,forceAjax)', 'class=w100,caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|batch|baseQuantity');
+        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=10,forceAjax)', 'class=w100,caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|batch|baseQuantity');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка,smartCenter,tdClass=small-field nowrap,after=productId,mandatory,silent,removeAndRefreshForm=packPrice|discount|baseQuantity,input=hidden');
         $mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
         $mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
