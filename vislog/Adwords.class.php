@@ -95,7 +95,7 @@ class vislog_Adwords extends core_Manager
         }
         
         if($rec->keywords) {
-            Mode::set('adWordsQuery', $rec->match . '( ' . $rec->keywords . ' )');
+            Mode::set('adWordsQuery', $rec->keywords . ', ' . $rec->match);
         }
     }
     
