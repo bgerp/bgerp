@@ -154,6 +154,10 @@ class type_Key extends type_Int
             
             $options = $this->options;
             
+            if (!$this->handler) {
+                $this->handler = md5(implode(',', array_keys($this->options)) . '|' . core_Lg::getCurrent());
+            }
+            
             $selOptCache = unserialize(core_Cache::get($this->selectOpt, $this->handler));
             
             if ($selOptCache === false) {
@@ -489,7 +493,13 @@ class type_Key extends type_Int
      */
     protected static function getUniqTitle($title, $id)
     {
-        return $title . " ({$id})";
+        if ($id) {
+            
+            return $title . " ({$id})";
+        } else {
+            
+            return $title;
+        }
     }
     
     
@@ -620,8 +630,14 @@ class type_Key extends type_Int
             parent::setFieldWidth($attr);
             
             if (($optionsCnt > $maxSuggestions) && (!core_Packs::isInstalled('select2'))) {
+                $options = $this->prepareOptions($value);
+                
                 if ($this->params['autocomplete']) {
                     $attr['autocomplete'] = $this->params['autocomplete'];
+                }
+                
+                if (!$this->handler) {
+                    $this->handler = md5(implode(',', array_keys($this->options)) . '|' . core_Lg::getCurrent());
                 }
                 
                 $selOptCache = (array) unserialize(core_Cache::get($this->selectOpt, $this->handler));

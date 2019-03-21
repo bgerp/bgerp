@@ -170,7 +170,7 @@ class rack_Pallets extends core_Manager
         
         list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
         $used = rack_Pallets::getUsed();
-        list($movedFrom, $movedTo) = rack_Movements::getExpected();
+        list(, $movedTo) = rack_Movements::getExpected();
         
         // Ако намерим палет с този продукт и свободно място към края на стелажа - вземаме него
         $haveInRack = $nearProds = array();
@@ -180,7 +180,7 @@ class rack_Pallets extends core_Manager
                 continue;
             }
             
-            list($n, $r, $c) = explode('-', $pos);
+            list($n, $r, ) = explode('-', $pos);
             
             if($r == 'A') {
                 $inFirstRow++;
@@ -529,7 +529,7 @@ class rack_Pallets extends core_Manager
                 continue;
             }
             
-            list($n, $r, $c) = explode('-', $mRec->positionTo);
+            list(, $r, $c) = explode('-', $mRec->positionTo);
             if ($r > $row || $c > $col) {
                 $error = 'Има насочени движения извън тези размери';
                 

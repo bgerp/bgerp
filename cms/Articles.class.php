@@ -46,7 +46,7 @@ class cms_Articles extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'level, menuId,  title, body, vid, seoTitle, seoDescription, seoKeywords,footerTitleLink';
+    public $changableFields = 'level, menuId,  title, body, footerTitleLink';
     
     
     /**

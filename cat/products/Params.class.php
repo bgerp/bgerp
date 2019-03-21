@@ -418,10 +418,10 @@ class cat_products_Params extends doc_Detail
         }
         
         // Ако има указани роли за параметъра, потребителя трябва да ги има за редакция/изтриване
-        if (($action == 'edit' || $action == 'delete') && $res != 'no_one' && isset($rec)) {
+        if (($action == 'edit' || $action == 'delete') && $requiredRoles != 'no_one' && isset($rec)) {
             $roles = cond_Parameters::fetchField($rec->paramId, 'roles');
             if (!empty($roles) && !haveRole($roles, $userId)) {
-                $res = 'no_one';
+                $requiredRoles = 'no_one';
             }
         }
     }

@@ -114,7 +114,7 @@ class sales_QuotationsDetails extends doc_Detail
     public function description()
     {
         $this->FLD('quotationId', 'key(mvc=sales_Quotations)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory,silent,removeAndRefreshForm=packPrice|discount|packagingId');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=20,forceAjax)', 'class=w100,caption=Артикул,notNull,mandatory,silent,removeAndRefreshForm=packPrice|discount|packagingId');
         
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,mandatory', 'tdClass=small-field nowrap,smartCenter,input=hidden');
         $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,smartCenter');
@@ -376,8 +376,7 @@ class sales_QuotationsDetails extends doc_Detail
         $rec = &$form->rec;
         $masterRec = $data->masterRec;
         
-        $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
-        $data->form->setOptions('productId', array('' => ' ') + $products);
+        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts));
         if (isset($rec->id)) {
             $data->form->setReadOnly('productId');
         }

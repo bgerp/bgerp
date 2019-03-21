@@ -154,9 +154,15 @@ class store_Stores extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name, chiefs,activateRoles,selectUsers,selectRoles,workersIds=Товарачи';
-    
-    
+    public $listFields = 'name=@Наименование, chiefs,activateRoles,selectUsers,selectRoles,workersIds=Товарачи';
+
+
+    /**
+     * Отделния ред в листовия изглед да е отгоре
+     */
+    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+
+
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */

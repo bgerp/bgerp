@@ -205,7 +205,7 @@ class sales_SalesDetails extends deals_DealDetail
                 }
             }
             
-            if (!core_Users::haveRole('ceo,seePrice') && isset($row->packPrice)) {
+            if (core_Users::haveRole('ceo,seePrice') && isset($row->packPrice)) {
                $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
                if(sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate)){
                    $row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', false);

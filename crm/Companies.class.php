@@ -291,7 +291,7 @@ class crm_Companies extends core_Master
         
         // Комуникации
         $this->FLD('email', 'emails', 'caption=Имейли,class=contactData,export=Csv');
-        $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Телефони,class=contactData,silent,export=Csv');
+        $this->FLD('tel', 'drdata_PhoneType(type=tel,unrecognized=warning)', 'caption=Телефони,class=contactData,silent,export=Csv');
         $this->FLD('fax', 'drdata_PhoneType(type=fax)', 'caption=Факс,class=contactData,silent,export=Csv');
         $this->FLD('website', 'url', 'caption=Web сайт,class=contactData,export=Csv');
         

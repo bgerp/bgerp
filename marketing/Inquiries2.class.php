@@ -68,9 +68,15 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Заглавие, personNames, company, email, folderId, createdOn, createdBy';
-    
-    
+    public $listFields = 'title=@Заглавие, personNames, company, email, folderId, createdOn, createdBy';
+
+
+    /**
+     * Отделния ред в листовия изглед да е отгоре
+     */
+    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+
+
     /**
      * Групиране на документите
      */
@@ -170,6 +176,22 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
+     * Кой може да филтрира по всички
+     * 
+     * @see acc_plg_DocumentSummary
+     */
+    public $filterRolesForAll = 'ceo,marketing';
+    
+    
+    /**
+     * Кой може да филтрира по екипи
+     * 
+     * @see acc_plg_DocumentSummary
+     */
+    public $filterRolesForTeam = 'ceo,marketing';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -208,6 +230,10 @@ class marketing_Inquiries2 extends embed_Manager
         $this->FLD('ip', 'varchar', 'caption=Ип,input=none');
         $this->FLD('browser', 'varchar(80)', 'caption=UA String,input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
+        
+        if (!acc_plg_DocumentSummary::$rolesAllMap[$this->className]) {
+            acc_plg_DocumentSummary::$rolesAllMap[$this->className] = $this->filterRolesForAll;
+        }
     }
     
     
@@ -698,7 +724,7 @@ class marketing_Inquiries2 extends embed_Manager
      */
     public function act_Send()
     {
-        $this->requireRightFor('resendemail');  
+        $this->requireRightFor('resendemail');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('resendemail', $rec);
@@ -811,13 +837,13 @@ class marketing_Inquiries2 extends embed_Manager
         $cu = core_Users::getCurrent('id', false);
         Mode::set('showBulletin', false);
         Request::setProtected('classId, objectId');
-        expect($classId = Request::get('classId', 'int'));
-        expect($objectId = Request::get('objectId', 'int'));
+        expect404($classId = Request::get('classId', 'int'));
+        expect404($objectId = Request::get('objectId', 'int'));
         $Source = cls::getInterface('marketing_InquirySourceIntf', $classId);
         $sourceData = $Source->getInquiryData($objectId);
         
         $this->requireRightFor('new');
-        expect($drvId = $sourceData['drvId']);
+        expect404($drvId = $sourceData['drvId']);
         $proto = $sourceData['protos'];
         $proto = keylist::toArray($proto);
         $title = $sourceData['title'];

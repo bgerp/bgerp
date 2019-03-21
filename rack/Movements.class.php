@@ -277,6 +277,7 @@ class rack_Movements extends core_Manager
                 }
             }
             
+            $batch = empty($batch) ? '' : $batch;
             $zonesQuantityArr = self::getZoneArr($rec);
             foreach ($zonesQuantityArr as $zoneRec){
                 rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $rec->packagingId, 0, $batch);
@@ -323,7 +324,8 @@ class rack_Movements extends core_Manager
         
         if (is_array($transaction->zonesQuantityArr)) {
             foreach ($transaction->zonesQuantityArr as $obj) {
-                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity, $transaction->batch);
+                $batch = empty($transaction->batch) ? '' : $transaction->batch;
+                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity, $batch);
             }
         }
         

@@ -56,7 +56,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
      */
     public function setDetailFields($mvc)
     {
-        $mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
+        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=20,forceAjax)', 'class=w100,caption=Продукт,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,mandatory,input=hidden,silent');
         $mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
         $mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
@@ -103,13 +103,13 @@ abstract class deals_ManifactureDetail extends doc_Detail
     {
         $form = &$data->form;
         setIfNot($data->defaultMeta, $mvc->defaultMeta);
+        
         if (!$data->defaultMeta) {
             
             return;
         }
         
-        $products = cat_Products::getByProperty($data->defaultMeta);
-        $data->form->setOptions('productId', array('' => ' ') + $products);
+        $form->setFieldTypeParams('productId', array('hasProperties' => $data->defaultMeta));
         
         if (isset($form->rec->id)) {
             $data->form->setReadOnly('productId');
@@ -182,16 +182,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
                 $error = 'error=Няма артикули, ';
             }
             
-            $data->toolbar->addBtn(
-                    
-                    'Артикул',
-                    
-                    array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => true),
-                        "id=btnAdd,{$error} order=10,title=Добавяне на артикул",
-                    
-                    'ef_icon = img/16/shopping.png'
-                
-                );
+            $data->toolbar->addBtn('Артикул', array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => true), "id=btnAdd,{$error} order=10,title=Добавяне на артикул",'ef_icon = img/16/shopping.png');
         }
     }
     

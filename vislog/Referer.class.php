@@ -76,7 +76,8 @@ class vislog_Referer extends core_Manager
         $this->FLD('query', 'varchar(255)', 'caption=Query');
         $this->FLD('searchLogResourceId', 'key(mvc=vislog_HistoryResources,title=query)', 'caption=Ресурс');
         $this->FLD('ip', 'ip(15,showNames)', 'caption=Ip');
-        
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt,allowEmpty)', 'caption=Домейн,notNull,autoFilter');
+
         $this->setDbIndex('ip');
     }
     
@@ -114,7 +115,8 @@ class vislog_Referer extends core_Manager
                 if (!$rec->ip) {
                     $rec->ip = $_SERVER['REMOTE_ADDR'];
                 }
-                
+                $rec->domainId = cms_Domains::getPublicDomain('id');
+
                 $this->save($rec);
             }
         }
@@ -131,8 +133,14 @@ class vislog_Referer extends core_Manager
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->showFields = 'search,domainId';
+        $data->listFilter->input($data->listFilter->showFields, 'silent');
         
-        $data->listFilter->showFields = 'search';
+        if ($domainId = $data->listFilter->rec->domainId) {
+            $data->query->where(array("#domainId = '[#1#]'", $domainId));
+        }
+
+
     }
     
     

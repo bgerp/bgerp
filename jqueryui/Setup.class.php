@@ -4,7 +4,7 @@
 /**
  * Версията на JQueryUI, която се използва
  */
-defIfNot(JQUERYUI_VERSION, '1.11.3');
+defIfNot(JQUERYUI_VERSION, '1.12.1');
 
 
 /**
@@ -38,7 +38,7 @@ class jqueryui_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'JQUERYUI_VERSION' => array('enum(1.8.2, 1.11.3)', 'caption=Версия на JQueryUI->Версия'),
+        'JQUERYUI_VERSION' => array('enum(1.8.2, 1.11.3, 1.12.1)', 'caption=Версия на JQueryUI->Версия'),
     );
     
     

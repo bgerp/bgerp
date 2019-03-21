@@ -42,7 +42,7 @@ class newsbar_News extends core_Master
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'news=Новина,position=Позиция,moving,startTime,endTime,lang,color,transparency,state';
+    public $listFields = 'news=Новина,position=Позиция,moving,startTime,endTime,domainId,color,transparency,state';
     
     
     /**

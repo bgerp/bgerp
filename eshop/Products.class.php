@@ -701,11 +701,14 @@ class eshop_Products extends core_Master
         $group = eshop_Groups::getVerbal($groupRec, 'name');
         $groupLink = ht::createLink($group, eshop_Groups::getUrl($groupRec));
         $pgId = $groupRec->saoParentId;
-        
+        $used = array();
+
         while ($pgId) {
+            if($used[$pgId]) break;
             $pGroupRec = eshop_Groups::fetch($pgId);
             $groupLink = ht::createLink(eshop_Groups::getVerbal($pGroupRec, 'name'), eshop_Groups::getUrl($pGroupRec)) . ' » ' . $groupLink;
             $pgId = $pGroupRec->saoParentId;
+            $used[$pgId] = true;
         }
         
         // Навигация до артикула

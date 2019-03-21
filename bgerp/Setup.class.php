@@ -263,7 +263,7 @@ class bgerp_Setup extends core_ProtoSetup
         $isFirstSetup = ($Packs->count() == 0);
         
         // Списък на основните модули на bgERP
-        $packs = 'core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,cond,currency,cms,
+        $packs = 'core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,cond,currency,cms,ograph,
                   email,crm, cat, trans, price, blast,hr,lab,dec,sales,import2,planning,marketing,store,cash,bank,
                   budget,tcost,purchase,accda,permanent,frame,frame2,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,

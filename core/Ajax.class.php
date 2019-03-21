@@ -247,7 +247,7 @@ class core_Ajax extends core_Mvc
         
         // Ако е пуснат терминала
         try {
-            if (cls::get('core_Session')->getDecoratePrefix() == 'terminal_') {
+            if (core_Session::getDecoratePrefix() == 'terminal_') {
                 $url['Terminal'] = 1;
             }
         } catch (Throwable $e) {

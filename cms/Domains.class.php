@@ -740,12 +740,18 @@ class cms_Domains extends core_Embedder
      *
      * @return array $options - опции домейни
      */
-    public static function getDomainOptions()
+    public static function getDomainOptions($uniqDomains = false)
     {
         $options = array();
         $query = self::getQuery();
         while ($rec = $query->fetch()) {
-            $options[$rec->id] = $rec->domain . " ({$rec->lang})";
+            if($uniqDomains) {
+                if($domains[$rec->domain]) continue;
+                $domains[$rec->domain] = true;
+                $options[$rec->id] = $rec->domain;
+            } else {
+                $options[$rec->id] = $rec->domain . " ({$rec->lang})";
+            }
         }
         
         return $options;
