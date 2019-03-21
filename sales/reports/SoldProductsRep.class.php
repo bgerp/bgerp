@@ -850,7 +850,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
             
             if ($rec->compare != 'no') {
-                $changeDeltas = $changeDeltas = 0;
+                $changeDeltas = $changeSales = 0;
                 
                 if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
                     $row->primeCostCompare = '<b>' . $Double->toVerbal($dRec->totalPrimeCostPrevious) . '</b>';
@@ -903,7 +903,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $row->delta = $Double->toVerbal($dRec->delta);
             
             if ($rec->compare != 'no') {
-                $changeDeltas = $changeDeltas = 0;
                 
                 if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
                     
@@ -939,8 +938,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             return $row;
         }
         
-        //Ако имаме избрано показяне "ПО АРТИКУЛИ"
+        //Ако имаме избрано показване "ПО АРТИКУЛИ"
         if ($rec->grouping == 'no') {
+            
             if (isset($dRec->code)) {
                 $row->code = $dRec->code;
             }
@@ -967,7 +967,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $row->group = self::getGroups($dRec, true, $rec);
             
             if ($rec->compare != 'no') {
-                $changeDeltas = $changeDeltas = 0;
                 
                 if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
                     $row->quantityCompare = $Double->toVerbal($dRec->quantityPrevious);
