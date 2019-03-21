@@ -93,8 +93,10 @@ class vislog_Adwords extends core_Manager
         if ($rec->match || $rec->keywords || $rec->ad) {
             self::save($rec, null, 'IGNORE');
         }
-
-        Mode::set('adWordsQuery', $rec->match . '( ' . $rec->keywords . ' )');
+        
+        if($rec->keywords) {
+            Mode::set('adWordsQuery', $rec->keywords . ', ' . $rec->match);
+        }
     }
     
     
