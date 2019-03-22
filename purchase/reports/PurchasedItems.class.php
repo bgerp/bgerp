@@ -69,7 +69,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         //Сравнение
         $fieldset->FLD('compare', 'enum(no=Без, previous=Предходен период, year=Миналогодишен период,checked=Избран период)', 'caption=Сравнение->Сравнение,after=duration,refreshForm,single=none,silent');
-        $fieldset->FLD('compareStart', 'date', 'caption=Сравнение->Начало,after=compare,single=none,silent');
+        $fieldset->FLD('compareStart', 'date', 'caption=Сравнение->Начало,after=compare,single=none,mandatory');
         
         //Контрагенти и групи контрагенти
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=compareDuration');
@@ -666,7 +666,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         
         //Когато имаме избрано групирано показване правим нов масив
-        if ($rec->grouping == 'summary') {
+        if ($rec->grouping == 'detail') {
             $recs = array();
             foreach ($groupValues as $k => $v) {
                 $recs[$k] = (object) array(
@@ -776,7 +776,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             }
             
             //Обобщено по групи
-            if ($rec->grouping == 'summary') {
+            if ($rec->grouping == 'detail') {
                 
                 //Когато има сравнение
                 if ($rec->compare != 'no') {
@@ -860,7 +860,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $row->amount = '<b>' . $Double->toVerbal($dRec->totalValue) . '</b>';
             $row->amount = ht::styleNumber($row->amount, $dRec->totalValue);
             
-            if( $rec->grouping == 'summary') {
+            if( $rec->grouping == 'detail') {
                 $row->group = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
             }
             
@@ -904,8 +904,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             return $row;
         }
         
-        //Ако имаме избрано показване "ГРУПИРАНО"
-        if ($rec->grouping == 'summary') {
+        //Ако имаме избрано показване "ОБОБЩЕНО"
+        if ($rec->grouping == 'detail') {
             if (is_numeric($dRec->group)) {
                 $row->group = cat_Groups::getVerbal($dRec->group, 'name');
             } else {
@@ -933,6 +933,16 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                     
                     $row->changePurchases = '<b>'. $Double->toVerbal($dRec->changeGroupAmountLastYear) . '</b>';
                     $row->changePurchases = ht::styleNumber($row->changePurchases, $dRec->changeGroupAmountLastYear);
+                    
+                }
+                
+                if ($rec->compare == 'checked') {
+                    
+                    $row->amountCompare = '<b>' . $Double->toVerbal($dRec->groupAmountCheckedPeriod) . '</b>';
+                    $row->amountCompare = ht::styleNumber($row->amountCompare, $dRec->groupAmountCheckedPeriod);
+                    
+                    $row->changePurchases = '<b>'. $Double->toVerbal($dRec->changeGroupAmountCheckedPeriod) . '</b>';
+                    $row->changePurchases = ht::styleNumber($row->changePurchases, $dRec->changeGroupAmountCheckedPeriod);
                     
                 }
             }
