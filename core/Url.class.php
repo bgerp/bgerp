@@ -1148,4 +1148,43 @@ class core_Url
             && preg_match('/^.{1,253}$/', $domain) //overall length check
             && preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $domain)); //length of each label
     }
+    
+    
+    /**
+     * Проверява дали абсолютно урл сочи към обект от системата
+     * 
+     * @param string $string - урл-то, което ще се проверява
+     * @param core_ObjectReference|null $reference - намерения обект от системата
+     * 
+     * @return boolean
+     */
+    public static function isUrlToSingle($string, &$reference = null)
+    {
+        if(!core_Url::isValidUrl2($string)) {
+            
+            return false;
+        }
+        
+        if(!core_Url::isLocal($string)) {
+            
+            return false;
+        }
+        
+        $urlArr = explode('/', $string);
+        $len = count($urlArr);
+        
+        $id = $urlArr[$len-1];
+        $cls = $urlArr[$len-3];
+        
+        if ($cls && cls::load($cls, true)) {
+            $clsInst = cls::get($cls);
+            if ($id = $clsInst->unprotectId($id)) {
+                $reference = new core_ObjectReference($cls, $id);
+                
+                return true;
+            }
+        }
+        
+        return false;
+    }
 }

@@ -165,6 +165,14 @@ abstract class deals_DealDetail extends doc_Detail
                 }
             }
         }
+        
+        if($action == 'add' && $requiredRoles != 'no_one' && haveRole('partner', $userId)){
+            $listSysId = ($mvc instanceof sales_SalesDetails) ? 'salesList' : 'purchaseList';
+            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, 'contragentClassId,contragentId');
+            if(!cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId)){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     

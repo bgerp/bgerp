@@ -591,7 +591,7 @@ class cat_Listings extends core_Master
     public static function getProductOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         expect($params['listId']);
-        $products = array();
+        $options = array();
         
         $pQuery = cat_Products::getQuery();
         if (is_array($onlyIds)) {
@@ -640,9 +640,9 @@ class cat_Listings extends core_Master
         
         $pQuery->show('id,name,code,isPublic,nameEn');
         while ($pRec = $pQuery->fetch()) {
-            $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+            $options[$pRec->id] = cat_Products::getRecTitle($pRec, false);
         }
         
-        return $products;
+        return $options;
     }
 }
