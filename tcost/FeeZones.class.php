@@ -43,7 +43,7 @@ class tcost_FeeZones extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_Printing, tcost_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Printing, tcost_Wrapper,plg_Clone';
     
     
     /**
@@ -92,6 +92,14 @@ class tcost_FeeZones extends core_Master
      * Детайли за зареждане
      */
     public $details = 'tcost_Fees, tcost_Zones';
+    
+    
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'tcost_Fees, tcost_Zones';
     
     
     /**
