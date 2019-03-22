@@ -155,7 +155,7 @@ class tcost_FeeZones extends core_Master
         
         // Забрана за смяна на условие на доставка, ако има детайли
         if(isset($form->rec->id)){
-            if(tcost_Fees::fetchField("#feeId = {$form->rec->id}") || tcost_Zones::fetchField("#zoneId = {$form->rec->id}")){
+            if($data->action != 'clone' && (tcost_Fees::fetchField("#feeId = {$form->rec->id}") || tcost_Zones::fetchField("#zoneId = {$form->rec->id}"))){
                 $form->setReadOnly('deliveryTermId');
             }
         }
