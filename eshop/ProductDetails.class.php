@@ -369,6 +369,7 @@ class eshop_ProductDetails extends core_Detail
             if ($quantity < $rec->quantityInPack) {
                 $notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
                 $row->btn = "<span class='{$class} option-not-in-stock'>" . $notInStock . ' </span>';
+                $row->quantity = 1;
             }
         }
         
