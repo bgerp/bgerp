@@ -335,9 +335,6 @@ class cat_products_Params extends doc_Detail
             $tpl->append($data->changeBtn, 'addParamBtn');
         }
         
-        if (!$data->params) {
-            $tpl->append('<i>' . tr('Няма') . '</i>', 'NO_ROWS');
-        }
         $tpl->removeBlocks();
         
         return $tpl;

@@ -1168,12 +1168,12 @@ class sales_Sales extends deals_DealMaster
         if (isset($rec->priceListId)) {
             $row->priceListId = price_Lists::getHyperlink($rec->priceListId, true);
         }
-        
+
         if (isset($fields['-single'])) {
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')) {
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
             }
-            
+
             $row->transportCurrencyId = $row->currencyId;
             $hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id);
             $expectedTransportCost = $mvc->getExpectedTransportCost($rec);
@@ -1197,6 +1197,8 @@ class sales_Sales extends deals_DealMaster
                     $row->btnTransport = $link->getContent();
                 }
             }
+        } else if (isset($fields['-list'])) {
+            $row->title .= "  «  " . $row->folderId;
         }
         
         core_Lg::pop();

@@ -1334,10 +1334,11 @@ class eshop_Carts extends core_Master
             unset($row->freeDelivery);
         }
         
+       // bp($rec->total, $rec->totalNoVat, $rec->deliveryNoVat);
         $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
         $totalNoVat = currency_CurrencyRates::convertAmount($rec->totalNoVat, null, null, $settings->currencyId);
         $deliveryNoVat = currency_CurrencyRates::convertAmount($rec->deliveryNoVat, null, null, $settings->currencyId);
-        $vatAmount = $total - $totalNoVat;
+        $vatAmount = $total - $totalNoVat - $deliveryNoVat;
         
         $amountWithoutDelivery = ($settings->chargeVat == 'yes') ? $total : $totalNoVat;
         $row->total = $Double->toVerbal($total);
@@ -1361,7 +1362,6 @@ class eshop_Carts extends core_Master
                     $amountWithoutDelivery -=  $deliveryNoVat * (1 + $transportVat);
                 } else {
                     $deliveryAmount = $rec->deliveryNoVat;
-                    $amountWithoutDelivery -= $deliveryNoVat;
                 }
                 
                 $deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);

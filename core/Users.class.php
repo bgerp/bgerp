@@ -1063,7 +1063,7 @@ class core_Users extends core_Manager
                 } else {
                     $layout->push('js/loginOld.js', 'JS');
                 }
-                $layout->append("\n<script> scriptStart = new Date().getTime() </script>", 'HEAD');
+                $layout->append("\n scriptStart = new Date().getTime();", 'SCRIPTS');
                 
                 $layout->replace("loginFormSubmit(this, '" .
                                  EF_USERS_PASS_SALT . "', '" .
