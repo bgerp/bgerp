@@ -54,8 +54,8 @@ class jqueryui_Setup extends core_ProtoSetup
     public function getCommonJs()
     {
         $conf = core_Packs::getConfig('jqueryui');
-        
-        return 'jqueryui/' . $conf->JQUERYUI_VERSION . '/jquery-ui.min.js';
+
+        return 'jqueryui/' . $conf->JQUERYUI_VERSION . '/jquery-ui.js';
     }
     
     
