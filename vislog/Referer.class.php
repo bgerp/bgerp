@@ -97,11 +97,11 @@ class vislog_Referer extends core_Manager
             $localHost = $_SERVER['SERVER_NAME'];
             
             if (stripos($parts['host'], $localHost) === false) {
-                parse_str($parts['query'], $query);
-                
+               
                 if($query = Mode::get('adWordsQuery')) {
                     $rec->query = $query;
-                } else {
+                } else { 
+                    parse_str($parts['query'], $query);
                     $search_engines = array(
                         'bing' => 'q',
                         'google' => 'q',
@@ -110,7 +110,7 @@ class vislog_Referer extends core_Manager
                 
                     preg_match('/(' . implode('|', array_keys($search_engines)) . ')\./', $parts['host'], $matches);
                     
-                    $rec->query = isset($matches[1], $query[$search_engines[$matches[1]]])   ? $query[$search_engines[$matches[1]]] : '';
+                    $rec->query = isset($matches[1], $query[$search_engines[$matches[1]]]) ? $query[$search_engines[$matches[1]]] : '';
                 }
 
                 $rec->searchLogResourceId = $resource;

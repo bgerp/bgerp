@@ -68,7 +68,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $fieldset->FLD('duration','time(suggestions=1 седмица| 1 месец| 2 месеца| 3 месеца| 6 месеца| 12 месеца)', 'caption=Период->Продължителност,after=from,placeholder=1 месец,single=none,mandatory');
         
         //Сравнение
-        $fieldset->FLD('compare', 'enum(no=Без, previous=Предходен, year=Миналогодишен,checked=Избран)', 'caption=Сравнение->Сравнение,after=duration,refreshForm,single=none,silent');
+        $fieldset->FLD('compare', 'enum(no=Без, previous=Предходен период, year=Миналогодишен период,checked=Избран период)', 'caption=Сравнение->Сравнение,after=duration,refreshForm,single=none,silent');
         $fieldset->FLD('compareStart', 'date', 'caption=Сравнение->Начало,after=compare,single=none,silent');
         
         //Контрагенти и групи контрагенти
@@ -83,10 +83,11 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $fieldset->FLD('grouping', 'enum(summary=Обобщено,level1=1-во ниво,level2=2-ро ниво,detail=Подробно, art=По артикули)', 'caption=Показване->Вид,maxRadio=2,after=articleType');
    
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(code=Код, amount=Стойност, price=Цена)', 'caption=Подреждане на резултата->Показател,maxRadio=5,columns=3,after=grouping');
+        $fieldset->FLD('orderBy', 'enum(code=Код, amount=Стойност, changeAmount=Промяна)', 'caption=Подреждане на резултата->Показател,maxRadio=5,columns=3,after=grouping');
      
-        //Крайна дата на избрания период за наблюдение
-        $fieldset->FNC('to', 'date', 'input=none,single=none');
+        
+        $fieldset->FNC('to', 'date', 'input=none,single=none');          //Крайна дата на избрания период за наблюдение
+        $fieldset->FNC('toChecked', 'date', 'input=none,single=none');   //Крайна дата на избрания период за сравнение
     }
     
     
@@ -125,8 +126,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $suggestions = array();
         
         if ($rec->compare != 'checked') {
+            
             $form->setField('compareStart', 'input=none');
-         //   $form->setField('compareDuration', 'input=none');
            
         }
         
@@ -171,7 +172,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
     {
         
         //Показването да бъде ли ГРУПИРАНО
-        if (($rec->grouping == 'no') && $rec->group) {
+        if (($rec->grouping == 'art') && $rec->group) {
             $this->groupByField = 'group';
         }
         
@@ -309,7 +310,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $toChecked = dt::addMonths($monts, $rec->compareStart, false);
                 $toChecked = dt::addDays(-1, $toChecked, false);
             }
-                $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
+            
+            $rec->toChecked = $toChecked;
+                
+            $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
         }
        
         core_Lg::pop();
@@ -504,19 +508,21 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         //Изчисляване на промяната в стойността на продажбите и делтите за артикул
         foreach ($recs as $v) {
             
-            //Промяна на стийноста за артикула[$v->productId] за текущ период спряно предходен
+            //Промяна на стийноста за артикула[$v->productId] за текущ период спрямо предходен
             $v->changeAmountPrevious = $v->amount - $v->amountPrevious;
             
-            //Промяна на стийноста за артикула[$v->productId] за текущ период спряно предходна година
+            //Промяна на стийноста за артикула[$v->productId] за текущ период спрямо предходна година
             $v->changeAmountLastYear = $v->amount - $v->amountLastYear;
+            
+            //Промяна на стийноста за артикула[$v->productId] за текущ период спрямо избран период
+            $v->changeAmountCheckedPeriod = $v->amount - $v->amountCheckedPeriod;
         }
         
         
-        $groupValues = $groupPrimeCostPrevious = $groupPrimeCostLastYear = array();
-        $groupDeltas = $groupDeltaPrevious = $groupDeltaLastYear = array();
+        $groupValues = $groupAmountPrevious = $groupAmountLastYear = $groupAmountCheckedPeriod = array();
         $tempArr = array();
         $totalArr = array();
-        $totalValue = $totalDelta = 0;
+        $totalValue = 0;
         
         // Изчисляване на общите покупки и покупките по групи
         foreach ($recs as $v) {
@@ -534,9 +540,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 //за текущ, предходен период и предходна година във ВСЯКА ГРУПА В КОЯТО Е РЕГИСТРИРАН
                 foreach ($v->group as $k => $gro) {
                     //За този артикул
-                    $groupValues[$gro] += $v->amount;                        //Стойност на покупките за текущ период
-                    $groupAmountPrevious[$gro] += $v->amountPrevious;     //Стойност на покупките за предходен период
-                    $groupAmountLastYear[$gro] += $v->amountLastYear;     //Стойност на покупките за предходна година
+                    $groupValues[$gro] += $v->amount;                               //Стойност на покупките за текущ период
+                    $groupAmountPrevious[$gro] += $v->amountPrevious;               //Стойност на покупките за предходен период
+                    $groupAmountLastYear[$gro] += $v->amountLastYear;               //Стойност на покупките за предходна година
+                    $groupAmountCheckedPeriod[$gro] += $v->amountCheckedPeriod;     //Стойност на покупките за избрания период
                     
                 }
                 unset($gro, $k);
@@ -546,6 +553,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $totalValue += $v->amount;
                 $totalAmountPrevious += $v->amountPrevious;
                 $totalAmountLastYear += $v->amountLastYear;
+                $totalAmountCheckedPeriod += $v->amountCheckedPeriod;
             } else {
                 
                 //КОГАТО ИМА ИЗБРАНИ ГРУПИ
@@ -577,6 +585,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $totalValue += $v->amount;
                 $totalAmountPrevious += $v->amountPrevious;
                 $totalAmountLastYear += $v->amountLastYear;
+                $totalAmountCheckedPeriod += $v->amountCheckedPeriod;
                 
                 //Изчислява покупките по артикул за всички артикули във всяка избрана група
                 //Един артикул може да го има в няколко групи
@@ -584,6 +593,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                     $groupValues[$gro] += $v->amount;
                     $groupAmountPrevious[$gro] += $v->amountPrevious;
                     $groupAmountLastYear[$gro] += $v->amountLastYear;
+                    $groupAmountCheckedPeriod[$gro] += $v->amountCheckedPeriod;
                 }
                 unset($gro);
                 
@@ -604,14 +614,113 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $changeAmount = 'changeAmountLastYear';
             }
             
+            if($rec->compare && ($rec->compare == 'checked')){
+                
+                $changeAmount = 'changeAmountCheckedPeriod';
+            }
+            
         }
         
+        //при избрани групи включва артикулите във всички групи в които са регистрирани
+        if (!is_null($rec->group)) {
+            
+            $tempArr = array();
+            
+            foreach ($recs as $v) {
+                foreach ($v->group as $val) {
+                    $v = clone $v;
+                    $v->group = (int) $val;
+                    $tempArr[] = $v;
+                }
+            }
+            unset($val,$v);
+            
+            $recs = $tempArr;
+            
+            foreach ($recs as $v) {
+                $v->groupValues = $groupValues[$v->group];
+                $v->groupAmountPrevious = $groupAmountPrevious[$v->group];
+                $v->groupAmountLastYear = $groupAmountLastYear[$v->group];
+                $v->groupAmountCheckedPeriod = $groupAmountCheckedPeriod[$v->group];
+            }
+            unset($v);
+            
+        } else {
+            
+            foreach ($recs as $v) {
+                
+                foreach ($v->group as $gro) {
+                    
+                    $v->groupValues = $groupValues[$gro];
+                    
+                    $v->groupAmountPrevious = $groupAmountPrevious[$gro];
+                    
+                    $v->groupAmountLastYear = $groupAmountLastYear[$gro];
+                    
+                    $v->groupAmountCheckedPeriod = $groupAmountCheckedPeriod[$gro];
+                    
+                }
+            }
+            unset($v,$gro);
+        }
+        
+        
+        //Когато имаме избрано групирано показване правим нов масив
+        if ($rec->grouping == 'summary') {
+            $recs = array();
+            foreach ($groupValues as $k => $v) {
+                $recs[$k] = (object) array(
+                    'group'                        => $k,                                     //Група артикули
+                    'amount'                    => $v,                                        //Покупки за текущия период за групата
+                    
+                    'groupAmountPrevious'       => $groupAmountPrevious[$k],               //Покупки за предходен период за групата
+                    'changeGroupAmountPrevious' => $v - $groupAmountPrevious[$k],             //Промяна в покупките спрямо предходен период за групата
+                    
+                    'groupAmountLastYear'       => $groupAmountLastYear[$k],                  //Покупки за предходна година за групата
+                    'changeGroupAmountLastYear' => $v - $groupAmountLastYear[$k],             //Промяна в покупките спрямо предходна година за групата
+                    
+                    'groupAmountCheckedPeriod'       => $groupAmountCheckedPeriod[$k],        //Покупки за избрания период за групата
+                    'changeGroupAmountCheckedPeriod' => $v - $groupAmountCheckedPeriod[$k],   //Промяна в покупките спрямо избрания период за групата
+                );
+            }
+            
+            if($rec->compare && $rec->compare == 'previous'){
+                
+                $changeAmount = 'changeGroupAmountPrevious';
+            }
+            
+            if($rec->compare && ($rec->compare == 'year')){
+                
+                $changeAmount = 'changeGroupAmountLastYear';
+            }
+            
+            if($rec->compare && ($rec->compare == 'checked')){
+                
+                $changeAmount = 'changeGroupAmountCheckedPeriod';
+            }
+            
+        }
+        
+        //Подредба на резултатите
+        if (!is_null($recs)) {
+            
+            $typeOrder = ($rec->orderBy == 'code') ? 'stri' : 'native';
+            
+            $orderBy =$rec->orderBy;
+            
+            if($rec->orderBy == 'changeAmount'){
+                $orderBy = $rec->changeAmount;
+            }
+            
+         //   arr::sortObjects($recs, $orderBy , $rec->order, $typeOrder);
+        }
         
         //Добавям ред за ОБЩИТЕ суми
         $totalArr['total'] = (object) array(
             'totalValue' => $totalValue,
             'totalAmountPrevious' => $totalAmountPrevious,
             'totalAmountLastYear' => $totalAmountLastYear,
+            'totalAmountCheckedPeriod' => $totalAmountCheckedPeriod,
         );
         
         array_unshift($recs, $totalArr['total']);
@@ -625,10 +734,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param stdClass $rec
-     *                         - записа
-     * @param bool     $export
-     *                         - таблицата за експорт ли е
+     * @param stdClass $rec - записа
+     * 
+     * @param bool     $export - таблицата за експорт ли е
      *
      * @return core_FieldSet - полетата
      */
@@ -654,24 +762,45 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                     $fld->FLD('amount', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Стойност");
                    
                     $fld->FLD('quantityCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Покупки,tdClass=newCol");
-                    $fld->FLD('amountCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Стойнот,tdClass=newCol");
+                    $fld->FLD('amountCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Стойност,tdClass=newCol");
+                    
+                    $fld->FLD('changePurchases', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна-> Стойност');
+                    
+                } else {
+                    
+                    //Когато е без сравнение
+                    $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Покупки');
+                    $fld->FLD('amount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Стойност');
+                    
+                }
+            }
+            
+            //Обобщено по групи
+            if ($rec->grouping == 'summary') {
+                
+                //Когато има сравнение
+                if ($rec->compare != 'no') {
+                    $fld->FLD('group', 'varchar', 'caption=Група');
+                    $fld->FLD('amount', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Стойност");
+                    
+                    $fld->FLD('amountCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}-> Стойност,tdClass=newCol");
                     
                     $fld->FLD('changePurchases', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Стойност');
                     
                 } else {
                     
                     //Когато е без сравнение
-                    $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Продажби');
-                    $fld->FLD('amount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Стойност');
+                    $fld->FLD('group', 'varchar', 'caption=Група');
+                    $fld->FLD('amount', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Стойност");
                     
                 }
-            } else {
-               
             }
+            
+            
         } else {
            
         }
-        
+      
         return $fld;
     }
     
@@ -731,6 +860,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $row->amount = '<b>' . $Double->toVerbal($dRec->totalValue) . '</b>';
             $row->amount = ht::styleNumber($row->amount, $dRec->totalValue);
             
+            if( $rec->grouping == 'summary') {
+                $row->group = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
+            }
+            
             if ($rec->compare != 'no') {
                 $changePurchases = 0;
                 
@@ -740,9 +873,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                     
                     $changePurchases = $dRec->totalValue - $dRec->totalAmountPrevious;
                     $row->changePurchases = '<b>'. $Double->toVerbal($changePurchases) . '</b>';
-                    $row->changePurchases = ht::styleNumber($row->changePurchases, $changeSales);
+                    $row->changePurchases = ht::styleNumber($row->changePurchases, $changePurchases);
                     
                 }
+                
                 if ($rec->compare == 'year') {
                     $row->amountCompare = '<b>' . $Double->toVerbal($dRec->totalAmountLastYear) . '</b>';
                     $row->amountCompare = ht::styleNumber($row->amountCompare, $dRec->totalAmountLastYear);
@@ -754,10 +888,53 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                     
                 }
                 
-                if( $rec->grouping == 'yes') {
-                    $row->group = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
+                if ($rec->compare == 'checked') {
+                    $row->amountCompare = '<b>' . $Double->toVerbal($dRec->totalAmountCheckedPeriod) . '</b>';
+                    $row->amountCompare = ht::styleNumber($row->amountCompare, $dRec->totalAmountCheckedPeriod);
+                    
+                    
+                    $changePurchases = $dRec->totalValue - $dRec->totalAmountCheckedPeriod;
+                    $row->changePurchases = '<b>'. $Double->toVerbal($changePurchases) . '</b>';
+                    $row->changePurchases = ht::styleNumber($row->changePurchases, $changePurchases);
+                    
                 }
                 
+            }
+            
+            return $row;
+        }
+        
+        //Ако имаме избрано показване "ГРУПИРАНО"
+        if ($rec->grouping == 'summary') {
+            if (is_numeric($dRec->group)) {
+                $row->group = cat_Groups::getVerbal($dRec->group, 'name');
+            } else {
+                $row->group = 'Без група';
+            }
+            $row->amount = $Double->toVerbal($dRec->amount);
+            
+            if ($rec->compare != 'no') {
+                
+                if ($rec->compare == 'previous') {
+                    
+                    $row->amountCompare = $Double->toVerbal($dRec->groupAmountPrevious);
+                    $row->amountCompare = ht::styleNumber($row->amountCompare, $dRec->groupAmountPrevious);
+                    
+                    
+                    $row->changePurchases = $Double->toVerbal($dRec->changeGroupAmountPrevious);
+                    $row->changePurchases = ht::styleNumber($row->changePurchases, $dRec->changeGroupAmountPrevious);
+                    
+                }
+                
+                if ($rec->compare == 'year') {
+                    
+                    $row->amountCompare = '<b>' . $Double->toVerbal($dRec->groupAmountLastYear) . '</b>';
+                    $row->amountCompare = ht::styleNumber($row->amountCompare, $dRec->groupAmountLastYear);
+                    
+                    $row->changePurchases = '<b>'. $Double->toVerbal($dRec->changeGroupAmountLastYear) . '</b>';
+                    $row->changePurchases = ht::styleNumber($row->changePurchases, $dRec->changeGroupAmountLastYear);
+                    
+                }
             }
             
             return $row;
@@ -815,6 +992,18 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                     $row->changePurchases = ht::styleNumber($row->changePurchases, $dRec->changeAmountLastYear);
                     
                 }
+                
+                if ($rec->compare == 'checked') {
+                    $row->quantityCompare = $Double->toVerbal($dRec->quantityCheckedPeriod);
+                    $row->quantityCompare = ht::styleNumber($row->quantityCompare, $dRec->quantityCheckedPeriod);
+                    
+                    $row->amountCompare = $Double->toVerbal($dRec->amountCheckedPeriod);
+                    $row->amountCompare = ht::styleNumber($row->amountCompare, $dRec->amountCheckedPeriod);
+                    
+                    $row->changePurchases = $Double->toVerbal($dRec->changeAmountCheckedPeriod);
+                    $row->changePurchases = ht::styleNumber($row->changePurchases, $dRec->changeAmountCheckedPeriod);
+                    
+                }
             }
             
             return $row;
@@ -834,12 +1023,44 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
     {
         
         $Date = cls::get('type_Date');
+        $groArr = array();
         
         $row->from = $Date->toVerbal($rec->from);
         
         $row->to = $Date->toVerbal($rec->to);
-    }
+        
+        if (isset($rec->group)) {
+            // избраната позиция
+            $groups = keylist::toArray($rec->group);
+            foreach ($groups as &$g) {
+                $gro = cat_Groups::getVerbal($g, 'name');
+                array_push($groArr, $gro);
+            }
+            
+            $row->group = implode(', ', $groArr);
+        }
+        
+        
+        $arrCompare = array(
+                            'no' => 'Без сравнение',
+                            'previous' => 'С предходен период',
+                            'year' => 'С миналогодишен период',
+                            'checked' => 'Избран период'
+                            );
+         
+        if ($rec->compare == 'checked') {
+             
+            $row->compare = $arrCompare[$rec->compare].' ( '.$Date->toverbal($rec->compareStart) .' - ' . $Date->toverbal($rec->toChecked).' )';
+        }else{
+            
+             $row->compare = $arrCompare[$rec->compare];
+        }
+        
+       
     
+    
+    }
+   
     
     /**
      * След рендиране на единичния изглед
@@ -870,14 +1091,6 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         if (isset($data->rec->to)) {
             $fieldTpl->append('<b>' . $data->row->to . '</b>', 'to');
-        }
-        
-        if (isset($data->rec->firstMonth)) {
-            $fieldTpl->append('<b>' . acc_Periods::fetch($data->rec->firstMonth)->title . '</b>', 'firstMonth');
-        }
-        
-        if (isset($data->rec->secondMonth)) {
-            $fieldTpl->append('<b>' . acc_Periods::fetch($data->rec->secondMonth)->title . '</b>', 'secondMonth');
         }
         
         if ((isset($data->rec->dealers)) && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
@@ -978,7 +1191,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $className = core_Classes::getName($contr->coverClass);
             
             $contrGroups = $className::fetchField($contr->coverId, 'groupList'); //Групите в които е регистриран контрагента
-            
+          
             if (keylist::isIn(keylist::toArray($contrGroups), $rec->crmGroup)) {
                 $foldersInGroups[$contr->id] = $contr->id;
             }

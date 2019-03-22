@@ -23,13 +23,13 @@ class page_Html extends core_ET
         $bodyClass = Mode::is('screenMode', 'narrow') ? 'narrow narrow-scroll' : 'wide';
         
         $bodyId = str::getRand();
-
+        
         if($this instanceof cms_page_External) {
             $loadJS = "\n<script type=\"text/javascript\"> [#SCRIPTS#] window.onload = function() {if (window.jQuery) {[#JQRUN#]} }\n</script>";
         } else {
             $loadJS = "<script type=\"text/javascript\">[#SCRIPTS#][#JQRUN#]\n</script>";
         }
-
+        
         parent::__construct(
             '<!doctype html>' .
             
@@ -82,8 +82,6 @@ class page_Html extends core_ET
             'invoker' => $invoker
         );
         
-        $inst = cls::get(get_called_class());
-
         $invoker->appendFiles($files);
     }
     
@@ -127,7 +125,7 @@ class page_Html extends core_ET
         jquery_Jquery::run($tpl, 'smartCenter();');
         jquery_Jquery::run($tpl, 'showTooltip();');
         jquery_Jquery::run($tpl, 'makeTooltipFromTitle();');
-
+        
         $url = json_encode(toUrl(array('bgerp_A', 'wp'), 'local'));
         $tpl->appendOnce("var wpUrl = {$url};", 'SCRIPTS');
         

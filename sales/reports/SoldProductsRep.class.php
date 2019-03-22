@@ -849,6 +849,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $row->{$q} = ht::styleNumber($row->{$q}, $dRec->{$q});
             }
             
+            if( $rec->grouping == 'yes') {
+                $row->group = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
+            }
+            
             if ($rec->compare != 'no') {
                 $changeDeltas = $changeSales = 0;
                 
@@ -883,10 +887,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
                 }
                 
-                if( $rec->grouping == 'yes') {
-                    $row->group = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
-                }
-               
             }
            
             return $row;
