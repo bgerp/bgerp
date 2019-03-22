@@ -85,6 +85,9 @@ class compactor_Plugin extends core_Plugin
             
             if (!file_exists($sbfFilePath)) {
                 Debug::log("Skip file {$sbfFilePath} " . __CLASS__);
+                
+                log_System::add('compactor_Plugin', 'Липсващ файл: ' . $file, null, 'warning');
+                
                 continue;
             }
             
