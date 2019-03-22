@@ -468,6 +468,10 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (isset($rec->employees)) {
             $row->employees = self::getVerbalEmployees($rec->employees);
         }
+        
+        if(Mode::is('centerTerminal')){
+            $row->type = $row->productId;
+        }
     }
     
     
