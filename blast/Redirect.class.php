@@ -110,6 +110,8 @@ class blast_Redirect extends core_Manager
             core_App::shutdown(false);
         }
         
+        self::logWarning('Липсващ запис за "' . $vid . '" в domainId=' . $domainId);
+        
         redirect(array('Index'), false, '|Изтекла или липсваща връзка', 'error');
     }
     

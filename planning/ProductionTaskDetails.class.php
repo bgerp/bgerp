@@ -44,7 +44,13 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, plg_SaveAndNew, plg_Rejected, plg_Modified, plg_Created, plg_LastUsedKeys, plg_Sorting, planning_Wrapper, plg_Search, planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, plg_SaveAndNew, plg_Rejected, plg_Modified, plg_Created, plg_LastUsedKeys, plg_Sorting, planning_Wrapper, plg_Search, planning_Wrapper,plg_GroupByField';
+    
+    
+    /**
+     * По кое поле да се направи групиране
+     */
+    public $groupByField = 'taskId';
     
     
     /**
@@ -92,7 +98,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,modified=Модифициране,modifiedOn,modifiedBy,info=@';
+    public $listFields = 'type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,modified=Модифициране,info=@';
     
     
     /**
@@ -461,6 +467,10 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         if (isset($rec->employees)) {
             $row->employees = self::getVerbalEmployees($rec->employees);
+        }
+        
+        if(Mode::is('centerTerminal')){
+            $row->type = $row->productId;
         }
     }
     

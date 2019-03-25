@@ -316,9 +316,21 @@ class store_Stores extends core_Master
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperLink($rec->locationId, true);
             }
+        } else if (isset($fields['-list'])) {
+            $row->name .= "    <span class='fright'>" . $row->currentPlg . "</span>";
+            unset($row->currentPlg);
         }
     }
-    
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        unset($data->listFields['currentPlg']);
+    }
+
     
     /**
      * Кои документи да се показват като бързи бутони в папката на корицата
