@@ -3474,11 +3474,11 @@ td.leftColImportant {
   .treelist .trigger {
     cursor: pointer;
     font-style: normal; }
+  .treelist input {
+    position: relative;
+    top: 2px; }
   .treelist i {
-    font-family: Courier !important;
     display: inline-block;
     width: 14px;
-    text-align: center;
-    position: relative;
-    top: -2px; }
+    text-align: center; }
 

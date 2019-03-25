@@ -3829,11 +3829,13 @@ td.leftColImportant {
 		font-style: normal;
 
 	}
+	input {
+		position: relative;
+		top: 2px;
+	}
 	i {
 		display: inline-block;
 		width: 14px;
 		text-align: center;
-		position: relative;
-		top: -2px;
 	}
 }
