@@ -100,13 +100,14 @@ class type_Treelist extends type_Keylist
                 $n = "{$name}[$i]";
                 if(is_scalar($item)) {
                     if($item == 'openGroup') {
+                        $html .= "<li>";
                         if($toggle == $downArrow) {
-                            $html .= "<ul id='ul_{$lastId}'>";
+                            $html .= "<ul id='ul_{$lastId}' class='subGroup'>";
                         } else {
-                            $html .= "<ul id='ul_{$lastId}' class='hidden hidden1'>";
+                            $html .= "<ul id='ul_{$lastId}' class='subGroup hidden hidden1'>";
                         }
                     }elseif($item == 'closeGroup') {
-                        $html .= "</ul>";
+                        $html .= "</ul></li>";
                     }
                     continue;
                 }
@@ -129,11 +130,11 @@ class type_Treelist extends type_Keylist
                     $html .= "\n<li>{$toggle}<input type='checkbox' name='{$n}' id='{$id}'><label $class for='{$id}'>{$item->title}</label></li>";
                 }
             }
-        }        
+        }
 
         $res = new ET("<div class='treelist' style='border:solid 1px #bbbbbb; background-color:white'><ul>" . $html . "</ul></div>");
-        
-        jquery_Jquery::run($res, "setTrigger();\n", true);
+
+        jquery_Jquery::run($res, "setTrigger();", true);
 
         return $res;
     }
