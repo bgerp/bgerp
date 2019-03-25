@@ -1163,7 +1163,7 @@ function toggleDisplay(id) {
 // Задейства елементите, които могат да скриват/показват части
 function setTrigger() {
     $('.trigger').click(function(event) {
-         var obj = $(this).parent().next().find('.subGroup');
+         var obj = $(this).parent().next().children('.subGroup');
          var sp = $(this);
          if (!($(obj).hasClass('hidden1'))) {
              $(obj).slideUp(400);
