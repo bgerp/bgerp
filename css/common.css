@@ -3450,8 +3450,10 @@ td.leftColImportant {
 .dangerFile {
   color: #990000 !important; }
 
+.wide .treelist {
+  font-family: Consolas, Courier New, monospace; }
+
 .treelist {
-  font-family: Consolas, Courier New, monospace;
   font-size: 16px;
   padding: 5px;
   max-width: 100%;
@@ -3459,19 +3461,25 @@ td.leftColImportant {
   white-space: nowrap;
   overflow-x: auto;
   overflow-y: auto; }
-
-.treelist ul {
-  list-style-type: none;
-  margin: 0;
-  margin-left: 12px;
-  padding: 0;
-  padding-left: 0px; }
-
-.treelist li {
-  display: table;
-  padding: 2px;
-  border-collapse: separate; }
-
-.treelist .trigger {
-  cursor: pointer; }
+  .treelist ul {
+    list-style-type: none;
+    margin: 0;
+    margin-left: 17px;
+    padding: 0; }
+  .treelist li {
+    display: table;
+    padding: 0px;
+    border-collapse: separate; }
+    .treelist li.row {
+      padding: 2px; }
+  .treelist .trigger {
+    cursor: pointer;
+    font-style: normal; }
+  .treelist input {
+    position: relative;
+    top: 2px; }
+  .treelist i {
+    display: inline-block;
+    width: 14px;
+    text-align: center; }
 
