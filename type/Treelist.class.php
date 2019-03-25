@@ -125,9 +125,9 @@ class type_Treelist extends type_Keylist
                 }
 
                 if($item->checked) {
-                    $html .= "\n<li>{$toggle}<input type='checkbox' name='{$n}' checked id='{$id}'><label $class for='{$id}'>{$item->title}</label></li>";
+                    $html .= "\n<li class='row'>{$toggle}<input type='checkbox' name='{$n}' checked id='{$id}'><label $class for='{$id}'>{$item->title}</label></li>";
                 } else {
-                    $html .= "\n<li>{$toggle}<input type='checkbox' name='{$n}' id='{$id}'><label $class for='{$id}'>{$item->title}</label></li>";
+                    $html .= "\n<li  class='row'>{$toggle}<input type='checkbox' name='{$n}' id='{$id}'><label $class for='{$id}'>{$item->title}</label></li>";
                 }
             }
         }
