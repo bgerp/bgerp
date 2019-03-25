@@ -1160,6 +1160,28 @@ function toggleDisplay(id) {
 }
 
 
+// Задейства елементите, които могат да скриват/показват части
+function setTrigger() {
+    $('.trigger').click(function(event) {
+         var obj = $(this).parent().next();
+         var sp = $(this);
+         if (!($(obj).hasClass('hidden1'))) {  
+             $(obj).slideUp(400, function() {  }); sp.html('►'); $(obj).addClass('hidden1');
+         } else {
+             $(obj).slideDown(400, function() {}); sp.html('▼'); $(obj).removeClass('hidden1');
+         }
+         event.stopPropagation();
+    });
+    
+    $('.treelist .toggleCheck').click(function(event) {
+        var forAttr = $(this).attr("for");
+        var newStage = !$('#' + forAttr).is(':checked');
+        $('#' + 'ul_' + forAttr).find(':checkbox').each(  function(){ $(this).prop('checked', newStage) });
+        document.getSelection().removeAllRanges();
+        event.stopPropagation();
+    });
+}
+
 // Скрива групите бутони от ричедита при клик някъде
 function hideRichtextEditGroups() {
 	$(document.body).on("click", this, function(e){
