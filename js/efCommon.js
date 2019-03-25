@@ -1163,22 +1163,27 @@ function toggleDisplay(id) {
 // Задейства елементите, които могат да скриват/показват части
 function setTrigger() {
     $('.trigger').click(function(event) {
-         var obj = $(this).parent().next();
+         var obj = $(this).parent().next().children('.subGroup');
          var sp = $(this);
-         if (!($(obj).hasClass('hidden1'))) {  
-             $(obj).slideUp(400, function() {  }); sp.html('►'); $(obj).addClass('hidden1');
+         if (!($(obj).hasClass('hidden1'))) {
+             $(obj).slideUp(400);
+             sp.html('►'); $(obj).addClass('hidden1');
          } else {
-             $(obj).slideDown(400, function() {}); sp.html('▼'); $(obj).removeClass('hidden1');
+             $(obj).slideDown(400);
+             sp.html('▼'); $(obj).removeClass('hidden1');
          }
          event.stopPropagation();
     });
     
     $('.treelist .toggleCheck').click(function(event) {
-        var forAttr = $(this).attr("for");
-        var newStage = !$('#' + forAttr).is(':checked');
-        $('#' + 'ul_' + forAttr).find(':checkbox').each(  function(){ $(this).prop('checked', newStage) });
-        document.getSelection().removeAllRanges();
-        event.stopPropagation();
+        if($(this).siblings('.trigger').html() ==  '▼') {
+            var forAttr = $(this).attr("for");
+            var newStage = !$('#' + forAttr).is(':checked');
+            $('#' + 'ul_' + forAttr).find(':checkbox').each(  function(){ $(this).prop('checked', newStage) });
+            document.getSelection().removeAllRanges();
+            event.stopPropagation();
+        }
+
     });
 }
 
@@ -1678,21 +1683,23 @@ function setFormElementsWidth() {
         if (formElWidth > preferredSizeInPx) formElWidth = preferredSizeInPx;
 
         $('.formTable label').each(function() {
-            var colsInRow = parseInt($(this).attr('data-colsInRow'));
-            if (!colsInRow) {
-                colsInRow = 1;
+            if(!$(this).closest('.treelist').length)  {
+                var colsInRow = parseInt($(this).attr('data-colsInRow'));
+                if (!colsInRow) {
+                    colsInRow = 1;
+                }
+                $(this).parent().css('maxWidth', parseInt((formElWidth - 10) / colsInRow));
+                $(this).parent().css('overflow-x', 'hidden');
+
+                $(this).attr('title', $(this).text());
             }
-
-            $(this).parent().css('maxWidth', parseInt((formElWidth - 10) / colsInRow));
-        	$(this).parent().css('overflow-x', 'hidden');
-
-            $(this).attr('title', $(this).text());
         });
 
         $('.staticFormView .formFieldValue').css('max-width', formElWidth - 5);
 
         $('.vertical .formTitle').css('min-width', formElWidth -10);
         $('.formTable textarea').css('width', formElWidth);
+        $('.formTable .treelist').css('width', formElWidth - 10);
         $('.formTable .chzn-container').css('maxWidth', formElWidth);
         $('.formTable .select2-container').css('maxWidth', formElWidth);
         $('.vFormField .select2-container').css('maxWidth', formElWidth + 20);
