@@ -1081,7 +1081,7 @@ class core_Html
      */
     public static function wrapMixedToHtml($html, $wholeDocument = false)
     {
-        $styles = "    .dump {font-family: Consolas,Courier New,monospace; monospace; font-size:13px; padding-bottom:5px;}\n" .
+        $styles = "    .dump {font-family: Consolas,Courier New,monospace; font-size:13px; padding-bottom:5px;}\n" .
                     "    .dump ul {list-style-type: none; margin:0;margin-left:10px; border-left:solid 1px #bbb; padding:0; padding-left:3px;}\n" .
                     "    .dump li {margin-top:3px;display:table;}\n" .
                     "    .dump .trigger {cursor:pointer}\n" .
