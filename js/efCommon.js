@@ -1176,11 +1176,14 @@ function setTrigger() {
     });
     
     $('.treelist .toggleCheck').click(function(event) {
-        var forAttr = $(this).attr("for");
-        var newStage = !$('#' + forAttr).is(':checked');
-        $('#' + 'ul_' + forAttr).find(':checkbox').each(  function(){ $(this).prop('checked', newStage) });
-        document.getSelection().removeAllRanges();
-        event.stopPropagation();
+        if($(this).siblings('.trigger').html() ==  '▼') {
+            var forAttr = $(this).attr("for");
+            var newStage = !$('#' + forAttr).is(':checked');
+            $('#' + 'ul_' + forAttr).find(':checkbox').each(  function(){ $(this).prop('checked', newStage) });
+            document.getSelection().removeAllRanges();
+            event.stopPropagation();
+        }
+
     });
 }
 
