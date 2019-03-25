@@ -21,7 +21,7 @@ class plg_ExpandInput extends core_Plugin
      * @param core_Manager $mvc
      */
     public static function on_AfterDescription(&$mvc)
-    {
+    {  
         // Име на полето, в което ще се записват всички
         setIfNot($mvc->expandFieldName, 'expand');
         
@@ -34,9 +34,19 @@ class plg_ExpandInput extends core_Plugin
         // Скриваме полето
         $expandField = $mvc->getField($mvc->expandFieldName);
         $mvc->setParams($mvc->expandFieldName, array('input' => 'none'));
-        
+      
+        $mvc->setExpandInputField($mvc, $mvc->expandInputFieldName, $mvc->expandFieldName);
+    }
+
+
+    /**
+     * Създава поле, върху посочения фиелдсет, което има свойствата на оригиналното, но отговаря за въвеждането на групите
+     */
+    public static function on_AfterSetExpandInputField($mvc, $plugin, &$fieldset, $inputFieldName, $originalFieldName)
+    {  
         // Създаваме ново инпут поле
-        if (!$mvc->getField($mvc->expandInputFieldName, false)) {
+        if (!$fieldset->getField($inputFieldName, false)) { 
+            $expandField = $mvc->getField($originalFieldName);
             $pMvc = $expandField->type->params['mvc'];
             $select = $expandField->type->params['select'];
             $caption = 'caption=' . $expandField->caption;
@@ -45,18 +55,12 @@ class plg_ExpandInput extends core_Plugin
             if ($expandField->mandatory) {
                 $caption .= ',mandatory';
             }
-            
-            $mvc->FLD($mvc->expandInputFieldName, "keylist(mvc={$pMvc}, select={$select})", $caption);
-        }
-        
-        // Вземаме параметрите, от групата, която няма да се показва
-        $eParams = $mvc->fields[$mvc->expandFieldName]->type->params;
-        if ($eParams) {
-            $iParams = $mvc->fields[$mvc->expandInputFieldName]->type->params;
-            if (!is_array($iParams)) {
-                $iParams = array();
+            if(BGERP_GIT_BRANCH == 'dev') {
+                $fieldset->FLD($inputFieldName, "treelist(mvc={$pMvc}, select={$select}, parentId={$mvc->expandParentFieldName})", $caption);
+            } else {
+                $fieldset->FLD($inputFieldName, "keylist(mvc={$pMvc}, select={$select}, parentId={$mvc->expandParentFieldName})", $caption);
             }
-            $mvc->fields[$mvc->expandInputFieldName]->type->params = $iParams + $eParams;
+            $fieldset->setFieldTypeParams($inputFieldName, $expandField->type->params);
         }
     }
     

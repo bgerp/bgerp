@@ -3067,10 +3067,12 @@ class cat_Products extends embed_Manager
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('edit', $rec);
-        
+      
         $form = cls::get('core_Form');
         $form->title = 'Промяна на групите на|* <b>' . cat_Products::getHyperlink($id, true) . '</b>';
-        $form->FNC('groupsInput', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи,input');
+
+        $this->setExpandInputField($form, $this->expandInputFieldName, $this->expandFieldName);
+ 
         $form->setDefault('groupsInput', $rec->groupsInput);
         $form->input();
         if ($form->isSubmitted()) {
