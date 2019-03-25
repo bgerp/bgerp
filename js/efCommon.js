@@ -1678,21 +1678,23 @@ function setFormElementsWidth() {
         if (formElWidth > preferredSizeInPx) formElWidth = preferredSizeInPx;
 
         $('.formTable label').each(function() {
-            var colsInRow = parseInt($(this).attr('data-colsInRow'));
-            if (!colsInRow) {
-                colsInRow = 1;
+            if(!$(this).closest('.treelist').length)  {
+                var colsInRow = parseInt($(this).attr('data-colsInRow'));
+                if (!colsInRow) {
+                    colsInRow = 1;
+                }
+                $(this).parent().css('maxWidth', parseInt((formElWidth - 10) / colsInRow));
+                $(this).parent().css('overflow-x', 'hidden');
+
+                $(this).attr('title', $(this).text());
             }
-
-            $(this).parent().css('maxWidth', parseInt((formElWidth - 10) / colsInRow));
-        	$(this).parent().css('overflow-x', 'hidden');
-
-            $(this).attr('title', $(this).text());
         });
 
         $('.staticFormView .formFieldValue').css('max-width', formElWidth - 5);
 
         $('.vertical .formTitle').css('min-width', formElWidth -10);
         $('.formTable textarea').css('width', formElWidth);
+        $('.formTable .treelist').css('width', formElWidth - 10);
         $('.formTable .chzn-container').css('maxWidth', formElWidth);
         $('.formTable .select2-container').css('maxWidth', formElWidth);
         $('.vFormField .select2-container').css('maxWidth', formElWidth + 20);
