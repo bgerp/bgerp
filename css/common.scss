@@ -3817,12 +3817,14 @@ td.leftColImportant {
 		margin:0;
 		margin-left:17px;
 		padding:0;
-		padding-left:0px;
 	}
 	li {
 		display:table;
-		padding:2px;
+		padding:0px;
 		border-collapse: separate;
+		&.row {
+			padding: 2px;
+		}
 	}
 	.trigger {
 		cursor:pointer;
