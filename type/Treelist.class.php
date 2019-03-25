@@ -128,7 +128,7 @@ class type_Treelist extends type_Keylist
 
         $res = new ET("<div class='treelist' style='border:solid 1px #bbbbbb; background-color:white'><ul>" . $html . "</ul></div>");
         
-        jquery_Jquery::run($res, "\$('document').ready(setTrigger());\n", true);
+        jquery_Jquery::run($res, "setTrigger();\n", true);
 
         return $res;
     }
