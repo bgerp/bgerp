@@ -88,12 +88,12 @@ class type_Treelist extends type_Keylist
                     $this->suggestions[$rec->id] = type_Varchar::escape($rec->{$mvc->nameField});
                 }
                 
-                $data[$rec->id] = (object) array('title' => $this->suggestions[$rec->id], 'parentId' => $rec->{$parentIdName});
+                $data[$rec->id] = (object) array('title' => trim($this->suggestions[$rec->id]), 'parentId' => $rec->{$parentIdName});
             }
             
+            arr::sortObjects($data, 'title', 'asc', 'stri');
             $items = array();
-
-            self::addItems($items, $data, $parentId, $openIds); 
+            self::addItems($items, $data, null, $openIds); 
 
             foreach($items as $i => $item) {
                 $id = $eId . '_' . $i;
