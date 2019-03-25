@@ -207,6 +207,11 @@ class store_InventoryNotes extends core_Master
         $this->FLD('expandGroups', 'enum(yes=Да,no=Не)', 'caption=Подгрупи,columns=2,single=none,notNull,value=no');
         $this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните групи->Избор, mandatory, notNull,value=no,maxRadio=2');
         $this->FLD('cache', 'blob', 'input=none');
+        
+        // Ако потребителя има роля 'accMaster', може да контира/оотегля/възстановява МО с приключени права
+        if (haveRole('accMaster,ceo')) {
+            $this->canUseClosedItems = true;
+        }
     }
     
     

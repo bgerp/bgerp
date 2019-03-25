@@ -88,25 +88,26 @@ class type_Treelist extends type_Keylist
                     $this->suggestions[$rec->id] = type_Varchar::escape($rec->{$mvc->nameField});
                 }
                 
-                $data[$rec->id] = (object) array('title' => $this->suggestions[$rec->id], 'parentId' => $rec->{$parentIdName});
+                $data[$rec->id] = (object) array('title' => trim($this->suggestions[$rec->id]), 'parentId' => $rec->{$parentIdName});
             }
             
+            arr::sortObjects($data, 'title', 'asc', 'stri');
             $items = array();
-
-            self::addItems($items, $data, $parentId, $openIds); 
+            self::addItems($items, $data, null, $openIds); 
 
             foreach($items as $i => $item) {
                 $id = $eId . '_' . $i;
                 $n = "{$name}[$i]";
                 if(is_scalar($item)) {
                     if($item == 'openGroup') {
+                        $html .= "<li>";
                         if($toggle == $downArrow) {
-                            $html .= "<ul id='ul_{$lastId}'>";
+                            $html .= "<ul id='ul_{$lastId}' class='subGroup'>";
                         } else {
-                            $html .= "<ul id='ul_{$lastId}' class='hidden hidden1'>";
+                            $html .= "<ul id='ul_{$lastId}' class='subGroup hidden hidden1'>";
                         }
                     }elseif($item == 'closeGroup') {
-                        $html .= "</ul>";
+                        $html .= "</ul></li>";
                     }
                     continue;
                 }
@@ -124,16 +125,16 @@ class type_Treelist extends type_Keylist
                 }
 
                 if($item->checked) {
-                    $html .= "\n<li>{$toggle}<input type='checkbox' name='{$n}' checked id='{$id}'><label $class for='{$id}'>{$item->title}</label></li>";
+                    $html .= "\n<li class='row'>{$toggle}<input type='checkbox' name='{$n}' checked id='{$id}'><label $class for='{$id}'>{$item->title}</label></li>";
                 } else {
-                    $html .= "\n<li>{$toggle}<input type='checkbox' name='{$n}' id='{$id}'><label $class for='{$id}'>{$item->title}</label></li>";
+                    $html .= "\n<li  class='row'>{$toggle}<input type='checkbox' name='{$n}' id='{$id}'><label $class for='{$id}'>{$item->title}</label></li>";
                 }
             }
-        }        
+        }
 
         $res = new ET("<div class='treelist' style='border:solid 1px #bbbbbb; background-color:white'><ul>" . $html . "</ul></div>");
-        
-        jquery_Jquery::run($res, "setTrigger();\n", true);
+
+        jquery_Jquery::run($res, "setTrigger();", true);
 
         return $res;
     }
