@@ -83,6 +83,11 @@ class type_Treelist extends type_Keylist
             $mvc = &cls::get($this->params['mvc']);
             $query = $mvc->getQuery();
             while($rec = $query->fetch("#id IN ({$keys})")) {
+
+                if($mvc->nameField) {
+                    $this->suggestions[$rec->id] = type_Varchar::escape($rec->{$mvc->nameField});
+                }
+                
                 $data[$rec->id] = (object) array('title' => $this->suggestions[$rec->id], 'parentId' => $rec->{$parentIdName});
             }
             
