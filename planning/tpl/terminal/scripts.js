@@ -10,16 +10,8 @@ function planningActions() {
 		resObj['url'] = url;
 		
 		var serial = $("input[name=serial]").val();
-		var type = $("#typeSelect").val();
-		if(!$.isNumeric(type)){
-			type = $("input[name=type]").val();
-		}
-		
-		var productId = $("input[name=productId]").val();
-		if(!$.isNumeric(productId)){
-			productId = $("#productIdSelect").val();
-		}
-		
+		var type = $("#typeSelect").is('[readonly]') ?  $("input[name=type]").val() : $("#typeSelect").val();
+		var productId = $("input[name=productId]").is('[readonly]') ? $("#productIdSelect").val() : $("input[name=productId]").val();
 		var quantity = $("input[name=quantity]").val();
 		var employees = $("#employeeSelect").val();
 		var fixedAsset = $("#fixedAssetSelect").val();
