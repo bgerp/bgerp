@@ -302,7 +302,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
                     
                     if (!empty($rec->serial)) {
-                        $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->packagingId, $rec->id);
+                        $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->taskId);
                         $rec->serialType = $serialInfo['type'];
                         
                         if (isset($serialInfo['error'])) {
@@ -374,12 +374,12 @@ class planning_ProductionTaskDetails extends doc_Detail
      *
      * @param string   $serial
      * @param int      $productId
-     * @param int      $packagingId
+     * @param int      $taskId
      * @param int|NULL $id
      *
      * @return array $res
      */
-    private static function fetchSerialInfo($serial, $productId, $packagingId, $id)
+    private static function fetchSerialInfo($serial, $productId, $taskId)
     {
         if (!$Driver = cat_Products::getDriver($productId)) {
             
@@ -388,7 +388,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
         
         $canonizedSerial = $Driver->canonizeSerial($productId, $serial);
-        $exRec = self::fetch(array("#serial = '[#1#]' AND #id != '[#2#]'", $canonizedSerial, $productId));
+        $exRec = self::fetch(array("#serial = '[#1#]'", $canonizedSerial));
+        
         if (!empty($exRec)) {
             $res['type'] = 'existing';
             $res['productId'] = $exRec->productId;
@@ -405,7 +406,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         } elseif (!$Driver->checkSerial($productId, $serial, $error)) {
             $res['error'] = $error;
         }
-        
+       
         return $res;
     }
     
@@ -902,5 +903,66 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             return false;
         }
+    }
+    
+    
+    public static function add($taskId, $params)
+    {
+        expect($taskRec = planning_Tasks::fetch($taskId), 'Няма така задача');
+        expect(in_array($params['type'], array('production', 'input', 'waste')));
+        $productId = (isset($params['productId'])) ? $params['productId'] : (($params['type'] == 'production') ? $taskRec->productId : null);
+        expect($productId, 'Не е посочен артикул');
+        $options = planning_ProductionTaskProducts::getOptionsByType($taskRec->id, $params['type']);
+        expect(array_key_exists($productId, $options), $productId);
+        
+        $quantity = $params['quantity'];
+        if(!empty($quantity)){
+            expect($quantity = core_Type::getByName('double')->fromVerbal($quantity), 'невалидно число');
+        } elseif($params['type'] == 'production' && isset($taskRec->packagingId)){
+            $packRec = cat_products_Packagings::getPack($taskRec->productId, $taskRec->packagingId);
+            $quantity = is_object($packRec) ? ($packRec->quantity / $taskRec->quantityInPack) : 1;
+        } else {
+            $quantity = 1;
+        }
+        
+        $rec = (object)array('serialType' => 'unknown', '_generateSerial' => false, 'productId' => $productId, 'taskId' => $taskId, 'quantity' => $quantity, 'type' => $params['type'], 'fixedAsset' => $params['fixedAsset']);
+        if(!empty($params['employees'])){
+            $rec->employees = keylist::fromArray(array_combine($params['employees'], $params['employees']));
+        }
+        
+        $canStore = cat_Products::fetchField($productId, 'canStore');
+        $rec->_generateSerial = false;
+        if(!empty($params['serial'])){
+            $params['serial'] = plg_Search::normalizeText($params['serial']);
+            $params['serial'] = str::removeWhitespaces($params['serial']);
+            if ($Driver = cat_Products::getDriver($productId)) {
+                $params['serial'] = $Driver->canonizeSerial($productId, $params['serial']);
+            }
+            
+            $serialInfo = self::fetchSerialInfo($params['serial'], $productId, $taskId);
+            $rec->serial = $params['serial'];
+            $rec->serialType = $serialInfo['type'];
+        } else {
+            if($canStore == 'yes' && $params['type'] == 'production' && !empty($taskRec->packagingId)){
+                $rec->_generateSerial = true;
+            }
+        }
+        
+        if($rec->type == 'input' && $canStore != 'yes') {
+            $inTp = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #type = 'input' AND #productId = {$rec->productId}");
+            $inInputTask = planning_Tasks::fetchField("#originId = {$taskRec->originId} AND #inputInTask = {$rec->taskId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'pending' AND #productId = {$rec->productId}");
+            
+            // Подсигуряване че трябва да има норма
+            if (empty($inTp) && empty($inInputTask)) {
+                expect(planning_AssetResources::getNormRec($rec->fixedAsset, $rec->productId), 'Изберете оборудване, което има норма за действието');
+            }
+        }
+        
+        $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
+        if (isset($info->indTime)) {
+            $rec->norm = $info->indTime;
+        }
+        
+        return self::save($rec);
     }
 }

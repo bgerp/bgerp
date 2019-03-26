@@ -133,6 +133,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_FoldersWithResources',
         'planning_Stages',
         'planning_WorkCards',
+        'planning_Points',
         'migrate::assetResourceFields',
         'migrate::updateTasks',
         'migrate::updateTasksPart2'
