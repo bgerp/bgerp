@@ -906,6 +906,13 @@ class planning_ProductionTaskDetails extends doc_Detail
     }
     
     
+    /**
+     * Добавяне на прогрес към ПО
+     * 
+     * @param int $taskId
+     * @param array $params
+     * @return int
+     */
     public static function add($taskId, $params)
     {
         expect($taskRec = planning_Tasks::fetch($taskId), 'Няма така задача');
@@ -924,6 +931,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         } else {
             $quantity = 1;
         }
+        expect($quantity > 0, 'Количеството трябва да е положително');
         
         $rec = (object)array('serialType' => 'unknown', '_generateSerial' => false, 'productId' => $productId, 'taskId' => $taskId, 'quantity' => $quantity, 'type' => $params['type'], 'fixedAsset' => $params['fixedAsset']);
         if(!empty($params['employees'])){
