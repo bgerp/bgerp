@@ -1,0 +1,39 @@
+<form [#FORM_ATTR#]> 
+    <!--ET_BEGIN FORM_ERROR-->
+    [#FORM_ERROR#]
+    <!--ET_END FORM_ERROR-->
+    <div class='formFields'>
+	    <table>
+	    	<!--ET_BEGIN currentTaskId-->
+	    	<tr>
+				<td colspan='2'>[#currentTaskId#]</td>
+			</tr>
+			<!--ET_END currentTaskId-->
+			<tr>
+				<td colspan='2'>[#type#]</td>
+			</tr>
+			<tr>
+				<td colspan='2'>[#productId#]</td>
+			</tr>
+			<tr>
+				<td colspan='2'>[#serial#]</td>
+			</tr>
+			<tr>
+				<td>[#quantity#]</td>
+				<td>[#weight#]</td>
+			</tr>
+			<tr>
+				<td colspan='2'>[#employees#]</td>
+			</tr>
+			<tr>
+				<td colspan='2'>[#fixedAsset#]</td>
+			</tr>
+			<tr>
+				<td colspan='2'>[#SEND_BTN#]</td>
+			</tr>
+			<tr>
+				<td colspan='2'>[#PROGRESS#]</td>
+			</tr>
+		</table>
+    </div>
+</form>

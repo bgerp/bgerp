@@ -1,0 +1,13 @@
+#planning-terminal-table-holder {
+	float:left;
+	position:relative
+}
+
+#planning-terminal-form {
+	float:right;
+	position:relative;
+}
+
+tr.terminal-task-row {
+	cursor:pointer;
+}

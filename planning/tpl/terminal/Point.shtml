@@ -1,0 +1,19 @@
+<div>
+<div id='planning-terminal-user-panel'>[#centerId#] [#fixedAssets#] [#userId#] [#date#]<!--ET_BEGIN EXIT_TERMINAL--> [#EXIT_TERMINAL#]<!--ET_END EXIT_TERMINAL--></div>
+<div id='planning-terminal-table-holder'>
+	<ul id ='planning-terminal-tabs'><li [#active#] title='|Прогрес на производствените операции|*'><a href='#terminal-progress' accesskey='o'>|Прогрес|*</a></li><li [#active#] title='|Всички операции|*'><a href='#terminal-tasks' accesskey='o'>|*Операции|*</a></li></ul>
+	<div class='planning-terminal-holder-content'>
+		<div class='planning-terminal-holder active'>[#TAB_TOOLS#]</div>
+			<!--ET_BEGIN PROGRESS_TABLE-->
+				<div class='planning-terminal-tab-content [#active_choose#]' id = 'progress-holder'>[#PROGRESS_TABLE#]</div>
+			<!--ET_END PROGRESS_TABLE-->
+			
+			<!--ET_BEGIN PROGRESS_TASK_TABLE-->
+				<div class='planning-terminal-tab-content [#active_choose#]' id = 'progress-holder'>[#PROGRESS_TASK_TABLE#]</div>
+			<!--ET_END PROGRESS_TASK_TABLE-->
+	</div>
+</div>
+<div id='planning-terminal-form-holder'>
+	[#FORM#]
+</div>			
+</div>
