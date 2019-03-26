@@ -1432,9 +1432,8 @@ class cat_Products extends embed_Manager
         }
         
         $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
-        if($reverseOrder === true){
-            $query->orderBy('isPublic', 'ASC');
-        }
+        $direction = ($reverseOrder === true) ? 'ASC' : 'DESC';
+        $query->orderBy('isPublic', $direction);
         
         if ($q) {
             if ($q{0} == '"') {
