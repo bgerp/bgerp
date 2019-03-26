@@ -81,7 +81,7 @@ class docarch_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(1.95, 'Документи', 'Архив', 'docarch_Movements', 'default', 'docarch'),
+        array(1.95, 'Документи', 'Архив', 'docarch_Movements', 'default', 'ceo,docarchMaster,docarch'),
     );
     
     
