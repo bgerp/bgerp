@@ -66,7 +66,9 @@ class keyboard_Setup extends core_ProtoSetup
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
-        
+
+        $html .= $Plugins->installPlugin('Nick VKB', 'keyboard_Plugin', 'type_Nick', 'private');
+
         // Инсталираме клавиатурата към password полета
         $html .= $Plugins->installPlugin('Pass VKB', 'keyboard_Plugin', 'type_Password', 'private');
         
