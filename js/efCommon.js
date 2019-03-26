@@ -1163,14 +1163,14 @@ function toggleDisplay(id) {
 // Задейства елементите, които могат да скриват/показват части
 function setTrigger() {
     $('.trigger').click(function(event) {
-         var obj = $(this).parent().next().children('.subGroup');
+         var obj = $(this).parent().next();
          var sp = $(this);
-         if (!($(obj).hasClass('hidden1'))) {
+         if (!($(obj).hasClass('hidden'))) {
              $(obj).slideUp(400);
-             sp.html('►'); $(obj).addClass('hidden1');
+             sp.html('►'); $(obj).addClass('hidden');
          } else {
              $(obj).slideDown(400);
-             sp.html('▼'); $(obj).removeClass('hidden1');
+             sp.html('▼'); $(obj).removeClass('hidden');
          }
          event.stopPropagation();
     });
