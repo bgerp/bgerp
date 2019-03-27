@@ -1,0 +1,19 @@
+.tabs-holder {
+  float: left; }
+
+.formHolder {
+  float: right; }
+
+.tabs-holder li {
+  display: inline-block;
+  padding: 5px;
+  border: 1px solid #999999;
+  background: #cccccc; }
+  .tabs-holder li.active {
+    background: white; }
+
+.tabContent {
+  display: none; }
+  .tabContent.active {
+    display: block; }
+

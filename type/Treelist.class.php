@@ -100,11 +100,13 @@ class type_Treelist extends type_Keylist
                 $n = "{$name}[$i]";
                 if(is_scalar($item)) {
                     if($item == 'openGroup') {
-                        $html .= "<li>";
+                        
                         if($toggle == $downArrow) {
-                            $html .= "<ul id='ul_{$lastId}' class='subGroup'>";
+                            $html .= "<li id='ul_{$lastId}' class='subGroup'>";
+                            $html .= "<ul>";
                         } else {
-                            $html .= "<ul id='ul_{$lastId}' class='subGroup hidden hidden1'>";
+                            $html .= "<li id='ul_{$lastId}' class='subGroup hidden'>";
+                            $html .= "<ul>";
                         }
                     }elseif($item == 'closeGroup') {
                         $html .= "</ul></li>";
