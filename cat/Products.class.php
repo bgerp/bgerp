@@ -115,13 +115,13 @@ class cat_Products extends embed_Manager
     /**
      * Кой  може да клонира системни записи
      */
-    public $canClonesysdata = 'cat,ceo,sales,purchase';
+    public $canClonesysdata = 'cat,ceo,sales,purchase,partner';
     
     
     /**
      * Кой  може да клонира запис
      */
-    public $canClonerec = 'cat,ceo,sales,purchase';
+    public $canClonerec = 'cat,ceo,sales,purchase,partner';
     
     
     /**
