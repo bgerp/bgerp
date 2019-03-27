@@ -131,8 +131,14 @@ class planning_ProductionTaskDetails extends doc_Detail
      * Рендиране на мастъра под формата за редактиране/добавяне
      */
     public $renderMasterBellowForm = true;
-    
-    
+
+
+    /**
+     * Отделния ред в листовия изглед да е отгоре
+     */
+    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -920,7 +926,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         $productId = (isset($params['productId'])) ? $params['productId'] : (($params['type'] == 'production') ? $taskRec->productId : null);
         expect($productId, 'Не е посочен артикул');
         $options = planning_ProductionTaskProducts::getOptionsByType($taskRec->id, $params['type']);
-        expect(array_key_exists($productId, $options), $productId);
+
+        bp($options,$productId,$params );
+
+
+        expect(array_key_exists($productId, $options), $options);
         
         $quantity = $params['quantity'];
         if(!empty($quantity)){

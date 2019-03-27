@@ -1,4 +1,4 @@
-<form [#FORM_ATTR#]> 
+
     <!--ET_BEGIN FORM_ERROR-->
     [#FORM_ERROR#]
     <!--ET_END FORM_ERROR-->
@@ -36,4 +36,3 @@
 			</tr>
 		</table>
     </div>
-</form>

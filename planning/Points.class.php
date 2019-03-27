@@ -185,7 +185,15 @@ class planning_Points extends core_Manager
         if (Mode::get('terminalId')) {
             $tpl->replace(ht::createLink('', array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
         }
-        
+
+        $taskId = Mode::get("currentTaskId{$rec->id}");
+        if($taskId) {
+            $tpl->replace('active', 'activeSingle');
+        }
+        else {
+            $tpl->replace('active', 'activeAll');
+        }
+
         $tableTpl = $this->getTasksTable($rec);
         $tpl->replace($tableTpl, 'PROGRESS_TASK_TABLE');
         
@@ -249,6 +257,7 @@ class planning_Points extends core_Manager
         $Details = cls::get('planning_ProductionTaskDetails');
         $data = (object)array('action' => 'list', 'query' => $Details->getQuery(), 'listClass' => 'planning-task-progress');
         $taskId = Mode::get("currentTaskId{$rec->id}");
+
         $data->query->where("#taskId = '{$taskId}'");
         $data->query->orderBy("taskId,id", 'DESC');
         
@@ -288,6 +297,7 @@ class planning_Points extends core_Manager
         $form->setField('type', 'input,removeAndRefreshForm=productId|weight|serial,caption=Действие');
         $form->input(null, 'silent');
         $form->formAttr['id'] = 'planning-terminal-form';
+        $form->formAttr['class'] = 'simpleForm';
         unset($form->rec->id);
         unset($form->fields['id']);
         $form->fields['employees']->attr = array('id' => 'employeeSelect');
@@ -322,7 +332,7 @@ class planning_Points extends core_Manager
         $form->fieldsLayout->append($currentTaskHtml, 'currentTaskId');
         
         $sendUrl = ($this->haveRightFor('terminal')) ?  toUrl(array($this, 'doAction', 'tId' => $rec->id), 'local') : array();
-        $sendBtn = ht::createFnBtn('Изпращане', null, null, array('class' => "planning-terminal-form-btn", 'id' => 'planning-terminal-send-btn', 'data-url' => $sendUrl, 'title' => 'Изпращане на формата'));
+        $sendBtn = ht::createFnBtn('Изпращане', null, null, array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'data-url' => $sendUrl, 'title' => 'Изпращане на формата'));
         $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
         
         if($currentTaskId){
@@ -373,7 +383,7 @@ class planning_Points extends core_Manager
         $tableHtml = $this->getProgressTable($rec)->getContent();
         $formHtml = $this->getFormHtml($rec)->getContent();
         
-        // Ще реплейснем само бележката
+        // Ще реплейснем само таба с прогреса
         $resObj = new stdClass();
         $resObj->func = 'html';
         $resObj->arg = array('id' => 'progress-holder', 'html' => $tableHtml, 'replace' => true);
@@ -400,9 +410,10 @@ class planning_Points extends core_Manager
     {
         peripheral_Terminal::setSessionPrefix();
         
-        try{ 
+        try{
+
             $id = Request::get('tId', 'int');
-            
+
             expect($rec = self::fetch($id), 'Неразпознат ресурс');
             expect($this->haveRightFor('terminal', $id), 'Недостъпен ресурс');
             $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
@@ -464,9 +475,7 @@ class planning_Points extends core_Manager
                 $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
                 
                 return array_merge($statusData);
-            } else {bp($e);
-                expect(false, $errorMsg);
-           }
+            }
         }
     }
     
