@@ -216,6 +216,10 @@ class planning_Points extends core_Manager
         $tpl->push('planning/tpl/terminal/styles.css', 'CSS');
         $tpl->push('planning/tpl/terminal/scripts.js', 'JS');
         jquery_Jquery::run($tpl, 'planningActions();');
+        jquery_Jquery::runAfterAjax($tpl, 'smartCenter');
+        jquery_Jquery::run($tpl, 'prepareContextMenu();', true);
+        jquery_Jquery::runAfterAjax($tpl, 'prepareContextMenu');
+        jquery_Jquery::runAfterAjax($tpl, 'getContextMenuFromAjax');
         
         $refreshUrlLocal = toUrl(array($this, 'updateTerminal', 'tId' => $rec->id), 'local');
         core_Ajax::subscribe($tpl, $refreshUrlLocal, 'refreshPlanningTerminal', 2000);

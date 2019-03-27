@@ -940,10 +940,13 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         expect($quantity > 0, 'Количеството трябва да е положително');
         
-        $rec = (object)array('serialType' => 'unknown', '_generateSerial' => false, 'productId' => $productId, 'taskId' => $taskId, 'quantity' => $quantity, 'type' => $params['type'], 'fixedAsset' => $params['fixedAsset']);
+        $rec = (object)array('serialType' => 'unknown', '_generateSerial' => false, 'productId' => $productId, 'taskId' => $taskId, 'quantity' => $quantity, 'type' => $params['type']);
         if(!empty($params['employees'])){
+            $params['employees'] = arr::make($params['employees']);
             $rec->employees = keylist::fromArray(array_combine($params['employees'], $params['employees']));
         }
+        $rec->fixedAsset = (!empty($params['fixedAsset'])) ? $params['fixedAsset'] : null;
+        
         
         if(!empty($params['weight'])){
             expect($params['weight'] = core_Type::getByName('double')->fromVerbal($params['weight']), 'Невалидно число');
