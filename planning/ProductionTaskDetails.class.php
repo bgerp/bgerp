@@ -461,8 +461,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->scrappedQuantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->scrappedQuantity);
             $row->scrappedQuantity = " (" . tr('Брак') . ": {$row->scrappedQuantity})";
         }
-        $row->quantity = "<b>{$row->quantity}</b> <span style='font-weight:normal'>{$row->measureId}</span> {$row->scrappedQuantity}";
-        
+        $row->quantity = "<b>{$row->quantity}</b> {$row->measureId} {$row->scrappedQuantity}";
+
         if (!empty($rec->notes)) {
             $notes = $mvc->getFieldType('notes')->toVerbal($rec->notes);
             $row->productId .= "<small>{$notes}</small>";

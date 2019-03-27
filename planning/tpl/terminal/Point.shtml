@@ -1,29 +1,41 @@
-<div>
-<div class="terminalHeader">
-	[#centerId#] [#fixedAssets#] [#userId#] <span id="dateHolder">[#date#]</span> [#LOGO#]
-	<!--ET_BEGIN EXIT_TERMINAL--> [#EXIT_TERMINAL#]<!--ET_END EXIT_TERMINAL-->
-</div>
-<div class="tabs-holder">
-	<ul>
-		<li class="[#activeSingle#]" title='|Прогрес на производствените операции|*'>
-			<a href='#progress-holder' accesskey='p'>|Прогрес|*</a>
-		</li>
-		<li class="[#activeAll#]" title='|Всички операции|*'>
-			<a href='#progress-task' accesskey='o'>|*Операции|*</a>
-		</li>
-	</ul>
-	<div class='terminal-content'>
-		<!--ET_BEGIN PROGRESS_TABLE-->
-		<div class='tabContent [#active_choose#]' id = 'progress-holder'>[#PROGRESS_TABLE#]</div>
-		<!--ET_END PROGRESS_TABLE-->
 
-		<!--ET_BEGIN PROGRESS_TASK_TABLE-->
-		<div class='tabContent [#active_choose#]' id = 'progress-task'>[#PROGRESS_TASK_TABLE#]</div>
-		<!--ET_END PROGRESS_TASK_TABLE-->
+<div class="terminalHeader">
+	<div class="centerContent">
+		<span class="fleft">
+			<span class="logo">[#LOGO#]</span>
+			[#centerId#]
+			<span class="assets">»    [#fixedAssets#]</span>
+		</span>
+		<div class="fright userInfo">
+			 <span id="dateHolder">[#date#]</span>
+			[#userId#]
+			<!--ET_BEGIN EXIT_TERMINAL--> [#EXIT_TERMINAL#]<!--ET_END EXIT_TERMINAL-->
+		</div>
+		<div class="clearfix21"></div>
 	</div>
 </div>
-<div class='formHolder'>
-	[#FORM#]
-</div>			
+<div class="centerContent">
+	<div class="tabs-holder">
+		<ul>
+			<li class="[#activeSingle#]" title='|Прогрес на производствените операции|*'>
+				<a href='#progress-holder' accesskey='p'>|Прогрес|*</a>
+			</li>
+			<li class="[#activeAll#]" title='|Всички операции|*'>
+				<a href='#progress-task' accesskey='o'>|*Операции|*</a>
+			</li>
+		</ul>
+		<div class='terminal-content'>
+			<!--ET_BEGIN PROGRESS_TABLE-->
+			<div class='tabContent [#active_choose#]' id = 'progress-holder'>[#PROGRESS_TABLE#]</div>
+			<!--ET_END PROGRESS_TABLE-->
+
+			<!--ET_BEGIN PROGRESS_TASK_TABLE-->
+			<div class='tabContent [#active_choose#]' id = 'progress-task'>[#PROGRESS_TASK_TABLE#]</div>
+			<!--ET_END PROGRESS_TASK_TABLE-->
+		</div>
+	</div>
+	<div class='formHolder'>
+		[#FORM#]
+	</div>
 </div>
 

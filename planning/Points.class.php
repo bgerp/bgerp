@@ -314,7 +314,7 @@ class planning_Points extends core_Manager
         unset($data->listFields['productId']);
         
         setIfNot($data->listTableMvc, clone $Details);
-        $data->listTableMvc->setField('quantity', 'smartCenter,tdClass=leftCol');
+        $data->listTableMvc->setField('quantity', 'smartCenter');
         
         $tpl = $Details->renderList($data);
         Mode::pop('centerTerminal');
