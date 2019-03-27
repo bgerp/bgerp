@@ -73,6 +73,7 @@
   .formHolder .formFields {
     padding: 0 !important; }
   .formHolder .formTitle {
+    box-sizing: content-box;
     background: #eeeeee;
     border: none;
     font-size: 1.15em;
@@ -81,6 +82,7 @@
   .formHolder table {
     margin: 0 !important; }
   .formHolder .formContent {
+    width: 320px;
     margin-top: 0;
     padding: 20px !important;
     font-size: 1.1em; }
