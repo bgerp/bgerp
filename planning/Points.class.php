@@ -217,8 +217,8 @@ class planning_Points extends core_Manager
         $tpl->push('planning/tpl/terminal/scripts.js', 'JS');
         jquery_Jquery::run($tpl, 'planningActions();');
         
-       // $refreshUrlLocal = toUrl(array($this, 'updateTerminal', 'tId' => $rec->id), 'local');
-       // core_Ajax::subscribe($tpl, $refreshUrlLocal, 'refreshPlanningTerminal', 2000);
+        $refreshUrlLocal = toUrl(array($this, 'updateTerminal', 'tId' => $rec->id), 'local');
+        core_Ajax::subscribe($tpl, $refreshUrlLocal, 'refreshPlanningTerminal', 2000);
         
         return $tpl;
     }
@@ -247,7 +247,7 @@ class planning_Points extends core_Manager
             return new Redirect($url);
         }
         
-        return  $this->getSuccessfullResponce($rec);
+        return $this->getSuccessfullResponce($rec, false);
     }
     
     
@@ -422,28 +422,47 @@ class planning_Points extends core_Manager
     }
     
     
-    private function getSuccessfullResponce($rec)
+    private function getSuccessfullResponce($rec, $replaceForm = true)
     {
         $rec = $this->fetchRec($rec);
-        $tableHtml = $this->getProgressTable($rec)->getContent();
-        $formHtml = $this->getFormHtml($rec)->getContent();
+        $objectArr = array();
         
         // Ще реплейснем само таба с прогреса
+        $progressHtml = $this->getProgressTable($rec)->getContent();
         $resObj = new stdClass();
         $resObj->func = 'html';
-        $resObj->arg = array('id' => 'progress-holder', 'html' => $tableHtml, 'replace' => true);
+        $resObj->arg = array('id' => 'progress-holder', 'html' => $progressHtml, 'replace' => true);
+        $objectArr[] = $resObj;
         
-        // Ще реплесйнем и таба за плащанията
+        // Ще реплейснем само таба с прогреса
+        $tableHtml = $this->getTasksTable($rec)->getContent();
         $resObj1 = new stdClass();
         $resObj1->func = 'html';
-        $resObj1->arg = array('id' => 'planning-terminal-form', 'html' => $formHtml, 'replace' => true);
+        $resObj1->arg = array('id' => 'progress-task', 'html' => $tableHtml, 'replace' => true);
+        $objectArr[] = $resObj1;
+        
+        $resObj2 = new stdClass();
+        $resObj2->func = 'html';
+        $resObj2->arg = array('id' => 'dateHolder', 'html' => dt::mysql2verbal(dt::now(), 'd.m.Y H:i'), 'replace' => true);
+        $objectArr[] = $resObj2;
+        
+        
+        if($replaceForm === true){
+            $formHtml = $this->getFormHtml($rec)->getContent();
+            
+            // Ще реплесйнем и таба за плащанията
+            $resObj3 = new stdClass();
+            $resObj3->func = 'html';
+            $resObj3->arg = array('id' => 'planning-terminal-form', 'html' => $formHtml, 'replace' => true);
+            $objectArr[] = $resObj3;
+        }
         
         // Показваме веднага и чакащите статуси
         $hitTime = Request::get('hitTime', 'int');
         $idleTime = Request::get('idleTime', 'int');
         $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
         
-        $res = array_merge(array($resObj, $resObj1), (array) $statusData);
+        $res = array_merge($objectArr, (array) $statusData);
         
         return $res;
     }
