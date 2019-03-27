@@ -165,6 +165,14 @@ class planning_Points extends core_Manager
     public function act_Terminal()
     {
         peripheral_Terminal::setSessionPrefix();
+        
+        // Имаме ли достъп до терминала
+        if (!$this->haveRightFor('terminal')) {
+            
+            return new Redirect(array('bgerp_Portal', 'show'));
+        }
+        
+        
         $this->requireRightFor('terminal');
         
         expect($id = Request::get('tId', 'int'));
@@ -177,6 +185,10 @@ class planning_Points extends core_Manager
         $tpl = getTplFromFile('planning/tpl/terminal/Point.shtml');
         $tpl->replace($rec->name, 'PAGE_TITLE');
         $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/big_house.png', '"', true) . '>', 'HEAD');
+        
+        $img = ht::createElement('img', array('src' => sbf('pos/img/bgerp.png', '')));
+        $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink', 'title' => 'Към портала'));
+        $tpl->append($logo, 'LOGO');
         
         $tpl->replace(planning_Centers::getHyperlink($rec->centerId, true), 'centerId');
         $tpl->replace(self::getVerbal($rec, 'fixedAssets'), 'fixedAssets');
@@ -261,7 +273,6 @@ class planning_Points extends core_Manager
         $data->query->where("#taskId = '{$taskId}'");
         $data->query->orderBy("taskId,id", 'DESC');
         
-        
         $Details->prepareListFields($data);
         $Details->prepareListRecs($data);
         $Details->prepareListRows($data);
@@ -280,13 +291,9 @@ class planning_Points extends core_Manager
         $rec = self::fetchRec($id);
         
         $currentTaskId = Mode::get("currentTaskId{$rec->id}");
-        
         $Details = cls::get('planning_ProductionTaskDetails');
         
         $form = $Details->getForm();
-        
-        
-        //$form->setAction($this, 'doAction');
         $form->setField('serial', 'placeholder=№');
         $form->setField('weight', 'placeholder=Тегло');
         $form->setField('employees', 'placeholder=Служители');
@@ -410,13 +417,14 @@ class planning_Points extends core_Manager
     public function act_doAction()
     {
         peripheral_Terminal::setSessionPrefix();
+        $id = Request::get('tId', 'int');
         
         try{
-
-            $id = Request::get('tId', 'int');
-
             expect($rec = self::fetch($id), 'Неразпознат ресурс');
-            expect($this->haveRightFor('terminal', $id), 'Недостъпен ресурс');
+            if(!$this->haveRightFor('terminal', $id)){
+                return new Redirect(array($this, 'list'));
+            }
+            
             $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
             
             $reference = null;
@@ -458,7 +466,7 @@ class planning_Points extends core_Manager
             }
             
             // Ако не сме в Ajax режим пренасочваме към терминала
-            redirect(array($this, 'terminal', $rec->id));
+            redirect(array($this, 'terminal', 'tId' => $rec->id));
             
         } catch (core_exception_Expect $e){
             $dump = $e->getDump();
