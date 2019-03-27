@@ -165,19 +165,14 @@ class planning_Points extends core_Manager
     public function act_Terminal()
     {
         peripheral_Terminal::setSessionPrefix();
-        
-        // Имаме ли достъп до терминала
-        if (!$this->haveRightFor('terminal')) {
-            
-            return new Redirect(array('bgerp_Portal', 'show'));
-        }
-        
-        
-        $this->requireRightFor('terminal');
-        
         expect($id = Request::get('tId', 'int'));
         expect($rec = self::fetch($id));
-        $this->requireRightFor('terminal', $rec);
+        
+        if(!$this->haveRightFor('terminal') || !$this->haveRightFor('terminal', $rec)){
+            $url = $this->getRedirectUrlAfterProblemIsFound($rec);
+            
+            return new Redirect($url);
+        }
         
         Mode::setPermanent('currentPlanningPoint', $id);
         Mode::set('wrapper', 'page_Empty');
@@ -222,8 +217,41 @@ class planning_Points extends core_Manager
         $tpl->push('planning/tpl/terminal/scripts.js', 'JS');
         jquery_Jquery::run($tpl, 'planningActions();');
         
+       // $refreshUrlLocal = toUrl(array($this, 'updateTerminal', 'tId' => $rec->id), 'local');
+       // core_Ajax::subscribe($tpl, $refreshUrlLocal, 'refreshPlanningTerminal', 2000);
+        
         return $tpl;
     }
+    
+    
+    private function getRedirectUrlAfterProblemIsFound($rec)
+    {
+        $url = ($this->haveRightFor('list')) ? array($this, 'list') : array('bgerp_Portal', 'show');
+        if(!core_Users::getCurrent('id', false)){
+            $url = (Mode::get('terminalId')) ? array('peripheral_Terminal', 'default', 'afterExit' => true) : array('core_Users', 'login', 'ret_url' => toUrl(array($this, 'terminal', 'tId' => $rec->id), 'local'));
+        }
+        
+        return $url;
+    }
+    
+    
+    public function act_updateTerminal()
+    {
+        peripheral_Terminal::setSessionPrefix();
+        expect($id = Request::get('tId', 'int'));
+        expect($rec = self::fetch($id));
+        
+        if(!$this->haveRightFor('terminal') || !$this->haveRightFor('terminal', $rec)){
+            $url = $this->getRedirectUrlAfterProblemIsFound($rec);
+            
+            return new Redirect($url);
+        }
+        
+        return  $this->getSuccessfullResponce($rec);
+    }
+    
+    
+    
     
     private function getTasksTable($id)
     {
@@ -253,6 +281,10 @@ class planning_Points extends core_Manager
         unset($data->listFields['modifiedBy']);
         unset($data->listFields['folderId']);
         unset($data->listFields['_rowTools']);
+        
+        setIfNot($data->listTableMvc, clone $Tasks);
+        $data->listTableMvc->setField('progress', 'smartCenter');
+        
         $tpl = $Tasks->renderList($data);
         
         return $tpl;
@@ -280,6 +312,10 @@ class planning_Points extends core_Manager
         unset($data->listFields['taskId']);
         unset($data->listFields['modified']);
         unset($data->listFields['productId']);
+        
+        setIfNot($data->listTableMvc, clone $Details);
+        $data->listTableMvc->setField('quantity', 'smartCenter,tdClass=leftCol');
+        
         $tpl = $Details->renderList($data);
         Mode::pop('centerTerminal');
         
@@ -294,14 +330,15 @@ class planning_Points extends core_Manager
         $Details = cls::get('planning_ProductionTaskDetails');
         
         $form = $Details->getForm();
-        $form->setField('serial', 'placeholder=№');
-        $form->setField('weight', 'placeholder=Тегло');
-        $form->setField('employees', 'placeholder=Служители');
-        $form->setField('fixedAsset', 'placeholder=Оборудване');
-        $form->setField('weight', 'placeholder=Тегло');
+        $form->setField('serial', 'placeholder=№,class=w100');
+        $form->setField('productId', 'class=w100');
+        $form->setField('quantity', 'class=w100');
+        $form->setField('weight', 'placeholder=Тегло,class=w100');
+        $form->setField('employees', 'placeholder=Служителио,class=w100');
+        $form->setField('fixedAsset', 'placeholder=Оборудванео,class=w100');
         
         $form->setDefault('type', 'production');
-        $form->setField('type', 'input,removeAndRefreshForm=productId|weight|serial,caption=Действие');
+        $form->setField('type', 'input,removeAndRefreshForm=productId|weight|serial,caption=Действие,class=w100');
         $form->input(null, 'silent');
         $form->formAttr['id'] = 'planning-terminal-form';
         $form->formAttr['class'] = 'simpleForm';
@@ -418,13 +455,15 @@ class planning_Points extends core_Manager
     {
         peripheral_Terminal::setSessionPrefix();
         $id = Request::get('tId', 'int');
+        expect($rec = self::fetch($id), 'Неразпознат ресурс');
+        
+        if(!$this->haveRightFor('terminal') || !$this->haveRightFor('terminal', $rec)){
+            $url = $this->getRedirectUrlAfterProblemIsFound($rec);
+            
+            return new Redirect($url);
+        }
         
         try{
-            expect($rec = self::fetch($id), 'Неразпознат ресурс');
-            if(!$this->haveRightFor('terminal', $id)){
-                return new Redirect(array($this, 'list'));
-            }
-            
             $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
             
             $reference = null;
