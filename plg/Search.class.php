@@ -330,7 +330,7 @@ class plg_Search extends core_Plugin
      *
      * @return bool
      */
-    protected static function isBigTable($query)
+    public static function isBigTable($query)
     {
         $mvc = $query->mvc;
         
