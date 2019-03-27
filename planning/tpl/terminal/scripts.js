@@ -13,7 +13,7 @@ function planningActions() {
 		var type = $("#typeSelect").is('[readonly]') ?  $("input[name=type]").val() : $("#typeSelect").val();
 		var productId = $("#productIdSelect").is('[readonly]') ? $("input[name=productId]").val() :  $("#productIdSelect").val() ;
 		var quantity = $("input[name=quantity]").val();
-		var employees = $("select#employeeSelect").length ? $("select#employeeSelect").val() : $('input[id^="employees"]').is('checked') ? $('input[id^="employees"]').val() : null;
+		var employees = $("select#employeeSelect").length ? $("select#employeeSelect").val() : $('input[id^="employees"]').is(':checked') ? $('input[id^="employees"]').val() : null;
 		var weight = $("input[name=weight]").val();
 		var fixedAsset = $("#fixedAssetSelect").val();
 		var taskId = $("input[name=taskId]").val();
