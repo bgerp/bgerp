@@ -1429,9 +1429,16 @@ class cat_Products extends embed_Manager
                 $groups = (keylist::isKeylist($params['groups'])) ? $params['groups'] : keylist::fromArray($params['groups']);
                 $query->likeKeylist('groups', $groups);
             }
+            
+            if(isset($params['isPublic'])){
+                $isPublic = ($params['isPublic'] === true) ? 'yes' : 'no';
+                $query->where("#isPublic = '{$isPublic}'");
+            }
         }
         
         $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
+        $direction = ($reverseOrder === true) ? 'ASC' : 'DESC';
+        $query->orderBy('isPublic', $direction);
         
         if ($q) {
             if ($q{0} == '"') {
@@ -1495,14 +1502,14 @@ class cat_Products extends embed_Manager
      * @param int|NULL $limit            - лимит
      * @param bool     $orHasProperties  - Дали трябва да имат всички свойства от зададените или поне едно
      * @param mixed    $groups           - групи в които да участват
+     * @param null|boolean $isPublic     - null за всички артикули, true за стандартните, false за нестандартните
      *
      * @return array $products         - артикулите групирани по вида им стандартни/нестандартни
      */
-    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null)
+    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $isPublic = null)
     {
         $Type = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)');
-        
-        foreach (array('customerClass', 'customerId', 'orHasProperties') as $val){
+        foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic') as $val){
             if(isset(${"{$val}"})){
                 $Type->params[$val] = ${"{$val}"};
             }

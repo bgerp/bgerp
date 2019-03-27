@@ -141,7 +141,7 @@ class docarch_Archives extends core_Master
             
             if ($rec->id) {
                 foreach ($rec->typeArr as $v) {
-                    if (!in_array($v, $typesArr)) {
+                if ((!in_array($v, $typesArr)) && ($rec->typeArr[0] != '')) {
                         $form->setError('volType', 'Не може да се премахват дефинирани типове');
                     }
                 }
