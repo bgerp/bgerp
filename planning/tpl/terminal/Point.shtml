@@ -4,7 +4,7 @@
 		<span class="fleft">
 			<span class="logo">[#LOGO#]</span>
 			[#centerId#]
-			<span class="assets">»    [#fixedAssets#]</span>
+			<!--ET_BEGIN fixedAssets--> <span class="assets">»    [#fixedAssets#]</span><!--ET_END fixedAssets-->
 		</span>
 		<div class="fright userInfo">
 			 <span id="dateHolder">[#date#]</span>
