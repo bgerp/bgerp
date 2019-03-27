@@ -292,7 +292,7 @@ class planning_Points extends core_Manager
         $form->setField('employees', 'placeholder=Служители');
         $form->setField('fixedAsset', 'placeholder=Оборудване');
         $form->setField('weight', 'placeholder=Тегло');
-        $form->setDefault('taskId', $currentTaskId);
+        
         $form->setDefault('type', 'production');
         $form->setField('type', 'input,removeAndRefreshForm=productId|weight|serial,caption=Действие');
         $form->input(null, 'silent');
@@ -304,9 +304,10 @@ class planning_Points extends core_Manager
         $form->fields['fixedAsset']->attr = array('id' => 'fixedAssetSelect');
         $form->fields['productId']->attr = array('id' => 'productIdSelect');
         $form->fields['type']->attr = array('id' => 'typeSelect');
+        $form->rec->taskId = $currentTaskId;
         
+        $typeOptions = array('production' => 'Произвеждане');
         if($currentTaskId){
-            $typeOptions = array('production' => 'Произвеждане');
             if($inputOptions = planning_ProductionTaskProducts::getOptionsByType($currentTaskId, 'input')){
                 if(count($inputOptions)){
                     $typeOptions['input'] = 'Влагане';
@@ -321,11 +322,12 @@ class planning_Points extends core_Manager
             $data = (object) array('form' => $form, 'masterRec' => planning_Tasks::fetch($currentTaskId), 'action' => 'add');
             $Details->invoke('AfterPrepareEditForm', array($data, $data));
         } else {
+            $form->setOptions('type', $typeOptions);
+            $form->rec->productId = null;
             foreach (array('employees', 'fixedAsset', 'type', 'productId', 'weight', 'quantity') as $fld){
-                $form->setReadOnly($fld);
+               $form->setReadOnly($fld);
             }
         }
-        
         
         $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/FormFields.shtml');
         $currentTaskHtml = ($currentTaskId)  ? planning_Tasks::getHyperlink($currentTaskId, true) : "<span>" . tr('Няма текуща задача') . "</span>";
@@ -340,7 +342,6 @@ class planning_Points extends core_Manager
             $form->fieldsLayout->append($taskRow->progressBar, 'PROGRESS');
             $form->fieldsLayout->append(" " . $taskRow->progress, 'PROGRESS');
         }
-        
         
         $tpl = $form->renderHtml();
         

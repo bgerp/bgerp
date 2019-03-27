@@ -927,9 +927,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         expect($productId, 'Не е посочен артикул');
         $options = planning_ProductionTaskProducts::getOptionsByType($taskRec->id, $params['type']);
 
-        bp($options,$productId,$params );
-
-
         expect(array_key_exists($productId, $options), $options);
         
         $quantity = $params['quantity'];
