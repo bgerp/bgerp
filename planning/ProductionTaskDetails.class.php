@@ -931,7 +931,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         $quantity = $params['quantity'];
         if(!empty($quantity)){
-            expect($quantity = core_Type::getByName('double')->fromVerbal($quantity), 'невалидно число');
+            expect($quantity = core_Type::getByName('double')->fromVerbal($quantity), 'Невалидно число');
         } elseif($params['type'] == 'production' && isset($taskRec->packagingId)){
             $packRec = cat_products_Packagings::getPack($taskRec->productId, $taskRec->packagingId);
             $quantity = is_object($packRec) ? ($packRec->quantity / $taskRec->quantityInPack) : 1;
@@ -943,6 +943,16 @@ class planning_ProductionTaskDetails extends doc_Detail
         $rec = (object)array('serialType' => 'unknown', '_generateSerial' => false, 'productId' => $productId, 'taskId' => $taskId, 'quantity' => $quantity, 'type' => $params['type'], 'fixedAsset' => $params['fixedAsset']);
         if(!empty($params['employees'])){
             $rec->employees = keylist::fromArray(array_combine($params['employees'], $params['employees']));
+        }
+        
+        if(!empty($params['weight'])){
+            expect($params['weight'] = core_Type::getByName('double')->fromVerbal($params['weight']), 'Невалидно число');
+            expect($params['weight'] > 0, 'Теглото трябва да е положително');
+            $rec->weight = $params['weight'];
+        }
+        
+        if($taskRec->showadditionalUom == 'mandatory'){
+            expect($rec->weight, 'Теглото е задължително');
         }
         
         $canStore = cat_Products::fetchField($productId, 'canStore');
@@ -977,6 +987,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (isset($info->indTime)) {
             $rec->norm = $info->indTime;
         }
+        
+        
         
         return self::save($rec);
     }

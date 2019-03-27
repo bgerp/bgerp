@@ -334,8 +334,8 @@ class planning_Points extends core_Manager
         $form->setField('productId', 'class=w100');
         $form->setField('quantity', 'class=w100');
         $form->setField('weight', 'placeholder=Тегло,class=w100');
-        $form->setField('employees', 'placeholder=Служителио,class=w100');
-        $form->setField('fixedAsset', 'placeholder=Оборудванео,class=w100');
+        $form->setField('employees', 'placeholder=Служители,class=w100');
+        $form->setField('fixedAsset', 'placeholder=Оборудване,class=w100');
         
         $form->setDefault('type', 'production');
         $form->setField('type', 'input,removeAndRefreshForm=productId|weight|serial,caption=Действие,class=w100');
