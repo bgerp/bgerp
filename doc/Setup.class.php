@@ -150,7 +150,7 @@ defIfNot('DOC_DELETE_REJECTED_THREADS_PERIOD', core_DateTime::SECONDS_IN_MONTH);
 /**
  * До колко документа от последните добавени връзки да се показват при нова
  */
-defIfNot('DOC_LINKED_LAST_SHOW_LIMIT', 5);
+defIfNot('DOC_LINKED_LAST_SHOW_LIMIT', 3);
 
 
 /**
