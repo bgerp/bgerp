@@ -399,8 +399,6 @@ class planning_Points extends core_Manager
         $form = $Details->getForm();
         $form->setField('serial', 'placeholder=№,class=w100');
         $form->setField('productId', 'class=w100');
-        $form->setField('quantity', 'class=w50');
-        $form->setField('weight', 'placeholder=Тегло,class=w50');
         $form->setField('employees', 'placeholder=Служители,class=w100');
         $form->setField('fixedAsset', 'placeholder=Оборудване,class=w100');
         $form->setDefault('type', 'production');
@@ -431,6 +429,8 @@ class planning_Points extends core_Manager
             }
             $form->setOptions('type', $typeOptions);
             $data = (object) array('form' => $form, 'masterRec' => planning_Tasks::fetch($currentTaskId), 'action' => 'add');
+            
+            $form->rec->productId = null;
             $Details->invoke('AfterPrepareEditForm', array($data, $data));
         } else {
             
@@ -452,7 +452,8 @@ class planning_Points extends core_Manager
         $sendBtn = ht::createFnBtn('Изпращане', null, null, array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'data-url' => $sendUrl, 'title' => 'Изпращане на формата'));
         $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
         
-        if($currentTaskId){
+        // Показване на прогреса, само ако е 
+        if($currentTaskId && $form->rec->productId == $data->masterRec->productId){
             $taskRow = planning_Tasks::recToVerbal(planning_Tasks::fetch($currentTaskId), 'progressBar,progress');
             $form->fieldsLayout->append($taskRow->progressBar, 'PROGRESS');
             $form->fieldsLayout->append(" " . $taskRow->progress, 'PROGRESS');

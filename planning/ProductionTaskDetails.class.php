@@ -230,7 +230,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             if ($pRec->canStore != 'yes' && $rec->productId == $masterRec->productId) {
                 $form->setField('serial', 'input=none');
                 if ($rest = $masterRec->plannedQuantity - $masterRec->totalQuantity) {
-                    $form->setDefault('quantity', $rest);
+                    if($rest > 0){
+                        $form->setDefault('quantity', $rest);
+                    }
                 }
             }
             
