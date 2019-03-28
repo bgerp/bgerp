@@ -35,9 +35,9 @@
 			<!--ET_BEGIN PROGRESS_TASK_TABLE-->
 			<div class='tabContent [#active_choose#]' id = 'progress-task'>[#PROGRESS_TASK_TABLE#]</div>
 			<!--ET_END PROGRESS_TASK_TABLE-->
-			
+
 			<!--ET_BEGIN JOB_SINGLE-->
-			<div class='tabContent [#active_choose#]' id = 'progress-job'>[#JOB_SINGLE#]</div>
+			<div class='tabContent [#active_choose#]' id = 'progress-job'>[#JOB_SINGLE#]</div></div>
 			<!--ET_END JOB_SINGLE-->
 		</div>
 	</div>

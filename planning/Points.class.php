@@ -444,7 +444,7 @@ class planning_Points extends core_Manager
         
         // Кустом рендиране на полетата
         $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/FormFields.shtml');
-        $currentTaskHtml = ($currentTaskId)  ? planning_Tasks::getHyperlink($currentTaskId, true) : "<span>" . tr('Няма текуща задача') . "</span>";
+        $currentTaskHtml = ($currentTaskId)  ? planning_Tasks::getHyperlink($currentTaskId, true) : tr('Няма текуща задача');
         $form->fieldsLayout->append($currentTaskHtml, 'currentTaskId');
         
         // Бутони за добавяне
@@ -531,7 +531,7 @@ class planning_Points extends core_Manager
         $resObj3->func = 'html';
         $resObj3->arg = array('id' => 'progress-job', 'html' => $jobHtml, 'replace' => true);
         $objectArr[] = $resObj3;
-        
+
         // Активиране на таба за прогрес
         if($autoSelectProgress === true){
             $resObj4 = new stdClass();
