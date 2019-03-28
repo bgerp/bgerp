@@ -219,7 +219,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         
         // Ако наличната опция е само една, по дефолт е избрана
-        if (count($productOptions) == 1 && $form->cmd != 'refresh') {
+        if (count($productOptions) == 1) {
             $form->setDefault('productId', key($productOptions));
             $form->setReadOnly('productId');
         }
