@@ -202,6 +202,8 @@ class planning_Points extends core_Manager
         $tpl->replace(crm_Profiles::createLink(), 'userId');
         if (Mode::get('terminalId')) {
             $tpl->replace(ht::createLink('', array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
+        } else {
+            $tpl->replace(ht::createLink('', array('core_Users', 'logout'), false, 'title=Излизане от системата,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
         }
 
         $taskId = Mode::get("currentTaskId{$rec->id}");
@@ -294,7 +296,7 @@ class planning_Points extends core_Manager
         if($taskId = Mode::get("currentTaskId{$rec->id}")){
             $jobContainerId = planning_Tasks::fetchField($taskId, 'originId');
             $jobObject = doc_Containers::getDocument($jobContainerId);
-            $tpl = $jobObject->getInlineDocumentBody();
+            $tpl = $jobObject->getInlineDocumentBody('xhtml');
         }
         
         return $tpl;
@@ -320,6 +322,8 @@ class planning_Points extends core_Manager
             $data->query->likeKeylist('fixedAssets', $rec->fixedAssets);
         }
         
+        Mode::push('text', 'xhtml');
+        
         // Подготовка на табличните данни
         $Tasks->prepareListFields($data);
         $Tasks->prepareListRecs($data);
@@ -341,6 +345,8 @@ class planning_Points extends core_Manager
         $data->listTableMvc->setField('progress', 'smartCenter');
         $tpl = $Tasks->renderList($data);
         
+        Mode::pop('text', 'xhtml');
+        
         return $tpl;
     }
     
@@ -353,6 +359,7 @@ class planning_Points extends core_Manager
      */
     private function getProgressTable($id)
     {
+        Mode::push('text', 'xhtml');
         Mode::push('centerTerminal', true);
         $rec = self::fetchRec($id);
         
@@ -376,6 +383,7 @@ class planning_Points extends core_Manager
         
         $tpl = $Details->renderList($data);
         Mode::pop('centerTerminal');
+        Mode::pop('text');
         
         return $tpl;
     }
