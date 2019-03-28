@@ -1424,15 +1424,13 @@ class cat_Products extends embed_Manager
             }
             
             self::filterQueryByMeta($query, $params['hasProperties'], $params['hasnotProperties'], $params['orHasProperties']);
-            
             if(isset($params['groups'])){
-                $groups = (keylist::isKeylist($params['groups'])) ? $params['groups'] : keylist::fromArray($params['groups']);
+                $groups = (keylist::isKeylist($params['groups'])) ? $params['groups'] : keylist::fromArray(arr::make($params['groups'], true));
                 $query->likeKeylist('groups', $groups);
             }
             
             if(isset($params['isPublic'])){
-                $isPublic = ($params['isPublic'] === true) ? 'yes' : 'no';
-                $query->where("#isPublic = '{$isPublic}'");
+                $query->where("#isPublic = '{$params['isPublic']}'");
             }
         }
         
@@ -1519,6 +1517,10 @@ class cat_Products extends embed_Manager
             if(!empty(${"{$val}"})){
                 $Type->params[$val] = implode('|', arr::make(${"{$val}"}, true));
             }
+        }
+        
+        if(isset($groups)){
+            $Type->params[$val] = $groups;
         }
         
         $products = $Type->getOptions($limit);
