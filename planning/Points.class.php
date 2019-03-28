@@ -55,7 +55,7 @@ class planning_Points extends core_Manager
     /**
      * На колко време автоматично да се рефрешва страницата
      */
-    const AUTO_REFRESH_TIME = 2000;
+    const AUTO_REFRESH_TIME = 20000;
     
     
     /**
@@ -221,6 +221,9 @@ class planning_Points extends core_Manager
         $formTpl = $this->getFormHtml($rec);
         $tpl->replace($formTpl, 'FORM');
         
+        $jobTpl = $this->getJobHtml($rec);
+        $tpl->replace($jobTpl, 'JOB_SINGLE');
+        
         jquery_Jquery::enable($tpl);
         $tpl->push('css/Application.css', 'CSS');
         $tpl->push('js/efCommon.js', 'JS');
@@ -274,6 +277,27 @@ class planning_Points extends core_Manager
         }
         
         return $this->getSuccessfullResponce($rec, false, false);
+    }
+    
+    
+    /**
+     * Рендиране на таба с избраното задание
+     * 
+     * @param mixed $id
+     * @return core_ET $tpl
+     */
+    private function getJobHtml($id)
+    {
+        $rec = self::fetchRec($id);
+        
+        $tpl = new core_ET("");
+        if($taskId = Mode::get("currentTaskId{$rec->id}")){
+            $jobContainerId = planning_Tasks::fetchField($taskId, 'originId');
+            $jobObject = doc_Containers::getDocument($jobContainerId);
+            $tpl = $jobObject->getInlineDocumentBody();
+        }
+        
+        return $tpl;
     }
     
     
@@ -502,12 +526,18 @@ class planning_Points extends core_Manager
         $resObj2->arg = array('id' => 'dateHolder', 'html' => dt::mysql2verbal(dt::now(), 'd.m.Y H:i'), 'replace' => true);
         $objectArr[] = $resObj2;
         
+        $jobHtml = $this->getJobHtml($rec)->getContent();
+        $resObj3 = new stdClass();
+        $resObj3->func = 'html';
+        $resObj3->arg = array('id' => 'progress-job', 'html' => $jobHtml, 'replace' => true);
+        $objectArr[] = $resObj3;
+        
         // Активиране на таба за прогрес
         if($autoSelectProgress === true){
-            $resObj3 = new stdClass();
-            $resObj3->func = 'activateTab';
-            $resObj3->arg = array('selectedTask' => Mode::get("currentTaskId{$rec->id}"));
-            $objectArr[] = $resObj3;
+            $resObj4 = new stdClass();
+            $resObj4->func = 'activateTab';
+            $resObj4->arg = array('selectedTask' => Mode::get("currentTaskId{$rec->id}"));
+            $objectArr[] = $resObj4;
         }
         
         // При нужда реплейсване и на формата за прогрес
@@ -515,10 +545,10 @@ class planning_Points extends core_Manager
             $formHtml = $this->getFormHtml($rec)->getContent();
             
             // Ще реплесйнем и таба за плащанията
-            $resObj4 = new stdClass();
-            $resObj4->func = 'html';
-            $resObj4->arg = array('id' => 'planning-terminal-form', 'html' => $formHtml, 'replace' => true);
-            $objectArr[] = $resObj4;
+            $resObj5 = new stdClass();
+            $resObj5->func = 'html';
+            $resObj5->arg = array('id' => 'planning-terminal-form', 'html' => $formHtml, 'replace' => true);
+            $objectArr[] = $resObj5;
         }
         
         // Показване на чакащите статуси

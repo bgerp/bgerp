@@ -21,7 +21,10 @@
 				<a href='#progress-holder' accesskey='p' id='tab-progress'>|Прогрес|*</a>
 			</li>
 			<li class="[#activeAll#]" title='|Всички операции в центъра на дейност|*' id='tab-task'>
-				<a href='#progress-task' accesskey='o'>|*Операции|*</a>
+				<a href='#progress-task' accesskey='o'>|Операции|*</a>
+			</li>
+			<li class="[#activeAll#]" title='|Задание към, което е операцията|*' id='tab-job'>
+				<a href='#progress-job' accesskey='o'>|Задание|*</a>
 			</li>
 		</ul>
 		<div class='terminal-content'>
@@ -32,6 +35,10 @@
 			<!--ET_BEGIN PROGRESS_TASK_TABLE-->
 			<div class='tabContent [#active_choose#]' id = 'progress-task'>[#PROGRESS_TASK_TABLE#]</div>
 			<!--ET_END PROGRESS_TASK_TABLE-->
+			
+			<!--ET_BEGIN JOB_SINGLE-->
+			<div class='tabContent [#active_choose#]' id = 'progress-job'>[#JOB_SINGLE#]</div>
+			<!--ET_END JOB_SINGLE-->
 		</div>
 	</div>
 	<div class='formHolder'>
