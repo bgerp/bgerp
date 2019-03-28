@@ -1,3 +1,6 @@
+body {
+  background: #f1f1f1; }
+
 .centerContent {
   width: 1400px;
   margin: 0 auto; }
@@ -15,13 +18,48 @@
   float: right;
   width: 360px; }
 
-.tabs-holder li {
-  display: inline-block;
-  padding: 5px;
-  border: 1px solid #999999;
-  background: #cccccc; }
-  .tabs-holder li.active {
-    background: white; }
+.terminal-content {
+  background: white;
+  border: 1px solid #cccccc;
+  padding: 15px;
+  height: 600px;
+  overflow-y: auto; }
+  .terminal-content .document {
+    border: none;
+    max-width: none;
+    min-width: none;
+    padding: 0;
+    margin: 0; }
+  .terminal-content .listTable {
+    margin-bottom: 0 !important; }
+
+.tabs-holder ul {
+  padding: 0;
+  margin: 20px 0 0; }
+  .tabs-holder ul li {
+    display: inline-block;
+    background: #dddddd;
+    border: 0;
+    position: relative;
+    top: 1px;
+    font-size: 1.15em;
+    padding: 10px;
+    border: 1px solid #cccccc;
+    border-bottom: none;
+    border-radius: 5px 5px 0 0; }
+    .tabs-holder ul li.active,
+    .tabs-holder ul li:hover {
+      background: white; }
+    .tabs-holder ul li a {
+      outline: none;
+      color: #333333; }
+
+.portal.planning {
+  padding: 0;
+  border: none;
+  margin-top: 10px; }
+  .portal.planning table {
+    border: 1px solid #cccccc; }
 
 .tabContent {
   display: none; }
@@ -76,6 +114,7 @@
     box-sizing: content-box;
     background: #eeeeee;
     border: none;
+    color: #333333;
     font-size: 1.15em;
     padding: 15px;
     border-bottom: 1px solid #cccccc; }

@@ -1,3 +1,6 @@
+body {
+	background: #f1f1f1;
+}
 .centerContent {
 	width: 1400px;
 	margin: 0 auto;
@@ -19,17 +22,55 @@
 	float: right;
 	width: 360px
 }
-
-.tabs-holder li {
-	display: inline-block;
-	padding: 5px;
-	border: 1px solid #999;
-	background: #ccc;
-	&.active {
-		background: #fff;
+.terminal-content {
+	background: #fff;
+	border: 1px solid #ccc;
+	padding: 15px;
+	height: 600px;
+	overflow-y: auto;
+	.document {
+		border: none;
+		max-width: none;
+		min-width: none;
+		padding: 0;
+		margin: 0;
+	}
+	.listTable {
+		margin-bottom: 0 !important;
+	}
+}
+.tabs-holder ul {
+	padding: 0;
+	margin: 20px 0 0;
+	li {
+		display: inline-block;
+		background: #ddd;
+		border: 0;
+		position: relative;
+		top: 1px;
+		font-size: 1.15em;
+		padding: 10px;
+		border: 1px solid #ccc;
+		border-bottom: none;
+		border-radius: 5px 5px 0 0;
+		&.active, &:hover {
+			background: #fff;
+		}
+		a {
+			outline: none;
+			color: #333;
+		}
 	}
 }
 
+.portal.planning {
+	padding: 0;
+	border: none;
+	margin-top: 10px;
+	table {
+		border: 1px solid #ccc;
+	}
+}
 .tabContent {
 	display: none;
 	&.active {
@@ -95,6 +136,7 @@
 		box-sizing: content-box;
 		background: #eee;
 		border: none;
+		color: #333;
 		font-size: 1.15em;
 		padding: 15px;
 		border-bottom: 1px solid #ccc;
@@ -168,5 +210,4 @@
 
 		}
 	}
-
 }
