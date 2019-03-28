@@ -55,7 +55,7 @@ class planning_Points extends core_Manager
     /**
      * На колко време автоматично да се рефрешва страницата
      */
-    const AUTO_REFRESH_TIME = 20000;
+    const AUTO_REFRESH_TIME = 2000000;
     
     
     /**
