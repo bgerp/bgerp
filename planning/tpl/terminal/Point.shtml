@@ -18,9 +18,9 @@
 	<div class="tabs-holder">
 		<ul>
 			<li class="[#activeSingle#]" title='|Прогрес на производствените операции|*'>
-				<a href='#progress-holder' accesskey='p'>|Прогрес|*</a>
+				<a href='#progress-holder' accesskey='p' id='tab-progress'>|Прогрес|*</a>
 			</li>
-			<li class="[#activeAll#]" title='|Всички операции|*'>
+			<li class="[#activeAll#]" title='|Всички операции в центъра на дейност|*' id='tab-task'>
 				<a href='#progress-task' accesskey='o'>|*Операции|*</a>
 			</li>
 		</ul>

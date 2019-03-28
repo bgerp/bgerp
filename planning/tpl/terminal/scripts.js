@@ -53,3 +53,11 @@ function planningActions() {
 		e.preventDefault();
 	});
 }
+
+// Кой таб да е активен
+function render_activateTab(data)
+{
+	if(data.selectedTask){
+		$('#tab-progress').trigger("click");
+	}
+}

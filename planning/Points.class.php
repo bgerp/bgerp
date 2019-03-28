@@ -53,6 +53,12 @@ class planning_Points extends core_Manager
     
     
     /**
+     * На колко време автоматично да се рефрешва страницата
+     */
+    const AUTO_REFRESH_TIME = 2000;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -163,6 +169,10 @@ class planning_Points extends core_Manager
     }
     
     
+    /**
+     * Терминал за отчитане на прогреса
+     * @return Redirect|core_Et
+     */
     public function act_Terminal()
     {
         peripheral_Terminal::setSessionPrefix();
@@ -223,12 +233,19 @@ class planning_Points extends core_Manager
         jquery_Jquery::runAfterAjax($tpl, 'getContextMenuFromAjax');
         
         $refreshUrlLocal = toUrl(array($this, 'updateTerminal', 'tId' => $rec->id), 'local');
-        core_Ajax::subscribe($tpl, $refreshUrlLocal, 'refreshPlanningTerminal', 2000);
+        core_Ajax::subscribe($tpl, $refreshUrlLocal, 'refreshPlanningTerminal', self::AUTO_REFRESH_TIME);
         
         return $tpl;
     }
     
     
+    /**
+     * УРЛ към, което да бъде редиректнат потребителя, ако има проблем
+     * 
+     * @param stdClass $rec
+     * 
+     * @return array $url
+     */
     private function getRedirectUrlAfterProblemIsFound($rec)
     {
         $url = ($this->haveRightFor('list')) ? array($this, 'list') : array('bgerp_Portal', 'show');
@@ -256,7 +273,7 @@ class planning_Points extends core_Manager
             return new Redirect($url);
         }
         
-        return $this->getSuccessfullResponce($rec, false);
+        return $this->getSuccessfullResponce($rec, false, false);
     }
     
     
@@ -457,9 +474,10 @@ class planning_Points extends core_Manager
      * 
      * @param mixed $rec
      * @param boolean $replaceForm
+     * @param boolean $autoSelectProgress
      * @return array
      */
-    private function getSuccessfullResponce($rec, $replaceForm = true)
+    private function getSuccessfullResponce($rec, $replaceForm = true, $autoSelectProgress = false)
     {
         $rec = $this->fetchRec($rec);
         $objectArr = array();
@@ -484,15 +502,23 @@ class planning_Points extends core_Manager
         $resObj2->arg = array('id' => 'dateHolder', 'html' => dt::mysql2verbal(dt::now(), 'd.m.Y H:i'), 'replace' => true);
         $objectArr[] = $resObj2;
         
+        // Активиране на таба за прогрес
+        if($autoSelectProgress === true){
+            $resObj3 = new stdClass();
+            $resObj3->func = 'activateTab';
+            $resObj3->arg = array('selectedTask' => Mode::get("currentTaskId{$rec->id}"));
+            $objectArr[] = $resObj3;
+        }
+        
         // При нужда реплейсване и на формата за прогрес
         if($replaceForm === true){
             $formHtml = $this->getFormHtml($rec)->getContent();
             
             // Ще реплесйнем и таба за плащанията
-            $resObj3 = new stdClass();
-            $resObj3->func = 'html';
-            $resObj3->arg = array('id' => 'planning-terminal-form', 'html' => $formHtml, 'replace' => true);
-            $objectArr[] = $resObj3;
+            $resObj4 = new stdClass();
+            $resObj4->func = 'html';
+            $resObj4->arg = array('id' => 'planning-terminal-form', 'html' => $formHtml, 'replace' => true);
+            $objectArr[] = $resObj4;
         }
         
         // Показване на чакащите статуси
@@ -516,7 +542,6 @@ class planning_Points extends core_Manager
         peripheral_Terminal::setSessionPrefix();
         $id = Request::get('tId', 'int');
         expect($rec = self::fetch($id), 'Неразпознат ресурс');
-        
         if(!$this->haveRightFor('terminal') || !$this->haveRightFor('terminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
             
@@ -565,7 +590,7 @@ class planning_Points extends core_Manager
             planning_ProductionTaskDetails::add($params['taskId'], $params);
             
             if (Request::get('ajax_mode')) {
-                $res = $this->getSuccessfullResponce($rec);
+                $res = $this->getSuccessfullResponce($rec, true, true);
                
                 return $res;
             }
@@ -605,11 +630,10 @@ class planning_Points extends core_Manager
         expect($rec = self::fetch($id));
         expect($rec->taskId = Request::get('taskId', 'int'));
         $this->requireRightFor('selecttask', $rec);
-        
         Mode::setPermanent("currentTaskId{$rec->id}", $rec->taskId);
         
         if (Request::get('ajax_mode')) {
-            $res = $this->getSuccessfullResponce($rec);
+            $res = $this->getSuccessfullResponce($rec, true, true);
             
             return $res;
         }
@@ -617,5 +641,4 @@ class planning_Points extends core_Manager
         // Ако не сме в Ajax режим пренасочваме към терминала
         redirect(array($this, 'terminal', $rec->id));
     }
-    
 }
