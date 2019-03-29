@@ -324,9 +324,15 @@ class select2_Plugin extends core_Plugin
                     return false;
                 }
                 
-                $res .= '|' . $val;
+                if (!empty($val)) {
+                    $res .= '|' . $val;
+                }
             }
-            $res = $res . '|';
+            
+            if ($res) {
+                $res = rtrim($res, '|');
+                $res = $res . '|';
+            }
             
             return false;
         }
