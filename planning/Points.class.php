@@ -55,7 +55,7 @@ class planning_Points extends core_Manager
     /**
      * На колко време автоматично да се рефрешва страницата
      */
-    const AUTO_REFRESH_TIME = 2000000;
+    const AUTO_REFRESH_TIME = 300000;
     
     
     /**
@@ -289,7 +289,7 @@ class planning_Points extends core_Manager
     {
         $rec = self::fetchRec($id);
         
-        $tpl = new core_ET("");
+        $tpl = new core_ET(" ");
         if($taskId = Mode::get("currentTaskId{$rec->id}")){
             $jobContainerId = planning_Tasks::fetchField($taskId, 'originId');
             $jobObject = doc_Containers::getDocument($jobContainerId);
@@ -379,35 +379,15 @@ class planning_Points extends core_Manager
             $data->masterMvc = clone cls::get('planning_Tasks');
             $data->masterId = $taskId;
             $data->masterData = (object)array('rec' => planning_Tasks::fetch($taskId));
+            
+            $Details->listItemsPerPage = false;
+            $Details->prepareDetail_($data);
+            unset($data->listFields['productId']);
+            unset($data->listFields['taskId']);
+            unset($data->listFields['modified']);
+            $data->hideTools = true;
         }
         
-        $Details->listItemsPerPage = false;
-        $Details->prepareDetail_($data);
-        unset($data->listFields['productId']);
-        unset($data->listFields['taskId']);
-        unset($data->listFields['modified']);
-        $data->hideTools = true;
-       // bp($data->listFields, $data->rows);
-        /*
-         * bp($data);
-        
-        
-        
-        $Details->prepareListFields($data);
-        $Details->prepareListRecs($data);
-        $Details->prepareListRows($data);
-        
-        // Рендиране на таблицата с прогреса
-        unset($data->listFields['taskId']);
-        unset($data->listFields['modified']);
-        unset($data->listFields['productId']);
-        unset($data->listFields['_rowTools']);
-        
-        setIfNot($data->listTableMvc, clone $Details);
-        $data->listTableMvc->setField('quantity', 'smartCenter');
-         */
-        
-       
         $tpl = $Details->renderDetail($data);
         Mode::pop('taskInTerminal');
        
