@@ -2253,15 +2253,6 @@ class cat_Products extends embed_Manager
                 }
             }
         }
-        
-        if($action == 'clonerec' && isset($rec)){
-            if (core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId)) {
-                $colabFolders = colab_Folders::getSharedFolders($userId);
-                if (!in_array($rec->folderId, $colabFolders)) {
-                    $res = 'no_one';
-                }
-            }
-        }
     }
     
     
