@@ -132,7 +132,8 @@ body {
     padding: 20px !important;
     font-size: 1.1em; }
     .formHolder .formContent table {
-      width: 100%; }
+      width: 100%;
+      table-layout: fixed; }
     .formHolder .formContent td {
       padding: 7px; }
     .formHolder .formContent .select2-container .select2-selection--single,

@@ -419,6 +419,8 @@ class planning_Points extends core_Manager
         $form = $Details->getForm();
         $form->setField('serial', 'placeholder=№,class=w100');
         $form->setField('productId', 'class=w100');
+        $form->setField('weight', 'class=w100');
+        $form->setField('quantity', 'class=w100');
         $form->setField('employees', 'placeholder=Служители,class=w100');
         $form->setField('fixedAsset', 'placeholder=Оборудване,class=w100');
         $form->setDefault('type', 'production');
