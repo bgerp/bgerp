@@ -700,8 +700,8 @@ en,Изпратени факс_d0b0,Sent faxes
 en,Изпратено на,Sent on
 en,Изпратено,Sent
 en,Изпрати,Send
-en,Изпращане на и_4908a,Email sending
-en,Изпращане,Sending
+en,Изпращане на и_4908a,Send an email
+en,Изпращане,Send
 en,Изпращания зае_bf5b,Batch sending
 en,Изпращания,Sendings
 en,Изпращач на из_e9a0d,Sender of outgoing emails
@@ -2264,7 +2264,7 @@ en,и друг документ,and other document
 en,и,and
 en,използване,use
 en,използвания,uses
-en,изпращане,sending
+en,изпращане,send
 en,изпращания,sents
 en,изход,exit
 en,изходящ имейл,outgoing e-mail
