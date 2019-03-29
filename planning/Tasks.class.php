@@ -897,7 +897,7 @@ class planning_Tasks extends core_Master
             }
             
             if (count($arr)) {
-                $form->setSuggestions($field, array('' => '') + $arr);
+                $form->setSuggestions($field, $arr);
             } else {
                 $form->setField($field, 'input=none');
             }
