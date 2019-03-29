@@ -204,7 +204,7 @@ class planning_Points extends core_Manager
         if (Mode::get('terminalId')) {
             $tpl->replace(ht::createLink('', array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
         } else {
-            $tpl->replace(ht::createLink('', array('core_Users', 'logout'), false, 'title=Излизане от системата,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
+            $tpl->replace(ht::createLink('', array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
         }
 
         if(Mode::get("currentTaskId{$rec->id}")){

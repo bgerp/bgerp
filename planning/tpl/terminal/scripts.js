@@ -47,10 +47,10 @@ function planningActions() {
 
 	// Скриване на табовете
 	$(document.body).on('click', ".tabs-holder li:not('.disabled') a ", function(e){
+		console.log('click');
 		var currentAttrValue= $(this).attr('href');
 		$('.tabContent' + currentAttrValue).show().siblings().hide();
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
-		$(this).parent('li').siblings().removeClass('disabled');
 		
 		e.preventDefault();
 	});
@@ -60,6 +60,8 @@ function planningActions() {
 function render_activateTab(data)
 {
 	if(data.selectedTask){
+		console.log('haha');
+		$('#tab-progress').removeClass('disabled');
 		$('#tab-progress').trigger("click");
 		$('#tab-job').removeClass('disabled');
 		$('#tab-task').removeClass('disabled');

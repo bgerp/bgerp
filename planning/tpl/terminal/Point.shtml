@@ -21,8 +21,8 @@
 				<a href='#progress-task' accesskey='o'>|Операции|*</a>
 			</li>
 			
-			<li class="[#activeSingle#]" title='|Прогрес на производствените операции|*'>
-				<a href='#progress-holder' accesskey='p' id='tab-progress'>|Прогрес|*</a>
+			<li class="[#activeSingle#]" title='|Прогрес на производствените операции|*' id='tab-progress'>
+				<a href='#progress-holder' accesskey='p'>|Прогрес|*</a>
 			</li>
 			
 			<li class="[#activeJob#]" title='|Задание към, което е операцията|*' id='tab-job'>
