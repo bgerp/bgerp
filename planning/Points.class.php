@@ -445,7 +445,6 @@ class planning_Points extends core_Manager
             $form->setOptions('type', $typeOptions);
             $data = (object) array('form' => $form, 'masterRec' => planning_Tasks::fetch($currentTaskId), 'action' => 'add');
             
-            $form->rec->productId = null;
             $Details->invoke('AfterPrepareEditForm', array($data, $data));
         } else {
             
