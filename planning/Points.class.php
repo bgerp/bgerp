@@ -208,7 +208,7 @@ class planning_Points extends core_Manager
         }
 
         if(Mode::get("currentTaskId{$rec->id}")){
-            $tpl->replace('active', 'activeAll');
+            $tpl->replace('active', 'activeSingle');
         } else {
             $tpl->replace('active', 'activeAll');
             $tpl->replace('disabled', 'activeSingle');
@@ -332,8 +332,8 @@ class planning_Points extends core_Manager
         $Tasks->prepareListRows($data);
         if(count($data->recs)){
             foreach ($data->rows as $id => &$row){
-                $row->ROW_ATTR['data-url'] = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id), 'local');
-                $row->ROW_ATTR['class'] .= " terminal-task-row";
+                $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
+                $row->selectBtn = ht::createBtn('Избор', $selectUrl, false, false, 'title=Избиране на текуща операция');
                 unset($row->_rowTools);
             }
         }
@@ -342,8 +342,11 @@ class planning_Points extends core_Manager
         unset($data->listFields['modifiedOn']);
         unset($data->listFields['modifiedBy']);
         unset($data->listFields['folderId']);
-        unset($data->listFields['_rowTools']);
+        unset($data->listFields['state']);
+        $data->listFields = array('selectBtn' => 'Избор') + $data->listFields;
+        
         setIfNot($data->listTableMvc, clone $Tasks);
+        $data->listTableMvc->FLD('selectBtn', 'varchar', 'tdClass=select-task');
         $data->listTableMvc->setField('progress', 'smartCenter');
         $tpl = $Tasks->renderList($data);
         
@@ -693,6 +696,6 @@ class planning_Points extends core_Manager
         }
         
         // Ако не сме в Ajax режим пренасочваме към терминала
-        redirect(array($this, 'terminal', $rec->id));
+        redirect(array($this, 'terminal', 'tId' => $rec->id));
     }
 }
