@@ -477,10 +477,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (isset($rec->employees)) {
             $row->employees = self::getVerbalEmployees($rec->employees);
         }
-        
-        if(Mode::is('centerTerminal')){
-            $row->type = $row->productId;
-        }
     }
     
     
@@ -642,7 +638,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('createdOn', 'DESC');
-        if(Mode::is('getLinkedFiles') || Mode::is('inlineDocument')) {
+        if(Mode::is('getLinkedFiles') || Mode::is('inlineDocument') || Mode::is('taskInTerminal')) {
             
             return ;
         }
