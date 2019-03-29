@@ -106,6 +106,9 @@ body {
 .formSection {
   padding-top: 0 !important; }
 
+.terminal-content {
+  height: 600px; }
+
 .formHolder {
   margin-top: 25px;
   border-radius: 5px 5px 0 0;
@@ -117,7 +120,6 @@ body {
   .formHolder .formFields {
     padding: 0 !important; }
   .formHolder .formTitle {
-    box-sizing: content-box;
     background: #eeeeee;
     border: none;
     color: #333333;
@@ -187,4 +189,60 @@ body {
         border: 1px solid #bbbbbb;
         border-bottom: 1px solid #999999;
         cursor: pointer; }
+
+@media handheld,
+only screen and (min-width: 720px) and (max-width: 800px) {
+  .wide table.listAction {
+    min-width: 480px;
+    max-width: 500px; }
+
+  .terminalHeader {
+    padding: 6px;
+    height: 40px; }
+
+  .centerContent {
+    width: 100%; }
+
+  .tabs-holder {
+    float: left;
+    margin-left: 5px;
+    width: 530px !important; }
+    .tabs-holder .listBlock {
+      display: block; }
+
+  .tabs-holder ul li {
+    padding: 5px;
+    font-size: 1em; }
+
+  .terminal-content {
+    height: 340px;
+    font-size: 0.9em; }
+
+  .formHolder {
+    margin-right: 5px;
+    width: 240px !important; }
+    .formHolder .formContent {
+      width: 230px;
+      padding: 5px !important;
+      font-size: 0.85em !important; }
+      .formHolder .formContent td {
+        padding: 5px; }
+      .formHolder .formContent .select2-container .select2-selection--single,
+      .formHolder .formContent input[type=text] {
+        height: 30px; }
+      .formHolder .formContent select {
+        height: 28px !important; }
+      .formHolder .formContent input[type=search] {
+        height: 26px; }
+      .formHolder .formContent .select2-selection__choice {
+        font-size: 1em; }
+      .formHolder .formContent .select2-container .select2-selection--single .select2-selection__rendered {
+        line-height: 28px !important;
+        max-height: 28px !important; }
+
+  .formTitle {
+    max-width: none;
+    width: 240px !important;
+    padding: 10px !important;
+    font-size: 0.95em !important; } }
 

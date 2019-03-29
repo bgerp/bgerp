@@ -132,6 +132,9 @@ body {
 .formSection {
 	padding-top: 0 !important;
 }
+.terminal-content {
+	height: 600px;
+}
 .formHolder {
 	margin-top: 25px;
 	border-radius:5px 5px 0 0 ;
@@ -144,7 +147,6 @@ body {
 		padding: 0 !important;
 	}
 	.formTitle {
-		box-sizing: content-box;
 		background: #eee;
 		border: none;
 		color: #333;
@@ -229,3 +231,70 @@ body {
 		}
 	}
 }
+
+@media handheld, only screen and (min-width: 720px) and (max-width: 800px) {
+	.wide table.listAction {
+		min-width: 480px;
+		max-width: 500px;
+	}
+	.terminalHeader {
+		padding: 6px;
+		height: 40px;
+	}
+	.centerContent {
+		width: 100%;
+	}
+	.tabs-holder {
+		float: left;
+		margin-left: 5px;
+		width: 530px !important;
+		.listBlock {
+			display: block;
+		}
+
+	}
+	.tabs-holder ul li {
+		padding: 5px;
+		font-size: 1em;
+	}
+	.terminal-content {
+		height: 340px;
+		font-size: 0.9em;
+	}
+	.formHolder {
+		margin-right: 5px;
+		width: 240px !important;
+		.formContent {
+			width: 230px;
+			padding: 5px !important;
+			font-size: 0.85em !important;
+			td {
+				padding: 5px;
+			}
+			.select2-container .select2-selection--single, input[type=text]  {
+				height: 30px;
+			}
+			select {
+				height: 28px !important;
+			}
+			input[type=search] {
+				height: 26px;
+			}
+
+			.select2-selection__choice {
+				font-size: 1em;
+			}
+			.select2-container .select2-selection--single .select2-selection__rendered{
+				line-height: 28px !important;
+				max-height: 28px !important;
+			}
+		}
+	}
+	.formTitle {
+		max-width: none;
+		width: 240px !important;
+		padding: 10px !important;
+		font-size: 0.95em !important;
+	}
+
+};

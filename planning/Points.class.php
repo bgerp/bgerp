@@ -344,7 +344,6 @@ class planning_Points extends core_Manager
         unset($data->listFields['folderId']);
         unset($data->listFields['_rowTools']);
         setIfNot($data->listTableMvc, clone $Tasks);
-        $data->listTableMvc->setField('progress', 'smartCenter');
         $tpl = $Tasks->renderList($data);
         
         if(Mode::get('terminalId')) {

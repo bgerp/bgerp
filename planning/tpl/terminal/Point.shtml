@@ -29,19 +29,19 @@
 				<a href='#progress-job' accesskey='j'>|Задание|*</a>
 			</li>
 		</ul>
-		<div class='terminal-content'>
-			<!--ET_BEGIN PROGRESS_TABLE-->
-			<div class='tabContent [#active_choose#]' id = 'progress-holder'>[#PROGRESS_TABLE#]</div>
-			<!--ET_END PROGRESS_TABLE-->
+			<div class='terminal-content'>
+				<!--ET_BEGIN PROGRESS_TABLE-->
+				<div class='tabContent [#active_choose#]' id = 'progress-holder'>[#PROGRESS_TABLE#]</div>
+				<!--ET_END PROGRESS_TABLE-->
 
-			<!--ET_BEGIN PROGRESS_TASK_TABLE-->
-			<div class='tabContent [#active_choose#]' id = 'progress-task'>[#PROGRESS_TASK_TABLE#]</div>
-			<!--ET_END PROGRESS_TASK_TABLE-->
+				<!--ET_BEGIN PROGRESS_TASK_TABLE-->
+				<div class='tabContent [#active_choose#]' id = 'progress-task'>[#PROGRESS_TASK_TABLE#]</div>
+				<!--ET_END PROGRESS_TASK_TABLE-->
 
-			<!--ET_BEGIN JOB_SINGLE-->
-			<div class='tabContent [#active_choose#]' id = 'progress-job'>[#JOB_SINGLE#]</div>
-			<!--ET_END JOB_SINGLE-->
-		</div>
+				<!--ET_BEGIN JOB_SINGLE-->
+				<div class='tabContent [#active_choose#]' id = 'progress-job'>[#JOB_SINGLE#]</div>
+				<!--ET_END JOB_SINGLE-->
+			</div>
 	</div>
 	<div class='formHolder'>
 		[#FORM#]

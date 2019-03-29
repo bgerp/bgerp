@@ -41,7 +41,6 @@ function planningActions() {
 			$('select').trigger("change");
 		}
 	});
-
 	var currentTab = $('.tabs-holder li.active a').attr('href');
 	$('.tabContent' + currentTab).addClass('active');
 
