@@ -134,12 +134,6 @@ class planning_ProductionTaskDetails extends doc_Detail
 
 
     /**
-     * Отделния ред в листовия изглед да е отгоре
-     */
-    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
-
-
-    /**
      * Описание на модела (таблицата)
      */
     public function description()

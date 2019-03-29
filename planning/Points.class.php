@@ -207,9 +207,13 @@ class planning_Points extends core_Manager
             $tpl->replace(ht::createLink('', array('core_Users', 'logout'), false, 'title=Излизане от системата,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
         }
 
-        $tpl->replace('active', 'activeAll');
-        $tpl->replace('disabled', 'activeSingle');
-        $tpl->replace('disabled', 'activeJob');
+        if(Mode::get("currentTaskId{$rec->id}")){
+            $tpl->replace('active', 'activeAll');
+        } else {
+            $tpl->replace('active', 'activeAll');
+            $tpl->replace('disabled', 'activeSingle');
+            $tpl->replace('disabled', 'activeJob');
+        }
         
         $tableTpl = $this->getTasksTable($rec);
         $tpl->replace($tableTpl, 'PROGRESS_TASK_TABLE');
