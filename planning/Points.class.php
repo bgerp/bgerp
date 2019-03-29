@@ -196,7 +196,8 @@ class planning_Points extends core_Manager
         $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink', 'title' => 'Към портала'));
         $tpl->append($logo, 'LOGO');
         
-        $tpl->replace(planning_Centers::getHyperlink($rec->centerId, true), 'centerId');
+        $centerName = (Mode::get('terminalId')) ? planning_Centers::getTitleById($rec->centerId) : planning_Centers::getHyperlink($rec->centerId, true);
+        $tpl->replace($centerName, 'centerId');
         $tpl->replace(self::getVerbal($rec, 'fixedAssets'), 'fixedAssets');
         $tpl->replace(dt::mysql2verbal(dt::now(), 'd.m.Y H:i'), 'date');
         $tpl->replace(crm_Profiles::createLink(), 'userId');
@@ -233,10 +234,6 @@ class planning_Points extends core_Manager
         $tpl->push('planning/tpl/terminal/scripts.js', 'JS');
         jquery_Jquery::run($tpl, 'planningActions();');
         jquery_Jquery::runAfterAjax($tpl, 'smartCenter');
-        jquery_Jquery::run($tpl, 'prepareContextMenu();', true);
-        jquery_Jquery::runAfterAjax($tpl, 'prepareContextMenu');
-        jquery_Jquery::runAfterAjax($tpl, 'getContextMenuFromAjax');
-        
         $refreshUrlLocal = toUrl(array($this, 'updateTerminal', 'tId' => $rec->id), 'local');
         core_Ajax::subscribe($tpl, $refreshUrlLocal, 'refreshPlanningTerminal', self::AUTO_REFRESH_TIME);
         
@@ -296,7 +293,9 @@ class planning_Points extends core_Manager
         if($taskId = Mode::get("currentTaskId{$rec->id}")){
             $jobContainerId = planning_Tasks::fetchField($taskId, 'originId');
             $jobObject = doc_Containers::getDocument($jobContainerId);
-            $tpl = $jobObject->getInlineDocumentBody('xhtml');
+
+            $mode = (Mode::get('terminalId')) ? 'xhtml' : 'html';
+            $tpl = $jobObject->getInlineDocumentBody($mode);
         }
         
         return $tpl;
@@ -322,7 +321,9 @@ class planning_Points extends core_Manager
             $data->query->likeKeylist('fixedAssets', $rec->fixedAssets);
         }
         
-        Mode::push('text', 'xhtml');
+        if(Mode::get('terminalId')) {
+            Mode::push('text', 'xhtml');
+        }
         
         // Подготовка на табличните данни
         $Tasks->prepareListFields($data);
@@ -345,7 +346,9 @@ class planning_Points extends core_Manager
         $data->listTableMvc->setField('progress', 'smartCenter');
         $tpl = $Tasks->renderList($data);
         
-        Mode::pop('text', 'xhtml');
+        if(Mode::get('terminalId')) {
+            Mode::pop('text', 'xhtml');
+        }
         
         return $tpl;
     }
@@ -359,8 +362,11 @@ class planning_Points extends core_Manager
      */
     private function getProgressTable($id)
     {
-        Mode::push('text', 'xhtml');
-        Mode::push('centerTerminal', true);
+        if(Mode::get('terminalId')) {
+            Mode::push('text', 'xhtml');
+        }
+        
+        Mode::push('taskInTerminal', true);
         $rec = self::fetchRec($id);
         
         // Подготовка на прогреса на избраната операция, ако има
@@ -369,6 +375,23 @@ class planning_Points extends core_Manager
         $taskId = Mode::get("currentTaskId{$rec->id}");
         $data->query->where("#taskId = '{$taskId}'");
         $data->query->orderBy("taskId,id", 'DESC');
+        if(isset($taskId)){
+            $data->masterMvc = clone cls::get('planning_Tasks');
+            $data->masterId = $taskId;
+            $data->masterData = (object)array('rec' => planning_Tasks::fetch($taskId));
+        }
+        
+        $Details->listItemsPerPage = false;
+        $Details->prepareDetail_($data);
+        unset($data->listFields['productId']);
+        unset($data->listFields['taskId']);
+        unset($data->listFields['modified']);
+        $data->hideTools = true;
+       // bp($data->listFields, $data->rows);
+        /*
+         * bp($data);
+        
+        
         
         $Details->prepareListFields($data);
         $Details->prepareListRecs($data);
@@ -378,12 +401,19 @@ class planning_Points extends core_Manager
         unset($data->listFields['taskId']);
         unset($data->listFields['modified']);
         unset($data->listFields['productId']);
+        unset($data->listFields['_rowTools']);
+        
         setIfNot($data->listTableMvc, clone $Details);
         $data->listTableMvc->setField('quantity', 'smartCenter');
+         */
         
-        $tpl = $Details->renderList($data);
-        Mode::pop('centerTerminal');
-        Mode::pop('text');
+       
+        $tpl = $Details->renderDetail($data);
+        Mode::pop('taskInTerminal');
+       
+        if(Mode::get('terminalId')) {
+            Mode::pop('text');
+        }
         
         return $tpl;
     }
@@ -452,7 +482,9 @@ class planning_Points extends core_Manager
         
         // Кустом рендиране на полетата
         $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/FormFields.shtml');
-        $currentTaskHtml = ($currentTaskId)  ? planning_Tasks::getHyperlink($currentTaskId, true) : tr('Няма текуща задача');
+        
+        $taskName = (Mode::get('terminalId')) ? planning_Tasks::getTitleById($currentTaskId, true) : planning_Tasks::getHyperlink($currentTaskId, true);
+        $currentTaskHtml = ($currentTaskId)  ? $taskName : tr('Няма текуща задача');
         $form->fieldsLayout->append($currentTaskHtml, 'currentTaskId');
         
         // Бутони за добавяне

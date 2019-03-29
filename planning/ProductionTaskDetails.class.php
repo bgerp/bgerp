@@ -98,7 +98,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,modified=Модифициране,info=@';
+    public $listFields = 'type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,modified=Модифициране,info=@,notes';
     
     
     /**
@@ -464,12 +464,6 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->scrappedQuantity = " (" . tr('Брак') . ": {$row->scrappedQuantity})";
         }
         $row->quantity = "<b>{$row->quantity}</b> {$row->measureId} {$row->scrappedQuantity}";
-
-        if (!empty($rec->notes)) {
-            $notes = $mvc->getFieldType('notes')->toVerbal($rec->notes);
-            $row->productId .= "<small>{$notes}</small>";
-        }
-        
         if (!empty($rec->serial)) {
             $row->serial = self::getLink($rec->taskId, $rec->serial);
         }
@@ -510,6 +504,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+        unset($data->listFields['notes']);
         if (isset($data->masterMvc)) {
             $data->listTableMvc->FNC('shortUoM', 'varchar', 'tdClass=nowrap');
             $data->listTableMvc->setField('productId', 'tdClass=nowrap');
@@ -556,6 +551,10 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             if (isset($data->masterMvc) && $masterRec->productId != $rec->productId) {
                 $row->info = "{$row->productId}";
+            }
+            
+            if(!empty($row->notes)){
+                $row->type .= "<small>{$row->notes}</small>";
             }
         }
     }
