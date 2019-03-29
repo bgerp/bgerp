@@ -53,6 +53,12 @@ body {
     .tabs-holder ul li a {
       outline: none;
       color: #333333; }
+      .tabs-holder ul li.disabled:hover {
+        background: #dddddd;
+        cursor: default; }
+      .tabs-holder ul li.disabled a {
+        cursor: default;
+        color: #999999 !important; }
 
 .portal.planning {
   padding: 0;
@@ -125,6 +131,8 @@ body {
     margin-top: 0;
     padding: 20px !important;
     font-size: 1.1em; }
+    .formHolder .formContent table {
+      width: 100%; }
     .formHolder .formContent td {
       padding: 7px; }
     .formHolder .formContent .select2-container .select2-selection--single,
@@ -138,6 +146,8 @@ body {
       width: 100%; }
     .formHolder .formContent input[type=search] {
       height: 30px; }
+    .formHolder .formContent .w50 {
+      width: 100% !important; }
     .formHolder .formContent .select2-selection__choice {
       font-size: 1.2em;
       position: relative;

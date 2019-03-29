@@ -46,7 +46,7 @@ function planningActions() {
 	$('.tabContent' + currentTab).addClass('active');
 
 	// Скриване на табовете
-	$(document.body).on('click', ".tabs-holder li a ", function(e){
+	$(document.body).on('click', ".tabs-holder li:not('.disabled') a ", function(e){
 		var currentAttrValue= $(this).attr('href');
 		$('.tabContent' + currentAttrValue).show().siblings().hide();
 		$(this).parent('li').addClass('active').siblings().removeClass('active');

@@ -224,6 +224,7 @@ class planning_Points extends core_Manager
         $tpl->replace($jobTpl, 'JOB_SINGLE');
         
         jquery_Jquery::enable($tpl);
+
         $tpl->push('css/Application.css', 'CSS');
         $tpl->push('js/efCommon.js', 'JS');
         $tpl->push('planning/tpl/terminal/styles.css', 'CSS');

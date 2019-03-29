@@ -60,6 +60,17 @@ body {
 			outline: none;
 			color: #333;
 		}
+		&.disabled {
+			&:hover {
+				background: #ddd;
+				cursor: default;
+			}
+			a {
+				cursor: default;
+				color: #999 !important;
+			}
+		}
+
 	}
 }
 
@@ -149,6 +160,9 @@ body {
 		margin-top: 0;
 		padding: 20px !important;
 		font-size: 1.1em;
+		table {
+			width: 100%;
+		}
 		td {
 			padding: 7px;
 		}
@@ -165,6 +179,9 @@ body {
 		}
 		input[type=search] {
 			height: 30px;
+		}
+		.w50 {
+			width: 100% !important;
 		}
 		.select2-selection__choice {
 			font-size: 1.2em;
