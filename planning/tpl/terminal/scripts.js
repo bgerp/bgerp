@@ -50,6 +50,8 @@ function planningActions() {
 		var currentAttrValue= $(this).attr('href');
 		$('.tabContent' + currentAttrValue).show().siblings().hide();
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
+		$(this).parent('li').siblings().removeClass('disabled');
+		
 		e.preventDefault();
 	});
 }
@@ -59,5 +61,7 @@ function render_activateTab(data)
 {
 	if(data.selectedTask){
 		$('#tab-progress').trigger("click");
+		$('#tab-job').removeClass('disabled');
+		$('#tab-task').removeClass('disabled');
 	}
 }
