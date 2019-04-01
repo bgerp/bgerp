@@ -544,6 +544,19 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $detailClass, $detailId)
     {
+        if (Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('printing')) {
+            
+            return;
+        }
+        
+        $Detail = cls::get($detailClass);
+        $Master = cls::get($detailClass)->Master;
+        $dRec = $Detail->fetch($detailId, "{$Detail->masterKey},packQuantity");
+        $folderId = $Master->fetchField($dRec->{$Detail->masterKey}, 'folderId');
+        
+        if(haveRole('partner') && marketing_Inquiries2::haveRightFor('add', (object)array('folderId' => $folderId, 'innerClass' => $this->getClassId()))){
+            $toolbar->addLink('Ново запитване||New enquiry', array('marketing_Inquiries2', 'add', 'folderId' => $folderId, 'innerClass' => $this->getClassId(), 'proto' => $id, 'quantity1' => $dRec->packQuantity,'ret_url' => true), 'ef_icon=img/16/inquiry.png');
+        }
     }
     
     
