@@ -288,6 +288,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         
         if (is_array($driverFields)) {
             $usedGroups = core_Form::getUsedGroups($form, $driverFields, $data->rec, $data->row, 'single');
+            $lastGroup = null;
             
             foreach ($driverFields as $name => $field) {
                 if ($field->single != 'none' && isset($data->row->{$name})) {
@@ -650,7 +651,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      * @param embed_Manager $Embedder - Ембедър
      * @param mixed         $rec      - Ид или запис на артикул
      *
-     * @return NULL|varchar - Допълнителните условия за дадения продукт
+     * @return NULL|string - Допълнителните условия за дадения продукт
      */
     public function getHash(embed_Manager $Embedder, $rec)
     {
