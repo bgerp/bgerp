@@ -98,7 +98,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,modified=Модифициране,info=@';
+    public $listFields = 'type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,modified=Модифициране,info=@,notes';
     
     
     /**
@@ -131,12 +131,6 @@ class planning_ProductionTaskDetails extends doc_Detail
      * Рендиране на мастъра под формата за редактиране/добавяне
      */
     public $renderMasterBellowForm = true;
-
-
-    /**
-     * Отделния ред в листовия изглед да е отгоре
-     */
-    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
 
 
     /**
@@ -219,7 +213,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         
         // Ако наличната опция е само една, по дефолт е избрана
-        if (count($productOptions) == 1 && $form->cmd != 'refresh') {
+        if (count($productOptions) == 1) {
             $form->setDefault('productId', key($productOptions));
             $form->setReadOnly('productId');
         }
@@ -230,7 +224,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             if ($pRec->canStore != 'yes' && $rec->productId == $masterRec->productId) {
                 $form->setField('serial', 'input=none');
                 if ($rest = $masterRec->plannedQuantity - $masterRec->totalQuantity) {
-                    $form->setDefault('quantity', $rest);
+                    if($rest > 0){
+                        $form->setDefault('quantity', $rest);
+                    }
                 }
             }
             
@@ -461,23 +457,13 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->scrappedQuantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->scrappedQuantity);
             $row->scrappedQuantity = " (" . tr('Брак') . ": {$row->scrappedQuantity})";
         }
-        $row->quantity = "<b>{$row->quantity}</b> <span style='font-weight:normal'>{$row->measureId}</span> {$row->scrappedQuantity}";
-        
-        if (!empty($rec->notes)) {
-            $notes = $mvc->getFieldType('notes')->toVerbal($rec->notes);
-            $row->productId .= "<small>{$notes}</small>";
-        }
-        
+        $row->quantity = "<b>{$row->quantity}</b> {$row->measureId} {$row->scrappedQuantity}";
         if (!empty($rec->serial)) {
             $row->serial = self::getLink($rec->taskId, $rec->serial);
         }
         
         if (isset($rec->employees)) {
             $row->employees = self::getVerbalEmployees($rec->employees);
-        }
-        
-        if(Mode::is('centerTerminal')){
-            $row->type = $row->productId;
         }
     }
     
@@ -512,6 +498,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+        unset($data->listFields['notes']);
         if (isset($data->masterMvc)) {
             $data->listTableMvc->FNC('shortUoM', 'varchar', 'tdClass=nowrap');
             $data->listTableMvc->setField('productId', 'tdClass=nowrap');
@@ -558,6 +545,10 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             if (isset($data->masterMvc) && $masterRec->productId != $rec->productId) {
                 $row->info = "{$row->productId}";
+            }
+            
+            if(!empty($row->notes)){
+                $row->type .= "<small>{$row->notes}</small>";
             }
         }
     }
@@ -640,7 +631,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('createdOn', 'DESC');
-        if(Mode::is('getLinkedFiles') || Mode::is('inlineDocument')) {
+        if(Mode::is('getLinkedFiles') || Mode::is('inlineDocument') || Mode::is('taskInTerminal')) {
             
             return ;
         }
@@ -931,7 +922,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         $quantity = $params['quantity'];
         if(!empty($quantity)){
-            expect($quantity = core_Type::getByName('double')->fromVerbal($quantity), 'невалидно число');
+            expect($quantity = core_Type::getByName('double')->fromVerbal($quantity), 'Невалидно число');
         } elseif($params['type'] == 'production' && isset($taskRec->packagingId)){
             $packRec = cat_products_Packagings::getPack($taskRec->productId, $taskRec->packagingId);
             $quantity = is_object($packRec) ? ($packRec->quantity / $taskRec->quantityInPack) : 1;
@@ -940,9 +931,22 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         expect($quantity > 0, 'Количеството трябва да е положително');
         
-        $rec = (object)array('serialType' => 'unknown', '_generateSerial' => false, 'productId' => $productId, 'taskId' => $taskId, 'quantity' => $quantity, 'type' => $params['type'], 'fixedAsset' => $params['fixedAsset']);
+        $rec = (object)array('serialType' => 'unknown', '_generateSerial' => false, 'productId' => $productId, 'taskId' => $taskId, 'quantity' => $quantity, 'type' => $params['type']);
         if(!empty($params['employees'])){
+            $params['employees'] = arr::make($params['employees']);
             $rec->employees = keylist::fromArray(array_combine($params['employees'], $params['employees']));
+        }
+        $rec->fixedAsset = (!empty($params['fixedAsset'])) ? $params['fixedAsset'] : null;
+        
+        
+        if(!empty($params['weight'])){
+            expect($params['weight'] = core_Type::getByName('double')->fromVerbal($params['weight']), 'Невалидно число');
+            expect($params['weight'] > 0, 'Теглото трябва да е положително');
+            $rec->weight = $params['weight'];
+        }
+        
+        if($taskRec->showadditionalUom == 'mandatory'){
+            expect($rec->weight, 'Теглото е задължително');
         }
         
         $canStore = cat_Products::fetchField($productId, 'canStore');
@@ -977,6 +981,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (isset($info->indTime)) {
             $rec->norm = $info->indTime;
         }
+        
+        
         
         return self::save($rec);
     }

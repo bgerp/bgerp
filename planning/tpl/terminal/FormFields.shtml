@@ -2,37 +2,47 @@
     <!--ET_BEGIN FORM_ERROR-->
     [#FORM_ERROR#]
     <!--ET_END FORM_ERROR-->
-    <div class='formFields'>
+	<!--ET_BEGIN currentTaskId-->
+	<div class="formTitle">[#currentTaskId#]
+		<!--ET_BEGIN PROGRESS-->
+		<div class="progress">
+			[#PROGRESS#]
+		</div>
+		<!--ET_END PROGRESS-->
+	</div>
+	<!--ET_END currentTaskId-->
+
+    <div class='formContent'>
 	    <table>
-	    	<!--ET_BEGIN currentTaskId-->
-	    	<tr>
-				<td colspan='2'>[#currentTaskId#]</td>
-			</tr>
-			<!--ET_END currentTaskId-->
+
 			<tr>
 				<td colspan='2'>[#type#]</td>
 			</tr>
 			<tr>
 				<td colspan='2'>[#productId#]</td>
 			</tr>
+			<!--ET_BEGIN serial-->
 			<tr>
 				<td colspan='2'>[#serial#]</td>
 			</tr>
+			<!--ET_END serial-->
 			<tr>
 				<td>[#quantity#]</td>
 				<td>[#weight#]</td>
 			</tr>
+			<!--ET_BEGIN employees-->
 			<tr>
 				<td colspan='2'>[#employees#]</td>
 			</tr>
+			<!--ET_END employees-->
+			<!--ET_BEGIN fixedAsset-->
 			<tr>
 				<td colspan='2'>[#fixedAsset#]</td>
 			</tr>
+			<!--ET_END fixedAsset-->
 			<tr>
 				<td colspan='2'>[#SEND_BTN#]</td>
 			</tr>
-			<tr>
-				<td colspan='2'>[#PROGRESS#]</td>
-			</tr>
+
 		</table>
     </div>

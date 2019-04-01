@@ -117,7 +117,7 @@ class acc_CostAllocations extends core_Manager
      */
     protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
-        foreach ($query->getDeletedRecs() as $id => $rec) {
+        foreach ($query->getDeletedRecs() as $rec) {
             $origin = doc_Containers::getDocument($rec->containerId);
             if ($origin->fetchField('state') == 'active') {
                 
@@ -278,6 +278,7 @@ class acc_CostAllocations extends core_Manager
                 if (!($maxQuantity == 1 && $uomId == cat_UoM::fetchBySinonim('pcs')->id)) {
                     
                     // Проверка на к-то
+                    $warning = null;
                     if (!deals_Helper::checkQuantity($uomId, $rec->quantity, $warning)) {
                         $form->setError('quantity', $warning);
                     }
@@ -411,7 +412,7 @@ class acc_CostAllocations extends core_Manager
         $tpl = getTplFromFile('acc/tpl/CostAllocation.shtml');
         $clone = $tpl->getBlock('ROW');
         
-        foreach ($data->rows as $id => $row) {
+        foreach ($data->rows as $row) {
             core_RowToolbar::createIfNotExists($row->_rowTools);
             $row->tools = $row->_rowTools->renderHtml();
             
@@ -743,7 +744,7 @@ class acc_CostAllocations extends core_Manager
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param datetime $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
      *
      * @return array $result  - масив с обекти
      *

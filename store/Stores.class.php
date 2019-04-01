@@ -317,6 +317,7 @@ class store_Stores extends core_Master
                 $row->locationId = crm_Locations::getHyperLink($rec->locationId, true);
             }
         } else if (isset($fields['-list'])) {
+            $row->name = "<b style='position:relative; top: 5px;'>" . $row->name . "</b>";
             $row->name .= "    <span class='fright'>" . $row->currentPlg . "</span>";
             unset($row->currentPlg);
         }

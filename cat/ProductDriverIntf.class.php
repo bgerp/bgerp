@@ -355,7 +355,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      * @param embed_Manager $Embedder - Ембедър
      * @param mixed         $rec      - Ид или запис на артикул
      *
-     * @return NULL|varchar - Допълнителните условия за дадения продукт
+     * @return NULL|string - Допълнителните условия за дадения продукт
      */
     public function getHash(embed_Manager $Embedder, $rec)
     {

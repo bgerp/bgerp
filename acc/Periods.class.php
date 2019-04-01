@@ -238,7 +238,7 @@ class acc_Periods extends core_Manager
      * грешка или предупреждение няма, ако датата е от началото на активния,
      * до края на насотящия период
      *
-     * @param date $dateToCheck - Дата която да се сравни
+     * @param datetime $dateToCheck - Дата която да се сравни
      *
      * @return string|FALSE - грешката или FALSE ако няма
      */
@@ -605,9 +605,9 @@ class acc_Periods extends core_Manager
     /**
      * Връща края на даден период
      *
-     * @param date $date - дата от период, NULL  ако е текущия
+     * @param datetime $date - дата от период, NULL  ако е текущия
      *
-     * @return date - крайната дата на периода (ако съществува)
+     * @return datetime - крайната дата на периода (ако съществува)
      */
     public static function getPeriodEnd($date = null)
     {
@@ -741,7 +741,7 @@ class acc_Periods extends core_Manager
     /**
      * Дали датата е в затворен счетоводен период
      *
-     * @param date $date - дата
+     * @param datetime $date - дата
      *
      * @return bool - Затворен ли е периода в който е датата
      */

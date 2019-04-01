@@ -293,6 +293,7 @@ class acc_ActiveShortBalance
      */
     public function getBalance($accs)
     {
+        $accArr = array();
         $newBalance = $this->getBalanceBefore($accs, $accArr);
         
         // Извличаме записите, направени в избрания период на търсене
@@ -320,8 +321,8 @@ class acc_ActiveShortBalance
      * Връща хронологията на движенията на посочената сметка
      *
      * @param string $accSysId        - Ид на сметка
-     * @param date   $from            - от дата
-     * @param date   $to              - до дата
+     * @param datetime   $from            - от дата
+     * @param datetime   $to              - до дата
      * @param int    $item1           - перо 1 / NULL ако няма
      * @param int    $item2           - перо 2 / NULL ако няма
      * @param int    $item3           - перо 3 / NULL ако няма

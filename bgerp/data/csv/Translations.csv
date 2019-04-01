@@ -6,7 +6,7 @@ en, за месец, for month
 en,"Адреси, на коит_9359",List of unsubscribes
 en,"Ако не желаете да получавате повече информация от нас, използвайте следната връзка", "If you no longer want to receive information from us, follow the link"
 en,"Ако не желаете да получавате повече информация от нас, моля натиснете","If you no longer want to receive information from us, please click"
-en,"Благодаря за Вашето запитване","Thank you for your inquiry"
+en,"Благодаря за Вашето запитване","Thank you for your еnquiry"
 en,"получено на","received on"
 en,"получено на","received on"
 en,"чрез нашия уеб сайт","through our web site"
@@ -700,8 +700,8 @@ en,Изпратени факс_d0b0,Sent faxes
 en,Изпратено на,Sent on
 en,Изпратено,Sent
 en,Изпрати,Send
-en,Изпращане на и_4908a,Email sending
-en,Изпращане,Sending
+en,Изпращане на и_4908a,Send an email
+en,Изпращане,Send
 en,Изпращания зае_bf5b,Batch sending
 en,Изпращания,Sendings
 en,Изпращач на из_e9a0d,Sender of outgoing emails
@@ -2264,7 +2264,7 @@ en,и друг документ,and other document
 en,и,and
 en,използване,use
 en,използвания,uses
-en,изпращане,sending
+en,изпращане,send
 en,изпращания,sents
 en,изход,exit
 en,изходящ имейл,outgoing e-mail
