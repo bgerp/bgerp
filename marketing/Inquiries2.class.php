@@ -134,7 +134,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Икона за фактура
      */
-    public $singleIcon = 'img/16/inquiry.png';
+    public $singleIcon = 'img/16/help_contents.png';
     
     
     /**
