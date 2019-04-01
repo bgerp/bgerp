@@ -911,9 +911,11 @@ class rack_Movements extends core_Manager
         
         // Заключване на екшъна
         if (!core_Locks::get("movement{$rec->id}", 5, 1)) {
-            $this->logNotice('Друг потребител работи по движението');
-            
-            return;
+            core_Statuses::newStatus('Друг потребител работи по движението', 'warning');
+            if($ajaxMode){
+                return status_Messages::returnStatusesArray();
+            }
+            followretUrl(array($this));
         }
         
         if($action == 'start'){
@@ -1009,9 +1011,11 @@ class rack_Movements extends core_Manager
         
         // Заключване на екшъна
         if (!core_Locks::get("movement{$rec->id}", 5, 1)) {
-            $this->logNotice('Друг потребител работи по движението');
-            
-            return;
+            core_Statuses::newStatus('Друг потребител работи по движението', 'warning');
+            if($ajaxMode){
+                return status_Messages::returnStatusesArray();
+            } 
+            followretUrl(array($this));
         }
         
         $rec->state = 'closed';
