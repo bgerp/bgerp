@@ -82,10 +82,21 @@ body {
 		border: 1px solid #ccc;
 	}
 }
+
 .tabContent {
 	display: none;
 	&.active {
 		display: block;
+	}
+}
+
+.imgNext {
+	display: block;
+	margin: 0 5px !important;
+	padding: 5px;
+	img {
+		width: 32px !important;
+		height: 32px !important;
 	}
 }
 
@@ -295,6 +306,14 @@ body {
 		width: 240px !important;
 		padding: 10px !important;
 		font-size: 0.95em !important;
+	}
+	.imgNext {
+		padding: 5px;
+		margin: 0 !important;
+		img {
+			width: 30px !important;
+			height: 30px !important;
+		}
 	}
 
 };

@@ -72,6 +72,14 @@ body {
   .tabContent.active {
     display: block; }
 
+.imgNext {
+  display: block;
+  margin: 0 5px !important;
+  padding: 5px; }
+  .imgNext img {
+    width: 32px !important;
+    height: 32px !important; }
+
 .terminalHeader {
   padding: 15px;
   box-sizing: border-box;
@@ -244,5 +252,12 @@ only screen and (min-width: 720px) and (max-width: 800px) {
     max-width: none;
     width: 240px !important;
     padding: 10px !important;
-    font-size: 0.95em !important; } }
+    font-size: 0.95em !important; }
+
+  .imgNext {
+    padding: 5px;
+    margin: 0 !important; }
+    .imgNext img {
+      width: 30px !important;
+      height: 30px !important; } }
 

@@ -333,7 +333,9 @@ class planning_Points extends core_Manager
         if(count($data->recs)){
             foreach ($data->rows as $id => &$row){
                 $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
-                $row->selectBtn = ht::createBtn('Избор', $selectUrl, false, false, 'title=Избиране на текуща операция');
+                $img = ht::createImg(array('path' => 'img/32/next.png'));
+                $row->selectBtn = ht::createLink($img, $selectUrl, false, 'title=Избиране на текуща операция,class=imgNext');
+
                 unset($row->_rowTools);
             }
         }
@@ -346,8 +348,7 @@ class planning_Points extends core_Manager
         $data->listFields = array('selectBtn' => 'Избор') + $data->listFields;
         
         setIfNot($data->listTableMvc, clone $Tasks);
-        $data->listTableMvc->FLD('selectBtn', 'varchar', 'tdClass=select-task');
-        $data->listTableMvc->setField('progress', 'smartCenter');
+        $data->listTableMvc->FLD('selectBtn', 'varchar', 'tdClass=small-field centered');
         $tpl = $Tasks->renderList($data);
         
         if(Mode::get('terminalId')) {
