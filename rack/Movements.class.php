@@ -1007,7 +1007,7 @@ class rack_Movements extends core_Manager
         
         // Заключване на екшъна
         if (!core_Locks::get("movement{$rec->id}", 120, 0)) {
-            core_Locks::release("movement{$rec->id}");
+            
             core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
             if($ajaxMode){
                 return status_Messages::returnStatusesArray();
