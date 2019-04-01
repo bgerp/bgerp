@@ -204,6 +204,11 @@ class type_Key2 extends type_Int
         if (defined('TEST_MODE') && TEST_MODE) {
             $this->params['forceAjax'] = false;
         }
+        
+        if (!core_Packs::isInstalled('select2')) {
+            $this->params['forceAjax'] = false;
+        }
+        
         if (!$this->params['forceAjax']) {
             $options = $this->getOptions($maxSuggestions);
         }
