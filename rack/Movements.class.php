@@ -890,25 +890,6 @@ class rack_Movements extends core_Manager
         $id = Request::get('id', 'int');
         $rec = $this->fetch($id);
         
-        if($ajaxMode){
-            if(empty($rec)){
-                core_Statuses::newStatus('|Записът вече е изтрит|*!', 'error');
-                
-                return status_Messages::returnStatusesArray();
-            } elseif(!in_array($type, array('start', 'reject'))){
-                core_Statuses::newStatus('|Невалидна операция|*!', 'error');
-                
-                return status_Messages::returnStatusesArray();
-            } elseif(!$this->haveRightFor($action, $rec)){
-                core_Statuses::newStatus('|Нямате права|*!', 'error');
-                
-                return status_Messages::returnStatusesArray();
-            }
-        } else {
-            expect($rec);
-            $this->requireRightFor($action, $rec);
-        }
-        
         // Заключване на екшъна
         if (!core_Locks::get("movement{$rec->id}", 120, 1)) {
             core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
@@ -916,6 +897,29 @@ class rack_Movements extends core_Manager
                 return status_Messages::returnStatusesArray();
             }
             followretUrl(array($this));
+        }
+        
+        if($ajaxMode){
+            if(empty($rec)){
+                core_Statuses::newStatus('|Записът вече е изтрит|*!', 'error');
+                core_Locks::release("movement{$rec->id}");
+                
+                return status_Messages::returnStatusesArray();
+            } elseif(!in_array($action, array('start', 'reject'))){
+                core_Locks::release("movement{$rec->id}");
+                core_Statuses::newStatus('|Невалидна операция|*!', 'error');
+                
+                return status_Messages::returnStatusesArray();
+            } elseif(!$this->haveRightFor($action, $rec)){
+                core_Locks::release("movement{$rec->id}");
+                core_Statuses::newStatus('|Нямате права|*!', 'error');
+                
+                return status_Messages::returnStatusesArray();
+            }
+        } else {
+            expect($rec);
+            core_Locks::release("movement{$rec->id}");
+            $this->requireRightFor($action, $rec);
         }
         
         if($action == 'start'){
@@ -933,6 +937,7 @@ class rack_Movements extends core_Manager
         $transaction = $this->validateTransaction($transaction);
         
         if (!empty($transaction->errors)) {
+            core_Locks::release("movement{$rec->id}");
             if($ajaxMode){
                 core_Statuses::newStatus($transaction->errors, 'error');
                 return status_Messages::returnStatusesArray();
@@ -1000,22 +1005,24 @@ class rack_Movements extends core_Manager
         $id = Request::get('id', 'int');
         expect($rec = $this->fetch($id));
         
+        // Заключване на екшъна
+        if (!core_Locks::get("movement{$rec->id}", 120, 1)) {
+            core_Locks::release("movement{$rec->id}");
+            core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
+            if($ajaxMode){
+                return status_Messages::returnStatusesArray();
+            }
+            followretUrl(array($this));
+        }
+        
         if($ajaxMode){
             if(!$this->haveRightFor('done', $rec)){
+                core_Locks::release("movement{$rec->id}");
                 core_Statuses::newStatus('|Нямате права|*!', 'error');
                 return status_Messages::returnStatusesArray();
             }
         } else {
             $this->requireRightFor('done', $rec);
-        }
-        
-        // Заключване на екшъна
-        if (!core_Locks::get("movement{$rec->id}", 120, 1)) {
-            core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
-            if($ajaxMode){
-                return status_Messages::returnStatusesArray();
-            } 
-            followretUrl(array($this));
         }
         
         $rec->state = 'closed';
@@ -1120,7 +1127,7 @@ class rack_Movements extends core_Manager
             }
         }
         
-        $toPallet = $toProductId = null;
+        $toPallet = $toProductId = $error = null;
         if (!empty($transaction->to) && $transaction->to != rack_PositionType::FLOOR) {
             if (!rack_Racks::checkPosition($transaction->to, $transaction->productId, $transaction->storeId, $transaction->batch, $error)) {
                 $res->errors = $error;
