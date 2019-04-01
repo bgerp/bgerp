@@ -346,6 +346,7 @@ class planning_Points extends core_Manager
         unset($data->listFields['folderId']);
         unset($data->listFields['state']);
         $data->listFields = array('selectBtn' => 'Избор') + $data->listFields;
+        $data->listFields['title'] = 'Операция';
         
         setIfNot($data->listTableMvc, clone $Tasks);
         $data->listTableMvc->FLD('selectBtn', 'varchar', 'tdClass=small-field centered');
@@ -478,6 +479,9 @@ class planning_Points extends core_Manager
         $sendUrl = ($this->haveRightFor('terminal')) ?  toUrl(array($this, 'doAction', 'tId' => $rec->id), 'local') : array();
         $sendBtn = ht::createFnBtn('Изпращане', null, null, array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'data-url' => $sendUrl, 'title' => 'Изпращане на формата'));
         $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
+        
+        $numpadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'numPadBtn', 'title' => 'Отваряне на клавиатура'));
+        $form->fieldsLayout->append($numpadBtn, 'NUM_PAD_BTN');
         
         // Показване на прогреса, само ако е 
         if($currentTaskId && $form->rec->productId == $data->masterRec->productId){
