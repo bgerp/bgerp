@@ -1258,7 +1258,7 @@ class marketing_Inquiries2 extends embed_Manager
      * Връща данните за запитванията
      *
      * @param int   $id    - id' то на записа
-     * @param email $email - Имейл
+     * @param string $email - Имейл
      *
      * @return NULL|object
      */
