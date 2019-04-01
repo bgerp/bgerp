@@ -213,7 +213,7 @@ class marketing_Inquiries2 extends embed_Manager
         $this->FLD('title', 'varchar', 'caption=Заглавие');
         
         $this->FLD('quantities', 'blob(serialize,compress)', 'input=none,column=none');
-        $this->FLD('quantity1', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47');
+        $this->FLD('quantity1', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47,silent');
         $this->FLD('quantity2', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
         $this->FLD('quantity3', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
         $this->FLD('company', 'varchar(128)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=50');
