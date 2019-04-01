@@ -141,7 +141,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('taskId', 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,caption=Артикул,removeAndRefreshForm=serial|quantity');
         $this->FLD('type', 'enum(input=Влагане,production=Произв.,waste=Отпадък)', 'input=hidden,silent,tdClass=small-field nowrap');
-        $this->FLD('serial', 'varchar(32)', 'caption=Сер. №,smartCenter,focus,autocomplete=off,silent');
+        $this->FLD('serial', 'varchar(32)', 'caption=Сер. №,focus,autocomplete=off,silent');
         $this->FLD('serialType', 'enum(existing=Съществуващ,generated=Генериран,printed=Отпечатан,unknown=Непознат)', 'caption=Тип на серийния номер,input=none');
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество');
         $this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
