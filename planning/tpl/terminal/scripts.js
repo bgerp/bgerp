@@ -1,6 +1,12 @@
 function planningActions() {
 	$("input[name=serial]").focus();
-	
+
+	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.quantityField')
+	});
+
+
+
 	// Използване на числата за въвеждане на суми за плащания
 	$(document.body).on('click', "#sendBtn", function(e){
 		var url = $(this).attr("data-url");
