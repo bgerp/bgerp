@@ -2254,11 +2254,6 @@ class blast_Emails extends core_Master
             $rec = $mvc->fetch($id);
         }
         
-        if ($mvc->fields['body']->type->params['hndToLink'] == 'no') {
-            
-            return ;
-        }
-        
         // Подготвяме записите
         $mvc->prepareRec($rec, $detArr);
         

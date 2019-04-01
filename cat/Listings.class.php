@@ -24,6 +24,12 @@ class cat_Listings extends core_Master
     
     
     /**
+     * Дали се очаква в документа да има други документи
+     */
+    public $expectDocs = false;
+    
+    
+    /**
      * Заглавие
      */
     public $title = 'Листвания на артикули';
@@ -608,7 +614,7 @@ class cat_Listings extends core_Master
             $dQuery->where("#listId = {$params['listId']}");
             $dQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
             $dQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
-           
+            
             $listType = self::fetchField($params['listId'], 'type');
             $dQuery->EXT($listType, 'cat_Products', "externalName={$listType},externalKey=productId");
             $dQuery->where("#state != 'closed' AND #state != 'rejected' AND #{$listType} = 'yes'");

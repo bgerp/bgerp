@@ -131,8 +131,8 @@ class planning_ProductionTaskDetails extends doc_Detail
      * Рендиране на мастъра под формата за редактиране/добавяне
      */
     public $renderMasterBellowForm = true;
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -408,7 +408,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         } elseif (!$Driver->checkSerial($productId, $serial, $error)) {
             $res['error'] = $error;
         }
-       
+        
         return $res;
     }
     
@@ -631,7 +631,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('createdOn', 'DESC');
-        if(Mode::is('getLinkedFiles') || Mode::is('inlineDocument') || Mode::is('taskInTerminal')) {
+        if(Mode::is('getLinkedObj') || Mode::is('inlineDocument') || Mode::is('taskInTerminal')) {
             
             return ;
         }
@@ -917,7 +917,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $productId = (isset($params['productId'])) ? $params['productId'] : (($params['type'] == 'production') ? $taskRec->productId : null);
         expect($productId, 'Не е посочен артикул');
         $options = planning_ProductionTaskProducts::getOptionsByType($taskRec->id, $params['type']);
-
+        
         expect(array_key_exists($productId, $options), $options);
         
         $quantity = $params['quantity'];
@@ -981,8 +981,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (isset($info->indTime)) {
             $rec->norm = $info->indTime;
         }
-        
-        
         
         return self::save($rec);
     }

@@ -2735,7 +2735,7 @@ class doc_DocumentPlg extends core_Plugin
         // MID се генерира само ако :
         //     o подготвяме документа за изпращане навън - !Mode::is('text', 'html')
         //     o има зададен екшън - doclog_Documents::hasAction()
-        if (!Mode::is('text', 'html') && doclog_Documents::hasAction() && !Mode::is('getLinkedFiles')) {
+        if (!Mode::is('text', 'html') && doclog_Documents::hasAction() && !Mode::is('getLinkedObj')) {
             if (!isset($options->rec->__mid)) {
                 
                 // Ако няма стойност
@@ -3331,13 +3331,80 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Помощна функция за вземане на свързаните обекти
+     * 
+     * @param integer $cId
+     * @param string $type
+     * 
+     * @return NULL|array
+     */
+    private static function getLinkedObj($cId, $type = 'files')
+    {
+        $oCid = Mode::get('saveObjectsToCid');
+        
+        $objArr = null;
+        
+        // Ако сме пушнали, но няма запис за таблицата
+        if ($oCid) {
+            $objArr = doc_UsedInDocs::getObjectVals($cId, core_Users::getCurrent(), $type);
+            if (!isset($objArr)) {
+                $oCid = null;
+            }
+        }
+        
+        $pushed = false;
+        
+        // Ако не са извлечени файловете или не сме в процес на извличане - форсираме процеса
+        if ((!$oCid && $cId) || ($oCid && ($oCid != $cId))) {
+            Mode::push('saveObjectsToCid', $cId);
+            try {
+                $cRec = doc_Containers::fetch($cId);
+                if ($cRec->docClass) {
+                    $docMvc = cls::get($cRec->docClass);
+                }
+                
+                if ($docMvc) {
+                    if (!($cRec->docId)) {
+                        $cRec->docId = $docMvc->fetchField("#containerId = {$cRec->id}", 'id');
+                        $cInst = cls::get('doc_Containers');
+                        $cInst->save_($cRec, 'docId');
+                    }
+                    
+                    Mode::push('getLinkedObj', true);
+                    $pushed = true;
+                    $docMvc->prepareDocument($cRec->docId);
+                }
+            } catch (Exception $e) {
+                reportException($e);
+            } catch (Throwable  $e) {
+                reportException($e);
+            }
+            
+            if ($pushed) {
+                Mode::pop('getLinkedObj');
+            }
+            
+            Mode::pop('saveObjectsToCid');
+        }
+        
+        doc_UsedInDocs::flushArr();
+        
+        if (!isset($objArr)) {
+            $objArr = doc_UsedInDocs::getObjectVals($cId, core_Users::getCurrent(), $type);
+        }
+        
+        return $objArr;
+    }
+    
+    
+    /**
      * Метод по подразбиране за намиране на прикачените файлове в документ
      *
      * @param object $mvc -
      * @param array  $res - Масив с откритете прикачените файлове
      * @param int    $rec -
      */
-    public function on_AfterGetLinkedFiles($mvc, &$res, $rec)
+    public static function on_AfterGetLinkedFiles($mvc, &$res, $rec)
     {
         if (!isset($res)) {
             $res = array();
@@ -3352,58 +3419,7 @@ class doc_DocumentPlg extends core_Plugin
             $rec = $mvc->fetch($rec);
         }
         
-        $oCid = Mode::get('saveObjectsToCid');
-        
-        $filesArr = null;
-        
-        // Ако сме пушнали, но няма запис за таблицата
-        if ($oCid) {
-            $filesArr = doc_UsedInDocs::getObjectVals($rec->containerId, core_Users::getCurrent(), 'files');
-            if (!isset($filesArr)) {
-                $oCid = null;
-            }
-        }
-        
-        $pushed = false;
-        
-        // Ако не са извлечени файловете или не сме в процес на извличане - форсираме процеса
-        if ((!$oCid && $rec->containerId) || ($oCid && ($oCid != $rec->containerId))) {
-            Mode::push('saveObjectsToCid', $rec->containerId);
-            try {
-                $cRec = doc_Containers::fetch($rec->containerId);
-                if ($cRec->docClass) {
-                    $docMvc = cls::get($cRec->docClass);
-                }
-                
-                if ($docMvc) {
-                    if (!($cRec->docId)) {
-                        $cRec->docId = $docMvc->fetchField("#containerId = {$cRec->id}", 'id');
-                        $cInst = cls::get('doc_Containers');
-                        $cInst->save_($cRec, 'docId');
-                    }
-                    
-                    Mode::push('getLinkedFiles', true);
-                    $pushed = true;
-                    $docMvc->prepareDocument($cRec->docId);
-                }
-            } catch (Exception $e) {
-                reportException($e);
-            } catch (Throwable  $e) {
-                reportException($e);
-            }
-            
-            if ($pushed) {
-                Mode::pop('getLinkedFiles');
-            }
-            
-            Mode::pop('saveObjectsToCid');
-        }
-        
-        doc_UsedInDocs::flushArr();
-        
-        if (!isset($filesArr)) {
-            $filesArr = doc_UsedInDocs::getObjectVals($rec->containerId, core_Users::getCurrent(), 'files');
-        }
+        $filesArr = self::getLinkedObj($rec->containerId, 'files');
         
         if (is_array($filesArr)) {
             foreach ($filesArr as $fileHndArr) {
@@ -3427,42 +3443,30 @@ class doc_DocumentPlg extends core_Plugin
      */
     public function on_AfterGetLinkedImages($mvc, &$res, $rec)
     {
-        if (!is_object($rec)) {
-            $rec = $mvc->fetch($rec);
-        }
-        
         if (!isset($res)) {
             $res = array();
         }
         
-        $rt = '';
-        
-        foreach ((array) $mvc->getAllFields($rec) as $fieldName => $field) {
-            if ($field->type->params['imgToLink'] == 'no') {
-                continue;
-            }
+        if ($mvc->expectFiles === false) {
             
-            $fVal = $rec->{$fieldName};
-            
-            if (!$fVal || !is_string($fVal)) {
-                continue;
-            }
-            
-            $fVal = trim($fVal);
-            
-            if (!$fVal) {
-                continue;
-            }
-            
-            // Ако са от type_Richtext
-            if ($field->type instanceof type_Richtext) {
-                $rt .= "\n" . $fVal;
-            }
+            return ;
         }
         
-        if ($rt) {
-            // Намираме прикачените файлове
-            $res = array_merge(cms_GalleryRichTextPlg::getImages($rt), (array) $res);
+        if (!is_object($rec)) {
+            $rec = $mvc->fetch($rec);
+        }
+        
+        $imgArr = self::getLinkedObj($rec->containerId, 'images');
+        
+        if (is_array($imgArr)) {
+            foreach ($imgArr as $fileNameArr) {
+                if (!is_array($fileNameArr)) {
+                    continue;
+                }
+                foreach ($fileNameArr as $name) {
+                    $res[$name] = $name;
+                }
+            }
         }
     }
     
@@ -3477,74 +3481,37 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterGetLinkedDocuments($mvc, &$res, $id, $userId = null, $data = null)
     {
+        if (!isset($res)) {
+            $res = array();
+        }
+        
+        if ($mvc->expectDocs === false) {
+            
+            return ;
+        }
+        
         try {
-            $rec = $mvc->fetch($id);
+            $rec = $mvc->fetchRec($id);
         } catch (core_exception_Expect $e) {
             reportException($e);
             
             return ;
         }
         
-        $rt = '';
+        $docsArr = self::getLinkedObj($rec->containerId, 'docs');
         
-        foreach ((array) $mvc->getAllFields($rec) as $fieldName => $field) {
-            if ($field->type->params['hndToLink'] == 'no') {
-                continue;
-            }
-            
-            $fVal = $rec->{$fieldName};
-            
-            if (!$fVal || !is_string($fVal)) {
-                continue;
-            }
-            
-            $fVal = trim($fVal);
-            
-            if (!$fVal) {
-                continue;
-            }
-            
-            // Ако са от type_Richtext
-            if ($field->type instanceof type_Richtext) {
-                $rt .= "\n" . $fVal;
+        if (is_array($docsArr)) {
+            foreach ($docsArr as $docArr) {
+                if (!is_array($docArr)) {
+                    continue;
+                }
+                foreach ($docArr as $cid) {
+                    $requestedDoc = doc_Containers::getDocument($cid);
+                    $hnd = $requestedDoc->getHandle();
+                    $res[$hnd] = $hnd;
+                }
             }
         }
-        
-        if (!$rt) {
-            
-            return ;
-        }
-        
-        // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
-        if (!$userId) {
-            $userId = core_Users::getCurrent();
-            if ($userId <= 0) {
-                $userId = $mvc->getContainer($id)->activatedBy;
-            }
-        }
-        
-        $sudoUser = core_Users::sudo($userId);
-        
-        try {
-            // Намираме прикачените документи
-            $attachedDocs = doc_RichTextPlg::getAttachedDocs($rec->body);
-            if (count($attachedDocs)) {
-                $attachedDocs = array_keys($attachedDocs);
-                $attachedDocs = array_combine($attachedDocs, $attachedDocs);
-            }
-            
-            if (!is_array($attachedDocs)) {
-                $attachedDocs = array();
-            }
-            
-            $res = array_merge($attachedDocs, (array) $res);
-        } catch (core_exception_Expect $e) {
-            core_Users::exitSudo($sudoUser);
-            
-            return ;
-        }
-        
-        core_Users::exitSudo($sudoUser);
     }
     
     

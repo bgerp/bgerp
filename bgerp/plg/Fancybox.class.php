@@ -39,6 +39,11 @@ class bgerp_plg_Fancybox extends core_Plugin
         $resUrl = toUrl(array('F', 'T', doc_DocumentPlg::getMidPlace(), 'n' => $baseName), $imgAttr['isAbsolute'], true, array('n'));
         $resTpl = new ET(tr('Картинка|*: ') . $resUrl);
         
+        // Добавяме файла към списъка
+        if ($sCid = Mode::get('saveObjectsToCid')) {
+            doc_UsedInDocs::addObject(array($baseName => $baseName), $sCid, 'images');
+        }
+        
         return false;
     }
 }
