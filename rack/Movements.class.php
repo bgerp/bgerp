@@ -895,7 +895,7 @@ class rack_Movements extends core_Manager
                 core_Statuses::newStatus('|Записът вече е изтрит|*!', 'error');
                 
                 return status_Messages::returnStatusesArray();
-            } elseif(!in_array($type, array('start', 'reject'))){
+            } elseif(!in_array($action, array('start', 'reject'))){
                 core_Statuses::newStatus('|Невалидна операция|*!', 'error');
                 
                 return status_Messages::returnStatusesArray();
