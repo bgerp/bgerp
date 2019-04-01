@@ -259,7 +259,7 @@ class planning_Points extends core_Manager
         }
         
         $object = ht::mixedToHtml($rec);
-        cat_Products::logDebug($object, $rec->id);
+        planning_Points::logDebug($object, $rec->id);
         
         return $url;
     }
