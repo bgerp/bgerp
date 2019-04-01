@@ -247,7 +247,7 @@ class cat_Params extends bgerp_ProtoParam
      * @param string      $sysId       - систем ид на параметър
      * @param string      $name        - име на параметъра
      * @param string      $type        - тип на параметъра
-     * @param NULL|text   $options     - опции на параметъра само за типовете enum и set
+     * @param NULL|string   $options     - опции на параметъра само за типовете enum и set
      * @param NULL|string $suffix      - наставка
      * @param NULL|bool   $showInTasks - може ли да се показва в производствена операция
      *

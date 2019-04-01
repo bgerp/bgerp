@@ -58,7 +58,6 @@ class cash_transaction_ExchangeDocument extends acc_DocumentTransactionSource
             'quantity' => $rec->creditQuantity);
         if ($rec->debitCurrency == $baseCurrencyId && $rec->creditCurrency != $baseCurrencyId) {
             $dCode = currency_Currencies::getCodeById($rec->debitCurrency);
-            $rate = currency_CurrencyRates::getRate($rec->valior, $dCode, null);
             $entry = array();
             $entry[] = array('amount' => $rec->debitQuantity,
                 'debit' => $toCase,
