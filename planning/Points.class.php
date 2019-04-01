@@ -258,6 +258,9 @@ class planning_Points extends core_Manager
             $url = (Mode::get('terminalId')) ? array('peripheral_Terminal', 'default', 'afterExit' => true) : array('core_Users', 'login', 'ret_url' => toUrl(array($this, 'terminal', 'tId' => $rec->id), 'local'));
         }
         
+        $object = ht::mixedToHtml($rec);
+        cat_Products::logDebug($object, $rec->id);
+        
         return $url;
     }
     
