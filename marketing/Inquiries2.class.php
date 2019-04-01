@@ -234,6 +234,8 @@ class marketing_Inquiries2 extends embed_Manager
         if (!acc_plg_DocumentSummary::$rolesAllMap[$this->className]) {
             acc_plg_DocumentSummary::$rolesAllMap[$this->className] = $this->filterRolesForAll;
         }
+        
+        $this->setDbIndex('proto');
     }
     
     
