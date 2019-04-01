@@ -92,8 +92,6 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
         
         // Започваме да извличаме баланса от началната дата
         // За всеки ден от периода намираме какви са салдата и движенията по аналитичната сметка
-        $curDate = $data->rec->fromDate;
-        
         $periods = self::getDatesByPeriod($data->rec->fromDate, $data->rec->toDate, $data->rec->step);
         
         if (count($periods) == 1) {
@@ -161,9 +159,9 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
     /**
      * Връща масив с периоди от две дати
      *
-     * @param date           $from   - От дата
-     * @param date           $to     - До дата
-     * @param day|week|month $period - тип на периода: ден, месец, година
+     * @param datetime           $from   - От дата
+     * @param datetime           $to     - До дата
+     * @param string $period - тип на периода: ден, месец, година
      *
      * @return array $periods - масив с началната и крайната дата на периодите
      *               ['from'] - Начална дата
@@ -376,9 +374,6 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
         // Ако има намерени записи
         if (count($data->recs)) {
             if (!Mode::is('printing')) {
-                // За променливата на пейджъра добавяме уникално име
-                $pageVar = str::addHash('P', 5, "{$mvc->className}{$mvc->EmbedderRec->that}");
-                
                 // Подготвяме страницирането
                 $pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
                 $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
