@@ -90,6 +90,10 @@ body {
 	}
 }
 
+.progress {
+	margin-top: 5px;
+}
+
 .imgNext {
 	display: block;
 	margin: 0 5px !important;
@@ -315,5 +319,12 @@ body {
 			height: 30px !important;
 		}
 	}
+	.progress{
+		white-space: nowrap;
+		width: 110%;
+		margin-left: -8%;
+		margin-right: -10%;
+		transform: scale(0.8, 0.8);
+	}
 
-};
+}

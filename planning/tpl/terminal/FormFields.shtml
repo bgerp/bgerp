@@ -5,7 +5,9 @@
 	<!--ET_BEGIN currentTaskId-->
 	<div class="formTitle">[#currentTaskId#]
 		<!--ET_BEGIN PROGRESS-->
-		[#PROGRESS#]
+		<div class="progress">
+			[#PROGRESS#]
+		</div>
 		<!--ET_END PROGRESS-->
 	</div>
 	<!--ET_END currentTaskId-->
