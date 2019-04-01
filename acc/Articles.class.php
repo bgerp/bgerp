@@ -462,7 +462,6 @@ class acc_Articles extends core_Master
         // Ако отнякъде е променена статията на документа, обновяваме го с новата информация
         
         // Всички детайли на МО
-        $rec = $mvc->fetchRec($id);
         $dQuery = acc_ArticleDetails::getQuery();
         $dQuery->where("#articleId = {$id}");
         
@@ -516,7 +515,7 @@ class acc_Articles extends core_Master
      * Метод за създаване на чернова МО
      *
      * @param int         $folderId - в коя папка
-     * @param date|NULL   $valior   - вальор
+     * @param datetime|NULL   $valior   - вальор
      * @param string|NULL $reason   - описание
      *
      * @return int

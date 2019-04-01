@@ -476,7 +476,7 @@ abstract class store_DocumentMaster extends core_Master
      *
      * @param int $id - ид на документа
      *
-     * @return param $res - масив с използваните документи
+     * @return array $res - масив с използваните документи
      *               ['class'] - инстанция на документа
      *               ['id'] - ид на документа
      */

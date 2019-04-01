@@ -563,7 +563,7 @@ class acc_Accounts extends core_Manager
         /**
          * Окастряне на сухите клони на дървото - клоните, които нямат листа.
          */
-        foreach ($leafCount as $num => $d) {
+        foreach ($leafCount as $d) {
             if ($d[0] == 0) {
                 unset($res[$d[1]]);
             }
@@ -655,7 +655,7 @@ class acc_Accounts extends core_Manager
      *
      * @param int $accountId ид на аналитична сметка
      *
-     * @return acc_Strategy
+     * @return stdClass
      */
     public function createStrategyObject($accountId)
     {

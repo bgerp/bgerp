@@ -239,7 +239,6 @@ class acc_Journal extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
-        $origMvc = $mvc;
         
         if ($rec->docType && cls::load($rec->docType, true)) {
             $mvc = cls::get($rec->docType);
@@ -692,8 +691,8 @@ class acc_Journal extends core_Master
      * и се записват на ново
      *
      * @param mixed $accSysIds - списък от систем ид-та на сметки
-     * @param date  $from      - от коя дата
-     * @param date  $to        - до коя дата
+     * @param datetime  $from      - от коя дата
+     * @param datetime  $to        - до коя дата
      *
      * @return int - колко документа са били реконтирани
      */
@@ -823,8 +822,8 @@ class acc_Journal extends core_Master
     /**
      * Връща сумите от журнала за посочената кореспонденция
      *
-     * @param date   $from        - начална дата
-     * @param date   $to          - крайна дата
+     * @param datetime   $from        - начална дата
+     * @param datetime   $to          - крайна дата
      * @param string $debitSysId  - систем ид на сметка в дебита
      * @param string $creditSysId - систем ид на сметка в кредита
      * @param array  $items       - масив със стойности на пера с ключове на коя позиция се намират (debitItem1, debitItem2 ... creditItem1 ....)
