@@ -3,16 +3,16 @@
     [#FORM_ERROR#]
     <!--ET_END FORM_ERROR-->
 	<!--ET_BEGIN currentTaskId-->
-	<div class="formTitle">[#currentTaskId#]</div>
+	<div class="formTitle">[#currentTaskId#]
+		<!--ET_BEGIN PROGRESS-->
+		[#PROGRESS#]
+		<!--ET_END PROGRESS-->
+	</div>
 	<!--ET_END currentTaskId-->
 
     <div class='formContent'>
 	    <table>
-			<!--ET_BEGIN PROGRESS-->
-			<tr>
-				<td colspan='2'>[#PROGRESS#]</td>
-			</tr>
-			<!--ET_END PROGRESS-->
+
 			<tr>
 				<td colspan='2'>[#type#]</td>
 			</tr>
