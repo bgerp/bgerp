@@ -38,7 +38,7 @@ class doc_LinkedLast extends core_Mvc
     /**
      * До колко документа да се показват
      */
-    protected $showLimit = 5;
+    protected $showLimit = null;
     
     
     /**
@@ -133,6 +133,15 @@ class doc_LinkedLast extends core_Mvc
      */
     protected function getActivitiesFor($id, $type = 'doc')
     {
+        setIfNot($this->showLimit, doc_Setup::get('LINKED_LAST_SHOW_LIMIT'));
+        
+        $resArr = array();
+        
+        if (!$this->showLimit) {
+            
+            return $resArr;
+        }
+        
         $query = doc_Linked::getQuery();
         $query->where(array("#createdBy = '[#1#]'", core_Users::getCurrent()));
         $query->where(array("#createdOn >= '[#1#]'", dt::subtractSecs($this->showBeforeSec)));
@@ -141,8 +150,6 @@ class doc_LinkedLast extends core_Mvc
         $query->orderBy('createdOn', 'DESC');
         
         $addTo = tr('Добавяне към') . ' ';
-        
-        $resArr = array();
         
         $lQuery = doc_Linked::getQuery();
         $lQuery->where(array("#outType = '[#1#]'", $type));

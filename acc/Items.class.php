@@ -999,7 +999,6 @@ class acc_Items extends core_Manager
      */
     public function getCachedItems()
     {
-        $cache = new stdClass();
         if (!count($this->cache)) {
             $query = $this->getQuery();
             $query->show('title,num,classId,objectId,lists,state,closedOn');
@@ -1018,7 +1017,7 @@ class acc_Items extends core_Manager
      * текущата спрямо датата за сравняване
      *
      * @param mixed $id            - ид или запис
-     * @param date  $dateToCompare - Дата
+     * @param datetime  $dateToCompare - Дата
      *
      * @return void
      */

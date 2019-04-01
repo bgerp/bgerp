@@ -1451,8 +1451,8 @@ class sales_Quotations extends core_Master
             expect(cond_DeliveryTerms::fetch($newRec->deliveryTermId), 'Невалидно условие на доставка');
         }
         
-        // Срока на валидност
-        $newRec->validFor = (isset($fields['validFor'])) ? $fields['validFor'] : null;
+        // Срока на валидност, ако не е зададен е дефолтния
+        $newRec->validFor = (isset($fields['validFor'])) ? $fields['validFor'] : sales_Setup::get('DEFAULT_VALIDITY_OF_QUOTATION');
         if (isset($newRec->validFor)) {
             expect(type_Int::isInt($newRec->validFor), 'Срока на валидност трябва да е в секунди');
         }

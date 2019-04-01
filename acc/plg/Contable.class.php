@@ -76,6 +76,7 @@ class acc_plg_Contable extends core_Plugin
             
             Mode::set('wrapper', 'page_Empty');
             
+            $transactionRes = null;
             if (!static::hasContableTransaction($mvc, $rec, $transactionRes)) {
                 $res = ht::wrapMixedToHtml(ht::mixedToHtml(array($transactionRes, $transaction), 4));
             } else {
@@ -144,8 +145,8 @@ class acc_plg_Contable extends core_Plugin
         $rec = &$data->rec;
         
         $error = $mvc->getContoBtnErrStr($rec);
-        $error = $error ? ",error={$error}" : '';
-        
+        $error = $error ? "error={$error}," : '';
+       
         if (haveRole('debug')) {
             $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг информация,row=2');
         }
@@ -158,7 +159,7 @@ class acc_plg_Contable extends core_Plugin
             // Урл-то за контиране
             $contoUrl = $mvc->getContoUrl($rec->id);
             $warning = $mvc->getContoWarning($rec->id, $rec->isContable);
-            $data->toolbar->addBtn($caption, $contoUrl, array('id' => 'btnConto', 'warning' => $warning), "{$error},ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа");
+            $data->toolbar->addBtn($caption, $contoUrl, array('id' => 'btnConto', 'warning' => $warning), "{$error}ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа");
         }
         
         // Бутон за заявка
@@ -236,6 +237,7 @@ class acc_plg_Contable extends core_Plugin
     public static function on_AfterGetContoBtnErrStr($mvc, &$res, $rec)
     {
         if ($mvc->haveRightFor('conto', $rec)) {
+            $error = null;
             if (!self::checkPeriod($mvc->getValiorValue($rec), $error)) {
                 $res = $error;
             }
@@ -246,7 +248,7 @@ class acc_plg_Contable extends core_Plugin
     /**
      * Ф-я проверяваща периода в който е датата и връща съобщение за грешка
      *
-     * @param date  $valior - дата
+     * @param datetime  $valior - дата
      * @param mixed $error  - съобщение за грешка, NULL ако няма
      *
      * @return bool
@@ -439,7 +441,7 @@ class acc_plg_Contable extends core_Plugin
     protected static function hasContableTransaction(core_Manager $mvc, $rec, &$res = null)
     {
         try {
-            $result = ($transaction = $mvc->getValidatedTransaction($rec)) !== false;
+            $result = ($mvc->getValidatedTransaction($rec)) !== false;
         } catch (acc_journal_Exception $ex) {
             $res = $ex->getMessage();
             $result = false;
@@ -661,7 +663,7 @@ class acc_plg_Contable extends core_Plugin
      * Връща вальора на документа по подразбиране
      *
      * @param core_Mvc $mvc
-     * @param date     $res
+     * @param datetime     $res
      * @param mixed    $rec
      */
     public static function on_AfterGetValiorValue($mvc, &$res, $rec)

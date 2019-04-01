@@ -41,6 +41,12 @@ class vkeyboard_Setup extends core_ProtoSetup
     
     
     /**
+     * Пакета е маркиран за изтриване след следващия релийз
+     */
+    public $deprecated = true;
+    
+    
+    /**
      * Инсталиране на пакета
      */
     public function install()

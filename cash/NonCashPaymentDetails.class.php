@@ -151,7 +151,7 @@ class cash_NonCashPaymentDetails extends core_Manager
      */
     public static function getPaymentsArr($documentId, $documentClassId)
     {
-        $res = $exRecs = array();
+        $res = array();
         
         // Намиране на всички методи за плащане
         $pQuery = cond_Payments::getQuery();

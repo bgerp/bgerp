@@ -120,8 +120,6 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
     /**
      * Връща записите, подходящи за импорт в детайла
      *
-     * @see import_DriverIntf
-     *
      * @param array $recs
      *                    o productId        - ид на артикула
      *                    o quantity         - к-во в основна мярка

@@ -162,12 +162,9 @@ class price_reports_PriceList extends frame2_driver_TableData
         $dateBefore = (!empty($rec->period)) ? (dt::addSecs(-1 * $rec->period, $date, false) . ' 23:59:59') : null;
         $round = !empty($rec->round) ? $rec->round : self::DEFAULT_ROUND;
         
-        // Извличане на стандартните, продаваеми артикули от посочените групи
-        $params = array('onlyPublic' => true);
-        if (!empty($rec->productGroups)) {
-            $params['groups'] = $rec->productGroups;
-        }
-        $sellableProducts = array_keys(price_ListRules::getSellableProducts($params));
+        $sellableProducts = cat_Products::getProducts(null, null, null, 'canSell', null, null, false, $rec->productGroups, 'yes');
+        $sellableProducts = array_keys($sellableProducts);
+        unset($sellableProducts[0]);
         
         // Вдигане на времето за изпълнение, според броя записи
         $timeLimit = count($sellableProducts) * 0.7;
@@ -176,7 +173,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $recs = array();
         if (is_array($recs)) {
            
-           // Ако няма опаковки, това са всички
+            // Ако няма опаковки, това са всички
             $currencyRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, acc_Periods::getBaseCurrencyCode($rec->date));
             $packArr = array();
             

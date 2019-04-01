@@ -378,11 +378,9 @@ class price_ListDocs extends core_Master
             $rec->date .= ' 23:59:59';
         }
         
-        $params = array('onlyPublic' => true);
-        if(!empty($rec->productGroups)){
-            $params['groups'] = $rec->productGroups;
-        }
-        $sellableProducts = price_ListRules::getSellableProducts($params);
+        $sellableProducts = cat_Products::getProducts(null, null, null, 'canSell', null, null, false, $rec->productGroups, 'yes');
+        $sellableProducts = array_keys($sellableProducts);
+        unset($sellableProducts[0]);
         
         if(is_array($sellableProducts)) {
             foreach ($sellableProducts as $id => $productName) {

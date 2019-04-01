@@ -50,7 +50,7 @@ class cat_ProductFolderCoverIntf extends doc_FolderIntf
      *
      * @param mixed $id - ид или запис
      *
-     * @return public|private|template - Стандартен / Нестандартен / Шаблон
+     * @return string - Стандартен / Нестандартен / Шаблон
      */
     public function getProductType($id)
     {

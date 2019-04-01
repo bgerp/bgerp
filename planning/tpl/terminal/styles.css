@@ -1,19 +1,273 @@
+body {
+  background: #f1f1f1; }
+
+.centerContent {
+  width: 1400px;
+  margin: 0 auto; }
+
+.wide .listTopContainer {
+  min-width: auto; }
+
 .tabs-holder {
-  float: left; }
+  float: left;
+  width: 1000px; }
+  .tabs-holder .listBlock {
+    display: block; }
 
 .formHolder {
-  float: right; }
+  float: right;
+  width: 360px; }
 
-.tabs-holder li {
-  display: inline-block;
-  padding: 5px;
-  border: 1px solid #999999;
-  background: #cccccc; }
-  .tabs-holder li.active {
-    background: white; }
+.terminal-content {
+  background: white;
+  border: 1px solid #cccccc;
+  padding: 15px;
+  height: 600px;
+  overflow-y: auto; }
+  .terminal-content .document {
+    border: none;
+    max-width: none;
+    min-width: none;
+    padding: 0;
+    margin: 0; }
+  .terminal-content .listTable {
+    margin-bottom: 0 !important; }
+
+.tabs-holder ul {
+  padding: 0;
+  margin: 20px 0 0; }
+  .tabs-holder ul li {
+    display: inline-block;
+    background: #dddddd;
+    border: 0;
+    position: relative;
+    top: 1px;
+    font-size: 1.15em;
+    padding: 10px;
+    border: 1px solid #cccccc;
+    border-bottom: none;
+    border-radius: 5px 5px 0 0; }
+    .tabs-holder ul li.active,
+    .tabs-holder ul li:hover {
+      background: white; }
+    .tabs-holder ul li a {
+      outline: none;
+      color: #333333; }
+      .tabs-holder ul li.disabled:hover {
+        background: #dddddd;
+        cursor: default; }
+      .tabs-holder ul li.disabled a {
+        cursor: default;
+        color: #999999 !important; }
+
+.portal.planning {
+  padding: 0;
+  border: none;
+  margin-top: 10px; }
+  .portal.planning table {
+    border: 1px solid #cccccc; }
 
 .tabContent {
   display: none; }
   .tabContent.active {
     display: block; }
+
+.progress {
+  margin-top: 5px; }
+
+.imgNext {
+  display: block;
+  margin: 0 5px !important;
+  padding: 5px; }
+  .imgNext img {
+    width: 32px !important;
+    height: 32px !important; }
+
+.terminalHeader {
+  padding: 15px;
+  box-sizing: border-box;
+  height: 60px;
+  background: white;
+  -webkit-box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
+  -moz-box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2); }
+    .terminalHeader .fleft .logo {
+      float: left; }
+      .terminalHeader .fleft .logo img {
+        height: 30px;
+        width: auto; }
+    .terminalHeader .fleft .specialLink,
+    .terminalHeader .fleft .assets {
+      line-height: 30px;
+      display: inline-block;
+      margin-left: 10px;
+      float: left; }
+  .terminalHeader .userInfo {
+    width: 300px;
+    line-height: 30px;
+    font-size: 1.1em;
+    text-align: right; }
+  .terminalHeader #dateHolder {
+    display: inline-block;
+    margin-right: 20px; }
+
+.vertical {
+  margin-top: 0 !important; }
+
+.formSection {
+  padding-top: 0 !important; }
+
+.terminal-content {
+  height: 600px; }
+
+.formHolder {
+  margin-top: 25px;
+  border-radius: 5px 5px 0 0;
+  background: white;
+  border: 1px solid #cccccc;
+  -webkit-box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
+  -moz-box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2); }
+  .formHolder .formFields {
+    padding: 0 !important; }
+  .formHolder .formTitle {
+    background: #eeeeee;
+    border: none;
+    color: #333333;
+    font-size: 1.15em;
+    padding: 15px;
+    border-bottom: 1px solid #cccccc; }
+  .formHolder table {
+    margin: 0 !important; }
+  .formHolder .formContent {
+    width: 320px;
+    margin-top: 0;
+    padding: 20px !important;
+    font-size: 1.1em; }
+    .formHolder .formContent table {
+      width: 100%;
+      table-layout: fixed; }
+    .formHolder .formContent td {
+      padding: 7px; }
+    .formHolder .formContent .select2-container .select2-selection--single,
+    .formHolder .formContent input[type=text] {
+      height: 34px;
+      border-color: #cccccc; }
+    .formHolder .formContent .select2-container .select2-selection--multiple {
+      border-color: #cccccc; }
+    .formHolder .formContent select {
+      height: 32px !important;
+      width: 100%; }
+    .formHolder .formContent input[type=search] {
+      height: 30px; }
+    .formHolder .formContent .w50 {
+      width: 100% !important; }
+    .formHolder .formContent .select2-selection__choice {
+      font-size: 1.2em;
+      position: relative;
+      top: 3px; }
+    .formHolder .formContent .select2-container .select2-selection--single .select2-selection__rendered {
+      line-height: 32px !important;
+      max-height: 32px !important; }
+    .formHolder .formContent .planning-terminal-form-btn {
+      margin-top: 10px;
+      padding: 8px 20px !important;
+      font-size: 1.1em !important;
+      color: #333333;
+      background-color: #cccccc !important;
+      background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #eeeeee), color-stop(100%, #cccccc));
+      background-image: -webkit-linear-gradient(top, #eeeeee, #cccccc);
+      background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
+      background-image: -ms-linear-gradient(top, #eeeeee, #cccccc);
+      background-image: -o-linear-gradient(top, #eeeeee, #cccccc);
+      background-image: linear-gradient(top, #eeeeee, #cccccc);
+      border: 1px solid #cccccc !important;
+      border-bottom: 1px solid #bbbbbb !important;
+      border-radius: 3px;
+      font: bold 10px Arial, sans-serif;
+      padding: 8px 0;
+      text-align: center;
+      text-shadow: 0 1px 0 #eeeeee;
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); }
+      .formHolder .formContent .planning-terminal-form-btn:hover {
+        background-color: #dddddd;
+        background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #dddddd), color-stop(100%, #bbbbbb));
+        background-image: -webkit-linear-gradient(top, #dddddd, #bbbbbb);
+        background-image: -moz-linear-gradient(top, #dddddd, #bbbbbb);
+        background-image: -ms-linear-gradient(top, #dddddd, #bbbbbb);
+        background-image: -o-linear-gradient(top, #dddddd, #bbbbbb);
+        background-image: linear-gradient(top, #dddddd, #bbbbbb);
+        border: 1px solid #bbbbbb;
+        border-bottom: 1px solid #999999;
+        cursor: pointer; }
+
+@media handheld,
+only screen and (min-width: 720px) and (max-width: 800px) {
+  .wide table.listAction {
+    min-width: 480px;
+    max-width: 500px; }
+
+  .terminalHeader {
+    padding: 6px;
+    height: 40px; }
+
+  .centerContent {
+    width: 100%; }
+
+  .tabs-holder {
+    float: left;
+    margin-left: 5px;
+    width: 530px !important; }
+    .tabs-holder .listBlock {
+      display: block; }
+
+  .tabs-holder ul li {
+    padding: 5px;
+    font-size: 1em; }
+
+  .terminal-content {
+    height: 340px;
+    font-size: 0.9em; }
+
+  .formHolder {
+    margin-right: 5px;
+    width: 240px !important; }
+    .formHolder .formContent {
+      width: 230px;
+      padding: 5px !important;
+      font-size: 0.85em !important; }
+      .formHolder .formContent td {
+        padding: 5px; }
+      .formHolder .formContent .select2-container .select2-selection--single,
+      .formHolder .formContent input[type=text] {
+        height: 30px; }
+      .formHolder .formContent select {
+        height: 28px !important; }
+      .formHolder .formContent input[type=search] {
+        height: 26px; }
+      .formHolder .formContent .select2-selection__choice {
+        font-size: 1em; }
+      .formHolder .formContent .select2-container .select2-selection--single .select2-selection__rendered {
+        line-height: 28px !important;
+        max-height: 28px !important; }
+
+  .formTitle {
+    max-width: none;
+    width: 240px !important;
+    padding: 10px !important;
+    font-size: 0.95em !important; }
+
+  .imgNext {
+    padding: 5px;
+    margin: 0 !important; }
+    .imgNext img {
+      width: 30px !important;
+      height: 30px !important; }
+
+  .progress {
+    white-space: nowrap;
+    width: 110%;
+    margin-left: -8%;
+    margin-right: -10%;
+    transform: scale(0.8, 0.8); } }
 
