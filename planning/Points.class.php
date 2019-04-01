@@ -232,7 +232,9 @@ class planning_Points extends core_Manager
         $tpl->push('css/Application.css', 'CSS');
         $tpl->push('js/efCommon.js', 'JS');
         $tpl->push('planning/tpl/terminal/styles.css', 'CSS');
+        $tpl->push('planning/tpl/terminal/jquery.numpad.css', 'CSS');
         $tpl->push('planning/tpl/terminal/scripts.js', 'JS');
+        $tpl->push('planning/tpl/terminal/jquery.numpad.js', 'JS');
         jquery_Jquery::run($tpl, 'planningActions();');
         jquery_Jquery::runAfterAjax($tpl, 'smartCenter');
         $refreshUrlLocal = toUrl(array($this, 'updateTerminal', 'tId' => $rec->id), 'local');
@@ -425,7 +427,7 @@ class planning_Points extends core_Manager
         $form->setField('serial', 'placeholder=№,class=w100');
         $form->setField('productId', 'class=w100');
         $form->setField('weight', 'class=w100');
-        $form->setField('quantity', 'class=w100');
+        $form->setField('quantity', 'class=w100 quantityField');
         $form->setField('employees', 'placeholder=Служители,class=w100');
         $form->setField('fixedAsset', 'placeholder=Оборудване,class=w100');
         $form->setDefault('type', 'production');
@@ -480,7 +482,7 @@ class planning_Points extends core_Manager
         $sendBtn = ht::createFnBtn('Изпращане', null, null, array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'data-url' => $sendUrl, 'title' => 'Изпращане на формата'));
         $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
         
-        $numpadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'numPadBtn', 'title' => 'Отваряне на клавиатура'));
+        $numpadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'numPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
         $form->fieldsLayout->append($numpadBtn, 'NUM_PAD_BTN');
         
         // Показване на прогреса, само ако е 
