@@ -66,7 +66,7 @@ function render_activateTab(data)
 	if(data.selectedTask){
 		$('#tab-progress').removeClass('disabled');
 		$('#tab-job').removeClass('disabled');
-		$('#tab-task').removeClass('disabled');
+		$('#task-list').removeClass('disabled');
 		$('#tab-progress a').click();
 	}
 }

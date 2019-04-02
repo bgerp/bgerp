@@ -209,23 +209,27 @@ class planning_Points extends core_Manager
 
         if(Mode::get("currentTaskId{$rec->id}")){
             $tpl->replace('active', 'activeSingle');
+            
+            $tableTpl = $this->getProgressTable($rec);
+            $tpl->replace($tableTpl, 'TASK_PROGRESS');
+            
+            $taskTpl = $this->getTaskHtml($rec);
+            $tpl->replace($taskTpl, 'TASK_SINGLE');
+            
+            $jobTpl = $this->getJobHtml($rec);
+            $tpl->replace($jobTpl, 'TASK_JOB');
         } else {
             $tpl->replace('active', 'activeAll');
             $tpl->replace('disabled', 'activeSingle');
             $tpl->replace('disabled', 'activeJob');
+            $tpl->replace('disabled', 'activeTask');
         }
         
-        $tableTpl = $this->getTasksTable($rec);
-        $tpl->replace($tableTpl, 'PROGRESS_TASK_TABLE');
-        
-        $tableTpl = $this->getProgressTable($rec);
-        $tpl->replace($tableTpl, 'PROGRESS_TABLE');
-       
         $formTpl = $this->getFormHtml($rec);
         $tpl->replace($formTpl, 'FORM');
         
-        $jobTpl = $this->getJobHtml($rec);
-        $tpl->replace($jobTpl, 'JOB_SINGLE');
+        $tableTpl = $this->getTaskListTable($rec);
+        $tpl->replace($tableTpl, 'TASK_LIST');
         
         jquery_Jquery::enable($tpl);
 
@@ -286,6 +290,31 @@ class planning_Points extends core_Manager
     
     
     /**
+     * Рендиране на изгледа на избраната активна операция
+     *
+     * @param mixed $id
+     * @return core_ET $tpl
+     */
+    private function getTaskHtml($id)
+    {
+        $rec = self::fetchRec($id);
+        
+        $tpl = new core_ET(" ");
+        if($taskId = Mode::get("currentTaskId{$rec->id}")){
+            Mode::push('taskInTerminal', true);
+            $taskContainerId = planning_Tasks::fetchField($taskId, 'containerId');
+            $taskObject = doc_Containers::getDocument($taskContainerId);
+            
+            $mode = (Mode::get('terminalId')) ? 'xhtml' : 'html';
+            $tpl = $taskObject->getInlineDocumentBody($mode);
+            Mode::pop('taskInTerminal');
+        }
+        
+        return $tpl;
+    }
+    
+    
+    /**
      * Рендиране на таба с избраното задание
      * 
      * @param mixed $id
@@ -314,7 +343,7 @@ class planning_Points extends core_Manager
      * @param mixed $id
      * @return core_ET $tpl
      */
-    private function getTasksTable($id)
+    private function getTaskListTable($id)
     {
         $rec = self::fetchRec($id);
         $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
@@ -549,14 +578,14 @@ class planning_Points extends core_Manager
         $progressHtml = $this->getProgressTable($rec)->getContent();
         $resObj = new stdClass();
         $resObj->func = 'html';
-        $resObj->arg = array('id' => 'progress-holder', 'html' => $progressHtml, 'replace' => true);
+        $resObj->arg = array('id' => 'task-progress-content', 'html' => $progressHtml, 'replace' => true);
         $objectArr[] = $resObj;
         
         // Реплейсване на списъка с операциите
-        $tableHtml = $this->getTasksTable($rec)->getContent();
+        $tableHtml = $this->getTaskListTable($rec)->getContent();
         $resObj1 = new stdClass();
         $resObj1->func = 'html';
-        $resObj1->arg = array('id' => 'progress-task', 'html' => $tableHtml, 'replace' => true);
+        $resObj1->arg = array('id' => 'task-list-content', 'html' => $tableHtml, 'replace' => true);
         $objectArr[] = $resObj1;
         
         // Реплейсване на текущата дата
@@ -568,7 +597,7 @@ class planning_Points extends core_Manager
         $jobHtml = $this->getJobHtml($rec)->getContent();
         $resObj3 = new stdClass();
         $resObj3->func = 'html';
-        $resObj3->arg = array('id' => 'progress-job', 'html' => $jobHtml, 'replace' => true);
+        $resObj3->arg = array('id' => 'task-job-content', 'html' => $jobHtml, 'replace' => true);
         $objectArr[] = $resObj3;
 
         // Активиране на таба за прогрес
@@ -589,6 +618,12 @@ class planning_Points extends core_Manager
             $resObj5->arg = array('id' => 'planning-terminal-form', 'html' => $formHtml, 'replace' => true);
             $objectArr[] = $resObj5;
         }
+        
+        $jobHtml = $this->getTaskHtml($rec)->getContent();
+        $resObj6 = new stdClass();
+        $resObj6->func = 'html';
+        $resObj6->arg = array('id' => 'task-single-content', 'html' => $jobHtml, 'replace' => true);
+        $objectArr[] = $resObj6;
         
         // Показване на чакащите статуси
         $hitTime = Request::get('hitTime', 'int');
