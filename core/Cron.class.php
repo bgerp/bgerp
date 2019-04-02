@@ -711,7 +711,7 @@ class core_Cron extends core_Manager
                                   $rec->action != $exRec->action);
             if ($exRec->modifiedBy == -1 || !$exRec->modifiedBy) {
                 // Ако не е редактиран и има промени го обновяваме
-                if ($systemDataChanged || $rec->period != $exRec->period ||
+                if ($systemDataChanged || $rec->period != $exRec->period || $rec->offset != $exRec->offset ||
                       floor($rec->delay) != floor($exRec->delay) ||
                       $rec->timeLimit != $exRec->timeLimit
                     ) {
