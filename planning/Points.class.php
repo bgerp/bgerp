@@ -302,11 +302,13 @@ class planning_Points extends core_Manager
         $tpl = new core_ET(" ");
         if($taskId = Mode::get("currentTaskId{$rec->id}")){
             Mode::push('taskInTerminal', true);
+            Mode::push('hideToolbar', true);
             $taskContainerId = planning_Tasks::fetchField($taskId, 'containerId');
             $taskObject = doc_Containers::getDocument($taskContainerId);
             
             $mode = (Mode::get('terminalId')) ? 'xhtml' : 'html';
             $tpl = $taskObject->getInlineDocumentBody($mode);
+            Mode::pop('hideToolbar');
             Mode::pop('taskInTerminal');
         }
         
@@ -405,7 +407,8 @@ class planning_Points extends core_Manager
             Mode::push('text', 'xhtml');
         }
         
-        Mode::push('taskInTerminal', true);
+        Mode::push('taskProgressInTerminal', true);
+        Mode::push('hideToolbar', true);
         $rec = self::fetchRec($id);
         
         // Подготовка на прогреса на избраната операция, ако има
@@ -424,7 +427,6 @@ class planning_Points extends core_Manager
             unset($data->listFields['productId']);
             unset($data->listFields['taskId']);
             unset($data->listFields['modified']);
-            $data->hideTools = true;
             $data->listFields['serial'] = '№';
             $data->listFields['_createdDate'] = 'Създаване';
             $data->groupByField = '_createdDate';
@@ -432,7 +434,8 @@ class planning_Points extends core_Manager
         
         unset($data->toolbar);
         $tpl = $Details->renderDetail($data);
-        Mode::pop('taskInTerminal');
+        Mode::pop('hideToolbar');
+        Mode::pop('taskProgressInTerminal');
        
         if(Mode::get('terminalId')) {
             Mode::pop('text');

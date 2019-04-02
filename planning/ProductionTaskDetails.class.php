@@ -466,7 +466,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->employees = self::getVerbalEmployees($rec->employees);
         }
         
-        if(Mode::is('taskInTerminal')){
+        if(Mode::is('taskProgressInTerminal')){
             $rec->_createdDate = dt::verbal2mysql($rec->createdOn, false);
             $row->_createdDate = dt::mysql2verbal($rec->_createdDate, 'd/m/Y l');
         }
@@ -619,14 +619,28 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     
     /**
-     * Подготвя детайла
+     * Рендиране на детайла
+     */
+    public function renderDetail_($data)
+    {
+        if(!Mode::is('taskInTerminal')){
+            
+            return parent::renderDetail_($data);
+        }
+    }
+    
+    
+    /**
+     * Подготовка на детайла
      */
     public function prepareDetail_($data)
     {
-        $data->TabCaption = 'Прогрес';
-        $data->Tab = 'top';
-        
-        parent::prepareDetail_($data);
+        if(!Mode::is('taskInTerminal')){
+            $data->TabCaption = 'Прогрес';
+            $data->Tab = 'top';
+            
+            parent::prepareDetail_($data);
+        }
     }
     
     
@@ -636,7 +650,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('createdOn', 'DESC');
-        if(Mode::is('getLinkedObj') || Mode::is('inlineDocument') || Mode::is('taskInTerminal')) {
+        if(Mode::is('getLinkedObj') || Mode::is('inlineDocument') || Mode::is('taskProgressInTerminal')) {
             
             return ;
         }
