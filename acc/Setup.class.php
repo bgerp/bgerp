@@ -10,7 +10,7 @@ defIfNot('ACC_INVOICE_MANDATORY_EXPORT_PARAM', '');
 /**
  * Колко дена преди края на месеца да се направи следващия бъдещ период чакащ
  */
-defIfNot('ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING', '');
+defIfNot('ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING', '86400');
 
 
 /**
