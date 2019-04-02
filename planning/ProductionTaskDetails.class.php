@@ -465,6 +465,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (isset($rec->employees)) {
             $row->employees = self::getVerbalEmployees($rec->employees);
         }
+        
+        if(Mode::is('taskInTerminal')){
+            $rec->_createdDate = dt::verbal2mysql($rec->createdOn, false);
+            $row->_createdDate = dt::mysql2verbal($rec->_createdDate, 'd/m/Y l');
+        }
     }
     
     

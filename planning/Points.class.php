@@ -339,8 +339,7 @@ class planning_Points extends core_Manager
             foreach ($data->rows as $id => &$row){
                 $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
                 $img = ht::createImg(array('path' => 'img/32/next.png'));
-                $row->selectBtn = ht::createLink($img, $selectUrl, false, 'title=Избиране на текуща операция,class=imgNext');
-
+                $row->selectBtn = ht::createLink($img, $selectUrl, false, 'title=Избиране на оепрацията за текуща,class=imgNext');
                 unset($row->_rowTools);
             }
         }
@@ -397,6 +396,9 @@ class planning_Points extends core_Manager
             unset($data->listFields['taskId']);
             unset($data->listFields['modified']);
             $data->hideTools = true;
+            $data->listFields['serial'] = '№';
+            $data->listFields['_createdDate'] = 'Създаване';
+            $data->groupByField = '_createdDate';
         }
         
         unset($data->toolbar);
