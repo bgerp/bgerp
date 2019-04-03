@@ -1437,9 +1437,7 @@ class cat_Products extends embed_Manager
         $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
         $direction = ($reverseOrder === true) ? 'ASC' : 'DESC';
         $query->orderBy('isPublic', $direction);
-        if (!$q) {
-            $query->orderBy('createdOn', 'DESC');
-        }
+        $query->orderBy('createdOn', 'DESC');
         
         if ($q) {
             if ($q{0} == '"') {
@@ -1455,6 +1453,15 @@ class cat_Products extends embed_Manager
             }
         }
         
+        $qRegexp = '';
+        if ($q) {
+            $qRegexp = $qArr[0] ? trim($qArr[0]) : trim($q);
+            $qRegexp = preg_quote($qRegexp, '/');
+            $qRegexp = "/(^|[^0-9a-zа-я]){$qRegexp}([^0-9a-zа-я]|$)/ui";
+        
+        }
+        $mArr = array();
+        
         // Подготвяне на опциите
         $query->show('isPublic,folderId,meta,id,code,name,nameEn');
         while ($rec = $query->fetch()) {
@@ -1463,6 +1470,25 @@ class cat_Products extends embed_Manager
                 $products[$rec->id] = $title;
             } else {
                 $private[$rec->id] = $title;
+            }
+            
+            if ($qRegexp && preg_match($qRegexp, $title)) {
+                $mArr[$rec->id] = $title;
+            }
+        }
+        
+        // Ако има пълно съвпадение с някоя дума - добавяме в началото
+        foreach ($mArr as $mId => $mTitle) {
+            if (isset($products[$mId])) {
+                unset($products[$mId]);
+                $products = array($mId => $mTitle) + $products;
+                $reverseOrder = false;
+            }
+            
+            if (isset($private[$mId])) {
+                unset($private[$mId]);
+                $private = array($mId => $mTitle) + $private;
+                $reverseOrder = true;
             }
         }
         
@@ -1486,8 +1512,6 @@ class cat_Products extends embed_Manager
         
         return $products;
     }
-    
-    
     
     
     /**
@@ -3079,12 +3103,12 @@ class cat_Products extends embed_Manager
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('edit', $rec);
-      
+        
         $form = cls::get('core_Form');
         $form->title = 'Промяна на групите на|* <b>' . cat_Products::getHyperlink($id, true) . '</b>';
-
+        
         $this->setExpandInputField($form, $this->expandInputFieldName, $this->expandFieldName);
- 
+        
         $form->setDefault('groupsInput', $rec->groupsInput);
         $form->input();
         if ($form->isSubmitted()) {
