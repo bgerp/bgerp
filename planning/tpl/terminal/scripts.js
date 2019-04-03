@@ -4,6 +4,9 @@ function planningActions() {
 	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
 		target: $('.quantityField')
 	});
+	$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.weightField')
+	});
 
 
 

@@ -28,7 +28,7 @@
 			<!--ET_END serial-->
 			<tr>
 				<td><div class="keyboardHolder">[#quantity#] [#NUM_PAD_BTN#]</div></td>
-				<td>[#weight#]</td>
+				<td><div class="keyboardHolder">[#weight#] [#WEIGHT_PAD_BTN#]</div></td>
 			</tr>
 			<!--ET_BEGIN employees-->
 			<tr>

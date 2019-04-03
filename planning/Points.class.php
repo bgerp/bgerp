@@ -463,7 +463,7 @@ class planning_Points extends core_Manager
         $form = $Details->getForm();
         $form->setField('serial', 'placeholder=№,class=w100');
         $form->setField('productId', 'class=w100');
-        $form->setField('weight', 'class=w100');
+        $form->setField('weight', 'class=w100 weightField');
         $form->setField('quantity', 'class=w100 quantityField');
         $form->setField('employees', 'placeholder=Служители,class=w100');
         $form->setField('fixedAsset', 'placeholder=Оборудване,class=w100');
@@ -521,6 +521,9 @@ class planning_Points extends core_Manager
         
         $numpadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'numPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
         $form->fieldsLayout->append($numpadBtn, 'NUM_PAD_BTN');
+
+        $weightPadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'weightPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
+        $form->fieldsLayout->append($weightPadBtn, 'WEIGHT_PAD_BTN');
         
         // Показване на прогреса, само ако е 
         if($currentTaskId && $form->rec->productId == $data->masterRec->productId){
