@@ -964,7 +964,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $rec->weight = $params['weight'];
         }
         
-        if($taskRec->showadditionalUom == 'mandatory'){
+        if($taskRec->showadditionalUom == 'mandatory' && $rec->type == 'production' && $rec->productId == $taskRec->productId){
             expect($rec->weight, 'Теглото е задължително');
         }
         
