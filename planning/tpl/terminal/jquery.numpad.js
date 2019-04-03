@@ -45,7 +45,6 @@
 		var id = 'nmpd' + ($('.nmpd-wrapper').length + 1);
 		var nmpd = {};
 		return this.each(function(){
-			console.log(this, id);
 			// If an element with the generated unique numpad id exists, the numpad had been instantiated already.
 			// Otherwise create a new one!
 			if ($('#'+id).length == 0) {
