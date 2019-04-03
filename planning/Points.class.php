@@ -349,6 +349,7 @@ class planning_Points extends core_Manager
     {
         $rec = self::fetchRec($id);
         $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
+        $taskId = Mode::get("currentTaskId{$rec->id}");
         
         // Всички аквитни операции, в избрания център отговарящи на избраното оборудване ако има
         $Tasks = cls::get('planning_Tasks');
@@ -368,9 +369,14 @@ class planning_Points extends core_Manager
         $Tasks->prepareListRows($data);
         if(count($data->recs)){
             foreach ($data->rows as $id => &$row){
-                $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
-                $img = ht::createImg(array('path' => 'img/32/next.png'));
-                $row->selectBtn = ht::createLink($img, $selectUrl, false, 'title=Избиране на оепрацията за текуща,class=imgNext');
+                if($id != $taskId){
+                    $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
+                    $img = ht::createImg(array('path' => 'img/32/next.png'));
+                    $row->selectBtn = ht::createLink($img, $selectUrl, false, 'title=Избиране на операцията за текуща,class=imgNext');
+                } else {
+                    $row->selectBtn = ht::createElement('img', array('src' => sbf('img/32/dialog_ok.png', '')));
+                    $row->ROW_ATTR['class'] .= ' task-selected';
+                }
                 unset($row->_rowTools);
             }
         }
