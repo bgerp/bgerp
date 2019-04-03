@@ -152,7 +152,7 @@ class price_ListRules extends core_Detail
      * @param int             $listId      - към кой ценоразпис
      * @param string          $groupName   - име на група
      * @param float           $discount    - марж
-     * @param forward|reverse $calculation - Изчисляване спрямо бащата
+     * @param string $calculation - Изчисляване спрямо бащата
      * @param string          $validFrom   - дата на валидност
      * @param string          $validUntill - крайна дата на валидност
      * @param int             $priority    - приоритет
@@ -410,7 +410,7 @@ class price_ListRules extends core_Detail
         $price = $rec->price;
         
         $listRec = price_Lists::fetch($rec->listId, 'currency,createdOn,vat');
-        list($date, $time) = explode(' ', $datetime);
+        list($date, ) = explode(' ', $datetime);
         
         // В каква цена е този ценоразпис?
         $currency = $rec->currency;
