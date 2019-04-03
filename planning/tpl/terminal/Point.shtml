@@ -32,6 +32,10 @@
 			<li class="[#activeJob#]" title='|Задание към, което е операцията|*' id='tab-job'>
 				<a href='#task-job-content' accesskey='j'>|Задание|*</a>
 			</li>
+			
+			<li class="[#activeSupport#]" title='|Поддръжка на оборудването в центъра на дейност|*' id='tab-support'>
+				<a href='#task-support-content' accesskey='j'>|Поддръжка|*</a>
+			</li>
 		</ul>
 			<div class='terminal-content'>
 				<!--ET_BEGIN TASK_PROGRESS-->
@@ -49,6 +53,10 @@
 				<!--ET_BEGIN TASK_JOB-->
 				<div class='tabContent [#active_choose#]' id = 'task-job-content'>[#TASK_JOB#]</div>
 				<!--ET_END TASK_JOB-->
+				
+				<!--ET_BEGIN SUPPORT-->
+				<div class='tabContent [#active_choose#]' id = 'task-support-content'>[#SUPPORT#]</div>
+				<!--ET_END SUPPORT-->
 			</div>
 	</div>
 	<div class='formHolder'>
