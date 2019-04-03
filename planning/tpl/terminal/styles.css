@@ -287,5 +287,14 @@ only screen and (min-width: 720px) and (max-width: 800px) {
     width: 110%;
     margin-left: -8%;
     margin-right: -10%;
-    transform: scale(0.8, 0.8); } }
+    transform: scale(0.8, 0.8); }
+
+  .sale-summary table td {
+    font-size: 1em; }
+
+  .sum-th {
+    font-size: 12px !important; }
+
+  .paddingCells .nowrap {
+    white-space: normal !important; } }
 
