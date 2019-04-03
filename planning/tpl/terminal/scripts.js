@@ -53,6 +53,7 @@ function planningActions() {
 		console.log(currentId);
 		$('.tabContent' + currentAttrValue).show().siblings().hide();
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
+		if($('.serialField').length) $('.serialField').focus();
 		setCookie('terminalTab', currentId);
 		
 		e.preventDefault();

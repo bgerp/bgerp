@@ -465,7 +465,7 @@ class planning_Points extends core_Manager
         
         // Подготовка на формата
         $form = $Details->getForm();
-        $form->setField('serial', 'placeholder=№,class=w100');
+        $form->setField('serial', 'placeholder=№,class=w100 serialField');
         $form->setField('productId', 'class=w100');
         $form->setField('weight', 'class=w100 weightField');
         $form->setField('quantity', 'class=w100 quantityField');
