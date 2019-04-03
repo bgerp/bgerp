@@ -73,14 +73,14 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         //Контрагенти и групи контрагенти
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=compareDuration');
-        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
+        $fieldset->FLD('crmGroup', 'treelist(mvc=crm_Groups,select=name, parentId=parentId)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
         
         //Групиране на резултата
-        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
+        $fieldset->FLD('group', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,after=group,single=none');
         
         //Покаване на резултата
-        $fieldset->FLD('grouping', 'enum(summary=Обобщено,level1=1-во ниво,level2=2-ро ниво,detail=Подробно, art=По артикули)', 'caption=Показване->Вид,maxRadio=2,after=articleType');
+        $fieldset->FLD('grouping', 'enum(art=По артикули, grouped=Гупирано)', 'caption=Показване->Вид,maxRadio=2,after=articleType');
    
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(code=Код, amount=Стойност, changeAmount=Промяна)', 'caption=Подреждане на резултата->Показател,maxRadio=5,columns=3,after=grouping');
@@ -663,12 +663,14 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             }
             unset($v,$gro);
         }
-        
-        
-        //Когато имаме избрано групирано показване правим нов масив
-        if ($rec->grouping == 'detail') {
+       
+        //Когато имаме избрано ГРУПИРАНО показване правим нов масив
+        if ($rec->grouping == 'grouped') {bp($recs);
+            
             $recs = array();
+            
             foreach ($groupValues as $k => $v) {
+     
                 $recs[$k] = (object) array(
                     'group'                        => $k,                                     //Група артикули
                     'amount'                    => $v,                                        //Покупки за текущия период за групата
@@ -725,7 +727,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         array_unshift($recs, $totalArr['total']);
        
-        //bp($recs);
+       // bp($recs);
         
         return $recs;
     }
@@ -776,7 +778,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             }
             
             //Обобщено по групи
-            if ($rec->grouping == 'detail') {
+            if ($rec->grouping == 'grouped') {
                 
                 //Когато има сравнение
                 if ($rec->compare != 'no') {
@@ -857,9 +859,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         //Извеждане на реда с ОБЩО
         if (isset($dRec->totalValue)) {
             $row->productId = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
-            $row->amount = '<b>' . $Double->toVerbal($dRec->totalValue) . '</b>';
-            $row->amount = ht::styleNumber($row->amount, $dRec->totalValue);
-            
+            if (isset($dRec->totalValue)) {
+                $row->amount = '<b>' . $Double->toVerbal($dRec->totalValue) . '</b>';
+                $row->amount = ht::styleNumber($row->amount, $dRec->totalValue);
+            }
             if( $rec->grouping == 'detail') {
                 $row->group = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
             }
@@ -904,8 +907,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             return $row;
         }
         
-        //Ако имаме избрано показване "ОБОБЩЕНО"
-        if ($rec->grouping == 'detail') {
+        //Ако имаме избрано показване "ГРУПИРАНО"
+        if ($rec->grouping == 'grouped') {
             if (is_numeric($dRec->group)) {
                 $row->group = cat_Groups::getVerbal($dRec->group, 'name');
             } else {
@@ -1165,6 +1168,29 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
        
     }
     
+//     /**
+//      * Помощна ф-я връщаща масив със всички записи, които са наследници на даден запис
+//      */
+//     private static function getDescendants($mvc, $id, $allRecs, &$res = array())
+//     {
+//         $descendants = array();
+//         foreach ($allRecs as $key => $cRec) {
+//             if ($cRec->{$mvc->parentFieldName} == $id) {
+//                 $descendants[$key] = $cRec;
+//             }
+//         }
+        
+//         $res = array_merge($res, $descendants);
+        
+//         if (count($descendants)) {
+//             foreach ($descendants as $dRec) {
+//                 self::getDescendants($mvc, $dRec->id, $allRecs, $res);
+//             }
+//         }
+        
+//         return $res;
+//     }
+    
     
     /**
      * След подготовка на реда за експорт
@@ -1209,4 +1235,5 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         return $foldersInGroups;
     }
+    
 }
