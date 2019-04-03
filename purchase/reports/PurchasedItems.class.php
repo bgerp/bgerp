@@ -222,6 +222,22 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         $receiptsDetQuery->EXT('valior', 'store_Receipts', 'externalName=valior,externalKey=receiptId');
         
+        //Бързи продажби
+        $fastPurchasesDetQuery = purchase_PurchasesDetails::getQuery();
+        
+        $fastPurchasesDetQuery->EXT('threadId', 'purchase_Purchases', 'externalName=threadId,externalKey=requestId');
+        
+        $fastPurchasesDetQuery-> in('threadId',$purchasesFastThreads);
+        
+        $fastPurchasesDetQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        
+        $fastPurchasesDetQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
+        
+        $fastPurchasesDetQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+        
+        $fastPurchasesDetQuery->EXT('valior', 'purchase_Purchases', 'externalName=valior,externalKey=requestId');
+        
+        
         //Продължителност на периода за показване
         $durationStr = cls::get('type_Time')->toVerbal($rec->duration);
             
@@ -252,6 +268,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         if (($rec->compare) == 'no') {
          
             $receiptsDetQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
+            
+            $fastPurchasesDetQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
         }
         
         // сравнение с ПРЕДХОДЕН ПЕРИОД
@@ -280,6 +298,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             }
             
             $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
+            
+            $fastPurchasesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
+           
         }
         
         // сравнение с ПРЕДХОДНА ГОДИНА
@@ -289,6 +310,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $toLastYear = dt::addMonths(-12, $dateEnd);
             
             $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
+            
+            $fastPurchasesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
         }
         
         // сравнение с ИЗБРАН ПЕРИОД
@@ -314,11 +337,15 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $rec->toChecked = $toChecked;
                 
             $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
+            
+            $fastPurchasesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
         }
        
         core_Lg::pop();
         
         $receiptsDetQuery->where("#state != 'rejected'");
+        
+        $fastPurchasesDetQuery->where("#state != 'rejected'");
         
       
         //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
@@ -329,6 +356,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $receiptsDetQuery->EXT('contragentId', 'store_Receipts', 'externalName=contragentId,externalKey=receiptId');
             $receiptsDetQuery->EXT('contragentClassId', 'store_Receipts', 'externalName=contragentClassId,externalKey=receiptId');
             $receiptsDetQuery->EXT('folderId', 'store_Receipts', 'externalName=folderId,externalKey=receiptId');
+            
+            $fastPurchasesDetQuery->EXT('contragentId', 'purchase_Purchases', 'externalName=contragentId,externalKey=requestId');
+            $fastPurchasesDetQuery->EXT('contragentClassId', 'purchase_Purchases', 'externalName=contragentClassId,externalKey=requestId');
+            $fastPurchasesDetQuery->EXT('folderId', 'purchase_Purchases', 'externalName=folderId,externalKey=requestId');
             
             if (!$rec->crmGroup && $rec->contragent) {
                 $contragentsArr = keylist::toArray($rec->contragent);
@@ -341,6 +372,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $receiptsDetQuery->in('contragentId', $contragentCoversId);
                 $receiptsDetQuery->in('contragentClassId', $contragentCoverClasses);
                 
+                $fastPurchasesDetQuery->in('contragentId', $contragentCoversId);
+                $fastPurchasesDetQuery->in('contragentClassId', $contragentCoverClasses);
+                
             }
             
             if ($rec->crmGroup && !$rec->contragent) {
@@ -348,6 +382,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $foldersInGroups = self::getFoldersInGroups($rec);
                 
                 $receiptsDetQuery->in('folderId', $foldersInGroups);
+                
+                $fastPurchasesDetQuery->in('folderId', $foldersInGroups);
             }
             
             if ($rec->crmGroup && $rec->contragent) {
@@ -362,9 +398,14 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $receiptsDetQuery->in('contragentId', $contragentCoversId);
                 $receiptsDetQuery->in('contragentClassId', $contragentCoverClasses);
                 
+                $fastPurchasesDetQuery->in('contragentId', $contragentCoversId);
+                $fastPurchasesDetQuery->in('contragentClassId', $contragentCoverClasses);
+                
                 $foldersInGroups = self::getFoldersInGroups($rec);
                 
                 $receiptsDetQuery->in('folderId', $foldersInGroups);
+                
+                $fastPurchasesDetQuery->in('folderId', $foldersInGroups);
             }
         }
     
@@ -377,12 +418,14 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         //Филтър по тип артикул СТАНДАРТНИ / НЕСТАНДАРТНИ
         if ($rec->articleType != 'all') {
             $receiptsDetQuery->where("#isPublic = '{$rec->articleType}'");
+            
+            $fastPurchasesDetQuery->where("#isPublic = '{$rec->articleType}'");
         }
         
         // Синхронизира таймлимита с броя записи //
-        $rec->count = $receiptsDetQuery->count();
+        $rec->count = $receiptsDetQuery->count() + $fastPurchasesDetQuery->count();
         
-        $timeLimit = $receiptsDetQuery->count() * 0.05;
+        $timeLimit = $receiptsDetQuery->count() * 0.05 + $fastPurchasesDetQuery->count() * 0.05;
         
         if ($timeLimit >= 30) {
             core_App::setTimeLimit($timeLimit);
@@ -393,118 +436,122 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $dealers = keylist::toArray($rec->dealers);
         }
         
-        while ($receiptsDetRec = $receiptsDetQuery->fetch()) {
-            
-            $quantity = $amount = 0;
-            $quantityPrevious = $amountPrevious = 0;
-            $quantityLastYear = $amountLastYear = 0;
-            $quantityCheckedPeriod = $amountCheckedPeriod = 0;
-            
-            
-            //Филтър за ДИЛЪР
-            if (!is_null($dealers)) {
+        $recsArr = array($receiptsDetQuery,$fastPurchasesDetQuery);
+        
+        foreach ($recsArr as $details){
+        
+            while ($detRec = $details->fetch()) {
                 
-            $firstDocument = doc_Threads::getFirstDocument($receiptsDetRec->threadId);
-            
-            $thisClassName = $firstDocument->className;
-            
-            $thisDealerId = $thisClassName::fetch($firstDocument->that)->dealerId;
-           
-                if(!in_array($thisDealerId, $dealers) ){
-                    continue;
-                }
-            }
-           
-            //Ключ на масива
-            $id = $receiptsDetRec->productId;
-            
-            //Код на артикула
-            $artCode = $receiptsDetRec->code ? $receiptsDetRec->code : "Art{$receiptsDetRec->productId}";
-            
-            //Мярка на артикула
-            $measureArt = cat_Products::getProductInfo($receiptsDetRec->productId)->productRec->measureId;
-            
-            //Данни за ПРЕДХОДЕН ПЕРИОД
-            if ($rec->compare == 'previous') {
+                $quantity = $amount = 0;
+                $quantityPrevious = $amountPrevious = 0;
+                $quantityLastYear = $amountLastYear = 0;
+                $quantityCheckedPeriod = $amountCheckedPeriod = 0;
                 
-                if ($receiptsDetRec->valior >= $fromPreviuos && $receiptsDetRec->valior <= $toPreviuos) {
+                
+                //Филтър за ДИЛЪР
+                if (!is_null($dealers)) {
                     
-                    $quantityPrevious = $receiptsDetRec->quantity;
-                    $amountPrevious = $receiptsDetRec->amount;
-                   
-                }
-            }
-            
-            //Данни за ПРЕДХОДНА ГОДИНА
-            if ($rec->compare == 'year') {
+                    $firstDocument = doc_Threads::getFirstDocument($detRec->threadId);
                 
-                if ($receiptsDetRec->valior >= $fromLastYear && $receiptsDetRec->valior <= $toLastYear) {
+                $thisClassName = $firstDocument->className;
+                
+                $thisDealerId = $thisClassName::fetch($firstDocument->that)->dealerId;
+               
+                    if(!in_array($thisDealerId, $dealers) ){
+                        continue;
+                    }
+                }
+               
+                //Ключ на масива
+                $id = $detRec->productId;
+                
+                //Код на артикула
+                $artCode = $detRec->code ? $detRec->code : "Art{$detRec->productId}";
+                
+                //Мярка на артикула
+                $measureArt = cat_Products::getProductInfo($detRec->productId)->productRec->measureId;
+                
+                //Данни за ПРЕДХОДЕН ПЕРИОД
+                if ($rec->compare == 'previous') {
                     
-                        $quantityLastYear = $receiptsDetRec->quantity;
-                        $amountLastYear = $receiptsDetRec->amount;
+                    if ($detRec->valior >= $fromPreviuos && $detRec->valior <= $toPreviuos) {
+                        
+                        $quantityPrevious = $detRec->quantity;
+                        $amountPrevious = $detRec->amount;
                        
+                    }
                 }
-            }
-            
-            //Данни за ИЗБРАН ПЕРИОД
-            if ($rec->compare == 'checked') {
                 
-                if ($receiptsDetRec->valior >= $rec->compareStart && $receiptsDetRec->valior <= $toChecked) {
+                //Данни за ПРЕДХОДНА ГОДИНА
+                if ($rec->compare == 'year') {
                     
-                    $quantityCheckedPeriod = $receiptsDetRec->quantity;
-                    $amountCheckedPeriod = $receiptsDetRec->amount; 
-                    
+                    if ($detRec->valior >= $fromLastYear && $detRec->valior <= $toLastYear) {
+                        
+                        $quantityLastYear = $detRec->quantity;
+                        $amountLastYear = $detRec->amount;
+                           
+                    }
                 }
-            }
-           
-            //Данни за ТЕКУЩ период
-            if ($receiptsDetRec->valior >= $rec->from && $receiptsDetRec->valior <= $dateEnd) {
                 
-                    $quantity = $receiptsDetRec->quantity;
-                    $amount = $receiptsDetRec->amount;
-            }
-            
-            // Запис в масива
-            if (!array_key_exists($id, $recs)) {
-                $recs[$id] = (object) array(
+                //Данни за ИЗБРАН ПЕРИОД
+                if ($rec->compare == 'checked') {
                     
-                    'code' => $artCode,                                   //Код на артикула
-                    'productId' => $receiptsDetRec->productId,            //Id на артикула
-                    'measure' => $measureArt,                             //Мярка
+                    if ($detRec->valior >= $rec->compareStart && $detRec->valior <= $toChecked) {
+                        
+                        $quantityCheckedPeriod = $detRec->quantity;
+                        $amountCheckedPeriod = $detRec->amount; 
+                        
+                    }
+                }
+               
+                //Данни за ТЕКУЩ период
+                if ($detRec->valior >= $rec->from && $detRec->valior <= $dateEnd) {
                     
-                    'quantity' => $quantity,                              //Текущ период - количество
-                    'amount' => $amount,                                  //Текущ период - стойност на продажбите за артикула
-                    
-                    'quantityPrevious' => $quantityPrevious,              //Предходен период - количество
-                    'amountPrevious' => $amountPrevious,                  //Предходен период - стойност на продажбите за артикула
-                    
-                    'quantityLastYear' => $quantityLastYear,              //Предходна година - количество
-                    'amountLastYear' => $amountLastYear,                  //Предходна година - стойност на продажбите за артикула
-                    
-                    'quantityCheckedPeriod' => $quantityCheckedPeriod,    //Избран период - количество
-                    'amountCheckedPeriod' => $amountCheckedPeriod,        //Избран период - стойност на продажбите за артикула
-                    
-                    'group' => $receiptsDetRec->groups,                   // В кои групи е включен артикула
-                    'groupList' => $receiptsDetRec->groupList,            //В кои групи е включен контрагента
-                    
-                );
-            } else {
-                $obj = &$recs[$id];
+                    $quantity = $detRec->quantity;
+                    $amount = $detRec->amount;
+                }
                 
-                $obj->quantity += $quantity;
-                $obj->amount += $amount;
-                
-                $obj->quantityPrevious += $quantityPrevious;
-                $obj->amountPrevious += $amountPrevious;
-                
-                $obj->quantityLastYear += $quantityLastYear;
-                $obj->amountLastYear += $amountLastYear;
-                
-                $obj->quantityCheckedPeriod += $quantityCheckedPeriod;
-                $obj->amountCheckedPeriod += $amountCheckedPeriod;
+                // Запис в масива
+                if (!array_key_exists($id, $recs)) {
+                    $recs[$id] = (object) array(
+                        
+                        'code' => $artCode,                                   //Код на артикула
+                        'productId' => $detRec->productId,            //Id на артикула
+                        'measure' => $measureArt,                             //Мярка
+                        
+                        'quantity' => $quantity,                              //Текущ период - количество
+                        'amount' => $amount,                                  //Текущ период - стойност на продажбите за артикула
+                        
+                        'quantityPrevious' => $quantityPrevious,              //Предходен период - количество
+                        'amountPrevious' => $amountPrevious,                  //Предходен период - стойност на продажбите за артикула
+                        
+                        'quantityLastYear' => $quantityLastYear,              //Предходна година - количество
+                        'amountLastYear' => $amountLastYear,                  //Предходна година - стойност на продажбите за артикула
+                        
+                        'quantityCheckedPeriod' => $quantityCheckedPeriod,    //Избран период - количество
+                        'amountCheckedPeriod' => $amountCheckedPeriod,        //Избран период - стойност на продажбите за артикула
+                        
+                        'group' => $detRec->groups,                   // В кои групи е включен артикула
+                        'groupList' => $detRec->groupList,            //В кои групи е включен контрагента
+                        
+                    );
+                } else {
+                    $obj = &$recs[$id];
+                    
+                    $obj->quantity += $quantity;
+                    $obj->amount += $amount;
+                    
+                    $obj->quantityPrevious += $quantityPrevious;
+                    $obj->amountPrevious += $amountPrevious;
+                    
+                    $obj->quantityLastYear += $quantityLastYear;
+                    $obj->amountLastYear += $amountLastYear;
+                    
+                    $obj->quantityCheckedPeriod += $quantityCheckedPeriod;
+                    $obj->amountCheckedPeriod += $amountCheckedPeriod;
+                }
             }
         }
-        
         //Изчисляване на промяната в стойността на продажбите и делтите за артикул
         foreach ($recs as $v) {
             
@@ -861,7 +908,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $row->amount = '<b>' . $Double->toVerbal($dRec->totalValue) . '</b>';
                 $row->amount = ht::styleNumber($row->amount, $dRec->totalValue);
             }
-            if( $rec->grouping == 'detail') {
+            if( $rec->grouping == 'grouped') {
                 $row->group = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
             }
             
