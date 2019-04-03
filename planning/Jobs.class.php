@@ -511,9 +511,7 @@ class planning_Jobs extends core_Master
      */
     private static function getContragentsWithJobs()
     {
-        $lifeTime = 120;
-
-        $options = core_Cache::get('planning_Jobs', 'contragentsWithJobs', $lifeTime, array('planning_Jobs'));
+        $options = core_Cache::get('planning_Jobs', 'contragentsWithJobs', 120, array('planning_Jobs'));
         
         if(!is_array($options) || !count($options)) {
             $options = array();
@@ -528,7 +526,7 @@ class planning_Jobs extends core_Master
                 $options[$jRec->sFolderId] = doc_Folders::getTitleById($jRec->sFolderId);
             }
              
-            core_Cache::set('planning_Jobs', 'contragentsWithJobs', $options, $lifeTime, array('planning_Jobs'));
+            core_Cache::set('planning_Jobs', 'contragentsWithJobs', $options, 120, array('planning_Jobs'));
         }
         
         return $options;
