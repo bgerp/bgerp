@@ -211,6 +211,7 @@ class planning_ProductionTaskProducts extends core_Detail
             $rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
             
             // Проверка дали артикула може да бъде избран
+            $msg = $error = null;
             if (!self::canAddProductToTask($rec, $msg, $error)) {
                 $method = ($error === true) ? 'setError' : 'setWarning';
                 $form->{$method}('productId', $msg);

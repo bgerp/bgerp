@@ -206,10 +206,6 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $form->setField('fixedAsset', 'input=none');
                 $form->setField('notes', 'input=none');
             }
-            
-            if(empty($masterRec->packagingId)){
-                $form->setField('serial', 'input=none');
-            }
         }
         
         // Ако наличната опция е само една, по дефолт е избрана
@@ -222,7 +218,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (isset($rec->productId)) {
             $pRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
             if ($pRec->canStore != 'yes' && $rec->productId == $masterRec->productId) {
-                $form->setField('serial', 'input=none');
                 if ($rest = $masterRec->plannedQuantity - $masterRec->totalQuantity) {
                     if($rest > 0){
                         $form->setDefault('quantity', $rest);
@@ -276,44 +271,41 @@ class planning_ProductionTaskDetails extends doc_Detail
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
-            if(!empty($rec->serial)){
-                $rec->serial = plg_Search::normalizeText($rec->serial);
-                $rec->serial = str::removeWhitespaces($rec->serial);
-                if ($rec->productId && ($Driver = cat_Products::getDriver($rec->productId))) {
-                    $rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
-                }
-            }
-            
             $masterRec = planning_Tasks::fetch($rec->taskId);
             if (empty($rec->serial) && empty($rec->productId) && !empty($masterRec->packagingId)) {
                 $form->setError('serial,productId', 'Трябва да е въведен артикул или сериен номер');
             }
             
             if(isset($rec->productId)){
-                $rec->_generateSerial = false;
                 $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-                if($canStore == 'yes' && $rec->type == 'production' && !empty($masterRec->packagingId) && empty($rec->serial)){
-                    $rec->_generateSerial = true;
+                $rec->_generateSerial = false;
+                if(!empty($rec->serial)){
+                    $rec->serial = plg_Search::normalizeText($rec->serial);
+                    $rec->serial = str::removeWhitespaces($rec->serial);
+                    if ($Driver = cat_Products::getDriver($rec->productId)) {
+                        $rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
+                    }
+                } elseif($rec->type == 'production'){
+                   $rec->_generateSerial = true;
                 }
                 
-                if ($canStore == 'yes') {
-                    if ($rec->type == 'production' && !empty($masterRec->packagingId) && !empty($rec->serial)) {
-                        if (self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}'")) {
-                            $form->setError('serial', 'Сер. № при произвеждане трябва да е уникален');
-                        }
-                    }
+                if($rec->type == 'production' && !empty($rec->serial)) {
+                     if (self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}'")) {
+                         $form->setError('serial', 'Сер. № при произвеждане трябва да е уникален');
+                     }
+                }
                     
-                    if (!empty($rec->serial)) {
-                        $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->taskId);
-                        $rec->serialType = $serialInfo['type'];
-                        
-                        if (isset($serialInfo['error'])) {
-                            $form->setError('serial', $serialInfo['error']);
-                        }
+                if (!empty($rec->serial)) {
+                    $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->taskId);
+                    $rec->serialType = $serialInfo['type'];
+                    if (isset($serialInfo['error'])) {
+                        $form->setError('serial', $serialInfo['error']);
                     }
-                } elseif ($rec->type == 'input') {
+                }
+                
+                if ($canStore != 'yes' && $rec->type == 'input') {
                     
-                    // Ако артикула е действие към оборудването
+                    // Ако артикулът е действие към оборудването
                     $inTp = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #type = 'input' AND #productId = {$rec->productId}");
                     $inInputTask = planning_Tasks::fetchField("#originId = {$masterRec->originId} AND #inputInTask = {$rec->taskId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'pending' AND #productId = {$rec->productId}");
                     
