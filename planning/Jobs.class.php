@@ -1138,8 +1138,13 @@ class planning_Jobs extends core_Master
         $form->FLD('select', 'varchar', 'caption=Избор,mandatory');
         
         $options = $this->getTaskOptions($jobRec);
-        $form->setOptions('select', $options);
-        $form->setDefault('select', 'new');
+        if(count($options)){
+            $form->setOptions('select', $options);
+            $form->setDefault('select', 'new');
+        } else {
+            $form->setReadOnly('select');
+        }
+        
         $form->input();
         if ($form->isSubmitted()) {
             $action = $form->rec->select;
@@ -1227,7 +1232,9 @@ class planning_Jobs extends core_Master
             $options2["new|{$depFolderId}"] = tr("В|* {$dName}");
         }
         
-        $options += array('new' => (object) array('group' => true, 'title' => tr('Нови операции'))) + $options2;
+        if(count($options2)){
+            $options += array('new' => (object) array('group' => true, 'title' => tr('Нови операции'))) + $options2;
+        }
         
         // Връщане на опциите за избор
         return $options;
