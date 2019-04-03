@@ -188,8 +188,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
          
         while ($purchase = $purchasesQuery->fetch()){
             
-             
-            if($purchase->contoActions == ''){
+            
+            if(strpos($purchase->contoActions, 'ship') == false){
                 
                 //Масив с нишките на НЕбързите покупки
                 
@@ -665,7 +665,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         }
        
         //Когато имаме избрано ГРУПИРАНО показване правим нов масив
-        if ($rec->grouping == 'grouped') {bp($recs);
+        if ($rec->grouping == 'grouped') {;
             
             $recs = array();
             
@@ -727,8 +727,6 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         array_unshift($recs, $totalArr['total']);
        
-       // bp($recs);
-        
         return $recs;
     }
     
@@ -749,7 +747,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $name1 = 'За периода';
             $name2 = 'За сравнение';
        
-        if ($export === false) {//bp($rec);
+        if ($export === false) {
             
             //По артикули(без групиране)
             if ($rec->grouping == 'art') {
