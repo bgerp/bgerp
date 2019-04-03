@@ -45,7 +45,7 @@
 		var id = 'nmpd' + ($('.nmpd-wrapper').length + 1);
 		var nmpd = {};
 		return this.each(function(){
-			
+			console.log(this, id);
 			// If an element with the generated unique numpad id exists, the numpad had been instantiated already.
 			// Otherwise create a new one!
 			if ($('#'+id).length == 0) {
@@ -139,9 +139,9 @@
 			} else {
 				// If the numpad was already instantiated previously, just load it into the nmpd variable
 				//nmpd = $('#'+id);
-				//nmpd.display = $('#'+id+' input.nmpd-display');	
+				//nmpd.display = $('#'+id+' input.nmpd-display');
 			}
-			
+
 			$.data(this, 'numpad', nmpd);
 			
 			// Make the target element readonly and save the numpad id in the data-numpad property. Also add the special nmpd-target CSS class.

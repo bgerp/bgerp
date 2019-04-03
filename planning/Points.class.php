@@ -237,7 +237,8 @@ class planning_Points extends core_Manager
         $tpl->push('planning/tpl/terminal/scripts.js', 'JS');
         $tpl->push('planning/tpl/terminal/jquery.numpad.js', 'JS');
         jquery_Jquery::run($tpl, 'planningActions();');
-        jquery_Jquery::runAfterAjax($tpl, 'smartCenter');
+        jquery_Jquery::run($tpl, 'prepareKeyboard();');
+        jquery_Jquery::runAfterAjax($tpl, 'prepareKeyboard');
         $refreshUrlLocal = toUrl(array($this, 'updateTerminal', 'tId' => $rec->id), 'local');
         core_Ajax::subscribe($tpl, $refreshUrlLocal, 'refreshPlanningTerminal', self::AUTO_REFRESH_TIME);
         
@@ -634,7 +635,11 @@ class planning_Points extends core_Manager
         $resObj6->func = 'html';
         $resObj6->arg = array('id' => 'task-single-content', 'html' => $jobHtml, 'replace' => true);
         $objectArr[] = $resObj6;
-        
+
+        $resObj7 = new stdClass();
+        $resObj7->func = 'prepareKeyboard';
+        $objectArr[] = $resObj7;
+
         // Показване на чакащите статуси
         $hitTime = Request::get('hitTime', 'int');
         $idleTime = Request::get('idleTime', 'int');

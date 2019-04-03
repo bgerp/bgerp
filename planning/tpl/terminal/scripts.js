@@ -1,14 +1,6 @@
 function planningActions() {
 	$("input[name=serial]").focus();
 
-	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.quantityField')
-	});
-	$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.weightField')
-	});
-
-
 
 	// Използване на числата за въвеждане на суми за плащания
 	$(document.body).on('click', "#sendBtn", function(e){
@@ -50,7 +42,6 @@ function planningActions() {
 	$(document.body).on('click', ".tabs-holder li:not('.disabled') a ", function(e){
 		var currentAttrValue= $(this).attr('href');
 		var currentId = $(this).parent().attr('id');
-		console.log(currentId);
 		$('.tabContent' + currentAttrValue).show().siblings().hide();
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
 		if($('.serialField').length) $('.serialField').focus();
@@ -69,6 +60,33 @@ function render_activateTab(data)
 		$('#task-list').removeClass('disabled');
 		$('#tab-progress a').click();
 	}
+}
+
+function render_prepareKeyboard()
+{
+	$('.nmpd-wrapper').remove();
+
+	setTimeout(function(){
+		$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+			target: $('.quantityField')
+		});
+		$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+			target: $('.weightField')
+		});
+	}, 500);
+
+
+
+}
+
+function prepareKeyboard()
+{
+	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.quantityField')
+	});
+	$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.weightField')
+	});
 }
 
 /**
