@@ -43,7 +43,6 @@ body {
     position: relative;
     top: 1px;
     font-size: 1.15em;
-    padding: 10px;
     border: 1px solid #cccccc;
     border-bottom: none;
     border-radius: 5px 5px 0 0; }
@@ -51,6 +50,8 @@ body {
     .tabs-holder ul li:hover {
       background: white; }
     .tabs-holder ul li a {
+      display: block;
+      padding: 10px;
       outline: none;
       color: #333333; }
       .tabs-holder ul li.disabled:hover {
