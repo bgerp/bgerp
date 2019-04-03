@@ -484,6 +484,11 @@ class planning_ProductionTaskProducts extends core_Detail
                 }
             }
         }
+        
+        // Ако се показва в терминала, колонката за артикул да е в отделен ред
+        if(Mode::is('taskInTerminal')){
+            $data->listFields['productId'] = '@';
+        }
     }
     
     
