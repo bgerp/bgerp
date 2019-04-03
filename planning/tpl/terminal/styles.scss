@@ -75,6 +75,10 @@ body {
 	}
 }
 
+.task-selected .specialLink, .task-selected .rightCol{
+	font-weight: bold;
+}
+
 .portal.planning {
 	padding: 0;
 	border: none;

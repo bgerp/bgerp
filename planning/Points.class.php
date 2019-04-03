@@ -208,8 +208,6 @@ class planning_Points extends core_Manager
         }
 
         if(Mode::get("currentTaskId{$rec->id}")){
-            $tpl->replace('active', 'activeSingle');
-            
             $tableTpl = $this->getProgressTable($rec);
             $tpl->replace($tableTpl, 'TASK_PROGRESS');
             
@@ -219,7 +217,6 @@ class planning_Points extends core_Manager
             $jobTpl = $this->getJobHtml($rec);
             $tpl->replace($jobTpl, 'TASK_JOB');
         } else {
-            $tpl->replace('active', 'activeAll');
             $tpl->replace('disabled', 'activeSingle');
             $tpl->replace('disabled', 'activeJob');
             $tpl->replace('disabled', 'activeTask');
@@ -371,10 +368,11 @@ class planning_Points extends core_Manager
             foreach ($data->rows as $id => &$row){
                 if($id != $taskId){
                     $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
-                    $img = ht::createImg(array('path' => 'img/32/next.png'));
-                    $row->selectBtn = ht::createLink($img, $selectUrl, false, 'title=Избиране на операцията за текуща,class=imgNext');
+                    $img = ht::createImg(array('path' => 'img/32/right.png'));
+                    $row->selectBtn = ht::createLink($img, $selectUrl, false, 'title=Избиране на операцията за текуща,class=imgNext changeTab');
                 } else {
-                    $row->selectBtn = ht::createElement('img', array('src' => sbf('img/32/dialog_ok.png', '')));
+                    $img =  ht::createImg(array('path' =>'img/32/dialog_ok.png'));
+                    $row->selectBtn = ht::createLink($img, "", false, 'title=Tекуща операция,class=imgNext');
                     $row->ROW_ATTR['class'] .= ' task-selected';
                 }
                 unset($row->_rowTools);

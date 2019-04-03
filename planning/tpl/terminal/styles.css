@@ -61,6 +61,10 @@ body {
         cursor: default;
         color: #999999 !important; }
 
+.task-selected .specialLink,
+.task-selected .rightCol {
+  font-weight: bold; }
+
 .portal.planning {
   padding: 0;
   border: none;
