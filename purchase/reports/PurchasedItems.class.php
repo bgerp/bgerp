@@ -189,19 +189,19 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         while ($purchase = $purchasesQuery->fetch()){
             
             
-            if(strpos($purchase->contoActions, 'ship') == false){
+            if(strpos($purchase->contoActions, 'ship') != false){
                 
-                //Масив с нишките на НЕбързите покупки
+                 //Масив с нишките на бързите покупки
+                if (!in_array($purchase->threadId, $purchasesFastThreads)){
+                    $purchasesFastThreads[$purchase->threadId]= $purchase->threadId;
+                }
+        
+            }else {
+                
+               //Масив с нишките на НЕбързите покупки
                 
                 if (!in_array($purchase->threadId, $purchasesThreads)){
                     $purchasesThreads[$purchase->threadId]= $purchase->threadId;
-                }
-                
-            }else {
-                
-                //Масив с нишките на бързите продажби
-                if (!in_array($purchase->threadId, $purchasesFastThreads)){
-                    $purchasesFastThreads[$purchase->threadId]= $purchase->threadId;
                 }
             }
             
@@ -212,7 +212,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         $receiptsDetQuery->EXT('threadId', 'store_Receipts', 'externalName=threadId,externalKey=receiptId');
         
-        $receiptsDetQuery-> in('threadId',$purchasesThreads);
+      //  $receiptsDetQuery-> in('threadId',$purchasesThreads);
         
         $receiptsDetQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         
@@ -614,8 +614,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $checkedGroups = keylist::toArray($rec->group);
                 
                 foreach ($checkedGroups as $key => $val) {
-                    
-                    if (in_array($val, keylist::toArray($v->group))) {
+                   
+                    if (in_array($val, keylist::toArray($v->group))) { 
                         $grArr[$val] = $val;                            //Масив от групите в които е ргистриран артикула АКО СА ЧАСТ ОТ ИЗБРАНИТЕ ГРУПИ
                     }
                     
@@ -629,11 +629,13 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 
                 //изчислява ОБЩА стойност на всички артикули закупени
                 //през текущ, предходен период и предходна година за ВСИЧКИ избрани групи
-                $totalValue += $v->amount;
-                $totalAmountPrevious += $v->amountPrevious;
-                $totalAmountLastYear += $v->amountLastYear;
-                $totalAmountCheckedPeriod += $v->amountCheckedPeriod;
                 
+                if(!empty(array_intersect($grArr, $checkedGroups))){
+                    $totalValue += $v->amount;
+                    $totalAmountPrevious += $v->amountPrevious;
+                    $totalAmountLastYear += $v->amountLastYear;
+                    $totalAmountCheckedPeriod += $v->amountCheckedPeriod;
+                }
                 //Изчислява покупките по артикул за всички артикули във всяка избрана група
                 //Един артикул може да го има в няколко групи
                 foreach ($tempArr[$v->productId]->group as $gro) {
@@ -646,8 +648,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 
                 $recs = $tempArr;
                 
-                
-                
+               // if($mmm==2)bp($checkedGroups,$totalValue,$groupValues,$v,$grArr,$tempArr,$recs);
+                $mmm++;
                 
             }
             
