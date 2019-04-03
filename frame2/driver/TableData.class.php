@@ -197,6 +197,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $tpl = new core_ET('');
         
         // Подготовка на пейджъра
+        $itemsPerPage = null;
         if (!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'))) {
             setIfNot($itemsPerPage, $rec->listItemsPerPage, $this->listItemsPerPage);
             $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $itemsPerPage));
@@ -508,9 +509,6 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         }
         
         $oldRec = $all[key($all)]->oldRec;
-        $dataRecsNew = $rec->data->recs;
-        $dataRecsOld = $oldRec->data->recs;
-        
         $newContainerIds = $oldContainerIds = array();
         
         if (is_array($rec->data->recs)) {
