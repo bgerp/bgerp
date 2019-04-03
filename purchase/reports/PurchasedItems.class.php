@@ -79,8 +79,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $fieldset->FLD('group', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,after=group,single=none');
         
-        //Покаване на резултата
-        $fieldset->FLD('grouping', 'enum(art=По артикули, grouped=Гупирано)', 'caption=Показване->Вид,maxRadio=2,after=articleType');
+        //Показване на резултата
+        $fieldset->FLD('grouping', 'enum(art=По артикули, grouped=Групирано)', 'caption=Показване->Вид,maxRadio=2,after=articleType');
    
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(code=Код, amount=Стойност, changeAmount=Промяна)', 'caption=Подреждане на резултата->Показател,maxRadio=5,columns=3,after=grouping');
@@ -135,7 +135,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         $form->setDefault('compare', 'no');
         
-        $form->setDefault('grouping', 'no');
+        $form->setDefault('grouping', 'art');
         
         $form->setDefault('orderBy', 'amount');
         
