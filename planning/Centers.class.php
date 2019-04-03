@@ -401,8 +401,17 @@ class planning_Centers extends core_Master
         
         $query = self::getQuery();
         $query->where("#state != 'closed' AND #state != 'rejected'");
+        $cloneQuery = clone $query;
         while($rec = $query->fetch()){
-            if(planning_Stages::fetch("LOCATE('|{$rec->folderId}|', #folders)")){
+            if(planning_Stages::fetch("LOCATE('|{$rec->folderId}4444|', #folders)")){
+                if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
+                    $options[$rec->folderId] = self::getRecTitle($rec, false);
+                }
+            }
+        }
+        
+        if(!count($options)){
+            while($rec = $cloneQuery->fetch()){
                 if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
                     $options[$rec->folderId] = self::getRecTitle($rec, false);
                 }
