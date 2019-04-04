@@ -968,14 +968,11 @@ class planning_ProductionTaskDetails extends doc_Detail
             if ($Driver = cat_Products::getDriver($productId)) {
                 $params['serial'] = $Driver->canonizeSerial($productId, $params['serial']);
             }
-            
             $serialInfo = self::fetchSerialInfo($params['serial'], $productId, $taskId);
             $rec->serial = $params['serial'];
             $rec->serialType = $serialInfo['type'];
-        } else {
-            if($canStore == 'yes' && $params['type'] == 'production' && !empty($taskRec->packagingId)){
-                $rec->_generateSerial = true;
-            }
+        } elseif($params['type'] == 'production'){
+            $rec->_generateSerial = true;
         }
         
         if($rec->type == 'input' && $canStore != 'yes') {
