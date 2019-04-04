@@ -534,7 +534,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                     $recs[$id] = (object) array(
                         
                         'code' => $artCode,                                   //Код на артикула
-                        'productId' => $detRec->productId,            //Id на артикула
+                        'productId' => $detRec->productId,                    //Id на артикула
                         'measure' => $measureArt,                             //Мярка
                         
                         'quantity' => $quantity,                              //Текущ период - количество
@@ -549,8 +549,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                         'quantityCheckedPeriod' => $quantityCheckedPeriod,    //Избран период - количество
                         'amountCheckedPeriod' => $amountCheckedPeriod,        //Избран период - стойност на продажбите за артикула
                         
-                        'group' => $detRec->groups,                   // В кои групи е включен артикула
-                        'groupList' => $detRec->groupList,            //В кои групи е включен контрагента
+                        'group' => $detRec->groups,                           // В кои групи е включен артикула
+                        'groupList' => $detRec->groupList,                    //В кои групи е включен контрагента
                         
                     );
                 } else {
