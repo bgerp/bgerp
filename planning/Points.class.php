@@ -228,6 +228,9 @@ class planning_Points extends core_Manager
         $tableTpl = $this->getTaskListTable($rec);
         $tpl->replace($tableTpl, 'TASK_LIST');
         
+        $formTpl = $this->getSupportHtml($rec);
+        $tpl->replace($formTpl, 'SUPPORT');
+        
         jquery_Jquery::enable($tpl);
 
         $tpl->push('css/Application.css', 'CSS');
@@ -284,6 +287,68 @@ class planning_Points extends core_Manager
         }
         
         return $this->getSuccessfullResponce($rec, false, false);
+    }
+    
+    
+    /**
+     * Рендиране на таба за поддръжка
+     * 
+     * @param mixed $id
+     * @return core_ET
+     */
+    private function getSupportHtml($id)
+    {
+        $rec = self::fetchRec($id);
+        $tpl = new core_ET();
+        
+        // Полетата на формата
+        $form = cls::get('core_Form');
+        $form->formAttr['submitFormOnRefresh'] = true;
+        $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name)', 'class=w100,caption=Оборудване,silent,removeAndRefreshForm=assetFolderId,mandatory');
+        $form->FLD('assetFolderId', 'int', 'input=hidden');
+        $form->FLD('tId', 'int', 'input=hidden,silent');
+        
+        // Наличните центрове на дейност
+        $options = planning_AssetResources::getByFolderId(planning_Centers::fetchField($rec->centerId, 'folderId'));
+        $form->setOptions('asset', array('' => '') + $options);
+        $form->input(null, 'silent');
+        
+        // Ако има избран център, да се заредят неговите папки за поддръжка
+        if(isset($form->rec->asset)){
+            $assetRec = planning_AssetResources::fetch($form->rec->asset);
+            $supportFolders = keylist::toArray($assetRec->systemFolderId);
+            if(!empty($supportFolders)){
+                $options = array();
+                foreach ($supportFolders as $supportFolderId){
+                    $options[$supportFolderId] = doc_Folders::getTitleById($supportFolderId, false);
+                }
+                $form->setField('assetFolderId', 'input');
+                $form->setOptions('assetFolderId', $options);
+            } else {
+                $form->setError('assetFolderId', 'Оборудването няма избрана папка за поддръжка');
+                $form->setReadOnly('assetFolderId');
+            }
+        }
+        
+        // Събмит на формата
+        $form->input();
+        if($form->isSubmitted()){
+            if(empty($form->rec->assetFolderId)){
+                $form->setError('assetFolderId', 'Не е избрана папка');
+            }
+            
+            return redirect(array('cal_Tasks', 'add', 'folderId' => $form->rec->assetFolderId, 'assetResourceId' => $form->rec->asset, 'ret_url' => true));
+        }
+        
+        $sbBtn = ht::createSbBtn('', 'save', null, null, "ef_icon = img/16/settings.png,id='support-submit'");
+        $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/SupportFormLayout.shtml');
+        $form->class = 'simpleForm';
+        
+        $tpl->append($form->renderHtml());
+        $tpl->append($sbBtn, 'SB_BTN');
+        $tpl->removeBlocksAndPlaces();
+        
+        return $tpl;
     }
     
     
@@ -640,6 +705,12 @@ class planning_Points extends core_Manager
         $resObj7->func = 'prepareKeyboard';
         $objectArr[] = $resObj7;
 
+        $supportHtml = $this->getSupportHtml($rec)->getContent();
+        $resObj7 = new stdClass();
+        $resObj7->func = 'html';
+        $resObj7->arg = array('id' => 'task-support-content', 'html' => $supportHtml, 'replace' => true);
+        $objectArr[] = $resObj7;
+        
         // Показване на чакащите статуси
         $hitTime = Request::get('hitTime', 'int');
         $idleTime = Request::get('idleTime', 'int');
