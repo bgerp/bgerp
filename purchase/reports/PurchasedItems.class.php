@@ -65,7 +65,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         //Период
         $fieldset->FLD('from', 'date', 'caption=Период->От,after=dealers,single=none,mandatory');
-        $fieldset->FLD('duration','time(suggestions=1 седмица| 1 месец| 2 месеца| 3 месеца| 6 месеца| 12 месеца)', 'caption=Период->Продължителност,after=from,placeholder=1 месец,single=none,mandatory');
+        $fieldset->FLD('duration','time(suggestions=1 седмица| 1 месец| 2 месеца| 3 месеца| 6 месеца| 12 месеца)', 'caption=Период->Продължителност,after=from,single=none,mandatory');
         
         //Сравнение
         $fieldset->FLD('compare', 'enum(no=Без, previous=Предходен период, year=Миналогодишен период,checked=Избран период)', 'caption=Сравнение->Сравнение,after=duration,refreshForm,single=none,silent');
