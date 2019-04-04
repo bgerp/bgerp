@@ -226,6 +226,7 @@ class planning_Points extends core_Manager
             $tpl->replace('disabled', 'activeSingle');
             $tpl->replace('disabled', 'activeJob');
             $tpl->replace('disabled', 'activeTask');
+            $tpl->replace('active', 'activeAll');
         }
         
         Mode::setPermanent('activeTab', $this->getActiveTab($rec));
