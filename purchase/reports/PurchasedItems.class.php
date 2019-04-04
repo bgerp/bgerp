@@ -72,7 +72,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $fieldset->FLD('compareStart', 'date', 'caption=Сравнение->Начало,after=compare,single=none,mandatory');
         
         //Контрагенти и групи контрагенти
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=compareDuration');
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=compareStart');
         $fieldset->FLD('seeCrmGroup', 'set(yes = )',  'caption=Контрагенти->Група контрагенти,after=contragent,refreshForm,silent,single=none');
         $fieldset->FLD('crmGroup', 'treelist(mvc=crm_Groups,select=name, parentId=parentId)', 'caption=Контрагенти->Група контрагенти,after=seeCrmGroup,single=none');
         

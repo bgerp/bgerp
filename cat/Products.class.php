@@ -1489,19 +1489,31 @@ class cat_Products extends embed_Manager
             }
         }
         
+        $mustReverse = null;
         // Ако има пълно съвпадение с някоя дума - добавяме в началото
         foreach ($mArr as $mId => $mTitle) {
             if (isset($products[$mId])) {
                 unset($products[$mId]);
                 $products = array($mId => $mTitle) + $products;
-                $reverseOrder = false;
+                if (!isset($mustReverse)) {
+                    $mustReverse = false;
+                } elseif ($mustReverse === true) {
+                    $mustReverse = -1;
+                }
             }
             
             if (isset($private[$mId])) {
                 unset($private[$mId]);
                 $private = array($mId => $mTitle) + $private;
-                $reverseOrder = true;
+                if (!isset($mustReverse)) {
+                    $mustReverse = true;
+                } elseif ($mustReverse === false) {
+                    $mustReverse = -1;
+                }
             }
+        }
+        if (isset($mustReverse) && $mustReverse !== -1) {
+            $reverseOrder = $mustReverse;
         }
         
         if (count($products) && !isset($onlyIds)) {
