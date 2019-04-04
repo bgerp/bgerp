@@ -65,7 +65,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         //Период
         $fieldset->FLD('from', 'date', 'caption=Период->От,after=dealers,single=none,mandatory');
-        $fieldset->FLD('duration','time(suggestions=1 седмица| 1 месец| 2 месеца| 3 месеца| 6 месеца| 12 месеца)', 'caption=Период->Продължителност,after=from,placeholder=1 месец,single=none,mandatory');
+        $fieldset->FLD('duration','time(suggestions=1 седмица| 1 месец| 2 месеца| 3 месеца| 6 месеца| 12 месеца)', 'caption=Период->Продължителност,after=from,single=none,mandatory');
         
         //Сравнение
         $fieldset->FLD('compare', 'enum(no=Без, previous=Предходен период, year=Миналогодишен период,checked=Избран период)', 'caption=Сравнение->Сравнение,after=duration,refreshForm,single=none,silent');
@@ -148,6 +148,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         }
         
         $form->setDefault('articleType', 'all');
+        
+        $form->setDefault('duration', '1 месец');
         
         $form->setDefault('compare', 'no');
         
@@ -262,7 +264,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         //Край на избрания период за показване $dateEnd
         core_Lg::push('bg');
         
-        if ($periodType == 'дни'){
+        if ($periodType == 'дни' || $periodType == 'ден' || $periodType == 'дена'){
             $dateEnd = dt::addDays($periodCount-1, $rec->from, false);
         }
         
@@ -532,7 +534,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                     $recs[$id] = (object) array(
                         
                         'code' => $artCode,                                   //Код на артикула
-                        'productId' => $detRec->productId,            //Id на артикула
+                        'productId' => $detRec->productId,                    //Id на артикула
                         'measure' => $measureArt,                             //Мярка
                         
                         'quantity' => $quantity,                              //Текущ период - количество
@@ -547,8 +549,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                         'quantityCheckedPeriod' => $quantityCheckedPeriod,    //Избран период - количество
                         'amountCheckedPeriod' => $amountCheckedPeriod,        //Избран период - стойност на продажбите за артикула
                         
-                        'group' => $detRec->groups,                   // В кои групи е включен артикула
-                        'groupList' => $detRec->groupList,            //В кои групи е включен контрагента
+                        'group' => $detRec->groups,                           // В кои групи е включен артикула
+                        'groupList' => $detRec->groupList,                    //В кои групи е включен контрагента
                         
                     );
                 } else {
