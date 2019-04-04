@@ -104,7 +104,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         if ($form->isSubmitted()) {
             
             //Проверка за правилна подредба
-            if (($form->rec->orderBy == 'code') && ($form->rec->grouping == 'yes')) {
+            if (($form->rec->orderBy == 'code') && ($form->rec->grouping == 'grouped')) {
                 $form->setError('orderBy', 'При ГРУПИРАНО показване не може да има подредба по КОД.');
             }
             
