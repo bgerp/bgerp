@@ -165,6 +165,7 @@ class rack_Movements extends core_Manager
             }
             
             if (!empty($rec->packQuantity)) {
+                $warning = null;
                 if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning, 'uom')) {
                     $form->setError('packQuantity', $warning);
                 }
@@ -580,6 +581,7 @@ class rack_Movements extends core_Manager
                 $error[] = 'Невалидно количество';
                 $errorFields['quantity'][$key] = 'Невалидно количество';
             } else {
+                $warning = null;
                 if(!deals_Helper::checkQuantity($packagingId, $q2, $warning, 'uom')){
                     $error[] = $warning;
                     $errorFields['quantity'][$key] = $warning;
@@ -732,6 +734,7 @@ class rack_Movements extends core_Manager
         }
         
         if ($skipZones === false) {
+            $quantityInZones = array();
             $zones = self::getZoneArr($rec, $quantityInZones);
             $restQuantity = round($packQuantity, 6) - round($quantityInZones, 6);
             

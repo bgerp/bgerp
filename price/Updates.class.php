@@ -375,9 +375,9 @@ class price_Updates extends core_Manager
     /**
      * От коя дата да е валиден записа
      *
-     * @param manual|now|nextDay|nextWeek|nextMonth $updateMode
+     * @param string $updateMode
      *
-     * @return date $validFrom
+     * @return datetime $validFrom
      */
     private function getValidFromDate($updateMode)
     {
@@ -415,9 +415,9 @@ class price_Updates extends core_Manager
      * Намира себестойността на един артикул, според зададените приоритети
      *
      * @param int                                                    $productId   - ид на артикул
-     * @param accCost|lastDelivery|activeDelivery|lastQuote|bom      $costSource1 - първи източник
-     * @param accCost|lastDelivery|activeDelivery|lastQuote|bom|NULL $costSource2 - втори източник
-     * @param accCost|lastDelivery|activeDelivery|lastQuote|bom|NULL $costSource3 - трети източник
+     * @param string      $costSource1 - първи източник
+     * @param string|NULL $costSource2 - втори източник
+     * @param string|NULL $costSource3 - трети източник
      * @param float                                                  $costAdd     - процент надценка
      *
      * @return float|FALSE $price - намерената себестойност или FALSE ако няма

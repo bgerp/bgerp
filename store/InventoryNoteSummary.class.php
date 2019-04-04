@@ -333,7 +333,6 @@ class store_InventoryNoteSummary extends doc_Detail
             setIfNot($Doc->productFld, 'productId');
             $dQuery->show("containerId,{$Doc->productFld}");
             while ($docRec = $dQuery->fetch()) {
-                $productId = $docRec->{$Doc->productFld};
                 if (!isset($res[$docRec->{$Doc->productFld}][$docRec->containerId])) {
                     $link = doc_Containers::getDocument($docRec->containerId)->getLink(0)->getContent();
                     $res[$docRec->{$Doc->productFld}][$docRec->containerId] = $link;
@@ -571,7 +570,7 @@ class store_InventoryNoteSummary extends doc_Detail
         $tmpRecs = $pQuery->fetchAll();
         
         // Добавяме в река данни така че да ни е по-лесно за филтриране
-        foreach ($data->recs as $id => &$rec) {
+        foreach ($data->recs as &$rec) {
             
             // Взимаме записа от кеша
             $pRec = $tmpRecs[$rec->productId];
@@ -611,7 +610,6 @@ class store_InventoryNoteSummary extends doc_Detail
         $responsibles = array('' => '') + $responsibles;
         
         if ($masterRec->state == 'draft') {
-            $unsetCharge = true;
             if (!Mode::isReadOnly() && !Mode::is('blank')) {
                 if (static::haveRightFor('setresponsibleperson', $rec)) {
                     $attr = array();
@@ -621,8 +619,6 @@ class store_InventoryNoteSummary extends doc_Detail
                     
                     $charge = ht::createSelect('charge', $responsibles, $rec->charge, $attr);
                     $charge->removePlaces();
-                    
-                    $unsetCharge = false;
                 }
             }
         } else {

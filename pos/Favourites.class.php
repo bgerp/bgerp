@@ -207,6 +207,7 @@ class pos_Favourites extends core_Manager
         $info = cat_Products::getProductInfo($rec->productId);
         $productRec = $info->productRec;
         
+        $arr = array();
         $arr['name'] = $productRec->name;
         $arr['catId'] = $rec->catId;
         $obj = new stdClass();
@@ -305,7 +306,6 @@ class pos_Favourites extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $varchar = cls::get('type_Varchar');
         if ($rec->image) {
             $Fancybox = cls::get('fancybox_Fancybox');
             $row->image = $Fancybox->getImage($rec->image, array(30, 30), array(400, 400));

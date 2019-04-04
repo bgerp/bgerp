@@ -556,7 +556,7 @@ class store_Products extends core_Detail
                     $shQuery->groupBy($Detail->productFieldName);
                     
                     while ($sd = $shQuery->fetch()) {
-                        $storeId = ($isPn) ? $sd->storeId : $sRec->{$storeField};
+                        $storeId = $sRec->{$storeField};
                         $key = "{$storeId}|{$sd->{$Detail->productFieldName}}";
                         
                         $reserved[$key] = array('sId' => $storeId, 'pId' => $sd->{$Detail->productFieldName}, 'q' => $sd->sum);

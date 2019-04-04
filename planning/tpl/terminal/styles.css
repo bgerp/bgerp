@@ -43,7 +43,6 @@ body {
     position: relative;
     top: 1px;
     font-size: 1.15em;
-    padding: 10px;
     border: 1px solid #cccccc;
     border-bottom: none;
     border-radius: 5px 5px 0 0; }
@@ -51,6 +50,8 @@ body {
     .tabs-holder ul li:hover {
       background: white; }
     .tabs-holder ul li a {
+      display: block;
+      padding: 10px;
       outline: none;
       color: #333333; }
       .tabs-holder ul li.disabled:hover {
@@ -59,6 +60,10 @@ body {
       .tabs-holder ul li.disabled a {
         cursor: default;
         color: #999999 !important; }
+
+.task-selected .specialLink,
+.task-selected .rightCol {
+  font-weight: bold; }
 
 .portal.planning {
   padding: 0;
@@ -82,6 +87,23 @@ body {
   .imgNext img {
     width: 32px !important;
     height: 32px !important; }
+
+.keyboardHolder {
+  position: relative; }
+  .keyboardHolder .quantityField,
+  .keyboardHolder .weightField {
+    padding-right: 31px; }
+  .keyboardHolder .planning-terminal-numpad {
+    position: absolute;
+    right: -2px;
+    top: 2px;
+    padding: 6px !important;
+    width: 20px;
+    background-color: rgba(0, 0, 0, 0);
+    border: none;
+    box-shadow: none; }
+    .keyboardHolder .planning-terminal-numpad:hover {
+      background-color: rgba(0, 0, 0, 0); }
 
 .terminalHeader {
   padding: 15px;
@@ -221,7 +243,7 @@ only screen and (min-width: 720px) and (max-width: 800px) {
     .tabs-holder .listBlock {
       display: block; }
 
-  .tabs-holder ul li {
+  .tabs-holder ul li a {
     padding: 5px;
     font-size: 1em; }
 
@@ -269,5 +291,14 @@ only screen and (min-width: 720px) and (max-width: 800px) {
     width: 110%;
     margin-left: -8%;
     margin-right: -10%;
-    transform: scale(0.8, 0.8); } }
+    transform: scale(0.8, 0.8); }
+
+  .sale-summary table td {
+    font-size: 1em; }
+
+  .sum-th {
+    font-size: 12px !important; }
+
+  .paddingCells .nowrap {
+    white-space: normal !important; } }
 

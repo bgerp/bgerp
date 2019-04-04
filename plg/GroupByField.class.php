@@ -37,8 +37,11 @@ class plg_GroupByField extends core_Plugin
         
         $recs = &$data->recs;
         
+        $field = null;
+        setIfNot($field, $data->groupByField, $mvc->groupByField);
+        
         // Ако не е зададено поле за групиране, не правим нищо
-        if (!($field = $mvc->groupByField)) {
+        if (!$field) {
             
             return;
         }
@@ -68,7 +71,7 @@ class plg_GroupByField extends core_Plugin
                 $rowAttr['class'] .= ' group-by-field-row';
             }
             
-            if(array_key_exists($mvc->groupByField, $originalFields)){
+            if(array_key_exists($data->groupByField, $originalFields)){
                 $rows['|' . $groupId] = ht::createElement(
                     
                     'tr',

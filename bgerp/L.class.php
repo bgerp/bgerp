@@ -732,6 +732,11 @@ class bgerp_L extends core_Manager
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf');
         $url = toUrl(array('L', 'S', $cid, 'm' => $mid), $isAbsolute, true, array('m'));
         
+        // Добавяме файла към списъка
+        if ($sCid = Mode::get('saveObjectsToCid')) {
+            doc_UsedInDocs::addObject(array($cid => $cid), $sCid, 'docs');
+        }
+        
         return $url;
     }
     

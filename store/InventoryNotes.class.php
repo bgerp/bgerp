@@ -641,7 +641,6 @@ class store_InventoryNotes extends core_Master
         // Избраните групи
         $rGroup = cat_Groups::getDescendantArray($rec->groups);
         $rGroup = keylist::toArray($rGroup);
-        $gCount = count($rGroup);
         
         // От наличните артикули, взимат се ид-та на тези с к-во
         $productArr = array();

@@ -241,6 +241,7 @@ class store_InventoryNoteDetails extends doc_Detail
         if ($form->isSubmitted()) {
             
             // Проверка на к-то
+            $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
                 $form->setError('packQuantity', $warning);
             }
@@ -329,7 +330,7 @@ class store_InventoryNoteDetails extends doc_Detail
      */
     public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
-        foreach ($query->getDeletedRecs() as $id => $rec) {
+        foreach ($query->getDeletedRecs() as $rec) {
             $summeryId = store_InventoryNoteSummary::force($rec->noteId, $rec->productId);
             store_InventoryNoteSummary::recalc($summeryId);
             
@@ -453,7 +454,7 @@ class store_InventoryNoteDetails extends doc_Detail
             if (is_array($products)) {
                 $count = 0;
                 foreach ($products as $pId) {
-                    $rId = store_InventoryNoteSummary::force($noteId, $pId);
+                    store_InventoryNoteSummary::force($noteId, $pId);
                     $count++;
                 }
                 
