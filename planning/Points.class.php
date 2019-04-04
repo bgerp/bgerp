@@ -208,33 +208,40 @@ class planning_Points extends core_Manager
         }
 
         if(Mode::get("currentTaskId{$rec->id}")){
-            $tpl->replace('active', 'activeSingle');
+            $tableTpl = $this->getProgressTable($rec);
+            $tpl->replace($tableTpl, 'TASK_PROGRESS');
+            
+            $taskTpl = $this->getTaskHtml($rec);
+            $tpl->replace($taskTpl, 'TASK_SINGLE');
+            
+            $jobTpl = $this->getJobHtml($rec);
+            $tpl->replace($jobTpl, 'TASK_JOB');
         } else {
-            $tpl->replace('active', 'activeAll');
             $tpl->replace('disabled', 'activeSingle');
             $tpl->replace('disabled', 'activeJob');
+            $tpl->replace('disabled', 'activeTask');
         }
         
-        $tableTpl = $this->getTasksTable($rec);
-        $tpl->replace($tableTpl, 'PROGRESS_TASK_TABLE');
-        
-        $tableTpl = $this->getProgressTable($rec);
-        $tpl->replace($tableTpl, 'PROGRESS_TABLE');
-       
         $formTpl = $this->getFormHtml($rec);
         $tpl->replace($formTpl, 'FORM');
         
-        $jobTpl = $this->getJobHtml($rec);
-        $tpl->replace($jobTpl, 'JOB_SINGLE');
+        $tableTpl = $this->getTaskListTable($rec);
+        $tpl->replace($tableTpl, 'TASK_LIST');
+        
+        $formTpl = $this->getSupportHtml($rec);
+        $tpl->replace($formTpl, 'SUPPORT');
         
         jquery_Jquery::enable($tpl);
 
         $tpl->push('css/Application.css', 'CSS');
         $tpl->push('js/efCommon.js', 'JS');
         $tpl->push('planning/tpl/terminal/styles.css', 'CSS');
+        $tpl->push('planning/tpl/terminal/jquery.numpad.css', 'CSS');
         $tpl->push('planning/tpl/terminal/scripts.js', 'JS');
+        $tpl->push('planning/tpl/terminal/jquery.numpad.js', 'JS');
         jquery_Jquery::run($tpl, 'planningActions();');
-        jquery_Jquery::runAfterAjax($tpl, 'smartCenter');
+        jquery_Jquery::run($tpl, 'prepareKeyboard();');
+        jquery_Jquery::runAfterAjax($tpl, 'prepareKeyboard');
         $refreshUrlLocal = toUrl(array($this, 'updateTerminal', 'tId' => $rec->id), 'local');
         core_Ajax::subscribe($tpl, $refreshUrlLocal, 'refreshPlanningTerminal', self::AUTO_REFRESH_TIME);
         
@@ -255,6 +262,9 @@ class planning_Points extends core_Manager
         if(!core_Users::getCurrent('id', false)){
             $url = (Mode::get('terminalId')) ? array('peripheral_Terminal', 'default', 'afterExit' => true) : array('core_Users', 'login', 'ret_url' => toUrl(array($this, 'terminal', 'tId' => $rec->id), 'local'));
         }
+        
+        $object = ht::mixedToHtml($rec);
+        planning_Points::logDebug($object, $rec->id);
         
         return $url;
     }
@@ -277,6 +287,95 @@ class planning_Points extends core_Manager
         }
         
         return $this->getSuccessfullResponce($rec, false, false);
+    }
+    
+    
+    /**
+     * Рендиране на таба за поддръжка
+     * 
+     * @param mixed $id
+     * @return core_ET
+     */
+    private function getSupportHtml($id)
+    {
+        $rec = self::fetchRec($id);
+        $tpl = new core_ET();
+        
+        // Полетата на формата
+        $form = cls::get('core_Form');
+        $form->formAttr['submitFormOnRefresh'] = true;
+        $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name)', 'class=w100,caption=Оборудване,silent,removeAndRefreshForm=assetFolderId,mandatory');
+        $form->FLD('assetFolderId', 'int', 'input=hidden');
+        $form->FLD('tId', 'int', 'input=hidden,silent');
+        
+        // Наличните центрове на дейност
+        $options = planning_AssetResources::getByFolderId(planning_Centers::fetchField($rec->centerId, 'folderId'));
+        $form->setOptions('asset', array('' => '') + $options);
+        $form->input(null, 'silent');
+        
+        // Ако има избран център, да се заредят неговите папки за поддръжка
+        if(isset($form->rec->asset)){
+            $assetRec = planning_AssetResources::fetch($form->rec->asset);
+            $supportFolders = keylist::toArray($assetRec->systemFolderId);
+            if(!empty($supportFolders)){
+                $options = array();
+                foreach ($supportFolders as $supportFolderId){
+                    $options[$supportFolderId] = doc_Folders::getTitleById($supportFolderId, false);
+                }
+                $form->setField('assetFolderId', 'input');
+                $form->setOptions('assetFolderId', $options);
+            } else {
+                $form->setError('assetFolderId', 'Оборудването няма избрана папка за поддръжка');
+                $form->setReadOnly('assetFolderId');
+            }
+        }
+        
+        // Събмит на формата
+        $form->input();
+        if($form->isSubmitted()){
+            if(empty($form->rec->assetFolderId)){
+                $form->setError('assetFolderId', 'Не е избрана папка');
+            }
+            
+            return redirect(array('cal_Tasks', 'add', 'folderId' => $form->rec->assetFolderId, 'assetResourceId' => $form->rec->asset, 'ret_url' => true));
+        }
+        
+        $sbBtn = ht::createSbBtn('', 'save', null, null, "ef_icon = img/16/settings.png,id='support-submit'");
+        $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/SupportFormLayout.shtml');
+        $form->class = 'simpleForm';
+        
+        $tpl->append($form->renderHtml());
+        $tpl->append($sbBtn, 'SB_BTN');
+        $tpl->removeBlocksAndPlaces();
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Рендиране на изгледа на избраната активна операция
+     *
+     * @param mixed $id
+     * @return core_ET $tpl
+     */
+    private function getTaskHtml($id)
+    {
+        $rec = self::fetchRec($id);
+        
+        $tpl = new core_ET(" ");
+        if($taskId = Mode::get("currentTaskId{$rec->id}")){
+            Mode::push('taskInTerminal', true);
+            Mode::push('hideToolbar', true);
+            $taskContainerId = planning_Tasks::fetchField($taskId, 'containerId');
+            $taskObject = doc_Containers::getDocument($taskContainerId);
+            
+            $mode = (Mode::get('terminalId')) ? 'xhtml' : 'html';
+            $tpl = $taskObject->getInlineDocumentBody($mode);
+            Mode::pop('hideToolbar');
+            Mode::pop('taskInTerminal');
+        }
+        
+        return $tpl;
     }
     
     
@@ -309,10 +408,11 @@ class planning_Points extends core_Manager
      * @param mixed $id
      * @return core_ET $tpl
      */
-    private function getTasksTable($id)
+    private function getTaskListTable($id)
     {
         $rec = self::fetchRec($id);
         $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
+        $taskId = Mode::get("currentTaskId{$rec->id}");
         
         // Всички аквитни операции, в избрания център отговарящи на избраното оборудване ако има
         $Tasks = cls::get('planning_Tasks');
@@ -332,10 +432,15 @@ class planning_Points extends core_Manager
         $Tasks->prepareListRows($data);
         if(count($data->recs)){
             foreach ($data->rows as $id => &$row){
-                $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
-                $img = ht::createImg(array('path' => 'img/32/next.png'));
-                $row->selectBtn = ht::createLink($img, $selectUrl, false, 'title=Избиране на текуща операция,class=imgNext');
-
+                if($id != $taskId){
+                    $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
+                    $img = ht::createImg(array('path' => 'img/32/right.png'));
+                    $row->selectBtn = ht::createLink($img, $selectUrl, false, 'title=Избиране на операцията за текуща,class=imgNext changeTab');
+                } else {
+                    $img =  ht::createImg(array('path' =>'img/32/dialog_ok.png'));
+                    $row->selectBtn = ht::createLink($img, "", false, 'title=Tекуща операция,class=imgNext');
+                    $row->ROW_ATTR['class'] .= ' task-selected';
+                }
                 unset($row->_rowTools);
             }
         }
@@ -346,6 +451,7 @@ class planning_Points extends core_Manager
         unset($data->listFields['folderId']);
         unset($data->listFields['state']);
         $data->listFields = array('selectBtn' => 'Избор') + $data->listFields;
+        $data->listFields['title'] = 'Операция';
         
         setIfNot($data->listTableMvc, clone $Tasks);
         $data->listTableMvc->FLD('selectBtn', 'varchar', 'tdClass=small-field centered');
@@ -371,7 +477,8 @@ class planning_Points extends core_Manager
             Mode::push('text', 'xhtml');
         }
         
-        Mode::push('taskInTerminal', true);
+        Mode::push('taskProgressInTerminal', true);
+        Mode::push('hideToolbar', true);
         $rec = self::fetchRec($id);
         
         // Подготовка на прогреса на избраната операция, ако има
@@ -390,12 +497,15 @@ class planning_Points extends core_Manager
             unset($data->listFields['productId']);
             unset($data->listFields['taskId']);
             unset($data->listFields['modified']);
-            $data->hideTools = true;
+            $data->listFields['serial'] = '№';
+            $data->listFields['_createdDate'] = 'Създаване';
+            $data->groupByField = '_createdDate';
         }
         
         unset($data->toolbar);
         $tpl = $Details->renderDetail($data);
-        Mode::pop('taskInTerminal');
+        Mode::pop('hideToolbar');
+        Mode::pop('taskProgressInTerminal');
        
         if(Mode::get('terminalId')) {
             Mode::pop('text');
@@ -421,10 +531,10 @@ class planning_Points extends core_Manager
         
         // Подготовка на формата
         $form = $Details->getForm();
-        $form->setField('serial', 'placeholder=№,class=w100');
+        $form->setField('serial', 'placeholder=№,class=w100 serialField');
         $form->setField('productId', 'class=w100');
-        $form->setField('weight', 'class=w100');
-        $form->setField('quantity', 'class=w100');
+        $form->setField('weight', 'class=w100 weightField');
+        $form->setField('quantity', 'class=w100 quantityField');
         $form->setField('employees', 'placeholder=Служители,class=w100');
         $form->setField('fixedAsset', 'placeholder=Оборудване,class=w100');
         $form->setDefault('type', 'production');
@@ -478,6 +588,12 @@ class planning_Points extends core_Manager
         $sendUrl = ($this->haveRightFor('terminal')) ?  toUrl(array($this, 'doAction', 'tId' => $rec->id), 'local') : array();
         $sendBtn = ht::createFnBtn('Изпращане', null, null, array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'data-url' => $sendUrl, 'title' => 'Изпращане на формата'));
         $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
+        
+        $numpadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'numPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
+        $form->fieldsLayout->append($numpadBtn, 'NUM_PAD_BTN');
+
+        $weightPadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'weightPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
+        $form->fieldsLayout->append($weightPadBtn, 'WEIGHT_PAD_BTN');
         
         // Показване на прогреса, само ако е 
         if($currentTaskId && $form->rec->productId == $data->masterRec->productId){
@@ -538,14 +654,14 @@ class planning_Points extends core_Manager
         $progressHtml = $this->getProgressTable($rec)->getContent();
         $resObj = new stdClass();
         $resObj->func = 'html';
-        $resObj->arg = array('id' => 'progress-holder', 'html' => $progressHtml, 'replace' => true);
+        $resObj->arg = array('id' => 'task-progress-content', 'html' => $progressHtml, 'replace' => true);
         $objectArr[] = $resObj;
         
         // Реплейсване на списъка с операциите
-        $tableHtml = $this->getTasksTable($rec)->getContent();
+        $tableHtml = $this->getTaskListTable($rec)->getContent();
         $resObj1 = new stdClass();
         $resObj1->func = 'html';
-        $resObj1->arg = array('id' => 'progress-task', 'html' => $tableHtml, 'replace' => true);
+        $resObj1->arg = array('id' => 'task-list-content', 'html' => $tableHtml, 'replace' => true);
         $objectArr[] = $resObj1;
         
         // Реплейсване на текущата дата
@@ -557,7 +673,7 @@ class planning_Points extends core_Manager
         $jobHtml = $this->getJobHtml($rec)->getContent();
         $resObj3 = new stdClass();
         $resObj3->func = 'html';
-        $resObj3->arg = array('id' => 'progress-job', 'html' => $jobHtml, 'replace' => true);
+        $resObj3->arg = array('id' => 'task-job-content', 'html' => $jobHtml, 'replace' => true);
         $objectArr[] = $resObj3;
 
         // Активиране на таба за прогрес
@@ -578,6 +694,22 @@ class planning_Points extends core_Manager
             $resObj5->arg = array('id' => 'planning-terminal-form', 'html' => $formHtml, 'replace' => true);
             $objectArr[] = $resObj5;
         }
+        
+        $jobHtml = $this->getTaskHtml($rec)->getContent();
+        $resObj6 = new stdClass();
+        $resObj6->func = 'html';
+        $resObj6->arg = array('id' => 'task-single-content', 'html' => $jobHtml, 'replace' => true);
+        $objectArr[] = $resObj6;
+
+        $resObj7 = new stdClass();
+        $resObj7->func = 'prepareKeyboard';
+        $objectArr[] = $resObj7;
+
+        $supportHtml = $this->getSupportHtml($rec)->getContent();
+        $resObj7 = new stdClass();
+        $resObj7->func = 'html';
+        $resObj7->arg = array('id' => 'task-support-content', 'html' => $supportHtml, 'replace' => true);
+        $objectArr[] = $resObj7;
         
         // Показване на чакащите статуси
         $hitTime = Request::get('hitTime', 'int');

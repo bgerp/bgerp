@@ -2434,9 +2434,12 @@ class doclog_Documents extends core_Manager
         
         $html = static::renderSummary($data);
         
-        $doc = doc_Containers::getDocument($containerId);
-        
-        $doc->invoke('renderOtherSummary', array(&$html, $containerId, $threadId));
+        try{
+            $doc = doc_Containers::getDocument($containerId);
+            $doc->invoke('renderOtherSummary', array(&$html, $containerId, $threadId));
+        } catch(core_exception_Expect $e){
+            $html = tr("|*<span class='red'>|Грешка|*</span>");
+        }
         
         if (strlen($html) != 0) {
             $html = "<ul class=\"history summary\">{$html}</ul>";

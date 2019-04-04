@@ -27,7 +27,7 @@ class price_PolicyIntf
      * @param float                        $quantity            - количество
      * @param datetime                     $date                - към коя дата искаме цената
      * @param float                        $rate                - валутен курс
-     * @param enum(yes,no,export,separate) $chargeVat           - да се начислявали ДДС или не върху цената
+     * @param string $chargeVat           - да се начислявали ДДС или не върху цената
      * @param int|NULL                     $listId              - ценова политика
      * @param bool                         $quotationPriceFirst - Дали първо да търси цена от последна оферта
      *

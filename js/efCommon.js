@@ -2197,8 +2197,13 @@ function refreshForm(form, removeFields) {
 
 	var serialized = $.param(filteredParams);
 
-//    form.submit(); return;
+	// Ако изрично е указано да се събмитва формата, да се събмитва нормално
+	if(frm.attr('submitFormOnRefresh')){
+		form.submit(); return;
+	}
 
+	// form.submit(); return;
+	
 	$.ajax({
 		type: frm.attr('method'),
 		url: frm.attr('action'),

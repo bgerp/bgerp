@@ -17,30 +17,46 @@
 <div class="centerContent">
 	<div class="tabs-holder">
 		<ul>
-			<li class="[#activeAll#]" title='|Всички операции в центъра на дейност|*' id='tab-task'>
-				<a href='#progress-task' accesskey='o'>|Операции|*</a>
+			<li class="[#activeAll#]" title='Списък производствени операции в центъра на дейност|*' id='task-list'>
+				<a href='#task-list-content' accesskey='o'>|Списък|*</a>
 			</li>
 			
 			<li class="[#activeSingle#]" title='|Прогрес на производствените операции|*' id='tab-progress'>
-				<a href='#progress-holder' accesskey='p'>|Прогрес|*</a>
+				<a href='#task-progress-content' accesskey='p'>|Прогрес|*</a>
+			</li>
+			
+			<li class="[#activeTask#]" title='|Изглед на  производствената операция|*' id='tab-single-task'>
+				<a href='#task-single-content' accesskey='p'>|Операция|*</a>
 			</li>
 			
 			<li class="[#activeJob#]" title='|Задание към, което е операцията|*' id='tab-job'>
-				<a href='#progress-job' accesskey='j'>|Задание|*</a>
+				<a href='#task-job-content' accesskey='j'>|Задание|*</a>
+			</li>
+			
+			<li class="[#activeSupport#]" title='|Поддръжка на оборудването в центъра на дейност|*' id='tab-support'>
+				<a href='#task-support-content' accesskey='j'>|Поддръжка|*</a>
 			</li>
 		</ul>
 			<div class='terminal-content'>
-				<!--ET_BEGIN PROGRESS_TABLE-->
-				<div class='tabContent [#active_choose#]' id = 'progress-holder'>[#PROGRESS_TABLE#]</div>
-				<!--ET_END PROGRESS_TABLE-->
+				<!--ET_BEGIN TASK_PROGRESS-->
+				<div class='tabContent [#active_choose#]' id = 'task-progress-content'>[#TASK_PROGRESS#]</div>
+				<!--ET_END TASK_PROGRESS-->
 
-				<!--ET_BEGIN PROGRESS_TASK_TABLE-->
-				<div class='tabContent [#active_choose#]' id = 'progress-task'>[#PROGRESS_TASK_TABLE#]</div>
-				<!--ET_END PROGRESS_TASK_TABLE-->
+				<!--ET_BEGIN TASK_LIST-->
+				<div class='tabContent [#active_choose#]' id = 'task-list-content'>[#TASK_LIST#]</div>
+				<!--ET_END TASK_LIST-->
 
-				<!--ET_BEGIN JOB_SINGLE-->
-				<div class='tabContent [#active_choose#]' id = 'progress-job'>[#JOB_SINGLE#]</div>
-				<!--ET_END JOB_SINGLE-->
+				<!--ET_BEGIN TASK_SINGLE-->
+				<div class='tabContent [#active_choose#]' id = 'task-single-content'>[#TASK_SINGLE#]</div>
+				<!--ET_END TASK_SINGLE-->
+
+				<!--ET_BEGIN TASK_JOB-->
+				<div class='tabContent [#active_choose#]' id = 'task-job-content'>[#TASK_JOB#]</div>
+				<!--ET_END TASK_JOB-->
+				
+				<!--ET_BEGIN SUPPORT-->
+				<div class='tabContent [#active_choose#]' id = 'task-support-content'>[#SUPPORT#]</div>
+				<!--ET_END SUPPORT-->
 			</div>
 	</div>
 	<div class='formHolder'>
