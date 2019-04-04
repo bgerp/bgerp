@@ -595,7 +595,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->toolbar->removeBtn('btnAdd');
             
             if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'production'))) {
-                $btnName = empty($data->masterData->rec->packagingId) ? 'Произвеждане' : "Произв.|* " . tr(cat_Uom::getTitleById(($data->masterData->rec->packagingId)));
+                $btnName = empty($data->masterData->rec->packagingId) ? 'Произвеждане' : "Произв.|* " . tr(cat_UoM::getTitleById(($data->masterData->rec->packagingId)));
                 $data->toolbar->addBtn($btnName, array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на произведен артикул');
             }
             
