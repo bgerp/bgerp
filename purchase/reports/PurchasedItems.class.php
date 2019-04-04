@@ -149,6 +149,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         $form->setDefault('articleType', 'all');
         
+        $form->setDefault('duration', '1 месец');
+        
         $form->setDefault('compare', 'no');
         
         $form->setDefault('grouping', 'art');
