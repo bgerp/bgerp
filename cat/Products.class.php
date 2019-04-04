@@ -1479,6 +1479,16 @@ class cat_Products extends embed_Manager
             }
         }
         
+        // Подредба по азбучен ред
+        if ($q) {
+            if (!empty($products)) {
+                asort($products);
+            }
+            if (!empty($private)) {
+                asort($private);
+            }
+        }
+        
         // Ако има пълно съвпадение с някоя дума - добавяме в началото
         foreach ($mArr as $mId => $mTitle) {
             if (isset($products[$mId])) {
