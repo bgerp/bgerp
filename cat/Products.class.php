@@ -1437,7 +1437,9 @@ class cat_Products extends embed_Manager
         $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
         $direction = ($reverseOrder === true) ? 'ASC' : 'DESC';
         $query->orderBy('isPublic', $direction);
-        $query->orderBy('createdOn', 'DESC');
+        if (!trim($q)) {
+            $query->orderBy('createdOn', 'DESC');
+        }
         
         if ($q) {
             if ($q{0} == '"') {
@@ -1474,6 +1476,16 @@ class cat_Products extends embed_Manager
             
             if ($qRegexp && preg_match($qRegexp, $title)) {
                 $mArr[$rec->id] = $title;
+            }
+        }
+        
+        // Подредба по азбучен ред
+        if ($q) {
+            if (!empty($products)) {
+                asort($products);
+            }
+            if (!empty($private)) {
+                asort($private);
             }
         }
         

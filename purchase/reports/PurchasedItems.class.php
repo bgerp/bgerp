@@ -73,10 +73,12 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         //Контрагенти и групи контрагенти
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=compareDuration');
-        $fieldset->FLD('crmGroup', 'treelist(mvc=crm_Groups,select=name, parentId=parentId)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
+        $fieldset->FLD('seeCrmGroup', 'set(yes = )',  'caption=Контрагенти->Група контрагенти,after=contragent,refreshForm,silent,single=none');
+        $fieldset->FLD('crmGroup', 'treelist(mvc=crm_Groups,select=name, parentId=parentId)', 'caption=Контрагенти->Група контрагенти,after=seeCrmGroup,single=none');
         
         //Групиране на резултата
-        $fieldset->FLD('group', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
+        $fieldset->FLD('seeGroup', 'set(yes = )',  'caption=Артикули->Група артикули,after=crmGroup,refreshForm,silent,single=none');
+        $fieldset->FLD('group', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,after=seeGroup,single=none');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,after=group,single=none');
         
         //Показване на резултата
@@ -104,7 +106,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         if ($form->isSubmitted()) {
             
             //Проверка за правилна подредба
-            if (($form->rec->orderBy == 'code') && ($form->rec->grouping == 'yes')) {
+            if (($form->rec->orderBy == 'code') && ($form->rec->grouping == 'grouped')) {
                 $form->setError('orderBy', 'При ГРУПИРАНО показване не може да има подредба по КОД.');
             }
             
@@ -133,6 +135,16 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             
             $form->setField('compareStart', 'input=none');
            
+        }
+        
+        if ($rec->seeCrmGroup != 'yes') {
+            
+            $form->setField('crmGroup', 'input=none');
+        }
+        
+        if ($rec->seeGroup != 'yes') {
+            
+            $form->setField('group', 'input=none');
         }
         
         $form->setDefault('articleType', 'all');
