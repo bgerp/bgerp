@@ -108,6 +108,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $form->setError('orderBy', 'При ГРУПИРАНО показване не може да има подредба по КОД.');
             }
             
+            if (($form->rec->orderBy == 'changeAmount') && ($form->rec->compare == 'no')) {
+                $form->setError('orderBy', 'Когато няма сравнение не се отчита промяна.');
+            }
+            
         }
     }
     
@@ -604,10 +608,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             } else {
                 
                 //КОГАТО ИМА ИЗБРАНИ ГРУПИ
-                //изчислява обща стойност на артикулите от избраните групи продадени
+                //изчислява обща стойност на артикулите от избраните групи купени
                 //през текущ, предходен период и предходна година, и стойността по групи(само ИЗБРАНИТЕ)
-                
-                
                 $grArr = array();
                 
                 //Масив с избраните групи
@@ -647,10 +649,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 unset($gro);
                 
                 $recs = $tempArr;
-                
-               // if($mmm==2)bp($checkedGroups,$totalValue,$groupValues,$v,$grArr,$tempArr,$recs);
-                $mmm++;
-                
+              
             }
             
             if($rec->compare && $rec->compare == 'previous'){
@@ -760,10 +759,20 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $orderBy =$rec->orderBy;
             
             if($rec->orderBy == 'changeAmount'){
-                $orderBy = $rec->changeAmount;
+                
+                switch ($rec->compare) {
+                    
+                    case 'previous':$orderBy = 'changeAmountPrevious'; break;
+                    
+                    case 'year':$orderBy = 'changeAmountLastYear'; break;
+                    
+                    case 'checked':$orderBy = 'changeAmountCheckedPeriod'; break;
+                    
+                }
+                
             }
             
-         //   arr::sortObjects($recs, $orderBy , $rec->order, $typeOrder);
+            arr::sortObjects($recs, $orderBy , 'DESC', $typeOrder);
         }
         
         //Добавям ред за ОБЩИТЕ суми
@@ -953,7 +962,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             
             return $row;
         }
-        
+       
         //Ако имаме избрано показване "ГРУПИРАНО"
         if ($rec->grouping == 'grouped') {
             if (is_numeric($dRec->group)) {
@@ -1214,30 +1223,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
        
     }
-    
-//     /**
-//      * Помощна ф-я връщаща масив със всички записи, които са наследници на даден запис
-//      */
-//     private static function getDescendants($mvc, $id, $allRecs, &$res = array())
-//     {
-//         $descendants = array();
-//         foreach ($allRecs as $key => $cRec) {
-//             if ($cRec->{$mvc->parentFieldName} == $id) {
-//                 $descendants[$key] = $cRec;
-//             }
-//         }
-        
-//         $res = array_merge($res, $descendants);
-        
-//         if (count($descendants)) {
-//             foreach ($descendants as $dRec) {
-//                 self::getDescendants($mvc, $dRec->id, $allRecs, $res);
-//             }
-//         }
-        
-//         return $res;
-//     }
-    
+
     
     /**
      * След подготовка на реда за експорт
