@@ -1,5 +1,42 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-
+<div class="scrolling-holder">
+    <div class="sale-summary">
+        <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
+            <tr>
+                <td class = 'sum-th'>
+                    |Планирано|* ([#measureId#])
+                </td>
+                <td class = 'sum-th'>
+                    |Остатък|* ([#measureId#])
+                </td>
+                <!--ET_BEGIN quantityFromTasksCaption-->
+                <td class = 'sum-th'>
+                    [#quantityFromTasksCaption#] ([#measureId2#])
+                </td>
+                <!--ET_END quantityFromTasksCaption-->
+                <td class = 'sum-th'>
+                    [#captionProduced#] ([#measureId#])
+                </td>
+                <!--ET_BEGIN captionNotStored-->
+                <td class = 'sum-th'>
+                    [#captionNotStored#] ([#measureId2#])
+                </td>
+                <!--ET_END captionNotStored-->
+            </tr>
+            <tr>
+                <td class = 'nowrap'>[#packQuantity#]</td>
+                <td class = 'nowrap'>[#quantityToProduce#]</td>
+                <!--ET_BEGIN quantityFromTasks-->
+                <td class = 'nowrap'>[#quantityFromTasks#] </td>
+                <!--ET_END quantityFromTasks-->
+                <td class = 'nowrap'>[#quantityProduced#]</td>
+                <!--ET_BEGIN quantityNotStored-->
+                <td class = 'nowrap'>[#quantityNotStored#]</td>
+                <!--ET_END quantityNotStored-->
+            </tr>
+        </table>
+    </div>
+</div>
 <div class='scrolling-holder'>
     <table class='jobTable' style='width: 100%'>
         <tr>
