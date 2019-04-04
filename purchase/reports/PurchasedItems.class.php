@@ -264,7 +264,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         //Край на избрания период за показване $dateEnd
         core_Lg::push('bg');
         
-        if ($periodType == 'дни'){
+        if ($periodType == 'дни' || $periodType == 'ден' || $periodType == 'дена'){
             $dateEnd = dt::addDays($periodCount-1, $rec->from, false);
         }
         
