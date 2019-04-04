@@ -79,8 +79,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $fieldset->FLD('group', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,after=group,single=none');
         
-        //Покаване на резултата
-        $fieldset->FLD('grouping', 'enum(art=По артикули, grouped=Гупирано)', 'caption=Показване->Вид,maxRadio=2,after=articleType');
+        //Показване на резултата
+        $fieldset->FLD('grouping', 'enum(art=По артикули, grouped=Групирано)', 'caption=Показване->Вид,maxRadio=2,after=articleType');
    
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(code=Код, amount=Стойност, changeAmount=Промяна)', 'caption=Подреждане на резултата->Показател,maxRadio=5,columns=3,after=grouping');
@@ -106,6 +106,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             //Проверка за правилна подредба
             if (($form->rec->orderBy == 'code') && ($form->rec->grouping == 'yes')) {
                 $form->setError('orderBy', 'При ГРУПИРАНО показване не може да има подредба по КОД.');
+            }
+            
+            if (($form->rec->orderBy == 'changeAmount') && ($form->rec->compare == 'no')) {
+                $form->setError('orderBy', 'Когато няма сравнение не се отчита промяна.');
             }
             
         }
@@ -135,7 +139,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         $form->setDefault('compare', 'no');
         
-        $form->setDefault('grouping', 'no');
+        $form->setDefault('grouping', 'art');
         
         $form->setDefault('orderBy', 'amount');
         
@@ -189,19 +193,19 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         while ($purchase = $purchasesQuery->fetch()){
             
             
-            if(strpos($purchase->contoActions, 'ship') == false){
+            if(strpos($purchase->contoActions, 'ship') != false){
                 
-                //Масив с нишките на НЕбързите покупки
+                 //Масив с нишките на бързите покупки
+                if (!in_array($purchase->threadId, $purchasesFastThreads)){
+                    $purchasesFastThreads[$purchase->threadId]= $purchase->threadId;
+                }
+        
+            }else {
+                
+               //Масив с нишките на НЕбързите покупки
                 
                 if (!in_array($purchase->threadId, $purchasesThreads)){
                     $purchasesThreads[$purchase->threadId]= $purchase->threadId;
-                }
-                
-            }else {
-                
-                //Масив с нишките на бързите продажби
-                if (!in_array($purchase->threadId, $purchasesFastThreads)){
-                    $purchasesFastThreads[$purchase->threadId]= $purchase->threadId;
                 }
             }
             
@@ -212,7 +216,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         $receiptsDetQuery->EXT('threadId', 'store_Receipts', 'externalName=threadId,externalKey=receiptId');
         
-        $receiptsDetQuery-> in('threadId',$purchasesThreads);
+      //  $receiptsDetQuery-> in('threadId',$purchasesThreads);
         
         $receiptsDetQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         
@@ -604,18 +608,16 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             } else {
                 
                 //КОГАТО ИМА ИЗБРАНИ ГРУПИ
-                //изчислява обща стойност на артикулите от избраните групи продадени
+                //изчислява обща стойност на артикулите от избраните групи купени
                 //през текущ, предходен период и предходна година, и стойността по групи(само ИЗБРАНИТЕ)
-                
-                
                 $grArr = array();
                 
                 //Масив с избраните групи
                 $checkedGroups = keylist::toArray($rec->group);
                 
                 foreach ($checkedGroups as $key => $val) {
-                    
-                    if (in_array($val, keylist::toArray($v->group))) {
+                   
+                    if (in_array($val, keylist::toArray($v->group))) { 
                         $grArr[$val] = $val;                            //Масив от групите в които е ргистриран артикула АКО СА ЧАСТ ОТ ИЗБРАНИТЕ ГРУПИ
                     }
                     
@@ -629,11 +631,13 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 
                 //изчислява ОБЩА стойност на всички артикули закупени
                 //през текущ, предходен период и предходна година за ВСИЧКИ избрани групи
-                $totalValue += $v->amount;
-                $totalAmountPrevious += $v->amountPrevious;
-                $totalAmountLastYear += $v->amountLastYear;
-                $totalAmountCheckedPeriod += $v->amountCheckedPeriod;
                 
+                if(!empty(array_intersect($grArr, $checkedGroups))){
+                    $totalValue += $v->amount;
+                    $totalAmountPrevious += $v->amountPrevious;
+                    $totalAmountLastYear += $v->amountLastYear;
+                    $totalAmountCheckedPeriod += $v->amountCheckedPeriod;
+                }
                 //Изчислява покупките по артикул за всички артикули във всяка избрана група
                 //Един артикул може да го има в няколко групи
                 foreach ($tempArr[$v->productId]->group as $gro) {
@@ -645,10 +649,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 unset($gro);
                 
                 $recs = $tempArr;
-                
-                
-                
-                
+              
             }
             
             if($rec->compare && $rec->compare == 'previous'){
@@ -758,10 +759,20 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $orderBy =$rec->orderBy;
             
             if($rec->orderBy == 'changeAmount'){
-                $orderBy = $rec->changeAmount;
+                
+                switch ($rec->compare) {
+                    
+                    case 'previous':$orderBy = 'changeAmountPrevious'; break;
+                    
+                    case 'year':$orderBy = 'changeAmountLastYear'; break;
+                    
+                    case 'checked':$orderBy = 'changeAmountCheckedPeriod'; break;
+                    
+                }
+                
             }
             
-         //   arr::sortObjects($recs, $orderBy , $rec->order, $typeOrder);
+            arr::sortObjects($recs, $orderBy , 'DESC', $typeOrder);
         }
         
         //Добавям ред за ОБЩИТЕ суми
@@ -951,7 +962,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             
             return $row;
         }
-        
+       
         //Ако имаме избрано показване "ГРУПИРАНО"
         if ($rec->grouping == 'grouped') {
             if (is_numeric($dRec->group)) {
@@ -1212,30 +1223,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
        
     }
-    
-//     /**
-//      * Помощна ф-я връщаща масив със всички записи, които са наследници на даден запис
-//      */
-//     private static function getDescendants($mvc, $id, $allRecs, &$res = array())
-//     {
-//         $descendants = array();
-//         foreach ($allRecs as $key => $cRec) {
-//             if ($cRec->{$mvc->parentFieldName} == $id) {
-//                 $descendants[$key] = $cRec;
-//             }
-//         }
-        
-//         $res = array_merge($res, $descendants);
-        
-//         if (count($descendants)) {
-//             foreach ($descendants as $dRec) {
-//                 self::getDescendants($mvc, $dRec->id, $allRecs, $res);
-//             }
-//         }
-        
-//         return $res;
-//     }
-    
+
     
     /**
      * След подготовка на реда за експорт
