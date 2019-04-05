@@ -207,6 +207,7 @@ class planning_Points extends core_Manager
             $tpl->replace(ht::createLink('', array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
         }
 
+        // Подготовка на урл-тата на табовете
         $taskListUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskList'), 'local');
         $taskProgressUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskProgress'), 'local');
         $taskSingleUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskSingle'), 'local');
@@ -265,6 +266,13 @@ class planning_Points extends core_Manager
         return $tpl;
     }
     
+    
+    /**
+     * Кой е активния таб
+     * 
+     * @param stdClass $rec
+     * @return string
+     */
     private function getActiveTab($rec)
     {
         if($activeTab = Mode::get('activeTab')){
@@ -278,8 +286,12 @@ class planning_Points extends core_Manager
     }
     
     
+    /**
+     * Рендиране на таб
+     */
     function act_renderTab()
     {
+        // Кой е таба
         peripheral_Terminal::setSessionPrefix();
         expect($id = Request::get('tId', 'int'));
         expect($name = Request::get('name', 'varchar'));
@@ -548,7 +560,6 @@ class planning_Points extends core_Manager
             $data->masterMvc = clone cls::get('planning_Tasks');
             $data->masterId = $taskId;
             $data->masterData = (object)array('rec' => planning_Tasks::fetch($taskId));
-            
             $Details->listItemsPerPage = false;
             $Details->prepareDetail_($data);
             unset($data->listFields['productId']);
@@ -678,7 +689,6 @@ class planning_Points extends core_Manager
         
         if($action == 'selecttask'){
             $res = $mvc->getRequiredRoles('terminal', $rec, $userId);
-            
             if(isset($rec)){
                 if(empty($rec->taskId)){
                     $res = 'no_one';
