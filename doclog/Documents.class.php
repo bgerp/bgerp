@@ -1754,6 +1754,14 @@ class doclog_Documents extends core_Manager
                 $sendedBy = $fParent->data->sendedBy;
             }
             
+            if (!isset($sendedBy)) {
+                $fParentCRec = doc_Containers::fetch($fParent->containerId);
+                $sendedBy = $fParentCRec->activatedBy;
+                if (!isset($sendedBy)) {
+                    $sendedBy = $fParentCRec->createdBy;
+                }
+            }
+            
             // Ако е изпратен или е системата - за бласт
             if ($sendedAction && (!$sendedBy || $sendedBy <= 0)) {
                 
@@ -1775,7 +1783,11 @@ class doclog_Documents extends core_Manager
                 }
             }
             
+            Mode::push('saveObjectsToCid', $fParent->containerId);
+            
             $linkedDocs = $midDoc->getLinkedDocuments($sendedBy, $fParent->data);
+            
+            Mode::pop('saveObjectsToCid');
             
             if ($isSystemCanSingle) {
                 Mode::set('isSystemCanSingle', false);
