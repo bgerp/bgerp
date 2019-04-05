@@ -232,15 +232,19 @@ class planning_Points extends core_Manager
         
         Mode::setPermanent('activeTab', $this->getActiveTab($rec));
         
+        if(haveRole('debug')){
+            core_Statuses::newStatus("TAB " . Mode::get('activeTab'));
+        }
+        
         $formTpl = $this->getFormHtml($rec);
         $tpl->replace($formTpl, 'FORM');
         
         $activeTab = Mode::get('activeTab');
-        $arr = array('taskList'     => array('placeholder' => 'TASK_LIST', 'fnc' => 'getTaskListTable'),
-                     'taskProgress' => array('placeholder' => 'TASK_PROGRESS', 'fnc' => 'getProgressTable'),
-                     'taskSingle'   => array('placeholder' => 'TASK_SINGLE', 'fnc' => 'getTaskHtml'),
-                     'taskJob'      => array('placeholder' => 'TASK_JOB', 'fnc' => 'getJobHtml'),
-                     'taskSupport'  => array('placeholder' => 'SUPPORT', 'fnc' => 'getSupportHtml'));
+        $arr = array('taskList'     => array('placeholder' => 'TASK_LIST', 'fnc' => 'getTaskListTable', 'id' => 'task-list'),
+                     'taskProgress' => array('placeholder' => 'TASK_PROGRESS', 'fnc' => 'getProgressTable', 'id' => 'tab-progress'),
+                     'taskSingle'   => array('placeholder' => 'TASK_SINGLE', 'fnc' => 'getTaskHtml', 'id' => 'tab-single-task'),
+                     'taskJob'      => array('placeholder' => 'TASK_JOB', 'fnc' => 'getJobHtml', 'id' => 'tab-job'),
+                     'taskSupport'  => array('placeholder' => 'SUPPORT', 'fnc' => 'getSupportHtml', 'id' => 'tab-support'));
         
         expect($aciveTabData = $arr[$activeTab]);
         $tableTpl = $this->{$aciveTabData['fnc']}($rec);
@@ -254,6 +258,8 @@ class planning_Points extends core_Manager
         $tpl->push('planning/tpl/terminal/jquery.numpad.css', 'CSS');
         $tpl->push('planning/tpl/terminal/scripts.js', 'JS');
         $tpl->push('planning/tpl/terminal/jquery.numpad.js', 'JS');
+        
+        jquery_Jquery::run($tpl, "setCookie('terminalTab', '{$aciveTabData['id']}');");
         jquery_Jquery::run($tpl, 'planningActions();');
         jquery_Jquery::run($tpl, 'prepareKeyboard();');
         jquery_Jquery::runAfterAjax($tpl, 'prepareKeyboard');

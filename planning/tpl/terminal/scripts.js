@@ -107,6 +107,10 @@ function render_prepareKeyboard()
 	}, 500);
 }
 
+
+/**
+ * Подготовка на клавиатурата
+ */
 function prepareKeyboard()
 {
 	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
@@ -116,6 +120,7 @@ function prepareKeyboard()
 		target: $('.weightField')
 	});
 }
+
 
 /**
  * Създава бисквитка
