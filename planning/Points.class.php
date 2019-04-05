@@ -59,6 +59,15 @@ class planning_Points extends core_Manager
     
     
     /**
+     * Информация за табовете
+     */
+    const TAB_DATA = array('taskList'     => array('placeholder' => 'TASK_LIST', 'fnc' => 'getTaskListTable', 'tab-id' => 'task-list', 'id' => 'task-list-content'),
+                           'taskProgress' => array('placeholder' => 'TASK_PROGRESS', 'fnc' => 'getProgressTable', 'tab-id' => 'tab-progress', 'id' => 'task-progress-content'),
+                           'taskSingle'   => array('placeholder' => 'TASK_SINGLE', 'fnc' => 'getTaskHtml', 'tab-id' => 'tab-single-task', 'id' => 'task-single-content'),
+                           'taskJob'      => array('placeholder' => 'TASK_JOB', 'fnc' => 'getJobHtml', 'tab-id' => 'tab-job', 'id' => 'task-job-content'),
+                           'taskSupport'  => array('placeholder' => 'SUPPORT', 'fnc' => 'getSupportHtml', 'tab-id' => 'tab-support', 'id' => 'task-support-content'));
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -232,21 +241,11 @@ class planning_Points extends core_Manager
         
         Mode::setPermanent('activeTab', $this->getActiveTab($rec));
         
-        if(haveRole('debug')){
-            core_Statuses::newStatus("TAB " . Mode::get('activeTab'));
-        }
-        
         $formTpl = $this->getFormHtml($rec);
         $tpl->replace($formTpl, 'FORM');
         
         $activeTab = Mode::get('activeTab');
-        $arr = array('taskList'     => array('placeholder' => 'TASK_LIST', 'fnc' => 'getTaskListTable', 'id' => 'task-list'),
-                     'taskProgress' => array('placeholder' => 'TASK_PROGRESS', 'fnc' => 'getProgressTable', 'id' => 'tab-progress'),
-                     'taskSingle'   => array('placeholder' => 'TASK_SINGLE', 'fnc' => 'getTaskHtml', 'id' => 'tab-single-task'),
-                     'taskJob'      => array('placeholder' => 'TASK_JOB', 'fnc' => 'getJobHtml', 'id' => 'tab-job'),
-                     'taskSupport'  => array('placeholder' => 'SUPPORT', 'fnc' => 'getSupportHtml', 'id' => 'tab-support'));
-        
-        expect($aciveTabData = $arr[$activeTab]);
+        expect($aciveTabData = self::TAB_DATA[$activeTab]);
         $tableTpl = $this->{$aciveTabData['fnc']}($rec);
         $tpl->replace($tableTpl, $aciveTabData['placeholder']);
         
@@ -259,7 +258,7 @@ class planning_Points extends core_Manager
         $tpl->push('planning/tpl/terminal/scripts.js', 'JS');
         $tpl->push('planning/tpl/terminal/jquery.numpad.js', 'JS');
         
-        jquery_Jquery::run($tpl, "setCookie('terminalTab', '{$aciveTabData['id']}');");
+        jquery_Jquery::run($tpl, "setCookie('terminalTab', '{$aciveTabData['tab-id']}');");
         jquery_Jquery::run($tpl, 'planningActions();');
         jquery_Jquery::run($tpl, 'prepareKeyboard();');
         jquery_Jquery::runAfterAjax($tpl, 'prepareKeyboard');
@@ -600,6 +599,8 @@ class planning_Points extends core_Manager
         $currentTaskId = Mode::get("currentTaskId{$rec->id}");
         $Details = cls::get('planning_ProductionTaskDetails');
         
+        Mode::push('terminalProgressForm', $currentTaskId);
+        
         // Подготовка на формата
         $form = $Details->getForm();
         $form->setField('serial', 'placeholder=№,class=w100 serialField');
@@ -674,6 +675,7 @@ class planning_Points extends core_Manager
         }
         
         $tpl = $form->renderHtml();
+        Mode::pop('terminalProgressForm');
         
         return $tpl;
     }
@@ -719,15 +721,9 @@ class planning_Points extends core_Manager
     {   
         $rec = $this->fetchRec($rec);
         $objectArr = array();
-        $arr = array('taskList'     => array('id' => 'task-list-content', 'fnc' => 'getTaskListTable', 'tab-id' => 'task-list'), 
-            'taskProgress' => array('id' => 'task-progress-content', 'fnc' => 'getProgressTable', 'tab-id' => 'tab-progress'), 
-            'taskSingle'   => array('id' => 'task-single-content', 'fnc' => 'getTaskHtml', 'tab-id' => 'tab-single-task'), 
-            'taskJob'      => array('id' => 'task-job-content', 'fnc' => 'getJobHtml', 'tab-id' => 'tab-job'),
-            'taskSupport'  => array('id' => 'task-support-content', 'fnc' => 'getSupportHtml', 'tab-id' => 'tab-support'));
         
-        foreach ($arr as $tabName => $tabArr){
+        foreach (self::TAB_DATA as $tabName => $tabArr){
             $contentHtml = ($tabName == $name) ? $this->{$tabArr['fnc']}($rec)->getContent() : ' ';
-            
             $resObj = new stdClass();
             $resObj->func = 'html';
             $resObj->arg = array('id' => $tabArr['id'], 'html' => $contentHtml, 'replace' => true);
@@ -736,7 +732,7 @@ class planning_Points extends core_Manager
         
         $resObj = new stdClass();
         $resObj->func = 'activateTab';
-        $resObj->arg = array('tabId' => $arr[$name]['tab-id']);
+        $resObj->arg = array('tabId' => self::TAB_DATA[$name]['tab-id']);
         $objectArr[] = $resObj;
         
         // Реплейсване на текущата дата
