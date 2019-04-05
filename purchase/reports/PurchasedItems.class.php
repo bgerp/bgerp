@@ -50,7 +50,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'from,to,compare,group,dealers,contragent,crmGroup,articleType,seeDelta';
+    protected $changeableFields =  'from,duration,compare,compareStart,seeCrmGroup,seeGroup,group,dealers,contragent,crmGroup,articleType,orderBy,grouping,updateDays,updateTime';
     
     
     /**

@@ -260,6 +260,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         } else {
             $form->setField('weight', 'input=none');
         }
+        
+        if(Mode::is('terminalProgressForm')){
+            $form->layout = $form->renderLayout();
+            jquery_Jquery::run($form->layout, 'prepareKeyboard();');
+        }
     }
     
     

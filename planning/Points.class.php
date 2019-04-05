@@ -55,8 +55,17 @@ class planning_Points extends core_Manager
     /**
      * На колко време автоматично да се рефрешва страницата
      */
-    const AUTO_REFRESH_TIME = 300000;
+    const AUTO_REFRESH_TIME = 30000;
     
+    
+    /**
+     * Информация за табовете
+     */
+    const TAB_DATA = array('taskList'     => array('placeholder' => 'TASK_LIST', 'fnc' => 'getTaskListTable', 'tab-id' => 'task-list', 'id' => 'task-list-content'),
+                           'taskProgress' => array('placeholder' => 'TASK_PROGRESS', 'fnc' => 'getProgressTable', 'tab-id' => 'tab-progress', 'id' => 'task-progress-content'),
+                           'taskSingle'   => array('placeholder' => 'TASK_SINGLE', 'fnc' => 'getTaskHtml', 'tab-id' => 'tab-single-task', 'id' => 'task-single-content'),
+                           'taskJob'      => array('placeholder' => 'TASK_JOB', 'fnc' => 'getJobHtml', 'tab-id' => 'tab-job', 'id' => 'task-job-content'),
+                           'taskSupport'  => array('placeholder' => 'SUPPORT', 'fnc' => 'getSupportHtml', 'tab-id' => 'tab-support', 'id' => 'task-support-content'));
     
     /**
      * Описание на модела (таблицата)
@@ -207,29 +216,38 @@ class planning_Points extends core_Manager
             $tpl->replace(ht::createLink('', array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
         }
 
+        // Подготовка на урл-тата на табовете
+        $taskListUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskList'), 'local');
+        $taskProgressUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskProgress'), 'local');
+        $taskSingleUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskSingle'), 'local');
+        $taskJobUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskJob'), 'local');
+        $taskSupportUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskSupport'), 'local');
+        
+        $tpl->replace($taskListUrl, 'taskListUrl');
+        $tpl->replace($taskProgressUrl, 'taskProgressUrl');
+        $tpl->replace($taskSingleUrl, 'taskSingleUrl');
+        $tpl->replace($taskJobUrl, 'taskJobUrl');
+        $tpl->replace($taskSupportUrl, 'taskSupportUrl');
+        
         if(Mode::get("currentTaskId{$rec->id}")){
             $tableTpl = $this->getProgressTable($rec);
             $tpl->replace($tableTpl, 'TASK_PROGRESS');
-            
-            $taskTpl = $this->getTaskHtml($rec);
-            $tpl->replace($taskTpl, 'TASK_SINGLE');
-            
-            $jobTpl = $this->getJobHtml($rec);
-            $tpl->replace($jobTpl, 'TASK_JOB');
         } else {
             $tpl->replace('disabled', 'activeSingle');
             $tpl->replace('disabled', 'activeJob');
             $tpl->replace('disabled', 'activeTask');
+            $tpl->replace('active', 'activeAll');
         }
+        
+        Mode::setPermanent('activeTab', $this->getActiveTab($rec));
         
         $formTpl = $this->getFormHtml($rec);
         $tpl->replace($formTpl, 'FORM');
         
-        $tableTpl = $this->getTaskListTable($rec);
-        $tpl->replace($tableTpl, 'TASK_LIST');
-        
-        $formTpl = $this->getSupportHtml($rec);
-        $tpl->replace($formTpl, 'SUPPORT');
+        $activeTab = Mode::get('activeTab');
+        expect($aciveTabData = self::TAB_DATA[$activeTab]);
+        $tableTpl = $this->{$aciveTabData['fnc']}($rec);
+        $tpl->replace($tableTpl, $aciveTabData['placeholder']);
         
         jquery_Jquery::enable($tpl);
 
@@ -239,6 +257,8 @@ class planning_Points extends core_Manager
         $tpl->push('planning/tpl/terminal/jquery.numpad.css', 'CSS');
         $tpl->push('planning/tpl/terminal/scripts.js', 'JS');
         $tpl->push('planning/tpl/terminal/jquery.numpad.js', 'JS');
+        
+        jquery_Jquery::run($tpl, "setCookie('terminalTab', '{$aciveTabData['tab-id']}');");
         jquery_Jquery::run($tpl, 'planningActions();');
         jquery_Jquery::run($tpl, 'prepareKeyboard();');
         jquery_Jquery::runAfterAjax($tpl, 'prepareKeyboard');
@@ -246,6 +266,53 @@ class planning_Points extends core_Manager
         core_Ajax::subscribe($tpl, $refreshUrlLocal, 'refreshPlanningTerminal', self::AUTO_REFRESH_TIME);
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Кой е активния таб
+     * 
+     * @param stdClass $rec
+     * @return string
+     */
+    private function getActiveTab($rec)
+    {
+        if($activeTab = Mode::get('activeTab')){
+            
+            return $activeTab;
+        }
+        
+        $activeTab = (Mode::get('activeTab')) ? Mode::get('activeTab') : (Mode::get("currentTaskId{$rec->id}") ? 'taskProgress' : 'taskList');
+       
+        return $activeTab;
+    }
+    
+    
+    /**
+     * Рендиране на таб
+     */
+    function act_renderTab()
+    {
+        // Кой е таба
+        peripheral_Terminal::setSessionPrefix();
+        expect($id = Request::get('tId', 'int'));
+        expect($name = Request::get('name', 'varchar'));
+        expect($rec = self::fetch($id));
+        Mode::setPermanent('activeTab', $name);
+        
+        if(!$this->haveRightFor('terminal') || !$this->haveRightFor('terminal', $rec)){
+            $url = $this->getRedirectUrlAfterProblemIsFound($rec);
+            
+            return new Redirect($url);
+        }
+        
+        if (Request::get('ajax_mode')) {
+            $res = $this->getSuccessfullResponce($rec, $name);
+            return $res;
+        }
+        
+        // Ако не сме в Ajax режим пренасочваме към терминала
+        redirect(array($this, 'terminal', 'tId' => $rec->id));
     }
     
     
@@ -286,7 +353,9 @@ class planning_Points extends core_Manager
             return new Redirect($url);
         }
         
-        return $this->getSuccessfullResponce($rec, false, false);
+        $activeTab = $this->getActiveTab($rec);
+        
+        return $this->getSuccessfullResponce($rec, $activeTab, false);
     }
     
     
@@ -303,7 +372,9 @@ class planning_Points extends core_Manager
         
         // Полетата на формата
         $form = cls::get('core_Form');
+        
         $form->formAttr['submitFormOnRefresh'] = true;
+        $form->formAttr['id'] = 'supportForm';
         $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name)', 'class=w100,caption=Оборудване,silent,removeAndRefreshForm=assetFolderId,mandatory');
         $form->FLD('assetFolderId', 'int', 'input=hidden');
         $form->FLD('tId', 'int', 'input=hidden,silent');
@@ -414,7 +485,7 @@ class planning_Points extends core_Manager
         $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
         $taskId = Mode::get("currentTaskId{$rec->id}");
         
-        // Всички аквитни операции, в избрания център отговарящи на избраното оборудване ако има
+        // Всички активни операции, в избрания център отговарящи на избраното оборудване ако има
         $Tasks = cls::get('planning_Tasks');
         $data = (object)array('action' => 'list', 'query' => $Tasks->getQuery(), 'listClass' => 'planning-task-table');
         $data->query->where("#folderId = {$folderId} AND #state != 'rejected' AND #state != 'closed' AND #state != 'stopped' AND #state != 'draft'");
@@ -491,7 +562,6 @@ class planning_Points extends core_Manager
             $data->masterMvc = clone cls::get('planning_Tasks');
             $data->masterId = $taskId;
             $data->masterData = (object)array('rec' => planning_Tasks::fetch($taskId));
-            
             $Details->listItemsPerPage = false;
             $Details->prepareDetail_($data);
             unset($data->listFields['productId']);
@@ -528,6 +598,8 @@ class planning_Points extends core_Manager
         // Коя е текущата задача, ако има
         $currentTaskId = Mode::get("currentTaskId{$rec->id}");
         $Details = cls::get('planning_ProductionTaskDetails');
+        
+        Mode::push('terminalProgressForm', $currentTaskId);
         
         // Подготовка на формата
         $form = $Details->getForm();
@@ -603,6 +675,7 @@ class planning_Points extends core_Manager
         }
         
         $tpl = $form->renderHtml();
+        Mode::pop('terminalProgressForm');
         
         return $tpl;
     }
@@ -621,7 +694,6 @@ class planning_Points extends core_Manager
         
         if($action == 'selecttask'){
             $res = $mvc->getRequiredRoles('terminal', $rec, $userId);
-            
             if(isset($rec)){
                 if(empty($rec->taskId)){
                     $res = 'no_one';
@@ -645,71 +717,41 @@ class planning_Points extends core_Manager
      * @param boolean $autoSelectProgress
      * @return array
      */
-    private function getSuccessfullResponce($rec, $replaceForm = true, $autoSelectProgress = false)
-    {
+    private function getSuccessfullResponce($rec, $name, $replaceForm = true)
+    {   
         $rec = $this->fetchRec($rec);
         $objectArr = array();
         
-        // Реплейсване на таба с прогреса
-        $progressHtml = $this->getProgressTable($rec)->getContent();
+        foreach (self::TAB_DATA as $tabName => $tabArr){
+            $contentHtml = ($tabName == $name) ? $this->{$tabArr['fnc']}($rec)->getContent() : ' ';
+            $resObj = new stdClass();
+            $resObj->func = 'html';
+            $resObj->arg = array('id' => $tabArr['id'], 'html' => $contentHtml, 'replace' => true);
+            $objectArr[] = $resObj;
+        }
+        
         $resObj = new stdClass();
-        $resObj->func = 'html';
-        $resObj->arg = array('id' => 'task-progress-content', 'html' => $progressHtml, 'replace' => true);
+        $resObj->func = 'activateTab';
+        $resObj->arg = array('tabId' => self::TAB_DATA[$name]['tab-id']);
         $objectArr[] = $resObj;
         
-        // Реплейсване на списъка с операциите
-        $tableHtml = $this->getTaskListTable($rec)->getContent();
-        $resObj1 = new stdClass();
-        $resObj1->func = 'html';
-        $resObj1->arg = array('id' => 'task-list-content', 'html' => $tableHtml, 'replace' => true);
-        $objectArr[] = $resObj1;
-        
         // Реплейсване на текущата дата
-        $resObj2 = new stdClass();
-        $resObj2->func = 'html';
-        $resObj2->arg = array('id' => 'dateHolder', 'html' => dt::mysql2verbal(dt::now(), 'd.m.Y H:i'), 'replace' => true);
-        $objectArr[] = $resObj2;
-        
-        $jobHtml = $this->getJobHtml($rec)->getContent();
-        $resObj3 = new stdClass();
-        $resObj3->func = 'html';
-        $resObj3->arg = array('id' => 'task-job-content', 'html' => $jobHtml, 'replace' => true);
-        $objectArr[] = $resObj3;
+        $resObj = new stdClass();
+        $resObj->func = 'html';
+        $resObj->arg = array('id' => 'dateHolder', 'html' => dt::mysql2verbal(dt::now(), 'd.m.Y H:i'), 'replace' => true);
+        $objectArr[] = $resObj;
 
-        // Активиране на таба за прогрес
-        if($autoSelectProgress === true){
-            $resObj4 = new stdClass();
-            $resObj4->func = 'activateTab';
-            $resObj4->arg = array('selectedTask' => Mode::get("currentTaskId{$rec->id}"));
-            $objectArr[] = $resObj4;
-        }
+        $resObj = new stdClass();
+        $resObj->func = 'prepareKeyboard';
+        $objectArr[] = $resObj;
         
-        // При нужда реплейсване и на формата за прогрес
         if($replaceForm === true){
             $formHtml = $this->getFormHtml($rec)->getContent();
-            
-            // Ще реплесйнем и таба за плащанията
-            $resObj5 = new stdClass();
-            $resObj5->func = 'html';
-            $resObj5->arg = array('id' => 'planning-terminal-form', 'html' => $formHtml, 'replace' => true);
-            $objectArr[] = $resObj5;
+            $resObj = new stdClass();
+            $resObj->func = 'html';
+            $resObj->arg = array('id' => 'planning-terminal-form', 'html' => $formHtml, 'replace' => true);
+            $objectArr[] = $resObj;
         }
-        
-        $jobHtml = $this->getTaskHtml($rec)->getContent();
-        $resObj6 = new stdClass();
-        $resObj6->func = 'html';
-        $resObj6->arg = array('id' => 'task-single-content', 'html' => $jobHtml, 'replace' => true);
-        $objectArr[] = $resObj6;
-
-        $resObj7 = new stdClass();
-        $resObj7->func = 'prepareKeyboard';
-        $objectArr[] = $resObj7;
-
-        $supportHtml = $this->getSupportHtml($rec)->getContent();
-        $resObj7 = new stdClass();
-        $resObj7->func = 'html';
-        $resObj7->arg = array('id' => 'task-support-content', 'html' => $supportHtml, 'replace' => true);
-        $objectArr[] = $resObj7;
         
         // Показване на чакащите статуси
         $hitTime = Request::get('hitTime', 'int');
@@ -780,7 +822,8 @@ class planning_Points extends core_Manager
             planning_ProductionTaskDetails::add($params['taskId'], $params);
             
             if (Request::get('ajax_mode')) {
-                $res = $this->getSuccessfullResponce($rec, true, true);
+                Mode::setPermanent('activeTab', 'taskProgress');
+                $res = $this->getSuccessfullResponce($rec, 'taskProgress');
                
                 return $res;
             }
@@ -821,9 +864,10 @@ class planning_Points extends core_Manager
         expect($rec->taskId = Request::get('taskId', 'int'));
         $this->requireRightFor('selecttask', $rec);
         Mode::setPermanent("currentTaskId{$rec->id}", $rec->taskId);
+        Mode::setPermanent('activeTab', 'taskProgress');
         
         if (Request::get('ajax_mode')) {
-            $res = $this->getSuccessfullResponce($rec, true, true);
+            $res = $this->getSuccessfullResponce($rec, 'taskProgress', true);
             
             return $res;
         }

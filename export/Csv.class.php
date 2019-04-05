@@ -151,16 +151,15 @@ class export_Csv extends core_Mvc
         $clsInst = cls::get($clsId);
         $cRec = $clsInst->fetchRec($objId);
         
-        $mid = doclog_Documents::saveAction(
-                        array(
-                            'action' => doclog_Documents::ACTION_EXPORT,
-                            'containerId' => $cRec->containerId,
-                            'threadId' => $cRec->threadId,
-                        )
-                );
+        $action = array(
+                'action' => doclog_Documents::ACTION_EXPORT,
+                'containerId' => $cRec->containerId,
+                'threadId' => $cRec->threadId,
+        );
         
-        // Флъшваме екшъна за да се запише в модела
-        doclog_Documents::flushActions();
+        doclog_Documents::pushAction($action);
+        $mid = doclog_Documents::saveAction($action);
+        doclog_Documents::popAction($action);
         
         $lg = '';
         $isPushed = false;
