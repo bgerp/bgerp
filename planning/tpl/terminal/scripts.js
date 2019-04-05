@@ -1,7 +1,34 @@
 function planningActions() {
 	$("input[name=serial]").focus();
 
-
+	// Използване на числата за въвеждане на суми за плащания
+	$(document.body).on('click', ".tab-link", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		// хак да не се събмитва формата
+		if($(this).parent().attr("id") != 'tab-support'){
+			$("#supportForm").remove();
+		}
+		
+		if($(this).parent().hasClass( "disabled" )){
+			return;
+		}
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		console.log(url);
+		getEfae().process(resObj);
+		
+		$("input[name=serial]").val("");
+		$("input[name=serial]").focus("");
+		if($('.select2').length){
+			$('select').trigger("change");
+		}
+	});
+	
+	
 	// Използване на числата за въвеждане на суми за плащания
 	$(document.body).on('click', "#sendBtn", function(e){
 		var url = $(this).attr("data-url");
@@ -9,6 +36,8 @@ function planningActions() {
 		
 		resObj = new Object();
 		resObj['url'] = url;
+		
+		$("#supportForm").remove();
 		
 		var serial = $("input[name=serial]").val();
 		var type = $("#typeSelect").is('[readonly]') ?  $("input[name=type]").val() : $("#typeSelect").val();
@@ -20,13 +49,14 @@ function planningActions() {
 		var taskId = $("input[name=taskId]").val();
 
 		var data = {serial:serial,taskId:taskId,productId:productId,quantity:quantity,employees:employees,fixedAsset:fixedAsset,weight:weight,type:type};
-		console.log(data);
+		
 		getEfae().process(resObj, data);
 		$("input[name=serial]").val("");
 		$("input[name=serial]").focus("");
 		if($('.select2').length){
 			$('select').trigger("change");
 		}
+		
 		
 	});
 
@@ -42,6 +72,7 @@ function planningActions() {
 	$(document.body).on('click', ".tabs-holder li:not('.disabled') a ", function(e){
 		var currentAttrValue= $(this).attr('href');
 		var currentId = $(this).parent().attr('id');
+		
 		$('.tabContent' + currentAttrValue).show().siblings().hide();
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
 		if($('.serialField').length) $('.serialField').focus();
@@ -54,11 +85,16 @@ function planningActions() {
 // Кой таб да е активен
 function render_activateTab(data)
 {
-	if(data.selectedTask){
-		$('#tab-progress').removeClass('disabled');
-		$('#tab-job').removeClass('disabled');
-		$('#task-list').removeClass('disabled');
-		$('#tab-progress a').click();
+	if(data.tabId){
+		$("#" + data.tabId).removeClass('disabled');
+		$("#" + data.tabId).addClass('active')
+		$("#" + data.tabId).siblings().removeClass('active');
+		
+		var currentAttrValue= $("#" + data.tabId + " a").attr('href');
+		$('.tabContent' + currentAttrValue).show().siblings().hide();
+		
+		setCookie('terminalTab',  data.tabId);
+		return;
 	}
 }
 
@@ -74,11 +110,12 @@ function render_prepareKeyboard()
 			target: $('.weightField')
 		});
 	}, 500);
-
-
-
 }
 
+
+/**
+ * Подготовка на клавиатурата
+ */
 function prepareKeyboard()
 {
 	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
@@ -88,6 +125,7 @@ function prepareKeyboard()
 		target: $('.weightField')
 	});
 }
+
 
 /**
  * Създава бисквитка
