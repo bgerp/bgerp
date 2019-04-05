@@ -6,8 +6,13 @@ function planningActions() {
 		var url = $(this).attr("data-url");
 		if(!url) return;
 		
+		// хак да не се събмитва формата
 		if($(this).parent().attr("id") != 'tab-support'){
 			$("#supportForm").remove();
+		}
+		
+		if($(this).parent().hasClass( "disabled" )){
+			return;
 		}
 		
 		resObj = new Object();
