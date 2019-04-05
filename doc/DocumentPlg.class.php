@@ -3335,18 +3335,26 @@ class doc_DocumentPlg extends core_Plugin
      * 
      * @param integer $cId
      * @param string $type
+     * @param null|integer $userId
      * 
      * @return NULL|array
      */
-    private static function getLinkedObj($cId, $type = 'files')
+    private static function getLinkedObj($cId, $type = 'files', $userId = null)
     {
         $oCid = Mode::get('saveObjectsToCid');
         
         $objArr = null;
         
+        $pushUser = false;
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        } else {
+            $pushUser = true;
+        }
+        
         // Ако сме пушнали, но няма запис за таблицата
         if ($oCid) {
-            $objArr = doc_UsedInDocs::getObjectVals($cId, core_Users::getCurrent(), $type);
+            $objArr = doc_UsedInDocs::getObjectVals($oCid, $userId, $type);
             if (!isset($objArr)) {
                 $oCid = null;
             }
@@ -3372,7 +3380,13 @@ class doc_DocumentPlg extends core_Plugin
                     
                     Mode::push('getLinkedObj', true);
                     $pushed = true;
+                    if ($pushUser) {
+                        core_Users::sudo($userId);
+                    }
                     $docMvc->prepareDocument($cRec->docId);
+                    if ($pushUser) {
+                        core_Users::exitSudo();
+                    }
                 }
             } catch (Exception $e) {
                 reportException($e);
@@ -3389,8 +3403,8 @@ class doc_DocumentPlg extends core_Plugin
         
         doc_UsedInDocs::flushArr();
         
-        if (!isset($objArr)) {
-            $objArr = doc_UsedInDocs::getObjectVals($cId, core_Users::getCurrent(), $type);
+        if (!isset($objArr) || $pushed) {
+            $objArr = doc_UsedInDocs::getObjectVals($cId, $userId, $type);
         }
         
         return $objArr;
@@ -3498,7 +3512,7 @@ class doc_DocumentPlg extends core_Plugin
             return ;
         }
         
-        $docsArr = self::getLinkedObj($rec->containerId, 'docs');
+        $docsArr = self::getLinkedObj($rec->containerId, 'docs', $userId);
         
         if (is_array($docsArr)) {
             foreach ($docsArr as $docArr) {
