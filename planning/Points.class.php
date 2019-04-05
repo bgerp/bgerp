@@ -235,9 +235,6 @@ class planning_Points extends core_Manager
         $formTpl = $this->getFormHtml($rec);
         $tpl->replace($formTpl, 'FORM');
         
-        $tableTpl = $this->getTaskListTable($rec);
-        $tpl->replace($tableTpl, 'TASK_LIST');
-        
         $activeTab = Mode::get('activeTab');
         $arr = array('taskList'     => array('placeholder' => 'TASK_LIST', 'fnc' => 'getTaskListTable'),
                      'taskProgress' => array('placeholder' => 'TASK_PROGRESS', 'fnc' => 'getProgressTable'),
