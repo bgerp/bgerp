@@ -133,6 +133,11 @@ class vislog_History extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input($data->listFilter->showFields, 'silent');
         
+        // Ако е ясен домейна, махаме колонката
+        if($data->listFilter->rec->domainId || cms_Domains::count() == 1) {
+            unset($data->listFields['domainId']);
+        }
+        
         if ($ip = $data->listFilter->rec->ip) {
             $ip = str_replace('*', '%', $ip);
             $data->query->where(array("#ip LIKE '[#1#]'", $ip));
