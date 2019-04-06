@@ -133,9 +133,15 @@ class vislog_History extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input($data->listFilter->showFields, 'silent');
         
+        $domainsCnt = cms_Domains::count();
+
         // Ако е ясен домейна, махаме колонката
-        if($data->listFilter->rec->domainId || cms_Domains::count() == 1) {
+        if($data->listFilter->rec->domainId || $domainsCnt == 1) {
             unset($data->listFields['domainId']);
+        }
+
+        if($domainsCnt == 1) {
+            $data->listFilter->showFields = 'ip, brid';  //, HistoryResourceId';
         }
         
         if ($ip = $data->listFilter->rec->ip) {
