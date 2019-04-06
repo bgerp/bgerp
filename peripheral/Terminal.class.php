@@ -18,7 +18,7 @@ class peripheral_Terminal extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    public $title = 'Терминал';
+    public $title = 'Терминали';
     
     
     /**
