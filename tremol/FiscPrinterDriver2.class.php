@@ -17,7 +17,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
 {
     public $interfaces = 'peripheral_DeviceIntf, peripheral_FiscPrinter';
     
-    public $title = 'Принтер на тремол';
+    public $title = 'FP Tremol';
     
     protected $canCashReceived = 'admin, peripheral';
     
