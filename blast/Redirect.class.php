@@ -79,7 +79,7 @@ class blast_Redirect extends core_Manager
         $this->FLD('url', 'url', 'caption=URL, mandatory');
         $this->FLD('rCnt', 'int', 'caption=Брой, input=none');
         
-        $this->setDbUnique('vid, domainId');
+        $this->setDbUnique('vid');
     }
     
     
@@ -91,7 +91,7 @@ class blast_Redirect extends core_Manager
      */
     public static function doRedirect($vid, $domainId)
     {
-        $rec = self::fetch(array("#vid = '[#1#]' AND #domainId = '[#2#]'", $vid, $domainId));
+        $rec = self::fetch(array("#vid = '[#1#]'", $vid, $domainId));
         
         $vRec = vislog_History::add("Редирект: {$vid}");
         
@@ -126,7 +126,7 @@ class blast_Redirect extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($rec->vid) {
-            $row->vid = cms_Domains::getAbsoluteUrl($rec->domainId, $domainName) . '/B/R/' . $row->vid;
+            $row->vid = cms_Domains::getAbsoluteUrl($rec->domainId) . '/B/R/' . $row->vid;
             $row->vid = "<span onmouseUp='selectInnerText(this);'>{$row->vid}</span>";
         }
     }
