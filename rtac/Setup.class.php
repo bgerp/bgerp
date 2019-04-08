@@ -60,7 +60,7 @@ class rtac_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Споделяне чрез тагване на @потребител в ричтекст';
+    public $info = 'Споделяне чрез тагване на @nick в текст на документ';
     
     
     /**

@@ -34,7 +34,7 @@ class colab_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Пакет за работа с партньори';
+    public $info = 'Достъп до системата на партньори';
     
     
     // Инсталиране на мениджърите
