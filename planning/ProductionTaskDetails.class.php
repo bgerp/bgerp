@@ -48,12 +48,6 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     
     /**
-     * По кое поле да се направи групиране
-     */
-    public $groupByField = 'taskId';
-    
-    
-    /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
     public $lastUsedKeys = 'fixedAsset';
@@ -98,7 +92,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,modified=Модифициране,info=@,notes';
+    public $listFields = 'taskId,type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,created=Създаване,info=@,notes,_createdDate';
     
     
     /**
@@ -145,8 +139,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('serialType', 'enum(existing=Съществуващ,generated=Генериран,printed=Отпечатан,unknown=Непознат)', 'caption=Тип на серийния номер,input=none');
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество');
         $this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
-        $this->FLD('weight', 'double(Min=0)', 'caption=Тегло,smartCenter,unit=кг');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,tdClass=nowrap');
+        $this->FLD('weight', 'double(Min=0)', 'caption=Тегло,unit=кг');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Оператори,tdClass=nowrap');
         $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Оборудване,input=none,tdClass=nowrap');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Забележки,autohide');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
@@ -242,7 +236,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
         }
         
-        // Връща избрани служители от операцията, или ако няма всички от центъра
+        // Връща избрани оператори от операцията, или ако няма всички от центъра
         $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
         if (count($employees)) {
             $form->setSuggestions('employees', $employees);
@@ -421,8 +415,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         $taskRec = planning_Tasks::fetch($rec->taskId);
         $row->taskId = planning_Tasks::getLink($rec->taskId, 0);
-        $row->modified = "<div class='nowrap'>" . $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
-        $row->modified .= ' ' . tr('от||by') . ' ' . crm_Profiles::createLink($rec->modifiedBy) . '</div>';
+        $row->created = "<div class='nowrap'>" . $mvc->getFieldType('createdOn')->toVerbal($rec->createdOn);
+        $row->created .= ' ' . tr('от||by') . ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
         
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : 'row-removed'));
         if ($rec->state == 'rejected') {
@@ -463,10 +457,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->employees = self::getVerbalEmployees($rec->employees);
         }
         
-        if(Mode::is('taskProgressInTerminal')){
-            $rec->_createdDate = dt::verbal2mysql($rec->createdOn, false);
-            $row->_createdDate = dt::mysql2verbal($rec->_createdDate, 'd/m/Y l');
-        }
+        $rec->_createdDate = dt::verbal2mysql($rec->createdOn, false);
+        $row->_createdDate = dt::mysql2verbal($rec->_createdDate, 'd/m/Y l');
     }
     
     
@@ -504,9 +496,13 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (isset($data->masterMvc)) {
             $data->listTableMvc->FNC('shortUoM', 'varchar', 'tdClass=nowrap');
             $data->listTableMvc->setField('productId', 'tdClass=nowrap');
-            $data->listTableMvc->FNC('modified', 'varchar', 'smartCenter');
             $data->listTableMvc->FNC('info', 'varchar', 'tdClass=task-row-info');
             unset($data->listFields['productId']);
+            
+            if(!Mode::is('taskProgressInTerminal')){
+                $data->listTableMvc->FNC('created', 'varchar', 'smartCenter');
+                $data->listTableMvc->setField('weight', 'smartCenter');
+            }
         }
         
         $rows = &$data->rows;
@@ -557,9 +553,9 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     
     /**
-     * Показва вербалното име на служителите
+     * Показва вербалното име на операторите
      *
-     * @param string $employees - кейлист от служители
+     * @param string $employees - кейлист от оператори
      *
      * @return string $verbalEmployees
      */
@@ -659,22 +655,26 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->listFilter->FLD('threadId', 'int', 'silent,input=hidden');
             $data->listFilter->view = 'horizontal';
             $data->listFilter->input(null, 'silent');
-            
             unset($data->listFields['taskId']);
-            unset($data->listFields['modifiedOn']);
-            unset($data->listFields['modifiedBy']);
+            unset($data->listFields['createdOn']);
+            unset($data->listFields['createdBy']);
             unset($data->listFields['productId']);
+            unset($data->listFields['taskId']);
+            $data->groupByField = '_createdDate';
+        } else {
+            unset($data->listFields['_createdDate']);
         }
+        
         $data->listFilter->showFields = 'serial';
         
-        // Ако има използвани служители, добавят се за филтриране
+        // Ако има използвани оператори, добавят се за филтриране
         $usedFixedAssets = self::getResourcesInDetails($data->masterId, 'fixedAsset');
         if(count($usedFixedAssets)){
             $data->listFilter->setOptions('fixedAsset', array('' => '') + $usedFixedAssets);
             $data->listFilter->showFields .= ",fixedAsset";
         }
         
-        // Ако има използвани служители, добавят се за филтриране
+        // Ако има използвани оператори, добавят се за филтриране
         $usedEmployeeIds = self::getResourcesInDetails($data->masterId, 'employees');
         if(count($usedEmployeeIds)){
             $data->listFilter->setOptions('employees', array('' => '') + $usedEmployeeIds);
@@ -810,7 +810,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         while ($rec = $query->fetch()) {
             
-            // Ако няма служители, пропуска се
+            // Ако няма оператори, пропуска се
             $persons = keylist::toArray($rec->employees);
             if (!count($persons)) {
                 continue;

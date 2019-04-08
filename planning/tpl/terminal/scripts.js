@@ -29,7 +29,7 @@ function planningActions() {
 	});
 	
 	
-	// Използване на числата за въвеждане на суми за плащания
+	// Изпращане на формата за прогреса
 	$(document.body).on('click', "#sendBtn", function(e){
 		var url = $(this).attr("data-url");
 		if(!url) return;
@@ -79,6 +79,22 @@ function planningActions() {
 		setCookie('terminalTab', currentId);
 		
 		e.preventDefault();
+	});
+	
+	
+	// Търсене по баркод
+	$(document.body).on('click', "#searchBtn", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		var searchVal = $("input[name=searchBarcode]").val();
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		var data = {search:searchVal};
+		getEfae().process(resObj, data);
+		
+		console.log(url,searchVal);
 	});
 }
 

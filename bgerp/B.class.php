@@ -37,9 +37,7 @@ class bgerp_B extends core_Manager
     {
         $vid = Request::get('id');
         
-        $domainId = cms_Domains::getPublicDomain('id');
-        
-        return blast_Redirect::doRedirect($vid, $domainId);
+        return blast_Redirect::doRedirect($vid);
     }
     
     

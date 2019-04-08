@@ -53,12 +53,6 @@ class planning_Points extends core_Manager
     
     
     /**
-     * На колко време автоматично да се рефрешва страницата
-     */
-    const AUTO_REFRESH_TIME = 30000;
-    
-    
-    /**
      * Информация за табовете
      */
     const TAB_DATA = array('taskList'     => array('placeholder' => 'TASK_LIST', 'fnc' => 'getTaskListTable', 'tab-id' => 'task-list', 'id' => 'task-list-content'),
@@ -75,7 +69,7 @@ class planning_Points extends core_Manager
         $this->FLD('name', 'varchar(16)', 'caption=Наименование, mandatory');
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Център, mandatory,removeAndRefreshForm=fixedAssets|employees,silent');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks,allowEmpty)', 'caption=Оборудване, input=none');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,allowEmpty)', 'caption=Служители, input=none');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,allowEmpty)', 'caption=Оператори, input=none');
         $this->FLD('state', 'enum(active=Контиран,rejected=Оттеглен)', 'caption=Състояние,notNull,value=active,input=none');
         
         $this->setDbIndex('centerId');
@@ -95,7 +89,7 @@ class planning_Points extends core_Manager
         if(isset($form->rec->centerId)){
             $folderId = planning_Centers::fetchField($form->rec->centerId, 'folderId');
             
-            // Добавяне на избор само на достъпните служители/оборудване към ПО
+            // Добавяне на избор само на достъпните оператори/оборудване към ПО
             foreach (array('fixedAssets' => 'planning_AssetResources', 'employees' => 'planning_Hr') as $field => $Det) {
                 $arr = $Det::getByFolderId($folderId);
                 if (!empty($form->rec->{$field})) {
@@ -240,9 +234,7 @@ class planning_Points extends core_Manager
         }
         
         Mode::setPermanent('activeTab', $this->getActiveTab($rec));
-        
-        $formTpl = $this->getFormHtml($rec);
-        $tpl->replace($formTpl, 'FORM');
+        $tpl->replace($this->getSearchTpl($rec), "SEARCH_FORM");
         
         $activeTab = Mode::get('activeTab');
         expect($aciveTabData = self::TAB_DATA[$activeTab]);
@@ -262,8 +254,6 @@ class planning_Points extends core_Manager
         jquery_Jquery::run($tpl, 'planningActions();');
         jquery_Jquery::run($tpl, 'prepareKeyboard();');
         jquery_Jquery::runAfterAjax($tpl, 'prepareKeyboard');
-        $refreshUrlLocal = toUrl(array($this, 'updateTerminal', 'tId' => $rec->id), 'local');
-        core_Ajax::subscribe($tpl, $refreshUrlLocal, 'refreshPlanningTerminal', self::AUTO_REFRESH_TIME);
         
         return $tpl;
     }
@@ -334,28 +324,6 @@ class planning_Points extends core_Manager
         planning_Points::logDebug($object, $rec->id);
         
         return $url;
-    }
-    
-    
-    /**
-     * Екшън опресняващ терминала периодично
-     * @return Redirect|array
-     */
-    public function act_updateTerminal()
-    {
-        peripheral_Terminal::setSessionPrefix();
-        expect($id = Request::get('tId', 'int'));
-        expect($rec = self::fetch($id));
-        
-        if(!$this->haveRightFor('terminal') || !$this->haveRightFor('terminal', $rec)){
-            $url = $this->getRedirectUrlAfterProblemIsFound($rec);
-            
-            return new Redirect($url);
-        }
-        
-        $activeTab = $this->getActiveTab($rec);
-        
-        return $this->getSuccessfullResponce($rec, $activeTab, false);
     }
     
     
@@ -566,7 +534,6 @@ class planning_Points extends core_Manager
             $Details->prepareDetail_($data);
             unset($data->listFields['productId']);
             unset($data->listFields['taskId']);
-            unset($data->listFields['modified']);
             $data->listFields['serial'] = '№';
             $data->listFields['_createdDate'] = 'Създаване';
             $data->groupByField = '_createdDate';
@@ -580,6 +547,33 @@ class planning_Points extends core_Manager
         if(Mode::get('terminalId')) {
             Mode::pop('text');
         }
+        
+        $formTpl = $this->getFormHtml($rec);
+        $formTpl->prepend("<div class='formHolder'>");
+        $formTpl->append("</div> ");
+        $tpl->append($formTpl);
+        $tpl->append("<div class='clearfix21'></div>");
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Рендира шаблона за търсене
+     * 
+     * @param mixed $id
+     * @return core_ET $tpl
+     */
+    private function getSearchTpl($id)
+    {
+        $rec = $this->fetchRec($id);
+        $tpl = new core_ET("[#searchInput#][#searchBtn#]");
+        $searchInput = ht::createElement('input', array('name' => 'searchBarcode', 'title' => 'Търсене'));
+        $tpl->append($searchInput, 'searchInput');
+        
+        $searchUrl = toUrl(array($this, 'search', 'tId' => $rec->id), 'local');
+        $searchBtn = ht::createFnBtn('Изпращане', null, null, array('id' => 'searchBtn', 'data-url' => $searchUrl, 'title' => 'Търсене по баркод'));
+        $tpl->append($searchBtn, 'searchBtn');
         
         return $tpl;
     }
@@ -605,9 +599,9 @@ class planning_Points extends core_Manager
         $form = $Details->getForm();
         $form->setField('serial', 'placeholder=№,class=w100 serialField');
         $form->setField('productId', 'class=w100');
-        $form->setField('weight', 'class=w100 weightField');
-        $form->setField('quantity', 'class=w100 quantityField');
-        $form->setField('employees', 'placeholder=Служители,class=w100');
+        $form->setField('weight', 'class=w100 weightField,placeholder=Тегло|* (|кг|*)');
+        $form->setField('quantity', 'class=w100 quantityField,placeholder=К-во');
+        $form->setField('employees', 'placeholder=Оператори,class=w100');
         $form->setField('fixedAsset', 'placeholder=Оборудване,class=w100');
         $form->setDefault('type', 'production');
         $form->setField('type', 'input,removeAndRefreshForm=productId|weight|serial,caption=Действие,class=w100');
@@ -745,14 +739,6 @@ class planning_Points extends core_Manager
         $resObj->func = 'prepareKeyboard';
         $objectArr[] = $resObj;
         
-        if($replaceForm === true){
-            $formHtml = $this->getFormHtml($rec)->getContent();
-            $resObj = new stdClass();
-            $resObj->func = 'html';
-            $resObj->arg = array('id' => 'planning-terminal-form', 'html' => $formHtml, 'replace' => true);
-            $objectArr[] = $resObj;
-        }
-        
         // Показване на чакащите статуси
         $hitTime = Request::get('hitTime', 'int');
         $idleTime = Request::get('idleTime', 'int');
@@ -761,6 +747,59 @@ class planning_Points extends core_Manager
         $res = array_merge($objectArr, (array) $statusData);
         
         return $res;
+    }
+    
+    
+    /**
+     * Екшън извършващ посоченото действие
+     *
+     * @return Redirect|array
+     */
+    public function act_Search()
+    {
+        peripheral_Terminal::setSessionPrefix();
+        $id = Request::get('tId', 'int');
+        expect($rec = self::fetch($id), 'Неразпознат ресурс');
+        if(!$this->haveRightFor('terminal') || !$this->haveRightFor('terminal', $rec)){
+            $url = $this->getRedirectUrlAfterProblemIsFound($rec);
+            
+            return new Redirect($url);
+        }
+        
+        try {
+            expect($search = Request::get('search', 'varchar'), 'Не е избрано по какво да се търси');
+            
+            $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
+            $reference = null;
+            
+            // Ако има въведен сериен номер
+            if(!empty($search)){
+                
+                // ...и той е към сингъл на документ
+                if(core_Url::isUrlToSingle($search, $reference)){
+                    
+                    // ...и той сочи към производствена операция
+                    if($reference->isInstanceOf('planning_Tasks')){
+                        
+                        // ...тогава се избира операцията за текуща
+                        $taskRec = $reference->fetch('folderId,state');
+                        expect($taskRec->folderId == $folderId, 'Производствената операция е в|* ' . doc_Folders::getTitleById($taskRec->folderId));
+                        expect(!in_array($taskRec->state, array('closed', 'rejected', 'stopped')), 'Производствената операция не е активна');
+                        redirect(array($this, 'selectTask', $rec->id, 'taskId' => $reference->that));
+                    } else {
+                        expect(false, 'Не е разпозната операция');
+                    }
+                }
+                
+                expect(false, 'Не е разпозната операция');
+            }
+        } catch(core_exception_Expect $e){
+            
+            return $this->getErrorResponse($rec, $e);
+        }
+        
+        // Ако не сме в Ajax режим пренасочваме към терминала
+        redirect(array($this, 'terminal', 'tId' => $rec->id));
     }
     
     
@@ -781,31 +820,9 @@ class planning_Points extends core_Manager
         }
         
         try{
-            $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
-            $reference = null;
-            $serial = Request::get('serial', 'varchar');
-            
-            // Ако има въведен сериен номер
-            if(!empty($serial)){
-                
-                // ...и той е към сингъл на документ
-                if(core_Url::isUrlToSingle($serial, $reference)){
-                    
-                    // ...и той сочи към производствена операция
-                    if($reference->isInstanceOf('planning_Tasks')){
-                        
-                        // ...тогава се избира операцията за текуща
-                        $taskRec = $reference->fetch('folderId,state');
-                        expect($taskRec->folderId == $folderId, 'Производствената операция е в|* ' . doc_Folders::getTitleById($taskRec->folderId));
-                        expect(!in_array($taskRec->state, array('closed', 'rejected', 'stopped')), 'Производствената операция не е активна');
-                        redirect(array($this, 'selectTask', $rec->id, 'taskId' => $reference->that));
-                    } else {
-                        expect(false, 'Не е разпозната операция');
-                    }
-                }
-            }
             
             // Ако се е стигнало до тук, значи се въвежда прогрес по вече избрана ПО
+            $serial = Request::get('serial', 'varchar');
             expect($taskId = Request::get('taskId', 'int'), 'Не е избрана операция');
             $params = array('taskId' => $taskId, 
                             'productId' => Request::get('productId'),
@@ -832,22 +849,36 @@ class planning_Points extends core_Manager
             redirect(array($this, 'terminal', 'tId' => $rec->id));
             
         } catch (core_exception_Expect $e){
-            $dump = $e->getDump();
-            $dump = $dump[0];
             
-            $errorMsg = (haveRole('debug')) ? $dump : 'Възникна проблем при отчитане на прогреса|*!';
-            reportException($e);
+            return $this->getErrorResponse($rec, $e);
+        }
+    }
+    
+    
+    /**
+     * Връща резултат за грешла
+     * 
+     * @param mixed $rec
+     * @param core_exception_Expect $e
+     * @return array|null
+     */
+    private function getErrorResponse($rec, core_exception_Expect $e)
+    {
+        $dump = $e->getDump();
+        $dump = $dump[0];
+        
+        $errorMsg = (haveRole('debug')) ? $dump : 'Възникна проблем при отчитане на прогреса|*!';
+        reportException($e);
+        
+        if (Request::get('ajax_mode')) {
+            core_Statuses::newStatus($errorMsg, 'error');
             
-            if (Request::get('ajax_mode')) {
-                core_Statuses::newStatus($errorMsg, 'error');
-                
-                // Показваме веднага и чакащите статуси
-                $hitTime = Request::get('hitTime', 'int');
-                $idleTime = Request::get('idleTime', 'int');
-                $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
-                
-                return array_merge($statusData);
-            }
+            // Показваме веднага и чакащите статуси
+            $hitTime = Request::get('hitTime', 'int');
+            $idleTime = Request::get('idleTime', 'int');
+            $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+            
+            return array_merge($statusData);
         }
     }
     
