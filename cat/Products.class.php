@@ -1455,10 +1455,11 @@ class cat_Products extends embed_Manager
             }
         }
         
-        $qRegexp = '';
+        $qRegexp = $qRegexpCode = '';
         if ($q) {
             $qRegexp = $qArr[0] ? trim($qArr[0]) : trim($q);
             $qRegexp = preg_quote($qRegexp, '/');
+            $qRegexpCode = "/\({$qRegexp}\)$/ui";
             $qRegexp = "/(^|[^0-9a-zа-я]){$qRegexp}([^0-9a-zа-я]|$)/ui";
         
         }
@@ -1479,6 +1480,18 @@ class cat_Products extends embed_Manager
             }
         }
         
+        // Подреждане по код
+        if (!empty($mArr) && $qRegexpCode) {
+            uasort($mArr, function ($a, $b) use ($qRegexpCode) {
+                if (preg_match($qRegexpCode, $a)) {
+                    
+                    return 1;
+                }
+                
+                return 0;
+            });
+        }
+        
         // Подредба по азбучен ред
         if ($q) {
             if (!empty($products)) {
@@ -1490,6 +1503,7 @@ class cat_Products extends embed_Manager
         }
         
         $mustReverse = null;
+        
         // Ако има пълно съвпадение с някоя дума - добавяме в началото
         foreach ($mArr as $mId => $mTitle) {
             if (isset($products[$mId])) {

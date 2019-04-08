@@ -66,12 +66,10 @@ class vislog_DecoratePlugin extends core_Plugin
         }
         
         if ($ipRec) {
-            $name = str::truncate($fullName = vislog_IpNames::getVerbal($ipRec, 'name'), 16);
+            $fullName = vislog_IpNames::getVerbal($ipRec, 'name');
         }
         
-        if (!$name) {
-            $name = $ip;
-        }
+        $name = $ip;
         
         if ($coloring) {
             $name = str::coloring($name, $ip);

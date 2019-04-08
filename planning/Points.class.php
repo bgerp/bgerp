@@ -566,7 +566,6 @@ class planning_Points extends core_Manager
             $Details->prepareDetail_($data);
             unset($data->listFields['productId']);
             unset($data->listFields['taskId']);
-            unset($data->listFields['modified']);
             $data->listFields['serial'] = '№';
             $data->listFields['_createdDate'] = 'Създаване';
             $data->groupByField = '_createdDate';
@@ -605,8 +604,8 @@ class planning_Points extends core_Manager
         $form = $Details->getForm();
         $form->setField('serial', 'placeholder=№,class=w100 serialField');
         $form->setField('productId', 'class=w100');
-        $form->setField('weight', 'class=w100 weightField');
-        $form->setField('quantity', 'class=w100 quantityField');
+        $form->setField('weight', 'class=w100 weightField,placeholder=Тегло|* (|кг|*)');
+        $form->setField('quantity', 'class=w100 quantityField,placeholder=К-во');
         $form->setField('employees', 'placeholder=Служители,class=w100');
         $form->setField('fixedAsset', 'placeholder=Оборудване,class=w100');
         $form->setDefault('type', 'production');

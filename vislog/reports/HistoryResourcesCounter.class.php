@@ -61,7 +61,6 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
      * Преди показване на форма за добавяне/промяна.
      *
      * @param frame2_driver_Proto $Driver
-     *                                      $Driver
      * @param embed_Manager       $Embedder
      * @param stdClass            $data
      */
@@ -69,19 +68,6 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-    }
-    
-    
-    /**
-     * След рендиране на единичния изглед
-     *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_Form         $form
-     * @param stdClass          $data
-     */
-    protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
-    {
     }
     
     

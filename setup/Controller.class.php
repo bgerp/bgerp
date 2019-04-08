@@ -43,7 +43,7 @@ class setup_Controller
      */
     public function form1(&$res)
     {
-        $res->title = 'Лицензно споразумение за използване';
+        $res->title = 'Лицензно споразумение';
         $res->next = 'Приемам лиценза »';
         $res->back = false;
         $res->body = file_get_contents(__DIR__ . '/../license/gpl3.html');
@@ -158,8 +158,8 @@ class setup_Controller
         $res->body = $this->createRadio(
             'bgerpType',
             array('base' => 'Организация на екип, имейли и документооборот',
-                'trade' => 'Управление на продажби ( + предходното)',
-                'manufacturing' => 'Производствен мениджмънт ( + предходното)',
+                'trade' => 'Управление на търговия ( + предходното)',
+                'manufacturing' => 'Управление на производство ( + предходното)',
                 'demo' => 'За демонстрация и обучение',
                 'dev' => 'За разработка и тестване',
             
@@ -177,31 +177,21 @@ class setup_Controller
             
             return false;
         }
-        
+
         $res->title = 'Допълнителни модули';
         $res->question = 'Кои допълнителни модули да бъдат инсталирани?';
-        if ($this->state['bgerpType'] == 'base') {
-            $res->body = $this->createCheckbox(
-                'bgerpAddmodules',
-                array('web' => 'cms (Управление на уеб-сайт)',
-                    'mon2' => 'mon2 (Мониторинг на IoT контролери)',
-                    'cams' => 'cams (Записване на IP видеокамери)',
-                    'catering' => 'catering (Кетъринг за персонала)',
-                
-                )
-            );
-        } else {
-            $res->body = $this->createCheckbox(
-                'bgerpAddmodules',
-                array('pos' => 'pos (Продажби в магазин или заведение)',
-                    'web' => 'cms (Управление на уеб-сайт)',
-                    'mon2' => 'mon2 (Мониторинг на сензори)',
-                    'cams' => 'cams (Записване на IP видеокамери)',
-                    'catering' => 'catering (Кетъринг за персонала)',
-                
-                )
-            );
+
+        $modules = array('web' => 'cms (Управление на уеб-сайт)',
+                         'mon2' => 'mon2 (Мониторинг на контролери)',
+                         'cams' => 'cams (Записване на IP видеокамери)',
+                         'catering' => 'catering (Кетъринг за персонала)',
+                    );
+
+        if($this->state['bgerpType'] != 'base') {
+            $modules['pos'] = 'pos (Продажби в магазин или заведение)';
         }
+        
+        $res->body = $this->createCheckbox('bgerpAddmodules', $modules);
     }
     
     
