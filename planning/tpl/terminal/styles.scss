@@ -11,23 +11,25 @@ body {
 }
 
 .tabs-holder {
+	width: 100%;
 	float: left;
-	width: 1000px;
 	.listBlock {
 		display: block;
 	}
 }
-
+.planning_ProductionTaskDetails {
+	width: 980px;
+	float: left;
+}
 .formHolder {
 	float: right;
-	width: 360px
+	width: 360px;
+	margin-top: 0 !important;
 }
 .terminal-content {
 	background: #fff;
 	border: 1px solid #ccc;
 	padding: 15px;
-	height: 600px;
-	overflow-y: auto;
 	.document {
 		border: none;
 		max-width: none;
@@ -39,7 +41,7 @@ body {
 		margin-bottom: 0 !important;
 	}
 }
-.tabs-holder ul {
+.tabs-holder .navigation {
 	padding: 0;
 	margin: 20px 0 0;
 	li {
@@ -171,35 +173,30 @@ body {
 .formSection {
 	padding-top: 0 !important;
 }
-.terminal-content {
+.planning-task-progress  {
 	height: 600px;
+	overflow-y: auto;
 }
 .formHolder {
-	margin-top: 25px;
-	border-radius:5px 5px 0 0 ;
 	background: #fff;
-	border: 1px solid #ccc;
-	-webkit-box-shadow: 0 5px 5px -5px rgba(0,0,0,.2);
-	-moz-box-shadow: 0 5px 5px -5px rgba(0,0,0,.2);
-	box-shadow: 0 5px 5px -5px rgba(0,0,0,.2);
 	.formFields {
 		padding: 0 !important;
 	}
 	.formTitle {
-		background: #eee;
 		border: none;
 		color: #333;
 		font-size: 1.15em;
-		padding: 15px;
-		border-bottom: 1px solid #ccc;
+		background: none;
+		a {
+			font-weight: bold;
+		}
 	}
 	table {
 		margin: 0 !important;
 	}
 	.formContent {
-		width: 320px;
 		margin-top: 0;
-		padding: 20px !important;
+		padding: 10px 0 0 !important;
 		font-size: 1.1em;
 		table {
 			width: 100%;
@@ -274,7 +271,6 @@ body {
 @media handheld, only screen and (min-width: 720px) and (max-width: 800px) {
 	.wide table.listAction {
 		min-width: 480px;
-		max-width: 500px;
 	}
 	.terminalHeader {
 		padding: 6px;
@@ -285,8 +281,6 @@ body {
 	}
 	.tabs-holder {
 		float: left;
-		margin-left: 5px;
-		width: 530px !important;
 		.listBlock {
 			display: block;
 		}
@@ -297,11 +291,13 @@ body {
 		font-size: 1em;
 	}
 	.terminal-content {
-		height: 340px;
 		font-size: 0.9em;
 	}
+	.planning_ProductionTaskDetails {
+		width: 500px;
+	}
 	.formHolder {
-		margin-right: 5px;
+		margin-right: 0px;
 		width: 240px !important;
 		.formContent {
 			width: 230px;

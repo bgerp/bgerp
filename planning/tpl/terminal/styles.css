@@ -9,21 +9,24 @@ body {
   min-width: auto; }
 
 .tabs-holder {
-  float: left;
-  width: 1000px; }
+  width: 100%;
+  float: left; }
   .tabs-holder .listBlock {
     display: block; }
 
+.planning_ProductionTaskDetails {
+  width: 980px;
+  float: left; }
+
 .formHolder {
   float: right;
-  width: 360px; }
+  width: 360px;
+  margin-top: 0 !important; }
 
 .terminal-content {
   background: white;
   border: 1px solid #cccccc;
-  padding: 15px;
-  height: 600px;
-  overflow-y: auto; }
+  padding: 15px; }
   .terminal-content .document {
     border: none;
     max-width: none;
@@ -33,10 +36,10 @@ body {
   .terminal-content .listTable {
     margin-bottom: 0 !important; }
 
-.tabs-holder ul {
+.tabs-holder .navigation {
   padding: 0;
   margin: 20px 0 0; }
-  .tabs-holder ul li {
+  .tabs-holder .navigation li {
     display: inline-block;
     background: #dddddd;
     border: 0;
@@ -46,18 +49,18 @@ body {
     border: 1px solid #cccccc;
     border-bottom: none;
     border-radius: 5px 5px 0 0; }
-    .tabs-holder ul li.active,
-    .tabs-holder ul li:hover {
+    .tabs-holder .navigation li.active,
+    .tabs-holder .navigation li:hover {
       background: white; }
-    .tabs-holder ul li a {
+    .tabs-holder .navigation li a {
       display: block;
       padding: 10px;
       outline: none;
       color: #333333; }
-      .tabs-holder ul li.disabled:hover {
+      .tabs-holder .navigation li.disabled:hover {
         background: #dddddd;
         cursor: default; }
-      .tabs-holder ul li.disabled a {
+      .tabs-holder .navigation li.disabled a {
         cursor: default;
         color: #999999 !important; }
 
@@ -139,32 +142,26 @@ body {
 .formSection {
   padding-top: 0 !important; }
 
-.terminal-content {
-  height: 600px; }
+.planning-task-progress {
+  height: 600px;
+  overflow-y: auto; }
 
 .formHolder {
-  margin-top: 25px;
-  border-radius: 5px 5px 0 0;
-  background: white;
-  border: 1px solid #cccccc;
-  -webkit-box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
-  -moz-box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
-  box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2); }
+  background: white; }
   .formHolder .formFields {
     padding: 0 !important; }
   .formHolder .formTitle {
-    background: #eeeeee;
     border: none;
     color: #333333;
     font-size: 1.15em;
-    padding: 15px;
-    border-bottom: 1px solid #cccccc; }
+    background: none; }
+    .formHolder .formTitle a {
+      font-weight: bold; }
   .formHolder table {
     margin: 0 !important; }
   .formHolder .formContent {
-    width: 320px;
     margin-top: 0;
-    padding: 20px !important;
+    padding: 10px 0 0 !important;
     font-size: 1.1em; }
     .formHolder .formContent table {
       width: 100%;
@@ -226,8 +223,7 @@ body {
 @media handheld,
 only screen and (min-width: 720px) and (max-width: 800px) {
   .wide table.listAction {
-    min-width: 480px;
-    max-width: 500px; }
+    min-width: 480px; }
 
   .terminalHeader {
     padding: 6px;
@@ -237,9 +233,7 @@ only screen and (min-width: 720px) and (max-width: 800px) {
     width: 100%; }
 
   .tabs-holder {
-    float: left;
-    margin-left: 5px;
-    width: 530px !important; }
+    float: left; }
     .tabs-holder .listBlock {
       display: block; }
 
@@ -248,11 +242,13 @@ only screen and (min-width: 720px) and (max-width: 800px) {
     font-size: 1em; }
 
   .terminal-content {
-    height: 340px;
     font-size: 0.9em; }
 
+  .planning_ProductionTaskDetails {
+    width: 500px; }
+
   .formHolder {
-    margin-right: 5px;
+    margin-right: 0px;
     width: 240px !important; }
     .formHolder .formContent {
       width: 230px;

@@ -550,8 +550,9 @@ class planning_Points extends core_Manager
         
         $formTpl = $this->getFormHtml($rec);
         $formTpl->prepend("<div class='formHolder'>");
-        $formTpl->append("</div>");
-        $tpl->prepend($formTpl);
+        $formTpl->append("</div> ");
+        $tpl->append($formTpl);
+        $tpl->append("<div class='clearfix21'></div>");
         
         return $tpl;
     }
