@@ -79,7 +79,7 @@ class blast_Redirect extends core_Manager
         $this->FLD('url', 'url', 'caption=URL, mandatory');
         $this->FLD('rCnt', 'int', 'caption=Брой, input=none');
         
-        $this->setDbUnique('vid, domainId');
+        $this->setDbUnique('vid');
     }
     
     
@@ -87,11 +87,10 @@ class blast_Redirect extends core_Manager
      * Прави редирект към съответния екшън
      * 
      * @param string  $vid
-     * @param integer $domainId
      */
-    public static function doRedirect($vid, $domainId)
+    public static function doRedirect($vid)
     {
-        $rec = self::fetch(array("#vid = '[#1#]' AND #domainId = '[#2#]'", $vid, $domainId));
+        $rec = self::fetch(array("#vid = '[#1#]'", $vid));
         
         $vRec = vislog_History::add("Редирект: {$vid}");
         
@@ -110,7 +109,7 @@ class blast_Redirect extends core_Manager
             core_App::shutdown(false);
         }
         
-        self::logWarning('Липсващ запис за "' . $vid . '" в domainId=' . $domainId);
+        self::logWarning("Липсващ запис за '{$vid}'");
         
         redirect(array('Index'), false, '|Изтекла или липсваща връзка', 'error');
     }
@@ -126,7 +125,7 @@ class blast_Redirect extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($rec->vid) {
-            $row->vid = cms_Domains::getAbsoluteUrl($rec->domainId, $domainName) . '/B/R/' . $row->vid;
+            $row->vid = cms_Domains::getAbsoluteUrl($rec->domainId) . '/B/R/' . $row->vid;
             $row->vid = "<span onmouseUp='selectInnerText(this);'>{$row->vid}</span>";
         }
     }
