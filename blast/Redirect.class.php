@@ -91,7 +91,7 @@ class blast_Redirect extends core_Manager
      */
     public static function doRedirect($vid, $domainId)
     {
-        $rec = self::fetch(array("#vid = '[#1#]'", $vid, $domainId));
+        $rec = self::fetch(array("#vid = '[#1#]'", $vid));
         
         $vRec = vislog_History::add("Редирект: {$vid}");
         
