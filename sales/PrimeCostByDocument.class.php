@@ -103,7 +103,7 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->setDbIndex('productId');
         $this->setDbIndex('containerId');
         $this->setDbIndex('folderId');
-        $this->setDbUnique('detailClassId,detailRecId,productId');
+        $this->setDbIndex('detailClassId,detailRecId,productId');
     }
     
     
