@@ -45,8 +45,5 @@
 				<div class='tabContent [#active_choose#]' id = 'task-support-content'>[#SUPPORT#]</div>
 			</div>
 	</div>
-	<div class='formHolder'>
-		[#FORM#]
-	</div>
 </div>
 
