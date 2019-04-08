@@ -87,9 +87,8 @@ class blast_Redirect extends core_Manager
      * Прави редирект към съответния екшън
      * 
      * @param string  $vid
-     * @param integer $domainId
      */
-    public static function doRedirect($vid, $domainId)
+    public static function doRedirect($vid)
     {
         $rec = self::fetch(array("#vid = '[#1#]'", $vid));
         
@@ -110,7 +109,7 @@ class blast_Redirect extends core_Manager
             core_App::shutdown(false);
         }
         
-        self::logWarning('Липсващ запис за "' . $vid . '" в domainId=' . $domainId);
+        self::logWarning("Липсващ запис за '{$vid}'");
         
         redirect(array('Index'), false, '|Изтекла или липсваща връзка', 'error');
     }
