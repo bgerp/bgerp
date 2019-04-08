@@ -29,7 +29,7 @@ function planningActions() {
 	});
 	
 	
-	// Използване на числата за въвеждане на суми за плащания
+	// Изпращане на формата за прогреса
 	$(document.body).on('click', "#sendBtn", function(e){
 		var url = $(this).attr("data-url");
 		if(!url) return;
@@ -82,7 +82,7 @@ function planningActions() {
 	});
 	
 	
-	// Използване на числата за въвеждане на суми за плащания
+	// Търсене по баркод
 	$(document.body).on('click', "#searchBtn", function(e){
 		var url = $(this).attr("data-url");
 		if(!url) return;
