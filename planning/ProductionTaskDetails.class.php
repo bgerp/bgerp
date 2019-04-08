@@ -140,7 +140,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество');
         $this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
         $this->FLD('weight', 'double(Min=0)', 'caption=Тегло,unit=кг');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,tdClass=nowrap');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Оператори,tdClass=nowrap');
         $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Оборудване,input=none,tdClass=nowrap');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Забележки,autohide');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
@@ -236,7 +236,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
         }
         
-        // Връща избрани служители от операцията, или ако няма всички от центъра
+        // Връща избрани оператори от операцията, или ако няма всички от центъра
         $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
         if (count($employees)) {
             $form->setSuggestions('employees', $employees);
@@ -553,9 +553,9 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     
     /**
-     * Показва вербалното име на служителите
+     * Показва вербалното име на операторите
      *
-     * @param string $employees - кейлист от служители
+     * @param string $employees - кейлист от оператори
      *
      * @return string $verbalEmployees
      */
@@ -667,14 +667,14 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         $data->listFilter->showFields = 'serial';
         
-        // Ако има използвани служители, добавят се за филтриране
+        // Ако има използвани оператори, добавят се за филтриране
         $usedFixedAssets = self::getResourcesInDetails($data->masterId, 'fixedAsset');
         if(count($usedFixedAssets)){
             $data->listFilter->setOptions('fixedAsset', array('' => '') + $usedFixedAssets);
             $data->listFilter->showFields .= ",fixedAsset";
         }
         
-        // Ако има използвани служители, добавят се за филтриране
+        // Ако има използвани оператори, добавят се за филтриране
         $usedEmployeeIds = self::getResourcesInDetails($data->masterId, 'employees');
         if(count($usedEmployeeIds)){
             $data->listFilter->setOptions('employees', array('' => '') + $usedEmployeeIds);
@@ -810,7 +810,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         while ($rec = $query->fetch()) {
             
-            // Ако няма служители, пропуска се
+            // Ако няма оператори, пропуска се
             $persons = keylist::toArray($rec->employees);
             if (!count($persons)) {
                 continue;

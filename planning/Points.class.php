@@ -69,7 +69,7 @@ class planning_Points extends core_Manager
         $this->FLD('name', 'varchar(16)', 'caption=Наименование, mandatory');
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Център, mandatory,removeAndRefreshForm=fixedAssets|employees,silent');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks,allowEmpty)', 'caption=Оборудване, input=none');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,allowEmpty)', 'caption=Служители, input=none');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,allowEmpty)', 'caption=Оператори, input=none');
         $this->FLD('state', 'enum(active=Контиран,rejected=Оттеглен)', 'caption=Състояние,notNull,value=active,input=none');
         
         $this->setDbIndex('centerId');
@@ -89,7 +89,7 @@ class planning_Points extends core_Manager
         if(isset($form->rec->centerId)){
             $folderId = planning_Centers::fetchField($form->rec->centerId, 'folderId');
             
-            // Добавяне на избор само на достъпните служители/оборудване към ПО
+            // Добавяне на избор само на достъпните оператори/оборудване към ПО
             foreach (array('fixedAssets' => 'planning_AssetResources', 'employees' => 'planning_Hr') as $field => $Det) {
                 $arr = $Det::getByFolderId($folderId);
                 if (!empty($form->rec->{$field})) {
@@ -601,7 +601,7 @@ class planning_Points extends core_Manager
         $form->setField('productId', 'class=w100');
         $form->setField('weight', 'class=w100 weightField,placeholder=Тегло|* (|кг|*)');
         $form->setField('quantity', 'class=w100 quantityField,placeholder=К-во');
-        $form->setField('employees', 'placeholder=Служители,class=w100');
+        $form->setField('employees', 'placeholder=Оператори,class=w100');
         $form->setField('fixedAsset', 'placeholder=Оборудване,class=w100');
         $form->setDefault('type', 'production');
         $form->setField('type', 'input,removeAndRefreshForm=productId|weight|serial,caption=Действие,class=w100');
