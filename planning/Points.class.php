@@ -234,6 +234,7 @@ class planning_Points extends core_Manager
         }
         
         Mode::setPermanent('activeTab', $this->getActiveTab($rec));
+        $tpl->replace($this->getSearchTpl($rec), "SEARCH_FORM");
         
         $activeTab = Mode::get('activeTab');
         expect($aciveTabData = self::TAB_DATA[$activeTab]);
@@ -557,6 +558,27 @@ class planning_Points extends core_Manager
     
     
     /**
+     * Рендира шаблона за търсене
+     * 
+     * @param mixed $id
+     * @return core_ET $tpl
+     */
+    private function getSearchTpl($id)
+    {
+        $rec = $this->fetchRec($id);
+        $tpl = new core_ET("[#searchInput#][#searchBtn#]");
+        $searchInput = ht::createElement('input', array('name' => 'searchBarcode', 'title' => 'Търсене'));
+        $tpl->append($searchInput, 'searchInput');
+        
+        $searchUrl = toUrl(array($this, 'search', 'tId' => $rec->id), 'local');
+        $searchBtn = ht::createFnBtn('Изпращане', null, null, array('id' => 'searchBtn', 'data-url' => $searchUrl, 'title' => 'Търсене по баркод'));
+        $tpl->append($searchBtn, 'searchBtn');
+        
+        return $tpl;
+    }
+    
+    
+    /**
      * Рендира формата за въвеждане на прогреса
      *
      * @param mixed $id
@@ -729,6 +751,59 @@ class planning_Points extends core_Manager
     
     /**
      * Екшън извършващ посоченото действие
+     *
+     * @return Redirect|array
+     */
+    public function act_Search()
+    {
+        peripheral_Terminal::setSessionPrefix();
+        $id = Request::get('tId', 'int');
+        expect($rec = self::fetch($id), 'Неразпознат ресурс');
+        if(!$this->haveRightFor('terminal') || !$this->haveRightFor('terminal', $rec)){
+            $url = $this->getRedirectUrlAfterProblemIsFound($rec);
+            
+            return new Redirect($url);
+        }
+        
+        try {
+            expect($search = Request::get('search', 'varchar'), 'Не е избрано по какво да се търси');
+            
+            $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
+            $reference = null;
+            
+            // Ако има въведен сериен номер
+            if(!empty($search)){
+                
+                // ...и той е към сингъл на документ
+                if(core_Url::isUrlToSingle($search, $reference)){
+                    
+                    // ...и той сочи към производствена операция
+                    if($reference->isInstanceOf('planning_Tasks')){
+                        
+                        // ...тогава се избира операцията за текуща
+                        $taskRec = $reference->fetch('folderId,state');
+                        expect($taskRec->folderId == $folderId, 'Производствената операция е в|* ' . doc_Folders::getTitleById($taskRec->folderId));
+                        expect(!in_array($taskRec->state, array('closed', 'rejected', 'stopped')), 'Производствената операция не е активна');
+                        redirect(array($this, 'selectTask', $rec->id, 'taskId' => $reference->that));
+                    } else {
+                        expect(false, 'Не е разпозната операция');
+                    }
+                }
+                
+                expect(false, 'Не е разпозната операция');
+            }
+        } catch(core_exception_Expect $e){
+            
+            return $this->getErrorResponse($rec, $e);
+        }
+        
+        // Ако не сме в Ajax режим пренасочваме към терминала
+        redirect(array($this, 'terminal', 'tId' => $rec->id));
+    }
+    
+    
+    /**
+     * Екшън извършващ посоченото действие
      * 
      * @return Redirect|array
      */
@@ -744,31 +819,9 @@ class planning_Points extends core_Manager
         }
         
         try{
-            $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
-            $reference = null;
-            $serial = Request::get('serial', 'varchar');
-            
-            // Ако има въведен сериен номер
-            if(!empty($serial)){
-                
-                // ...и той е към сингъл на документ
-                if(core_Url::isUrlToSingle($serial, $reference)){
-                    
-                    // ...и той сочи към производствена операция
-                    if($reference->isInstanceOf('planning_Tasks')){
-                        
-                        // ...тогава се избира операцията за текуща
-                        $taskRec = $reference->fetch('folderId,state');
-                        expect($taskRec->folderId == $folderId, 'Производствената операция е в|* ' . doc_Folders::getTitleById($taskRec->folderId));
-                        expect(!in_array($taskRec->state, array('closed', 'rejected', 'stopped')), 'Производствената операция не е активна');
-                        redirect(array($this, 'selectTask', $rec->id, 'taskId' => $reference->that));
-                    } else {
-                        expect(false, 'Не е разпозната операция');
-                    }
-                }
-            }
             
             // Ако се е стигнало до тук, значи се въвежда прогрес по вече избрана ПО
+            $serial = Request::get('serial', 'varchar');
             expect($taskId = Request::get('taskId', 'int'), 'Не е избрана операция');
             $params = array('taskId' => $taskId, 
                             'productId' => Request::get('productId'),
@@ -795,22 +848,36 @@ class planning_Points extends core_Manager
             redirect(array($this, 'terminal', 'tId' => $rec->id));
             
         } catch (core_exception_Expect $e){
-            $dump = $e->getDump();
-            $dump = $dump[0];
             
-            $errorMsg = (haveRole('debug')) ? $dump : 'Възникна проблем при отчитане на прогреса|*!';
-            reportException($e);
+            return $this->getErrorResponse($rec, $e);
+        }
+    }
+    
+    
+    /**
+     * Връща резултат за грешла
+     * 
+     * @param mixed $rec
+     * @param core_exception_Expect $e
+     * @return array|null
+     */
+    private function getErrorResponse($rec, core_exception_Expect $e)
+    {
+        $dump = $e->getDump();
+        $dump = $dump[0];
+        
+        $errorMsg = (haveRole('debug')) ? $dump : 'Възникна проблем при отчитане на прогреса|*!';
+        reportException($e);
+        
+        if (Request::get('ajax_mode')) {
+            core_Statuses::newStatus($errorMsg, 'error');
             
-            if (Request::get('ajax_mode')) {
-                core_Statuses::newStatus($errorMsg, 'error');
-                
-                // Показваме веднага и чакащите статуси
-                $hitTime = Request::get('hitTime', 'int');
-                $idleTime = Request::get('idleTime', 'int');
-                $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
-                
-                return array_merge($statusData);
-            }
+            // Показваме веднага и чакащите статуси
+            $hitTime = Request::get('hitTime', 'int');
+            $idleTime = Request::get('idleTime', 'int');
+            $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+            
+            return array_merge($statusData);
         }
     }
     

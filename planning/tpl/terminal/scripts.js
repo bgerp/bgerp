@@ -80,6 +80,22 @@ function planningActions() {
 		
 		e.preventDefault();
 	});
+	
+	
+	// Използване на числата за въвеждане на суми за плащания
+	$(document.body).on('click', "#searchBtn", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		var searchVal = $("input[name=searchBarcode]").val();
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		var data = {search:searchVal};
+		getEfae().process(resObj, data);
+		
+		console.log(url,searchVal);
+	});
 }
 
 // Кой таб да е активен
