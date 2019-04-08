@@ -205,7 +205,7 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Продажби на артикули';
+    public $info = 'Управление на продажби';
     
     
     /**

@@ -550,7 +550,7 @@ class sens2_Controllers extends core_Master
     
     /**
      * Стартира се на всяка минута от cron-a
-     * Извиква по http sens_Sensors->act_Process
+     * Извиква по http sens2_Sensors->act_Process
      * за всеки 1 драйвер като предава id и key - ключ,
      * базиран на id на драйвера и сол
      */

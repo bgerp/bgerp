@@ -54,7 +54,7 @@ class docarch_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Archiving';
+    public $info = 'Управление на физически архиви';
     
     
     /**

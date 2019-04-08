@@ -55,7 +55,7 @@ class ssh_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Машини за отдалечен достъп по SSH.';
+    public $info = 'Отдалечено управление на компютри по SSH';
     
     
     /**

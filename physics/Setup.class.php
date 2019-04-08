@@ -28,7 +28,7 @@ class physics_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Пакет за работа с температури';
+    public $info = 'Пакет с типове за физични параметри - температура и налягане';
     
     
     /**
