@@ -2521,6 +2521,7 @@ function getContextMenuFromAjax() {
 }
 
 function openAjaxMenu(el) {
+	getEfae().preventRequest = 0;
 
     var url = $(el).attr("data-url");
     if(!url) return;
@@ -5212,7 +5213,7 @@ function mailServerSettings() {
 
 
 /**
- * Вика url-то w data-url на линка и спира норматлноното му действие
+ * Вика url-то в data-url на линка и спира норматлноното му действие
  *
  * @param event
  * @param stopOnClick
