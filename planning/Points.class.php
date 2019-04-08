@@ -241,9 +241,6 @@ class planning_Points extends core_Manager
         
         Mode::setPermanent('activeTab', $this->getActiveTab($rec));
         
-        $formTpl = $this->getFormHtml($rec);
-        $tpl->replace($formTpl, 'FORM');
-        
         $activeTab = Mode::get('activeTab');
         expect($aciveTabData = self::TAB_DATA[$activeTab]);
         $tableTpl = $this->{$aciveTabData['fnc']}($rec);
@@ -580,6 +577,11 @@ class planning_Points extends core_Manager
             Mode::pop('text');
         }
         
+        $formTpl = $this->getFormHtml($rec);
+        $formTpl->prepend("<div class='formHolder'>");
+        $formTpl->append("</div>");
+        $tpl->prepend($formTpl);
+        
         return $tpl;
     }
     
@@ -743,14 +745,6 @@ class planning_Points extends core_Manager
         $resObj = new stdClass();
         $resObj->func = 'prepareKeyboard';
         $objectArr[] = $resObj;
-        
-        if($replaceForm === true){
-            $formHtml = $this->getFormHtml($rec)->getContent();
-            $resObj = new stdClass();
-            $resObj->func = 'html';
-            $resObj->arg = array('id' => 'planning-terminal-form', 'html' => $formHtml, 'replace' => true);
-            $objectArr[] = $resObj;
-        }
         
         // Показване на чакащите статуси
         $hitTime = Request::get('hitTime', 'int');
