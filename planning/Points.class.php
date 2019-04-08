@@ -53,12 +53,6 @@ class planning_Points extends core_Manager
     
     
     /**
-     * На колко време автоматично да се рефрешва страницата
-     */
-    const AUTO_REFRESH_TIME = 30000;
-    
-    
-    /**
      * Информация за табовете
      */
     const TAB_DATA = array('taskList'     => array('placeholder' => 'TASK_LIST', 'fnc' => 'getTaskListTable', 'tab-id' => 'task-list', 'id' => 'task-list-content'),
@@ -259,8 +253,6 @@ class planning_Points extends core_Manager
         jquery_Jquery::run($tpl, 'planningActions();');
         jquery_Jquery::run($tpl, 'prepareKeyboard();');
         jquery_Jquery::runAfterAjax($tpl, 'prepareKeyboard');
-        $refreshUrlLocal = toUrl(array($this, 'updateTerminal', 'tId' => $rec->id), 'local');
-        core_Ajax::subscribe($tpl, $refreshUrlLocal, 'refreshPlanningTerminal', self::AUTO_REFRESH_TIME);
         
         return $tpl;
     }
@@ -331,28 +323,6 @@ class planning_Points extends core_Manager
         planning_Points::logDebug($object, $rec->id);
         
         return $url;
-    }
-    
-    
-    /**
-     * Екшън опресняващ терминала периодично
-     * @return Redirect|array
-     */
-    public function act_updateTerminal()
-    {
-        peripheral_Terminal::setSessionPrefix();
-        expect($id = Request::get('tId', 'int'));
-        expect($rec = self::fetch($id));
-        
-        if(!$this->haveRightFor('terminal') || !$this->haveRightFor('terminal', $rec)){
-            $url = $this->getRedirectUrlAfterProblemIsFound($rec);
-            
-            return new Redirect($url);
-        }
-        
-        $activeTab = $this->getActiveTab($rec);
-        
-        return $this->getSuccessfullResponce($rec, $activeTab, false);
     }
     
     
