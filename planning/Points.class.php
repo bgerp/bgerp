@@ -606,7 +606,7 @@ class planning_Points extends core_Manager
         $form->setFieldTypeParams('employees', array('select2MinItems' => 100));
         $form->fields['employees']->attr = array('id' => 'employeeSelect');
         $form->fields['fixedAsset']->attr = array('id' => 'fixedAssetSelect');
-        $form->fields['productId']->attr = array('id' => 'productIdSelect');
+        $form->fields['action']->attr = array('id' => 'actionIdSelect');
         $form->fields['type']->attr = array('id' => 'typeSelect');
         $form->rec->taskId = $currentTaskId;
         $taskRec = planning_Tasks::fetch($currentTaskId);

@@ -33,7 +33,7 @@ function planningActions() {
 		resObj['url'] = url;
 		
 		var serial = $("input[name=serial]").val();
-		var action = $("select[name=action]").val();
+		var action = $("#actionIdSelect").is('[readonly]') ? $("input[name=action]").val() :  $("#actionIdSelect").val() ;
 		var res = action.split('|');
 		var type = res[0];
 		var productId = res[1];
