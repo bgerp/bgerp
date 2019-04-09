@@ -416,7 +416,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      * @param float                                                                              $rate      - валутен курс
      * @param string $chargeVat - начин на начисляване на ддс
      * 
-     * @return stdClass|NULL $price  - цена
+     * @return stdClass|float|NULL $price  - обект с цена и отстъпка, или само цена, или NULL ако няма
      */
     public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = null, $rate = 1, $chargeVat = 'no')
     {
