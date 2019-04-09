@@ -414,20 +414,21 @@ abstract class cat_ProductDriver extends core_BaseClass
      * @param float                                                                              $maxDelta  - максималната надценка
      * @param datetime                                                                           $datetime  - дата
      * @param float                                                                              $rate      - валутен курс
-     * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
+     * @param string $chargeVat - начин на начисляване на ддс
      * 
-     * @return float|NULL $price  - цена
+     * @return stdClass|NULL $price  - цена
      */
     public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = null, $rate = 1, $chargeVat = 'no')
     {
         // Ако има рецепта връщаме по нея
         if ($bomRec = $this->getBomForPrice($productId)) {
             
-            // Рецептата ще се преизчисли за текущия артикул
-            // В случай че че рецептата му всъщност идва от генеричния му артикул (ако има)
+            // Рецептата ще се преизчисли за текущия артикул, В случай че че рецептата му всъщност идва от генеричния му артикул (ако има)
             $bomRec->productId = $productId;
+            $price = cat_Boms::getBomPrice($bomRec, $quantity, $minDelta, $maxDelta, $datetime, price_ListRules::PRICE_LIST_COST);
+            $res = (object)array('price' => $price, 'discount' => null);
             
-            return cat_Boms::getBomPrice($bomRec, $quantity, $minDelta, $maxDelta, $datetime, price_ListRules::PRICE_LIST_COST);
+            return $res;
         }
         
         return null;

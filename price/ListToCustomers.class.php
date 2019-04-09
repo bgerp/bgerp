@@ -313,11 +313,11 @@ class price_ListToCustomers extends core_Manager
                 
                 // Ако драйвера може да върне цена, връщаме нея
                 if ($Driver = cat_Products::getDriver($productId)) {
-                    $price = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $rate, $chargeVat, $listId);
+                    $rec = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $rate, $chargeVat, $listId);
                     
                     // @TODO хак за закръгляне на цените
-                    if (isset($price) && $rate > 0) {
-                        $newPrice = $price / $rate;
+                    if (isset($rec->price) && $rate > 0) {
+                        $newPrice = $rec->price / $rate;
                         if ($chargeVat == 'yes') {
                             $vat = cat_Products::getVat($productId, $datetime);
                             $newPrice = $newPrice * (1 + $vat);
