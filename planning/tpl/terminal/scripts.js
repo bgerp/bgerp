@@ -33,8 +33,11 @@ function planningActions() {
 		resObj['url'] = url;
 		
 		var serial = $("input[name=serial]").val();
-		var type = $("#typeSelect").is('[readonly]') ?  $("input[name=type]").val() : $("#typeSelect").val();
-		var productId = $("#productIdSelect").is('[readonly]') ? $("input[name=productId]").val() :  $("#productIdSelect").val() ;
+		var action = $("select[name=action]").val();
+		var res = action.split('|');
+		var type = res[0];
+		var productId = res[1];
+		
 		var quantity = $("input[name=quantity]").val();
 		var employees = $("select#employeeSelect").length ? $("select#employeeSelect").val() : $('input[id^="employees"]').is(':checked') ? $('input[id^="employees"]').val() : null;
 		var weight = $("input[name=weight]").val();

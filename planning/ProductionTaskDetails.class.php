@@ -159,9 +159,9 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         $form = &$data->form;
         $rec = &$data->form->rec;
-        $masterRec = planning_Tasks::fetch($rec->taskId);
         
-        // Добавяме последните данни за дефолтни
+        // Добавяне на последните данни за дефолтни
+        $masterRec = planning_Tasks::fetch($rec->taskId);
         $query = $mvc->getQuery();
         $query->where("#taskId = {$rec->taskId}");
         $query->orderBy('id', 'DESC');
@@ -225,7 +225,6 @@ class planning_ProductionTaskDetails extends doc_Detail
             if($rec->type == 'production' && isset($masterRec->packagingId)){
                 $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->packagingId);
                 $form->setField('quantity', "unit={$unit}");
-                
                 $packRec = cat_products_Packagings::getPack($masterRec->productId, $masterRec->packagingId);
                 $defaultQuantity = is_object($packRec) ? ($packRec->quantity / $masterRec->quantityInPack) : 1;
                 $form->setField('quantity', "placeholder={$defaultQuantity}");

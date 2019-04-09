@@ -589,41 +589,47 @@ class planning_Points extends core_Manager
         
         // Подготовка на формата
         $form = $Details->getForm();
+        $form->FLD('action', 'varchar(select2MinItems=100)', 'placeholder=Действие,mandatory,silent,removeAndRefreshForm=productId|type');
         $form->setField('serial', 'placeholder=№,class=w100 serialField');
-        $form->setField('productId', 'class=w100');
+        $form->setField('productId', 'class=w100,input=hidden,silent');
         $form->setField('weight', 'class=w100 weightField,placeholder=Тегло|* (|кг|*)');
         $form->setField('quantity', 'class=w100 quantityField,placeholder=К-во');
         $form->setField('employees', 'placeholder=Оператори,class=w100');
         $form->setField('fixedAsset', 'placeholder=Оборудване,class=w100');
-        $form->setDefault('type', 'production');
-        $form->setField('type', 'input,removeAndRefreshForm=productId|weight|serial,caption=Действие,class=w100');
+        $form->setField('type', 'input=hidden,silent,removeAndRefreshForm=productId|weight|serial,caption=Действие,class=w100');
         $form->input(null, 'silent');
         $form->formAttr['id'] = 'planning-terminal-form';
         $form->formAttr['class'] = 'simpleForm';
         unset($form->rec->id);
         unset($form->fields['id']);
+        $form->setFieldTypeParams('fixedAsset', array('select2MinItems' => 100));
+        $form->setFieldTypeParams('employees', array('select2MinItems' => 100));
         $form->fields['employees']->attr = array('id' => 'employeeSelect');
         $form->fields['fixedAsset']->attr = array('id' => 'fixedAssetSelect');
         $form->fields['productId']->attr = array('id' => 'productIdSelect');
         $form->fields['type']->attr = array('id' => 'typeSelect');
         $form->rec->taskId = $currentTaskId;
+        $taskRec = planning_Tasks::fetch($currentTaskId);
         
         // Зареждане на опциите
-        $typeOptions = array('production' => 'Произвеждане');
+        $typeOptions = array();
         if($currentTaskId){
-            if($inputOptions = planning_ProductionTaskProducts::getOptionsByType($currentTaskId, 'input')){
-                if(count($inputOptions)){
-                    $typeOptions['input'] = 'Влагане';
+            foreach (array('production' => 'Произв.', 'input' => 'Влагане', 'waste' => 'Отпадък') as $type => $typeCaption){
+                $options = planning_ProductionTaskProducts::getOptionsByType($currentTaskId, $type);
+                foreach ($options as $pId => $pName){
+                    $typeOptions["{$type}|{$pId}"] = "[{$typeCaption}] {$pName}";
                 }
             }
-            if($wasteOptions = planning_ProductionTaskProducts::getOptionsByType($currentTaskId, 'waste')){
-                if(count($wasteOptions)){
-                    $typeOptions['waste'] = 'Отпадък';
-                }
-            }
-            $form->setOptions('type', $typeOptions);
-            $data = (object) array('form' => $form, 'masterRec' => planning_Tasks::fetch($currentTaskId), 'action' => 'add');
             
+            $form->setOptions('action', $typeOptions);
+            $form->setDefault('action', "production|{$taskRec->productId}");
+            if(isset($form->rec->action)){
+                list($type, $productId) = explode('|', $form->rec->action);
+                $form->rec->productId = $productId;
+                $form->rec->type = $type;
+            }
+            
+            $data = (object) array('form' => $form, 'masterRec' => planning_Tasks::fetch($currentTaskId), 'action' => 'add');
             $Details->invoke('AfterPrepareEditForm', array($data, $data));
         } else {
             
@@ -631,7 +637,7 @@ class planning_Points extends core_Manager
             $form->setOptions('type', $typeOptions);
             $form->rec->productId = null;
             foreach (array('employees', 'fixedAsset', 'type', 'productId', 'weight', 'quantity') as $fld){
-               $form->setReadOnly($fld);
+                $form->setReadOnly($fld);
             }
         }
         
@@ -649,11 +655,11 @@ class planning_Points extends core_Manager
         
         $numpadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'numPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
         $form->fieldsLayout->append($numpadBtn, 'NUM_PAD_BTN');
-
+        
         $weightPadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'weightPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
         $form->fieldsLayout->append($weightPadBtn, 'WEIGHT_PAD_BTN');
         
-        // Показване на прогреса, само ако е 
+        // Показване на прогреса, само ако е
         if($currentTaskId && $form->rec->productId == $data->masterRec->productId){
             $taskRow = planning_Tasks::recToVerbal(planning_Tasks::fetch($currentTaskId), 'progressBar,progress');
             $form->fieldsLayout->append($taskRow->progressBar, 'PROGRESS');
