@@ -76,7 +76,8 @@ class vislog_Referer extends core_Manager
         $this->FLD('query', 'varchar(255)', 'caption=Query');
         $this->FLD('searchLogResourceId', 'key(mvc=vislog_HistoryResources,title=query)', 'caption=Ресурс');
         $this->FLD('ip', 'ip(15,showNames)', 'caption=Ip');
-        
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt,allowEmpty)', 'caption=Домейн,notNull,autoFilter');
+
         $this->setDbIndex('ip');
     }
     
@@ -96,25 +97,30 @@ class vislog_Referer extends core_Manager
             $localHost = $_SERVER['SERVER_NAME'];
             
             if (stripos($parts['host'], $localHost) === false) {
-                parse_str($parts['query'], $query);
+               
+                if($query = Mode::get('adWordsQuery')) {
+                    $rec->query = $query;
+                } else { 
+                    parse_str($parts['query'], $query);
+                    $search_engines = array(
+                        'bing' => 'q',
+                        'google' => 'q',
+                        'yahoo' => 'p'
+                    );
                 
-                $search_engines = array(
-                    'bing' => 'q',
-                    'google' => 'q',
-                    'yahoo' => 'p'
-                );
-                
-                preg_match('/(' . implode('|', array_keys($search_engines)) . ')\./', $parts['host'], $matches);
-                
-                $rec->query = isset($matches[1], $query[$search_engines[$matches[1]]])   ? $query[$search_engines[$matches[1]]] : '';
-                
+                    preg_match('/(' . implode('|', array_keys($search_engines)) . ')\./', $parts['host'], $matches);
+                    
+                    $rec->query = isset($matches[1], $query[$search_engines[$matches[1]]]) ? $query[$search_engines[$matches[1]]] : '';
+                }
+
                 $rec->searchLogResourceId = $resource;
                 
                 // Поставяме IP ако липсва
                 if (!$rec->ip) {
                     $rec->ip = $_SERVER['REMOTE_ADDR'];
                 }
-                
+                $rec->domainId = cms_Domains::getPublicDomain('id');
+
                 $this->save($rec);
             }
         }
@@ -131,8 +137,14 @@ class vislog_Referer extends core_Manager
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->showFields = 'search,domainId';
+        $data->listFilter->input($data->listFilter->showFields, 'silent');
         
-        $data->listFilter->showFields = 'search';
+        if ($domainId = $data->listFilter->rec->domainId) {
+            $data->query->where(array("#domainId = '[#1#]'", $domainId));
+        }
+
+
     }
     
     

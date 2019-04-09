@@ -48,9 +48,7 @@ class core_Mode
         
         self::prepareMode();
         
-        $Session = cls::get('core_Session');
-        
-        $sessPrefix = $Session->getDecoratePrefix();
+        $sessPrefix = core_Session::getDecoratePrefix();
         
         self::$mode[$sessPrefix][$name] = $value;
         
@@ -137,8 +135,7 @@ class core_Mode
         
         $res = null;
         
-        $Session = cls::get('core_Session');
-        $sessPrefix = $Session->getDecoratePrefix();
+        $sessPrefix = core_Session::getDecoratePrefix();
         
         if (isset(self::$mode[$sessPrefix][$name])) {
             $res = self::$mode[$sessPrefix][$name];
@@ -153,8 +150,7 @@ class core_Mode
      */
     protected static function prepareMode()
     {
-        $Session = cls::get('core_Session');
-        $sessPrefix = $Session->getDecoratePrefix();
+        $sessPrefix = core_Session::getDecoratePrefix();
         
         if (is_null(self::$mode[$sessPrefix])) {
             self::$mode[$sessPrefix] = core_Session::get(EF_MODE_SESSION_VAR);

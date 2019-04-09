@@ -204,10 +204,8 @@ class rack_Products extends store_Products
             $pQuery->where("#id IN (${onlyIds})");
         }
         
-        $xpr = "CONCAT(' ', #name, ' ', #code, ' ', #nameEn)";
-        $pQuery->XPR('searchFieldXpr', 'text', $xpr);
-        $pQuery->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
-        
+        $pQuery->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
+       
         if ($q) {
             if ($q{0} == '"') {
                 $strict = true;
@@ -226,7 +224,7 @@ class rack_Products extends store_Products
             $pQuery->limit($limit);
         }
         
-        $pQuery->show('id,name,code,isPublic,nameEn,searchFieldXpr');
+        $pQuery->show('id,name,code,isPublic,nameEn');
         
         while ($pRec = $pQuery->fetch()) {
             $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);

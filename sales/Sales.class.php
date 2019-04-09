@@ -122,7 +122,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
+    public $listFields = 'valior, title=@Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
                              dealerId=Търговец,paymentState,
                              createdOn, createdBy';
     
@@ -185,8 +185,14 @@ class sales_Sales extends deals_DealMaster
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'sales,ceo';
-    
-    
+
+
+    /**
+     * Отделния ред в листовия изглед да е отгоре
+     */
+    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+
+
     /**
      * Стратегии за дефолт стойностти
      */
@@ -1162,12 +1168,12 @@ class sales_Sales extends deals_DealMaster
         if (isset($rec->priceListId)) {
             $row->priceListId = price_Lists::getHyperlink($rec->priceListId, true);
         }
-        
+
         if (isset($fields['-single'])) {
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')) {
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
             }
-            
+
             $row->transportCurrencyId = $row->currencyId;
             $hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id);
             $expectedTransportCost = $mvc->getExpectedTransportCost($rec);
@@ -1191,6 +1197,8 @@ class sales_Sales extends deals_DealMaster
                     $row->btnTransport = $link->getContent();
                 }
             }
+        } else if (isset($fields['-list'])) {
+            $row->title .= "  «  " . $row->folderId;
         }
         
         core_Lg::pop();

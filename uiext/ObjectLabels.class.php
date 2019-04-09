@@ -27,7 +27,7 @@ class uiext_ObjectLabels extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Тагове на обект';
+    public $title = 'Тагове към редове от списък';
     
     
     /**

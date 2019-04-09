@@ -101,19 +101,6 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
     
     
     /**
-     * Преди показване на форма за добавяне/промяна
-     */
-    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
-    {
-        $form = &$data->form;
-        $rec = &$form->rec;
-        
-        $form->setField('packPrice', 'mandatory');
-        $form->setField('discount', 'input=none');
-    }
-    
-    
-    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
      * @param core_Mvc  $mvc
@@ -126,16 +113,20 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
     
     
     /**
-     * Достъпните продукти
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
      */
-    protected function getProducts($masterRec)
+    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
+        $form = &$data->form;
+        $masterRec = $data->masterRec;
         $property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
         
-        // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-        $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property, 'canStore');
-        
-        return $products;
+        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property, 'hasnotProperties' => 'canStore'));
+        $form->setField('packPrice', 'mandatory');
+        $form->setField('discount', 'input=none');
     }
     
     

@@ -3800,3 +3800,46 @@ td.leftColImportant {
 .dangerFile {
     color: #900 !important;
 }
+.wide .treelist {
+	font-family: Consolas, Courier New, monospace;
+}
+
+.treelist {
+    font-size:16px; 
+    padding:5px; 
+    max-width:100%; 
+    max-height:400px;
+    white-space:nowrap;
+    overflow-x:auto;
+    overflow-y:auto;
+	ul {
+		list-style-type: none;
+		margin:0;
+		margin-left:17px;
+		padding:0;
+	}
+	li {
+		display:table;
+		padding:0px;
+		border-collapse: separate;
+		&.row {
+			padding: 2px;
+		}
+	}
+	.trigger {
+		cursor:pointer;
+		font-style: normal;
+
+	}
+	input {
+		position: relative;
+		top: 2px;
+	}
+	i {
+		display: inline-block;
+		width: 14px;
+		text-align: center;
+	}
+
+    .hidden {display:none;}
+}

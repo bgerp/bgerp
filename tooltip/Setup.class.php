@@ -28,7 +28,7 @@ class tooltip_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Пакет за работа с tooltip - подсказки';
+    public $info = 'Добавяне на подсказки (tooltips) в потребителския интерфейс';
     
     
     /**

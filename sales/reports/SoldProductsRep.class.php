@@ -50,7 +50,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'from,to,compare,group,dealers,contragent,crmGroup,articleType,seeDelta';
+    protected $changeableFields = 'from,to,compare,firstMonth,secondMonth,group,dealers,contragent,crmGroup,articleType,seeDelta,orderBy,order,grouping,updateDays,updateTime';
     
     
     /**
@@ -849,8 +849,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $row->{$q} = ht::styleNumber($row->{$q}, $dRec->{$q});
             }
             
+            if( $rec->grouping == 'yes') {
+                $row->group = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
+            }
+            
             if ($rec->compare != 'no') {
-                $changeDeltas = $changeDeltas = 0;
+                $changeDeltas = $changeSales = 0;
                 
                 if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
                     $row->primeCostCompare = '<b>' . $Double->toVerbal($dRec->totalPrimeCostPrevious) . '</b>';
@@ -883,10 +887,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
                 }
                 
-                if( $rec->grouping == 'yes') {
-                    $row->group = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
-                }
-               
             }
            
             return $row;
@@ -903,7 +903,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $row->delta = $Double->toVerbal($dRec->delta);
             
             if ($rec->compare != 'no') {
-                $changeDeltas = $changeDeltas = 0;
                 
                 if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
                     
@@ -939,8 +938,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             return $row;
         }
         
-        //Ако имаме избрано показяне "ПО АРТИКУЛИ"
+        //Ако имаме избрано показване "ПО АРТИКУЛИ"
         if ($rec->grouping == 'no') {
+            
             if (isset($dRec->code)) {
                 $row->code = $dRec->code;
             }
@@ -967,7 +967,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $row->group = self::getGroups($dRec, true, $rec);
             
             if ($rec->compare != 'no') {
-                $changeDeltas = $changeDeltas = 0;
                 
                 if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
                     $row->quantityCompare = $Double->toVerbal($dRec->quantityPrevious);
@@ -1217,6 +1216,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
     }
     
+    /*
+     * Връща folderId-тата на всички контрагенти,
+     * които имат регистрация в поне една от избраните групи
+     *
+     * @param stdClass            $rec
+     *
+     * @return array
+     */
     public static function getFoldersInGroups($rec)
     {
         $foldersInGroups = array();

@@ -75,7 +75,7 @@ class cms_Library extends embed_Manager
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'name';
+    public $listFields = 'driverClass,tag';
     
     
     /**
@@ -96,10 +96,10 @@ class cms_Library extends embed_Manager
     public function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име,mandatory');
-        $this->FLD('tag', 'varchar(4)', 'caption=Таг,input=none,oldFieldName=hnd');
+        $this->FLD('tag', 'varchar(64)', 'caption=Таг,input=none');
         $this->FLD('description', 'text(rows=2)', 'caption=Описание');
 
-        $this->setDbUnique('name,tag');
+        $this->setDbUnique('name');
     }
 
 
@@ -120,7 +120,7 @@ class cms_Library extends embed_Manager
      * След рендиране на единичния изглед
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
-    {   
+    {
         $maxWidth = 900;
         if (isset($data->rec)) {
             $preview = self::render($data->rec, $maxWidth);

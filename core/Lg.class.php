@@ -44,25 +44,25 @@ class core_Lg extends core_Manager
     /**
      * Кой може да чете?
      */
-    public $canRead = 'translator,admin';
+    public $canRead = 'translate,admin';
     
     
     /**
      * Кой може да записва?
      */
-    public $canEditsysdata = 'translator,admin';
+    public $canEditsysdata = 'translate,admin';
     
     
     /**
      * Кой може да записва?
      */
-    public $canWrite = 'translator,admin';
+    public $canWrite = 'translate,admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'admin';
+    public $canList = 'translate,admin';
     
     
     /**

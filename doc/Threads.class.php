@@ -3018,6 +3018,10 @@ class doc_Threads extends core_Manager
         
         $query->orderBy('modifiedOn', 'DESC');
         
+        $delTo = max(3 * doc_Setup::get('DELETE_REJECTED_THREADS_PERIOD'), 2 * core_DateTime::SECONDS_IN_MONTH);
+        $delTo = dt::subtractSecs($delTo);
+        $query->where(array("#modifiedOn >= '[#1#]'", $delTo));
+        
         $delCnt = 0;
         while ($rec = $query->fetch()) {
             $cQuery = doc_Containers::getQuery();

@@ -86,10 +86,8 @@ class cond_DialogWrapper extends core_Plugin
     
     
     /**
-     *
-     *
-     * @param unknown_type $mvc
-     * @param unknown_type $tabs
+     * @param core_Mvc $mvc
+     * @param array $tabs
      */
     public function on_AfterGetGalleryTabsArr($mvc, &$tabs)
     {

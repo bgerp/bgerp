@@ -10,7 +10,7 @@ defIfNot('ACC_INVOICE_MANDATORY_EXPORT_PARAM', '');
 /**
  * Колко дена преди края на месеца да се направи следващия бъдещ период чакащ
  */
-defIfNot('ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING', '');
+defIfNot('ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING', '86400');
 
 
 /**
@@ -392,7 +392,7 @@ class acc_Setup extends core_ProtoSetup
             'controller' => 'acc_Periods',
             'action' => 'createFuturePeriods',
             'period' => 1440,
-            'offset' => 60
+            'offset' => 1
         ),
         array(
             'systemId' => 'RecalcBalances',

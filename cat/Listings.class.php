@@ -24,6 +24,12 @@ class cat_Listings extends core_Master
     
     
     /**
+     * Дали се очаква в документа да има други документи
+     */
+    public $expectDocs = false;
+    
+    
+    /**
      * Заглавие
      */
     public $title = 'Листвания на артикули';
@@ -572,7 +578,6 @@ class cat_Listings extends core_Master
      */
     private static function forceAutoList($folderId, $Cover)
     {
-        $folderName = doc_Folders::getTitleById($folderId);
         $title = 'Списък от предишни продажби';
         $listId = cat_Listings::fetchField("#sysId = 'auto{$folderId}'");
         if (!$listId) {
@@ -583,5 +588,67 @@ class cat_Listings extends core_Master
         }
         
         return $listId;
+    }
+    
+    
+    /**
+     * Връща достъпните продаваеми артикули
+     */
+    public static function getProductOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        expect($params['listId']);
+        $options = array();
+        
+        $pQuery = cat_Products::getQuery();
+        if (is_array($onlyIds)) {
+            if (!count($onlyIds)) {
+                
+                return array();
+            }
+            $ids = implode(',', $onlyIds);
+            $pQuery->where("#id IN ({$ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $pQuery->where("#id = ${onlyIds}");
+        } else {
+            $dQuery = cat_ListingDetails::getQuery();
+            $dQuery->where("#listId = {$params['listId']}");
+            $dQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+            $dQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
+            
+            $listType = self::fetchField($params['listId'], 'type');
+            $dQuery->EXT($listType, 'cat_Products', "externalName={$listType},externalKey=productId");
+            $dQuery->where("#state != 'closed' AND #state != 'rejected' AND #{$listType} = 'yes'");
+            $dQuery->show('productId');
+            
+            $products = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+            $pQuery->in('id', $products);
+        }
+        
+        $pQuery->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
+        
+        if ($q) {
+            if ($q{0} == '"') {
+                $strict = true;
+            }
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            $q = mb_strtolower($q);
+            $qArr = ($strict) ? array(str_replace(' ', '.*', $q)) : explode(' ', $q);
+            
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
+            foreach ($qArr as $w) {
+                $pQuery->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+            }
+        }
+        
+        if ($limit) {
+            $pQuery->limit($limit);
+        }
+        
+        $pQuery->show('id,name,code,isPublic,nameEn');
+        while ($pRec = $pQuery->fetch()) {
+            $options[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+        }
+        
+        return $options;
     }
 }

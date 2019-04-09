@@ -215,7 +215,7 @@ class hr_Deductions extends core_Master
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param datetime $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
      *
      * @return array $result  - масив с обекти
      *
@@ -229,11 +229,11 @@ class hr_Deductions extends core_Master
      */
     public static function getIndicatorValues($timeline)
     {
+        $result = array();
         $query = self::getQuery();
         $query->where("#modifiedOn  >= '{$timeline}' AND #state != 'draft' AND #state != 'template' AND #state != 'pending'");
         
         $iRec = hr_IndicatorNames::force('Удръжка', __CLASS__, 1);
-        
         while ($rec = $query->fetch()) {
             $result[] = (object) array(
                 'date' => $rec->date,
@@ -253,7 +253,7 @@ class hr_Deductions extends core_Master
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
      *
-     * @param date $date
+     * @param datetime $date
      *
      * @return array $result
      */

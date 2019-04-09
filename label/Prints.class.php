@@ -884,10 +884,6 @@ class label_Prints extends core_Master
         }
         
         if ($action == 'edit' && $rec && $requiredRoles != 'no_one') {
-            if ($rec->createdBy != $userId) {
-                $requiredRoles = 'labelMaster, admin, ceo';
-            }
-            
             if ($rec->objectId && $rec->classId) {
                 if (cls::load($rec->classId, true)) {
                     if (!cls::haveInterface('label_SequenceIntf', $rec->classId)) {
@@ -965,7 +961,7 @@ class label_Prints extends core_Master
                 
                 core_Mode::push('prepareLabel', true);
                 core_Lg::push($lang);
-                $labelDataArr = (array) $intfInst->getLabelData($rec->objectId, $pData->cnt, $preview);
+                $labelDataArr = (array) $intfInst->getLabelData($rec->objectId, $pData->cnt, $preview, $rec);
                 $placeArr = (array) $intfInst->getLabelPlaceholders($rec->objectId);
                 core_Lg::pop();
                 core_Mode::pop('prepareLabel');

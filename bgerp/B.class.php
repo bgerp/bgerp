@@ -31,6 +31,30 @@ class bgerp_B extends core_Manager
     
     
     /**
+     * Съкратен екшън за отписване от blast имейлите
+     */
+    public function act_R()
+    {
+        $vid = Request::get('id');
+        
+        return blast_Redirect::doRedirect($vid);
+    }
+    
+    
+    /**
+     * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
+     */
+    public function unprotectId_($id)
+    {
+        if ($_GET['Act'] == 'R') {
+            $this->protectId = false;
+        }
+        
+        return parent::unprotectId_($id);
+    }
+    
+    
+    /**
      * Създава пряк път до статиите в блога
      */
     public function act_Default()

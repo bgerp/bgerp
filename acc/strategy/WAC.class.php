@@ -82,7 +82,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
      * Ако абсолютно никога не е имало движения връщаме NULL
      *
      * @param float    $quantity   - к-то което ще проверяваме
-     * @param date     $date       - дата към която търсим цената
+     * @param datetime     $date       - дата към която търсим цената
      * @param string   $accSysId   - систем ид на сметка със стратегия
      * @param mixed    $item1      - ид на перо на първа позиция / NULL ако няма / '*' Всички пера
      * @param mixed    $item2      - ид на перо на първа позиция / NULL ако няма / '*' Всички пера

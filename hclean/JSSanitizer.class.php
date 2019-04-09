@@ -88,7 +88,7 @@ class hclean_JSSanitizer extends core_Manager
      */
     public static function htmlToJsText($html)
     {
-        $jsHtml = preg_replace(array("/\r?\n/", "/\//"), array('\\n', "\/"), addslashes($html));
+        $jsHtml = preg_replace(array("/\r?\n/", "/\//", "/\r/"), array('\\n', "\/", ""), addslashes($html));
         
         return $jsHtml;
     }

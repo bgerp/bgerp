@@ -511,9 +511,7 @@ class planning_Jobs extends core_Master
      */
     private static function getContragentsWithJobs()
     {
-        $lifeTime = 120;
-
-        $options = core_Cache::get('planning_Jobs', 'contragentsWithJobs', $lifeTime, array('planning_Jobs'));
+        $options = core_Cache::get('planning_Jobs', 'contragentsWithJobs', 120, array('planning_Jobs'));
         
         if(!is_array($options) || !count($options)) {
             $options = array();
@@ -528,7 +526,7 @@ class planning_Jobs extends core_Master
                 $options[$jRec->sFolderId] = doc_Folders::getTitleById($jRec->sFolderId);
             }
              
-            core_Cache::set('planning_Jobs', 'contragentsWithJobs', $options, $lifeTime, array('planning_Jobs'));
+            core_Cache::set('planning_Jobs', 'contragentsWithJobs', $options, 120, array('planning_Jobs'));
         }
         
         return $options;
@@ -1138,8 +1136,13 @@ class planning_Jobs extends core_Master
         $form->FLD('select', 'varchar', 'caption=Избор,mandatory');
         
         $options = $this->getTaskOptions($jobRec);
-        $form->setOptions('select', $options);
-        $form->setDefault('select', 'new');
+        if(count($options)){
+            $form->setOptions('select', $options);
+            $form->setDefault('select', 'new');
+        } else {
+            $form->setReadOnly('select');
+        }
+        
         $form->input();
         if ($form->isSubmitted()) {
             $action = $form->rec->select;
@@ -1227,7 +1230,9 @@ class planning_Jobs extends core_Master
             $options2["new|{$depFolderId}"] = tr("В|* {$dName}");
         }
         
-        $options += array('new' => (object) array('group' => true, 'title' => tr('Нови операции'))) + $options2;
+        if(count($options2)){
+            $options += array('new' => (object) array('group' => true, 'title' => tr('Нови операции'))) + $options2;
+        }
         
         // Връщане на опциите за избор
         return $options;

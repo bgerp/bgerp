@@ -24,6 +24,12 @@ class page_Html extends core_ET
         
         $bodyId = str::getRand();
         
+        if($this instanceof cms_page_External) {
+            $loadJS = "\n<script type=\"text/javascript\"> [#SCRIPTS#] window.onload = function() {if (window.jQuery) {[#JQRUN#]} }\n</script>";
+        } else {
+            $loadJS = "<script type=\"text/javascript\">[#SCRIPTS#][#JQRUN#]\n</script>";
+        }
+        
         parent::__construct(
             '<!doctype html>' .
             
@@ -43,8 +49,7 @@ class page_Html extends core_ET
             "\n</head>" .
             "\n<body<!--ET_BEGIN ON_LOAD--> onload=\"[#ON_LOAD#]\"<!--ET_END ON_LOAD--> id= \"{$bodyId}\" class=\"{$bodyClass} [#BODY_CLASS_NAME#]\">" .
             '<!--ET_BEGIN PAGE_CONTENT-->[#PAGE_CONTENT#]<!--ET_END PAGE_CONTENT-->' .
-            "<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n</script><!--ET_END JQRUN-->" .
-            "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->" .
+            $loadJS .
             '<!--ET_BEGIN BROWSER_DETECT-->[#BROWSER_DETECT#]<!--ET_END BROWSER_DETECT-->' .
             '[#page_Html::addJs#]' .
             "\n</body>" .
@@ -77,9 +82,7 @@ class page_Html extends core_ET
             'invoker' => $invoker
         );
         
-        $inst = cls::get(get_called_class());
-        
-        $inst->appendFiles($files);
+        $invoker->appendFiles($files);
     }
     
     
@@ -200,8 +203,10 @@ class page_Html extends core_ET
         if (is_array($files->js)) {
             foreach ($files->js as $file) {
                 $file = $this->getFileForAppend($file, $absolute);
-                
-                $files->invoker->appendOnce("\n<script type=\"text/javascript\" src=\"{$file}\"></script>", 'HEAD', true);
+                if($this instanceof cms_page_External) {
+                   $attr = "defer";
+                }
+                $files->invoker->appendOnce("\n<script {$attr} type=\"text/javascript\" src=\"{$file}\"></script>", 'HEAD', true);
             }
         }
     }

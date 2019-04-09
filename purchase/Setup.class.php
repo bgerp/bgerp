@@ -138,7 +138,7 @@ class purchase_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'purchase_PurchaseLastPricePolicy';
+    public $defClasses = 'purchase_PurchaseLastPricePolicy,purchase_reports_PurchasedItems';
     
     
     /**

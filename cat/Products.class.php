@@ -1082,12 +1082,13 @@ class cat_Products extends embed_Manager
      * @param mixed $hasnotProperties - комбинация на горе посочените мета
      *                                които не трябва да имат
      * @param int   $limit            - лимит
+     * @param mixed   $groups            - групи
      *
      * @return array - намерените артикули
      */
-    public static function getByProperty($properties, $hasnotProperties = null, $limit = null)
+    public static function getByProperty($properties, $hasnotProperties = null, $limit = null, $groups = null)
     {
-        return static::getProducts(null, null, null, $properties, $hasnotProperties, $limit);
+        return static::getProducts(null, null, null, $properties, $hasnotProperties, $limit, false, $groups);
     }
     
     
@@ -1388,6 +1389,170 @@ class cat_Products extends embed_Manager
     
     
     /**
+     * Връща достъпните продаваеми артикули
+     */
+    public static function getProductOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $private = $products = array();
+        $query = cat_Products::getQuery();
+        
+        if (is_array($onlyIds)) {
+            if (!count($onlyIds)) {
+                
+                return array();
+            }
+            
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            
+            $query->where("#id IN (${ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $query->where("#id = ${onlyIds}");
+        } else {
+            $query->where("#state = 'active'");
+            $reverseOrder = false;
+            
+            // Ако е зададен контрагент, оставяме само публичните + частните за него
+            if (isset($params['customerClass']) && isset($params['customerId'])) {
+                $reverseOrder = true;
+                $folderId = cls::get($params['customerClass'])->forceCoverAndFolder($params['customerId']);
+                cat_products_SharedInFolders::limitQuery($query, $folderId);
+            }
+            
+            if ($limit) {
+                $query->limit($limit);
+            }
+            
+            self::filterQueryByMeta($query, $params['hasProperties'], $params['hasnotProperties'], $params['orHasProperties']);
+            if(isset($params['groups'])){
+                $groups = (keylist::isKeylist($params['groups'])) ? $params['groups'] : keylist::fromArray(arr::make($params['groups'], true));
+                $query->likeKeylist('groups', $groups);
+            }
+            
+            if(isset($params['isPublic'])){
+                $query->where("#isPublic = '{$params['isPublic']}'");
+            }
+        }
+        
+        $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
+        $direction = ($reverseOrder === true) ? 'ASC' : 'DESC';
+        $query->orderBy('isPublic', $direction);
+        if (!trim($q)) {
+            $query->orderBy('createdOn', 'DESC');
+        }
+        
+        if ($q) {
+            if ($q{0} == '"') {
+                $strict = true;
+            }
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            $q = mb_strtolower($q);
+            $qArr = ($strict) ? array(str_replace(' ', '.*', $q)) : explode(' ', $q);
+            
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
+            foreach ($qArr as $w) {
+                $query->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+            }
+        }
+        
+        $qRegexp = $qRegexpCode = '';
+        if ($q) {
+            $qRegexp = $qArr[0] ? trim($qArr[0]) : trim($q);
+            $qRegexp = preg_quote($qRegexp, '/');
+            $qRegexpCode = "/\({$qRegexp}\)$/ui";
+            $qRegexp = "/(^|[^0-9a-zа-я]){$qRegexp}([^0-9a-zа-я]|$)/ui";
+        
+        }
+        $mArr = array();
+        
+        // Подготвяне на опциите
+        $query->show('isPublic,folderId,meta,id,code,name,nameEn');
+        while ($rec = $query->fetch()) {
+            $title = static::getRecTitle($rec, false);
+            if ($rec->isPublic == 'yes') {
+                $products[$rec->id] = $title;
+            } else {
+                $private[$rec->id] = $title;
+            }
+            
+            if ($qRegexp && preg_match($qRegexp, $title)) {
+                $mArr[$rec->id] = $title;
+            }
+        }
+        
+        // Подреждане по код
+        if (!empty($mArr) && $qRegexpCode) {
+            uasort($mArr, function ($a, $b) use ($qRegexpCode) {
+                if (preg_match($qRegexpCode, $a)) {
+                    
+                    return 1;
+                }
+                
+                return 0;
+            });
+        }
+        
+        // Подредба по азбучен ред
+        if ($q) {
+            if (!empty($products)) {
+                asort($products);
+            }
+            if (!empty($private)) {
+                asort($private);
+            }
+        }
+        
+        $mustReverse = null;
+        
+        // Ако има пълно съвпадение с някоя дума - добавяме в началото
+        foreach ($mArr as $mId => $mTitle) {
+            if (isset($products[$mId])) {
+                unset($products[$mId]);
+                $products = array($mId => $mTitle) + $products;
+                if (!isset($mustReverse)) {
+                    $mustReverse = false;
+                } elseif ($mustReverse === true) {
+                    $mustReverse = -1;
+                }
+            }
+            
+            if (isset($private[$mId])) {
+                unset($private[$mId]);
+                $private = array($mId => $mTitle) + $private;
+                if (!isset($mustReverse)) {
+                    $mustReverse = true;
+                } elseif ($mustReverse === false) {
+                    $mustReverse = -1;
+                }
+            }
+        }
+        if (isset($mustReverse) && $mustReverse !== -1) {
+            $reverseOrder = $mustReverse;
+        }
+        
+        if (count($products) && !isset($onlyIds)) {
+            $products = array('pu' => (object) array('group' => true, 'title' => tr('Стандартни'))) + $products;
+        }
+        
+        // Частните артикули излизат преди публичните
+        if (count($private)) {
+            krsort($private);
+            if(!isset($onlyIds)){
+                $private = array('pr' => (object) array('group' => true, 'title' => tr('Нестандартни'))) + $private;
+            }
+            
+            if ($reverseOrder === true) {
+                $products = $private + $products;
+            } else {
+                $products = $products + $private;
+            }
+        }
+        
+        return $products;
+    }
+    
+    
+    /**
      * Връща масив с артикули за избор, според подадения контрагент.
      * Намира всички стандартни + нестандартни артикули (тези само за клиента или споделени към него).
      * Или ако не е подаден контрагент от всички налични артикули
@@ -1399,64 +1564,31 @@ class cat_Products extends embed_Manager
      * @param mixed    $hasnotProperties - свойства, които да нямат артикулите
      * @param int|NULL $limit            - лимит
      * @param bool     $orHasProperties  - Дали трябва да имат всички свойства от зададените или поне едно
+     * @param mixed    $groups           - групи в които да участват
+     * @param null|boolean $isPublic     - null за всички артикули, true за стандартните, false за нестандартните
      *
      * @return array $products         - артикулите групирани по вида им стандартни/нестандартни
      */
-    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false)
+    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $isPublic = null)
     {
-        // Само активни артикули
-        $query = static::getQuery();
-        $query->where("#state = 'active'");
-        $reverseOrder = false;
-        
-        // Ако е зададен контрагент, оставяме само публичните + частните за него
-        if (isset($customerClass, $customerId)) {
-            $reverseOrder = true;
-            $folderId = cls::get($customerClass)->forceCoverAndFolder($customerId);
-            cat_products_SharedInFolders::limitQuery($query, $folderId);
-        }
-        
-        $query->show('isPublic,folderId,meta,id,code,name,nameEn');
-        
-        // Ограничаваме заявката при нужда
-        if (isset($limit)) {
-            $query->limit($limit);
-        }
-        
-        // Ако има указано записи за игнориране, пропускат се
-        if (is_array($ignoreIds) && count($ignoreIds)) {
-            $query->notIn('id', $ignoreIds);
-        }
-        
-        $private = $products = array();
-        self::filterQueryByMeta($query, $hasProperties, $hasnotProperties, $orHasProperties);
-        
-        // Подготвяме опциите
-        while ($rec = $query->fetch()) {
-            $title = static::getRecTitle($rec, false);
-            
-            if ($rec->isPublic == 'yes') {
-                $products[$rec->id] = $title;
-            } else {
-                $private[$rec->id] = $title;
+        $Type = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)');
+        foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic') as $val){
+            if(isset(${"{$val}"})){
+                $Type->params[$val] = ${"{$val}"};
             }
         }
         
-        if (count($products)) {
-            $products = array('pu' => (object) array('group' => true, 'title' => tr('Стандартни'))) + $products;
-        }
-        
-        // Частните артикули излизат преди публичните
-        if (count($private)) {
-            krsort($private);
-            $private = array('pr' => (object) array('group' => true, 'title' => tr('Нестандартни'))) + $private;
-            
-            if ($reverseOrder === true) {
-                $products = $private + $products;
-            } else {
-                $products = $products + $private;
+        foreach (array('hasProperties', 'hasnotProperties', 'groups') as $val){
+            if(!empty(${"{$val}"})){
+                $Type->params[$val] = implode('|', arr::make(${"{$val}"}, true));
             }
         }
+        
+        if(isset($groups)){
+            $Type->params[$val] = $groups;
+        }
+        
+        $products = $Type->getOptions($limit);
         
         return $products;
     }
@@ -1472,8 +1604,8 @@ class cat_Products extends embed_Manager
      */
     private static function filterQueryByMeta(&$query, $hasProperties = null, $hasnotProperties = null, $orHasProperties = false)
     {
-        $metaArr = arr::make($hasProperties);
-        $hasnotProperties = arr::make($hasnotProperties);
+        $metaArr = (strpos($hasProperties, '|') !== false)  ? explode('|', $hasProperties) : arr::make($hasProperties);
+        $hasnotProperties = (strpos($hasnotProperties, '|') !== false)  ? explode('|', $hasnotProperties) : arr::make($hasnotProperties);
         
         // Търси се всяко свойство
         if (count($metaArr)) {
@@ -3012,7 +3144,9 @@ class cat_Products extends embed_Manager
         
         $form = cls::get('core_Form');
         $form->title = 'Промяна на групите на|* <b>' . cat_Products::getHyperlink($id, true) . '</b>';
-        $form->FNC('groupsInput', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи,input');
+        
+        $this->setExpandInputField($form, $this->expandInputFieldName, $this->expandFieldName);
+        
         $form->setDefault('groupsInput', $rec->groupsInput);
         $form->input();
         if ($form->isSubmitted()) {

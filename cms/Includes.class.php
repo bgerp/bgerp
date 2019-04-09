@@ -39,6 +39,7 @@ class cms_Includes extends core_Master
      */
     public function description()
     {
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt,allowEmpty)', 'caption=Домейн,mandatory,autoFilter');
         $this->FLD('place', 'varchar(32)', 'caption=Място,mandatory,suggestions=HTTP_HEADER|HEAD|JS|CSS|META_DESCRIPTION|META_KEYWORDS|STYLES|PAGE_CONTENT|SCRIPTS');
         $this->FLD('mode', 'enum(append, prepend, replace, push)', 'caption=Метод');
         $this->FLD('code', 'text', 'caption=Код,mandatory,width=100%');
@@ -50,8 +51,17 @@ class cms_Includes extends core_Master
      */
     public static function insert($tpl)
     {
+        $domainId = cms_Domains::getPublicDomain('id');
+
         $query = self::getQuery();
         $query->where("#state = 'active'");
+
+        if($domainId == 1) {
+            $query->where("#domainId = 1 OR #domainId IS NULL");
+        } else {
+            $query->where("#domainId = {$domainId}");
+        }
+
         while ($rec = $query->fetch()) {
             $rec->code = "\n" . $rec->code;
             switch ($rec->mode) {
@@ -70,4 +80,17 @@ class cms_Includes extends core_Master
             }
         }
     }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+     //   $data->form->setOptions('domainId', cms_Domains::getDomainOptions(true));
+    }
+    
 }

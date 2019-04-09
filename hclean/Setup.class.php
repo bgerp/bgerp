@@ -45,7 +45,7 @@ class hclean_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Изчистване на HTML';
+    public $info = 'Почистване на HTML от опасен код';
     
     
     /**

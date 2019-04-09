@@ -400,6 +400,10 @@ class core_App
             $execTime = Debug::getExecutionTime();
             $execTime = number_format($execTime, 0);
             
+            if ($execTime >= 2) {
+                $logHit = true;
+            }
+            
             // Времето за изпълнение го правим стъпково
             if ($execTime <= 1) {
                 $execTime = 0;

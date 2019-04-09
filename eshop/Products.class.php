@@ -302,7 +302,7 @@ class eshop_Products extends core_Master
                     $title = 'Изпратете запитване за|* ' . tr($rec->name);
                     Request::setProtected('classId,objectId');
                     $url = array('marketing_Inquiries2', 'new', 'classId' => $mvc->getClassId(), 'objectId' => $rec->id, 'ret_url' => true);
-                    $row->coInquiry = ht::createLink(tr('Запитване'), $url, null, "ef_icon=img/16/button-question-icon.png,title={$title},class=productBtn,rel=nofollow");
+                    $row->coInquiry = ht::createLink(tr('Запитване'), $url, null, "ef_icon=img/16/help_contents.png,title={$title},class=productBtn,rel=nofollow");
                     Request::removeProtected('classId,objectId');
                 }
             }
@@ -701,11 +701,14 @@ class eshop_Products extends core_Master
         $group = eshop_Groups::getVerbal($groupRec, 'name');
         $groupLink = ht::createLink($group, eshop_Groups::getUrl($groupRec));
         $pgId = $groupRec->saoParentId;
-        
+        $used = array();
+
         while ($pgId) {
+            if($used[$pgId]) break;
             $pGroupRec = eshop_Groups::fetch($pgId);
             $groupLink = ht::createLink(eshop_Groups::getVerbal($pGroupRec, 'name'), eshop_Groups::getUrl($pGroupRec)) . ' » ' . $groupLink;
             $pgId = $pGroupRec->saoParentId;
+            $used[$pgId] = true;
         }
         
         // Навигация до артикула

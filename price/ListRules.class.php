@@ -152,7 +152,7 @@ class price_ListRules extends core_Detail
      * @param int             $listId      - към кой ценоразпис
      * @param string          $groupName   - име на група
      * @param float           $discount    - марж
-     * @param forward|reverse $calculation - Изчисляване спрямо бащата
+     * @param string $calculation - Изчисляване спрямо бащата
      * @param string          $validFrom   - дата на валидност
      * @param string          $validUntill - крайна дата на валидност
      * @param int             $priority    - приоритет
@@ -299,7 +299,7 @@ class price_ListRules extends core_Detail
     /**
      * Връща цената за посочения продукт според ценовата политика
      */
-    public static function getPrice($listId, $productId, $packagingId = null, $datetime = null, &$validFrom = null)
+    public static function getPrice($listId, $productId, $packagingId = null, $datetime = null, &$validFrom = null, $isFirstCall = true)
     {
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
@@ -322,26 +322,18 @@ class price_ListRules extends core_Detail
             $query->limit(1);
             
             $rec = $query->fetch();
-            $listRec = price_Lists::fetch($listId, 'parent,vat,defaultSurcharge,significantDigits,minDecimals');
+            $listRec = price_Lists::fetch($listId, 'title,parent,vat,defaultSurcharge,significantDigits,minDecimals');
             $round = true;
             
             if ($rec) {
                 if ($rec->type == 'value') {
                     $vat = cat_Products::getVat($productId, $datetime);
-                    $price = self::normalizePrice($rec, $vat, $datetime);
-                    
-                    if ($listRec->vat == 'yes') {
-                        $round = false;
-                        $price = $price * (1 + $vat);
-                        $price = price_Lists::roundPrice($listRec, $price);
-                        $price = $price / (1 + $vat);
-                    }
-                    
+                    $price = self::normalizePrice($rec, $vat, $datetime);                     
                     $validFrom = $rec->validFrom;
                 } else {
                     $validFrom = $rec->validFrom;
                     expect($parent = $listRec->parent);
-                    $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
+                    $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, false);
                     
                     if (isset($price)) {
                         if ($rec->calculation == 'reverse') {
@@ -380,7 +372,14 @@ class price_ListRules extends core_Detail
             
             // Ако има цена
             if (isset($price)) {
-                
+                if ($listRec->vat == 'yes' && $isFirstCall) {  
+                    $vat = cat_Products::getVat($productId, $datetime);
+                    $round = false;
+                    $price = $price * (1 + $vat);
+                    $price = price_Lists::roundPrice($listRec, $price);  
+                    $price = $price / (1 + $vat); 
+                }
+
                 // Ако има указано закръгляне на ценоразписа, закръгляме
                 if ($round === true) {
                     $price = price_Lists::roundPrice($listRec, $price);
@@ -391,7 +390,7 @@ class price_ListRules extends core_Detail
                 }
             }
         }
-        
+
         // Връщаме намерената цена
         return $price;
     }
@@ -411,7 +410,7 @@ class price_ListRules extends core_Detail
         $price = $rec->price;
         
         $listRec = price_Lists::fetch($rec->listId, 'currency,createdOn,vat');
-        list($date, $time) = explode(' ', $datetime);
+        list($date, ) = explode(' ', $datetime);
         
         // В каква цена е този ценоразпис?
         $currency = $rec->currency;
@@ -966,7 +965,7 @@ class price_ListRules extends core_Detail
             }
         }
         
-        $pQuery->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, '')))");
+        $pQuery->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
         
         if ($q) {
             if ($q{0} == '"') {

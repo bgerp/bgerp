@@ -164,6 +164,15 @@ class doc_Search extends core_Manager
             }
         }
         
+        // Ако се търси по документите на някой потребител, без да се гледа много 
+        if ($isFiltered && !$filterRec->fromDate && !$filterRec->toDate && !$data->listFilter->ignore && !$data->query->isSlowQuery) {
+            if (empty($filterRec->search) && empty($filterRec->scopeFolderId)) {
+                if (!empty($filterRec->docClass) && (!strpos($filterRec->author, '-1')) && plg_Search::isBigTable($data->query)) {
+                    $data->query->isSlowQuery = true;
+                }
+            }
+        }
+        
         if ($data->query->isSlowQuery && !$data->listFilter->ignore) {
             if (!$filterRec->fromDate && !$filterRec->toDate) {
                 $data->listFilter->setWarning('search, fromDate, toDate', 'Заявката за търсене е много обща и вероятно ще се изпълни бавно. Добавете още думи или я ограничете по дати');

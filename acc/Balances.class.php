@@ -218,7 +218,7 @@ class acc_Balances extends core_Master
         }
         
         // Ако показваме по сметка
-        if ($accId = Request::get('accId', 'int')) {
+        if (Request::get('accId', 'int')) {
             $periods = array();
             $query = $mvc->getQuery();
             $query->where('#periodId IS NOT NULL');
@@ -385,9 +385,6 @@ class acc_Balances extends core_Master
         // Вземаме инстанция на детайлите на баланса
         $bD = cls::get('acc_BalanceDetails');
         
-        // Зануляваме флага, за да не се преизчисли баланса отново
-        $recalcBalance = false;
-        
         // Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
         $lastRec = $this->getBalanceBefore($rec->toDate);
         
@@ -406,8 +403,7 @@ class acc_Balances extends core_Master
         
         // Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
         $isMiddleBalance = ($rec->periodId) ? false : true;
-        $recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
-        
+        $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
         
         // Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
         if ($bD->saveBalance($rec->id)) {
@@ -883,7 +879,7 @@ class acc_Balances extends core_Master
      * @param $showNum - дали да се показва Номера на сметката до името й
      * @param $showIcon - дали да се показва иконка
      *
-     * @return html $title - името на сметката като линк (ако имаме права)
+     * @return string $title - името на сметката като линк (ако имаме права)
      */
     public static function getAccountLink($accountId, $rec = null, $showNum = true, $showIcon = false)
     {

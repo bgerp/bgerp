@@ -158,7 +158,7 @@ class marketing_Router
      * Рутира в папка, намерена от имейл-рутера, само ако е от посочените корици
      *
      * @param string                          $email        - Имейл
-     * @param enum(contragent,company,person) $allowedCover - разрешена корица
+     * @param string $allowedCover - разрешена корица
      *
      * @return int - ид на папка
      */

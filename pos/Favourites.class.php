@@ -31,9 +31,15 @@ class pos_Favourites extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, pack=Мярка/Опаковка, pointId, catId, createdOn, createdBy, state';
-    
-    
+    public $listFields = 'productId, pack=Мярка/Опаковка, pointId, catId=@Категория, createdOn, createdBy, state';
+
+
+    /**
+     * Отделния ред в листовия изглед да е отгоре
+     */
+    public $tableRowTpl = "<tbody class='rowBlock'>[#ROW#][#ADD_ROWS#]</tbody>";
+
+
     /**
      * Заглавие на единичния обект
      */
@@ -81,24 +87,13 @@ class pos_Favourites extends core_Manager
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт, mandatory, silent,refreshForm');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canSell,maxSuggestions=100,forceAjax)', 'class=w100,caption=Продукт, mandatory, silent,refreshForm');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Опаковка,mandatory');
         $this->FLD('catId', 'keylist(mvc=pos_FavouritesCategories, select=name)', 'caption=Категория, mandatory');
         $this->FLD('pointId', 'keylist(mvc=pos_Points, select=name, makeLinks)', 'caption=Точка на продажба');
         $this->FLD('image', 'fileman_FileType(bucket=pos_ProductsImages)', 'caption=Картинка');
         
         $this->setDbUnique('productId, packagingId');
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на формата
-     */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        $form = &$data->form;
-        
-        $form->setOptions('productId', array('' => '') + cat_Products::getByProperty('canSell'));
     }
     
     
@@ -212,6 +207,7 @@ class pos_Favourites extends core_Manager
         $info = cat_Products::getProductInfo($rec->productId);
         $productRec = $info->productRec;
         
+        $arr = array();
         $arr['name'] = $productRec->name;
         $arr['catId'] = $rec->catId;
         $obj = new stdClass();
@@ -310,7 +306,6 @@ class pos_Favourites extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $varchar = cls::get('type_Varchar');
         if ($rec->image) {
             $Fancybox = cls::get('fancybox_Fancybox');
             $row->image = $Fancybox->getImage($rec->image, array(30, 30), array(400, 400));

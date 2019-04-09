@@ -134,12 +134,12 @@ class cat_products_VatGroups extends core_Detail
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
             if ($rec->validFrom > $now) {
-                $data->rows[$id]->ROW_ATTR['class'] = 'state-draft';
+                $row->ROW_ATTR['class'] = 'state-draft';
             } elseif ($rec->validFrom <= $now && is_null($currentGroup)) {
                 $currentGroup = $rec->validFrom;
-                $data->rows[$id]->ROW_ATTR['class'] = 'state-active';
+                $row->ROW_ATTR['class'] = 'state-active';
             } else {
-                $data->rows[$id]->ROW_ATTR['class'] = 'state-closed';
+                $row->ROW_ATTR['class'] = 'state-closed';
             }
         }
     }

@@ -88,9 +88,15 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid,amountInvoiced,dealerId=Закупчик,paymentState,createdOn, createdBy';
-    
-    
+    public $listFields = 'valior, title=@Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid,amountInvoiced,dealerId=Закупчик,paymentState,createdOn, createdBy';
+
+
+    /**
+     * Отделния ред в листовия изглед да е отгоре
+     */
+    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+
+
     /**
      * Детайла, на модела
      */
@@ -700,6 +706,8 @@ class purchase_Purchases extends deals_DealMaster
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionPur')) {
                 $row->commonCondition = cls::get('type_Url')->toVerbal($cond);
             }
+        } else if (isset($fields['-list'])) {
+            $row->title .= "  «  " . $row->folderId;
         }
     }
     

@@ -37,13 +37,17 @@ class plg_GroupByField extends core_Plugin
         
         $recs = &$data->recs;
         
+        $field = null;
+        setIfNot($field, $data->groupByField, $mvc->groupByField);
+        
         // Ако не е зададено поле за групиране, не правим нищо
-        if (!($field = $mvc->groupByField)) {
+        if (!$field) {
             
             return;
         }
         
         // Премахваме като колона полето, което ще групираме
+        $originalFields = $data->listFields;
         unset($data->listFields[$field]);
         
         // Колко е броя на колоните
@@ -67,13 +71,15 @@ class plg_GroupByField extends core_Plugin
                 $rowAttr['class'] .= ' group-by-field-row';
             }
             
-            $rows['|' . $groupId] = ht::createElement(
-                
-                'tr',
+            if(array_key_exists($data->groupByField, $originalFields)){
+                $rows['|' . $groupId] = ht::createElement(
+                    
+                    'tr',
                     $rowAttr,
                     new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'>" . $groupVerbal . '</td>')
-            
-            );
+                    
+                    );
+            }
             
             // За всички записи
             foreach ($recs as $id => $rec) {

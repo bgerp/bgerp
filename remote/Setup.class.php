@@ -70,15 +70,7 @@ class remote_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = 'remote';
-    
-    
-    /**
-     * Връзки от менюто, сочещи към модула
-     */
-    public $menuItems = array(
-        array(1.99, 'Система', 'Отдалечени', 'remote_Authorizations', 'list', 'admin'),
-    );
-    
+        
     
     /**
      * Инсталиране на пакета

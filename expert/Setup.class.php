@@ -28,13 +28,7 @@ class expert_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Пакет за експертизи';
-    
-    
-    /**
-     * Път до js файла
-     */
-    //	var $commonJS = 'expert/ajaxExpert.js';
+    public $info = 'Реализиране на постъпкова експертна система';
     
     
     /**

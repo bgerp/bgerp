@@ -318,7 +318,7 @@ class acc_JournalDetails extends core_Detail
     /**
      * Коя е основната валута за посочения период
      *
-     * @param date $valior - вальор
+     * @param datetime $valior - вальор
      *
      * @return int
      */

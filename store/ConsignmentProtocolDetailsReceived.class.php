@@ -100,13 +100,14 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     
     
     /**
-     * Достъпните продукти
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
      */
-    protected function getProducts($masterRec)
+    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
-        // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-        $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell,canStore');
-        
-        return $products;
+        $masterRec = $data->masterRec;
+        $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => 'canSell,canStore'));
     }
 }

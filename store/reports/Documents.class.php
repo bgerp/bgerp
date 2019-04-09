@@ -134,7 +134,7 @@ class store_reports_Documents extends frame2_driver_TableData
                         'dueDate' => $cRec->deadline,
                         'weight' => null,
                         'pallets' => null,
-                        'linked' => $this->getLinkedDocuments($cRec->containerId),
+                        'linked' => $this->getLinkedDocumentsFor($cRec->containerId),
                         'folderId' => $cRec->folderId,
                         'createdOn' => $cRec->createdOn,
                         'createdBy' => $cRec->createdBy,
@@ -152,7 +152,7 @@ class store_reports_Documents extends frame2_driver_TableData
                 $sQuery = $Document->getQuery();
                 self::applyFilters($sQuery, $storeIds, $pDoc, $rec, $deadlineFld);
                 while ($sRec = $sQuery->fetch()) {
-                    $linked = $this->getLinkedDocuments($sRec->containerId);
+                    $linked = $this->getLinkedDocumentsFor($sRec->containerId);
                     if (!empty($sRec->lineId)) {
                         $lineCid = trans_Lines::fetchField($sRec->lineId, 'containerId');
                         $linked[$lineCid] = $lineCid;
@@ -188,7 +188,7 @@ class store_reports_Documents extends frame2_driver_TableData
                     'dueDate' => $pRec->deadline,
                     'weight' => null,
                     'pallets' => null,
-                    'linked' => $this->getLinkedDocuments($pRec->containerId),
+                    'linked' => $this->getLinkedDocumentsFor($pRec->containerId),
                     'folderId' => $pRec->folderId,
                     'createdOn' => $pRec->createdOn,
                     'createdBy' => $pRec->createdBy,
@@ -230,7 +230,7 @@ class store_reports_Documents extends frame2_driver_TableData
      *
      * @return array $linked
      */
-    private function getLinkedDocuments($containerId)
+    private function getLinkedDocumentsFor($containerId)
     {
         $linked = array();
         

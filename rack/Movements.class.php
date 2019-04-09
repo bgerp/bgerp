@@ -165,6 +165,7 @@ class rack_Movements extends core_Manager
             }
             
             if (!empty($rec->packQuantity)) {
+                $warning = null;
                 if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning, 'uom')) {
                     $form->setError('packQuantity', $warning);
                 }
@@ -277,6 +278,7 @@ class rack_Movements extends core_Manager
                 }
             }
             
+            $batch = empty($batch) ? '' : $batch;
             $zonesQuantityArr = self::getZoneArr($rec);
             foreach ($zonesQuantityArr as $zoneRec){
                 rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $rec->packagingId, 0, $batch);
@@ -323,7 +325,8 @@ class rack_Movements extends core_Manager
         
         if (is_array($transaction->zonesQuantityArr)) {
             foreach ($transaction->zonesQuantityArr as $obj) {
-                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity, $transaction->batch);
+                $batch = empty($transaction->batch) ? '' : $transaction->batch;
+                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity, $batch);
             }
         }
         
@@ -578,6 +581,7 @@ class rack_Movements extends core_Manager
                 $error[] = 'Невалидно количество';
                 $errorFields['quantity'][$key] = 'Невалидно количество';
             } else {
+                $warning = null;
                 if(!deals_Helper::checkQuantity($packagingId, $q2, $warning, 'uom')){
                     $error[] = $warning;
                     $errorFields['quantity'][$key] = $warning;
@@ -633,18 +637,19 @@ class rack_Movements extends core_Manager
     {
         core_RowToolbar::createIfNotExists($row->_rowTools);
         
-        if ($mvc->haveRightFor('toggle', $rec) && $rec->state != 'active') {
-            $row->_rowTools->addLink('Започване', array($mvc, 'toggle', $rec->id, 'ret_url' => true), "id=start{$rec->id},ef_icon=img/16/control_play.png,title=Започване на движението");
+        if ($mvc->haveRightFor('start', $rec)) {
+            $startUrl = array($mvc, 'toggle', $rec->id, 'type' => 'start', 'ret_url' => true);
+            $row->_rowTools->addLink('Започване', $startUrl, "id=start{$rec->id},ef_icon=img/16/control_play.png,title=Започване на движението");
             
             if ($rec->createdBy != core_Users::getCurrent()) {
                 $row->_rowTools->setWarning("start{$rec->id}", 'Сигурни ли сте, че искате да започнете движение от друг потребител');
             }
             
             if($fields['-inline'] && !isset($fields['-inline-single'])){
-                $startUrl = toUrl(array($mvc, 'toggle', $rec->id, 'ret_url' => true), 'local');
+                $startUrl = toUrl($startUrl, 'local');
                 $state .= ht::createFnBtn('Започни', null, null, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
             } else {
-                $state .= ht::createBtn('Започни', array($mvc, 'toggle', $rec->id, 'ret_url' => true), false, false, 'ef_icon=img/16/control_play.png,title=Започване на движението');
+                $state .= ht::createBtn('Започни', $startUrl, false, false, 'ef_icon=img/16/control_play.png,title=Започване на движението');
             }
         }
         
@@ -659,8 +664,8 @@ class rack_Movements extends core_Manager
             }
         }
         
-        if ($mvc->haveRightFor('toggle', $rec) && $rec->state != 'pending') {
-            $row->_rowTools->addLink('Отказване', array($mvc, 'toggle', $rec->id, 'ret_url' => true), 'warning=Наистина ли искате да откажете движението|*?,ef_icon=img/16/reject.png,title=Отказване на движението');
+        if ($mvc->haveRightFor('reject', $rec)) {
+            $row->_rowTools->addLink('Отказване', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), 'warning=Наистина ли искате да откажете движението|*?,ef_icon=img/16/reject.png,title=Отказване на движението');
         }
         
         if (!empty($state)) {
@@ -729,6 +734,7 @@ class rack_Movements extends core_Manager
         }
         
         if ($skipZones === false) {
+            $quantityInZones = array();
             $zones = self::getZoneArr($rec, $quantityInZones);
             $restQuantity = round($packQuantity, 6) - round($quantityInZones, 6);
             
@@ -771,10 +777,20 @@ class rack_Movements extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($action == 'toggle' && isset($rec->state)) {
-            if (!in_array($rec->state, array('pending', 'active'))) {
+        if (in_array($action, array('start', 'reject'))) {
+            $requiredRoles = $mvc->getRequiredRoles('toggle', $rec, $userId);
+        }
+        
+        if($action == 'start' && isset($rec->state)){
+            if($rec->state != 'pending'){
                 $requiredRoles = 'no_one';
-            } elseif ($rec->state == 'active' && isset($rec->workerId) && $rec->workerId != $userId) {
+            }
+        }
+        
+        if($action == 'reject' && isset($rec->state)){
+            if($rec->state != 'active'){
+                $requiredRoles = 'no_one';
+            } elseif($rec->state == 'active' && isset($rec->workerId) && $rec->workerId != $userId){
                 $requiredRoles = 'ceo,rackMaster';
             }
         }
@@ -862,37 +878,58 @@ class rack_Movements extends core_Manager
     public function act_Toggle()
     {
         $ajaxMode = Request::get('ajax_mode');
+        $type = Request::get('type', 'varchar');
+        $action = ($type == 'start') ? 'start' : 'reject';
+        
         if($ajaxMode){
-            if(!$this->haveRightFor('toggle')){
+            if(!$this->haveRightFor($action)){
                 core_Statuses::newStatus('|Нямате права|*!', 'error');
                 return status_Messages::returnStatusesArray();
             }
         } else {
-            $this->requireRightFor('toggle');
+            $this->requireRightFor($action);
         }
        
         $id = Request::get('id', 'int');
         $rec = $this->fetch($id);
         
+        // Заключване на екшъна
+        if (!core_Locks::get("movement{$rec->id}", 120, 0)) {
+            core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
+            if($ajaxMode){
+                return status_Messages::returnStatusesArray();
+            }
+            followretUrl(array($this));
+        }
+        
         if($ajaxMode){
             if(empty($rec)){
                 core_Statuses::newStatus('|Записът вече е изтрит|*!', 'error');
+                core_Locks::release("movement{$rec->id}");
                 
                 return status_Messages::returnStatusesArray();
-            } elseif(!$this->haveRightFor('toggle', $rec)){
+            } elseif(!in_array($action, array('start', 'reject'))){
+                core_Locks::release("movement{$rec->id}");
+                core_Statuses::newStatus('|Невалидна операция|*!', 'error');
+                
+                return status_Messages::returnStatusesArray();
+            } elseif(!$this->haveRightFor($action, $rec)){
+                core_Locks::release("movement{$rec->id}");
                 core_Statuses::newStatus('|Нямате права|*!', 'error');
                 
                 return status_Messages::returnStatusesArray();
             }
         } else {
             expect($rec);
-            $this->requireRightFor('toggle', $rec);
+            core_Locks::release("movement{$rec->id}");
+            $this->requireRightFor($action, $rec);
         }
-        $oldState = $rec->state;
         
-        $reverse = false;
-        $rec->state = ($oldState == 'pending') ? 'active' : 'pending';
-        if ($rec->state == 'pending') {
+        if($action == 'start'){
+            $rec->state = 'active';
+            $reverse = false;
+        } else {
+            $rec->state = 'pending';
             $rec->workerId = null;
             $rec->_canceled = true;
             $reverse = true;
@@ -903,6 +940,7 @@ class rack_Movements extends core_Manager
         $transaction = $this->validateTransaction($transaction);
         
         if (!empty($transaction->errors)) {
+            core_Locks::release("movement{$rec->id}");
             if($ajaxMode){
                 core_Statuses::newStatus($transaction->errors, 'error');
                 return status_Messages::returnStatusesArray();
@@ -914,6 +952,8 @@ class rack_Movements extends core_Manager
         // Записва се служителя и се обновява движението
         $rec->workerId = core_Users::getCurrent();
         $this->save($rec, 'state,workerId,modifiedOn,modifiedBy,documents');
+        
+        core_Locks::release("movement{$rec->id}");
         
         $msg = (count($transaction->warnings)) ? implode(', ', $transaction->warnings) : null;
         $type = (count($transaction->warnings)) ? 'warning' : 'notice';
@@ -968,8 +1008,19 @@ class rack_Movements extends core_Manager
         $id = Request::get('id', 'int');
         expect($rec = $this->fetch($id));
         
+        // Заключване на екшъна
+        if (!core_Locks::get("movement{$rec->id}", 120, 0)) {
+            
+            core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
+            if($ajaxMode){
+                return status_Messages::returnStatusesArray();
+            }
+            followretUrl(array($this));
+        }
+        
         if($ajaxMode){
             if(!$this->haveRightFor('done', $rec)){
+                core_Locks::release("movement{$rec->id}");
                 core_Statuses::newStatus('|Нямате права|*!', 'error');
                 return status_Messages::returnStatusesArray();
             }
@@ -979,6 +1030,8 @@ class rack_Movements extends core_Manager
         
         $rec->state = 'closed';
         $this->save($rec, 'state,modifiedOn,modifiedBy');
+        
+        core_Locks::release("movement{$rec->id}");
         
         // Ако се обновява по Ajax
         if($ajaxMode){
@@ -1077,7 +1130,7 @@ class rack_Movements extends core_Manager
             }
         }
         
-        $toPallet = $toProductId = null;
+        $toPallet = $toProductId = $error = null;
         if (!empty($transaction->to) && $transaction->to != rack_PositionType::FLOOR) {
             if (!rack_Racks::checkPosition($transaction->to, $transaction->productId, $transaction->storeId, $transaction->batch, $error)) {
                 $res->errors = $error;

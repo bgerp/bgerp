@@ -142,6 +142,7 @@ class blast_Setup extends core_ProtoSetup
         'blast_Letters',
         'blast_LetterDetails',
         'blast_EmailSend',
+        'blast_Redirect',
         'migrate::updateEmailsCnt',
     );
     

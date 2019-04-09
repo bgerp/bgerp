@@ -166,7 +166,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * Връща последната активна рецепта на артикула
      *
      * @param mixed            $id   - ид или запис
-     * @param sales|production $type - вид работна или търговска
+     * @param string $type - вид работна или търговска
      *
      * @return mixed $res - записа на рецептата или FALSE ако няма
      */
@@ -298,7 +298,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      *
      * @param mixed $rec - ид или запис на артикул
      *
-     * @return NULL|varchar - Допълнителните условия за дадения продукт
+     * @return NULL|string - Допълнителните условия за дадения продукт
      */
     public function getHash($rec)
     {

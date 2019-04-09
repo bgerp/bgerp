@@ -18,7 +18,7 @@ class peripheral_Terminal extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    public $title = 'Терминал';
+    public $title = 'Терминали';
     
     
     /**
@@ -110,11 +110,9 @@ class peripheral_Terminal extends core_Master
         $oPrefix = null;
         
         if ($force || isset($t)) {
-            $Session = cls::get('core_Session');
+            $oPrefix = core_Session::getDecoratePrefix();
             
-            $oPrefix = $Session->getDecoratePrefix();
-            
-            $Session->setDecoratePrefix($sessName);
+            core_Session::setDecoratePrefix($sessName);
         }
         
         return $oPrefix;

@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -46,15 +46,9 @@ class planning_Centers extends core_Master
     
     
     /**
-     * Страница от менюто
-     */
-    public $pageMenu = 'Персонал';
-    
-    
-    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, planning_Wrapper, doc_FolderPlg, plg_State, plg_Rejected, plg_Created, acc_plg_Registry, doc_FolderPlg, plg_Sorting, doc_plg_Close';
+    public $loadList = 'plg_RowTools2, planning_Wrapper, plg_State, plg_Rejected, plg_Created, acc_plg_Registry, doc_FolderPlg, plg_Sorting, doc_plg_Close';
     
     
     /**
@@ -407,8 +401,17 @@ class planning_Centers extends core_Master
         
         $query = self::getQuery();
         $query->where("#state != 'closed' AND #state != 'rejected'");
+        $cloneQuery = clone $query;
         while($rec = $query->fetch()){
             if(planning_Stages::fetch("LOCATE('|{$rec->folderId}|', #folders)")){
+                if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
+                    $options[$rec->folderId] = self::getRecTitle($rec, false);
+                }
+            }
+        }
+        
+        if(!count($options)){
+            while($rec = $cloneQuery->fetch()){
                 if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
                     $options[$rec->folderId] = self::getRecTitle($rec, false);
                 }

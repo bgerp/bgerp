@@ -171,6 +171,7 @@ class hr_Indicators extends core_Manager
      */
     private static function recalc($timeline)
     {
+        $persons = array();
         $periods = self::saveIndicators($timeline, $persons);
         
         // Форсиране на лицата в група 'Служители'
@@ -181,7 +182,7 @@ class hr_Indicators extends core_Manager
         }
         
         if (is_array($persons)) {
-            foreach ($periods as $id => $rec) {
+            foreach ($periods as $rec) {
                 self::calcPeriod($rec);
             }
         }
@@ -192,7 +193,7 @@ class hr_Indicators extends core_Manager
      * Събиране на информация от всички класове
      * имащи интерфейс hr_IndicatorsSourceIntf
      *
-     * @param date  $timeline
+     * @param datetime  $timeline
      * @param array $persons  - лицата
      *
      * @return array $periods - засегнатите периоди
@@ -229,7 +230,7 @@ class hr_Indicators extends core_Manager
                 
                 // По id-то на служителя, намираме от договора му
                 // в кой отдел и на каква позиция работи
-                foreach ($data as $id => $rec) {
+                foreach ($data as $rec) {
                     $key = $rec->docClass . '::' . $rec->docId;
                     
                     if (!isset($forClean[$key])) {
@@ -323,7 +324,7 @@ class hr_Indicators extends core_Manager
         // Подготвяме масив с нулеви стойности
         $names = self::getIndicatorNames();
         $zeroInd = array('BaseSalary' => 0);
-        foreach ($names as $class => $nArr) {
+        foreach ($names as $nArr) {
             foreach ($nArr as $n) {
                 $zeroInd[$n] = 0;
             }
@@ -391,8 +392,8 @@ class hr_Indicators extends core_Manager
                 if (str::prepareMathExpr($expr) === false) {
                     $prlRec->error = 'Невъзможно изчисление';
                 } else {
+                    $success = null;
                     $prlRec->salary = str::calcMathExpr($expr, $success);
-                    
                     if ($success === false) {
                         $prlRec->error = 'Грешка в калкулацията';
                     }
@@ -492,8 +493,6 @@ class hr_Indicators extends core_Manager
         $data->IData->listFilter->method = 'GET';
         
         $date = new DateTime();
-        $from = $date->format('Y-m-01');
-        $to = dt::getLastDayOfMonth($from);
         
         if ($data->IData->pager) {
             $data->IData->pager->setLimit($data->IData->query);
@@ -660,7 +659,7 @@ class hr_Indicators extends core_Manager
     /**
      * Връща индикаторите, които са използвани във формула
      *
-     * @param text $formula
+     * @param string $formula
      *
      * @return array $res;
      */

@@ -818,7 +818,7 @@ class pos_Receipts extends core_Master
      */
     public function renderChooseTab($id)
     {
-        expect($rec = $this->fetchRec($id));
+        expect($this->fetchRec($id));
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('SEARCH_DIV');
         if (!Mode::is('screenMode', 'narrow')) {
             $keyboardsTpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
@@ -1100,7 +1100,7 @@ class pos_Receipts extends core_Master
      */
     public function renderTransferTab($id)
     {
-        expect($rec = $this->fetchRec($id));
+        expect($this->fetchRec($id));
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('TRANSFERS_BLOCK');
         
         $searchUrl1 = toUrl(array('pos_Receipts', 'searchContragents', 'type' => 'company'), 'local');
@@ -1625,7 +1625,6 @@ class pos_Receipts extends core_Master
         $row->productId = cat_Products::getTitleById($obj->productId);
         if ($data->showParams) {
             $params = keylist::toArray($data->showParams);
-            $values = null;
             foreach ($params as $pId) {
                 
                 //@TODO да използва нов метод getParamValue

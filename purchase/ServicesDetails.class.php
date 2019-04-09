@@ -97,16 +97,18 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     
     
     /**
-     * Достъпните продукти
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
      */
-    protected function getProducts($masterRec)
+    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
+        $form = &$data->form;
+        $masterRec = $data->masterRec;
         $property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
         
-        // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-        $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property, 'canStore');
-        
-        return $products;
+        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property, 'hasnotProperties' => 'canStore'));
     }
     
     

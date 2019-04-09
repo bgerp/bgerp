@@ -598,7 +598,6 @@ function error($error = '500 Грешка в сървъра', $dump = null)
 }
 
 
-
 /**
  * Генерира грешка, ако аргумента не е TRUE
  *
@@ -612,6 +611,23 @@ function expect($cond)
         array_shift($dump);
 
         throw new core_exception_Expect('500 Грешка в сървъра', 'Несъответствие', $dump);
+    }
+}
+
+
+/**
+ * Генерира грешка, ако аргумента не е TRUE
+ *
+ * @var mixed   $inspect Обект, масив или скалар, който се подава за инспекция
+ * @var boolean $condition
+ */
+function expect404($cond)
+{
+    if (!(boolean) $cond) {
+        $dump = func_get_args();
+        array_shift($dump);
+
+        throw new core_exception_Expect('404 Грешка в сървъра', 'Несъответствие', $dump);
     }
 }
 

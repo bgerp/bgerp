@@ -28,7 +28,7 @@ class ckeditor_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Текстов едитор за Интернет';
+    public $info = 'Текстов редактор за Интернет';
     
     
     /**

@@ -1160,6 +1160,33 @@ function toggleDisplay(id) {
 }
 
 
+// Задейства елементите, които могат да скриват/показват части
+function setTrigger() {
+    $('.trigger').click(function(event) {
+         var obj = $(this).parent().next();
+         var sp = $(this);
+         if (!($(obj).hasClass('hidden'))) {
+             $(obj).slideUp(400);
+             sp.html('►'); $(obj).addClass('hidden');
+         } else {
+             $(obj).slideDown(400);
+             sp.html('▼'); $(obj).removeClass('hidden');
+         }
+         event.stopPropagation();
+    });
+    
+    $('.treelist .toggleCheck').click(function(event) {
+        if($(this).siblings('.trigger').html() ==  '▼') {
+            var forAttr = $(this).attr("for");
+            var newStage = !$('#' + forAttr).is(':checked');
+            $('#' + 'ul_' + forAttr).find(':checkbox').each(  function(){ $(this).prop('checked', newStage) });
+            document.getSelection().removeAllRanges();
+            event.stopPropagation();
+        }
+
+    });
+}
+
 // Скрива групите бутони от ричедита при клик някъде
 function hideRichtextEditGroups() {
 	$(document.body).on("click", this, function(e){
@@ -1656,21 +1683,23 @@ function setFormElementsWidth() {
         if (formElWidth > preferredSizeInPx) formElWidth = preferredSizeInPx;
 
         $('.formTable label').each(function() {
-            var colsInRow = parseInt($(this).attr('data-colsInRow'));
-            if (!colsInRow) {
-                colsInRow = 1;
+            if(!$(this).closest('.treelist').length)  {
+                var colsInRow = parseInt($(this).attr('data-colsInRow'));
+                if (!colsInRow) {
+                    colsInRow = 1;
+                }
+                $(this).parent().css('maxWidth', parseInt((formElWidth - 10) / colsInRow));
+                $(this).parent().css('overflow-x', 'hidden');
+
+                $(this).attr('title', $(this).text());
             }
-
-            $(this).parent().css('maxWidth', parseInt((formElWidth - 10) / colsInRow));
-        	$(this).parent().css('overflow-x', 'hidden');
-
-            $(this).attr('title', $(this).text());
         });
 
         $('.staticFormView .formFieldValue').css('max-width', formElWidth - 5);
 
         $('.vertical .formTitle').css('min-width', formElWidth -10);
         $('.formTable textarea').css('width', formElWidth);
+        $('.formTable .treelist').css('width', formElWidth - 10);
         $('.formTable .chzn-container').css('maxWidth', formElWidth);
         $('.formTable .select2-container').css('maxWidth', formElWidth);
         $('.vFormField .select2-container').css('maxWidth', formElWidth + 20);
@@ -2168,8 +2197,13 @@ function refreshForm(form, removeFields) {
 
 	var serialized = $.param(filteredParams);
 
-//    form.submit(); return;
+	// Ако изрично е указано да се събмитва формата, да се събмитва нормално
+	if(frm.attr('submitFormOnRefresh')){
+		form.submit(); return;
+	}
 
+	// form.submit(); return;
+	
 	$.ajax({
 		type: frm.attr('method'),
 		url: frm.attr('action'),
@@ -3971,15 +4005,6 @@ function render_editCopiedTextBeforePaste() {
 
 
 /**
-* Функция, която извиква подготвянето на editCopiedTextBeforePaste
-* Може да се комбинира с efae
-*/
-function render_removeNarrowScroll() {
-	removeNarrowScroll();
-}
-
-
-/**
 * Функция, която извиква подготвянето на показването на тоолтипове
 * Може да се комбинира с efae
  */
@@ -5022,8 +5047,15 @@ function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 	
 	addBugReportInput(form, 'title', title);
 	addBugReportInput(form, 'url', url);
-	addBugReportInput(form, 'email', user + '@' + domain);
-	addBugReportInput(form, 'name', name);
+	
+	if (user && domain) {
+		addBugReportInput(form, 'email', user + '@' + domain);
+	}
+	
+	if (name) {
+		addBugReportInput(form, 'name', name);
+	}
+	
 	addBugReportInput(form, 'width', width);
 	addBugReportInput(form, 'height', height);
 	addBugReportInput(form, 'browser', browser);
@@ -5075,14 +5107,6 @@ function debugLayout() {
 
 
 }
-
-
-function removeNarrowScroll() {
-	if($('body').hasClass('narrow-scroll') && !checkNativeSupport()){
-		$('body').removeClass('narrow-scroll');
-	}
-}
-
 
 
 /**
@@ -5441,6 +5465,15 @@ JSON.parse = JSON.parse || function (str) {
 	eval("var p=" + str + ";");
 	return p;
 };
+
+
+function unregisterServiceWorker() {
+    if($('#main-container').length && !$('link[rel="manifest"]').length && !isIE() && typeof navigator.serviceWorker !== 'undefined') {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            eval("for(var registration of registrations) {registration.unregister();}");
+        });
+    }
+}
 
 
 runOnLoad(maxSelectWidth);

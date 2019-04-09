@@ -488,10 +488,10 @@ class doc_Folders extends core_Master
         
         if (core_Packs::isInstalled('colab') && core_Users::haveRole('partner')) {
             $haveRight = colab_Folders::haveRightFor('single', $rec);
-            $link = array('doc_Threads', 'list', 'folderId' => $rec->id);
+            $link = array('colab_Threads', 'list', 'folderId' => $rec->id);
         } else {
             $haveRight = $mvc->haveRightFor('single', $rec);
-            $link = array('colab_Threads', 'list', 'folderId' => $rec->id);
+            $link = array('doc_Threads', 'list', 'folderId' => $rec->id);
         }
         
         // Иконката на папката според достъпа и

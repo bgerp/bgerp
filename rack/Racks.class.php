@@ -268,6 +268,7 @@ class rack_Racks extends core_Master
         expect($position);
         $storeId = $storeId ?? store_Stores::getCurrent();
         
+        $rec = null;
         if (!self::checkPosition($position, $productId, $storeId, $batch, $error, $rec)) {
             
             return;
@@ -306,7 +307,7 @@ class rack_Racks extends core_Master
             $rec = $form->rec;
             
             $rec->storeId = store_Stores::getCurrent();
-            
+            $error = null;
             if (!rack_Pallets::isEmptyOut($rec->num, $rec->rows, $rec->columns, null, $error)) {
                 $form->setError('rows,columns', $error);
             }
@@ -589,7 +590,7 @@ class rack_Racks extends core_Master
     public static function on_Shutdown($mvc)
     {
         foreach ($mvc->updateRacks as $position => $true) {
-            list($storeId, $num, $row, $col) = explode('-', $position);
+            list($storeId, $num, , ) = explode('-', $position);
             if ($storeId > 0 && $num > 0) {
                 // Записваме в информацията за палета
                 $rec = $mvc->fetch("#storeId = {$storeId} AND #num = {$num}");
@@ -640,7 +641,7 @@ class rack_Racks extends core_Master
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         $mvc->clearDetails($id);
-        $mvc::on_AfterUpdateMaster($mvc, $res, $id);
+        $mvc::on_AfterUpdateMaster($mvc, $id, $rec);
     }
     
     

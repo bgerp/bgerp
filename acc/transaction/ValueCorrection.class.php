@@ -331,7 +331,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
      * @param int                          $productId     - ид на артикул
      * @param int                          $expenseItemId - ид на разходен обект
      * @param float                        $amount        - сума за разпределяне
-     * @param quantity|value|weight|volume $allocateBy    - начин на разпределяне
+     * @param string $allocateBy    - начин на разпределяне
      * @param bool                         $reverse       - дали сумите да са отрицателни
      *
      * @return array $entries

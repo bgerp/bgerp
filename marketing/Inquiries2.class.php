@@ -68,9 +68,15 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Заглавие, personNames, company, email, folderId, createdOn, createdBy';
-    
-    
+    public $listFields = 'title=@Заглавие, personNames, company, email, folderId, createdOn, createdBy';
+
+
+    /**
+     * Отделния ред в листовия изглед да е отгоре
+     */
+    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+
+
     /**
      * Групиране на документите
      */
@@ -128,7 +134,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Икона за фактура
      */
-    public $singleIcon = 'img/16/inquiry.png';
+    public $singleIcon = 'img/16/help_contents.png';
     
     
     /**
@@ -170,6 +176,22 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
+     * Кой може да филтрира по всички
+     * 
+     * @see acc_plg_DocumentSummary
+     */
+    public $filterRolesForAll = 'ceo,marketing';
+    
+    
+    /**
+     * Кой може да филтрира по екипи
+     * 
+     * @see acc_plg_DocumentSummary
+     */
+    public $filterRolesForTeam = 'ceo,marketing';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -191,7 +213,7 @@ class marketing_Inquiries2 extends embed_Manager
         $this->FLD('title', 'varchar', 'caption=Заглавие');
         
         $this->FLD('quantities', 'blob(serialize,compress)', 'input=none,column=none');
-        $this->FLD('quantity1', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47');
+        $this->FLD('quantity1', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47,silent');
         $this->FLD('quantity2', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
         $this->FLD('quantity3', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
         $this->FLD('company', 'varchar(128)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=50');
@@ -208,6 +230,12 @@ class marketing_Inquiries2 extends embed_Manager
         $this->FLD('ip', 'varchar', 'caption=Ип,input=none');
         $this->FLD('browser', 'varchar(80)', 'caption=UA String,input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
+        
+        if (!acc_plg_DocumentSummary::$rolesAllMap[$this->className]) {
+            acc_plg_DocumentSummary::$rolesAllMap[$this->className] = $this->filterRolesForAll;
+        }
+        
+        $this->setDbIndex('proto');
     }
     
     
@@ -698,7 +726,7 @@ class marketing_Inquiries2 extends embed_Manager
      */
     public function act_Send()
     {
-        $this->requireRightFor('resendemail');  
+        $this->requireRightFor('resendemail');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('resendemail', $rec);
@@ -811,13 +839,13 @@ class marketing_Inquiries2 extends embed_Manager
         $cu = core_Users::getCurrent('id', false);
         Mode::set('showBulletin', false);
         Request::setProtected('classId, objectId');
-        expect($classId = Request::get('classId', 'int'));
-        expect($objectId = Request::get('objectId', 'int'));
+        expect404($classId = Request::get('classId', 'int'));
+        expect404($objectId = Request::get('objectId', 'int'));
         $Source = cls::getInterface('marketing_InquirySourceIntf', $classId);
         $sourceData = $Source->getInquiryData($objectId);
         
         $this->requireRightFor('new');
-        expect($drvId = $sourceData['drvId']);
+        expect404($drvId = $sourceData['drvId']);
         $proto = $sourceData['protos'];
         $proto = keylist::toArray($proto);
         $title = $sourceData['title'];
@@ -1230,7 +1258,7 @@ class marketing_Inquiries2 extends embed_Manager
      * Връща данните за запитванията
      *
      * @param int   $id    - id' то на записа
-     * @param email $email - Имейл
+     * @param string $email - Имейл
      *
      * @return NULL|object
      */

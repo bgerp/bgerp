@@ -230,5 +230,7 @@
             <div style='margin-top:6px'>[#btnTasks#]</div>
         </div>
     </div>
+
     <!--ET_END Tasks-->
+</div>
     [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

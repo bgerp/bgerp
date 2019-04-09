@@ -57,13 +57,13 @@ class type_Key2 extends type_Int
         }
         
         $resArr = $this->getOptions(1, '', $value);
-       
+        
         $res = null;
         
         if (count($resArr)) {
             $res = reset($resArr);
             $res = is_object($res) ? $res->title : $res;
-           
+            
             $res = core_Type::escape($res);
         }
         
@@ -190,17 +190,28 @@ class type_Key2 extends type_Int
         // 2. Ако опциите са под MaxSuggestions - показваме обикновен селект
         // 2. Комбобокс с id вградени в титлата, ако нямаме селект 2
         
+        if (defined('TEST_MODE') && TEST_MODE) {
+            $this->params['maxSuggestions'] = 100000;
+        }
         
         if (!$this->params['maxSuggestions']) {
             $maxSuggestions = $this->params['maxSuggestions'] = core_Setup::get('TYPE_KEY_MAX_SUGGESTIONS', true);
+        } else {
+            $maxSuggestions = $this->params['maxSuggestions'];
         }
         
         $options = array();
+        if (defined('TEST_MODE') && TEST_MODE) {
+            $this->params['forceAjax'] = false;
+        }
+        
+        if (!core_Packs::isInstalled('select2')) {
+            $this->params['forceAjax'] = false;
+        }
         
         if (!$this->params['forceAjax']) {
             $options = $this->getOptions($maxSuggestions);
         }
-        
         if (ctype_digit("{$value}")) {
             $currentOpt = $this->getOptions(1, '', $value, true);
             $key = reset($currentOpt);
@@ -245,7 +256,7 @@ class type_Key2 extends type_Int
             
             // Добавяме необходимите файлове и стартирам select2
             select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, null, $ajaxUrl);
-        } elseif ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no'))) {
+        } elseif ((!defined('TEST_MODE') && !TEST_MODE) && ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no')))) {
             // Показваме Combobox
             
             $this->params['inputType'] = 'combo';

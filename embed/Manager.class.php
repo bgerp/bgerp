@@ -58,6 +58,8 @@ class embed_Manager extends core_Master
         // Кои полета да се помнят след изтриване
         $fieldsBeforeDelete = "id, {$mvc->driverClassField}, driverRec";
         $mvc->fetchFieldsBeforeDelete = $fieldsBeforeDelete;
+        
+        $mvc->setDbIndex($mvc->driverClassField);
     }
     
     
