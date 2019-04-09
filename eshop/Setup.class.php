@@ -108,7 +108,6 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_Carts',
         'eshop_CartDetails',
         'migrate::updateContactData',
-        'migrate::fixProductsName0419',
     );
     
     
@@ -234,23 +233,6 @@ class eshop_Setup extends core_ProtoSetup
         
         if(!empty($value) && $exValue != $value && in_array($value, array('company', 'person', 'both'))){
             core_Packs::setConfig('eshop', array('ESHOP_MANDATORY_CONTACT_FIELDS' => $value));
-        }
-    }
-    
-    
-    /**
-     * Миграция за премахване на превода в имената на продуктите
-     */
-    function fixProductsName0419()
-    {
-        $query = eshop_Products::getQuery();
-        $query->like('name', '||');
-        
-        $query->show('name');
-        
-        while ($rec = $query->fetch()) {
-            list($rec->name) = explode('||', $rec->name, 2);
-            eshop_Products::save($rec, 'name');
         }
     }
 }
