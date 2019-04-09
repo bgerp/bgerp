@@ -6,11 +6,6 @@ function planningActions() {
 		var url = $(this).attr("data-url");
 		if(!url) return;
 		
-		// хак да не се събмитва формата
-		if($(this).parent().attr("id") != 'tab-support'){
-			$("#supportForm").remove();
-		}
-		
 		if($(this).parent().hasClass( "disabled" )){
 			return;
 		}
@@ -36,8 +31,6 @@ function planningActions() {
 		
 		resObj = new Object();
 		resObj['url'] = url;
-		
-		$("#supportForm").remove();
 		
 		var serial = $("input[name=serial]").val();
 		var type = $("#typeSelect").is('[readonly]') ?  $("input[name=type]").val() : $("#typeSelect").val();
