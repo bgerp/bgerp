@@ -1,13 +1,11 @@
 <div class='formContent'>
-	<table>
+	<table class="simple">
 		<tr>
 			<td>[#asset#]</td>
 		</tr>
-		<!--ET_BEGIN assetFolderId-->
 		<tr>
 			<td>[#body#]</td>
 		</tr>
-		<!--ET_END assetFolderId-->
 	</table>
 </div>
 

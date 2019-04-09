@@ -249,7 +249,7 @@ class planning_Points extends core_Manager
         $tpl->push('planning/tpl/terminal/jquery.numpad.css', 'CSS');
         $tpl->push('planning/tpl/terminal/scripts.js', 'JS');
         $tpl->push('planning/tpl/terminal/jquery.numpad.js', 'JS');
-        
+
         jquery_Jquery::run($tpl, "setCookie('terminalTab', '{$aciveTabData['tab-id']}');");
         jquery_Jquery::run($tpl, 'planningActions();');
         jquery_Jquery::run($tpl, 'prepareKeyboard();');
@@ -336,11 +336,12 @@ class planning_Points extends core_Manager
     private function getSupportHtml($id)
     {
         $rec = self::fetchRec($id);
-        $tpl = new core_ET(tr("|*<div><h2>|Сигнал за повреда|*</h2></div><div>[#FORM#]</div>"));
+        $tpl = new core_ET(tr("|*<h3 class='title'>|Сигнал за повреда|*</h3><div class='formHolder'>[#FORM#]</div>"));
+
         
         $form = cls::get('core_Form');
         $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name)', 'class=w100,placeholder=Оборудване,caption=Оборудване,mandatory');
-        $form->FLD('body', 'richtext(rows=4)', 'class=w100,caption=Съобщение,mandatory,placeholder=Съобщение');
+        $form->FLD('body', 'richtext(rows=4)', 'caption=Съобщение,mandatory,placeholder=Съобщение');
         
         $options = planning_AssetResources::getByFolderId(planning_Centers::fetchField($rec->centerId, 'folderId'));
         $form->setOptions('asset', array('' => '') + $options);
@@ -371,7 +372,7 @@ class planning_Points extends core_Manager
             }
         }
         
-        $form->toolbar->addSbBtn('Подаване', 'default', 'id=filter', 'ef_icon = img/16/settings.png,title=Подаване на сигнал за повреда на оборудване');
+        $form->toolbar->addSbBtn('Подаване', 'default', 'id=filter', 'title=Подаване на сигнал за повреда на оборудване');
         $form->class = 'simpleForm';
         
         $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/SupportFormLayout.shtml');
@@ -540,7 +541,7 @@ class planning_Points extends core_Manager
         }
         
         $formTpl = $this->getFormHtml($rec);
-        $formTpl->prepend("<div class='formHolder'>");
+        $formTpl->prepend("<div class='formHolder fright'>");
         $formTpl->append("</div> ");
         $tpl->append($formTpl);
         $tpl->append("<div class='clearfix21'></div>");

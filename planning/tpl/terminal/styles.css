@@ -19,7 +19,6 @@ body {
   float: left; }
 
 .formHolder {
-  float: right;
   width: 360px;
   margin-top: 0 !important; }
 
@@ -146,6 +145,13 @@ body {
   height: 600px;
   overflow-y: auto; }
 
+.title {
+  margin: 0 0 10px !important; }
+
+
+#task-support-content .formHolder {
+  width: 600px; }
+
 .formHolder {
   background: white; }
   .formHolder .formFields {
@@ -159,6 +165,39 @@ body {
       font-weight: bold; }
   .formHolder table {
     margin: 0 !important; }
+  .formHolder .planning-terminal-form-btn,
+  .formHolder #filter {
+    margin-top: 10px;
+    padding: 8px 20px !important;
+    font-size: 1.1em !important;
+    color: #333333;
+    background-color: #cccccc !important;
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #eeeeee), color-stop(100%, #cccccc));
+    background-image: -webkit-linear-gradient(top, #eeeeee, #cccccc);
+    background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
+    background-image: -ms-linear-gradient(top, #eeeeee, #cccccc);
+    background-image: -o-linear-gradient(top, #eeeeee, #cccccc);
+    background-image: linear-gradient(top, #eeeeee, #cccccc);
+    border: 1px solid #cccccc !important;
+    border-bottom: 1px solid #bbbbbb !important;
+    border-radius: 3px;
+    font: bold 10px Arial, sans-serif;
+    padding: 8px 0;
+    text-align: center;
+    text-shadow: 0 1px 0 #eeeeee;
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); }
+    .formHolder .planning-terminal-form-btn:hover,
+    .formHolder #filter:hover {
+      background-color: #dddddd;
+      background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #dddddd), color-stop(100%, #bbbbbb));
+      background-image: -webkit-linear-gradient(top, #dddddd, #bbbbbb);
+      background-image: -moz-linear-gradient(top, #dddddd, #bbbbbb);
+      background-image: -ms-linear-gradient(top, #dddddd, #bbbbbb);
+      background-image: -o-linear-gradient(top, #dddddd, #bbbbbb);
+      background-image: linear-gradient(top, #dddddd, #bbbbbb);
+      border: 1px solid #bbbbbb;
+      border-bottom: 1px solid #999999;
+      cursor: pointer; }
   .formHolder .formContent {
     margin-top: 0;
     padding: 10px 0 0 !important;
@@ -172,10 +211,15 @@ body {
     .formHolder .formContent input[type=text] {
       height: 34px;
       border-color: #cccccc; }
-    .formHolder .formContent .select2-container .select2-selection--multiple {
+    .formHolder .formContent .select2-container .select2-selection--multiple,
+    .formHolder .formContent textarea,
+    .formHolder .formContent .richedit-toolbar {
       border-color: #cccccc; }
+    .formHolder .formContent textarea {
+      min-height: 90px; }
     .formHolder .formContent select {
       height: 32px !important;
+      border-color: #cccccc;
       width: 100%; }
     .formHolder .formContent input[type=search] {
       height: 30px; }
@@ -188,37 +232,8 @@ body {
     .formHolder .formContent .select2-container .select2-selection--single .select2-selection__rendered {
       line-height: 32px !important;
       max-height: 32px !important; }
-    .formHolder .formContent .planning-terminal-form-btn {
-      margin-top: 10px;
-      padding: 8px 20px !important;
-      font-size: 1.1em !important;
-      color: #333333;
-      background-color: #cccccc !important;
-      background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #eeeeee), color-stop(100%, #cccccc));
-      background-image: -webkit-linear-gradient(top, #eeeeee, #cccccc);
-      background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
-      background-image: -ms-linear-gradient(top, #eeeeee, #cccccc);
-      background-image: -o-linear-gradient(top, #eeeeee, #cccccc);
-      background-image: linear-gradient(top, #eeeeee, #cccccc);
-      border: 1px solid #cccccc !important;
-      border-bottom: 1px solid #bbbbbb !important;
-      border-radius: 3px;
-      font: bold 10px Arial, sans-serif;
-      padding: 8px 0;
-      text-align: center;
-      text-shadow: 0 1px 0 #eeeeee;
-      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); }
-      .formHolder .formContent .planning-terminal-form-btn:hover {
-        background-color: #dddddd;
-        background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #dddddd), color-stop(100%, #bbbbbb));
-        background-image: -webkit-linear-gradient(top, #dddddd, #bbbbbb);
-        background-image: -moz-linear-gradient(top, #dddddd, #bbbbbb);
-        background-image: -ms-linear-gradient(top, #dddddd, #bbbbbb);
-        background-image: -o-linear-gradient(top, #dddddd, #bbbbbb);
-        background-image: linear-gradient(top, #dddddd, #bbbbbb);
-        border: 1px solid #bbbbbb;
-        border-bottom: 1px solid #999999;
-        cursor: pointer; }
+    .formHolder .formContent .simple td {
+      padding: 0 0 10px; }
 
 @media handheld,
 only screen and (min-width: 720px) and (max-width: 800px) {

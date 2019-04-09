@@ -22,7 +22,6 @@ body {
 	float: left;
 }
 .formHolder {
-	float: right;
 	width: 360px;
 	margin-top: 0 !important;
 }
@@ -177,6 +176,16 @@ body {
 	height: 600px;
 	overflow-y: auto;
 }
+.title {
+	margin: 0 0 10px !important;
+}
+.formError {
+
+}
+#task-support-content .formHolder {
+	width: 600px;
+}
+
 .formHolder {
 	background: #fff;
 	.formFields {
@@ -194,6 +203,39 @@ body {
 	table {
 		margin: 0 !important;
 	}
+	.planning-terminal-form-btn, #filter {
+		margin-top: 10px;
+		padding: 8px 20px !important;
+		font-size: 1.1em !important;
+		color: #333;
+		background-color: #ccc !important;
+		background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0,#eee),color-stop(100%,#ccc));
+		background-image: -webkit-linear-gradient(top,#eee,#ccc);
+		background-image: -moz-linear-gradient(top,#eee,#ccc);
+		background-image: -ms-linear-gradient(top,#eee,#ccc);
+		background-image: -o-linear-gradient(top,#eee,#ccc);
+		background-image: linear-gradient(top,#eee,#ccc);
+		border: 1px solid #ccc !important;
+		border-bottom: 1px solid #bbb !important;
+		border-radius: 3px;
+		font: bold 10px Arial,sans-serif;
+		padding: 8px 0;
+		text-align: center;
+		text-shadow: 0 1px 0 #eee;
+		box-shadow: 1px 1px 2px rgba(0,0,0,.5);
+		&:hover {
+			background-color: #ddd;
+			background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0,#ddd),color-stop(100%,#bbb));
+			background-image: -webkit-linear-gradient(top,#ddd,#bbb);
+			background-image: -moz-linear-gradient(top,#ddd,#bbb);
+			background-image: -ms-linear-gradient(top,#ddd,#bbb);
+			background-image: -o-linear-gradient(top,#ddd,#bbb);
+			background-image: linear-gradient(top,#ddd,#bbb);
+			border: 1px solid #bbb;
+			border-bottom: 1px solid #999;
+			cursor: pointer;
+		}
+	}
 	.formContent {
 		margin-top: 0;
 		padding: 10px 0 0 !important;
@@ -205,15 +247,21 @@ body {
 		td {
 			padding: 7px;
 		}
-		.select2-container .select2-selection--single, input[type=text]  {
+		.select2-container .select2-selection--single, input[type=text] {
 			height: 34px;
 			border-color: #ccc;
 		}
-		.select2-container .select2-selection--multiple {
+		.select2-container .select2-selection--multiple, textarea, .richedit-toolbar  {
 			border-color: #ccc;
 		}
+
+		textarea {
+			min-height: 90px;
+		}
+
 		select {
 			height: 32px !important;
+			border-color: #ccc;
 			width: 100%;
 		}
 		input[type=search] {
@@ -231,39 +279,8 @@ body {
 			line-height: 32px !important;
 			max-height: 32px !important;
 		}
-		.planning-terminal-form-btn {
-			margin-top: 10px;
-			padding: 8px 20px !important;
-			font-size: 1.1em !important;
-			color: #333;
-			background-color: #ccc !important;
-			background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0,#eee),color-stop(100%,#ccc));
-			background-image: -webkit-linear-gradient(top,#eee,#ccc);
-			background-image: -moz-linear-gradient(top,#eee,#ccc);
-			background-image: -ms-linear-gradient(top,#eee,#ccc);
-			background-image: -o-linear-gradient(top,#eee,#ccc);
-			background-image: linear-gradient(top,#eee,#ccc);
-			border: 1px solid #ccc !important;
-			border-bottom: 1px solid #bbb !important;
-			border-radius: 3px;
-			font: bold 10px Arial,sans-serif;
-			padding: 8px 0;
-			text-align: center;
-			text-shadow: 0 1px 0 #eee;
-			box-shadow: 1px 1px 2px rgba(0,0,0,.5);
-			&:hover {
-				background-color: #ddd;
-				background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0,#ddd),color-stop(100%,#bbb));
-				background-image: -webkit-linear-gradient(top,#ddd,#bbb);
-				background-image: -moz-linear-gradient(top,#ddd,#bbb);
-				background-image: -ms-linear-gradient(top,#ddd,#bbb);
-				background-image: -o-linear-gradient(top,#ddd,#bbb);
-				background-image: linear-gradient(top,#ddd,#bbb);
-				border: 1px solid #bbb;
-				border-bottom: 1px solid #999;
-				cursor: pointer;
-			}
-
+		.simple td {
+			padding: 0 0 10px;
 		}
 	}
 }
