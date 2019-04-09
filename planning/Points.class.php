@@ -336,55 +336,46 @@ class planning_Points extends core_Manager
     private function getSupportHtml($id)
     {
         $rec = self::fetchRec($id);
-        $tpl = new core_ET();
+        $tpl = new core_ET(tr("|*<div><h2>|Сигнал за повреда|*</h2></div><div>[#FORM#]</div>"));
         
-        // Полетата на формата
         $form = cls::get('core_Form');
+        $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name)', 'class=w100,placeholder=Оборудване,caption=Оборудване,mandatory');
+        $form->FLD('body', 'richtext(rows=4)', 'class=w100,caption=Съобщение,mandatory,placeholder=Съобщение');
         
-        $form->formAttr['submitFormOnRefresh'] = true;
-        $form->formAttr['id'] = 'supportForm';
-        $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name)', 'class=w100,caption=Оборудване,silent,removeAndRefreshForm=assetFolderId,mandatory');
-        $form->FLD('assetFolderId', 'int', 'input=hidden');
-        $form->FLD('tId', 'int', 'input=hidden,silent');
-        
-        // Наличните центрове на дейност
         $options = planning_AssetResources::getByFolderId(planning_Centers::fetchField($rec->centerId, 'folderId'));
         $form->setOptions('asset', array('' => '') + $options);
-        $form->input(null, 'silent');
-        
-        // Ако има избран център, да се заредят неговите папки за поддръжка
-        if(isset($form->rec->asset)){
-            $assetRec = planning_AssetResources::fetch($form->rec->asset);
-            $supportFolders = keylist::toArray($assetRec->systemFolderId);
-            if(!empty($supportFolders)){
-                $options = array();
-                foreach ($supportFolders as $supportFolderId){
-                    $options[$supportFolderId] = doc_Folders::getTitleById($supportFolderId, false);
-                }
-                $form->setField('assetFolderId', 'input');
-                $form->setOptions('assetFolderId', $options);
-            } else {
-                $form->setError('assetFolderId', 'Оборудването няма избрана папка за поддръжка');
-                $form->setReadOnly('assetFolderId');
-            }
-        }
-        
-        // Събмит на формата
+        $pointAsset = keylist::toArray($rec->fixedAssets);
+        $form->setDefault('asset', key($pointAsset));
         $form->input();
+        
         if($form->isSubmitted()){
-            if(empty($form->rec->assetFolderId)){
-                $form->setError('assetFolderId', 'Не е избрана папка');
+            if(isset($form->rec->asset)){
+                $assetRec = planning_AssetResources::fetch($form->rec->asset);
+                $supportFolders = keylist::toArray($assetRec->systemFolderId);
+                if(!count($supportFolders)){
+                    $form->setError('assetFolderId', 'Оборудването няма избрана папка за поддръжка');
+                } else {
+                    $newTask = (object)array('folderId' => key($supportFolders), 
+                                             'driverClass' => support_TaskType::getClassId(),
+                                             'description' => $form->rec->body,
+                                             'typeId' => support_IssueTypes::fetchField("#type = 'Повреда'"),
+                                             'assetResourceId' => $form->rec->asset, 
+                                             'title' => $assetRec->name,
+                        
+                    );
+                    cal_Tasks::save($newTask);
+                    doc_ThreadUsers::addShared($newTask->threadId, $newTask->containerId, core_Users::getCurrent());
+                    
+                    redirect(array($this, 'terminal', 'tId' => $rec->id), false, "Успешно пуснат сигнал|* #Tsk{$newTask->id}");
+                }
             }
-            
-            return redirect(array('cal_Tasks', 'add', 'folderId' => $form->rec->assetFolderId, 'assetResourceId' => $form->rec->asset, 'ret_url' => true));
         }
         
-        $sbBtn = ht::createSbBtn('', 'save', null, null, "ef_icon = img/16/settings.png,id='support-submit'");
-        $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/SupportFormLayout.shtml');
+        $form->toolbar->addSbBtn('Подаване', 'default', 'id=filter', 'ef_icon = img/16/settings.png,title=Подаване на сигнал за повреда на оборудване');
         $form->class = 'simpleForm';
         
-        $tpl->append($form->renderHtml());
-        $tpl->append($sbBtn, 'SB_BTN');
+        $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/SupportFormLayout.shtml');
+        $tpl->append($form->renderHtml(), 'FORM');
         $tpl->removeBlocksAndPlaces();
         
         return $tpl;
