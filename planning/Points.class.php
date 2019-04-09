@@ -560,11 +560,11 @@ class planning_Points extends core_Manager
     {
         $rec = $this->fetchRec($id);
         $tpl = new core_ET("[#searchInput#][#searchBtn#]");
-        $searchInput = ht::createElement('input', array('name' => 'searchBarcode', 'title' => 'Търсене'));
+        $searchInput = ht::createElement('input', array('name' => 'searchBarcode', 'class' => 'searchBarcode', 'title' => 'Търсене'));
         $tpl->append($searchInput, 'searchInput');
         
         $searchUrl = toUrl(array($this, 'search', 'tId' => $rec->id), 'local');
-        $searchBtn = ht::createFnBtn('Изпращане', null, null, array('id' => 'searchBtn', 'data-url' => $searchUrl, 'title' => 'Търсене по баркод'));
+        $searchBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/qr.png', 'id' => 'searchBtn','class' => 'qrBtn',  'data-url' => $searchUrl, 'title' => 'Търсене по баркод'));
         $tpl->append($searchBtn, 'searchBtn');
         
         return $tpl;

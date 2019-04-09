@@ -6,6 +6,12 @@
 			[#centerId#]
 			<!--ET_BEGIN fixedAssets--> <span class="assets">»    [#fixedAssets#]</span><!--ET_END fixedAssets-->
 		</span>
+
+		<div class='searchHolder'>
+			[#SEARCH_FORM#]
+		</div>
+
+
 		<div class="fright userInfo">
 			 <span id="dateHolder">[#date#]</span>
 			[#userId#]
@@ -46,8 +52,5 @@
 			</div>
 	</div>
 	<div class="clearfix21"></div>
-	<div class='searchHolder'>
-		[#SEARCH_FORM#]
-	</div>
 </div>
 

@@ -152,6 +152,32 @@ body {
 #task-support-content .formHolder {
   width: 600px; }
 
+.searchHolder {
+  position: absolute;
+  right: 50%;
+  margin-right: -115px;
+  display: inline-block; }
+  .searchHolder .searchBarcode {
+    float: left;
+    height: 28px;
+    position: relative;
+    top: 3px;
+    border: 1px solid #cccccc;
+    border-radius: 3px; }
+  .searchHolder .qrBtn {
+    float: left;
+    width: 32px;
+    height: 32px;
+    background-size: 24px 24px;
+    background-position: center;
+    box-sizing: border-box;
+    padding: 0 !important;
+    border: none !important;
+    background-color: rgba(0, 0, 0, 0) !important; }
+    .searchHolder .qrBtn:focus {
+      box-shadow: none;
+      outline: none; }
+
 .formHolder {
   background: white; }
   .formHolder .formFields {
@@ -311,5 +337,15 @@ only screen and (min-width: 720px) and (max-width: 800px) {
     font-size: 12px !important; }
 
   .paddingCells .nowrap {
-    white-space: normal !important; } }
+    white-space: normal !important; }
+
+  .searchHolder {
+    margin-right: -80px; }
+    .searchHolder .qrBtn {
+      height: 22px !important;
+      background-size: 20px 20px;
+      position: relative;
+      top: 2px; }
+    .searchHolder .searchBarcode {
+      height: 22px; } }
 
