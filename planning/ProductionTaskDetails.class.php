@@ -62,7 +62,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Кой има право да възстановява?
      */
-    public $canRestore = 'taskWorker,ceo';
+    public $canRestore = 'no_one';
     
     
     /**
@@ -92,7 +92,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'taskId,type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,created=Създаване,info=@,notes,_createdDate';
+    public $listFields = 'id,taskId,type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,created=Създаване,info=@,notes,_createdDate';
     
     
     /**
@@ -277,21 +277,17 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             if(isset($rec->productId)){
                 $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-                $rec->_generateSerial = false;
                 if(!empty($rec->serial)){
                     $rec->serial = plg_Search::normalizeText($rec->serial);
                     $rec->serial = str::removeWhitespaces($rec->serial);
                     if ($Driver = cat_Products::getDriver($rec->productId)) {
                         $rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
                     }
-                } elseif($rec->type == 'production'){
-                   $rec->_generateSerial = true;
-                }
-                
-                if($rec->type == 'production' && !empty($rec->serial)) {
-                     if (self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}'")) {
-                         $form->setError('serial', 'Сер. № при произвеждане трябва да е уникален');
-                     }
+                    
+                    if ($exId = self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}'")) {
+                        $form->setWarning('serial', 'Наистина ли, искате да подмените, съществуващия от преди запис|*?');
+                        $form->rec->_rejectId = $exId;
+                    }
                 }
                     
                 if (!empty($rec->serial)) {
@@ -302,9 +298,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
                 }
                 
+                // Ако артикулът е действие към оборудването
                 if ($canStore != 'yes' && $rec->type == 'input') {
-                    
-                    // Ако артикулът е действие към оборудването
                     $inTp = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #type = 'input' AND #productId = {$rec->productId}");
                     $inInputTask = planning_Tasks::fetchField("#originId = {$masterRec->originId} AND #inputInTask = {$rec->taskId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'pending' AND #productId = {$rec->productId}");
                     
@@ -315,6 +310,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                         }
                     }
                 }
+            } elseif(empty($rec->serial)){
+                $form->setError('productId,serial', 'Трябва да е избран артикул');
             }
             
             if (!$form->gotErrors()) {
@@ -338,6 +335,22 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     
     /**
+     * Оттегля дъществуващ запис, при създаването на нов
+     * 
+     * @param int $id
+     * @param stdClass $rec
+     */
+    private function rejectById($id, &$rec)
+    {
+        $exRec = self::fetch($rec->_rejectId);
+        $exRec->state = 'rejected';
+        $exRec->exState = 'active';
+        $this->save_($exRec, 'state');
+        $rec->serial = null;
+    }
+    
+    
+    /**
      * Преди запис на документ, изчислява стойността на полето `isContable`
      *
      * @param core_Manager $mvc
@@ -345,19 +358,25 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if ($rec->_generateSerial === true && empty($rec->serial)) {
+        if(isset($rec->_rejectId)){
+            $exRec = self::fetch($rec->_rejectId);
+            $exRec->state = 'rejected';
+            $exRec->exState = 'active';
+            $mvc->save_($exRec, 'state');
+            $rec->_generateSerial = true;
+            $rec->serial = null;
+        }
+        
+        if (empty($rec->serial)) {
             if ($Driver = cat_Products::getDriver($rec->productId)) {
                 $rec->serial = $Driver->generateSerial($rec->productId, 'planning_Tasks', $rec->taskId);
                 $rec->serialType = 'generated';
             }
-        }
-        
-        if (!empty($rec->serial)) {
+        } else {
             if ($Driver = cat_Products::getDriver($rec->productId)) {
                 $rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
+                $rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->serial);
             }
-            
-            $rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->serial);
         }
     }
     
@@ -743,7 +762,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'add' || $action == 'reject' || $action == 'restore' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)) {
+        if (($action == 'add' || $action == 'reject' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)) {
             $state = $mvc->Master->fetchField($rec->taskId, 'state');
             
             if ($state != 'active' && $state != 'waiting' && $state != 'wakeup') {
