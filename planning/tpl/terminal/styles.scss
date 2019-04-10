@@ -425,7 +425,16 @@ body {
 			margin-top: 6px;
 		}
 		.searchHolder {
-			left: 55px;
+			clear: both;
+			height: 30px;
+			width: 275px;
+			display: block;
+			float: none;
+			margin: 0 auto;
+			right: 0;
+			.searchBtn {
+				margin-right: 0;
+			}
 		}
 		.linkWithIcon {
 			background-image: none !important;

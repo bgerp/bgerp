@@ -359,7 +359,15 @@ only screen and (max-width:740px) {
       height: 18px;
       margin-top: 6px; }
     .terminalHeader .searchHolder {
-      left: 55px; }
+      clear: both;
+      height: 30px;
+      width: 275px;
+      display: block;
+      float: none;
+      margin: 0 auto;
+      right: 0; }
+      .terminalHeader .searchHolder .searchBtn {
+        margin-right: 0; }
     .terminalHeader .linkWithIcon {
       background-image: none !important;
       font-size: 0.9em;
