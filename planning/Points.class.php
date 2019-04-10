@@ -561,7 +561,21 @@ class planning_Points extends core_Manager
     {
         $rec = $this->fetchRec($id);
         $tpl = new core_ET("[#searchInput#][#searchBtn#]");
-        $searchInput = ht::createElement('input', array('name' => 'searchBarcode', 'class' => 'searchBarcode', 'title' => 'Търсене'));
+        
+        // Ако се гледа през андроидски телефон да се активира полето за търсене
+        $scannerUrl = null;
+        $userAgent = log_Browsers::getUserAgentOsName();
+        if ($userAgent == 'Android') {
+            $url = toUrl(array($this, 'terminal', 'tId' => $rec->id, 'search' => '__CODE__'), true);
+            $scannerUrl = barcode_Search::getScannerActivateUrl($url);
+        }
+        
+        $attr = array('name' => 'searchBarcode', 'data-url' => $scannerUrl, 'class' => 'searchBarcode', 'title' => 'Търсене');
+        if($search = Request::get('search', 'varchar')){
+            $attr['value'] = $search;
+        }
+        
+        $searchInput = ht::createElement('input', $attr);
         $tpl->append($searchInput, 'searchInput');
         
         $searchUrl = toUrl(array($this, 'search', 'tId' => $rec->id), 'local');

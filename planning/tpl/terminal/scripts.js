@@ -92,6 +92,14 @@ function planningActions() {
 		
 		console.log(url,searchVal);
 	});
+	
+	// При клик на полето за баркод да се отваря приложение
+	$(document.body).on('click', "input[name=searchBarcode]", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		$(location).attr('href', url);
+	});
 }
 
 // Кой таб да е активен
