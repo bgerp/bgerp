@@ -586,27 +586,22 @@ class planning_Points extends core_Manager
         
         Mode::push('terminalProgressForm', $currentTaskId);
         
-        // Подготовка на формата
-        $form = $Details->getForm();
-        $form->FLD('action', 'varchar(select2MinItems=100)', 'placeholder=Действие,mandatory,silent,removeAndRefreshForm=productId|type');
-        $form->setField('serial', 'placeholder=№,class=w100 serialField');
-        $form->setField('productId', 'class=w100,input=hidden,silent');
-        $form->setField('weight', 'class=w100 weightField,placeholder=Тегло|* (|кг|*)');
-        $form->setField('quantity', 'class=w100 quantityField,placeholder=К-во');
-        $form->setField('employees', 'placeholder=Оператори,class=w100');
-        $form->setField('fixedAsset', 'placeholder=Оборудване,class=w100');
-        $form->setField('type', 'input=hidden,silent,removeAndRefreshForm=productId|weight|serial,caption=Действие,class=w100');
-        $form->input(null, 'silent');
+        $form = cls::get('core_Form');
         $form->formAttr['id'] = 'planning-terminal-form';
         $form->formAttr['class'] = 'simpleForm';
-        unset($form->rec->id);
-        unset($form->fields['id']);
-        $form->setFieldTypeParams('fixedAsset', array('select2MinItems' => 100));
-        $form->setFieldTypeParams('employees', array('select2MinItems' => 100));
-        $form->fields['employees']->attr = array('id' => 'employeeSelect');
-        $form->fields['fixedAsset']->attr = array('id' => 'fixedAssetSelect');
-        $form->fields['action']->attr = array('id' => 'actionIdSelect');
-        $form->fields['type']->attr = array('id' => 'typeSelect');
+        $form->FLD('taskId', 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
+        $form->FLD('action', 'varchar(select2MinItems=100)', 'elementId=actionIdSelect,placeholder=Действие,mandatory,silent,removeAndRefreshForm=productId|type');
+        $form->FLD('productId', 'key(mvc=cat_Products,select=name)', 'class=w100,input=hidden,silent');
+        $form->FLD('type', 'enum(input=Влагане,production=Произв.,waste=Отпадък)', 'elementId=typeSelect,input=hidden,silent,removeAndRefreshForm=productId|weight|serial,caption=Действие,class=w100');
+        $form->FLD('serial', 'varchar(32)', 'focus,autocomplete=off,silent,placeholder=№,class=w100 serialField');
+        $form->FLD('quantity', 'double(Min=0)', 'class=w100 quantityField,placeholder=К-во');
+        $form->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
+        $form->FLD('weight', 'double(Min=0)', 'class=w100 weightField,placeholder=Тегло|* (|кг|*)');
+        $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=100)', 'elementId=employeeSelect,placeholder=Оператори,class=w100');
+        $form->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id,select2MinItems=100)', 'elementId=fixedAssetSelect,placeholder=Оборудване,class=w100');
+        
+        $form->input(null, 'silent');
+        
         $form->rec->taskId = $currentTaskId;
         $taskRec = planning_Tasks::fetch($currentTaskId);
         

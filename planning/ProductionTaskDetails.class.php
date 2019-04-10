@@ -92,7 +92,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,taskId,type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,created=Създаване,info=@,notes,_createdDate';
+    public $listFields = 'taskId,type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,created=Създаване,info=@,notes,_createdDate';
     
     
     /**
