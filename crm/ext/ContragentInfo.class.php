@@ -383,11 +383,11 @@ class crm_ext_ContragentInfo extends core_manager
         $saleQuery2->XPR('amount', 'int', 'SUM(#amountDeal)');
         $saleQuery2->where("#contragentClassId = {$contragentClassId}");
         $saleQuery2->where("#state = 'active' AND #paymentState = 'overdue'");
-        $saleQuery2->show('count,amount,contragentId');
+        $saleQuery2->show('count,amount,contragentId,amountBl');
         $saleQuery2->groupBy('contragentId');
         while ($sRec2 = $saleQuery2->fetch()) {
             $res[$sRec2->contragentId]['overdue']['count'] = $sRec2->count;
-            $res[$sRec2->contragentId]['overdue']['amount'] = $sRec2->amount;
+            $res[$sRec2->contragentId]['overdue']['amount'] = $sRec2->amountBl;
         }
         
         return $res;
