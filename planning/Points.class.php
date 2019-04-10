@@ -563,14 +563,12 @@ class planning_Points extends core_Manager
         $tpl = new core_ET("[#searchInput#][#searchBtn#]");
         
         // Ако се гледа през андроидски телефон да се активира полето за търсене
-        $scannerUrl = null;
+        $attr = array('class' => 'searchBarcode scanElement', 'title' => 'Търсене');
         $userAgent = log_Browsers::getUserAgentOsName();
         if ($userAgent == 'Android') {
             $url = toUrl(array($this, 'terminal', 'tId' => $rec->id, 'search' => '__CODE__'), true);
-            $scannerUrl = barcode_Search::getScannerActivateUrl($url);
+            $attr['data-url'] = barcode_Search::getScannerActivateUrl($url);
         }
-        
-        $attr = array('data-url' => $scannerUrl, 'class' => 'searchBarcode scanElement', 'title' => 'Търсене');
         if($search = Request::get('search', 'varchar')){
             $attr['value'] = $search;
         }
@@ -609,7 +607,7 @@ class planning_Points extends core_Manager
         $form->FLD('action', 'varchar(select2MinItems=100)', 'elementId=actionIdSelect,placeholder=Действие,mandatory,silent,removeAndRefreshForm=productId|type');
         $form->FLD('productId', 'key(mvc=cat_Products,select=name)', 'class=w100,input=hidden,silent');
         $form->FLD('type', 'enum(input=Влагане,production=Произв.,waste=Отпадък)', 'elementId=typeSelect,input=hidden,silent,removeAndRefreshForm=productId|weight|serial,caption=Действие,class=w100');
-        $form->FLD('serial', 'varchar(32)', 'focus,autocomplete=off,silent,placeholder=№,class=w100 serialField');
+        $form->FLD('serial', 'varchar(32)', 'focus,autocomplete=off,silent,placeholder=№,class=w100 serialField scanElement');
         $form->FLD('quantity', 'double(Min=0)', 'class=w100 quantityField,placeholder=К-во');
         $form->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
         $form->FLD('weight', 'double(Min=0)', 'class=w100 weightField,placeholder=Тегло|* (|кг|*)');
@@ -617,6 +615,13 @@ class planning_Points extends core_Manager
         $form->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id,select2MinItems=100)', 'elementId=fixedAssetSelect,placeholder=Оборудване,class=w100');
         $form->rec->taskId = $currentTaskId;
         $form->input(null, 'silent');
+        
+        $userAgent = log_Browsers::getUserAgentOsName();
+        if ($userAgent == 'Android') {
+            $url = toUrl(array($this, 'terminal', 'tId' => $rec->id, 'serial' => '__CODE__'), true);
+            $scannerUrl = barcode_Search::getScannerActivateUrl($url);
+            $form->setFieldAttr('serial', array('data-url' => $scannerUrl));
+        }
         
         // Зареждане на опциите
         $typeOptions = array();
