@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-abstract class core_Extender extends core_Manager
+abstract class core_Extender extends core_Master
 {
     /**
      * Кой може да редактира
@@ -83,7 +83,7 @@ abstract class core_Extender extends core_Manager
      *
      * @param core_Mvc $mvc
      */
-    public static function on_AfterDescription(core_Mvc $mvc)
+    public static function on_AfterDescription(core_Master &$mvc)
     {
         expect($mvc->extenderClassInterfaces);
         
