@@ -133,8 +133,13 @@ function prepareKeyboard()
 	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
 		target: $('.quantityField')
 	});
+	
 	$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
 		target: $('.weightField')
+	});
+	
+	$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.serialField')
 	});
 }
 

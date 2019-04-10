@@ -582,8 +582,8 @@ class planning_Points extends core_Manager
         
         // Коя е текущата задача, ако има
         $currentTaskId = Mode::get("currentTaskId{$rec->id}");
+        expect($taskRec = planning_Tasks::fetch($currentTaskId));
         $Details = cls::get('planning_ProductionTaskDetails');
-        
         Mode::push('terminalProgressForm', $currentTaskId);
         
         $form = cls::get('core_Form');
@@ -599,45 +599,31 @@ class planning_Points extends core_Manager
         $form->FLD('weight', 'double(Min=0)', 'class=w100 weightField,placeholder=Тегло|* (|кг|*)');
         $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=100)', 'elementId=employeeSelect,placeholder=Оператори,class=w100');
         $form->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id,select2MinItems=100)', 'elementId=fixedAssetSelect,placeholder=Оборудване,class=w100');
-        
-        $form->input(null, 'silent');
-        
         $form->rec->taskId = $currentTaskId;
-        $taskRec = planning_Tasks::fetch($currentTaskId);
+        $form->input(null, 'silent');
         
         // Зареждане на опциите
         $typeOptions = array();
-        if($currentTaskId){
-            foreach (array('production' => 'Произв.', 'input' => 'Влагане', 'waste' => 'Отпадък') as $type => $typeCaption){
-                $options = planning_ProductionTaskProducts::getOptionsByType($currentTaskId, $type);
-                foreach ($options as $pId => $pName){
-                    $typeOptions["{$type}|{$pId}"] = "[{$typeCaption}] {$pName}";
-                }
-            }
-            
-            $form->setOptions('action', $typeOptions);
-            $form->setDefault('action', "production|{$taskRec->productId}");
-            if(isset($form->rec->action)){
-                list($type, $productId) = explode('|', $form->rec->action);
-                $form->rec->productId = $productId;
-                $form->rec->type = $type;
-            }
-            
-            $data = (object) array('form' => $form, 'masterRec' => planning_Tasks::fetch($currentTaskId), 'action' => 'add');
-            $Details->invoke('AfterPrepareEditForm', array($data, $data));
-        } else {
-            
-            // Ако няма избрана операция, забраняват се другите полета
-            $form->setOptions('type', $typeOptions);
-            $form->rec->productId = null;
-            foreach (array('employees', 'fixedAsset', 'type', 'productId', 'weight', 'quantity') as $fld){
-                $form->setReadOnly($fld);
+        foreach (array('production' => 'Произв.', 'input' => 'Влагане', 'waste' => 'Отпадък') as $type => $typeCaption){
+            $options = planning_ProductionTaskProducts::getOptionsByType($currentTaskId, $type);
+            foreach ($options as $pId => $pName){
+               $typeOptions["{$type}|{$pId}"] = "[{$typeCaption}] {$pName}";
             }
         }
         
+        $form->setOptions('action', $typeOptions);
+        $form->setDefault('action', "production|{$taskRec->productId}");
+        if(isset($form->rec->action)){
+            list($type, $productId) = explode('|', $form->rec->action);
+            $form->rec->productId = $productId;
+            $form->rec->type = $type;
+        }
+            
+        $data = (object) array('form' => $form, 'masterRec' => planning_Tasks::fetch($currentTaskId), 'action' => 'add');
+        $Details->invoke('AfterPrepareEditForm', array($data, $data));
+        
         // Кустом рендиране на полетата
         $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/FormFields.shtml');
-        
         $taskName = (Mode::get('terminalId')) ? planning_Tasks::getTitleById($currentTaskId, true) : planning_Tasks::getHyperlink($currentTaskId, true);
         $currentTaskHtml = ($currentTaskId)  ? $taskName : tr('Няма текуща задача');
         $form->fieldsLayout->append($currentTaskHtml, 'currentTaskId');
@@ -648,16 +634,20 @@ class planning_Points extends core_Manager
         $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
         
         $numpadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'numPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
+        $serialPadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'serialPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
         $form->fieldsLayout->append($numpadBtn, 'NUM_PAD_BTN');
-        
-        $weightPadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'weightPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
-        $form->fieldsLayout->append($weightPadBtn, 'WEIGHT_PAD_BTN');
+        $form->fieldsLayout->append($serialPadBtn, 'SERIAL_PAD_BTN');
         
         // Показване на прогреса, само ако е
-        if($currentTaskId && $form->rec->productId == $data->masterRec->productId){
+        if($form->rec->productId == $data->masterRec->productId){
             $taskRow = planning_Tasks::recToVerbal(planning_Tasks::fetch($currentTaskId), 'progressBar,progress');
             $form->fieldsLayout->append($taskRow->progressBar, 'PROGRESS');
             $form->fieldsLayout->append(" " . $taskRow->progress, 'PROGRESS');
+        }
+        
+        if($form->fields['weight']->input != 'none'){
+            $weightPadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'weightPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
+            $form->fieldsLayout->append($weightPadBtn, 'WEIGHT_PAD_BTN');
         }
         
         $tpl = $form->renderHtml();
