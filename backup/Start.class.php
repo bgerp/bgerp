@@ -462,7 +462,12 @@ class backup_Start extends core_Manager
     public static function isLocked()
     {
         self::initialize();
-        
+        // Ако заключването е по голямо от 120 мин отключваме backup-a
+        if (file_exists(self::$lockFileName)) {
+            if (datetime() - filemtime(self::$lockFileName) > 120*60) {
+                self::unLock();
+            }
+        }
         return file_exists(self::$lockFileName);
     }
     
