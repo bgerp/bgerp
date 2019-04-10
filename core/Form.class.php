@@ -700,8 +700,6 @@ class core_Form extends core_FieldSet
             
             // Скрива полетата, които имат само една опция и атрибут `hideIfOne`
             foreach ($fields as $name => $field) {
-                if($name !== 'serial3') continue;
-                
                 
                 if ($field->hideIfOne) {
                     if ($field->type instanceof type_Key) {
