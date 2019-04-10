@@ -563,7 +563,7 @@ class planning_Points extends core_Manager
         $tpl = new core_ET("[#searchInput#][#searchBtn#]");
         
         // Ако се гледа през андроидски телефон да се активира полето за търсене
-        $attr = array('class' => 'searchBarcode scanElement', 'title' => 'Търсене');
+        $attr = array('name' => 'searchBarcode', 'class' => 'searchBarcode scanElement', 'title' => 'Търсене');
         $userAgent = log_Browsers::getUserAgentOsName();
         if ($userAgent == 'Android') {
             $url = toUrl(array($this, 'terminal', 'tId' => $rec->id, 'search' => '__CODE__'), true);

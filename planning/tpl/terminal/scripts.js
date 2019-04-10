@@ -90,15 +90,11 @@ function planningActions() {
 		
 		var data = {search:searchVal};
 		getEfae().process(resObj, data);
-		
-		console.log(url,searchVal);
 	});
 	
 	// При клик на полето за баркод да се отваря приложение
 	$(document.body).on('click', ".scanElement", function(e){
 		var url = $(this).attr("data-url");
-		
-		console.log(url);
 		if(!url) return;
 		
 		$(location).attr('href', url);
