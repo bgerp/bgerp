@@ -17,6 +17,12 @@
 class cat_ProductDriverIntf extends embed_DriverIntf
 {
     /**
+     * Версия на интерфейса
+     */
+    const VERSION = 2;
+
+
+    /**
      * Инстанция на класа имплементиращ интерфейса
      */
     public $class;
