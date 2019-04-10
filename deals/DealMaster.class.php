@@ -104,7 +104,7 @@ abstract class deals_DealMaster extends deals_DealBase
             
             // Намираме непадежиралите фактури, тези с вальор >= на днес
             $sum = 0;
-            $res = array_filter($invoices, function (&$e) use ($today, &$sum) {
+            array_filter($invoices, function (&$e) use ($today, &$sum) {
                 if ($e['dueDate'] >= $today && $e['total'] > 0) {
                     $sum += $e['total'];
                     
@@ -137,6 +137,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $methodId = $aggregateDealInfo->get('paymentMethodId');
             if (!empty($methodId)) {
                 // За дата на платежния план приемаме първата фактура, ако няма първото експедиране, ако няма вальора на договора
+                $date = null;
                 setIfNot($date, $aggregateDealInfo->get('invoicedValior'), $aggregateDealInfo->get('shippedValior'), $aggregateDealInfo->get('agreedValior'));
                 $plan = cond_PaymentMethods::getPaymentPlan($methodId, $aggregateDealInfo->get('amount'), $date);
                 
@@ -249,7 +250,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
         $rec = $form->rec;
         
-        if (empty($form->rec->id)) {
+        if (empty($rec->id)) {
             $form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', false));
         }
         
@@ -257,17 +258,17 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Поле за избор на локация - само локациите на контрагента по сделката
         if (!$form->getFieldTypeParam('deliveryLocationId', 'isReadOnly')) {
-            $locations = array('' => '') + crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
+            $locations = array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
             $form->setOptions('deliveryLocationId', $locations);
         }
         
-        if ($form->rec->id) {
+        if ($rec->id) {
             
             // Не може да се сменя ДДС-то ако има вече детайли
             $Detail = $mvc->mainDetail;
-            if ($mvc->$Detail->fetch("#{$mvc->{$Detail}->masterKey} = {$form->rec->id}")) {
+            if ($mvc->$Detail->fetch("#{$mvc->{$Detail}->masterKey} = {$rec->id}")) {
                 foreach (array('chargeVat', 'currencyId', 'deliveryTermId') as $fld) {
-                    $form->setReadOnly($fld, isset($form->rec->{$fld}) ? $form->rec->{$fld} : $mvc->fetchField($form->rec->id, $fld));
+                    $form->setReadOnly($fld, isset($rec->{$fld}) ? $rec->{$fld} : $mvc->fetchField($rec->id, $fld));
                 }
             }
         }
@@ -621,7 +622,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @param int $id - ид на сделката
      *
-     * @return param $res - масив с използваните документи
+     * @return array $res - масив с използваните документи
      *               ['class'] - Инстанция на документа
      *               ['id'] - Ид на документа
      */
@@ -665,7 +666,6 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         // Кои потребители ще се нотифицират
         $rec->sharedUsers = '';
-        $actions = type_Set::toArray($rec->contoActions);
         
         // Ако има склад, се нотифицира отговорника му
         if (isset($rec->shipmentStoreId)) {
@@ -1121,10 +1121,6 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
         $aggregateDealInfo = $mvc->getAggregateDealInfo($rec->id);
-        $Detail = $mvc->mainDetail;
-        
-        $oldPaid = $rec->amountPaid;
-        $oldDelivered = $rec->amountDelivered;
         
         // Преизчисляваме общо платената и общо експедираната сума
         $rec->amountPaid = $aggregateDealInfo->get('amountPaid');
@@ -1246,7 +1242,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $options = $mvc->getContoOptions($rec->id);
             if (count($options)) {
                 $data->toolbar->removeBtn('btnConto');
-                
+                $error = '';
                 // Проверка на счетоводния период, ако има грешка я показваме
                 if (!acc_plg_Contable::checkPeriod($rec->valior, $error)) {
                     $error = ",error={$error}";
@@ -1326,7 +1322,7 @@ abstract class deals_DealMaster extends deals_DealBase
             
             return new Redirect(array($this, 'single', $id), '|Договорът вече е активиран');
         }
-        
+        $error = null;
         expect(cls::haveInterface('acc_TransactionSourceIntf', $this));
         expect(acc_plg_Contable::checkPeriod($rec->valior, $error), $error);
         $curStoreId = store_Stores::getCurrent('id', false);
@@ -1682,7 +1678,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param float  $discount     - отстъпка между 0(0%) и 1(100%) (не е задължителна)
      * @param float  $tolerance    - толеранс между 0(0%) и 1(100%) (не е задължителен)
      * @param string $term         - срок (не е задължителен)
-     * @param text   $notes        - забележки
+     * @param string   $notes        - забележки
      *
      * @return mixed $id/FALSE     - ид на запис или FALSE
      */

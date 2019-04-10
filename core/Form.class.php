@@ -700,6 +700,7 @@ class core_Form extends core_FieldSet
             
             // Скрива полетата, които имат само една опция и атрибут `hideIfOne`
             foreach ($fields as $name => $field) {
+                
                 if ($field->hideIfOne) {
                     if ($field->type instanceof type_Key) {
                         $field->type->prepareOptions();
@@ -739,6 +740,9 @@ class core_Form extends core_FieldSet
                 $options = $field->options;
                 
                 $attr = $field->attr ? $field->attr : array();
+                if(isset($field->elementId)){
+                    $attr['id'] = $field->elementId;
+                }
                 
                 if ($field->hint) {
                     $attr['title'] = $field->hint;

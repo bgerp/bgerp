@@ -6,11 +6,6 @@ function planningActions() {
 		var url = $(this).attr("data-url");
 		if(!url) return;
 		
-		// хак да не се събмитва формата
-		if($(this).parent().attr("id") != 'tab-support'){
-			$("#supportForm").remove();
-		}
-		
 		if($(this).parent().hasClass( "disabled" )){
 			return;
 		}
@@ -29,7 +24,7 @@ function planningActions() {
 	});
 	
 	
-	// Използване на числата за въвеждане на суми за плащания
+	// Изпращане на формата за прогреса
 	$(document.body).on('click', "#sendBtn", function(e){
 		var url = $(this).attr("data-url");
 		if(!url) return;
@@ -37,11 +32,12 @@ function planningActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		$("#supportForm").remove();
-		
 		var serial = $("input[name=serial]").val();
-		var type = $("#typeSelect").is('[readonly]') ?  $("input[name=type]").val() : $("#typeSelect").val();
-		var productId = $("#productIdSelect").is('[readonly]') ? $("input[name=productId]").val() :  $("#productIdSelect").val() ;
+		var action = $("#actionIdSelect").is('[readonly]') ? $("input[name=action]").val() :  $("#actionIdSelect").val() ;
+		var res = action.split('|');
+		var type = res[0];
+		var productId = res[1];
+		
 		var quantity = $("input[name=quantity]").val();
 		var employees = $("select#employeeSelect").length ? $("select#employeeSelect").val() : $('input[id^="employees"]').is(':checked') ? $('input[id^="employees"]').val() : null;
 		var weight = $("input[name=weight]").val();
@@ -79,6 +75,22 @@ function planningActions() {
 		setCookie('terminalTab', currentId);
 		
 		e.preventDefault();
+	});
+	
+	
+	// Търсене по баркод
+	$(document.body).on('click', "#searchBtn", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		var searchVal = $("input[name=searchBarcode]").val();
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		var data = {search:searchVal};
+		getEfae().process(resObj, data);
+		
+		console.log(url,searchVal);
 	});
 }
 
@@ -121,8 +133,13 @@ function prepareKeyboard()
 	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
 		target: $('.quantityField')
 	});
+	
 	$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
 		target: $('.weightField')
+	});
+	
+	$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.serialField')
 	});
 }
 

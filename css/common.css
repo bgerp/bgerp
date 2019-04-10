@@ -3455,12 +3455,18 @@ td.leftColImportant {
 
 .treelist {
   font-size: 16px;
-  padding: 5px;
-  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
   max-height: 400px;
   white-space: nowrap;
-  overflow-x: auto;
-  overflow-y: auto; }
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: relative;
+  border: solid 1px #bbbbbb;
+  border-radius: 3px;
+  background-color: white;
+  padding: 4px 20px 4px 4px;
+  min-height: 26px; }
   .treelist ul {
     list-style-type: none;
     margin: 0;
@@ -3482,6 +3488,13 @@ td.leftColImportant {
     display: inline-block;
     width: 14px;
     text-align: center; }
+  .treelist #verbal {
+    white-space: normal; }
   .treelist .hidden {
     display: none; }
+  .treelist .plus {
+    font-weight: bold;
+    position: absolute;
+    right: 5px;
+    top: 3px; }
 

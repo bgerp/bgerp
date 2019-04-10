@@ -62,7 +62,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Кой има право да възстановява?
      */
-    public $canRestore = 'taskWorker,ceo';
+    public $canRestore = 'no_one';
     
     
     /**
@@ -140,7 +140,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество');
         $this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
         $this->FLD('weight', 'double(Min=0)', 'caption=Тегло,unit=кг');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,tdClass=nowrap');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Оператори,tdClass=nowrap');
         $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Оборудване,input=none,tdClass=nowrap');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Забележки,autohide');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
@@ -159,9 +159,9 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         $form = &$data->form;
         $rec = &$data->form->rec;
-        $masterRec = planning_Tasks::fetch($rec->taskId);
         
-        // Добавяме последните данни за дефолтни
+        // Добавяне на последните данни за дефолтни
+        $masterRec = planning_Tasks::fetch($rec->taskId);
         $query = $mvc->getQuery();
         $query->where("#taskId = {$rec->taskId}");
         $query->orderBy('id', 'DESC');
@@ -225,7 +225,6 @@ class planning_ProductionTaskDetails extends doc_Detail
             if($rec->type == 'production' && isset($masterRec->packagingId)){
                 $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->packagingId);
                 $form->setField('quantity', "unit={$unit}");
-                
                 $packRec = cat_products_Packagings::getPack($masterRec->productId, $masterRec->packagingId);
                 $defaultQuantity = is_object($packRec) ? ($packRec->quantity / $masterRec->quantityInPack) : 1;
                 $form->setField('quantity', "placeholder={$defaultQuantity}");
@@ -236,7 +235,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
         }
         
-        // Връща избрани служители от операцията, или ако няма всички от центъра
+        // Връща избрани оператори от операцията, или ако няма всички от центъра
         $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
         if (count($employees)) {
             $form->setSuggestions('employees', $employees);
@@ -277,21 +276,17 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             if(isset($rec->productId)){
                 $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-                $rec->_generateSerial = false;
                 if(!empty($rec->serial)){
                     $rec->serial = plg_Search::normalizeText($rec->serial);
                     $rec->serial = str::removeWhitespaces($rec->serial);
                     if ($Driver = cat_Products::getDriver($rec->productId)) {
                         $rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
                     }
-                } elseif($rec->type == 'production'){
-                   $rec->_generateSerial = true;
-                }
-                
-                if($rec->type == 'production' && !empty($rec->serial)) {
-                     if (self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}'")) {
-                         $form->setError('serial', 'Сер. № при произвеждане трябва да е уникален');
-                     }
+                    
+                    if ($exId = self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}'")) {
+                        $form->setWarning('serial', 'Наистина ли, искате да подмените, съществуващия от преди запис|*?');
+                        $form->rec->_rejectId = $exId;
+                    }
                 }
                     
                 if (!empty($rec->serial)) {
@@ -302,9 +297,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
                 }
                 
+                // Ако артикулът е действие към оборудването
                 if ($canStore != 'yes' && $rec->type == 'input') {
-                    
-                    // Ако артикулът е действие към оборудването
                     $inTp = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #type = 'input' AND #productId = {$rec->productId}");
                     $inInputTask = planning_Tasks::fetchField("#originId = {$masterRec->originId} AND #inputInTask = {$rec->taskId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'pending' AND #productId = {$rec->productId}");
                     
@@ -315,6 +309,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                         }
                     }
                 }
+            } elseif(empty($rec->serial)){
+                $form->setError('productId,serial', 'Трябва да е избран артикул');
             }
             
             if (!$form->gotErrors()) {
@@ -338,6 +334,22 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     
     /**
+     * Оттегля дъществуващ запис, при създаването на нов
+     * 
+     * @param int $id
+     * @param stdClass $rec
+     */
+    private function rejectById($id, &$rec)
+    {
+        $exRec = self::fetch($rec->_rejectId);
+        $exRec->state = 'rejected';
+        $exRec->exState = 'active';
+        $this->save_($exRec, 'state');
+        $rec->serial = null;
+    }
+    
+    
+    /**
      * Преди запис на документ, изчислява стойността на полето `isContable`
      *
      * @param core_Manager $mvc
@@ -345,19 +357,25 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if ($rec->_generateSerial === true && empty($rec->serial)) {
+        if(isset($rec->_rejectId)){
+            $exRec = self::fetch($rec->_rejectId);
+            $exRec->state = 'rejected';
+            $exRec->exState = 'active';
+            $mvc->save_($exRec, 'state');
+            $rec->_generateSerial = true;
+            $rec->serial = null;
+        }
+        
+        if (empty($rec->serial)) {
             if ($Driver = cat_Products::getDriver($rec->productId)) {
                 $rec->serial = $Driver->generateSerial($rec->productId, 'planning_Tasks', $rec->taskId);
                 $rec->serialType = 'generated';
             }
-        }
-        
-        if (!empty($rec->serial)) {
+        } else {
             if ($Driver = cat_Products::getDriver($rec->productId)) {
                 $rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
+                $rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->serial);
             }
-            
-            $rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->serial);
         }
     }
     
@@ -553,9 +571,9 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     
     /**
-     * Показва вербалното име на служителите
+     * Показва вербалното име на операторите
      *
-     * @param string $employees - кейлист от служители
+     * @param string $employees - кейлист от оператори
      *
      * @return string $verbalEmployees
      */
@@ -667,14 +685,14 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         $data->listFilter->showFields = 'serial';
         
-        // Ако има използвани служители, добавят се за филтриране
+        // Ако има използвани оператори, добавят се за филтриране
         $usedFixedAssets = self::getResourcesInDetails($data->masterId, 'fixedAsset');
         if(count($usedFixedAssets)){
             $data->listFilter->setOptions('fixedAsset', array('' => '') + $usedFixedAssets);
             $data->listFilter->showFields .= ",fixedAsset";
         }
         
-        // Ако има използвани служители, добавят се за филтриране
+        // Ако има използвани оператори, добавят се за филтриране
         $usedEmployeeIds = self::getResourcesInDetails($data->masterId, 'employees');
         if(count($usedEmployeeIds)){
             $data->listFilter->setOptions('employees', array('' => '') + $usedEmployeeIds);
@@ -743,7 +761,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'add' || $action == 'reject' || $action == 'restore' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)) {
+        if (($action == 'add' || $action == 'reject' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)) {
             $state = $mvc->Master->fetchField($rec->taskId, 'state');
             
             if ($state != 'active' && $state != 'waiting' && $state != 'wakeup') {
@@ -810,7 +828,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         while ($rec = $query->fetch()) {
             
-            // Ако няма служители, пропуска се
+            // Ако няма оператори, пропуска се
             $persons = keylist::toArray($rec->employees);
             if (!count($persons)) {
                 continue;

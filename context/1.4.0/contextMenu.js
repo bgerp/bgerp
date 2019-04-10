@@ -67,7 +67,7 @@
         //callback
         onOpen: function (data, event) {getEfae().waitPeriodicAjaxCall = 60;},
         afterOpen: function (data, event) {getEfae().waitPeriodicAjaxCall = 60;},
-        onClose: function (data, event) {getEfae().waitPeriodicAjaxCall = 0;}
+        onClose: function (data, event) {getEfae().waitPeriodicAjaxCall = 0; getEfae().preventRequest = 0;}
     };
 
     var methods = {

@@ -1,17 +1,11 @@
 <div class='formContent'>
-	<table>
+	<table class="simple">
 		<tr>
-			<td>|Оборудване|*</td>
 			<td>[#asset#]</td>
-			<td>[#SB_BTN#]</td>
 		</tr>
-		<!--ET_BEGIN assetFolderId-->
 		<tr>
-			<td>|Папка|*</td>
-			<td>[#assetFolderId#]</td>
-			<td></td>
+			<td>[#body#]</td>
 		</tr>
-		<!--ET_END assetFolderId-->
 	</table>
 </div>
 
