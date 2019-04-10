@@ -2,7 +2,7 @@
 
 
 /**
- *
+ * Общ интерфейс за периферните устройства
  *
  * @category  bgerp
  * @package   peripheral
@@ -13,6 +13,7 @@
  *
  * @since     v 0.1
  */
-class peripheral_DeviceIntf extends peripheral_BaseIntf
+class peripheral_BaseIntf extends embed_DriverIntf
 {
+    
 }

@@ -14,7 +14,7 @@
  *
  * @since     v 0.11
  */
-class pos_Points extends core_Master
+class pos_Points extends core_Extender
 {
     /**
      * Заглавие
@@ -114,9 +114,15 @@ class pos_Points extends core_Master
     
     
     /**
-     * Поддържани интерфейси
+     * 
      */
-    public $interfaces = 'peripheral_TerminalIntf';
+    public $extenderClassInterfaces = 'peripheral_TerminalIntf';
+    
+    
+    /**
+     * 
+     */
+    public $extenderFields = 'name, caseId, storeId, policyId, payments, inCharge, access, shared';
     
     
     /**
@@ -350,42 +356,5 @@ class pos_Points extends core_Master
                 $query->where("#{$pointFld} = {$filterRec->point}");
             }
         }
-    }
-    
-    
-    /**
-     * Връща всички достъпни за текущия потребител id-та на обекти, отговарящи на записи
-     *
-     * @return array
-     *
-     * @see peripheral_TerminalIntf
-     */
-    public function getTerminalOptions()
-    {
-        $query = $this->getQuery();
-        $query->where("#state != 'rejected'");
-        
-        $resArr = array();
-        
-        $query->showFields = 'id,name';
-        
-        while ($rec = $query->fetchAndCache()) {
-            $resArr[$rec->id] = $rec->name;
-        }
-        
-        return $resArr;
-    }
-    
-    
-    /**
-     * Редиректва към посочения терминал в посочената точка и за посочения потребител
-     *
-     * @return Redirect
-     *
-     * @see peripheral_TerminalIntf
-     */
-    public function openTerminal($pointId, $userId)
-    {
-        return new Redirect(array($this, 'openTerminal', $pointId));
     }
 }

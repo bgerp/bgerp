@@ -97,6 +97,12 @@ class pos_Setup extends core_ProtoSetup
     
     
     /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'pos_TerminalImpl';
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
@@ -109,6 +115,12 @@ class pos_Setup extends core_ProtoSetup
         'pos_Stocks',
         'migrate::migrateCronSettings'
     );
+    
+    
+    /**
+     * Необходими пакети
+     */
+    public $depends = 'peripheral=0.1';
     
     
     /**

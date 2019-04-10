@@ -52,6 +52,5 @@ class peripheral_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'peripheral_Devices',
-        'peripheral_Terminal',
     );
 }
