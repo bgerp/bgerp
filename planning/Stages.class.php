@@ -46,6 +46,12 @@ class planning_Stages extends core_Extender
     
     
     /**
+     * Кой може да го разглежда?
+     */
+    public $canSingle = 'no_one';
+    
+    
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'folders,name';
