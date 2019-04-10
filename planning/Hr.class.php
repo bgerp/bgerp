@@ -24,7 +24,7 @@ class planning_Hr extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Информация за служителите';
+    public $title = 'Информация за операторите';
     
     
     /**
@@ -104,7 +104,7 @@ class planning_Hr extends core_Master
      */
     public function description()
     {
-        $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory,caption=Служител');
+        $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory,caption=Оператор');
         $this->FLD('code', 'varchar', 'caption=Код');
         
         // TODO - ще се премахне след като минат миграциите
@@ -279,7 +279,7 @@ class planning_Hr extends core_Master
     
     
     /**
-     * Връща всички служители, избрани като ресурси в папката
+     * Връща всички оператори, избрани като ресурси в папката
      *
      * @param int $folderId - ид на папка, NULL за всички
      *
@@ -289,7 +289,7 @@ class planning_Hr extends core_Master
     {
         $options = array();
         
-        // Ако папката не поддържа ресурси служители да не се връща нищо
+        // Ако папката не поддържа ресурси оператори да не се връща нищо
         $Cover = doc_Folders::getCover($folderId);
         $resourceTypes = $Cover->getResourceTypeArray();
         if (!isset($resourceTypes['hr'])) {

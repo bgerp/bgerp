@@ -702,9 +702,12 @@ div.productImage {
   background-color: #e4e4e4;
   border: 1px solid #aaaaaa;
   border-radius: 4px;
-  margin-top: 5px;
-  padding: 1px 5px;
-  cursor: pointer; }
+  margin-top: 1px;
+  margin-bottom: 1px;
+  padding: 1px 2px;
+  line-height: 1.2em;
+  cursor: pointer;
+  display: inline-block; }
   .group-link:hover {
     background-color: #f1f1f1; }
 

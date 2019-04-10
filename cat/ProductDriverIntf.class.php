@@ -17,6 +17,12 @@
 class cat_ProductDriverIntf extends embed_DriverIntf
 {
     /**
+     * Версия на интерфейса
+     */
+    const VERSION = 2;
+
+
+    /**
      * Инстанция на класа имплементиращ интерфейса
      */
     public $class;
@@ -209,9 +215,9 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      * @param float                                                                              $maxDelta  - максималната надценка
      * @param datetime                                                                           $datetime  - дата
      * @param float                                                                              $rate      - валутен курс
-     * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
+     * @param string $chargeVat - начин на начисляване на ддс
      * 
-     * @return float|NULL $price  - цена
+     * @return stdClass|float|NULL $price  - обект с цена и отстъпка, или само цена, или NULL ако няма
      */
     public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = null, $rate = 1, $chargeVat = 'no')
     {

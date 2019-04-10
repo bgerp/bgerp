@@ -210,7 +210,7 @@ class planning_Tasks extends core_Master
         
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Производство->Склад,input=none');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks)', 'caption=Производство->Оборудване');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Производство->Служители');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Производство->Оператори');
         
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=none,tdClass=small-field nowrap,placeholder=Няма');
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both');
@@ -943,7 +943,7 @@ class planning_Tasks extends core_Master
                 $subArr[] = tr('Оборудване:|* ') . $row->fixedAssets;
             }
             if (!empty($row->employees)) {
-                $subArr[] = tr('Служители:|* ') . $row->employees;
+                $subArr[] = tr('Оператори:|* ') . $row->employees;
             }
             if (count($subArr)) {
                 $row->info = '<small>' . implode(' &nbsp; ', $subArr) . '</small>';
