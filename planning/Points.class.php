@@ -570,7 +570,7 @@ class planning_Points extends core_Manager
             $scannerUrl = barcode_Search::getScannerActivateUrl($url);
         }
         
-        $attr = array('name' => 'searchBarcode', 'data-url' => $scannerUrl, 'class' => 'searchBarcode', 'title' => 'Търсене');
+        $attr = array('data-url' => $scannerUrl, 'class' => 'searchBarcode scanElement', 'title' => 'Търсене');
         if($search = Request::get('search', 'varchar')){
             $attr['value'] = $search;
         }
