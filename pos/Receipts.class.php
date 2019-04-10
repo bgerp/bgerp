@@ -298,9 +298,7 @@ class pos_Receipts extends core_Master
         
         $cu = core_Users::fetch($rec->createdBy);
         $row->createdBy = ht::createLink(core_Users::recToVerbal($cu)->nick, crm_Profiles::getUrl($rec->createdBy));
-        
-        // @todo pos_Points не е наследник на core_Master
-//         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
+        $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
         
         $row->time = dt::mysql2verbal(dt::now(), 'H:i');
     }

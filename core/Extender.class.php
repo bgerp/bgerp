@@ -172,6 +172,29 @@ abstract class core_Extender extends core_Master
     
     
     /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        $addUrl = $mvc->getListAddUrl();
+        if(count($addUrl) && !Request::get('Rejected', 'int')){
+            $data->toolbar->addBtn('Нов запис', $addUrl, false, "ef_icon = img/16/star_2.png,title=Добавяне на нов {$mvc->singleTitle}");
+        }
+    }
+    
+    
+    /**
+     * Какво да е дефолтното урл, за добавяне от листовия изглед
+     *
+     * @return array $addUrl
+     */
+    protected function getListAddUrl()
+    {
+        return array();
+    }
+    
+    
+    /**
      * Инстанциране на референция, към разширеният обект
      * 
      * @param stdClass $rec

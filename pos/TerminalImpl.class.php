@@ -17,6 +17,17 @@
 class pos_TerminalImpl extends peripheral_BaseTerminalImpl
 {
     
+    /**
+     * Кой може да избира драйвъра
+     */
+    public $canSelectDriver = 'ceo, pos';
+    
+    
+    /**
+     * Клас екстендър, който да се закача
+     *
+     * @param string
+     */
     public $extenderClass = 'pos_Points';
     
     

@@ -114,13 +114,15 @@ class pos_Points extends core_Extender
     
     
     /**
-     * 
+     * Какъв да е интерфейса на позволените ембедъри
+     *
+     * @var string
      */
     public $extenderClassInterfaces = 'peripheral_TerminalIntf';
     
     
     /**
-     * 
+     * Полета, които ще се показват в листов изглед
      */
     public $extenderFields = 'name, caseId, storeId, policyId, payments, inCharge, access, shared';
     
@@ -235,6 +237,24 @@ class pos_Points extends core_Extender
     
     
     /**
+     * Какво да е дефолтното урл, за добавяне от листовия изглед
+     *
+     * @return array $addUrl
+     */
+    protected function getListAddUrl()
+    {
+        $addUrl = array();
+        if($driverId = pos_TerminalImpl::getClassId()){
+            if (peripheral_Devices::haveRightFor('add', (object)array('innerClass' => $driverId)) && cls::get($driverId)->canSelectDriver()) {
+                $addUrl = array('peripheral_Devices', 'add', 'driverClass' => $driverId, 'ret_url' => true);
+            }
+        }
+        
+        return $addUrl;
+    }
+    
+    
+    /**
      * Екшън форсиращ избирането на точката и отваряне на терминала
      */
     public function act_OpenTerminal()
@@ -256,7 +276,6 @@ class pos_Points extends core_Extender
     protected static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, $rec, $fields = array())
     {
         unset($row->currentPlg);
-        
         if (empty($rec->payments)) {
             $row->payments = tr('Всички');
         }
