@@ -1,5 +1,7 @@
 body {
-  background: #f1f1f1; }
+  background: #f1f1f1;
+  width: 100%;
+  overflow-x: hidden; }
 
 .centerContent {
   width: 1400px;
@@ -109,7 +111,6 @@ body {
 
 .terminalHeader {
   padding: 15px;
-  box-sizing: border-box;
   height: 60px;
   background: white;
   -webkit-box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
@@ -242,7 +243,8 @@ body {
     .formHolder .formContent .richedit-toolbar {
       border-color: #cccccc; }
     .formHolder .formContent textarea {
-      min-height: 90px; }
+      min-height: 90px;
+      margin-top: 10px; }
     .formHolder .formContent select {
       height: 32px !important;
       border-color: #cccccc;
@@ -262,7 +264,7 @@ body {
       padding: 0 0 10px; }
 
 @media handheld,
-only screen and (min-width: 720px) and (max-width: 800px) {
+only screen and (min-width: 760px) and (max-width: 800px) {
   .wide table.listAction {
     min-width: 480px; }
 
@@ -348,4 +350,84 @@ only screen and (min-width: 720px) and (max-width: 800px) {
       top: 2px; }
     .searchHolder .searchBarcode {
       height: 22px; } }
+
+@media handheld,
+only screen and (max-width:740px) {
+  .terminalHeader {
+    padding: 5px; }
+    .terminalHeader .fleft .logo img {
+      height: 18px;
+      margin-top: 6px; }
+    .terminalHeader .searchHolder {
+      left: 55px; }
+    .terminalHeader .linkWithIcon {
+      background-image: none !important;
+      font-size: 0.9em;
+      padding-left: 0 !important; }
+    .terminalHeader .userInfo {
+      width: 200px;
+      font-size: 0.9em; }
+    .terminalHeader #dateHolder {
+      margin-right: 5px; }
+    .terminalHeader #searchBtn {
+      background-image: url("../../../img/24/qr.png") !important;
+      background-size: 24px 24px !important;
+      background-repeat: no-repeat; }
+
+  .searchHolder {
+    position: relative;
+    display: block;
+    clear: both; }
+
+  .terminalHeader {
+    height: auto; }
+
+  .centerContent {
+    width: 100%; }
+
+  .tabContent {
+    overflow-x: auto; }
+
+  .planning_ProductionTaskDetails {
+    width: 500px; }
+
+  .planning-task-table {
+    font-size: 0.9em; }
+
+  .tabs-holder .navigation li {
+    margin-right: -3px; }
+
+  .tabs-holder .navigation li a {
+    padding: 3px;
+    font-size: 0.7em; }
+
+  .formHolder.fright {
+    width: 100%;
+    float: none;
+    max-width: 400px; }
+
+  .planning_ProductionTaskDetails,
+  .document {
+    float: none;
+    width: 100%;
+    overflow-x: auto;
+    display: block; }
+
+  .formSection {
+    padding: 0 0 20px 0 !important; }
+
+  .narrow .formFields table>tbody>tr>td {
+    padding-right: 0;
+    padding-left: 0; }
+
+  .formTitle {
+    padding: 0 !important;
+    font-size: 0.95em !important; }
+
+  #task-support-content .formHolder {
+    width: 100%; }
+
+  .planning-terminal-numpad {
+    background: url("../../../img/16/numpad.png") center no-repeat !important;
+    border: none !important; } }
 

@@ -1,5 +1,6 @@
 function planningActions() {
 	$("input[name=serial]").focus();
+	disableScale();
 
 	// Използване на числата за въвеждане на суми за плащания
 	$(document.body).on('click', ".tab-link", function(e){
@@ -170,4 +171,13 @@ function setCookie(key, value) {
 function getCookie(key) {
 	var keyValue = document.cookie.match('(^|;) ?' + key + '=([^;]*)(;|$)');
 	return keyValue ? keyValue[2] : null;
+}
+
+
+
+function disableScale() {
+	if (isTouchDevice()) {
+		$('meta[name=viewport]').remove();
+		$('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">');
+	}
 }
