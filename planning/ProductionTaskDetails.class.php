@@ -98,7 +98,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Кои колони да скриваме ако янма данни в тях
      */
-    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset,scrappedQuantity,_quantityExtended,_typeExtended,_additional';
+    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset,scrappedQuantity,quantityExtended,typeExtended,additional';
     
     
     /**
@@ -515,6 +515,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $data->listTableMvc->FNC('created', 'varchar', 'smartCenter');
                 $data->listTableMvc->setField('weight', 'smartCenter');
             } else {
+                $data->listTableMvc->FNC('quantityExtended', 'varchar', 'tdClass=centerCol');
                 $data->listTableMvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>\n";
             }
         }
