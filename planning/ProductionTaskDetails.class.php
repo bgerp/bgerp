@@ -455,7 +455,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         
         if ($rec->type == 'production') {
-            $row->type = (!empty($packagingId)) ? tr("Произвеждане|* {$packagingName}") : tr('Произвеждане');
+            $row->type = (!empty($packagingId)) ? tr("Произв.|* {$packagingName}") : tr('Произвеждане');
         }
         
         $row->scrappedQuantity = '';
