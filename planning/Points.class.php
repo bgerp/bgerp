@@ -525,7 +525,7 @@ class planning_Points extends core_Manager
             $Details->prepareDetail_($data);
             $data->groupByField = '_createdDate';
             
-            $data->listFields = array('_createdDate' => '@', '_typeExtended' => '@', 'serial' => '№', '_quantityExtended' => 'К-во', '_additional' => ' ');
+            $data->listFields = array('_createdDate' => '@', 'typeExtended' => '@', 'serial' => '№', 'quantityExtended' => 'К-во', 'additional' => ' ');
             
         }
         

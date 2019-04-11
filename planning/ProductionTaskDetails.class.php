@@ -564,17 +564,17 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
            
             if(Mode::is('taskProgressInTerminal')){
-                $row->_typeExtended = "<div class='extended-type'>{$row->type}</div><div class='extended-productId'>{$row->productId}</div><div class='extended-created'>{$row->created}</div>";
-                $row->_quantityExtended = "<div class='extended-quantity'>{$row->quantity}</div>";
+                $row->typeExtended = "<div class='extended-type'>{$row->type}</div><div class='extended-productId'>{$row->productId}</div><div class='extended-created'>{$row->created}</div>";
+                $row->quantityExtended = "<div class='extended-quantity'>{$row->quantity}</div>";
                 if(!empty($rec->weight)){
-                    $row->_quantityExtended .= "<div class='extended-weight'>{$row->weight} " . tr('кг') . "</div>";
+                    $row->quantityExtended .= "<div class='extended-weight'>{$row->weight} " . tr('кг') . "</div>";
                 }
-                $row->_additional = null;
+                $row->additional = null;
                 if(!empty($rec->employees)){
-                    $row->_additional = "<div class='extended-employees'>{$row->employees}</div>";
+                    $row->additional = "<div class='extended-employees'>{$row->employees}</div>";
                 }
                 if(!empty($rec->fixedAsset)){
-                    $row->_additional .= "<div class='extended-fixedAsset'>{$row->fixedAsset}</div>";
+                    $row->additional .= "<div class='extended-fixedAsset'>{$row->fixedAsset}</div>";
                 }
             }
         }
