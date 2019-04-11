@@ -523,11 +523,10 @@ class planning_Points extends core_Manager
             $data->masterData = (object)array('rec' => planning_Tasks::fetch($taskId));
             $Details->listItemsPerPage = false;
             $Details->prepareDetail_($data);
-            unset($data->listFields['productId']);
-            unset($data->listFields['taskId']);
-            $data->listFields['serial'] = '№';
-            $data->listFields['_createdDate'] = 'Създаване';
             $data->groupByField = '_createdDate';
+            
+            $data->listFields = array('_createdDate' => '@', '_typeExtended' => '@', 'serial' => '№', '_quantityExtended' => 'К-во', '_additional' => ' ');
+            
         }
         
         unset($data->toolbar);

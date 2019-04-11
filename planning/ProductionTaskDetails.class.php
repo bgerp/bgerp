@@ -92,13 +92,13 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'taskId,type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,created=Създаване,info=@,notes,_createdDate';
+    public $listFields = 'taskId,type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,created=Създаване,info=@,notes';
     
     
     /**
      * Кои колони да скриваме ако янма данни в тях
      */
-    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset,scrappedQuantity';
+    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset,scrappedQuantity,_quantityExtended,_typeExtended,_additional';
     
     
     /**
@@ -434,11 +434,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $row->taskId = planning_Tasks::getLink($rec->taskId, 0);
         $row->created = "<div class='nowrap'>" . $mvc->getFieldType('createdOn')->toVerbal($rec->createdOn);
         $row->created .= ' ' . tr('от||by') . ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
-        
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : 'row-removed'));
-        if ($rec->state == 'rejected') {
-            $row->ROW_ATTR['title'] = tr('Оттеглено от') . ' ' . core_Users::getVerbal($rec->modifiedBy, 'nick');
-        }
         
         $pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,nameEn,name');
         $row->productId = cat_Products::getShortHyperlink($rec->productId);
@@ -475,7 +471,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         
         $rec->_createdDate = dt::verbal2mysql($rec->createdOn, false);
-        $row->_createdDate = dt::mysql2verbal($rec->_createdDate, 'd/m/Y l');
+        $row->_createdDate = dt::mysql2verbal($rec->_createdDate, 'd/m/y l');
     }
     
     
@@ -509,16 +505,17 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        unset($data->listFields['notes']);
         if (isset($data->masterMvc)) {
-            $data->listTableMvc->FNC('shortUoM', 'varchar', 'tdClass=nowrap');
-            $data->listTableMvc->setField('productId', 'tdClass=nowrap');
-            $data->listTableMvc->FNC('info', 'varchar', 'tdClass=task-row-info');
-            unset($data->listFields['productId']);
-            
             if(!Mode::is('taskProgressInTerminal')){
+                unset($data->listFields['notes']);
+                unset($data->listFields['productId']);
+                $data->listTableMvc->FNC('shortUoM', 'varchar', 'tdClass=nowrap');
+                $data->listTableMvc->setField('productId', 'tdClass=nowrap');
+                $data->listTableMvc->FNC('info', 'varchar', 'tdClass=task-row-info');
                 $data->listTableMvc->FNC('created', 'varchar', 'smartCenter');
                 $data->listTableMvc->setField('weight', 'smartCenter');
+            } else {
+                $data->listTableMvc->tableRowTpl = "[#ADD_ROWS#][#ROW#]\n";
             }
         }
         
@@ -543,9 +540,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
             
             if(!empty($rec->weight)){
-                $transportWeight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
                 
                 // Проверка има ли отклонение спрямо очакваното транспортно тегло
+                $transportWeight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
                 if(!empty($transportWeight)){
                     $deviation = abs(round(($transportWeight - $rec->weight) / (($transportWeight + $rec->weight) / 2), 2));
                     
@@ -564,6 +561,21 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             if(!empty($row->notes)){
                 $row->type .= "<small>{$row->notes}</small>";
+            }
+           
+            if(Mode::is('taskProgressInTerminal')){
+                $row->_typeExtended = "<div class='extended-type'>{$row->type}</div><div class='extended-productId'>{$row->productId}</div><div class='extended-created'>{$row->created}</div>";
+                $row->_quantityExtended = "<div class='extended-quantity'>{$row->quantity}</div>";
+                if(!empty($rec->weight)){
+                    $row->_quantityExtended .= "<div class='extended-weight'>{$row->weight} " . tr('кг') . "</div>";
+                }
+                $row->_additional = null;
+                if(!empty($rec->employees)){
+                    $row->_additional = "<div class='extended-employees'>{$row->employees}</div>";
+                }
+                if(!empty($rec->fixedAsset)){
+                    $row->_additional .= "<div class='extended-fixedAsset'>{$row->fixedAsset}</div>";
+                }
             }
         }
     }
