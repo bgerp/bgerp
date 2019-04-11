@@ -250,11 +250,9 @@ class planning_Points extends core_Manager
         $tpl->push('planning/tpl/terminal/jquery.numpad.css', 'CSS');
         $tpl->push('planning/tpl/terminal/scripts.js', 'JS');
         $tpl->push('planning/tpl/terminal/jquery.numpad.js', 'JS');
-        
+
         jquery_Jquery::run($tpl, "setCookie('terminalTab', '{$aciveTabData['tab-id']}');");
         jquery_Jquery::run($tpl, 'planningActions();');
-        jquery_Jquery::run($tpl, 'prepareKeyboard();');
-        jquery_Jquery::runAfterAjax($tpl, 'prepareKeyboard');
         
         return $tpl;
     }
@@ -737,11 +735,11 @@ class planning_Points extends core_Manager
         $resObj->func = 'html';
         $resObj->arg = array('id' => 'dateHolder', 'html' => dt::mysql2verbal(dt::now(), 'd.m.Y H:i'), 'replace' => true);
         $objectArr[] = $resObj;
-        
+
         $resObj = new stdClass();
         $resObj->func = 'prepareKeyboard';
         $objectArr[] = $resObj;
-        
+
         // Показване на чакащите статуси
         $hitTime = Request::get('hitTime', 'int');
         $idleTime = Request::get('idleTime', 'int');

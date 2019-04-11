@@ -2,6 +2,18 @@ function planningActions() {
 	$("input[name=serial]").focus();
 	disableScale();
 
+	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.quantityField')
+	});
+
+	$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.weightField')
+	});
+
+	$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.serialField')
+	});
+
 	// Използване на числата за въвеждане на суми за плащания
 	$(document.body).on('click', ".tab-link", function(e){
 		var url = $(this).attr("data-url");
@@ -128,26 +140,10 @@ function render_prepareKeyboard()
 		$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
 			target: $('.weightField')
 		});
+		$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+			target: $('.serialField')
+		});
 	}, 500);
-}
-
-
-/**
- * Подготовка на клавиатурата
- */
-function prepareKeyboard()
-{
-	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.quantityField')
-	});
-	
-	$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.weightField')
-	});
-	
-	$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.serialField')
-	});
 }
 
 
