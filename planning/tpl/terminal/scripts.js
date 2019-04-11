@@ -25,8 +25,7 @@ function planningActions() {
 		
 		resObj = new Object();
 		resObj['url'] = url;
-		
-		console.log(url);
+
 		getEfae().process(resObj);
 		
 		$("input[name=serial]").val("");
@@ -52,13 +51,15 @@ function planningActions() {
 		var productId = res[1];
 		
 		var quantity = $("input[name=quantity]").val();
-		var employees = $("select#employeeSelect").length ? $("select#employeeSelect").val() : $('input[id^="employees"]').is(':checked') ? $('input[id^="employees"]').val() : null;
+		var employees = [];
+		$('input[id^="employees"]:checked').each(function () {
+			employees.push($(this).val());
+		});
 		var weight = $("input[name=weight]").val();
 		var fixedAsset = $("#fixedAssetSelect").val();
 		var taskId = $("input[name=taskId]").val();
 
 		var data = {serial:serial,taskId:taskId,productId:productId,quantity:quantity,employees:employees,fixedAsset:fixedAsset,weight:weight,type:type};
-		
 		getEfae().process(resObj, data);
 		$("input[name=serial]").val("");
 		$("input[name=serial]").focus("");
