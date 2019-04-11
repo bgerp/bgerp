@@ -184,6 +184,18 @@ abstract class core_Extender extends core_Master
     
     
     /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $editUrl = $mvc->getEditUrl($data->rec);
+        if(count($editUrl)){
+            $data->toolbar->addBtn('Редакция', $editUrl, 'id=btnEdit', 'ef_icon = img/16/edit-icon.png,title=Редактиране на записа');
+        }
+    }
+
+    
+    /**
      * Какво да е дефолтното урл, за добавяне от листовия изглед
      *
      * @return array $addUrl
