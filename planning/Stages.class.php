@@ -269,7 +269,7 @@ class planning_Stages extends core_Extender
         
         $this->prepareListFields($data);
         unset($data->listFields['folders']);
-        $data->addUrl = self::getAddUrl($data->masterData->rec->id);
+        $data->addUrl = self::getListAddUrl($data->masterData->rec->id);
     }
     
     
