@@ -97,13 +97,14 @@ class doc_Containers extends core_Manager
     
     
     const REPAIR_SYSTEM_ID = 'repairDocuments';
-
+    
+    
     /**
      * Шаблон за реда в листовия изглед
      */
     public $tableRowTpl = "[#ROW#][#ADD_ROWS#]";
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -744,7 +745,7 @@ class doc_Containers extends core_Manager
         $folderState = doc_Folders::fetchField($data->threadRec->folderId, 'state');
         if ($data->threadRec->state != 'rejected' && $folderState != 'closed') {
             if (doc_Threads::haveRightFor('newdoc', $data->threadId)) {
-                $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId' => $data->threadId), 'id=btnAdd', array('ef_icon' => 'img/16/star_2.png','title' => 'Създаване на нов документ в нишката'));
+                $data->toolbar->addBtn('Добави...', array($mvc, 'ShowDocMenu', 'threadId' => $data->threadId), 'id=btnAdd', array('ef_icon' => 'img/16/star_2.png','title' => 'Създаване на нов документ в нишката'));
             }
             
             if (doc_Threads::haveRightFor('single', $data->threadRec)) {
