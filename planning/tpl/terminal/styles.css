@@ -111,7 +111,7 @@ body {
 
 .terminalHeader {
   padding: 15px;
-  height: 60px;
+  height: 30px;
   background: white;
   -webkit-box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
   -moz-box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
