@@ -181,6 +181,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
             $form->setOptions('fixedAsset', array('' => '') + $arr);
             $form->setField('fixedAsset', 'input');
+        } else {
+            $form->setField('fixedAsset', 'input=none');
         }
         
         $productOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
