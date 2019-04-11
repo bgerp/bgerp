@@ -515,7 +515,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $data->listTableMvc->FNC('created', 'varchar', 'smartCenter');
                 $data->listTableMvc->setField('weight', 'smartCenter');
             } else {
-                $data->listTableMvc->tableRowTpl = "[#ADD_ROWS#][#ROW#]\n";
+                $data->listTableMvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>\n";
             }
         }
         
@@ -564,10 +564,10 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
            
             if(Mode::is('taskProgressInTerminal')){
-                $row->typeExtended = "<div class='extended-type'>{$row->type}</div><div class='extended-productId'>{$row->productId}</div><div class='extended-created'>{$row->created}</div>";
+                $row->typeExtended = "<span class='extended-type'>{$row->type}</span><span class='extended-productId'> » {$row->productId}</span><span class='extended-created fright'>{$row->created}</span>";
                 $row->quantityExtended = "<div class='extended-quantity'>{$row->quantity}</div>";
                 if(!empty($rec->weight)){
-                    $row->quantityExtended .= "<div class='extended-weight'>{$row->weight} " . tr('кг') . "</div>";
+                    $row->quantityExtended .= "<span class='extended-weight'>{$row->weight}" . tr('кг') . "</span>";
                 }
                 $row->additional = null;
                 if(!empty($rec->employees)){
