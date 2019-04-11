@@ -112,22 +112,13 @@ class peripheral_Terminal extends core_BaseClass
             
             $form->FLD('terminalId', 'key(mvc=peripheral_Devices, select=name)', 'caption=Терминал, removeAndRefreshForm=user|pin, mandatory, silent,class=w100');
             
-            $brid = log_Browsers::getBrid();
-            
-            $query = peripheral_Devices::getQuery();
-            $query->where(array("#brid = '[#1#]'", $brid));
+            $dArr = peripheral_Devices::getDevices('peripheral_TerminalIntf', log_Browsers::getBrid(), core_Users::getRealIpAddr());
             
             $defTerminalIdArr = array();
             
             // Достъпните опции за терминал за потребителя
-            while ($rec = $query->fetch()) {
-                try {
-                    $Intf = cls::getInterface('peripheral_TerminalIntf', $rec->driverClass);
-                } catch (core_exception_Expect $ex) {
-                    continue;
-                }
-                
-                $defTerminalIdArr[$rec->id] = $rec->name;
+            foreach ($dArr as $dId => $dRec) {
+                $defTerminalIdArr[$dId] = $dRec->name;
             }
             
             $form->setOptions('terminalId', $defTerminalIdArr);
