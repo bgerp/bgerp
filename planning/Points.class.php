@@ -238,11 +238,11 @@ class planning_Points extends core_Manager
             $tpl->replace('active', 'activeAll');
         }
         
-        Mode::setPermanent('activeTab', $this->getActiveTab($rec));
+        Mode::setPermanent("activeTab{$rec->id}", $this->getActiveTab($rec));
         $tpl->replace($this->getSearchTpl($rec), "SEARCH_FORM");
         
         // Рендиране на активния таб
-        $activeTab = Mode::get('activeTab');
+        $activeTab = Mode::get("activeTab{$rec->id}");
         expect($aciveTabData = self::TAB_DATA[$activeTab]);
         $tableTpl = $this->{$aciveTabData['fnc']}($rec);
         $tpl->replace($tableTpl, $aciveTabData['placeholder']);
@@ -271,12 +271,12 @@ class planning_Points extends core_Manager
      */
     private function getActiveTab($rec)
     {
-        if($activeTab = Mode::get('activeTab')){
+        if($activeTab = Mode::get("activeTab{$rec->id}")){
             
             return $activeTab;
         }
         
-        $activeTab = (Mode::get('activeTab')) ? Mode::get('activeTab') : (Mode::get("currentTaskId{$rec->id}") ? 'taskProgress' : 'taskList');
+        $activeTab = Mode::get("currentTaskId{$rec->id}") ? 'taskProgress' : 'taskList';
         
         return $activeTab;
     }
@@ -292,7 +292,7 @@ class planning_Points extends core_Manager
         expect($id = Request::get('id', 'int'));
         expect($name = Request::get('name', 'varchar'));
         expect($rec = self::fetch($id));
-        Mode::setPermanent('activeTab', $name);
+        Mode::setPermanent("activeTab{$rec->id}", $name);
         
         if(!$this->haveRightFor('terminal') || !$this->haveRightFor('terminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
@@ -844,7 +844,7 @@ class planning_Points extends core_Manager
             planning_ProductionTaskDetails::add($params['taskId'], $params);
             
             if (Request::get('ajax_mode')) {
-                Mode::setPermanent('activeTab', 'taskProgress');
+                Mode::setPermanent("activeTab{$rec->id}", 'taskProgress');
                 $res = $this->getSuccessfullResponce($rec, 'taskProgress');
                 
                 return $res;
@@ -900,7 +900,7 @@ class planning_Points extends core_Manager
         expect($rec->taskId = Request::get('taskId', 'int'));
         $this->requireRightFor('selecttask', $rec);
         Mode::setPermanent("currentTaskId{$rec->id}", $rec->taskId);
-        Mode::setPermanent('activeTab', 'taskProgress');
+        Mode::setPermanent("activeTab{$rec->id}", 'taskProgress');
         
         if (Request::get('ajax_mode')) {
             $res = $this->getSuccessfullResponce($rec, 'taskProgress', true);
