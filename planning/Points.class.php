@@ -613,7 +613,7 @@ class planning_Points extends core_Manager
         $form->FLD('quantity', 'double(Min=0)', 'class=w100 quantityField,placeholder=К-во');
         $form->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
         $form->FLD('weight', 'double(Min=0)', 'class=w100 weightField,placeholder=Тегло|* (|кг|*)');
-        $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=100)', 'elementId=employeeSelect,placeholder=Оператори,class=w100');
+        $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=100,columns=3)', 'elementId=employeeSelect,placeholder=Оператори,class=w100');
         $form->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id,select2MinItems=100)', 'elementId=fixedAssetSelect,placeholder=Оборудване,class=w100');
         $form->rec->taskId = $currentTaskId;
         $form->input(null, 'silent');
