@@ -3,7 +3,7 @@
 	<div class="centerContent">
 		<span class="fleft">
 			<span class="logo">[#LOGO#]</span>
-			[#name#] [#centerId#]
+			<span id ='nameHolder' data-id = '[#id#]'>[#name#]</span> [#centerId#]
 			<!--ET_BEGIN fixedAssets--> <span class="assets">»    [#fixedAssets#]</span><!--ET_END fixedAssets-->
 		</span>
 

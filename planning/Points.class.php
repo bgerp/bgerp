@@ -191,11 +191,12 @@ class planning_Points extends core_Manager
         
         Mode::setPermanent('currentPlanningPoint', $id);
         Mode::set('wrapper', 'page_Empty');
-        $pageTitle = "{$rec->name}({$rec->id})";
-        
+        $pageTitle = str::removeWhitespaces("{$rec->name} {$rec->id}", '_');
+       
         $tpl = getTplFromFile('planning/tpl/terminal/Point.shtml');
         $tpl->replace($pageTitle, 'PAGE_TITLE');
         $tpl->replace($rec->name, 'name');
+        $tpl->replace($rec->id, 'id');
         $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/big_house.png', '"', true) . '>', 'HEAD');
         
         $img = ht::createElement('img', array('src' => sbf('pos/img/bgerp.png', '')));
@@ -219,7 +220,6 @@ class planning_Points extends core_Manager
         $taskSingleUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskSingle'), 'local');
         $taskJobUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskJob'), 'local');
         $taskSupportUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskSupport'), 'local');
-        
         $tpl->replace($taskListUrl, 'taskListUrl');
         $tpl->replace($taskProgressUrl, 'taskProgressUrl');
         $tpl->replace($taskSingleUrl, 'taskSingleUrl');
@@ -239,13 +239,13 @@ class planning_Points extends core_Manager
         Mode::setPermanent('activeTab', $this->getActiveTab($rec));
         $tpl->replace($this->getSearchTpl($rec), "SEARCH_FORM");
         
+        // Рендиране на активния таб
         $activeTab = Mode::get('activeTab');
         expect($aciveTabData = self::TAB_DATA[$activeTab]);
         $tableTpl = $this->{$aciveTabData['fnc']}($rec);
         $tpl->replace($tableTpl, $aciveTabData['placeholder']);
         
         jquery_Jquery::enable($tpl);
-        
         $tpl->push('css/Application.css', 'CSS');
         $tpl->push('js/efCommon.js', 'JS');
         $tpl->push('planning/tpl/terminal/styles.css', 'CSS');
@@ -253,7 +253,8 @@ class planning_Points extends core_Manager
         $tpl->push('planning/tpl/terminal/scripts.js', 'JS');
         $tpl->push('planning/tpl/terminal/jquery.numpad.js', 'JS');
 
-        jquery_Jquery::run($tpl, "setCookie('terminalTab', '{$aciveTabData['tab-id']}');");
+        $cookieId = "terminalTab{$rec->id}";
+        jquery_Jquery::run($tpl, "setCookie('{$cookieId}', '{$aciveTabData['tab-id']}');");
         jquery_Jquery::run($tpl, 'planningActions();');
         
         return $tpl;

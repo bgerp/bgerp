@@ -1,4 +1,8 @@
+
 function planningActions() {
+	var cookieId = $("#nameHolder").attr("data-id");
+	var cookieName = 'terminalTab' + cookieId;
+	
 	$("input[name=serial]").focus();
 	disableScale();
 
@@ -71,10 +75,10 @@ function planningActions() {
 	});
 
 	$(document.body).on('click', ".changeTab ", function(e){
-		setCookie('terminalTab', "tab-progress");
+		setCookie('terminalTab' + cookieId, "tab-progress");
 	});
-
-	var menutabInfo = getCookie('terminalTab');
+	
+	var menutabInfo = getCookie(cookieName);
 	var currentTab = $('#' + menutabInfo).addClass('active').find('a').attr('href');
 	$('.tabContent' + currentTab).addClass('active');
 
@@ -86,7 +90,7 @@ function planningActions() {
 		$('.tabContent' + currentAttrValue).show().siblings().hide();
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
 		if($('.serialField').length) $('.serialField').focus();
-		setCookie('terminalTab', currentId);
+		setCookie(cookieName, currentId);
 		
 		e.preventDefault();
 	});
@@ -125,7 +129,9 @@ function render_activateTab(data)
 		var currentAttrValue= $("#" + data.tabId + " a").attr('href');
 		$('.tabContent' + currentAttrValue).show().siblings().hide();
 		
-		setCookie('terminalTab',  data.tabId);
+		var cookieId = $("#nameHolder").attr("data-id");
+		var cookieName = 'terminalTab' + cookieId;
+		setCookie(cookieName,  data.tabId);
 		return;
 	}
 }
