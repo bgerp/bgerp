@@ -35,6 +35,7 @@ body {
     padding: 0;
     margin: 0; }
   .terminal-content .listTable {
+    width: 99.5% !important;
     margin-bottom: 0 !important; }
 
 .tabs-holder .navigation {
@@ -109,6 +110,17 @@ body {
     .keyboardHolder .planning-terminal-numpad:hover {
       background-color: rgba(0, 0, 0, 0); }
 
+  .narrow .formSection {
+    max-width: 340px !important;
+    width: 340px !important; }
+  .narrow .planning-terminal-numpad {
+    background: url("../../../img/16/numpad.png") center no-repeat !important;
+    border: none !important; }
+  .narrow #searchBtn {
+    background-image: url("../../../img/24/qr.png") !important;
+    background-size: 24px 24px !important;
+    background-repeat: no-repeat; }
+
 .terminalHeader {
   padding: 15px;
   height: 30px;
@@ -153,7 +165,6 @@ body {
 
 .title {
   margin: 0 0 10px !important; }
-
 
 #task-support-content .formHolder {
   width: 600px; }
@@ -353,7 +364,9 @@ only screen and (min-width: 760px) and (max-width: 800px) {
     white-space: normal !important; }
 
   .searchHolder {
-    margin-right: -80px; }
+    position: relative;
+    float: right;
+    right: 0 !important; }
     .searchHolder .qrBtn {
       height: 22px !important;
       background-size: 20px 20px;
@@ -450,10 +463,6 @@ only screen and (max-width:740px) {
 
   #task-support-content .formHolder {
     width: 100%; }
-
-  .planning-terminal-numpad {
-    background: url("../../../img/16/numpad.png") center no-repeat !important;
-    border: none !important; }
 
   .userInfo {
     clear: both;

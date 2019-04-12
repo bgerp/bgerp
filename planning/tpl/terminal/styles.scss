@@ -41,6 +41,7 @@ body {
 		margin: 0;
 	}
 	.listTable {
+		width: 99.5% !important;
 		margin-bottom: 0 !important;
 	}
 }
@@ -132,6 +133,21 @@ body {
 		}
 	}
 }
+.narrow {
+	.formSection {
+		max-width: 340px !important;
+		width: 340px !important;
+	}
+	.planning-terminal-numpad {
+		background: url("../../../img/16/numpad.png") center no-repeat !important;
+		border: none !important;
+	}
+	#searchBtn {
+		background-image: url("../../../img/24/qr.png") !important;
+		background-size: 24px 24px !important;
+		background-repeat: no-repeat;
+	}
+}
 
 .terminalHeader {
 	padding: 15px;
@@ -185,9 +201,7 @@ body {
 .title {
 	margin: 0 0 10px !important;
 }
-.formError {
 
-}
 #task-support-content .formHolder {
 	width: 600px;
 }
@@ -416,7 +430,9 @@ body {
 		white-space: normal !important;
 	}
 	.searchHolder {
-		margin-right: -80px;
+		position: relative;
+		float: right;
+		right: 0 !important;
 		.qrBtn {
 			height: 22px !important;
 			background-size: 20px 20px;
@@ -526,10 +542,6 @@ body {
 	}
 	#task-support-content .formHolder {
 		width: 100%;
-	}
-	.planning-terminal-numpad {
-		background: url("../../../img/16/numpad.png") center no-repeat !important;
-		border: none !important;
 	}
 	.userInfo {
 		clear: both;
