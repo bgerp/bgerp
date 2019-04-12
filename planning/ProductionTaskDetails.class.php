@@ -179,7 +179,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             foreach ($arr as $key => &$value) {
                 $value = planning_AssetResources::getTitleById($key, false);
             }
-            $form->setOptions('fixedAsset', array('' => '') + $arr);
+            
+            $arr = ((Mode::is('terminalProgressForm')) ? array(' ' => ' ') : array('' => '')) + $arr;
+            $form->setOptions('fixedAsset', $arr);
             $form->setField('fixedAsset', 'input');
         } else {
             $form->setField('fixedAsset', 'input=none');
@@ -486,8 +488,10 @@ class planning_ProductionTaskDetails extends doc_Detail
      * @return core_ET|string $serialVerbal  - серийния номер като линк, или вербалното му представяне
      */
     public static function getLink($taskId, $serial)
-    {
+    {   
         $serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($serial);
+        //$serialVerbal = ht::createLink($serialVerbal, array('planning_Points', 'terminal'));
+       
         if (Mode::isReadOnly()) {
             
             return $serialVerbal;
