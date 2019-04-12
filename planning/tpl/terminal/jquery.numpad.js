@@ -230,6 +230,8 @@
 				$('#'+id+' .done').off('click');
 				$('#'+id+' .done').one('click', function(){ nmpd.close(target); });
 				// Finally trigger numpad.open
+				$('.nmpd-wrapper').hide();
+				$('#'+id).show();
 				nmpd.trigger('numpad.open');
 				return nmpd;
 			};		  
