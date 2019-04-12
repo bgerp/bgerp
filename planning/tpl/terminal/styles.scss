@@ -153,6 +153,7 @@ body {
 			line-height: 30px;
 			display: inline-block;
 			margin-left: 10px;
+			margin-bottom: 0 !important;
 			float: left;
 		}
 	}
@@ -165,7 +166,7 @@ body {
 	}
 	#dateHolder {
 		display: inline-block;
-		margin-right: 20px;
+		margin-right: 10px;
 	}
 }
 .vertical {
@@ -324,6 +325,9 @@ body {
 	border: 1px solid #ccc;
 }
 
+.highlight {
+	background-color: #fefeb7;
+}
 @media handheld, only screen and (min-width: 760px) and (max-width: 800px) {
 	.wide table.listAction {
 		min-width: 480px;
@@ -526,5 +530,11 @@ body {
 	.planning-terminal-numpad {
 		background: url("../../../img/16/numpad.png") center no-repeat !important;
 		border: none !important;
+	}
+	.userInfo {
+		clear: both;
+		float: left !important;
+		display: inline-block;
+		width: auto !important;
 	}
 }
