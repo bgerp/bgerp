@@ -121,8 +121,10 @@ body {
       .terminalHeader .fleft .logo img {
         height: 30px;
         width: auto; }
+    .terminalHeader .fleft .title,
     .terminalHeader .fleft .specialLink,
-    .terminalHeader .fleft .assets {
+    .terminalHeader .fleft .assets,
+    .terminalHeader .fleft #nameHolder {
       line-height: 30px;
       display: inline-block;
       margin-left: 10px;
@@ -262,6 +264,9 @@ body {
       max-height: 32px !important; }
     .formHolder .formContent .simple td {
       padding: 0 0 10px; }
+
+.jobTable >tbody > tr >td {
+  border: 1px solid #cccccc; }
 
 @media handheld,
 only screen and (min-width: 760px) and (max-width: 800px) {
