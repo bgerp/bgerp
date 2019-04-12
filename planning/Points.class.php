@@ -124,7 +124,7 @@ class planning_Points extends core_Manager
         $row->centerId = planning_Centers::getHyperlink($rec->centerId, true);
         
         if(planning_Points::haveRightFor('terminal', $rec)){
-            $row->terminal = ht::createBtn('Отвори', array('planning_Points', 'terminal', $rec->id), false, true, 'title=Отваряне на терминала за отчитане на производството,ef_icon=img/16/forward16.png');
+            $row->terminal = ht::createBtn('Отвори', array('planning_Points', 'terminal', 'tId' => $rec->id), false, true, 'title=Отваряне на терминала за отчитане на производството,ef_icon=img/16/forward16.png');
         }
     }
 
@@ -169,7 +169,7 @@ class planning_Points extends core_Manager
     {
         expect($objectId = Request::get('id', 'int'));
         
-        return new Redirect(array(get_called_class(), 'terminal', $objectId));
+        return new Redirect(array(get_called_class(), 'terminal', 'tId' => $objectId));
     }
     
     
@@ -180,7 +180,7 @@ class planning_Points extends core_Manager
     public function act_Terminal()
     {
         peripheral_Terminal::setSessionPrefix();
-        expect($id = Request::get('id', 'int'));
+        expect($id = Request::get('tId', 'int'));
         expect($rec = self::fetch($id));
         
         if(!$this->haveRightFor('terminal') || !$this->haveRightFor('terminal', $rec)){
@@ -214,11 +214,11 @@ class planning_Points extends core_Manager
         }
         
         // Подготовка на урл-тата на табовете
-        $taskListUrl = toUrl(array($this, 'renderTab', $rec->id, 'name' => 'taskList'), 'local');
-        $taskProgressUrl = toUrl(array($this, 'renderTab', $rec->id, 'name' => 'taskProgress'), 'local');
-        $taskSingleUrl = toUrl(array($this, 'renderTab', $rec->id, 'name' => 'taskSingle'), 'local');
-        $taskJobUrl = toUrl(array($this, 'renderTab', $rec->id, 'name' => 'taskJob'), 'local');
-        $taskSupportUrl = toUrl(array($this, 'renderTab', $rec->id, 'name' => 'taskSupport'), 'local');
+        $taskListUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskList'), 'local');
+        $taskProgressUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskProgress'), 'local');
+        $taskSingleUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskSingle'), 'local');
+        $taskJobUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskJob'), 'local');
+        $taskSupportUrl = toUrl(array($this, 'renderTab', 'tId' => $rec->id, 'name' => 'taskSupport'), 'local');
         $tpl->replace($taskListUrl, 'taskListUrl');
         $tpl->replace($taskProgressUrl, 'taskProgressUrl');
         $tpl->replace($taskSingleUrl, 'taskSingleUrl');
@@ -291,7 +291,7 @@ class planning_Points extends core_Manager
     {
         // Кой е таба
         peripheral_Terminal::setSessionPrefix();
-        expect($id = Request::get('id', 'int'));
+        expect($id = Request::get('tId', 'int'));
         expect($name = Request::get('name', 'varchar'));
         expect($rec = self::fetch($id));
         Mode::setPermanent("activeTab{$rec->id}", $name);
@@ -309,7 +309,7 @@ class planning_Points extends core_Manager
         }
         
         // Ако не сме в Ajax режим пренасочваме към терминала
-        redirect(array($this, 'terminal', $rec->id));
+        redirect(array($this, 'terminal', 'tId' => $rec->id));
     }
     
     
@@ -324,7 +324,7 @@ class planning_Points extends core_Manager
     {
         $url = ($this->haveRightFor('list')) ? array($this, 'list') : array('bgerp_Portal', 'show');
         if(!core_Users::getCurrent('id', false)){
-            $url = (Mode::get('terminalId')) ? array('peripheral_Terminal', 'default', 'afterExit' => true) : array('core_Users', 'login', 'ret_url' => toUrl(array($this, 'terminal', $rec->id), 'local'));
+            $url = (Mode::get('terminalId')) ? array('peripheral_Terminal', 'default', 'afterExit' => true) : array('core_Users', 'login', 'ret_url' => toUrl(array($this, 'terminal', 'tId' => $rec->id), 'local'));
         }
         
         $object = ht::mixedToHtml($rec);
@@ -373,7 +373,7 @@ class planning_Points extends core_Manager
                     cal_Tasks::save($newTask);
                     doc_ThreadUsers::addShared($newTask->threadId, $newTask->containerId, core_Users::getCurrent());
                     
-                    redirect(array($this, 'terminal', $rec->id), false, "Успешно пуснат сигнал|* #Tsk{$newTask->id}");
+                    redirect(array($this, 'terminal', 'tId' => $rec->id), false, "Успешно пуснат сигнал|* #Tsk{$newTask->id}");
                 }
             }
         }
@@ -571,7 +571,7 @@ class planning_Points extends core_Manager
         $attr = array('name' => 'searchBarcode', 'class' => 'searchBarcode scanElement', 'title' => 'Търсене');
         $userAgent = log_Browsers::getUserAgentOsName();
         if ($userAgent == 'Android') {
-            $url = toUrl(array($this, 'terminal', $rec->id, 'search' => '__CODE__'), true);
+            $url = toUrl(array($this, 'terminal', 'tId' => $rec->id, 'search' => '__CODE__'), true);
             $attr['data-url'] = barcode_Search::getScannerActivateUrl($url);
         }
         if($search = Request::get('search', 'varchar')){
@@ -581,7 +581,7 @@ class planning_Points extends core_Manager
         $searchInput = ht::createElement('input', $attr);
         $tpl->append($searchInput, 'searchInput');
         
-        $searchUrl = toUrl(array($this, 'search', $rec->id), 'local');
+        $searchUrl = toUrl(array($this, 'search', 'tId' => $rec->id), 'local');
         $searchBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/qr.png', 'id' => 'searchBtn','class' => 'qrBtn',  'data-url' => $searchUrl, 'title' => 'Търсене по баркод'));
         $tpl->append($searchBtn, 'searchBtn');
         
@@ -623,7 +623,7 @@ class planning_Points extends core_Manager
         
         $userAgent = log_Browsers::getUserAgentOsName();
         if ($userAgent == 'Android') {
-            $url = toUrl(array($this, 'terminal', $rec->id, 'serial' => '__CODE__'), true);
+            $url = toUrl(array($this, 'terminal', 'tId' => $rec->id, 'serial' => '__CODE__'), true);
             $scannerUrl = barcode_Search::getScannerActivateUrl($url);
             $form->setFieldAttr('serial', array('data-url' => $scannerUrl));
         }
@@ -655,7 +655,7 @@ class planning_Points extends core_Manager
         $form->fieldsLayout->append($currentTaskHtml, 'currentTaskId');
         
         // Бутони за добавяне
-        $sendUrl = ($this->haveRightFor('terminal')) ?  toUrl(array($this, 'doAction', $rec->id), 'local') : array();
+        $sendUrl = ($this->haveRightFor('terminal')) ?  toUrl(array($this, 'doAction', 'tId' => $rec->id), 'local') : array();
         $sendBtn = ht::createFnBtn('Изпращане', null, null, array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'data-url' => $sendUrl, 'title' => 'Изпращане на формата'));
         $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
         
@@ -766,7 +766,7 @@ class planning_Points extends core_Manager
     public function act_Search()
     {
         peripheral_Terminal::setSessionPrefix();
-        $id = Request::get('id', 'int');
+        $id = Request::get('tId', 'int');
         expect($rec = self::fetch($id), 'Неразпознат ресурс');
         if(!$this->haveRightFor('terminal') || !$this->haveRightFor('terminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
@@ -807,7 +807,7 @@ class planning_Points extends core_Manager
         }
         
         // Ако не сме в Ajax режим пренасочваме към терминала
-        redirect(array($this, 'terminal', $rec->id));
+        redirect(array($this, 'terminal', 'tId' => $rec->id));
     }
     
     
@@ -819,7 +819,7 @@ class planning_Points extends core_Manager
     public function act_doAction()
     {
         peripheral_Terminal::setSessionPrefix();
-        $id = Request::get('id', 'int');
+        $id = Request::get('tId', 'int');
         expect($rec = self::fetch($id), 'Неразпознат ресурс');
         if(!$this->haveRightFor('terminal') || !$this->haveRightFor('terminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
@@ -854,7 +854,7 @@ class planning_Points extends core_Manager
             }
             
             // Ако не сме в Ajax режим пренасочваме към терминала
-            redirect(array($this, 'terminal', $rec->id));
+            redirect(array($this, 'terminal', 'tId' => $rec->id));
         
         } catch (core_exception_Expect $e){
             
@@ -912,6 +912,6 @@ class planning_Points extends core_Manager
         }
         
         // Ако не сме в Ajax режим пренасочваме към терминала
-        redirect(array($this, 'terminal', $rec->id));
+        redirect(array($this, 'terminal', 'tId' => $rec->id));
     }
 }
