@@ -191,10 +191,9 @@ class planning_Points extends core_Manager
         
         Mode::setPermanent('currentPlanningPoint', $id);
         Mode::set('wrapper', 'page_Empty');
-        $pageTitle = str::removeWhitespaces("{$rec->name} {$rec->id}", '_');
+        $verbalAsset = self::getVerbal($rec, 'fixedAssets');
        
         $tpl = getTplFromFile('planning/tpl/terminal/Point.shtml');
-        $tpl->replace($pageTitle, 'PAGE_TITLE');
         $tpl->replace($rec->name, 'name');
         $tpl->replace($rec->id, 'id');
         $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/big_house.png', '"', true) . '>', 'HEAD');
@@ -205,7 +204,7 @@ class planning_Points extends core_Manager
         
         $centerName = (Mode::get('terminalId')) ? planning_Centers::getTitleById($rec->centerId) : planning_Centers::getHyperlink($rec->centerId, true);
         $tpl->replace($centerName, 'centerId');
-        $tpl->replace(self::getVerbal($rec, 'fixedAssets'), 'fixedAssets');
+        $tpl->replace($verbalAsset, 'fixedAssets');
         $tpl->replace(dt::mysql2verbal(dt::now(), 'd.m.Y H:i'), 'date');
         $tpl->replace(crm_Profiles::createLink(), 'userId');
         if (Mode::get('terminalId')) {
@@ -225,6 +224,9 @@ class planning_Points extends core_Manager
         $tpl->replace($taskSingleUrl, 'taskSingleUrl');
         $tpl->replace($taskJobUrl, 'taskJobUrl');
         $tpl->replace($taskSupportUrl, 'taskSupportUrl');
+        
+        $pageTitle = strip_tags($centerName) . (!empty($verbalAsset) ? " » " . strip_tags($verbalAsset) : "");
+        $tpl->replace($pageTitle, 'PAGE_TITLE');
         
         if(Mode::get("currentTaskId{$rec->id}")){
             $tableTpl = $this->getProgressTable($rec);
