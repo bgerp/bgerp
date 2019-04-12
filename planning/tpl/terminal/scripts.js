@@ -18,6 +18,10 @@ function planningActions() {
 		target: $('.serialField')
 	});
 
+	$(document.body).on('click', ".nmpd-target", function(e){
+		$(this).siblings('input').addClass('highlight');
+	});
+
 	// Използване на числата за въвеждане на суми за плащания
 	$(document.body).on('click', ".tab-link", function(e){
 		var url = $(this).attr("data-url");
