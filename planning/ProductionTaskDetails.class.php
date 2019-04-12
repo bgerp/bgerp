@@ -490,8 +490,6 @@ class planning_ProductionTaskDetails extends doc_Detail
     public static function getLink($taskId, $serial)
     {   
         $serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($serial);
-        //$serialVerbal = ht::createLink($serialVerbal, array('planning_Points', 'terminal'));
-       
         if (Mode::isReadOnly()) {
             
             return $serialVerbal;
@@ -534,6 +532,15 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         $weightWarningPercent = ($data->masterData->rec->weightDeviationWarning) ? $data->masterData->rec->weightDeviationWarning : planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING');
         $masterRec = $data->masterData->rec;
+        
+        $selectRowUrl = array();
+        if($terminalId = Mode::get('taskProgressInTerminal')){
+            $terminalRec = planning_Points::fetch($terminalId);
+            $terminalRec->taskId = Mode::get("currentTaskId{$terminalId}");
+            if(planning_Points::haveRightFor('selecttask', $terminalRec)){
+                $selectRowUrl = array('planning_Points', 'selectTask', $terminalId, 'taskId' => $terminalRec->taskId);
+            }
+        }
         
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
@@ -582,6 +589,11 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
                 if(!empty($rec->fixedAsset)){
                     $row->additional .= "<div class='extended-fixedAsset'>{$row->fixedAsset}</div>";
+                }
+                
+                if(!empty($rec->serial) && count($selectRowUrl)){
+                    $selectRowUrl['recId'] = $rec->id;
+                    $row->serial = ht::createLink($row->serial, $selectRowUrl, false, 'title=Редакция на реда');
                 }
             }
         }

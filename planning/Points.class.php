@@ -205,7 +205,7 @@ class planning_Points extends core_Manager
         $centerName = (Mode::get('terminalId')) ? planning_Centers::getTitleById($rec->centerId) : planning_Centers::getHyperlink($rec->centerId, true);
         $tpl->replace($centerName, 'centerId');
         $tpl->replace($verbalAsset, 'fixedAssets');
-        $tpl->replace(dt::mysql2verbal(dt::now(), 'd/m/y H:i'), 'date');
+        $tpl->replace(dt::mysql2verbal(dt::now(), 'd/m/y'), 'date');
         $tpl->replace(crm_Profiles::createLink(), 'userId');
         if (Mode::get('terminalId')) {
             $tpl->replace(ht::createLink('', array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
@@ -514,9 +514,9 @@ class planning_Points extends core_Manager
             Mode::push('text', 'xhtml');
         }
         
-        Mode::push('taskProgressInTerminal', true);
-        Mode::push('hideToolbar', true);
         $rec = self::fetchRec($id);
+        Mode::push('taskProgressInTerminal', $rec->id);
+        Mode::push('hideToolbar', true);
         
         // Подготовка на прогреса на избраната операция, ако има
         $Details = cls::get('planning_ProductionTaskDetails');
@@ -531,9 +531,7 @@ class planning_Points extends core_Manager
             $Details->listItemsPerPage = false;
             $Details->prepareDetail_($data);
             $data->groupByField = '_createdDate';
-            
             $data->listFields = array('_createdDate' => '@', 'typeExtended' => '@', 'serial' => '№', 'quantityExtended' => 'К-во', 'additional' => ' ');
-            
         }
         
         unset($data->toolbar);
@@ -617,8 +615,17 @@ class planning_Points extends core_Manager
         $form->FLD('weight', 'double(Min=0)', 'class=w100 weightField,placeholder=Тегло|* (|кг|*)');
         $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=100,columns=3)', 'elementId=employeeSelect,placeholder=Оператори,class=w100');
         $form->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id,select2MinItems=100)', 'elementId=fixedAssetSelect,placeholder=Оборудване,class=w100');
+        $form->FLD('recId', 'int', 'input=hidden,silent');
         $form->rec->taskId = $currentTaskId;
         $form->input(null, 'silent');
+        
+        if($form->rec->recId){
+            $exRec = planning_ProductionTaskDetails::fetch($form->rec->recId);
+            $fields = array_keys($form->selectFields("#name != 'recId' AND #name != 'taskId'"));
+            foreach ($fields as $name){
+                $form->rec->{$name} = $exRec->{$name};
+            }
+        }
         
         $userAgent = log_Browsers::getUserAgentOsName();
         if ($userAgent == 'Android') {
@@ -739,7 +746,7 @@ class planning_Points extends core_Manager
         // Реплейсване на текущата дата
         $resObj = new stdClass();
         $resObj->func = 'html';
-        $resObj->arg = array('id' => 'dateHolder', 'html' => dt::mysql2verbal(dt::now(), 'd/m/y H:i'), 'replace' => true);
+        $resObj->arg = array('id' => 'dateHolder', 'html' => dt::mysql2verbal(dt::now(), 'd/m/y'), 'replace' => true);
         $objectArr[] = $resObj;
 
         $resObj = new stdClass();
@@ -903,7 +910,7 @@ class planning_Points extends core_Manager
         $this->requireRightFor('selecttask', $rec);
         Mode::setPermanent("currentTaskId{$rec->id}", $rec->taskId);
         Mode::setPermanent("activeTab{$rec->id}", 'taskProgress');
-        
+        $res = array($this, 'terminal', 'tId' => $rec->id);
         if (Request::get('ajax_mode')) {
             $res = $this->getSuccessfullResponce($rec, 'taskProgress', true);
             
@@ -911,6 +918,6 @@ class planning_Points extends core_Manager
         }
         
         // Ако не сме в Ajax режим пренасочваме към терминала
-        redirect(array($this, 'terminal', 'tId' => $rec->id));
+        redirect(array($this, 'terminal', 'tId' => $rec->id, 'recId' => Request::get('recId', 'int')));
     }
 }
