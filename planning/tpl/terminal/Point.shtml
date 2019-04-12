@@ -3,13 +3,9 @@
 	<div class="centerContent">
 		<span class="fleft">
 			<span class="logo">[#LOGO#]</span>
-			<span id ='nameHolder' data-id = '[#id#]'>[#name#]</span> [#centerId#]
-			<!--ET_BEGIN fixedAssets--> <span class="assets">»    [#fixedAssets#]</span><!--ET_END fixedAssets-->
+			<span id ='nameHolder' data-id = '[#id#]'>[#name#]</span>
+			<span class="title">[#centerId#] <!--ET_BEGIN fixedAssets-->&nbsp;»&nbsp;[#fixedAssets#]<!--ET_END fixedAssets--></span>
 		</span>
-
-
-
-
 		<div class="fright userInfo">
 			 <span id="dateHolder">[#date#]</span>
 			[#userId#]

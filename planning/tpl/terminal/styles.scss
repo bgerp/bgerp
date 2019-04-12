@@ -23,10 +23,12 @@ body {
 	width: 980px;
 	float: left;
 }
+
 .formHolder {
 	width: 360px;
 	margin-top: 0 !important;
 }
+
 .terminal-content {
 	background: #fff;
 	border: 1px solid #ccc;
@@ -147,13 +149,12 @@ body {
 				width: auto;
 			}
 		}
-		.specialLink, .assets {
+		.title, .specialLink, .assets, #nameHolder {
 			line-height: 30px;
 			display: inline-block;
 			margin-left: 10px;
 			float: left;
 		}
-
 	}
 	
 	.userInfo {
@@ -314,6 +315,10 @@ body {
 			padding: 0 0 10px;
 		}
 	}
+}
+
+.jobTable >tbody > tr >td {
+	border: 1px solid #ccc;
 }
 
 @media handheld, only screen and (min-width: 760px) and (max-width: 800px) {
