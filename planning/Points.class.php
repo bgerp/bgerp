@@ -205,7 +205,7 @@ class planning_Points extends core_Manager
         $centerName = (Mode::get('terminalId')) ? planning_Centers::getTitleById($rec->centerId) : planning_Centers::getHyperlink($rec->centerId, true);
         $tpl->replace($centerName, 'centerId');
         $tpl->replace($verbalAsset, 'fixedAssets');
-        $tpl->replace(dt::mysql2verbal(dt::now(), 'd.m.Y H:i'), 'date');
+        $tpl->replace(dt::mysql2verbal(dt::now(), 'd/m/y H:i'), 'date');
         $tpl->replace(crm_Profiles::createLink(), 'userId');
         if (Mode::get('terminalId')) {
             $tpl->replace(ht::createLink('', array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
@@ -343,11 +343,10 @@ class planning_Points extends core_Manager
     private function getSupportHtml($id)
     {
         $rec = self::fetchRec($id);
-        $tpl = new core_ET(tr("|*<h3 class='title'>|Сигнал за повреда на оборудване|*</h3><div class='formHolder'>[#FORM#]</div>"));
-        
+        $tpl = new core_ET(tr("|*<h3 class='title'>|Сигнал за нередност|*</h3><div class='formHolder'>[#FORM#]</div>"));
         $form = cls::get('core_Form');
-        $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name,select2MinItems=100)', 'class=w100,placeholder=Оборудване,caption=Оборудване,mandatory');
-        $form->FLD('body', 'richtext(rows=4)', 'caption=Съобщение,mandatory,placeholder=Съобщение');
+        $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name,select2MinItems=100)', 'class=w100,placeholder=Оборудване,mandatory');
+        $form->FLD('body', 'richtext(rows=4)', 'caption=Съобщение,mandatory,placeholder=Описание на проблема');
         
         $options = planning_AssetResources::getByFolderId(planning_Centers::fetchField($rec->centerId, 'folderId'));
         $form->setOptions('asset', array('' => '') + $options);
@@ -740,7 +739,7 @@ class planning_Points extends core_Manager
         // Реплейсване на текущата дата
         $resObj = new stdClass();
         $resObj->func = 'html';
-        $resObj->arg = array('id' => 'dateHolder', 'html' => dt::mysql2verbal(dt::now(), 'd.m.Y H:i'), 'replace' => true);
+        $resObj->arg = array('id' => 'dateHolder', 'html' => dt::mysql2verbal(dt::now(), 'd/m/y H:i'), 'replace' => true);
         $objectArr[] = $resObj;
 
         $resObj = new stdClass();
