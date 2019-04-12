@@ -191,9 +191,11 @@ class planning_Points extends core_Manager
         
         Mode::setPermanent('currentPlanningPoint', $id);
         Mode::set('wrapper', 'page_Empty');
+        $pageTitle = "{$rec->name}({$rec->id})";
         
         $tpl = getTplFromFile('planning/tpl/terminal/Point.shtml');
-        $tpl->replace($rec->name, 'PAGE_TITLE');
+        $tpl->replace($pageTitle, 'PAGE_TITLE');
+        $tpl->replace($rec->name, 'name');
         $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/big_house.png', '"', true) . '>', 'HEAD');
         
         $img = ht::createElement('img', array('src' => sbf('pos/img/bgerp.png', '')));
