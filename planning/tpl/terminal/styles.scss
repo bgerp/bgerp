@@ -177,6 +177,9 @@ body {
 .planning-task-progress  {
 	height: 600px;
 	overflow-y: auto;
+	th {
+		display: none;
+	}
 }
 .title {
 	margin: 0 0 10px !important;
@@ -480,13 +483,21 @@ body {
 	.planning-task-table {
 		font-size: 0.9em;
 	}
-	.tabs-holder .navigation li {
-		margin-right: -3px;
+	.tabs-holder .navigation {
+		overflow-x: auto;
+		display: flex;
+		position: relative;
+		top: 1px;
+		li {
+			display: block;
+			flex: 1;
+			margin-right: 5px;
+			a {
+				padding: 7px;
+			}
+		}
 	}
-	.tabs-holder .navigation li a {
-		padding: 3px;
-		font-size: 0.7em;
-	}
+
 	.formHolder.fright{
 		width: 100%;
 		float: none;
