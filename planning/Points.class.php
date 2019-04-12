@@ -225,7 +225,9 @@ class planning_Points extends core_Manager
         $tpl->replace($taskJobUrl, 'taskJobUrl');
         $tpl->replace($taskSupportUrl, 'taskSupportUrl');
         
-        $pageTitle = strip_tags($centerName) . (!empty($verbalAsset) ? " » " . strip_tags($verbalAsset) : "");
+        // Какъв да е тайтъла на страницата
+        $pageTitle = $rec->name . ((!empty($verbalAsset) ? " « " . strip_tags($verbalAsset) : ""));
+        $pageTitle .= " « " . strip_tags($centerName);
         $tpl->replace($pageTitle, 'PAGE_TITLE');
         
         if(Mode::get("currentTaskId{$rec->id}")){
@@ -341,7 +343,7 @@ class planning_Points extends core_Manager
     private function getSupportHtml($id)
     {
         $rec = self::fetchRec($id);
-        $tpl = new core_ET(tr("|*<h3 class='title'>|Сигнал за повреда|*</h3><div class='formHolder'>[#FORM#]</div>"));
+        $tpl = new core_ET(tr("|*<h3 class='title'>|Сигнал за повреда на оборудване|*</h3><div class='formHolder'>[#FORM#]</div>"));
         
         $form = cls::get('core_Form');
         $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name,select2MinItems=100)', 'class=w100,placeholder=Оборудване,caption=Оборудване,mandatory');
@@ -376,7 +378,7 @@ class planning_Points extends core_Manager
             }
         }
         
-        $form->toolbar->addSbBtn('Подаване', 'default', 'id=filter', 'title=Подаване на сигнал за повреда на оборудване');
+        $form->toolbar->addSbBtn('Подаване', 'default', 'id=filter', 'title=Подаване на сигнал за повреда на оборудването');
         $form->class = 'simpleForm';
         
         $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/SupportFormLayout.shtml');
@@ -453,6 +455,7 @@ class planning_Points extends core_Manager
         $Tasks = cls::get('planning_Tasks');
         $data = (object)array('action' => 'list', 'query' => $Tasks->getQuery(), 'listClass' => 'planning-task-table');
         $data->query->where("#folderId = {$folderId} AND #state != 'rejected' AND #state != 'closed' AND #state != 'stopped' AND #state != 'draft'");
+        $data->query->orderBy('id', "DESC");
         if(!empty($rec->fixedAssets)){
             $data->query->likeKeylist('fixedAssets', $rec->fixedAssets);
         }
