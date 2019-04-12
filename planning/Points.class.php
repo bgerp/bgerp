@@ -31,7 +31,7 @@ class planning_Points extends core_Manager
     /**
      * Поддържани интерфейси
      */
-//     public $interfaces = 'peripheral_TerminalIntf';
+    public $interfaces = 'peripheral_TerminalIntf';
     
     
     /**
@@ -129,37 +129,37 @@ class planning_Points extends core_Manager
     }
 
 
-//     /**
-//      * Връща всички достъпни за текущия потребител id-та на обекти, отговарящи на записи
-//      *
-//      * @return array
-//      *
-//      * @see peripheral_TerminalIntf
-//      */
-//     public function getTerminalOptions()
-//     {
-//         $options = array();
-//         $cQuery = self::getQuery();
-//         $cQuery->where("#state != 'rejected' AND #state != 'closed'");
-//         while ($cRec = $cQuery->fetch()) {
-//             $options[$cRec->id] = self::getRecTitle($cRec, false) . " ({$cRec->id})";
-//         }
+    /**
+     * Връща всички достъпни за текущия потребител id-та на обекти, отговарящи на записи
+     *
+     * @return array
+     *
+     * @see peripheral_TerminalIntf
+     */
+    public function getTerminalOptions()
+    {
+        $options = array();
+        $cQuery = self::getQuery();
+        $cQuery->where("#state != 'rejected' AND #state != 'closed'");
+        while ($cRec = $cQuery->fetch()) {
+            $options[$cRec->id] = self::getRecTitle($cRec, false) . " ({$cRec->id})";
+        }
 
-//         return $options;
-//     }
+        return $options;
+    }
 
 
-//     /**
-//      * Редиректва към посочения терминал в посочената точка и за посочения потребител
-//      *
-//      * @return Redirect
-//      *
-//      * @see peripheral_TerminalIntf
-//      */
-//     public function openTerminal($objectId, $userId)
-//     {
-//         return new Redirect(array($this, 'openTerminal', $objectId));
-//     }
+    /**
+     * Редиректва към посочения терминал в посочената точка и за посочения потребител
+     *
+     * @return Redirect
+     *
+     * @see peripheral_TerminalIntf
+     */
+    public function openTerminal($objectId, $userId)
+    {
+        return new Redirect(array($this, 'openTerminal', $objectId));
+    }
     
     
     /**

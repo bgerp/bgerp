@@ -24,6 +24,7 @@ class peripheral_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('peripheral_Devices', 'Периферия', 'peripheral, admin');
+        $this->TAB(array('peripheral_Terminal', 'list'), 'Терминали', 'peripheral, admin');
         
         $this->title = 'Периферни устройства';
     }

@@ -13,12 +13,99 @@
  *
  * @since     v 0.1
  */
-class peripheral_Terminal extends core_BaseClass
+class peripheral_Terminal extends core_Master
 {
+    /**
+     * Заглавие на мениджъра
+     */
+    public $title = 'Терминали';
+    
+    
+    /**
+     * Титлата на обекта в единичен изглед
+     */
+    public $singleTitle = 'Терминал';
+    
+    
+    /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'plg_Created, plg_Modified, peripheral_Wrapper, plg_RowTools2';
+    
+    
+    /**
+     * Кой има право да го чете?
+     */
+    public $canRead = 'admin, peripheral';
+    
+    
+    /**
+     * Кой има право да го променя?
+     */
+    public $canEdit = 'admin, peripheral';
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    public $canAdd = 'admin, peripheral';
+    
+    
+    /**
+     * Кой има право да го види?
+     */
+    public $canView = 'admin, peripheral';
+    
+    
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'admin, peripheral';
+    
+    
+    /**
+     * Кой има право да изтрива?
+     */
+    public $canDelete = 'admin, peripheral';
+    
+    
+    /**
+     * Кой има достъп до сингъла
+     */
+    public $canSingle = 'admin, peripheral';
+    
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'brid, point=Точка, usePin, users, roles, createdOn, createdBy';
+    
+    
+    /**
+     * 
+     * @var string
+     */
+    public $singleFields = 'brid, point=Точка, usePin, users, roles, createdOn, createdBy, modifiedOn, modifiedBy';
+    
+    
     /**
      * Разделител за потребителско име и ПИН код, когато са в едно поле
      */
     protected $userPinSeparator = '÷';
+    
+    
+    /**
+     * Описание на модела
+     */
+    public function description()
+    {
+        $this->FLD('brid', 'varchar(8)', 'caption=Браузър');
+        $this->FLD('classId', 'class(interface=peripheral_TerminalIntf)', 'caption=Клас->Име, removeAndRefreshForm=pointId, mandatory, silent');
+        $this->FLD('pointId', 'int', 'caption=Клас->Точка, mandatory, silent');
+        $this->FLD('usePin', 'enum(yes=Да,no=Не)', 'caption=Оторизация');
+        $this->FLD('users', 'keylist(mvc=core_Users, select=nick, where=#state !\\= \\\'rejected\\\')', 'caption=Потребители');
+        $this->FLD('roles', 'keylist(mvc=core_Roles, select=role, where=#state !\\= \\\'rejected\\\')', 'caption=Роли');
+    }
     
     
     /**
@@ -110,15 +197,31 @@ class peripheral_Terminal extends core_BaseClass
             $form = cls::get('core_Form');
             $form->class = 'simpleForm simplePortalLogin';
             
-            $form->FLD('terminalId', 'key(mvc=peripheral_Devices, select=name)', 'caption=Терминал, removeAndRefreshForm=user|pin, mandatory, silent,class=w100');
+            $form->FLD('terminalId', 'key(mvc=peripheral_Terminal, select=name)', 'caption=Терминал, removeAndRefreshForm=user|pin, mandatory, silent,class=w100');
             
-            $dArr = peripheral_Devices::getDevices('peripheral_TerminalIntf', log_Browsers::getBrid(), core_Users::getRealIpAddr());
+            $brid = log_Browsers::getBrid();
+            
+            $query = $this->getQuery();
+            $query->where(array("#brid = '[#1#]'", $brid));
             
             $defTerminalIdArr = array();
             
             // Достъпните опции за терминал за потребителя
-            foreach ($dArr as $dId => $dRec) {
-                $defTerminalIdArr[$dId] = $dRec->name;
+            while ($rec = $query->fetch()) {
+                try {
+                    $Intf = cls::getInterface('peripheral_TerminalIntf', $rec->classId);
+                } catch (core_exception_Expect $ex) {
+                    continue;
+                }
+                
+                $tOptArr = $Intf->getTerminalOptions();
+                $defTerminalIdArr[$rec->id] = $rec->name;
+                
+                if (!isset($tOptArr[$rec->pointId])) {
+                    continue;
+                }
+                
+                $defTerminalIdArr[$rec->id] = $tOptArr[$rec->pointId];
             }
             
             $form->setOptions('terminalId', $defTerminalIdArr);
@@ -132,7 +235,7 @@ class peripheral_Terminal extends core_BaseClass
             if ($form->rec->terminalId) {
                 $form->FLD('user', 'key(mvc=core_Users, select=nick)', 'caption=Потребител, mandatory, silent,class=w100, removeAndRefreshForm=pin');
                 
-                $tRec = peripheral_Devices::fetch($form->rec->terminalId);
+                $tRec = $this->fetch($form->rec->terminalId);
                 
                 $uArr = type_Keylist::toArray($tRec->users);
                 
@@ -161,7 +264,7 @@ class peripheral_Terminal extends core_BaseClass
                     $terminalId = $form->rec->terminalId;
                 }
                 
-                if ($tRec->authorization != 'no') {
+                if ($tRec->usePin != 'no') {
                     
                     $form->input('user', true);
                     
@@ -189,18 +292,18 @@ class peripheral_Terminal extends core_BaseClass
                 }
                 
                 $uRec = core_Users::fetch($form->rec->user);
-                if ($tRec->authorization != 'no' && (!$uRec->pinCode || ($uRec->pinCode != $form->rec->pin)) && ($form->rec->user != $cuOutTerminal)) {
+                if ($tRec->usePin != 'no' && (!$uRec->pinCode || ($uRec->pinCode != $form->rec->pin)) && ($form->rec->user != $cuOutTerminal)) {
                     $form->setError('pin', 'Грешен ПИН код');
                     
-                    peripheral_Devices::logWarning('Грешен ПИН код', $form->rec->terminalId);
+                    $this->logWarning('Грешен ПИН код', $form->rec->terminalId);
                 }
             }
             
             if ($form->isSubmitted()) {
                 $terminalId = $form->rec->terminalId;
                 $cu = $form->rec->user;
-            } elseif (!Request::get('afterExit') && $form->rec->terminalId && $form->rec->user && $usersArr[$form->rec->user]) {
-                if (($tRec->authorization == 'no') || ($form->rec->user == $cuOutTerminal)) {
+            } elseif (!Request::get('afterExit') && count($defTerminalIdArr) == 1 && $form->rec->user && $usersArr[$form->rec->user]) {
+                if (($tRec->usePin == 'no') || ($form->rec->user == $cuOutTerminal)) {
                     $terminalId = $form->rec->terminalId;
                     $cu = $form->rec->user;
                 }
@@ -223,8 +326,14 @@ class peripheral_Terminal extends core_BaseClass
             
             $form->title = 'Избор на терминал в|* ' . ht::createLink(core_Packs::getConfig('core')->EF_APP_TITLE, $titleUrl);
             
+            $closeUrl = array('Index', 'Default');
+            
+            if ($this->haveRightFor('list')) {
+                $closeUrl = array($this, 'list');
+            }
+            
             $form->toolbar->addSbBtn('Вход', 'save', 'ef_icon = img/16/doc_stand.png, title = Отваряне');
-            $form->toolbar->addBtn('Затвори', array('Index', 'Default'), 'ef_icon = img/16/close-red.png, title=Затваряне');
+            $form->toolbar->addBtn('Затвори', $closeUrl, 'ef_icon = img/16/close-red.png, title=Затваряне');
             
             if (!$terminalId) {
                 $htmlRes = $form->renderHtml();
@@ -238,11 +347,108 @@ class peripheral_Terminal extends core_BaseClass
         
         // Ако има избран терминал - отваряме го
         
-        $tRec = peripheral_Devices::fetch($terminalId);
+        $tRec = $this->fetch($terminalId);
         
-        $Intf = cls::getInterface('peripheral_TerminalIntf', $tRec->driverClass);
+        $Intf = cls::getInterface('peripheral_TerminalIntf', $tRec->classId);
         
-        return $Intf->openTerminal($tRec->id, $cu);
+        return $Intf->openTerminal($tRec->pointId, $cu);
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $brid = log_Browsers::getBrid();
+        $data->form->setSuggestions('brid', array('' => '', $brid => $brid));
+        
+        $data->form->setDefault('brid', $brid);
+        
+        $optArr = $data->form->fields['classId']->type->prepareOptions();
+        
+        if (!empty($optArr)) {
+            $data->form->setDefault('classId', key($optArr));
+        }
+        
+        $data->form->input('classId');
+        
+        if ($data->form->rec->classId) {
+            $Intf = cls::getInterface('peripheral_TerminalIntf', $data->form->rec->classId);
+            $tOptArr = $Intf->getTerminalOptions();
+            $data->form->setOptions('pointId', $tOptArr);
+            if (empty($tOptArr)) {
+                $clsInst = cls::get($data->form->rec->classId);
+                $data->form->setReadonly('pointId');
+                $errMsg = 'Няма опции|* ';
+                if ($clsInst->haveRightFor('list')) {
+                    $errMsg .= '|в|* ' . ht::createLink(mb_strtolower($clsInst->title), array($clsInst, 'list'));
+                } else {
+                    $errMsg .= "|за терминала|*";
+                }
+                $data->form->setError('pointId', $errMsg);
+            }
+        }
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted()) {
+            if (!$form->rec->users && !$form->rec->roles) {
+                $form->setError('users, roles', 'Поне едно от полетата трябва да има стойност');
+            }
+        }
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        if ($rec->brid) {
+            $row->brid = log_Browsers::getLink($rec->brid);
+        }
+        
+        if ($rec->classId && $rec->pointId) {
+            try {
+                $Intf = cls::getInterface('peripheral_TerminalIntf', $rec->classId);
+                
+                $tOptArr = $Intf->getTerminalOptions();
+                
+                if (isset($tOptArr[$rec->pointId])) {
+                    $row->point = $tOptArr[$rec->pointId];
+                    
+                    $cls = core_Cls::get($rec->classId);
+                    
+                    if ($cls instanceof core_Master) {
+                        if ($cls::haveRightFor('single', $rec->pointId)) {
+                            $row->point = ht::createLink($row->point, array($cls, 'single', $rec->pointId), null, array('ef_icon' => $cls->getIcon($rec->pointId)));
+                        }
+                    } else {
+                        if ($cls::haveRightFor('list', $rec->pointId)) {
+                            $row->point = ht::createLink($row->point, array($cls, 'list', $rec->pointId));
+                        }
+                    }
+                }
+            } catch (core_exception_Expect $ex) {
+            
+            }
+        }
     }
     
     
@@ -255,4 +461,74 @@ class peripheral_Terminal extends core_BaseClass
         
         return new Redirect(array($this, 'default', 'afterExit' => true));
     }
+    
+    
+    /**
+     * Подготовка на детайла
+     *
+     * @param stdClass $data
+     */
+    public function prepareDetail_($data)
+    {
+        $classId = $data->masterMvc->getClassId();
+        $pointId = $data->masterData->rec->id;
+        
+        $query = $this->getQuery();
+        $query->where(array("#classId = '[#1#]' AND #pointId = '[#2#]'", $classId, $pointId));
+        
+        // Извличане на записите
+        $data->recs = $data->rows = array();
+        while ($rec = $query->fetch()) {
+            $data->recs[$rec->id] = $rec;
+            $data->rows[$rec->id] = $this->recToVerbal($rec);
+            
+            if ($this->haveRightFor('single', $rec->id)) {
+                $data->rows[$rec->id]->Link = $this->getLinkToSingle($rec->id);
+            }
+        }
+        
+        if (!empty($data->recs)) {
+            $data->TabCaption = 'Терминали';
+            $data->Order = '100';
+            
+            if ($this->haveRightFor('add')) {
+                $data->AddLink = ht::createLink(tr('Нов'),
+                                                array($this, 'add', 'classId' => $classId, 'pointId' => $pointId, 'ret_url' => true),
+                                                false,
+                                                array('ef_icon' => '/img/16/add1-16.png', 'title' => 'Добавяне на нов терминал'));
+            }
+        }
+        
+        return $data;
+    }
+    
+    
+    /**
+     * Рендиране на детайла
+     *
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
+     */
+    public function renderDetail_($data)
+    {
+        $tpl = new ET('');
+        
+        if (!empty($data->rows)) {
+            $tpl = getTplFromFile('peripheral/tpl/TerminalDetailLayout.shtml');
+            $rowBlockTpl = $tpl->getBlock('log');
+            
+            foreach ((array) $data->rows as $row) {
+                $rowBlockTpl->placeObject($row);
+                $rowBlockTpl->append2Master();
+            }
+            
+            if ($data->AddLink) {
+                $tpl->append($data->AddLink, 'AddLink');
+            }
+        }
+        
+        return $tpl;
+    }
+
 }

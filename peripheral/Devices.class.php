@@ -30,7 +30,7 @@ class peripheral_Devices extends embed_Manager
     /**
      * Интерфейс на драйверите
      */
-    public $driverInterface = 'peripheral_BaseIntf';
+    public $driverInterface = 'peripheral_DeviceIntf';
     
     
     /**

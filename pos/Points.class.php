@@ -14,7 +14,7 @@
  *
  * @since     v 0.11
  */
-class pos_Points extends core_Extender
+class pos_Points extends core_Master
 {
     /**
      * Заглавие
@@ -110,21 +110,14 @@ class pos_Points extends core_Extender
     /**
      * Детайли на бележката
      */
-    public $details = 'Receipts=pos_Receipts';
-    
-    
-    /**
-     * Какъв да е интерфейса на позволените ембедъри
+    public $details = 'Receipts=pos_Receipts, peripheral_Terminal';
+     
+     
+     /**
+     * Поддържани интерфейси
      *
-     * @var string
      */
-    public $extenderClassInterfaces = 'peripheral_TerminalIntf';
-    
-    
-    /**
-     * Полета, които ще се показват в листов изглед
-     */
-    public $extenderFields = 'name, caseId, storeId, policyId, payments, inCharge, access, shared';
+    public $interfaces = 'peripheral_TerminalIntf';
     
     
     /**
@@ -233,24 +226,6 @@ class pos_Points extends core_Extender
         $title = (count($reportUrl)) ? 'Направи отчет' : 'Не може да се генерира отчет. Възможна причина - неприключени бележки.';
         
         $data->toolbar->addBtn('Отчет', $reportUrl, null, "title={$title},ef_icon=img/16/report.png");
-    }
-    
-    
-    /**
-     * Какво да е дефолтното урл, за добавяне от листовия изглед
-     *
-     * @return array $addUrl
-     */
-    protected function getListAddUrl()
-    {
-        $addUrl = array();
-        if($driverId = pos_TerminalImpl::getClassId()){
-            if (peripheral_Devices::haveRightFor('add', (object)array('innerClass' => $driverId)) && cls::get($driverId)->canSelectDriver()) {
-                $addUrl = array('peripheral_Devices', 'add', 'driverClass' => $driverId, 'ret_url' => true);
-            }
-        }
-        
-        return $addUrl;
     }
     
     
@@ -375,5 +350,42 @@ class pos_Points extends core_Extender
                 $query->where("#{$pointFld} = {$filterRec->point}");
             }
         }
+    }
+    
+    
+    /**
+     * Връща всички достъпни за текущия потребител id-та на обекти, отговарящи на записи
+     *
+     * @return array
+     *
+     * @see peripheral_TerminalIntf
+     */
+    public function getTerminalOptions()
+    {
+        $query = $this->getQuery();
+        $query->where("#state != 'rejected'");
+        
+        $resArr = array();
+        
+        $query->showFields = 'id,name';
+        
+        while ($rec = $query->fetchAndCache()) {
+            $resArr[$rec->id] = $rec->name;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Редиректва към посочения терминал в посочената точка и за посочения потребител
+     *
+     * @return Redirect
+     *
+     * @see peripheral_TerminalIntf
+     */
+    public function openTerminal($pointId, $userId)
+    {
+        return new Redirect(array($this, 'openTerminal', $pointId));
     }
 }
