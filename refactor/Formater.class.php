@@ -326,7 +326,7 @@ class refactor_Formater extends core_Manager
      * @param string $root
      * @result array
      */
-    public function readAllFiles($root = '.', $patern = '', $exclPattern = '')
+    public static function readAllFiles($root = '.', $patern = '', $exclPattern = '')
     {
         $files = array('files' => array(), 'dirs' => array());
         $directories = array();
