@@ -1,5 +1,7 @@
 body {
 	background: #f1f1f1;
+	width: 100%;
+	overflow-x: hidden;
 }
 .centerContent {
 	width: 1400px;
@@ -21,10 +23,12 @@ body {
 	width: 980px;
 	float: left;
 }
+
 .formHolder {
 	width: 360px;
 	margin-top: 0 !important;
 }
+
 .terminal-content {
 	background: #fff;
 	border: 1px solid #ccc;
@@ -37,6 +41,7 @@ body {
 		margin: 0;
 	}
 	.listTable {
+		width: 99.5% !important;
 		margin-bottom: 0 !important;
 	}
 }
@@ -128,11 +133,25 @@ body {
 		}
 	}
 }
+.narrow {
+	.formSection {
+		max-width: 340px !important;
+		width: 340px !important;
+	}
+	.planning-terminal-numpad {
+		background: url("../../../img/16/numpad.png") center no-repeat !important;
+		border: none !important;
+	}
+	#searchBtn {
+		background-image: url("../../../img/24/qr.png") !important;
+		background-size: 24px 24px !important;
+		background-repeat: no-repeat;
+	}
+}
 
 .terminalHeader {
 	padding: 15px;
-	box-sizing: border-box;
-	height: 60px;
+	height: 30px;
 	background: #fff;
 	-webkit-box-shadow: 0 5px 5px -5px rgba(0,0,0,.2);
 	-moz-box-shadow: 0 5px 5px -5px rgba(0,0,0,.2);
@@ -146,13 +165,13 @@ body {
 				width: auto;
 			}
 		}
-		.specialLink, .assets {
+		.title, .specialLink, .assets, #nameHolder {
 			line-height: 30px;
 			display: inline-block;
 			margin-left: 10px;
+			margin-bottom: 0 !important;
 			float: left;
 		}
-
 	}
 	
 	.userInfo {
@@ -163,7 +182,7 @@ body {
 	}
 	#dateHolder {
 		display: inline-block;
-		margin-right: 20px;
+		margin-right: 10px;
 	}
 }
 .vertical {
@@ -175,13 +194,14 @@ body {
 .planning-task-progress  {
 	height: 600px;
 	overflow-y: auto;
+	th {
+		display: none;
+	}
 }
 .title {
 	margin: 0 0 10px !important;
 }
-.formError {
 
-}
 #task-support-content .formHolder {
 	width: 600px;
 }
@@ -286,6 +306,7 @@ body {
 
 		textarea {
 			min-height: 90px;
+			margin-top: 10px;
 		}
 
 		select {
@@ -314,7 +335,14 @@ body {
 	}
 }
 
-@media handheld, only screen and (min-width: 720px) and (max-width: 800px) {
+.jobTable >tbody > tr >td {
+	border: 1px solid #ccc;
+}
+
+.highlight {
+	background-color: #fefeb7;
+}
+@media handheld, only screen and (min-width: 760px) and (max-width: 800px) {
 	.wide table.listAction {
 		min-width: 480px;
 	}
@@ -402,7 +430,9 @@ body {
 		white-space: normal !important;
 	}
 	.searchHolder {
-		margin-right: -80px;
+		position: relative;
+		float: right;
+		right: 0 !important;
 		.qrBtn {
 			height: 22px !important;
 			background-size: 20px 20px;
@@ -412,5 +442,111 @@ body {
 		.searchBarcode {
 			height: 22px;
 		}
+	}
+}
+
+@media handheld, only screen and (max-width:740px) {
+	.terminalHeader {
+		padding: 5px;
+		.fleft .logo img {
+			height: 18px;
+			margin-top: 6px;
+		}
+		.searchHolder {
+			clear: both;
+			height: 30px;
+			width: 275px;
+			display: block;
+			float: none;
+			margin: 0 auto;
+			right: 0;
+			.searchBtn {
+				margin-right: 0;
+			}
+		}
+		.linkWithIcon {
+			background-image: none !important;
+			font-size: 0.9em;
+			padding-left: 0 !important;
+		}
+		.userInfo {
+			width: 200px;
+			font-size: 0.9em;
+		}
+		#dateHolder {
+			margin-right: 5px;
+		}
+		#searchBtn {
+			background-image: url("../../../img/24/qr.png") !important;
+			background-size: 24px 24px !important;
+			background-repeat: no-repeat;
+		}
+	}
+
+	.searchHolder {
+		position: relative;
+		display: block;
+		clear: both;
+	}
+	.terminalHeader {
+		height: auto;
+	}
+	.centerContent {
+		width: 100%;
+	}
+	.tabContent {
+		overflow-x: auto;
+	}
+	.planning_ProductionTaskDetails {
+		width: 500px;
+	}
+	.planning-task-table {
+		font-size: 0.9em;
+	}
+	.tabs-holder .navigation {
+		overflow-x: auto;
+		display: flex;
+		position: relative;
+		top: 1px;
+		li {
+			display: block;
+			flex: 1;
+			margin-right: 5px;
+			a {
+				padding: 7px;
+			}
+		}
+	}
+
+	.formHolder.fright{
+		width: 100%;
+		float: none;
+		max-width: 400px;
+	}
+	.planning_ProductionTaskDetails, .document {
+		float: none;
+		width: 100%;
+		overflow-x: auto;
+		display: block;
+	}
+	.formSection {
+		padding: 0 0 20px 0!important;
+	}
+	.narrow .formFields table>tbody>tr>td {
+		padding-right: 0;
+		padding-left: 0;
+	}
+	.formTitle {
+		padding: 0 !important;
+		font-size: 0.95em !important;
+	}
+	#task-support-content .formHolder {
+		width: 100%;
+	}
+	.userInfo {
+		clear: both;
+		float: left !important;
+		display: inline-block;
+		width: auto !important;
 	}
 }

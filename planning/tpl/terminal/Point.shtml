@@ -3,19 +3,17 @@
 	<div class="centerContent">
 		<span class="fleft">
 			<span class="logo">[#LOGO#]</span>
-			[#centerId#]
-			<!--ET_BEGIN fixedAssets--> <span class="assets">»    [#fixedAssets#]</span><!--ET_END fixedAssets-->
+			<span id ='nameHolder' data-id = '[#id#]'>[#name#]</span>
+			<span class="title">[#centerId#] <!--ET_BEGIN fixedAssets-->&nbsp;»&nbsp;[#fixedAssets#]<!--ET_END fixedAssets--></span>
 		</span>
-
-		<div class='searchHolder'>
-			[#SEARCH_FORM#]
-		</div>
-
-
 		<div class="fright userInfo">
 			 <span id="dateHolder">[#date#]</span>
 			[#userId#]
 			<!--ET_BEGIN EXIT_TERMINAL--> [#EXIT_TERMINAL#]<!--ET_END EXIT_TERMINAL-->
+		</div>
+
+		<div class='searchHolder'>
+			[#SEARCH_FORM#]
 		</div>
 		<div class="clearfix21"></div>
 	</div>

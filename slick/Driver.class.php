@@ -119,7 +119,7 @@ class slick_Driver extends core_BaseClass
         $options = json_encode($options);
 
         // Стартираме slick
-        $tpl->append("$('#slick{$rec->id}').slick($options);", 'SCRIPTS');
+        jquery_Jquery::run($tpl, "$('#slick{$rec->id}').slick($options);");
         
         $tpl->removeBlocks();
 

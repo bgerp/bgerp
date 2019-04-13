@@ -1,5 +1,26 @@
+
 function planningActions() {
+	var cookieId = $("#nameHolder").attr("data-id");
+	var cookieName = 'terminalTab' + cookieId;
+	
 	$("input[name=serial]").focus();
+	disableScale();
+
+	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.quantityField')
+	});
+
+	$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.weightField')
+	});
+
+	$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.serialField')
+	});
+
+	$(document.body).on('click', ".nmpd-target", function(e){
+		$(this).siblings('input').addClass('highlight');
+	});
 
 	// Използване на числата за въвеждане на суми за плащания
 	$(document.body).on('click', ".tab-link", function(e){
@@ -12,8 +33,7 @@ function planningActions() {
 		
 		resObj = new Object();
 		resObj['url'] = url;
-		
-		console.log(url);
+
 		getEfae().process(resObj);
 		
 		$("input[name=serial]").val("");
@@ -39,13 +59,15 @@ function planningActions() {
 		var productId = res[1];
 		
 		var quantity = $("input[name=quantity]").val();
-		var employees = $("select#employeeSelect").length ? $("select#employeeSelect").val() : $('input[id^="employees"]').is(':checked') ? $('input[id^="employees"]').val() : null;
+		var employees = [];
+		$('input[id^="employees"]:checked').each(function () {
+			employees.push($(this).val());
+		});
 		var weight = $("input[name=weight]").val();
 		var fixedAsset = $("#fixedAssetSelect").val();
 		var taskId = $("input[name=taskId]").val();
 
 		var data = {serial:serial,taskId:taskId,productId:productId,quantity:quantity,employees:employees,fixedAsset:fixedAsset,weight:weight,type:type};
-		
 		getEfae().process(resObj, data);
 		$("input[name=serial]").val("");
 		$("input[name=serial]").focus("");
@@ -57,10 +79,10 @@ function planningActions() {
 	});
 
 	$(document.body).on('click', ".changeTab ", function(e){
-		setCookie('terminalTab', "tab-progress");
+		setCookie('terminalTab' + cookieId, "tab-progress");
 	});
-
-	var menutabInfo = getCookie('terminalTab');
+	
+	var menutabInfo = getCookie(cookieName);
 	var currentTab = $('#' + menutabInfo).addClass('active').find('a').attr('href');
 	$('.tabContent' + currentTab).addClass('active');
 
@@ -72,7 +94,7 @@ function planningActions() {
 		$('.tabContent' + currentAttrValue).show().siblings().hide();
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
 		if($('.serialField').length) $('.serialField').focus();
-		setCookie('terminalTab', currentId);
+		setCookie(cookieName, currentId);
 		
 		e.preventDefault();
 	});
@@ -89,8 +111,14 @@ function planningActions() {
 		
 		var data = {search:searchVal};
 		getEfae().process(resObj, data);
+	});
+	
+	// При клик на полето за баркод да се отваря приложение
+	$(document.body).on('click', ".scanElement", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
 		
-		console.log(url,searchVal);
+		$(location).attr('href', url);
 	});
 }
 
@@ -105,7 +133,9 @@ function render_activateTab(data)
 		var currentAttrValue= $("#" + data.tabId + " a").attr('href');
 		$('.tabContent' + currentAttrValue).show().siblings().hide();
 		
-		setCookie('terminalTab',  data.tabId);
+		var cookieId = $("#nameHolder").attr("data-id");
+		var cookieName = 'terminalTab' + cookieId;
+		setCookie(cookieName,  data.tabId);
 		return;
 	}
 }
@@ -121,26 +151,10 @@ function render_prepareKeyboard()
 		$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
 			target: $('.weightField')
 		});
+		$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+			target: $('.serialField')
+		});
 	}, 500);
-}
-
-
-/**
- * Подготовка на клавиатурата
- */
-function prepareKeyboard()
-{
-	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.quantityField')
-	});
-	
-	$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.weightField')
-	});
-	
-	$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.serialField')
-	});
 }
 
 
@@ -160,4 +174,13 @@ function setCookie(key, value) {
 function getCookie(key) {
 	var keyValue = document.cookie.match('(^|;) ?' + key + '=([^;]*)(;|$)');
 	return keyValue ? keyValue[2] : null;
+}
+
+
+
+function disableScale() {
+	if (isTouchDevice()) {
+		$('meta[name=viewport]').remove();
+		$('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">');
+	}
 }
