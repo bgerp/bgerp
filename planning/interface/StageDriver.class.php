@@ -18,7 +18,6 @@
 class planning_interface_StageDriver extends cat_GeneralProductDriver
 {
     
-    
     /**
      * Кой може да избира драйвъра
      */
@@ -36,7 +35,7 @@ class planning_interface_StageDriver extends cat_GeneralProductDriver
     /**
      * Клас екстендър, който да се закача
      *
-     * @param string $defaultMetaData
+     * @param string
      */
     public $extenderClass = 'planning_Stages';
     

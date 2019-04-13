@@ -16,16 +16,14 @@
  */
 class embed_plg_Extender extends core_Plugin
 {
-    
-    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param cat_ProductDriver $Driver
+     * @param core_BaseClass $Driver
      * @param embed_Manager     $Embedder
      * @param stdClass          $data
      */
-    public static function on_AfterPrepareEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$data)
+    public static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
     {
         expect($Extender = cls::get($Driver->extenderClass));
         $extenderFields = $Extender->getExtenderFields();
@@ -44,11 +42,11 @@ class embed_plg_Extender extends core_Plugin
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param cat_ProductDriver $Driver
+     * @param core_BaseClass $Driver
      * @param embed_Manager     $Embedder
      * @param stdClass          $data
      */
-    public static function on_AfterInputEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$form)
+    public static function on_AfterInputEditForm($Driver, embed_Manager $Embedder, &$form)
     {
         // Нотифициране на екстендъра че се събмитва форма
         expect($Extender = cls::get($Driver->extenderClass));
@@ -60,12 +58,12 @@ class embed_plg_Extender extends core_Plugin
      * 
      * Извиква се след успешен запис в модела
      *
-     * @param cat_ProductDriver $Driver
+     * @param core_BaseClass $Driver
      * @param embed_Manager     $Embedder
      * @param int               $id
      * @param stdClass          $rec
      */
-    public static function on_AfterSave(cat_ProductDriver $Driver, embed_Manager $Embedder, &$id, $rec)
+    public static function on_AfterSave($Driver, embed_Manager $Embedder, &$id, $rec)
     {
         expect($Extender = cls::get($Driver->extenderClass));
         
@@ -76,7 +74,7 @@ class embed_plg_Extender extends core_Plugin
             $update = true;
             $exRec = (object)array("{$Extender->mainClassFieldName}" => $Embedder->getClassId(), "{$Extender->mainIdFieldName}" => $rec->id);
         }
-          
+        
         // Ако има, полетата от екстендъра се синхронизират с тези от записа
         $fieldArr =  (array)$rec;
         foreach ($fieldArr as $k => $v){
@@ -102,7 +100,7 @@ class embed_plg_Extender extends core_Plugin
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param cat_ProductDriver $Driver
+     * @param core_BaseClass $Driver
      * @param embed_Manager     $Embedder
      * @param stdClass          $data
      */
@@ -125,7 +123,7 @@ class embed_plg_Extender extends core_Plugin
     /**
      * След вербализирането на данните
      *
-     * @param cat_ProductDriver $Driver
+     * @param core_BaseClass $Driver
      * @param embed_Manager     $Embedder
      * @param stdClass          $row
      * @param stdClass          $rec
@@ -149,7 +147,7 @@ class embed_plg_Extender extends core_Plugin
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param core_BaseClass $Driver
      * @param embed_Manager     $Embedder
      * @param core_ET           $tpl
      * @param stdClass          $data

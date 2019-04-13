@@ -15,16 +15,13 @@
  */
 class peripheral_TerminalIntf
 {
-    
-    
     /**
      * Връща всички достъпни за текущия потребител id-та на обекти, отговарящи на записи
-     * 
+     *
      * @return array
      */
     public function getTerminalOptions()
     {
-        
         return $this->class->getTerminalOptions();
     }
     
@@ -36,7 +33,6 @@ class peripheral_TerminalIntf
      */
     public function openTerminal($pointId, $userId)
     {
-        
         return $this->class->openTerminal($pointId, $userId);
     }
 }

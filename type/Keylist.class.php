@@ -210,6 +210,9 @@ class type_Keylist extends core_Type
         // Определяме броя на колоните, ако не са зададени.
         $maxChars = $this->params['maxChars'];
         $col = self::getCol((array) $this->suggestions, $maxChars);
+       
+        // Ако трърдо е указано брой колони, използват се те
+        $col = !empty($this->params['columns']) ? $this->params['columns'] : $col;
         
         $i = 0;
         $html = '';

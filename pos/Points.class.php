@@ -110,11 +110,12 @@ class pos_Points extends core_Master
     /**
      * Детайли на бележката
      */
-    public $details = 'Receipts=pos_Receipts';
-    
-    
-    /**
+    public $details = 'Receipts=pos_Receipts, peripheral_Terminal';
+     
+     
+     /**
      * Поддържани интерфейси
+     *
      */
     public $interfaces = 'peripheral_TerminalIntf';
     
@@ -250,7 +251,6 @@ class pos_Points extends core_Master
     protected static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, $rec, $fields = array())
     {
         unset($row->currentPlg);
-        
         if (empty($rec->payments)) {
             $row->payments = tr('Всички');
         }

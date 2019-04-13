@@ -182,12 +182,14 @@
 			nmpd.close = function(target){
 				// If a target element is given, set it's value to the dipslay value of the numpad. Otherwise just hide the numpad
 				if (target){
+
 					if (target.prop("tagName") == 'INPUT'){
 						target.val(nmpd.getValue().toString().replace('.', options.decimalSeparator));
 					} else {
 						target.html(nmpd.getValue().toString().replace('.', options.decimalSeparator));
 					}
-				}	
+				}
+				$('.keyboardHolder input').removeClass('highlight');
 				// Hide the numpad and trigger numpad.close
 				nmpd.hide();
 				nmpd.trigger('numpad.close');
@@ -230,6 +232,9 @@
 				$('#'+id+' .done').off('click');
 				$('#'+id+' .done').one('click', function(){ nmpd.close(target); });
 				// Finally trigger numpad.open
+				$('.nmpd-wrapper').hide();
+				$('#'+id).show();
+
 				nmpd.trigger('numpad.open');
 				return nmpd;
 			};		  

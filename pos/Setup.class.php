@@ -112,6 +112,12 @@ class pos_Setup extends core_ProtoSetup
     
     
     /**
+     * Необходими пакети
+     */
+    public $depends = 'peripheral=0.1';
+    
+    
+    /**
      * Роли за достъп до модула
      */
     public $roles = 'pos';
