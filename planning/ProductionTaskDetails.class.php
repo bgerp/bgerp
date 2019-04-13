@@ -92,13 +92,13 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,taskId,type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,created=Създаване,info=@,notes,_createdDate';
+    public $listFields = 'taskId,type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,created=Създаване,info=@,notes';
     
     
     /**
      * Кои колони да скриваме ако янма данни в тях
      */
-    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset,scrappedQuantity';
+    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset,scrappedQuantity,quantityExtended,typeExtended,additional';
     
     
     /**
@@ -140,7 +140,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество');
         $this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
         $this->FLD('weight', 'double(Min=0)', 'caption=Тегло,unit=кг');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Оператори,tdClass=nowrap');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Оператори');
         $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Оборудване,input=none,tdClass=nowrap');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Забележки,autohide');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
@@ -179,8 +179,12 @@ class planning_ProductionTaskDetails extends doc_Detail
             foreach ($arr as $key => &$value) {
                 $value = planning_AssetResources::getTitleById($key, false);
             }
-            $form->setOptions('fixedAsset', array('' => '') + $arr);
+            
+            $arr = ((Mode::is('terminalProgressForm')) ? array(' ' => ' ') : array('' => '')) + $arr;
+            $form->setOptions('fixedAsset', $arr);
             $form->setField('fixedAsset', 'input');
+        } else {
+            $form->setField('fixedAsset', 'input=none');
         }
         
         $productOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
@@ -256,7 +260,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         if(Mode::is('terminalProgressForm')){
             $form->layout = $form->renderLayout();
-            jquery_Jquery::run($form->layout, 'prepareKeyboard();');
         }
     }
     
@@ -435,11 +438,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $row->taskId = planning_Tasks::getLink($rec->taskId, 0);
         $row->created = "<div class='nowrap'>" . $mvc->getFieldType('createdOn')->toVerbal($rec->createdOn);
         $row->created .= ' ' . tr('от||by') . ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
-        
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : 'row-removed'));
-        if ($rec->state == 'rejected') {
-            $row->ROW_ATTR['title'] = tr('Оттеглено от') . ' ' . core_Users::getVerbal($rec->modifiedBy, 'nick');
-        }
         
         $pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,nameEn,name');
         $row->productId = cat_Products::getShortHyperlink($rec->productId);
@@ -476,7 +475,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         
         $rec->_createdDate = dt::verbal2mysql($rec->createdOn, false);
-        $row->_createdDate = dt::mysql2verbal($rec->_createdDate, 'd/m/Y l');
+        $row->_createdDate = dt::mysql2verbal($rec->_createdDate, 'd/m/y l');
     }
     
     
@@ -489,7 +488,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      * @return core_ET|string $serialVerbal  - серийния номер като линк, или вербалното му представяне
      */
     public static function getLink($taskId, $serial)
-    {
+    {   
         $serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($serial);
         if (Mode::isReadOnly()) {
             
@@ -510,16 +509,18 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        unset($data->listFields['notes']);
         if (isset($data->masterMvc)) {
-            $data->listTableMvc->FNC('shortUoM', 'varchar', 'tdClass=nowrap');
-            $data->listTableMvc->setField('productId', 'tdClass=nowrap');
-            $data->listTableMvc->FNC('info', 'varchar', 'tdClass=task-row-info');
-            unset($data->listFields['productId']);
-            
             if(!Mode::is('taskProgressInTerminal')){
+                unset($data->listFields['notes']);
+                unset($data->listFields['productId']);
+                $data->listTableMvc->FNC('shortUoM', 'varchar', 'tdClass=nowrap');
+                $data->listTableMvc->setField('productId', 'tdClass=nowrap');
+                $data->listTableMvc->FNC('info', 'varchar', 'tdClass=task-row-info');
                 $data->listTableMvc->FNC('created', 'varchar', 'smartCenter');
                 $data->listTableMvc->setField('weight', 'smartCenter');
+            } else {
+                $data->listTableMvc->FNC('quantityExtended', 'varchar', 'tdClass=centerCol');
+                $data->listTableMvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>\n";
             }
         }
         
@@ -531,6 +532,15 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         $weightWarningPercent = ($data->masterData->rec->weightDeviationWarning) ? $data->masterData->rec->weightDeviationWarning : planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING');
         $masterRec = $data->masterData->rec;
+        
+        $selectRowUrl = array();
+        if($terminalId = Mode::get('taskProgressInTerminal')){
+            $terminalRec = planning_Points::fetch($terminalId);
+            $terminalRec->taskId = Mode::get("currentTaskId{$terminalId}");
+            if(planning_Points::haveRightFor('selecttask', $terminalRec)){
+                $selectRowUrl = array('planning_Points', 'selectTask', $terminalId, 'taskId' => $terminalRec->taskId);
+            }
+        }
         
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
@@ -544,9 +554,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
             
             if(!empty($rec->weight)){
-                $transportWeight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
                 
                 // Проверка има ли отклонение спрямо очакваното транспортно тегло
+                $transportWeight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
                 if(!empty($transportWeight)){
                     $deviation = abs(round(($transportWeight - $rec->weight) / (($transportWeight + $rec->weight) / 2), 2));
                     
@@ -565,6 +575,26 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             if(!empty($row->notes)){
                 $row->type .= "<small>{$row->notes}</small>";
+            }
+           
+            if(Mode::is('taskProgressInTerminal')){
+                $row->typeExtended = "<span class='extended-type'>{$row->type}</span><span class='extended-productId'> » {$row->productId}</span><span class='extended-created fright'>{$row->created}</span>";
+                $row->quantityExtended = "<div class='extended-quantity'>{$row->quantity}</div>";
+                if(!empty($rec->weight)){
+                    $row->quantityExtended .= "<span class='extended-weight'>{$row->weight}" . tr('кг') . "</span>";
+                }
+                $row->additional = null;
+                if(!empty($rec->employees)){
+                    $row->additional = "<div class='extended-employees'>{$row->employees}</div>";
+                }
+                if(!empty($rec->fixedAsset)){
+                    $row->additional .= "<div class='extended-fixedAsset'>{$row->fixedAsset}</div>";
+                }
+                
+                if(!empty($rec->serial) && count($selectRowUrl)){
+                    $selectRowUrl['recId'] = $rec->id;
+                    $row->serial = ht::createLink($row->serial, $selectRowUrl, false, 'title=Редакция на реда');
+                }
             }
         }
     }

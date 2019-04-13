@@ -1665,6 +1665,8 @@ class cat_Products extends embed_Manager
             }
         }
         
+        $primeCost = is_object($primeCost) ? $primeCost->price : $primeCost;
+        
         return $primeCost;
     }
     

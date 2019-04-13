@@ -147,7 +147,7 @@ class type_Treelist extends type_Keylist
         
         $verbal = $this->toVerbal($value);
 
-        $res = new ET("<div id=a style='border:solid 1px #bbbbbb; background-color:white;padding:2px;'><div style='float:right'><a onclick='toggleDisplay(\"a\");toggleDisplay(\"b\");'>+</a></div>{$verbal}</div><div class='treelist' id=b style='display:none;border:solid 1px #bbbbbb; background-color:white;padding:2px;'><div style='float:right'><a onclick='toggleDisplay(\"a\");toggleDisplay(\"b\");'>+</a></div><ul>" . $html . "</ul></div>");
+        $res = new ET("<div class='treelist'><a class='plus'' onclick='toggleDisplay(\"treelistUl\");toggleDisplay(\"verbal\");'>+</a><div id='verbal'>{$verbal}</div><ul id='treelistUl' style='display: none'>" . $html . "</ul></div>");
 
         jquery_Jquery::run($res, "setTrigger();", true);
 

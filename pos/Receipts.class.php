@@ -299,6 +299,7 @@ class pos_Receipts extends core_Master
         $cu = core_Users::fetch($rec->createdBy);
         $row->createdBy = ht::createLink(core_Users::recToVerbal($cu)->nick, crm_Profiles::getUrl($rec->createdBy));
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
+        
         $row->time = dt::mysql2verbal(dt::now(), 'H:i');
     }
     
@@ -787,12 +788,12 @@ class pos_Receipts extends core_Master
             $htmlScan = "<input type='button' class='webScan {$disClass}' {$disabled} id='webScan' name='scan' onclick=\"document.location = 'http://zxing.appspot.com/scan?ret={$absUrl}?ean={CODE}'\" value='Scan' />";
             $block->append($htmlScan, 'FIRST_TOOLS_ROW');
         }
-
+        
         $params = array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въвеждане');
         if(Mode::is('screenMode', 'narrow')) {
             $params['readonly'] = 'readonly';
         }
-
+        
         $block->append(ht::createElement('input', $params), 'INPUT_FLD');
         $block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
         $block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');

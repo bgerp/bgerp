@@ -19,7 +19,7 @@
 			</tr>
 			<!--ET_BEGIN serial-->
 			<tr>
-				<td colspan='2'>[#serial#]</td>
+				<td colspan='2'><div class="keyboardHolder">[#serial#] [#SERIAL_PAD_BTN#]</div></td>
 			</tr>
 			<!--ET_END serial-->
 			<tr>

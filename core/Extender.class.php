@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-abstract class core_Extender extends core_Manager
+abstract class core_Extender extends core_Master
 {
     /**
      * Кой може да редактира
@@ -83,7 +83,7 @@ abstract class core_Extender extends core_Manager
      *
      * @param core_Mvc $mvc
      */
-    public static function on_AfterDescription(core_Mvc $mvc)
+    public static function on_AfterDescription(core_Master &$mvc)
     {
         expect($mvc->extenderClassInterfaces);
         
@@ -168,6 +168,41 @@ abstract class core_Extender extends core_Manager
                 $deleteUrl = array($Extended->getInstance(), 'delete', 'id' => $Extended->that, 'ret_url' => true);
             }
         }
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        $addUrl = $mvc->getListAddUrl();
+        if(count($addUrl) && !Request::get('Rejected', 'int')){
+            $data->toolbar->addBtn('Нов запис', $addUrl, false, "ef_icon = img/16/star_2.png,title=Добавяне на нов {$mvc->singleTitle}");
+        }
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $editUrl = $mvc->getEditUrl($data->rec);
+        if(count($editUrl)){
+            $data->toolbar->addBtn('Редакция', $editUrl, 'id=btnEdit', 'ef_icon = img/16/edit-icon.png,title=Редактиране на записа');
+        }
+    }
+
+    
+    /**
+     * Какво да е дефолтното урл, за добавяне от листовия изглед
+     *
+     * @return array $addUrl
+     */
+    protected function getListAddUrl()
+    {
+        return array();
     }
     
     
