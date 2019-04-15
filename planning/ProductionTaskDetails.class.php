@@ -466,9 +466,6 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->scrappedQuantity = " (" . tr('Брак') . ": {$row->scrappedQuantity})";
         }
         $row->quantity = "<b>{$row->quantity}</b> {$row->measureId} {$row->scrappedQuantity}";
-        if (!empty($rec->serial)) {
-            $row->serial = self::getLink($rec->taskId, $rec->serial);
-        }
         
         if (isset($rec->employees)) {
             $row->employees = self::getVerbalEmployees($rec->employees);
@@ -591,9 +588,13 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $row->additional .= "<div class='extended-fixedAsset'>{$row->fixedAsset}</div>";
                 }
                 
-                if(!empty($rec->serial) && count($selectRowUrl)){
-                    $selectRowUrl['recId'] = $rec->id;
-                    $row->serial = ht::createLink($row->serial, $selectRowUrl, false, 'title=Редакция на реда');
+                if(!empty($rec->serial)){
+                    if(count($selectRowUrl)){
+                        $selectRowUrl['recId'] = $rec->id;
+                        $row->serial = ht::createLink($row->serial, $selectRowUrl, false, 'title=Редакция на реда');
+                    } else {
+                        $row->serial = self::getLink($rec->taskId, $rec->serial);
+                    }
                 }
             }
         }
