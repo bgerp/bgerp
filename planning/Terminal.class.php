@@ -377,6 +377,7 @@ class planning_Terminal extends core_Manager
         foreach (array('production' => 'Произв.', 'input' => 'Влагане', 'waste' => 'Отпадък') as $type => $typeCaption){
             $options = planning_ProductionTaskProducts::getOptionsByType($currentTaskId, $type);
             foreach ($options as $pId => $pName){
+                if(is_object($pName)) continue;
                 $typeOptions["{$type}|{$pId}"] = "[{$typeCaption}] {$pName}";
             }
         }
