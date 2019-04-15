@@ -487,16 +487,19 @@ class peripheral_Terminal extends core_Master
             }
         }
         
-        if (!empty($data->recs)) {
+        $canAdd = $this->haveRightFor('add');
+        
+        if (!empty($data->rows) || $canAdd) {
+            
+            if ($canAdd) {
+                $data->AddLink = ht::createLink(tr('Нов'),
+                                array($this, 'add', 'classId' => $classId, 'pointId' => $pointId, 'ret_url' => true),
+                                false,
+                                array('ef_icon' => '/img/16/add1-16.png', 'title' => 'Добавяне на нов терминал'));
+            }
+            
             $data->TabCaption = 'Терминали';
             $data->Order = '100';
-            
-            if ($this->haveRightFor('add')) {
-                $data->AddLink = ht::createLink(tr('Нов'),
-                                                array($this, 'add', 'classId' => $classId, 'pointId' => $pointId, 'ret_url' => true),
-                                                false,
-                                                array('ef_icon' => '/img/16/add1-16.png', 'title' => 'Добавяне на нов терминал'));
-            }
         }
         
         return $data;
@@ -514,7 +517,7 @@ class peripheral_Terminal extends core_Master
     {
         $tpl = new ET('');
         
-        if (!empty($data->rows)) {
+        if (!empty($data->rows) || $data->AddLink) {
             $tpl = getTplFromFile('peripheral/tpl/TerminalDetailLayout.shtml');
             $rowBlockTpl = $tpl->getBlock('log');
             
