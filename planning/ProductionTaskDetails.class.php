@@ -520,7 +520,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $terminalRec = planning_Points::fetch($terminalId);
             $terminalRec->taskId = Mode::get("currentTaskId{$terminalId}");
             if(planning_Points::haveRightFor('selecttask', $terminalRec)){
-                $selectRowUrl = array('planning_Points', 'selectTask', $terminalId, 'taskId' => $terminalRec->taskId);
+                $selectRowUrl = array('planning_Terminal', 'selectTask', $terminalId, 'taskId' => $terminalRec->taskId);
             }
         }
         
