@@ -422,6 +422,7 @@ class planning_Terminal extends core_Manager
         }
         
         $tpl = $form->renderHtml();
+        $Details->invoke('AfterRenderInTerminal', array(&$tpl, $form));
         Mode::pop('terminalProgressForm');
         
         return $tpl;
