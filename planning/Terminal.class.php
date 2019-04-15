@@ -341,7 +341,7 @@ class planning_Terminal extends core_Manager
         Mode::push('terminalProgressForm', $currentTaskId);
         
         $form = cls::get('core_Form');
-        $form->formAttr['id'] = 'planning-terminal-form';
+        $form->formAttr['id'] = $Details->className . '-EditForm';
         $form->formAttr['class'] = 'simpleForm';
         $form->FLD('taskId', 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
         $form->FLD('action', 'varchar(select2MinItems=100)', 'elementId=actionIdSelect,placeholder=Действие,mandatory,silent,removeAndRefreshForm=productId|type');
