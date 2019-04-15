@@ -182,7 +182,7 @@ class planning_Points extends core_Manager
                 } else {
                     $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
                     $taskRec = planning_Tasks::fetch($rec->taskId, 'state,folderId');
-                    if(!in_array($rec->state, array('active', 'wakeup')) || $folderId != $taskRec->folderId){
+                    if(in_array($taskRec->state, array('rejected', 'closed', 'stopped', 'draft')) || $folderId != $taskRec->folderId){
                         $res = 'no_one';
                     }
                 }
