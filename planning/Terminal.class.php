@@ -13,7 +13,7 @@
  *
  * @since     v 0.1
  */
-class planning_Terminal extends core_Mvc
+class planning_Terminal extends core_Manager
 {
     
     /**
@@ -24,6 +24,12 @@ class planning_Terminal extends core_Mvc
                            'taskSingle'   => array('placeholder' => 'TASK_SINGLE', 'fnc' => 'getTaskHtml', 'tab-id' => 'tab-single-task', 'id' => 'task-single-content'),
                            'taskJob'      => array('placeholder' => 'TASK_JOB', 'fnc' => 'getJobHtml', 'tab-id' => 'tab-job', 'id' => 'task-job-content'),
                            'taskSupport'  => array('placeholder' => 'SUPPORT', 'fnc' => 'getSupportHtml', 'tab-id' => 'tab-support', 'id' => 'task-support-content'));
+    
+    
+    /**
+     * Кой има право да чете?
+     */
+    public $canOpenterminal = 'debug';
     
     
     /**
@@ -54,7 +60,7 @@ class planning_Terminal extends core_Mvc
      */
     private function getRedirectUrlAfterProblemIsFound($rec)
     {
-        $url = (planning_Points::haveRightFor('list')) ? array('planning_Points', 'list') : array('bgerp_Portal', 'show');
+        $url = ($this->haveRightFor('list')) ? array('planning_Points', 'list') : array('bgerp_Portal', 'show');
         if(!core_Users::getCurrent('id', false)){
             $url = (Mode::get('terminalId')) ? array('peripheral_Terminal', 'default', 'afterExit' => true) : array('core_Users', 'login', 'ret_url' => toUrl(array($this, 'open', $rec->id), 'local'));
         }
@@ -393,7 +399,7 @@ class planning_Terminal extends core_Mvc
         $form->fieldsLayout->append($currentTaskHtml, 'currentTaskId');
         
         // Бутони за добавяне
-        $sendUrl = (planning_Points::haveRightFor('terminal')) ?  toUrl(array($this, 'doAction', $rec->id), 'local') : array();
+        $sendUrl = ($this->haveRightFor('terminal')) ?  toUrl(array($this, 'doAction', $rec->id), 'local') : array();
         $sendBtn = ht::createFnBtn('Изпращане', null, null, array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'data-url' => $sendUrl, 'title' => 'Изпращане на формата'));
         $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
         
@@ -519,11 +525,11 @@ class planning_Terminal extends core_Mvc
     public function act_selectTask()
     {
         peripheral_Terminal::setSessionPrefix();
-        planning_Points::requireRightFor('selecttask');
+        $this->requireRightFor('selecttask');
         expect($id = Request::get('id', 'int'));
         expect($rec = planning_Points::fetch($id));
         expect($rec->taskId = Request::get('taskId', 'int'));
-        planning_Points::requireRightFor('selecttask', $rec);
+        $this->requireRightFor('selecttask', $rec);
         Mode::setPermanent("currentTaskId{$rec->id}", $rec->taskId);
         Mode::setPermanent("activeTab{$rec->id}", 'taskProgress');
         $res = array($this, 'open', $rec->id);
@@ -548,7 +554,7 @@ class planning_Terminal extends core_Mvc
         peripheral_Terminal::setSessionPrefix();
         $id = Request::get('id', 'int');
         expect($rec = planning_Points::fetch($id), 'Неразпознат ресурс');
-        if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
+        if(!$this->haveRightFor('openterminal') || !$this->haveRightFor('openterminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
             
             return new Redirect($url);
@@ -601,7 +607,7 @@ class planning_Terminal extends core_Mvc
         peripheral_Terminal::setSessionPrefix();
         $id = Request::get('id', 'int');
         expect($rec = planning_Points::fetch($id), 'Неразпознат ресурс');
-        if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
+        if(!$this->haveRightFor('openterminal') || !$this->haveRightFor('openterminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
             
             return new Redirect($url);
@@ -653,7 +659,7 @@ class planning_Terminal extends core_Mvc
         expect($id = Request::get('id', 'int'));
         expect($rec = planning_Points::fetch($id));
         
-        if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
+        if(!$this->haveRightFor('openterminal') || !$this->haveRightFor('openterminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
             
             return new Redirect($url);
@@ -747,7 +753,7 @@ class planning_Terminal extends core_Mvc
         expect($rec = planning_Points::fetch($id));
         Mode::setPermanent("activeTab{$rec->id}", $name);
         
-        if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
+        if(!$this->haveRightFor('openterminal') || !$this->haveRightFor('openterminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
             
             return new Redirect($url);
@@ -761,5 +767,33 @@ class planning_Terminal extends core_Mvc
         
         // Ако не сме в Ajax режим пренасочваме към терминала
         redirect(array($this, 'open', $rec->id));
+    }
+    
+    
+    /**
+     * Модификация на ролите
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
+    {
+        if($action == 'openterminal' && isset($rec)){
+            if(in_array($rec->state, array('closed', 'rejected'))){
+                $res = 'no_one';
+            }
+        }
+        
+        if($action == 'selecttask'){
+            $res = $mvc->getRequiredRoles('openterminal', $rec, $userId);
+            if(isset($rec)){
+                if(empty($rec->taskId)){
+                    $res = 'no_one';
+                } else {
+                    $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
+                    $taskRec = planning_Tasks::fetch($rec->taskId, 'state,folderId');
+                    if(in_array($taskRec->state, array('rejected', 'closed', 'stopped', 'draft')) || $folderId != $taskRec->folderId){
+                        $res = 'no_one';
+                    }
+                }
+            }
+        }
     }
 }

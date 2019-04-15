@@ -35,12 +35,6 @@ class planning_Points extends core_Manager
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canOpenterminal = 'debug';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
     public $canList = 'debug';
@@ -160,33 +154,5 @@ class planning_Points extends core_Manager
         expect($objectId = Request::get('id', 'int'));
         
         return new Redirect(array('planning_Terminal', 'open', $objectId));
-    }
-    
-    
-    /**
-     * Модификация на ролите
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
-    {
-        if($action == 'openterminal' && isset($rec)){
-            if(in_array($rec->state, array('closed', 'rejected'))){
-                $res = 'no_one';
-            }
-        }
-        
-        if($action == 'selecttask'){
-            $res = $mvc->getRequiredRoles('openterminal', $rec, $userId);
-            if(isset($rec)){
-                if(empty($rec->taskId)){
-                    $res = 'no_one';
-                } else {
-                    $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
-                    $taskRec = planning_Tasks::fetch($rec->taskId, 'state,folderId');
-                    if(in_array($taskRec->state, array('rejected', 'closed', 'stopped', 'draft')) || $folderId != $taskRec->folderId){
-                        $res = 'no_one';
-                    }
-                }
-            }
-        }
     }
 }
