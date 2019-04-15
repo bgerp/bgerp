@@ -109,29 +109,4 @@ class purchase_PurchasesData extends core_Manager
        
     }
     
-    /**
-     * Извиква се преди запис в модела
-     *
-     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
-     * @param int          $id     Тук се връща първичния ключ на записа, след като бъде направен
-     * @param stdClass     $rec    Съдържащ стойностите, които трябва да бъдат записани
-     * @param string|array $fields Имена на полетата, които трябва да бъдат записани
-     * @param string       $mode   Режим на записа: replace, ignore
-     */
-    public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
-    {
-      //  bp($rec);
-        
-        
-    }
-    
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
-    {
-     //   bp($rec);
-        
-        
-    }
-    
-    
-  
 }
