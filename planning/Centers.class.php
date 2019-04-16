@@ -146,7 +146,7 @@ class planning_Centers extends core_Master
      *
      * @var string|array
      */
-    public $details = 'stages=planning_Stages';
+    public $details = 'stages=planning_Stages,planning_Points';
     
     
     /**

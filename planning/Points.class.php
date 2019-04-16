@@ -19,7 +19,7 @@ class planning_Points extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Терминали за въвеждане на продукция';
+    public $title = 'Точки за производство';
     
     
     /**
@@ -37,13 +37,13 @@ class planning_Points extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'debug';
+    public $canList = 'no_one';
     
     
     /**
      * Полета, които се виждат
      */
-    public $listFields = 'name, centerId, fixedAssets, employees, terminal=Вход';
+    public $listFields = 'name=Точка, centerId, fixedAssets, employees, terminal=Вход';
     
     
     /**
@@ -110,6 +110,22 @@ class planning_Points extends core_Manager
         if(planning_Points::haveRightFor('openterminal', $rec)){
             $row->terminal = ht::createBtn('Отвори', array('planning_Terminal', 'open', $rec->id), false, true, 'title=Отваряне на терминала за отчитане на производството,ef_icon=img/16/forward16.png');
         }
+        
+        $peripheralData = (object)array('masterMvc' => clone $mvc, 'masterId' => $rec->id);
+        cls::get('peripheral_Terminal')->prepareDetail($peripheralData);
+        if(count($peripheralData->rows)){
+            $terminalList = '<table>';
+            foreach ($peripheralData->rows as $pRow){
+                core_RowToolbar::createIfNotExists($pRow->_rowTools);
+                $pRow->brid = (!empty($pRow->brid)) ? $pRow->brid : "N/A";
+                $pRow->users = (!empty($pRow->users)) ? $pRow->users : "<span class='quiet'>" . tr('Всички') . " </span>";
+                $pRow->roles = (!empty($pRow->roles)) ? $pRow->roles : "<span class='quiet'>" . tr('Всички') . " </span>";
+                $terminalList .= "<tr style='background-color:#e1e1e1'><td>{$pRow->_rowTools->renderHtml()}<span class='quiet'>" . tr('Брид') . "</span>: {$pRow->brid}</td><td><span class='quiet'>" . tr('Пин') . "</span>: {$pRow->usePin}</td><td><span class='quiet'>" . tr('Потребители') . "</span>: {$pRow->users}</td><td><span class='quiet'>" . tr('Роли') . "</span>: {$pRow->roles}</td></tr>";
+            }
+            $terminalList .= "</table>";
+            $row->terminalList = $terminalList;
+        }
+        
     }
 
 
@@ -154,5 +170,66 @@ class planning_Points extends core_Manager
         expect($objectId = Request::get('id', 'int'));
         
         return new Redirect(array('planning_Terminal', 'open', $objectId));
+    }
+    
+    
+    /**
+     * Подготовка на детайла
+     *
+     * @param stdClass $data
+     */
+    public function prepareDetail_($data)
+    {
+        $data->TabCaption = 'Точки';
+        $data->Order = '1';
+        $this->prepareListFields($data);
+        unset($data->listFields['centerId']);
+        $data->listFields['terminalList'] = '@';
+        $data->recs = $data->rows = array();
+        $query = self::getQuery();
+        $query->where("#centerId = {$data->masterId}");
+        
+        // Добавяне на точките, вързани към центъра на дейност
+        while($rec = $query->fetch()){
+            $data->recs[$rec->id] = $rec;
+            $row = $this->recToVerbal($rec);
+            if ($rec->state != 'closed' && peripheral_Terminal::haveRightFor('add', (object)array('classId' => $this->getClassId, 'pointId' => $rec->id))) {
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                $row->_rowTools->addLink('Нов терминал', array('peripheral_Terminal', 'add', 'classId' => $this->getClassId, 'pointId' => $rec->id, 'ret_url' => true), 'alwaysShow,ef_icon=img/16/monitor.png,title=Добавяне на нов терминал към точката за производство');
+            }
+            
+            $data->rows[$rec->id] = $row;
+        }
+        
+        if($this->haveRightFor('add', (object)array('centerId' => $data->masterId))){
+            $data->addUrl = array($this, 'add', 'centerId' => $data->masterId, 'ret_url' => true);
+        }
+    }
+    
+    
+    /**
+     * Рендиране на детайла
+     *
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
+     */
+    public function renderDetail_($data)
+    {
+        $tpl = getTplFromFile('peripheral/tpl/TerminalDetailLayout.shtml');
+        $tpl->append(tr('Точки на производство'), 'title');
+        
+        // Рендиране на таблицата с точките
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $table = cls::get('core_TableView', array('mvc' => $this));
+        $content = $table->get($data->rows, $data->listFields);
+        $tpl->append($content, 'content');
+        
+        if (isset($data->addUrl)) {
+            $addBtn = ht::createLink(' ', $data->addUrl, false, 'ef_icon=img/16/add.png,title=Добавяне на нова точка за производство');
+            $tpl->append($addBtn, 'AddLink');
+        }
+        
+        return $tpl;
     }
 }
