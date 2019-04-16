@@ -72,8 +72,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $firstDocument = doc_Threads::getFirstDocument($clone->threadId);
         $className = $firstDocument->className;
         
-        $dealerId = $className::fetchField($firstDocument->that,'dealerId');
-        
+        $dealerId = $className::fetch($firstDocument->that)->dealerId;
         
         if(is_array($clone->details)){
             foreach ($clone->details as $detail) {

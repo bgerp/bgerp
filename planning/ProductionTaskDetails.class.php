@@ -337,22 +337,6 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     
     /**
-     * Оттегля дъществуващ запис, при създаването на нов
-     * 
-     * @param int $id
-     * @param stdClass $rec
-     */
-    private function rejectById($id, &$rec)
-    {
-        $exRec = self::fetch($rec->_rejectId);
-        $exRec->state = 'rejected';
-        $exRec->exState = 'active';
-        $this->save_($exRec, 'state');
-        $rec->serial = null;
-    }
-    
-    
-    /**
      * Преди запис на документ, изчислява стойността на полето `isContable`
      *
      * @param core_Manager $mvc
@@ -366,6 +350,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $exRec->exState = 'active';
             $mvc->save_($exRec, 'state');
             $rec->_generateSerial = true;
+            core_Statuses::newStatus("Оттеглен е записа с номер|* <b>{$rec->serial}</b>");
             $rec->serial = null;
         }
         
@@ -466,9 +451,6 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->scrappedQuantity = " (" . tr('Брак') . ": {$row->scrappedQuantity})";
         }
         $row->quantity = "<b>{$row->quantity}</b> {$row->measureId} {$row->scrappedQuantity}";
-        if (!empty($rec->serial)) {
-            $row->serial = self::getLink($rec->taskId, $rec->serial);
-        }
         
         if (isset($rec->employees)) {
             $row->employees = self::getVerbalEmployees($rec->employees);
@@ -538,7 +520,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $terminalRec = planning_Points::fetch($terminalId);
             $terminalRec->taskId = Mode::get("currentTaskId{$terminalId}");
             if(planning_Points::haveRightFor('selecttask', $terminalRec)){
-                $selectRowUrl = array('planning_Points', 'selectTask', $terminalId, 'taskId' => $terminalRec->taskId);
+                $selectRowUrl = array('planning_Terminal', 'selectTask', $terminalId, 'taskId' => $terminalRec->taskId);
             }
         }
         
@@ -594,6 +576,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                 if(!empty($rec->serial) && count($selectRowUrl)){
                     $selectRowUrl['recId'] = $rec->id;
                     $row->serial = ht::createLink($row->serial, $selectRowUrl, false, 'title=Редакция на реда');
+                }
+            } else {
+                if(!empty($rec->serial)){
+                    $row->serial = self::getLink($rec->taskId, $rec->serial);
                 }
             }
         }
@@ -1041,6 +1027,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
         if (isset($info->indTime)) {
             $rec->norm = $info->indTime;
+        }
+        
+        // Ако има друг запис със същия номер оттегля се
+        if($rejectId = self::fetchField("#taskId = {$taskId} AND #serial = '{$params['serial']}' AND #state != 'rejected'")){
+            $rec->_rejectId = $rejectId;
         }
         
         return self::save($rec);

@@ -311,10 +311,10 @@ class doc_Search extends core_Manager
             if ($restrictAccess) {
                 // Ограничаване на заявката само до достъпните нишки
                 doc_Threads::restrictAccess($data->query, $currUserId);
+                
+                // Създател
+                $data->query->orWhere("#createdBy = '{$currUserId}'");
             }
-            
-            // Създател
-            $data->query->orWhere("#createdBy = '{$currUserId}'");
             
             // Експеримент за оптимизиране на бързодействието
             $data->query->orderBy('#modifiedOn=DESC');

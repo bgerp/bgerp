@@ -470,6 +470,10 @@ class peripheral_Terminal extends core_Master
      */
     public function prepareDetail_($data)
     {
+        $data->TabCaption = 'Терминали';
+        $data->Order = '100';
+        $data->listFields = arr::make('Link=Терминал,brid=Брид,usePin=ПИН,users=Потребители,roles=Роли', true);
+        
         $classId = $data->masterMvc->getClassId();
         $pointId = $data->masterData->rec->id;
         
@@ -481,22 +485,14 @@ class peripheral_Terminal extends core_Master
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec);
-            
-            if ($this->haveRightFor('single', $rec->id)) {
-                $data->rows[$rec->id]->Link = $this->getLinkToSingle($rec->id);
-            }
+            $data->rows[$rec->id]->Link = $this->getHyperlink($rec->id, true);
         }
         
-        if (!empty($data->recs)) {
-            $data->TabCaption = 'Терминали';
-            $data->Order = '100';
-            
-            if ($this->haveRightFor('add')) {
-                $data->AddLink = ht::createLink(tr('Нов'),
-                                                array($this, 'add', 'classId' => $classId, 'pointId' => $pointId, 'ret_url' => true),
-                                                false,
-                                                array('ef_icon' => '/img/16/add1-16.png', 'title' => 'Добавяне на нов терминал'));
-            }
+        if($this->haveRightFor('add')){
+            $data->AddLink = ht::createLink(tr('Нов'),
+                array($this, 'add', 'classId' => $classId, 'pointId' => $pointId, 'ret_url' => true),
+                false,
+                array('ef_icon' => 'img/16/add.png', 'title' => 'Добавяне на нов терминал'));
         }
         
         return $data;
@@ -512,20 +508,15 @@ class peripheral_Terminal extends core_Master
      */
     public function renderDetail_($data)
     {
-        $tpl = new ET('');
+        $tpl = getTplFromFile('peripheral/tpl/TerminalDetailLayout.shtml');
         
-        if (!empty($data->rows)) {
-            $tpl = getTplFromFile('peripheral/tpl/TerminalDetailLayout.shtml');
-            $rowBlockTpl = $tpl->getBlock('log');
-            
-            foreach ((array) $data->rows as $row) {
-                $rowBlockTpl->placeObject($row);
-                $rowBlockTpl->append2Master();
-            }
-            
-            if ($data->AddLink) {
-                $tpl->append($data->AddLink, 'AddLink');
-            }
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $table = cls::get('core_TableView', array('mvc' => $this));
+        $content = $table->get($data->rows, $data->listFields);
+        $tpl->append($content, 'content');
+        
+        if (isset($data->AddLink)) {
+            $tpl->append($data->AddLink, 'AddLink');
         }
         
         return $tpl;
