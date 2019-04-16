@@ -475,7 +475,7 @@ class peripheral_Terminal extends core_Master
         $data->listFields = arr::make('Link=Терминал,brid=Брид,usePin=ПИН,users=Потребители,roles=Роли', true);
         
         $classId = $data->masterMvc->getClassId();
-        $pointId = $data->masterData->rec->id;
+        $pointId = $data->masterId;
         
         $query = $this->getQuery();
         $query->where(array("#classId = '[#1#]' AND #pointId = '[#2#]'", $classId, $pointId));
@@ -509,6 +509,7 @@ class peripheral_Terminal extends core_Master
     public function renderDetail_($data)
     {
         $tpl = getTplFromFile('peripheral/tpl/TerminalDetailLayout.shtml');
+        $tpl->append(tr('Терминали за достъп'), 'title');
         
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $table = cls::get('core_TableView', array('mvc' => $this));
