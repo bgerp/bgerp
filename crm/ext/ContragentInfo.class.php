@@ -380,7 +380,7 @@ class crm_ext_ContragentInfo extends core_manager
         // Сумиране и преброяване на всички просрочени сделки на контрагента
         $saleQuery2 = sales_Sales::getQuery();
         $saleQuery2->XPR('count', 'int', 'COUNT(#id)');
-        $saleQuery2->XPR('amount', 'int', 'SUM(#amountDeal)');
+        $saleQuery2->XPR('amount', 'int', 'SUM(#amountBl)');
         $saleQuery2->where("#contragentClassId = {$contragentClassId}");
         $saleQuery2->where("#state = 'active' AND #paymentState = 'overdue'");
         $saleQuery2->show('count,amount,contragentId');

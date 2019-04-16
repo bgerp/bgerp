@@ -46,6 +46,12 @@ class planning_Stages extends core_Extender
     
     
     /**
+     * Кой може да го разглежда?
+     */
+    public $canSingle = 'no_one';
+    
+    
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'folders,name';
@@ -151,12 +157,11 @@ class planning_Stages extends core_Extender
     
     
     /**
-     * Какво е урл-то за добавяне на нов производствен етап
+     * Какво да е дефолтното урл, за добавяне от листовия изглед
      * 
-     * @param int|null $centerId
      * @return array $addUrl
      */
-    private static function getAddUrl($centerId = null)
+    protected function getListAddUrl()
     {
         $addUrl = array();
         if($driverId = planning_interface_StageDriver::getClassId()){
@@ -166,18 +171,6 @@ class planning_Stages extends core_Extender
         }
         
         return $addUrl;
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-        $addUrl = self::getAddUrl();
-        if(count($addUrl) && !Request::get('Rejected', 'int')){
-            $data->toolbar->addBtn('Нов запис', $addUrl, false, 'ef_icon = img/16/star_2.png,title=Добавяне на производствен етап');
-        }
     }
     
     
@@ -276,7 +269,7 @@ class planning_Stages extends core_Extender
         
         $this->prepareListFields($data);
         unset($data->listFields['folders']);
-        $data->addUrl = self::getAddUrl($data->masterData->rec->id);
+        $data->addUrl = self::getListAddUrl($data->masterData->rec->id);
     }
     
     

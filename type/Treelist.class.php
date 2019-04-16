@@ -18,6 +18,16 @@
 class type_Treelist extends type_Keylist
 {
 
+
+    /**
+     * Конструктор. Дава възможност за инициализация
+     */
+    public function init($params = array())
+    {
+        parent::init($params);
+        setIfNot($this->params['pathDivider'], '»');
+    }
+
     /**
      * Рендира HTML инпут поле
      *
@@ -43,7 +53,7 @@ class type_Treelist extends type_Keylist
         if (!isset($this->suggestions)) {
             $this->prepareSuggestions();
         }
-        
+            
         if ($value === null) {
             $emptyValue = true;
         }
@@ -94,8 +104,8 @@ class type_Treelist extends type_Keylist
             arr::sortObjects($data, 'title', 'asc', 'stri');
             $items = array();
             self::addItems($items, $data, null, $openIds); 
-
-            foreach($items as $i => $item) {
+ 
+            foreach($items as $i => $item) {               
                 $id = $eId . '_' . $i;
                 $n = "{$name}[$i]";
                 if(is_scalar($item)) {
@@ -128,13 +138,16 @@ class type_Treelist extends type_Keylist
 
                 if($item->checked) {
                     $html .= "\n<li class='row'>{$toggle}<input type='checkbox' name='{$n}' checked id='{$id}'><label $class for='{$id}'>{$item->title}</label></li>";
+                    $verbal .= "<span class='group-link'>{}</span> ";
                 } else {
                     $html .= "\n<li  class='row'>{$toggle}<input type='checkbox' name='{$n}' id='{$id}'><label $class for='{$id}'>{$item->title}</label></li>";
                 }
             }
         }
+        
+        $verbal = $this->toVerbal($value);
 
-        $res = new ET("<div class='treelist' style='border:solid 1px #bbbbbb; background-color:white'><ul>" . $html . "</ul></div>");
+        $res = new ET("<div class='treelist'><a class='plus'' onclick='toggleDisplay(\"treelistUl\");toggleDisplay(\"verbal\");'>+</a><div id='verbal'>{$verbal}</div><ul id='treelistUl' style='display: none'>" . $html . "</ul></div>");
 
         jquery_Jquery::run($res, "setTrigger();", true);
 
@@ -156,6 +169,8 @@ class type_Treelist extends type_Keylist
                     $item->checked = true;
                     $hasOpen = true;
                 }
+
+                $item->path = ($parentId ? $items[$parentId]->path . '»' : '') . $item->title;
 
                 $items[$id] = $item;
                 $haveItem = true;
@@ -184,9 +199,5 @@ class type_Treelist extends type_Keylist
 
         return $haveItem;
     }
-
-
-
-    
     
  }

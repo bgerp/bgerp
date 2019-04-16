@@ -33,7 +33,7 @@
                   <!--ET_END fixedAssets-->
                   
                   <!--ET_BEGIN employees-->
-                  <span style='font-weight:normal'>|Служители|*</span>: [#employees#]<br>
+                  <span style='font-weight:normal'>|Оператори|*</span>: [#employees#]<br>
                   <!--ET_END employees-->
     			</td>
            </tr>

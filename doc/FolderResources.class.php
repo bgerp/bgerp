@@ -131,7 +131,7 @@ class doc_FolderResources extends core_Manager
         }
         
         // Подготовка на полетата за показване
-        $listFields = ($DetailName == 'planning_Hr') ? 'code=Код,personId=Служител,users=Потребители,created=Създаване' : 'name=Оборудване,code=Код,users=Потребители,created=Създаване';
+        $listFields = ($DetailName == 'planning_Hr') ? 'code=Код,personId=Оператор,users=Потребители,created=Създаване' : 'name=Оборудване,code=Код,users=Потребители,created=Създаване';
         $data->listFields = arr::make($listFields, true);
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields);
         
@@ -169,7 +169,7 @@ class doc_FolderResources extends core_Manager
             $hint2 = ',title=Създаване на ново оборудване към ' . mb_strtolower($data->masterMvc->singleTitle);
         }
         
-        $title = ($DetailName == 'planning_Hr') ? 'Служители' : 'Оборудване';
+        $title = ($DetailName == 'planning_Hr') ? 'Оператори' : 'Оборудване';
         $tpl->append($title, 'title');
         
         if (isset($data->newUrl)) {

@@ -1,5 +1,7 @@
 body {
 	background: #f1f1f1;
+	width: 100%;
+	overflow-x: hidden;
 }
 .centerContent {
 	width: 1400px;
@@ -11,23 +13,26 @@ body {
 }
 
 .tabs-holder {
+	width: 100%;
 	float: left;
-	width: 1000px;
 	.listBlock {
 		display: block;
 	}
 }
+.planning_ProductionTaskDetails {
+	width: 980px;
+	float: left;
+}
 
 .formHolder {
-	float: right;
-	width: 360px
+	width: 360px;
+	margin-top: 0 !important;
 }
+
 .terminal-content {
 	background: #fff;
 	border: 1px solid #ccc;
 	padding: 15px;
-	height: 600px;
-	overflow-y: auto;
 	.document {
 		border: none;
 		max-width: none;
@@ -36,10 +41,11 @@ body {
 		margin: 0;
 	}
 	.listTable {
+		width: 99.5% !important;
 		margin-bottom: 0 !important;
 	}
 }
-.tabs-holder ul {
+.tabs-holder .navigation {
 	padding: 0;
 	margin: 20px 0 0;
 	li {
@@ -127,11 +133,25 @@ body {
 		}
 	}
 }
+.narrow {
+	.formSection {
+		max-width: 340px !important;
+		width: 340px !important;
+	}
+	.planning-terminal-numpad {
+		background: url("../../../img/16/numpad.png") center no-repeat !important;
+		border: none !important;
+	}
+	#searchBtn {
+		background-image: url("../../../img/24/qr.png") !important;
+		background-size: 24px 24px !important;
+		background-repeat: no-repeat;
+	}
+}
 
 .terminalHeader {
 	padding: 15px;
-	box-sizing: border-box;
-	height: 60px;
+	height: 30px;
 	background: #fff;
 	-webkit-box-shadow: 0 5px 5px -5px rgba(0,0,0,.2);
 	-moz-box-shadow: 0 5px 5px -5px rgba(0,0,0,.2);
@@ -145,13 +165,13 @@ body {
 				width: auto;
 			}
 		}
-		.specialLink, .assets {
+		.title, .specialLink, .assets, #nameHolder {
 			line-height: 30px;
 			display: inline-block;
 			margin-left: 10px;
+			margin-bottom: 0 !important;
 			float: left;
 		}
-
 	}
 	
 	.userInfo {
@@ -162,7 +182,7 @@ body {
 	}
 	#dateHolder {
 		display: inline-block;
-		margin-right: 20px;
+		margin-right: 10px;
 	}
 }
 .vertical {
@@ -171,35 +191,103 @@ body {
 .formSection {
 	padding-top: 0 !important;
 }
-.terminal-content {
+.planning-task-progress  {
 	height: 600px;
+	overflow-y: auto;
+	th {
+		display: none;
+	}
 }
+.title {
+	margin: 0 0 10px !important;
+}
+
+#task-support-content .formHolder {
+	width: 600px;
+}
+.searchHolder {
+	position: absolute;
+	right: 50%;
+	margin-right: -115px;
+	display: inline-block;
+	.searchBarcode {
+		float: left;
+		height: 28px;
+		position: relative;
+		top: 3px;
+		border: 1px solid #ccc;
+		border-radius: 3px;
+	}
+	.qrBtn {
+		float: left;
+		width: 32px;
+		height: 32px;
+		background-size: 24px 24px;
+		background-position: center;
+		box-sizing: border-box;
+		padding: 0 !important;
+		border: none !important;
+		background-color: transparent !important;
+		&:focus {
+			box-shadow: none;
+			outline: none;
+		}
+	}
+}
+
 .formHolder {
-	margin-top: 25px;
-	border-radius:5px 5px 0 0 ;
 	background: #fff;
-	border: 1px solid #ccc;
-	-webkit-box-shadow: 0 5px 5px -5px rgba(0,0,0,.2);
-	-moz-box-shadow: 0 5px 5px -5px rgba(0,0,0,.2);
-	box-shadow: 0 5px 5px -5px rgba(0,0,0,.2);
 	.formFields {
 		padding: 0 !important;
 	}
 	.formTitle {
-		background: #eee;
 		border: none;
 		color: #333;
 		font-size: 1.15em;
-		padding: 15px;
-		border-bottom: 1px solid #ccc;
+		background: none;
+		a {
+			font-weight: bold;
+		}
 	}
 	table {
 		margin: 0 !important;
 	}
+	.planning-terminal-form-btn, #filter {
+		margin-top: 10px;
+		padding: 8px 20px !important;
+		font-size: 1.1em !important;
+		color: #333;
+		background-color: #ccc !important;
+		background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0,#eee),color-stop(100%,#ccc));
+		background-image: -webkit-linear-gradient(top,#eee,#ccc);
+		background-image: -moz-linear-gradient(top,#eee,#ccc);
+		background-image: -ms-linear-gradient(top,#eee,#ccc);
+		background-image: -o-linear-gradient(top,#eee,#ccc);
+		background-image: linear-gradient(top,#eee,#ccc);
+		border: 1px solid #ccc !important;
+		border-bottom: 1px solid #bbb !important;
+		border-radius: 3px;
+		font: bold 10px Arial,sans-serif;
+		padding: 8px 0;
+		text-align: center;
+		text-shadow: 0 1px 0 #eee;
+		box-shadow: 1px 1px 2px rgba(0,0,0,.5);
+		&:hover {
+			background-color: #ddd;
+			background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0,#ddd),color-stop(100%,#bbb));
+			background-image: -webkit-linear-gradient(top,#ddd,#bbb);
+			background-image: -moz-linear-gradient(top,#ddd,#bbb);
+			background-image: -ms-linear-gradient(top,#ddd,#bbb);
+			background-image: -o-linear-gradient(top,#ddd,#bbb);
+			background-image: linear-gradient(top,#ddd,#bbb);
+			border: 1px solid #bbb;
+			border-bottom: 1px solid #999;
+			cursor: pointer;
+		}
+	}
 	.formContent {
-		width: 320px;
 		margin-top: 0;
-		padding: 20px !important;
+		padding: 10px 0 0 !important;
 		font-size: 1.1em;
 		table {
 			width: 100%;
@@ -208,15 +296,22 @@ body {
 		td {
 			padding: 7px;
 		}
-		.select2-container .select2-selection--single, input[type=text]  {
+		.select2-container .select2-selection--single, input[type=text] {
 			height: 34px;
 			border-color: #ccc;
 		}
-		.select2-container .select2-selection--multiple {
+		.select2-container .select2-selection--multiple, textarea, .richedit-toolbar  {
 			border-color: #ccc;
 		}
+
+		textarea {
+			min-height: 90px;
+			margin-top: 10px;
+		}
+
 		select {
 			height: 32px !important;
+			border-color: #ccc;
 			width: 100%;
 		}
 		input[type=search] {
@@ -234,47 +329,22 @@ body {
 			line-height: 32px !important;
 			max-height: 32px !important;
 		}
-		.planning-terminal-form-btn {
-			margin-top: 10px;
-			padding: 8px 20px !important;
-			font-size: 1.1em !important;
-			color: #333;
-			background-color: #ccc !important;
-			background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0,#eee),color-stop(100%,#ccc));
-			background-image: -webkit-linear-gradient(top,#eee,#ccc);
-			background-image: -moz-linear-gradient(top,#eee,#ccc);
-			background-image: -ms-linear-gradient(top,#eee,#ccc);
-			background-image: -o-linear-gradient(top,#eee,#ccc);
-			background-image: linear-gradient(top,#eee,#ccc);
-			border: 1px solid #ccc !important;
-			border-bottom: 1px solid #bbb !important;
-			border-radius: 3px;
-			font: bold 10px Arial,sans-serif;
-			padding: 8px 0;
-			text-align: center;
-			text-shadow: 0 1px 0 #eee;
-			box-shadow: 1px 1px 2px rgba(0,0,0,.5);
-			&:hover {
-				background-color: #ddd;
-				background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0,#ddd),color-stop(100%,#bbb));
-				background-image: -webkit-linear-gradient(top,#ddd,#bbb);
-				background-image: -moz-linear-gradient(top,#ddd,#bbb);
-				background-image: -ms-linear-gradient(top,#ddd,#bbb);
-				background-image: -o-linear-gradient(top,#ddd,#bbb);
-				background-image: linear-gradient(top,#ddd,#bbb);
-				border: 1px solid #bbb;
-				border-bottom: 1px solid #999;
-				cursor: pointer;
-			}
-
+		.simple td {
+			padding: 0 0 10px;
 		}
 	}
 }
 
-@media handheld, only screen and (min-width: 720px) and (max-width: 800px) {
+.jobTable >tbody > tr >td {
+	border: 1px solid #ccc;
+}
+
+.highlight {
+	background-color: #fefeb7;
+}
+@media handheld, only screen and (min-width: 760px) and (max-width: 800px) {
 	.wide table.listAction {
 		min-width: 480px;
-		max-width: 500px;
 	}
 	.terminalHeader {
 		padding: 6px;
@@ -285,8 +355,6 @@ body {
 	}
 	.tabs-holder {
 		float: left;
-		margin-left: 5px;
-		width: 530px !important;
 		.listBlock {
 			display: block;
 		}
@@ -297,11 +365,13 @@ body {
 		font-size: 1em;
 	}
 	.terminal-content {
-		height: 340px;
 		font-size: 0.9em;
 	}
+	.planning_ProductionTaskDetails {
+		width: 500px;
+	}
 	.formHolder {
-		margin-right: 5px;
+		margin-right: 0px;
 		width: 240px !important;
 		.formContent {
 			width: 230px;
@@ -358,5 +428,125 @@ body {
 	}
 	.paddingCells .nowrap {
 		white-space: normal !important;
+	}
+	.searchHolder {
+		position: relative;
+		float: right;
+		right: 0 !important;
+		.qrBtn {
+			height: 22px !important;
+			background-size: 20px 20px;
+			position: relative;
+			top: 2px;
+		}
+		.searchBarcode {
+			height: 22px;
+		}
+	}
+}
+
+@media handheld, only screen and (max-width:740px) {
+	.terminalHeader {
+		padding: 5px;
+		.fleft .logo img {
+			height: 18px;
+			margin-top: 6px;
+		}
+		.searchHolder {
+			clear: both;
+			height: 30px;
+			width: 275px;
+			display: block;
+			float: none;
+			margin: 0 auto;
+			right: 0;
+			.searchBtn {
+				margin-right: 0;
+			}
+		}
+		.linkWithIcon {
+			background-image: none !important;
+			font-size: 0.9em;
+			padding-left: 0 !important;
+		}
+		.userInfo {
+			width: 200px;
+			font-size: 0.9em;
+		}
+		#dateHolder {
+			margin-right: 5px;
+		}
+		#searchBtn {
+			background-image: url("../../../img/24/qr.png") !important;
+			background-size: 24px 24px !important;
+			background-repeat: no-repeat;
+		}
+	}
+
+	.searchHolder {
+		position: relative;
+		display: block;
+		clear: both;
+	}
+	.terminalHeader {
+		height: auto;
+	}
+	.centerContent {
+		width: 100%;
+	}
+	.tabContent {
+		overflow-x: auto;
+	}
+	.planning_ProductionTaskDetails {
+		width: 500px;
+	}
+	.planning-task-table {
+		font-size: 0.9em;
+	}
+	.tabs-holder .navigation {
+		overflow-x: auto;
+		display: flex;
+		position: relative;
+		top: 1px;
+		li {
+			display: block;
+			flex: 1;
+			margin-right: 5px;
+			a {
+				padding: 7px;
+			}
+		}
+	}
+
+	.formHolder.fright{
+		width: 100%;
+		float: none;
+		max-width: 400px;
+	}
+	.planning_ProductionTaskDetails, .document {
+		float: none;
+		width: 100%;
+		overflow-x: auto;
+		display: block;
+	}
+	.formSection {
+		padding: 0 0 20px 0!important;
+	}
+	.narrow .formFields table>tbody>tr>td {
+		padding-right: 0;
+		padding-left: 0;
+	}
+	.formTitle {
+		padding: 0 !important;
+		font-size: 0.95em !important;
+	}
+	#task-support-content .formHolder {
+		width: 100%;
+	}
+	.userInfo {
+		clear: both;
+		float: left !important;
+		display: inline-block;
+		width: auto !important;
 	}
 }

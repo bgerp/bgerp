@@ -120,33 +120,40 @@ class type_Keylist extends core_Type
      * Връща вербалната стойност на k
      */
     public function getVerbal($k)
-    {
-        if (! round($k) > 0) {
+    {  
+        if (!round($k) > 0) {
             
             return '';
         }
         
         if ($this->params['mvc']) {
+            
             $mvc = &cls::get($this->params['mvc']);
             
             if (($part = $this->getSelectFld()) && $part != '*') {
-                if (!$rec = $mvc->fetch($k)) {
-                    
-                    return '???';
+                if (!($rec = $mvc->fetch($k))) {
+                    $value = '???';
+                } else {
+                    $value = $mvc->getVerbal($rec, $part);  
                 }
-                
-                $res = $mvc->getVerbal($rec, $part);
-                
-                return $res;
+            } else {
+                $value = $mvc->getTitleById($k);
             }
-            $value = $mvc->getTitleById($k);
         } elseif ($this->params['function']) {
         } elseif ($this->suggestions) {
             $value = $this->suggestions[$k];
         }
+ 
+        if(($parentIdName = $this->params['parentId']) && isset($this->params['pathDivider'])) {
+            $rec = $mvc->fetch($k);
+            if(isset($rec) && ($parentId = $rec->{$parentIdName})) {
+                $value = $this->getVerbal($parentId) . $this->params['pathDivider'] . $value;
+            }
+        }
         
         return $value;
     }
+
     
     
     /**
@@ -203,6 +210,9 @@ class type_Keylist extends core_Type
         // Определяме броя на колоните, ако не са зададени.
         $maxChars = $this->params['maxChars'];
         $col = self::getCol((array) $this->suggestions, $maxChars);
+       
+        // Ако трърдо е указано брой колони, използват се те
+        $col = !empty($this->params['columns']) ? $this->params['columns'] : $col;
         
         $i = 0;
         $html = '';

@@ -159,7 +159,7 @@ class export_Csv extends core_Mvc
         
         doclog_Documents::pushAction($action);
         $mid = doclog_Documents::saveAction($action);
-        doclog_Documents::popAction($action);
+        doclog_Documents::popAction();
         
         $lg = '';
         $isPushed = false;

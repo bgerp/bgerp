@@ -1,5 +1,7 @@
 body {
-  background: #f1f1f1; }
+  background: #f1f1f1;
+  width: 100%;
+  overflow-x: hidden; }
 
 .centerContent {
   width: 1400px;
@@ -9,21 +11,23 @@ body {
   min-width: auto; }
 
 .tabs-holder {
-  float: left;
-  width: 1000px; }
+  width: 100%;
+  float: left; }
   .tabs-holder .listBlock {
     display: block; }
 
+.planning_ProductionTaskDetails {
+  width: 980px;
+  float: left; }
+
 .formHolder {
-  float: right;
-  width: 360px; }
+  width: 360px;
+  margin-top: 0 !important; }
 
 .terminal-content {
   background: white;
   border: 1px solid #cccccc;
-  padding: 15px;
-  height: 600px;
-  overflow-y: auto; }
+  padding: 15px; }
   .terminal-content .document {
     border: none;
     max-width: none;
@@ -31,12 +35,13 @@ body {
     padding: 0;
     margin: 0; }
   .terminal-content .listTable {
+    width: 99.5% !important;
     margin-bottom: 0 !important; }
 
-.tabs-holder ul {
+.tabs-holder .navigation {
   padding: 0;
   margin: 20px 0 0; }
-  .tabs-holder ul li {
+  .tabs-holder .navigation li {
     display: inline-block;
     background: #dddddd;
     border: 0;
@@ -46,18 +51,18 @@ body {
     border: 1px solid #cccccc;
     border-bottom: none;
     border-radius: 5px 5px 0 0; }
-    .tabs-holder ul li.active,
-    .tabs-holder ul li:hover {
+    .tabs-holder .navigation li.active,
+    .tabs-holder .navigation li:hover {
       background: white; }
-    .tabs-holder ul li a {
+    .tabs-holder .navigation li a {
       display: block;
       padding: 10px;
       outline: none;
       color: #333333; }
-      .tabs-holder ul li.disabled:hover {
+      .tabs-holder .navigation li.disabled:hover {
         background: #dddddd;
         cursor: default; }
-      .tabs-holder ul li.disabled a {
+      .tabs-holder .navigation li.disabled a {
         cursor: default;
         color: #999999 !important; }
 
@@ -105,10 +110,20 @@ body {
     .keyboardHolder .planning-terminal-numpad:hover {
       background-color: rgba(0, 0, 0, 0); }
 
+  .narrow .formSection {
+    max-width: 340px !important;
+    width: 340px !important; }
+  .narrow .planning-terminal-numpad {
+    background: url("../../../img/16/numpad.png") center no-repeat !important;
+    border: none !important; }
+  .narrow #searchBtn {
+    background-image: url("../../../img/24/qr.png") !important;
+    background-size: 24px 24px !important;
+    background-repeat: no-repeat; }
+
 .terminalHeader {
   padding: 15px;
-  box-sizing: border-box;
-  height: 60px;
+  height: 30px;
   background: white;
   -webkit-box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
   -moz-box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
@@ -118,11 +133,14 @@ body {
       .terminalHeader .fleft .logo img {
         height: 30px;
         width: auto; }
+    .terminalHeader .fleft .title,
     .terminalHeader .fleft .specialLink,
-    .terminalHeader .fleft .assets {
+    .terminalHeader .fleft .assets,
+    .terminalHeader .fleft #nameHolder {
       line-height: 30px;
       display: inline-block;
       margin-left: 10px;
+      margin-bottom: 0 !important;
       float: left; }
   .terminalHeader .userInfo {
     width: 300px;
@@ -131,7 +149,7 @@ body {
     text-align: right; }
   .terminalHeader #dateHolder {
     display: inline-block;
-    margin-right: 20px; }
+    margin-right: 10px; }
 
 .vertical {
   margin-top: 0 !important; }
@@ -139,32 +157,93 @@ body {
 .formSection {
   padding-top: 0 !important; }
 
-.terminal-content {
-  height: 600px; }
+.planning-task-progress {
+  height: 600px;
+  overflow-y: auto; }
+  .planning-task-progress th {
+    display: none; }
+
+.title {
+  margin: 0 0 10px !important; }
+
+#task-support-content .formHolder {
+  width: 600px; }
+
+.searchHolder {
+  position: absolute;
+  right: 50%;
+  margin-right: -115px;
+  display: inline-block; }
+  .searchHolder .searchBarcode {
+    float: left;
+    height: 28px;
+    position: relative;
+    top: 3px;
+    border: 1px solid #cccccc;
+    border-radius: 3px; }
+  .searchHolder .qrBtn {
+    float: left;
+    width: 32px;
+    height: 32px;
+    background-size: 24px 24px;
+    background-position: center;
+    box-sizing: border-box;
+    padding: 0 !important;
+    border: none !important;
+    background-color: rgba(0, 0, 0, 0) !important; }
+    .searchHolder .qrBtn:focus {
+      box-shadow: none;
+      outline: none; }
 
 .formHolder {
-  margin-top: 25px;
-  border-radius: 5px 5px 0 0;
-  background: white;
-  border: 1px solid #cccccc;
-  -webkit-box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
-  -moz-box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
-  box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2); }
+  background: white; }
   .formHolder .formFields {
     padding: 0 !important; }
   .formHolder .formTitle {
-    background: #eeeeee;
     border: none;
     color: #333333;
     font-size: 1.15em;
-    padding: 15px;
-    border-bottom: 1px solid #cccccc; }
+    background: none; }
+    .formHolder .formTitle a {
+      font-weight: bold; }
   .formHolder table {
     margin: 0 !important; }
+  .formHolder .planning-terminal-form-btn,
+  .formHolder #filter {
+    margin-top: 10px;
+    padding: 8px 20px !important;
+    font-size: 1.1em !important;
+    color: #333333;
+    background-color: #cccccc !important;
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #eeeeee), color-stop(100%, #cccccc));
+    background-image: -webkit-linear-gradient(top, #eeeeee, #cccccc);
+    background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
+    background-image: -ms-linear-gradient(top, #eeeeee, #cccccc);
+    background-image: -o-linear-gradient(top, #eeeeee, #cccccc);
+    background-image: linear-gradient(top, #eeeeee, #cccccc);
+    border: 1px solid #cccccc !important;
+    border-bottom: 1px solid #bbbbbb !important;
+    border-radius: 3px;
+    font: bold 10px Arial, sans-serif;
+    padding: 8px 0;
+    text-align: center;
+    text-shadow: 0 1px 0 #eeeeee;
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); }
+    .formHolder .planning-terminal-form-btn:hover,
+    .formHolder #filter:hover {
+      background-color: #dddddd;
+      background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #dddddd), color-stop(100%, #bbbbbb));
+      background-image: -webkit-linear-gradient(top, #dddddd, #bbbbbb);
+      background-image: -moz-linear-gradient(top, #dddddd, #bbbbbb);
+      background-image: -ms-linear-gradient(top, #dddddd, #bbbbbb);
+      background-image: -o-linear-gradient(top, #dddddd, #bbbbbb);
+      background-image: linear-gradient(top, #dddddd, #bbbbbb);
+      border: 1px solid #bbbbbb;
+      border-bottom: 1px solid #999999;
+      cursor: pointer; }
   .formHolder .formContent {
-    width: 320px;
     margin-top: 0;
-    padding: 20px !important;
+    padding: 10px 0 0 !important;
     font-size: 1.1em; }
     .formHolder .formContent table {
       width: 100%;
@@ -175,10 +254,16 @@ body {
     .formHolder .formContent input[type=text] {
       height: 34px;
       border-color: #cccccc; }
-    .formHolder .formContent .select2-container .select2-selection--multiple {
+    .formHolder .formContent .select2-container .select2-selection--multiple,
+    .formHolder .formContent textarea,
+    .formHolder .formContent .richedit-toolbar {
       border-color: #cccccc; }
+    .formHolder .formContent textarea {
+      min-height: 90px;
+      margin-top: 10px; }
     .formHolder .formContent select {
       height: 32px !important;
+      border-color: #cccccc;
       width: 100%; }
     .formHolder .formContent input[type=search] {
       height: 30px; }
@@ -191,43 +276,19 @@ body {
     .formHolder .formContent .select2-container .select2-selection--single .select2-selection__rendered {
       line-height: 32px !important;
       max-height: 32px !important; }
-    .formHolder .formContent .planning-terminal-form-btn {
-      margin-top: 10px;
-      padding: 8px 20px !important;
-      font-size: 1.1em !important;
-      color: #333333;
-      background-color: #cccccc !important;
-      background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #eeeeee), color-stop(100%, #cccccc));
-      background-image: -webkit-linear-gradient(top, #eeeeee, #cccccc);
-      background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
-      background-image: -ms-linear-gradient(top, #eeeeee, #cccccc);
-      background-image: -o-linear-gradient(top, #eeeeee, #cccccc);
-      background-image: linear-gradient(top, #eeeeee, #cccccc);
-      border: 1px solid #cccccc !important;
-      border-bottom: 1px solid #bbbbbb !important;
-      border-radius: 3px;
-      font: bold 10px Arial, sans-serif;
-      padding: 8px 0;
-      text-align: center;
-      text-shadow: 0 1px 0 #eeeeee;
-      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); }
-      .formHolder .formContent .planning-terminal-form-btn:hover {
-        background-color: #dddddd;
-        background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #dddddd), color-stop(100%, #bbbbbb));
-        background-image: -webkit-linear-gradient(top, #dddddd, #bbbbbb);
-        background-image: -moz-linear-gradient(top, #dddddd, #bbbbbb);
-        background-image: -ms-linear-gradient(top, #dddddd, #bbbbbb);
-        background-image: -o-linear-gradient(top, #dddddd, #bbbbbb);
-        background-image: linear-gradient(top, #dddddd, #bbbbbb);
-        border: 1px solid #bbbbbb;
-        border-bottom: 1px solid #999999;
-        cursor: pointer; }
+    .formHolder .formContent .simple td {
+      padding: 0 0 10px; }
+
+.jobTable >tbody > tr >td {
+  border: 1px solid #cccccc; }
+
+.highlight {
+  background-color: #fefeb7; }
 
 @media handheld,
-only screen and (min-width: 720px) and (max-width: 800px) {
+only screen and (min-width: 760px) and (max-width: 800px) {
   .wide table.listAction {
-    min-width: 480px;
-    max-width: 500px; }
+    min-width: 480px; }
 
   .terminalHeader {
     padding: 6px;
@@ -237,9 +298,7 @@ only screen and (min-width: 720px) and (max-width: 800px) {
     width: 100%; }
 
   .tabs-holder {
-    float: left;
-    margin-left: 5px;
-    width: 530px !important; }
+    float: left; }
     .tabs-holder .listBlock {
       display: block; }
 
@@ -248,11 +307,13 @@ only screen and (min-width: 720px) and (max-width: 800px) {
     font-size: 1em; }
 
   .terminal-content {
-    height: 340px;
     font-size: 0.9em; }
 
+  .planning_ProductionTaskDetails {
+    width: 500px; }
+
   .formHolder {
-    margin-right: 5px;
+    margin-right: 0px;
     width: 240px !important; }
     .formHolder .formContent {
       width: 230px;
@@ -300,5 +361,112 @@ only screen and (min-width: 720px) and (max-width: 800px) {
     font-size: 12px !important; }
 
   .paddingCells .nowrap {
-    white-space: normal !important; } }
+    white-space: normal !important; }
+
+  .searchHolder {
+    position: relative;
+    float: right;
+    right: 0 !important; }
+    .searchHolder .qrBtn {
+      height: 22px !important;
+      background-size: 20px 20px;
+      position: relative;
+      top: 2px; }
+    .searchHolder .searchBarcode {
+      height: 22px; } }
+
+@media handheld,
+only screen and (max-width:740px) {
+  .terminalHeader {
+    padding: 5px; }
+    .terminalHeader .fleft .logo img {
+      height: 18px;
+      margin-top: 6px; }
+    .terminalHeader .searchHolder {
+      clear: both;
+      height: 30px;
+      width: 275px;
+      display: block;
+      float: none;
+      margin: 0 auto;
+      right: 0; }
+      .terminalHeader .searchHolder .searchBtn {
+        margin-right: 0; }
+    .terminalHeader .linkWithIcon {
+      background-image: none !important;
+      font-size: 0.9em;
+      padding-left: 0 !important; }
+    .terminalHeader .userInfo {
+      width: 200px;
+      font-size: 0.9em; }
+    .terminalHeader #dateHolder {
+      margin-right: 5px; }
+    .terminalHeader #searchBtn {
+      background-image: url("../../../img/24/qr.png") !important;
+      background-size: 24px 24px !important;
+      background-repeat: no-repeat; }
+
+  .searchHolder {
+    position: relative;
+    display: block;
+    clear: both; }
+
+  .terminalHeader {
+    height: auto; }
+
+  .centerContent {
+    width: 100%; }
+
+  .tabContent {
+    overflow-x: auto; }
+
+  .planning_ProductionTaskDetails {
+    width: 500px; }
+
+  .planning-task-table {
+    font-size: 0.9em; }
+
+  .tabs-holder .navigation {
+    overflow-x: auto;
+    display: flex;
+    position: relative;
+    top: 1px; }
+    .tabs-holder .navigation li {
+      display: block;
+      flex: 1;
+      margin-right: 5px; }
+      .tabs-holder .navigation li a {
+        padding: 7px; }
+
+  .formHolder.fright {
+    width: 100%;
+    float: none;
+    max-width: 400px; }
+
+  .planning_ProductionTaskDetails,
+  .document {
+    float: none;
+    width: 100%;
+    overflow-x: auto;
+    display: block; }
+
+  .formSection {
+    padding: 0 0 20px 0 !important; }
+
+  .narrow .formFields table>tbody>tr>td {
+    padding-right: 0;
+    padding-left: 0; }
+
+  .formTitle {
+    padding: 0 !important;
+    font-size: 0.95em !important; }
+
+  #task-support-content .formHolder {
+    width: 100%; }
+
+  .userInfo {
+    clear: both;
+    float: left !important;
+    display: inline-block;
+    width: auto !important; } }
 

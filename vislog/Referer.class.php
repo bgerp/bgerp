@@ -138,8 +138,20 @@ class vislog_Referer extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->showFields = 'search,domainId';
+
         $data->listFilter->input($data->listFilter->showFields, 'silent');
         
+        $domainsCnt = cms_Domains::count();
+ 
+        // Ако е ясен домейна, махаме колонката
+        if($data->listFilter->rec->domainId || $domainsCnt == 1) {
+            unset($data->listFields['domainId']);
+        }
+
+        if($domainsCnt == 1) {
+            $data->listFilter->showFields = 'search';   
+        }
+
         if ($domainId = $data->listFilter->rec->domainId) {
             $data->query->where(array("#domainId = '[#1#]'", $domainId));
         }
