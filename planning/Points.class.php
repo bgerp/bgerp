@@ -114,13 +114,13 @@ class planning_Points extends core_Manager
         $peripheralData = (object)array('masterMvc' => clone $mvc, 'masterId' => $rec->id);
         cls::get('peripheral_Terminal')->prepareDetail($peripheralData);
         if(count($peripheralData->rows)){
-            $terminalList = '<table>';
+            $terminalList = '<table class="innerTable">';
             foreach ($peripheralData->rows as $pRow){
                 core_RowToolbar::createIfNotExists($pRow->_rowTools);
                 $pRow->brid = (!empty($pRow->brid)) ? $pRow->brid : "N/A";
                 $pRow->users = (!empty($pRow->users)) ? $pRow->users : "<span class='quiet'>" . tr('Всички') . " </span>";
                 $pRow->roles = (!empty($pRow->roles)) ? $pRow->roles : "<span class='quiet'>" . tr('Всички') . " </span>";
-                $terminalList .= "<tr style='background-color:#e1e1e1'><td>{$pRow->_rowTools->renderHtml()}<span class='quiet'>" . tr('Брид') . "</span>: {$pRow->brid}</td><td><span class='quiet'>" . tr('Пин') . "</span>: {$pRow->usePin}</td><td><span class='quiet'>" . tr('Потребители') . "</span>: {$pRow->users}</td><td><span class='quiet'>" . tr('Роли') . "</span>: {$pRow->roles}</td></tr>";
+                $terminalList .= "<tr><td>{$pRow->_rowTools->renderHtml()}<span class='quiet'>" . tr('Браузър') . "</span>: {$pRow->brid}</td><td><span class='quiet'>" . tr('Пин') . "</span>: {$pRow->usePin}</td><td><span class='quiet'>" . tr('Потребители') . "</span>: {$pRow->users}</td><td><span class='quiet'>" . tr('Роли') . "</span>: {$pRow->roles}</td></tr>";
             }
             $terminalList .= "</table>";
             $row->terminalList = $terminalList;
