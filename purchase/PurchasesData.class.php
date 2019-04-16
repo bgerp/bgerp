@@ -58,10 +58,11 @@ class purchase_PurchasesData extends core_Manager
     public $canList = 'admin,ceo,debug';
     
     
-    /**
+     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields ;
+    public $listFields = 'containerId,valior=Вальор,productId,quantity,price,amount,dealerId,state,folderId';
+  
     
     /**
      * Описание на модела (таблицата)
@@ -84,9 +85,9 @@ class purchase_PurchasesData extends core_Manager
         $this->FLD('quantity', 'double', 'caption=Количество,mandatory');
         $this->FLD('packagingId', 'int', 'caption=Пакетиране,mandatory');
         
-        $this->FLD('price', 'double', 'caption=Цени->Пукупна,mandatory');
+        $this->FLD('price', 'double', 'caption=Цена,mandatory');
         $this->FLD('discount', 'double', 'caption=Цени->Отстъпка,mandatory');
-        $this->FLD('amount', 'double', 'caption=Цени->Стойност,mandatory');
+        $this->FLD('amount', 'double', 'caption=Стойност,mandatory');
         
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута, input=none');
         $this->FLD('currencyRate', 'double', 'caption=Плащане->курс валута,mandatory');
@@ -107,6 +108,31 @@ class purchase_PurchasesData extends core_Manager
         $this->setDbIndex('folderId');
         $this->setDbUnique('detailClassId,detailRecId');
        
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row    Това ще се покаже
+     * @param stdClass $rec    Това е записа в машинно представяне
+     * @param array    $fields - полета
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        $row->ROW_ATTR['class'] = "state-{$rec->state}";
+        
+        $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        try {
+            $row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
+        } catch (core_exception_Expect $e) {
+            $row->containerId = "<span class='red'>" . tr('Проблем с показването') . '</span>';
+        }
+        
+        if(isset($rec->folderId)){
+            $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+        }
     }
     
 }
