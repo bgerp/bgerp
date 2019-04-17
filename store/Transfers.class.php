@@ -286,32 +286,30 @@ class store_Transfers extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $row->fromStore = store_Stores::getHyperlink($rec->fromStore, true);
+        $row->toStore = store_Stores::getHyperlink($rec->toStore, true);
+        
         if ($fields['-single']) {
-            $row->fromStore = store_Stores::getHyperlink($rec->fromStore);
-            $row->toStore = store_Stores::getHyperlink($rec->toStore);
             if ($rec->fromStore) {
                 $fromStoreLocation = store_Stores::fetchField($rec->fromStore, 'locationId');
                 if ($fromStoreLocation) {
                     $row->fromAdress = crm_Locations::getAddress($fromStoreLocation);
                 }
             }
-        }
-        
-        if ($rec->toStore) {
-            $toStoreLocation = store_Stores::fetchField($rec->toStore, 'locationId');
-            if ($toStoreLocation) {
-                $row->toAdress = crm_Locations::getAddress($toStoreLocation);
+            
+            if ($rec->toStore) {
+                $toStoreLocation = store_Stores::fetchField($rec->toStore, 'locationId');
+                if ($toStoreLocation) {
+                    $row->toAdress = crm_Locations::getAddress($toStoreLocation);
+                }
             }
         }
         
         if ($fields['-list']) {
             $row->title = $mvc->getLink($rec->id, 0);
-
             $row->title = "<b>" . $row->title . "</b>";
-
-            $row->title .=  $row->fromStore . ">> " . $row->toStore;
+            $row->title .=  "  " . $row->fromStore . " » " . $row->toStore;
             $row->createdBy = crm_Profiles::createLink($rec->createdBy);
-
             $row->createdOn = $mvc->getVerbal($rec, 'createdOn');
             $row->title .= "<span class='fright'>" . $row->createdOn . " " . tr('от') . " " .   $row->createdBy . "</span>";
         }
