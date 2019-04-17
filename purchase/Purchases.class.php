@@ -707,6 +707,7 @@ class purchase_Purchases extends deals_DealMaster
                 $row->commonCondition = cls::get('type_Url')->toVerbal($cond);
             }
         } else if (isset($fields['-list'])) {
+            $row->title = "<b>" . $row->title . "</b>";
             $row->title .= "  «  " . $row->folderId;
         }
     }

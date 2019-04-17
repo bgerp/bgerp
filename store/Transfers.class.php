@@ -111,9 +111,15 @@ class store_Transfers extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'deliveryTime,valior, title=Документ, fromStore, toStore, weight, volume,lineId, folderId, createdOn, createdBy';
-    
-    
+    public $listFields = 'deliveryTime,valior, title=@Документ, folderId , weight, volume,lineId';
+
+
+    /**
+     * Отделния ред в листовия изглед да е отгоре
+     */
+    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+
+
     /**
      * Детайла, на модела
      */
@@ -300,14 +306,14 @@ class store_Transfers extends core_Master
         
         if ($fields['-list']) {
             $row->title = $mvc->getLink($rec->id, 0);
-            
-            $attr = array();
-            foreach (array('fromStore', 'toStore') as $storeFld) {
-                if (store_Stores::haveRightFor('single', $rec->{$storeFld})) {
-                    $attr['ef_icon'] = 'img/16/home-icon.png';
-                    $row->{$storeFld} = ht::createLink($row->{$storeFld}, array('store_Stores', 'single', $rec->{$storeFld}), null, $attr);
-                }
-            }
+
+            $row->title = "<b>" . $row->title . "</b>";
+
+            $row->title .=  $row->fromStore . ">> " . $row->toStore;
+            $row->createdBy = crm_Profiles::createLink($rec->createdBy);
+
+            $row->createdOn = $mvc->getVerbal($rec, 'createdOn');
+            $row->title .= "<span class='fright'>" . $row->createdOn . " " . tr('от') . " " .   $row->createdBy . "</span>";
         }
     }
     

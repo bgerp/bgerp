@@ -44,8 +44,15 @@ abstract class store_DocumentMaster extends core_Master
      * На кой ред в тулбара да се показва бутона за принтиране
      */
     public $printBtnToolbarRow = 1;
-    
-    
+
+
+    /**
+     * Отделния ред в листовия изглед да е отгоре
+     */
+    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+
+
+
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
@@ -433,6 +440,11 @@ abstract class store_DocumentMaster extends core_Master
             if ($rec->isReverse == 'yes') {
                 $row->operationSysId = tr('Връщане на стока');
             }
+        } else if (isset($fields['-list'])) {
+            $row->title = "<b>" . $row->title . "</b>";
+            $row->title .= "  «  " . $row->folderId;
+            $row->createdBy = crm_Profiles::createLink($rec->createdBy);
+            $row->title .= "<span class='fright'>" . $row->createdOn . " " . tr('от') . " " .   $row->createdBy . "</span>";
         }
     }
     

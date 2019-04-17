@@ -106,7 +106,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'deliveryTime,valior, title=Документ, folderId, amountDelivered, weight, volume,lineId, createdOn, createdBy';
+    public $listFields = 'deliveryTime,valior, title=@Документ, amountDelivered, weight, volume,lineId';
     
     
     /**
