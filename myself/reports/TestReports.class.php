@@ -33,7 +33,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField = 'contragent';
+    protected $groupByField = 'genericId';
     
     
     /**
@@ -50,8 +50,11 @@ class myself_reports_TestReports extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         //Период
-        $fieldset->FLD('from', 'date', 'caption=Период->От,after=dealers,single=none,mandatory');
-        $fieldset->FLD('duration','time(suggestions=1 седмица| 1 месец| 2 месеца| 3 месеца| 6 месеца| 12 месеца)', 'caption=Период->Продължителност,after=from,single=none,mandatory');
+        $fieldset->FLD('from', 'date', 'caption=Период->От,after=dealers,single=none');
+        $fieldset->FLD('duration','time(suggestions=1 седмица| 1 месец| 2 месеца| 3 месеца| 6 месеца| 12 месеца)', 'caption=Период->Продължителност,after=from,single=none');
+        $fieldset->FLD('period', 'key(mvc=acc_Periods,title=title)', 'caption = Период,after=duration,single=none');
+        $fieldset->FLD('group', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,after=seeGroup,single=none');
+        
         
     }
     
@@ -68,7 +71,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-        
+       
         
     }
     
@@ -83,6 +86,12 @@ class myself_reports_TestReports extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+        $rec = $form->rec;
+        
+       // bp($rec,acc_Periods::fetch($rec->period));
+        
+        
+        
         if ($form->isSubmitted()) {
            
         }
@@ -100,8 +109,9 @@ class myself_reports_TestReports extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $allInProd = array();
         
-        $allProducts = array();
+        //Артикулите , които са влагани в производство 
         $plQuery = planning_DirectProductNoteDetails::getQuery();
         
         $plQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
@@ -110,25 +120,27 @@ class myself_reports_TestReports extends frame2_driver_TableData
         
         $plQuery->where("#canStore = 'yes' AND #canBuy = 'yes'");
         
-        
+    
+        $startDate = dt::mysql2verbal(dt::addMonths(-12), $mask = 'Y-01-01');
         
         while ($prodRec = $plQuery->fetch()){
             
             $id = $prodRec->productId;
             
             // Запис в масива
-            if (!array_key_exists($id, $recs)) {
-                $recs[$id] = (object) array(
+            if (!array_key_exists($id, $allInProd)) {
+                $allInProd[$id] = (object) array(
                     
                     
                     'productId' => $prodRec->productId,                           //Id на артикула
                     'measure' => $prodRec->measureId,                             //Мярка\
                     'quantity' => $prodRec->quantity,                             //Текущ период - количество
-                    
+                    'genericId' => null,
+                    'generucQuantity' => null,
                     
                 );
             } else {
-                $obj = &$recs[$id];
+                $obj = &$allInProd[$id];
                 
                 $obj->quantity += $prodRec->quantity;
                 
@@ -138,63 +150,71 @@ class myself_reports_TestReports extends frame2_driver_TableData
             
         }
         
+        //Генерично заменяеми артикули
         $queryS = planning_ObjectResources::getQuery();
         
         while ($generics = $queryS->fetch()) {
             
             if (!is_array($genericProducts[$generics->likeProductId])){
+                
             $genericProducts[$generics->likeProductId] = array($generics->objectId);
+            
             }else{
                 array_push($genericProducts[$generics->likeProductId] , $generics->objectId);
             }
         }
         
-        $prodIds = arr::extractValuesFromArray($recs, 'productId');
+        
+        //Всички влагани през периода артикули
+        $prodIds = arr::extractValuesFromArray($allInProd, 'productId');
        
         $genericProd = array();
         
         foreach ($genericProducts as $key => $val){
-           
-           
+              
             
-            $result = array_intersect($prodIds, $val);
+            $result = array_intersect($prodIds, $val);  //Влагни артикули, който са от групата на генеричния
             
-            $genericProd[$key] = array();
             
             foreach ($result as $k=>$v){
                 
+                //Масив с общите количества на генеричните артикули (сумата от количествата на съставните артикули)
+                $genericQuantity[$key] += $allInProd[$v]->quantity;
                 
-                $genericQuantity[$key] += $recs[$v]->quantity;
-                
-                array_push($genericProd[$key],(object)array(
+                //Артикул, който е част от генеричен
+                $genericProd[$v]=(object)array(
                     'productId' => $v,
-                    'measure' => $recs[$v]->measure,
-                    'quantity' => $recs[$v]->quantity,
-                ));
+                    'measure' => $allInProd[$v]->measure,
+                    'quantity' => $allInProd[$v]->quantity,
+                    'genericId' => $key,
+                );
                 
             }
-            if (empty($genericQuantity[$key])){
-                
-            unset($genericProd[$key]);
-            continue;
-            }
-            
-            array_unshift($genericProd[$key], array('genericQuantity'=>$genericQuantity[$key]));
-             
             
         }
-        
-        array_unshift($recs, $genericProd);
-        
-   //     bp($genericProd,$genericQuantity,$genericProducts,$recs);
-        
-        
-        
-      
-        
-        
-     //   bp($genericProducts,$recs);
-        
+             
+              $genProdIds = arr::extractValuesFromArray($genericProd, 'productId');
+              
+              
+              //Изключваме от общия масив онези артикули, които са част от генеричен артикул
+              foreach ($allInProd as $key => $val){
+                  
+                  if (in_array($val->productId, $genProdIds)){
+                      
+                      unset($allInProd[$key]);
+                      
+                  }
+              }
+              
+              // Включваме артикулите, които са съставни на генеричните в общия масив
+              foreach ($genericProd as $key =>$val){
+                  
+                  $val->generucQuantity = $genericQuantity[$val->genericId]; 
+                  
+                  array_unshift($allInProd, $val);
+                   
+              }
+             $recs = $allInProd;
         
         return $recs;
     }
@@ -248,33 +268,16 @@ class myself_reports_TestReports extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         
         $row = new stdClass();
-        
-        if (is_array($dRec)){
+    
+        if (isset($dRec->genericId)) {
+            $row->genericId = 'Генеричен артикул: '.cat_Products::getHyperlink($dRec->genericId).
+                "<span class= 'fright'><span class= ''>" .
+                ' Общо: '.
+                core_Type::getByName('double(decimals=2)')->toVerbal($dRec->generucQuantity).' '.
+                cat_UoM::fetchField($dRec->measure, 'shortName')."</span>";
+        }else{
             
-            
-           // bp($dRec);
-            foreach ($dRec as $key=>$val){
-                
-              //  bp($key,$val[0]['genericQuantity']);
-                
-                $row->productId = 'Генеричен артикул: '.cat_Products::getLinkToSingle($key, 'name');
-                $row->measure = 'асвер';
-                $row->quantity = 'кдсхцксдй';
-                unset($val[0]);
-                foreach ($val as $v){
-                    
-                    $row->productId = 'aaaa'.cat_Products::getLinkToSingle($v->productId, 'name');
-                    $row->measure = cat_UoM::fetchField($v->measure, 'shortName');
-                    $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($v->quantity);
-                    
-                    
-                }
-                
-            }
-            
-            
-            
-            
+            $row->genericId = 'Незаменяеми артикули ';
             
         }
         
