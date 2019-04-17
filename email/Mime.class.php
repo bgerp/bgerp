@@ -491,7 +491,7 @@ class email_Mime extends core_BaseClass
     /**
      * Вкарва прикрепените файлове във Fileman
      *
-     * @return fh - манипулатора на файла
+     * @return int - манипулатора на файла
      */
     public function addFileToFileman($data, $name)
     {
@@ -783,17 +783,26 @@ class email_Mime extends core_BaseClass
             }
         }
         
-        
         // Отделяме хедърите от данните
         if ($bestPos < strlen($data)) {
+            $checkNextLine = false;
             do {
                 list($line, $data) = explode($nl, $data, 2);
                 
                 if (!trim($line)) {
-                    break;
+                    $checkNextLine = true;
+                    continue;
                 } elseif (substr($line, 0, 3) == '--=') {
                     $data = $line . $nl . $data;
                     break;
+                } elseif ($checkNextLine) {
+                    if ((($line{0} != ' ' && ((strpos($line, ': ') === false))) || ((strpos($line, ' ') === false)))) {
+                        $data = $line . $nl . $data;
+                        
+                        break;
+                    } else {
+                        $checkNextLine = false;
+                    }
                 }
                 
                 $headerStr .= ($headerStr ? $nl : '') . $line;
