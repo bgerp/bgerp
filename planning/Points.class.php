@@ -107,29 +107,30 @@ class planning_Points extends core_Manager
         $row->ROW_ATTR['class'] = "state-{$rec->state}";
         $row->centerId = planning_Centers::getHyperlink($rec->centerId, true);
         
-        if(planning_Points::haveRightFor('openterminal', $rec)){
+        if(planning_Terminal::haveRightFor('openterminal', $rec)){
             $row->terminal = ht::createBtn('Отвори', array('planning_Terminal', 'open', $rec->id), false, true, 'title=Отваряне на терминала за отчитане на производството,ef_icon=img/16/forward16.png');
         }
         
+        // Подготовка на перфиферните терминали
         $peripheralData = (object)array('masterMvc' => clone $mvc, 'masterId' => $rec->id);
         cls::get('peripheral_Terminal')->prepareDetail($peripheralData);
         if(count($peripheralData->rows)){
             
-            $terminalList = '<table class="innerTable">';
+            // Ако има ще се покажат в таблицата
+            $row->terminalList = '<table class="innerTable">';
             foreach ($peripheralData->rows as $pRow){
                 core_RowToolbar::createIfNotExists($pRow->_rowTools);
                 $pRow->brid = (!empty($pRow->brid)) ? $pRow->brid : "<i class='quiet'>N/A</i>";
                 $pRow->users = (!empty($pRow->users)) ? $pRow->users : "<i class='quiet'>" . tr('Всички') . " </i>";
                 $pRow->roles = (!empty($pRow->roles)) ? $pRow->roles : "<i class='quiet'>" . tr('Всички') . " </i>";
-                $terminalList .= "<tr><td>{$pRow->_rowTools->renderHtml()}</td>
+                $row->terminalList .= "<tr><td>{$pRow->_rowTools->renderHtml()}</td>
                                       <td style='text-align:left;padding-right:5px'><span class='quiet'>" . tr('Браузър') . "</span>: {$pRow->brid}</td>
                                       <td style='text-align:left;padding-right:5px'><span class='quiet'>" . tr('Пин') . "</span>: {$pRow->usePin}</td>
                                       <td style='text-align:left;padding-right:5px'><span class='quiet'>" . tr('Потребители') . "</span>: {$pRow->users}</td>
                                       <td style='text-align:left;padding-right:5px'><span class='quiet'>" . tr('Роли') . "</span>: {$pRow->roles}</td>
                                   </tr>";
             }
-            $terminalList .= "</table>";
-            $row->terminalList = $terminalList;
+            $row->terminalList .= "</table>";
         }
     }
 
