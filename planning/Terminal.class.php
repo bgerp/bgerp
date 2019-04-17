@@ -674,7 +674,7 @@ class planning_Terminal extends core_Manager
         $tpl = getTplFromFile('planning/tpl/terminal/Point.shtml');
         $tpl->replace($rec->name, 'name');
         $tpl->replace($rec->id, 'id');
-        $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/big_house.png', '"', true) . '>', 'HEAD');
+        $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/monitor.png', '"', true) . '>', 'HEAD');
         
         $img = ht::createElement('img', array('src' => sbf('pos/img/bgerp.png', '')));
         $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink', 'title' => 'Към портала'));
