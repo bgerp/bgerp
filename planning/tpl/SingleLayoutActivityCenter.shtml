@@ -29,6 +29,9 @@
 					<!--ET_BEGIN CloseTime-->
 					<div>|Затваряне на нишките|*: <b>|Автоматично след|* [#CloseTime#]</b></div>
 					<!--ET_END CloseTime-->
+                    <!--ET_BEGIN ShowDocumentsAsButtons-->
+                    <div>|Бързи бутони в папката|*: [#ShowDocumentsAsButtons#]</div>
+                    <!--ET_END ShowDocumentsAsButtons-->
 	            </div>
 	        </fieldset>
 	        [#Assets#]

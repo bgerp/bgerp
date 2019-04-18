@@ -21,6 +21,12 @@
                             <td>|Автоматично след|* [#CloseTime#]</td>
                         </tr>
                         <!--ET_END CloseTime-->
+                        <!--ET_BEGIN ShowDocumentsAsButtons-->
+                        <tr>
+                            <td class='dt'>|Бързи бутони в папката|*:</td>
+                            <td>[#ShowDocumentsAsButtons#]</td>
+                        </tr>
+                        <!--ET_END ShowDocumentsAsButtons-->
                     </table>
                 </div>
             </fieldset>

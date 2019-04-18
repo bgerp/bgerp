@@ -2352,6 +2352,8 @@ class doc_Threads extends core_Manager
         expect($Cover = cls::get($coverClass));
         $managers = $Cover->getDocButtonsInFolder($coverId);
         
+        $managers = arr::make($managers, true);
+        
         $res = array();
         if (is_array($managers) && count($managers)) {
             foreach ($managers as $manager) {

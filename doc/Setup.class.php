@@ -259,7 +259,8 @@ class doc_Setup extends core_ProtoSetup
         'doc_Linked',
         'doc_LinkedTemplates',
         'doc_FolderResources',
-        'doc_LinkedLast'
+        'doc_LinkedLast',
+        'migrate::showDocumentsAsButtons0419'
     );
     
     
@@ -422,5 +423,46 @@ class doc_Setup extends core_ProtoSetup
     public static function getAllDocClassOptions($type, $otherParams = array())
     {
         return core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
+    }
+    
+    
+    /**
+     * Дефолтните бутони за нишки да не е само за несортираните, а да важи за всички папки
+     */
+    public static function showDocumentsAsButtons0419()
+    {
+        $Unsorted = cls::get('doc_UnsortedFolders');
+        
+        $Unsorted->db->connect();
+        
+        $docBtnField = str::phpToMysqlName('showDocumentsAsButtons');
+        
+        if (!$Unsorted->db->isFieldExists($Unsorted->dbTableName, $docBtnField)) {
+            
+            return ;
+        }
+        
+        $Unsorted->FLD('showDocumentsAsButtons', 'keylist(mvc=core_Classes,select=title)', 'caption=Документи|*&#44; |които да се показват като бързи бутони в папката->Документи');
+        
+        $query = $Unsorted->getQuery();
+        
+        $query->where('#showDocumentsAsButtons IS NOT NULL');
+        
+        $allSysTeamId = type_UserOrRole::getAllSysTeamId();
+        
+        while ($rec = $query->fetch()) {
+            if (!$rec->folderId) {
+                continue ;
+            }
+            
+            if (!$rec->showDocumentsAsButtons) continue;
+            
+            $fKey = doc_Folders::getSettingsKey($rec->folderId);
+            
+            $valArr = array();
+            $valArr['showDocumentsAsButtons'] = $rec->showDocumentsAsButtons;
+            
+            core_Settings::setValues($fKey, $valArr, $allSysTeamId, true);
+        }
     }
 }
