@@ -294,7 +294,12 @@ class cams_Cameras extends core_Master
         } else {
             $params = arr::make($rec->params, true);
         }
+        
         $params = $driver->getParamsFromCam($params);
+
+        $params->width = (!empty($params->width))?($params->width):($driver->getWidth());
+        $params->height = (!empty($params->height))?($params->height):($driver->getHeight());
+        $params->FPS = (!empty($params->FPS))?($params->FPS):($driver->getFPS());
         
         $retUrl = getRetUrl() ? getRetUrl() : array($this);
         
