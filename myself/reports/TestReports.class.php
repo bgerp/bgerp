@@ -114,6 +114,10 @@ class myself_reports_TestReports extends frame2_driver_TableData
         //Артикулите , които са влагани в производство 
         $plQuery = planning_DirectProductNoteDetails::getQuery();
         
+        $plQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
+        
+        $plQuery->where("#state != 'rejected'");
+        
         $plQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         
         $plQuery->EXT('canBuy', 'cat_Products', 'externalName=canBuy,externalKey=productId');
