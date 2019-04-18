@@ -128,87 +128,92 @@ class myself_reports_TestReports extends frame2_driver_TableData
         $allInProd = array();
         
         //Артикулите , които са влагани в производство 
-        $plQuery = planning_DirectProductNoteDetails::getQuery();
         
-        $plQuery->EXT('valior', 'planning_DirectProductionNote', 'externalName=valior,externalKey=noteId');
-        
-        $plQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
-        
-        $plQuery->where("#state != 'rejected'");
-        
-        $plQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        
-        $plQuery->EXT('canBuy', 'cat_Products', 'externalName=canBuy,externalKey=productId');
-        
-        $plQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
-        
-        //Продължителност на периода за показване
-        $durationStr = cls::get('type_Time')->toVerbal($rec->duration);
-        
-        list($periodCount, $periodType)= explode(' ', $durationStr);
-        
-        //Край на избрания период за показване $dateEnd
-        core_Lg::push('bg');
-        
-        if ($periodType == 'дни' || $periodType == 'ден' || $periodType == 'дена'){
-            $dateEnd = dt::addDays($periodCount-1, $rec->from, false);
-        }
-        
-        if ($periodType == 'мес.'){
-            $dateEnd = dt::addMonths($periodCount, $rec->from, false);
-            $dateEnd = dt::addDays(-1, $dateEnd, false);
-        }
-        
-        if ($periodType == 'год.'){
-            
-            $monts = 12*$periodCount;
-            $dateEnd = dt::addMonths($monts, $rec->from, false);
-            $dateEnd = dt::addDays(-1, $dateEnd, false);
-        }
-        
-        $rec->to = $dateEnd;
-        
-        $plQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
+        $details = array('planning_DirectProductionNote'=>'planning_DirectProductNoteDetails','planning_ConsumptionNotes'=>'planning_ConsumptionNoteDetails');
        
-        core_Lg::pop();
-        
-        //Филтър по групи артикули
-        if (isset($rec->group)) {
-            $plQuery->likeKeylist('groups', $rec->group);
-        }
-        
-        $plQuery->where("#canStore = 'yes' AND #canBuy = 'yes'");
-        
-    
-        $startDate = dt::mysql2verbal(dt::addMonths(-12), $mask = 'Y-01-01');
-        
-        while ($prodRec = $plQuery->fetch()){
+        foreach ($details as $Master => $Details){
             
-            $id = $prodRec->productId;
+            $plQuery = $Details::getQuery();
             
-            // Запис в масива
-            if (!array_key_exists($id, $allInProd)) {
-                $allInProd[$id] = (object) array(
-                    
-                    
-                    'productId' => $prodRec->productId,                           //Id на артикула
-                    'measure' => $prodRec->measureId,                             //Мярка\
-                    'quantity' => $prodRec->quantity,                             //Текущ период - количество
-                    'genericId' => null,
-                    'generucQuantity' => null,
-                    
-                );
-            } else {
-                $obj = &$allInProd[$id];
-                
-                $obj->quantity += $prodRec->quantity;
-                
+            $plQuery->EXT('valior', "$Master", 'externalName=valior,externalKey=noteId');
+          
+            $plQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
+            
+            $plQuery->where("#state != 'rejected'");
+            
+            $plQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+            
+            $plQuery->EXT('canBuy', 'cat_Products', 'externalName=canBuy,externalKey=productId');
+            
+            $plQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+            
+            //Продължителност на периода за показване
+            $durationStr = cls::get('type_Time')->toVerbal($rec->duration);
+            
+            list($periodCount, $periodType)= explode(' ', $durationStr);
+            
+            //Край на избрания период за показване $dateEnd
+            core_Lg::push('bg');
+            
+            if ($periodType == 'дни' || $periodType == 'ден' || $periodType == 'дена'){
+                $dateEnd = dt::addDays($periodCount-1, $rec->from, false);
             }
             
+            if ($periodType == 'мес.'){
+                $dateEnd = dt::addMonths($periodCount, $rec->from, false);
+                $dateEnd = dt::addDays(-1, $dateEnd, false);
+            }
             
+            if ($periodType == 'год.'){
+                
+                $monts = 12*$periodCount;
+                $dateEnd = dt::addMonths($monts, $rec->from, false);
+                $dateEnd = dt::addDays(-1, $dateEnd, false);
+            }
             
-        }
+            $rec->to = $dateEnd;
+            
+            $plQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
+           
+            core_Lg::pop();
+            
+            //Филтър по групи артикули
+            if (isset($rec->group)) {
+                $plQuery->likeKeylist('groups', $rec->group);
+            }
+            
+            $plQuery->where("#canStore = 'yes' AND #canBuy = 'yes'");
+            
         
+            $startDate = dt::mysql2verbal(dt::addMonths(-12), $mask = 'Y-01-01');
+            
+            while ($prodRec = $plQuery->fetch()){
+                
+                $id = $prodRec->productId;
+                
+                // Запис в масива
+                if (!array_key_exists($id, $allInProd)) {
+                    $allInProd[$id] = (object) array(
+                        
+                        
+                        'productId' => $prodRec->productId,                           //Id на артикула
+                        'measure' => $prodRec->measureId,                             //Мярка\
+                        'quantity' => $prodRec->quantity,                             //Текущ период - количество
+                        'genericId' => null,
+                        'generucQuantity' => null,
+                        
+                    );
+                } else {
+                    $obj = &$allInProd[$id];
+                    
+                    $obj->quantity += $prodRec->quantity;
+                    
+                }
+                
+                
+                
+            }
+        }
         //Генерично заменяеми артикули
         $queryS = planning_ObjectResources::getQuery();
         
