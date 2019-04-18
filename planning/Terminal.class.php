@@ -632,18 +632,18 @@ class planning_Terminal extends core_Manager
             );
             
             // Опит за добавяне на запис в прогреса
-            planning_ProductionTaskDetails::add($params['taskId'], $params);
+            $dRec = planning_ProductionTaskDetails::add($params['taskId'], $params);
             
-            if (Request::get('ajax_mode')) {
-                Mode::setPermanent("activeTab{$rec->id}", 'taskProgress');
-                $res = $this->getSuccessfullResponce($rec, 'taskProgress');
+            if(isset($dRec->_rejectId) || !Request::get('ajax_mode')){
                 
-                return $res;
+                // Ако не сме в Ajax режим или е редактиран ред се рефрешва страницата
+                redirect(array($this, 'open', $rec->id));
             }
             
-            // Ако не сме в Ajax режим пренасочваме към терминала
-            redirect(array($this, 'open', $rec->id));
+            Mode::setPermanent("activeTab{$rec->id}", 'taskProgress');
+            $res = $this->getSuccessfullResponce($rec, 'taskProgress');
             
+            return $res;
         } catch (core_exception_Expect $e){
             
             return $this->getErrorResponse($rec, $e);
