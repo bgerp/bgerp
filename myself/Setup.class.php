@@ -54,7 +54,7 @@ class myself_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'myself_reports_TestReport';
+    public $defClasses = 'myself_reports_TestReports';
     
     
     
