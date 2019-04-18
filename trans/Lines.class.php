@@ -592,6 +592,16 @@ class trans_Lines extends core_Master
         if ($rec->state == 'active') {
             $mvc->setCloseTimes[$rec->id] = $rec;
         }
+        
+        // При промяна на състоянието да се инвалидира, кеша на документите от нея
+        if (in_array($rec->state, array('active', 'closed', 'rejected'))) {
+            $dQuery = trans_LineDetails::getQuery();
+            $dQuery->where("#lineId = {$rec->id}");
+            $dQuery->show('containerId');
+            while($dRec = $dQuery->fetch()){
+                doc_DocumentCache::cacheInvalidation($dRec->containerId);
+            }
+        }
     }
     
     

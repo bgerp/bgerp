@@ -304,9 +304,13 @@ body {
 			border-color: #ccc;
 		}
 
+
 		textarea {
 			min-height: 90px;
 			margin-top: 10px;
+			&.inputError{
+				border-color: #c00;
+			}
 		}
 
 		select {

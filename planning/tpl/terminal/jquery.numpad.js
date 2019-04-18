@@ -294,7 +294,7 @@
 		textDelete: 'Del',
 		textClear: 'Clear',
 		textCancel: 'Cancel',
-		decimalSeparator: ',',
+		decimalSeparator: '.',
 		precision: null,
 		appendKeypadTo: false,
 		position: 'fixed',

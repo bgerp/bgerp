@@ -73,7 +73,7 @@ class vislog_Referer extends core_Manager
     public function description()
     {
         $this->FLD('referer', 'varchar(255)', 'caption=Referer,oldFieldName=refferer');
-        $this->FLD('query', 'varchar(255)', 'caption=Query');
+        $this->FLD('query', 'varchar(255)', 'caption=Query,column=none');
         $this->FLD('searchLogResourceId', 'key(mvc=vislog_HistoryResources,title=query)', 'caption=Ресурс');
         $this->FLD('ip', 'ip(15,showNames)', 'caption=Ip');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt,allowEmpty)', 'caption=Домейн,notNull,autoFilter');
@@ -167,6 +167,12 @@ class vislog_Referer extends core_Manager
     public function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true, true);
+
+        $query = type_Varchar::escape($rec->query);
+
+        if ($query) {
+            $row->searchLogResourceId .= "<br><span style='font-size:0.6em;'>{$query}</span>";
+        }
     }
     
     

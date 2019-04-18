@@ -29,6 +29,49 @@ class wscales_GetWeightFromScalePlg extends core_Plugin
     
     
     /**
+     * След рендиране на формата в кустом терминал
+     *
+     * @param core_Manager $mvc
+     * @param core_ET|null $tpl
+     * @param core_Form|null $form
+     */
+    public static function on_AfterRenderInTerminal(core_Manager $mvc, &$tpl = null, $form = null)
+    {
+        self::insertJsIfNeeded($tpl, $mvc);
+    }
+    
+    
+    /**
+     * Добавяне на скрипта в терминала при нужда
+     *
+     * @param mixed $res
+     * @param core_Manager $mvc
+     * @param string $formName
+     */
+    private static function insertJsIfNeeded(&$res, $mvc, $formName = null)
+    {
+        if ($mvc->scaleWeightFieldName) {
+            $aDivecesArr = peripheral_Devices::getDevices('wscales_intf_Scales', log_Browsers::getBrid(), core_Users::getRealIpAddr());
+            if (!empty($aDivecesArr)) {
+                $lRec = reset($aDivecesArr);
+                setIfNot($formName, $mvc->className . '-EditForm');
+                
+                jquery_Jquery::enable($res);
+                $interface = core_Cls::getInterface('wscales_intf_Scales', $lRec->driverClass);
+                
+                $lRec->_weight = $mvc->scaleWeightFieldName;
+                $lRec->_liveWeight = $mvc->scaleLiveWeightFieldName;
+                $lRec->_formIdName = '#' . $formName;
+                
+                $js = $interface->getJs($lRec);
+              
+                $res->appendOnce($js, 'SCRIPTS');
+            }
+        }
+    }
+    
+    
+    /**
      * Изпълнява се след опаковане на съдаржанието от мениджъра
      *
      * @param core_Mvc       $mvc
@@ -40,24 +83,7 @@ class wscales_GetWeightFromScalePlg extends core_Plugin
      */
     public static function on_AfterRenderWrapping(core_Manager $mvc, &$res, &$tpl = null, $data = null)
     {
-        if ($mvc->scaleWeightFieldName) {
-            $aDivecesArr = peripheral_Devices::getDevices('wscales_intf_Scales', log_Browsers::getBrid(), core_Users::getRealIpAddr());
-            if (!empty($aDivecesArr)) {
-                $lRec = reset($aDivecesArr);
-                
-                jquery_Jquery::enable($res);
-                
-                $interface = core_Cls::getInterface('wscales_intf_Scales', $lRec->driverClass);
-                
-                $lRec->_weight = $mvc->scaleWeightFieldName;
-                $lRec->_liveWeight = $mvc->scaleLiveWeightFieldName;
-                $lRec->_formIdName = '#' . $mvc->className . '-EditForm';
-                
-                $js = $interface->getJs($lRec);
-                
-                $res->appendOnce($js, 'SCRIPTS');
-            }
-        }
+        self::insertJsIfNeeded($res, $mvc);
     }
     
     

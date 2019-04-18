@@ -259,12 +259,10 @@ class acc_ActiveShortBalance
                 }
             }
             
-            $newFrom = dt::addDays(1, $balanceRec->toDate);
-            $newFrom = dt::verbal2mysql($newFrom, false);
+            $newFrom = dt::addDays(1, $balanceRec->toDate, false);
         }
         
-        $newTo = dt::addDays(-1, $this->from);
-        $newTo = dt::verbal2mysql($newTo, false);
+        $newTo = dt::addDays(-1, $this->from, false);
         
         // Извличаме всички записи които са между последния баланс и избраната дата за начало на търсенето
         $jQuery = acc_JournalDetails::getQuery();

@@ -1198,6 +1198,7 @@ class sales_Sales extends deals_DealMaster
                 }
             }
         } else if (isset($fields['-list'])) {
+            $row->title = "<b>" . $row->title . "</b>";
             $row->title .= "  «  " . $row->folderId;
         }
         

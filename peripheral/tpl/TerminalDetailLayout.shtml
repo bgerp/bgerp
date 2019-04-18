@@ -1,15 +1,12 @@
-<div class="groupList" id="profileActionLog" style=' background: none;'>
-    <!--ET_BEGIN AddLink-->[#AddLink#]<!--ET_END AddLink-->
-    
-    <table style='min-width:440px; width: 100%;'>
-       <!--ET_BEGIN log-->
-       <tr>
-           <!--ET_BEGIN Link--><td>[#Link#]</td><!--ET_END Link-->
-           <td>[#brid#]</td>
-           <td>[#usePin#]</td>
-           <!--ET_BEGIN users--><td>[#users#]</td><!--ET_END users-->
-           <!--ET_BEGIN roles--><td>[#roles#]</td><!--ET_END roles-->
-       </tr>
-       <!--ET_END log-->
-   </table>
+<div class='scrolling-holder' [#STYLE#]>
+	<fieldset class='top-tab-content'>
+	<legend class='groupTitle nowrap'>[#title#] [#AddLink#]</legend>
+		<div class='detail-info portal [#TAB_STATE#]'>
+		    <div class='groupList clearfix21'>
+		    <!--ET_BEGIN content-->
+		        [#content#]
+		    <!--ET_END content-->
+		    </div>
+	    </div>
+	</fieldset>
 </div>

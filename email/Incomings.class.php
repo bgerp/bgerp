@@ -1837,7 +1837,7 @@ class email_Incomings extends core_Master
                             // Ако ще се рутира към пощенска кутия или проект
                             if ($coverClass) {
                                 if ($coverClass->instance instanceof email_Inboxes || $coverClass->instance instanceof doc_UnsortedFolders) {
-                                    self::checkSpamLevelAndReject($rec, true);
+                                    self::checkSpamLevelAndReject($rec, 0.5);
                                 }
                             }
                         }
@@ -1865,8 +1865,9 @@ class email_Incomings extends core_Master
      *
      *
      * @param stdClass $rec
+     * @param double $tolerance
      */
-    protected static function checkSpamLevelAndReject($rec)
+    protected static function checkSpamLevelAndReject($rec, $tolerance = 0)
     {
         if ($rec->state == 'rejected') {
             
@@ -1879,6 +1880,8 @@ class email_Incomings extends core_Master
         }
         
         $spamScore = email_Setup::get('REJECT_SPAM_SCORE');
+        
+        $spamScore = $spamScore + ($spamScore * $tolerance);
         
         if (isset($score) && ($score >= $spamScore)) {
             $rec->state = 'rejected';
