@@ -47,8 +47,7 @@ class myself_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-        'myself_Codebase',
-        'myself_MyTest'
+        'myself_Codebase'
     
     );
     
