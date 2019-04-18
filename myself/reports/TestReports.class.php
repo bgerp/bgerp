@@ -133,13 +133,16 @@ class myself_reports_TestReports extends frame2_driver_TableData
         
         //Артикулите , които са влагани в производство 
         
-        $details = array('planning_DirectProductionNote'=>'planning_DirectProductNoteDetails','planning_ConsumptionNotes'=>'planning_ConsumptionNoteDetails');
+        $detailsArr = array('planning_DirectProductionNote'=>'planning_DirectProductNoteDetails',
+                         'planning_ConsumptionNotes'=>'planning_ConsumptionNoteDetails',
+                         'planning_ReturnNotes'=>'planning_ReturnNoteDetails'
+        );
        
-        foreach ($details as $Master => $Details){
+        foreach ($detailsArr as $master => $details){
             
-            $plQuery = $Details::getQuery();
+            $plQuery = $details::getQuery();
             
-            $plQuery->EXT('valior', "$Master", 'externalName=valior,externalKey=noteId');
+            $plQuery->EXT('valior', "$master", 'externalName=valior,externalKey=noteId');
           
             $plQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
             
@@ -156,6 +159,8 @@ class myself_reports_TestReports extends frame2_driver_TableData
             
             list($periodCount, $periodType)= explode(' ', $durationStr);
             
+            
+            //Ако е избрано "Прогноза"
             if($rec->prognose == 'yes' && isset($rec->period)){
                 
                 $firstDayOfMonth = (acc_Periods::fetch($rec->period)->start);
@@ -216,8 +221,6 @@ class myself_reports_TestReports extends frame2_driver_TableData
                         'productId' => $prodRec->productId,                           //Id на артикула
                         'measure' => $prodRec->measureId,                             //Мярка\
                         'quantity' => $prodRec->quantity,                             //Текущ период - количество
-                        'genericId' => null,
-                        'generucQuantity' => null,
                         
                     );
                 } else {
