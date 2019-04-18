@@ -790,8 +790,8 @@ class email_Mime extends core_BaseClass
             $headerStrArr = explode($headerDelim, $data, 2);
             
             if (count($headerStrArr) > 1) {
-                $headerStr = $headerStrArr[0];
-                $data = $headerStrArr[1];
+                $headerStr = trim($headerStrArr[0]);
+                $data = trim($headerStrArr[1]);
             }
         }
         
