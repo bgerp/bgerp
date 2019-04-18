@@ -50,10 +50,17 @@ class myself_reports_TestReports extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         //Период
-        $fieldset->FLD('from', 'date', 'caption=Период->От,after=dealers,single=none');
+        $fieldset->FLD('prognose', 'set(yes = )',  'caption=Прогноза,after=title,refreshForm,silent,single=none');
+        
+        $fieldset->FLD('period', 'key(mvc=acc_Periods,title=title)', 'caption = За месец,after=prognose,single=none');
+        
+        $fieldset->FLD('from', 'date', 'caption=Период->От,after=period,single=none');
         $fieldset->FLD('duration','time(suggestions=1 седмица| 1 месец| 2 месеца| 3 месеца| 6 месеца| 12 месеца)', 'caption=Период->Продължителност,after=from,single=none');
-        $fieldset->FLD('period', 'key(mvc=acc_Periods,title=title)', 'caption = Период,after=duration,single=none');
-        $fieldset->FLD('group', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,after=seeGroup,single=none');
+       
+        
+        
+       
+        $fieldset->FLD('group', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,after=duration,single=none');
         
         
     }
@@ -71,6 +78,15 @@ class myself_reports_TestReports extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+        
+        if ($rec->prognose != 'yes') {
+            
+            $form->setField('period', 'input=none');
+        }else{
+             $form->setField('from', 'input=none');
+            $form->setField('duration', 'input=none');
+           
+        }
        
         
     }
@@ -114,6 +130,8 @@ class myself_reports_TestReports extends frame2_driver_TableData
         //Артикулите , които са влагани в производство 
         $plQuery = planning_DirectProductNoteDetails::getQuery();
         
+        $plQuery->EXT('valior', 'planning_DirectProductionNote', 'externalName=valior,externalKey=noteId');
+        
         $plQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
         
         $plQuery->where("#state != 'rejected'");
@@ -121,6 +139,43 @@ class myself_reports_TestReports extends frame2_driver_TableData
         $plQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         
         $plQuery->EXT('canBuy', 'cat_Products', 'externalName=canBuy,externalKey=productId');
+        
+        $plQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        
+        //Продължителност на периода за показване
+        $durationStr = cls::get('type_Time')->toVerbal($rec->duration);
+        
+        list($periodCount, $periodType)= explode(' ', $durationStr);
+        
+        //Край на избрания период за показване $dateEnd
+        core_Lg::push('bg');
+        
+        if ($periodType == 'дни' || $periodType == 'ден' || $periodType == 'дена'){
+            $dateEnd = dt::addDays($periodCount-1, $rec->from, false);
+        }
+        
+        if ($periodType == 'мес.'){
+            $dateEnd = dt::addMonths($periodCount, $rec->from, false);
+            $dateEnd = dt::addDays(-1, $dateEnd, false);
+        }
+        
+        if ($periodType == 'год.'){
+            
+            $monts = 12*$periodCount;
+            $dateEnd = dt::addMonths($monts, $rec->from, false);
+            $dateEnd = dt::addDays(-1, $dateEnd, false);
+        }
+        
+        $rec->to = $dateEnd;
+        
+        $plQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
+       
+        core_Lg::pop();
+        
+        //Филтър по групи артикули
+        if (isset($rec->group)) {
+            $plQuery->likeKeylist('groups', $rec->group);
+        }
         
         $plQuery->where("#canStore = 'yes' AND #canBuy = 'yes'");
         
