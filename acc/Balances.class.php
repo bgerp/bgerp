@@ -121,7 +121,7 @@ class acc_Balances extends core_Master
     /**
      * Максимално допустимо време в секунди за изчисляване на баланс на период
      */
-    const MAX_PERIOD_CALC_TIME = 1200;
+    const MAX_PERIOD_CALC_TIME = 600;
     
     
     /**
@@ -428,7 +428,7 @@ class acc_Balances extends core_Master
         // Ако изчисляването е заключено не го изпълняваме
         if (!core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
             $this->logNotice('Изчисляването на баланса е заключено от друг процес');
-           
+            
             return;
         }
         
@@ -453,6 +453,7 @@ class acc_Balances extends core_Master
             // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
             $j = 0;
             do {
+                core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME);
                 self::forceCalc($rec);
                 self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}");
             } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
