@@ -958,7 +958,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      * 
      * @param int $taskId
      * @param array $params
-     * @return int
+     * @return stdClass $rec
      */
     public static function add($taskId, $params)
     {
@@ -1027,6 +1027,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $rec->_rejectId = $rejectId;
         }
         
-        return cls::get(get_called_class())->save($rec);
+        cls::get(get_called_class())->save($rec);
+        
+        return $rec;
     }
 }

@@ -84,7 +84,7 @@ class planning_Terminal extends core_Manager
         $tpl = new core_ET(tr("|*<h3 class='title'>|Сигнал за нередност|*</h3><div class='formHolder'>[#FORM#]</div>"));
         $form = cls::get('core_Form');
         $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name,select2MinItems=100)', 'class=w100,placeholder=Оборудване,mandatory');
-        $form->FLD('body', 'richtext(rows=4)', 'caption=Съобщение,mandatory,placeholder=Описание на проблема');
+        $form->FLD('body', 'richtext(rows=4)', 'caption=Описание на проблема,mandatory,placeholder=Описание на проблема');
         
         $options = planning_AssetResources::getByFolderId(planning_Centers::fetchField($rec->centerId, 'folderId'));
         $form->setOptions('asset', array('' => '') + $options);
@@ -401,7 +401,7 @@ class planning_Terminal extends core_Manager
         
         // Бутони за добавяне
         $sendUrl = ($this->haveRightFor('terminal')) ?  toUrl(array($this, 'doAction', $rec->id), 'local') : array();
-        $sendBtn = ht::createFnBtn('Изпращане', null, null, array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'data-url' => $sendUrl, 'title' => 'Изпращане на формата'));
+        $sendBtn = ht::createFnBtn('Изпълнение', null, null, array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'data-url' => $sendUrl, 'title' => 'Изпълнение по задачата'));
         $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
         
         $numpadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'numPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
@@ -616,7 +616,6 @@ class planning_Terminal extends core_Manager
         }
         
         try{
-            
             // Ако се е стигнало до тук, значи се въвежда прогрес по вече избрана ПО
             $serial = Request::get('serial', 'varchar');
             expect($taskId = Request::get('taskId', 'int'), 'Не е избрана операция');
@@ -632,7 +631,9 @@ class planning_Terminal extends core_Manager
             );
             
             // Опит за добавяне на запис в прогреса
-            $dRec = planning_ProductionTaskDetails::add($params['taskId'], $params);
+            $Details = cls::get('planning_ProductionTaskDetails');
+            $dRec = $Details->add($params['taskId'], $params);
+            $Details->logInAct('Създаване на детайл от терминала', $dRec);
             
             if(isset($dRec->_rejectId) || !Request::get('ajax_mode')){
                 
