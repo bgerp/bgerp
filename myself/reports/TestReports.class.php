@@ -87,6 +87,11 @@ class myself_reports_TestReports extends frame2_driver_TableData
             $form->setField('duration', 'input=none');
            
         }
+        
+        $dat = dt::mysql2verbal(dt::addMonths(-12,dt::today(),$mask='Y-01-01'));
+        $form->setDefault('from', $dat);
+        
+        $form->setDefault('duration', '1 год.');
        
         
     }
@@ -152,6 +157,19 @@ class myself_reports_TestReports extends frame2_driver_TableData
             
             list($periodCount, $periodType)= explode(' ', $durationStr);
             
+            if($rec->prognose == 'yes' && isset($rec->period)){
+                
+                $firstDayOfMonth = (acc_Periods::fetch($rec->period)->start);
+            
+            $startDate = dt::mysql2verbal(dt::addMonths(-13,$firstDayOfMonth), $mask = 'Y-m-d');
+            
+            $rec->from = $startDate;
+            $periodCount = 3;
+            $periodType = 'мес.';
+            
+            }
+           
+            
             //Край на избрания период за показване $dateEnd
             core_Lg::push('bg');
             
@@ -173,8 +191,9 @@ class myself_reports_TestReports extends frame2_driver_TableData
             
             $rec->to = $dateEnd;
             
+           // bp($rec->from,$dateEnd);
             
-            if(isset($rec->from) && isset($rec->duration)){
+            if(isset($rec->from) && $dateEnd){
                 $plQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
             }
             core_Lg::pop();
@@ -185,10 +204,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
             }
             
             $plQuery->where("#canStore = 'yes' AND #canBuy = 'yes'");
-            
-        
-            $startDate = dt::mysql2verbal(dt::addMonths(-12), $mask = 'Y-01-01');
-            
+                
             while ($prodRec = $plQuery->fetch()){
                 
                 $id = $prodRec->productId;
@@ -211,9 +227,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
                     $obj->quantity += $prodRec->quantity;
                     
                 }
-                
-                
-                
+               
             }
         }
         //Генерично заменяеми артикули
@@ -234,7 +248,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
         //Всички влагани през периода артикули
         $prodIds = arr::extractValuesFromArray($allInProd, 'productId');
        
-        $genericProd = array();
+        $genericProd = $genericQuantity = array();
         
         foreach ($genericProducts as $key => $val){
               
