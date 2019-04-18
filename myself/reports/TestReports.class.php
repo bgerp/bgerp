@@ -173,8 +173,10 @@ class myself_reports_TestReports extends frame2_driver_TableData
             
             $rec->to = $dateEnd;
             
-            $plQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
-           
+            
+            if(isset($rec->from) && isset($rec->duration)){
+                $plQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
+            }
             core_Lg::pop();
             
             //Филтър по групи артикули
