@@ -44,11 +44,11 @@ class wscales_GetWeightFromScalePlg extends core_Plugin
     /**
      * Добавяне на скрипта в терминала при нужда
      *
-     * @param core_ET|null $res
+     * @param mixed $res
      * @param core_Manager $mvc
      * @param string $formName
      */
-    private function insertJsIfNeeded(&$res, $mvc, $formName = null)
+    private static function insertJsIfNeeded(&$res, $mvc, $formName = null)
     {
         if ($mvc->scaleWeightFieldName) {
             $aDivecesArr = peripheral_Devices::getDevices('wscales_intf_Scales', log_Browsers::getBrid(), core_Users::getRealIpAddr());
