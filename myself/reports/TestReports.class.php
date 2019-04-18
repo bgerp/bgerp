@@ -88,8 +88,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
            
         }
         
-        $dat = dt::mysql2verbal(dt::addMonths(-12,dt::today(),$mask='Y-01-01'));
-        $form->setDefault('from', $dat);
+        $form->setDefault('from', dt::mysql2verbal(dt::addMonths(-12), $mask = 'Y-01-01'));
         
         $form->setDefault('duration', '1 год.');
        
