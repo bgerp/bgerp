@@ -3848,6 +3848,17 @@ td.leftColImportant {
 	}
 	#verbal {
 		white-space: normal;
+		a {
+			background-color: #e4e4e4;
+			border: 1px solid #aaa;
+			border-radius: 4px;
+			display: inline-block;
+			font-size: 0.8em;
+			padding: 1px 3px;
+			color: #000 !important;
+			opacity: 1;
+			font-family: Helvetica,Arial,Verdana,Sans-serif;
+		}
 	}
     .hidden {display:none;}
 	.plus {

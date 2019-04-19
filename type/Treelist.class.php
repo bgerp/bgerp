@@ -26,6 +26,7 @@ class type_Treelist extends type_Keylist
     {
         parent::init($params);
         setIfNot($this->params['pathDivider'], '»');
+        setIfNot($this->params['classLink'], '');
     }
 
     /**
