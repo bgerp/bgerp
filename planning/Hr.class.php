@@ -350,7 +350,7 @@ class planning_Hr extends core_Master
         $name = crm_Persons::getVerbal($personId, 'name');
         
         $singleUrl = array();
-        if (!Mode::isReadOnly()) {
+        if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')) {
             $singleUrl = crm_Persons::getSingleUrlArray($personId);
             if (count($singleUrl)) {
                 $singleUrl['Tab'] = 'PersonsDetails';
