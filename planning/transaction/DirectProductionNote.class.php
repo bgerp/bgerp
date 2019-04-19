@@ -107,7 +107,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
      */
     private function getEntries($rec, &$total)
     {
-        $resourcesArr = $entries = array();
+        $entries = array();
         $pInfo = cat_Products::getProductInfo($rec->productId);
         $canStore = isset($pInfo->meta['canStore']) ? true : false;
         

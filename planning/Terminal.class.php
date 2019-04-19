@@ -562,6 +562,8 @@ class planning_Terminal extends core_Manager
             return new Redirect($url);
         }
         
+        $this->logRead('Търсене в терминала', $rec->id);
+        
         try {
             expect($search = Request::get('search', 'varchar'), 'Не е избрано по какво да се търси');
             
@@ -709,16 +711,15 @@ class planning_Terminal extends core_Manager
         $pageTitle .= " « " . strip_tags($centerName);
         $tpl->replace($pageTitle, 'PAGE_TITLE');
         
-        if(Mode::get("currentTaskId{$rec->id}")){
-            $tableTpl = $this->getProgressTable($rec);
-            $tpl->replace($tableTpl, 'TASK_PROGRESS');
-        } else {
+        // Ако няма избрана операция, забраняват се определени бутони
+        if(!Mode::get("currentTaskId{$rec->id}")){
             $tpl->replace('disabled', 'activeSingle');
             $tpl->replace('disabled', 'activeJob');
             $tpl->replace('disabled', 'activeTask');
             $tpl->replace('active', 'activeAll');
         }
         
+        // Кой е активния таб ? Показване на формата за търсене по баркод
         Mode::setPermanent("activeTab{$rec->id}", $this->getActiveTab($rec));
         $tpl->replace($this->getSearchTpl($rec), "SEARCH_FORM");
         
@@ -739,6 +740,7 @@ class planning_Terminal extends core_Manager
         $cookieId = "terminalTab{$rec->id}";
         jquery_Jquery::run($tpl, "setCookie('{$cookieId}', '{$aciveTabData['tab-id']}');");
         jquery_Jquery::run($tpl, 'planningActions();');
+        $this->logRead('Отваряне на точка за производство', $rec->id);
         
         return $tpl;
     }
