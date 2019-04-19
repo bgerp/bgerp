@@ -111,6 +111,10 @@ function planningActions() {
 		if(!url) return;
 		
 		var searchVal = $("input[name=searchBarcode]").val();
+		if(!searchVal) {
+			e.preventDefault();
+			return;
+		}
 		resObj = new Object();
 		resObj['url'] = url;
 		
