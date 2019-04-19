@@ -79,26 +79,24 @@ class type_Keylist extends core_Type
         
         if ($ids) {
             if (($res = $cache[$mvc->className][$ids]) === null) {
-                $query = $mvc->getQuery();
-                
-                //$query->where("#id IN ($ids)");
-                //while($query->fetchAndCache()) {}
-                
                 foreach ($vals as $v) {
                     if ($v) {
+                        $attr = array();
+                        if (!empty($this->params['classLink'])) {
+                            $attr = array('class' => $this->params['classLink']);
+                        }
+                        
                         $name = $this->getVerbal($v);
                         if ((!Mode::is('text', 'xhtml')) && (!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
-                            $attr = array();
-                            if (isset($this->params['classLink'])) {
-                                $attr = array('class' => $this->params['classLink']);
-                            }
-                            
                             if ($this->params['makeLinks'] === 'short') {
                                 $name = ht::createLinkRef($name, array($mvc, 'Single', $v), false, $attr);
                             } else {
                                 $name = ht::createLink($name, array($mvc, 'Single', $v), false, $attr);
                             }
+                        } else {
+                            $name = ht::createElement('span', $attr, $name, true);
                         }
+                            
                         if (Mode::is('text-export', 'csv')) {
                             $delimeter = '|';
                         } else {
