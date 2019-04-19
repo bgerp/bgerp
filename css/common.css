@@ -3490,7 +3490,8 @@ td.leftColImportant {
     text-align: center; }
   .treelist #verbal {
     white-space: normal; }
-    .treelist #verbal a {
+    .treelist #verbal a,
+    .treelist #verbal span {
       background-color: #e4e4e4;
       border: 1px solid #aaaaaa;
       border-radius: 4px;
