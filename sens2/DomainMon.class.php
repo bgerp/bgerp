@@ -130,7 +130,7 @@ class sens2_DomainMon extends sens2_ProtoDriver
         $timeStart = microtime(true);
         
         $txt = @file_get_contents('http://' . $domain);
-        if($txt === false) { bp();
+        if($txt === false) {
             
             return -1;
         }
