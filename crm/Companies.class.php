@@ -2210,11 +2210,15 @@ class crm_Companies extends core_Master
      *
      * @return array $res - възможните класове
      */
-    public function getDocButtonsInFolder($id)
+    public function getDocButtonsInFolder_($id)
     {
         $res = array();
         
         $rec = $this->fetch($id);
+        
+        if (email_Outgoings::haveRightFor('add', array('folderId' => $rec->folderId))) {
+            $res[] = 'email_Outgoings';
+        }
         
         static $clientGroupId, $supplierGroupId, $debitGroupId, $creditGroupId;
         

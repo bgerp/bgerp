@@ -228,7 +228,6 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
         
         $mvc->FLD(
-            
             'state',
                 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен, pending=Заявка,stopped=Спряно)',
                 'caption=Статус, input=none'
@@ -1243,6 +1242,7 @@ abstract class deals_DealMaster extends deals_DealBase
             if (count($options)) {
                 $data->toolbar->removeBtn('btnConto');
                 $error = '';
+                
                 // Проверка на счетоводния период, ако има грешка я показваме
                 if (!acc_plg_Contable::checkPeriod($rec->valior, $error)) {
                     $error = ",error={$error}";
@@ -1375,9 +1375,6 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // След като формата се изпрати
         if ($form->isSubmitted()) {
-            
-            
-            
             // обновяване на записа с избраните операции
             $form->rec->action = 'activate' . (($form->rec->action) ? ',' : '') . $form->rec->action;
             $rec->contoActions = $form->rec->action;

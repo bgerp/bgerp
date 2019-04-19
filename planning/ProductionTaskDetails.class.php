@@ -520,7 +520,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $terminalRec = planning_Points::fetch($terminalId);
             $terminalRec->taskId = Mode::get("currentTaskId{$terminalId}");
             if(planning_Points::haveRightFor('selecttask', $terminalRec)){
-                $selectRowUrl = array('planning_Points', 'selectTask', $terminalId, 'taskId' => $terminalRec->taskId);
+                $selectRowUrl = array('planning_Terminal', 'selectTask', $terminalId, 'taskId' => $terminalRec->taskId);
             }
         }
         
@@ -958,7 +958,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      * 
      * @param int $taskId
      * @param array $params
-     * @return int
+     * @return stdClass $rec
      */
     public static function add($taskId, $params)
     {
@@ -967,28 +967,24 @@ class planning_ProductionTaskDetails extends doc_Detail
         $productId = (isset($params['productId'])) ? $params['productId'] : (($params['type'] == 'production') ? $taskRec->productId : null);
         expect($productId, 'Не е посочен артикул');
         $options = planning_ProductionTaskProducts::getOptionsByType($taskRec->id, $params['type']);
-        
         expect(array_key_exists($productId, $options), $options);
         
-        $quantity = $params['quantity'];
+        $quantity = ($params['quantity']) ? $params['quantity'] : 1;
         if(!empty($quantity)){
             expect($quantity = core_Type::getByName('double')->fromVerbal($quantity), 'Невалидно число');
         } elseif($params['type'] == 'production' && isset($taskRec->packagingId)){
             $packRec = cat_products_Packagings::getPack($taskRec->productId, $taskRec->packagingId);
             $quantity = is_object($packRec) ? ($packRec->quantity / $taskRec->quantityInPack) : 1;
-        } else {
-            $quantity = 1;
         }
-        expect($quantity > 0, 'Количеството трябва да е положително');
         
+        expect($quantity > 0, 'Количеството трябва да е положително');
         $rec = (object)array('serialType' => 'unknown', '_generateSerial' => false, 'productId' => $productId, 'taskId' => $taskId, 'quantity' => $quantity, 'type' => $params['type']);
         if(!empty($params['employees'])){
             $params['employees'] = arr::make($params['employees']);
             $rec->employees = keylist::fromArray(array_combine($params['employees'], $params['employees']));
         }
+        
         $rec->fixedAsset = (!empty($params['fixedAsset'])) ? $params['fixedAsset'] : null;
-        
-        
         if(!empty($params['weight'])){
             expect($params['weight'] = core_Type::getByName('double')->fromVerbal($params['weight']), 'Невалидно число');
             expect($params['weight'] > 0, 'Теглото трябва да е положително');
@@ -1000,7 +996,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         
         $canStore = cat_Products::fetchField($productId, 'canStore');
-        $rec->_generateSerial = false;
         if(!empty($params['serial'])){
             $params['serial'] = plg_Search::normalizeText($params['serial']);
             $params['serial'] = str::removeWhitespaces($params['serial']);
@@ -1010,8 +1005,6 @@ class planning_ProductionTaskDetails extends doc_Detail
             $serialInfo = self::fetchSerialInfo($params['serial'], $productId, $taskId);
             $rec->serial = $params['serial'];
             $rec->serialType = $serialInfo['type'];
-        } elseif($params['type'] == 'production'){
-            $rec->_generateSerial = true;
         }
         
         if($rec->type == 'input' && $canStore != 'yes') {
@@ -1034,6 +1027,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $rec->_rejectId = $rejectId;
         }
         
-        return self::save($rec);
+        cls::get(get_called_class())->save($rec);
+        
+        return $rec;
     }
 }

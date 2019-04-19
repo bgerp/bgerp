@@ -515,7 +515,7 @@ class core_Settings extends core_Manager
             unset($recArr['_userOrRole']);
             unset($recArr['_className']);
             
-            $sForAllValArr = array();
+            $sForAllValArr = null;
             
             // Премахваме всички празни стойности или defaul от enum
             foreach ((array) $recArr as $valKey => $value) {
@@ -530,7 +530,6 @@ class core_Settings extends core_Manager
                 
                 // Ако няма стойност или стойността е default за enum поле, да се премахне от масива
                 if ((!$value && !$instanceOfEnum && ($value !== 0)) || ($value == 'default' && $instanceOfEnum)) {
-                    unset($sForAllValArr[$valKey]);
                     unset($recArr[$valKey]);
                 }
             }
@@ -539,7 +538,7 @@ class core_Settings extends core_Manager
             self::setValues($key, (array) $recArr, $userOrRole);
             
             // Записване данните, които се отнасят за всички потребители
-            if (!empty($sForAllValArr)) {
+            if (isset($sForAllValArr)) {
                 $oldSArr = self::fetchKeyNoMerge($key, $allSystemId);
                 
                 foreach ($sForAllValArr as $k => $v) {

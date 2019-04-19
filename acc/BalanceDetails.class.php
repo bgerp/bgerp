@@ -177,10 +177,10 @@ class acc_BalanceDetails extends core_Detail
             }
             
             // Сортиране на резултатите
-            if(is_array($by) && ($sortBy = $by['sortBy'])) {  
+            if(is_array($by) && ($sortBy = $by['sortBy'])) {
                 arr::sortObjects($data->recs, $sortBy, 'desc');
             }
- 
+            
             $data->allRecs = $data->recs;
             static::sortRecsByNum($data->recs, $data->listFields, $sortBy == '');
             
@@ -921,6 +921,9 @@ class acc_BalanceDetails extends core_Detail
             }
         }
         
+        // Заключваме показването на информацията от баланса в кориците и документи
+        core_Locks::get(acc_Balances::saveLockKey);
+        
         //Прочитаме всички текущи записи за този баланс
         $query = self::getQuery();
         while ($rec = $query->fetch("#balanceId = {$balanceId}")) {
@@ -931,6 +934,11 @@ class acc_BalanceDetails extends core_Detail
                     $newRec->blQuantity != $rec->blQuantity || $newRec->baseQuantity != $rec->baseQuantity ||
                     $newRec->debitQuantity != $rec->debitQuantity || $newRec->debitAmount != $rec->debitAmount ||
                     $newRec->creditQuantity != $rec->creditQuantity || $newRec->creditAmount != $rec->creditAmount) {
+                    
+                    if(isset($toSave[$key]->id)){
+                       $toDelete[$toSave[$key]->id] = $toSave[$key]->id;
+                    }
+                    
                     $toSave[$key]->id = $rec->id;
                 } else {
                    unset($toSave[$key]);
@@ -942,16 +950,11 @@ class acc_BalanceDetails extends core_Detail
         
         $res = false;
         
-        // Заключваме показването на информацията от баланса в кориците и документи
-        core_Locks::get(acc_Balances::saveLockKey);
-        
-        
         // Записваме новите данни
         if (count($toSave)) {
             $this->saveArray($toSave);
             $res = true;
         }
-        
         
         // Изтриваме старите записи, които не се срещат в новия
         if (count($toDelete)) {

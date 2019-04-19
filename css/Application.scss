@@ -444,6 +444,13 @@ div.folder-cover {
 	.tab-control .detail-info {
 		font-size: 0.9em;
 	}
+	.portal table.listTable .innerTable {
+		margin-left: 20px;
+		td {
+			border: none !important;
+		}
+	}
+
 }
 
 .dangerTitle {

@@ -3488,13 +3488,24 @@ td.leftColImportant {
     display: inline-block;
     width: 14px;
     text-align: center; }
-  .treelist #verbal {
+  .treelist .verbal {
     white-space: normal; }
+    .treelist .verbal a,
+    .treelist .verbal span {
+      background-color: #e4e4e4;
+      border: 1px solid #aaaaaa;
+      border-radius: 4px;
+      display: inline-block;
+      font-size: 0.8em;
+      padding: 1px 3px;
+      color: black !important;
+      opacity: 1;
+      font-family: Helvetica, Arial, Verdana, Sans-serif; }
   .treelist .hidden {
     display: none; }
   .treelist .plus {
     font-weight: bold;
     position: absolute;
     right: 5px;
-    top: 3px; }
+    top: 4px; }
 

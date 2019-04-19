@@ -113,7 +113,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
      *
      * @param stdClass $masterRec
      *
-     * @return id|NULL
+     * @return mixed
      */
     private static function getLastActiveBom($masterRec)
     {

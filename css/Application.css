@@ -378,6 +378,10 @@ div.folder-cover {
     padding: 5px 10px 10px 10px; }
   div.folder-cover .tab-control .detail-info {
     font-size: 0.9em; }
+  div.folder-cover .portal table.listTable .innerTable {
+    margin-left: 20px; }
+    div.folder-cover .portal table.listTable .innerTable td {
+      border: none !important; }
 
 .dangerTitle {
   color: #cc0000;

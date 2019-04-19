@@ -22,6 +22,11 @@ function planningActions() {
 		$(this).siblings('input').addClass('highlight');
 	});
 
+	$(document.body).on('click', ".navigation li.disabled a", function(e){
+		stopBtnDefault(e);
+	});
+
+
 	// Използване на числата за въвеждане на суми за плащания
 	$(document.body).on('click', ".tab-link", function(e){
 		var url = $(this).attr("data-url");

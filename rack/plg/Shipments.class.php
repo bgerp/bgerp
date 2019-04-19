@@ -155,7 +155,7 @@ class rack_plg_Shipments extends core_Plugin
         $readiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
         if(isset($readiness)){
             if($readiness != 1){
-                core_Statuses::newStatus('Документът не може да се контира, докато има още за нагласяне', 'error');
+                core_Statuses::newStatus('Документът не може да се контира, не е нагласен в зоните на палетния склад', 'error');
                 
                 return false;
             }

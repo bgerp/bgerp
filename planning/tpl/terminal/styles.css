@@ -261,6 +261,8 @@ body {
     .formHolder .formContent textarea {
       min-height: 90px;
       margin-top: 10px; }
+      .formHolder .formContent textarea.inputError {
+        border-color: #cc0000; }
     .formHolder .formContent select {
       height: 32px !important;
       border-color: #cccccc;

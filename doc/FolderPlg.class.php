@@ -231,6 +231,14 @@ class doc_FolderPlg extends core_Plugin
             $typeTime = cls::get('type_Time');
             $data->row->CloseTime = $typeTime->toVerbal($settings['closeTime']);
         }
+        
+        if ($settings['showDocumentsAsButtons']) {
+            $typeKeylist = cls::get('type_Keylist');
+            $typeKeylist->params['mvc'] = 'core_Classes';
+            $typeKeylist->params['select'] = 'title';
+            
+            $data->row->ShowDocumentsAsButtons = $typeKeylist->toVerbal($settings['showDocumentsAsButtons']);
+        }
     }
     
     
@@ -975,13 +983,22 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterGetDocButtonsInFolder($mvc, &$res, $id)
     {
-        if (!$res) {
-            
-            // Ако има зададени такива тях, иначе никои
+        setIfNot($res, array());
+        
+        $rec = $mvc->fetch($id);
+        
+        $allSysTeamId = type_UserOrRole::getAllSysTeamId();
+        $fKey = doc_Folders::getSettingsKey($rec->folderId);
+        $settings = core_Settings::fetchKeyNoMerge($fKey, $allSysTeamId);
+        
+        if ($settings['showDocumentsAsButtons']) {
+            $res += type_Keylist::toArray($settings['showDocumentsAsButtons']);
+        }
+        
+        if (empty($res)) {
+            // Ако има зададени класове по подразбиране
             if (isset($mvc->defaultDefaultDocuments)) {
                 $res = arr::make($mvc->defaultDefaultDocuments);
-            } else {
-                $res = array();
             }
         }
     }

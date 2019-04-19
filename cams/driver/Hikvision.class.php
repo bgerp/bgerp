@@ -23,8 +23,9 @@ class cams_driver_Hikvision extends cams_driver_IpDevice
     {
         parent::init($params);
         
-        setIfNot($this->width, 2688); //2688x1520, 1920x1080, 1280x720
-        setIfNot($this->height, 1520);
+        setIfNot($this->width, 1920); //2688x1520, 1920x1080, 1280x720
+        setIfNot($this->height, 1080);
+        setIfNot($this->FPS, 5);
         
         setIfNot($this->user, 'admin');
         setIfNot($this->password, 'Admin555');

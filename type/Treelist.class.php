@@ -26,6 +26,7 @@ class type_Treelist extends type_Keylist
     {
         parent::init($params);
         setIfNot($this->params['pathDivider'], '»');
+        setIfNot($this->params['classLink'], '');
     }
 
     /**
@@ -144,10 +145,11 @@ class type_Treelist extends type_Keylist
                 }
             }
         }
-        
+        static $tempId = 1;
         $verbal = $this->toVerbal($value);
 
-        $res = new ET("<div class='treelist'><a class='plus'' onclick='toggleDisplay(\"treelistUl\");toggleDisplay(\"verbal\");'>+</a><div id='verbal'>{$verbal}</div><ul id='treelistUl' style='display: none'>" . $html . "</ul></div>");
+        $res = new ET("<div class='treelist'><a class='plus'' onclick='toggleDisplay(\"treelistUl{$tempId}\");toggleDisplay(\"verbal{$tempId}\");'>+</a><div class='verbal' id='verbal{$tempId}'>{$verbal}</div><ul id='treelistUl{$tempId}' style='display: none'>" . $html . "</ul></div>");
+        $tempId++;
 
         jquery_Jquery::run($res, "setTrigger();", true);
 
