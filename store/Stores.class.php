@@ -57,13 +57,12 @@ class store_Stores extends core_Master
      */
     public $canList = 'ceo,storeWorker';
     
-
+    
     /**
      * Кой може да го разглежда?
      */
     public $canSelect = 'ceo,store,storeWorker';
     
-
     
     /**
      * Кой може да пише
@@ -155,14 +154,14 @@ class store_Stores extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'name=@Наименование, chiefs,activateRoles,selectUsers,selectRoles,workersIds=Товарачи';
-
-
+    
+    
     /**
      * Отделния ред в листовия изглед да е отгоре
      */
     public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
-
-
+    
+    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
@@ -322,8 +321,8 @@ class store_Stores extends core_Master
             unset($row->currentPlg);
         }
     }
-
-
+    
+    
     /**
      * Преди рендиране на таблицата
      */
@@ -331,7 +330,7 @@ class store_Stores extends core_Master
     {
         unset($data->listFields['currentPlg']);
     }
-
+    
     
     /**
      * Кои документи да се показват като бързи бутони в папката на корицата
@@ -340,7 +339,7 @@ class store_Stores extends core_Master
      *
      * @return array $res - възможните класове
      */
-    public function getDocButtonsInFolder($id)
+    public function getDocButtonsInFolder_($id)
     {
         $res = array();
         $res[] = planning_ConsumptionNotes::getClassId();

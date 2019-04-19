@@ -87,6 +87,10 @@ class myself_reports_TestReports extends frame2_driver_TableData
             $form->setField('duration', 'input=none');
            
         }
+        
+        $form->setDefault('from', dt::mysql2verbal(dt::addMonths(-12), $mask = 'Y-01-01'));
+        
+        $form->setDefault('duration', '1 год.');
        
         
     }
@@ -129,13 +133,16 @@ class myself_reports_TestReports extends frame2_driver_TableData
         
         //Артикулите , които са влагани в производство 
         
-        $details = array('planning_DirectProductionNote'=>'planning_DirectProductNoteDetails','planning_ConsumptionNotes'=>'planning_ConsumptionNoteDetails');
+        $detailsArr = array('planning_DirectProductionNote'=>'planning_DirectProductNoteDetails',
+                         'planning_ConsumptionNotes'=>'planning_ConsumptionNoteDetails',
+                         'planning_ReturnNotes'=>'planning_ReturnNoteDetails'
+        );
        
-        foreach ($details as $Master => $Details){
+        foreach ($detailsArr as $master => $details){
             
-            $plQuery = $Details::getQuery();
+            $plQuery = $details::getQuery();
             
-            $plQuery->EXT('valior', "$Master", 'externalName=valior,externalKey=noteId');
+            $plQuery->EXT('valior', "$master", 'externalName=valior,externalKey=noteId');
           
             $plQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
             
@@ -151,6 +158,21 @@ class myself_reports_TestReports extends frame2_driver_TableData
             $durationStr = cls::get('type_Time')->toVerbal($rec->duration);
             
             list($periodCount, $periodType)= explode(' ', $durationStr);
+            
+            
+            //Ако е избрано "Прогноза"
+            if($rec->prognose == 'yes' && isset($rec->period)){
+                
+                $firstDayOfMonth = (acc_Periods::fetch($rec->period)->start);
+            
+            $startDate = dt::mysql2verbal(dt::addMonths(-13,$firstDayOfMonth), $mask = 'Y-m-d');
+            
+            $rec->from = $startDate;
+            $periodCount = 3;
+            $periodType = 'мес.';
+            
+            }
+           
             
             //Край на избрания период за показване $dateEnd
             core_Lg::push('bg');
@@ -173,8 +195,11 @@ class myself_reports_TestReports extends frame2_driver_TableData
             
             $rec->to = $dateEnd;
             
-            $plQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
-           
+           // bp($rec->from,$dateEnd);
+            
+            if(isset($rec->from) && $dateEnd){
+                $plQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
+            }
             core_Lg::pop();
             
             //Филтър по групи артикули
@@ -183,10 +208,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
             }
             
             $plQuery->where("#canStore = 'yes' AND #canBuy = 'yes'");
-            
-        
-            $startDate = dt::mysql2verbal(dt::addMonths(-12), $mask = 'Y-01-01');
-            
+                
             while ($prodRec = $plQuery->fetch()){
                 
                 $id = $prodRec->productId;
@@ -199,8 +221,6 @@ class myself_reports_TestReports extends frame2_driver_TableData
                         'productId' => $prodRec->productId,                           //Id на артикула
                         'measure' => $prodRec->measureId,                             //Мярка\
                         'quantity' => $prodRec->quantity,                             //Текущ период - количество
-                        'genericId' => null,
-                        'generucQuantity' => null,
                         
                     );
                 } else {
@@ -209,9 +229,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
                     $obj->quantity += $prodRec->quantity;
                     
                 }
-                
-                
-                
+               
             }
         }
         //Генерично заменяеми артикули
@@ -232,7 +250,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
         //Всички влагани през периода артикули
         $prodIds = arr::extractValuesFromArray($allInProd, 'productId');
        
-        $genericProd = array();
+        $genericProd = $genericQuantity = array();
         
         foreach ($genericProducts as $key => $val){
               

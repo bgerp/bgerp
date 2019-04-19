@@ -217,7 +217,6 @@ class doc_UnsortedFolders extends core_Master
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование,mandatory');
         $this->FLD('description', 'richtext(rows=3, passage=Общи,bucket=Notes)', 'caption=Описание');
-        $this->FLD('showDocumentsAsButtons', 'keylist(mvc=core_Classes,select=title)', 'caption=Документи|*&#44; |които да се показват като бързи бутони в папката->Документи');
         $this->FLD('receiveEmail', 'enum(yes=Да, no=Не)', 'caption=Получаване на имейли->Избор');
         
         $this->setDbUnique('name');
@@ -692,56 +691,46 @@ class doc_UnsortedFolders extends core_Master
     
     
     /**
-     * Преди показване на форма за добавяне/промяна
-     */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        $suggestions = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
-        
-        // Ако проекта няма папка, взимаме ид-то на първата папка проект за да филтрираме възможните документи
-        // които могат да се добавтя към папка проект
-        $folderId = $data->form->rec->folderId;
-        if (!$data->form->rec->folderId) {
-            $query = $mvc->getQuery();
-            $query->where('#folderId IS NOT NULL');
-            $query->show('folderId');
-            $query->orderBy('id', 'ASC');
-            $folderId = $query->fetch()->folderId;
-        }
-        
-        // За всяко предложение, проверяваме може ли да бъде добавен
-        // такъв документ като нова нишка в папката
-        foreach ($suggestions as $classId => $name) {
-            if (!$folderId || !cls::get($classId)->canAddToFolder($folderId)) {
-                unset($suggestions[$classId]);
-            }
-        }
-        
-        $data->form->setSuggestions('showDocumentsAsButtons', $suggestions);
-        $data->form->setDefault('showDocumentsAsButtons', keylist::addKey('', cal_Tasks::getClassId()));
-    }
-    
-    
-    /**
      * Кои документи да се показват като бързи бутони в папката на корицата
      *
+     * @param doc_UnsortedFolders $mvc
+     * @param null|array $res
      * @param int $id - ид на корицата
      *
      * @return array $res - възможните класове
      */
-    public function getDocButtonsInFolder($id)
+    public function on_AfterGetDocButtonsInFolder($mvc, &$res, $id)
     {
-        $res = array();
-        $rec = $this->fetchRec($id);
-        if ($rec->showDocumentsAsButtons) {
-            $res = keylist::toArray($rec->showDocumentsAsButtons);
-        } else {
-            $res = array('cal_Tasks');
+        setIfNot($res, array());
+        $rec = $mvc->fetchRec($id);
+        
+        if (empty($res)) {
+            if (cal_Tasks::haveRightFor('add')) {
+                $res[] = 'cal_Tasks';
+            }
         }
         
         // Ако има клас с името на проекта, връщаме и него
         if ($defClassId = core_Classes::fetchField(array("#title = '[#1#]'", $rec->name), 'id')) {
             $res[] = $defClassId;
+        } else {
+            
+            // Ако името на папката е зададено в defaultFolder
+            
+            $docSuggestionsArr = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'id');
+            foreach ($docSuggestionsArr as $clsId) {
+                if (!cls::load($clsId, true)) continue;
+                
+                $clsInst = cls::get($clsId);
+                
+                if (!$clsInst->defaultFolder) continue;
+                
+                if ($clsInst->defaultFolder != $rec->name) continue;
+                
+                if ($clsInst->haveRightFor('add')) {
+                    $res[] = $clsId;
+                }
+            }
         }
         
         return $res;
