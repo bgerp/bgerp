@@ -222,7 +222,7 @@ class core_Mode
     public static function isReadOnly()
     {
         // Ако режима е xhtml, printing, pdf, inlineDocument
-        if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf') || Mode::is('inlineDocument')) {
+        if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) {
             
             return true;
         }
