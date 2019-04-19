@@ -562,6 +562,8 @@ class planning_Terminal extends core_Manager
             return new Redirect($url);
         }
         
+        $this->logRead('Търсене в терминала', $rec->id);
+        
         try {
             expect($search = Request::get('search', 'varchar'), 'Не е избрано по какво да се търси');
             
@@ -738,6 +740,7 @@ class planning_Terminal extends core_Manager
         $cookieId = "terminalTab{$rec->id}";
         jquery_Jquery::run($tpl, "setCookie('{$cookieId}', '{$aciveTabData['tab-id']}');");
         jquery_Jquery::run($tpl, 'planningActions();');
+        $this->logRead('Отваряне на точка за производство', $rec->id);
         
         return $tpl;
     }
