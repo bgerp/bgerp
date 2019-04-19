@@ -2496,7 +2496,6 @@ function getContextMenuFromAjax() {
         var id = $(this).attr('data-id');
         if(!data[id]) {
             openAjaxMenu(this);
-            console.log(id);
             data[id] = true;
         }
     });
