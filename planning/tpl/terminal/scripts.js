@@ -80,7 +80,7 @@ function planningActions() {
 			$('select').trigger("change");
 		}
 		
-		
+		$("input[name=serial]").val("");
 	});
 
 	$(document.body).on('click', ".changeTab ", function(e){
