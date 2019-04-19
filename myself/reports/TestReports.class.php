@@ -19,7 +19,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,acc,sales,purchase';
+    public $canSelectDriver = 'ceo,acc,sales,purchase,debug';
     
     
     /**
@@ -57,9 +57,6 @@ class myself_reports_TestReports extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=Период->От,after=period,single=none');
         $fieldset->FLD('duration','time(suggestions=1 седмица| 1 месец| 2 месеца| 3 месеца| 6 месеца| 12 месеца)', 'caption=Период->Продължителност,after=from,single=none');
        
-        
-        
-       
         $fieldset->FLD('group', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,after=duration,single=none');
         
         
@@ -88,7 +85,9 @@ class myself_reports_TestReports extends frame2_driver_TableData
            
         }
         
-        $form->setDefault('from', dt::mysql2verbal(dt::addMonths(-12), $mask = 'Y-01-01'));
+        $dat=dt::today()-1;
+       
+        $form->setDefault('from',date("01.01.$dat"));
         
         $form->setDefault('duration', '1 год.');
        
@@ -108,7 +107,6 @@ class myself_reports_TestReports extends frame2_driver_TableData
     {
         $rec = $form->rec;
         
-        
         if ($form->isSubmitted()) {
            
         }
@@ -125,40 +123,85 @@ class myself_reports_TestReports extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        //Продължителност на периода за показване
-        $durationStr = cls::get('type_Time')->toVerbal($rec->duration);
-        
-        list($periodCount, $periodType)= explode(' ', $durationStr);
-        
-        
+        $recs = array();
+       
         //Ако е избрано "Прогноза"
         if($rec->prognose == 'yes' && isset($rec->period)){
             
-          //  $today = dt::today();
-            
-           // $startDate =dt::mysql2verbal(dt::addMonths(-3,$firstDayOfMonth), $mask = 'Y-m-01');
-            
             $firstDayOfMonth = (acc_Periods::fetch($rec->period)->start);
             
-            $startDate = dt::mysql2verbal(dt::addMonths(-13,$firstDayOfMonth), $mask = 'Y-m-d');
+            $startDate = dt::addMonths(-13,$firstDayOfMonth,false);
+           
+            $endDate = dt::addDays(-1,dt::addMonths(3,$startDate),false);
             
-            $rec->from = $startDate;
-            $periodCount = 3;
-            $periodType = 'мес.';
+            //Масив с коефициенти
+           // $today = date_format(new DateTime('10.04.2017'), 'Y-m-d');
+            $today = dt::today();
             
-        }
-        
-        $dateEnd = self::getEndOfPeriod($rec,$periodCount, $periodType);
-        
-        $rec->to = $dateEnd;
-        
-        $allInProd = self::getInputArticuls($rec->from, $dateEnd);
-        
-        
+            $beginDate = dt::addDays(1,dt::getLastDayOfMonth(dt::addMonths(-4,$today)),false);
+            $lastDate = dt::addDays(-1,dt::addMonths(3,$beginDate),false);
+            
+            $beginDateYear = dt::addMonths(-12,$beginDate);
+            $lastDateYear = dt::addMonths(-12,$lastDate);
+            
+            $NowArrForCoef = self::getInputArticuls($rec, $beginDate, $lastDate);
+            $LastArrForCoef = self::getInputArticuls($rec, $beginDateYear, $lastDateYear);
          
-        $recs = array();
+            $coefficients = array();
+            foreach ($LastArrForCoef as $key => $val){
+                
+                if (!in_array($key, array_keys($NowArrForCoef))) {
+                    $coefficients[$key] = 0;
+                    continue;
+                }
+                
+                foreach ($NowArrForCoef as $k => $v){
+                    
+                    if (!in_array($k, array_keys($LastArrForCoef))) {
+                        $coefficients[$key] = 1 ;
+                        continue;
+                    }
+            
+                    if ($key == $k) { 
+                        $coefficients[$key] = $v->quantity/$val->quantity; 
+                    }
+                   
+                }
+                
+            }
+            
+        }else{
+            
+            $startDate = $rec->from;
+            $endDate = dt::addSecs($rec->duration, $rec->from,false);
+        }
+      
+        $rec->from = $startDate;
+        $rec->to = $endDate;
         
-     
+        $allInProd = self::getInputArticuls($rec,$startDate,$endDate);
+        
+        if($rec->prognose == 'yes' && isset($rec->period)){
+       
+            foreach ($allInProd as $key => $val){
+            
+                $val->quantity = $val->quantity/3;
+                
+                if (!in_array($key, array_keys($coefficients))) {
+                       $allInProd[$key]->coefficient = 0;
+                       continue;
+                }
+                
+                foreach ($coefficients as $prId => $coef){
+                    
+                    if ($key == $prId) {
+                        $allInProd[$key]->coefficient = $coef;
+                    }
+                  
+                }
+            }
+        }
+      
         //Генерично заменяеми артикули
         $queryS = planning_ObjectResources::getQuery();
         
@@ -173,7 +216,6 @@ class myself_reports_TestReports extends frame2_driver_TableData
             }
         }
         
-        
         //Всички влагани през периода артикули
         $prodIds = arr::extractValuesFromArray($allInProd, 'productId');
        
@@ -181,7 +223,6 @@ class myself_reports_TestReports extends frame2_driver_TableData
         
         foreach ($genericProducts as $key => $val){
               
-            
             $result = array_intersect($prodIds, $val);  //Влагни артикули, който са от групата на генеричния
             
             
@@ -195,16 +236,16 @@ class myself_reports_TestReports extends frame2_driver_TableData
                     'productId' => $v,
                     'measure' => $allInProd[$v]->measure,
                     'quantity' => $allInProd[$v]->quantity,
+                    'coefficient' => $allInProd[$v]->coefficient,
                     'genericId' => $key,
                 );
                 
             }
             
         }
-             
+       
               $genProdIds = arr::extractValuesFromArray($genericProd, 'productId');
-              
-              
+            
               //Изключваме от общия масив онези артикули, които са част от генеричен артикул
               foreach ($allInProd as $key => $val){
                   
@@ -214,15 +255,16 @@ class myself_reports_TestReports extends frame2_driver_TableData
                       
                   }
               }
-              
+               
               // Включваме артикулите, които са съставни на генеричните в общия масив
               foreach ($genericProd as $key =>$val){
                   
                   $val->generucQuantity = $genericQuantity[$val->genericId]; 
-                  
+                 
                   array_unshift($allInProd, $val);
                    
               }
+             
              $recs = $allInProd;
         
         return $recs;
@@ -250,6 +292,13 @@ class myself_reports_TestReports extends frame2_driver_TableData
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             
             $fld->FLD('quantity', 'varchar', "caption=Вложено");
+            
+            if($rec->prognose == 'yes'){
+                
+                $fld->FLD('coefficient', 'varchar', "caption=Коефициент");
+                $fld->FLD('prognose', 'varchar', "caption=Прогноза");
+                
+            }
         } else {
            
         }
@@ -257,8 +306,6 @@ class myself_reports_TestReports extends frame2_driver_TableData
         return $fld;
     }
     
-    
-   
     
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
@@ -299,6 +346,10 @@ class myself_reports_TestReports extends frame2_driver_TableData
         
         $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
         
+        $row->coefficient = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->coefficient);
+        
+        $row->prognose = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->coefficient * $dRec->quantity);
+        
         return $row;
     }
     
@@ -328,25 +379,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        $res->paidAmount = (self::getPaidAmount($dRec));
-        
-        $res->paidDates = self::getPaidDates($dRec, false);
-        
-        $res->dueDate = self::getDueDate($dRec, false, $rec);
-        
-        if ($dRec->invoiceCurrentSumm < 0) {
-            $invoiceOverSumm = - 1 * $dRec->invoiceCurrentSumm;
-            $res->invoiceCurrentSumm = '';
-            $res->invoiceOverSumm = ($invoiceOverSumm);
-        }
-        
-        if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
-            $res->dueDateStatus = 'Просрочен';
-        }
-        
-        $invoiceNo = str_pad($dRec->invoiceNo, 10, '0', STR_PAD_LEFT);
-        
-        $res->invoiceNo = $invoiceNo;
+      
     }
     
     /*
@@ -358,7 +391,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
      *
      * @return array          Масив артикули и количества
      */
-    public static function getInputArticuls($startDate,$endDate)
+    public static function getInputArticuls($rec,$startDate,$endDate)
     {
         $detailsArr = array('planning_DirectProductionNote'=>'planning_DirectProductNoteDetails',
                             'planning_ConsumptionNotes'=>'planning_ConsumptionNoteDetails',
@@ -428,40 +461,5 @@ class myself_reports_TestReports extends frame2_driver_TableData
         return $allInProd;
         
     }
-    
-    /*
-     * Крайна дата на период
-     *
-     * @param int               продължителност  на периода
-     * @param string            тип  на периода
-     *
-     * @return date          Крайна дата на период
-     */
-    public static function getEndOfPeriod($rec,$periodCount,$periodType)
-    {
-        core_Lg::push('bg');
-        
-        if ($periodType == 'дни' || $periodType == 'ден' || $periodType == 'дена'){
-            $dateEnd = dt::addDays($periodCount-1, $rec->from, false);
-        }
-        
-        if ($periodType == 'мес.'){
-            $dateEnd = dt::addMonths($periodCount, $rec->from, false);
-            $dateEnd = dt::addDays(-1, $dateEnd, false);
-        }
-        
-        if ($periodType == 'год.'){
-            
-            $monts = 12*$periodCount;
-            $dateEnd = dt::addMonths($monts, $rec->from, false);
-            $dateEnd = dt::addDays(-1, $dateEnd, false);
-        }
-        
-        core_Lg::pop();
-        
-        return $dateEnd;
-    }
-    
-    
     
 }
