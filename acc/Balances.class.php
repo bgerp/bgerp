@@ -263,7 +263,7 @@ class acc_Balances extends core_Master
     /**
      * Връща последния баланс, на който крайната дата е преди друга дата и е валиден
      */
-    public function getBalanceBefore($date)
+    public static function getBalanceBefore($date)
     {
         $query = self::getQuery();
         $query->orderBy('#toDate', 'DESC');
@@ -380,13 +380,13 @@ class acc_Balances extends core_Master
     /**
      * Изчисляване на баланс
      */
-    public function calc($rec)
+    public static function calc($rec)
     {
         // Вземаме инстанция на детайлите на баланса
         $bD = cls::get('acc_BalanceDetails');
         
         // Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
-        $lastRec = $this->getBalanceBefore($rec->toDate);
+        $lastRec = self::getBalanceBefore($rec->toDate);
         
         if ($lastRec) {
             
