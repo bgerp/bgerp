@@ -167,11 +167,22 @@ body {
   .planning-task-progress th {
     display: none; }
 
+.extended-quantity,
+.extended-weight {
+  display: inline-block;
+  margin: 0 5px; }
+
+.taskHolder {
+  float: left;
+  margin-left: 40px;
+  width: 700px; }
+
 .title {
   margin: 0 0 10px !important; }
 
 #task-support-content .formHolder {
-  width: 600px; }
+  width: 600px;
+  float: left; }
 
 .searchHolder {
   position: absolute;
@@ -298,6 +309,13 @@ body {
 
 @media handheld,
 only screen and (min-width: 760px) and (max-width: 800px) {
+  .taskHolder {
+    clear: both;
+    float: none;
+    width: 100%;
+    padding-top: 40px;
+    margin-left: 0; }
+
   .wide table.listAction {
     min-width: 480px; }
 
@@ -388,6 +406,13 @@ only screen and (min-width: 760px) and (max-width: 800px) {
 
 @media handheld,
 only screen and (max-width:740px) {
+  .taskHolder {
+    clear: both;
+    float: none;
+    width: 100%;
+    padding-top: 40px;
+    margin-left: 0; }
+
   .terminalHeader {
     padding: 5px; }
     .terminalHeader .fleft .logo img {
@@ -412,10 +437,13 @@ only screen and (max-width:740px) {
       font-size: 0.9em; }
     .terminalHeader #dateHolder {
       margin-right: 5px; }
-    .terminalHeader #searchBtn {
-      background-image: url("../../../img/24/qr.png") !important;
+    .terminalHeader .formBtn {
       background-size: 24px 24px !important;
       background-repeat: no-repeat; }
+    .terminalHeader .qrBtn {
+      background-image: url("../../../img/24/qr.png") !important; }
+    .terminalHeader .search {
+      background-image: url("../../../img/24/search.png") !important; }
 
   .searchHolder {
     position: relative;

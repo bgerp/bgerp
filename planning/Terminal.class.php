@@ -141,14 +141,14 @@ class planning_Terminal extends core_Manager
         if(!empty($tasks)){
             arsort($tasks);
             
-            $tpl->append("<table class='taks-from-terminal'>");
+            $tpl->append("<div class='fleft taskHolder'><table class='listTable'>");
             foreach ($tasks as $taskId){
                 $taskRec = cal_Tasks::fetch($taskId, 'state,progress,createdOn');
                 $taskRow = cal_Tasks::recToVerbal($taskRec, 'progressBar,progress,createdOn');
                 $taskRow->title = cal_Tasks::getHyperlink($taskRec->id, true);
                 $tpl->append("<tr class='state-{$taskRec->state}'><td>{$taskRow->title}</td><td>{$taskRow->progressBar} {$taskRow->progress}</td><td>{$taskRow->createdOn}</td></tr>");
             }
-            $tpl->append("</table>");
+            $tpl->append("</table></div><div class='clearfix21'></div>");
         }
         
         return  $tpl;

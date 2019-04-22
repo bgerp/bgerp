@@ -203,12 +203,22 @@ body {
 		display: none;
 	}
 }
+.extended-quantity, .extended-weight {
+	display: inline-block;
+	margin: 0 5px;
+}
+.taskHolder{
+	float: left;
+	margin-left: 40px;
+	width: 700px;
+}
 .title {
 	margin: 0 0 10px !important;
 }
 
 #task-support-content .formHolder {
 	width: 600px;
+	float: left;
 }
 .searchHolder {
 	position: absolute;
@@ -358,6 +368,13 @@ body {
 	background-color: #fefeb7;
 }
 @media handheld, only screen and (min-width: 760px) and (max-width: 800px) {
+	.taskHolder {
+		clear: both;
+		float: none;
+		width: 100%;
+		padding-top: 40px;
+		margin-left: 0;
+	}
 	.wide table.listAction {
 		min-width: 480px;
 	}
@@ -461,6 +478,13 @@ body {
 }
 
 @media handheld, only screen and (max-width:740px) {
+	.taskHolder {
+		clear: both;
+		float: none;
+		width: 100%;
+		padding-top: 40px;
+		margin-left: 0;
+	}
 	.terminalHeader {
 		padding: 5px;
 		.fleft .logo img {
@@ -491,10 +515,15 @@ body {
 		#dateHolder {
 			margin-right: 5px;
 		}
-		#searchBtn {
-			background-image: url("../../../img/24/qr.png") !important;
+		.formBtn {
 			background-size: 24px 24px !important;
 			background-repeat: no-repeat;
+		}
+		.qrBtn {
+			background-image: url("../../../img/24/qr.png") !important;
+		}
+		.search {
+			background-image: url("../../../img/24/search.png") !important;
 		}
 	}
 
