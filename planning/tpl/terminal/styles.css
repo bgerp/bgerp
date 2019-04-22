@@ -116,10 +116,14 @@ body {
   .narrow .planning-terminal-numpad {
     background: url("../../../img/16/numpad.png") center no-repeat !important;
     border: none !important; }
-  .narrow #searchBtn {
-    background-image: url("../../../img/24/qr.png") !important;
-    background-size: 24px 24px !important;
+  .narrow .qrBtn,
+  .narrow .search {
+    background-size: 20px 20px !important;
     background-repeat: no-repeat; }
+  .narrow .qrBtn {
+    background-image: url("../../../img/24/qr.png") !important; }
+  .narrow .search {
+    background-image: url("../../../img/24/search.png") !important; }
 
 .terminalHeader {
   padding: 15px;
@@ -180,18 +184,23 @@ body {
     position: relative;
     top: 3px;
     border: 1px solid #cccccc;
-    border-radius: 3px; }
-  .searchHolder .qrBtn {
-    float: left;
-    width: 32px;
-    height: 32px;
-    background-size: 24px 24px;
+    border-radius: 3px;
+    padding-left: 30px; }
+  .searchHolder .formBtn {
+    width: 26px;
+    height: 26px;
+    background-size: 20px 20px;
     background-position: center;
     box-sizing: border-box;
     padding: 0 !important;
     border: none !important;
     background-color: rgba(0, 0, 0, 0) !important; }
-    .searchHolder .qrBtn:focus {
+    .searchHolder .formBtn.qrBtn {
+      position: absolute;
+      left: 3px;
+      top: 3px;
+      z-index: 10; }
+    .searchHolder .formBtn:focus {
       box-shadow: none;
       outline: none; }
 

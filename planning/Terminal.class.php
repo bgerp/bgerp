@@ -318,8 +318,11 @@ class planning_Terminal extends core_Manager
         $tpl->append($searchInput, 'searchInput');
         
         $searchUrl = toUrl(array($this, 'search', $rec->id), 'local');
-        $searchBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/qr.png', 'id' => 'searchBtn','class' => 'qrBtn',  'data-url' => $searchUrl, 'title' => 'Търсене по баркод'));
+
+        $scanBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/qr.png','class' => 'formBtn qrBtn',  'data-url' => $searchUrl, 'title' => 'Търсене по баркод'));
+        $searchBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/search.png', 'id' => 'searchBtn','class' => 'formBtn search',  'title' => 'Търсене по баркод'));
         $tpl->append($searchBtn, 'searchBtn');
+        $tpl->append($scanBtn, 'scanBtn');
         
         return $tpl;
     }
