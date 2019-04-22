@@ -138,7 +138,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
             
             //Масив с коефициенти
             if ($rec->today){
-            $today = date_format(new DateTime('10.04.2017'), 'Y-m-d');
+                $today = $rec->today;
             }else {
             $today = dt::today();
             }
