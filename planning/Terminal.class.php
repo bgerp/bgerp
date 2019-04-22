@@ -104,6 +104,7 @@ class planning_Terminal extends core_Manager
                         'description' => $form->rec->body,
                         'typeId' => support_IssueTypes::fetchField("#type = 'Повреда'"),
                         'assetResourceId' => $form->rec->asset,
+                        'state' => 'pending',
                         'title' => str::limitLen(strip_tags($form->getFieldType('body')->toVerbal($form->rec->body)), 64),
                     );
                     
