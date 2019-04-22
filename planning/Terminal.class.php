@@ -148,7 +148,7 @@ class planning_Terminal extends core_Manager
                 $taskRow->title = cal_Tasks::getHyperlink($taskRec->id, true);
                 $tpl->append("<tr class='state-{$taskRec->state}'><td>{$taskRow->title}</td><td>{$taskRow->progressBar} {$taskRow->progress}</td><td>{$taskRow->createdOn}</td></tr>");
             }
-            $tpl->append("</table></div><div class='clearfix21'></div>");
+            $tpl->append("</table></div>");
         }
         
         return  $tpl;
