@@ -742,21 +742,24 @@ class planning_Terminal extends core_Manager
         $pageTitle = $rec->name . ((!empty($verbalAsset) ? " « " . strip_tags($verbalAsset) : ""));
         $pageTitle .= " « " . strip_tags($centerName);
         $tpl->replace($pageTitle, 'PAGE_TITLE');
+        Mode::setPermanent("activeTab{$rec->id}", $this->getActiveTab($rec));
+        $activeTab = Mode::get("activeTab{$rec->id}");
         
         // Ако няма избрана операция, забраняват се определени бутони
         if(!Mode::get("currentTaskId{$rec->id}")){
             $tpl->replace('disabled', 'activeSingle');
             $tpl->replace('disabled', 'activeJob');
             $tpl->replace('disabled', 'activeTask');
-            $tpl->replace('active', 'activeAll');
+            
+            if($activeTab == 'taskList'){
+                $tpl->replace('active', 'activeAll');
+            }
         }
         
         // Кой е активния таб ? Показване на формата за търсене по баркод
-        Mode::setPermanent("activeTab{$rec->id}", $this->getActiveTab($rec));
         $tpl->replace($this->getSearchTpl($rec), "SEARCH_FORM");
         
         // Рендиране на активния таб
-        $activeTab = Mode::get("activeTab{$rec->id}");
         expect($aciveTabData = self::TAB_DATA[$activeTab]);
         $tableTpl = $this->{$aciveTabData['fnc']}($rec);
         $tpl->replace($tableTpl, $aciveTabData['placeholder']);
