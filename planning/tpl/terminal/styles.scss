@@ -402,6 +402,7 @@ body {
 	.planning_ProductionTaskDetails {
 		width: 500px;
 	}
+
 	.formHolder {
 		margin-right: 0px;
 		width: 240px !important;
@@ -430,6 +431,9 @@ body {
 				max-height: 28px !important;
 			}
 		}
+	}
+	#task-support-content .formContent, #task-support-content .formHolder {
+		width: 100% !important;
 	}
 	.searchBarcode {
 		width: 160px;
