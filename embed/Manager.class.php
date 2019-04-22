@@ -88,7 +88,13 @@ class embed_Manager extends core_Master
         // Ако няма достъпни драйвери редирект със съобщение
         if (!count($interfaces)) {
             if ($this->mandatoryDriverField === true) {
-                followRetUrl(null, '|Липсват възможни видове|* ' . $this->title, 'error');
+                $intf = cls::get($this->driverInterface);
+                $msg = '|Липсват опции за|* |' . $intf->driversCommonName;
+                if (haveRole('admin')) {
+                    redirect(array('core_Packs'), false, $msg, 'error');
+                } else {
+                    followRetUrl(null, $msg, 'error');
+                }
             } else {
                 $form->setField($this->driverClassField, 'input=none');
             }
@@ -429,5 +435,18 @@ class embed_Manager extends core_Master
         }
         
         return false;
+    }
+    
+    
+    /**
+     * Филтрира заявката по класа на посочения драйвер
+     */
+    public function filterQueryByDriverClass($driverClass, $query = null)
+    {
+        if (!is_object($query)) {
+            $query = static::getQuery();
+        }
+        $classId = core_Classes::getId($driverClass);
+        $query->where("#{$query->mvc->driverClassField} = ${classId}");
     }
 }

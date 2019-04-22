@@ -473,12 +473,12 @@ class core_Classes extends core_Manager
                 if (self::$staticInterfaceMehods[$intName]) {
                     $hint = implode(', ', self::$staticInterfaceMehods[$intName]);
                     $hint = 'Статични методи: ' . $hint;
-                    $verbalInterfaces .= " <span class='interface-container not-implemented' style='color:red;'  title='{$hint}'>{$intName}</span>";
+                    $verbalInterfaces .= ' ' . ht::createHint("<span class='interface-container not-implemented' style='color:red;'>{$intName}</span>", $hint, 'error');
                 } elseif (!count($notImplemented)) {
                     $verbalInterfaces .= " <span class='interface-container not-implemented' style='color:green;'>{$intName}</span>";
                 } else {
-                    $hint = implode(', ', $notImplemented);
-                    $verbalInterfaces .= " <span class='interface-container implemented' style='color:orange;' title='{$hint}'>{$intName}</span>";
+                    $hint = "Не са имплементирани: " . implode(', ', $notImplemented);
+                    $verbalInterfaces .= ' ' . ht::createHint("<span class='interface-container not-implemented' style='color:orange;'>{$intName}</span>", $hint, 'warning');
                 }
             }
         }
