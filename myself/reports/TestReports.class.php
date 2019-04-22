@@ -49,6 +49,8 @@ class myself_reports_TestReports extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
+        $fieldset->FLD('today', 'date', 'caption=Днес,after=title,single=none');
+        
         //Период
         $fieldset->FLD('prognose', 'set(yes = )',  'caption=Прогноза,after=title,refreshForm,silent,single=none');
         
@@ -135,8 +137,11 @@ class myself_reports_TestReports extends frame2_driver_TableData
             $endDate = dt::addDays(-1,dt::addMonths(3,$startDate),false);
             
             //Масив с коефициенти
-           // $today = date_format(new DateTime('10.04.2017'), 'Y-m-d');
+            if ($rec->today){
+            $today = date_format(new DateTime('10.04.2017'), 'Y-m-d');
+            }else {
             $today = dt::today();
+            }
             
             $beginDate = dt::addDays(1,dt::getLastDayOfMonth(dt::addMonths(-4,$today)),false);
             $lastDate = dt::addDays(-1,dt::addMonths(3,$beginDate),false);
