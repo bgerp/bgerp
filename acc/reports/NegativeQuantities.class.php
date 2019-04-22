@@ -237,9 +237,9 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
                 'ent2Id' => $dRec->articulId
             );
             
-            $row->store .= ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
+            $row->store .= "<div class='nowrap'>" . ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
             
-            $row->store .= store_Stores::getHyperlink($storeId, true) . '</br>';
+            $row->store .= store_Stores::getHyperlink($storeId, true) . '</div>';
             
             $color = 'green';
             if ($val < 0) {
