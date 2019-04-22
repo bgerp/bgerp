@@ -104,9 +104,9 @@ class planning_Terminal extends core_Manager
                         'description' => $form->rec->body,
                         'typeId' => support_IssueTypes::fetchField("#type = 'Повреда'"),
                         'assetResourceId' => $form->rec->asset,
-                        'title' => $assetRec->name,
-                        
+                        'title' => str::limitLen(strip_tags($form->getFieldType('body')->toVerbal($form->rec->body)), 64),
                     );
+                    
                     cal_Tasks::save($newTask);
                     doc_ThreadUsers::addShared($newTask->threadId, $newTask->containerId, core_Users::getCurrent());
                     
