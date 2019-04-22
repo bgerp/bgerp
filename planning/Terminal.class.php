@@ -110,6 +110,7 @@ class planning_Terminal extends core_Manager
                     
                     cal_Tasks::save($newTask);
                     doc_ThreadUsers::addShared($newTask->threadId, $newTask->containerId, core_Users::getCurrent());
+                    planning_Points::addSentTasks($rec, $newTask->id);
                     
                     redirect(array($this, 'open', $rec->id), false, "Успешно пуснат сигнал|* #Tsk{$newTask->id}");
                 }
@@ -118,12 +119,39 @@ class planning_Terminal extends core_Manager
         
         $form->toolbar->addSbBtn('Подаване', 'default', 'id=filter', 'title=Подаване на сигнал за повреда на оборудването');
         $form->class = 'simpleForm';
-        
         $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/SupportFormLayout.shtml');
         $tpl->append($form->renderHtml(), 'FORM');
         $tpl->removeBlocksAndPlaces();
+        $tpl->append($this->getTasksList($rec->tasks));
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Показване на активните сигнали, пуснати от терминала
+     *
+     * @param mixed $id
+     * @return core_ET $tpl
+     */
+    private function getTasksList($tasks)
+    {
+        $tpl = new core_ET("");
+        $tasks = keylist::toArray($tasks);
+        if(!empty($tasks)){
+            arsort($tasks);
+            
+            $tpl->append("<table class='taks-from-terminal'>");
+            foreach ($tasks as $taskId){
+                $taskRec = cal_Tasks::fetch($taskId, 'state,progress,createdOn');
+                $taskRow = cal_Tasks::recToVerbal($taskRec, 'progressBar,progress,createdOn');
+                $taskRow->title = cal_Tasks::getHyperlink($taskRec->id, true);
+                $tpl->append("<tr class='state-{$taskRec->state}'><td>{$taskRow->title}</td><td>{$taskRow->progressBar} {$taskRow->progress}</td><td>{$taskRow->createdOn}</td></tr>");
+            }
+            $tpl->append("</table>");
+        }
+        
+        return  $tpl;
     }
     
     

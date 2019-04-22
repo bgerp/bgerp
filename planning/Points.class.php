@@ -47,6 +47,12 @@ class planning_Points extends core_Manager
     
     
     /**
+     * Последно колко задачи да се помнят
+     */
+    const REMEMBER_MAX_TASKS = 10;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -56,6 +62,7 @@ class planning_Points extends core_Manager
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks,allowEmpty)', 'caption=Оборудване, input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,allowEmpty)', 'caption=Оператори, input=none');
         $this->FLD('state', 'enum(active=Контиран,rejected=Оттеглен)', 'caption=Състояние,notNull,value=active,input=none');
+        $this->FLD('tasks', 'keylist(mvc=cal_Tasks,select=id)', 'caption=Задачи,input=none');
         
         $this->setDbIndex('centerId');
     }
@@ -237,5 +244,25 @@ class planning_Points extends core_Manager
         }
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Добавя към точката последно изпратената задача от нея, 
+     * ако станат над определен брой, най-старата се затрива
+     * 
+     * @param stdClass $rec
+     * @param int $taskId
+     */
+    public static function addSentTasks($rec, $taskId)
+    {
+        $tasks = keylist::toArray($rec->tasks);
+        $tasks[$taskId] = $taskId;
+        if(count($tasks) > self::REMEMBER_MAX_TASKS){
+            unset($tasks[key($tasks)]);
+        }
+        
+        $rec->tasks = keylist::fromArray($tasks);
+        self::save($rec, 'tasks');
     }
 }
