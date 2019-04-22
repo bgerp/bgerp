@@ -151,6 +151,8 @@ class myself_reports_TestReports extends frame2_driver_TableData
             
             $NowArrForCoef = self::getInputArticles($rec, $beginDate, $lastDate);
             $LastArrForCoef = self::getInputArticles($rec, $beginDateYear, $lastDateYear);
+            
+           
          
             $coefficients = array();
             foreach ($LastArrForCoef as $key => $val){
@@ -173,7 +175,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
                    
                 }
                 
-            }
+            } bp($today,$beginDate,$beginDateYear,$lastDate,$lastDateYear,$NowArrForCoef,$LastArrForCoef,$coefficients);
             
         }else{
             
