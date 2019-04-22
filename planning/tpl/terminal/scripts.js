@@ -58,10 +58,18 @@ function planningActions() {
 		$('input[id^="employees"]:checked').each(function () {
 			employees.push($(this).val());
 		});
-		var weight = $("input[name=weight]").val();
+		
 		var fixedAsset = $("#fixedAssetSelect").val();
 		var taskId = $("input[name=taskId]").val();
 
+		var weight = $("input[name=weight]").val();
+		if(!weight){
+			var weightLive = $("input[name=weight]").attr('placeholder');
+			if($.isNumeric(weightLive)){
+				weight = weightLive;
+			}
+		}
+		
 		var data = {serial:serial,taskId:taskId,productId:productId,quantity:quantity,employees:employees,fixedAsset:fixedAsset,weight:weight,type:type};
 		getEfae().process(resObj, data);
 		$("input[name=serial]").val("");
