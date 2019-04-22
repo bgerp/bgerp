@@ -77,9 +77,9 @@ class tcost_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.5, 'Логистика', 'Навла', 'tcost_FeeZones', 'default', "tcost, ceo"),
-        );
+//     var $menuItems = array(
+//             array(3.5, 'Логистика', 'Навла', 'tcost_FeeZones', 'default', "tcost, ceo"),
+//         );
 	
 	
     /**

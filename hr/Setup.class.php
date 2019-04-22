@@ -131,9 +131,9 @@ class hr_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(2.31, 'Счетоводство', 'Персонал', 'hr_Leaves', 'default', "ceo, hrLeaves, admin"),
-        );
+//     var $menuItems = array(
+//             array(2.31, 'Счетоводство', 'Персонал', 'hr_Leaves', 'default', "ceo, hrLeaves, admin"),
+//         );
 
     
     /**

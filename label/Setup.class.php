@@ -43,9 +43,9 @@ class label_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.66, 'Производство', 'Етикетиране', 'label_Prints', 'default', "label, admin, ceo"),
-        );
+//     var $menuItems = array(
+//             array(3.66, 'Производство', 'Етикетиране', 'label_Prints', 'default', "label, admin, ceo"),
+//         );
     
         
     // Инсталиране на мениджърите

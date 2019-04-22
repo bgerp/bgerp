@@ -60,9 +60,9 @@ class incoming_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(1.24, 'Документи', 'Входящи', 'incoming_Documents', 'default', "ceo"),
-        );
+//     var $menuItems = array(
+//             array(1.24, 'Документи', 'Входящи', 'incoming_Documents', 'default', "ceo"),
+//         );
     
         
     /**

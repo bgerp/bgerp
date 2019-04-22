@@ -91,37 +91,37 @@ class doc_Wrapper extends plg_ProtoWrapper
             }
         }
         
-        $this->TAB($containersUrl, 'Нишка', 'powerUser');
+//         $this->TAB($containersUrl, 'Нишка', 'powerUser');
         
-        $this->TAB('doc_Search', 'Търсене', 'powerUser');
+//         $this->TAB('doc_Search', 'Търсене', 'powerUser');
         
-        $this->TAB('doc_Files', 'Файлове', 'powerUser');
+//         $this->TAB('doc_Files', 'Файлове', 'powerUser');
         
-        $this->TAB('doc_UnsortedFolders', 'Проекти', 'admin,ceo');
+//         $this->TAB('doc_UnsortedFolders', 'Проекти', 'admin,ceo');
         
-        // Показва таба за Шаблони, само ако имаме права за листване
-        $this->TAB('doc_TplManager', 'Изгледи||Views', 'ceo,admin');
+//         // Показва таба за Шаблони, само ако имаме права за листване
+//         $this->TAB('doc_TplManager', 'Изгледи||Views', 'ceo,admin');
         
-        // Показва таба за Бележки, само ако имаме права за листване
-        $this->TAB('doc_Notes', 'Дебъг->Бележки', 'debug');
+//         // Показва таба за Бележки, само ако имаме права за листване
+//         $this->TAB('doc_Notes', 'Дебъг->Бележки', 'debug');
              
-        // Показва таба за коментари, само ако имаме права за листване
-        $this->TAB('doc_Comments', 'Дебъг->Коментари', 'debug');
+//         // Показва таба за коментари, само ако имаме права за листване
+//         $this->TAB('doc_Comments', 'Дебъг->Коментари', 'debug');
         
-        $this->TAB('doc_View', 'Дебъг->Изгледи', 'debug');
+//         $this->TAB('doc_View', 'Дебъг->Изгледи', 'debug');
 
-        // Показва таба генерирани PDF файлове, ако имаме права
-        $this->TAB('doc_PdfCreator', 'Дебъг->PDF файлове', 'debug');
+//         // Показва таба генерирани PDF файлове, ако имаме права
+//         $this->TAB('doc_PdfCreator', 'Дебъг->PDF файлове', 'debug');
         
-        // Показва таба генерирани PDF файлове, ако имаме права
-        $this->TAB('doc_ThreadUsers', 'Дебъг->Отношения', 'debug');
+//         // Показва таба генерирани PDF файлове, ако имаме права
+//         $this->TAB('doc_ThreadUsers', 'Дебъг->Отношения', 'debug');
         
-        $this->TAB('doc_Likes', 'Дебъг->Харесвания', 'debug');
+//         $this->TAB('doc_Likes', 'Дебъг->Харесвания', 'debug');
         
-        // Кеш за нишките от документи
-        $this->TAB('doc_DocumentCache', 'Дебъг->Кеш', 'debug');
-        $this->TAB('doc_Prototypes', 'Дебъг->Шаблони', 'debug');
-        $this->TAB('doc_Linked', 'Дебъг->Връзки', 'debug');
+//         // Кеш за нишките от документи
+//         $this->TAB('doc_DocumentCache', 'Дебъг->Кеш', 'debug');
+//         $this->TAB('doc_Prototypes', 'Дебъг->Шаблони', 'debug');
+//         $this->TAB('doc_Linked', 'Дебъг->Връзки', 'debug');
 
     }
 }

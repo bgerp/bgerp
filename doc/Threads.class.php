@@ -53,7 +53,8 @@ class doc_Threads extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Modified,plg_State,doc_Wrapper, plg_Select, expert_Plugin,plg_Sorting, plg_RefreshRows';
+    //var $loadList = 'plg_Created,plg_Modified,plg_State,doc_Wrapper, plg_Select, expert_Plugin,plg_Sorting, plg_RefreshRows';
+    var $loadList = 'plg_Created,plg_Modified,plg_State, plg_Select, expert_Plugin,plg_Sorting, plg_RefreshRows';
     
     
     /**

@@ -111,9 +111,9 @@ class blogm_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.52, 'Сайт', 'Блог', 'blogm_Articles', 'list', "cms, blog, admin, ceo"),
-        );
+//     var $menuItems = array(
+//             array(3.52, 'Сайт', 'Блог', 'blogm_Articles', 'list', "cms, blog, admin, ceo"),
+//         );
         
         
    /**

@@ -43,7 +43,7 @@ li.dimension:last-child {
   min-width: 100%;
   margin: 0px;
   outline: none;
-  -webkit-tap-highlight-color: transparent; }
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0); }
 
 .narrow .btn-group {
   border-top: dotted 1px #cccccc !important; }
@@ -83,7 +83,7 @@ li.btns-title {
     /*
    * W3C
    */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#9999ff', endColorstr='#9999ff', GradientType=0 );
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#9999ff', endColorstr='#9999ff', GradientType=0);
     /*
    * IE6-9
    */

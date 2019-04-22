@@ -107,9 +107,9 @@ class purchase_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.1, 'Логистика', 'Доставки', 'purchase_Purchases', 'default', "purchase, ceo, acc"),
-        );
+//     var $menuItems = array(
+//             array(3.1, 'Логистика', 'Доставки', 'purchase_Purchases', 'default', "purchase, ceo, acc"),
+//         );
 
 
     /**

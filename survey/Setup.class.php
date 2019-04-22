@@ -63,9 +63,9 @@ class survey_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(2.46, 'Обслужване', 'Анкети', 'survey_Surveys', 'default', "survey, ceo"),
-        );
+//     var $menuItems = array(
+//             array(2.46, 'Обслужване', 'Анкети', 'survey_Surveys', 'default', "survey, ceo"),
+//         );
     
 	
     /**

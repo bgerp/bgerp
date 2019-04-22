@@ -260,9 +260,9 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.1, 'Търговия', 'Продажби', 'sales_Sales', 'default', "sales, ceo, acc"),
-        );
+//     var $menuItems = array(
+//             array(3.1, 'Търговия', 'Продажби', 'sales_Sales', 'default', "sales, ceo, acc"),
+//         );
 
     
     /**

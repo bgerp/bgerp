@@ -68,9 +68,9 @@ class cond_Setup  extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(1.9, 'Система', 'Дефиниции', 'cond_DeliveryTerms', 'default', "ceo, admin"),
-        );
+//     var $menuItems = array(
+//             array(1.9, 'Система', 'Дефиниции', 'cond_DeliveryTerms', 'default', "ceo, admin"),
+//         );
 
 
     /**

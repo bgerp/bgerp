@@ -61,9 +61,9 @@ class ssh_Setup extends core_ProtoSetup
 	/**
 	 * Връзки от менюто, сочещи към модула
 	 */
-	public $menuItems = array(
-			array(1.8, 'Система', 'Мaшини', 'ssh_Hosts', 'default', "remote, admin"),
-	);
+// 	public $menuItems = array(
+// 			array(1.8, 'Система', 'Мaшини', 'ssh_Hosts', 'default', "remote, admin"),
+// 	);
 
 	/**
 	 * Инсталиране на пакета

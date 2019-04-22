@@ -64,9 +64,9 @@ class support_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(2.14, 'Обслужване', 'Поддръжка', 'support_Tasks', 'default', "support, admin, ceo"),
-        );
+//     var $menuItems = array(
+//             array(2.14, 'Обслужване', 'Поддръжка', 'support_Tasks', 'default', "support, admin, ceo"),
+//         );
     
     
     /**

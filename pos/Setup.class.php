@@ -120,9 +120,9 @@ class pos_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.1, 'Търговия', 'POS', 'pos_Points', 'default', "pos, ceo"),
-        );
+//     var $menuItems = array(
+//             array(3.1, 'Търговия', 'POS', 'pos_Points', 'default', "pos, ceo"),
+//         );
     
     
     /**

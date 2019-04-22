@@ -126,9 +126,9 @@ class cms_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.51, 'Сайт', 'CMS', 'cms_Content', 'default', "cms, ceo, admin"),
-        );
+//     var $menuItems = array(
+//             array(3.51, 'Сайт', 'CMS', 'cms_Content', 'default', "cms, ceo, admin"),
+//         );
     
     
     /**

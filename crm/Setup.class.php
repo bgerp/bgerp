@@ -129,9 +129,9 @@ class crm_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(1.32, 'Указател', 'Визитник', 'crm_Companies', 'default', "crm, user"),
-        );
+//     var $menuItems = array(
+//             array(1.32, 'Указател', 'Визитник', 'crm_Companies', 'default', "crm, user"),
+//         );
 
              
     /**

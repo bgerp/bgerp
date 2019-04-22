@@ -82,9 +82,9 @@ class frame2_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    public $menuItems = array(
-    		array(2.56, 'Обслужване', 'Отчети', 'frame2_Reports', 'default', "report, ceo, admin"),
-    );
+//     public $menuItems = array(
+//     		array(2.56, 'Обслужване', 'Отчети', 'frame2_Reports', 'default', "report, ceo, admin"),
+//     );
     
     
     /**

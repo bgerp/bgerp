@@ -93,9 +93,9 @@ class price_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', "price,sales, ceo"),
-        );
+//     var $menuItems = array(
+//             array(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', "price,sales, ceo"),
+//         );
     
     
     /**

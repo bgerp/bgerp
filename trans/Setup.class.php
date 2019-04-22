@@ -77,9 +77,9 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    public $menuItems = array(
-            array(3.3, 'Логистика', 'Транспорт', 'trans_Lines', 'default', "trans, ceo"),
-        );
+//     public $menuItems = array(
+//             array(3.3, 'Логистика', 'Транспорт', 'trans_Lines', 'default', "trans, ceo"),
+//         );
 
     /**
 	 * Описание на конфигурационните константи

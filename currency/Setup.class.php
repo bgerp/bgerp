@@ -83,9 +83,9 @@ class currency_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(2.2, 'Финанси', 'Валути', 'currency_Currencies', 'default', "ceo,admin,cash,bank,currency,acc"),
-        );
+//     var $menuItems = array(
+//             array(2.2, 'Финанси', 'Валути', 'currency_Currencies', 'default', "ceo,admin,cash,bank,currency,acc"),
+//         );
 
  
 
