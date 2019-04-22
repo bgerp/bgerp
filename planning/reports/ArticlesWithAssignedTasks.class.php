@@ -142,6 +142,40 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             $jobsesId = $jobses->id;
             
+            ////////////////////////////////////////////////////////////
+            
+            $assignedUsers = keylist::toArray($rec->assignedUsers);
+            $designers = keylist::merge($task->assign, $jobses->designers);
+            
+            if (keylist::isIn($assignedUsers, $designers)) {
+                if (! array_key_exists($jobsesId, $recs)) {
+                    $recs[$jobsesId] = (object) array(
+                        
+                        'productId' => $jobsProdId,
+                        'jobsId' => $jobses->id,
+                        'folderId' => $jobses->folderId,
+                        'saleId' => $jobses->saleId,
+                        'containerId' => $jobses->containerId,
+                        'tasksFolderId' => $task->folderId,
+                        'tasksContainerId' => $task->containerId,
+                        'linkFrom' => $linkFrom,
+                        'deliveryDate' => $deliveryDate,
+                        'activatedDate' => $activatedDate
+                    );
+                } else {
+                    $obj = &$recs[$jobsesId];
+                    
+                    $obj->tasksFolderId .= ',' . $task->folderId;
+                    
+                    $obj->tasksContainerId .= ',' . $task->containerId;
+                    
+                    $obj->linkFrom .= ',' . $linkFrom;
+                }
+            }
+            
+            /////////////////////////////////////////
+            
+            
             // Връзки към задачи от задание
             $resArrJobses = doc_Linked::getRecsForType('doc', $jobses->containerId, false);
             
@@ -170,8 +204,9 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 }
                 
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
+                $designers = keylist::merge($task->assign, $jobses->designers);
                 
-                if (keylist::isIn($assignedUsers, $task->assign)) {
+                if (keylist::isIn($assignedUsers, $designers)) {
                     if (! array_key_exists($jobsesId, $recs)) {
                         $recs[$jobsesId] = (object) array(
                             
@@ -228,8 +263,9 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 }
                 
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
+                $designers = keylist::merge($task->assign, $jobses->designers);
                 
-                if (keylist::isIn($assignedUsers, $task->assign)) {
+                if (keylist::isIn($assignedUsers, $designers)) {
                     if (! array_key_exists($jobsesId, $recs)) {
                         $recs[$jobsesId] = (object) array(
                             
