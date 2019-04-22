@@ -997,6 +997,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         $canStore = cat_Products::fetchField($productId, 'canStore');
         if(!empty($params['serial'])){
+            expect(type_Int::isInt($params['serial']), 'Серийния номер може да е само от цифри');
             $params['serial'] = plg_Search::normalizeText($params['serial']);
             $params['serial'] = str::removeWhitespaces($params['serial']);
             if ($Driver = cat_Products::getDriver($productId)) {

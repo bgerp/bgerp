@@ -201,7 +201,7 @@ class planning_Points extends core_Manager
             $row = $this->recToVerbal($rec);
             if ($rec->state != 'closed' && peripheral_Terminal::haveRightFor('add', (object)array('classId' => $this->getClassId(), 'pointId' => $rec->id))) {
                 core_RowToolbar::createIfNotExists($row->_rowTools);
-                $row->_rowTools->addLink('Нов терминал', array('peripheral_Terminal', 'add', 'classId' => $this->getClassId(), 'pointId' => $rec->id, 'ret_url' => true), 'alwaysShow,ef_icon=img/16/monitor.png,title=Добавяне на нов терминал към точката за производство');
+                $row->_rowTools->addLink('Нов терминал', array('peripheral_Terminal', 'add', 'classId' => $this->getClassId(), 'pointId' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/monitor.png,title=Добавяне на нов терминал към точката за производство');
             }
             
             $data->rows[$rec->id] = $row;
