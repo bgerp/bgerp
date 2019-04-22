@@ -260,6 +260,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         if(Mode::is('terminalProgressForm')){
             $form->layout = $form->renderLayout();
+            jquery_Jquery::run($form->layout, 'prepareKeyboard();');
         }
     }
     

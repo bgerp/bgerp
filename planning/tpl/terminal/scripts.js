@@ -6,17 +6,7 @@ function planningActions() {
 	$("input[name=serial]").focus();
 	disableScale();
 
-	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.quantityField')
-	});
-
-	$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.weightField')
-	});
-
-	$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.serialField')
-	});
+	prepareKeyboard();
 
 	$(document.body).on('click', ".nmpd-target", function(e){
 		$(this).siblings('input').addClass('highlight');
@@ -131,6 +121,7 @@ function planningActions() {
 	});
 }
 
+
 // Кой таб да е активен
 function render_activateTab(data)
 {
@@ -149,20 +140,24 @@ function render_activateTab(data)
 	}
 }
 
+function prepareKeyboard(){
+	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.quantityField')
+	});
+	$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.weightField')
+	});
+	$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.serialField')
+	});
+}
+
 function render_prepareKeyboard()
 {
 	$('.nmpd-wrapper').remove();
 
 	setTimeout(function(){
-		$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-			target: $('.quantityField')
-		});
-		$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-			target: $('.weightField')
-		});
-		$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-			target: $('.serialField')
-		});
+		prepareKeyboard();
 	}, 500);
 }
 
