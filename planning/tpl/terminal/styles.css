@@ -363,6 +363,9 @@ only screen and (min-width: 760px) and (max-width: 800px) {
         line-height: 28px !important;
         max-height: 28px !important; }
 
+  .searchBarcode {
+    width: 160px; }
+
   .formTitle {
     max-width: none;
     width: 240px !important;
