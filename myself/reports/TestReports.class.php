@@ -175,7 +175,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
                    
                 }
                 
-            } bp($today,$beginDate,$beginDateYear,$lastDate,$lastDateYear,$NowArrForCoef,$LastArrForCoef,$coefficients);
+            } 
             
         }else{
             
