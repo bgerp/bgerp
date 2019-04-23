@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -185,7 +185,6 @@ class price_reports_PriceList extends frame2_driver_TableData
             foreach ($sellableProducts as $id) {
                 $productRec = cat_Products::fetch($id, 'groups,code,measureId,name,isPublic,nameEn');
                 
-                
                 $quantity = 1;
                 $obj = (object) array('productId' => $productRec->id,
                     'code' => (!empty($productRec->code)) ? $productRec->code : "Art{$productRec->id}",
@@ -253,6 +252,12 @@ class price_reports_PriceList extends frame2_driver_TableData
                 
                 if ($obj->type != 'removed' && empty($priceByPolicy)) {
                     continue;
+                }
+                
+                if($rec->showEan == 'yes'){
+                    if($ean = cat_products_Packagings::getPack($obj->productId, $obj->measureId, 'eanCode')){
+                        $obj->eanCode = $ean;
+                    }
                 }
                 
                 $recs[$id] = $obj;
@@ -332,6 +337,13 @@ class price_reports_PriceList extends frame2_driver_TableData
             }
         }
         
+        // Ако има баркод на основната мярка да се показва и той
+        if(!empty($dRec->eanCode) && !Mode::isReadOnly() && barcode_Search::haveRightFor('list')){
+            $eanCode = core_Type::getByName('varchar')->toVerbal($dRec->eanCode);
+            $eanCode = ht::createLink($eanCode, array('barcode_Search', 'search' => $eanCode));
+            $row->measureId = "{$eanCode} {$row->measureId}";
+        }
+        
         return $row;
     }
     
@@ -355,8 +367,8 @@ class price_reports_PriceList extends frame2_driver_TableData
             $decimals = isset($rec->round) ? $rec->round : self::DEFAULT_ROUND;
             $rows[$packRec->packagingId] = (object) array('packagingId' => $packName, 'price' => core_Type::getByName("double(decimals={$decimals})")->toVerbal($packRec->price));
             if (!empty($packRec->eanCode)) {
-                $eanCode = core_Type::getByName('varchar')->toVerbal($packRec->eanCode);
                 if (!Mode::isReadOnly() && barcode_Search::haveRightFor('list')) {
+                    $eanCode = core_Type::getByName('varchar')->toVerbal($packRec->eanCode);
                     $eanCode = ht::createLink($eanCode, array('barcode_Search', 'search' => $eanCode));
                 }
                 $rows[$packRec->packagingId]->eanCode = $eanCode;
