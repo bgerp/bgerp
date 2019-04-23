@@ -1592,7 +1592,7 @@ class cat_Products extends embed_Manager
         
         foreach (array('groups', 'notInGroups') as $val){
             if(!empty(${"{$val}"})){
-                $Type->params[$val] = keylist::fromArray(arr::make(${"{$val}"}, true));
+                $Type->params[$val] = (keylist::isKeylist(${"{$val}"})) ? ${"{$val}"} : keylist::fromArray(arr::make(${"{$val}"}, true));
             }
         }
         
@@ -2704,7 +2704,7 @@ class cat_Products extends embed_Manager
             // Извличаме какво к-во
             $info = cat_Boms::getResourceInfo($bomId, $quantity, $date);
             
-            foreach ($info['resources'] as $materialId => $rRec) {
+            foreach ($info['resources'] as $rRec) {
                 if ($rRec->type != 'input') {
                     continue;
                 }
