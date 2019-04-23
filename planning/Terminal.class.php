@@ -123,6 +123,7 @@ class planning_Terminal extends core_Manager
         $tpl->append($form->renderHtml(), 'FORM');
         $tpl->removeBlocksAndPlaces();
         $tpl->append($this->getTasksList($rec->tasks));
+        $tpl->append("<div class='clearfix21'></div>");
         
         return $tpl;
     }
@@ -338,6 +339,7 @@ class planning_Terminal extends core_Manager
             $url = toUrl(array($this, 'open', $rec->id, 'search' => '__CODE__'), true);
             $attr['data-url'] = barcode_Search::getScannerActivateUrl($url);
         }
+        
         if($search = Request::get('search', 'varchar')){
             $attr['value'] = $search;
         }
@@ -347,8 +349,8 @@ class planning_Terminal extends core_Manager
         
         $searchUrl = toUrl(array($this, 'search', $rec->id), 'local');
 
-        $scanBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/qr.png','class' => 'formBtn qrBtn',  'data-url' => $searchUrl, 'title' => 'Сканиране на QR'));
-        $searchBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/search.png', 'id' => 'searchBtn','class' => 'formBtn search',  'title' => 'Търсене по QR'));
+        $scanBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/qr.png','class' => 'formBtn qrBtn', 'title' => 'Сканиране на QR'));
+        $searchBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/search.png', 'id' => 'searchBtn',  'data-url' => $searchUrl, 'class' => 'formBtn search',  'title' => 'Търсене'));
         $tpl->append($searchBtn, 'searchBtn');
         $tpl->append($scanBtn, 'scanBtn');
         
