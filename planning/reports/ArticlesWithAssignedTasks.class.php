@@ -144,7 +144,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             if (!is_null($jobses->designers)) {
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
-                $designers = keylist::merge($task->assign, $jobses->designers);
+                $designers = $jobses->designers;
                 
                 if (keylist::isIn($assignedUsers, $designers)) {
                     if (! array_key_exists($jobsesId, $recs)) {
@@ -192,7 +192,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 }
                 
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
-                $designers = keylist::merge($task->assign, $jobses->designers);
+                $designers = $task->assign;
                 
                 if (keylist::isIn($assignedUsers, $designers)) {
                     if (! array_key_exists($jobsesId, $recs)) {
@@ -251,7 +251,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 }
                 
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
-                $designers = keylist::merge($task->assign, $jobses->designers);
+                $designers = $task->assign;
                 
                 if (keylist::isIn($assignedUsers, $designers)) {
                     if (! array_key_exists($jobsesId, $recs)) {
