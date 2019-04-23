@@ -28,14 +28,14 @@ class bgerp_Index extends core_Manager
             
             if(haveRole('powerUser')){
                 
-                return new Redirect(array('bgerp_Portal', 'Show'));
+                return new Redirect(array('h18_CashRko', 'default'));
             } else {
                 
                 return new Redirect(array('cms_Profiles', 'Single'));
             }
         } else {
             
-            return Request::forward(array('Ctr' => 'cms_Content', 'Act' => 'Show'));
+            return Request::forward(array('Ctr' => 'core_Usera', 'Act' => 'login'));
         }
     }
     

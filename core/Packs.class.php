@@ -440,12 +440,11 @@ class core_Packs extends core_Manager
             $opt['core'] = 'core';
         }
         // За Н18
-        $opt['h18'] = 'h18';
+//         $opt['h18'] = 'h18';
         
-        return $opt;
+//         return $opt;
         
         $appDirs = $this->getSubDirs(EF_APP_PATH);
-//        bp($appDirs);
         
         if (defined('EF_PRIVATE_PATH')) {
             $privateDirs = $this->getSubDirs(EF_PRIVATE_PATH);
@@ -495,6 +494,7 @@ class core_Packs extends core_Manager
                 $opt['core'] = 'Ядро на EF "core"';
             }
         }
+        return $opt;
         
         $appDirs = $this->getSubDirs(EF_APP_PATH);
         
@@ -554,11 +554,11 @@ class core_Packs extends core_Manager
         $data->listFilter->view = 'horizontal';
         
         // Добавяме бутон
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+//        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
                 
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = "{$mvc->searchInputField}, state";
+//        $data->listFilter->showFields = "{$mvc->searchInputField}, state";
         
         $data->listFilter->input(NULL, 'silent');
         
@@ -578,7 +578,9 @@ class core_Packs extends core_Manager
         }
         
         $data->query->orderBy("#name");
-        $data->query->where("#state != 'deprecated'");
+        $data->query->where("#name = 'h18'");
+        
+        //$data->query->where("#state != 'deprecated'");
     }
     
     
@@ -628,6 +630,7 @@ class core_Packs extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        
         $row->STATE_CLASS = trim($row->STATE_CLASS);
         
         $imageUrl = sbf("img/100/default.png","");
