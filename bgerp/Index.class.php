@@ -35,7 +35,7 @@ class bgerp_Index extends core_Manager
             }
         } else {
             
-            return Request::forward(array('Ctr' => 'core_Usera', 'Act' => 'login'));
+            return Request::forward(array('Ctr' => 'core_Users', 'Act' => 'login'));
         }
     }
     
