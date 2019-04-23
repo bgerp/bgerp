@@ -539,7 +539,11 @@ body {
 		position: relative;
 		display: block;
 		clear: both;
+		.searchBarcode {
+			width: 240px;
+		}
 	}
+
 	.terminalHeader {
 		height: auto;
 	}
