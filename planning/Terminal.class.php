@@ -122,7 +122,7 @@ class planning_Terminal extends core_Manager
         $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/SupportFormLayout.shtml');
         $tpl->append($form->renderHtml(), 'FORM');
         $tpl->removeBlocksAndPlaces();
-        $tpl->append($this->getTasksList($rec->tasks));
+        $tpl->append($this->getTasksListTable($rec->tasks));
         $tpl->append("<div class='clearfix21'></div>");
         
         return $tpl;
@@ -135,7 +135,7 @@ class planning_Terminal extends core_Manager
      * @param mixed $id
      * @return core_ET $tpl
      */
-    private function getTasksList($tasks)
+    private function getTasksListTable($tasks)
     {
         $tpl = new core_ET("");
         $tasks = keylist::toArray($tasks);
@@ -147,7 +147,7 @@ class planning_Terminal extends core_Manager
                 $taskRec = cal_Tasks::fetch($taskId, 'state,progress,createdOn');
                 $taskRow = cal_Tasks::recToVerbal($taskRec, 'progressBar,progress,createdOn');
                 $taskRow->title = cal_Tasks::getHyperlink($taskRec->id, true);
-                $tpl->append("<tr class='state-{$taskRec->state}'><td>{$taskRow->title}</td><td>{$taskRow->progressBar} {$taskRow->progress}</td><td>{$taskRow->createdOn}</td></tr>");
+                $tpl->append("<tr class='state-{$taskRec->state}'><td>{$taskRow->createdOn}</td><td>{$taskRow->title}</td><td>{$taskRow->progressBar} {$taskRow->progress}</td></tr>");
             }
             $tpl->append("</table></div>");
         }
