@@ -482,6 +482,10 @@ class price_reports_PriceList extends frame2_driver_TableData
     {
         $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
         $row->productGroups = (!empty($rec->productGroups)) ? implode(', ', cat_Groups::getLinks($rec->productGroups)) : tr('Всички');
+        if(!empty($rec->notInGroups)){
+            $row->notInGroups = implode(', ', cat_Groups::getLinks($rec->notInGroups));
+        }
+        
         if ($rec->packType == 'yes') {
             $row->packagings = (!empty($rec->packagings)) ? core_Type::getByName('keylist(mvc=cat_UoM,select=name)')->toVerbal($rec->packagings): tr('Всички');
         } elseif ($rec->packType == 'no') {
@@ -521,9 +525,11 @@ class price_reports_PriceList extends frame2_driver_TableData
                                 <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
 							    <small><div>|Цени към|*: <b>[#date#]</b></div>
                                 <!--ET_BEGIN period--><div>|Изменени за|*: [#period#] (|от|* [#periodDate#])</div><!--ET_END period-->
-                                <div>|Групи|*: [#productGroups#]</div><div>|Опаковки|*: [#packagings#]</div></small>"));
-        
-        foreach (array('periodDate', 'date', 'period', 'productGroups', 'packagings') as $field) {
+                                <div>|Групи|*: [#productGroups#]</div>
+                                <!--ET_BEGIN notInGroups--><div>|С изключение на|* [#notInGroups#]</div><!--ET_END notInGroups-->
+                                <div>|Опаковки|*: [#packagings#]</div></small>"));
+       
+        foreach (array('periodDate', 'date', 'period', 'productGroups', 'notInGroups', 'packagings') as $field) {
             $fieldTpl->replace($data->row->{$field}, $field);
         }
         
