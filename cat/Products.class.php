@@ -1429,6 +1429,10 @@ class cat_Products extends embed_Manager
                 $query->likeKeylist('groups', $groups);
             }
             
+            if(isset($params['notInGroups'])){
+                $query->notLikeKeylist('groups', $params['notInGroups']);
+            }
+            
             if(isset($params['isPublic'])){
                 $query->where("#isPublic = '{$params['isPublic']}'");
             }
@@ -1565,11 +1569,13 @@ class cat_Products extends embed_Manager
      * @param int|NULL $limit            - лимит
      * @param bool     $orHasProperties  - Дали трябва да имат всички свойства от зададените или поне едно
      * @param mixed    $groups           - групи в които да участват
+     * @param mixed    $notInGroups      - групи в които да не участват
+     * 
      * @param null|boolean $isPublic     - null за всички артикули, true за стандартните, false за нестандартните
      *
      * @return array $products         - артикулите групирани по вида им стандартни/нестандартни
      */
-    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $isPublic = null)
+    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $notInGroups = null, $isPublic = null)
     {
         $Type = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)');
         foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic') as $val){
@@ -1578,14 +1584,16 @@ class cat_Products extends embed_Manager
             }
         }
         
-        foreach (array('hasProperties', 'hasnotProperties', 'groups') as $val){
+        foreach (array('hasProperties', 'hasnotProperties', 'groups', 'notInGroups') as $val){
             if(!empty(${"{$val}"})){
                 $Type->params[$val] = implode('|', arr::make(${"{$val}"}, true));
             }
         }
         
-        if(isset($groups)){
-            $Type->params[$val] = $groups;
+        foreach (array('groups', 'notInGroups') as $val){
+            if(!empty(${"{$val}"})){
+                $Type->params[$val] = keylist::fromArray(arr::make(${"{$val}"}, true));
+            }
         }
         
         $products = $Type->getOptions($limit);
