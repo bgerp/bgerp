@@ -77,8 +77,6 @@ function planningActions() {
 		if($('.select2').length){
 			$('select').trigger("change");
 		}
-		
-		$("input[name=serial]").val("");
 	});
 
 	$(document.body).on('click', ".changeTab ", function(e){

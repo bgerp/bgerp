@@ -379,7 +379,7 @@ class planning_Terminal extends core_Manager
         $form->FLD('action', 'varchar(select2MinItems=100)', 'elementId=actionIdSelect,placeholder=Действие,mandatory,silent,removeAndRefreshForm=productId|type');
         $form->FLD('productId', 'key(mvc=cat_Products,select=name)', 'class=w100,input=hidden,silent');
         $form->FLD('type', 'enum(input=Влагане,production=Произв.,waste=Отпадък)', 'elementId=typeSelect,input=hidden,silent,removeAndRefreshForm=productId|weight|serial,caption=Действие,class=w100');
-        $form->FLD('serial', 'varchar(32)', 'focus,autocomplete=off,silent,placeholder=№,class=w100 serialField scanElement');
+        $form->FLD('serial', 'varchar(32)', 'focus,autocomplete=off,placeholder=№,class=w100 serialField');
         $form->FLD('quantity', 'double(Min=0)', 'class=w100 quantityField,placeholder=К-во');
         $form->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
         $form->FLD('weight', 'double(Min=0)', 'class=w100 weightField,placeholder=Тегло|* (|кг|*)');
