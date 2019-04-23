@@ -122,7 +122,7 @@ class core_page_Internal extends core_page_Active
             
             $img = ht::createElement('img', array('src' => sbf('img/bgerp.png', ''), 'alt' => '', 'style' => 'border:0; border-top:5px solid transparent;'));
             
-            $logo = ht::createLink($img, array('bgerp_Portal', 'Show'));
+            $logo = ht::createLink($img, array('h18_CashRko', 'default'));
             
             $tpl->replace($logo, 'logo');
         }
@@ -130,12 +130,13 @@ class core_page_Internal extends core_page_Active
         self::placeMenu($tpl);
         
         // Извличаме броя на нотификациите за текущия потребител
-        $openNotifications = bgerp_Notifications::getOpenCnt();
-        $url  = toUrl(array('bgerp_Portal', 'Show'));
+        //$openNotifications = bgerp_Notifications::getOpenCnt();
+        $openNotifications = 0;
+        $url  = toUrl(array('h18_CashRko', 'default'));
         $attr = array('id' => 'nCntLink');
         
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
-        if($openNotifications > 0) {
+        if($openNotifications > 0 && false) {
             $attr['class'] = 'haveNtf';
             $tpl->append("({$openNotifications}) ", 'PAGE_TITLE');
         } else {

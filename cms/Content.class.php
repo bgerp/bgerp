@@ -535,7 +535,7 @@ class cms_Content extends core_Manager
                 core_Lg::set($lang);
             }
             
-            return new Redirect(array('bgerp_Portal', 'Show'));
+            return new Redirect(array('h18_CashRko', 'default'));
         }
     }
     

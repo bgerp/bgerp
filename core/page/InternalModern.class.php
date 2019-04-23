@@ -87,12 +87,12 @@ class core_page_InternalModern extends core_page_Active
 
         // Извличаме броя на нотификациите за текущия потребител
         $openNotifications = bgerp_Notifications::getOpenCnt();
-        $url  = toUrl(array('bgerp_Portal', 'Show', '#' => 'notificationsPortal'));
+        $url  = toUrl(array('h18_CashRko', 'default', '#' => 'notificationsPortal'));
 
         $attr = array('id' => 'nCntLink', 'title' => 'Неразгледани известия', 'onClick' => "openCurrentTab();");
 
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
-        if($openNotifications > 0) {
+        if(($openNotifications > 0) && false) {
             $attr['class'] = 'haveNtf';
             $this->append("({$openNotifications}) ", 'PAGE_TITLE');
         } else {
@@ -355,11 +355,11 @@ class core_page_InternalModern extends core_page_Active
         // Извличаме броя на нотификациите за текущия потребител
         $openNotifications = bgerp_Notifications::getOpenCnt();
         
-        $url  = toUrl(array('bgerp_Portal', 'Show'));
+        $url  = toUrl(array('h18_CashRko', 'default'));
         $attr = array('id' => 'nCntLink');
 
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
-        if($openNotifications > 0) {
+        if(($openNotifications > 0) && false) {
             $attr['class'] = 'haveNtf';
         } else {
             $attr['class'] = 'noNtf';

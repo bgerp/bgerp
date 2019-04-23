@@ -4226,7 +4226,7 @@ function changeNotificationsCnt(data) {
 
     if (nCntLink != null) {
         var notificationsCnt = parseInt(data.cnt);
-        if (notificationsCnt > 0) {
+        if ((notificationsCnt > 0) && false) {
             nCntLink.className = 'haveNtf';
         } else {
             nCntLink.className = 'noNtf';

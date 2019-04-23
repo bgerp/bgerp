@@ -317,7 +317,7 @@ class bgerp_Menu extends core_Manager
         
         if (!Mode::is('screenMode', 'narrow')) {
             
-            return new Redirect(array('bgerp_Portal', 'Show'));
+            return new Redirect(array('h18_CashRko', 'default'));
         }
         
         $tpl = new ET(
