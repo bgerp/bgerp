@@ -457,6 +457,8 @@ only screen and (max-width:740px) {
     position: relative;
     display: block;
     clear: both; }
+    .searchHolder .searchBarcode {
+      width: 240px; }
 
   .terminalHeader {
     height: auto; }
