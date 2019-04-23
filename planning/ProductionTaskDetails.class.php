@@ -564,7 +564,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $row->typeExtended = "<span class='extended-type'>{$row->type}</span><span class='extended-productId'> » {$row->productId}</span><span class='extended-created fright'>{$row->created}</span>";
                 $row->quantityExtended = "<div class='extended-quantity'>{$row->quantity}</div>";
                 if(!empty($rec->weight)){
-                    $row->quantityExtended .= "<span class='extended-weight'>{$row->weight}" . tr('кг') . "</span>";
+                    $row->quantityExtended .= "<span class='extended-weight'>{$row->weight} " . tr('кг') . "</span>";
                 }
                 $row->additional = null;
                 if(!empty($rec->employees)){
