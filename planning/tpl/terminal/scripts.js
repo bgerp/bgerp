@@ -54,6 +54,11 @@ function planningActions() {
 		var productId = res[1];
 		
 		var quantity = $("input[name=quantity]").val();
+		if(!quantity){
+			var quantityLive = $("input[name=quantity]").attr('placeholder');
+			quantity = quantityLive;
+		}
+		
 		var employees = [];
 		$('input[id^="employees"]:checked').each(function () {
 			employees.push($(this).val());
