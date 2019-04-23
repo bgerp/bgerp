@@ -81,7 +81,7 @@ class planning_Terminal extends core_Manager
     private function getSupportHtml($id)
     {
         $rec = planning_Points::fetchRec($id);
-        $tpl = new core_ET(tr("|*<h3 class='title'>|Сигнал за нередност|*</h3><div class='formHolder'>[#FORM#]</div>"));
+        $tpl = new core_ET(tr("|*<h3 class='title'>|Сигнал за повреда|*</h3><div class='formHolder'>[#FORM#]</div>"));
         $form = cls::get('core_Form');
         $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name,select2MinItems=100)', 'class=w100,placeholder=Оборудване,mandatory');
         $form->FLD('body', 'richtext(rows=4)', 'caption=Описание на проблема,mandatory,placeholder=Описание на проблема');
