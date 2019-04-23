@@ -543,13 +543,19 @@ class cat_products_Packagings extends core_Detail
     /**
      * Връща опаковката ако има такава
      *
-     * @param int $productId   - ид на продукта
-     * @param int $packagingId - ид на опаковката
+     * @param int $productId     - ид на продукта
+     * @param int $packagingId   - ид на опаковката
+     * @param string|null $field - ид на опаковката
      *
      * @return stdClass
      */
-    public static function getPack($productId, $packagingId)
+    public static function getPack($productId, $packagingId, $field = null)
     {
+        if(isset($field)){
+            
+            return self::fetchField("#productId = {$productId} AND #packagingId = '{$packagingId}'", $field);
+        }
+        
         return self::fetch("#productId = {$productId} AND #packagingId = '{$packagingId}'");
     }
     
