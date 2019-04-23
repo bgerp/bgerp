@@ -25,11 +25,11 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->pageMenu = 'Настройки';
         
         $this->TAB('core_Packs', 'Код->Пакети', 'admin');
-        $this->TAB('core_Updates', 'Код->Обновяване', 'admin');
-        $this->TAB('core_Maintenance', 'Код->Миграции', 'admin');
+//        $this->TAB('core_Updates', 'Код->Обновяване', 'admin');
+//      $this->TAB('core_Maintenance', 'Код->Миграции', 'admin');
         $this->TAB('core_Users', 'Потребители', 'admin');
         $this->TAB('core_Roles', 'Роли', 'admin');
-        $this->TAB('core_Lg', 'Превод', 'admin');
+//        $this->TAB('core_Lg', 'Превод', 'admin');
         
         $this->TAB('log_Data', 'Логове->Потребителски', 'admin');
         $this->TAB('log_System', 'Логове->Системен', 'admin, debug');
@@ -40,17 +40,17 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->TAB('log_Referer', 'Логове->Реферери', 'admin');
         $this->TAB('core_LoginLog', 'Логове->Логин', 'admin');
         
-        $this->TAB('core_Cron', 'Крон');
-        $this->TAB('core_Plugins', 'Плъгини', 'admin');
+//        $this->TAB('core_Cron', 'Крон');
+//        $this->TAB('core_Plugins', 'Плъгини', 'admin');
         $this->TAB('core_Cache', 'Вътрешни->Кеш', 'debug');
         $this->TAB('core_Permanent', 'Вътрешни->Постоянен кеш', 'debug');
         
-        $this->TAB('core_Classes', 'Вътрешни->Класове', 'debug');
-        $this->TAB('core_Interfaces', 'Вътрешни->Интерфейси', 'debug');
-        $this->TAB('core_Locks', 'Вътрешни->Заключвания', 'debug');
-        $this->TAB('core_Settings', 'Вътрешни->Персонализация', 'debug');
-        $this->TAB('core_Forwards', 'Вътрешни->Пренасочвания', 'debug');
-        $this->TAB('core_CallOnTime', 'Вътрешни->Отложени', 'debug');
+//         $this->TAB('core_Classes', 'Вътрешни->Класове', 'debug');
+//         $this->TAB('core_Interfaces', 'Вътрешни->Интерфейси', 'debug');
+//         $this->TAB('core_Locks', 'Вътрешни->Заключвания', 'debug');
+//         $this->TAB('core_Settings', 'Вътрешни->Персонализация', 'debug');
+//         $this->TAB('core_Forwards', 'Вътрешни->Пренасочвания', 'debug');
+//         $this->TAB('core_CallOnTime', 'Вътрешни->Отложени', 'debug');
 
         Mode::set('pageSubMenu', 'Админ');
     }

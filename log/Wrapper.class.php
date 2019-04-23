@@ -20,7 +20,7 @@ class log_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        Mode::set('pageMenu', 'Система');
-        Mode::set('pageSubMenu', 'Админ');
+//         Mode::set('pageMenu', 'Система');
+//         Mode::set('pageSubMenu', 'Админ');
     }
 }

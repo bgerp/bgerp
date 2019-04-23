@@ -422,7 +422,9 @@ class core_Packs extends core_Manager
             self::save($rec);
         }
     }
-    
+    function act_Dirs() {
+        //bp($this->getAllPacksNamesArr());
+    }
     
     /**
      * Връща всички не-инсталирани пакети
@@ -437,8 +439,13 @@ class core_Packs extends core_Manager
         if(file_exists($path)) {
             $opt['core'] = 'core';
         }
+        // За Н18
+        $opt['h18'] = 'h18';
+        
+        return $opt;
         
         $appDirs = $this->getSubDirs(EF_APP_PATH);
+//        bp($appDirs);
         
         if (defined('EF_PRIVATE_PATH')) {
             $privateDirs = $this->getSubDirs(EF_PRIVATE_PATH);
