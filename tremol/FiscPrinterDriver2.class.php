@@ -411,20 +411,21 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * @param stdClass $pRec
      * @param int      $operNum
      * @param string   $operPass
-     * @param float    $amount   - ако е минус - изкрва пари, а с плюс - вкарва
+     * @param float    $amount - ако е минус - изкрва пари, а с плюс - вкарва
+     * @param boolean  $printAvailability
      * @param string   $text
      *
      * @return string
      *
      * @see peripheral_FiscPrinter
      */
-    public function getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $text = '')
+    public function getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $printAvailability = false, $text = '')
     {
         expect(($operNum >= 1) && ($operNum <= 20));
         $jsTpl = new ET('[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
                                 try {
                                     [#/tremol/js/FiscPrinterTplConnect.txt#]
-                                    fp.ReceivedOnAccount_PaidOut([#OPER_NUM#], [#OPER_PASS#], [#AMOUNT#], [#TEXT#]);
+                                    fp.ReceivedOnAccount_PaidOut([#OPER_NUM#], [#OPER_PASS#], [#AMOUNT#], [#PRINT_AVAILABILITY#], [#TEXT#]);
                                     fpOnCashReceivedOrPaidOut();
                                 } catch(ex) {
                                     fpOnCashReceivedOrPaidOutErr(ex.message);
@@ -434,9 +435,16 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         $this->addTplFile($jsTpl);
         $this->connectToPrinter($jsTpl, $pRec, false);
         
+        if ($printAvailability) {
+            $printAvailability = 1;
+        } else {
+            $printAvailability = 0;
+        }
+        
         $jsTpl->replace(json_encode($operNum), 'OPER_NUM');
         $jsTpl->replace(json_encode($operPass), 'OPER_PASS');
         $jsTpl->replace(json_encode($amount), 'AMOUNT');
+        $jsTpl->replace(json_encode($printAvailability), 'PRINT_AVAILABILITY');
         $jsTpl->replace(json_encode($text), 'TEXT');
         
         $js = $jsTpl->getContent();
@@ -1040,6 +1048,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         
         $form->FLD('amount', 'double(min=0)', 'caption=Сума, mandatory');
         $form->FLD('text', 'varchar(30)', 'caption=Текст');
+        $form->FLD('printAvailability', 'enum(yes=Да,no=Не)', 'caption=Отпечатване на->Наличност');
         
         $form->input();
         
@@ -1067,14 +1076,16 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             Mode::setPermanent($randStr, $hash);
             
             $operator = 1;
-            $operPass = '123456';
+            $operPass = '0';
             
             $amount = $rec->amount;
             if ($amount && $rec->type == 'paidOut') {
                 $amount *= -1;
             }
             
-            $jsFunc = $this->getJsForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $rec->text);
+            $printAvailability = $form->rec->printAvailability == 'yes' ? true : false;
+            
+            $jsFunc = $this->getJsForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $printAvailability, $rec->text);
             
             $actTypeVerb = $form->fields['type']->type->toVerbal($rec->type);
             $actTypeVerb = tr(mb_strtolower($actTypeVerb));
