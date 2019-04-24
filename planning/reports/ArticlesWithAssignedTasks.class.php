@@ -142,6 +142,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             $jobsesId = $jobses->id;
             
+            
+            //Задания с избрани дизайнери
             if (!is_null($jobses->designers)) {
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
                 $designers = $jobses->designers;
@@ -249,7 +251,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 if ($task->state == 'rejected') {
                     continue;
                 }
-                
+                 
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
                 $designers = $task->assign;
                 
