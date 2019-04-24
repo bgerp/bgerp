@@ -308,7 +308,7 @@ body {
   border: 1px solid #cccccc; }
 
 .highlight {
-  background-color: #fefeb7; }
+  background-color: #fefeb7 !important; }
 
 @media handheld,
 only screen and (min-width: 760px) and (max-width: 800px) {
