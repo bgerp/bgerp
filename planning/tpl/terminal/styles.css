@@ -210,6 +210,7 @@ body {
     border: none !important;
     background-color: rgba(0, 0, 0, 0) !important; }
     .searchHolder .formBtn.qrBtn {
+      cursor: default;
       position: absolute;
       left: 3px;
       top: 3px;
@@ -281,6 +282,9 @@ body {
     .formHolder .formContent textarea,
     .formHolder .formContent .richedit-toolbar {
       border-color: #cccccc; }
+    .formHolder .formContent input:focus {
+      box-shadow: 0 0 10px blue;
+      brder: 1px solid blue !important; }
     .formHolder .formContent textarea {
       min-height: 90px;
       margin-top: 10px; }

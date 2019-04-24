@@ -350,7 +350,7 @@ class planning_Terminal extends core_Manager
         $tpl->append($searchBtn, 'searchBtn');
         
         // Бутон за сканиране
-        $scanBtn = ht::createBtn('', $url, false, false, array('ef_icon' => 'img/24/qr.png','class' => 'formBtn qrBtn', 'title' => 'Сканиране на QR'));
+        $scanBtn = ht::createBtn('', $url, false, false, array('ef_icon' => 'img/24/qr.png','class' => 'formBtn qrBtn'));
         $tpl->append($scanBtn, 'scanBtn');
         
         return $tpl;
