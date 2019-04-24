@@ -681,7 +681,7 @@ class planning_Terminal extends core_Manager
             $Details = cls::get('planning_ProductionTaskDetails');
             $dRec = $Details::add($params['taskId'], $params);
             $Details->logInAct('Създаване на детайл от терминала', $dRec);
-            Mode::setPermanent("terminalLastRec{$rec->id}", $dRec->id);
+            Mode::set("terminalLastRec{$rec->id}", $dRec->id);
             
             if(isset($dRec->_rejectId) || !Request::get('ajax_mode')){
                 
