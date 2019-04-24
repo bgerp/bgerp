@@ -3,7 +3,6 @@ function planningActions() {
 	var cookieId = $("#nameHolder").attr("data-id");
 	var cookieName = 'terminalTab' + cookieId;
 	
-	$("input[name=serial]").focus();
 	disableScale();
 
 	prepareKeyboard();
@@ -28,11 +27,9 @@ function planningActions() {
 		
 		resObj = new Object();
 		resObj['url'] = url;
-
 		getEfae().process(resObj);
 		
 		$("input[name=serial]").val("");
-		$("input[name=serial]").focus("");
 		if($('.select2').length){
 			$('select').trigger("change");
 		}
@@ -78,7 +75,6 @@ function planningActions() {
 		var data = {serial:serial,taskId:taskId,productId:productId,quantity:quantity,employees:employees,fixedAsset:fixedAsset,weight:weight,type:type};
 		getEfae().process(resObj, data);
 		$("input[name=serial]").val("");
-		$("input[name=serial]").focus("");
 		if($('.select2').length){
 			$('select').trigger("change");
 		}
@@ -99,7 +95,6 @@ function planningActions() {
 		
 		$('.tabContent' + currentAttrValue).show().siblings().hide();
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
-		if($('.serialField').length) $('.serialField').focus();
 		setCookie(cookieName, currentId);
 		
 		e.preventDefault();
