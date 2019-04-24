@@ -98,6 +98,8 @@ body {
   .keyboardHolder .quantityField,
   .keyboardHolder .weightField {
     padding-right: 31px; }
+  .keyboardHolder .weightField {
+    border: 1px solid #666666 !important; }
   .keyboardHolder .planning-terminal-numpad {
     position: absolute;
     right: -2px;
@@ -185,7 +187,7 @@ body {
   float: left; }
 
 .lastRow {
-  background-color: #feff7a !important; }
+  background-color: #ffffcd !important; }
 
 .searchHolder {
   position: absolute;
@@ -210,6 +212,7 @@ body {
     border: none !important;
     background-color: rgba(0, 0, 0, 0) !important; }
     .searchHolder .formBtn.qrBtn {
+      cursor: default;
       position: absolute;
       left: 3px;
       top: 3px;
@@ -281,6 +284,8 @@ body {
     .formHolder .formContent textarea,
     .formHolder .formContent .richedit-toolbar {
       border-color: #cccccc; }
+    .formHolder .formContent input[type=text]:focus {
+      box-shadow: 0 0 10px blue; }
     .formHolder .formContent textarea {
       min-height: 90px;
       margin-top: 10px; }
@@ -308,7 +313,7 @@ body {
   border: 1px solid #cccccc; }
 
 .highlight {
-  background-color: #fefeb7; }
+  background-color: #fefeb7 !important; }
 
 @media handheld,
 only screen and (min-width: 760px) and (max-width: 800px) {
