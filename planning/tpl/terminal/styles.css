@@ -147,7 +147,7 @@ body {
       margin-bottom: 0 !important;
       float: left; }
   .terminalHeader .userInfo {
-    width: 300px;
+    width: 350px;
     line-height: 30px;
     font-size: 1.1em;
     text-align: right; }
@@ -316,12 +316,22 @@ only screen and (min-width: 760px) and (max-width: 800px) {
     padding-top: 40px;
     margin-left: 0; }
 
+  .terminalHeader .fleft .logo img {
+    height: 25px;
+    margin-top: 3px; }
+
+  .terminalHeader .userInfo {
+    white-space: nowrap;
+    width: 320px;
+    font-size: 15px !important; }
+
   .wide table.listAction {
     min-width: 480px; }
 
   .terminalHeader {
     padding: 6px;
-    height: 40px; }
+    height: 30px;
+    font-size: 15px !important; }
 
   .centerContent {
     width: 100%; }
