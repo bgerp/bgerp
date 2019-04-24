@@ -110,7 +110,7 @@
                 <div class="red"><b style="margin-bottom: 10px;">|Грешка|*: </b>[#errMsg#]</div>
                 <!--ET_END errMsg-->
                 <!--ET_BEGIN sendPerCall-->
-                <div>|Изпращания заедно|*: [#sendPerCall#]</div>
+                <div>|Изпращания заедно|*: [#sendPerCall#] |на мин.|*</div>
                 <!--ET_END sendPerCall-->
                 <!--ET_BEGIN sendingDay-->
                 <div>|Ден|*: [#sendingDay#]</div>

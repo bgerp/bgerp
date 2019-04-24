@@ -311,7 +311,7 @@ class frame2_Reports extends embed_Manager
                 }
                 
                 $refresh = true;
-                if (isset($rec->id)) {
+                if (isset($rec->id) && $form->_cloneForm !== true) {
                     $refresh = false;
                     $oldRec = self::fetch($rec->id);
                     

@@ -6,17 +6,7 @@ function planningActions() {
 	$("input[name=serial]").focus();
 	disableScale();
 
-	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.quantityField')
-	});
-
-	$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.weightField')
-	});
-
-	$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.serialField')
-	});
+	prepareKeyboard();
 
 	$(document.body).on('click', ".nmpd-target", function(e){
 		$(this).siblings('input').addClass('highlight');
@@ -64,14 +54,27 @@ function planningActions() {
 		var productId = res[1];
 		
 		var quantity = $("input[name=quantity]").val();
+		if(!quantity){
+			var quantityLive = $("input[name=quantity]").attr('placeholder');
+			quantity = quantityLive;
+		}
+		
 		var employees = [];
 		$('input[id^="employees"]:checked').each(function () {
 			employees.push($(this).val());
 		});
-		var weight = $("input[name=weight]").val();
+		
 		var fixedAsset = $("#fixedAssetSelect").val();
 		var taskId = $("input[name=taskId]").val();
 
+		var weight = $("input[name=weight]").val();
+		if(!weight){
+			var weightLive = $("input[name=weight]").attr('placeholder');
+			if($.isNumeric(weightLive)){
+				weight = weightLive;
+			}
+		}
+		
 		var data = {serial:serial,taskId:taskId,productId:productId,quantity:quantity,employees:employees,fixedAsset:fixedAsset,weight:weight,type:type};
 		getEfae().process(resObj, data);
 		$("input[name=serial]").val("");
@@ -79,8 +82,6 @@ function planningActions() {
 		if($('.select2').length){
 			$('select').trigger("change");
 		}
-		
-		$("input[name=serial]").val("");
 	});
 
 	$(document.body).on('click', ".changeTab ", function(e){
@@ -129,7 +130,15 @@ function planningActions() {
 		
 		$(location).attr('href', url);
 	});
+	
+	// При натискане на ентер да се изпрати формата за прогреса
+	$(document.body).on('keypress',function(e) {
+	    if(e.which == 13) {
+	    	$('#sendBtn').trigger("click");
+	    }
+	});
 }
+
 
 // Кой таб да е активен
 function render_activateTab(data)
@@ -149,20 +158,24 @@ function render_activateTab(data)
 	}
 }
 
+function prepareKeyboard(){
+	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.quantityField')
+	});
+	$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.weightField')
+	});
+	$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.serialField')
+	});
+}
+
 function render_prepareKeyboard()
 {
 	$('.nmpd-wrapper').remove();
 
 	setTimeout(function(){
-		$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-			target: $('.quantityField')
-		});
-		$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-			target: $('.weightField')
-		});
-		$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-			target: $('.serialField')
-		});
+		prepareKeyboard();
 	}, 500);
 }
 

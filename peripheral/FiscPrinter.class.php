@@ -55,13 +55,14 @@ class peripheral_FiscPrinter
      * @param int      $operNum
      * @param string   $operPass
      * @param float    $amount
+     * @param boolean  $printAvailability
      * @param string   $text
      *
      * @return string
      */
-    public function getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $text = '')
+    public function getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $printAvailability, $text = '')
     {
-        return $this->class->getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $text);
+        return $this->class->getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $printAvailability, $text);
     }
     
     

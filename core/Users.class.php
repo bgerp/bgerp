@@ -219,7 +219,7 @@ class core_Users extends core_Manager
             $this->FLD('nick', 'nick(64, ci)', 'caption=Ник,notNull,mandatory,width=100%');
         }
         
-        $this->FLD('pinCode', 'password', 'caption=ПИН код');
+        $this->FLD('pinCode', 'password', 'caption=ПИН код, input=hidden');
         
         $this->FLD(
             'state',
@@ -745,6 +745,10 @@ class core_Users extends core_Manager
         }
         
         $form->setField('rolesInput', 'input=none');
+        
+        if ($form->rec->id) {
+            $form->setField('pinCode', 'input=input');
+        }
     }
     
     

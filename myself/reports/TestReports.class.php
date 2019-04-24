@@ -138,7 +138,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
             
             //Масив с коефициенти
             if ($rec->today){
-            $today = date_format(new DateTime('10.04.2017'), 'Y-m-d');
+                $today = $rec->today;
             }else {
             $today = dt::today();
             }
@@ -149,8 +149,10 @@ class myself_reports_TestReports extends frame2_driver_TableData
             $beginDateYear = dt::addMonths(-12,$beginDate);
             $lastDateYear = dt::addMonths(-12,$lastDate);
             
-            $NowArrForCoef = self::getInputArticuls($rec, $beginDate, $lastDate);
-            $LastArrForCoef = self::getInputArticuls($rec, $beginDateYear, $lastDateYear);
+            $NowArrForCoef = self::getInputArticles($rec, $beginDate, $lastDate);
+            $LastArrForCoef = self::getInputArticles($rec, $beginDateYear, $lastDateYear);
+            
+           
          
             $coefficients = array();
             foreach ($LastArrForCoef as $key => $val){
@@ -173,7 +175,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
                    
                 }
                 
-            }
+            } 
             
         }else{
             
@@ -184,7 +186,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
         $rec->from = $startDate;
         $rec->to = $endDate;
         
-        $allInProd = self::getInputArticuls($rec,$startDate,$endDate);
+        $allInProd = self::getInputArticles($rec,$startDate,$endDate);
         
         if($rec->prognose == 'yes' && isset($rec->period)){
        
@@ -396,7 +398,7 @@ class myself_reports_TestReports extends frame2_driver_TableData
      *
      * @return array          Масив артикули и количества
      */
-    public static function getInputArticuls($rec,$startDate,$endDate)
+    public static function getInputArticles($rec,$startDate,$endDate)
     {
         $detailsArr = array('planning_DirectProductionNote'=>'planning_DirectProductNoteDetails',
                             'planning_ConsumptionNotes'=>'planning_ConsumptionNoteDetails',

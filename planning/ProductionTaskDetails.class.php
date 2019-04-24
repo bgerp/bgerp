@@ -260,6 +260,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         if(Mode::is('terminalProgressForm')){
             $form->layout = $form->renderLayout();
+            jquery_Jquery::run($form->layout, 'prepareKeyboard();');
         }
     }
     
@@ -492,7 +493,10 @@ class planning_ProductionTaskDetails extends doc_Detail
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         if (isset($data->masterMvc)) {
-            if(!Mode::is('taskProgressInTerminal')){
+            $selectedTerminalId = Mode::get('taskProgressInTerminal');
+            $lastRecId = null;
+            
+            if(!$selectedTerminalId){
                 unset($data->listFields['notes']);
                 unset($data->listFields['productId']);
                 $data->listTableMvc->FNC('shortUoM', 'varchar', 'tdClass=nowrap');
@@ -503,6 +507,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             } else {
                 $data->listTableMvc->FNC('quantityExtended', 'varchar', 'tdClass=centerCol');
                 $data->listTableMvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>\n";
+                $lastRecId = Mode::get("terminalLastRec{$selectedTerminalId}");
             }
         }
         
@@ -526,6 +531,9 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
+            if($id == $lastRecId){
+                $row->ROW_ATTR['class'] .= ' lastRow';
+            }
             
             if (!empty($row->shortUoM)) {
                 $row->quantity = "<b>{$row->quantity}</b>";
@@ -535,9 +543,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
             }
             
+            // Проверка има ли отклонение спрямо очакваното транспортно тегло
             if(!empty($rec->weight)){
-                
-                // Проверка има ли отклонение спрямо очакваното транспортно тегло
                 $transportWeight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
                 if(!empty($transportWeight)){
                     $deviation = abs(round(($transportWeight - $rec->weight) / (($transportWeight + $rec->weight) / 2), 2));
@@ -563,7 +570,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $row->typeExtended = "<span class='extended-type'>{$row->type}</span><span class='extended-productId'> » {$row->productId}</span><span class='extended-created fright'>{$row->created}</span>";
                 $row->quantityExtended = "<div class='extended-quantity'>{$row->quantity}</div>";
                 if(!empty($rec->weight)){
-                    $row->quantityExtended .= "<span class='extended-weight'>{$row->weight}" . tr('кг') . "</span>";
+                    $row->quantityExtended .= "<span class='extended-weight'>{$row->weight} " . tr('кг') . "</span>";
                 }
                 $row->additional = null;
                 if(!empty($rec->employees)){
@@ -836,7 +843,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->where("#modifiedOn >= '{$timeline}' AND #norm IS NOT NULL");
         $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
         $query->EXT('indPackagingId', 'planning_Tasks', 'externalName=indPackagingId,externalKey=taskId');
-        
         
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();

@@ -142,10 +142,15 @@ body {
 		background: url("../../../img/16/numpad.png") center no-repeat !important;
 		border: none !important;
 	}
-	#searchBtn {
-		background-image: url("../../../img/24/qr.png") !important;
-		background-size: 24px 24px !important;
+	.qrBtn, .search {
+		background-size: 20px 20px !important;
 		background-repeat: no-repeat;
+	}
+	.qrBtn {
+		background-image: url("../../../img/24/qr.png") !important;
+	}
+	.search {
+		background-image: url("../../../img/24/search.png") !important;
 	}
 }
 
@@ -175,7 +180,7 @@ body {
 	}
 	
 	.userInfo {
-		width: 300px;
+		width: 350px;
 		line-height: 30px;
 		font-size: 1.1em;
 		text-align: right;
@@ -198,13 +203,28 @@ body {
 		display: none;
 	}
 }
+.extended-quantity, .extended-weight {
+	display: inline-block;
+	margin: 0 5px;
+}
+.taskHolder{
+	float: left;
+	margin-left: 40px;
+	width: 700px;
+}
 .title {
 	margin: 0 0 10px !important;
 }
 
 #task-support-content .formHolder {
 	width: 600px;
+	float: left;
 }
+
+.lastRow {
+	background-color: #feff7a !important;
+}
+
 .searchHolder {
 	position: absolute;
 	right: 50%;
@@ -217,17 +237,23 @@ body {
 		top: 3px;
 		border: 1px solid #ccc;
 		border-radius: 3px;
+		padding-left: 30px;
 	}
-	.qrBtn {
-		float: left;
-		width: 32px;
-		height: 32px;
-		background-size: 24px 24px;
+	.formBtn {
+		width: 26px;
+		height: 26px;
+		background-size: 20px 20px;
 		background-position: center;
 		box-sizing: border-box;
 		padding: 0 !important;
 		border: none !important;
 		background-color: transparent !important;
+		&.qrBtn {
+			position: absolute;
+			left: 3px;
+			top: 3px;
+			z-index: 10;
+		}
 		&:focus {
 			box-shadow: none;
 			outline: none;
@@ -347,12 +373,29 @@ body {
 	background-color: #fefeb7;
 }
 @media handheld, only screen and (min-width: 760px) and (max-width: 800px) {
+	.taskHolder {
+		clear: both;
+		float: none;
+		width: 100%;
+		padding-top: 40px;
+		margin-left: 0;
+	}
+	.terminalHeader .fleft .logo img {
+		height: 25px;
+		margin-top: 3px;
+	}
+	.terminalHeader .userInfo {
+		white-space: nowrap;
+		width: 320px;
+		font-size: 15px !important;
+	}
 	.wide table.listAction {
 		min-width: 480px;
 	}
 	.terminalHeader {
 		padding: 6px;
-		height: 40px;
+		height: 30px;
+		font-size: 15px !important;
 	}
 	.centerContent {
 		width: 100%;
@@ -374,6 +417,7 @@ body {
 	.planning_ProductionTaskDetails {
 		width: 500px;
 	}
+
 	.formHolder {
 		margin-right: 0px;
 		width: 240px !important;
@@ -402,6 +446,13 @@ body {
 				max-height: 28px !important;
 			}
 		}
+	}
+	#task-support-content .formContent, #task-support-content .formHolder {
+		width: 100% !important;
+		max-width: 420px;
+	}
+	.searchBarcode {
+		width: 160px;
 	}
 	.formTitle {
 		max-width: none;
@@ -450,6 +501,13 @@ body {
 }
 
 @media handheld, only screen and (max-width:740px) {
+	.taskHolder {
+		clear: both;
+		float: none;
+		width: 100%;
+		padding-top: 40px;
+		margin-left: 0;
+	}
 	.terminalHeader {
 		padding: 5px;
 		.fleft .logo img {
@@ -480,10 +538,15 @@ body {
 		#dateHolder {
 			margin-right: 5px;
 		}
-		#searchBtn {
-			background-image: url("../../../img/24/qr.png") !important;
+		.formBtn {
 			background-size: 24px 24px !important;
 			background-repeat: no-repeat;
+		}
+		.qrBtn {
+			background-image: url("../../../img/24/qr.png") !important;
+		}
+		.search {
+			background-image: url("../../../img/24/search.png") !important;
 		}
 	}
 
@@ -491,7 +554,11 @@ body {
 		position: relative;
 		display: block;
 		clear: both;
+		.searchBarcode {
+			width: 240px;
+		}
 	}
+
 	.terminalHeader {
 		height: auto;
 	}
