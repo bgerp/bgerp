@@ -3,7 +3,6 @@ function planningActions() {
 	var cookieId = $("#nameHolder").attr("data-id");
 	var cookieName = 'terminalTab' + cookieId;
 	
-	$("input[name=serial]").focus();
 	disableScale();
 
 	prepareKeyboard();
@@ -28,11 +27,9 @@ function planningActions() {
 		
 		resObj = new Object();
 		resObj['url'] = url;
-
 		getEfae().process(resObj);
 		
 		$("input[name=serial]").val("");
-		$("input[name=serial]").focus("");
 		if($('.select2').length){
 			$('select').trigger("change");
 		}
@@ -56,7 +53,11 @@ function planningActions() {
 		var quantity = $("input[name=quantity]").val();
 		if(!quantity){
 			var quantityLive = $("input[name=quantity]").attr('placeholder');
-			quantity = quantityLive;
+			if($.isNumeric(quantityLive)){
+				quantity = quantityLive;
+			} else {
+				quantity = 1;
+			}
 		}
 		
 		var employees = [];
@@ -78,7 +79,6 @@ function planningActions() {
 		var data = {serial:serial,taskId:taskId,productId:productId,quantity:quantity,employees:employees,fixedAsset:fixedAsset,weight:weight,type:type};
 		getEfae().process(resObj, data);
 		$("input[name=serial]").val("");
-		$("input[name=serial]").focus("");
 		if($('.select2').length){
 			$('select').trigger("change");
 		}
@@ -99,7 +99,6 @@ function planningActions() {
 		
 		$('.tabContent' + currentAttrValue).show().siblings().hide();
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
-		if($('.serialField').length) $('.serialField').focus();
 		setCookie(cookieName, currentId);
 		
 		e.preventDefault();
@@ -189,6 +188,26 @@ function setCookie(key, value) {
 	document.cookie = key + '=' + value + ';expires=' + expires.toUTCString() + "; path=/";
 }
 
+/**
+ * Сетва, кое поле да е на фокус
+ */
+function setFocus(tabName) {
+	if(tabName == 'tab-progress'){
+		$(".serialField").focus();
+	}
+	
+	if(tabName == 'tab-support'){
+		$("textarea[name=body]").focus();
+	}
+}
+
+/**
+ * Сетва, кое поле да е на фокус
+ */
+function render_setFocus(data)
+{
+	setFocus(data.tabId);
+}
 
 /**
  * Чете информацията от дадена бисквитка
@@ -197,7 +216,6 @@ function getCookie(key) {
 	var keyValue = document.cookie.match('(^|;) ?' + key + '=([^;]*)(;|$)');
 	return keyValue ? keyValue[2] : null;
 }
-
 
 
 function disableScale() {
