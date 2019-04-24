@@ -60,7 +60,7 @@ class planning_Terminal extends core_Manager
      */
     private function getRedirectUrlAfterProblemIsFound($rec)
     {
-        $url = ($this->haveRightFor('list')) ? array('planning_Points', 'list') : array('bgerp_Portal', 'show');
+        $url = (planning_Centers::haveRightFor('single', $rec->centerId)) ? array('planning_Centers', 'single', $rec->centerId) : array('bgerp_Portal', 'show');
         if(!core_Users::getCurrent('id', false)){
             $url = (Mode::get('terminalId')) ? array('peripheral_Terminal', 'default', 'afterExit' => true) : array('core_Users', 'login', 'ret_url' => toUrl(array($this, 'open', $rec->id), 'local'));
         }
