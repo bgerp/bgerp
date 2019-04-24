@@ -1811,28 +1811,6 @@ function  live_disableFieldsAfterLoad(el){
 }
 
 
-// функция, която взема елементите в контекстното меню от ajax
-function dropMenu(data) {
-    var ajaxFlag = 0;
-    var id = data[0];
-    var height = data[1];
-    var url = data[2];
-
-    var numId = id.match(/\d+/)[0];
-    $('#' + id).parent().css('position', 'relative');
-    $('#' + id).parent().append("<div class='modal-toolbar' data-sizestyle='context' id='contextHolder" + numId + "' data-height='" + height + "'>");
-
-    $("#" + id).hover(function() {
-        if(ajaxFlag == 1) return;
-        var resObj = new Object();
-        resObj['url'] = url;
-        getEfae().process(resObj);
-        ajaxFlag = 1;
-    });
-
-    prepareContextMenu();
-}
-
 /**
  * Задава ширината на текстареата спрямо ширината на клетката, в която се намира
  */
@@ -2508,10 +2486,18 @@ function prepareContextHtmlFromAjax() {
  * Подготовка за контекстно меню по ajax
  */
 function getContextMenuFromAjax() {
+    if($('body').hasClass('narrow')) {
+        document.body.addEventListener('touchstart', function () { });
+    }
     prepareContextHtmlFromAjax();
 
+    var data = [];
     $('.ajaxContext').on('mousedown touchstart', function(e) {
-        openAjaxMenu(this);
+        var id = $(this).attr('data-id');
+        if(!data[id]) {
+            openAjaxMenu(this);
+            data[id] = true;
+        }
     });
 
     $('.ajaxContext').each(function(){

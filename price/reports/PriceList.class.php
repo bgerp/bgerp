@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -74,6 +74,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Филтър->Избор,columns=3,placeholder=Всички опаковки,after=packType,single=none');
         $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Филтър->Групи,columns=2,placeholder=Всички,after=packagings,single=none');
         $fieldset->FLD('expandGroups', 'enum(yes=Да,no=Не)', 'caption=Филтър->Подгрупи,columns=2,after=productGroups,single=none');
+        $fieldset->FLD('notInGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Филтър->Без групи,after=expandGroups,single=none');
         $fieldset->FLD('displayDetailed', 'enum(no=Съкратен изглед,yes=Разширен изглед)', 'caption=Допълнително->Артикули,after=expandGroups,single=none');
         $fieldset->FLD('showMeasureId', 'enum(yes=Показване,no=Скриване)', 'caption=Допълнително->Основна мярка,after=displayDetailed');
         $fieldset->FLD('showEan', 'enum(yes=Показване ако има,no=Да не се показва)', 'caption=Допълнително->EAN|*?,after=showMeasureId');
@@ -162,7 +163,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $dateBefore = (!empty($rec->period)) ? (dt::addSecs(-1 * $rec->period, $date, false) . ' 23:59:59') : null;
         $round = !empty($rec->round) ? $rec->round : self::DEFAULT_ROUND;
         
-        $sellableProducts = cat_Products::getProducts(null, null, null, 'canSell', null, null, false, $rec->productGroups, 'yes');
+        $sellableProducts = cat_Products::getProducts(null, null, null, 'canSell', null, null, false, $rec->productGroups, $rec->notInGroups, 'yes');
         $sellableProducts = array_keys($sellableProducts);
         unset($sellableProducts[0]);
         
@@ -184,7 +185,6 @@ class price_reports_PriceList extends frame2_driver_TableData
             // За всеки продаваем стандартен артикул
             foreach ($sellableProducts as $id) {
                 $productRec = cat_Products::fetch($id, 'groups,code,measureId,name,isPublic,nameEn');
-                
                 
                 $quantity = 1;
                 $obj = (object) array('productId' => $productRec->id,
@@ -253,6 +253,12 @@ class price_reports_PriceList extends frame2_driver_TableData
                 
                 if ($obj->type != 'removed' && empty($priceByPolicy)) {
                     continue;
+                }
+                
+                if($rec->showEan == 'yes'){
+                    if($ean = cat_products_Packagings::getPack($obj->productId, $obj->measureId, 'eanCode')){
+                        $obj->eanCode = $ean;
+                    }
                 }
                 
                 $recs[$id] = $obj;
@@ -332,6 +338,13 @@ class price_reports_PriceList extends frame2_driver_TableData
             }
         }
         
+        // Ако има баркод на основната мярка да се показва и той
+        if(!empty($dRec->eanCode) && !Mode::isReadOnly() && barcode_Search::haveRightFor('list')){
+            $eanCode = core_Type::getByName('varchar')->toVerbal($dRec->eanCode);
+            $eanCode = ht::createLink($eanCode, array('barcode_Search', 'search' => $eanCode));
+            $row->measureId = "{$eanCode} {$row->measureId}";
+        }
+        
         return $row;
     }
     
@@ -355,8 +368,8 @@ class price_reports_PriceList extends frame2_driver_TableData
             $decimals = isset($rec->round) ? $rec->round : self::DEFAULT_ROUND;
             $rows[$packRec->packagingId] = (object) array('packagingId' => $packName, 'price' => core_Type::getByName("double(decimals={$decimals})")->toVerbal($packRec->price));
             if (!empty($packRec->eanCode)) {
-                $eanCode = core_Type::getByName('varchar')->toVerbal($packRec->eanCode);
                 if (!Mode::isReadOnly() && barcode_Search::haveRightFor('list')) {
+                    $eanCode = core_Type::getByName('varchar')->toVerbal($packRec->eanCode);
                     $eanCode = ht::createLink($eanCode, array('barcode_Search', 'search' => $eanCode));
                 }
                 $rows[$packRec->packagingId]->eanCode = $eanCode;
@@ -469,6 +482,10 @@ class price_reports_PriceList extends frame2_driver_TableData
     {
         $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
         $row->productGroups = (!empty($rec->productGroups)) ? implode(', ', cat_Groups::getLinks($rec->productGroups)) : tr('Всички');
+        if(!empty($rec->notInGroups)){
+            $row->notInGroups = implode(', ', cat_Groups::getLinks($rec->notInGroups));
+        }
+        
         if ($rec->packType == 'yes') {
             $row->packagings = (!empty($rec->packagings)) ? core_Type::getByName('keylist(mvc=cat_UoM,select=name)')->toVerbal($rec->packagings): tr('Всички');
         } elseif ($rec->packType == 'no') {
@@ -506,11 +523,13 @@ class price_reports_PriceList extends frame2_driver_TableData
         
         $fieldTpl = new core_ET(tr("|*<fieldset class='detail-info'>
                                 <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <small><div>|Цени към|*: <b>[#date#]</b></div>
-                                <!--ET_BEGIN period--><div>|Изменени за|*: [#period#] (|от|* [#periodDate#])</div><!--ET_END period-->
-                                <div>|Групи|*: [#productGroups#]</div><div>|Опаковки|*: [#packagings#]</div></small>"));
-        
-        foreach (array('periodDate', 'date', 'period', 'productGroups', 'packagings') as $field) {
+							    <small><div><span class='quiet'>|Цени към|*</span>: <b>[#date#]</b></div>
+                                <!--ET_BEGIN period--><div><span class='quiet'>|Изменени за|*</span>: [#period#] (|от|* [#periodDate#])</div><!--ET_END period-->
+                                <div><span class='quiet'>|Групи|*</span>: [#productGroups#]</div>
+                                <!--ET_BEGIN notInGroups--><div><span class='quiet'>|С изключение на|*</span>: [#notInGroups#]</div><!--ET_END notInGroups-->
+                                <div><span class='quiet'>|Опаковки|*</span>: [#packagings#]</div></small>"));
+       
+        foreach (array('periodDate', 'date', 'period', 'productGroups', 'notInGroups', 'packagings') as $field) {
             $fieldTpl->replace($data->row->{$field}, $field);
         }
         

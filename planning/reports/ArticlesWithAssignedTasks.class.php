@@ -73,16 +73,16 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 'caption=Отговорници,mandatory,after = title');
+        $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 'caption=Отговорници,mandatory,after = title,single=none');
         $fieldset->FLD(
             'typeOfSorting',
             'enum(up=Възходящо,down=Низходящо)',
-            'caption=Подредени по->Ред,maxRadio=2,columns=2,mandatory,after=title'
+            'caption=Подредени по->Ред,maxRadio=2,columns=2,mandatory,after=title,single = none'
         );
         $fieldset->FLD(
             'orderingDate',
             'enum(activated=Дата на активиране,pay=Дата на падеж)',
-            'caption=Подредени по->Дата,maxRadio=2,columns=2,mandatory,after=title'
+            'caption=Подредени по->Дата,maxRadio=2,columns=2,mandatory,after=typeOfSorting,single=none'
         );
     }
     
@@ -142,8 +142,30 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             $jobsesId = $jobses->id;
             
+            if (!is_null($jobses->designers)) {
+                $assignedUsers = keylist::toArray($rec->assignedUsers);
+                $designers = $jobses->designers;
+                
+                if (keylist::isIn($assignedUsers, $designers)) {
+                    if (! array_key_exists($jobsesId, $recs)) {
+                        $recs[$jobsesId] = (object) array(
+                            
+                            'productId' => $jobsProdId,
+                            'jobsId' => $jobses->id,
+                            'folderId' => $jobses->folderId,
+                            'saleId' => $jobses->saleId,
+                            'containerId' => $jobses->containerId,
+                            'deliveryDate' => $deliveryDate,
+                            'activatedDate' => $activatedDate
+                        
+                        );
+                    }
+                }
+            }
+            
+            
             // Връзки към задачи от задание
-            $resArrJobses = doc_Linked::getRecsForType('doc', $jobses->containerId, false);
+            $resArrJobses = doc_Linked::getRecsForType('doc', $jobses->containerId, false);//bp($resArrJobses);
             
             foreach ($resArrJobses as $d) {
                 $linkFrom = 'job';
@@ -170,8 +192,9 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 }
                 
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
+                $designers = $task->assign;
                 
-                if (keylist::isIn($assignedUsers, $task->assign)) {
+                if (keylist::isIn($assignedUsers, $designers)) {
                     if (! array_key_exists($jobsesId, $recs)) {
                         $recs[$jobsesId] = (object) array(
                             
@@ -228,8 +251,9 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 }
                 
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
+                $designers = $task->assign;
                 
-                if (keylist::isIn($assignedUsers, $task->assign)) {
+                if (keylist::isIn($assignedUsers, $designers)) {
                     if (! array_key_exists($jobsesId, $recs)) {
                         $recs[$jobsesId] = (object) array(
                             
@@ -285,6 +309,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             ));
         }
         
+        // bp($recs);
         return $recs;
     }
     
@@ -480,6 +505,49 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         }
         
         return $row;
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager     $Embedder
+     * @param core_ET           $tpl
+     * @param stdClass          $data
+     */
+    protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
+    {
+        $Date = cls::get('type_Date');
+        $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
+								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
+        		                <small><div><!--ET_BEGIN assignedUsers-->|Възложено на|*: [#assignedUsers#]<!--ET_END assignedUsers--></div></small>
+                                <small><div><!--ET_BEGIN orderingDate-->|Подредени по|*: [#orderingDate#]<!--ET_END orderingDate--></div></small>
+                                </fieldset><!--ET_END BLOCK-->"));
+        
+        if (isset($data->rec->assignedUsers)) {
+            $marker = 0;
+            foreach (keylist::toArray($data->rec->assignedUsers) as $val) {
+                $marker++;
+                $valVerb = core_Users::getTitleById($val) ;
+                
+                if ((count(type_Keylist::toArray($data->rec->assignedUsers))) - $marker != 0) {
+                    $valVerb .= ', ';
+                }
+                
+                
+                $fieldTpl->append('<b>' .$valVerb. '</b>', 'assignedUsers');
+            }
+        }
+        
+        if (isset($data->rec->orderingDate)) {
+            
+            $text = ($data->rec->orderingDate == 'activated')?'Дата на активиране' : 'Дата на падеж';
+            
+                $fieldTpl->append('<b>' . $text . '</b>', 'orderingDate');
+        }
+        
+        $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
     
     

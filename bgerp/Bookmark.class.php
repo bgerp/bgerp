@@ -161,7 +161,7 @@ class bgerp_Bookmark extends core_Manager
             $url = array(get_called_class(), 'list');
         }
         
-        $img = ht::createElement('img', array('src' => sbf('img/32/table-bg.png', ''), 'title' => 'Редактиране на връзките', 'width' => 20, 'height' => 20, 'alt' => 'edit bookmark'));
+        $img = ht::createElement('img', array('src' => sbf('img/32/table-bg.png', ''), 'title' => 'Редактиране на връзките', 'width' => 22, 'height' => 22, 'alt' => 'edit bookmark'));
         $list = ht::createLink($img, $url, null, array('class' => 'bookmarkLink listBookmarkLink'));
         $title = "<span class='bookmarkText'>" . tr('Отметки') . '</span>'.  $list ;
         
@@ -192,7 +192,7 @@ class bgerp_Bookmark extends core_Manager
                 
                 $attr = array();
                 $attr['class'] = 'bookmarkLink addBookmarkLink';
-                $img = ht::createElement('img', array('src' => sbf('img/32/delete-bg.png', ''), 'title' => 'Изтриване на връзка', 'width' => 20, 'height' => 20, 'alt' => 'add bookmark'));
+                $img = ht::createElement('img', array('src' => sbf('img/32/delete-bg.png', ''), 'title' => 'Изтриване на връзка', 'width' => 22, 'height' => 22, 'alt' => 'add bookmark'));
                 $tpl->append(ht::createLink($img, array(get_called_class(), 'delete', self::$curRec->id, 'ret_url' => true), 'Наистина ли желаете да премахнете връзката?', $attr));
             }
             
@@ -200,7 +200,7 @@ class bgerp_Bookmark extends core_Manager
             $attr['onclick'] = "addParamsToBookmarkBtn(this, '{$sUrl}', '{$localUrl}'); return ;";
             
             $attr['class'] = 'bookmarkLink addBookmarkLink';
-            $img = ht::createElement('img', array('src' => sbf('img/32/' . $icon, ''), 'title' => $title, 'width' => 20, 'height' => 20, 'alt' => 'add bookmark'));
+            $img = ht::createElement('img', array('src' => sbf('img/32/' . $icon, ''), 'title' => $title, 'width' => 22, 'height' => 22, 'alt' => 'add bookmark'));
             $tpl->append(ht::createLink($img, $url, false, $attr));
         }
         

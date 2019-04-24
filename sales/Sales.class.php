@@ -204,7 +204,7 @@ class sales_Sales extends deals_DealMaster
      *
      * @see bgerp_plg_CsvExport
      */
-    public $exportableCsvFields = 'valior,amountDeal,amountDelivered,amountBl,amountPaid,amountInvoiced,amountVat,amountDiscount,state';
+    public $exportableCsvFields = 'valior,id,folderId,currencyId,amountDeal,amountDelivered,amountPaid,amountInvoiced';
     
     
     /**
@@ -1596,22 +1596,20 @@ class sales_Sales extends deals_DealMaster
     /**
      * Преди експортиране като CSV
      */
-    public static function on_BeforeExportCsv($mvc, &$recs)
+    protected static function on_BeforeExportCsv($mvc, &$recs)
     {
-        if (!$recs) {
-            
-            return ;
+        if (is_array($recs)) {
+            foreach ($recs as &$rec){
+                $rec->id = self::getRecTitle($rec, false);
+                foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced') as $amnt) {
+                    if (round($rec->{"amount{$amnt}"}, 2) != 0) {
+                        $rec->currencyRate = ($rec->currencyRate) ? $rec->currencyRate : 1;
+                        $rec->{"amount{$amnt}"} = round($rec->{"amount{$amnt}"} / $rec->currencyRate, 2);
+                    } else {
+                        $rec->{"amount{$amnt}"} = 0;
+                    }
+                }
+            }
         }
-    }
-    
-    
-    /**
-     * След подготвяне на заявката за експорт
-     */
-    public static function on_AfterPrepareExportQuery($mvc, &$query)
-    {
-        // Искаме освен фактурите показващи се в лист изгледа да излизат и тези,
-        // които са били активни, но сега са оттеглени
-        $query->where("#state != 'draft' OR (#state = 'rejected' AND #brState = 'active')");
     }
 }

@@ -81,7 +81,7 @@ class planning_Terminal extends core_Manager
     private function getSupportHtml($id)
     {
         $rec = planning_Points::fetchRec($id);
-        $tpl = new core_ET(tr("|*<h3 class='title'>|Сигнал за нередност|*</h3><div class='formHolder'>[#FORM#]</div>"));
+        $tpl = new core_ET(tr("|*<h3 class='title'>|Сигнал за повреда|*</h3><div class='formHolder'>[#FORM#]</div>"));
         $form = cls::get('core_Form');
         $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name,select2MinItems=100)', 'class=w100,placeholder=Оборудване,mandatory');
         $form->FLD('body', 'richtext(rows=4)', 'caption=Описание на проблема,mandatory,placeholder=Описание на проблема');
@@ -104,11 +104,13 @@ class planning_Terminal extends core_Manager
                         'description' => $form->rec->body,
                         'typeId' => support_IssueTypes::fetchField("#type = 'Повреда'"),
                         'assetResourceId' => $form->rec->asset,
-                        'title' => $assetRec->name,
-                        
+                        'state' => 'pending',
+                        'title' => str::limitLen(strip_tags($form->getFieldType('body')->toVerbal($form->rec->body)), 64),
                     );
+                    
                     cal_Tasks::save($newTask);
                     doc_ThreadUsers::addShared($newTask->threadId, $newTask->containerId, core_Users::getCurrent());
+                    planning_Points::addSentTasks($rec, $newTask->id);
                     
                     redirect(array($this, 'open', $rec->id), false, "Успешно пуснат сигнал|* #Tsk{$newTask->id}");
                 }
@@ -117,12 +119,40 @@ class planning_Terminal extends core_Manager
         
         $form->toolbar->addSbBtn('Подаване', 'default', 'id=filter', 'title=Подаване на сигнал за повреда на оборудването');
         $form->class = 'simpleForm';
-        
         $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/SupportFormLayout.shtml');
         $tpl->append($form->renderHtml(), 'FORM');
         $tpl->removeBlocksAndPlaces();
+        $tpl->append($this->getTasksListTable($rec->tasks));
+        $tpl->append("<div class='clearfix21'></div>");
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Показване на активните сигнали, пуснати от терминала
+     *
+     * @param mixed $id
+     * @return core_ET $tpl
+     */
+    private function getTasksListTable($tasks)
+    {
+        $tpl = new core_ET("");
+        $tasks = keylist::toArray($tasks);
+        if(!empty($tasks)){
+            arsort($tasks);
+            
+            $tpl->append("<div class='fleft taskHolder'><table class='listTable'>");
+            foreach ($tasks as $taskId){
+                $taskRec = cal_Tasks::fetch($taskId, 'state,progress,createdOn');
+                $taskRow = cal_Tasks::recToVerbal($taskRec, 'progressBar,progress,createdOn');
+                $taskRow->title = cal_Tasks::getHyperlink($taskRec->id, true);
+                $tpl->append("<tr class='state-{$taskRec->state}'><td>{$taskRow->createdOn}</td><td>{$taskRow->title}</td><td>{$taskRow->progressBar} {$taskRow->progress}</td></tr>");
+            }
+            $tpl->append("</table></div>");
+        }
+        
+        return  $tpl;
     }
     
     
@@ -304,21 +334,23 @@ class planning_Terminal extends core_Manager
         
         // Ако се гледа през андроидски телефон да се активира полето за търсене
         $attr = array('name' => 'searchBarcode', 'class' => 'searchBarcode scanElement', 'title' => 'Търсене');
-        $userAgent = log_Browsers::getUserAgentOsName();
-        if ($userAgent == 'Android') {
-            $url = toUrl(array($this, 'open', $rec->id, 'search' => '__CODE__'), true);
-            $attr['data-url'] = barcode_Search::getScannerActivateUrl($url);
-        }
         if($search = Request::get('search', 'varchar')){
             $attr['value'] = $search;
         }
-        
         $searchInput = ht::createElement('input', $attr);
         $tpl->append($searchInput, 'searchInput');
         
+        // Бутон за сканиране
+        $userAgent = log_Browsers::getUserAgentOsName();
+        if ($userAgent == 'Android') {
+            $url = toUrl(array($this, 'open', $rec->id, 'search' => '__CODE__'), true);
+            $scanBtn = ht::createBtn('', barcode_Search::getScannerActivateUrl($url), false, false, array('ef_icon' => 'img/24/qr.png','class' => 'formBtn qrBtn', 'title' => 'Сканиране на QR'));
+        }
+        
         $searchUrl = toUrl(array($this, 'search', $rec->id), 'local');
-        $searchBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/qr.png', 'id' => 'searchBtn','class' => 'qrBtn',  'data-url' => $searchUrl, 'title' => 'Търсене по баркод'));
+        $searchBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/search.png', 'id' => 'searchBtn',  'data-url' => $searchUrl, 'class' => 'formBtn search',  'title' => 'Търсене'));
         $tpl->append($searchBtn, 'searchBtn');
+        $tpl->append($scanBtn, 'scanBtn');
         
         return $tpl;
     }
@@ -347,7 +379,7 @@ class planning_Terminal extends core_Manager
         $form->FLD('action', 'varchar(select2MinItems=100)', 'elementId=actionIdSelect,placeholder=Действие,mandatory,silent,removeAndRefreshForm=productId|type');
         $form->FLD('productId', 'key(mvc=cat_Products,select=name)', 'class=w100,input=hidden,silent');
         $form->FLD('type', 'enum(input=Влагане,production=Произв.,waste=Отпадък)', 'elementId=typeSelect,input=hidden,silent,removeAndRefreshForm=productId|weight|serial,caption=Действие,class=w100');
-        $form->FLD('serial', 'varchar(32)', 'focus,autocomplete=off,silent,placeholder=№,class=w100 serialField scanElement');
+        $form->FLD('serial', 'varchar(32)', 'focus,autocomplete=off,placeholder=№,class=w100 serialField');
         $form->FLD('quantity', 'double(Min=0)', 'class=w100 quantityField,placeholder=К-во');
         $form->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
         $form->FLD('weight', 'double(Min=0)', 'class=w100 weightField,placeholder=Тегло|* (|кг|*)');
@@ -401,7 +433,7 @@ class planning_Terminal extends core_Manager
         
         // Бутони за добавяне
         $sendUrl = ($this->haveRightFor('terminal')) ?  toUrl(array($this, 'doAction', $rec->id), 'local') : array();
-        $sendBtn = ht::createFnBtn('Изпълнение', null, null, array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'data-url' => $sendUrl, 'title' => 'Изпълнение по задачата'));
+        $sendBtn = ht::createFnBtn("Изпълнение|* " . html_entity_decode('&#x23CE;'), null, null, array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'data-url' => $sendUrl, 'title' => 'Изпълнение по задачата'));
         $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
         
         $numpadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'numPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
@@ -634,8 +666,9 @@ class planning_Terminal extends core_Manager
             
             // Опит за добавяне на запис в прогреса
             $Details = cls::get('planning_ProductionTaskDetails');
-            $dRec = $Details->add($params['taskId'], $params);
+            $dRec = $Details::add($params['taskId'], $params);
             $Details->logInAct('Създаване на детайл от терминала', $dRec);
+            Mode::setPermanent("terminalLastRec{$rec->id}", $dRec->id);
             
             if(isset($dRec->_rejectId) || !Request::get('ajax_mode')){
                 
@@ -710,21 +743,24 @@ class planning_Terminal extends core_Manager
         $pageTitle = $rec->name . ((!empty($verbalAsset) ? " « " . strip_tags($verbalAsset) : ""));
         $pageTitle .= " « " . strip_tags($centerName);
         $tpl->replace($pageTitle, 'PAGE_TITLE');
+        Mode::setPermanent("activeTab{$rec->id}", $this->getActiveTab($rec));
+        $activeTab = Mode::get("activeTab{$rec->id}");
         
         // Ако няма избрана операция, забраняват се определени бутони
         if(!Mode::get("currentTaskId{$rec->id}")){
             $tpl->replace('disabled', 'activeSingle');
             $tpl->replace('disabled', 'activeJob');
             $tpl->replace('disabled', 'activeTask');
-            $tpl->replace('active', 'activeAll');
+            
+            if($activeTab == 'taskList'){
+                $tpl->replace('active', 'activeAll');
+            }
         }
         
         // Кой е активния таб ? Показване на формата за търсене по баркод
-        Mode::setPermanent("activeTab{$rec->id}", $this->getActiveTab($rec));
         $tpl->replace($this->getSearchTpl($rec), "SEARCH_FORM");
         
         // Рендиране на активния таб
-        $activeTab = Mode::get("activeTab{$rec->id}");
         expect($aciveTabData = self::TAB_DATA[$activeTab]);
         $tableTpl = $this->{$aciveTabData['fnc']}($rec);
         $tpl->replace($tableTpl, $aciveTabData['placeholder']);
