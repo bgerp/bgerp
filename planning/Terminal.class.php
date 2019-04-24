@@ -371,6 +371,7 @@ class planning_Terminal extends core_Manager
         expect($taskRec = planning_Tasks::fetch($currentTaskId));
         $Details = cls::get('planning_ProductionTaskDetails');
         Mode::push('terminalProgressForm', $currentTaskId);
+        $mandatoryClass = ($taskRec->showadditionalUom == 'mandatory') ? ' mandatory' : '';
         
         $form = cls::get('core_Form');
         $form->formAttr['id'] = $Details->className . '-EditForm';
@@ -379,10 +380,10 @@ class planning_Terminal extends core_Manager
         $form->FLD('action', 'varchar(select2MinItems=100)', 'elementId=actionIdSelect,placeholder=Действие,mandatory,silent,removeAndRefreshForm=productId|type');
         $form->FLD('productId', 'key(mvc=cat_Products,select=name)', 'class=w100,input=hidden,silent');
         $form->FLD('type', 'enum(input=Влагане,production=Произв.,waste=Отпадък)', 'elementId=typeSelect,input=hidden,silent,removeAndRefreshForm=productId|weight|serial,caption=Действие,class=w100');
-        $form->FLD('serial', 'varchar(32)', 'focus,autocomplete=off,placeholder=№,class=w100 serialField');
+        $form->FLD('serial', 'varchar(32)', 'autocomplete=off,placeholder=№,class=w100 serialField');
         $form->FLD('quantity', 'double(Min=0)', 'class=w100 quantityField,placeholder=К-во');
         $form->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
-        $form->FLD('weight', 'double(Min=0)', 'class=w100 weightField,placeholder=Тегло|* (|кг|*)');
+        $form->FLD('weight', 'double(Min=0)', "class=w100 weightField{$mandatoryClass},placeholder=Тегло|* (|кг|*)");
         $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=100,columns=3)', 'elementId=employeeSelect,placeholder=Оператори,class=w100');
         $form->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id,select2MinItems=100)', 'elementId=fixedAssetSelect,placeholder=Оборудване,class=w100');
         $form->FLD('recId', 'int', 'input=hidden,silent');
@@ -482,6 +483,7 @@ class planning_Terminal extends core_Manager
             $objectArr[] = $resObj;
         }
         
+        // Активиране на нужния таб
         $resObj = new stdClass();
         $resObj->func = 'activateTab';
         $resObj->arg = array('tabId' => self::TAB_DATA[$name]['tab-id']);
@@ -493,10 +495,12 @@ class planning_Terminal extends core_Manager
         $resObj->arg = array('id' => 'dateHolder', 'html' => dt::mysql2verbal(dt::now(), 'd/m/y'), 'replace' => true);
         $objectArr[] = $resObj;
         
+        // Подготовка на клавиатурата
         $resObj = new stdClass();
         $resObj->func = 'prepareKeyboard';
         $objectArr[] = $resObj;
         
+        // Задаване на фокус на нужното поле според таба
         $resObj = new stdClass();
         $resObj->func = 'setFocus';
         $resObj->arg = array('tabId' => self::TAB_DATA[$name]['tab-id']);
@@ -524,13 +528,13 @@ class planning_Terminal extends core_Manager
     {
         $dump = $e->getDump();
         $dump = $dump[0];
-        
         $errorMsg = (haveRole('debug')) ? $dump : 'Възникна проблем при отчитане на прогреса|*!';
         reportException($e);
         
         if (Request::get('ajax_mode')) {
             core_Statuses::newStatus($errorMsg, 'error');
             
+            // Задаване на фокуса на нужното поле
             $name = Mode::get("activeTab{$rec->id}");
             $objectArr = array();
             $resObj = new stdClass();
