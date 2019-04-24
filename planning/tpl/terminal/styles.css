@@ -98,6 +98,8 @@ body {
   .keyboardHolder .quantityField,
   .keyboardHolder .weightField {
     padding-right: 31px; }
+  .keyboardHolder .weightField {
+    border: 1px solid #666666 !important; }
   .keyboardHolder .planning-terminal-numpad {
     position: absolute;
     right: -2px;
@@ -282,9 +284,8 @@ body {
     .formHolder .formContent textarea,
     .formHolder .formContent .richedit-toolbar {
       border-color: #cccccc; }
-    .formHolder .formContent input:focus {
-      box-shadow: 0 0 10px blue;
-      brder: 1px solid blue !important; }
+    .formHolder .formContent input[type=text]:focus {
+      box-shadow: 0 0 10px blue; }
     .formHolder .formContent textarea {
       min-height: 90px;
       margin-top: 10px; }

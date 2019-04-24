@@ -119,6 +119,9 @@ body {
 	.quantityField, .weightField {
 		padding-right: 31px;
 	}
+	.weightField {
+		border: 1px solid #666 !important;
+	}
 	.planning-terminal-numpad {
 		position: absolute;
 		right: -2px;
@@ -330,9 +333,8 @@ body {
 		.select2-container .select2-selection--multiple, textarea, .richedit-toolbar  {
 			border-color: #ccc;
 		}
-		input:focus {
+		input[type=text]:focus {
 			box-shadow: 0 0 10px #00f;
-			brder: 1px solid #00f !important;
 		}
 
 		textarea {
