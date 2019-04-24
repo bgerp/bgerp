@@ -342,7 +342,7 @@ class planning_Terminal extends core_Manager
         $tpl->append($searchInput, 'searchInput');
         
         $userAgent = log_Browsers::getUserAgentOsName();
-        $url = ($userAgent == 'Android') ? toUrl(array($this, 'open', $rec->id, 'search' => '__CODE__'), true) : array();
+        $url = ($userAgent == 'Android') ? barcode_Search::getScannerActivateUrl(toUrl(array($this, 'open', $rec->id, 'search' => '__CODE__'), true)) : array();
         
         // Бутон за търсене
         $searchUrl = toUrl(array($this, 'search', $rec->id), 'local');
