@@ -210,6 +210,7 @@ body {
     border: none !important;
     background-color: rgba(0, 0, 0, 0) !important; }
     .searchHolder .formBtn.qrBtn {
+      cursor: default;
       position: absolute;
       left: 3px;
       top: 3px;
