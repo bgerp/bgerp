@@ -53,7 +53,11 @@ function planningActions() {
 		var quantity = $("input[name=quantity]").val();
 		if(!quantity){
 			var quantityLive = $("input[name=quantity]").attr('placeholder');
-			quantity = quantityLive;
+			if($.isNumeric(quantityLive)){
+				quantity = quantityLive;
+			} else {
+				quantity = 1;
+			}
 		}
 		
 		var employees = [];
