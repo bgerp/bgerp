@@ -497,6 +497,11 @@ class planning_Terminal extends core_Manager
         $resObj->func = 'prepareKeyboard';
         $objectArr[] = $resObj;
         
+        $resObj = new stdClass();
+        $resObj->func = 'setFocus';
+        $resObj->arg = array('tabId' => self::TAB_DATA[$name]['tab-id']);
+        $objectArr[] = $resObj;
+        
         // Показване на чакащите статуси
         $hitTime = Request::get('hitTime', 'int');
         $idleTime = Request::get('idleTime', 'int');
@@ -526,12 +531,20 @@ class planning_Terminal extends core_Manager
         if (Request::get('ajax_mode')) {
             core_Statuses::newStatus($errorMsg, 'error');
             
+            $name = Mode::get("activeTab{$rec->id}");
+            $objectArr = array();
+            $resObj = new stdClass();
+            $resObj->func = 'setFocus';
+            $resObj->arg = array('tabId' => self::TAB_DATA[$name]['tab-id']);
+            $objectArr[] = $resObj;
+            
             // Показваме веднага и чакащите статуси
             $hitTime = Request::get('hitTime', 'int');
             $idleTime = Request::get('idleTime', 'int');
             $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+            $res = array_merge($objectArr, (array) $statusData);
             
-            return array_merge($statusData);
+            return $res;
         }
     }
     
@@ -775,7 +788,9 @@ class planning_Terminal extends core_Manager
         
         $cookieId = "terminalTab{$rec->id}";
         jquery_Jquery::run($tpl, "setCookie('{$cookieId}', '{$aciveTabData['tab-id']}');");
+        
         jquery_Jquery::run($tpl, 'planningActions();');
+        jquery_Jquery::run($tpl, "setFocus('{$aciveTabData['tab-id']}')");
         $this->logRead('Отваряне на точка за производство', $rec->id);
         
         return $tpl;

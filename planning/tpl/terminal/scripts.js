@@ -133,7 +133,7 @@ function planningActions() {
 	
 	// При натискане на ентер да се изпрати формата за прогреса
 	$(document.body).on('keypress',function(e) {
-	    if(e.which == 13) {
+	    if(e.which == 13) {key, value
 	    	$('#sendBtn').trigger("click");
 	    }
 	});
@@ -189,6 +189,26 @@ function setCookie(key, value) {
 	document.cookie = key + '=' + value + ';expires=' + expires.toUTCString() + "; path=/";
 }
 
+/**
+ * Сетва, кое поле да е на фокус
+ */
+function setFocus(tabName) {
+	if(tabName == 'tab-progress'){
+		$(".serialField").focus();
+	}
+	
+	if(tabName == 'tab-support'){
+		$("textarea[name=body]").focus();
+	}
+}
+
+/**
+ * Сетва, кое поле да е на фокус
+ */
+function render_setFocus(data)
+{
+	setFocus(data.tabId);
+}
 
 /**
  * Чете информацията от дадена бисквитка
@@ -197,7 +217,6 @@ function getCookie(key) {
 	var keyValue = document.cookie.match('(^|;) ?' + key + '=([^;]*)(;|$)');
 	return keyValue ? keyValue[2] : null;
 }
-
 
 
 function disableScale() {
