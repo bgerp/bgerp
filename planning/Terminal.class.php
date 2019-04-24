@@ -340,16 +340,16 @@ class planning_Terminal extends core_Manager
         $searchInput = ht::createElement('input', $attr);
         $tpl->append($searchInput, 'searchInput');
         
-        // Бутон за сканиране
         $userAgent = log_Browsers::getUserAgentOsName();
-        if ($userAgent == 'Android') {
-            $url = toUrl(array($this, 'open', $rec->id, 'search' => '__CODE__'), true);
-            $scanBtn = ht::createBtn('', barcode_Search::getScannerActivateUrl($url), false, false, array('ef_icon' => 'img/24/qr.png','class' => 'formBtn qrBtn', 'title' => 'Сканиране на QR'));
-        }
+        $url = ($userAgent == 'Android') ? toUrl(array($this, 'open', $rec->id, 'search' => '__CODE__'), true) : array();
         
+        // Бутон за търсене
         $searchUrl = toUrl(array($this, 'search', $rec->id), 'local');
         $searchBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/search.png', 'id' => 'searchBtn',  'data-url' => $searchUrl, 'class' => 'formBtn search',  'title' => 'Търсене'));
         $tpl->append($searchBtn, 'searchBtn');
+        
+        // Бутон за сканиране
+        $scanBtn = ht::createBtn('', $url, false, false, array('ef_icon' => 'img/24/qr.png','class' => 'formBtn qrBtn', 'title' => 'Сканиране на QR'));
         $tpl->append($scanBtn, 'scanBtn');
         
         return $tpl;
