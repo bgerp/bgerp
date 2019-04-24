@@ -184,6 +184,9 @@ body {
   width: 600px;
   float: left; }
 
+.lastRow {
+  background-color: #feff7a !important; }
+
 .searchHolder {
   position: absolute;
   right: 50%;
