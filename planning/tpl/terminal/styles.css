@@ -282,6 +282,9 @@ body {
     .formHolder .formContent textarea,
     .formHolder .formContent .richedit-toolbar {
       border-color: #cccccc; }
+    .formHolder .formContent input:focus {
+      box-shadow: 0 0 10px blue;
+      brder: 1px solid blue !important; }
     .formHolder .formContent textarea {
       min-height: 90px;
       margin-top: 10px; }

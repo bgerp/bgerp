@@ -330,7 +330,10 @@ body {
 		.select2-container .select2-selection--multiple, textarea, .richedit-toolbar  {
 			border-color: #ccc;
 		}
-
+		input:focus {
+			box-shadow: 0 0 10px #00f;
+			brder: 1px solid #00f !important;
+		}
 
 		textarea {
 			min-height: 90px;
