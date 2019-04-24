@@ -316,6 +316,7 @@ class planning_Terminal extends core_Manager
         $formTpl->append("</div> ");
         $tpl->prepend($formTpl);
         $tpl->append("<div class='clearfix21'></div>");
+        Mode::setPermanent("terminalLastRec{$rec->id}", null);
         
         return $tpl;
     }
@@ -685,7 +686,7 @@ class planning_Terminal extends core_Manager
             $Details = cls::get('planning_ProductionTaskDetails');
             $dRec = $Details::add($params['taskId'], $params);
             $Details->logInAct('Създаване на детайл от терминала', $dRec);
-            Mode::set("terminalLastRec{$rec->id}", $dRec->id);
+            Mode::setPermanent("terminalLastRec{$rec->id}", $dRec->id);
             
             if(isset($dRec->_rejectId) || !Request::get('ajax_mode')){
                 
