@@ -364,19 +364,6 @@ class frame2_Reports extends embed_Manager
     
     
     /**
-     * Подготовка на бутоните на формата за добавяне/редактиране.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $res
-     * @param stdClass     $data
-     */
-    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
-    {
-        $data->form->toolbar->renameBtn('save', 'Запис');
-    }
-    
-    
-    /**
      * Изпращане на нотификации на споделените потребители
      *
      * @param stdClass $rec
