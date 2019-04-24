@@ -130,6 +130,13 @@ function planningActions() {
 		
 		$(location).attr('href', url);
 	});
+	
+	// При натискане на ентер да се изпрати формата за прогреса
+	$(document.body).on('keypress',function(e) {
+	    if(e.which == 13) {
+	    	$('#sendBtn').trigger("click");
+	    }
+	});
 }
 
 
