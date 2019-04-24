@@ -117,7 +117,7 @@ class planning_Terminal extends core_Manager
             }
         }
         
-        $form->toolbar->addSbBtn('Подаване', 'default', 'id=filter', 'title=Подаване на сигнал за повреда на оборудването');
+        $form->toolbar->addSbBtn('Изпрати', 'default', 'id=filter', 'title=Изпращане на сигнал за повреда на оборудването');
         $form->class = 'simpleForm';
         $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/SupportFormLayout.shtml');
         $tpl->append($form->renderHtml(), 'FORM');
