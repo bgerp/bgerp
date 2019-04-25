@@ -69,6 +69,7 @@ class price_interface_LabelImpl
         $Double = core_Type::getByName("double(decimals={$round})");
         
         $currentCount = 0;
+        Mode::push('text', 'plain');
         foreach ($recs as $pRec){
             $ean = '';
             if($onlyPreview === true){
@@ -95,6 +96,7 @@ class price_interface_LabelImpl
                 if($currentCount == $cnt) break;
             }
         }
+        Mode::pop('text', 'plain');
         
         return $resArr;
     }

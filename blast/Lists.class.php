@@ -168,7 +168,7 @@ class blast_Lists extends core_Master
     {
         // Информация за папката
         $this->FLD('title', 'varchar', 'caption=Заглавие,width=100%,mandatory');
-        $this->FLD('keyField', 'enum(email=Имейл,mobile=Мобилен,fax=Факс,names=Лице,company=Фирма,uniqId=№)', 'caption=Ключ,width=100%,mandatory,hint=Ключовото поле за списъка');
+        $this->FLD('keyField', 'enum(email=Имейл,mobile=Мобилен,fax=Факс,names=Лице,company=Фирма,uniqId=№)', 'caption=Ключ,width=100%,mandatory,hint=Ключовото поле за списъка, removeAndRefreshForm=negativeList');
         $this->FLD('fields', 'text', 'caption=Полета,width=100%,mandatory,hint=Напишете името на всяко поле на отделен ред,column=none');
         $this->FNC('allFields', 'text', 'column=none,input=none');
         
@@ -177,6 +177,8 @@ class blast_Lists extends core_Master
         cls::get('core_Lg');
         
         $this->FLD('lg', 'enum(, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull,allowEmpty');
+        
+        $this->FLD('negativeList', 'keylist(mvc=blast_Lists, select=title, where=#state !\\= \\\'rejected\\\')', 'caption=Списък->Игнориране');
         
         $this->setDbUnique('title');
     }
@@ -324,6 +326,28 @@ class blast_Lists extends core_Master
         
         if (!$data->form->rec->id) {
             $data->form->setDefault('lg', core_Lg::getCurrent());
+        }
+        $data->form->input('keyField');
+        
+        //Добавя в лист само списъци с имейли
+        $query = $mvc->getQuery();
+        $kField = 'email';
+        $kField = $data->form->rec->keyField ? $data->form->rec->keyField : 'email';
+        $query->where(array("#keyField = '[#1#]'", $kField));
+        $query->where("#state != 'rejected'");
+        $query->orderBy('createdOn', 'DESC');
+        if ($data->form->rec->id) {
+            $query->where(array("#id != '[#1#]'", $data->form->rec->id));
+        }
+        $lists = array();
+        while ($rec = $query->fetch()) {
+            $lists[$rec->id] = $mvc->getVerbal($rec, 'title');
+        }
+        
+        if (empty($lists)) {
+            $data->form->setField('negativeList', 'input=none');
+        } else {
+            $data->form->setSuggestions('negativeList', $lists);
         }
     }
     
@@ -542,7 +566,35 @@ class blast_Lists extends core_Master
      */
     public function getPresonalizationArr($id, $limit = 0)
     {
+        static $maxIter;
+        
+        $checkLimit = (boolean)$limit;
+        
         $resArr = array();
+        
+        $rec = $this->fetchRec($id);
+        
+        $nArr = array();
+        if ($rec->negativeList && $maxIter++ < 100) {
+            $negativeListArr = type_Keylist::toArray($rec->negativeList);
+            foreach ($negativeListArr as $nId) {
+                Mode::push('isGettingNegative', true);
+                $nArr += $this->getPresonalizationArr($nId);
+                Mode::pop('isGettingNegative');
+            }
+        }
+        
+        $nValArr = array();
+        
+        // Когото вземаме отрицателния списък, да не се махат отрицателния от бащата 
+        if (!Mode::is('isGettingNegative')) {
+            foreach ($nArr as $nArrVal) {
+                $nKeyValStr = trim($nArrVal[$rec->keyField]);
+                if (!$nKeyValStr) continue;
+                $nKeyValStr = strtolower($nKeyValStr);
+                $nValArr[$nKeyValStr] = $nKeyValStr;
+            }
+        }
         
         // Всички списъци, които не са спредни или оттеглени
         $detailQuery = blast_ListDetails::getQuery();
@@ -550,14 +602,20 @@ class blast_Lists extends core_Master
         $detailQuery->where("#state != 'stopped'");
         $detailQuery->where("#state != 'rejected'");
         
-        if ($limit) {
-            $detailQuery->limit($limit);
-        }
-        
         $cnt = 0;
         
-        while ($rec = $detailQuery->fetch()) {
-            $resArr[$rec->id] = unserialize($rec->data);
+        while ($dRec = $detailQuery->fetch()) {
+            $nData = unserialize($dRec->data);
+            $nDataValStr = trim($nData[$rec->keyField]);
+            $nDataValStr = strtolower($nDataValStr);
+            
+            if (!empty($nValArr) && $nValArr[$nDataValStr]) {
+                continue;
+            }
+            
+            if ($checkLimit && !$limit--) break;
+            
+            $resArr[$dRec->id] = unserialize($dRec->data);
         }
         
         return $resArr;
@@ -723,6 +781,7 @@ class blast_Lists extends core_Master
             'allFields' => 'Всички полета',
             'DetailsCnt' => 'Брой абонати',
             'lg' => 'Език',
+            'negativeList' => 'Списък за игнориране',
             'lastUsedOn' => 'Последна употреба'
         );
         foreach ($allFieldsArr as $fieldName => $val) {
