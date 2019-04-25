@@ -45,7 +45,9 @@
 
 // Абсолютен път до GIT
    defIfNot('BGERP_GIT_PATH', '[#BGERP_GIT_PATH#]');
-      
+
+   define('EF_APP_TITLE', 'H18 DB Vewer');
+   
 // Имейла по подразбиране
 // defIfNot('BGERP_DEFAULT_EMAIL_FROM', '[#BGERP_DEFAULT_EMAIL_FROM#]');
 
