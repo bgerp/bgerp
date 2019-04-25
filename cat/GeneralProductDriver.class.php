@@ -306,6 +306,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     public function renderProductDescription($data)
     {
         // Вербализиране на снимката, да е готова за показване
+        $data->rec->photo =  cat_Products::getParams($data->rec->id, 'preview');
         if ($data->rec->photo) {
             $size = array(280, 150);
             $Fancybox = cls::get('fancybox_Fancybox');

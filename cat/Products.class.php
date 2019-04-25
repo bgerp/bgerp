@@ -1737,14 +1737,18 @@ class cat_Products extends embed_Manager
      */
     public static function getParams($id, $name = null, $verbal = false)
     {
+        $res = (isset($name)) ? null : array();
         // Ако има драйвър, питаме него за стойността
         if ($Driver = static::getDriver($id)) {
-            
-            return $Driver->getParams(cat_Products::getClassId(), $id, $name, $verbal);
+
+            $res =  $Driver->getParams(cat_Products::getClassId(), $id, $name, $verbal);
         }
-        
+        if ($name == 'preview' && !$res) {
+            $rec = self::fetch($id);
+            $res = $rec->photo;
+        }
         // Ако няма връщаме празен масив
-        return (isset($name)) ? null : array();
+        return $res;
     }
     
     
@@ -1956,7 +1960,7 @@ class cat_Products extends embed_Manager
             if (isset($rec->originId)) {
                 $row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
             }
-            
+
             if (isset($rec->proto)) {
                 $row->proto = $mvc->getHyperlink($rec->proto);
             }
