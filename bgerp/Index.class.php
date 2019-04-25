@@ -28,7 +28,8 @@ class bgerp_Index extends core_Manager
             
             if(haveRole('powerUser')){
                 
-                return new Redirect(array('h18_CashRko', 'default'));
+            //    return new Redirect(array('h18_CashRko', 'default'));
+                return new Redirect(array('core_Packs', 'default'));
             } else {
                 
                 return new Redirect(array('cms_Profiles', 'Single'));
