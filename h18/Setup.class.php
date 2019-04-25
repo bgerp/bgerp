@@ -71,8 +71,8 @@ class h18_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-       'h18_CashRko',
-       'h18_CashPko'
+//        'h18_CashRko',
+//        'h18_CashPko'
     );
     
     /**

@@ -37,25 +37,33 @@ class h18_CashRko extends core_Manager
         
         if ($err = mysqli_connect_errno()) {
             // Грешка при свързване с MySQL сървър
-            echo ("Грешни потребител или парола за връзка с базата на bgERP");
+            // echo ("Грешни потребител или парола за връзка с базата на bgERP");
+            $err = true;
             
-            die;
         }
         
-        if (!$link->select_db("{$this->dbName}")) {
+        if (!$link->select_db("{$this->dbName}") && !$err) {
             // Грешка при избиране на база
-            echo ("Грешнo име на база на bgERP");
-            
-            die;
+            // echo ("Грешнo име на база на bgERP");
+            $err = true;
             
         }
 
-        $this->db = cls::get('core_Db',
-            array(  'dbName' => $conf->H18_BGERP_DATABASE,
-                'dbUser' => $conf->H18_BGERP_USER,
-                'dbPass' => $conf->H18_BGERP_PASS,
-                'dbHost' => $conf->H18_BGERP_HOST,
-            ));
+        if ($err) {
+            $this->db = cls::get('core_Db',
+                array(  'dbName' => EF_DB_NAME,
+                    'dbUser' => EF_DB_USER,
+                    'dbPass' => EF_DB_PASS,
+                    'dbHost' => EF_DB_HOST,
+                ));
+        } else {
+            $this->db = cls::get('core_Db',
+                array(  'dbName' => $conf->H18_BGERP_DATABASE,
+                    'dbUser' => $conf->H18_BGERP_USER,
+                    'dbPass' => $conf->H18_BGERP_PASS,
+                    'dbHost' => $conf->H18_BGERP_HOST,
+                ));
+        }
         
         $this->dbTableName = 'cash_rko';
         
