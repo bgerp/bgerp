@@ -25,6 +25,30 @@ class h18_CashRko extends core_Manager
     function description()
     {
         $conf = core_Packs::getConfig('h18');
+        
+        if(strpos($conf->H18_BGERP_HOST, ':')) {
+            list($host, $port) = explode(':', $conf->H18_BGERP_HOST);
+            $link = new mysqli($host, $conf->H18_BGERP_USER, $conf->H18_BGERP_PASS, '', $port);
+        } else {
+            $link = new mysqli($conf->H18_BGERP_HOST, $conf->H18_BGERP_USER, $conf->H18_BGERP_PASS);
+        }
+        
+//        self::$links[$this->dbHost][$this->dbUser][$this->dbName] = $link;
+        
+        if ($err = mysqli_connect_errno()) {
+            // Грешка при свързване с MySQL сървър
+            echo ("Грешни потребител или парола за връзка с базата на bgERP");
+            
+            die;
+        }
+        
+        if (!$link->select_db("{$this->dbName}")) {
+            // Грешка при избиране на база
+            echo ("Грешнo име на база на bgERP");
+            
+            die;
+            
+        }
 
         $this->db = cls::get('core_Db',
             array(  'dbName' => $conf->H18_BGERP_DATABASE,
@@ -32,6 +56,7 @@ class h18_CashRko extends core_Manager
                 'dbPass' => $conf->H18_BGERP_PASS,
                 'dbHost' => $conf->H18_BGERP_HOST,
             ));
+        
         $this->dbTableName = 'cash_rko';
         
         $this->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
