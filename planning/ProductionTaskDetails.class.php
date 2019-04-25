@@ -350,9 +350,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $exRec->state = 'rejected';
             $exRec->exState = 'active';
             $mvc->save_($exRec, 'state');
-            $rec->_generateSerial = true;
             core_Statuses::newStatus("Оттеглен е записа с номер|* <b>{$rec->serial}</b>");
-            $rec->serial = null;
         }
         
         if (empty($rec->serial)) {

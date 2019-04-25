@@ -4,8 +4,8 @@ function planningActions() {
 	var cookieName = 'terminalTab' + cookieId;
 	
 	disableScale();
-
 	prepareKeyboard();
+	focusSerial();
 
 	$(document.body).on('click', ".nmpd-target", function(e){
 		$(this).siblings('input').addClass('highlight');
@@ -195,10 +195,23 @@ function setFocus(tabName) {
 	if(tabName == 'tab-progress'){
 		$(".serialField").focus();
 	}
-	
 	if(tabName == 'tab-support'){
 		$("textarea[name=body]").focus();
 	}
+}
+
+function focusSerial(){
+	$(document).keypress(function(e) {
+		var isFocused = 0 ;
+		$('input[type=text]').each(function(){
+			if ($(this).is( ":focus" )) {
+				isFocused = 1;
+			}
+		});
+		if(!isFocused) {
+			$(".serialField").focus();
+		}
+	});
 }
 
 /**

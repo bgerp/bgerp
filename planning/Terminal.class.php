@@ -342,7 +342,7 @@ class planning_Terminal extends core_Manager
         $tpl->append($searchInput, 'searchInput');
         
         $userAgent = log_Browsers::getUserAgentOsName();
-        $url = ($userAgent == 'Android') ? toUrl(array($this, 'open', $rec->id, 'search' => '__CODE__'), true) : array();
+        $url = ($userAgent == 'Android') ? barcode_Search::getScannerActivateUrl(toUrl(array($this, 'open', $rec->id, 'search' => '__CODE__'), true)) : array();
         
         // Бутон за търсене
         $searchUrl = toUrl(array($this, 'search', $rec->id), 'local');
@@ -739,10 +739,12 @@ class planning_Terminal extends core_Manager
         $tpl->replace($verbalAsset, 'fixedAssets');
         $tpl->replace(dt::mysql2verbal(dt::now(), 'd/m/y'), 'date');
         $tpl->replace(crm_Profiles::createLink(), 'userId');
+        $img = ht::createImg(array('path' => 'img/16/logout.png'));
+        
         if (Mode::get('terminalId')) {
-            $tpl->replace(ht::createLink('', array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
+            $tpl->replace(ht::createLink($img, array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала'), 'EXIT_TERMINAL');
         } else {
-            $tpl->replace(ht::createLink('', array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
+            $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
         }
         
         // Подготовка на урл-тата на табовете
