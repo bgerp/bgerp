@@ -86,7 +86,7 @@ class pos_Points extends core_Master
     /**
      * Кой може да го отхвърли?
      */
-    public $canReject = 'admin, pos';
+    public $canReject = 'admin, posMaster';
     
     
     /**
@@ -113,7 +113,7 @@ class pos_Points extends core_Master
     public $details = 'Receipts=pos_Receipts, peripheral_Terminal';
      
      
-     /**
+    /**
      * Поддържани интерфейси
      *
      */

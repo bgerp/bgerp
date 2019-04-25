@@ -1868,6 +1868,8 @@ class doc_Folders extends core_Master
         // Показва се само когато се настройват всички потребители
         $form->FNC('closeTime', 'time(suggestions=1 ден|3 дни|7 дни)', "caption=Автоматично затваряне на нишките след->Време, allowEmpty, input=input, settingForAll={$rec->inCharge}");
         
+        $form->FNC('showDocumentsAsButtons', 'keylist(mvc=core_Classes,select=title)', "caption=Документи|*&#44; |които да се показват като бързи бутони в папката->Документи, allowEmpty, input=input, settingForAll={$rec->inCharge}");
+        
         // Изходящ имейл по-подразбиране за съответната папка
         try {
             $userId = null;
@@ -1881,6 +1883,35 @@ class doc_Folders extends core_Master
             $fromEmailOptions = array('');
         }
         $form->setOptions(defaultEmail, $fromEmailOptions);
+        
+        // Подготвяме опциите за избор на документ в папката
+        $docSuggestionsArr = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
+        
+        // Ако проекта няма папка, взимаме ид-то на първата папка проект за да филтрираме възможните документи
+        // които могат да се добавтя към папка проект
+        if (!$folderId) {
+            $query = $this->getQuery();
+            $query->where('#folderId IS NOT NULL');
+            $query->show('folderId');
+            $query->orderBy('id', 'ASC');
+            $folderId = $query->fetch()->folderId;
+        }
+        
+        // За всяко предложение, проверяваме може ли да бъде добавен
+        // такъв документ като нова нишка в папката
+        foreach ($docSuggestionsArr as $classId => $name) {
+            if (!cls::load($classId, true)) continue;
+            $clsInst = cls::get($classId);
+            if (!$folderId || !$clsInst->canAddToFolder($folderId)) {
+                unset($docSuggestionsArr[$classId]);
+            }
+        }
+        
+        if (empty($docSuggestionsArr)) {
+            $form->setField('showDocumentsAsButtons', 'input=none');
+        } else {
+            $form->setSuggestions('showDocumentsAsButtons', $docSuggestionsArr);
+        }
         
         $form->setDefault('folOpenings', 'default');
         $form->setDefault('newPending', 'default');
@@ -1936,7 +1967,7 @@ class doc_Folders extends core_Master
                 continue;
             }
             
-            if (!isset($sRec->data['closeTime'])) {
+            if (!$sRec->data['closeTime']) {
                 continue ;
             }
             

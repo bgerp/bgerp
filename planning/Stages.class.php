@@ -250,7 +250,7 @@ class planning_Stages extends core_Extender
     public function prepareStages_(&$data)
     {
         $data->TabCaption = 'Етапи';
-        $data->Order = 100;
+        $data->Order = 2;
         
         $data->recs = $data->rows = array();
         $fields = $this->selectFields();

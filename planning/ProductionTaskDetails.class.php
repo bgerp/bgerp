@@ -260,6 +260,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         if(Mode::is('terminalProgressForm')){
             $form->layout = $form->renderLayout();
+            jquery_Jquery::run($form->layout, 'prepareKeyboard();');
         }
     }
     
@@ -349,9 +350,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $exRec->state = 'rejected';
             $exRec->exState = 'active';
             $mvc->save_($exRec, 'state');
-            $rec->_generateSerial = true;
             core_Statuses::newStatus("Оттеглен е записа с номер|* <b>{$rec->serial}</b>");
-            $rec->serial = null;
         }
         
         if (empty($rec->serial)) {
@@ -492,7 +491,10 @@ class planning_ProductionTaskDetails extends doc_Detail
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         if (isset($data->masterMvc)) {
-            if(!Mode::is('taskProgressInTerminal')){
+            $selectedTerminalId = Mode::get('taskProgressInTerminal');
+            $lastRecId = null;
+            
+            if(!$selectedTerminalId){
                 unset($data->listFields['notes']);
                 unset($data->listFields['productId']);
                 $data->listTableMvc->FNC('shortUoM', 'varchar', 'tdClass=nowrap');
@@ -503,6 +505,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             } else {
                 $data->listTableMvc->FNC('quantityExtended', 'varchar', 'tdClass=centerCol');
                 $data->listTableMvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>\n";
+                $lastRecId = Mode::get("terminalLastRec{$selectedTerminalId}");
             }
         }
         
@@ -520,12 +523,15 @@ class planning_ProductionTaskDetails extends doc_Detail
             $terminalRec = planning_Points::fetch($terminalId);
             $terminalRec->taskId = Mode::get("currentTaskId{$terminalId}");
             if(planning_Points::haveRightFor('selecttask', $terminalRec)){
-                $selectRowUrl = array('planning_Points', 'selectTask', $terminalId, 'taskId' => $terminalRec->taskId);
+                $selectRowUrl = array('planning_Terminal', 'selectTask', $terminalId, 'taskId' => $terminalRec->taskId);
             }
         }
         
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
+            if($id == $lastRecId){
+                $row->ROW_ATTR['class'] .= ' lastRow';
+            }
             
             if (!empty($row->shortUoM)) {
                 $row->quantity = "<b>{$row->quantity}</b>";
@@ -535,9 +541,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
             }
             
+            // Проверка има ли отклонение спрямо очакваното транспортно тегло
             if(!empty($rec->weight)){
-                
-                // Проверка има ли отклонение спрямо очакваното транспортно тегло
                 $transportWeight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
                 if(!empty($transportWeight)){
                     $deviation = abs(round(($transportWeight - $rec->weight) / (($transportWeight + $rec->weight) / 2), 2));
@@ -563,7 +568,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $row->typeExtended = "<span class='extended-type'>{$row->type}</span><span class='extended-productId'> » {$row->productId}</span><span class='extended-created fright'>{$row->created}</span>";
                 $row->quantityExtended = "<div class='extended-quantity'>{$row->quantity}</div>";
                 if(!empty($rec->weight)){
-                    $row->quantityExtended .= "<span class='extended-weight'>{$row->weight}" . tr('кг') . "</span>";
+                    $row->quantityExtended .= "<span class='extended-weight'>{$row->weight} " . tr('кг') . "</span>";
                 }
                 $row->additional = null;
                 if(!empty($rec->employees)){
@@ -837,7 +842,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
         $query->EXT('indPackagingId', 'planning_Tasks', 'externalName=indPackagingId,externalKey=taskId');
         
-        
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();
         $indicatorId = $iRec->id;
@@ -958,7 +962,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      * 
      * @param int $taskId
      * @param array $params
-     * @return int
+     * @return stdClass $rec
      */
     public static function add($taskId, $params)
     {
@@ -967,28 +971,24 @@ class planning_ProductionTaskDetails extends doc_Detail
         $productId = (isset($params['productId'])) ? $params['productId'] : (($params['type'] == 'production') ? $taskRec->productId : null);
         expect($productId, 'Не е посочен артикул');
         $options = planning_ProductionTaskProducts::getOptionsByType($taskRec->id, $params['type']);
-        
         expect(array_key_exists($productId, $options), $options);
         
-        $quantity = $params['quantity'];
+        $quantity = ($params['quantity']) ? $params['quantity'] : 1;
         if(!empty($quantity)){
             expect($quantity = core_Type::getByName('double')->fromVerbal($quantity), 'Невалидно число');
         } elseif($params['type'] == 'production' && isset($taskRec->packagingId)){
             $packRec = cat_products_Packagings::getPack($taskRec->productId, $taskRec->packagingId);
             $quantity = is_object($packRec) ? ($packRec->quantity / $taskRec->quantityInPack) : 1;
-        } else {
-            $quantity = 1;
         }
-        expect($quantity > 0, 'Количеството трябва да е положително');
         
+        expect($quantity > 0, 'Количеството трябва да е положително');
         $rec = (object)array('serialType' => 'unknown', '_generateSerial' => false, 'productId' => $productId, 'taskId' => $taskId, 'quantity' => $quantity, 'type' => $params['type']);
         if(!empty($params['employees'])){
             $params['employees'] = arr::make($params['employees']);
             $rec->employees = keylist::fromArray(array_combine($params['employees'], $params['employees']));
         }
+        
         $rec->fixedAsset = (!empty($params['fixedAsset'])) ? $params['fixedAsset'] : null;
-        
-        
         if(!empty($params['weight'])){
             expect($params['weight'] = core_Type::getByName('double')->fromVerbal($params['weight']), 'Невалидно число');
             expect($params['weight'] > 0, 'Теглото трябва да е положително');
@@ -1000,8 +1000,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         
         $canStore = cat_Products::fetchField($productId, 'canStore');
-        $rec->_generateSerial = false;
         if(!empty($params['serial'])){
+            expect(type_Int::isInt($params['serial']), 'Серийния номер може да е само от цифри');
             $params['serial'] = plg_Search::normalizeText($params['serial']);
             $params['serial'] = str::removeWhitespaces($params['serial']);
             if ($Driver = cat_Products::getDriver($productId)) {
@@ -1010,8 +1010,6 @@ class planning_ProductionTaskDetails extends doc_Detail
             $serialInfo = self::fetchSerialInfo($params['serial'], $productId, $taskId);
             $rec->serial = $params['serial'];
             $rec->serialType = $serialInfo['type'];
-        } elseif($params['type'] == 'production'){
-            $rec->_generateSerial = true;
         }
         
         if($rec->type == 'input' && $canStore != 'yes') {
@@ -1034,6 +1032,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $rec->_rejectId = $rejectId;
         }
         
-        return self::save($rec);
+        cls::get(get_called_class())->save($rec);
+        
+        return $rec;
     }
 }

@@ -3,24 +3,18 @@ function planningActions() {
 	var cookieId = $("#nameHolder").attr("data-id");
 	var cookieName = 'terminalTab' + cookieId;
 	
-	$("input[name=serial]").focus();
 	disableScale();
-
-	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.quantityField')
-	});
-
-	$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.weightField')
-	});
-
-	$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-		target: $('.serialField')
-	});
+	prepareKeyboard();
+	focusSerial();
 
 	$(document.body).on('click', ".nmpd-target", function(e){
 		$(this).siblings('input').addClass('highlight');
 	});
+
+	$(document.body).on('click', ".navigation li.disabled a", function(e){
+		stopBtnDefault(e);
+	});
+
 
 	// Използване на числата за въвеждане на суми за плащания
 	$(document.body).on('click', ".tab-link", function(e){
@@ -33,11 +27,9 @@ function planningActions() {
 		
 		resObj = new Object();
 		resObj['url'] = url;
-
 		getEfae().process(resObj);
 		
 		$("input[name=serial]").val("");
-		$("input[name=serial]").focus("");
 		if($('.select2').length){
 			$('select').trigger("change");
 		}
@@ -59,23 +51,37 @@ function planningActions() {
 		var productId = res[1];
 		
 		var quantity = $("input[name=quantity]").val();
+		if(!quantity){
+			var quantityLive = $("input[name=quantity]").attr('placeholder');
+			if($.isNumeric(quantityLive)){
+				quantity = quantityLive;
+			} else {
+				quantity = 1;
+			}
+		}
+		
 		var employees = [];
 		$('input[id^="employees"]:checked').each(function () {
 			employees.push($(this).val());
 		});
-		var weight = $("input[name=weight]").val();
+		
 		var fixedAsset = $("#fixedAssetSelect").val();
 		var taskId = $("input[name=taskId]").val();
 
+		var weight = $("input[name=weight]").val();
+		if(!weight){
+			var weightLive = $("input[name=weight]").attr('placeholder');
+			if($.isNumeric(weightLive)){
+				weight = weightLive;
+			}
+		}
+		
 		var data = {serial:serial,taskId:taskId,productId:productId,quantity:quantity,employees:employees,fixedAsset:fixedAsset,weight:weight,type:type};
 		getEfae().process(resObj, data);
 		$("input[name=serial]").val("");
-		$("input[name=serial]").focus("");
 		if($('.select2').length){
 			$('select').trigger("change");
 		}
-		
-		
 	});
 
 	$(document.body).on('click', ".changeTab ", function(e){
@@ -93,7 +99,6 @@ function planningActions() {
 		
 		$('.tabContent' + currentAttrValue).show().siblings().hide();
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
-		if($('.serialField').length) $('.serialField').focus();
 		setCookie(cookieName, currentId);
 		
 		e.preventDefault();
@@ -106,6 +111,10 @@ function planningActions() {
 		if(!url) return;
 		
 		var searchVal = $("input[name=searchBarcode]").val();
+		if(!searchVal) {
+			e.preventDefault();
+			return;
+		}
 		resObj = new Object();
 		resObj['url'] = url;
 		
@@ -120,7 +129,15 @@ function planningActions() {
 		
 		$(location).attr('href', url);
 	});
+	
+	// При натискане на ентер да се изпрати формата за прогреса
+	$(document.body).on('keypress',function(e) {
+	    if(e.which == 13) {
+	    	$('#sendBtn').trigger("click");
+	    }
+	});
 }
+
 
 // Кой таб да е активен
 function render_activateTab(data)
@@ -140,20 +157,24 @@ function render_activateTab(data)
 	}
 }
 
+function prepareKeyboard(){
+	$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.quantityField')
+	});
+	$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.weightField')
+	});
+	$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
+		target: $('.serialField')
+	});
+}
+
 function render_prepareKeyboard()
 {
 	$('.nmpd-wrapper').remove();
 
 	setTimeout(function(){
-		$('#numPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-			target: $('.quantityField')
-		});
-		$('#weightPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-			target: $('.weightField')
-		});
-		$('#serialPadBtn').numpad({gridTpl: '<div class="holder"><table></table></div>',
-			target: $('.serialField')
-		});
+		prepareKeyboard();
 	}, 500);
 }
 
@@ -167,6 +188,39 @@ function setCookie(key, value) {
 	document.cookie = key + '=' + value + ';expires=' + expires.toUTCString() + "; path=/";
 }
 
+/**
+ * Сетва, кое поле да е на фокус
+ */
+function setFocus(tabName) {
+	if(tabName == 'tab-progress'){
+		$(".serialField").focus();
+	}
+	if(tabName == 'tab-support'){
+		$("textarea[name=body]").focus();
+	}
+}
+
+function focusSerial(){
+	$(document).keypress(function(e) {
+		var isFocused = 0 ;
+		$('input[type=text]').each(function(){
+			if ($(this).is( ":focus" )) {
+				isFocused = 1;
+			}
+		});
+		if(!isFocused) {
+			$(".serialField").focus();
+		}
+	});
+}
+
+/**
+ * Сетва, кое поле да е на фокус
+ */
+function render_setFocus(data)
+{
+	setFocus(data.tabId);
+}
 
 /**
  * Чете информацията от дадена бисквитка
@@ -175,7 +229,6 @@ function getCookie(key) {
 	var keyValue = document.cookie.match('(^|;) ?' + key + '=([^;]*)(;|$)');
 	return keyValue ? keyValue[2] : null;
 }
-
 
 
 function disableScale() {

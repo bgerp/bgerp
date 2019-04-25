@@ -1,5 +1,5 @@
 function readScale() {
-    if (!$("[name=[#_weight#]]").is(":hidden")) {
+    if ($("[name=[#_weight#]]").length && $("[name=[#_weight#]]").attr('type') != 'hidden') {
         $('<input>', {type: 'hidden', name: '[#_liveWeight#]',}).appendTo("form");
         
         setInterval(function() {
@@ -25,7 +25,7 @@ function readScale() {
 }
 
 function beforeSubmit() {
-    if (!$("[name=[#_weight#]]").is(":hidden")) {
+    if ($("[name=[#_weight#]]").length && $("[name=[#_weight#]]").attr('type') != 'hidden') {
         $(document.body).on('submit', "[#_formIdName#]", function(e) {
             if (!$("input[name=[#_weight#]]").val().length) {
                 var inpVal = $("input[name=[#_liveWeight#]]").val();

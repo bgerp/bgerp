@@ -371,6 +371,10 @@ body {
   margin-right: 5px;
   font-size: 1.05em; }
 
+.bookmarkLink img {
+  width: 20px;
+  height: 20px; }
+
 .inner-fav-panel {
   position: relative; }
 
@@ -390,12 +394,21 @@ body {
   .bookmarkLink:hover {
     opacity: 1; }
 
+.narrow .bookmarkText {
+  top: 3px;
+  position: relative; }
+
+.narrow .bookmark-links {
+  margin-top: 0px !important; }
+  .narrow .bookmark-links ul {
+    margin-top: 7px !important; }
+
 .narrow .bookmarkLink {
-  margin-left: 5px;
+  margin-left: 6px;
   margin-top: 2px; }
   .narrow .bookmarkLink img {
-    width: 16px;
-    height: 16px; }
+    width: 18px;
+    height: 18px; }
 
 .narrow .sidebar-row {
   margin-top: 47px;

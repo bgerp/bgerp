@@ -98,6 +98,8 @@ body {
   .keyboardHolder .quantityField,
   .keyboardHolder .weightField {
     padding-right: 31px; }
+  .keyboardHolder .weightField {
+    border: 1px solid #666666 !important; }
   .keyboardHolder .planning-terminal-numpad {
     position: absolute;
     right: -2px;
@@ -116,10 +118,14 @@ body {
   .narrow .planning-terminal-numpad {
     background: url("../../../img/16/numpad.png") center no-repeat !important;
     border: none !important; }
-  .narrow #searchBtn {
-    background-image: url("../../../img/24/qr.png") !important;
-    background-size: 24px 24px !important;
+  .narrow .qrBtn,
+  .narrow .search {
+    background-size: 20px 20px !important;
     background-repeat: no-repeat; }
+  .narrow .qrBtn {
+    background-image: url("../../../img/24/qr.png") !important; }
+  .narrow .search {
+    background-image: url("../../../img/24/search.png") !important; }
 
 .terminalHeader {
   padding: 15px;
@@ -143,7 +149,7 @@ body {
       margin-bottom: 0 !important;
       float: left; }
   .terminalHeader .userInfo {
-    width: 300px;
+    width: 350px;
     line-height: 30px;
     font-size: 1.1em;
     text-align: right; }
@@ -163,11 +169,25 @@ body {
   .planning-task-progress th {
     display: none; }
 
+.extended-quantity,
+.extended-weight {
+  display: inline-block;
+  margin: 0 5px; }
+
+.taskHolder {
+  float: left;
+  margin-left: 40px;
+  width: 700px; }
+
 .title {
   margin: 0 0 10px !important; }
 
 #task-support-content .formHolder {
-  width: 600px; }
+  width: 600px;
+  float: left; }
+
+.lastRow {
+  background-color: #ffffcd !important; }
 
 .searchHolder {
   position: absolute;
@@ -180,18 +200,24 @@ body {
     position: relative;
     top: 3px;
     border: 1px solid #cccccc;
-    border-radius: 3px; }
-  .searchHolder .qrBtn {
-    float: left;
-    width: 32px;
-    height: 32px;
-    background-size: 24px 24px;
+    border-radius: 3px;
+    padding-left: 30px; }
+  .searchHolder .formBtn {
+    width: 26px;
+    height: 26px;
+    background-size: 20px 20px;
     background-position: center;
     box-sizing: border-box;
     padding: 0 !important;
     border: none !important;
     background-color: rgba(0, 0, 0, 0) !important; }
-    .searchHolder .qrBtn:focus {
+    .searchHolder .formBtn.qrBtn {
+      cursor: default;
+      position: absolute;
+      left: 3px;
+      top: 3px;
+      z-index: 10; }
+    .searchHolder .formBtn:focus {
       box-shadow: none;
       outline: none; }
 
@@ -258,9 +284,13 @@ body {
     .formHolder .formContent textarea,
     .formHolder .formContent .richedit-toolbar {
       border-color: #cccccc; }
+    .formHolder .formContent input[type=text]:focus {
+      box-shadow: 0 0 10px blue; }
     .formHolder .formContent textarea {
       min-height: 90px;
       margin-top: 10px; }
+      .formHolder .formContent textarea.inputError {
+        border-color: #cc0000; }
     .formHolder .formContent select {
       height: 32px !important;
       border-color: #cccccc;
@@ -283,16 +313,33 @@ body {
   border: 1px solid #cccccc; }
 
 .highlight {
-  background-color: #fefeb7; }
+  background-color: #fefeb7 !important; }
 
 @media handheld,
 only screen and (min-width: 760px) and (max-width: 800px) {
+  .taskHolder {
+    clear: both;
+    float: none;
+    width: 100%;
+    padding-top: 40px;
+    margin-left: 0; }
+
+  .terminalHeader .fleft .logo img {
+    height: 25px;
+    margin-top: 3px; }
+
+  .terminalHeader .userInfo {
+    white-space: nowrap;
+    width: 320px;
+    font-size: 15px !important; }
+
   .wide table.listAction {
     min-width: 480px; }
 
   .terminalHeader {
     padding: 6px;
-    height: 40px; }
+    height: 30px;
+    font-size: 15px !important; }
 
   .centerContent {
     width: 100%; }
@@ -333,6 +380,14 @@ only screen and (min-width: 760px) and (max-width: 800px) {
       .formHolder .formContent .select2-container .select2-selection--single .select2-selection__rendered {
         line-height: 28px !important;
         max-height: 28px !important; }
+
+  #task-support-content .formContent,
+  #task-support-content .formHolder {
+    width: 100% !important;
+    max-width: 420px; }
+
+  .searchBarcode {
+    width: 160px; }
 
   .formTitle {
     max-width: none;
@@ -377,6 +432,13 @@ only screen and (min-width: 760px) and (max-width: 800px) {
 
 @media handheld,
 only screen and (max-width:740px) {
+  .taskHolder {
+    clear: both;
+    float: none;
+    width: 100%;
+    padding-top: 40px;
+    margin-left: 0; }
+
   .terminalHeader {
     padding: 5px; }
     .terminalHeader .fleft .logo img {
@@ -401,15 +463,20 @@ only screen and (max-width:740px) {
       font-size: 0.9em; }
     .terminalHeader #dateHolder {
       margin-right: 5px; }
-    .terminalHeader #searchBtn {
-      background-image: url("../../../img/24/qr.png") !important;
+    .terminalHeader .formBtn {
       background-size: 24px 24px !important;
       background-repeat: no-repeat; }
+    .terminalHeader .qrBtn {
+      background-image: url("../../../img/24/qr.png") !important; }
+    .terminalHeader .search {
+      background-image: url("../../../img/24/search.png") !important; }
 
   .searchHolder {
     position: relative;
     display: block;
     clear: both; }
+    .searchHolder .searchBarcode {
+      width: 240px; }
 
   .terminalHeader {
     height: auto; }

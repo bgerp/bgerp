@@ -58,7 +58,7 @@ class planning_interface_ImportTaskSerial extends planning_interface_ImportDrive
             if (empty($serialTrimmed)) {
                 continue;
             }
-            $serialRec = planning_TaskSerials::fetch(array("#serial = '[#1#]'", $serialTrimmed));
+            $serialRec = cat_Serials::fetch(array("#serial = '[#1#]'", $serialTrimmed));
             if (empty($serialRec)) {
                 $error[] = "|*<b>{$serial}</b> |несъществуващ сериен номер|*";
             } else {

@@ -72,7 +72,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
             }
             
             // Ако не е ресурс, кредитираме общата сметка за разходи '61102. Други разходи (общо)'
-            $averageCost = null;
+            $averageAmount = null;
             if (empty($creditArr)) {
                 $creditArr = array('61102');
                 $reason = 'Връщане от производство без детайли';

@@ -54,8 +54,6 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
         foreach ($details as $dRec) {
             $dRec->caption = cat_Products::getTitleById($dRec->productId);
             $dRec->caption = str_replace(',', ' ', $dRec->caption);
-            $batch = '';
-            
             $key = "{$dRec->productId}+{$dRec->packagingId}";
             
             $dRec->selectedByNow = 0;

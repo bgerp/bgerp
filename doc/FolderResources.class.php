@@ -57,6 +57,7 @@ class doc_FolderResources extends core_Manager
         }
         
         $data->TabCaption = 'Ресурси';
+        $data->Order = 3;
         
         $Tab = Request::get('Tab', 'varchar');
         if ($Tab != 'Resources') {

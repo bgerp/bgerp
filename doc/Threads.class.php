@@ -2112,9 +2112,12 @@ class doc_Threads extends core_Manager
             
             // Ако е спрян се активира, и се реконтира
             if ($docRec->state == 'stopped') {
-                $docRec->state = 'active';
-                $Class->save($docRec, 'state');
-                acc_Journal::saveTransaction($cRec->docClass, $cRec->docId);
+                try{
+                    acc_Journal::saveTransaction($cRec->docClass, $cRec->docId);
+                } catch (acc_journal_RejectRedirect $e) {
+                    $url = $Class->getSingleUrlArray($cRec->docId);
+                    redirect($url, false, '|' . $e->getMessage(), 'error');
+                }
             }
         }
     }
@@ -2355,6 +2358,8 @@ class doc_Threads extends core_Manager
     {
         expect($Cover = cls::get($coverClass));
         $managers = $Cover->getDocButtonsInFolder($coverId);
+        
+        $managers = arr::make($managers, true);
         
         $res = array();
         if (is_array($managers) && count($managers)) {

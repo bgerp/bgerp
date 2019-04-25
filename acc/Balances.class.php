@@ -121,7 +121,7 @@ class acc_Balances extends core_Master
     /**
      * Максимално допустимо време в секунди за изчисляване на баланс на период
      */
-    const MAX_PERIOD_CALC_TIME = 1200;
+    const MAX_PERIOD_CALC_TIME = 600;
     
     
     /**
@@ -263,7 +263,7 @@ class acc_Balances extends core_Master
     /**
      * Връща последния баланс, на който крайната дата е преди друга дата и е валиден
      */
-    public function getBalanceBefore($date)
+    public static function getBalanceBefore($date)
     {
         $query = self::getQuery();
         $query->orderBy('#toDate', 'DESC');
@@ -314,7 +314,7 @@ class acc_Balances extends core_Master
      *
      * @return bool Дали е правено преизчисляване
      */
-    private function forceCalc(&$rec)
+    private static function forceCalc(&$rec)
     {
         // Очакваме начална и крайна дата
         expect(strlen($rec->fromDate) == 10 && strlen($rec->toDate) == 10, $rec);
@@ -380,13 +380,13 @@ class acc_Balances extends core_Master
     /**
      * Изчисляване на баланс
      */
-    public function calc($rec)
+    public static function calc($rec)
     {
         // Вземаме инстанция на детайлите на баланса
         $bD = cls::get('acc_BalanceDetails');
         
         // Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
-        $lastRec = $this->getBalanceBefore($rec->toDate);
+        $lastRec = self::getBalanceBefore($rec->toDate);
         
         if ($lastRec) {
             
@@ -428,7 +428,7 @@ class acc_Balances extends core_Master
         // Ако изчисляването е заключено не го изпълняваме
         if (!core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
             $this->logNotice('Изчисляването на баланса е заключено от друг процес');
-           
+            
             return;
         }
         
@@ -453,6 +453,7 @@ class acc_Balances extends core_Master
             // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
             $j = 0;
             do {
+                core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME);
                 self::forceCalc($rec);
                 self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}");
             } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
