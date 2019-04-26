@@ -1890,7 +1890,7 @@ class doc_Folders extends core_Master
         // Ако проекта няма папка, взимаме ид-то на първата папка проект за да филтрираме възможните документи
         // които могат да се добавтя към папка проект
         if (!$folderId) {
-            $query = $mvc->getQuery();
+            $query = $this->getQuery();
             $query->where('#folderId IS NOT NULL');
             $query->show('folderId');
             $query->orderBy('id', 'ASC');
@@ -1967,7 +1967,7 @@ class doc_Folders extends core_Master
                 continue;
             }
             
-            if (!isset($sRec->data['closeTime'])) {
+            if (!trim($sRec->data['closeTime'])) {
                 continue ;
             }
             

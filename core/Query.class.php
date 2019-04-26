@@ -294,6 +294,26 @@ class core_Query extends core_FieldSet
     
     
     /**
+     * Добавя с AND условие, посоченото поле да не съдържа нито един от подадените кейлистове
+     */
+    public function notLikeKeylist($field, $keylist)
+    {
+        $keylistArr = keylist::toArray($keylist);
+        
+        $cond = '';
+        if (count($keylistArr)) {
+            foreach ($keylistArr as $key) {
+                $cond .= ($cond ? ' AND ' : '') . "LOCATE('|{$key}|', #{$field}) = 0";
+            }
+        }
+        
+        $this->where($cond);
+        
+        return $this;
+    }
+    
+    
+    /**
      * Добавя с AND условие, посоченото поле да съдържа поне един от ключовете в keylist
      * Алтернативна функция с Regexp
      */

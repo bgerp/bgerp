@@ -161,7 +161,7 @@ class blast_Emails extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_Blank, change_Plugin, plg_Search, plg_Clone';
+    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_Blank, change_Plugin, plg_Search, plg_Clone, plg_Printing';
     
     
     /**
@@ -216,7 +216,7 @@ class blast_Emails extends core_Master
         $this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory, changable');
         $this->FLD('body', 'richtext(rows=15,bucket=Blast)', 'caption=Съобщение,mandatory, changable');
         $this->FLD('unsubscribe', 'richtext(rows=3,bucket=Blast)', 'caption=Отписване, changable', array('attr' => array('id' => 'unsId')));
-        $this->FLD('sendPerCall', 'int(min=1, max=100)', 'caption=Изпращания заедно, input=none, mandatory, oldFieldName=sendPerMinute, title=Брой изпращания заедно');
+        $this->FLD('sendPerCall', 'int(min=1, max=100)', 'caption=Изпращания заедно, input=none, mandatory, oldFieldName=sendPerMinute, title=Максимален брой изпращания за минута, unit=на мин.');
         
         $this->FLD('sendingFrom', 'time(suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Начален час, input=none');
         $this->FLD('sendingTo', 'time(suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Краен час, input=none');
@@ -312,7 +312,7 @@ class blast_Emails extends core_Master
         // Записа
         $rec = self::getRec($id);
         
-        self::logWrite('Активиран бласт имейл', $rec->id);
+        self::logWrite('Активиран циркулярен имейл', $rec->id);
         
         expect($rec, 'Няма такъв запис');
         
@@ -1152,7 +1152,7 @@ class blast_Emails extends core_Master
             self::logRead('Активиране', $rec->id);
             
             // Редиректваме
-            return new Redirect($link, '|Успешно активирахте бласт имейл-а');
+            return new Redirect($link, '|Успешно активирахте циркулярния имейл');
         }
         
         // Стойности по подразбиране
@@ -1161,7 +1161,6 @@ class blast_Emails extends core_Master
         $form->setDefault('sendingDay', $rec->sendingDay);
         $form->setDefault('sendingFrom', $rec->sendingFrom);
         $form->setDefault('sendingTo', $rec->sendingTo);
-        
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', null, 'ef_icon = img/16/disk.png, title=Запис на документа');
@@ -1318,7 +1317,7 @@ class blast_Emails extends core_Master
         self::logRead('Спиране', $rec->id);
         
         // Редиректваме
-        return new Redirect($link, '|Успешно спряхте бласт имейл-а');
+        return new Redirect($link, '|Успешно спряхте циркулярния имейл');
     }
     
     
@@ -1972,7 +1971,7 @@ class blast_Emails extends core_Master
     public function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
     {
         //Рендираме шаблона
-        if (Mode::is('text', 'xhtml')) {
+        if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
             //Ако сме в xhtml (изпращане) режим, рендираме шаблона за изпращане
             $mvc->singleLayoutFile = 'blast/tpl/SingleLayoutBlast.shtml';
         } elseif (Mode::is('text', 'plain')) {
@@ -2032,7 +2031,7 @@ class blast_Emails extends core_Master
         }
         
         // Рендираме шаблона
-        if (!Mode::is('text', 'xhtml') && !Mode::is('text', 'plain')) {
+        if (!Mode::is('text', 'xhtml') && !Mode::is('text', 'plain') && !Mode::is('printing')) {
             
             // Записите
             $rec = $data->rec;

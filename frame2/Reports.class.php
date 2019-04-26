@@ -280,8 +280,8 @@ class frame2_Reports extends embed_Manager
                     if ($data->action == 'clone') {
                         unset($diff['sharedUsers'], $diff['notificationText'], $diff['updateDays'], $diff['updateTime'], $diff['maxKeepHistory']);
                     }
-                    
-                    foreach ($diff as $name => $Type) {
+                    $diff = array_keys($diff);
+                    foreach ($diff as $name) {
                         $form->setField($name, 'input=none');
                     }
                 }
@@ -311,7 +311,7 @@ class frame2_Reports extends embed_Manager
                 }
                 
                 $refresh = true;
-                if (isset($rec->id)) {
+                if (isset($rec->id) && $form->_cloneForm !== true) {
                     $refresh = false;
                     $oldRec = self::fetch($rec->id);
                     
@@ -360,19 +360,6 @@ class frame2_Reports extends embed_Manager
             
             frame2_ReportVersions::unSelectVersion($rec->id);
         }
-    }
-    
-    
-    /**
-     * Подготовка на бутоните на формата за добавяне/редактиране.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $res
-     * @param stdClass     $data
-     */
-    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
-    {
-        $data->form->toolbar->renameBtn('save', 'Запис');
     }
     
     
@@ -747,6 +734,7 @@ class frame2_Reports extends embed_Manager
         if (in_array($action, array('edit', 'clonerec', 'close')) && isset($rec->driverClass, $rec->id)) {
             if ($Driver = $mvc->getDriver($rec)) {
                 $fRec = $mvc->fetch($rec->id, 'createdBy,sharedUsers,changeFields');
+                $changeFields = $sharedUsers =  $createdBy = null;
                 
                 // Взимат се стойностите от записа в БД, защото може да е подменен ако се разглежда по стара версия
                 foreach (array('createdBy', 'sharedUsers', 'changeFields') as $exFld) {

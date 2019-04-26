@@ -50,6 +50,8 @@ abstract class planning_interface_ImportDriver extends import2_AbstractDriver
             expect($mvc->Master->fetch($rec->{$mvc->masterKey}), 'Няма такъв запис на мастъра');
             expect($mvc->haveRightFor('add', (object) array($mvc->masterKey => $rec->{$mvc->masterKey})), 'Към този мастър не може да се добавя артикул');
             
+            $fields = array();
+            $exRec = null;
             if (!$mvc->isUnique($rec, $fields, $exRec)) {
                 core_Statuses::newStatus('Записа, не е импортиран защото има дублаж');
                 continue;

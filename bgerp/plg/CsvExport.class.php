@@ -123,7 +123,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
         $cu = core_Users::getCurrent();
         $recs = core_Cache::get($this->mvc->className, "exportRecs{$cu}");
         
-        core_App::setTimeLimit(count($recs) / 100);
+        core_App::setTimeLimit(count($recs) / 10);
         
         $retUrl = getRetUrl();
         

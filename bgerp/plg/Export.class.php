@@ -108,7 +108,7 @@ class bgerp_plg_Export extends core_Plugin
                     $recs = $query->fetchAll();
                 }
                 
-                core_App::setTimeLimit(count($recs) / 100);
+                core_App::setTimeLimit(count($recs) / 10);
                 
                 $cu = core_Users::getCurrent();
                 core_Cache::set($mvc->className, "exportRecs{$cu}", $recs, 20);

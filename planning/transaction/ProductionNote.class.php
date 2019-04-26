@@ -73,13 +73,10 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
         $dQuery->orderBy('id', 'ASC');
         
         $errorArr2 = $errorArr = array();
-        $expenses = 0;
         
         while ($dRec = $dQuery->fetch()) {
-            unset($entry);
             
             if (isset($dRec->bomId)) {
-                $quantityJob = planning_Jobs::fetchField($dRec->jobId, 'quantity');
                 
                 $quantityProduced = planning_Jobs::fetchField($dRec->jobId, 'quantityProduced');
                 $quantityToProduce = $dRec->quantity + $quantityProduced;

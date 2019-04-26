@@ -50,7 +50,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin,deals_plg_SaveValiorOnActivation';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin,deals_plg_SaveValiorOnActivation, bgerp_plg_Export';
     
     
     /**
@@ -185,14 +185,28 @@ class sales_Sales extends deals_DealMaster
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'sales,ceo';
-
-
+    
+    
     /**
      * Отделния ред в листовия изглед да е отгоре
      */
     public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
-
-
+    
+    
+    /**
+     * Кой има право да експортва?
+     */
+    public $canExport = 'ceo,invoicer';
+    
+    
+    /**
+     * Кои полета да могат да се експортират в CSV формат
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    public $exportableCsvFields = 'valior,id,folderId,currencyId,amountDeal,amountDelivered,amountPaid,amountInvoiced';
+    
+    
     /**
      * Стратегии за дефолт стойностти
      */
@@ -347,13 +361,13 @@ class sales_Sales extends deals_DealMaster
         
         $dealerId = doc_Folders::fetchField($folderId, 'inCharge');
         if (core_Users::haveRole('sales', $dealerId)) {
-           
+            
             return $dealerId;
         }
         
         $dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $folderId, 'dealerId', true);
         if (core_Users::haveRole('sales', $dealerId)) {
-           
+            
             return $dealerId;
         }
     }
@@ -1168,12 +1182,12 @@ class sales_Sales extends deals_DealMaster
         if (isset($rec->priceListId)) {
             $row->priceListId = price_Lists::getHyperlink($rec->priceListId, true);
         }
-
+        
         if (isset($fields['-single'])) {
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')) {
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
             }
-
+            
             $row->transportCurrencyId = $row->currencyId;
             $hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id);
             $expectedTransportCost = $mvc->getExpectedTransportCost($rec);
@@ -1232,7 +1246,9 @@ class sales_Sales extends deals_DealMaster
      */
     private function getExpectedTransportCost($rec)
     {
-        if(isset($rec->expectedTransportCost)) return $rec->expectedTransportCost;
+        if(isset($rec->expectedTransportCost))
+ 
+ return $rec->expectedTransportCost;
         $expectedTransport = 0;
         
         // Ако няма калкулатор в условието на доставка, не се изчислява нищо
@@ -1255,7 +1271,9 @@ class sales_Sales extends deals_DealMaster
         
         // Изчисляване на общото тегло на офертата
         $total = sales_TransportValues::getTotalWeightAndVolume($TransportCalc, $products, $rec->deliveryTermId, $params);
-        if($total == cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT) return cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
+        if($total == cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT)
+ 
+ return cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
         
         // За всеки артикул се изчислява очаквания му транспорт
         foreach ($products as $p2) {
@@ -1572,5 +1590,26 @@ class sales_Sales extends deals_DealMaster
     {
         $groupId = crm_Groups::force('Клиенти » Продажби');
         cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, false);
+    }
+    
+    
+    /**
+     * Преди експортиране като CSV
+     */
+    protected static function on_BeforeExportCsv($mvc, &$recs)
+    {
+        if (is_array($recs)) {
+            foreach ($recs as &$rec){
+                $rec->id = self::getRecTitle($rec, false);
+                foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced') as $amnt) {
+                    if (round($rec->{"amount{$amnt}"}, 2) != 0) {
+                        $rec->currencyRate = ($rec->currencyRate) ? $rec->currencyRate : 1;
+                        $rec->{"amount{$amnt}"} = round($rec->{"amount{$amnt}"} / $rec->currencyRate, 2);
+                    } else {
+                        $rec->{"amount{$amnt}"} = 0;
+                    }
+                }
+            }
+        }
     }
 }

@@ -212,9 +212,11 @@ class pos_Favourites extends core_Manager
         $arr['catId'] = $rec->catId;
         $obj = new stdClass();
         $obj->quantity = (isset($info->packagings[$rec->packagingId])) ? $info->packagings[$rec->packagingId]->quantity : 1;
-        
+
         if ($rec->image) {
             $arr['image'] = $rec->image;
+        } else {
+            $arr['image'] = cat_Products::getParams($rec->productId, 'preview');
         }
         
         return (object) $arr;
@@ -306,6 +308,10 @@ class pos_Favourites extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        if(!$rec->image) {
+            $rec->image =  cat_Products::getParams($rec->productId, 'preview');
+
+        }
         if ($rec->image) {
             $Fancybox = cls::get('fancybox_Fancybox');
             $row->image = $Fancybox->getImage($rec->image, array(30, 30), array(400, 400));

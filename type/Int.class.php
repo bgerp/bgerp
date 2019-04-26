@@ -205,7 +205,7 @@ class type_Int extends core_Type
     
     
     /**
-     * Проверява дали стойността е int
+     * Проверява дали стойността съдържа само цифри
      *
      * @param string $val
      * @param bool   $unsigned

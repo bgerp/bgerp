@@ -109,7 +109,7 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Кой има право да добавя?
+     * Кой има право да експортва?
      */
     public $canExport = 'ceo,invoicer';
     

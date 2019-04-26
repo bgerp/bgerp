@@ -87,7 +87,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
-        $articulsForCheck = array();
+        $articlesForCheck = array();
         $storesArr = array();
         
         $query = acc_BalanceDetails::getQuery();
@@ -110,18 +110,18 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
             if (!is_null($rec->storeId)) {
                 if (in_array((acc_Items::fetch($detail->ent1Id)->objectId), $storesForCheck)) {
                     if (($detail->blQuantity < 0) && (abs($detail->blQuantity) > $rec->minval)) {
-                        $articulsForCheck[$detail->ent2Id] = $detail->ent2Id;
+                        $articlesForCheck[$detail->ent2Id] = $detail->ent2Id;
                     }
                 }
             }
             
             if (is_null($rec->storeId)) {
                 if (($detail->blQuantity < 0) && (abs($detail->blQuantity) > $rec->minval)) {
-                    $articulsForCheck[$detail->ent2Id] = $detail->ent2Id;
+                    $articlesForCheck[$detail->ent2Id] = $detail->ent2Id;
                 }
             }
             
-            if ((in_array($detail->ent2Id, $articulsForCheck)) && abs($detail->blQuantity) > $rec->minval) {
+            if ((in_array($detail->ent2Id, $articlesForCheck)) && abs($detail->blQuantity) > $rec->minval) {
                 if (!array_key_exists($detail->ent2Id, $recs)) {
                     $recs[$detail->ent2Id] = (object) array(
                         
@@ -237,9 +237,9 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
                 'ent2Id' => $dRec->articulId
             );
             
-            $row->store .= ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
+            $row->store .= "<div class='nowrap'>" . ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
             
-            $row->store .= store_Stores::getHyperlink($storeId, true) . '</br>';
+            $row->store .= store_Stores::getHyperlink($storeId, true) . '</div>';
             
             $color = 'green';
             if ($val < 0) {

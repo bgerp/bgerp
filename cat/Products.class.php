@@ -1429,6 +1429,10 @@ class cat_Products extends embed_Manager
                 $query->likeKeylist('groups', $groups);
             }
             
+            if(isset($params['notInGroups'])){
+                $query->notLikeKeylist('groups', $params['notInGroups']);
+            }
+            
             if(isset($params['isPublic'])){
                 $query->where("#isPublic = '{$params['isPublic']}'");
             }
@@ -1565,11 +1569,13 @@ class cat_Products extends embed_Manager
      * @param int|NULL $limit            - лимит
      * @param bool     $orHasProperties  - Дали трябва да имат всички свойства от зададените или поне едно
      * @param mixed    $groups           - групи в които да участват
+     * @param mixed    $notInGroups      - групи в които да не участват
+     * 
      * @param null|boolean $isPublic     - null за всички артикули, true за стандартните, false за нестандартните
      *
      * @return array $products         - артикулите групирани по вида им стандартни/нестандартни
      */
-    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $isPublic = null)
+    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $notInGroups = null, $isPublic = null)
     {
         $Type = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)');
         foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic') as $val){
@@ -1578,14 +1584,16 @@ class cat_Products extends embed_Manager
             }
         }
         
-        foreach (array('hasProperties', 'hasnotProperties', 'groups') as $val){
+        foreach (array('hasProperties', 'hasnotProperties', 'groups', 'notInGroups') as $val){
             if(!empty(${"{$val}"})){
                 $Type->params[$val] = implode('|', arr::make(${"{$val}"}, true));
             }
         }
         
-        if(isset($groups)){
-            $Type->params[$val] = $groups;
+        foreach (array('groups', 'notInGroups') as $val){
+            if(!empty(${"{$val}"})){
+                $Type->params[$val] = (keylist::isKeylist(${"{$val}"})) ? ${"{$val}"} : keylist::fromArray(arr::make(${"{$val}"}, true));
+            }
         }
         
         $products = $Type->getOptions($limit);
@@ -1729,14 +1737,18 @@ class cat_Products extends embed_Manager
      */
     public static function getParams($id, $name = null, $verbal = false)
     {
+        $res = (isset($name)) ? null : array();
         // Ако има драйвър, питаме него за стойността
         if ($Driver = static::getDriver($id)) {
-            
-            return $Driver->getParams(cat_Products::getClassId(), $id, $name, $verbal);
+
+            $res =  $Driver->getParams(cat_Products::getClassId(), $id, $name, $verbal);
         }
-        
+        if ($name == 'preview' && !$res) {
+            $rec = self::fetch($id);
+            $res = $rec->photo;
+        }
         // Ако няма връщаме празен масив
-        return (isset($name)) ? null : array();
+        return $res;
     }
     
     
@@ -1948,7 +1960,7 @@ class cat_Products extends embed_Manager
             if (isset($rec->originId)) {
                 $row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
             }
-            
+
             if (isset($rec->proto)) {
                 $row->proto = $mvc->getHyperlink($rec->proto);
             }
@@ -2696,7 +2708,7 @@ class cat_Products extends embed_Manager
             // Извличаме какво к-во
             $info = cat_Boms::getResourceInfo($bomId, $quantity, $date);
             
-            foreach ($info['resources'] as $materialId => $rRec) {
+            foreach ($info['resources'] as $rRec) {
                 if ($rRec->type != 'input') {
                     continue;
                 }
@@ -3162,7 +3174,7 @@ class cat_Products extends embed_Manager
             return followRetUrl();
         }
         
-        $form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         return $this->renderWrapping($form->renderHtml());

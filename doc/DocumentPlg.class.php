@@ -2010,7 +2010,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        $saveBtnName = (haveRole('powerUser')) ? 'Чернова' : 'Запис';
+        $saveBtnName = (haveRole('powerUser') && !(($mvc->canEditActivated === true && $rec->state == 'active'))) ? 'Чернова' : 'Запис';
         $form->toolbar->renameBtn('save', $saveBtnName);
         
         if ($rec->state == 'pending') {

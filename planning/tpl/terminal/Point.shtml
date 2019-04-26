@@ -13,7 +13,7 @@
 		</div>
 
 		<div class='searchHolder'>
-			[#SEARCH_FORM#]
+			[#scanBtn#][#SEARCH_FORM#]
 		</div>
 		<div class="clearfix21"></div>
 	</div>
@@ -46,7 +46,7 @@
 				<div class='tabContent [#active_choose#]' id = 'task-list-content'>[#TASK_LIST#]</div>
 				<div class='tabContent [#active_choose#]' id = 'task-single-content'>[#TASK_SINGLE#]</div>
 				<div class='tabContent [#active_choose#]' id = 'task-job-content'>[#TASK_JOB#]</div>
-				<div class='tabContent [#active_choose#]' id = 'task-support-content'>[#SUPPORT#]</div>
+				<div class='tabContent [#active_choose#]' id = 'task-support-content'>[#SUPPORT#]<div class='clearfix21'></div></div>
 			</div>
 	</div>
 	<div class="clearfix21"></div>
