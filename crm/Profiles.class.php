@@ -908,16 +908,17 @@ class crm_Profiles extends core_Master
             $mustSave = true;
         }
         
-        
         // Задаваме групата
         $profilesGroup = crm_Groups::fetch("#sysId = 'users'");
-        $exGroupList = $person->groupList;
+        $Persons = cls::get('crm_Persons');
+        $groupExpandField = $Persons->expandInputFieldName;
+        $exGroupList = $person->{$groupExpandField};
         if ($user->state == 'rejected') {
-            $person->groupList = keylist::removeKey($person->groupList, $profilesGroup->id);
+            $person->{$groupExpandField} = keylist::removeKey($person->{$groupExpandField}, $profilesGroup->id);
         } else {
-            $person->groupList = keylist::addKey($person->groupList, $profilesGroup->id);
+            $person->{$groupExpandField} = keylist::addKey($person->{$groupExpandField}, $profilesGroup->id);
         }
-        if ($person->groupList != $exGroupList) {
+        if ($person->{$groupExpandField} != $exGroupList) {
             $mustSave = true;
         }
         
@@ -980,9 +981,9 @@ class crm_Profiles extends core_Master
                     self::save($profile, 'searchKeywords');
                 }
             }
-            
-            return $person->id;
         }
+        
+        return $person->id;
     }
     
     
