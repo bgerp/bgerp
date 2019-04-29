@@ -49,7 +49,7 @@ class acc_Periods extends core_Manager
     /**
      * Кой може да пише?
      */
-    public $canEdit = 'ceo,acc';
+    public $canEdit = 'ceo,acc,admin';
     
     
     /**
@@ -79,7 +79,7 @@ class acc_Periods extends core_Manager
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'no_one';
+    public $canAdd = 'admin,ceo';
     
     
     /**
@@ -87,7 +87,19 @@ class acc_Periods extends core_Manager
      */
     public $actLog;
     
-    
+
+    /**
+     * Записа на първия активен период
+     */
+    private $firstActive;
+
+
+    /**
+     * Записа на последно затворен период
+     */
+    private $lastClosed;
+
+
     /**
      * Описание на модела
      */
@@ -231,44 +243,7 @@ class acc_Periods extends core_Manager
         return (object) array('year' => $yearItem->id);
     }
     
-    
-    /**
-     * Проверява датата в указаното поле на формата дали е в отворен период
-     * и записва във формата съобщение за грешка или предупреждение
-     * грешка или предупреждение няма, ако датата е от началото на активния,
-     * до края на насотящия период
-     *
-     * @param datetime $dateToCheck - Дата която да се сравни
-     *
-     * @return string|FALSE - грешката или FALSE ако няма
-     */
-    public static function checkDocumentDate($dateToCheck)
-    {
-        if (!$dateToCheck) {
-            
-            return;
-        }
         
-        $rec = self::forceActive();
-        if ($rec->start > $dateToCheck) {
-            
-            return "Датата е преди активния счетоводен период|* <b>{$rec->title}</b>";
-        }
-        
-        $rec = self::fetchByDate($dateToCheck);
-        if (!$rec) {
-            
-            return 'Датата е в несъществуващ счетоводен период';
-        }
-        
-        if ($dateToCheck > dt::getLastDayOfMonth()) {
-            
-            return 'Датата е в бъдещ счетоводен период';
-        }
-        
-        return false;
-    }
-    
     
     /**
      * Връща посочения период или го създава, като създава и периодите преди него
@@ -399,20 +374,125 @@ class acc_Periods extends core_Manager
         
         return $rec;
     }
-    
+
+
+    /**
+     * Връща последния затворен период
+     *
+     *
+     * @return stdClass|false
+     */
+    public static function getLastClosed()
+    {
+        $query = self::getQuery();
+        if(null === ($rec = $query->mvc->lastClosed)) {
+            $query->limit(1);
+            $query->orderBy("#end=DESC");
+            $rec = $query->fetch("#state = 'closed'");
+        }
+         
+        return $rec;
+    }
     
     /**
-     * @param core_Mvc $mvc
-     * @param stdClass $data
+     * Връща последния затворен период
+     *
+     *
+     * @return stdClass|false
      */
-    protected static function on_AfterPrepareEditForm(core_Mvc $mvc, $data)
+    public static function getFirstActive()
     {
-        if ($data->form->rec->id) {
+        $query = self::getQuery();
+        if(null === ($rec = $query->mvc->firstActive)) {
+            $query->limit(1);
+            $query->orderBy("#end=ASC");
+            $rec = $query->fetch("#state = 'active'");
+        }
+         
+        return $rec;
+    }
+    /**
+     * Проверява датата в указаното поле на формата дали е в отворен период
+     * и записва във формата съобщение за грешка или предупреждение
+     * грешка или предупреждение няма, ако датата е от началото на активния,
+     * до края на насотящия период
+     *
+     * @param datetime $dateToCheck - Дата която да се сравни
+     *
+     * @return string|FALSE - грешката или FALSE ако няма
+     */
+    public static function checkDocumentDate($dateToCheck)
+    {
+        if (!$dateToCheck) {
+            
+            return;
+        }
+        
+        $rec = self::getFirstActive();
+
+        if ($rec && ($rec->start > $dateToCheck)) {
+            
+            return "Датата е преди първия активен период|* <b>{$rec->title}</b>";
+        }
+        
+        $rec = self::fetchByDate($dateToCheck);
+        if (!$rec) {
+            
+            return 'Датата е в несъществуващ счетоводен период';
+        }
+        
+        if ($dateToCheck > dt::getLastDayOfMonth()) {
+            
+            return 'Датата е в бъдещ счетоводен период';
+        }
+        
+        return false;
+    }
+
+
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = $data->form;
+        $rec = $form->rec;
+
+        if(!isset($rec->id)) {
+            $query = self::getQuery();
+            $query->orderBy("#end=ASC");
+            $query->limit(1);
+            $fPeriod = $query->fetch();
+            if($fPeriod) {
+                $rec->end = dt::addDays(-1, $fPeriod->start);
+                $form->setDefault('end', $rec->end);
+                $form->setReadonly('end');
+            }
+        } else {
             $data->form->setReadOnly('end');
         }
     }
-    
-    
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = $form->rec;
+        if(!$rec->id) {
+            $rec->state = 'active';
+        }
+    }
+
+
     /**
      * Премахва възможността да се редактират периоди със state='closed'
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
@@ -425,24 +505,19 @@ class acc_Periods extends core_Manager
      * @param int|NULL      $userId
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
-    {
-        if (!$rec) {
-            
-            return;
-        }
-        
+    {  
         // Последния ден на текущия период
         $curPerEnd = static::getPeriodEnd();
         
         // Забраняваме всички модификации за всички минали периоди
-        if ($action == 'edit') {
+        if ($action == 'edit' && is_object($rec)) {
             if ($rec->end <= $curPerEnd) {
                 $requiredRoles = 'no_one';
             }
         }
         
         // Период може да се затваря само ако е изтекъл
-        if ($action == 'close' && $rec->id) {
+        if ($action == 'close' && is_object($rec) && $rec->id) {
             $rec = self::fetch($rec->id);
             
             if ($rec->end >= $curPerEnd || $rec->state != 'active') {
@@ -452,6 +527,13 @@ class acc_Periods extends core_Manager
             // Никой не може да затваря невалиден баланс
             $balRec = acc_Balances::fetch("#periodId = {$rec->id}");
             if (!acc_Balances::isValid($balRec)) {
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        // Могат ръчно да се добавят периоди, само, ако няма нито един приключил
+        if ($action == 'add') {
+            if(self::fetch("#state = 'closed'")) {
                 $requiredRoles = 'no_one';
             }
         }
