@@ -699,10 +699,8 @@ class core_Db extends core_BaseClass
      *
      *
      * @param string $tableName
-     * @param string $fieldName
-     * @param int    $fieldLength
      *
-     * @return int
+     * @return array
      */
     public function getFields($tableName)
     {

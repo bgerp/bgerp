@@ -87,7 +87,7 @@ class slick_Driver extends core_BaseClass
             $tpl->replace('outerDots', 'OUTER_DOTS');
         }
         
-        
+        $style = '';
         foreach ($images as $fileId) {
             $img = new thumb_Img(array(fileman::idToFh($fileId), $maxwidth, $maxwidth, 'fileman', 'mode' => 'small-no-change', 'isAbsolute' => $absolute));
             $imageURL = $img->getUrl('forced');
@@ -95,7 +95,6 @@ class slick_Driver extends core_BaseClass
             $tpl->append($slide, 'SLICK_SLIDES');
             $style = ' style="display:none;"';
         }
-        
         
         // Вземаме актуалната версия
         $ver = slick_Setup::get('VERSION');
