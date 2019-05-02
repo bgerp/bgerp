@@ -153,7 +153,13 @@ class store_Stores extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=@Наименование, chiefs,activateRoles,selectUsers,selectRoles,workersIds=Товарачи';
+    public $listFields = 'name=Наименование, chiefs,activateRoles,selectUsers,selectRoles,workersIds=Товарачи';
+    
+    
+    /**
+     * Името на полето, което ще е на втори ред
+     */
+    public $listFieldsSecondLineField = 'name';
     
     
     /**
@@ -315,7 +321,7 @@ class store_Stores extends core_Master
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperLink($rec->locationId, true);
             }
-        } else if (isset($fields['-list'])) {
+        } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
             $row->name = "<b style='position:relative; top: 5px;'>" . $row->name . "</b>";
             $row->name .= "    <span class='fright'>" . $row->currentPlg . "</span>";
             unset($row->currentPlg);
@@ -328,7 +334,9 @@ class store_Stores extends core_Master
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        unset($data->listFields['currentPlg']);
+        if (doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
+            unset($data->listFields['currentPlg']);
+        }
     }
     
     
