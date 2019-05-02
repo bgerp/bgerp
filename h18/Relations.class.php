@@ -25,24 +25,44 @@ class h18_Relations extends core_Manager
     public $title = 'Релации в базата bgERP';
     
     public function act_Show () {
-        
-        $cls = core_Cls::get('cash_Pko');
+        $tables = array(
+            'cash_pko',
+            'cash_rko',
+            'cat_products',
+            'crm_companies',
+            'pos_points',
+            'pos_receipts',
+            'pos_receiptDetails',
+            'pos_stocks',
+            'sales_sales',
+            'sales_salesDetails',
+            'sales_invoices',
+            'sales_invoiceDetails',
+            'sales_services',
+            'core_roles',
+            'core_users',
+        );
+        $res = '';
+        foreach ($tables as $table) {
+            $cls = core_Cls::get($table);
         // bp($cls->fields);
-        foreach($cls->fields as $field) {
-            $className = get_class($field->type);
-            
-            switch ($className) {
-                case 'type_Key':
-                    bp($field->type->params['mvc'], $field->type->params['select']);
-                    break;
-                case 'type_KeyList':
-                    break;
-                case 'type_CustomKey':
-                    break;
+            foreach($cls->fields as $field) {
+                $className = get_class($field->type);
+                
+                switch ($className) {
+                    case 'type_Key':
+                        //bp($field->type->params['mvc'], $field->type->params['select']);
+                        $res .= $table . '_' . $field->name . '->' . $field->type->params['mvc'] . '_' . (empty($field->type->params['select'])?'id':$field->type->params['select']) . "<br>";
+                        break;
+                    case 'type_KeyList':
+                        break;
+                    case 'type_CustomKey':
+                       // bp($field->type->params['mvc'], $field->type->params['key'], $field->type->params['select']);
+                        break;
+                }
             }
-                    
-            
-           // $field->type['params']['select'];
         }
+        
+        die($res);
     }
 }
