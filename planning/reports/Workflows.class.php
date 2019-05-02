@@ -227,12 +227,38 @@
                         $id = $val->taskId.'|'.$val->productId.'|'.'|'.$v.'|'.'|'.$val->assetResources;
                     }
                     
-                    $recs[$id] = clone $val;
-                    $recs[$id]->employees = '|'.$v.'|';
-                    $recs[$id]->quantity = $val->quantity / $divisor;
-                    $recs[$id]->scrap = $val->scrap / $divisor;
-                    $recs[$id]->labelQuantity = $val->labelQuantity / $divisor;
-                    $recs[$id]->weight = $val->weight / $divisor;
+                    $clone = clone $val;
+                    
+                    if (!array_key_exists($id, $recs)) {
+                        $recs[$id] = (object) array(
+                            
+                            'taskId' => $clone->taskId,
+                            'detailId' => $clone->detailId,
+                            
+                            'employees' => '|'.$v.'|',
+                            'assetResources' => $clone->assetResources,
+                            
+                            'productId' => $clone->productId,
+                            'measureId' => $clone->measureId,
+                            
+                            'quantity' => $clone->quantity / $divisor,
+                            'scrap' => $clone->scrap / $divisor,
+                            
+                            'labelMeasure' => $clone->labelMeasure,
+                            'labelQuantity' => 1,
+                            
+                            'weight' => $clone->weight / $divisor,
+                            
+                        );
+                    } else {
+                        $obj = &$recs[$id];
+                        
+                        $obj->quantity += $clone->quantity / $divisor;
+                        $obj->scrap += $clone->scrap / $divisor;
+                        $obj->labelQuantity += 1;
+                        $obj->weight += $clone->weight / $divisor;
+                        
+                    }
                     
                 }
                 unset($recs[$key]);
