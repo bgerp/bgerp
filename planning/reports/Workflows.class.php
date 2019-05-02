@@ -385,7 +385,10 @@
                 $fieldTpl->append('<b>' . $data->rec->to . '</b>', 'to');
             }
             
+            
+            
             if (($data->rec->resultsOn == 'users' || $data->rec->resultsOn == 'usersMachines')) {
+                
                     if (isset($data->rec->employees)) {
                         
                         $marker = 0;
@@ -404,6 +407,23 @@
                 } else {
                     $fieldTpl->append('<b>' . 'Всички от този център на дейност' . '</b>', 'employees');
                 }
+            }else{
+                if (isset($data->rec->employees)) {
+                    
+                    $marker = 0;
+                    foreach (type_Keylist::toArray($data->rec->employees) as $empl) {
+                        $marker++;
+                        
+                        $employeesVerb .= (core_Users::getNick(crm_Profiles::getUserByPerson($empl)));
+                        
+                        if ((count(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
+                            $employeesVerb .= ', ';
+                        }
+                    }
+                    
+                    $fieldTpl->append('<b>' . $employeesVerb . '</b>', 'employees');
+                    
+                } 
             }
            
         if (isset($data->rec->assetResources)) {
