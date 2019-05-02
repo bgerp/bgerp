@@ -157,12 +157,6 @@ class store_Stores extends core_Master
     
     
     /**
-     * Името на полето, което ще е на втори ред
-     */
-    public $listFieldsSecondLineField = 'name';
-    
-    
-    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'name';
@@ -324,17 +318,6 @@ class store_Stores extends core_Master
     
     
     /**
-     * Преди рендиране на таблицата
-     */
-    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
-    {
-        if (doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
-            unset($data->listFields['currentPlg']);
-        }
-    }
-    
-    
-    /**
      * Кои документи да се показват като бързи бутони в папката на корицата
      *
      * @param int $id - ид на корицата
@@ -349,5 +332,32 @@ class store_Stores extends core_Master
         $res[] = store_InventoryNotes::getClassId();
         
         return $res;
+    }
+    
+    
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        if (doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
+            unset($data->listFields['currentPlg']);
+        }
+    }
+    
+    
+    /**
+     * Извиква се преди подготовката на колоните
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, $data)
+    {
+        $listFieldsPos = doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS');
+        if ($listFieldsPos != 'no') {
+            $data->listFields['name'] = '@' . $data->listFields['name'];
+            
+            if ($listFieldsPos == 'top') {
+                $mvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+            }
+        }
     }
 }
