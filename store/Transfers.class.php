@@ -617,7 +617,7 @@ class store_Transfers extends core_Master
     public static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
         if (doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
-            $data->listFields = 'deliveryTime,valior, title=@Документ, folderId , weight, volume,lineId';
+            $data->listFields = 'deliveryTime,valior, title=Документ, folderId , weight, volume,lineId';
         }
     }
 }
