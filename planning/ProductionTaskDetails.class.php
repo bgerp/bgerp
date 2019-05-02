@@ -504,7 +504,12 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $data->listTableMvc->setField('weight', 'smartCenter');
             } else {
                 $data->listTableMvc->FNC('quantityExtended', 'varchar', 'tdClass=centerCol');
-                $data->listTableMvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>\n";
+                if (doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
+                    $data->listTableMvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>\n";
+                } else {
+                    $data->listTableMvc->tableRowTpl = "[#ADD_ROWS#][#ROW#]\n";
+                }
+                
                 $lastRecId = Mode::get("terminalLastRec{$selectedTerminalId}");
             }
         }
