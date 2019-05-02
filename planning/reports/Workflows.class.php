@@ -147,12 +147,12 @@
         
         //Филтър по служители
         if ($rec->employees) {
-        $query->likeKeylist('employees', $rec->employees);//bp($rec->employees,$query->fetchAll());
+        $query->likeKeylist('employees', $rec->employees);
         }
         
         
         //Филтър по машини
-        if ($rec->assetResources) {bp($rec->employees,$query->fetchAll());
+        if ($rec->assetResources) {
             $assetArr = keylist::toArray( $rec->assetResources);
             
             $query->in('fixedAsset', $assetArr);
