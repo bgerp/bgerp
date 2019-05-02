@@ -309,14 +309,6 @@ class store_Transfers extends core_Master
             $row->title = $mvc->getLink($rec->id, 0);
             
             if (doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
-                $attr = array();
-                foreach (array('fromStore', 'toStore') as $storeFld) {
-                    if (store_Stores::haveRightFor('single', $rec->{$storeFld})) {
-                        $attr['ef_icon'] = 'img/16/home-icon.png';
-                        $row->{$storeFld} = ht::createLink($row->{$storeFld}, array('store_Stores', 'single', $rec->{$storeFld}), null, $attr);
-                    }
-                }
-            } else {
                 $row->title = "<b>" . $row->title . "</b>";
                 $row->title .=  "  " . $row->fromStore . " » " . $row->toStore;
                 $row->createdBy = crm_Profiles::createLink($rec->createdBy);
