@@ -109,8 +109,12 @@ class cms_Library extends embed_Manager
     public static function render($rec, $maxWidth, $absolute = false)
     {
         $Driver = self::getDriver($rec);
+        
+        $res = '';
 
-        $res = $Driver->render($rec, $maxWidth, $absolute);
+        if($Driver) {
+            $res = $Driver->render($rec, $maxWidth, $absolute);
+        }
 
         return $res;
     }

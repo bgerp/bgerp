@@ -32,7 +32,7 @@ class uiext_Labels extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, uiext_Wrapper, plg_State2, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, plg_Created, cond_Wrapper, plg_State2, plg_SaveAndNew';
     
     
     /**

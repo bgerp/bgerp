@@ -39,7 +39,7 @@ class uiext_ObjectLabels extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, uiext_Wrapper,plg_Sorting';
+    public $loadList = 'plg_RowTools2, plg_Created, cond_Wrapper,plg_Sorting';
     
     
     /**

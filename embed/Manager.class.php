@@ -79,7 +79,7 @@ class embed_Manager extends core_Master
         // Извличаме позволените за избор опции
         $interfaces = static::getAvailableDriverOptions();
         
-        // Ако има избран вече склад, но го няма в опциите добавя се
+        // Ако има избран вече драйвер, но го няма в опциите добавя се
         if ($rec->{$this->driverClassField} && !array_key_exists($rec->{$this->driverClassField}, $interfaces)) {
             $name = core_Classes::fetchField($rec->{$this->driverClassField}, 'title');
             $interfaces[$rec->{$this->driverClassField}] = core_Classes::translateClassName($name);
@@ -88,7 +88,13 @@ class embed_Manager extends core_Master
         // Ако няма достъпни драйвери редирект със съобщение
         if (!count($interfaces)) {
             if ($this->mandatoryDriverField === true) {
-                followRetUrl(null, '|Липсват възможни видове|* ' . $this->title, 'error');
+                $intf = cls::get($this->driverInterface);
+                $msg = '|Липсват опции за|* |' . ($intf->driversCommonName ? $intf->driversCommonName : $this->title);
+                if (haveRole('admin')) {
+                    redirect(array('core_Packs'), false, $msg, 'error');
+                } else {
+                    followRetUrl(null, $msg, 'error');
+                }
             } else {
                 $form->setField($this->driverClassField, 'input=none');
             }
@@ -429,5 +435,18 @@ class embed_Manager extends core_Master
         }
         
         return false;
+    }
+    
+    
+    /**
+     * Филтрира заявката по класа на посочения драйвер
+     */
+    public function filterQueryByDriverClass($driverClass, $query = null)
+    {
+        if (!is_object($query)) {
+            $query = static::getQuery();
+        }
+        $classId = core_Classes::getId($driverClass);
+        $query->where("#{$query->mvc->driverClassField} = ${classId}");
     }
 }

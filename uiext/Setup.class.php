@@ -44,15 +44,7 @@ class uiext_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = 'uiext';
-    
-    
-    /**
-     * Връзки от менюто, сочещи към модула
-     */
-    public $menuItems = array(
-        array(1.9999, 'Система', 'Инструменти', 'uiext_Labels', 'default', 'uiext, admin, ceo'),
-    );
-    
+        
     
     /**
      * Списък с мениджърите, които съдържа пакета

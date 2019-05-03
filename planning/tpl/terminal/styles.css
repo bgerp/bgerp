@@ -98,7 +98,7 @@ body {
   .keyboardHolder .quantityField,
   .keyboardHolder .weightField {
     padding-right: 31px; }
-  .keyboardHolder .weightField {
+  .keyboardHolder .weightField.mandatory {
     border: 1px solid #666666 !important; }
   .keyboardHolder .planning-terminal-numpad {
     position: absolute;

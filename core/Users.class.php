@@ -1212,6 +1212,11 @@ class core_Users extends core_Manager
                 core_LoginLog::add('new_user', core_Users::getCurrent());
             }
         }
+        
+        // Автоматично попълва на ПИН код на новите потребители
+        if (!$rec->pinCode && !$rec->id) {
+            $rec->pinCode = str::getRand('######');
+        }
     }
     
     
