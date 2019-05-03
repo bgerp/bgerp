@@ -59,7 +59,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             'key(mvc=drdata_CountryGroups,select=name, allowEmpty)',
             'caption=Група държави,placeholder=Всички,single=none,after=contragent'
             );
-        $fieldset->FLD('salesTotalOverDue', 'double', 'input=none,single=none');
+        $fieldset->FNC('salesTotalOverDue', 'double', 'caption=Общо просрочени,input=none,single=none');
+        $fieldset->FNC('salesTotalPayout', 'double', 'caption=Общо плащания,input=none,single=none');
+        $fieldset->FNC('salesCurrentSum', 'double', 'caption=Общо неплатени,input=none,single=none');
     }
     
     
@@ -209,7 +211,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $threadsId[$saleInvoice->threadId] = $saleInvoice->threadId;
         }
         
-        $salesTotalOverDue = 0;
+        $salesTotalOverDue = $salesTotalPayout = 0;
         
         if (is_array($threadsId)) {
             foreach ($threadsId as $thread) {
@@ -265,6 +267,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                             continue;
                         }
                         
+                        $salesTotalOverDue += $paydocs->amount*$iRec->rate;     // Обща стойност на просрочените фактури преизчислени в основна валута
+                        $salesTotalPayout += $paydocs->payout*$iRec->rate;       // Обща стойност на плащанията по просрочените фактури преизчислени в основна валута
                         
                         // масива с фактурите за показване
                         if (! array_key_exists($iRec->id, $sRecs)) {
@@ -297,6 +301,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
         
         $rec->salesTotalOverDue = $salesTotalOverDue;
+        $rec->salesTotalPayout = $salesTotalPayout;
+        $rec->salesCurrentSum = $salesTotalOverDue - $salesTotalPayout;
         
         if (count($sRecs)) {
             arr::sortObjects($sRecs, 'overdueDays', 'desc');
@@ -565,6 +571,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN contragent-->|Контрагент|*: <b>[#contragent#]</b><!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN dealer-->|Търговец|*: <b>[#dealer#]</b><!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN countryGroup-->|Група държави|*: <b>[#countryGroup#]</b><!--ET_END to--></div></small>
+                                <small><div><!--ET_BEGIN salesTotalOverDue-->|Общо просрочени|*: <b>[#salesTotalOverDue#]</b><!--ET_END salesTotalOverDue--></div></small>
+                                <small><div><!--ET_BEGIN salesTotalPayout-->|Общо платено|*: <b>[#salesTotalPayout#]</b><!--ET_END salesTotalPayout--></div></small>
+                                <small><div><!--ET_BEGIN salesCurrentSum-->|Общо за плащане|*: <b>[#salesCurrentSum#]</b><!--ET_END salesCurrentSum--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"
             )
         );
@@ -595,6 +604,20 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         if (isset($data->rec->checkDate)) {
             $fieldTpl->append(dt::mysql2verbal($data->rec->checkDate, $mask = 'd.m.Y'), 'checkDate');
+        }
+        
+        $baseCurrency = acc_Periods::getBaseCurrencyCode();
+        
+        if (isset($data->rec->salesTotalOverDue)) {
+            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->salesTotalOverDue)." $baseCurrency", 'salesTotalOverDue');
+        }
+        
+        if (isset($data->rec->salesTotalPayout)) {
+            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->salesTotalPayout)." $baseCurrency", 'salesTotalPayout');
+        }
+        
+        if (isset($data->rec->salesCurrentSum)) {
+            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->salesCurrentSum)." $baseCurrency", 'salesCurrentSum');
         }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');

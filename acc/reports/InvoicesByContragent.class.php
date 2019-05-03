@@ -149,8 +149,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $form->setError('from,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
             }
             
-            if ($rec->unpaid == 'unpaid') {
-            }
         }
     }
     
@@ -403,11 +401,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 // Масив с данни за сумите от фактурите  обединени по контрагенти
                                 if (! array_key_exists($iRec->contragentName, $totalInvoiceContragent)) {
                                     $totalInvoiceContragent[$iRec->contragentName] = (object) array(
-                                        'totalInvoiceValue' => $paydocs->amount, //общо стойност на фактурите за контрагента
-                                        'totalInvoicePayout' => $paydocs->payout,//плащания по фактурите за контрагента
-                                        'totalInvoiceNotPaid' => $salesInvoiceNotPaid,//стойност на НЕДОплатените суми по фактурите за контрагента
-                                        'totalInvoiceOverPaid' => $salesInvoiceOverPaid,//стойност на НАДплатените суми по фактурите за контрагента
-                                        'totalInvoiceOverDue' => $salesInvoiceOverDue,//стойност за плащане по просрочените фактури за контрагента
+                                        'totalInvoiceValue' => $paydocs->amount,                            //общо стойност на фактурите за контрагента
+                                        'totalInvoicePayout' => $paydocs->payout,                           //плащания по фактурите за контрагента
+                                        'totalInvoiceNotPaid' => $salesInvoiceNotPaid,                      //стойност на НЕДОплатените суми по фактурите за контрагента
+                                        'totalInvoiceOverPaid' => $salesInvoiceOverPaid,                    //стойност на НАДплатените суми по фактурите за контрагента
+                                        'totalInvoiceOverDue' => $salesInvoiceOverDue,                      //стойност за плащане по просрочените фактури за контрагента
                                     );
                                 } else {
                                     $obj = &$totalInvoiceContragent[$iRec->contragentName];
@@ -520,7 +518,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             //Обединени покупки
             $purchasesQuery = purchase_Purchases::getQuery();
             
-            $purchasesQuery->where("#closedDocuments != ''");
+            $purchasesQuery->where("#closedDocuments != '' OR #contoActions IS NOT NULL");
             
             //Масив с затварящи документи по обединени покупки  и масив с бързи покупки
             $purchasesUN = array();
@@ -530,11 +528,13 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 foreach ((keylist::toArray($purchase->closedDocuments)) as $v) {
                     $purchasesUN[$v] = ($v);
                 }
-            }
+            
             
             //Масив с бързи покупки
             if (strpos($purchase->contoActions, 'pay')) {
                 $fastPur[$purchase->id] = ($purchase->amountPaid - $purchase->amountVat);
+            }
+            
             }
             
             // Фактури ПОКУПКИ
@@ -625,14 +625,14 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     if ((is_array($pInvoicePayments))) {
                         
                         // фактура от нишката и масив от платежни документи по тази фактура//
-                        foreach ($pInvoicePayments as $pInv => $paydocs) {
+                        foreach ($pInvoicePayments as $pInv => $paydocs) {//bp($paydocs,$fastPur);
                             
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
                             
                             // Ако покупката е бърза, фактурата се счита за платена
                             //Когато се коригира функцията за разпределение на плащанията това да се премахне !!!
-                            $invDiff = in_array($firstDocumentArr[$thread], array_keys($fastPur)) ? 0 :$invDiff ;
+                            $invDiff = in_array($firstDocumentArr[$pThread], array_keys($fastPur)) ? 0 :$invDiff ;
                             
                             // Ако са избрани само неплатените фактури
                             if ($rec->unpaid == 'unpaid') {
