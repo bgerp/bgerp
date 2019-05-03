@@ -129,7 +129,7 @@ class sales_TransportValues extends core_Manager
      */
     public static function getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalVolumicWeight, $deliveryData)
     {
-        // Имали в условието на доставка, драйвер за изчисляване на цени?
+        // Има ли в условието на доставка, драйвер за изчисляване на цени?
         $TransportCostDriver = cond_DeliveryTerms::getTransportCalculator($deliveryTermId);
         if (!is_object($TransportCostDriver)) {
             
@@ -204,7 +204,7 @@ class sales_TransportValues extends core_Manager
     {
         $res = array();
         
-        // Колко е еденичното транспортно тегло на артикула
+        // Колко е единичното транспортно тегло на артикула
         $res['weight'] = cat_Products::getTransportWeight($productId, $quantity);
         $res['volume'] = cat_Products::getTransportVolume($productId, $quantity);
         
@@ -251,7 +251,7 @@ class sales_TransportValues extends core_Manager
         // Клас ид
         $classId = cls::get($docClass)->getClassId();
         
-        // Проверка имали запис за ъпдейт
+        // Проверка има ли запис за ъпдейт
         $exRec = self::get($classId, $docId, $recId);
         
         // Ако подадената сума е NULL, и има съществуващ запис - трие се
@@ -296,7 +296,7 @@ class sales_TransportValues extends core_Manager
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if (haveRole('debug')) {
-            $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
+            $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
         }
     }
     
