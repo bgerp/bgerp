@@ -153,13 +153,7 @@ class store_Stores extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=@Наименование, chiefs,activateRoles,selectUsers,selectRoles,workersIds=Товарачи';
-    
-    
-    /**
-     * Отделния ред в листовия изглед да е отгоре
-     */
-    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+    public $listFields = 'name=Наименование, chiefs,activateRoles,selectUsers,selectRoles,workersIds=Товарачи';
     
     
     /**
@@ -315,20 +309,11 @@ class store_Stores extends core_Master
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperLink($rec->locationId, true);
             }
-        } else if (isset($fields['-list'])) {
+        } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
             $row->name = "<b style='position:relative; top: 5px;'>" . $row->name . "</b>";
             $row->name .= "    <span class='fright'>" . $row->currentPlg . "</span>";
             unset($row->currentPlg);
         }
-    }
-    
-    
-    /**
-     * Преди рендиране на таблицата
-     */
-    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
-    {
-        unset($data->listFields['currentPlg']);
     }
     
     
@@ -347,5 +332,32 @@ class store_Stores extends core_Master
         $res[] = store_InventoryNotes::getClassId();
         
         return $res;
+    }
+    
+    
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        if (doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
+            unset($data->listFields['currentPlg']);
+        }
+    }
+    
+    
+    /**
+     * Извиква се преди подготовката на колоните
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, $data)
+    {
+        $listFieldsPos = doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS');
+        if ($listFieldsPos != 'no') {
+            $data->listFields['name'] = '@' . $data->listFields['name'];
+            
+            if ($listFieldsPos == 'top') {
+                $mvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+            }
+        }
     }
 }

@@ -1967,7 +1967,7 @@ class doc_Folders extends core_Master
                 continue;
             }
             
-            if (!$sRec->data['closeTime']) {
+            if (!trim($sRec->data['closeTime'])) {
                 continue ;
             }
             

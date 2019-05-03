@@ -127,8 +127,6 @@ class distro_ArchiveDriver extends core_Mvc
             $fQuery->where(array("#md5 = '[#1#]'", $fRec->md5));
             $fQuery->where("#sourceFh IS NULL OR #sourceFh = ''");
 
-//             $fQuery->where(array("#groupId = '[#1#]'", $fRec->groupId));
-            
             while ($nRec = $fQuery->fetch()) {
                 $nRec->sourceFh = $fRec->sourceFh;
                 distro_Files::save($nRec, 'sourceFh');

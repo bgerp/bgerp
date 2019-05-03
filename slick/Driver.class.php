@@ -21,14 +21,14 @@ class slick_Driver extends core_BaseClass
      * Поддържани интерфейси
      */
     public $interfaces = 'cms_LibraryIntf';
-
-
+    
+    
     /**
      * Заглавие на класа
      */
-    public $title = "Slick слайдер";
-
-
+    public $title = 'Slick слайдер';
+    
+    
     /**
      * Допълва дадената форма с параметрите на фигурата
      * Връща масив от имената на параметрите
@@ -41,11 +41,11 @@ class slick_Driver extends core_BaseClass
         $form->FLD('autoplay', 'time(suggestions=1 сек.|2 сек.|3 сек.|5 сек.|10 сек.,uom=secunds)', 'caption=Смяна през,placeholder=Няма');
         $form->FLD('maxSize', 'int(min=0)', 'caption=Макс. разм.,placeholder=0,unit=px');
     }
-
-
+    
+    
     /**
-     * Връща HTML представянето на обекта 
-     * 
+     * Връща HTML представянето на обекта
+     *
      * @param stdClass $rec Записа за елемента от модела-библиотека
      * @param $maxWidth int Максимална широчина на елемента
      * @param $isAbsolute bool Дали URL-тата да са абсолютни
@@ -59,7 +59,7 @@ class slick_Driver extends core_BaseClass
             
             return '';
         }
-
+        
         $images = keylist::toArray($rec->images);
         
         // Ако няма картинки - да не сработва
@@ -67,7 +67,7 @@ class slick_Driver extends core_BaseClass
             
             return ;
         }
-                
+        
         $tpl = new ET("
             <div>
                 <div id='slick{$rec->id}' class='[#OUTER_ARROWS#] [#OUTER_DOTS#]'>
@@ -76,54 +76,54 @@ class slick_Driver extends core_BaseClass
             </div>
         ");
         
-        if($rec->maxSize > 0) {
+        if ($rec->maxSize > 0) {
             $maxwidth = $rec->maxSize;
         }
-        if($rec->arrows == "out") {
+        if ($rec->arrows == 'out') {
             $tpl->replace('outerArrows', 'OUTER_ARROWS');
         }
-
-        if($rec->dots == "out" ) {
+        
+        if ($rec->dots == 'out') {
             $tpl->replace('outerDots', 'OUTER_DOTS');
         }
-
-
-        foreach($images as $fileId) {
+        
+        
+        foreach ($images as $fileId) {
             $img = new thumb_Img(array(fileman::idToFh($fileId), $maxwidth, $maxwidth, 'fileman', 'mode' => 'small-no-change', 'isAbsolute' => $absolute));
             $imageURL = $img->getUrl('forced');
-            $slide = "\n    <div><img style='width:100%;height:auto;' src='{$imageURL}'></div>";
+            $slide = "\n    <div{$style}><img style='width:100%;height:auto;' src='{$imageURL}'></div>";
             $tpl->append($slide, 'SLICK_SLIDES');
-       }
-
-
+            $style = ' style="display:none;"';
+        }
+        
+        
         // Вземаме актуалната версия
         $ver = slick_Setup::get('VERSION');
-
+        
         // Включваме необходимия JS
         $tpl->push("slick/{$ver}/js/slick.js", 'JS');
-
+        
         // Включваме необходимия CSS
         $tpl->push("slick/{$ver}/css/slick.css", 'CSS');
         $tpl->push("slick/{$ver}/css/slick-theme.css", 'CSS');
-
+        
         $options = array(
-                'slidesToShow' => 1,
-                'adaptiveHeight' => true,
-                'slidesToScroll' => 1,
-                'dots' => $rec->dots != 'no',
-                'arrows' => $rec->arrows != 'no',
-                'autoplay' => $rec->autoplay > 0,
-                'autoplaySpeed' => 1000 * $rec->autoplay,
-            );
-
+            'slidesToShow' => 1,
+            'adaptiveHeight' => true,
+            'slidesToScroll' => 1,
+            'dots' => $rec->dots != 'no',
+            'arrows' => $rec->arrows != 'no',
+            'autoplay' => $rec->autoplay > 0,
+            'autoplaySpeed' => 1000 * $rec->autoplay,
+        );
+        
         $options = json_encode($options);
-
+        
         // Стартираме slick
-        jquery_Jquery::run($tpl, "$('#slick{$rec->id}').slick($options);");
+        jquery_Jquery::run($tpl, "$('#slick{$rec->id}').slick(${options});");
         
         $tpl->removeBlocks();
-
- 
+        
         return $tpl;
     }
 }

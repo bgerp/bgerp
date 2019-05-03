@@ -555,6 +555,26 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Извиква се преди подготовката на колоните
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, $data)
+    {
+        if (isset($mvc->listFieldsSecondLineField)) {
+            $listFieldsPos = doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS');
+            if ($listFieldsPos != 'no') {
+                if (isset($data->listFields[$mvc->listFieldsSecondLineField]) && $data->listFields[$mvc->listFieldsSecondLineField]{0} != '@') {
+                    $data->listFields[$mvc->listFieldsSecondLineField] = '@' . $data->listFields[$mvc->listFieldsSecondLineField];
+                }
+                
+                if ($listFieldsPos == 'top') {
+                    $mvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+                }
+            }
+        }
+    }
+    
+    
+    /**
      * Подготовка на филтър формата
      *
      * @param core_Manager $mvc

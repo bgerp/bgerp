@@ -122,9 +122,15 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=@Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
+    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
                              dealerId=Търговец,paymentState,
                              createdOn, createdBy';
+    
+    
+    /**
+     * Името на полето, което ще е на втори ред
+     */
+    public $listFieldsSecondLineField = 'title';
     
     
     /**
@@ -185,12 +191,6 @@ class sales_Sales extends deals_DealMaster
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'sales,ceo';
-    
-    
-    /**
-     * Отделния ред в листовия изглед да е отгоре
-     */
-    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
     
     
     /**
@@ -1211,7 +1211,7 @@ class sales_Sales extends deals_DealMaster
                     $row->btnTransport = $link->getContent();
                 }
             }
-        } else if (isset($fields['-list'])) {
+        } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
             $row->title = "<b>" . $row->title . "</b>";
             $row->title .= "  «  " . $row->folderId;
         }

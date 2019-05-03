@@ -587,7 +587,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $row = new stdClass();
         $contragentClassName = '';
         
-        try {
+     //   try {
             if ($dRec->totalValue) {
                 $row->contragentId = '<b>' . 'ОБЩО' . '</b>';
                 
@@ -685,12 +685,19 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             }
             
             if (is_numeric($dRec->groupList)) {
-                $row->groupList = crm_Groups::getVerbal($dRec->groupList, 'name').
+                $row->groupList.= crm_Groups::getVerbal($dRec->groupList, 'name').
                 "<span class= 'fright'><span class= ''>" . 'Общо за групата ( стойност: '.
-                core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues) .', делта: '.
-                core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupDeltas) .' )'. '</span>';
+                core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues). '</span>';
+                
+           
+                if (!is_null($rec->seeDelta)){
+                    $row->groupList .="<span class= 'fright'><span class= ''>" . ', делта: '.
+                    core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupDeltas). '</span>';
+                }
+                $row->groupList .="<span class= 'fright'><span class= ''>" . ' )'. '</span>';
+                
             } else {
-                if ($dRec->groupList) {
+                if ($dRec->groupList) { 
                     $row->group = $dRec->groupList.
                     "<span class= 'fright'><span class= ''>" . 'Общо за групата ( стойност: '.
                     core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues[$dRec->groupList]) .', делта: '.
@@ -699,9 +706,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     unset($row->group);
                 }
             }
-        } catch (Exception $e) {
-            reportException($e);
-        }
+      //  } catch (Exception $e) {
+        //    reportException($e);
+       // }
         
         return $row;
     }

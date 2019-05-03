@@ -106,7 +106,13 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'deliveryTime,valior, title=@Документ, amountDelivered, weight, volume,lineId';
+    public $listFields = 'deliveryTime,valior, title=Документ, folderId, amountDelivered, weight, volume,lineId, createdOn, createdBy';
+    
+    
+    /**
+     * Името на полето, което ще е на втори ред
+     */
+    public $listFieldsSecondLineField = 'title';
     
     
     /**
@@ -303,5 +309,16 @@ class store_Receipts extends store_DocumentMaster
     public function requireManualCheckInTransportLine($id)
     {
         return false;
+    }
+    
+    
+    /**
+     * Извиква се преди подготовката на колоните
+     */
+    public static function on_BeforePrepareListFields($mvc, &$res, $data)
+    {
+        if (doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
+            $data->listFields = 'deliveryTime,valior, title=Документ, amountDelivered, weight, volume,lineId';
+        }
     }
 }
