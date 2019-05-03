@@ -223,6 +223,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                     
                     // фактура от нишката и масив от платежни документи по тази фактура//
                     foreach ($invoicePayments as $inv => $paydocs) {
+                        
                         if (($paydocs->payout >= $paydocs->amount - 0.01) &&
                             ($paydocs->payout <= $paydocs->amount + 0.01)) {
                             continue;
@@ -237,7 +238,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                         $iRec = $Invoice->fetch(
                             'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,currencyId,date,dueDate,contragentId,contragentClassId'
                         
-                        );
+                            );
+                        
                         $overdueColor = '';
                         $limits = json_decode($rec->additional);
                         list($limit1) = $limits->limit1;
@@ -267,7 +269,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                             continue;
                         }
                         
-                        $salesTotalOverDue += $paydocs->amount*$iRec->rate;     // Обща стойност на просрочените фактури преизчислени в основна валута
+                        $salesTotalOverDue += $paydocs->amount*$iRec->rate;      // Обща стойност на просрочените фактури преизчислени в основна валута
                         $salesTotalPayout += $paydocs->payout*$iRec->rate;       // Обща стойност на плащанията по просрочените фактури преизчислени в основна валута
                         
                         // масива с фактурите за показване
