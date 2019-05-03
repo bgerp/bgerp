@@ -207,7 +207,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     
                     $prodForCut = ($arts + $grInArts) - $maxPost;
                     
-                    $numbersOfItemsToAdd = ini_get('max_input_vars')/4 - 4;
+                    $numbersOfItemsToAdd = (ini_get('max_input_vars')/4) - 4;
                     
                     if ((($arts + $numbersOfItemsToAdd) * 4) > $maxPost) {
                         $form->setError('droupId', "Лимита за следени продукти е достигнат.
