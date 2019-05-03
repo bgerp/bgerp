@@ -194,7 +194,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 $form->rec->additional = array();
             }
             
-            if ($form->rec->limmits == 'yes') {
+            if ($form->rec->limmits == 'yes') {  
                 if ($form->cmd == 'refresh' && $rec->groupId) {
                     $maxPost = ini_get('max_input_vars') - self::MAX_POST_ART;
                     
@@ -207,7 +207,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     
                     $prodForCut = ($arts + $grInArts) - $maxPost;
                     
-                    if ((($arts + self::NUMBER_OF_ITEMS_TO_ADD)*4) > $maxPost) {
+                    $numbersOfItemsToAdd = ini_get('max_input_vars')/4 - 4;
+                    
+                    if ((($arts + $numbersOfItemsToAdd) * 4) > $maxPost) {
                         $form->setError('droupId', "Лимита за следени продукти е достигнат.
             				За да добавите група \" ${groupName}\" трябва да премахнете ${prodForCut} артикула ");
                     } else {
@@ -468,15 +470,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
         
         if (isset($dRec->minQuantity)) {
-            
             $t = core_Type::getByName('double(smartRound,decimals=3)');
             $row->minQuantity = $t->fromVerbal($dRec->minQuantity);
             $row->minQuantity = $t->toVerbal($row->minQuantity);
-            
         }
         
         if (isset($dRec->maxQuantity)) {
-            
             $t = core_Type::getByName('double(smartRound,decimals=3)');
             $row->maxQuantity = $t->fromVerbal($dRec->maxQuantity);
             $row->maxQuantity = $t->toVerbal($row->maxQuantity);
@@ -507,6 +506,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN inputArts-->|Наблюдавани артикули|*: [#inputArts#]<!--ET_END inputArts--></div></small>
                                 <small><div><!--ET_BEGIN ariculsData-->|Артикули с данни|*: [#ariculsData#]<!--ET_END ariculsData--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
+        
         
         $data->rec->ariculsData = count($data->rec->data->recs);
         
