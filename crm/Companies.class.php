@@ -1820,7 +1820,7 @@ class crm_Companies extends core_Master
      * Манипулация на списъка с екстендерите
      *
      * @param core_Master $master
-     * @param array       $extenders @see groups_Manager::extendersArr
+     * @param array       $extenders 
      * @param stdClass    $rec       запис на crm_Companies
      */
     public static function on_AfterGetExtenders(core_Master $master, &$extenders, $rec)
