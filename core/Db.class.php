@@ -226,7 +226,8 @@ class core_Db extends core_BaseClass
      * @param bool   $silent   Ако е TRUE, функцията не прекъсва изпълнението на
      *                         скрипта и не отпечатва съобщението за грешка на MySQL.
      *                         В този случай извикващия трябва да провери стойностите на
-     *                         {$link DB::errno()} и {@link DB::error()} и да реагира според тях.
+     *                         {$link DB::errno()} и {@link DB::error()} и да реагира според тях
+     * @param bool $replication дали да се записва заявката в лог файл
      *
      * @return resource
      */
@@ -246,9 +247,11 @@ class core_Db extends core_BaseClass
         $this->checkForErrors('изпълняване на заявка', $silent, $link);
         DEBUG::stopTimer('DB::query()');
         
-        if ($replication && ($path = BGERP_SQL_LOG_PATH)) {
-            $path .= '/' . date('Y-m-d_h') . '.sql';
-            file_put_contents($path, $sqlQuery . ";\n\r", FILE_APPEND);
+        if ($replication && defined('BGERP_SQL_LOG_PATH') && ($path = BGERP_SQL_LOG_PATH)) {
+            if($link->affected_rows > 0 || stripos($sqlQuery, 'truncate') !== false) {
+                $path .= '/' . date('Y-m-d_h') . '.sql';
+                file_put_contents($path, $sqlQuery . ";\n\r", FILE_APPEND);
+            }
         }
         
         return $dbRes;
