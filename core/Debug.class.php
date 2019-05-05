@@ -340,6 +340,11 @@ class core_Debug
                 $args = join(', ', $args);
             }
             
+            // Предотвратяване показването на паролата за базата данни
+            if ($frame['class'] == 'mysqli' && $frame['function'] == '__construct') {
+                // print_r($args); die;
+            }
+            
             $rtn[] = array(
                 $file,
                 $githubLink,

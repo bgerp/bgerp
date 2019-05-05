@@ -198,14 +198,6 @@ class prosody_RemoteDriver extends core_Mvc
     }
     
     
-    /*
-    *************************************************************************************
-    *
-    *  Интерфейс
-    *
-    **************************************************************************************
-    */
-    
     /**
      * Връща информация за логин на потребителя
      */
@@ -221,15 +213,29 @@ class prosody_RemoteDriver extends core_Mvc
     }
     
     
+    /*
+    *************************************************************************************
+    *
+    *  Интерфейс bgerp_SendAlertIntf
+    *
+    **************************************************************************************
+    */
+    
     /**
      * Изпраща съобщение до потребителя
      */
-    public function sendMessage($rec, $msg)
+    public function sendMessage($userId, $msg)
     {
-        $rec = remote_Authorizations::fetchRec($rec);
+        $query = remote_Autorisations::filterQueryByDriverClass('prosody_RemoteDriver');
+        $rec = $query->fetch("#userId = {$userId}");
         
-        $res = prosody_RestApi::sendMessage($rec->xmppUser, $msg);
+        if ($rec) {
+            $res = prosody_RestApi::sendMessage($rec->xmppUser, $msg);
+            $res = (substr($res['status'], 0, 1) == 2);
+        } else {
+            $res = false;
+        }
         
-        return (substr($res['status'], 0, 1) == 2);
+        return $res;
     }
 }

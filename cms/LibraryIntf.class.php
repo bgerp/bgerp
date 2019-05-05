@@ -41,7 +41,7 @@ class cms_LibraryIntf extends embed_DriverIntf
     /**
      * Връща наименованието на обекта
      *
-     * @param stdClass запис в ембедъра
+     * @param stdClass $rec запис в ембедъра
      *
      * @return string
      */

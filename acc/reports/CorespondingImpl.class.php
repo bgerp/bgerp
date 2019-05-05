@@ -95,7 +95,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     public function prepareEmbeddedForm(core_Form &$form)
     {
         // Поставяме удобни опции за избор на период
-        $op = acc_Periods::getPeriodOptions();
+        $op = acc_Balances::getPeriodOptions();
         
         $form->setSuggestions('from', array('' => '') + $op->fromOptions);
         $form->setSuggestions('to', array('' => '') + $op->toOptions);

@@ -686,7 +686,10 @@ class core_Cron extends core_Manager
         
         // Търсим дали има съществуващ запис със същото id
         $exRec = self::fetch(array("#systemId = '[#1#]'", $rec->systemId));
-        
+
+        if(!$exRec && isset($rec->exSystemId)) {
+            $exRec = self::fetch(array("#systemId = '[#1#]'", $rec->exSystemId));
+        }
         
         // Записваме, че записът е създаден от системния потребител
         setIfNot($rec->createdBy, -1);
@@ -711,7 +714,7 @@ class core_Cron extends core_Manager
                                   $rec->action != $exRec->action);
             if ($exRec->modifiedBy == -1 || !$exRec->modifiedBy) {
                 // Ако не е редактиран и има промени го обновяваме
-                if ($systemDataChanged || $rec->period != $exRec->period || $rec->offset != $exRec->offset ||
+                if ($systemDataChanged || $rec->period != $exRec->period ||
                       floor($rec->delay) != floor($exRec->delay) ||
                       $rec->timeLimit != $exRec->timeLimit
                     ) {

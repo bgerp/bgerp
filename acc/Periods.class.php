@@ -87,19 +87,19 @@ class acc_Periods extends core_Manager
      */
     public $actLog;
     
-
+    
     /**
      * Записа на първия активен период
      */
     private $firstActive;
-
-
+    
+    
     /**
      * Записа на последно затворен период
      */
     private $lastClosed;
-
-
+    
+    
     /**
      * Описание на модела
      */
@@ -243,7 +243,6 @@ class acc_Periods extends core_Manager
         return (object) array('year' => $yearItem->id);
     }
     
-        
     
     /**
      * Връща посочения период или го създава, като създава и периодите преди него
@@ -374,8 +373,8 @@ class acc_Periods extends core_Manager
         
         return $rec;
     }
-
-
+    
+    
     /**
      * Връща последния затворен период
      *
@@ -385,14 +384,15 @@ class acc_Periods extends core_Manager
     public static function getLastClosed()
     {
         $query = self::getQuery();
-        if(null === ($rec = $query->mvc->lastClosed)) {
+        if (null === ($rec = $query->mvc->lastClosed)) {
             $query->limit(1);
-            $query->orderBy("#end=DESC");
+            $query->orderBy('#end=DESC');
             $rec = $query->fetch("#state = 'closed'");
         }
-         
+        
         return $rec;
     }
+    
     
     /**
      * Връща последния затворен период
@@ -403,14 +403,16 @@ class acc_Periods extends core_Manager
     public static function getFirstActive()
     {
         $query = self::getQuery();
-        if(null === ($rec = $query->mvc->firstActive)) {
+        if (null === ($rec = $query->mvc->firstActive)) {
             $query->limit(1);
-            $query->orderBy("#end=ASC");
+            $query->orderBy('#end=ASC');
             $rec = $query->fetch("#state = 'active'");
         }
-         
+        
         return $rec;
     }
+    
+    
     /**
      * Проверява датата в указаното поле на формата дали е в отворен период
      * и записва във формата съобщение за грешка или предупреждение
@@ -429,7 +431,7 @@ class acc_Periods extends core_Manager
         }
         
         $rec = self::getFirstActive();
-
+        
         if ($rec && ($rec->start > $dateToCheck)) {
             
             return "Датата е преди първия активен период|* <b>{$rec->title}</b>";
@@ -448,8 +450,7 @@ class acc_Periods extends core_Manager
         
         return false;
     }
-
-
+    
     
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -461,13 +462,13 @@ class acc_Periods extends core_Manager
     {
         $form = $data->form;
         $rec = $form->rec;
-
-        if(!isset($rec->id)) {
+        
+        if (!isset($rec->id)) {
             $query = self::getQuery();
-            $query->orderBy("#end=ASC");
+            $query->orderBy('#end=ASC');
             $query->limit(1);
             $fPeriod = $query->fetch();
-            if($fPeriod) {
+            if ($fPeriod) {
                 $rec->end = dt::addDays(-1, $fPeriod->start);
                 $form->setDefault('end', $rec->end);
                 $form->setReadonly('end');
@@ -476,8 +477,8 @@ class acc_Periods extends core_Manager
             $data->form->setReadOnly('end');
         }
     }
-
-
+    
+    
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -487,12 +488,12 @@ class acc_Periods extends core_Manager
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = $form->rec;
-        if(!$rec->id) {
+        if (!$rec->id) {
             $rec->state = 'active';
         }
     }
-
-
+    
+    
     /**
      * Премахва възможността да се редактират периоди със state='closed'
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
@@ -505,7 +506,7 @@ class acc_Periods extends core_Manager
      * @param int|NULL      $userId
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
-    {  
+    {
         // Последния ден на текущия период
         $curPerEnd = static::getPeriodEnd();
         
@@ -533,7 +534,7 @@ class acc_Periods extends core_Manager
         
         // Могат ръчно да се добавят периоди, само, ако няма нито един приключил
         if ($action == 'add') {
-            if(self::fetch("#state = 'closed'")) {
+            if (self::fetch("#state = 'closed'")) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -694,57 +695,6 @@ class acc_Periods extends core_Manager
     public static function getPeriodEnd($date = null)
     {
         return acc_Periods::fetchByDate($date)->end;
-    }
-    
-    
-    /**
-     * Връща записа на последния затворен период
-     *
-     * @return stdClass - последния затворен период
-     */
-    public static function getLastClosedPeriod()
-    {
-        $query = static::getQuery();
-        $query->where("#state = 'closed'");
-        $query->orderBy('#id', 'DESC');
-        
-        return $query->fetch();
-    }
-    
-    
-    /**
-     * Помощна функция подготвяща опции за начало и край на период със всички периоди в системата
-     * както и вербални опции като : Днес, Вчера, Завчера
-     *
-     * @return stdClass $res
-     *                  $res->fromOptions - опции за начало
-     *                  $res->toOptions - опции за край на период
-     */
-    public static function getPeriodOptions()
-    {
-        // За начална и крайна дата, слагаме по подразбиране, датите на периодите
-        // за които има изчислени оборотни ведомости
-        $balanceQuery = acc_Balances::getQuery();
-        $balanceQuery->where('#periodId IS NOT NULL');
-        $balanceQuery->orderBy('#fromDate', 'DESC');
-        
-        $yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), false);
-        $daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), false);
-        $optionsFrom = $optionsTo = array();
-        $optionsFrom[dt::today()] = 'Днес';
-        $optionsFrom[$yesterday] = 'Вчера';
-        $optionsFrom[$daybefore] = 'Завчера';
-        $optionsTo[dt::today()] = 'Днес';
-        $optionsTo[$yesterday] = 'Вчера';
-        $optionsTo[$daybefore] = 'Завчера';
-        
-        while ($bRec = $balanceQuery->fetch()) {
-            $bRow = acc_Balances::recToVerbal($bRec, 'periodId,id,fromDate,toDate,-single');
-            $optionsFrom[$bRec->fromDate] = $bRow->periodId . " ({$bRow->fromDate})";
-            $optionsTo[$bRec->toDate] = $bRow->periodId . " ({$bRow->toDate})";
-        }
-        
-        return (object) array('fromOptions' => $optionsFrom, 'toOptions' => $optionsTo);
     }
     
     
