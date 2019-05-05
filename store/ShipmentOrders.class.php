@@ -114,8 +114,14 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'deliveryTime,valior, title=@Документ, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId';
-
+    public $listFields = 'deliveryTime,valior, title=Документ, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId, createdOn, createdBy';
+    
+    
+    /**
+     * Името на полето, което ще е на втори ред
+     */
+    public $listFieldsSecondLineField = 'title';
+    
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
@@ -306,7 +312,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             $row->inlineDeliveryAddress = "{$logisticData['toCountry']}, {$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toAddress']}";
             $row->toCompany = $logisticData['toCompany'];
         }
-
+        
         core_Lg::pop();
     }
     
@@ -530,5 +536,16 @@ class store_ShipmentOrders extends store_DocumentMaster
         $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId, $rec->state);
         
         return $warning;
+    }
+    
+    
+    /**
+    * Извиква се преди подготовката на колоните
+    */
+    public static function on_BeforePrepareListFields($mvc, &$res, $data)
+    {
+        if (doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
+            $data->listFields = 'deliveryTime,valior, title=Документ, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId';
+        }
     }
 }

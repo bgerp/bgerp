@@ -47,13 +47,6 @@ abstract class store_DocumentMaster extends core_Master
 
 
     /**
-     * Отделния ред в листовия изглед да е отгоре
-     */
-    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
-
-
-
-    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
@@ -441,10 +434,12 @@ abstract class store_DocumentMaster extends core_Master
                 $row->operationSysId = tr('Връщане на стока');
             }
         } else if (isset($fields['-list'])) {
-            $row->title = "<b>" . $row->title . "</b>";
-            $row->title .= "  «  " . $row->folderId;
-            $row->createdBy = crm_Profiles::createLink($rec->createdBy);
-            $row->title .= "<span class='fright'>" . $row->createdOn . " " . tr('от') . " " .   $row->createdBy . "</span>";
+            if (doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
+                $row->title = "<b>" . $row->title . "</b>";
+                $row->title .= "  «  " . $row->folderId;
+                $row->createdBy = crm_Profiles::createLink($rec->createdBy);
+                $row->title .= "<span class='fright'>" . $row->createdOn . " " . tr('от') . " " .   $row->createdBy . "</span>";
+            }
         }
     }
     

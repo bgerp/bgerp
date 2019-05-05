@@ -330,7 +330,11 @@ class crm_Profiles extends core_Master
             
             if ((core_Users::getCurrent() == $data->User->rec->id) || haveRole('admin,ceo')) {
                 if ($data->User->rec->pinCode) {
-                    $data->User->row->pinCode = tr('Да');
+                    if ($data->rec->userId == core_Users::getCurrent()) {
+                        $data->User->row->pinCode = type_Varchar::escape($data->User->rec->pinCode);
+                    } else {
+                        $data->User->row->pinCode = tr('Да');
+                    }
                 } else {
                     $data->User->row->pinCode = tr('Не');
                 }

@@ -1158,7 +1158,14 @@ function toggleDisplay(id) {
     $("#" + id).fadeToggle("slow");
     elem.toggleClass('show-btn');
 }
+function saveChecked(ul){
+    var text = "";
+    $('#' + ul).find('input[type=checkbox]:checked').each(function () {
+        text += "<span class='group-link'>" + $(this).siblings('label').text() + "</span> ";
+    });
 
+    return text;
+}
 
 // Задейства елементите, които могат да скриват/показват части
 function setTrigger() {
@@ -1174,7 +1181,19 @@ function setTrigger() {
          }
          event.stopPropagation();
     });
-    
+
+    $('.treelist .more-btn').on('click', function(){
+        var btn = $(this);
+        $(btn).parent().toggleClass("closed");
+        $(btn).toggleClass("plus-icon");
+        $(btn).toggleClass("minus-icon");
+        var verbal = $(btn).siblings('.verbal').attr('id');
+        var ul = $(btn).siblings('ul').attr('id');
+        $(btn).siblings('.verbal').html(saveChecked(ul));
+        toggleDisplay( verbal );
+        toggleDisplay(ul);
+    });
+
     $('.treelist .toggleCheck').click(function(event) {
         if($(this).siblings('.trigger').html() ==  '▼') {
             var forAttr = $(this).attr("for");
