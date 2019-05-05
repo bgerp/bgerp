@@ -19,7 +19,7 @@ class prosody_RemoteDriver extends core_Mvc
     /**
      * Поддържа интерфейса за драйвер
      */
-    public $interfaces = 'remote_ServiceDriverIntf,bgerp_SendAlertIntf';
+    public $interfaces = 'remote_ServiceDriverIntf,remote_SendMessageIntf';
     
     
     /**
