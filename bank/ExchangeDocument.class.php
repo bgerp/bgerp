@@ -299,16 +299,20 @@ class bank_ExchangeDocument extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        return core_Cache::getOrCalc('BankExchDocCanAddToFolder', $folderId, function ($folderId) {
-            $Be = cls::get('bank_ExchangeDocument');
-            
-            if ($folderId == bank_ExchangeDocument::getDefaultFolder(null, false) || doc_Folders::fetchCoverClassName($folderId) == 'bank_OwnAccounts') {
+        return core_Cache::getOrCalc('BankExchDocCanAddToFolder', 
+                                     $folderId, 
+                                     function ($folderId) 
+                                     {
+                                        $Be = cls::get('bank_ExchangeDocument');
+                                        if ($folderId == bank_ExchangeDocument::getDefaultFolder(null, false) || 
+                                            doc_Folders::fetchCoverClassName($folderId) == 'bank_OwnAccounts') {
                 
-                return true;
-            }
+                                            return true;
+                                        }
             
-            return false;
-        });
+                                        return false;
+                                      }
+                                      );
     }
     
     

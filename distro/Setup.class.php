@@ -52,7 +52,6 @@ class distro_Setup extends core_ProtoSetup
     public $managers = array(
         'distro_Group',
         'distro_Files',
-        'distro_Automation',
         'distro_Repositories',
         'distro_Actions',
         'distro_RenameDriver',

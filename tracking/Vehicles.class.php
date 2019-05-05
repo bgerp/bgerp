@@ -63,10 +63,10 @@ class tracking_Vehicles extends core_Manager
      */
     public function description()
     {
-        $this->FLD('trackerId', 'varchar(12)', 'caption=Тракер Id');
-        $this->FLD('make', 'varchar(12)', 'caption=марка');
-        $this->FLD('model', 'varchar(12)', 'caption=модел');
-        $this->FLD('number', 'varchar(10)', 'caption=рег. номер');
+        $this->FLD('trackerId', 'varchar(12)', 'caption=Тракер');
+        $this->FLD('make', 'varchar(12)', 'caption=Марка');
+        $this->FLD('model', 'varchar(12)', 'caption=Модел');
+        $this->FLD('number', 'varchar(10)', 'caption=Рег. номер');
         $this->FLD('personId', 'key(mvc=crm_Persons, select=name)', 'caption=Водач');
     }
     
