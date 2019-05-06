@@ -1114,20 +1114,19 @@ class core_App
     {
         // Не може да има връщане назад, в името на файла
         expect(!preg_match('/\.\.(\\\|\/)/', $shortPath));
-        
-        if (@is_readable($shortPath)) {
-            
-            return $shortPath;
-        }
-        
+                
         $repos = self::getRepos();
         
         foreach ($repos as $base) {
+             
             $fullPath = $base . '/' . $shortPath;
             
             if (@is_readable($fullPath)) {
                 
                 return $fullPath;
+            } elseif(stripos($shortPath, $base) === 0 && @is_readable($shortPath)) {
+
+                return $shortPath;
             }
         }
         
