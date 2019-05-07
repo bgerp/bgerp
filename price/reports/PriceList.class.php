@@ -615,4 +615,17 @@ class price_reports_PriceList extends frame2_driver_TableData
     {
         return true;
     }
+    
+    
+    /**
+     * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
+     *
+     * @param stdClass $rec
+     *
+     * @return bool $res
+     */
+    public function canSendNotificationOnRefresh($rec)
+    {
+        return true;
+    }
 }
