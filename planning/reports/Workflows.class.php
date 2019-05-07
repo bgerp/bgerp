@@ -19,7 +19,7 @@
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,acc';
+    public $canSelectDriver = 'ceo,planning';
 
     
     
@@ -86,6 +86,7 @@
             $suggestions = planning_AssetResources::getByFolderId(planning_Centers::fetch($rec->centre)->folderId);
             
             $form->setSuggestions('assetResources', $suggestions);
+            
        }
     }
     
@@ -472,6 +473,27 @@
             $tpl->append($fieldTpl, 'DRIVER_FIELDS');
         }
       
+    }
+    
+    /**
+     * Кой може да избере драйвера
+     */
+    public function canSelectDriver($userId = null)
+    {
+        if (haveRole('ceo',$userId)){//bp();
+            return core_Users::haveRole($this->canSelectDriver, $userId);
+        }
+        
+       if (!haveRole('ceo',$userId) && haveRole('planning',$userId)){
+           
+           if(!haveRole('officer',$userId)){
+                return core_Users::haveRole('no_one', $userId);
+               
+           }else{
+               return core_Users::haveRole($this->canSelectDriver, $userId);
+           }
+       }
+       
     }
     
     
