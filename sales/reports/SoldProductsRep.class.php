@@ -173,6 +173,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $salesQuery->show('folderId, contragentId, folderTitle');
         
+        $salesQuery->limmit(100);
         while ($contragent = $salesQuery->fetch()) {
             if (!is_null($contragent->contragentId)) {
                 $suggestions[$contragent->folderId] = $contragent->folderTitle;
