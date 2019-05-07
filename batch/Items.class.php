@@ -411,7 +411,6 @@ class batch_Items extends core_Master
         // Ако артикула няма партидност, не показваме таба
         $canStore = $data->masterData->rec->canStore;
         $definition = batch_Defs::getBatchDef($data->masterId);
-        
         if ($canStore != 'yes' || !$definition) {
             $data->hide = true;
             
@@ -419,11 +418,10 @@ class batch_Items extends core_Master
         }
         
         // Име на таба
-        $data->definition = $definition;
-        $defIf = batch_Defs::fetch("#productId = '{$data->masterId}'");
-        if (batch_Defs::haveRightFor('delete', $defIf)) {
+        $data->definitionRec = batch_Defs::fetch("#productId = '{$data->masterId}'");
+        if (batch_Defs::haveRightFor('delete', $data->definitionRec->id)) {
             $retUrl = array($data->masterMvc, 'single', $data->masterId);
-            $data->deleteBatchUrl = array('batch_Defs', 'delete', $defIf->id, 'ret_url' => $retUrl);
+            $data->deleteBatchUrl = array('batch_Defs', 'delete', $data->definitionRec->id, 'ret_url' => $retUrl);
         }
         
         $data->TabCaption = 'Партиди';
@@ -504,8 +502,8 @@ class batch_Items extends core_Master
         // Кой е шаблона?
         $title = new core_ET('( [#def#] [#btn#])');
         $tpl = getTplFromFile('batch/tpl/ProductItemDetail.shtml');
-        if (!empty($data->definition)) {
-            $title->replace($data->definition->getName(), 'def');
+        if (!empty($data->definitionRec)) {
+            $title->replace(batch_Templates::getHyperlink($data->definitionRec->templateId), 'def');
             if (isset($data->deleteBatchUrl)) {
                 $ht = ht::createLink('', $data->deleteBatchUrl, 'Сигурни ли сте, че искате да изтриете партидната дефиниция|*?', 'ef_icon=img/12/close.png,title=Изтриване на нова партидна дефиниция,style=vertical-align: middle;');
                 $title->replace($ht, 'btn');
