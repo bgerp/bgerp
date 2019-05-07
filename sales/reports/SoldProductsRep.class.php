@@ -74,7 +74,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
       
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
-        $fieldset->FLD('productId', 'keylist(mvc=store_Products,select=productId)', 'caption=Артикули->Артикули,after=group,single=none');
+        $fieldset->FLD('productId', 'keylist(mvc=cat_Products,select=productId)', 'caption=Артикули->Артикули,after=group,single=none');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=productId,single=none');
         
         //Покаване на резултата
@@ -135,6 +135,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
+        return ;
+        
         $form = $data->form;
         $rec = $form->rec;
         $suggestions = array();
@@ -173,7 +175,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $salesQuery->show('folderId, contragentId, folderTitle');
         
-        $salesQuery->limmit(100);
         while ($contragent = $salesQuery->fetch()) {
             if (!is_null($contragent->contragentId)) {
                 $suggestions[$contragent->folderId] = $contragent->folderTitle;
@@ -1238,7 +1239,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     public static function getFoldersInGroups($rec)
     {
         $foldersInGroups = array();
-        
+        return $foldersInGroups;
         $fQuery = doc_Folders::getQuery();
         
         $classIds = array(core_Classes::getId('crm_Companies'),core_Classes::getId('crm_Persons'));
