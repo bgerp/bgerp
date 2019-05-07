@@ -587,7 +587,6 @@ class batch_BatchesInDocuments extends core_Manager
         $Def = $Type->params['batchDefinition'];
         $tableData = (array) $tableData;
         $isSerial = $Def instanceof batch_definitions_Serial;
-        $DefType = $Def->getBatchClassType();
         
         $error = $errorFields = array();
         $batches = $tableData['batch'];
@@ -753,7 +752,7 @@ class batch_BatchesInDocuments extends core_Manager
      * Помощна ф-я за показване на партидите във фактура
      *
      * @param int  $productId
-     * @param text $batches
+     * @param string $batches
      *
      * @return NULL|string
      */
@@ -766,7 +765,7 @@ class batch_BatchesInDocuments extends core_Manager
         }
         $res = array();
         
-        foreach ($batches as $key => $b) {
+        foreach ($batches as $b) {
             $batch = batch_Defs::getBatchArray($productId, $b);
             if (count($batch)) {
                 foreach ($batch as $k => &$b) {
