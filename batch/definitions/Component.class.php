@@ -32,7 +32,7 @@ class batch_definitions_Component extends batch_definitions_Proto
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('delimiter', 'enum(&#x20;=Интервал,.=Точка,&#44;=Запетая,/=Наклонена,&dash;=Тире)', 'caption=Разделител,mandatory');
+        $fieldset->FLD('delimiter', 'enum(&#x20;=Интервал,.=Точка,&#44;=Запетая,&#47;=Наклонена,&#45;=Тире)', 'caption=Разделител,mandatory');
         $fieldset->FLD('numberLetters', 'int(Min=0)', 'caption=Брой букви в началото');
     }
     
@@ -41,7 +41,7 @@ class batch_definitions_Component extends batch_definitions_Proto
      * Проверява дали стойността е невалидна
      *
      * @param string   $value    - стойноста, която ще проверяваме
-     * @param quantity $quantity - количеството
+     * @param double $quantity - количеството
      * @param string   &$msg     -текста на грешката ако има
      *
      * @return bool - валиден ли е кода на партидата според дефиницията или не

@@ -75,7 +75,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
      * @param mixed     $documentClass - класа за който ще връщаме партидата
      * @param int       $id            - ид на документа за който ще връщаме партидата
      * @param int       $storeId       - склад
-     * @param date|NULL $date          - дата
+     * @param datetime|NULL $date      - дата
      *
      * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
      */
@@ -88,7 +88,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
      * Проверява дали стойността е невалидна
      *
      * @param string   $value    - стойноста, която ще проверяваме
-     * @param quantity $quantity - количеството
+     * @param double $quantity - количеството
      * @param string   &$msg     -текста на грешката ако има
      *
      * @return bool - валиден ли е кода на партидата според дефиницията или не
@@ -170,9 +170,9 @@ abstract class batch_definitions_Proto extends core_BaseClass
     /**
      * Денормализира партидата
      *
-     * @param text $value
+     * @param string $value
      *
-     * @return text $value
+     * @return string $value
      */
     public function denormalize($value)
     {
@@ -241,7 +241,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
      *
      * @param array     $batches - наличните партиди
      *                           ['batch_name'] => ['quantity']
-     * @param date|NULL $date
+     * @param datetime|NULL $date
      *                           return void
      */
     public function orderBatchesInStore(&$batches, $storeId, $date = null)

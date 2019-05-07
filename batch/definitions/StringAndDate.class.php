@@ -32,7 +32,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
     {
         $fieldset->FLD('format', "enum(m.Y=|*11.1999,d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)'", 'caption=Маска');
         $fieldset->FLD('length', 'int', 'caption=Дължина');
-        $fieldset->FLD('delimiter', 'enum(&#x20;=Интервал,.=Точка,&#44;=Запетая,/=Наклонена,&dash;=Тире)', 'caption=Разделител');
+        $fieldset->FLD('delimiter', 'enum(&#x20;=Интервал,.=Точка,&#44;=Запетая,&#47;=Наклонена,&#45;=Тире)', 'caption=Разделител');
         $fieldset->FLD('prefix', 'varchar(3)', 'caption=Префикс');
     }
     
@@ -41,7 +41,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
      * Проверява дали стойността е невалидна
      *
      * @param string   $value    - стойноста, която ще проверяваме
-     * @param quantity $quantity - количеството
+     * @param double $quantity - количеството
      * @param string   &$msg     -текста на грешката ако има
      *
      * @return bool - валиден ли е кода на партидата според дефиницията или не
@@ -61,7 +61,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
             return false;
         }
         
-        list($string, $date) = explode($delimiter, $value);
+        list($string, $date) = explode($delimiter, $value, 2);
         if (isset($this->rec->length)) {
             if (mb_strlen($string) > $this->rec->length) {
                 $msg = "|*{$string} |е над допустимата дължина от|* <b>{$this->rec->length}</b>";
@@ -119,6 +119,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         $dateClassId = batch_definitions_ExpirationDate::getClassId();
         $date = dt::getMysqlFromMask($date, $this->rec->format);
         
+        $res = array();
         $res[] = (object) array('name' => 'Номер', 'classId' => $varcharClassId, 'value' => $string);
         $res[] = (object) array('name' => 'Срок на годност', 'classId' => $dateClassId, 'value' => $date);
         
@@ -145,7 +146,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
      *
      * @param array     $batches - наличните партиди
      *                           ['batch_name'] => ['quantity']
-     * @param date|NULL $date
+     * @param datetime|NULL $date
      *                           return void
      */
     public function orderBatchesInStore(&$batches, $storeId, $date = null)

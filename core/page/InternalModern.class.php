@@ -53,6 +53,12 @@ class core_page_InternalModern extends core_page_Active
         $this->push('Cache-Control: private, max-age=0', 'HTTP_HEADER');
         $this->push('Expires: ' . gmdate('D, d M Y H:i:s', time() + 3600) . ' GMT', 'HTTP_HEADER');
         
+        // Добавяме допълнителните хедъри
+        $aHeadersArr = core_App::getAdditionalHeadersArr();
+        foreach ($aHeadersArr as $hStr) {
+            $this->push($hStr, 'HTTP_HEADER');
+        }
+        
         // Мета данни
         $this->prepend("\n<meta name=\"robots\" content=\"noindex,nofollow\">", 'HEAD');
         $this->prepend("\n<meta name=\"format-detection\" content=\"telephone=no\">", 'HEAD');
@@ -74,7 +80,6 @@ class core_page_InternalModern extends core_page_Active
         jquery_Jquery::run($this, 'slidebars();');
         jquery_Jquery::run($this, 'scrollToHash();');
         jquery_Jquery::run($this, 'unregisterServiceWorker();');
-
         
         if (Mode::is('screenMode', 'narrow')) {
             jquery_Jquery::run($this, 'checkForElementWidthChange();');

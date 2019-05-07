@@ -487,7 +487,13 @@ class log_Browsers extends core_Master
         
         // Добавяме хеш към brid и записваме в кукитата
         $bridHash = str::addHash($brid, self::HASH_LENGTH, $bridSalt);
-        setcookie(self::BRID_NAME, $bridHash, time() + $conf->CORE_COOKIE_LIFETIME, '/');
+        $cArr = array('expires' => time() + $conf->CORE_COOKIE_LIFETIME, 'path' => '/', 'secure' => (EF_HTTPS == 'MANDATORY') ? true : false, 'httponly' => true, 'samesite' => 'Strict');
+        
+        if (PHP_VERSION_ID >= 70300) {
+            setcookie(self::BRID_NAME, $bridHash, $cArr);
+        } else {
+            setcookie(self::BRID_NAME, $bridHash, $cArr['expires'], '/; samesite=' . $cArr['samesite'], null, $cArr['secure'], $cArr['httponly']);
+        }
     }
     
     
