@@ -496,12 +496,12 @@ class core_App
             //header('Pragma: no-cache'); // HTTP 1.0.
             header('Expires: -1'); // Proxies.
             header('Connection: close');
-        }
-        
-        // Добавяме допълнителните хедъри
-        $aHeadersArr = self::getAdditionalHeadersArr();
-        foreach ($aHeadersArr as $hStr) {
-            header($hStr);
+            
+            // Добавяме допълнителните хедъри
+            $aHeadersArr = self::getAdditionalHeadersArr();
+            foreach ($aHeadersArr as $hStr) {
+                header($hStr);
+            }
         }
         
         // Логваме съдържанието
