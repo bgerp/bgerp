@@ -28,7 +28,7 @@ class type_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Пакет за работа с различни типове данни';
+    public $info = 'Пакет с дефиниции на базови типове данни';
     
     
     /**

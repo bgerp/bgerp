@@ -60,15 +60,21 @@ class cms_page_External extends core_page_Active
             $this->push('Expires: -1', 'HTTP_HEADER');
         }
         
+        // Добавяме допълнителните хедъри
+        $aHeadersArr = core_App::getAdditionalHeadersArr();
+        foreach ($aHeadersArr as $hStr) {
+            $this->push($hStr, 'HTTP_HEADER');
+        }
+        
         // Обличаме кожата
         $skin = cms_Domains::getCmsSkin();
-
+        
         $pageTpl = getFileContent(($skin && $skin->layout) ? $skin->layout : 'cms/tpl/Page.shtml');
         
         if (isDebug() && !log_Debug::haveRightFor('list') && Request::get('Debug') && haveRole('debug')) {
             $pageTpl .= '[#Debug::getLog#]';
         }
- 
+        
         $this->replace(new ET($pageTpl), 'PAGE_CONTENT');
         if ($skin) {
             $skin->prepareWrapper($this);

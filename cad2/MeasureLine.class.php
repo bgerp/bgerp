@@ -104,7 +104,7 @@ class cad2_MeasureLine extends cad2_Shape
         
         // Текст
         $ab = new cad2_Vector($B1->x - $A1->x, $B1->y - $A1->y);
-        $text = $measureText ? $measureText . ' mm' : round($ab->r). ' mm';
+        $text = $measureText ? $measureText . ' mm' : round($ab->r, 1). ' mm';
         
         $width = 0.3 * strlen($text) * ($svg->getAttr('font-size') / 10);
         

@@ -19,7 +19,7 @@
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,acc';
+    public $canSelectDriver = 'ceo,planning';
 
     
     
@@ -86,6 +86,7 @@
             $suggestions = planning_AssetResources::getByFolderId(planning_Centers::fetch($rec->centre)->folderId);
             
             $form->setSuggestions('assetResources', $suggestions);
+            
        }
     }
     
@@ -294,8 +295,8 @@
             $fld->FLD('quantity', 'double', 'caption=Произведено->Кол');
             $fld->FLD('labelMeasure', 'varchar', 'caption=Етикет->мярка,tdClass=centered');
             $fld->FLD('labelQuantity', 'varchar', 'caption=Етикет->кол,tdClass=centered');
-            $fld->FLD('scrap', 'varchar', 'caption=Брак');
-            $fld->FLD('weight', 'varchar', 'caption=Тегло');
+            $fld->FLD('scrap', 'double', 'caption=Брак');
+            $fld->FLD('weight', 'double', 'caption=Тегло');
             
             if ($rec->resultsOn != 'arts'){
                 
@@ -303,7 +304,7 @@
                     $fld->FLD('employees', 'varchar', 'caption=Служител');
                 }
                 if ($rec->resultsOn == 'usersMachines' || $rec->resultsOn == 'machines'){
-                    $fld->FLD('assetResources', 'varchar', 'caption=Оборудване,tdClass=centered');
+                    $fld->FLD('assetResources', 'varchar', 'caption=Оборудване');
                 }
             }
         } else {
@@ -472,6 +473,27 @@
             $tpl->append($fieldTpl, 'DRIVER_FIELDS');
         }
       
+    }
+    
+    /**
+     * Кой може да избере драйвера
+     */
+    public function canSelectDriver($userId = null)
+    {
+        if (haveRole('ceo',$userId)){//bp();
+            return core_Users::haveRole($this->canSelectDriver, $userId);
+        }
+        
+       if (!haveRole('ceo',$userId) && haveRole('planning',$userId)){
+           
+           if(!haveRole('officer',$userId)){
+                return core_Users::haveRole('no_one', $userId);
+               
+           }else{
+               return core_Users::haveRole($this->canSelectDriver, $userId);
+           }
+       }
+       
     }
     
     
