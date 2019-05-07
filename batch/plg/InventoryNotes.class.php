@@ -146,6 +146,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             if (!empty($rec->batchNew)) {
                 
                 // Трябва да е валидна
+                $msg = null;
                 if (!$BatchClass->isValid($rec->batchNew, $rec->quantity, $msg)) {
                     $form->setError('batchNew', $msg);
                 }
@@ -224,7 +225,7 @@ class batch_plg_InventoryNotes extends core_Plugin
      * @param int   $productId
      * @param float $expectedQuantity
      * @param int   $storeId
-     * @param date  $valior
+     * @param datetime  $valior
      * @param bool  $alwaysShowBatches
      *
      * @return array|FALSE

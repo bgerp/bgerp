@@ -43,7 +43,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
      * @param mixed     $documentClass - класа за който ще връщаме партидата
      * @param int       $id            - ид на документа за който ще връщаме партидата
      * @param int       $storeId       - склад
-     * @param date|NULL $date          - дата
+     * @param datetime|NULL $date          - дата
      *
      * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
      */
@@ -178,7 +178,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
      *
      * @param array     $batches - наличните партиди
      *                           ['batch_name'] => ['quantity']
-     * @param date|NULL $date
+     * @param datetime|NULL $date
      *                           return void
      */
     public function orderBatchesInStore(&$batches, $storeId, $date = null)

@@ -310,6 +310,7 @@ class batch_Items extends core_Master
                 if (strpos($filter->filterState, '::')) {
                     list($definition, $filterValue) = explode('::', $filter->filterState);
                     $Def = cls::get($definition);
+                    $featureCaption = null;
                     $Def->filterItemsQuery($data->query, $filterValue, $featureCaption);
                     
                     if (!empty($featureCaption)) {
@@ -463,7 +464,7 @@ class batch_Items extends core_Master
         $data->pager = $pager;
         
         // Обръщаме записите във вербален вид
-        foreach ($data->recs as $id => $rec) {
+        foreach ($data->recs as $rec) {
             
             // Пропускане на записите, които не трябва да са на тази страница
             if (!$pager->isOnPage()) {
@@ -556,7 +557,7 @@ class batch_Items extends core_Master
      *
      * @param int       $productId - ид на артикул
      * @param int       $storeId   - ид на склад
-     * @param date|NULL $date      - към дата, ако е празно текущата
+     * @param datetime|NULL $date      - към дата, ако е празно текущата
      * @param int|NULL  $limit     - лимит на резултатите
      * @param array     $except    - кой документ да се игнорира
      *
