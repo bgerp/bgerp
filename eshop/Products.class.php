@@ -125,6 +125,12 @@ class eshop_Products extends core_Master
     
     
     /**
+     * Кой може да променя състоянието
+     */
+    public $canChangestate = 'eshop,ceo';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
