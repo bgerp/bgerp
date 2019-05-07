@@ -26,9 +26,9 @@ class core_App
         if (!strlen($boot) || strlen($boot) && strpos($vUrl, $boot) === 0) {
             $filename = strtolower(trim(substr($vUrl, strlen($boot)), '/\\'));
         }
-
+        
         if (preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{2,4}$/i', $filename)) {
- 
+            
             // Ако имаме заявка за статичен файл от коренната директория на уеб-сървъра
             core_Webroot::serve($filename);
         } elseif (isset($_GET[EF_SBF]) && !empty($_GET[EF_SBF])) {
@@ -246,7 +246,7 @@ class core_App
         if (empty($_GET['App']) && defined('EF_DEFAULT_APP_NAME')) {
             $_GET['App'] = EF_DEFAULT_APP_NAME;
         }
-
+        
         return $q;
     }
     
@@ -498,6 +498,12 @@ class core_App
             header('Connection: close');
         }
         
+        // Добавяме допълнителните хедъри
+        $aHeadersArr = self::getAdditionalHeadersArr();
+        foreach ($aHeadersArr as $hStr) {
+            header($hStr);
+        }
+        
         // Логваме съдържанието
         if ($content) {
             Debug::log(mb_substr($content, 0, 255));
@@ -514,6 +520,29 @@ class core_App
             ob_end_flush();
             flush();
         }
+    }
+    
+    
+    /**
+     * Връща допълнителните хедъри за страницата
+     * 
+     * @return array
+     */
+    public static function getAdditionalHeadersArr()
+    {
+        $resArr = array();
+        
+        if (EF_HTTPS == 'MANDATORY') {
+            $resArr[] = 'Strict-Transport-Security: max-age=86400';
+        }
+        
+        $resArr[] = "X-Frame-Options: sameorigin";
+        $resArr[] = "X-XSS-Protection: 1; mode=block";
+        $resArr[] = "X-Content-Type-Options: nosniff";
+        $resArr[] = "Expect-CT: max-age=86400, enforce";
+        $resArr[] = "Feature-Policy: camera 'self'; microphone 'self'";
+        
+        return $resArr;
     }
     
     
@@ -627,6 +656,12 @@ class core_App
         
         // Указваме, че ще се връща JSON
         header('Content-Type: application/json');
+        
+        // Добавяме допълнителните хедъри
+        $aHeadersArr = self::getAdditionalHeadersArr();
+        foreach ($aHeadersArr as $hStr) {
+            header($hStr);
+        }
         
         // Връщаме резултата в JSON формат
         echo json_encode($resArr);
@@ -985,9 +1020,9 @@ class core_App
         if ($urlHash) {
             $urlQuery .= '#' . $urlHash;
         }
-            
+        
         $pre = rtrim($pre, '/');
-     
+        
         switch ($type) {
             case 'local':
                 $url = ltrim($pre . $urlQuery, '/');
@@ -1072,11 +1107,11 @@ class core_App
         }
         
         $boot = rtrim($boot, '/');
-                
+        
         if (EF_APP_NAME_FIXED !== true && $addAppName) {
             $boot .= '/' . (Request::get('App') ? Request::get('App') : EF_APP_NAME);
         }
- 
+        
         return $boot;
     }
     
@@ -1114,18 +1149,18 @@ class core_App
     {
         // Не може да има връщане назад, в името на файла
         expect(!preg_match('/\.\.(\\\|\/)/', $shortPath));
-                
+        
         $repos = self::getRepos();
         
         foreach ($repos as $base) {
-             
+            
             $fullPath = $base . '/' . $shortPath;
             
             if (@is_readable($fullPath)) {
                 
                 return $fullPath;
             } elseif(stripos($shortPath, $base) === 0 && @is_readable($shortPath)) {
-
+                
                 return $shortPath;
             }
         }
