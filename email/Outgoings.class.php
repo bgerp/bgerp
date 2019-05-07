@@ -990,9 +990,6 @@ class email_Outgoings extends core_Master
             $query->where(array("#email = '[#1#]'", $email));
         }
         
-        // Които имат време за изчакване
-        $query->where('#waiting IS NOT NULL');
-        
         // В съответните състояние
         $query->where("#state = 'waiting'");
         $query->orWhere("#state = 'wakeup'");
