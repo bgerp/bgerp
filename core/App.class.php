@@ -532,15 +532,17 @@ class core_App
     {
         $resArr = array();
         
-        if (EF_HTTPS == 'MANDATORY') {
-            $resArr[] = 'Strict-Transport-Security: max-age=86400';
+        if ((BGERP_GIT_BRANCH == 'dev') || (BGERP_GIT_BRANCH == 'test')) {
+            if (EF_HTTPS == 'MANDATORY') {
+                $resArr[] = 'Strict-Transport-Security: max-age=86400';
+            }
+            
+            $resArr[] = "X-Frame-Options: sameorigin";
+            $resArr[] = "X-XSS-Protection: 1; mode=block";
+            $resArr[] = "X-Content-Type-Options: nosniff";
+            $resArr[] = "Expect-CT: max-age=86400, enforce";
+            $resArr[] = "Feature-Policy: camera 'self'; microphone 'self'";
         }
-        
-        $resArr[] = "X-Frame-Options: sameorigin";
-        $resArr[] = "X-XSS-Protection: 1; mode=block";
-        $resArr[] = "X-Content-Type-Options: nosniff";
-        $resArr[] = "Expect-CT: max-age=86400, enforce";
-        $resArr[] = "Feature-Policy: camera 'self'; microphone 'self'";
         
         return $resArr;
     }
