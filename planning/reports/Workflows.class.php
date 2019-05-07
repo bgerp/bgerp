@@ -294,8 +294,8 @@
             $fld->FLD('quantity', 'double', 'caption=Произведено->Кол');
             $fld->FLD('labelMeasure', 'varchar', 'caption=Етикет->мярка,tdClass=centered');
             $fld->FLD('labelQuantity', 'varchar', 'caption=Етикет->кол,tdClass=centered');
-            $fld->FLD('scrap', 'varchar', 'caption=Брак');
-            $fld->FLD('weight', 'varchar', 'caption=Тегло');
+            $fld->FLD('scrap', 'double', 'caption=Брак');
+            $fld->FLD('weight', 'double', 'caption=Тегло');
             
             if ($rec->resultsOn != 'arts'){
                 
@@ -303,7 +303,7 @@
                     $fld->FLD('employees', 'varchar', 'caption=Служител');
                 }
                 if ($rec->resultsOn == 'usersMachines' || $rec->resultsOn == 'machines'){
-                    $fld->FLD('assetResources', 'varchar', 'caption=Оборудване,tdClass=centered');
+                    $fld->FLD('assetResources', 'varchar', 'caption=Оборудване');
                 }
             }
         } else {
