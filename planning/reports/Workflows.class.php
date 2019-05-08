@@ -480,17 +480,17 @@
      */
     public function canSelectDriver($userId = null)
     {
-        if (haveRole('ceo',$userId)){//bp();
-            return core_Users::haveRole($this->canSelectDriver, $userId);
+        if (haveRole('ceo',$userId)){
+            return true;
         }
         
        if (!haveRole('ceo',$userId) && haveRole('planning',$userId)){
            
-           if(!haveRole('officer',$userId)){
-                return core_Users::haveRole('no_one', $userId);
+           if(haveRole('officer',$userId)){
+                return true;
                
            }else{
-               return core_Users::haveRole($this->canSelectDriver, $userId);
+               return false;
            }
        }
        
