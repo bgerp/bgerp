@@ -96,7 +96,7 @@ class bgerp_Recently extends core_Manager
      * @param int         $objectId
      * @param int|NULL    $userId
      * @param string      $hidden   - yes/no
-     * @param iteger|NULL $threadId
+     * @param int|NULL $threadId
      */
     public static function add($type, $objectId, $userId = null, $hidden = 'no', $threadId = null)
     {
@@ -328,7 +328,6 @@ class bgerp_Recently extends core_Manager
         $query->orderBy('#last', 'DESC');
         $lastRec = $query->fetch();
         $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Recently') . '_' . Request::get('recentlySearch') . '_' . core_Lg::getCurrent());
-        $now = dt::now();
         list($tpl, $createdOn) = core_Cache::get('RecentDoc', $key);
         
         if (!$tpl || $createdOn != $lastRec->last) {

@@ -213,12 +213,12 @@ class core_Packs extends core_Manager
         if ($delete) {
             $this->delete($rec->id);
             
-            $res .= "<div>Успешно премахване на пакета '{$pack}'.</div>";
+            $res .= "<li class='debug-error'>Успешно премахване на пакета '{$pack}'.</li>";
         } else {
             $rec->state = 'closed';
             $this->save($rec, 'state');
             
-            $res .= "<div>Успешно деактивиране на пакета '{$pack}'.</div>";
+            $res .= "<li class='notice'>Успешно деактивиране на пакета '{$pack}'.</li>";
         }
         
         return $res;
@@ -373,7 +373,7 @@ class core_Packs extends core_Manager
         // Изтриваме премахнатите пакети
         $removedPacksArr = array_diff($installedPacksName, $packsName);
         foreach ((array) $removedPacksArr as $packName) {
-            $this->deinstall($packName);
+            $res .= $this->deinstall($packName);
         }
         
         foreach ($packsName as $pack => $desc) {
@@ -400,7 +400,7 @@ class core_Packs extends core_Manager
             
             if ($setup->deprecated) {
                 if ($rec->state != 'deprecated' && $rec->id) {
-                    $this->deinstall($pack);
+                    $res .= $this->deinstall($pack);
                 }
                 
                 $rec->state = 'deprecated';
@@ -412,8 +412,12 @@ class core_Packs extends core_Manager
                 }
             }
             
+            $res .= "<li class='debug-info'>Заредена/обновена информацията за {$rec->name}</li>";
+
             self::save($rec);
         }
+
+        return $res;
     }
     
     
@@ -444,61 +448,6 @@ class core_Packs extends core_Manager
                    }
                }
            }
-        }
-        
-        return $opt;
-    }
-    
-    
-    /**
-     * Връща всички не-инсталирани пакети
-     *
-     * @return array
-     */
-    public function getNonInstalledPacks()
-    {
-        $opt = array();
-        if (!$this->fetch("#name = 'core'")) {
-            $path = EF_APP_PATH . '/core/Setup.class.php';
-            
-            if (file_exists($path)) {
-                $opt['core'] = 'Ядро на EF "core"';
-            }
-        }
-        
-        $appDirs = $this->getSubDirs(EF_APP_PATH);
-        
-        if (defined('EF_PRIVATE_PATH')) {
-            $privateDirs = $this->getSubDirs(EF_PRIVATE_PATH);
-        }
-        
-        if (count($appDirs)) {
-            foreach ($appDirs as $dir => $dummy) {
-                $path = EF_APP_PATH . '/' . $dir . '/' . 'Setup.class.php';
-                
-                if (file_exists($path)) {
-                    
-                    // Ако този пакет не е инсталиран -
-                    // добавяме го като опция за инсталиране
-                    if (!$this->fetch("#name = '{$dir}'")) {
-                        $opt[$dir] = $dir .' - компонент на приложението';
-                    }
-                }
-            }
-        }
-        
-        if (count($privateDirs)) {
-            foreach ($privateDirs as $dir => $dummy) {
-                $path = EF_PRIVATE_PATH . '/' . $dir . '/' . 'Setup.class.php';
-                
-                if (file_exists($path)) {
-                    // Ако този пакет не е инсталиран -
-                    // добавяме го като опция за инсталиране
-                    if (!$this->fetch("#name = '{$dir}'")) {
-                        $opt[$dir] = $dir .' - собствен компонент';
-                    }
-                }
-            }
         }
         
         return $opt;
@@ -561,7 +510,8 @@ class core_Packs extends core_Manager
      */
     public function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
-        $data->toolbar->addBtn('Обновяване на системата', array('core_Packs', 'systemUpdate'), 'ef_icon = img/16/download.png, title=Сваляне на най-новия код и инициализиране на системата, class=system-update-btn');
+        $data->toolbar->addBtn('Обновяване на системата', array('core_Packs', 'systemUpdate'), 
+            'ef_icon = img/16/download.png, title=Сваляне на най-новия код и инициализиране на системата, class=system-update-btn');
     }
     
     
@@ -1302,4 +1252,5 @@ class core_Packs extends core_Manager
         
         return false;
     }
+
 }

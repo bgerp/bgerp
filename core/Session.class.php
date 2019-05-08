@@ -264,9 +264,9 @@ class core_Session
             }
             
             if (PHP_VERSION_ID >= 70300) {
-                ini_set('session.cookie_samesite', 'Strict');
+                ini_set('session.cookie_samesite', 'Lax');
             } else {
-                ini_set('session.cookie_path', '/; samesite=strict');
+                ini_set('session.cookie_path', '/; samesite=lax');
             }
             
             @session_start();

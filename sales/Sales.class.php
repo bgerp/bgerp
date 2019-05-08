@@ -204,7 +204,7 @@ class sales_Sales extends deals_DealMaster
      *
      * @see bgerp_plg_CsvExport
      */
-    public $exportableCsvFields = 'valior,id,folderId,currencyId,amountDeal,amountDelivered,amountPaid,amountInvoiced';
+    public $exportableCsvFields = 'valior,id,folderId,currencyId,amountDeal,amountDelivered,amountPaid,amountInvoiced,invoices=Фактури';
     
     
     /**
@@ -1608,6 +1608,11 @@ class sales_Sales extends deals_DealMaster
                     } else {
                         $rec->{"amount{$amnt}"} = 0;
                     }
+                }
+                
+                $invoices = deals_Helper::getInvoicesInThread($rec->threadId);
+                if(count($invoices)){
+                    $rec->invoices = str_replace('#Inv', '', implode(', ', $invoices));
                 }
             }
         }

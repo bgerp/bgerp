@@ -1020,10 +1020,8 @@ function colorByLen(input, maxLen, blur) {
     var rest = maxLen - input.value.length;
     var color = 'white';
     if (rest < 0) color = 'red';
-    if (rest == 0 && input.value.length > 3 && !blur) color = '#ff9999';
-    if (rest == 1 && input.value.length > 3 && !blur) color = '#ffbbbb';
-    if (rest == 2 && input.value.length > 3 && !blur) color = '#ffdddd';
-    if (rest >= 3) color = '#ffffff';
+    if (rest == 0 && input.value.length > 0 && !blur) color = '#ddffdd';
+    if (rest >= 1) color = '#ffffff';
     input.style.backgroundColor = color;
 }
 

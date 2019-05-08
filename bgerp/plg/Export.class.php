@@ -156,9 +156,7 @@ class bgerp_plg_Export extends core_Plugin
             
             // Ако формата е събмитната
             if ($form->isSubmitted()) {
-                $Driver = cls::get($form->rec->driver, array('mvc1' => $mvc));
-                $Driver->mvc = $mvc;
-                
+                $Driver = cls::get($form->rec->driver, array('mvc' => clone $mvc));
                 $content = $Driver->export($form->rec);
                 
                 if (!$content) {

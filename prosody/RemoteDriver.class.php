@@ -226,7 +226,7 @@ class prosody_RemoteDriver extends core_Mvc
      */
     public function sendMessage($userId, $msg)
     {
-        $query = remote_Autorisations::filterQueryByDriverClass('prosody_RemoteDriver');
+        $query = remote_Authorizations::filterQueryByDriverClass('prosody_RemoteDriver');
         $rec = $query->fetch("#userId = {$userId}");
         
         if ($rec) {

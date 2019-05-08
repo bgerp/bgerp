@@ -98,7 +98,7 @@ class bgerp_iface_DealProduct
     /**
      * Срок на продукта
      *
-     * @var time
+     * @var int
      *
      * @see $classId
      */
