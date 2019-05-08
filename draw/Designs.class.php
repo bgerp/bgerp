@@ -161,6 +161,8 @@ class draw_Designs extends core_Master
             'CloseLayer(' => 'CloseLayer(',
             'ClosePath(' => 'ClosePath(',
             'CurveTo(' => 'CurveTo(',
+            'DrawEllipse(' => 'DrawEllipse(',
+            'DrawPartOfEllipse(' => 'DrawPartOfEllipse(',
             'GetPen(' => 'GetPen(',
             'Else(' => 'Else(',
             'EndIf(' => 'EndIf(',
@@ -870,8 +872,100 @@ class draw_Designs extends core_Master
         }
         $contex->{$varY} = $y;
     }
-    
-    
+
+
+    /**
+     * Изчертаване на елипса
+     */
+    public static function cmd_DrawEllipse($params, &$svg, &$contex, &$error)
+    {
+        $x = self::calcExpr($params[0], $contex);
+
+        if ($x === self::CALC_ERROR) {
+            $error = 'Грешка при изчисляване на: "' . $params[0] . '"';
+
+            return false;
+        }
+
+
+        $y = self::calcExpr($params[1], $contex);
+        if ($y === self::CALC_ERROR) {
+            $error = 'Грешка при изчисляване на: "' . $params[1] . '"';
+
+            return false;
+        }
+
+        $rX = self::calcExpr($params[2], $contex);
+        if ($rX === self::CALC_ERROR) {
+            $error = 'Грешка при изчисляване на: "' . $params[2] . '"';
+
+            return false;
+        }
+
+        $rY = self::calcExpr($params[3], $contex);
+        if ($rY === self::CALC_ERROR) {
+            $error = 'Грешка при изчисляване на: "' . $params[3] . '"';
+
+            return false;
+        }
+
+        cad2_Ellipse::draw($svg, $x, $y, $rX, $rY);
+    }
+
+
+    /**
+     * Изчертаване на част от елипса
+     */
+    public static function cmd_DrawPartOfEllipse($params, &$svg, &$contex, &$error)
+    {
+        $x = self::calcExpr($params[0], $contex);
+
+        if ($x === self::CALC_ERROR) {
+            $error = 'Грешка при изчисляване на: "' . $params[0] . '"';
+
+            return false;
+        }
+
+
+        $y = self::calcExpr($params[1], $contex);
+        if ($y === self::CALC_ERROR) {
+            $error = 'Грешка при изчисляване на: "' . $params[1] . '"';
+
+            return false;
+        }
+
+        $rX = self::calcExpr($params[2], $contex);
+        if ($rX === self::CALC_ERROR) {
+            $error = 'Грешка при изчисляване на: "' . $params[2] . '"';
+
+            return false;
+        }
+
+        $rY = self::calcExpr($params[3], $contex);
+        if ($rY === self::CALC_ERROR) {
+            $error = 'Грешка при изчисляване на: "' . $params[3] . '"';
+
+            return false;
+        }
+
+        $angle1 = self::calcExpr($params[4], $contex);
+        if ($angle1 === self::CALC_ERROR) {
+            $error = 'Грешка при изчисляване на: "' . $params[4] . '"';
+
+            return false;
+        }
+
+        $angle2 = self::calcExpr($params[5], $contex);
+        if ($angle2 === self::CALC_ERROR) {
+            $error = 'Грешка при изчисляване на: "' . $params[5] . '"';
+
+            return false;
+        }
+
+        cad2_Ellipse::drawArcOfEllipse($svg, $x, $y, $rX, $rY, deg2rad($angle1), deg2rad($angle2));
+    }
+
+
     /**
      * Изчертаване на дъга
      */
