@@ -850,9 +850,10 @@ class eshop_Groups extends core_Master
         while ($rec = $query->fetch()) {
             $resObj = new stdClass();
             $resObj->loc = $this->getUrl($rec, true);
+            
             $modifiedOn = $rec->modifiedOn ? $rec->modifiedOn : $rec->createdOn;
             
-            $resObj->lastmod = date('c', dt::mysql2timestamp($rec->modifiedOn));
+            $resObj->lastmod = date('c', dt::mysql2timestamp($modifiedOn));
             $resObj->priority = 1;
             $res[] = $resObj;
             

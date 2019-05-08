@@ -111,18 +111,12 @@ class bgerp_Bookmark extends core_Manager
         
         $userId = core_Users::getCurrent();
         
-        $tpl = core_Cache::get(self::CACHE_KEY, $userId);
-        
-        $cookie = '';
-        if (isset($_COOKIE['bookmarkInfo'])) {
-            $cookie = $_COOKIE['bookmarkInfo'];
-        }
-        
-        if (!$tpl || ($tpl->cookie != $cookie . $screen) || true) {
+        $tpl = core_Cache::get($userId . '|' . self::CACHE_KEY, $screen);
+                
+        if (!$tpl) {
             $tpl = new ET("<div class='sideBarTitle'>[#BOOKMARK_TITLE#][#BOOKMARK_BTN#]</div><div class='bookmark-links'>[#BOOKMARK_LINKS#]</div>");
-            
+
             $cur = new stdClass();
-            
             $links = bgerp_Bookmark::getLinks($cookie);
             $title = bgerp_Bookmark::getTitle();
             $btn = bgerp_Bookmark::getBtn();
@@ -132,7 +126,7 @@ class bgerp_Bookmark extends core_Manager
             $tpl->append($btn, 'BOOKMARK_BTN');
             $tpl->cookie = $cookie . $screen;
             
-            core_Cache::set(self::CACHE_KEY, $userId, $tpl, 2000);
+            core_Cache::set($userId . '|' . self::CACHE_KEY, $screen, $tpl, 2000);
         }
         
         return $tpl;
@@ -144,7 +138,9 @@ class bgerp_Bookmark extends core_Manager
      */
     public function removeCache($rec)
     {
-        return array(self::CACHE_KEY, $rec->user);
+        $screen = Mode::is('screenMode', 'narrow') ? 'm' : 'd';
+
+        return array($rec->user . '|' . self::CACHE_KEY, $screen);
     }
     
     

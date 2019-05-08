@@ -73,12 +73,6 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Старо име на класа
-     */
-    public $oldClassName = 'acc_Invoices';
-    
-    
-    /**
      * Кой може да сторнира
      */
     public $canRevert = 'salesMaster, ceo';

@@ -28,7 +28,7 @@ class bgerp_ExportIntf
      *
      * @param mixed $data - данни
      *
-     * @return text $content - контента на експортираните данни
+     * @return string $content - контента на експортираните данни
      */
     public function export($data)
     {
