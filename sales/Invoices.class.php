@@ -179,7 +179,7 @@ class sales_Invoices extends deals_InvoiceMaster
      *
      * @see bgerp_plg_CsvExport
      */
-    public $exportableCsvFields = 'date,contragentName,contragentVatNo,uicNo,dealValue,accountId,number,state';
+    public $exportableCsvFields = 'date,number,contragentName,contragentVatNo,uicNo,dealValue=Сума фактура,valueNoVat=Данъчна основа,vatAmount=Сума ДДС,currencyId,accountId,state';
     
     
     /**
@@ -647,9 +647,16 @@ class sales_Invoices extends deals_InvoiceMaster
             return ;
         }
         
+        $fields = $mvc->selectFields();
+        $fields['-list'] = true;
         foreach ($recs as &$rec) {
             $rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-            $rec->dealValue = round($rec->dealValue - $rec->discountAmount, 2);
+            
+            $row = new stdClass();
+            parent::getVerbalInvoice($mvc, $rec, $row, $fields);
+            $rec->dealValue = strip_tags(str_replace('&nbsp;', '', $row->dealValue));
+            $rec->valueNoVat = strip_tags(str_replace('&nbsp;', '', $row->valueNoVat));
+            $rec->vatAmount = strip_tags(str_replace('&nbsp;', '', $row->vatAmount));
         }
     }
     
