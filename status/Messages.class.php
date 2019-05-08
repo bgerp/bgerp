@@ -88,7 +88,7 @@ class status_Messages extends core_Manager
      * Добавя статус съобщение към избрания потребител
      *
      * @param string $text     - Съобщение, което ще добавим
-     * @param enum   $type     - Типа на съобщението - success, notice, warning, error
+     * @param string   $type     - Типа на съобщението - success, notice, warning, error
      * @param int    $userId   - Потребителя, към когото ще се добавя. Ако не е подаден потребител, тогава взема текущия потребител.
      * @param int    $lifeTime - След колко време да е неактивно
      * @param string $hitId    - Уникално ID на хита

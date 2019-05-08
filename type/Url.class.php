@@ -103,7 +103,7 @@ class type_Url extends type_Varchar
             return $res;
         }
         
-        if (!URL::isValidUrl($value)) {
+        if (!core_Url::isValidUrl($value)) {
             $res['error'] = 'Невалидно URL.';
             
             return $res;
