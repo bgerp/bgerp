@@ -255,7 +255,7 @@ class plg_State2 extends core_Plugin
             if(is_object($rec) && $rec->id) {
                 $requiredRoles = $mvc->getRequiredRoles('edit', $rec, $userId);
             } else {
-                $requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
+                $requiredRoles = $mvc->canEdit;
             }
         }
     }
