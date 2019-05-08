@@ -252,11 +252,7 @@ class plg_State2 extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'changestate' && !isset($mvc->canChangestate) && $requiredRoles != 'no_one') {
-            if(is_object($rec) && $rec->id) {
-                $requiredRoles = $mvc->getRequiredRoles('edit', $rec, $userId);
-            } else {
-                $requiredRoles = $mvc->canEdit;
-            }
+            $requiredRoles = $mvc->getRequiredRoles('edit', $rec, $userId);
         }
     }
 }
