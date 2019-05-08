@@ -366,7 +366,7 @@ abstract class deals_ServiceMaster extends core_Master
      *
      * @param int $id - ид на протокола
      *
-     * @return param $res - масив с използваните документи
+     * @return array $res - масив с използваните документи
      *               ['class'] - инстанция на документа
      *               ['id'] - ид на документа
      */

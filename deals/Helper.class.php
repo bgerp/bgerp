@@ -213,10 +213,10 @@ abstract class deals_Helper
      * Подготвя данните за съмаризиране ценовата информация на един документ
      *
      * @param array     $values       - масив с стойности на сумата на всеки ред, ддс-то и отстъпката
-     * @param date      $date         - дата
-     * @param doublr    $currencyRate - курс
+     * @param datetime      $date         - дата
+     * @param double    $currencyRate - курс
      * @param string(3) $currencyId   - код на валута
-     * @param enum      $chargeVat    - ддс режима
+     * @param string      $chargeVat    - ддс режима
      * @param bool      $invoice      - дали документа е фактура
      *
      * @return stdClass $arr  - Масив с нужната информация за показване:
@@ -336,7 +336,7 @@ abstract class deals_Helper
      * @param float                        $price     - цена във валута
      * @param float                        $vat       - ддс
      * @param float                        $rate      - валутен курс
-     * @param enum(yes,no,separate,exempt) $chargeVat - как се начислява ДДС-то
+     * @param string $chargeVat - как се начислява ДДС-то
      * @param int                          $round     - до колко знака да се закръгли
      *
      * @return float $price - цената във валутата
@@ -378,7 +378,7 @@ abstract class deals_Helper
      * @param float                        $price     - цена във валута
      * @param float                        $vat       - ддс
      * @param float                        $rate      - валутен курс
-     * @param enum(yes,no,separate,exempt) $chargeVat - как се начислява ддс-то
+     * @param string $chargeVat - как се начислява ддс-то
      *
      * @return float $price - цената в основна валута без ддс
      */
@@ -1303,7 +1303,7 @@ abstract class deals_Helper
      * Връща масив с фактурите в треда (тредовете)
      *
      * @param mixed     $threadId        - ид на нишка или масив от ид-та на нишки
-     * @param date|NULL $valior          - ф-рите до дата, или NULL за всички
+     * @param datetime|NULL $valior          - ф-рите до дата, или NULL за всички
      * @param bool      $showInvoices    - да се показват само обикновените ф-ри
      * @param bool      $showDebitNotes  - да се показват и ДИ
      * @param bool      $showCreditNotes - да се показват и КИ
@@ -1359,7 +1359,7 @@ abstract class deals_Helper
      * Помощен метод връщащ разпределението на плащанията по фактури
      *
      * @param int       $threadId - ид на тред
-     * @param date|NULL $valior   - към коя дата
+     * @param datetime|NULL $valior   - към коя дата
      *
      * @return array $paid      - масив с разпределените плащания
      */
@@ -1543,7 +1543,7 @@ abstract class deals_Helper
         $revInvArr = array_reverse($invArr, true);
         
         // Разпределяме всички остатъци от плащания
-        foreach ($payArr as $i => $pay) {
+        foreach ($payArr as $pay) {
             if ($pay->available > 0) {
                 // Обикаляме по фактурите от начало към край и попълваме само дупките
                 foreach ($invArr as $inv) {
@@ -1579,7 +1579,7 @@ abstract class deals_Helper
         // Събираме остатъците от всички платежни документи и ги нанасяме от зад напред
         $rest = 0;
         $used = $payments = array();
-        foreach ($payArr as $i => $pay) {
+        foreach ($payArr as $pay) {
             if ($pay->available != 0) {
                 $rest += $pay->available;
                 $pay->available = 0;

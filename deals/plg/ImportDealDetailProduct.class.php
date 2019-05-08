@@ -147,9 +147,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         
         $isPartner = core_Users::haveRole('partner');
         $batchInstalled = core_Packs::isInstalled('batch');
-        
         foreach ($rows as $i => &$row) {
-            $hasError = false;
             
             // Подготвяме данните за реда
             $obj = (object) array('code' => $row[$fields['code']],
@@ -245,6 +243,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             if (isset($obj->quantity)) {
                 if ($pRec) {
                     $packagingId = isset($pRec->packagingId) ? $pRec->packagingId : cat_Products::fetchField($pRec->productId, 'measureId');
+                    $warning = null;
                     if (!deals_Helper::checkQuantity($packagingId, $obj->quantity, $warning)) {
                         $err[$i][] = $warning;
                     }
@@ -349,7 +348,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     /**
      * Подготовка на формата за импорт на артикули
      *
-     * @param unknown $form
+     * @param core_Form $form
      */
     private static function prepareForm(&$form)
     {
@@ -401,7 +400,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
         $masterRec = $data->masterData->rec;
-        
+        $error = '';
         if ($mvc->haveRightFor('import', (object) array("{$mvc->masterKey}" => $masterRec->id))) {
             $data->toolbar->addBtn(
                 'Импортиране',

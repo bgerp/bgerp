@@ -182,7 +182,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $dealInfo = $firstDoc->getAggregateDealInfo();
         
         // За всеки артикул от договора, копира се 1:1
-        $productsToSave = $dealInfo->dealProducts;
         if (is_array($dealInfo->dealProducts)) {
             foreach ($dealInfo->dealProducts as $det) {
                 $det->{$this->masterKey} = $id;
@@ -528,6 +527,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             }
             
             // Проверка на к-то
+            $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->quantity, $warning)) {
                 $form->setError('quantity', $warning);
             }
@@ -589,6 +589,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             }
             
             // Проверка на цената
+            $msg = null;
             if (!deals_Helper::isPriceAllowed($rec->price, $rec->quantity, $autoPrice, $msg)) {
                 $form->setError('packPrice,quantity', $msg);
             }
