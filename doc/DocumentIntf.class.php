@@ -197,7 +197,7 @@ class doc_DocumentIntf
      *
      * @param int $id - ид на документ
      *
-     * @return param $res - масив с използваните документи
+     * @return array $res - масив с използваните документи
      *               ['class'] - инстанция на документа
      *               ['id'] - ид на документа
      */
