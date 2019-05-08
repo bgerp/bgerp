@@ -61,7 +61,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
             return false;
         }
         
-        list($string, $date) = explode($delimiter, $value);
+        list($string, $date) = explode($delimiter, $value, 2);
         if (isset($this->rec->length)) {
             if (mb_strlen($string) > $this->rec->length) {
                 $msg = "|*{$string} |е над допустимата дължина от|* <b>{$this->rec->length}</b>";

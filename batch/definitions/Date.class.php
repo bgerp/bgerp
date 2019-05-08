@@ -39,7 +39,7 @@ abstract class batch_definitions_Date extends batch_definitions_Proto
      * Проверява дали стойността е невалидна
      *
      * @param string   $value    - стойноста, която ще проверяваме
-     * @param quantity $quantity - количеството
+     * @param double $quantity - количеството
      * @param string   &$msg     - текста на грешката ако има
      *
      * @return bool - валиден ли е кода на партидата според дефиницията или не
@@ -65,6 +65,7 @@ abstract class batch_definitions_Date extends batch_definitions_Proto
         $expr = strtr($expr, $map);
         
         // Проверяваме дали датата отговаря на формата
+        $matches = array();
         if (!preg_match("/^{$expr}$/", $value, $matches)) {
             $msg = "|Партидата трябва да е във формат за дата|* <b>{$this->rec->format}</b>";
             
