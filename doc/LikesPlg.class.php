@@ -186,7 +186,7 @@ class doc_LikesPlg extends core_Plugin
      *
      * @param core_Master  $mvc
      * @param core_ET      $tpl
-     * @param unknown_type $data
+     * @param stdClass $data
      */
     public static function on_AfterNotifyUsersForLike($mvc, &$res, $rec)
     {
@@ -343,7 +343,7 @@ class doc_LikesPlg extends core_Plugin
      *
      * @param core_Mvc     $mvc
      * @param core_ET      $tpl
-     * @param unknown_type $data
+     * @param stdClass $data
      */
     public static function on_AfterRenderSingle(core_Mvc $mvc, &$tpl, $data)
     {

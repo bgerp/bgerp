@@ -142,7 +142,7 @@ class label_plg_Print extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'printlabel' && isset($rec)) {
-            if (in_array($rec->state, array('rejected', 'draft', 'template'))) {
+            if (in_array($rec->state, array('rejected', 'draft', 'template', 'closed'))) {
                 $requiredRoles = 'no_one';
             }
         }

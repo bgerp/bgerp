@@ -578,8 +578,8 @@ class sales_Setup extends core_ProtoSetup
         
         $fQuery = $Reports::getQuery();
         
+        $classIds = array();
         $classIds[sales_reports_SalesByContragents::getClassId()] = sales_reports_SalesByContragents::getClassId();
-        
         $classIds[sales_reports_SoldProductsRep::getClassId()] = sales_reports_SoldProductsRep::getClassId();
         
         $fQuery-> in('driverClass', $classIds);

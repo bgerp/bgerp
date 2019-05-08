@@ -518,7 +518,7 @@ class core_Cls
      * @param mixed $class      - име или инстанция на клас
      * @param bool  $onlyStatic
      *
-     * @return param $array - всички достъпни методи за класа
+     * @return array $array - всички достъпни методи за класа
      */
     public static function getAccessibleMethods($class, $onlyStatic = false)
     {

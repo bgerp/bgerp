@@ -472,7 +472,6 @@ class blogm_Articles extends core_Master
         $layout = blogm_Comments::renderComments($data, $layout);
         
         // Рендираме тулбара за споделяне
-        $conf = core_Packs::getConfig('cms');
         $sharing = social_Sharings::getButtons();
         $layout->replace($sharing, 'SHARE_TOOLBAR');
         
@@ -729,8 +728,6 @@ class blogm_Articles extends core_Master
         // Тема за блога
         $data->ThemeClass = $this->getThemeClass();
         
-        $selfId = core_Classes::getId($this);
-        
         Mode::set('cMenuId', cms_Content::getDefaultMenuId('blogm_Articles'));
     }
     
@@ -879,7 +876,7 @@ class blogm_Articles extends core_Master
      * Имплементиране на интерфейсния метод getItems от cms_FeedsSourceIntf
      *
      * @param int  $itemsCnt
-     * @param enum $lg
+     * @param string $lg
      *
      * @return array
      */
@@ -1116,9 +1113,8 @@ class blogm_Articles extends core_Master
     public function getSitemapEntries($menuId)
     {
         $cRec = cms_Content::fetch($menuId);
-        
         $categories = blogm_Categories::getCategoriesByDomain($cRec->domainId);
-        $used = array();
+        $res = $used = array();
         
         foreach ($categories as $id => $title) {
             $query = self::getQuery();

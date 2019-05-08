@@ -215,7 +215,7 @@ class frame2_Reports extends embed_Manager
         $this->FLD('notificationText', 'varchar', 'caption=Обновяване и известяване->Текст,autohide');
         $this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Обновяване и известяване->Потребители,autohide');
         $this->FLD('changeFields', 'set', 'caption=Други настройки->Промяна,autohide,input=none');
-        $this->FLD('maxKeepHistory', 'int(Min=0)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
+        $this->FLD('maxKeepHistory', 'int(Min=0,max=40)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
         $this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none');
         $this->FLD('lastRefreshed', 'datetime', 'caption=Последно актуализиране,input=none');
     }

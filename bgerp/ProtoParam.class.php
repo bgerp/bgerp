@@ -235,7 +235,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
         $rec = static::fetchRec($id);
         if ($Driver = static::getDriver($rec)) {
             
-            return $Type = $Driver->getType($rec, $domainClass, $domainId, $value);
+            return $Driver->getType($rec, $domainClass, $domainId, $value);
         }
         
         return false;
@@ -308,7 +308,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
      * @param string      $sysId   - систем ид на параметър
      * @param string      $name    - име на параметъра
      * @param string      $type    - тип на параметъра
-     * @param NULL|text   $options - опции на параметъра само за типовете enum и set
+     * @param NULL|string   $options - опции на параметъра само за типовете enum и set
      * @param NULL|string $suffix  - наставка
      *
      * @return stdClass $nRec     - ид на параметъра
@@ -393,7 +393,6 @@ abstract class bgerp_ProtoParam extends embed_Manager
         $driverClass = cls::get($driverClass);
         if (($driverClass instanceof cond_type_Text) && mb_strlen($value) > 90) {
             $bHtml = mb_strcut($value, 0, 90);
-            $cHtml = mb_strcut($value, 90);
             
             $value = $bHtml . "\n[hide=" . tr('Вижте още') . ']' . $value . '[/hide]';
             $value = cls::get('type_Richtext')->toVerbal($value);

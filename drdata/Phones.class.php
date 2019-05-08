@@ -79,14 +79,14 @@ class drdata_Phones extends core_Manager
      *
      * @param array $numberArr
      *
-     * @return arrray
+     * @return array
      */
     public static function getVariationsNumberArr($numbersArr)
     {
         $allArr = array();
         $setArr = array();
         
-        foreach ((array) $numbersArr as $key => $numberObj) {
+        foreach ((array) $numbersArr as $numberObj) {
             
             // Масив с варициите на частите на номера
             $countryVarArr = self::getCountryCodeVariation($numberObj->countryCode);

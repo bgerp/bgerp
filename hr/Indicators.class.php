@@ -332,9 +332,6 @@ class hr_Indicators extends core_Manager
         
         // За всеки един договор, се опитваме да намерим формулата за заплащането от позицията.
         foreach ($ecArr as $personId => $ecRec) {
-            $res = (object) array('personId' => $personId,
-                'periodId' => $pRec->id);
-            
             $sum = array();
             
             if (isset($ecRec->positionId)) {
@@ -492,8 +489,6 @@ class hr_Indicators extends core_Manager
         $this->prepareListFilter($data->IData);
         $data->IData->listFilter->method = 'GET';
         
-        $date = new DateTime();
-        
         if ($data->IData->pager) {
             $data->IData->pager->setLimit($data->IData->query);
         }
@@ -530,6 +525,7 @@ class hr_Indicators extends core_Manager
         if (str::prepareMathExpr($expr) === false) {
             $data->IData->salary = ht::styleIfNegative(tr('Невъзможно изчисление'), -1);
         } else {
+            $success = null;
             $data->IData->salary = str::calcMathExpr($expr, $success);
             $data->IData->salary = core_type::getByName('double(decimals=2)')->toVerbal($data->IData->salary);
             $data->IData->salary = ht::styleIfNegative($data->IData->salary, $data->IData->salary);

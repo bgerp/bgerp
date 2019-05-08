@@ -1179,6 +1179,9 @@ function setTrigger() {
          }
          event.stopPropagation();
     });
+    $('.treelist .verbal').on('click', function(){
+        $(this).siblings('.more-btn').click();
+    });
 
     $('.treelist .more-btn').on('click', function(){
         var btn = $(this);

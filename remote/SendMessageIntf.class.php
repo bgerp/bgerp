@@ -22,7 +22,7 @@ class remote_SendMessageIntf extends embed_DriverIntf
      *
      * @param object $rec запис от модела remote_Authorisations
      *
-     * @return state
+     * @return string
      */
     public function sendMessage($rec, $msg)
     {

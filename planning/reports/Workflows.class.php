@@ -477,6 +477,7 @@
     
     /**
      * Кой може да избере драйвера
+     * ceo, planning+officer
      */
     public function canSelectDriver($userId = null)
     {
@@ -487,13 +488,14 @@
        if (!haveRole('ceo',$userId) && haveRole('planning',$userId)){
            
            if(haveRole('officer',$userId)){
-                return true;
+               return true;
                
            }else{
                return false;
            }
        }
        
+       return false;
     }
     
     

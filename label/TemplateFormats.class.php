@@ -749,7 +749,6 @@ class label_TemplateFormats extends core_Detail
                 
                 // Нилираме стойностите
                 $attr = array();
-                $rotate = false;
                 
                 // Ако е зададено да се показва само стринга без баркода
                 if ($rec->formatParams['Showing'] == 'string') {

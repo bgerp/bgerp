@@ -52,7 +52,7 @@ class vtotal_Checks extends core_Master
     
     
     /**
-     * @var Url нужно на VirusTotal за Api-то
+     * @var string Url нужно на VirusTotal за Api-то
      */
     private static $VTScanUrl = 'https://www.virustotal.com/vtapi/v2/file/report';
     
@@ -116,7 +116,7 @@ class vtotal_Checks extends core_Master
     /**
      *
      *
-     * @param $VTResult обект от тип stdClass VirusTotalRespone
+     * @param string $VTResult обект от тип stdClass VirusTotalRespone
      *
      * @return type_Percent колко опасен е съответния файл
      */
@@ -148,7 +148,7 @@ class vtotal_Checks extends core_Master
     /**
      *
      *
-     * @param $path Път до файла, който трябва да се сканира
+     * @param string $path Път до файла, който трябва да се сканира
      *
      * @return int Краен резултар дали е опасен.
      *             1 -> да опасен е
@@ -170,7 +170,7 @@ class vtotal_Checks extends core_Master
     /**
      *
      *
-     * @param $md5Hash Хеш за проверка на файл през VirusTotal MD5
+     * @param string $md5Hash Хеш за проверка на файл през VirusTotal MD5
      *
      * @return mixed
      *               При неуспешно повикване връща int respone_code
@@ -211,7 +211,7 @@ class vtotal_Checks extends core_Master
     /**
      *
      *
-     * @param stdObjec    $fRec
+     * @param stdClass    $fRec
      * @param string      $md5
      * @param string|null $counter
      */
@@ -308,7 +308,7 @@ class vtotal_Checks extends core_Master
                 
                 $archiveHaveExt = false;
                 
-                foreach ($entriesArr as $key => $entry) {
+                foreach ($entriesArr as $entry) {
                     $size = $entry->getSize();
                     
                     if (!$size) {

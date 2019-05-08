@@ -1113,7 +1113,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Връща вальора на документа по подразбиране
      *
      * @param core_Mvc $mvc
-     * @param date     $res
+     * @param datetime     $res
      * @param mixed    $rec
      */
     public static function getValiorValue($rec)
@@ -1125,9 +1125,9 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Връща сч. дата по подразбиране спрямо, датата на входящата фактура
      *
-     * @param date $date - дата
+     * @param datetime $date - дата
      *
-     * @return date
+     * @return datetime
      */
     public function getDefaultAccDate($date)
     {

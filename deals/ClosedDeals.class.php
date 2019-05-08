@@ -637,7 +637,7 @@ abstract class deals_ClosedDeals extends core_Master
      *
      * @param stdClass $rec
      *
-     * @return date
+     * @return datetime
      */
     public function getBiggestValiorInThread($rec)
     {

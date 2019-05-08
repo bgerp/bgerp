@@ -124,7 +124,7 @@ class plg_Current extends core_Plugin
             }
             
             $retUrl = getRetUrl();
-            if (!$resUrl || !count($retUrl) || $retUrl['Ctr'] == $mvc->className) {
+            if (!count($retUrl) || $retUrl['Ctr'] == $mvc->className) {
                 $retUrl = array('Portal', 'Show');
             }
             
@@ -175,13 +175,11 @@ class plg_Current extends core_Plugin
     /**
      * Моделна функция, която задава текущия запис за посочения клас (mvc)
      *
-     * @param $mvc   инстанция на mvc класа
+     * @param core_Mvc $mvc   инстанция на mvc класа
      * @param $rec   mixed id към запис, който трябва да стана текущ или самия запис
      */
     public static function on_AfterSelectCurrent($mvc, &$res, $rec)
     {
-        $className = cls::getClassName($mvc);
-        
         if (!is_object($rec)) {
             expect(is_numeric($rec), $rec);
             expect($rec = $mvc->fetch($rec));

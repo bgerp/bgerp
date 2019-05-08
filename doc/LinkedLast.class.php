@@ -30,9 +30,9 @@ class doc_LinkedLast extends core_Mvc
     
     /**
      * Колко секунди назад да се показват документите/файловете
-     * // 30 мин
+     * 7 дни
      */
-    protected $showBeforeSec = 1800;
+    protected $showBeforeSec = 604800;
     
     
     /**

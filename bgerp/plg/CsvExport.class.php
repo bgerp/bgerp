@@ -35,8 +35,8 @@ class bgerp_plg_CsvExport extends core_BaseClass
      */
     public function isApplicable($mvc)
     {
-        $exportableFields = $this->getExportableCsvFields($mvc);
-        
+        $exportableFields = $this->getCsvFieldSet($mvc)->selectFields();
+       
         return empty($exportableFields) ? false : true;
     }
     
@@ -47,17 +47,19 @@ class bgerp_plg_CsvExport extends core_BaseClass
      *
      * @return array
      */
-    public function getExportableCsvFields($mvc)
+    public function getCsvFieldSet($mvc)
     {
+        $fieldset = new core_FieldSet();
+        
         $exportableFields = arr::make($mvc->exportableCsvFields, true);
-        
-        $csfFiledsArr = $mvc->selectFields('#export == Csv');
-        
-        foreach ($csfFiledsArr as $name => $field) {
-            $exportableFields[$name] = $name;
+        foreach ($exportableFields as $name => $caption){
+            $fieldset->FLD($name, 'varchar', "caption={$caption}");
+            if($mvc->getField($name, false)){
+                $fieldset->fields[$name] = $mvc->getField($name, false);
+            }
         }
         
-        return $exportableFields;
+        return $fieldset;
     }
     
     
@@ -69,16 +71,11 @@ class bgerp_plg_CsvExport extends core_BaseClass
     public function prepareExportForm(core_Form &$form)
     {
         $sets = $selected = array();
-        $fields = $this->mvc->selectFields();
-        $exportableFields = $this->getExportableCsvFields($this->mvc);
-        
+        $fields = $this->getCsvFieldSet($this->mvc)->selectFields();
         foreach ($fields as $name => $fld) {
-            if (in_array($name, $exportableFields)) {
-                $sets[] = "{$name}={$fld->caption}";
-                $selected[$name] = $name;
-            }
+            $sets[] = "{$name}={$fld->caption}";
+            $selected[$name] = $name;
         }
-        
         $sets[] = 'ExternalLink=Линк';
         
         $selectedFields = cls::get('type_Set')->fromVerbal($selected);
@@ -122,7 +119,6 @@ class bgerp_plg_CsvExport extends core_BaseClass
     {
         $cu = core_Users::getCurrent();
         $recs = core_Cache::get($this->mvc->className, "exportRecs{$cu}");
-        
         core_App::setTimeLimit(count($recs) / 10);
         
         $retUrl = getRetUrl();
@@ -150,14 +146,14 @@ class bgerp_plg_CsvExport extends core_BaseClass
             $this->prepareExternalLink($recs);
         }
         
-        $csvParams = array();
         $params = array();
+        $fieldSet = $this->getCsvFieldSet($this->mvc);
         
         if ($filter->showColumnNames == 'yes') {
             if ($this->mvc && $this->mvc instanceof core_FieldSet) {
                 foreach ($fieldsArr as $field => &$caption) {
                     if ($field != 'ExternalLink') {
-                        $value = $this->mvc->fields[$field]->caption;
+                        $value = $fieldSet->getFieldParam($field, 'caption');
                         $valueArr = explode('->', $value);
                         if (count($valueArr) == 1) {
                             $value = $valueArr[0];
@@ -180,13 +176,11 @@ class bgerp_plg_CsvExport extends core_BaseClass
         $params['delimiter'] = $filter->delimiter;
         $params['decPoint'] = $filter->decimalSign;
         $params['enclosure'] = $filter->enclosure;
-        
-        // TODO
         $params['text'] = 'plain';
         
         $this->mvc->invoke('BeforeExportCsv', array(&$recs));
         
-        $content = csv_Lib::createCsv($recs, $this->mvc, $fieldsArr, $params);
+        $content = csv_Lib::createCsv($recs, $fieldSet, $fieldsArr, $params);
         $content = iconv('utf-8', $filter->encoding . '//TRANSLIT', $content);
         
         return $content;
