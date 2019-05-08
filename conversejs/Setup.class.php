@@ -8,7 +8,7 @@ defIfNot('CONVERSEJS_BOSH_SERVICE_URL', 'https://conversejs.org/http-bind/');
 
 
 /**
- * Клас 'chosen_Setup' - Предава по добър изглед на keylist полетата
+ * Клас 'conversejs_Setup' - Предава по добър изглед на keylist полетата
  *
  *
  * @category  bgerp
