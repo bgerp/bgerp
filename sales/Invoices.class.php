@@ -400,6 +400,7 @@ class sales_Invoices extends deals_InvoiceMaster
         if ($form->isSubmitted()) {
             
             // Валидна ли е датата (при само промяна няма да се изпълни)
+            $warning = null;
             if (!$mvc->isAllowedToBePosted($rec, $warning) && $rec->__isBeingChanged !== true) {
                 $form->setError('date', $warning);
             }
@@ -754,6 +755,7 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public static function on_AfterGetRestoreBtnErrStr($mvc, &$res, $rec)
     {
+        $error = null;
         if (!$mvc->isAllowedToBePosted($rec, $error, true)) {
             $res = $error;
         }
@@ -765,6 +767,7 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public static function on_AfterGetContoBtnErrStr($mvc, &$res, $rec)
     {
+        $error = null;
         if ($rec->date > dt::today()) {
             $res = 'Фактурата е с бъдещата дата и не може да бъде контирана';
         } elseif (!$mvc->isAllowedToBePosted($rec, $error)) {
