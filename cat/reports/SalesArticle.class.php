@@ -12,9 +12,10 @@
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
- * @deprecated
- *
+ * 
  * @since     v 0.1
+ * 
+ * @deprecated
  */
 class cat_reports_SalesArticle extends frame_BaseDriver
 {
