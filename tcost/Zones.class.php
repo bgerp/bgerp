@@ -139,8 +139,8 @@ class tcost_Zones extends core_Detail
     /**
      * Сравнява колко близо са два пощенски кода
      *
-     * @param $pc1 Първи данни за сравнение
-     * @param $pc2 Втори данни за сравнение
+     * @param string $pc1 Първи данни за сравнение
+     * @param string $pc2 Втори данни за сравнение
      *
      * @return int Брой съвпадения
      */

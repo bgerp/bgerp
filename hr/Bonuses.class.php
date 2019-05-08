@@ -227,7 +227,7 @@ class hr_Bonuses extends core_Master
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param datetime $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
      *
      * @return array $result  - масив с обекти
      *
@@ -245,6 +245,7 @@ class hr_Bonuses extends core_Master
         $query->where("#modifiedOn  >= '{$timeline}' AND #state != 'draft' AND #state != 'template' AND #state != 'pending'");
         
         $iRec = hr_IndicatorNames::force('Бонус', __CLASS__, 1);
+        $result = array();
         
         while ($rec = $query->fetch()) {
             $result[] = (object) array(
@@ -265,7 +266,7 @@ class hr_Bonuses extends core_Master
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
      *
-     * @param date $date
+     * @param datetime $date
      *
      * @return array $result
      */
