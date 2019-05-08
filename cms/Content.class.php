@@ -346,7 +346,7 @@ class cms_Content extends core_Manager
         if ($absolute && is_array($url)) {
             $domain = cms_Domains::fetch($rec->domainId)->domain;
             if ($domain != 'localhost' || in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
-                $url = Url::change(toUrl($url, 'absolute'), null, $domain);
+                $url = core_Url::change(toUrl($url, 'absolute'), null, $domain);
             }
         }
         
@@ -562,6 +562,8 @@ class cms_Content extends core_Manager
         if (!$domainId) {
             $domainId = cms_Domains::getPublicDomain('id');
         }
+        
+        $res = array();
         $query = self::getQuery();
         $query->orderBy('#order');
         while ($rec = $query->fetch("#domainId = {$domainId} AND #source = {$classId}")) {
@@ -646,7 +648,6 @@ class cms_Content extends core_Manager
             $rec->seoDescription = cms_Domains::getPublicDomain('seoDescription');
         }
         if ($rec->seoDescription) {
-            $descr = $rec->seoDescription;
             $rec->seoDescription = ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoDescription))));
         }
         
@@ -744,7 +745,7 @@ class cms_Content extends core_Manager
     public static function getSeoThumb($text)
     {
         $pattern = cms_GalleryRichTextPlg::IMG_PATTERN;
-        
+        $matches = null;
         preg_match($pattern, $text, $matches);
         
         $fileSrc = null;
@@ -826,7 +827,7 @@ class cms_Content extends core_Manager
     public static function getSitemapXml($dRec)
     {
         $dQuery = cms_Domains::getQuery();
-        
+        $dIds = array();
         while ($d = $dQuery->fetch("#domain = '{$dRec->domain}'")) {
             $dIds[] = $d->id;
         }
