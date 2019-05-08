@@ -400,14 +400,29 @@ class core_ProtoSetup
     
     
     /**
+     * Проверяваме дали пакета може да се де-инсталира
+     *
+     * @return bool
+     */
+    public function canDeinstall()
+    {
+
+        return true;
+    }
+
+
+    /**
      * Де-инсталиране на пакета
      */
     public function deinstall()
     {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
+        if($this->canDeinstall()) {
+            // Изтриване на пакета от менюто
+            $res = bgerp_Menu::remove($this);
+            
+            return $res;
+        } else {
+        }
     }
     
     

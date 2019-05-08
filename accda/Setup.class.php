@@ -62,15 +62,4 @@ class accda_Setup extends core_ProtoSetup
         array(2.2, 'Счетоводство', 'ДА', 'accda_Da', 'default', 'accda, ceo'),
     );
     
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
 }

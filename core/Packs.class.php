@@ -819,11 +819,7 @@ class core_Packs extends core_Manager
             $rec->startCtr = $setup->startCtr;
             $rec->startAct = $setup->startAct;
             
-            if ($setup->isSystem) {
-                $rec->deinstall = 'no';
-            } else {
-                $rec->deinstall = method_exists($setup, 'deinstall') ? 'yes' : 'no';
-            }
+            $rec->deinstall = $setup->canDeinstall() ? 'yes' : 'no';
             
             $rec->state = 'active';
             

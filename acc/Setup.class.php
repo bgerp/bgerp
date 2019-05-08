@@ -434,17 +434,6 @@ class acc_Setup extends core_ProtoSetup
                         acc_reports_UnactiveContableDocs,acc_reports_NegativeQuantities,acc_reports_InvoicesByContragent';
     
     
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-    
     
     /**
      * Зареждане на данни
