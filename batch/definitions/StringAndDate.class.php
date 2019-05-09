@@ -97,14 +97,15 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         $nextNumber = isset($max) ? str::increment($max) : str_pad(1, $this->rec->length, '0', STR_PAD_LEFT);
         $nextNumber = "{$this->rec->prefix}{$nextNumber}";
         
-        if(strlen($nextNumber) <= $this->rec->length){
-            $date = dt::mysql2verbal($expiryDate, $this->rec->format);
-            $nextNumber = "{$nextNumber}{$delimiter}{$date}";
+        if(!empty($this->rec->length) && strlen($nextNumber) > $this->rec->length){
             
-            return $nextNumber;
+            return null;
         }
         
-        return null;
+        $date = dt::mysql2verbal($expiryDate, $this->rec->format);
+        $nextNumber = "{$nextNumber}{$delimiter}{$date}";
+            
+        return $nextNumber;
     }
     
     
