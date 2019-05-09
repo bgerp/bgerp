@@ -686,8 +686,8 @@ class core_Cron extends core_Manager
         
         // Търсим дали има съществуващ запис със същото id
         $exRec = self::fetch(array("#systemId = '[#1#]'", $rec->systemId));
-
-        if(!$exRec && isset($rec->exSystemId)) {
+        
+        if (!$exRec && isset($rec->exSystemId)) {
             $exRec = self::fetch(array("#systemId = '[#1#]'", $rec->exSystemId));
         }
         
@@ -753,9 +753,15 @@ class core_Cron extends core_Manager
      */
     public static function deinstallPack($pack)
     {
+        $res = '';
         $query = self::getQuery();
         $preffix = $pack . '_';
-        $query->delete(array("#controller LIKE '[#1#]%'", $preffix));
+        $rowCnt = $query->delete(array("#controller LIKE '[#1#]%'", $preffix));
+        if ($rowCnt) {
+            $res .= "<li class='debug-notice'>Бяха премахнати {$rowCnt} нагласения на Cron</li>";
+        }
+        
+        return $res;
     }
     
     

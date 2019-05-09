@@ -123,16 +123,4 @@ class drdata_Setup extends core_ProtoSetup
         'drdata_Domains',
         'drdata_Languages',
     );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
 }

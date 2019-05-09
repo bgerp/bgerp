@@ -75,16 +75,4 @@ class catering_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(2.39, 'Обслужване', 'Кетъринг', 'catering_Menu', 'default', 'catering, ceo'),
     );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
 }

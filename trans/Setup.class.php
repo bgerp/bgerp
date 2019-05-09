@@ -13,7 +13,6 @@ defIfNot('TRANS_CMR_SENDER_INSTRUCTIONS', '');
 defIfNot('TRANS_CMR_SHOW_BTN', 'no');
 
 
-
 /**
  * Транспорт
  *
@@ -93,18 +92,6 @@ class trans_Setup extends core_ProtoSetup
         'TRANS_CMR_SENDER_INSTRUCTIONS' => array('text(rows=2)','caption=ЧМР->13. Инструкции на изпращача'),
         'TRANS_CMR_SHOW_BTN' => array('enum(yes=Включено,no=Изключено)','caption=При липса на условие на доставка. Да се показва ли бутона за ЧМР->Избор'),
     );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
-        
-        return $res;
-    }
     
     
     /**

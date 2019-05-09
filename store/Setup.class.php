@@ -174,18 +174,6 @@ store_iface_ImportShippedProducts,store_reports_DeficitInStores,store_reports_Un
     
     
     /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-    
-    
-    /**
      * Изтриване на кеш
      */
     public function truncateCacheProducts1()

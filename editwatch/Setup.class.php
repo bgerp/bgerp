@@ -79,24 +79,4 @@ class editwatch_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        if ($delCnt = $Plugins->deinstallPlugin('editwatch_Plugin')) {
-            $html .= "<li>Премахнати са {$delCnt} закачания на плъгина";
-        } else {
-            $html .= '<li>Не са премахнати закачания на плъгина';
-        }
-        
-        return $html;
-    }
 }

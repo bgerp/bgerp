@@ -409,18 +409,6 @@ class doc_Setup extends core_ProtoSetup
     
     
     /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-    
-    
-    /**
      *
      * @param type_Keylist $type
      * @param array        $otherParams
@@ -462,7 +450,9 @@ class doc_Setup extends core_ProtoSetup
                 continue ;
             }
             
-            if (!$rec->showDocumentsAsButtons) continue;
+            if (!$rec->showDocumentsAsButtons) {
+                continue;
+            }
             
             $fKey = doc_Folders::getSettingsKey($rec->folderId);
             

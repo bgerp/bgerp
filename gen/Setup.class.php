@@ -66,22 +66,4 @@ class gen_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Инсталираме клавиатурата към password полета
-        $Plugins->deinstallPlugin('gen_Plugin');
-        $html .= '<li>Родословното дърво е премахнато';
-        
-        return $html;
-    }
 }

@@ -60,25 +60,4 @@ class hljs_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Деинсталираме highlight конвертора
-        if ($delCnt = $Plugins->deinstallPlugin('hljs_RichTextPlg')) {
-            $html .= "<li>Премахнати са {$delCnt} закачания на 'type_Richtext'";
-        } else {
-            $html .= '<li>Не са премахнати закачания на плъгина';
-        }
-        
-        return $html;
-    }
 }

@@ -140,27 +140,15 @@ class sens2_Setup extends core_ProtoSetup
     
     
     /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-
-
-    /**
      * Смяна към точка
      */
     public function changeToDot()
     {
         $query = sens2_script_Actions::getQuery();
-
-        while($rec = $query->fetch()) {
-            foreach(array('cond', 'expr', 'output') as $w) {
-                if($rec->data->{$w}) {
+        
+        while ($rec = $query->fetch()) {
+            foreach (array('cond', 'expr', 'output') as $w) {
+                if ($rec->data->{$w}) {
                     $rec->data->{$w} = str_replace('->', '.', $rec->data->{$w});
                     $query->mvc->save($rec);
                 }

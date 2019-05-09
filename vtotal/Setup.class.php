@@ -38,13 +38,12 @@ defIfNot('VTOTAL_DANGER_EXTENSIONS', 'exe,pif,application,gadget,msi,msp,com,scr
  */
 class vtotal_Setup extends core_ProtoSetup
 {
-
     /**
      * Описание на модула
      */
     public $info = 'Проверка за зловреден код чрез VirusTotal';
     
-
+    
     /**
      * Инсталиране на пакета
      */
@@ -57,22 +56,7 @@ class vtotal_Setup extends core_ProtoSetup
         
         return $html;
     }
-
-
-    /**
-     * Деинсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        $html .= "<li>Премахнати са всички инсталации на 'vtotal_Plugin'";
-        
-        return $html;
-    }
+    
     
     public $managers = array(
         'vtotal_Checks'

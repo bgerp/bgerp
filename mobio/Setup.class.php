@@ -69,16 +69,4 @@ class mobio_Setup extends core_ProtoSetup
     public $managers = array(
         'mobio_SMS',
     );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
 }

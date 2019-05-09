@@ -751,6 +751,8 @@ class core_Query extends core_FieldSet
     
     /**
      * Изпълнява DELETE заявка, като ако е зададено условие добавя го като AND във WHERE
+     *
+     * @return int Броя на изтритите редове
      */
     public function delete($cond = null)
     {
