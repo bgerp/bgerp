@@ -100,7 +100,7 @@ class batch_definitions_Digits extends batch_definitions_Proto
             return false;
         }
         
-        return true;
+        return parent::isValid($value, $quantity, $msg);
     }
     
     

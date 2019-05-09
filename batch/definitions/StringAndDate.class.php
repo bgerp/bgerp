@@ -119,7 +119,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
      */
     public function isValid($value, $quantity, &$msg)
     {
-        // Ако артикула вече има партидаза този артикул с тази стойност, се приема че е валидна
+        // Ако артикула вече има партида за този артикул с тази стойност, се приема че е валидна
         if (batch_Items::fetchField(array("#productId = {$this->rec->productId} AND #batch = '[#1#]'", $value))) {
             
             return true;
@@ -158,7 +158,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
             }
         }
         
-        return true;
+        return parent::isValid($value, $quantity, $msg);
     }
     
     
