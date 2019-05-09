@@ -68,7 +68,7 @@ class batch_definitions_Digits extends batch_definitions_Proto
         rsort($existingBatches);
         
         $nextNumber = isset($existingBatches[0]) ? str::increment($existingBatches[0]) : 1;
-        if(strlen($nextNumber) <= $this->rec->length){
+        if(empty($this->rec->length) || strlen($nextNumber) <= $this->rec->length){
             
             return $nextNumber;
         }
