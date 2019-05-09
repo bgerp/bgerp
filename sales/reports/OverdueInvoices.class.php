@@ -214,8 +214,6 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                 //масив с нишките за проверка
                 $threadsId[$saleInvoice->threadId] = $saleInvoice->threadId;
             }
-        }else{
-            bp($salesInvoicesArr,$overdueContragentsIdList);  
         }
         
         $salesTotalOverDue = $salesTotalPayout = 0;
