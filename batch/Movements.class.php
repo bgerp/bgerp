@@ -275,7 +275,7 @@ class batch_Movements extends core_Detail
                     $itemId = batch_Items::forceItem($jRec->productId, $key, $jRec->storeId);
                     if (empty($jRec->date)) {
                         $jRec->date = $doc->fetchField($doc->valiorFld);
-                        cls::get('batch_BatchesInDocuments')->save_($jRec, $date);
+                        cls::get('batch_BatchesInDocuments')->save_($jRec, 'date');
                     }
                     
                     // Движението, което ще запишем
