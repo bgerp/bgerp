@@ -3243,7 +3243,8 @@ div.statuses-message h2 {
   color: black; }
 
 .debug-notice {
-  color: #880000; }
+  color: #ff2828;
+  font-size: 0.9em; }
 
 .debug-new {
   color: #00aa00; }
