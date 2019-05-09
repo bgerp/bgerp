@@ -165,6 +165,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $cQuery->where("#overdueSales = 'yes'");
         
         while ($contragentId = $cQuery->fetch()->contragentId) {
+            
             $contragentIdArr[$contragentId] = $contragentId;
         }
         
@@ -175,40 +176,46 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $countriesList = drdata_CountryGroups::fetch($rec->countryGroup)->countries;
         }
         
-        
-        foreach ($salesInvoicesArr as $saleInvoice) {
-            if (!keylist::isIn($saleInvoice->contragentId, $overdueContragentsIdList)) {
-                continue;
-            }
+        if (is_array($salesInvoicesArr)){
             
-            
-            if ($rec->countryGroup) {
-                if (! keylist::isIn($saleInvoice->contragentCountryId, $countriesList)) {
+            $threadsId = array();
+            foreach ($salesInvoicesArr as $saleInvoice) {
+                
+                if (!keylist::isIn($saleInvoice->contragentId, $overdueContragentsIdList)) {
                     continue;
                 }
-            }
-            
-            
-            $firstDocument = doc_Threads::getFirstDocument($saleInvoice->threadId);
-            
-            $className = $firstDocument->className;
-            
-            //Филтър по дилър
-            if ($rec->dealer) {
-                if ($className::fetchField($firstDocument->that, 'dealerId') != $rec->dealer) {
+                
+                
+                if ($rec->countryGroup) {
+                    if (! keylist::isIn($saleInvoice->contragentCountryId, $countriesList)) {
+                        continue;
+                    }
+                }
+                
+                
+                $firstDocument = doc_Threads::getFirstDocument($saleInvoice->threadId);
+                
+                $className = $firstDocument->className;
+                
+                //Филтър по дилър
+                if ($rec->dealer) {
+                    if ($className::fetchField($firstDocument->that, 'dealerId') != $rec->dealer) {
+                        continue;
+                    }
+                }
+                
+                //Проверка дали е затворена или обединяваща
+                $unitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $salesUNList);
+                
+                if (($className::fetchField($firstDocument->that, 'state') == 'closed') && ! $unitedCheck) {
                     continue;
                 }
+                
+                //масив с нишките за проверка
+                $threadsId[$saleInvoice->threadId] = $saleInvoice->threadId;
             }
-            
-            //Проверка дали е затворена или обединяваща
-            $unitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $salesUNList);
-            
-            if (($className::fetchField($firstDocument->that, 'state') == 'closed') && ! $unitedCheck) {
-                continue;
-            }
-            
-            //масив с нишките за проверка
-            $threadsId[$saleInvoice->threadId] = $saleInvoice->threadId;
+        }else{
+            bp($salesInvoicesArr,$overdueContragentsIdList);  
         }
         
         $salesTotalOverDue = $salesTotalPayout = 0;
