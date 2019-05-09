@@ -559,14 +559,15 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterPrepareListFields($mvc, &$res, $data)
     {
-        if (isset($mvc->listFieldsSecondLineField)) {
-            $listFieldsPos = doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS');
-            if ($listFieldsPos != 'no') {
-                if (isset($data->listFields[$mvc->listFieldsSecondLineField]) && $data->listFields[$mvc->listFieldsSecondLineField]{0} != '@') {
-                    $data->listFields[$mvc->listFieldsSecondLineField] = '@' . $data->listFields[$mvc->listFieldsSecondLineField];
+        if (isset($mvc->listFieldsExtraLine)) {
+            if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
+                list($listFieldsName,$listFieldsPos) = explode('=', $mvc->listFieldsExtraLine);
+                
+                if (isset($data->listFields[$listFieldsName]) && $data->listFields[$listFieldsName]{0} != '@') {
+                    $data->listFields[$listFieldsName] = '@' . $data->listFields[$listFieldsName];
                 }
                 
-                if ($listFieldsPos == 'top') {
+                if ($listFieldsPos != 'bottom') {
                     $mvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
                 }
             }

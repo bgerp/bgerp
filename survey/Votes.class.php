@@ -220,7 +220,7 @@ class survey_Votes extends core_Manager
             
             // ако е Ип на потребител
             $userUid = $varchar->toVerbal($val);
-            $userUid = ht::createLink("IP: {$userUid}", "http://bgwhois.com/?query={$uid->ip}", null, array('target' => '_blank'));
+            $userUid = ht::createLink("IP: {$userUid}", "http://bgwhois.com/?query={$val}", null, array('target' => '_blank'));
         }
         
         return $userUid;

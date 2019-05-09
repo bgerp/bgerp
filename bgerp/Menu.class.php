@@ -518,9 +518,9 @@ class bgerp_Menu extends core_Manager
         $delCnt = bgerp_Menu::delete("#ctr LIKE '{$name}\\_%'");
         
         if ($delCnt == 1) {
-            $msg = '<li>Беше изтрита една входна точка от менюто.</li>';
+            $msg = "<li class='debug-notice'>Беше изтрита една входна точка от менюто.</li>";
         } elseif ($delCnt > 1) {
-            $msg = "<li>Бяха изтрити {$delCnt} входни точки от менюто.</li>";
+            $msg = "<li class='debug-notice'>Бяха изтрити {$delCnt} входни точки от менюто.</li>";
         }
         
         return $msg;

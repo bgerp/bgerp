@@ -105,16 +105,4 @@ class xmpphp_Setup extends core_ProtoSetup
     public $managers = array(
         'xmpphp_Sender'
     );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
-        
-        return $res;
-    }
 }

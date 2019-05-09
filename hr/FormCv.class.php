@@ -6,7 +6,7 @@
  *
  *
  * @category  bgerp
- * @package   workpreff
+ * @package   hr
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2017 Experta OOD
@@ -15,7 +15,7 @@
  * @since     v 0.1
  * @title     Форма за CV
  */
-class workpreff_FormCv extends core_Master
+class hr_FormCv extends core_Master
 {
     /**
      * Кой има право да чете?
@@ -68,7 +68,7 @@ class workpreff_FormCv extends core_Master
     /**
      * Нов темплейт за показване
      */
-    public $singleLayoutFile = 'workpreff/tpl/SingleLayoutCV.shtml';
+    public $singleLayoutFile = 'hr/tpl/SingleLayoutCV.shtml';
     
     
     /**
@@ -132,8 +132,8 @@ class workpreff_FormCv extends core_Master
         $this->FLD(
             'country',
             'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,default=Bg)',
-                    'caption=Адресни данни->Държава,remember,class=contactData,silent,export=Csv'
-        );
+            'caption=Адресни данни->Държава,remember,class=contactData,silent,export=Csv'
+            );
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,export=Csv');
         $this->FLD('place', 'varchar(64)', 'caption=Град,class=contactData,hint=Населено място: град или село и община,export=Csv');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData,export=Csv');
@@ -229,7 +229,7 @@ class workpreff_FormCv extends core_Master
         $form->input('typeOfPosition');
         
         if ($exRec->typeOfPosition) {
-            $options = workpreff_WorkPreff::getOptionsForChoice();
+            $options = hr_WorkPreff::getOptionsForChoice();
             
             if (is_array($options)) {
                 foreach ($options as $v) {
@@ -304,7 +304,7 @@ class workpreff_FormCv extends core_Master
                     $preferencesForWork[substr($k, 10)] = (object) array(
                         
                         'value' => $v
-                    
+                        
                     );
                 }
             }
@@ -377,7 +377,7 @@ class workpreff_FormCv extends core_Master
             foreach ($rec->workpreff as $k => $v) {
                 $printChoice = '';
                 
-                $printChoice = workpreff_WorkPreff::fetch($k)->name;
+                $printChoice = hr_WorkPreff::fetch($k)->name;
                 
                 $printValues = explode(',', $v->value);
                 
@@ -388,7 +388,7 @@ class workpreff_FormCv extends core_Master
                     if (!$vp) {
                         continue;
                     }
-                    $printValue .= '<div>' . workpreff_WorkPreffDetails::fetch($vp)->name . '</div>';
+                    $printValue .= '<div>' . hr_WorkPreffDetails::fetch($vp)->name . '</div>';
                 }
                 if (!empty($printValue)) {
                     $prepare .= "<tr><td class='aright'>" . $printChoice . ': ' . "</td><td class='aleft' colspan='2'>" . $printValue . '</td></tr>';
@@ -407,7 +407,7 @@ class workpreff_FormCv extends core_Master
      */
     public function getUrlByMenuId($cMenuId)
     {
-        return array('workpreff_FormCv', 'new', 'ret_url' => true);
+        return array('hr_FormCv', 'new', 'ret_url' => true);
     }
     
     
@@ -416,7 +416,7 @@ class workpreff_FormCv extends core_Master
      */
     public function getWorkshopUrl($menuId)
     {
-        $url = array('workpreff_FormCv', 'list');
+        $url = array('hr_FormCv', 'list');
         
         return $url;
     }

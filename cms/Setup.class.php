@@ -192,17 +192,6 @@ class cms_Setup extends core_ProtoSetup
     }
     
     
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-    
     private static function getLocalhostDomain($lg)
     {
         static $domainIds = array();

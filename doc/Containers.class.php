@@ -1385,7 +1385,7 @@ class doc_Containers extends core_Manager
      * Проверява дали има документ в нишката след подадената дата от съответния клас
      *
      * @param int  $threadId
-     * @param date $date
+     * @param datetime $date
      * @param int  $classId
      */
     public static function haveDocsAfter($threadId, $date = null, $classId = null)
@@ -1711,7 +1711,7 @@ class doc_Containers extends core_Manager
                 
                 $tpl->append("<li class='btns-title {$active} '><img class='btns-icon plus' src=". sbf('img/16/toggle1.png') ."><img class='btns-icon minus' src=". sbf('img/16/toggle2.png') .">&nbsp;{$group}</li>");
                 $tpl->append("<li class='dimension'>");
-                foreach ($bArr as $btn => $class) {
+                foreach ($bArr as $class) {
                     $mvc = cls::get($class);
                     
                     $tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn(
@@ -2536,8 +2536,8 @@ class doc_Containers extends core_Manager
     /**
      * Проверява дали даден тип документ, се съдържа в нишката
      *
-     * @param int   $threadId     - id от doc_Threads
-     * @param sting $documentName - Името на класа на документа
+     * @param int    $threadId     - id от doc_Threads
+     * @param string $documentName - Името на класа на документа
      */
     public static function checkDocumentExistInThread($threadId, $documentName)
     {
@@ -2789,7 +2789,7 @@ class doc_Containers extends core_Manager
      *
      * @param string $callback
      *
-     * @return URL
+     * @return string
      */
     public static function getUrLForAddDoc($callback)
     {
@@ -2914,8 +2914,8 @@ class doc_Containers extends core_Manager
     /**
      * Изпълнява се след създаването на модела
      *
-     * @param unknown_type $mvc
-     * @param unknown_type $res
+     * @param core_Mvc $mvc
+     * @param mixed $res
      */
     public static function on_AfterSetupMVC($mvc, &$res)
     {
@@ -3309,7 +3309,7 @@ class doc_Containers extends core_Manager
      */
     protected static function getLinkForHideDocument($document, $id)
     {
-        if ($document->haveRightFor('single') || doc_Threads::haveRightFor('single', $dRec->threadId)) {
+        if ($document->haveRightFor('single')) {
             $url = array(get_called_class(), 'HideDocumentInThread', $id);
             
             $attr = array();

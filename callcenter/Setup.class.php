@@ -141,26 +141,11 @@ class callcenter_Setup extends core_ProtoSetup
         
         // Прикачаме плъгина
         $html .= $Plugins->forcePlugin('Линкове към централа', 'callcenter_LinkPlg', 'drdata_PhoneType', 'private');
-        
-        //инсталиране на кофата
-//        $Bucket = cls::get('fileman_Buckets');
-//        $html .= $Bucket->createBucket('callcenter', 'Прикачени файлове в КЦ', NULL, '300 MB', 'user', 'user');
-        
+                
         return $html;
     }
     
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
         
-        return $res;
-    }
-    
     
     /**
      * Проверява дали услугата позволява съответния изпращач

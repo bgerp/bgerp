@@ -388,8 +388,8 @@ class plg_RefreshRows extends core_Plugin
      * Подготвя URL-то, което ще се вика по AJAX
      *
      * @param core_Mvc     $mvc
-     * @param unknown_type $res
-     * @param unknown_type $url
+     * @param mixed $res
+     * @param array $url
      */
     public function on_AfterPrepareRefreshRowsUrl($mvc, &$res, $url)
     {

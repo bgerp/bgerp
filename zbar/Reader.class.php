@@ -41,8 +41,13 @@ class zbar_Reader
             return $barcodesArr;
         }
         
+        $timeLimitScr = fconv_Script::getTimeLimitScript();
+        if ($timeLimitScr) {
+            $timeLimitScr .= ' ';
+        }
+        
         // Изпълняваме командата за намиране на баркодове
-        exec('zbarimg -q ' . escapeshellarg($filePath), $allBarcodesArr, $errorCode);
+        exec($timeLimitScr . 'zbarimg -q ' . escapeshellarg($filePath), $allBarcodesArr, $errorCode);
         
         // Изтриване на временния файл
         fileman::deleteTempPath($filePath);

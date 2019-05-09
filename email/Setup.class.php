@@ -437,18 +437,6 @@ class email_Setup extends core_ProtoSetup
     
     
     /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-    
-    
-    /**
      * Проверяваме дали всичко е сетнато, за да работи пакета
      * Ако има грешки, връщаме текст
      */

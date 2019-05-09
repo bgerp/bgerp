@@ -132,17 +132,6 @@ class price_Setup extends core_ProtoSetup
     
     
     /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-    
-    /**
      * Добавя шаблони на ценоразписите
      */
     public function updateGroupNames()
@@ -154,16 +143,16 @@ class price_Setup extends core_ProtoSetup
         $query = $Groups->getQuery();
         $query->where("#nameEn = '' OR #nameEn IS NULL");
         $query->show('name,nameEn');
-        while($rec = $query->fetch()){
-            if(strpos($rec->name, "||") !== false){
-                list($nameBg, $nameEn) = explode("||", $rec->name);
+        while ($rec = $query->fetch()) {
+            if (strpos($rec->name, '||') !== false) {
+                list($nameBg, $nameEn) = explode('||', $rec->name);
                 $rec->name = $nameBg;
                 $rec->nameEn = $nameEn;
                 $toSave[$rec->id] = $rec;
             }
         }
         
-        if(count($toSave)){
+        if (count($toSave)) {
             $Groups->saveArray($toSave, 'id,name,nameEn');
         }
     }

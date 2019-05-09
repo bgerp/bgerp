@@ -73,6 +73,7 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
             $dealInfo = $this->class->getDealInfo($rec->threadId);
             
             // Създаване на запис за прехвърляне на всеки аванс
+            $downpaymentAmounts = array();
             $entry2 = $this->transferDownpayments($dealInfo, $downpaymentAmounts, $firstDoc, $result);
             
             // Ако тотала не е нула добавяме ентритата
@@ -80,6 +81,7 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
                 $result->entries = array_merge($result->entries, $entry2);
             }
             
+            $vatNotCharge = 0;
             $entry3 = $this->transferVatNotCharged($dealInfo, $docRec, $vatNotCharge, $firstDoc);
             $result->totalAmount += $vatNotCharge;
             
@@ -87,8 +89,6 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
             if (count($entry3)) {
                 $result->entries[] = $entry3;
             }
-            
-            $conf = core_Packs::getConfig('acc');
             
             $jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
             
@@ -103,16 +103,13 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
             }
             
             $quantities = acc_Balances::getBlQuantities($jRecs, '411');
-            
-            if (is_array($downpaymentAmounts)) {
-                foreach ($downpaymentAmounts as $index => $obj) {
-                    if (!array_key_exists($index, $quantities)) {
-                        $quantities[$index] = new stdClass();
-                    }
-                    
-                    $quantities[$index]->quantity -= $obj->quantity;
-                    $quantities[$index]->amount -= $obj->amount;
+            foreach ($downpaymentAmounts as $index => $obj) {
+                if (!array_key_exists($index, $quantities)) {
+                    $quantities[$index] = new stdClass();
                 }
+                    
+                $quantities[$index]->quantity -= $obj->quantity;
+                $quantities[$index]->amount -= $obj->amount;
             }
             
             if (is_array($this->blQuantities)) {

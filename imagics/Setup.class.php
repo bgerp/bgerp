@@ -60,21 +60,4 @@ class imagics_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Инсталираме клавиатурата към password полета
-        $Plugins->deinstallPlugin('imgagics_Identify');
-        
-        return $html;
-    }
 }

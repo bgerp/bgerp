@@ -83,7 +83,7 @@ class plg_ExportCsv extends core_Plugin
      * Ако имаме в url-то Export=csv създаваме csv файл с данните
      *
      * @param core_Mvc   $mvc
-     * @param core_Table $table
+     * @param core_ET $table
      * @param stdClass   $data
      */
     public static function on_BeforeRenderListTable($mvc, &$table, $data)

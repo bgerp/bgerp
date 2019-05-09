@@ -2,12 +2,12 @@
 
 
 /**
- * Клас 'workpreff_WorkPreffDetails'
+ * Клас 'hr_WorkPreffDetails'
  *
  * Детайли на мениджър за създаване на Форма за CV
  *
  * @category  bgerp
- * @package   workpreff
+ * @package   hr
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2017 Experta OOD
@@ -15,7 +15,7 @@
  *
  * @since     v 0.1
  */
-class workpreff_WorkPreffDetails extends core_Detail
+class hr_WorkPreffDetails extends core_Detail
 {
     /**
      * Заглавие
@@ -52,7 +52,7 @@ class workpreff_WorkPreffDetails extends core_Detail
      */
     public function description()
     {
-        $this->FLD('choiceId', 'key(mvc=workpreff_WorkPreff)', 'column=none,notNull,silent,hidden,mandatory');
+        $this->FLD('choiceId', 'key(mvc=hr_WorkPreff)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('name', 'varchar', 'caption=Име');
     }
 }

@@ -111,7 +111,7 @@ class survey_Options extends core_Manager
      *
      * Enter description here ...
      *
-     * @param unknown_type $rec
+     * @param stdClass $rec
      */
     private function getVerbalOptions($rec)
     {

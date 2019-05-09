@@ -169,8 +169,8 @@ class cms_GalleryTitlePlg extends core_Plugin
     /**
      * @todo - Да се премахне
      *
-     * @param unknown_type $mvc
-     * @param unknown_type $res
+     * @param core_Mvc $mvc
+     * @param mixed $res
      */
     public static function on_AfterSetupMvc($mvc, &$res)
     {

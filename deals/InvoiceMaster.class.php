@@ -329,10 +329,6 @@ abstract class deals_InvoiceMaster extends core_Master
         // Трябва фактурата основание да не е ДИ или КИ
         expect($invArr['type'] == 'invoice');
         
-        $number = $origin->getInstance()->recToVerbal((object) $invArr)->number;
-        
-        $invDate = dt::mysql2verbal($invArr['date'], 'd.m.Y');
-        
         if ($invArr['type'] != 'dc_note') {
             $show = true;
             if (isset($form->rec->id)) {
@@ -475,7 +471,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *
      * @param int $id - ид на фактура
      *
-     * @return param $res - масив с използваните документи
+     * @return array $res - масив с използваните документи
      *               ['class'] - инстанция на документа
      *               ['id'] - ид на документа
      */
@@ -768,6 +764,7 @@ abstract class deals_InvoiceMaster extends core_Master
             
             // Проверка дали националния номер е валиден за държавата
             if ($rec->contragentClassId == crm_Companies::getClassId() && !empty($rec->uicNo)) {
+                $msg1 = $isError = null;
                 crm_Companies::checkUicId($rec->uicNo, $rec->contragentCountryId, $msg1, $isError);
                 if (!empty($msg)) {
                     if ($isError === true) {
@@ -1141,7 +1138,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $rec = $this->fetchRec($id);
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
         $total = ($rec->type == 'credit_note') ? -1 * $total : $total;
-        
+        $dueDate = null;
         setIfNot($dueDate, $rec->dueDate, $rec->date);
         
         $aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total, 'type' => $rec->type));
@@ -1241,7 +1238,6 @@ abstract class deals_InvoiceMaster extends core_Master
                 $cache[$count][$dRec->productId] = array('quantity' => $dRec->quantity, 'price' => $dRec->packPrice);
                 $count++;
                 
-                $vat = 0;
                 if ($vatRate != 'no' && $vatRate != 'exempt') {
                     $v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
                 }

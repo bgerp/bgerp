@@ -97,7 +97,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
     /**
      * Проверява дали стария и новия хеш си отговарят и ако е зададено сетва новия
      *
-     * @param ingeter $threadId
+     * @param int $threadId
      * @param array   $recsArr
      * @param bool    $setNew
      *

@@ -37,12 +37,6 @@ class cat_ProductTplCache extends core_Master
     /**
      * Права за запис
      */
-    public $canRead = 'ceo, cat';
-    
-    
-    /**
-     * Права за запис
-     */
     public $canDelete = 'ceo, cat';
     
     

@@ -61,7 +61,7 @@ class cal_ReminderSnoozes extends core_Detail
     
     /**
      *
-     * @var unknown
+     * @var string
      */
     public $canAdd = 'powerUser';
     

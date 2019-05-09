@@ -141,18 +141,6 @@ class cal_Setup extends core_ProtoSetup
     }
     
     
-    /**
-     * Деинсталиране
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-    
-    
     public function reCalcNextStart()
     {
         $query = cal_Reminders::getQuery();

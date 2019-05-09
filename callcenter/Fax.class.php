@@ -183,8 +183,8 @@ class callcenter_Fax extends core_Manager
      *
      * Enter description here ...
      *
-     * @param unknown_type $mvc
-     * @param unknown_type $data
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     public static function on_AfterPrepareListFields($mvc, $data)
     {

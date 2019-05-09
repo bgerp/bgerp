@@ -99,13 +99,4 @@ class vislog_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        return '';
-    }
 }

@@ -17,12 +17,6 @@
 abstract class batch_definitions_Proto extends core_BaseClass
 {
     /**
-     * Автоматичен стринг
-     */
-    const AUTO_VALUE_STRING = 'Автоматично';
-    
-    
-    /**
      * Плейсхолдър на полето
      *
      * @param string
@@ -101,7 +95,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
         }
         
         // Ако артикула вече има партида за този артикул с тази стойност, се приема че е валидна
-        if ($eProductId = batch_Items::fetchField(array("#productId != {$this->rec->productId} AND #batch = '[#1#]'", $value), 'productId')) {
+        if ($eProductId = batch_BatchesInDocuments::fetchField(array("#productId != {$this->rec->productId} AND #batch = '[#1#]'", $value), 'productId')) {
             $eProductId = cat_Products::getTitleById($eProductId);
             
             $msg = "Въведеният партиден номер е наличен за артикул|* <b>{$eProductId}</b>";

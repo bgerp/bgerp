@@ -278,13 +278,11 @@ class tracking_Setup extends core_ProtoSetup
     {
         // Спираме процеса
         if (true === self::Stop()) {
-            $res = "<li class='debug-new'>Успешно спрян процес.</li>";
+            $res .= "<li class='debug-new'>Успешно спрян процес.</li>";
+            $res .= parent::deinstall();
         } else {
-            $res = "<li class='debug-error'>Неуспешно спрян процес.</li>";
+            $res .= "<li class='debug-error'>Неуспешно спрян процес.</li>";
         }
-        
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

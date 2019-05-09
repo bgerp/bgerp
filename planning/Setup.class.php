@@ -189,18 +189,6 @@ class planning_Setup extends core_ProtoSetup
     
     
     /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-    
-    
-    /**
      * Мигация за поправка на key полетата към keylist в planning_AssetResources
      */
     public static function assetResourceFields()
@@ -272,14 +260,14 @@ class planning_Setup extends core_ProtoSetup
         
         $updateArr = array();
         $query = $Tasks->getQuery();
-        $query->where("#indPackagingId IS NULL");
+        $query->where('#indPackagingId IS NULL');
         $query->show('packagingId');
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()) {
             $rec->indPackagingId = $rec->packagingId;
             $updateArr[$rec->id] = $rec;
         }
         
-        if(count($updateArr)){
+        if (count($updateArr)) {
             $Tasks->saveArray($updateArr, 'id,indPackagingId');
         }
     }
@@ -296,16 +284,16 @@ class planning_Setup extends core_ProtoSetup
         $TaskDetails = cls::get('planning_ProductionTaskDetails');
         $TaskDetails->setupMvc();
         
-        if(!count($Tasks)) {
+        if (!count($Tasks)) {
             
             return;
         }
         
         $updateArr = array();
         $query = $Tasks->getQuery();
-        $query->where("#measureId IS NULL");
+        $query->where('#measureId IS NULL');
         $query->show('measureId,quantityInPack,productId');
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()) {
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
             $rec->measureId = $measureId;
             $rec->quantityInPack = 1;
@@ -313,7 +301,7 @@ class planning_Setup extends core_ProtoSetup
             $updateArr[] = $rec;
         }
         
-        if(count($updateArr)){
+        if (count($updateArr)) {
             $Tasks->saveArray($updateArr, 'id,measureId,quantityInPack');
         }
     }

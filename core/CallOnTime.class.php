@@ -71,7 +71,7 @@ class core_CallOnTime extends core_Manager
      * @param string $className
      * @param string $methodName
      * @param mixed  $data
-     * @param date   $callOn
+     * @param datetime   $callOn
      * @param bool   $once
      *
      * @return int
@@ -121,7 +121,7 @@ class core_CallOnTime extends core_Manager
      * @param string $className
      * @param string $methodName
      * @param mixed  $data
-     * @param date   $callOn
+     * @param datetime   $callOn
      *
      * @return int
      */

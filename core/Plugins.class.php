@@ -116,7 +116,6 @@ class core_Plugins extends core_Manager
     }
     
     
-    
     /**
      * Инсталира нов плъгин, към определен клас
      */
@@ -167,15 +166,17 @@ class core_Plugins extends core_Manager
             foreach ($r1 as $cover => $r2) {
                 foreach ($r2 as $name => $cPlg) {
                     if ($cPlg == $plugin) {
-                        if(isset($className) && $class != $className) continue;
-                       
+                        if (isset($className) && $class != $className) {
+                            continue;
+                        }
+                        
                         unset($this->attachedPlugins[$class][$cover][$name]);
                     }
                 }
             }
         }
-       
-        if(isset($className)){
+        
+        if (isset($className)) {
             
             return $this->delete("#plugin = '{$plugin}' AND #class = '{$className}'");
         }
@@ -266,9 +267,16 @@ class core_Plugins extends core_Manager
      */
     public static function deinstallPack($pack)
     {
+        $res = '';
         $query = self::getQuery();
         $preffix = $pack . '_';
-        $query->delete(array("#class LIKE '[#1#]%' OR #plugin LIKE '[#1#]%'", $preffix));
+        $cntRows = $query->delete(array("#class LIKE '[#1#]%' OR #plugin LIKE '[#1#]%'", $preffix));
+        
+        if ($cntRows) {
+            $res = "<li class='debug-notice'>Бяха изтрити {$cntRows} реда от инсталираните плъгини</li>";
+        }
+        
+        return $res;
     }
     
     

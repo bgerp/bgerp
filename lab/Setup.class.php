@@ -78,16 +78,4 @@ class lab_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(2.45, 'Обслужване', 'Лаб', 'lab_Tests', 'default', 'lab, ceo'),
     );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
 }

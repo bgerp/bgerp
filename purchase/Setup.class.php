@@ -163,26 +163,14 @@ class purchase_Setup extends core_ProtoSetup
     
     
     /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-    
-    /**
      * Миграция за зареждане на модела purchase_PurchasesData
      */
     public static function extractPurchasesData0419()
     {
         $classes = array(store_Receipts, purchase_Purchases,purchase_Services);
         
-        foreach ($classes as $classForProcesing){
-            
-            $Master =(cls::get($classForProcesing));
+        foreach ($classes as $classForProcesing) {
+            $Master = (cls::get($classForProcesing));
             
             $Detail = cls::get($Master->mainDetail);
             
@@ -190,9 +178,10 @@ class purchase_Setup extends core_ProtoSetup
             
             $query->in('state', array('rejected','active'));
             
-            while ($mRec = $query->fetch()){
-                
-                if(isset($mRec->contoActions) && !strpos($mRec->contoActions,'ship')) continue;
+            while ($mRec = $query->fetch()) {
+                if (isset($mRec->contoActions) && !strpos($mRec->contoActions, 'ship')) {
+                    continue;
+                }
                 
                 $clone = clone $mRec;
                 
@@ -206,19 +195,20 @@ class purchase_Setup extends core_ProtoSetup
                 
                 $className = $firstDocument->className;
                 
-                if(!($className))continue;
+                if (!($className)) {
+                    continue;
+                }
                 
                 $dealerId = $className::fetch($firstDocument->that)->dealerId;
                 
                 $dQuery = $Detail->getQuery();
                 
-                $dQuery->where("#{$Detail->masterKey} = $mRec->id");
+                $dQuery->where("#{$Detail->masterKey} = {$mRec->id}");
                 
-                while ($detail = $dQuery->fetch()){
+                while ($detail = $dQuery->fetch()) {
+                    $dRec = array();
                     
-                    $dRec=array();
-                    
-                    $dRec= (object) array(
+                    $dRec = (object) array(
                         
                         'valior' => $clone->valior,
                         'detailClassId' => $detailClassId,
@@ -249,15 +239,11 @@ class purchase_Setup extends core_ProtoSetup
                         $dRec->id = $id;
                     }
                     
-                    if ($dRec->state == 'active' || $dRec->state == 'rejected'){
-                        
+                    if ($dRec->state == 'active' || $dRec->state == 'rejected') {
                         purchase_PurchasesData::save($dRec);
                     }
-                    
                 }
-                
             }
-            
         }
     }
 }

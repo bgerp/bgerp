@@ -225,6 +225,21 @@ class core_ProtoSetup
     {
         $htmlRes = '';
         
+        // Инсталираме декларираните плъгини, ако има такива
+        if (is_array($this->plugins)) {
+            $Plugins = cls::get('core_Plugins');
+            foreach ($this->plugins as $plg) {
+                $htmlRes .= $Plugins->installPlugin(
+                                                $plg[0],
+                                                $plg[1],
+                                                $plg[2],
+                                                isset($plg[3]) ? $plg[3] : 'family',
+                                                isset($plg[4]) ? $plg[4] : 'active',
+                                                isset($plg[5]) ? $plg[5] : false
+                                            );
+            }
+        }
+        
         $method = 'loadSetupData' . $itr;
         
         
@@ -400,12 +415,41 @@ class core_ProtoSetup
     
     
     /**
+     * Проверяваме дали пакета може да се де-инсталира
+     *
+     * @return bool
+     */
+    public function canDeinstall()
+    {
+        return $this->isSystem != true;
+    }
+    
+    
+    /**
      * Де-инсталиране на пакета
      */
     public function deinstall()
     {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
+        $pack = $this->getPackName();
+        
+        if ($this->canDeinstall()) {
+            // Изтриване на пакета от менюто
+            $res = bgerp_Menu::remove($pack);
+            
+            // Премахване от core_Interfaces
+            $res .= core_Interfaces::deinstallPack($pack);
+            
+            // Скриване от core_Classes
+            $res .= core_Classes::deinstallPack($pack);
+            
+            // Премахване от core_Cron
+            $res .= core_Cron::deinstallPack($pack);
+            
+            // Премахване от core_Plugins
+            $res .= core_Plugins::deinstallPack($pack);
+        } else {
+            $res = "<li class='debug-error'>Пакетът {$pack} не може да бъде деинсталиран</li>";
+        }
         
         return $res;
     }

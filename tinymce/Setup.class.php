@@ -64,20 +64,4 @@ class tinymce_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        $Plugins->deinstallPlugin('tinyMCE');
-        
-        return $html;
-    }
 }

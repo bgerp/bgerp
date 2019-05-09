@@ -114,7 +114,8 @@ class sales_ProductRelations extends core_Manager
         $pQuery = cat_Products::getQuery();
         
         $pQuery->limit(1000000);
-
+        $pArr = array();
+        $pSdRec = $ppSdRec = $pppSdRec = null;
         while($pRec = $pQuery->fetch("#state = 'active' AND #isPublic = 'yes' AND #code IS NOT NULL")) {
             $pArr[$pRec->id] = array();
         }

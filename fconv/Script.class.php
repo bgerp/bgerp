@@ -266,6 +266,37 @@ class fconv_Script
     
     
     /**
+     * Връща скриптва, който се добавя преди процесите, за спиране на обработката след определено време
+     * 
+     * @return string
+     */
+    public static function getTimeLimitScript()
+    {
+        $timeLimitScr = '';
+        if (fconv_Setup::get('USE_TIME_LIMIT') == 'yes') {
+            $timeLimitArr = explode(' ', fconv_Setup::get('TIME_LIMIT'));
+            
+            $timeLimitArr[0] = escapeshellcmd($timeLimitArr[0]);
+            
+            foreach ($timeLimitArr as $key => &$val) {
+                if ($key == 0) {
+                    continue;
+                }
+                if ($val{0} == '-') {
+                    continue;
+                }
+                
+                $val = escapeshellarg($val);
+            }
+            
+            $timeLimitScr = implode(' ', $timeLimitArr);
+        }
+        
+        return $timeLimitScr;
+    }
+    
+    
+    /**
      * Добавя извикване на външна програма в текста на скрипта
      *
      * @param string $cmdLine
@@ -292,24 +323,9 @@ class fconv_Script
         }
         
         if ($addTimeLimit && $cmdLine) {
-            $conf = core_Packs::getConfig('fconv');
-            if ($conf->FCONV_USE_TIME_LIMIT == 'yes') {
-                $timeLimitArr = explode(' ', $conf->FCONV_TIME_LIMIT);
-                
-                $timeLimitArr[0] = escapeshellcmd($timeLimitArr[0]);
-                
-                foreach ($timeLimitArr as $key => &$val) {
-                    if ($key == 0) {
-                        continue;
-                    }
-                    if ($val{0} == '-') {
-                        continue;
-                    }
-                    
-                    $val = escapeshellarg($val);
-                }
-                
-                $cmdLine = implode(' ', $timeLimitArr) . ' ' . $cmdLine;
+            $timeLimitScr = $this->getTimeLimitScript();
+            if ($timeLimitScr) {
+                $cmdLine = $timeLimitScr . ' ' . $cmdLine;
             }
         }
         

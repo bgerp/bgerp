@@ -69,38 +69,11 @@ class autosize_Setup extends core_ProtoSetup
     
     
     /**
-     * Инсталиране на пакета
+     * Плъгини, които трябва да се инсталират
      */
-    public function install()
-    {
-        $html = parent::install();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Инсталираме клавиатурата към password полета
-        $html .= $Plugins->installPlugin('Редове на текст', 'autosize_Plugin', 'type_Richtext', 'private');
-        
-        return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Премахваме от type_Date полета
-        $Plugins->deinstallPlugin('autosize_Plugin');
-        $html .= "<li>Премахнати са всички инсталации на 'autosize_Plugin'";
-        
-        return $html;
-    }
+    public $plugins = array(
+        array('Редове на текст', 'autosize_Plugin', 'type_Richtext', 'private'),
+    );
     
     
     /**

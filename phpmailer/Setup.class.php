@@ -134,25 +134,4 @@ class phpmailer_Setup extends core_ProtoSetup
         'PML_SMTPSECURE' => array('enum(tls=TLS, ssl=SSL, 0=няма)', 'caption=Smtp->Криптиране'),
         'PML_VERSION' => array('enum(5.2.8, 5.2.22)', 'caption=PML->Версия'),
     );
-    
-    
-    /**
-     * Списък с мениджърите, които съдържа пакета
-     */
-    /*var $managers = array(
-            'phpmailer_Instance',
-
-        );*/
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
 }

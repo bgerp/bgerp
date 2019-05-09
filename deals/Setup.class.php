@@ -66,7 +66,7 @@ class deals_Setup extends core_ProtoSetup
     public $configDescription = array(
         'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Процент за допустимо разминаване в салдото според сумата->Процент'),
         'DEALS_ISSUER' => array('enum(createdBy=Създателят,activatedBy=Активиралият)', 'caption=Съставител на бизнес документи->Избор'),
-        
+    
     );
     
     
@@ -80,16 +80,4 @@ class deals_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = 'dealJoin';
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
 }
