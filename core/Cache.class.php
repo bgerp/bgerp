@@ -99,7 +99,7 @@ class core_Cache extends core_Manager
         
         $this->setDbUnique('key');
         
-        $this->dbEngine = 'InnoDB';
+        // $this->dbEngine = 'InnoDB';
     }
     
     
