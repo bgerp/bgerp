@@ -55,9 +55,9 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         
         // Ако ще се генерира автоматична стойност
         if($this->rec->autoValue == 'yes'){
-            $time = $this->rec->time;
+            $time = cat_Products::getParams($this->rec->productId, 'expiryTime');
             if(!isset($time)){
-                $time = cat_Products::getParams($this->rec->productId, 'expiryTime');
+                $time = $this->rec->time;
             }
             
             $date = dt::today();
