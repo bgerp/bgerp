@@ -66,35 +66,14 @@ class keyboard_Setup extends core_ProtoSetup
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
-
+        
         $html .= $Plugins->installPlugin('Nick VKB', 'keyboard_Plugin', 'type_Nick', 'private');
-
+        
         // Инсталираме клавиатурата към password полета
         $html .= $Plugins->installPlugin('Pass VKB', 'keyboard_Plugin', 'type_Password', 'private');
         
         // Инсталиране към всички полета, но без активиране
         $html .= $Plugins->installPlugin('All VKB', 'keyboard_Plugin', 'core_Type', 'family', 'stopped');
-        
-        return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Инсталираме клавиатурата към password полета
-        if ($delCnt = $Plugins->deinstallPlugin('keyboard_Plugin')) {
-            $html .= "<li>Премахнати са {$delCnt} закачания на 'keyboard_Plugin'";
-        } else {
-            $html .= '<li>Не са премахнати закачания на плъгина';
-        }
         
         return $html;
     }

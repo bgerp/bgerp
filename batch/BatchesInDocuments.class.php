@@ -786,4 +786,36 @@ class batch_BatchesInDocuments extends core_Manager
         
         return $res;
     }
+    
+    
+    /**
+     * Връща използваните партиди филтрирани по клас
+     * 
+     * @param mixed $class
+     * @param array $fields
+     * @return array
+     */
+    public static function getBatchByType($class, $fields = array())
+    {
+        $Class = cls::get($class);
+        $tQuery =  batch_Templates::getQuery();
+        $tQuery->where("#driverClass = " . $Class->getClassId());
+        $tQuery->show('id');
+        $templates = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
+        if(!count($templates)){
+            
+            return array();
+        }
+        
+        $bQuery = batch_BatchesInDocuments::getQuery();
+        $bQuery->EXT('templateId', 'batch_Defs', 'externalName=templateId,remoteKey=productId,externalFieldName=productId');
+        $bQuery->in('templateId', $templates);
+        if(count($fields)){
+            $fields = arr::make($fields, true);
+            $bQuery->show($fields);
+        }
+        $res = $bQuery->fetchAll();
+        
+        return $res;
+    }
 }

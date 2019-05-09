@@ -88,18 +88,6 @@ class label_Setup extends core_ProtoSetup
     
     
     /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-    
-    
-    /**
      * Миграция за премахване на празните записи
      */
     public static function removeEmptyCounterItems()

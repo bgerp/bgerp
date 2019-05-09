@@ -391,13 +391,8 @@ class pos_Favourites extends core_Manager
      */
     public static function on_AfterPrepareListFields($mvc, &$res, $data)
     {
-        $listFieldsPos = doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS');
-        if ($listFieldsPos != 'no') {
+        if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $data->listFields['catId'] = '@' . $data->listFields['catId'];
-            
-            if ($listFieldsPos == 'top') {
-                $mvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
-            }
         }
     }
 }

@@ -177,18 +177,6 @@ class blast_Setup extends core_ProtoSetup
     
     
     /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-    
-    
-    /**
      * Миграция за обновяване на времето на стартиране
      */
     public static function updateEmailsSendOn()

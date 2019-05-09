@@ -47,6 +47,11 @@ class avatar_Setup extends core_ProtoSetup
     
     
     /**
+     * Плъгини, които трябва да се инсталират
+     */
+    
+    
+    /**
      * Инсталиране на пакета
      */
     public function install()
@@ -73,24 +78,6 @@ class avatar_Setup extends core_ProtoSetup
         $html .= $Register->setupMVC();
         
         $html .= '<li>Потребителите имат вече аватари';
-        
-        return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Инсталираме клавиатурата към password полета
-        $Plugins->deinstallPlugin('avatar_Plugin');
-        $html .= '<li>Махнати са аватарите на потребителите';
         
         return $html;
     }

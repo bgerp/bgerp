@@ -428,7 +428,6 @@ class hr_Leaves extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($rec->id) {
-            $oRec = $mvc->fetch($rec->id);
             
             if ($action == 'order') {
                 // и нямаме нужните права
@@ -713,7 +712,7 @@ class hr_Leaves extends core_Master
             $tLeaveFrom = dt::mysql2timestamp($rec->leaveFrom);
             $dayOfWeekFrom = date('l', $tLeaveFrom);
             
-            list($dateFrom, $hourFrom) = explode(' ', $rec->leaveFrom);
+            list(, $hourFrom) = explode(' ', $rec->leaveFrom);
             
             if ($hourFrom != '00:00:00') {
                 $row->leaveFrom = $DateTime->mysql2verbal($rec->leaveFrom, 'd.m.Y');
@@ -727,7 +726,7 @@ class hr_Leaves extends core_Master
             $tLeaveTo = dt::mysql2timestamp($rec->leaveTo);
             $dayOfWeekTo = date('l', $tLeaveTo);
             
-            list($dateTo, $hourTo) = explode(' ', $rec->leaveTo);
+            list(, $hourTo) = explode(' ', $rec->leaveTo);
             
             if ($hourTo != '23:59:59') {
                 $row->leaveTo = $DateTime->mysql2verbal($rec->leaveTo, 'd.m.Y');

@@ -457,6 +457,7 @@ class callcenter_Talks extends core_Master
             
             // Ако номера на търсения отговаря
             if ($rec->internalNum == $numStr) {
+                $numIdArr = array();
                 
                 // Обхождаме масива с резултатите
                 foreach ($nRecArr as $nRec) {
@@ -591,6 +592,7 @@ class callcenter_Talks extends core_Master
         
         // Вземаме записите за търсения номера
         $dRecArr = callcenter_Numbers::getRecForNum($internalNum, 'internal', true);
+        $dRecIdArr = array();
         
         // Обхождаме резултата
         foreach ((array) $dRecArr as $dRec) {
@@ -1222,8 +1224,8 @@ class callcenter_Talks extends core_Master
      * Записва грешките в масива в лога
      *
      * @param array  $errArr
-     * @param intege $id
-     * @param URL    $url
+     * @param int $id
+     * @param string    $url
      */
     public static function errToLog($errArr, $id = false, $url = false)
     {
@@ -1453,6 +1455,7 @@ class callcenter_Talks extends core_Master
         $data->listFilter->FNC('to', 'date', 'width=6em,caption=До,input');
         
         // Опции за търсене
+        $statusOptions = array();
         $statusOptions[''] = '';
         
         // Опциите за входящи разговори
@@ -1638,9 +1641,9 @@ class callcenter_Talks extends core_Master
     /**
      *
      *
-     * @param unknown_type $mvc
-     * @param unknown_type $res
-     * @param unknown_type $data
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param stdClass $data
      */
     public static function on_AfterPrepareListSummary($mvc, &$res, &$data)
     {
@@ -1649,7 +1652,7 @@ class callcenter_Talks extends core_Master
             
             return ;
         }
-        
+        $stat = array();
         // Обхождаме всички клонирани записи
         while ($rec = $data->listSummary->query->fetch()) {
             
@@ -1700,9 +1703,9 @@ class callcenter_Talks extends core_Master
     /**
      *
      *
-     * @param unknown_type $mvc
-     * @param unknown_type $tpl
-     * @param unknown_type $data
+     * @param core_Mvc $mvc
+     * @param core_ET $tpl
+     * @param stdClass $data
      */
     public static function on_AfterRenderListSummary($mvc, &$tpl, &$data)
     {
@@ -1873,8 +1876,8 @@ class callcenter_Talks extends core_Master
      *
      * Enter description here ...
      *
-     * @param unknown_type $mvc
-     * @param unknown_type $data
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     public static function on_AfterPrepareListFields($mvc, $data)
     {
@@ -2073,6 +2076,7 @@ class callcenter_Talks extends core_Master
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 100;
+        $changedTalksArr = array();
         
         $res .= core_Cron::addOnce($rec);
         
@@ -2124,6 +2128,7 @@ class callcenter_Talks extends core_Master
         $nQuery->where("#dialStatus = 'ANSWERED'");
         $nQuery->where("#endTime <= '{$unixNull}'");
         $nQuery->orWhere("#answerTime <= '{$unixNull}'");
+        $nChangedTalksArr = array();
         
         while ($nRec = $nQuery->fetch()) {
             

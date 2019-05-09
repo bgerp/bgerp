@@ -143,8 +143,8 @@ class cms_GalleryImages extends core_Manager
     /**
      *
      *
-     * @param unknown_type $mvc
-     * @param unknown_type $data
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
@@ -298,7 +298,7 @@ class cms_GalleryImages extends core_Manager
             
             // Шаблон за намиране на изображение към галерията
             $pattern = "/^\[img=\#(?'text'[^\]]*)\]\s*$/i";
-            
+            $match = null;
             preg_match($pattern, $selText, $match);
             
             // Ако има окрит вид на галерията
@@ -365,9 +365,6 @@ class cms_GalleryImages extends core_Manager
         // Задаваме врапера
         Mode::set('wrapper', 'page_Dialog');
         
-        // Обект с данните
-        $data = new stdClass();
-        
         // Вземаме променливите
         $callback = $this->callback = Request::get('callback', 'identifier');
         
@@ -398,9 +395,6 @@ class cms_GalleryImages extends core_Manager
         
         // Ако формата е изпратена без грешки
         if ($form->isSubmitted()) {
-            
-            // Манипулатор на файла
-            $fileHnd = $form->rec->imgFile;
             
             // Ако няма запис
             if (!$rec) {

@@ -292,7 +292,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                         $form->rec->_rejectId = $exId;
                     }
                 }
-                    
+                
                 if (!empty($rec->serial)) {
                     $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->taskId);
                     $rec->serialType = $serialInfo['type'];
@@ -469,7 +469,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      * @return core_ET|string $serialVerbal  - серийния номер като линк, или вербалното му представяне
      */
     public static function getLink($taskId, $serial)
-    {   
+    {
         $serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($serial);
         if (Mode::isReadOnly()) {
             
@@ -504,7 +504,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $data->listTableMvc->setField('weight', 'smartCenter');
             } else {
                 $data->listTableMvc->FNC('quantityExtended', 'varchar', 'tdClass=centerCol');
-                if (doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
+                if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
                     $data->listTableMvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>\n";
                 } else {
                     $data->listTableMvc->tableRowTpl = "[#ADD_ROWS#][#ROW#]\n";
@@ -568,7 +568,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(!empty($row->notes)){
                 $row->type .= "<small>{$row->notes}</small>";
             }
-           
+            
             if(Mode::is('taskProgressInTerminal')){
                 $row->typeExtended = "<span class='extended-type'>{$row->type}</span><span class='extended-productId'> » {$row->productId}</span><span class='extended-created fright'>{$row->created}</span>";
                 $row->quantityExtended = "<div class='extended-quantity'>{$row->quantity}</div>";

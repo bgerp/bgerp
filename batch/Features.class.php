@@ -105,12 +105,13 @@ class batch_Features extends core_Manager
         $self = cls::get(get_called_class());
         
         $res = array();
-        foreach ($features as $class => $featObj) {
+        foreach ($features as $featObj) {
             $obj = (object) array('itemId' => $itemRec->id,
                 'name' => self::canonize($featObj->name),
                 'classId' => $featObj->classId,
                 'value' => $featObj->value,);
             
+            $fields = $exRec = null;
             if (!$self->isUnique($obj, $fields, $exRec)) {
                 $obj->id = $exRec->id;
             }

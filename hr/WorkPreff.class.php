@@ -15,7 +15,7 @@
  * @since     v 0.1
  * @title     Детайли на Форма за CV
  */
-class workpreff_WorkPreff extends core_Master
+class hr_WorkPreff extends core_Master
 {
     public $title = 'Избор';
     
@@ -25,7 +25,7 @@ class workpreff_WorkPreff extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'workpreff_WorkPreffDetails';
+    public $details = 'hr_WorkPreffDetails';
     
     public function description()
     {
@@ -54,7 +54,7 @@ class workpreff_WorkPreff extends core_Master
     {
         $parts = array();
         
-        $detQuery = workpreff_WorkPreffDetails::getQuery();
+        $detQuery = hr_WorkPreffDetails::getQuery();
         
         while ($detail = $detQuery->fetch()) {
             $detArr[$detail->id] = $detail;
@@ -81,7 +81,7 @@ class workpreff_WorkPreff extends core_Master
                 'parts' => $parts,
                 'count' => count($parts),
                 'typeOfPosition' => $typeOfPosition,
-            
+                
             );
             
             $parts = array();

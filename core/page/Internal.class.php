@@ -273,10 +273,6 @@ class core_page_Internal extends core_page_Active
             $Browser = cls::get('log_Browsers');
             $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
             
-            // Добавя бутон за калкулатора
-            $tpl->append('&nbsp;<small>|</small>&nbsp;');
-            $tpl->append(calculator_View::getBtn());
-            
             if (isDebug()) {
                 $tpl->append('&nbsp;<small>|</small>&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
             }

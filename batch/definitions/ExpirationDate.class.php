@@ -33,7 +33,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
     public function addFields(core_Fieldset &$fieldset)
     {
         parent::addFields($fieldset);
-        $fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец)', 'caption=Срок до,unit=след текущата дата');
+        $fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец)', 'caption=Срок по подразбиране,unit=след текущата дата');
     }
     
     
@@ -50,10 +50,17 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
     public function getAutoValue($documentClass, $id, $storeId, $date = null)
     {
         $date = dt::today();
-        if (isset($this->rec->time)) {
-            $date = dt::addSecs($this->rec->time, $date);
+        
+        $time = cat_Products::getParams($this->rec->productId, 'expiryTime');
+        if(!isset($time)){
+            $time = $this->rec->time;
+        }
+        
+        if (isset($time)) {
+            $date = dt::addSecs($time, $date);
             $date = dt::verbal2mysql($date, false);
         }
+        
         $date = dt::mysql2verbal($date, $this->rec->format);
         
         return $date;

@@ -155,13 +155,16 @@ class core_Interfaces extends core_Manager
      */
     public static function deinstallPack($pack)
     {
+        $res = '';
         $query = self::getQuery();
         $preffix = $pack . '_';
-        
         while ($rec = $query->fetch()) {
             if (strpos($rec->name, $preffix) === 0 || (!cls::load($rec->name, true))) {
                 core_Interfaces::delete($rec->id);
+                $res .= "<li class='debug-notice'>Беше премахнат интерфейса `{$rec->name}`</li>";
             }
         }
+        
+        return $res;
     }
 }

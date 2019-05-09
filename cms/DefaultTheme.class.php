@@ -223,6 +223,7 @@ class cms_DefaultTheme extends core_ProtoInner
      */
     public function getHeaderImg()
     {
+        $imgs = array();
         if (!Mode::is('screenMode', 'narrow')) {
             if (core_Users::isContractor() && $this->innerForm->colabImg) {
                 $img = new thumb_Img(array($this->innerForm->colabImg, 1000, 150, 'fileman', 'isAbsolute' => true,'mode' => 'large-no-change'));
@@ -248,6 +249,7 @@ class cms_DefaultTheme extends core_ProtoInner
                     }
                     
                     $banner .= '<div class="fadein">';
+                    $style = '';
                     foreach ($imgs as $iHash) {
                         $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                         $imageURL = $img->getUrl('forced');

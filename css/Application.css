@@ -2903,6 +2903,9 @@ span.sharing-history-title {
   margin-top: 15px;
   margin-right: 20px; }
 
+.narrow .eshop-name {
+  margin: 20px 0 10px; }
+
 .half-width {
   display: inline-block;
   max-width: 50%; }

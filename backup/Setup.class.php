@@ -281,7 +281,10 @@ class backup_Setup extends core_ProtoSetup
      */
     public function checkConfig($fullCheck = false)
     {
-        if (!$fullCheck) return;
+        if (!$fullCheck) {
+            
+            return;
+        }
         
         $conf = core_Packs::getConfig('backup');
         
@@ -346,17 +349,5 @@ class backup_Setup extends core_ProtoSetup
             
             return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
         }
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
     }
 }

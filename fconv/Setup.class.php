@@ -80,16 +80,4 @@ class fconv_Setup extends core_ProtoSetup
         'FCONV_USE_TIME_LIMIT' => array('enum(no=Не, yes=Да)', 'caption=Дали да се използва скрипт за убиване на увиснали програми->Избор'),
         'FCONV_SALT' => array('varchar', 'caption=Ключ за отдалечено конвертиране->Ключ'),
     );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
 }

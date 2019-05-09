@@ -76,8 +76,8 @@ class type_IP extends type_Varchar
     /**
      * Декорира ip адреса
      *
-     * @param IP    $ip
-     * @param time  $time
+     * @param string    $ip
+     * @param string  $time
      * @param array $attr
      */
     public static function decorateIp($ip, $time = null, $coloring = false, $showNames = false)

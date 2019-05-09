@@ -177,6 +177,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if (!is_null($contragent->contragentId)) {
                 $suggestions[$contragent->folderId] = $contragent->folderTitle;
             }
+            
         }
         
         asort($suggestions);

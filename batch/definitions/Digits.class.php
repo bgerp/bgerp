@@ -33,6 +33,47 @@ class batch_definitions_Digits extends batch_definitions_Proto
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('length', 'int', 'caption=Дължина,placeholder=255');
+        $fieldset->FLD('autoValue', 'enum(yes=Автоматично,no=Без)', 'caption=Генериране');
+    }
+    
+    
+    /**
+     * Връща автоматичния партиден номер според класа
+     *
+     * @param mixed     $documentClass - класа за който ще връщаме партидата
+     * @param int       $id            - ид на документа за който ще връщаме партидата
+     * @param int       $storeId       - склад
+     * @param datetime|NULL $date          - дата
+     *
+     * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
+     */
+    public function getAutoValue($documentClass, $id, $storeId, $date = null)
+    {
+        $batch = ($this->rec->autoValue == 'yes') ? $this->getNextBatch() : null;
+        
+        return $batch;
+    }
+    
+    
+    /**
+     * Генерира следващия пореден номер от партидата
+     *
+     * @param datetime $expiryDate - срок на годност
+     * @return string|NULL         - генерирания номер според типа на партидата
+     */
+    private function getNextBatch()
+    {
+        $existingBatches = batch_BatchesInDocuments::getBatchByType($this->getClassId(), 'batch');
+        $existingBatches = arr::extractValuesFromArray($existingBatches, 'batch');
+        rsort($existingBatches);
+        
+        $nextNumber = isset($existingBatches[0]) ? str::increment($existingBatches[0]) : 1;
+        if(empty($this->rec->length) || strlen($nextNumber) <= $this->rec->length){
+            
+            return $nextNumber;
+        }
+        
+        return null;
     }
     
     
@@ -59,7 +100,7 @@ class batch_definitions_Digits extends batch_definitions_Proto
             return false;
         }
         
-        return true;
+        return parent::isValid($value, $quantity, $msg);
     }
     
     

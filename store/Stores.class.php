@@ -193,7 +193,7 @@ class store_Stores extends core_Master
         $this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,notNull,default=active,input=none');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
-       
+        
         $this->setDbUnique('name');
     }
     
@@ -305,7 +305,7 @@ class store_Stores extends core_Master
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperLink($rec->locationId, true);
             }
-        } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
+        } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->name = "<b style='position:relative; top: 5px;'>" . $row->name . "</b>";
             $row->name .= "    <span class='fright'>" . $row->currentPlg . "</span>";
             unset($row->currentPlg);
@@ -336,7 +336,7 @@ class store_Stores extends core_Master
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if (doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
+        if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             unset($data->listFields['currentPlg']);
         }
     }
@@ -347,13 +347,9 @@ class store_Stores extends core_Master
      */
     public static function on_AfterPrepareListFields($mvc, &$res, $data)
     {
-        $listFieldsPos = doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS');
-        if ($listFieldsPos != 'no') {
+        if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $data->listFields['name'] = '@' . $data->listFields['name'];
-            
-            if ($listFieldsPos == 'top') {
-                $mvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
-            }
+            $mvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
         }
     }
 }

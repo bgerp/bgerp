@@ -109,7 +109,7 @@ class core_Db extends core_BaseClass
     
     
     /**
-     * @var mySQL result
+     * 
      */
     public $lastRes;
     

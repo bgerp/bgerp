@@ -74,7 +74,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Името на полето, което ще е на втори ред
      */
-    public $listFieldsSecondLineField = 'title';
+    public $listFieldsExtraLine = 'title';
     
     
     /**

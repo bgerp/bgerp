@@ -66,17 +66,6 @@ class auto_Setup extends core_ProtoSetup
     
     
     /**
-     * Инсталиране на пакета
-     */
-    public function install()
-    {
-        $html = parent::install();
-        
-        return $html;
-    }
-    
-    
-    /**
      * Зареждане на начални данни
      */
     public function loadSetupData($itr = '')

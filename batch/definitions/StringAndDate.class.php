@@ -2,14 +2,14 @@
 
 
 /**
- * Драйвер за партиди на Дени
+ * Драйвер за партиди от тип `Номер + Срок на годност`
  *
  *
- * @category  denny
+ * @category  bgerp
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -34,6 +34,78 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         $fieldset->FLD('length', 'int', 'caption=Дължина');
         $fieldset->FLD('delimiter', 'enum(&#x20;=Интервал,.=Точка,&#44;=Запетая,&#47;=Наклонена,&#45;=Тире)', 'caption=Разделител');
         $fieldset->FLD('prefix', 'varchar(3)', 'caption=Префикс');
+        $fieldset->FLD('autoValue', 'enum(yes=Автоматично,no=Без)', 'caption=Генериране');
+        $fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец)', 'caption=Срок по подразбиране,unit=след текущата дата');
+    }
+    
+    
+    /**
+     * Връща автоматичния партиден номер според класа
+     *
+     * @param mixed     $documentClass - класа за който ще връщаме партидата
+     * @param int       $id            - ид на документа за който ще връщаме партидата
+     * @param int       $storeId       - склад
+     * @param datetime|NULL $date          - дата
+     *
+     * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
+     */
+    public function getAutoValue($documentClass, $id, $storeId, $date = null)
+    {
+        $batch = null;
+        
+        // Ако ще се генерира автоматична стойност
+        if($this->rec->autoValue == 'yes'){
+            $time = cat_Products::getParams($this->rec->productId, 'expiryTime');
+            if(!isset($time)){
+                $time = $this->rec->time;
+            }
+            
+            $date = dt::today();
+            if (isset($time)) {
+                $date = dt::addSecs($time, $date);
+                $date = dt::verbal2mysql($date, false);
+            }
+            
+            // Прави се опит за получаване на следващия свободен номер
+            $batch = $this->getNextBatch($date);
+        }
+        
+        return $batch;
+    }
+    
+    
+    /**
+     * Генерира следващия пореден номер от партидата
+     * 
+     * @param datetime $expiryDate - срок на годност
+     * @return string|NULL         - генерирания номер според типа на партидата
+     */
+    private function getNextBatch($expiryDate)
+    {
+        $existingBatches = batch_BatchesInDocuments::getBatchByType($this->getClassId(), 'batch');
+        $existingBatches = arr::extractValuesFromArray($existingBatches, 'batch');
+        $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
+        
+        $normalized = array();
+        foreach ($existingBatches as $batch){
+            list($batchNormalized,) = explode($delimiter, $batch, 2);
+            $normalized[] = str_replace($this->rec->prefix, '', $batchNormalized);
+        }
+        rsort($normalized);
+        
+        $max = $normalized[0];
+        $nextNumber = isset($max) ? str::increment($max) : str_pad(1, $this->rec->length, '0', STR_PAD_LEFT);
+        $nextNumber = "{$this->rec->prefix}{$nextNumber}";
+        
+        if(!empty($this->rec->length) && strlen($nextNumber) > $this->rec->length){
+            
+            return null;
+        }
+        
+        $date = dt::mysql2verbal($expiryDate, $this->rec->format);
+        $nextNumber = "{$nextNumber}{$delimiter}{$date}";
+            
+        return $nextNumber;
     }
     
     
@@ -48,15 +120,16 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
      */
     public function isValid($value, $quantity, &$msg)
     {
-        // Ако артикула вече има партидаза този артикул с тази стойност, се приема че е валидна
+        // Ако артикула вече има партида за този артикул с тази стойност, се приема че е валидна
         if (batch_Items::fetchField(array("#productId = {$this->rec->productId} AND #batch = '[#1#]'", $value))) {
             
             return true;
         }
         
         $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
+        
         if (strpos($value, $delimiter) === false) {
-            $msg = 'В партидата трябва да има|* ' . $delimiter;
+            $msg = 'В партидата трябва да има|* "' . $delimiter . '"';
             
             return false;
         }
@@ -86,7 +159,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
             }
         }
         
-        return true;
+        return parent::isValid($value, $quantity, $msg);
     }
     
     

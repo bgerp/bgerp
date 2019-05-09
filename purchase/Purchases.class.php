@@ -94,7 +94,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Името на полето, което ще е на втори ред
      */
-    public $listFieldsSecondLineField = 'title';
+    public $listFieldsExtraLine = 'title';
     
     
     /**
@@ -706,7 +706,7 @@ class purchase_Purchases extends deals_DealMaster
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionPur')) {
                 $row->commonCondition = cls::get('type_Url')->toVerbal($cond);
             }
-        } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
+        } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->title = "<b>" . $row->title . "</b>";
             $row->title .= "  «  " . $row->folderId;
         }

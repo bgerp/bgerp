@@ -289,7 +289,7 @@ class deals_OpenDeals extends core_Manager
      * @param int         $threadId - ид на нишката
      * @param core_Master $docClass - инстанция на класа
      *
-     * @return html $btns
+     * @return string $btns
      */
     private function getNewDocBtns($threadId, $originId, core_Master $docClass)
     {

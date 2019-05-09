@@ -89,7 +89,6 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
-        $rec = &$data->form->rec;
         
         if (core_Packs::isInstalled('batch')) {
             $form->setField('batches', 'input');

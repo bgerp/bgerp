@@ -182,18 +182,6 @@ class eshop_Setup extends core_ProtoSetup
     
     
     /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-    
-    
-    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     public function loadSetupData($itr = '')
@@ -225,13 +213,13 @@ class eshop_Setup extends core_ProtoSetup
     /**
      * Миграция на уеб константа
      */
-    function updateContactData()
+    public function updateContactData()
     {
         $conf = core_Packs::getConfig('bgerp');
         $value = $conf->_data['BGERP_MANDATORY_CONTACT_FIELDS'];
         $exValue = eshop_Setup::get('MANDATORY_CONTACT_FIELDS');
         
-        if(!empty($value) && $exValue != $value && in_array($value, array('company', 'person', 'both'))){
+        if (!empty($value) && $exValue != $value && in_array($value, array('company', 'person', 'both'))) {
             core_Packs::setConfig('eshop', array('ESHOP_MANDATORY_CONTACT_FIELDS' => $value));
         }
     }

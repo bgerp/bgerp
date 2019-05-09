@@ -55,22 +55,4 @@ class pixlr_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Премахваме от type_Keylist полета
-        $Plugins->deinstallPlugin('pixlr_Plugin');
-        $html .= "<li>Премахнати са всички инсталации на 'pixlr_Plugin'";
-        
-        return $html;
-    }
 }

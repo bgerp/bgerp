@@ -77,11 +77,6 @@ class select2_Setup extends core_ProtoSetup
     {
         $html = '';
         
-        if (core_Packs::isInstalled('chosen')) {
-            $packs = cls::get('core_Packs');
-            $html .= $packs->deinstall('chosen');
-        }
-        
         $html .= parent::install();
         
         // Зареждаме мениджъра на плъгините
@@ -90,8 +85,6 @@ class select2_Setup extends core_ProtoSetup
         // Плъгини за keylist и наследниците му
         $html .= $Plugins->forcePlugin('Select2 за тип Keylist', 'select2_Plugin', 'type_Keylist', 'private');
         $html .= $Plugins->forcePlugin('Select2 за тип Accounts', 'select2_Plugin', 'acc_type_Accounts', 'private');
-
-//        $html .= $Plugins->forcePlugin('Select2 за тип UsersList', 'select2_Plugin', 'type_UserList', 'private');
         
         $html .= $Plugins->forcePlugin('Select2 за тип Users', 'select2_PluginSelect', 'type_Users', 'private');
         

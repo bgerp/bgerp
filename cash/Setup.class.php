@@ -85,14 +85,4 @@ class cash_Setup extends core_ProtoSetup
     public $defClasses = 'cash_reports_CashImpl';
     
     
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
 }

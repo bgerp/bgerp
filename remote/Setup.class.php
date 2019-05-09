@@ -70,7 +70,7 @@ class remote_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = 'remote';
-        
+    
     
     /**
      * Инсталиране на пакета
@@ -109,17 +109,5 @@ class remote_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
         
         return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
     }
 }

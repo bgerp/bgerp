@@ -58,23 +58,6 @@ class fastscroll_Setup extends core_ProtoSetup
     
     
     /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        $Plugins->deinstallPlugin('fastscroll_Plugin');
-        $html .= "<li>Премахнати са всички инсталации на 'fastscroll_Plugin'";
-        
-        return $html;
-    }
-    
-    
-    /**
      * Връща JS файлове, които са подходящи за компактиране
      */
     public function getCommonJs()
