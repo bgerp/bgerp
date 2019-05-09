@@ -149,6 +149,7 @@ class purchase_Setup extends core_ProtoSetup
     public function install()
     {
         $html = parent::install();
+        $config = core_Packs::getConfig('purchase');
         
         // Добавяне на дефолтни роли за бутоните
         foreach (array('PURCHASE_ADD_BY_PRODUCT_BTN', 'PURCHASE_ADD_BY_LIST_BTN') as $const) {
@@ -185,8 +186,8 @@ class purchase_Setup extends core_ProtoSetup
                 
                 $clone = clone $mRec;
                 
-                $clone->threadId = (isset($clone->threadId)) ? $clone->threadId : $mvc->fetchField($clone->id, 'threadId');
-                $clone->folderId = (isset($clone->folderId)) ? $clone->folderId : $mvc->fetchField($clone->id, 'folderId');
+                $clone->threadId = (isset($clone->threadId)) ? $clone->threadId : $Master->fetchField($clone->id, 'threadId');
+                $clone->folderId = (isset($clone->folderId)) ? $clone->folderId : $Master->fetchField($clone->id, 'folderId');
                 
                 $docClassId = core_Classes::getId($Master);
                 $detailClassId = core_Classes::getId($Detail);
