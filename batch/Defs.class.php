@@ -91,6 +91,12 @@ class batch_Defs extends core_Manager
     }
     
     
+    function act_Test()
+    {
+        $Def = batch_Defs::getBatchDef(3714);
+        
+        bp($Def->getAutoValue(purchase_Purchases::getClassId(), 334, 1));
+    }
     /**
      * Добавя ключови думи за пълнотекстово търсене
      */

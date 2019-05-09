@@ -17,12 +17,6 @@
 abstract class batch_definitions_Proto extends core_BaseClass
 {
     /**
-     * Автоматичен стринг
-     */
-    const AUTO_VALUE_STRING = 'Автоматично';
-    
-    
-    /**
      * Плейсхолдър на полето
      *
      * @param string
