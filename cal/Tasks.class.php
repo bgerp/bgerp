@@ -422,9 +422,7 @@ class cal_Tasks extends embed_Manager
     {
         if (!$form->rec->{$mvc->driverClassField}) {
             $driverClass = Request::get('driverClass');
-            
             if ($driverClass && cls::load($driverClass, true)) {
-                $Driver = cls::get($driverClass);
                 
                 if (!isset($form->rec)) {
                     $form->rec = new stdClass();
@@ -1892,7 +1890,6 @@ class cal_Tasks extends embed_Manager
      */
     public static function getGantt($data)
     {
-        $assignedUsersArr = array();
         
         // масив с цветове
         $colors = array('#610b7d',
@@ -2183,6 +2180,7 @@ class cal_Tasks extends embed_Manager
         
         $imgPlus = ht::createElement('img', array('src' => $iconPlus));
         $imgMinus = ht::createElement('img', array('src' => $iconMinus));
+        $otherParams = $headerInfo = $res = array();
         
         switch ($ganttType) {
         
@@ -2501,6 +2499,7 @@ class cal_Tasks extends embed_Manager
      */
     public static function calcTasksMinStartMaxEndTime($data)
     {
+        $start = $end = array();
         if ($data->recs) {
             $data = $data->recs;
         }
@@ -2521,13 +2520,6 @@ class cal_Tasks extends embed_Manager
                 }
                 
                 if ($timeStart) {
-                    // ако няма продължителност на задачата
-                    if (!$rec->timeDuration) {
-                        // продължителността е края - началото
-                        $timeDuration = 1800;
-                    } else {
-                        $timeDuration = $rec->timeDuration;
-                    }
                     
                     // ако нямаме край на задачата
                     /*if(!$rec->timeEnd){
@@ -2583,11 +2575,8 @@ class cal_Tasks extends embed_Manager
         $now = dt::verbal2mysql();
         $nowTimeStamp = dt::mysql2timestamp($now);
         
-        // вчера
-        $yesterday = $nowTimeStamp - (24 * 60 * 60);
-        $yesterdayDate = dt::timestamp2Mysql($yesterday);
-        
         $calcTime = false;
+        $calcTimeS = $arrCond = array();
         
         // Ако сме активирали през singleToolbar-а
         if ($rec->id) {
