@@ -117,7 +117,7 @@ class store_Transfers extends core_Master
     /**
      * Името на полето, което ще е на втори ред
      */
-    public $listFieldsSecondLineField = 'title';
+    public $listFieldsExtraLine = 'title=bottom';
     
     
     /**
@@ -308,7 +308,7 @@ class store_Transfers extends core_Master
         if ($fields['-list']) {
             $row->title = $mvc->getLink($rec->id, 0);
             
-            if (doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
+            if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
                 $row->title = "<b>" . $row->title . "</b>";
                 $row->title .=  "  " . $row->fromStore . " » " . $row->toStore;
                 $row->createdBy = crm_Profiles::createLink($rec->createdBy);
@@ -608,7 +608,7 @@ class store_Transfers extends core_Master
      */
     public static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
-        if (doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
+        if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $data->listFields = 'deliveryTime,valior, title=Документ, folderId , weight, volume,lineId';
         }
     }

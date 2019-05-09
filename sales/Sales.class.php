@@ -130,7 +130,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Името на полето, което ще е на втори ред
      */
-    public $listFieldsSecondLineField = 'title';
+    public $listFieldsExtraLine = 'title';
     
     
     /**
@@ -1211,7 +1211,7 @@ class sales_Sales extends deals_DealMaster
                     $row->btnTransport = $link->getContent();
                 }
             }
-        } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
+        } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->title = "<b>" . $row->title . "</b>";
             $row->title .= "  «  " . $row->folderId;
         }

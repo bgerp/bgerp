@@ -120,7 +120,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Името на полето, което ще е на втори ред
      */
-    public $listFieldsSecondLineField = 'title';
+    public $listFieldsExtraLine = 'title=bottom';
     
     
     /**
@@ -544,7 +544,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     */
     public static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
-        if (doc_Setup::get('LIST_FIELDS_SECOND_LINE_POS') != 'no') {
+        if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $data->listFields = 'deliveryTime,valior, title=Документ, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId';
         }
     }
