@@ -138,12 +138,11 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $sQuery = sales_Invoices::getQuery();
         
         $sQuery->where("#state = 'active'");
-        
+       
         $sQuery->where(array(
-            "#createdOn < '[#1#]'",
+            "#dueDate IS NOT NULL AND #dueDate < '[#1#]'",
             $rec->checkDate . ' 23:59:59'
         ));
-        
         
         // Фактури ПРОДАЖБИ
         while ($saleInvoice = $sQuery->fetch()) {
