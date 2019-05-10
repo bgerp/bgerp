@@ -1890,7 +1890,6 @@ class cal_Tasks extends embed_Manager
      */
     public static function getGantt($data)
     {
-        
         // масив с цветове
         $colors = array('#610b7d',
             '#1b7d23',
@@ -2520,15 +2519,6 @@ class cal_Tasks extends embed_Manager
                 }
                 
                 if ($timeStart) {
-                    
-                    // ако нямаме край на задачата
-                    /*if(!$rec->timeEnd){
-                        // изчисляваме края, като начало + продължителност
-                        $timeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $timeDuration);
-                    } else {
-                        $timeEnd = $rec->timeEnd;
-                    }*/
-                    
                     // правим 2 масива с начални и крайни часове
                     if ($timeStart) {
                         $start[] = dt::mysql2timestamp($timeStart);
@@ -2588,7 +2578,7 @@ class cal_Tasks extends embed_Manager
             }
             
             // ако задачата е зависима
-            if (is_array($arrCond)) {
+            if (!empty($arrCond)) {
                 foreach ($arrCond as $cond) {
                     // зависиама по прогрес
                     if ($cond->activationCond == 'onProgress') {
@@ -2623,7 +2613,7 @@ class cal_Tasks extends embed_Manager
                     // най-малкото време е времето за стартирване на текущата задача
                     $calcTime = min($calcTimeS);
                 } else {
-                    if (is_array($calcTimeS) && !empty($calcTimeS)) {
+                    if (!empty($calcTimeS)) {
                         $calcTime = min($calcTimeS);
                     } else {
                         $calcTime = null;
@@ -2650,7 +2640,7 @@ class cal_Tasks extends embed_Manager
             
             return $calcTime;
         } elseif (!$rec->id && $rec->timeStart) {
-            if (is_array($arrCond)) {
+            if (!empty($arrCond)) {
                 foreach ($arrCond as $cond) {
                     if ($cond->activationCond == 'onProgress') {
                         // proverka za systoqnieto ?!?
@@ -2674,7 +2664,7 @@ class cal_Tasks extends embed_Manager
                     // най-малкото време е времето за стартирване на текущата задача
                     $calcTime = min($calcTimeS);
                 } else {
-                    if (is_array($calcTimeS) && !empty($calcTimeS)) {
+                    if (!empty($calcTimeS)) {
                         $calcTime = min($calcTimeS);
                     }
                 }
@@ -2831,7 +2821,7 @@ class cal_Tasks extends embed_Manager
                 $arrCond[] = $recCond;
             }
             
-            if (is_array($arrCond)) {
+            if (!empty($arrCond)) {
                 foreach ($arrCond as $cond) {
                     // правим масив с всички изчислени времена
                     $calcTimeS[] = self::calculateTimeToStart($rec, $cond);
