@@ -2665,7 +2665,7 @@ class cal_Tasks extends embed_Manager
                     
                     return $calcTime;
                 }
-                $timeStart = self::fetchField($rec->id, 'timeStart');
+                $timeStart = $rec->timeStart;
                 
                 if ($timeStart != null) {
                     // прибавяме го към масива
