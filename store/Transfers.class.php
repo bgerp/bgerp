@@ -246,6 +246,12 @@ class store_Transfers extends core_Master
         $this->setDbIndex('lineId');
     }
     
+    function act_Test()
+    {
+       $r = drdata_Vats::isBulstat('3076013127');
+       bp($r);
+    }
+    
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
