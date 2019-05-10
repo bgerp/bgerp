@@ -46,7 +46,9 @@ class bgerp_B extends core_Manager
      */
     public function unprotectId_($id)
     {
-        if ($_GET['Act'] == 'R') {
+        $act = strtolower($_GET['Act']);
+        $ctr = strtolower($_GET['Ctr']);
+        if ($act == 'r' || $ctr != 'b') {
             $this->protectId = false;
         }
         
