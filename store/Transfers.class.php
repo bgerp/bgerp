@@ -246,12 +246,6 @@ class store_Transfers extends core_Master
         $this->setDbIndex('lineId');
     }
     
-    function act_Test()
-    {
-       $r = drdata_Vats::isBulstat('3076013127');
-       bp($r);
-    }
-    
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
@@ -612,7 +606,7 @@ class store_Transfers extends core_Master
     /**
      * Извиква се преди подготовката на колоните
      */
-    public static function on_BeforePrepareListFields($mvc, &$res, $data)
+    protected static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
         if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $data->listFields = 'deliveryTime,valior, title=Документ, folderId , weight, volume,lineId';
