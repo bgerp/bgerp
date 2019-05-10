@@ -2578,7 +2578,7 @@ class cal_Tasks extends embed_Manager
             }
             
             // ако задачата е зависима
-            if (is_array($arrCond)) {
+            if (!empty($arrCond)) {
                 foreach ($arrCond as $cond) {
                     // зависиама по прогрес
                     if ($cond->activationCond == 'onProgress') {
@@ -2613,7 +2613,7 @@ class cal_Tasks extends embed_Manager
                     // най-малкото време е времето за стартирване на текущата задача
                     $calcTime = min($calcTimeS);
                 } else {
-                    if (is_array($calcTimeS) && !empty($calcTimeS)) {
+                    if (!empty($calcTimeS)) {
                         $calcTime = min($calcTimeS);
                     } else {
                         $calcTime = null;
@@ -2640,7 +2640,7 @@ class cal_Tasks extends embed_Manager
             
             return $calcTime;
         } elseif (!$rec->id && $rec->timeStart) {
-            if (is_array($arrCond)) {
+            if (!empty($arrCond)) {
                 foreach ($arrCond as $cond) {
                     if ($cond->activationCond == 'onProgress') {
                         // proverka za systoqnieto ?!?
@@ -2664,7 +2664,7 @@ class cal_Tasks extends embed_Manager
                     // най-малкото време е времето за стартирване на текущата задача
                     $calcTime = min($calcTimeS);
                 } else {
-                    if (is_array($calcTimeS) && !empty($calcTimeS)) {
+                    if (!empty($calcTimeS)) {
                         $calcTime = min($calcTimeS);
                     }
                 }
@@ -2821,7 +2821,7 @@ class cal_Tasks extends embed_Manager
                 $arrCond[] = $recCond;
             }
             
-            if (is_array($arrCond)) {
+            if (!empty($arrCond)) {
                 foreach ($arrCond as $cond) {
                     // правим масив с всички изчислени времена
                     $calcTimeS[] = self::calculateTimeToStart($rec, $cond);
