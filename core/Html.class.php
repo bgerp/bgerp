@@ -1093,7 +1093,7 @@ class core_Html
                     '    .dump .undefined {color:#cc0000}' .
                     '    .dump .unknown {color:#c96}' ;
         
-        $scripts = "\$('document').ready(function() {\$('.trigger').click(function(event){\n" .
+        $scripts = "$('.trigger').click(function(event){\n" .
                     "var obj = \$(this).parent().children('ul')[0];\n" .
                     "var sp  = \$(this);\n" .
                     "if(\$(obj).hasClass('hidden')){\n" .
@@ -1103,13 +1103,12 @@ class core_Html
                     "    \$(sp).css('border-bottom', 'dotted 1px #bbb');\n" .
                     "    \$(obj).addClass('hidden').slideUp();\n" .
                     "}\n" .
-                    "event.stopPropagation();});\n" .
-                    "});\n";
+                    "event.stopPropagation(); });\n";
         
         if (!$wholeDocument) {
             $tpl = new ET($html);
             $tpl->appendOnce($styles, 'STYLES');
-            $tpl->appendOnce($scripts, 'SCRIPTS');
+            $tpl->appendOnce($scripts, 'JQRUN');
         } else {
             $tpl = "<!DOCTYPE html>\n" .
                     "<html><head>\n" .
@@ -1123,9 +1122,7 @@ class core_Html
                     "</head>\n" .
                     "<body>\n" .
                     $html . "\n" .
-                    "<script>\n" .
-                    $scripts .
-                    "</script>\n" .
+                    "<script> window.onload = function() {if (window.jQuery) {". $scripts ." }\n</script>" .
                     "</body>\n" .
                     "</html>\n";
         }
