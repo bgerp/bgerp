@@ -3242,10 +3242,6 @@ div.statuses-message h2 {
 .debug-info {
   color: black; }
 
-.debug-notice {
-  color: #ff2828;
-  font-size: 0.9em; }
-
 .debug-new {
   color: #00aa00; }
 
@@ -3407,6 +3403,10 @@ span.cng {
   font-weight: bold; }
   .toast-container a:hover {
     text-decoration: underline; }
+
+.toast-item-wrapper .debug-notice {
+  color: #ff2828;
+  font-size: 0.85em; }
 
 .toast-item-wrapper p {
   max-height: 150px;
