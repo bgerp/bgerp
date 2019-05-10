@@ -1890,7 +1890,6 @@ class cal_Tasks extends embed_Manager
      */
     public static function getGantt($data)
     {
-        
         // масив с цветове
         $colors = array('#610b7d',
             '#1b7d23',
@@ -2520,15 +2519,6 @@ class cal_Tasks extends embed_Manager
                 }
                 
                 if ($timeStart) {
-                    
-                    // ако нямаме край на задачата
-                    /*if(!$rec->timeEnd){
-                        // изчисляваме края, като начало + продължителност
-                        $timeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $timeDuration);
-                    } else {
-                        $timeEnd = $rec->timeEnd;
-                    }*/
-                    
                     // правим 2 масива с начални и крайни часове
                     if ($timeStart) {
                         $start[] = dt::mysql2timestamp($timeStart);
