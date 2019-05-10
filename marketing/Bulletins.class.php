@@ -114,6 +114,12 @@ class marketing_Bulletins extends core_Master
     
     
     /**
+     * Кой има права да експортира
+     */
+    public $canExport = 'ceo, marketing';
+    
+    
+    /**
      * Полета на модела
      */
     public function description()
