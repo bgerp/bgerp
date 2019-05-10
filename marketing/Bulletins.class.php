@@ -646,8 +646,6 @@ class marketing_Bulletins extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = $data->form;
-        $rec = $form->rec;
-        
         $domainsArr = array();
         
         $dQuery = cms_Domains::getQuery();
@@ -853,6 +851,7 @@ class marketing_Bulletins extends core_Master
         
         // Масива с избраните полета за export
         $exportFields = $detail->selectFields('#export');
+        $listFields = array();
         
         // Ако има избрани полета за export
         if (count($exportFields)) {
@@ -864,7 +863,7 @@ class marketing_Bulletins extends core_Master
         // взимаме от базата целия списък отговарящ на този бюлетин
         $queryDetail = marketing_BulletinSubscribers::getQuery();
         $queryDetail->where("#bulletinId = '{$id}'");
-        
+        $detailRecs = array();
         while ($recs = $queryDetail->fetch()) {
             $detailRecs[] = $recs;
         }

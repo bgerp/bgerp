@@ -2623,7 +2623,7 @@ class cal_Tasks extends embed_Manager
                     // най-малкото време е времето за стартирване на текущата задача
                     $calcTime = min($calcTimeS);
                 } else {
-                    if (is_array($calcTimeS)) {
+                    if (is_array($calcTimeS) && !empty($calcTimeS)) {
                         $calcTime = min($calcTimeS);
                     } else {
                         $calcTime = null;
@@ -2674,7 +2674,9 @@ class cal_Tasks extends embed_Manager
                     // най-малкото време е времето за стартирване на текущата задача
                     $calcTime = min($calcTimeS);
                 } else {
-                    $calcTime = min($calcTimeS);
+                    if (is_array($calcTimeS) && !empty($calcTimeS)) {
+                        $calcTime = min($calcTimeS);
+                    }
                 }
             } else {
                 $calcTime = $rec->timeStart;

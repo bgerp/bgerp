@@ -363,7 +363,7 @@ class marketing_Router
         $normalized = core_Cache::get('crm_Companies', $key);
         
         if (!is_array($normalized)) {
-            $normalized = $companyArr = array();
+            $normalized = array();
             $query = crm_Companies::getQuery();
             $query->EXT('last', 'doc_Folders', 'externalKey=folderId');
             $query->orderBy('#last', 'DESC');
