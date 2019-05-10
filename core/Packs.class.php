@@ -89,7 +89,7 @@ class core_Packs extends core_Manager
      *
      * @param string $name
      *
-     * @return id|FALSE
+     * @return int|FALSE
      */
     public static function isInstalled($name, $rightNow = false)
     {
