@@ -359,7 +359,7 @@ class core_SpellNumber
      * @param string $lg              Език на който да е изписан текста
      * @param bool   $displayCurrency Дали да върне валутата
      *
-     * @return text $text подадената сума изписана с думи
+     * @return string $text подадената сума изписана с думи
      */
     public function asCurrency($num, $lg = null, $displayCurrency = true, $showCurrencyCode = null)
     {

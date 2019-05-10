@@ -365,7 +365,7 @@ class core_Html
     /**
      * Прави SELECT, radio или disabled INPUT в зависимост от броя на опциите
      *
-     * @param $maxRadio максимален брой опции, при които се създава радио група
+     * @param int $maxRadio максимален брой опции, при които се създава радио група
      */
     public static function createSmartSelect(
         $options,
@@ -1024,8 +1024,8 @@ class core_Html
      * Създава хинт с иконка към елемент
      *
      * @param mixed                       $body        - тяло
-     * @param title                       $hint        - текст на хинта
-     * @param notice|warning|error|string $icon        - име на иконката
+     * @param string                       $hint        - текст на хинта
+     * @param string $icon        - име на иконката
      * @param bool                        $appendToEnd - дали хинта да се добави в края на стринга
      * @param array                       $iconAttr    - атрибути на иконката
      * @param array                       $elementArr  - атрибути на елемента
