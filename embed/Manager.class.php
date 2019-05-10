@@ -448,5 +448,7 @@ class embed_Manager extends core_Master
         }
         $classId = core_Classes::getId($driverClass);
         $query->where("#{$query->mvc->driverClassField} = ${classId}");
+        
+        return $query;
     }
 }
