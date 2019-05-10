@@ -3559,11 +3559,6 @@ div.statuses-message h2 {
     color:black;
 }
 
-.debug-notice {
-    color: #ff2828;
-	font-size: 0.85em;
-}
-
 .debug-new {
     color:#0a0;
 }
@@ -3747,6 +3742,11 @@ span.cng {
 	&:hover{
 	   text-decoration: underline;
 	}
+}
+
+.toast-item-wrapper .debug-notice {
+	color: #ff2828;
+	font-size: 0.85em;
 }
 
 .toast-item-wrapper p{
