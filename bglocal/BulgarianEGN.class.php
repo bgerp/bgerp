@@ -212,7 +212,7 @@ class bglocal_BulgarianEGN
      *
      * @param string $egn_string
      *
-     * @return BulgarianEGN
+     * @return bglocal_BulgarianEGN
      */
     public static function factory($egn_string)
     {

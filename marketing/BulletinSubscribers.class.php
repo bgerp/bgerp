@@ -159,7 +159,7 @@ class marketing_BulletinSubscribers extends core_Detail
     /**
      * Проверява дали има регистрация от това IP
      *
-     * @param IP|NULL $ip
+     * @param string|NULL $ip
      *
      * @return bool
      */

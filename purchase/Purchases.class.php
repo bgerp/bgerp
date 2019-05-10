@@ -372,8 +372,6 @@ class purchase_Purchases extends deals_DealMaster
             }
             
             // Ако експедирането е на момента се добавя бутон за нова фактура
-            $actions = type_Set::toArray($rec->contoActions);
-            
             if (deals_Helper::showInvoiceBtn($rec->threadId) && purchase_Invoices::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
                 $data->toolbar->addBtn('Вх. фактура', array('purchase_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/invoice.png,title=Създаване на входяща фактура,order=9.9993');
             }
@@ -542,7 +540,6 @@ class purchase_Purchases extends deals_DealMaster
                 $p->{$fld} = $dRec->{$fld};
             }
             
-            $info = cat_Products::getProductInfo($p->productId);
             $p->expenseRecId = acc_CostAllocations::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
             
             if (core_Packs::isInstalled('batch')) {
@@ -672,6 +669,7 @@ class purchase_Purchases extends deals_DealMaster
      */
     protected function setTemplates(&$res)
     {
+        $tplArr = array();
         $tplArr[] = array('name' => 'Договор за покупка', 'content' => 'purchase/tpl/purchases/Purchase.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrow.shtml');
         $tplArr[] = array('name' => 'Договор за покупка на услуга', 'content' => 'purchase/tpl/purchases/Service.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/ServiceNarrow.shtml');
         $tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/PurchaseEN.shtml', 'lang' => 'en', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowEN.shtml');
