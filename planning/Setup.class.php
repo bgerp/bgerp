@@ -85,7 +85,7 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Екшън - входна точка в пакета
      */
-    public $startAct = 'getStartCtr';
+    public $startAct = 'planning_DirectProductionNote';
     
     
     /**
@@ -157,7 +157,7 @@ class planning_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.21, 'Производство', 'Планиране', 'planning_Wrapper', 'getStartCtr', 'planning, ceo, job, store, taskWorker, taskPlanning'),
+        array(3.21, 'Производство', 'Планиране', 'planning_DirectProductionNote', 'list', 'ceo,planning,store,production'),
     );
     
     

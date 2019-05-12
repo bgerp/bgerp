@@ -65,13 +65,13 @@ class catering_Requests extends core_Master
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'catering, ceo, user';
+    public $canWrite = 'catering, ceo, powerUser';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'catering, ceo, user';
+    public $canRead = 'catering, ceo, powerUser';
     
     
     /**
@@ -149,7 +149,7 @@ class catering_Requests extends core_Master
      * @param stdClass $rec
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
+    {bp();
         // Ако потребителя не е 'admin' или 'catering' ще вижда сумата само на неговите поръчки за деня
         if (!haveRole('admin,catering')) {
             $personId = $mvc->EmployeesList->getPersonIdForCurrentUser();
@@ -235,7 +235,7 @@ class catering_Requests extends core_Master
      * @param int $requestId
      */
     public function calcTotal($requestId)
-    {
+    { bp();
         $queryRequestDetails = catering_RequestDetails::getQuery();
         $where = "#requestId = {$requestId}";
         
@@ -263,7 +263,7 @@ class catering_Requests extends core_Master
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('#date', 'DESC');
-        
+         
         if (!haveRole('admin,catering')) {
             unset($data->listFields['makeOrder']);
         }

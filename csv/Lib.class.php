@@ -279,6 +279,11 @@ class csv_Lib
     {
         $params = arr::make($params, true);
         
+        $mandatory = array();
+        if ($params['mandatory']) {
+            $mandatory = explode('|', $params['mandatory']);
+        }
+        
         // Редиректваме, ако сме надвишили бройката
         setIfNot($exportCnt, $params['maxExportCnt'], core_Setup::get('EF_MAX_EXPORT_CNT', true));
         if (count($recs) > $exportCnt) {
@@ -335,6 +340,14 @@ class csv_Lib
         
         // Подготвяме редовете
         foreach ($recs as $rec) {
+            // Ако задължително поле не е попълнено - пропускаме реда
+            if (count($mandatory)) {
+                foreach ($mandatory as $part) {
+                    if (strlen($rec->{$part}) == 0) {
+                        continue 2;
+                    }
+                }
+            }
             $rCsvArr = array();
             foreach ($listFields as $name => $caption) {
                 if ($fieldSet->fields[$name]) {

@@ -396,7 +396,7 @@ class doc_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Файлове в документи', 'doc_FilesPlg', 'fileman_Files', 'private');
         
         // Добавяме елемент в менюто
-        $html .= bgerp_Menu::addOnce(1.22, 'Документи', 'Всички', 'doc_Folders', 'default', 'user');
+        $html .= bgerp_Menu::addOnce(1.22, 'Документи', 'Всички', 'doc_Folders', 'default', 'powerUser');
         
         return $html;
     }

@@ -21,9 +21,9 @@ class planning_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $this->TAB('planning_DirectProductionNote', 'Протоколи->Производство', 'ceo,planning,store');
-        $this->TAB('planning_ConsumptionNotes', 'Протоколи->Влагане', 'ceo,planning,store');
-        $this->TAB('planning_ReturnNotes', 'Протоколи->Връщане', 'ceo,planning,store');
+        $this->TAB('planning_DirectProductionNote', 'Протоколи->Производство', 'ceo,planning,store,production');
+        $this->TAB('planning_ConsumptionNotes', 'Протоколи->Влагане', 'ceo,planning,store,production');
+        $this->TAB('planning_ReturnNotes', 'Протоколи->Връщане', 'ceo,planning,store,production');
         $this->TAB('planning_Jobs', 'Задания', 'ceo,planning,job');
         $this->TAB('planning_Tasks', 'Операции->Списък', 'ceo,taskWorker');
         $this->TAB('planning_ProductionTaskDetails', 'Операции->Прогрес', 'ceo,taskWorker');
@@ -40,18 +40,4 @@ class planning_Wrapper extends plg_ProtoWrapper
         $this->title = 'Планиране';
     }
     
-    
-    /**
-     * Дефолтен контролър
-     */
-    public function act_getStartCtr()
-    {
-        if (haveRole('ceo,planning,store')) {
-            redirect(array('planning_DirectProductionNote', 'list'));
-        } elseif (haveRole('job')) {
-            redirect(array('planning_Jobs', 'list'));
-        } else {
-            redirect(array('planning_Tasks', 'list'));
-        }
-    }
 }
