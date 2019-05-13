@@ -2395,6 +2395,8 @@ class crm_Companies extends core_Master
                     
                     break;
                 case 10:
+                    $res = drdata_Vats::isBulstat($uicNo);
+                    
                     $Egn = cls::get('bglocal_EgnType');
                     $res = $Egn->isValid($uicNo);
                     if (isset($res['error'])) {

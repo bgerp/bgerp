@@ -89,7 +89,7 @@ class core_Packs extends core_Manager
      *
      * @param string $name
      *
-     * @return id|FALSE
+     * @return int|FALSE
      */
     public static function isInstalled($name, $rightNow = false)
     {
@@ -689,6 +689,9 @@ class core_Packs extends core_Manager
     {
         // Максиламно време за инсталиране на пакет
         set_time_limit(400);
+        
+        // Забраняваме кеша на кода
+        ini_set('opcache.enable', false);
         
         static $f = 0;
         

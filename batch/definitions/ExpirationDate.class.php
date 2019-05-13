@@ -50,10 +50,10 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
     public function getAutoValue($documentClass, $id, $storeId, $date = null)
     {
         $date = dt::today();
-       
-        $time = $this->rec->time;
+        
+        $time = cat_Products::getParams($this->rec->productId, 'expiryTime');
         if(!isset($time)){
-            $time = cat_Products::getParams($this->rec->productId, 'expiryTime');
+            $time = $this->rec->time;
         }
         
         if (isset($time)) {

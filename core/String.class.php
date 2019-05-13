@@ -622,7 +622,6 @@ class core_String
      */
     public static function parseWords($string, &$out = null, $callback = null, $deviders = null, $html = true)
     {
-        $flagWord = true;
         $flagHtml = false;
         $pointer = 0;
         setIfNot($deviders, array(' ', ',', '"', '\'', ';', '[', ']', '.', '<', '>', "\n", "\r", "\t", ':', '?', '!', '-', '(', ')', '“', '„', '…', '&', '_', '/', '=', '+', '*'));
@@ -704,9 +703,9 @@ class core_String
     /**
      * Проверява даден символ дали е гласна буква
      *
-     * @param char $char - Симвът, който ще проверяваме
+     * @param string $char - Симвът, който ще проверяваме
      *
-     * @return boolena - Ако е гласна връщаме TRUE
+     * @return string - Ако е гласна връщаме TRUE
      */
     public static function isVowel($char)
     {
@@ -745,7 +744,7 @@ class core_String
     /**
      * Проверява дали подадения символ е пунктуационен
      *
-     * @param char $char
+     * @param string $char
      *
      * @return bool
      */
@@ -760,9 +759,9 @@ class core_String
     /**
      * Проверява даден символ дали е съгласна буква
      *
-     * @param char $char - Симвът, който ще проверяваме
+     * @param string $char - Симвът, който ще проверяваме
      *
-     * @return boolena - Ако е съгласна връщаме TRUE
+     * @return boolean - Ако е съгласна връщаме TRUE
      */
     public static function isConsonent($char)
     {
@@ -975,7 +974,7 @@ class core_String
      *
      * @param int $u
      *
-     * @return char
+     * @return string
      */
     public static function unichr($u)
     {
@@ -987,11 +986,11 @@ class core_String
      * Връща най-доброто съвпадение за дума от масива
      *
      * @param array      $wordsArr
-     * @param strng      $string
+     * @param string      $string
      * @param NULL|float $percent
      * @param bool       $ci
      *
-     * @return NULL|strng
+     * @return NULL|string
      */
     public static function getClosestWord($wordsArr, $string, &$percent = null, $ci = false)
     {

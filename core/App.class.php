@@ -14,7 +14,7 @@ class core_App
     /**
      * Кога е зададено последно увеличение на времето за изпълнение на скрипта
      *
-     * @var time
+     * @var int
      */
     protected static $timeSetTimeLimit;
     

@@ -93,6 +93,7 @@ class help_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
+        'migrate::version2',
         'help_Info',
         'help_Log',
     );
@@ -123,18 +124,6 @@ class help_Setup extends core_ProtoSetup
     
     
     /**
-     * Път до js файла
-     */
-//    var $commonJS = 'js/tooltipCustom.js';
-    
-    
-    /**
-     * Път до css файла
-     */
-//    var $commonCSS = 'css/tooltip.css';
-    
-    
-    /**
      * Инсталиране на пакета
      */
     public function install()
@@ -150,5 +139,24 @@ class help_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Въпроси за bgERP', 'help_BgerpPlg', 'core_Manager', 'family');
         
         return $html;
+    }
+    
+    
+    /**
+     * Миграция към втория формат
+     */
+    public function version2()
+    {
+        $query = help_Info::getQuery();
+        $info = $query->mvc;
+        if ($info->db->isFieldExists($info->dbTableName, 'action') || 1) {
+            //$query->FLD('action', 'varchar');
+            //$query->delete("#action != 'list'");
+            //$info->db->query("ALTER TABLE `{$info->dbTableName}` DROP COLUMN `action`");
+            $query = $info->getQuery();
+            while ($rec = $query->fetch()) {
+                $info->save($rec);
+            }
+        }
     }
 }

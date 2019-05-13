@@ -50,7 +50,7 @@ class incoming_Documents extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'admin, doc';
+    public $canRead = 'powerUser';
     
     
     /**
@@ -80,7 +80,7 @@ class incoming_Documents extends core_Master
     /**
      * Необходими роли за оттегляне на документа
      */
-    public $canReject = 'admin, doc';
+    public $canReject = 'powerUser';
     
     
     /**

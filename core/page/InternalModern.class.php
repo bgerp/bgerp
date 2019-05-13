@@ -264,11 +264,6 @@ class core_page_InternalModern extends core_page_Active
         if (($menuObj) && (count($menuObj))) {
             foreach ($menuObj as $key => $rec) {
                 
-                // Пропускаме не-достъпните менюта
-                if (!haveRole($rec->accessByRoles)) {
-                    continue;
-                }
-                
                 // Определяме дали състоянието на елемента от менюто не е 'активно'
                 $mainClass = $subClass = '';
                 if (($aMainMenu == $rec->menu)) {

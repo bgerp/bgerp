@@ -38,15 +38,15 @@ class help_Plugin extends core_Plugin
         } elseif ($act == ' ' || $act == 'default' || $act == null) {
             $act = 'list';
         }
-        
+         
         // Текущия език на интерфейса
         $lg = core_Lg::getCurrent();
-        
-        if (($rec = help_Info::fetch(array("#class = '[#1#]' AND #action = '[#2#]' AND #lg = '[#3#]'", $ctr, $act, $lg))) || haveRole('help')) {
+         
+ 
+        if (($act == 'list') && ($rec = help_Info::fetch(array("#class = '[#1#]' AND #lg = '[#2#]'", $ctr, $lg))) || haveRole('help')) {
             if (!$rec) {
                 $rec = new stdClass();
                 $rec->class = $ctr;
-                $rec->action = $act;
                 $rec->lg = $lg;
             } else {
                 // Трябва ли да бъде първоначално отворен хинта и дали въобще да го показваме?

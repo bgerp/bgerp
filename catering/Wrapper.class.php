@@ -24,7 +24,7 @@ class catering_Wrapper extends plg_ProtoWrapper
         $this->TAB('catering_Menu', 'Меню', 'ceo, catering');
         $this->TAB('catering_Companies', 'Фирми', 'catering,ceo');
         $this->TAB('catering_EmployeesList', 'Столуващи', 'catering, ceo');
-        $this->TAB('catering_Requests', 'Заявки', 'catering, ceo, user');
+        $this->TAB('catering_Requests', 'Заявки', 'catering, ceo');
         $this->TAB('catering_Orders', 'Поръчки', 'catering, ceo');
         
         $this->title = 'Кетъринг';

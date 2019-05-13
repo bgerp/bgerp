@@ -55,9 +55,9 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         
         // Ако ще се генерира автоматична стойност
         if($this->rec->autoValue == 'yes'){
-            $time = $this->rec->time;
+            $time = cat_Products::getParams($this->rec->productId, 'expiryTime');
             if(!isset($time)){
-                $time = cat_Products::getParams($this->rec->productId, 'expiryTime');
+                $time = $this->rec->time;
             }
             
             $date = dt::today();
@@ -97,14 +97,15 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         $nextNumber = isset($max) ? str::increment($max) : str_pad(1, $this->rec->length, '0', STR_PAD_LEFT);
         $nextNumber = "{$this->rec->prefix}{$nextNumber}";
         
-        if(strlen($nextNumber) == $this->rec->length){
-            $date = dt::mysql2verbal($expiryDate, $this->rec->format);
-            $nextNumber = "{$nextNumber}{$delimiter}{$date}";
+        if(!empty($this->rec->length) && strlen($nextNumber) > $this->rec->length){
             
-            return $nextNumber;
+            return null;
         }
         
-        return null;
+        $date = dt::mysql2verbal($expiryDate, $this->rec->format);
+        $nextNumber = "{$nextNumber}{$delimiter}{$date}";
+            
+        return $nextNumber;
     }
     
     
@@ -119,7 +120,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
      */
     public function isValid($value, $quantity, &$msg)
     {
-        // Ако артикула вече има партидаза този артикул с тази стойност, се приема че е валидна
+        // Ако артикула вече има партида за този артикул с тази стойност, се приема че е валидна
         if (batch_Items::fetchField(array("#productId = {$this->rec->productId} AND #batch = '[#1#]'", $value))) {
             
             return true;
@@ -158,7 +159,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
             }
         }
         
-        return true;
+        return parent::isValid($value, $quantity, $msg);
     }
     
     

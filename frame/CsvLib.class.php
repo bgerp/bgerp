@@ -21,7 +21,7 @@ class frame_CsvLib
      * Ще се обработват променливи от тип
      * double, key, keylist, date
      *
-     * @return std Class $rows
+     * @return stdClass $rec
      */
     public static function prepareCsvRows($rec)
     {

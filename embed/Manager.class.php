@@ -441,12 +441,14 @@ class embed_Manager extends core_Master
     /**
      * Филтрира заявката по класа на посочения драйвер
      */
-    public function filterQueryByDriverClass($driverClass, $query = null)
+    public static function filterQueryByDriverClass($driverClass, $query = null)
     {
         if (!is_object($query)) {
             $query = static::getQuery();
         }
         $classId = core_Classes::getId($driverClass);
         $query->where("#{$query->mvc->driverClassField} = ${classId}");
+        
+        return $query;
     }
 }

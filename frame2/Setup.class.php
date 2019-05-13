@@ -86,14 +86,6 @@ class frame2_Setup extends core_ProtoSetup
     
     
     /**
-     * Връзки от менюто, сочещи към модула
-     */
-    public $menuItems = array(
-        array(2.56, 'Обслужване', 'Справки', 'frame2_Reports', 'default', 'report, ceo, admin'),
-    );
-    
-    
-    /**
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'frame2_CsvExport';

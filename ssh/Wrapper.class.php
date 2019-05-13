@@ -24,7 +24,7 @@ class ssh_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $this->TAB('ssh_Hosts', 'SSH', 'remote, admin');
+        $this->TAB('ssh_Hosts', 'SSH', 'ceo, remote, admin');
         
         $this->title = 'Отдалечени SSH връзки';
     }
