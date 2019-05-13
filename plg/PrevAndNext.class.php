@@ -218,7 +218,7 @@ class plg_PrevAndNext extends core_Plugin
                 expect(ctype_digit($id = $selArr[0]), $selArr);
             }
             
-            if ($exRec = $mvc->fetch($id)) {
+            if ($exRec = $mvc->fetch($id) && $data->form->cmd != 'refresh') {
                 $data->form->rec = (object) arr::fillMissingKeys($exRec, $data->form->rec);
             }
             
