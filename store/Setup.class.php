@@ -46,7 +46,7 @@ class store_Setup extends core_ProtoSetup
     /**
      * Стартов контролер за връзката в системното меню
      */
-    public $startCtr = 'store_Stores';
+    public $startCtr = 'store_Products';
     
     
     /**
@@ -98,7 +98,7 @@ class store_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.2, 'Логистика', 'Склад', 'store_Stores', 'default', 'storeWorker,ceo'),
+        array(3.2, 'Логистика', 'Склад', 'store_Products', 'default', 'storeWorker,ceo'),
     );
     
     
