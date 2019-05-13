@@ -450,6 +450,13 @@ class core_page_InternalModern extends core_page_Active
             $searchLink .= ht::createLink(tr('Търсене на баркод'), array('barcode_Search', 'list'), null, $attr);
         }
         
+        // Бутон за търсене по баркод
+        if (help_Info::haveRightFor('list')) {
+            $attr['ef_icon'] = 'img/16/help.png';
+            $attr['id'] = 'modern-help-info';
+            $searchLink .= ht::createLink(tr('Помощ'), array('help_Info', 'list'), null, $attr);
+        }
+        
         $tpl->replace($searchLink, 'SEARCH_LINK');
     }
     

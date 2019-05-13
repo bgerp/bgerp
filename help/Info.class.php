@@ -30,7 +30,7 @@ class help_Info extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'help_Wrapper, plg_Created, plg_State2, plg_RowTools2';
+    public $loadList = 'help_Wrapper, plg_Created, plg_State2, plg_RowTools2, plg_Search';
     
     
     /**
@@ -58,6 +58,12 @@ class help_Info extends core_Master
      */
     public $canEditsysdata = 'debug';
     public $canDeletesysdata = 'debug';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'title, menu, class, lg, text, url';
     
     
     /**
@@ -156,6 +162,10 @@ class help_Info extends core_Master
      */
     public function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
         // Подреждаме записите, като неизпратените да се по-нагоре
         $data->query->orderBy('menu', 'ASC');
     }
