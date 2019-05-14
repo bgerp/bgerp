@@ -63,7 +63,7 @@ class help_Info extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'title, menu, class, lg, text';
+    public $searchFields = 'title, menu, class, lg, text, kWords';
     
     
     /**
@@ -84,6 +84,7 @@ class help_Info extends core_Master
         $this->FLD('lg', 'varchar(2)', 'caption=Език,mandatory,silent');
         $this->FLD('text', 'richtext(bucket=Notes)', 'caption=Информация, hint=Текст на информацията за помощ');
         $this->FLD('url', 'url', 'caption=URL, hint=Линк към документацията на bgerp.com');
+        $this->FLD('kWords', 'text(rows=2)', 'caption=Ключови думи');
         
         $this->setDbUnique('class,lg');
     }
@@ -211,6 +212,7 @@ class help_Info extends core_Master
             2 => 'lg',
             3 => 'text',
             4 => 'url',
+            5 => 'kWords'
         );
         
         $this->importing = true;
@@ -337,7 +339,7 @@ class help_Info extends core_Master
         $params['columns'] = 'none';
         $params['mandatory'] = 'text';
         
-        $csv = csv_Lib::createCsv($recs, $this, array('menu', 'class', 'lg', 'text', 'url'), $params);
+        $csv = csv_Lib::createCsv($recs, $this, array('menu', 'class', 'lg', 'text', 'url', 'kWords'), $params);
         $csv = str_replace(array("\n\r", "\r\n"), array("\n", "\n"), $csv);
         
         $path = getFullPath(self::DATA_FILE);
