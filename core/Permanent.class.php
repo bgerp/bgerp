@@ -161,14 +161,19 @@ class core_Permanent extends core_Manager
     /**
      * Изтриване на постоянния кеш
      *
-     * @param string $key
+     * @param string $key      - ключа
+     * @param boolean $likeKey - дали да е точно подадения ключ или подобен на него
      *
      * @return int
      */
-    public static function remove($key)
+    public static function remove($key, $likeKey = false)
     {
         $key = self::getKey($key);
-        self::delete(array("#key = '[#1#]'", $key));
+        if($likeKey){
+            self::delete(array("#key LIKE '[#1#]%'", "{$key}"));
+        } else {
+            self::delete(array("#key = '[#1#]'", $key));
+        }
     }
     
     
