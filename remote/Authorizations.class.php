@@ -393,7 +393,7 @@ class remote_Authorizations extends embed_Manager
                     // Изпращаме нотификацията
                     foreach ($userSenders[$userId] as $rec) {
                         $driver = self::getDriver($rec);
-                        if ($driver->sendMessage($rec, $msg)) {
+                        if ($driver->sendMessage($userId, $msg)) {
                             bgerp_LastTouch::set('sent_' . $priority, $userId);
                             break;
                         }
