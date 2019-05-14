@@ -588,7 +588,8 @@ class store_Products extends core_Detail
                 while ($td = $tdQuery->fetch()) {
                     $key = "{$tRec->fromStore}|{$td->newProductId}";
                     $reserved[$key] = array('sId' => $tRec->fromStore, 'pId' => $td->newProductId, 'reserved' => $td->sum, 'expected' => 0);
-                    if(!empty($tRec->deliveryTime) && $tRec->deliveryTime > $now) {
+                    
+                    if(!(empty($tRec->deliveryTime) || $tRec->deliveryTime >= $now)){
                         $key2 = "{$tRec->toStore}|{$td->newProductId}";
                         $reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'reserved' => 0, 'expected' => $td->sum);
                     }
