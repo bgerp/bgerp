@@ -263,6 +263,10 @@ class pos_Receipts extends core_Master
             }
         }
         
+        if(isset($fields['-terminal'])){
+            $row->id = ht::createLink($row->id, pos_Receipts::getSingleUrlArray($rec->id));
+        }
+        
         foreach (array('total', 'paid', 'change') as $fld) {
             $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
         }
@@ -464,7 +468,6 @@ class pos_Receipts extends core_Master
                 $res = 'no_one';
             }
         }
-        
         
         // Ако бележката е започната, може да се изтрие
         if ($action == 'delete' && isset($rec)) {
