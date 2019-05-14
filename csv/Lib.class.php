@@ -458,8 +458,8 @@ class csv_Lib
      * Връща масив с данните от CSV стринга
      *
      * @param string $csvData   - csv данни
-     * @param char   $delimiter - разделител
-     * @param char   $enclosure - ограждане
+     * @param string   $delimiter - разделител
+     * @param string   $enclosure - ограждане
      * @param string $firstRow  - първи ред данни или имена на колони
      *
      * @return array $rows - масив с парсирани редовете на csv-то
@@ -475,7 +475,7 @@ class csv_Lib
     /**
      * Връща имената на колоните от CSV файла
      *
-     * @param unknown $csvData
+     * @param mixed $csvData
      * @param string  $delimiter
      * @param string  $enclosure
      * @param bool    $firstEmpty

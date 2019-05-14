@@ -53,7 +53,7 @@ class currency_CurrencyGroupContent extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    public static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $groupId = Request::get('id', 'int');
         $groupName = Request::get('groupName');
@@ -70,9 +70,9 @@ class currency_CurrencyGroupContent extends core_Manager
     /**
      * Сменяме заглавието на edit формата и даваме стойност на скритото поле
      *
-     * @param core_Mvc             $mvc
-     * @param stdClass             $res
-     * @param stdClassunknown_type $data
+     * @param core_Mvc  $mvc
+     * @param stdClass  $res
+     * @param stdClass  $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
@@ -83,7 +83,7 @@ class currency_CurrencyGroupContent extends core_Manager
     /**
      * След подготовката на заглавието на формата
      */
-    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
         $data->form->title = 'Добавяне валути в група|* "' . Mode::get('groupName') . '"';
     }

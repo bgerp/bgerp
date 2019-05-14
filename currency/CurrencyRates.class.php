@@ -301,7 +301,7 @@ class currency_CurrencyRates extends core_Detail
      *  Обръща сума от една валута в друга към дата
      *
      *  @param float $amount Сума която ще обърнем
-     *  @param date $date NULL = текущата дата
+     *  @param datetime $date NULL = текущата дата
      *  @param string $from Код на валутата от която ще обръщаме
      *                      NULL = базова валута към $date
      *  @param string $to Код на валутата към която ще обръщаме
@@ -321,7 +321,7 @@ class currency_CurrencyRates extends core_Detail
      *  Закръгля резултата до 4-тата цифра след дес. точка
      *
      *  @param float      $amount Сума която ще обърнем
-     *  @param date        $date   NULL = текущата дата
+     *  @param datetime        $date   NULL = текущата дата
      *  @param string|null $from   Код на валутата от която ще обръщаме
      *                             NULL = базова валута към $date
      *  @param string|null $to     Код на валутата към която ще обръщаме
@@ -540,7 +540,7 @@ class currency_CurrencyRates extends core_Detail
      *
      * @param float  $amountFrom
      * @param float  $amountTo
-     * @param date   $date
+     * @param datetime   $date
      * @param string $currencyFromCode
      * @param string $currencyToCode
      *
