@@ -625,7 +625,7 @@ class pos_Receipts extends core_Master
      *
      * @return core_ET $tpl - шаблона
      */
-    public function getReceipt($id)
+    public function getReceipt_($id)
     {
         expect($rec = $this->fetchRec($id));
         
