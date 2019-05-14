@@ -280,7 +280,6 @@ class pos_Receipts extends core_Master
             }
         }
         
-        //bp($row->PAID_CAPTION);
         // Слагаме бутон за оттегляне ако имаме права
         if (!Mode::is('printing')) {
             if ($mvc->haveRightFor('reject', $rec)) {
@@ -1124,7 +1123,7 @@ class pos_Receipts extends core_Master
      *
      * @param int $id -ид на бележка
      */
-    public function renderPaymentTab($id)
+    public function renderPaymentTab_($id)
     {
         expect($rec = $this->fetchRec($id));
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PAYMENTS_BLOCK');
