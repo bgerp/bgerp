@@ -93,9 +93,9 @@ class help_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-        'migrate::version2',
         'help_Info',
         'help_Log',
+        'migrate::version2',
     );
     
     
@@ -149,6 +149,8 @@ class help_Setup extends core_ProtoSetup
     {
         $query = help_Info::getQuery();
         $info = $query->mvc;
+        $info->setupMvc();
+        
         if ($info->db->isFieldExists($info->dbTableName, 'action') || 1) {
             //$query->FLD('action', 'varchar');
             //$query->delete("#action != 'list'");
