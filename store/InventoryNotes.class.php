@@ -963,10 +963,6 @@ class store_InventoryNotes extends core_Master
         expect(($foundPackQuantity = $Double->fromVerbal($foundPackQuantity)) || !$foundPackQuantity);
         $quantity = $quantityInPack * $foundPackQuantity;
         if (isset($expectedPackQuantity)) {
-            $exQuantity = $quantity * $expectedPackQuantity;
-        }
-        
-        if (isset($expectedPackQuantity)) {
             expect($expectedPackQuantity = $Double->fromVerbal($expectedPackQuantity));
         }
         
@@ -980,6 +976,7 @@ class store_InventoryNotes extends core_Master
         
         // Валидация на партидния номер ако има
         if (!empty($batch)) {
+            $msg = null;
             if (core_Packs::isInstalled('batch')) {
                 expect($Def = batch_Defs::getBatchDef($productId), 'Опит за задаване на партида на артикул без партида');
                 $Def->isValid($batch, $quantity, $msg);
