@@ -166,7 +166,6 @@ class auto_Calls extends core_Manager
     public function cron_Automations()
     {
         $res = '';
-        $now = dt::now();
         
         // Ако процеса е заключен не се изпълнява
         $lockKey = 'DoAutomations';
@@ -202,7 +201,7 @@ class auto_Calls extends core_Manager
             
             try {
                 // Ивента се подава на всеки клас за автоматизации
-                foreach ($automationClasses as $classId => $className) {
+                foreach ($automationClasses as $className) {
                     if (cls::load($className, true)) {
                         $Automation = cls::get($className);
                         if (!$Automation->canHandleEvent($rec->event)) {
