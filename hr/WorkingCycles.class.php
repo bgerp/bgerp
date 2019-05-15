@@ -292,6 +292,7 @@ class hr_WorkingCycles extends core_Master
             
             // Броя на дните в месеца (= на последната дата в месеца);
             $lastDay = date('t', $firstDayTms);
+            $d = array();
             
             for ($i = 1; $i <= $lastDay; $i++) {
                 $daysTs = mktime(0, 0, 0, $month, $i, $year);
@@ -334,12 +335,10 @@ class hr_WorkingCycles extends core_Master
                     }
                     
                     $dateTms = dt::mysql2timestamp($cRec->date);
-                    
-                    $cYear = date('Y', $dateTms);
                     $cMonth = date('m', $dateTms);
-                    $cDay = date('d', $dateTms);
                     
                     $jDate = date('j', $dateTms);
+                    $d = array();
                     
                     if ($month == $cMonth) {
                         if ($d[$jDate]) {

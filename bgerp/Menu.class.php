@@ -71,7 +71,7 @@ class bgerp_Menu extends core_Manager
     {
         $cacheKey = 'menuObj_' . core_Lg::getCurrent();
         
-        $menuObj = core_Cache::get('Menu', $cacheKey);
+        $menuObj = core_Cache::get('Menu' . core_Users::getCurrent(), $cacheKey);
         
         if (!is_array($menuObj)) {
             $query = self::getQuery();
@@ -87,17 +87,23 @@ class bgerp_Menu extends core_Manager
                 }
                 list($whole, $decimal) = explode('.', $rec->row);
                 $newRec->order = $thisMenu . '.' . $decimal;
-                
+          
                 $newRec->row = (int) $rec->row;
                 $newRec->menuTr = tr($rec->menu);
                 $newRec->subMenuTr = tr($rec->subMenu);
                 $ctrArr = explode('_', $rec->ctr);
                 $newRec->pack = $ctrArr[0];
                 $newRec->act = $rec->act ? $rec->act : 'default';
+                
+                // Пропускаме не-достъпните менюта
+                if (!bgerp_Menu::findFirst($newRec->ctr, $newRec->act, $newRec->accessByRoles)) {
+                    continue;
+                }
+                
                 $menuObj[$rec->menu . ':' . $rec->subMenu] = $newRec;
             }
             
-            core_Cache::set('Menu', $cacheKey, $menuObj, 1400);
+            core_Cache::set('Menu' . core_Users::getCurrent(), $cacheKey, $menuObj, 1400);
         }
         
         // Ако няма нито един запис в Менюто, но имаме права за администратор,
@@ -107,6 +113,15 @@ class bgerp_Menu extends core_Manager
         }
         
         return $menuObj;
+    }
+
+
+    /**
+     * Изчиства кеша за дадения потребител
+     */
+    public static function clearCache($userId)
+    {
+        core_Cache::removeByType('Menu' . $userId);
     }
     
     
@@ -387,6 +402,65 @@ class bgerp_Menu extends core_Manager
     
     
     /**
+     * Опитва се да намери първия таб, от табовете на $ctr, до който текущия потребител има достъп
+     * Ако не успее, връща дали потребителя има посочените роли
+     */
+    public static function findFirst(&$ctr, &$act, &$roles)
+    {
+        // Ако имаме някоя от основните роли - ОК
+        if (haveRole($roles)) {
+            
+            return true;
+        }
+        
+        // Ако класа не може да се зареди - връщаме false
+        if (!cls::load($ctr, true)) {
+            
+            return false;
+        }
+        
+        $manager = cls::get($ctr);
+        
+        $plugins = arr::make($manager->loadList, true);
+        if (count($plugins)) {
+            foreach ($plugins as $plg) {
+                $plg = cls::get($plg);
+                if ($plg instanceof plg_ProtoWrapper && !($plg instanceof cms_ExternalWrapper)) {
+                    $plg->description();
+                    if (count($plg->tabs)) {
+                        foreach ($plg->tabs as $caption => $obj) {
+                            if ($obj->roles == 'user') {
+                                if ($obj->url['Ctr'] && ($obj->url['Act'] == 'list' || $obj->url['Act'] == 'default' || $obj->url['Act'] == '')) {
+                                    $inst = cls::get($obj->url['Ctr']);
+                                    if ($inst->canList) {
+                                        $obj->roles = $inst->canList;
+                                    } elseif ($inst->canRead) {
+                                        $obj->roles = $inst->canRead;
+                                    } else {
+                                        $obj->roles = 'ceo';
+                                    }
+                                } else {
+                                    $obj->roles == 'ceo';
+                                }
+                            }
+                            if ((count($obj->url) == 1 || count($obj->url) == 2) && haveRole($obj->roles)) {
+                                $ctr = $obj->url['Ctr'];
+                                $act = $obj->url['Act'];
+                                $roles = $obj->roles;
+                                
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    
+    /**
      * Добавя елемент в основното меню на системата. Използва се в началното установяване
      */
     public static function addOnce($row, $menu, $subMenu, $ctr, $act, $accessByRoles = 'user', $autoHide = 'no')
@@ -475,7 +549,7 @@ class bgerp_Menu extends core_Manager
      */
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        if (isDebug()) {
+        if (haveRole('debug')) {
             $data->toolbar->addBtn(
                 'Изпразване',
                 array($mvc, 'DeleteAll'),
@@ -492,7 +566,7 @@ class bgerp_Menu extends core_Manager
      */
     public function act_DeleteAll()
     {
-        if (haveRole('admin')) {
+        if (haveRole('debug')) {
             $cnt = $this->delete('1=1');
             
             return new Redirect(array($this), "|Бяха изтрити|* {$cnt} |записа");
@@ -541,47 +615,5 @@ class bgerp_Menu extends core_Manager
                 $res .= "<li class='debug-error'>Премахнато е {$rec->menu} -> {$rec->menu}</li>";
             }
         }
-    }
-    
-    
-    /**
-     * Намира първото достъпно меню и редиректва на него
-     */
-    public function act_OpenMenu()
-    {
-        $msg = '|Няма достъпни менюта с това име';
-        $redirectUrl = getRetUrl();
-        
-        $menu = trim(Request::get('menu'));
-        $menu = mb_strtolower($menu);
-        
-        $query = self::getQuery();
-        $query->where(array("LOWER(#subMenu) LIKE '[#1#]%'", $menu));
-        $query->orWhere(array("LOWER(#menu) LIKE '[#1#]%'", $menu));
-        
-        $query->orderBy('subMenu', 'ASC');
-        $query->orderBy('menu', 'ASC');
-        
-        while ($rec = $query->fetch()) {
-            if (!haveRole($rec->accessByRoles)) {
-                continue;
-            }
-            
-            $redirectUrl = array($rec->ctr, $rec->act);
-            
-            $msg = '';
-            
-            break;
-        }
-        
-        if (!$redirectUrl || !$menu) {
-            $redirectUrl = array('Portal', 'Show');
-            
-            if (!$menu) {
-                $msg = '|Няма избрано меню';
-            }
-        }
-        
-        return new Redirect($redirectUrl, $msg);
     }
 }

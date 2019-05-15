@@ -75,7 +75,7 @@ class fileman_FileDetails extends core_Detail
     /**
      * Връща масив с всички версии на файла.
      *
-     * @param numeric $fileId - id' то на файла, за който ще се търсят версиите
+     * @param int $fileId - id' то на файла, за който ще се търсят версиите
      *
      * @return array $fileVersionsArr - Масив с всички версии на съответния файл
      */

@@ -176,13 +176,13 @@ abstract class trans_Helper
     {
         $arr1 = arr::make($arr1);
         ksort($arr1);
-        foreach ($arr1 as $k1 => &$v1) {
+        foreach ($arr1 as &$v1) {
             $v1 = (int) $v1;
         }
         
         $arr2 = arr::make($arr2);
         ksort($arr2);
-        foreach ($arr2 as $k2 => &$v2) {
+        foreach ($arr2 as &$v2) {
             $v2 = (int) $v2;
         }
         

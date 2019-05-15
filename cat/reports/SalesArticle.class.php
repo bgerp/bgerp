@@ -67,6 +67,11 @@ class cat_reports_SalesArticle extends frame_BaseDriver
      */
     public $canWrite = 'cat,ceo,sales,purchase';
     
+    /**
+     * Кой има право да добавя?
+     */
+    public $canAdd = 'no_one';
+    
     
     /**
      * Права за писане

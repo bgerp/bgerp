@@ -167,6 +167,7 @@ class hr_Shifts extends core_Master
         
         // Броя на дните в месеца (= на последната дата в месеца);
         $lastDay = date('t', $firstDayTms);
+        $d = array();
         
         for ($i = 1; $i <= $lastDay; $i++) {
             $daysTs = mktime(0, 0, 0, $month, $i, $year);

@@ -22,7 +22,7 @@ class incoming_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $this->TAB('incoming_Documents', 'Документи');
-        $this->TAB('incoming_Types', 'Типове');
+        $this->TAB('incoming_Documents', 'Документи', 'ceo');
+        $this->TAB('incoming_Types', 'Типове', 'ceo');
     }
 }

@@ -156,8 +156,6 @@ class trans_Setup extends core_ProtoSetup
      */
     private function updateStoreMasters()
     {
-        $arr = array('store_ShipmentOrders');
-        $sod = cls::get('store_ShipmentOrderDetails');
         $loadId = trans_TransportUnits::fetchIdByName('load');
         
         //, 'store_Receipts' => 'store_ReceiptDetails', 'store_Transfers' => 'store_TransfersDetails'
@@ -194,7 +192,6 @@ class trans_Setup extends core_ProtoSetup
      */
     private function addDetailsToLines()
     {
-        $lines = array();
         foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_Transfers', 'store_ConsignmentProtocols') as $Doc) {
             $D = cls::get($Doc);
             $D->setupMvc();

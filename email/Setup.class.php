@@ -403,7 +403,7 @@ class email_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(1.23, 'Документи', 'Имейли', 'email_Outgoings', 'default', 'admin, email, fax, user'),
+        array(1.23, 'Документи', 'Имейли', 'email_Outgoings', 'default', 'powerUser'),
     );
     
     

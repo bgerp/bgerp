@@ -258,6 +258,12 @@ class core_Users extends core_Manager
             in_array('roles', $fields)) {
             core_Cache::remove(self::ROLES_WITH_USERS_CACHE_ID, self::ROLES_WITH_USERS_CACHE_ID);
         }
+        if (!$fields ||
+            in_array('rolesInput', $fields) ||
+            in_array('roles', $fields)) {
+            bgerp_Menu::clearCache($rec->id);  
+        }
+
     }
     
     

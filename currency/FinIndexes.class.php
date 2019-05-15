@@ -82,6 +82,7 @@ class currency_FinIndexes extends core_Manager
     public function act_LoadEuriborCsv()
     {
         $res = '';
+        $csvContent = '';
         
         // Зареждаме файлове за обработка
         $csvFiles = array('http://www.emmi-benchmarks.eu/assets/modules/rateisblue/file_processing/publication/processed/hist_EURIBOR_' . date('Y') . '.csv');
@@ -246,6 +247,7 @@ class currency_FinIndexes extends core_Manager
     public function act_LoadEoniaCsv()
     {
         $res = '';
+        $csvContent = array();
         
         // Зареждаме файлове за обработка
         // $csvFiles = array(__DIR__ . "/csv/hist_EONIA_2012.csv");
@@ -315,6 +317,7 @@ class currency_FinIndexes extends core_Manager
     public function act_LoadSofibidSofiborCsv()
     {
         $res = '';
+        $csvContent = array();
         
         // Зареждаме файлове за обработка
         // $csvFiles = array(__DIR__ . "/csv/Sofibor_Sofibid.csv");
@@ -495,9 +498,9 @@ class currency_FinIndexes extends core_Manager
      */
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        $data->toolbar->addBtn('Зареждане EURIBOR', array($this, 'loadEuriborCsv'), null, 'title= Зареждане на Euro Interbank Offered Rate');
-        $data->toolbar->addBtn('Зареждане EONIA', array($this, 'loadEoniaCsv'), null, 'title= Зареждане на Euro OverNight Index Average');
-        $data->toolbar->addBtn('Зареждане SOFIBID и SOFIBOR', array($this, 'loadSofibidSofiborCsv'), null, 'title= Зареждане на Sofia Interbank Bid Rate и Sofia Interbank Offered Rate');
+        $data->toolbar->addBtn('Зареждане EURIBOR', array($mvc, 'loadEuriborCsv'), null, 'title= Зареждане на Euro Interbank Offered Rate');
+        $data->toolbar->addBtn('Зареждане EONIA', array($mvc, 'loadEoniaCsv'), null, 'title= Зареждане на Euro OverNight Index Average');
+        $data->toolbar->addBtn('Зареждане SOFIBID и SOFIBOR', array($mvc, 'loadSofibidSofiborCsv'), null, 'title= Зареждане на Sofia Interbank Bid Rate и Sofia Interbank Offered Rate');
     }
     
     

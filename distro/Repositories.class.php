@@ -424,7 +424,7 @@ class distro_Repositories extends core_Master
     /**
      * Връща настройките на хост за съответното хранилище
      *
-     * @param int|stdObjec $id
+     * @param mixed $id
      *
      * @return FALSE|array
      */

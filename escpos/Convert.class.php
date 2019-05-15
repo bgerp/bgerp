@@ -185,7 +185,7 @@ class escpos_Convert extends core_Manager
     
     /**
      *
-     * @param unknown $tpl
+     * @param core_ET $tpl
      * @param string  $driver
      *
      * @return string

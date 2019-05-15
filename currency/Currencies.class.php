@@ -62,31 +62,31 @@ class currency_Currencies extends core_Master
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'ceo,currency';
+    public $canAdd = 'ceo,admin,cash,bank,currency,acc';
     
     
     /**
      * Кой може да редактира системните данни
      */
-    public $canEditsysdata = 'ceo,currency,admin';
+    public $canEditsysdata = 'ceo,admin,cash,bank,currency,acc';
     
     
     /**
      * Кой може да променя?
      */
-    public $canEdit = 'ceo,currency,admin';
+    public $canEdit = 'ceo,admin,cash,bank,currency,acc';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'powerUser';
+    public $canList = 'ceo,admin,cash,bank,currency,acc';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,currency,powerUser';
+    public $canSingle = 'ceo,admin,cash,bank,currency,acc';
     
     
     /**
@@ -367,10 +367,10 @@ class currency_Currencies extends core_Master
     /**
      * Връща дефолтната единична цена отговаряща на количеството
      *
-     * @param mixed $id - ид/запис на обекта
-     * @param double $quantity - За какво количество
-     * 
-     * @return double|NULL - дефолтната единична цена
+     * @param mixed $id       - ид/запис на обекта
+     * @param float $quantity - За какво количество
+     *
+     * @return float|NULL - дефолтната единична цена
      */
     public function getDefaultCost($id, $quantity)
     {

@@ -86,7 +86,7 @@ class log_Ips extends core_Manager
     /**
      * Връща id за съответния запис на IP
      *
-     * @param IP $ip
+     * @param string $ip
      *
      * @return int
      */
