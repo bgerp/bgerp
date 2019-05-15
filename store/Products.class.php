@@ -128,13 +128,12 @@ class store_Products extends core_Detail
             $row->productId = cat_Products::getVerbal($rec->productId, 'name');
             $icon = cls::get('cat_Products')->getIcon($rec->productId);
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId), false, "ef_icon={$icon}");
-            
             $pRec = cat_Products::fetch($rec->productId, 'code,isPublic,createdOn');
             $row->code = cat_Products::getVerbal($pRec, 'code');
             
             if ($isDetail) {
                    
-                   // Показване на запазеното количество
+                // Показване на запазеното количество
                 $basePack = key(cat_Products::getPacks($rec->productId));
                 if ($pRec = cat_products_Packagings::getPack($rec->productId, $basePack)) {
                     $rec->quantity /= $pRec->quantity;
@@ -160,9 +159,8 @@ class store_Products extends core_Detail
             }
             
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
-            $rec->freeQuantity = $rec->quantity - $rec->reservedQuantity;
+            $rec->freeQuantity = $rec->quantity - $rec->reservedQuantity + $rec->expectedQuantity;
             $row->freeQuantity = $mvc->getFieldType('freeQuantity')->toVerbal($rec->freeQuantity);
-            
             $row->measureId = cat_UoM::getTitleById($rec->measureId);
         }
     }
@@ -511,7 +509,7 @@ class store_Products extends core_Detail
      * Обновяване на резервираните наличности по крон
      */
     public function cron_CalcReservedQuantity()
-    {
+    {core_Permanent::truncate();
         core_Debug::$isLogging = false;
         core_App::setTimeLimit(200);
         $now = dt::now();
@@ -560,7 +558,7 @@ class store_Products extends core_Detail
                     while ($sd = $shQuery->fetch()) {
                         $storeId = $sRec->{$storeField};
                         $key = "{$storeId}|{$sd->{$Detail->productFieldName}}";
-                        $reserved[$key] = array('sId' => $storeId, 'pId' => $sd->{$Detail->productFieldName}, 'reserved' => $sd->sum, 'expected' => 0);
+                        $reserved[$key] = array('sId' => $storeId, 'pId' => $sd->{$Detail->productFieldName}, 'reserved' => $sd->sum, 'expected' => null);
                     }
                     
                     core_Permanent::set("reserved_{$sRec->containerId}", $reserved, 4320);
@@ -587,11 +585,12 @@ class store_Products extends core_Detail
                
                 while ($td = $tdQuery->fetch()) {
                     $key = "{$tRec->fromStore}|{$td->newProductId}";
-                    $reserved[$key] = array('sId' => $tRec->fromStore, 'pId' => $td->newProductId, 'reserved' => $td->sum, 'expected' => 0);
+                    $reserved[$key] = array('sId' => $tRec->fromStore, 'pId' => $td->newProductId, 'reserved' => $td->sum, 'expected' => null);
+                    $deliveryTime = (!empty($tRec->deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $tRec->deliveryTime) : $tRec->deliveryTime;
                     
-                    if(!(empty($tRec->deliveryTime) || $tRec->deliveryTime >= $now)){
+                    if(!(empty($deliveryTime) || $deliveryTime > $now)){
                         $key2 = "{$tRec->toStore}|{$td->newProductId}";
-                        $reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'reserved' => 0, 'expected' => $td->sum);
+                        $reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'reserved' => null, 'expected' => $td->sum);
                     }
                 }
                
@@ -624,7 +623,7 @@ class store_Products extends core_Detail
                         $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
                         $quantity = $quantityInPack * $rd->quantity;
                         $key = "{$receiptRec->storeId}|{$rd->productId}";
-                        $reserved[$key] = array('sId' => $receiptRec->storeId, 'pId' => $rd->productId, 'reserved' => $quantity, 'expected' => 0);
+                        $reserved[$key] = array('sId' => $receiptRec->storeId, 'pId' => $rd->productId, 'reserved' => $quantity, 'expected' => null);
                     }
                     
                     core_Permanent::set("reserved_receipts_{$receiptRec->id}", $reserved, 4320);
@@ -716,6 +715,7 @@ class store_Products extends core_Detail
         $id = Request::get('recId', 'varchar');
         expect($id = str::checkHash($id, 6));
         $rec = self::fetch($id);
+        $now = dt::now();
         
         // Намират се документите, запазили количества
         $docs = array();
@@ -734,10 +734,21 @@ class store_Products extends core_Detail
                 $dQuery->where("#{$Detail->productFld} = {$rec->productId}");
                 $dQuery->where("#storeId = {$rec->storeId}");
                 $dQuery->groupBy('containerId');
-                $dQuery->show('containerId');
+                $dQuery->show("containerId,{$Detail->masterKey}");
                 
                 while ($dRec = $dQuery->fetch()) {
-                    $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
+                    $add = true;
+                    if($storeField == 'toStore'){
+                        $deliveryTime = $Master->fetchField($dRec->{$Detail->masterKey}, 'deliveryTime');
+                        $deliveryTime = (!empty($dRec->deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $dRec->deliveryTime) : $dRec->deliveryTime;
+                        if(!(empty($deliveryTime) || $deliveryTime > $now)){
+                            $add = false;
+                        }
+                    }
+                    
+                    if($add){
+                        $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
+                    }
                 }
             }
         }
@@ -763,7 +774,7 @@ class store_Products extends core_Detail
         }
         
         $tpl = new core_ET($links);
-        
+       
         if (Request::get('ajax_mode')) {
             $resObj = new stdClass();
             $resObj->func = 'html';
