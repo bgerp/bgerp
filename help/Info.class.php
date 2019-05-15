@@ -239,6 +239,8 @@ class help_Info extends core_Master
      */
     public function act_InsertClasses()
     {
+        $cnt = 0;
+        $classes = array();
         $mQuery = bgerp_Menu::getQuery();
         while ($mRec = $mQuery->fetch()) {
             $classes[$mRec->ctr] = $mRec->ctr;
@@ -269,7 +271,7 @@ class help_Info extends core_Master
                     if ($plg instanceof plg_ProtoWrapper) {
                         $plg->description();
                         if (count($plg->tabs)) {
-                            foreach ($plg->tabs as $caption => $obj) {
+                            foreach ($plg->tabs as $obj) {
                                 $ctr = $obj->url['Ctr'];
                                 if ($ctr && !self::fetch("#class = '{$ctr}'")) {
                                     $toSave[$ctr] = $ctr;
@@ -322,7 +324,7 @@ class help_Info extends core_Master
         requireRole('debug');
         
         $query = self::getQuery();
-        
+        $recs = array();
         while ($r = $query->fetch()) {
             $recs[] = $r;
         }
@@ -370,7 +372,7 @@ class help_Info extends core_Master
                     if ($plg instanceof plg_ProtoWrapper) {
                         $plg->description();
                         if (count($plg->tabs)) {
-                            $path = $menu = $submenu = $pack = '';
+                            $path = $menu = $subMenu = $pack = '';
                             foreach ($plg->tabs as $caption => $obj) {
                                 $ctr = $obj->url['Ctr'];
                                 if ($ctr == $class) {
