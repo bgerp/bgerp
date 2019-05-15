@@ -628,3 +628,24 @@ body {
 		width: auto !important;
 	}
 }
+
+@media only screen and (min-device-width : 768px) and (max-device-width : 1024px)  {
+	.taskHolder {
+		clear: both;
+		float: none;
+		width: 100%;
+	}
+	.centerContent {
+		width: 100%;
+	}
+	.tabContent {
+		overflow-x: auto;
+	}
+	.planning_ProductionTaskDetails {
+		width: 66%;
+	}
+	.formHolder {
+		width: 26%;
+	}
+
+}

@@ -113,7 +113,7 @@ class callcenter_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(2.04, 'Обслужване', 'Централа', 'callcenter_Talks', 'default', 'user'),
+        array(2.04, 'Обслужване', 'Централа', 'callcenter_Talks', 'default', 'powerUser'),
     );
     
     
@@ -141,11 +141,10 @@ class callcenter_Setup extends core_ProtoSetup
         
         // Прикачаме плъгина
         $html .= $Plugins->forcePlugin('Линкове към централа', 'callcenter_LinkPlg', 'drdata_PhoneType', 'private');
-                
+        
         return $html;
     }
     
-        
     
     /**
      * Проверява дали услугата позволява съответния изпращач

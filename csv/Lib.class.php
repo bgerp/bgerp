@@ -279,6 +279,11 @@ class csv_Lib
     {
         $params = arr::make($params, true);
         
+        $mandatory = array();
+        if ($params['mandatory']) {
+            $mandatory = explode('|', $params['mandatory']);
+        }
+        
         // Редиректваме, ако сме надвишили бройката
         setIfNot($exportCnt, $params['maxExportCnt'], core_Setup::get('EF_MAX_EXPORT_CNT', true));
         if (count($recs) > $exportCnt) {
@@ -335,6 +340,14 @@ class csv_Lib
         
         // Подготвяме редовете
         foreach ($recs as $rec) {
+            // Ако задължително поле не е попълнено - пропускаме реда
+            if (count($mandatory)) {
+                foreach ($mandatory as $part) {
+                    if (strlen($rec->{$part}) == 0) {
+                        continue 2;
+                    }
+                }
+            }
             $rCsvArr = array();
             foreach ($listFields as $name => $caption) {
                 if ($fieldSet->fields[$name]) {
@@ -445,8 +458,8 @@ class csv_Lib
      * Връща масив с данните от CSV стринга
      *
      * @param string $csvData   - csv данни
-     * @param char   $delimiter - разделител
-     * @param char   $enclosure - ограждане
+     * @param string   $delimiter - разделител
+     * @param string   $enclosure - ограждане
      * @param string $firstRow  - първи ред данни или имена на колони
      *
      * @return array $rows - масив с парсирани редовете на csv-то
@@ -462,7 +475,7 @@ class csv_Lib
     /**
      * Връща имената на колоните от CSV файла
      *
-     * @param unknown $csvData
+     * @param mixed $csvData
      * @param string  $delimiter
      * @param string  $enclosure
      * @param bool    $firstEmpty

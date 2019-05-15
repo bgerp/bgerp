@@ -360,8 +360,7 @@ class crm_Companies extends core_Master
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $data->listFilter->showFields = 'search,users,order,groupId';
-        
-        $rec = $data->listFilter->input('alpha,users,search,order,groupId', 'silent');
+        $data->listFilter->input('alpha,users,search,order,groupId', 'silent');
         
         // Според заявката за сортиране, показваме различни полета
         $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2];
@@ -470,8 +469,6 @@ class crm_Companies extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        $conf = core_Packs::getConfig('crm');
-        
         $form = $data->form;
         
         if (empty($form->rec->id)) {
@@ -731,12 +728,13 @@ class crm_Companies extends core_Master
             }
             
             if (!empty($rec->uicId)) {
+                $msg = $isError = null;
                 static::checkUicId($rec->uicId, $rec->country, $msg, $isError);
                 if (!empty($msg)) {
                     if ($isError === true) {
-                        $form->setError('uicNo', $msg);
+                        $form->setError('uicId', $msg);
                     } else {
-                        $form->setWarning('uicNo', $msg);
+                        $form->setWarning('uicId', $msg);
                     }
                 }
             }
@@ -2182,9 +2180,6 @@ class crm_Companies extends core_Master
         
         $clientGroupId = crm_Groups::getIdFromSysId('customers');
         $supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
-        
-        $groups = crm_Groups::getQuery();
-        
         $meta = array();
         
         $catConf = core_Packs::getConfig('cat');
@@ -2380,44 +2375,30 @@ class crm_Companies extends core_Master
         
         // Ако няма държава или държавате е България, провряваме дали е валиден ЕИК номер
         if (empty($countryId) || $countryId == $bgId) {
-            switch (mb_strlen($uicNo)) {
-                case 9:
-                case 13:
-                    $res = drdata_Vats::isBulstat($uicNo);
-                    if ($res) {
-                        
-                        return true;
-                    }
-                        $msg = 'Невалиден ЕИК';
-                        $isError = true;
-                        
-                        return false;
-                    
-                    break;
-                case 10:
-                    $res = drdata_Vats::isBulstat($uicNo);
-                    
-                    $Egn = cls::get('bglocal_EgnType');
-                    $res = $Egn->isValid($uicNo);
-                    if (isset($res['error'])) {
-                        $msg = 'ДДС номер (9 или 13 символа): въведени са 10 символа, които не са валидно ЕГН';
-                        $isError = true;
-                        
-                        return false;
-                    }
-                        $msg = 'ДДС номер (9 или 13 символа): въведени са 10 символа, които са валидно ЕГН|*?';
-                        $isError = false;
-                        
-                        return true;
-                    
-                    break;
-                default:
-                    $msg = 'Невалиден ЕИК';
-                    $isError = true;
-                    
-                    return false;
-                    break;
+            
+            // Дали е валидно ЕИК ?
+            $res = drdata_Vats::isBulstat($uicNo);
+            if ($res) {
+                
+                return true;
             }
+            
+            $msg = 'Невалиден ЕИК';
+            
+            // Ако не е валидно и с 10 символа, се проверява дали не е ЕГН
+            if(mb_strlen($uicNo) == 10){
+                $Egn = cls::get('bglocal_EgnType');
+                $res = $Egn->isValid($uicNo);
+                if (!isset($res['error'])) {
+                    
+                    return true;
+                }
+                $msg = 'ДДС номер (9,10 или 13 символа): въведени са 10 символа, които не са валидно ЕИК/ЕГН';
+            }
+            
+            $isError = true;
+            
+            return false;
         }
         
         // Ако се стигне до тук, винаги номера е валиден

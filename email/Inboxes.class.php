@@ -736,7 +736,7 @@ class email_Inboxes extends core_Master
     /**
      * Връща id' то на потребителя, който е inCharge на съответния имейл
      *
-     * @param email $email
+     * @param string $email
      *
      * @return int $rec->inCharge
      */

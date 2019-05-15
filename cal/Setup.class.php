@@ -98,7 +98,7 @@ class cal_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(1.33, 'Указател', 'Календар', 'cal_Calendar', 'default', 'powerUser, admin'),
+        array(1.33, 'Указател', 'Календар', 'cal_Calendar', 'list', 'powerUser'),
     );
     
     

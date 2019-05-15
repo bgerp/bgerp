@@ -690,6 +690,9 @@ class core_Packs extends core_Manager
         // Максиламно време за инсталиране на пакет
         set_time_limit(400);
         
+        // Забраняваме кеша на кода
+        ini_set('opcache.enable', false);
+        
         static $f = 0;
         
         DEBUG::startTimer("Инсталиране на пакет '{$pack}'");

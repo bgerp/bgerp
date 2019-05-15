@@ -729,7 +729,7 @@ abstract class deals_Helper
         $stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
         $Double = core_Type::getByName('double(smartRound)');
         
-        $freeQuantityOriginal = $stRec->quantity - $stRec->reservedQuantity;
+        $freeQuantityOriginal = $stRec->quantity - $stRec->reservedQuantity + $stRec->expectedQuantity;
         $freeQuantity = ($state == 'draft') ? $freeQuantityOriginal - $quantity : $freeQuantityOriginal;
         $futureQuantity = $stRec->quantity - $quantity;
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));

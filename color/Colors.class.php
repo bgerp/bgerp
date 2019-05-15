@@ -35,7 +35,7 @@ class color_Colors
      * Инстанцира обект в съответния цветови модел
      * След това трябва да му се заредят стойностите
      *
-     * @param enum $type - цветовия модел
+     * @param string $type - цветовия модел
      *                   Допустими типове (rgb, cmyk, hsv, cielab, xyz)
      */
     public static function get($type)
@@ -308,7 +308,6 @@ class color_Colors
                 $this->values = $this->hslToRgb($this->values);
                 break;
             case 'cielab':
-                $r = $this->values;
                 $this->values = $this->cielabToXYZ($this->values);
                 $this->values = $this->xyzToRgb($this->values);
                 break;

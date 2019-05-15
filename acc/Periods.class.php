@@ -55,19 +55,19 @@ class acc_Periods extends core_Manager
     /**
      * Кой може да пише?
      */
-    public $canClose = 'ceo,accMaster';
+    public $canClose = 'ceo,accMaster,admin';
     
     
     /**
      * Кой може да редактира системните данни
      */
-    public $canEditsysdata = 'ceo,accMaster';
+    public $canEditsysdata = 'ceo,accMaster,admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,acc';
+    public $canList = 'ceo,acc,admin';
     
     
     /**
@@ -79,7 +79,7 @@ class acc_Periods extends core_Manager
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'admin,ceo';
+    public $canAdd = 'admin,ceo,admin';
     
     
     /**

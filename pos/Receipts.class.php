@@ -37,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'createdOn, modifiedOn, valior, title=Заглавие, pointId=Точка, contragentName, total, paid, change, state';
+    public $listFields = 'createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentName, total, paid, change, state';
     
     
     /**
@@ -263,6 +263,10 @@ class pos_Receipts extends core_Master
             }
         }
         
+        if(isset($fields['-terminal'])){
+            $row->id = ht::createLink($row->id, pos_Receipts::getSingleUrlArray($rec->id));
+        }
+        
         foreach (array('total', 'paid', 'change') as $fld) {
             $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
         }
@@ -280,7 +284,6 @@ class pos_Receipts extends core_Master
             }
         }
         
-        //bp($row->PAID_CAPTION);
         // Слагаме бутон за оттегляне ако имаме права
         if (!Mode::is('printing')) {
             if ($mvc->haveRightFor('reject', $rec)) {
@@ -466,7 +469,6 @@ class pos_Receipts extends core_Master
             }
         }
         
-        
         // Ако бележката е започната, може да се изтрие
         if ($action == 'delete' && isset($rec)) {
             if ($rec->state != 'draft') {
@@ -626,7 +628,7 @@ class pos_Receipts extends core_Master
      *
      * @return core_ET $tpl - шаблона
      */
-    public function getReceipt($id)
+    public function getReceipt_($id)
     {
         expect($rec = $this->fetchRec($id));
         
@@ -1124,7 +1126,7 @@ class pos_Receipts extends core_Master
      *
      * @param int $id -ид на бележка
      */
-    public function renderPaymentTab($id)
+    public function renderPaymentTab_($id)
     {
         expect($rec = $this->fetchRec($id));
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PAYMENTS_BLOCK');
@@ -1293,6 +1295,7 @@ class pos_Receipts extends core_Master
         
         // Ако е зададен код на продукта
         if ($ean = Request::get('ean')) {
+            $matches = array();
             
             // Проверяваме дали въведения "код" дали е във формата '< число > * < код >',
             // ако да то приемаме числото преди '*' за количество а след '*' за код

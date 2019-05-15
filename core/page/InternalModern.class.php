@@ -264,11 +264,6 @@ class core_page_InternalModern extends core_page_Active
         if (($menuObj) && (count($menuObj))) {
             foreach ($menuObj as $key => $rec) {
                 
-                // Пропускаме не-достъпните менюта
-                if (!haveRole($rec->accessByRoles)) {
-                    continue;
-                }
-                
                 // Определяме дали състоянието на елемента от менюто не е 'активно'
                 $mainClass = $subClass = '';
                 if (($aMainMenu == $rec->menu)) {
@@ -423,38 +418,47 @@ class core_page_InternalModern extends core_page_Active
         $attr = array();
         $attr['onClick'] = "return searchInLink(this, 'serch-input-modern', 'search', false);";
         $searchLink = '';
-        
+        $colum1 = "";
+        $colum2 = "";
+
         if (doc_Search::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/doc_empty.png';
             $attr['id'] = 'modern-doc-search';
-            $searchLink .= ht::createLink(tr('Търсене на документи'), array('doc_Search', 'list'), null, $attr);
+            $colum1 .= ht::createLink(tr('Документи'), array('doc_Search', 'list'), null, $attr);
         }
         
         if (doc_Folders::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/folder_open_icon.png';
             $attr['id'] = 'modern-folder-search';
-            $searchLink .= ht::createLink(tr('Търсене на папки'), array('doc_Folders', 'list'), null, $attr);
+            $colum2 .= ht::createLink(tr('Папки'), array('doc_Folders', 'list'), null, $attr);
         }
         
         if (crm_Companies::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/building-black.png';
             $attr['id'] = 'modern-company-seach';
-            $searchLink .= ht::createLink(tr('Търсене на фирми'), array('crm_Companies', 'list'), null, $attr);
+            $colum1 .= ht::createLink(tr('Фирми'), array('crm_Companies', 'list'), null, $attr);
         }
         
         if (crm_Persons::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/vcard-black.png';
             $attr['id'] = 'modern-person-seach';
-            $searchLink .= ht::createLink(tr('Търсене на лица'), array('crm_Persons', 'list'), null, $attr);
+            $colum2 .= ht::createLink(tr('Лица'), array('crm_Persons', 'list'), null, $attr);
         }
         
         // Бутон за търсене по баркод
         if (barcode_Search::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/barcode-icon.png';
             $attr['id'] = 'modern-barcode-search';
-            $searchLink .= ht::createLink(tr('Търсене на баркод'), array('barcode_Search', 'list'), null, $attr);
+            $colum1 .= ht::createLink(tr('Баркод'), array('barcode_Search', 'list'), null, $attr);
         }
         
+        // Бутон за търсене по баркод
+        if (help_Info::haveRightFor('list')) {
+            $attr['ef_icon'] = 'img/16/help_icon.png';
+            $attr['id'] = 'modern-help-info';
+            $colum2 .= ht::createLink(tr('Помощ'), array('help_Info', 'list'), null, $attr);
+        }
+        $searchLink = "<table><tr><td>{$colum1}</td><td>$colum2</td></tr></table>";
         $tpl->replace($searchLink, 'SEARCH_LINK');
     }
     

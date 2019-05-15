@@ -110,8 +110,6 @@ class fileman_DialogWrapper extends core_Plugin
     
     /**
      * Връща последно използвания таб
-     *
-     * @param unknown_type $callback
      */
     public static function getLastUploadTab()
     {
@@ -133,8 +131,8 @@ class fileman_DialogWrapper extends core_Plugin
      * Прихваща извикването на getActionForAddFile
      * Връща името на екшъна за добавяне на файл
      *
-     * @param unknown_type $mvc
-     * @param unknown_type $res
+     * @param core_Mvc $mvc
+     * @param mixed $res
      */
     public static function on_AfterGetActionForAddFile($mvc, &$res)
     {

@@ -2896,8 +2896,8 @@ class email_Outgoings extends core_Master
      * @param string $emails - Стринг от имейли (и факсове)
      *
      * @return array $arr - Масив с имейли и факсове
-     * @return arry  $arr['fax'] - Масив с всчики факс номера
-     * @return arry  $arr['email'] - Масив с всчики имейли
+     * @return array  $arr['fax'] - Масив с всчики факс номера
+     * @return array  $arr['email'] - Масив с всчики имейли
      */
     public static function explodeEmailsAndFax($emails)
     {
@@ -3211,7 +3211,7 @@ class email_Outgoings extends core_Master
      * 5.2 Кутия на която е inCharge от съответния корпоративен акаунт
      * 6. Последната кутия на която сме inCharge
      *
-     * @param email $email - Имейл
+     * @param string $email - Имейл
      *
      * @return doc_Folders $folderId - id на папка
      */
@@ -3322,7 +3322,7 @@ class email_Outgoings extends core_Master
     /**
      * Връща папката от имейла при препращане
      *
-     * @param email $email - Имейла, към който ще препращаме
+     * @param string $email - Имейла, към който ще препращаме
      *
      * Начин за определяна не папката:
      * 1. Ако е на фирма

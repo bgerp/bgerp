@@ -292,6 +292,12 @@ abstract class deals_DealDetail extends doc_Detail
         
         if ($form->isSubmitted() && !$form->gotErrors()) {
             
+            // Ако е партньор се маха вече изчислената цена за да се изчисли наново
+            if (core_Users::haveRole('partner')) {
+                unset($form->rec->packPrice);
+                unset($form->rec->price);
+            }
+            
             // Извличане на информация за продукта - количество в опаковка, единична цена
             if (!isset($rec->packQuantity)) {
                 $rec->defQuantity = true;

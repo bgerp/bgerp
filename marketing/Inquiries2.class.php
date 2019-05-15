@@ -989,10 +989,10 @@ class marketing_Inquiries2 extends embed_Manager
                     $singleUrl = self::getSingleUrlArray($id);
                     if (count($singleUrl)) {
                         
-                        return redirect($singleUrl, false, '|Благодарим Ви за запитването', 'success');
+                        return redirect($singleUrl, false, 'Благодарим Ви за запитването|*!', 'success');
                     }
                     
-                    return followRetUrl(null, '|Благодарим Ви за запитването', 'success');
+                    return followRetUrl(null, 'Благодарим Ви за запитването|*!', 'success');
                 }
             }
         }

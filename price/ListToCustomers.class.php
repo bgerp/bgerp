@@ -512,11 +512,13 @@ class price_ListToCustomers extends core_Manager
      * @param stdClass $rec Това е записа в машинно представяне
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-        $row->cClass = cls::get($rec->cClass)->getHyperlink($rec->cId, true);
-        if ($rec->validFrom > dt::now()) {
-            $rec->state = 'draft';
-            $row->state = tr('Бъдещ');
+    {   
+        if($rec->cId) {
+            $row->cClass = cls::get($rec->cClass)->getHyperlink($rec->cId, true);
+            if ($rec->validFrom > dt::now()) {
+                $rec->state = 'draft';
+                $row->state = tr('Бъдещ');
+            }
         }
         
         $row->ROW_ATTR['class'] = "state-{$rec->state}";

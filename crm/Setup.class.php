@@ -123,7 +123,7 @@ class crm_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(1.32, 'Указател', 'Визитник', 'crm_Companies', 'default', 'crm, user'),
+        array(1.32, 'Указател', 'Визитник', 'crm_Companies', 'default', 'powerUser'),
     );
     
     

@@ -22,9 +22,9 @@ class lab_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $this->TAB('lab_Tests', 'Тестове', 'lab,ceo');
-        $this->TAB('lab_Methods', 'Методи', 'lab,ceo');
-        $this->TAB('lab_Parameters', 'Параметри', 'lab,ceo');
+        $this->TAB('lab_Tests', 'Тестове', 'ceo,lab,masterLab');
+        $this->TAB('lab_Methods', 'Методи', 'ceo,lab,masterLab');
+        $this->TAB('lab_Parameters', 'Параметри', 'ceo,lab,masterLab');
         
         $this->title = 'Лаборатория';
     }
