@@ -509,7 +509,7 @@ class store_Products extends core_Detail
      * Обновяване на резервираните наличности по крон
      */
     public function cron_CalcReservedQuantity()
-    {core_Permanent::truncate();
+    {
         core_Debug::$isLogging = false;
         core_App::setTimeLimit(200);
         $now = dt::now();
@@ -740,7 +740,7 @@ class store_Products extends core_Detail
                     $add = true;
                     if($storeField == 'toStore'){
                         $deliveryTime = $Master->fetchField($dRec->{$Detail->masterKey}, 'deliveryTime');
-                        $deliveryTime = (!empty($dRec->deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $dRec->deliveryTime) : $dRec->deliveryTime;
+                        $deliveryTime = (!empty($deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $deliveryTime) : $deliveryTime;
                         if(!(empty($deliveryTime) || $deliveryTime > $now)){
                             $add = false;
                         }
