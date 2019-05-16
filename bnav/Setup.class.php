@@ -36,6 +36,11 @@ class bnav_Setup extends core_ProtoSetup
      */
     public $startAct = 'default';
     
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'bnav_bnavExport_ContragentsExport,bnav_bnavExport_ItemsExport';
+    
     
     /**
      * Описание на модула
