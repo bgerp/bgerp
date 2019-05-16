@@ -280,7 +280,7 @@
         $res->full = $dRec->code.','.
                      $dRec->name.','.
                      $dRec->dim.','.
-                     $dRec->$measure
+                     $measure
                      ;
         
     }
