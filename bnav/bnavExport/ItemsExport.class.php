@@ -177,9 +177,7 @@
             $erpCode = $iRec->code ? $iRec->code : 'Art'.$val;
             $code = $iRec->bnavCode ? $iRec->bnavCode : $erpCode;
             
-            expect(!is_null($code),
-                "Липсва код на артикула -> $iRec->name ,id($cRec->id)");
-            
+            expect(!is_null($code), "Липсва код на артикула -> {$iRec->name}, id({$val})");
             
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
