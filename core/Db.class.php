@@ -61,7 +61,7 @@ defIfNot('BGERP_SQL_LOG_PATH', false);
  * @since     v 0.1
  * @link
  */
-class core_Db extends core_BaseClass
+class core_Db
 {
     /**
      * Името на БД
@@ -154,7 +154,11 @@ class core_Db extends core_BaseClass
         $this->dbCharsetClient = EF_DB_CHARSET_CLIENT;
         $this->varcharIndexPrefix = EF_DB_VARCHAR_INDEX_PREFIX;
         
-        parent::init($params);
+        $params = arr::make($params);
+        
+        foreach ($params as $name => $value) {
+			$this->{$name} = $params[$name];
+        }
     }
     
     

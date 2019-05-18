@@ -767,11 +767,13 @@ class core_Debug
             $contex['OS_INFO'] = php_uname();
             $contex['PHP_VERSION'] = phpversion();
             
-            try {
-                $contex['SQL_VERSION'] = cls::get('core_Db')->connect()->server_info;
-            } catch (ErrorException $e) {
-                // Не се прави нищо
-            }
+			if(class_exists('core_Db')) {
+				try {
+					$contex['SQL_VERSION'] = cls::get('core_Db')->connect()->server_info;
+				} catch (ErrorException $e) {
+					// Не се прави нищо
+				}
+			}
             
             $contex['EF_APP_NAME'] = EF_APP_NAME;
             
