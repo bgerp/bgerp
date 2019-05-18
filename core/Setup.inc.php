@@ -101,7 +101,7 @@ if (defined('BGERP_ABSOLUTE_HTTP_HOST')) {
 
 // URL на следващата стъпка
 $selfUrl = addParams($selfUri, array('step' => $step));
-$nextUrl = addParams($selfUri, array('step' => $step + 1));
+$nextUrl = addParams($selfUri, array('step' => round($step) + 1));
  
 // Определяме линка към приложението
 $appUri = $selfUrl;
