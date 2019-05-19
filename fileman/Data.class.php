@@ -4,7 +4,7 @@
 /**
  * Пътя до директорията за файловете е общ за всички инсталирани приложения
  */
-defIfNot('FILEMAN_UPLOADS_PATH', substr(EF_UPLOADS_PATH, 0, strrpos(EF_UPLOADS_PATH, '/')) . '/fileman');
+defIfNot('FILEMAN_UPLOADS_PATH', rtrim(EF_UPLOADS_PATH, '/\\') . '/fileman');
 
 
 /**
@@ -185,7 +185,7 @@ class fileman_Data extends core_Manager
      * Първо проверява с поддиректория, след това
      *
      * @param stdClass $rec
-     * @param boolean   $createDir - Създва директорията, ако липсва
+     * @param bool     $createDir - Създва директорията, ако липсва
      *
      * @return string
      */
@@ -209,9 +209,9 @@ class fileman_Data extends core_Manager
     /**
      * Връща пътя до файла на съответния запис
      *
-     * @param mixed  $rec       - id' на файла или записа на файла
-     * @param boolean $subDir    - дали името да се раздели на поддиректрии
-     * @param boolean $createDir - Създва директорията, ако липсва
+     * @param mixed $rec       - id' на файла или записа на файла
+     * @param bool  $subDir    - дали името да се раздели на поддиректрии
+     * @param bool  $createDir - Създва директорията, ако липсва
      *
      * @return string $path - Пътя на файла
      */
@@ -241,8 +241,8 @@ class fileman_Data extends core_Manager
     /**
      * Връща името на файла
      *
-     * @param mixed  $rec    - id' на файла или записа на файла
-     * @param boolean $subDir - дали името да се раздели на поддиректрии
+     * @param mixed $rec    - id' на файла или записа на файла
+     * @param bool  $subDir - дали името да се раздели на поддиректрии
      *
      * @return string $name - Името на файла
      */
