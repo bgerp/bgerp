@@ -1,8 +1,4 @@
 <?php
-/*
- * $Id: index.php,v 1.1 2008/06/30 15:16:07 milen Exp $
- */
-
 // Ако съществува, включваме файл, който съдържа конфигурационни
 // данни, който се зареждат още на най-начално ниво.
 // Шаблон за този файл има в директорията [_docs]
@@ -22,26 +18,30 @@ DEFINE('EF_INDEX_PATH', str_replace('\\', '/', realpath(dirname(__FILE__))));
 // Общата коренна директория на APP, EF_FRAMEWORK и VENDORS
 // По подразбиране е две стъпки назад от директорията на този файл
 if (!defined('EF_ROOT_PATH')) {
-    if (is_dir(EF_INDEX_PATH . '/ef_root')) {
-        DEFINE('EF_ROOT_PATH', EF_INDEX_PATH . '/ef_root');
-    } elseif (is_dir(dirname(EF_INDEX_PATH) . '/ef_root')) {
-        DEFINE('EF_ROOT_PATH', dirname(EF_INDEX_PATH) . '/ef_root');
-    } elseif (is_dir(dirname(dirname(EF_INDEX_PATH)) . '/ef_root')) {
-        DEFINE('EF_ROOT_PATH', dirname(dirname(EF_INDEX_PATH)) . '/ef_root');
-    } else {
-        die('Unable to determinate <b>EF_ROOT_PATH</b>.');
-    }
+	if(is_dir(EF_INDEX_PATH . '/ef_root')) { 
+		DEFINE( 'EF_ROOT_PATH', EF_INDEX_PATH . '/ef_root');
+	} elseif(is_dir(EF_INDEX_PATH . '/bgerp/core')) {
+		DEFINE( 'EF_ROOT_PATH', EF_INDEX_PATH);
+	} elseif(is_dir(dirname(EF_INDEX_PATH) . '/bgerp/core')) {
+		DEFINE( 'EF_ROOT_PATH', dirname(EF_INDEX_PATH));
+    } elseif(is_dir(dirname(dirname(EF_INDEX_PATH)) . '/bgerp/core')) {
+		DEFINE( 'EF_ROOT_PATH', dirname(dirname(EF_INDEX_PATH)));
+    } 
 }
 
 // Зареждаме началната процедура и глобалните функции
-if (!defined('EF_APP_PATH')) {
+if (!defined('EF_APP_PATH') && defined('EF_ROOT_PATH')) {
     DEFINE('EF_APP_PATH', EF_ROOT_PATH . '/bgerp');
 }
 
 // Ако сме определили правилно папката с кода на фреймуърка,
 // продължаваме със началния скрипт. Иначе - извеждаме грешка
-if (is_dir(EF_APP_PATH)) {
-    require_once(EF_APP_PATH . '/core/boot.inc.php');
+if(defined('EF_APP_PATH')) {
+    if (is_dir(EF_APP_PATH)) {
+        require_once(EF_APP_PATH . '/core/boot.inc.php');
+    } else {
+        die('Error in index.php: <b>' . EF_APP_PATH . '</b> is not directory.');
+    }
 } else {
-    die('Error in index.php: <b>' . EF_APP_PATH . '</b> is not directory.');
+    die('Error in index.php: constant <b>EF_APP_PATH</b> is not defined.');
 }
