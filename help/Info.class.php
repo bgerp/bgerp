@@ -112,6 +112,7 @@ class help_Info extends core_Master
     {
         if (haveRole('debug')) {
             $data->toolbar->addBtn('Запис CSV', array($mvc, 'saveCSV'), 'warning=Наистина ли искате да запишете CSV файла?');
+            $data->toolbar->addBtn('Извличане от менюто', array($mvc, 'InsertClasses'), 'warning=Наистина ли искате да извлечете пътищата от менюто?');
         }
     }
     
@@ -133,7 +134,16 @@ class help_Info extends core_Master
         }
         
         if ($row->menu) {
-            $row->menu = ht::createLink($row->menu, array($rec->class), null, 'class=button');
+            if (cls::load($rec->class, true)) {
+                $mvc = cls::get($rec->class);
+                if ($mvc->haveRightfor('list')) {
+                    $row->menu = ht::createLink($row->menu, array($rec->class), null, 'class=button');
+                } else {
+                    $row->menu = ht::createLink($row->menu, null, null, 'class=button btn-disabled');
+                }
+            } else {
+                $row->menu = ht::createLink($row->menu, null, null, 'class=button btn-disabled');
+            }
         }
     }
     
@@ -239,6 +249,8 @@ class help_Info extends core_Master
      */
     public function act_InsertClasses()
     {
+        requireRole('debug');
+        
         $cnt = 0;
         $classes = array();
         $mQuery = bgerp_Menu::getQuery();
