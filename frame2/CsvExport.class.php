@@ -75,7 +75,7 @@ class frame2_CsvExport extends core_Mvc
         $Frame = cls::get($clsId);
         $frameRec = $Frame->fetchRec($objId);
         
-        $mid = doclog_Documents::saveAction(array('action' => doclog_Documents::ACTION_EXPORT, 'containerId' => $frameRec->containerId, 'threadId' => $frameRec->threadId,));
+        doclog_Documents::saveAction(array('action' => doclog_Documents::ACTION_EXPORT, 'containerId' => $frameRec->containerId, 'threadId' => $frameRec->threadId,));
         doclog_Documents::flushActions();
         
         // Ако е избрана версия експортира се тя
