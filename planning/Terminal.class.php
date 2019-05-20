@@ -388,14 +388,14 @@ class planning_Terminal extends core_Manager
         $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=100,columns=3)', 'elementId=employeeSelect,placeholder=Оператори,class=w100');
         $form->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id,select2MinItems=100)', 'elementId=fixedAssetSelect,placeholder=Оборудване,class=w100');
         $form->FLD('recId', 'int', 'input=hidden,silent');
-        $form->rec->taskId = $currentTaskId;
+        $rec->taskId = $currentTaskId;
         $form->input(null, 'silent');
         
-        if($form->rec->recId){
-            $exRec = planning_ProductionTaskDetails::fetch($form->rec->recId);
+        if($rec->recId){
+            $exRec = planning_ProductionTaskDetails::fetch($rec->recId);
             $fields = array_keys($form->selectFields("#name != 'recId' AND #name != 'taskId'"));
             foreach ($fields as $name){
-                $form->rec->{$name} = $exRec->{$name};
+                $rec->{$name} = $exRec->{$name};
             }
         }
         
@@ -418,10 +418,10 @@ class planning_Terminal extends core_Manager
         
         $form->setOptions('action', $typeOptions);
         $form->setDefault('action', "production|{$taskRec->productId}");
-        if(isset($form->rec->action)){
-            list($type, $productId) = explode('|', $form->rec->action);
-            $form->rec->productId = $productId;
-            $form->rec->type = $type;
+        if(isset($rec->action)){
+            list($type, $productId) = explode('|', $rec->action);
+            $rec->productId = $productId;
+            $rec->type = $type;
         }
         
         $data = (object) array('form' => $form, 'masterRec' => planning_Tasks::fetch($currentTaskId), 'action' => 'add');
@@ -444,7 +444,7 @@ class planning_Terminal extends core_Manager
         $form->fieldsLayout->append($serialPadBtn, 'SERIAL_PAD_BTN');
         
         // Показване на прогреса, само ако е
-        if($form->rec->productId == $data->masterRec->productId){
+        if($rec->productId == $data->masterRec->productId){
             $taskRow = planning_Tasks::recToVerbal(planning_Tasks::fetch($currentTaskId), 'progressBar,progress');
             $form->fieldsLayout->append($taskRow->progressBar, 'PROGRESS');
             $form->fieldsLayout->append(" " . $taskRow->progress, 'PROGRESS');
@@ -582,6 +582,7 @@ class planning_Terminal extends core_Manager
         expect($rec = planning_Points::fetch($id));
         expect($rec->taskId = Request::get('taskId', 'int'));
         $this->requireRightFor('selecttask', $rec);
+        
         Mode::setPermanent("currentTaskId{$rec->id}", $rec->taskId);
         Mode::setPermanent("activeTab{$rec->id}", 'taskProgress');
         $res = array($this, 'open', $rec->id);
@@ -795,7 +796,6 @@ class planning_Terminal extends core_Manager
         
         $cookieId = "terminalTab{$rec->id}";
         jquery_Jquery::run($tpl, "setCookie('{$cookieId}', '{$aciveTabData['tab-id']}');");
-        
         jquery_Jquery::run($tpl, 'planningActions();');
         jquery_Jquery::run($tpl, "setFocus('{$aciveTabData['tab-id']}')");
         $this->logRead('Отваряне на точка за производство', $rec->id);
