@@ -39,7 +39,7 @@ class bnav_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'bnav_bnavExport_ContragentsExport,bnav_bnavExport_ItemsExport';
+    public $defClasses = 'bnav_bnavExport_ContragentsExport,bnav_bnavExport_ItemsExport,bnav_bnavExport_SalesInvoicesExport,bnav_bnavExport_PurchaseInvoicesExport';
     
     
     /**
