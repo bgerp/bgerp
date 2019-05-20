@@ -9,7 +9,7 @@
  * @package   uiext
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -62,10 +62,12 @@ class uiext_Setup extends core_ProtoSetup
     public function install()
     {
         $html = parent::install();
-        
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Добавяне на тагове към редовете на транспортните линии', 'uiext_plg_DetailLabels', 'trans_LineDetails', 'private');
-        $html .= $Plugins->installPlugin('Добавяне на тагове към детайлите на зоните в палетния склад', 'uiext_plg_DetailLabels', 'rack_ZoneDetails', 'private');
+        
+        if(core_Packs::isInstalled('rack')){
+            $html .= $Plugins->installPlugin('Добавяне на тагове към детайлите на зоните в палетния склад', 'uiext_plg_DetailLabels', 'rack_ZoneDetails', 'private');
+        }
         
         return $html;
     }
@@ -73,7 +75,6 @@ class uiext_Setup extends core_ProtoSetup
     
     public function replaceContainerId()
     {
-        
        $Class = cls::get('uiext_ObjectLabels');
        $Class->setupMvc();
         
