@@ -137,11 +137,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
             //Код на контрагента, така както е експортиран в БН. В случая folderId  на контрагента
             $contragentClassName = core_Classes::getName($pRec->contragentClassId);
             $contragentCode = $contragentClassName::fetch($pRec->contragentId)->folderId;
-            
-           // bp($pRec);
-            
-            
-            
+           
             // Запис в масива
             if (!array_key_exists($id, $invoices)) {
                 $invoices[$id] = (object) array(
@@ -199,9 +195,6 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
             
             
         }
-        
-        //   bp($recs);
-        
         
         return $recs;
     }
