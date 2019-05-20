@@ -2328,7 +2328,7 @@ class eshop_Carts extends core_Master
             $body->{$var} = $body->{$var}->getContent();
         }
         
-        $options = array('encoding' => 'utf-8', 'no_thread_hnd' => true);
+        $options = array('encoding' => 'utf-8', 'no_thread_hnd' => true, 'no_return_path' => 'no_return_path', 'no_return_receipt' => 'no_return_receipt');
         $subject = tr("Незавършена поръчка в") . " {$domainName}";
         
         // Опит за изпращане на имейл-а
