@@ -366,7 +366,7 @@ class planning_Hr extends core_Master
     /**
      * Изпълнява се след създаване на нов запис
      */
-    protected static function on_AfterCreate($mvc, $rec)
+    public static function on_AfterCreate($mvc, $rec)
     {
         planning_AssetResourceFolders::addDefaultFolder($mvc->getClassId(), $rec->id);
     }
