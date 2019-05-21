@@ -19,7 +19,7 @@ class docoffice_ConverterIntf
     /**
      * Конвертира office документи
      *
-     * @param string $fileHnd - Манупулатора на файла, който ще се конвертира
+     * @param fileHandler $fileHnd - Манупулатора на файла, който ще се конвертира
      * @param string      $toExt   - Разширението, в което ще се конвертира
      * @param array       $params  - Други параметри
      *                             $params['callBack'] - Класа и функцията, която ще се извикат след приключване на конвертирането

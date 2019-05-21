@@ -24,7 +24,7 @@ class docoffice_Jodconverter extends core_Manager
     /**
      * Конвертиране на офис документи с помощта на Jodconverter
      *
-     * @param string $fileHnd - Манупулатора на файла, който ще се конвертира
+     * @param fileHandler $fileHnd - Манупулатора на файла, който ще се конвертира
      * @param string      $toExt   - Разширението, в което ще се конвертира
      * @param array       $params  - Други параметри
      *                             $params['callBack'] - Класа и функцията, която ще се извикат след приключване на конвертирането
