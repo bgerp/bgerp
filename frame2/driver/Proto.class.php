@@ -29,6 +29,12 @@ abstract class frame2_driver_Proto extends core_BaseClass
     
     
     /**
+     * Дали справката е видима за партньори
+     */
+    protected $visibleForPartners = false;
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -236,5 +242,18 @@ abstract class frame2_driver_Proto extends core_BaseClass
     public function canBeSendAsEmail($rec)
     {
         return false;
+    }
+    
+    
+    /**
+     * Дали справката е видима за партньори
+     *
+     * @param mixed $rec
+     *
+     * @return boolean
+     */
+    public function isVisibleForPartners($rec)
+    {
+        return $this->visibleForPartners;
     }
 }

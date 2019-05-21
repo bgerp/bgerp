@@ -2,14 +2,14 @@
 
 
 /**
- * Мениджър за динамични справки
+ * Мениджър за справки от нов тип
  *
  *
  * @category  bgerp
  * @package   frame2
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -218,6 +218,7 @@ class frame2_Reports extends embed_Manager
         $this->FLD('maxKeepHistory', 'int(Min=0,max=40)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
         $this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none');
         $this->FLD('lastRefreshed', 'datetime', 'caption=Последно актуализиране,input=none');
+        $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Други настройки->С партньори,input=none,after=maxKeepHistory,changable');
     }
     
     
@@ -299,6 +300,10 @@ class frame2_Reports extends embed_Manager
                         $form->setField($name, 'input=none');
                     }
                 }
+            }
+            
+            if(core_Packs::isInstalled('colab') && !$Driver->isVisibleForPartners($rec)){
+                $form->setField('visibleForPartners', 'input=none');
             }
         }
     }
@@ -518,30 +523,25 @@ class frame2_Reports extends embed_Manager
         
         // Рендиране на данните
         if ($Driver = $mvc->getDriver($rec)) {
-            
             $lang = $Driver->getRenderLang($rec);
             if(isset($lang)){
                 core_Lg::push($lang);
             }
             
             $tplData = $Driver->renderData($rec);
-            
             if(isset($lang)){
                 core_Lg::pop();
             }
             
             if (Mode::is('saveJS')) {
-                
                 $tpl->replace($tplData, 'DRIVER_DATA');
-            
             } else{
-                
                 $tpl->replace($tplData->getContent(), 'DRIVER_DATA');
             }
             
-            } else {
-                $tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на справката') . '</b></span>', 'DRIVER_DATA');
-            }
+        } else {
+             $tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на справката') . '</b></span>', 'DRIVER_DATA');
+        }
         
         // Връщане на оригиналния рек ако е пушнат
         if (isset($data->originalRec)) {
@@ -1173,7 +1173,6 @@ class frame2_Reports extends embed_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->FLD('user', 'user(rolesForAll=ceo, rolesForTeams=manager|officer, roles=executive, allowEmpty)', 'caption=Потребител');
-        
         $data->listFilter->showFields = 'search, driverClass, user';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');

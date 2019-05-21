@@ -114,6 +114,9 @@ class colab_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на бележки', 'colab_plg_VisibleForPartners', 'doc_Notes', 'private');
         $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на задачи', 'colab_plg_VisibleForPartners', 'cal_Tasks', 'private');
         $defaultCreatableDocuments = arr::make(self::$defaultCreatableDocuments);
+        $html .= $Plugins->installPlugin('Colab за справки', 'colab_plg_Document', 'frame2_Reports', 'private');
+        $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на справки', 'colab_plg_VisibleForPartners', 'frame2_Reports', 'private');
+        
         cls::get('cal_Tasks')->setupMvc();
         
         foreach ($defaultCreatableDocuments as $docName) {

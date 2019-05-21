@@ -29,6 +29,12 @@ class frame2_ReportIntf extends embed_DriverIntf
     
     
     /**
+     * Дали справката е видима за партньори
+     */
+    protected $visibleForPartners;
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -202,5 +208,18 @@ class frame2_ReportIntf extends embed_DriverIntf
     public function canBeSendAsEmail($rec)
     {
         return $this->class->canBeSendAsEmail($rec);
+    }
+    
+    
+    /**
+     * Дали справката е видима за партньори
+     *
+     * @param mixed $rec
+     *
+     * @return boolean
+     */
+    public function isVisibleForPartners($rec)
+    {
+        return $this->class->isVisibleForPartners($rec);
     }
 }
