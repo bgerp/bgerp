@@ -361,8 +361,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         } else {
             if ($Driver = cat_Products::getDriver($rec->productId)) {
                 $rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
-                $rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->serial);
             }
+        }
+        
+        if (!empty($rec->serial)) {
+            $rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->serial);
         }
     }
     
@@ -709,7 +712,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             unset($data->listFields['_createdDate']);
         }
         
-        $data->listFilter->showFields = 'serial';
+        $data->listFilter->showFields = 'search';
         
         // Ако има използвани оператори, добавят се за филтриране
         $usedFixedAssets = self::getResourcesInDetails($data->masterId, 'fixedAsset');
