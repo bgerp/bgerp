@@ -185,7 +185,7 @@
                     
                     'code' => $code,
                     'name' => $iRec->name,
-                    'dim' =>'не посочен',
+                    'dim' =>'',
                     'measureId' =>$iRec->measureId,
                     
                 );
