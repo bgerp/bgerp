@@ -205,6 +205,12 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = true;
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -218,7 +224,7 @@ class frame2_Reports extends embed_Manager
         $this->FLD('maxKeepHistory', 'int(Min=0,max=40)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
         $this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none');
         $this->FLD('lastRefreshed', 'datetime', 'caption=Последно актуализиране,input=none');
-        $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Други настройки->С партньори,input=none,after=maxKeepHistory,changable');
+        $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Други настройки->Видими от партньори,input=none,after=maxKeepHistory');
     }
     
     
@@ -300,10 +306,6 @@ class frame2_Reports extends embed_Manager
                         $form->setField($name, 'input=none');
                     }
                 }
-            }
-            
-            if(core_Packs::isInstalled('colab') && !$Driver->isVisibleForPartners($rec)){
-                $form->setField('visibleForPartners', 'input=none');
             }
         }
     }

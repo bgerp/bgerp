@@ -52,12 +52,6 @@ class price_reports_PriceList extends frame2_driver_TableData
     
     
     /**
-     * Дали справката е видима за партньори
-     */
-    protected $visibleForPartners = true;
-    
-    
-    /**
      * Какъв да е класа на групирания ред
      */
     protected $groupByFieldClass = 'pricelist-group-label';
