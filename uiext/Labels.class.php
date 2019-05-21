@@ -254,11 +254,7 @@ class uiext_Labels extends core_Manager
         if (uiext_ObjectLabels::haveRightFor('selectlabel', (object) array('classId' => $masterClass->getClassId(), 'objectId' => $masterId))) {
             $attr = array();
             $attr['class'] = 'transparentSelect selectLabel';
-            
-            //core_Request::setProtected('containerId,hash');
             $attr['data-url'] = toUrl(array('uiext_ObjectLabels', 'saveLabels', 'masterClassId' => $masterClass->getClassId(), 'objectId' => $masterId, 'hash' => $hash, 'classId' => $classId), 'local');
-            
-            //core_Request::removeProtected('containerId,hash');
             $attr['title'] = 'Избор на таг';
             
             $input = ht::createSelect('selTag', $labels, $value, $attr);
@@ -270,8 +266,11 @@ class uiext_Labels extends core_Manager
             }
         }
         
-        $k = "{$masterClass->getClassId()}|{$masterId}|{$classId}|{$hash}";
+        if(!empty($input)){
+            $k = "{$masterClass->getClassId()}|{$masterId}|{$classId}|{$hash}";
+            $input = "<span id='charge{$k}'>{$input}</span>";
+        }
         
-        return "<span id='charge{$k}'>{$input}</span>";
+        return $input;
     }
 }
