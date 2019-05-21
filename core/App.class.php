@@ -1115,13 +1115,18 @@ class core_App
     public static function getRepos()
     {
         static $repos;
+    
+        static $havePrivate = false;
         
         if (!is_array($repos)) {
             $repos = array();
-            if (defined('EF_PRIVATE_PATH')) {
-                $repos = self::getReposByPathAndBranch(EF_PRIVATE_PATH, defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : null);
-            }
+            
             $repos += self::getReposByPathAndBranch(EF_APP_PATH, defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null);
+        }
+        
+        if (!$havePrivate && defined('EF_PRIVATE_PATH')) {
+            $repos = self::getReposByPathAndBranch(EF_PRIVATE_PATH, defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : null) + $repos;
+            $havePrivate = true;
         }
         
         return $repos;
