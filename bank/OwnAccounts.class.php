@@ -9,7 +9,7 @@
  * @package   bank
  *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -45,12 +45,6 @@ class bank_OwnAccounts extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'title, bankAccountId, currency=Валута, type, blAmount=Сума';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, bank';
     
     
     /**
@@ -292,8 +286,7 @@ class bank_OwnAccounts extends core_Master
             $form->rec->fromOurCompany = true;
         }
         
-        // Номера на сметката не може да се променя ако редактираме, за смяна на
-        // сметката да се прави от bank_accounts
+        // При редакция се допълват полетата с тези от сметката
         if ($form->rec->id) {
             if (isset($form->rec->bankAccountId)) {
                 $ibanRec = bank_Accounts::fetch($form->rec->bankAccountId);
@@ -393,7 +386,6 @@ class bank_OwnAccounts extends core_Master
         if (!$form->gotErrors()) {
             if (isset($rec->iban)) {
                 $accountRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->iban));
-                
                 if (!$accountRec) {
                     $form->setDefault('bank', bglocal_Banks::getBankName($rec->iban));
                     $form->setDefault('bic', bglocal_Banks::getBankBic($rec->iban));
@@ -406,6 +398,7 @@ class bank_OwnAccounts extends core_Master
         }
         
         if ($form->isSubmitted()) {
+            $form->rec->_isSubmitted = true;
             if (empty($rec->bankAccountId)) {
                 $accountRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->iban));
                 
@@ -420,29 +413,33 @@ class bank_OwnAccounts extends core_Master
                 $ourCompany = crm_Companies::fetchOurCompany();
                 if (!empty($accountRec)) {
                     if ($accountRec->contragentId != $ourCompany->id || $accountRec->contragentCls != $ourCompany->classId) {
-                        $form->setError('iban', 'Подаденият IBAN принадлежи на чужда сметка');
+                        $form->setError('iban', 'Подаденият IBAN принадлежи на сметка на друга фирма');
                         
                         return;
                     }
                 }
             }
             
-            if (isset($rec->iban)) {
-                $rec->bankAccountId = $mvc->addNewAccount($rec->iban, $rec->currencyId, $rec->bank, $rec->bic);
-            }
-            
-            if (!$rec->title) {
-                $rec->title = bank_Accounts::fetchField($rec->bankAccountId, 'iban');
-                if ($accountRec) {
-                    $rec->title .= ', ' . currency_Currencies::getCodeById($accountRec->currencyId);
-                }
+            if (empty($rec->title)) {
+                $rec->title = "{$rec->iban}, " . currency_Currencies::getCodeById($rec->currencyId);
             }
         }
     }
     
     
     /**
-     * Добавя нова наша сметка
+     * Извиква се преди запис в модела
+     */
+    protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        if($rec->_isSubmitted === true){
+            $rec->bankAccountId = self::syncWithAccouns($rec->bankAccountId, $rec->iban, $rec->currencyId, $rec->bank, $rec->bic);
+        }
+    }
+    
+    
+    /**
+     * Синхронизиране на банкова сметка с наша сметка
      *
      * @param string $iban
      * @param int    $currencyId
@@ -451,28 +448,32 @@ class bank_OwnAccounts extends core_Master
      *
      * @return int $accId
      */
-    private function addNewAccount($iban, $currencyId, $bank, $bic)
+    private function syncWithAccouns($id, $iban, $currencyId, $bank, $bic)
     {
-        $IbanType = core_Type::getByName('iban_Type(64)');
-        expect(currency_Currencies::fetch($currencyId));
-        $iban = trim($iban);
-        
-        $accRec = new stdClass();
-        foreach (array('iban', 'bic', 'bank', 'currencyId') as $fld) {
-            $accRec->{$fld} = ${$fld};
-        }
-        
-        if ($exRecId = bank_Accounts::fetchField(array("#iban = '[#1#]'", $iban), 'id')) {
-            $accRec->id = $exRecId;
-        }
-        
+        $save = false;
+        $bank = ($bank) ? $bank : null;
+        $bic = ($bic) ? $bic : null;
         $ourCompany = crm_Companies::fetchOurCompany();
-        $accRec->contragentId = $ourCompany->id;
-        $accRec->contragentCls = $ourCompany->classId;
+        $newRec = (object)array('id' => $id, 'iban' => $iban, 'currencyId' => $currencyId, 'bank' => $bank, 'bic' => $bic, 'contragentId' => $ourCompany->id, 'contragentCls' => $ourCompany->classId);
+        if(isset($id)){
+            $exRec = bank_Accounts::fetch($id);
+            if(!is_null($newRec->iban) || !is_null($newRec->currencyId) || !is_null($newRec->bank) || !is_null($newRec->bic)){
+                foreach (array('iban', 'currencyId', 'bank', 'bic') as $fld){
+                    if($exRec->{$fld} != $newRec->{$fld}){
+                        $save = true;
+                    }
+                }
+            }
+        } else {
+            $save = true;
+        }
         
-        $accId = bank_Accounts::save($accRec);
-        
-        return $accId;
+        $res = $id;
+        if($save){
+            $res = bank_Accounts::save($newRec);
+        }
+       
+        return $res;
     }
     
     
@@ -494,6 +495,7 @@ class bank_OwnAccounts extends core_Master
         
         if ($rec = static::fetch($objectId)) {
             $account = bank_Accounts::fetch($rec->bankAccountId);
+           
             $cCode = currency_Currencies::getCodeById($account->currencyId);
             $result = (object) array(
                 'num' => $rec->id  . ' b',
