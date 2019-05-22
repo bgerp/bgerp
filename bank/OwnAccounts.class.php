@@ -68,13 +68,13 @@ class bank_OwnAccounts extends core_Master
     
     
     /**
-     * Кой може да пише
+     * Кой може да оттегля?
      */
     public $canReject = 'ceo, admin';
     
     
     /**
-     * Кой може да пише
+     * Кой може да възстановява?
      */
     public $canRestore = 'ceo, admin';
     
@@ -160,7 +160,7 @@ class bank_OwnAccounts extends core_Master
     
     
     /**
-     * По кой итнерфейс ще се групират сметките
+     * По кой интерфейс ще се групират сметките
      */
     public $balanceRefGroupBy = 'bank_OwnAccRegIntf';
     
@@ -209,7 +209,7 @@ class bank_OwnAccounts extends core_Master
                     }
                 }
                 
-                // Обръщаме го във четим за хората вид
+                // Обръщаме го в четим за хората вид
                 $Double = cls::get('type_Double');
                 $Double->params['decimals'] = 2;
                 $row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . '</span>';
@@ -349,7 +349,7 @@ class bank_OwnAccounts extends core_Master
     
     
     /**
-     * Изчличане на цялата информация за сметката която е активна
+     * Извличане на цялата информация за сметката която е активна
      *
      * @return stdClass $acc - записа отговарящ на текущата ни сметка
      */
@@ -420,7 +420,7 @@ class bank_OwnAccounts extends core_Master
                 $ourCompany = crm_Companies::fetchOurCompany();
                 if (!empty($accountRec)) {
                     if ($accountRec->contragentId != $ourCompany->id || $accountRec->contragentCls != $ourCompany->classId) {
-                        $form->setError('iban', 'Подадения IBAN принадлежи на чужда сметка');
+                        $form->setError('iban', 'Подаденият IBAN принадлежи на чужда сметка');
                         
                         return;
                     }
@@ -559,11 +559,11 @@ class bank_OwnAccounts extends core_Master
     
     
     /**
-     * Подготвя и осъществява търсене по банка, изпозлва се
+     * Подготвя и осъществява търсене по банка, използва се
      * в банковите документи
      *
      * @param stdClass $data
-     * @param array    $fields - масив от полета в полета в които ще се
+     * @param array    $fields - масив от полета, в които ще се
      *                         търси по bankId
      */
     public static function prepareBankFilter(&$data, $fields = array())
