@@ -92,7 +92,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'taskId,type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,created=Създаване,info=@,notes';
+    public $listFields = 'taskId,type=Действие,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,created=Създаване,info=@';
     
     
     /**
@@ -118,7 +118,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      *
      * @var int
      */
-    public $listItemsPerPage = 40;
+    public $listItemsPerPage = 30;
     
     
     /**
@@ -287,7 +287,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                         $rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
                     }
                     
-                    if ($exId = self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}'")) {
+                    if ($exId = self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}' AND #state != 'rejected'")) {
                         $form->setWarning('serial', 'Наистина ли, искате да подмените, съществуващия от преди запис|*?');
                         $form->rec->_rejectId = $exId;
                     }
@@ -349,7 +349,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $exRec = self::fetch($rec->_rejectId);
             $exRec->state = 'rejected';
             $exRec->exState = 'active';
-            $mvc->save_($exRec, 'state');
+            $mvc->save_($exRec, 'state,modifiedOn,modifiedBy');
+            planning_Tasks::logWrite('Оттегляне на детайл', $rec->taskId);
             core_Statuses::newStatus("Оттеглен е записа с номер|* <b>{$rec->serial}</b>");
         }
         
@@ -361,8 +362,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         } else {
             if ($Driver = cat_Products::getDriver($rec->productId)) {
                 $rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
-                $rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->serial);
             }
+        }
+        
+        if (!empty($rec->serial)) {
+            $rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->serial);
         }
     }
     
@@ -709,7 +713,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             unset($data->listFields['_createdDate']);
         }
         
-        $data->listFilter->showFields = 'serial';
+        $data->listFilter->showFields = 'search';
         
         // Ако има използвани оператори, добавят се за филтриране
         $usedFixedAssets = self::getResourcesInDetails($data->masterId, 'fixedAsset');
@@ -942,23 +946,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         
         return true;
-    }
-    
-    
-    /**
-     * Изпълнява се преди възстановяването на документа
-     */
-    protected static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        
-        $limit = '';
-        if (!$mvc->checkLimit($rec, $limit)) {
-            $limit = core_Type::getByName('double(smartRound)')->toVerbal($limit);
-            core_Statuses::newStatus("Не може да се възстанови, защото ще се надвиши максималното количество от|*: <b>{$limit}</b>", 'error');
-            
-            return false;
-        }
     }
     
     

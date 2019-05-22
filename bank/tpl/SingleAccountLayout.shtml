@@ -1,6 +1,6 @@
 <div class="singleView" >
     [#SingleToolbar#]
-    <h2>[#SingleTitle#]</h2>
+    <h2 class='state-[#STATE#]'>[#SingleTitle#]</h2>
     <table class='default-table border-table'>
         <tr class='vtop'>
             <td style='width: 120px'>|Титуляр|*:</td>

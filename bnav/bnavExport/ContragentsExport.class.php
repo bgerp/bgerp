@@ -176,13 +176,13 @@
             
             $id = $cRec->folderId;
             if($contragentClassName == 'crm_Companies'){
-                $eic = $cRec->uicId ? $cRec->uicId :'не посочен' ;
+                $eic = $cRec->uicId ? $cRec->uicId :'' ;
             }
             if($contragentClassName == 'crm_Persons'){
-                $eic = $cRec->egn ? $cRec->egn :'не посочен' ;
+                $eic = $cRec->egn ? $cRec->egn :'' ;
             }
             
-            $vatNo = $cRec->vatId ?$cRec->vatId:'не посочен';
+            $vatNo = $cRec->vatId ?$cRec->vatId:'';
             
             expect($cRec->folderId,"Липсва folderId -> $cRec->name");
             expect(!is_null($cRec->vatId) || !is_null($cRec->uicId) || !is_null($cRec->egn),
@@ -194,7 +194,7 @@
                     
                     'code' => $cRec->folderId,
                     'name' => $cRec->name,
-                    'mol' =>'не посочен',
+                    'mol' =>'',
                     'vatId' => $vatNo,
                     'eic' =>$eic,
                     'country' =>drdata_Countries::fetch($cRec->country)->letterCode2,

@@ -8,8 +8,8 @@
  * @category  bgerp
  * @package   bank
  *
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -56,12 +56,6 @@ class bank_Accounts extends core_Master
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsSingleField = 'iban';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'bank, ceo';
     
     
     /**
@@ -247,6 +241,8 @@ class bank_Accounts extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->contragent = cls::get($rec->contragentCls)->getHyperLink($rec->contragentId, true);
+        $row->STATE = ($rec->state == 'rejected') ? 'rejected' : 'active';
+        $row->ROW_ATTR['class'] = "state-{$row->STATE}";
         
         if ($rec->iban) {
             $verbalIban = $mvc->getVerbal($rec, 'iban');
@@ -254,7 +250,6 @@ class bank_Accounts extends core_Master
                 $countryCode = iban_Type::getCountryPart($rec->iban);
                 if ($countryCode) {
                     $hint = 'Държава|*: ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
-                    
                     if (isset($fields['-single'])) {
                         $row->iban = ht::createHint($row->iban, $hint);
                     } else {
