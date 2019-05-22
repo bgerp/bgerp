@@ -154,7 +154,6 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'currencyId' =>$sRec->currencyId,
                     'rate' =>$sRec->rate,
                     'dealValue' =>$sRec->dealValue,
-                    'vatRate'=>$sRec->vatRate
                     
                 );
             }
@@ -188,7 +187,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'vatAmount' => '',
                     'measure' =>$measure,
                     'vat' =>cat_Products::getVat($pRec->id)*100,
-                    
+                    'accText' =>'',
                     
                 );
             }
@@ -229,14 +228,14 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $fld->FLD('number', 'varchar', 'caption=Номер на документа,tdClass=centered');
             $fld->FLD('date', 'varchar', 'caption=Дата');
             $fld->FLD('contragentCode', 'varchar', 'caption=Код на доставчика');
-            $fld->FLD('accItem', 'varchar', 'caption=Счетоводна сметка');
+           // $fld->FLD('accItem', 'varchar', 'caption=Счетоводна сметка');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
             $fld->FLD('rate', 'double', 'caption=Курс на валутата');
             $fld->FLD('dealValue', 'double', 'caption=Обща стойност->без ДДС');
             $fld->FLD('prodCode', 'varchar', 'caption=Код на стоката');
             $fld->FLD('quantity', 'double', 'caption=Количество');
             $fld->FLD('price', 'double', 'caption=Ед цена');
-            $fld->FLD('measure', 'varchar', 'caption=Мерна единица');
+            $fld->FLD('measure', 'varchar', 'caption=Мерна единица,tdClass=centered');
             $fld->FLD('vat', 'varchar', 'caption=% ДДС');
             
         } else {
@@ -310,13 +309,15 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                      $dRec->invoice->contragentCode.','.
                      $dRec->invoice->accItem.','.
                      $dRec->invoice->currencyId.','.
-                     core_Type::getByName('double(decimals=4)')->toVerbal($dRec->invoice->rate).','.
-                     core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoice->dealValue).','.
+                     $dRec->invoice->rate.','.
+                     $dRec->invoice->dealValue.','.
                      $dRec->prodCode.','.
-                     core_Type::getByName('double(decimals=3)')->toVerbal($dRec->quantity).','.
-                     core_Type::getByName('double(decimals=6)')->toVerbal($dRec->price).','.
+                     $dRec->quantity.','.
+                     $dRec->price.','.
+                     $dRec->vatAmount.','.
                      $dRec->measure.','.
-                     $dRec->vat
+                     $dRec->vat.','.
+                     $dRec->accText
                      ;
             
     }
