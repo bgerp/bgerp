@@ -337,7 +337,11 @@ class core_Debug
                 foreach ($frame['args'] as $arg) {
                     $args[] = self::formatValue($arg);
                 }
-                $args = join(', ', $args);
+                
+                //@todo временно да не се появява: Object of class __PHP_Incomplete_Class could not be converted to string
+                if(is_array($args)){
+                    $args = join(', ', $args);
+                }
             }
             
             // Предотвратяване показването на паролата за базата данни
