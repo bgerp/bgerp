@@ -65,11 +65,13 @@ class vislog_DecoratePlugin extends core_Plugin
             $ipRec = vislog_IpNames::fetch(array("(#ip = '[#1#]') OR (#ip = '[#2#]') OR (#ip = '[#3#]')", $ip, $ip3, $ip2));
         }
         
+        $fullName = $ip;
+
         if ($ipRec) {
-            $fullName = vislog_IpNames::getVerbal($ipRec, 'name');
+            $fullName .=  ' ' .vislog_IpNames::getVerbal($ipRec, 'name');
         }
         
-        $name = $ip;
+        $name = drdata_IpToHosts::getHostByIP($ip); 
         
         if ($coloring) {
             $name = str::coloring($name, $ip);
@@ -82,4 +84,6 @@ class vislog_DecoratePlugin extends core_Plugin
             $res = new ET("<div class='vislog'>[#1#]&nbsp;<span class='vislog-ip'>{$name}</span>&nbsp;[#2#]</div>", $country, $count);
         }
     }
+
+
 }
