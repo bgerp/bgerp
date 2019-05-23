@@ -103,12 +103,13 @@
     {
         $recs = array();
         
-        $sQuery = sales_SalesDetails::getQuery();
-        $sQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
+        $sQuery = sales_InvoiceDetails::getQuery();
+        $sQuery->EXT('state', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
+        $sQuery->EXT('date', 'sales_Invoices', 'externalName=date,externalKey=invoiceId');
         
-        $pQuery = purchase_PurchasesDetails::getQuery();
-        $pQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
-        
+        $pQuery = purchase_InvoiceDetails::getQuery();
+        $pQuery->EXT('state', 'purchase_Invoices', 'externalName=state,externalKey=invoiceId');
+        $pQuery->EXT('date', 'purchase_Invoices', 'externalName=date,externalKey=invoiceId');
         
         $sQuery->where("#state != 'rejected' ");
         $pQuery->where("#state != 'rejected' ");
@@ -119,12 +120,12 @@
         // Ако е посочена начална дата на период
         if ($rec->from) {
             $sQuery->where(array(
-                "#createdOn >= '[#1#]'",
+                "#date >= '[#1#]'",
                 $rec->from . ' 00:00:00'
             ));
             
             $pQuery->where(array(
-                "#createdOn >= '[#1#]'",
+                "#date >= '[#1#]'",
                 $rec->from . ' 00:00:00'
             ));
         }
@@ -132,12 +133,12 @@
         //Крайна дата / 'към дата'
         if ($rec->from) {
             $sQuery->where(array(
-                "#createdOn <= '[#1#]'",
+                "#date <= '[#1#]'",
                 $rec->to . ' 23:59:59'
             ));
             
             $pQuery->where(array(
-                "#createdOn <= '[#1#]'",
+                "#date <= '[#1#]'",
                 $rec->to . ' 23:59:59'
             ));
         }
@@ -146,7 +147,7 @@
         
         while ($sRec = $sQuery->fetch()){
             
-            //Масив с артикулите от продажбите
+            //Масив с артикулите от фактурите по продажбите
             $id = $sRec->productId;
             
             if(!in_array($id, $items)){
@@ -158,7 +159,7 @@
         
         while ($pRec = $pQuery->fetch()){
             
-            //Масив с артикулите от покупките
+            //Масив с артикулите от фактурите по покупките
             $id = $pRec->productId;
             
             if(!in_array($id, $items)){
