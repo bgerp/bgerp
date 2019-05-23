@@ -57,15 +57,25 @@ class vislog_DecoratePlugin extends core_Plugin
                 $count = $titleCnt;
             }
         }
-        
+
+        $countryName = null;
         $country2 = drdata_IpToCountry::get($ip);
         if(!$country2) {
-            $country2 = '??';
+            if(type_Ip::isPrivate($ip)) {
+                $country2 = '⒫';
+                $countryName = 'Private Network';
+            } else {
+                $country2 = '??';
+            }
+        } else {
+            $countryName = drdata_Countries::fetchField("#letterCode2 = '" . strtoupper($country2) . "'", 'commonName' . (core_Lg::getCurrent() == 'bg' ? 'Bg' : ''));
+        }
+        if(!$countryName) {
+            $countryName = 'Unknown Country';
         }
 
-        $countryName = drdata_Countries::fetchField("#letterCode2 = '" . strtoupper($country2) . "'", 'commonName' . (core_Lg::getCurrent() == 'bg' ? 'Bg' : ''));
+        $country = ht::createLink($country2, $country2 != '⒫' ? 'http://bgwhois.com/?query=' . $ip : null, null, array('target' => '_blank', 'class' => 'vislog-country', 'title' => $countryName));
         
-        $country = ht::createLink($country2, 'http://bgwhois.com/?query=' . $ip, null, array('target' => '_blank', 'class' => 'vislog-country', 'title' => $countryName));
         
         if ($showNames) {
             $ipRec = vislog_IpNames::fetch(array("#ip = '[#1#]'", $ip));

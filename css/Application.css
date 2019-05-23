@@ -6120,12 +6120,13 @@ only screen and (max-width: 320px) {
   white-space: nowrap;
   margin: 0 10px; }
 
-.vislog_History .vislog-cnt,
-.vislog_History .vislog-ip,
-.vislog_History .vislog-country {
-  padding: 2px;
+.vislog-cnt,
+.vislog-ip,
+.vislog-country {
+  padding: 1px;
   border: solid 1px #cccccc;
-  background-color: #eeeeee; }
+  background-color: #eeeeee;
+  font-size: 0.9em; }
 
   .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .logs-type-warning td {
     background-color: #fae3ca !important; }
