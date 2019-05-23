@@ -52,9 +52,13 @@ class drdata_IpToHosts extends core_Manager
      */
     public static function getHostByIp($ip)
     {
+        static $calls;
+        
         $rec = self::fetch(array("#ip = '[#1#]'", $ip));
 
         if(!$rec) {
+            $calls++;
+            if($calls > 5) return $ip;
             $rec = new stdClass();
             $rec->ip = $ip;
             $rec->createdOn = dt::now();
@@ -68,9 +72,11 @@ class drdata_IpToHosts extends core_Manager
                     strlen($domainArr[0]) > 12 && strlen($domainArr[1]) > 3) {
                     unset($domainArr[0]);
                 }
-                $rec->host = implode('.', $domainArr);
+                $hostName = implode('.', $domainArr);
             }
-
+            
+            $rec->host = $hostName;
+            
             self::save($rec, null, 'IGNORE');
         }
 
