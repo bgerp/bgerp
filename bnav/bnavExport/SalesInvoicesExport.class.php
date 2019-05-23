@@ -305,7 +305,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         
         $res->full = $dRec->invoice->type.','.
                      $dRec->invoice->number.','.
-                     $Date->toVerbal($dRec->invoice->date).','.
+                     $dRec->invoice->date.','.
                      $dRec->invoice->contragentCode.','.
                      $dRec->invoice->accItem.','.
                      $dRec->invoice->currencyId.','.
@@ -321,6 +321,50 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                      ;
             
     }
+    
+//     /**
+//      * Определя вида сделка за IBS
+//      *
+//      * @param  stdClass $rec - запис
+//      * @return int
+//      */
+//     private function getDealType($rec)
+//     {
+//         $number = ($rec->contragentVatNo) ? $rec->contragentVatNo : $rec->uicNo;
+        
+//         if ($rec->contragentCountryId == $this->countryId || empty($rec->contragentCountryId)) {
+//             // Ако е фирма от БГ сделката е 21
+//             $vidSdelka = $this->confCache->FSD_DEAL_TYPE_BG;
+//         } elseif (drdata_Vats::isHaveVatPrefix($number)) {
+//             // Не е от БГ но е VAT - Евросъюз
+//             $vidSdelka = $this->confCache->FSD_DEAL_TYPE_EU; // 23
+//             // Обаче, ако експедиционното /packaging list/ е с адрес за достaвка в страна извън ЕС
+//             // => $vidSdelka = $this->confCache->FSD_DEAL_TYPE_NON_EU;
+            
+//             // Ако има експедиционно със същия containerId,
+//             // взимаме данните за доставка и проверяваме дали това ни е случая
+//             $shOrder = store_ShipmentOrders::fetch("#fromContainerId = {$rec->containerId}");
+//             if ($shOrder->country) {
+//                 $groupsArr = drdata_CountryGroups::getGroupsArr($shOrder->country);
+//                 foreach ($groupsArr as $group) {
+//                     if ('Чужбина извън ЕС' == $group->name) {
+//                         $vidSdelka = $this->confCache->FSD_DEAL_TYPE_NON_EU; // 22
+//                     }
+//                 }
+//             }
+//         } else {
+//             // Извън Евросъюза
+            
+//             $vidSdelka = $this->confCache->FSD_DEAL_TYPE_NON_EU; // 22
+//             // Но ако е начислено ДДС вида сделка става 21 - по заявка на Даниела /нерегистрирани по ДДС извън БГ/
+//             if ($rec->vatRate != 'no' && $rec->vatRate != 'exempt') {
+//                 $vidSdelka = $this->confCache->FSD_DEAL_TYPE_BG;
+//             }
+//         }
+        
+//         return ($vidSdelka);
+ //   }
+    
     
     
 }
