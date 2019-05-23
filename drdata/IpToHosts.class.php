@@ -58,9 +58,20 @@ class drdata_IpToHosts extends core_Manager
             $rec = new stdClass();
             $rec->ip = $ip;
             $rec->createdOn = dt::now();
-            $rec->host = substr(implode('.' ,array_slice(explode('.', (gethostbyaddr($ip))), -3, 3, true)), -64);
+            $hostName = @gethostbyaddr($ip);
+            if(!$hostName) {
+                $hostName = $ip;
+            }
+            if($hostName != $ip) {
+                $domainArr =  array_slice(explode('.', ($hostName)), -3, 3);
+                if(count($domainArr) == 3 && preg_match("/[0-9]{1,3}[^0-9]+[0-9]{1,3}[^0-9]+[0-9]{1,3}[^0-9]+[0-9]{1,3}/", $domainArr[0]) ||
+                    strlen($domainArr[0]) > 12 && strlen($domainArr[1]) > 3) {
+                    unset($domainArr[0]);
+                }
+                $rec->host = implode('.', $domainArr);
+            }
 
-            self::save($rec);
+            self::save($rec, null, 'IGNORE');
         }
 
         return $rec->host;

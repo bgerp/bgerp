@@ -20,6 +20,8 @@ class vislog_DecoratePlugin extends core_Plugin
      */
     public static function on_AfterDecorateIp($type, &$res, $ip, $time = null, $coloring = false, $showNames = false)
     {
+        static $cntArr = array();
+
         // Ако показваме чист текст или подготвяме HTML за навън - лишаваме се от декорациите
         if (Mode::is('text', 'plain') || Mode::is('text', 'xhtml')) {
             
@@ -30,10 +32,14 @@ class vislog_DecoratePlugin extends core_Plugin
             
             return $ip;
         }
-        
-        if ($cnt = vislog_History::count(array("#ip = '[#1#]'", $ip))) {
+
+        if(!($cnt = $cntArr[$ip])) {
+            $cnt = vislog_History::count(array("#ip = '[#1#]'", $ip));
+        }
+
+        if ($cnt) {
             if ($time) {
-                $old = vislog_History::count(array("#ip = '[#1#]' AND #createdOn <= '[#2#]'", $ip, $time));
+                $old = $cnt == 1 ? 1 : vislog_History::count(array("#ip = '[#1#]' AND #createdOn <= '[#2#]'", $ip, $time));
                 $style = 'color:#' . sprintf('%02X%02X%02X', min(($old / $cnt) * ($old / $cnt) * ($old / $cnt) * 255, 255), 0, 0) . ';';
                 $titleCnt = "{$old}/{$cnt}";
             } else {
@@ -52,17 +58,17 @@ class vislog_DecoratePlugin extends core_Plugin
             }
         }
         
-        
         $country2 = drdata_IpToCountry::get($ip);
+        if(!$country2) {
+            $country2 = '??';
+        }
+
         $countryName = drdata_Countries::fetchField("#letterCode2 = '" . strtoupper($country2) . "'", 'commonName' . (core_Lg::getCurrent() == 'bg' ? 'Bg' : ''));
         
         $country = ht::createLink($country2, 'http://bgwhois.com/?query=' . $ip, null, array('target' => '_blank', 'class' => 'vislog-country', 'title' => $countryName));
         
         if ($showNames) {
-            list($p1, $p2, $p3) = explode('.', $ip);
-            $ip3 = "{$p1}.{$p2}.{$p3}.*";
-            $ip2 = "{$p1}.{$p2}.*.*";
-            $ipRec = vislog_IpNames::fetch(array("(#ip = '[#1#]') OR (#ip = '[#2#]') OR (#ip = '[#3#]')", $ip, $ip3, $ip2));
+            $ipRec = vislog_IpNames::fetch(array("#ip = '[#1#]'", $ip));
         }
         
         $fullName = $ip;
