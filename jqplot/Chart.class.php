@@ -193,10 +193,10 @@ class jqplot_Chart
     /**
      * Добавя нова точка в графиката
      *
-     * @param scalar $seriesKey стойност, която уникално идентидифицира серията
-     * @param scalar $tick      категория на точката (X-координата)
-     * @param scalar $value     стойност на точката (Y-координата)
-     * @param string $label     текст, който да се изпише до точката
+     * @param mixed $seriesKey стойност, която уникално идентидифицира серията
+     * @param mixed $tick      категория на точката (X-координата)
+     * @param mixed $value     стойност на точката (Y-координата)
+     * @param mixed $label     текст, който да се изпише до точката
      */
     public function addPoint($seriesKey, $tick, $value, $label = null)
     {
