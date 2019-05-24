@@ -447,8 +447,6 @@ class log_Data extends core_Manager
             self::save($rec);
             
             self::$toAddHash[$hash] = $rec->id;
-            
-            log_Referer::addReferer($ipId, $bridId, $toAdd['time']);
         }
         
         // Записваме crc32 стойностите на стринговете
@@ -501,12 +499,6 @@ class log_Data extends core_Manager
         
         if (empty($fieldsArr) || $fieldsArr['text']) {
             $row->text = self::prepareText($action, $className, $rec->objectId);
-            
-            // Добавяме линк към реферера
-            $refRec = log_Referer::getRefRec($rec->ipId, $rec->brId, $rec->time);
-            if ($refRec && log_Referer::haveRightFor('single', $refRec)) {
-                $row->text .= ht::createLinkRef('', array('log_Referer', 'single', $refRec->id), null, array('title' => 'Реферер|*: ' . $refRec->ref));
-            }
         }
         
         if ($fieldsArr['userId']) {
@@ -856,21 +848,8 @@ class log_Data extends core_Manager
         
         if ($deletedRecs) {
             $res .= "Изтрити <b>{$deletedRecs}</b> записа от логовете";
-            
-            foreach ($delArr as $dArr) {
+        }
                 
-                // Изтриваме реферерите за данните, само ако няма друга връзка
-                $delRefCnt += log_Referer::delRefRec($dArr['ipId'], $dArr['brId'], $dArr['time'], true);
-            }
-        }
-        
-        if ($delRefCnt) {
-            if ($res) {
-                $res .= "\n";
-            }
-            $res .= "Изтрити <b>{$delRefCnt}</b> записа от реферери";
-        }
-        
         return $res;
     }
     

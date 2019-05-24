@@ -62,7 +62,6 @@ class log_Setup extends core_ProtoSetup
         'log_Browsers',
         'log_Classes',
         'log_Ips',
-        'log_Referer',
         'log_Debug',
     );
     
