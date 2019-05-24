@@ -328,11 +328,10 @@ class log_Browsers extends core_Master
         }
         
         if (!Mode::is('text', 'plain')) {
-            $title = str::coloring($title, $brid);
+            $title = str::coloring($title, is_object($brid) ? $brid->brind : $brid);
             if (self::haveRightFor('single', $rec)) {
                 $title = ht::createLink($title, array('log_Browsers', 'single', $rec->id));
             }
-
         }
         
         return $title;
@@ -723,7 +722,6 @@ class log_Browsers extends core_Master
         return false;
     }
     
- 
     
     /**
      * Връща $_SERVER['HTTP_USER_AGENT']
