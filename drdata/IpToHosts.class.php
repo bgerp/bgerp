@@ -58,7 +58,7 @@ class drdata_IpToHosts extends core_Manager
 
         if(!$rec) {
             $calls++;
-            if($calls > 5) return $ip;
+            if($calls > 3) return $ip;
             $rec = new stdClass();
             $rec->ip = $ip;
             $rec->createdOn = dt::now();
@@ -73,6 +73,13 @@ class drdata_IpToHosts extends core_Manager
                     unset($domainArr[0]);
                 }
                 $hostName = implode('.', $domainArr);
+                if(strlen($hostName) > 24) {
+                    unset($domainArr[0]);
+                    $hostName = implode('.', $domainArr);
+                }
+                if(strlen($hostName) > 24 || strlen($hostName) < 6) {
+                    $hostName = $ip;
+                }
             }
             
             $rec->host = $hostName;
