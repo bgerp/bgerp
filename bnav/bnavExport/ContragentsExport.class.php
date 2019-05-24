@@ -103,8 +103,8 @@
     {
         $recs = array();
         
-        $sQuery = sales_Sales::getQuery();
-        $pQuery = purchase_Purchases::getQuery();
+        $sQuery = sales_Invoices::getQuery();
+        $pQuery = purchase_Invoices::getQuery();
         
         
         $sQuery->where("#state != 'rejected' ");
@@ -116,12 +116,12 @@
         // Ако е посочена начална дата на период
         if ($rec->from) {
             $sQuery->where(array(
-                "#createdOn >= '[#1#]'",
+                "#date >= '[#1#]'",
                 $rec->from . ' 00:00:00'
             ));
             
             $pQuery->where(array(
-                "#createdOn >= '[#1#]'",
+                "#date >= '[#1#]'",
                 $rec->from . ' 00:00:00'
             ));
         }
@@ -129,12 +129,12 @@
         //Крайна дата / 'към дата'
         if ($rec->from) {
             $sQuery->where(array(
-                "#createdOn <= '[#1#]'",
+                "#date <= '[#1#]'",
                 $rec->to . ' 23:59:59'
             ));
             
             $pQuery->where(array(
-                "#createdOn <= '[#1#]'",
+                "#date <= '[#1#]'",
                 $rec->to . ' 23:59:59'
             ));
         }
@@ -144,7 +144,7 @@
         
         while ($sRec = $sQuery->fetch()){
             
-            //Масив с контрагенти от продажбите
+            //Масив с контрагенти от фактурите по продажби
             $id = $sRec->contragentClassId.'|'.$sRec->contragentId;
             
             if(!in_array($id, $contragents)){
@@ -186,7 +186,7 @@
             
             expect($cRec->folderId,"Липсва folderId -> $cRec->name");
             expect(!is_null($cRec->vatId) || !is_null($cRec->uicId) || !is_null($cRec->egn),
-               "Задължително е за контрагента да има поне един от номерата: БУЛСТАТ или ЕГН или Дан. номер -> $cRec->name ,$contragentClassName ,id($cRec->id)");
+              "Задължително е за контрагента да има поне един от номерата: БУЛСТАТ или ЕГН или Дан. номер -> $cRec->name ,$contragentClassName ,id($cRec->id)");
             
             // Запис в масива
             if (!array_key_exists($id, $recs)) {

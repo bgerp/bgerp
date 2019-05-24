@@ -92,7 +92,7 @@
 // Базова директория, където се намират по-директориите за
 // потребителски файлове. По подразбиране е в
 // EF_ROOT_PATH/uploads
- # defIfNot( 'EF_UPLOADS_BASE_PATH', 'PATH_TO_FOLDER');
+   # defIfNot( 'EF_BASE_UPLOADS_PATH', 'PATH_TO_FOLDER');
 
 // Твърдо, фиксирано име на мениджъра с контролерните функции.
 // Ако се укаже, цялотоможе да има само един такъв
@@ -333,11 +333,11 @@ defIfNot('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'https://experta.bg/api_Companies/ge
 
 
 // Базова директория, където се намират под-директориите с качените файлове
- # defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH.'/uploads');
+   # defIfNot('EF_BASE_UPLOADS_PATH', EF_ROOT_PATH.'/uploads');
 
 
 // Директорията с качените и генерираните файлове
- # defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH.'/'.EF_APP_NAME);
+   # defIfNot('EF_UPLOADS_PATH', EF_BASE_UPLOADS_PATH.'/'.EF_APP_NAME);
  
 // Времето в секунди за изчакване при рефреш на портала
   defIfNot('BGERP_DOCUMENT_SLEEP_TIME', 0);

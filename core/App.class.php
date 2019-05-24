@@ -314,7 +314,7 @@ class core_App
             if (defined('EF_BASE_UPLOADS_PATH')) {
                 define('EF_UPLOADS_PATH', EF_BASE_UPLOADS_PATH . '/' . EF_APP_NAME);
             } elseif (defined('EF_ROOT_PATH')) {
-                define('EF_UPLOADS_PATH', EF_ROOT_PATH . '/uploads/' . EF_APP_NAME);
+                define('EF_UPLOADS_PATH', EF_ROOT_PATH . '/uploads');
             } else {
                 die('Not possible to determine constant `EF_UPLOADS_PATH`');
             }

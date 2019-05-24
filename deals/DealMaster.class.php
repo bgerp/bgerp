@@ -433,6 +433,8 @@ abstract class deals_DealMaster extends deals_DealBase
             $data->listFilter->setDefault('type', 'active');
             $data->listFilter->showFields .= ',type';
         }
+        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'caption=Група,refreshForm');
+        $data->listFilter->showFields .= ',groupId';
         
         $data->listFilter->input();
         if ($filter = $data->listFilter->rec) {
@@ -440,6 +442,16 @@ abstract class deals_DealMaster extends deals_DealBase
             $data->query->XPR('dealRound', 'double', 'ROUND(COALESCE(#amountDeal, 0), 2)');
             $data->query->XPR('invRound', 'double', 'ROUND(COALESCE(#amountInvoiced, 0), 2)');
             $data->query->XPR('deliveredRound', 'double', 'ROUND(COALESCE(#amountDelivered, 0), 2)');
+            
+            // Ако има филтър по клиентска група
+            if(isset($filter->groupId)){
+                $foldersArr = crm_Groups::getFolderByContragentGroupId($filter->groupId);
+                if(count($foldersArr)){
+                    $data->query->in('folderId', $foldersArr);
+                } else {
+                    $data->query->where("1=2");
+                }
+            }
             
             if ($filter->type) {
                 switch ($filter->type) {
