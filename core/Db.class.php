@@ -108,9 +108,6 @@ class core_Db
     public static $links = array();
     
     
-    /**
-     * 
-     */
     public $lastRes;
     
     
@@ -157,7 +154,7 @@ class core_Db
         $params = arr::make($params);
         
         foreach ($params as $name => $value) {
-			$this->{$name} = $params[$name];
+            $this->{$name} = $params[$name];
         }
     }
     
@@ -227,11 +224,11 @@ class core_Db
      * първо да направи връзка и след това да изпълни SQL заявката.
      *
      * @param string $sqlQuery
-     * @param bool   $silent   Ако е TRUE, функцията не прекъсва изпълнението на
-     *                         скрипта и не отпечатва съобщението за грешка на MySQL.
-     *                         В този случай извикващия трябва да провери стойностите на
-     *                         {$link DB::errno()} и {@link DB::error()} и да реагира според тях
-     * @param bool $replication дали да се записва заявката в лог файл
+     * @param bool   $silent      Ако е TRUE, функцията не прекъсва изпълнението на
+     *                            скрипта и не отпечатва съобщението за грешка на MySQL.
+     *                            В този случай извикващия трябва да провери стойностите на
+     *                            {$link DB::errno()} и {@link DB::error()} и да реагира според тях
+     * @param bool   $replication дали да се записва заявката в лог файл
      *
      * @return resource
      */
@@ -252,7 +249,7 @@ class core_Db
         DEBUG::stopTimer('DB::query()');
         
         if ($replication && defined('BGERP_SQL_LOG_PATH') && ($path = BGERP_SQL_LOG_PATH)) {
-            if($link->affected_rows > 0 || stripos($sqlQuery, 'truncate') !== false) {
+            if ($link->affected_rows > 0 || stripos($sqlQuery, 'truncate') !== false) {
                 $path .= '/' . date('Y-m-d_h') . '.sql';
                 file_put_contents($path, $sqlQuery . ";\n\r", FILE_APPEND);
             }
@@ -829,7 +826,7 @@ class core_Db
      */
     public function getTableInfo($tableName, $part = null)
     {
-        $dbRes = $this->query("SELECT *
+        $dbRes = $this->query("SELECT SQL_NO_CACHE *
                                FROM INFORMATION_SCHEMA.TABLES 
                                 WHERE TABLE_SCHEMA = '" . $this->escape($this->dbName) ."' AND TABLE_NAME='{$tableName}'", true);
         
