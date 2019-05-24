@@ -198,9 +198,7 @@ class log_Ips extends core_Manager
             if ($calls < 6) {
                 $rec->host = self::getHost($ip);
                 $calls++;
-                if ($rec->host != $ip) {
-                    $mustSave = true;
-                }
+                $mustSave = true;
             }
         }
         $host = $rec->host ? $rec->host : $ip;
