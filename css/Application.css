@@ -6113,7 +6113,8 @@ only screen and (max-width: 320px) {
 
 .vislog {
   white-space: nowrap;
-  display: inline; }
+  display: inline;
+  font-size: 0.9em; }
 
 .vislog_History .vislog {
   font-size: 0.8em;
@@ -6125,8 +6126,7 @@ only screen and (max-width: 320px) {
 .vislog-country {
   padding: 1px;
   border: solid 1px #cccccc;
-  background-color: #eeeeee;
-  font-size: 0.9em; }
+  background-color: #eeeeee; }
 
   .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .logs-type-warning td {
     background-color: #fae3ca !important; }

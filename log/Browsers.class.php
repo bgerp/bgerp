@@ -640,7 +640,7 @@ class log_Browsers extends core_Master
             '/iphone/i' => 'iPhone',
             '/ipod/i' => 'iPod',
             '/ipad/i' => 'iPad',
-            '/Moto /' => 'Moto',
+            '/moto /i' => 'Moto',
             '/android/i' => 'Android',
             '/blackberry/i' => 'BlackBerry',
             '/webos/i' => 'Mobile',
