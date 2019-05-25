@@ -282,7 +282,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $canStore = cat_Products::fetchField($rec->productId, 'canStore');
                 if(!empty($rec->serial)){
                     $rec->serial = plg_Search::normalizeText($rec->serial);
-                    $rec->serial = str::removeWhitespaces($rec->serial);
+                    $rec->serial = str::removeWhiteSpace($rec->serial);
                     if ($Driver = cat_Products::getDriver($rec->productId)) {
                         $rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
                     }
@@ -995,7 +995,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if(!empty($params['serial'])){
             expect(type_Int::isInt($params['serial']), 'Серийния номер може да е само от цифри');
             $params['serial'] = plg_Search::normalizeText($params['serial']);
-            $params['serial'] = str::removeWhitespaces($params['serial']);
+            $params['serial'] = str::removeWhiteSpace($params['serial']);
             if ($Driver = cat_Products::getDriver($productId)) {
                 $params['serial'] = $Driver->canonizeSerial($productId, $params['serial']);
             }

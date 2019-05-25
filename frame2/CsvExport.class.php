@@ -114,7 +114,7 @@ class frame2_CsvExport extends core_Mvc
             $csv = iconv('UTF-8', 'UTF-8//IGNORE', $csv);
             
             // Записване във файловата система
-            $fileName = $Frame->getHandle($objId) . '-' . str::removeWhitespaces(str::utf2ascii($frameRec->title), '_');
+            $fileName = $Frame->getHandle($objId) . '-' . str::removeWhiteSpace(str::utf2ascii($frameRec->title), '_');
             $fileHnd = fileman::absorbStr($csv, 'exportCsv', "{$fileName}.csv");
             $fileId = fileman::fetchByFh($fileHnd, 'id');
             doc_Linked::add($frameRec->containerId, $fileId, 'doc', 'file');

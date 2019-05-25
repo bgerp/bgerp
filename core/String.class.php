@@ -1113,7 +1113,7 @@ class core_String
      *
      * @return string
      */
-    public static function removeWhitespaces($string, $replace = '')
+    public static function removeWhiteSpace($string, $replace = '')
     {
         return preg_replace('/\s+/', $replace, $string);
     }
