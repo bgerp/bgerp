@@ -45,7 +45,7 @@ class type_Url extends type_Varchar
                 $url = $value;
             }
             
-            $value = HT::createLink($value, $url, false, $attr);
+            $value = HT::createLink(core_Url::decodeUrl($value), $url, false, $attr);
         }
         
         return $value;
