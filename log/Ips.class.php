@@ -326,6 +326,7 @@ class log_Ips extends core_Manager
     {
         $query = self::getQuery();
         $before1day = dt::addDays(-1);
+        $query->limit(10);
         $query->where("#createdOn < '{$before1day}' AND (#host IS NULL OR #country2 IS NULL)");
         while($rec = $query->fetch()) {
             self::decorateIp($rec->ip);
