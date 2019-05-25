@@ -195,7 +195,7 @@ class log_Ips extends core_Manager
         
         // $host
         if (!$rec->host) {
-            if ($calls < 6) {
+            if ($calls < 3) {
                 $rec->host = self::getHost($ip);
                 $calls++;
                 $mustSave = true;
@@ -212,7 +212,7 @@ class log_Ips extends core_Manager
             $title = $ip;
         }
         if ($rec->users) {
-            $title .= ': ' . $rec->users;
+            $title .= ($title ? ': ' : '') . $rec->users;
         }
         $title = ht::escapeAttr($title);
         
@@ -316,5 +316,19 @@ class log_Ips extends core_Manager
         }
         
         return $hostName;
+    }
+
+
+    /**
+     * Извличане на информацията за IP-тата по разписание
+     */
+    public function cron_UpdateIpInfo()
+    {
+        $query = self::getQuery();
+        $before1day = dt::addDays(-1);
+        $query->where("#createdOn < '{$before1day}' AND (#host IS NULL OR #country2 IS NULL)");
+        while($rec = $query->fetch()) {
+            self::decorateIp($rec->ip);
+        }
     }
 }

@@ -65,6 +65,22 @@ class log_Setup extends core_ProtoSetup
         'log_Debug',
     );
     
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'UpdateIpInfo',
+            'description' => 'Извличане на информация за IP-та',
+            'controller' => 'log_Ips',
+            'action' => 'UpdateIpInfo',
+            'period' => 3,
+            'offset' => 0,
+            'timeLimit' => 100,
+             ),
+        );
+
     
     /**
      * Описание на конфигурационните константи
