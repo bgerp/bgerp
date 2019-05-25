@@ -821,10 +821,10 @@ class core_Html
     /**
      * Създава хипервръзка
      *
-     * @param string       $title
-     * @param FALSE|array  $url
-     * @param FALSE|string $warning
-     * @param array|string $attr
+     * @param string                $title
+     * @param false|array|string    $url
+     * @param false|string          $warning
+     * @param array|string          $attr
      *
      * @return core_ET
      */

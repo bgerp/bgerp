@@ -68,7 +68,10 @@ class log_Ips extends core_Manager
     public $loadList = 'plg_SystemWrapper, log_Wrapper, plg_Sorting,plg_RowTools2';
     
     
-    public static $ipsArr = array();
+    /**
+     * Съхраняване на кеширана информация за ip-та
+     */
+    public static $ipsArr;
     
     
     /**
@@ -182,7 +185,7 @@ class log_Ips extends core_Manager
      *
      * @return string
      */
-    public function decorateIp($ip, $coloring = false, $cnt = 0, $old = 0)
+    public static function decorateIp($ip, $coloring = false, $cnt = 0, $old = 0)
     {
         static $calls = 0;
         
@@ -234,7 +237,7 @@ class log_Ips extends core_Manager
         } elseif (($rec->country2 == 'u') || !$rec->country2) {
             $country = '??';
         } else {
-            $countryName = drdata_Countries::fetchField("#letterCode2 = '" . strtoupper($country2) . "'", 'commonName' . (core_Lg::getCurrent() == 'bg' ? 'Bg' : ''));
+            $countryName = drdata_Countries::fetchField("#letterCode2 = '" . strtoupper($country) . "'", 'commonName' . (core_Lg::getCurrent() == 'bg' ? 'Bg' : ''));
         }
         if (!$countryName) {
             $countryName = 'Unknown Country';
