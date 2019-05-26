@@ -432,7 +432,7 @@ class bank_OwnAccounts extends core_Master
      */
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if($rec->_isSubmitted === true){
+        if ($rec->_isSubmitted === true) {
             $rec->bankAccountId = self::syncWithAccouns($rec->bankAccountId, $rec->iban, $rec->currencyId, $rec->bank, $rec->bic);
         }
     }
@@ -448,18 +448,18 @@ class bank_OwnAccounts extends core_Master
      *
      * @return int $accId
      */
-    private function syncWithAccouns($id, $iban, $currencyId, $bank, $bic)
+    private static function syncWithAccouns($id, $iban, $currencyId, $bank, $bic)
     {
         $save = false;
         $bank = ($bank) ? $bank : null;
         $bic = ($bic) ? $bic : null;
         $ourCompany = crm_Companies::fetchOurCompany();
-        $newRec = (object)array('id' => $id, 'iban' => $iban, 'currencyId' => $currencyId, 'bank' => $bank, 'bic' => $bic, 'contragentId' => $ourCompany->id, 'contragentCls' => $ourCompany->classId);
-        if(isset($id)){
+        $newRec = (object) array('id' => $id, 'iban' => $iban, 'currencyId' => $currencyId, 'bank' => $bank, 'bic' => $bic, 'contragentId' => $ourCompany->id, 'contragentCls' => $ourCompany->classId);
+        if (isset($id)) {
             $exRec = bank_Accounts::fetch($id);
-            if(!is_null($newRec->iban) || !is_null($newRec->currencyId) || !is_null($newRec->bank) || !is_null($newRec->bic)){
-                foreach (array('iban', 'currencyId', 'bank', 'bic') as $fld){
-                    if($exRec->{$fld} != $newRec->{$fld}){
+            if (!is_null($newRec->iban) || !is_null($newRec->currencyId) || !is_null($newRec->bank) || !is_null($newRec->bic)) {
+                foreach (array('iban', 'currencyId', 'bank', 'bic') as $fld) {
+                    if ($exRec->{$fld} != $newRec->{$fld}) {
                         $save = true;
                     }
                 }
@@ -469,10 +469,10 @@ class bank_OwnAccounts extends core_Master
         }
         
         $res = $id;
-        if($save){
+        if ($save) {
             $res = bank_Accounts::save($newRec);
         }
-       
+        
         return $res;
     }
     
@@ -495,7 +495,7 @@ class bank_OwnAccounts extends core_Master
         
         if ($rec = static::fetch($objectId)) {
             $account = bank_Accounts::fetch($rec->bankAccountId);
-           
+            
             $cCode = currency_Currencies::getCodeById($account->currencyId);
             $result = (object) array(
                 'num' => $rec->id  . ' b',
@@ -521,10 +521,11 @@ class bank_OwnAccounts extends core_Master
     
     /**
      * Връща Валутата и IBAN-a на всички наши сметки разделени с "-"
-     * 
-     * @param boolean $selectIban
+     *
+     * @param bool        $selectIban
      * @param string|null $currencyCode
-     * @param mixed|null $onlyIds
+     * @param mixed|null  $onlyIds
+     *
      * @return array $accounts
      */
     public static function getOwnAccounts($selectIban = true, $currencyCode = null, $onlyIds = null)
@@ -533,7 +534,7 @@ class bank_OwnAccounts extends core_Master
         $accounts = array();
         $query = static::getQuery();
         $query->where("#state != 'rejected' AND #state != 'closed'");
-        if(isset($onlyIds)){
+        if (isset($onlyIds)) {
             $onlyIds = arr::make($onlyIds, true);
             $query->in('id', $onlyIds);
         }
@@ -548,14 +549,16 @@ class bank_OwnAccounts extends core_Master
             if (isset($rec->bankAccountId)) {
                 $account = bank_Accounts::fetch($rec->bankAccountId);
                 $cCode = currency_Currencies::getCodeById($account->currencyId);
-                if(isset($currencyCode) && strtoupper($currencyCode) != $cCode) continue;
-               
+                if (isset($currencyCode) && strtoupper($currencyCode) != $cCode) {
+                    continue;
+                }
+                
                 $verbal = ($selectIban === true) ? $Varchar->toVerbal($account->iban) : $rec->title;
                 
                 $accounts[$rec->id] = "{$cCode} - {$verbal}";
             }
         }
-      
+        
         return $accounts;
     }
     

@@ -509,7 +509,7 @@ class html2text_Converter
 
 
         // highlighting
-        $text = preg_replace_callback('/<(span|div|pre|p)\\s[^>]*style\\s?\=\\s?(\\"|\\\')([^\\>]*color\\s?\:\\s?[^\\>]+)\\2[^\\>]*\\>(.*)<\\/\\1>/i', array($this, 'highlighting'), $text);
+        $text = preg_replace_callback('/<(span|div|pre|p)\\s[^>]*style\\s?=\\s?(\\"|\\\')([^>]*(color|font-weight|font-style|text-decoration)\\s?:\\s?[^>]+)\\2[^>]*>(.*?)<\\/\\1>/i', array($this, 'highlighting'), $text);
         
         // <i>
         $text = preg_replace("/<i[^>]*>(.*?)<\/i[^>]*>/i", '[i]\\1[/i]', $text);
@@ -707,19 +707,19 @@ class html2text_Converter
     {
         $style = $matches[3];
 
-        $text = $matches[4];
+        $text = $matches[5];
 
         $ruleArr = explode(';', $style);
 
         $color = $bgcolor = $bold = $italic = $underline = $strike = null;
 
         foreach($ruleArr as $rule) {
-            $rule = strtolower(str::removeWhiteSpaces($rule));
+            $rule = strtolower(str::removeWhiteSpace($rule));
             list($name, $value) = explode(':', $rule);
             if($name == 'color') {
                 $text = '[color=' . self::getColor($value) . ']' . $text . '[/color]';
-            } elseif($name == 'background-color') {
-                $text = '[bgcolor=' . self::getColor($value) . ']' . $text . '[/bgcolor]';
+            } elseif($name == 'background-color') { 
+                $text = '[bg=' . self::getColor($value) . ']' . $text . '[/bgcolor]';
             } elseif($name == 'font-weight' && ($value == 'bold' || $value >= 600)) {
                 $text = '[b]' . $text . '[/b]';;
             } elseif($name == 'font-style' && $value == 'italic') {
@@ -744,8 +744,16 @@ class html2text_Converter
 
         if(preg_match("/rgb\\((\\d+),(\\d+),(\\d+)\\)/", $color, $matches)) { 
             $color = sprintf("#%02x%02x%02x", $matches[1], $matches[2], $matches[3]);
-        } elseif(preg_match("/rgba\\((\\d+),(\\d+),(\\d+),(\\d+)\\)/", $color, $matches)) {
-            $color = sprintf("#%02x%02x%02x", $matches[1], $matches[2], $matches[3]);
+        } elseif(preg_match("/rgba\\((\\d+),(\\d+),(\\d+),([\\d\\.]+)\\)/", $color, $matches)) {
+            $r = $matches[1];
+            $g = $matches[2];
+            $b = $matches[3];
+            $a = (float) $matches[4];
+            $r = max(0, min(255, round(255*(1-$a) + $r*$a)));
+            $g = max(0, min(255, round(255*(1-$a) + $g*$a)));
+            $b = max(0, min(255, round(255*(1-$a) + $b*$a)));
+
+            $color = sprintf("#%02x%02x%02x", $r, $g, $b);
         } 
 
         return $color;
