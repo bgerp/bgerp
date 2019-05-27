@@ -270,7 +270,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                                 $overColor = 'red';
                             }
                             
-                            $invoiceCurrentSummArr[$iRec->contragentId] += ($paydocs->amount - $paydocs->payout);
+                            $invoiceCurrentSummKey = $iRec->contragentClassId.'|'.$iRec->contragentId;
+                            
+                            $invoiceCurrentSummArr[$invoiceCurrentSummKey] += ($paydocs->amount - $paydocs->payout);
                         } else {
                             continue;
                         }
@@ -323,7 +325,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             
             foreach ($invoiceCurrentSummArr as $k => $v) {
                 foreach ($recs as $key => $val) {
-                    if ($val->contragentId == $k) {
+                $chekKey = $val->contragentClassId.'|'.$val->contragentId;
+                
+                if ($chekKey == $k) {
                         $val->invoiceCurrentSummArr = $invoiceCurrentSummArr;
                         
                         $rTemp[] = $val;
