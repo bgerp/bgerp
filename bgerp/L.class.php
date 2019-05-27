@@ -553,6 +553,11 @@ class bgerp_L extends core_Manager
                     $email = strtolower($email);
                     $emailArr[$email] = $email;
                 }
+                if ($inRec->fromEml) {
+                    $fromEml = trim($inRec->fromEml);
+                    $fromEml = strtolower($fromEml);
+                    $emailArr[$fromEml] = $fromEml;
+                }
             } elseif ($cRec->docClass == $outClsId) {
                 $sLogArr = doclog_Documents::fetchByCid($cRec->id, doclog_Documents::ACTION_SEND);
                 
