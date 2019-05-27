@@ -416,8 +416,16 @@ class bgerp_L extends core_Manager
                     Mode::set('isSystemCanSingle', true);
                 }
                 
+                if (!$dRec->_mid) {
+                    Mode::push('action', NULL);
+                }
+                
                 // Рендираме документа
                 $html .= "<div class='{$className}'>" . $dDoc->getDocumentBody('xhtml', (object) $options) . '</div>';
+                
+                if (!$dRec->_mid) {
+                    Mode::pop('action');
+                }
                 
                 if ($isSystemCanSingle) {
                     Mode::set('isSystemCanSingle', false);
@@ -524,14 +532,6 @@ class bgerp_L extends core_Manager
         $cQuery->orderBy('createdOn', 'DESC');
         $cQuery->orderBy('id', 'DESC');
         
-        // Ограничаваме показването до дата и имейли в зависимост от настройките на системата
-        $strictDate = email_Setup::get('SHOW_THREAD_DATE_LIMITATION');
-        $strictEmail = email_Setup::get('SHOW_THREAD_EMAIL_LIMITATION');
-        
-        if ($strictDate == 'yes') {
-            $cQuery->where(array("#createdOn <= '[#1#]'", $mRec->createdOn));
-        }
-        
         while ($cRec = $cQuery->fetch()) {
             $continue = false;
             
@@ -567,10 +567,6 @@ class bgerp_L extends core_Manager
                         $cRec->_mid = $sLog->mid;
                     }
                     
-                    if (($strictDate == 'yes') && ($sLog->createdOn > $mRec->createdOn) && ($mRec->containerId != $sLog->containerId)) {
-                        continue;
-                    }
-                    
                     $emailsStr .= ($emailsStr) ? ', ' : '';
                     
                     $emailsStr .= $sLog->data->to;
@@ -589,23 +585,12 @@ class bgerp_L extends core_Manager
                 }
             }
             
-            // Ако има ограничение по имейлите - когато всички получатели трябва да ги има в списъка
-            if ($strictEmail == 'yes') {
-                foreach ($midEmailsArr as $email) {
-                    if (!$emailArr[$email]) {
-                        $continue = true;
-                        
-                        break;
-                    }
-                }
-            } else {
-                $continue = true;
-                foreach ($midEmailsArr as $email) {
-                    if ($emailArr[$email]) {
-                        $continue = false;
-                        
-                        break;
-                    }
+            $continue = true;
+            foreach ($midEmailsArr as $email) {
+                if ($emailArr[$email]) {
+                    $continue = false;
+                    
+                    break;
                 }
             }
             
