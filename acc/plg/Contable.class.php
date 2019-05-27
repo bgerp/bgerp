@@ -833,13 +833,15 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterRollbackConto($mvc, $res, $id)
     {
-        $rec = $mvc->fetchRec($id);
-        
-        acc_Journal::deleteTransaction($mvc, $rec->id);
-        $rec->state = 'draft';
-        $rec->brState = 'active';
-        $mvc->save($rec, 'state,brState');
-        $mvc->logWrite('Ревъртване на контировката', $rec);
-        $res = true;
+        if(!isset($res)){
+            $rec = $mvc->fetchRec($id);
+            
+            acc_Journal::deleteTransaction($mvc, $rec->id);
+            $rec->state = 'draft';
+            $rec->brState = 'active';
+            $mvc->save($rec, 'state,brState');
+            $mvc->logWrite('Ревъртване на контировката', $rec);
+            $res = true;
+        }
     }
 }
