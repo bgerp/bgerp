@@ -4,6 +4,7 @@
        <tr class='[#logClass#]'>
            <td>[#createdOn#]</td>
            <td class='nowrap'>[#status#]</td>
+           <td class='aright'>[#brid#]</td>
            <td class='aright'>[#ip#]</td>
        </tr>
        <!--ET_END log-->

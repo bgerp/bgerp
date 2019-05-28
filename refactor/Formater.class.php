@@ -109,7 +109,7 @@ class refactor_Formater extends core_Manager
         $files = array();
         
         $repos = core_App::getRepos();
-        foreach ($repos as $r) {
+        foreach (array_keys($repos) as $r) {
             if ($scope == 'all') {
                 foreach ($this->readAllFiles($r) as $f) {
                     $files[] = $f;

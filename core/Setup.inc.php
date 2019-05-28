@@ -101,7 +101,7 @@ if (defined('BGERP_ABSOLUTE_HTTP_HOST')) {
 
 // URL на следващата стъпка
 $selfUrl = addParams($selfUri, array('step' => $step));
-$nextUrl = addParams($selfUri, array('step' => $step + 1));
+$nextUrl = addParams($selfUri, array('step' => round($step) + 1));
  
 // Определяме линка към приложението
 $appUri = $selfUrl;
@@ -533,15 +533,8 @@ if ($step == 2) {
     $log = array();
     $checkUpdate = isset($_GET['update']) || isset($_GET['revert']);
 
-    if (!defined(PRIVATE_GIT_BRANCH)) {
-        define(PRIVATE_GIT_BRANCH, BGERP_GIT_BRANCH);
-    }
+    $repos = core_App::getRepos();
 
-    if (defined('EF_PRIVATE_PATH')) {
-        $repos = array(EF_PRIVATE_PATH => PRIVATE_GIT_BRANCH, EF_APP_PATH => BGERP_GIT_BRANCH);
-    } else {
-        $repos = array(EF_APP_PATH => PRIVATE_GIT_BRANCH);
-    }
     switch ($checkUpdate) {
         // Не се изисква сетъп
         case false:
@@ -586,7 +579,7 @@ if ($step == 2) {
                 $repoName = basename($repoPath);
                 
                 // Превключваме репозиторито в зададения в конфигурацията бранч
-                if (!gitSetBranch($repoPath, $log, $branch)) {
+                if ($branch && !gitSetBranch($repoPath, $log, $branch)) {
                     continue;
                 }
                      

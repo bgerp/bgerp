@@ -384,7 +384,7 @@ class fileman_Repositories extends core_Master
      * @param string $subPath  - Подпапка в хранилището
      * @param string $bucket   - Кофата, в която да се качи
      *
-     * @return fileHnd - Връща манипулатора на качения файл
+     * @return string - Връща манипулатора на качения файл
      */
     public static function absorbFile($repoPath, $file, $subPath = '', $bucket = null)
     {
@@ -423,9 +423,6 @@ class fileman_Repositories extends core_Master
      */
     public static function absorbFileFromId($id, $file, $subPath = '', $bucket = null)
     {
-        // Вземаме записа
-        $rec = static::fetch($id);
-        
         // Вземаем пътя до хранилището
         $repoPath = static::getFullPathFromId($id);
         
@@ -440,7 +437,7 @@ class fileman_Repositories extends core_Master
     /**
      * Добавя файла в посочените хранилища
      *
-     * @param fileHnd $fh        - Манипулатор на файла
+     * @param string $fh        - Манипулатор на файла
      * @param array   $reposArr  - Масив с хранилища
      * @param string  $subPath   - Подпапка
      * @param bool    $forceSave - Дали да се форсира записа, ако съществува файл със същото име
@@ -1485,7 +1482,7 @@ class fileman_Repositories extends core_Master
     /**
      * Проверява дали датата на последната модификация е била преди разрешеното време
      *
-     * @param timestamp $lastModified - Времето с което искаме да сравняваме
+     * @param int $lastModified - Времето с което искаме да сравняваме
      *
      * @return bool
      */
@@ -1834,7 +1831,7 @@ class fileman_Repositories extends core_Master
     /**
      * Подготвя навигацията по страници
      *
-     * @param unknown_type $data
+     * @param stdClass $data
      */
     public function prepareSinglePager_(&$data)
     {

@@ -201,14 +201,9 @@ class core_Permanent extends core_Manager
      */
     public function cron_DeleteExpiredPermData()
     {
-        $query = $this->getQuery();
-        $query->where('#lifetime < ' . time());
-        
-        $deletedRecs = 0;
-        while ($rec = $query->fetch()) {
-            $deletedRecs += $this->delete($rec->id);
-        }
-        
+        $deletedRecs = $this->delete('#lifetime < ' . time());
         $msg = "Лог: <b style='color:blue;'>{$deletedRecs}</b> постоянни записа с изтекъл срок бяха изтрити";
+        
+        return $msg;
     }
 }

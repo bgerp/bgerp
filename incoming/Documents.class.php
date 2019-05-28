@@ -317,7 +317,7 @@ class incoming_Documents extends core_Master
      *
      * @param mixed $rec - id' то на записа или самия запис, в който ще се търси
      *
-     * @return arrray - Масив името на файла и манипулатора му (ключ на масива)
+     * @return array - Масив името на файла и манипулатора му (ключ на масива)
      */
     public static function getAttachments($rec)
     {

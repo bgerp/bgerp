@@ -187,7 +187,7 @@ class log_Browsers extends core_Master
             $row->userAgent = $rt->toVerbal("[hide={$browser} / {$os}]{$row->userAgent}[/hide]");
         }
         
-        $row->brid = str::coloring($row->brid);
+        $row->brid = str::coloring($rec->brid);
         
         if (vislog_History::haveRightFor('list')) {
             $row->brid = ht::createLink($row->brid, array('vislog_History', 'list', 'brid' => $rec->brid));
@@ -328,6 +328,7 @@ class log_Browsers extends core_Master
         }
         
         if (!Mode::is('text', 'plain')) {
+            $title = str::coloring($title, is_object($brid) ? $brid->brind : $brid);
             if (self::haveRightFor('single', $rec)) {
                 $title = ht::createLink($title, array('log_Browsers', 'single', $rec->id));
             }
@@ -638,9 +639,11 @@ class log_Browsers extends core_Master
             '/iphone/i' => 'iPhone',
             '/ipod/i' => 'iPod',
             '/ipad/i' => 'iPad',
+            '/moto /i' => 'Moto',
             '/android/i' => 'Android',
             '/blackberry/i' => 'BlackBerry',
             '/webos/i' => 'Mobile',
+            '/windows nt 10/i' => 'Windows 10',
             '/windows nt 6.3/i' => 'Windows 8.1',
             '/windows nt 6.2/i' => 'Windows 8',
             '/windows nt 6.1/i' => 'Windows 7',
@@ -717,20 +720,6 @@ class log_Browsers extends core_Master
         }
         
         return false;
-    }
-    
-    
-    /**
-     * Тестваме какъв е UA
-     */
-    public function act_Test()
-    {
-        $res = self::getBrowserType(Request::get('ua'));
-        if ($res == 'Unknown Browser / Unknown OS') {
-            $res = self::detectBot(Request::get('ua'));
-        }
-        
-        return $res;
     }
     
     

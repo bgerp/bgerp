@@ -115,21 +115,12 @@ class setup_Controller
             
             return false;
         }
-        if (defined('EF_PRIVATE_PATH')) {
-            $repo2Path = EF_PRIVATE_PATH;
-            $repo2Branch = PRIVATE_GIT_BRANCH;
-        }
-        $repo1Path = EF_APP_PATH;
-        $repo1Branch = BGERP_GIT_BRANCH;
         
-        $log = array();
+        $repos = core_App::getReposAndBranches();
         
-        //$newVer = core_Git::gitHasNewVersion($repo1Path, $log, $repo1Branch);
-        $repos = core_App::getRepos();
-        
-        foreach ($repos as $r) {
+        foreach ($repos as $r => $branch) {
             $r = basename($r);
-            $opt[$r] = $r;
+            $opt[$r] = $r . " ({$branch})";
         }
         
         
@@ -177,17 +168,17 @@ class setup_Controller
             
             return false;
         }
-
+        
         $res->title = 'Допълнителни модули';
         $res->question = 'Кои допълнителни модули да бъдат инсталирани?';
-
+        
         $modules = array('web' => 'cms (Управление на уеб-сайт)',
-                         'mon2' => 'mon2 (Мониторинг на контролери)',
-                         'cams' => 'cams (Записване на IP видеокамери)',
-                         'catering' => 'catering (Кетъринг за персонала)',
-                    );
-
-        if($this->state['bgerpType'] != 'base') {
+            'mon2' => 'mon2 (Мониторинг на контролери)',
+            'cams' => 'cams (Записване на IP видеокамери)',
+            'catering' => 'catering (Кетъринг за персонала)',
+        );
+        
+        if ($this->state['bgerpType'] != 'base') {
             $modules['pos'] = 'pos (Продажби в магазин или заведение)';
         }
         

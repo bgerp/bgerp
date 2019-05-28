@@ -6317,6 +6317,13 @@ body.narrow {
 	span.linkWithIcon{
 		padding-left: 23px !important;
 	}
+	.docOutgoings {
+		position: relative;
+		left: 100px;
+		.document {
+			background-color: #ddecfd;
+		}
+	}
 }
 .narrow .external div.hideLink {
 	margin-top: 10px;
@@ -6873,6 +6880,7 @@ body.narrow {
 .vislog {
 	white-space:nowrap;
 	display: inline;
+    font-size:0.9em;
 }
 
 .vislog_History .vislog {
@@ -6881,8 +6889,8 @@ body.narrow {
 	margin: 0 10px;
 }
 
-.vislog_History .vislog-cnt, .vislog_History .vislog-ip, .vislog_History .vislog-country {
-	padding:2px;
+.vislog-cnt, .vislog-ip, .vislog-country {
+	padding:1px;
 	border:solid 1px #ccc;
 	background-color:#eee;
 }

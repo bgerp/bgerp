@@ -1036,4 +1036,30 @@ class crm_Groups extends core_Master
     {
         return self::getVerbal($id, 'name');
     }
+    
+    
+    /**
+     * Папките на контрагентите от подадена група
+     *
+     * @param mixed  $ids - списък, масив или ид на група/и
+     *
+     * @return array $res - намерените папки
+     */ 
+    public static function getFolderByContragentGroupId($ids)
+    {
+        $res = array();
+        $ids = arr::make($ids, true);
+        $keylist = keylist::fromArray($ids);
+        
+        $classes = core_Classes::getOptionsByInterface('crm_ContragentAccRegIntf');
+        foreach ($classes as $className){
+            $query = $className::getQuery();
+            $query->likeKeylist('groupList', $keylist);
+            $query->where("#folderId IS NOT NULL AND #state != 'rejected'");
+            $query->show('folderId');
+            $res += arr::extractValuesFromArray($query->fetchAll(), 'folderId');
+        }
+        
+        return $res;
+    }
 }

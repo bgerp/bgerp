@@ -421,7 +421,7 @@ class core_Packs extends core_Manager
         }
         
         $reposArr = core_App::getRepos();
-        foreach ($reposArr as $dir) {
+        foreach (array_keys($reposArr) as $dir) {
             $appDirs = $this->getSubDirs($dir);
             if (count($appDirs)) {
                 foreach ($appDirs as $subDir => $dummy) {

@@ -365,10 +365,10 @@ class planning_Terminal extends core_Manager
      */
     private function getFormHtml($id)
     {
-        $rec = planning_Points::fetchRec($id);
+        $pointRec = planning_Points::fetchRec($id);
         
         // Коя е текущата задача, ако има
-        $currentTaskId = Mode::get("currentTaskId{$rec->id}");
+        $currentTaskId = Mode::get("currentTaskId{$pointRec->id}");
         expect($taskRec = planning_Tasks::fetch($currentTaskId));
         $Details = cls::get('planning_ProductionTaskDetails');
         Mode::push('terminalProgressForm', $currentTaskId);
@@ -401,7 +401,7 @@ class planning_Terminal extends core_Manager
         
         $userAgent = log_Browsers::getUserAgentOsName();
         if ($userAgent == 'Android') {
-            $url = toUrl(array($this, 'open', $rec->id, 'serial' => '__CODE__'), true);
+            $url = toUrl(array($this, 'open', $pointRec->id, 'serial' => '__CODE__'), true);
             $scannerUrl = barcode_Search::getScannerActivateUrl($url);
             $form->setFieldAttr('serial', array('data-url' => $scannerUrl));
         }
@@ -434,7 +434,7 @@ class planning_Terminal extends core_Manager
         $form->fieldsLayout->append($currentTaskHtml, 'currentTaskId');
         
         // Бутони за добавяне
-        $sendUrl = ($this->haveRightFor('terminal')) ?  toUrl(array($this, 'doAction', $rec->id), 'local') : array();
+        $sendUrl = ($this->haveRightFor('terminal')) ?  toUrl(array($this, 'doAction', $pointRec->id), 'local') : array();
         $sendBtn = ht::createFnBtn("Изпълнение|* " . html_entity_decode('&#x23CE;'), null, null, array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'data-url' => $sendUrl, 'title' => 'Изпълнение по задачата'));
         $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
         

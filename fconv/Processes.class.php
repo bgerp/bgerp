@@ -154,4 +154,17 @@ class fconv_Processes extends core_Manager
         // Сортиране на записите по num
         $data->query->orderBy('createdOn', 'DESC');
     }
+    
+    
+    /**
+     * Изтриване на старите записи
+     */
+    function cron_DeleteOldProcesses()
+    {
+        $before = dt::subtractSecs(86400);
+        
+        $delCnt = $this->delete(array("#createdOn <= '[#1#]'", $before));
+        
+        $this->logNotice('Изтрити записи - ' . $delCnt);
+    }
 }

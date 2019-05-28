@@ -1001,7 +1001,7 @@ class drdata_Address extends core_MVC
     {
         $div = array(',', ';', '-', ' ');
         $best = null;
-        $str = str::removeWhitespaces($str, ' ');
+        $str = str::removeWhiteSpace($str, ' ');
         $normalizedString = mb_strtolower($str);
         $isUk = false;
         

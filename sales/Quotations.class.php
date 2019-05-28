@@ -2,16 +2,16 @@
 
 
 /**
- * Документ "Оферта"
+ * Документ "Изходяща оферта"
  *
- * Мениджър на документи за Оферта за продажба
+ * Мениджър на документи за Изходящи оферти
  *
  *
  * @category  bgerp
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -141,6 +141,12 @@ class sales_Quotations extends core_Master
      * Кой може да клонира
      */
     public $canClonerec = 'ceo, sales';
+    
+    
+    /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo, sales';
     
     
     /**
@@ -1357,7 +1363,7 @@ class sales_Quotations extends core_Master
             return;
         }
         
-        $data->listFilter->FNC('sState', 'enum(all=Всички,draft=Чернова,active=Активен,closed=Приключен)', 'caption=Състояние,autoFilter');
+        $data->listFilter->FNC('sState', 'enum(all=Всички,draft=Чернова,pending=Заявка,active=Активен,closed=Приключен)', 'caption=Състояние,autoFilter');
         $data->listFilter->showFields .= ',sState';
         $data->listFilter->setDefault('sState', 'active');
         $data->listFilter->input();

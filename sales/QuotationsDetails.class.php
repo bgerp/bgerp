@@ -1036,9 +1036,9 @@ class sales_QuotationsDetails extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'add' || $action == 'delete') && isset($rec)) {
+        if (($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec)) {
             $quoteState = $mvc->Master->fetchField($rec->quotationId, 'state');
-            if ($quoteState != 'draft') {
+            if (!in_array($quoteState, array('draft'))) {
                 $requiredRoles = 'no_one';
             }
         }

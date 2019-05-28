@@ -898,7 +898,6 @@ class eshop_Products extends core_Master
         $form->setField('packagings', 'input');
         $form->setSuggestions('packagings', cat_Products::getPacks($productRec->id));
         
-        $form->setDefault('info', $description);
         $description = cat_Products::getDescription($productRec->id, 'public')->getContent();
         $description = html2text_Converter::toRichText($description);
         $description = cls::get('type_Richtext')->fromVerbal($description);
