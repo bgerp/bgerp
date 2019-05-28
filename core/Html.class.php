@@ -821,10 +821,10 @@ class core_Html
     /**
      * Създава хипервръзка
      *
-     * @param string       $title
-     * @param FALSE|array  $url
-     * @param FALSE|string $warning
-     * @param array|string $attr
+     * @param string                $title
+     * @param false|array|string    $url
+     * @param false|string          $warning
+     * @param array|string          $attr
      *
      * @return core_ET
      */
@@ -903,7 +903,7 @@ class core_Html
             }
         }
         
-        $tpl = self::createElement($url ? 'a' : 'span', $attr, $title, true);
+        $tpl = self::createElement('a', $attr, $title, true);
         
         return $tpl;
     }
@@ -1023,12 +1023,12 @@ class core_Html
     /**
      * Създава хинт с иконка към елемент
      *
-     * @param mixed                       $body        - тяло
-     * @param string                       $hint        - текст на хинта
+     * @param mixed  $body        - тяло
+     * @param string $hint        - текст на хинта
      * @param string $icon        - име на иконката
-     * @param bool                        $appendToEnd - дали хинта да се добави в края на стринга
-     * @param array                       $iconAttr    - атрибути на иконката
-     * @param array                       $elementArr  - атрибути на елемента
+     * @param bool   $appendToEnd - дали хинта да се добави в края на стринга
+     * @param array  $iconAttr    - атрибути на иконката
+     * @param array  $elementArr  - атрибути на елемента
      *
      * @return core_ET $elementTpl  - шаблон с хинта
      */
@@ -1122,7 +1122,7 @@ class core_Html
                     "</head>\n" .
                     "<body>\n" .
                     $html . "\n" .
-                    "<script> window.onload = function() {if (window.jQuery) {". $scripts ." }\n</script>" .
+                    '<script> window.onload = function() {if (window.jQuery) {'. $scripts ." }\n</script>" .
                     "</body>\n" .
                     "</html>\n";
         }

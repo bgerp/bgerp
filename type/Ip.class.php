@@ -160,8 +160,8 @@ class type_IP extends type_Varchar
         
         return $isLocal;
     }
-    
-    
+
+
     /**
      * Дали посоченото IP е публично
      */

@@ -5614,6 +5614,11 @@ only screen and (max-width: 320px) {
       display: inline-block; }
   .external span.linkWithIcon {
     padding-left: 23px !important; }
+  .external .docOutgoings {
+    position: relative;
+    left: 100px; }
+    .external .docOutgoings .document {
+      background-color: #ddecfd; }
 
 .narrow .external div.hideLink {
   margin-top: 10px; }
@@ -6113,17 +6118,18 @@ only screen and (max-width: 320px) {
 
 .vislog {
   white-space: nowrap;
-  display: inline; }
+  display: inline;
+  font-size: 0.9em; }
 
 .vislog_History .vislog {
   font-size: 0.8em;
   white-space: nowrap;
   margin: 0 10px; }
 
-.vislog_History .vislog-cnt,
-.vislog_History .vislog-ip,
-.vislog_History .vislog-country {
-  padding: 2px;
+.vislog-cnt,
+.vislog-ip,
+.vislog-country {
+  padding: 1px;
   border: solid 1px #cccccc;
   background-color: #eeeeee; }
 

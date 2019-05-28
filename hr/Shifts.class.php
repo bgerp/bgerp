@@ -196,7 +196,7 @@ class hr_Shifts extends core_Master
             }
         }
         
-        $res->row->month = dt::getMonth($month, $format = 'F', $lg = 'bg');
+        $res->row->month = dt::getMonth($month, 'F', 'bg');
         $res->row->calendar = cal_Calendar::renderCalendar($year, $month, $d, $header);
     }
     

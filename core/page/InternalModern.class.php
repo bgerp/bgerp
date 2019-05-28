@@ -453,7 +453,7 @@ class core_page_InternalModern extends core_page_Active
         }
         
         // Бутон за търсене по баркод
-        if (help_Info::haveRightFor('list')) {
+        if (help_Info::haveRightFor('list') && core_Packs::isInstalled('help')) {
             $attr['ef_icon'] = 'img/16/help_icon.png';
             $attr['id'] = 'modern-help-info';
             $colum2 .= ht::createLink(tr('Помощ'), array('help_Info', 'list'), null, $attr);

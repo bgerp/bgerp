@@ -28,7 +28,6 @@ class vislog_Wrapper extends plg_ProtoWrapper
         $this->TAB('vislog_Referer', 'Рефериране', 'admin, ceo, cms');
         $this->TAB('vislog_Adwords', 'Adwords', 'admin, ceo, cms');
         $this->TAB('vislog_HistoryResources', 'Ресурси', 'admin, ceo, cms');
-        $this->TAB('vislog_IpNames', 'IP-та', 'admin, ceo, cms');
         
         $this->title = 'История';
     }

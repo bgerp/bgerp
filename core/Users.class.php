@@ -261,9 +261,8 @@ class core_Users extends core_Manager
         if (!$fields ||
             in_array('rolesInput', $fields) ||
             in_array('roles', $fields)) {
-            bgerp_Menu::clearCache($rec->id);  
+            bgerp_Menu::clearCache($rec->id);
         }
-
     }
     
     
@@ -1526,7 +1525,7 @@ class core_Users extends core_Manager
         $nick = $inputs->nick ? $inputs->nick : $inputs->email;
         
         if ($nick) {
-            vislog_IpNames::add($nick);
+            log_Ips::addUser($nick);
         }
         
         // Обновяваме времето на BRID кукито

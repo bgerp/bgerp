@@ -24,7 +24,7 @@ class docoffice_Unoconv extends core_Manager
     /**
      * Конвертиране на офис документи с помощта на unoconv
      *
-     * @param fileHandler $fileHnd - Манупулатора на файла, който ще се конвертира
+     * @param string $fileHnd - Манупулатора на файла, който ще се конвертира
      * @param string      $toExt   - Разширението, в което ще се конвертира
      * @param array       $params  - Други параметри
      *                             $params['callBack'] - Класа и функцията, която ще се извикат след приключване на конвертирането

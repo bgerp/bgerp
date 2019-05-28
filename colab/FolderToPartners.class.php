@@ -73,13 +73,13 @@ class colab_FolderToPartners extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Споделени партньори';
+    public $title = 'Споделения с партньори';
     
     
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Споделен партньор';
+    public $singleTitle = 'Споделяне с партньор';
     
     
     /**
@@ -198,7 +198,7 @@ class colab_FolderToPartners extends core_Manager
                     $fQuery->where("#state != 'rejected'");
                     $fRec = $fQuery->fetch();
                     if ($fRec) {
-                        $folderId = $rec->id;
+                        $folderId = $fRec->id;
                     }
                 }
             }
@@ -228,9 +228,6 @@ class colab_FolderToPartners extends core_Manager
         $excludeArr = array();
         if ($params['removeDuplicate'] || $params['exludeContractors']) {
             $query = self::getQuery();
-            
-            $query->in('folderId', $fArr);
-            
             $query->show('folderId');
             
             if ($params['exludeContractors']) {

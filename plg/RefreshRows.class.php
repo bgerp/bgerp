@@ -29,12 +29,12 @@ class plg_RefreshRows extends core_Plugin
      * @param StdClass $data
      */
     public function on_AfterRenderListTable($mvc, &$tpl, $data)
-    { 
-        if(isset($data->masterMvc) && cls::getClassName($data->masterMvc) != cls::getClassName($mvc)) {
-
+    {
+        if (isset($data->masterMvc) && cls::getClassName($data->masterMvc) != cls::getClassName($mvc)) {
+            
             return;
         }
-
+        
         // Ако не се тегли по AJAX
         if (!Request::get('ajax_mode')) {
             
@@ -387,9 +387,9 @@ class plg_RefreshRows extends core_Plugin
     /**
      * Подготвя URL-то, което ще се вика по AJAX
      *
-     * @param core_Mvc     $mvc
-     * @param mixed $res
-     * @param array $url
+     * @param core_Mvc $mvc
+     * @param mixed    $res
+     * @param array    $url
      */
     public function on_AfterPrepareRefreshRowsUrl($mvc, &$res, $url)
     {
@@ -464,25 +464,19 @@ class plg_RefreshRows extends core_Plugin
         
         $res = true;
         
-        $query = $mvc->getQuery();
-        $query->XPR('maxDate', 'datetime', "MAX(#{$mvc->refreshRowsCheckField})");
-        $maxDate = $query->fetch()->maxDate;
-        
-        if ($maxDate) {
-            $lastChanges = dt::mysql2timestamp($maxDate);
-        }
+        $lastChanges = dt::mysql2timestamp($mvc->getDbTableUpdateTime());
         
         $modeName = $mvc->className . '_last_' . $hitTime;
         
         $modeLastTime = Mode::get($modeName);
         
-        $nt = dt::mysql2timestamp();
+        $nt = dt::mysql2timestamp() - 5;
         
         $maxTime = max(array($hitTime, $modeLastTime, $lastChanges, $nt));
         
         Mode::setPermanent($modeName, $maxTime);
         
-        // Отбелязваме че има промяна
+        // Отбелязваме, че има промяна
         if (($lastChanges > $hitTime) && (!$modeLastTime || ($lastChanges > $modeLastTime))) {
             $res = false;
         }

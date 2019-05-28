@@ -73,9 +73,9 @@ class hr_ShiftDetails extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $rec = $data->form->rec;
-        
         $query = hr_WorkingCycleDetails::getQuery();
         
+        $details = $days = array();
         while ($rec = $query->fetch("#cycleId='{$rec->shiftId}'")) {
             $details[] = $rec;
         }
@@ -86,12 +86,8 @@ class hr_ShiftDetails extends core_Detail
         
         $data->form->setDefault('cycleId', $data->form->rec->shiftId);
         $data->form->setDefault('startingOn', dt::now());
-        
         $data->form->setSuggestions('day', $days);
-        
         $data->form->setReadonly('cycleId');
-        
-        //$data->form->setSuggestions('day', hr_WorkingCycleDetails::getDayOptions($data->masterRec, $data->form->rec->day));
     }
     
     

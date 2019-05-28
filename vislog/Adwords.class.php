@@ -126,7 +126,8 @@ class vislog_Adwords extends core_Manager
      * Преобразуване към вербален запис
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
+    {   
+        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true, true);
         if ($rec->keywords) {
             $dkw = urldecode($rec->keywords);
             if ($dkw && mb_strlen($dkw) * 2 < mb_strlen($rec->keywords)) {

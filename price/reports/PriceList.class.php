@@ -339,9 +339,11 @@ class price_reports_PriceList extends frame2_driver_TableData
         }
         
         // Ако има баркод на основната мярка да се показва и той
-        if(!empty($dRec->eanCode) && !Mode::isReadOnly() && barcode_Search::haveRightFor('list')){
+        if(!empty($dRec->eanCode)){
             $eanCode = core_Type::getByName('varchar')->toVerbal($dRec->eanCode);
-            $eanCode = ht::createLink($eanCode, array('barcode_Search', 'search' => $eanCode));
+            if(!Mode::isReadOnly() && barcode_Search::haveRightFor('list')){
+                $eanCode = ht::createLink($eanCode, array('barcode_Search', 'search' => $eanCode));
+            }
             $row->measureId = "{$eanCode} {$row->measureId}";
         }
         
@@ -368,8 +370,8 @@ class price_reports_PriceList extends frame2_driver_TableData
             $decimals = isset($rec->round) ? $rec->round : self::DEFAULT_ROUND;
             $rows[$packRec->packagingId] = (object) array('packagingId' => $packName, 'price' => core_Type::getByName("double(decimals={$decimals})")->toVerbal($packRec->price));
             if (!empty($packRec->eanCode)) {
+                $eanCode = core_Type::getByName('varchar')->toVerbal($packRec->eanCode);
                 if (!Mode::isReadOnly() && barcode_Search::haveRightFor('list')) {
-                    $eanCode = core_Type::getByName('varchar')->toVerbal($packRec->eanCode);
                     $eanCode = ht::createLink($eanCode, array('barcode_Search', 'search' => $eanCode));
                 }
                 $rows[$packRec->packagingId]->eanCode = $eanCode;

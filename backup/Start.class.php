@@ -125,9 +125,12 @@ class backup_Start extends core_Manager
         
         // Добавяме нов запис за пълния бекъп
         $metaArr['backup'][][0] = self::$backupFileName;
-        $metaArr['backupInfo']['CORE_LAST_DB_VERSION'] = CORE_LAST_DB_VERSION;
-        $metaArr['backupInfo']['CORE_CODE_VERSION'] = CORE_CODE_VERSION;
+        $metaArr['backupInfo']['CORE_LAST_DB_VERSION'] = core_Setup::get('LAST_DB_VERSION');
+        $metaArr['backupInfo']['CORE_CODE_VERSION'] = core_Setup::get('CODE_VERSION');
         $metaArr['backupInfo']['BGERP_GIT_BRANCH'] = BGERP_GIT_BRANCH;
+        if(defined(BGERP_PRIVATE_GIT_BRANCH)) {
+            $metaArr['backupInfo']['PRIVATE_GIT_BRANCH'] = BGERP_PRIVATE_GIT_BRANCH;
+        }
         $metaArr['backupInfo']['EF_DB_NAME'] = EF_DB_NAME;
         $db = cls::get(
             'core_Db',
@@ -138,8 +141,8 @@ class backup_Start extends core_Manager
             );
         $dbRes = $db->query("SELECT SUM(TABLE_ROWS) AS rowsDb FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" . EF_DB_NAME. "'");
         $tableRows = $db->fetchArray($dbRes);
-        $metaArr['backupInfo']['rowsDb'] =  $tableRows['rowsDb'];
-        $metaArr['backupInfo']['confFileName'] =  self::$confFileName;
+        $metaArr['backupInfo']['rowsDb'] = $tableRows['rowsDb'];
+        $metaArr['backupInfo']['confFileName'] = self::$confFileName;
         
         // Махаме бинлоговете
         unset($metaArr['logNames']);
@@ -462,12 +465,14 @@ class backup_Start extends core_Manager
     public static function isLocked()
     {
         self::initialize();
+        
         // Ако заключването е по голямо от 120 мин отключваме backup-a
         if (file_exists(self::$lockFileName)) {
-            if (time() - filemtime(self::$lockFileName) > 120*60) {
+            if (time() - filemtime(self::$lockFileName) > 120 * 60) {
                 self::unLock();
             }
         }
+        
         return file_exists(self::$lockFileName);
     }
     

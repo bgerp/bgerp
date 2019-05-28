@@ -163,13 +163,13 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         $cQuery->where("#overdueSales = 'yes'");
         
-        while ($contragentId = $cQuery->fetch()->contragentId) {
+        while ($contragent = $cQuery->fetch()) {
+        
+            $contragentKey = $contragent->contragentClassId.'|'.$contragent->contragentId;
             
-            $contragentIdArr[$contragentId] = $contragentId;
+            $contragentsArr[$contragentKey] = $contragentKey;
         }
-        
-        $overdueContragentsIdList = keylist::fromArray($contragentIdArr);
-        
+       
         
         if ($rec->countryGroup) {
             $countriesList = drdata_CountryGroups::fetch($rec->countryGroup)->countries;
@@ -179,8 +179,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             
             $threadsId = array();
             foreach ($salesInvoicesArr as $saleInvoice) {
+            
+                $saleInvoiceContragrntKey = $saleInvoice->contragentClassId.'|'.$saleInvoice->contragentId;
                 
-                if (!keylist::isIn($saleInvoice->contragentId, $overdueContragentsIdList)) {
+                if (!in_array($saleInvoiceContragrntKey, $contragentsArr)) {
                     continue;
                 }
                 
@@ -268,7 +270,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                                 $overColor = 'red';
                             }
                             
-                            $invoiceCurrentSummArr[$iRec->contragentId] += ($paydocs->amount - $paydocs->payout);
+                            $invoiceCurrentSummKey = $iRec->contragentClassId.'|'.$iRec->contragentId;
+                            
+                            $invoiceCurrentSummArr[$invoiceCurrentSummKey] += ($paydocs->amount - $paydocs->payout);
                         } else {
                             continue;
                         }
@@ -321,7 +325,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             
             foreach ($invoiceCurrentSummArr as $k => $v) {
                 foreach ($recs as $key => $val) {
-                    if ($val->contragentId == $k) {
+                $chekKey = $val->contragentClassId.'|'.$val->contragentId;
+                
+                if ($chekKey == $k) {
                         $val->invoiceCurrentSummArr = $invoiceCurrentSummArr;
                         
                         $rTemp[] = $val;

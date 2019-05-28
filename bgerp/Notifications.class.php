@@ -652,7 +652,7 @@ class bgerp_Notifications extends core_Manager
                 $containerId = $url['containerId'];
                 
                 if ($dId) {
-                    if ($dRec = $ctr::fetch($dId)) {
+                    if (is_numeric($dId) && $dRec = $ctr::fetch($dId)) {
                         $folderId = $dRec->folderId;
                         $threadId = $dRec->threadId;
                         $containerId = $dRec->containerId;

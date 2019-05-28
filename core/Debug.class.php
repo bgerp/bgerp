@@ -337,7 +337,11 @@ class core_Debug
                 foreach ($frame['args'] as $arg) {
                     $args[] = self::formatValue($arg);
                 }
-                $args = join(', ', $args);
+                
+                //@todo временно да не се появява: Object of class __PHP_Incomplete_Class could not be converted to string
+                if(is_array($args)){
+                    $args = join(', ', $args);
+                }
             }
             
             // Предотвратяване показването на паролата за базата данни
@@ -767,39 +771,40 @@ class core_Debug
             $contex['OS_INFO'] = php_uname();
             $contex['PHP_VERSION'] = phpversion();
             
-            try {
-                $contex['SQL_VERSION'] = cls::get('core_Db')->connect()->server_info;
-            } catch (ErrorException $e) {
-                // Не се прави нищо
+            if (class_exists('core_Db')) {
+                try {
+                    $contex['SQL_VERSION'] = cls::get('core_Db')->connect()->server_info;
+                } catch (ErrorException $e) {
+                    // Не се прави нищо
+                }
             }
             
-            $contex['EF_APP_NAME'] = EF_APP_NAME;
+            $contex['EF_APP_NAME'] = defined('EF_APP_NAME') ? EF_APP_NAME : 'undefined';
             
             // Пътища, които се използват
-            $contex['EF_ROOT_PATH'] = EF_ROOT_PATH;
-            $contex['EF_INDEX_PATH'] = EF_INDEX_PATH;
-            $contex['EF_SBF_PATH'] = EF_SBF_PATH;
-            $contex['EF_TEMP_PATH'] = EF_TEMP_PATH;
-            $contex['EF_CONF_PATH'] = EF_CONF_PATH;
-            $contex['EF_UPLOADS_BASE_PATH'] = EF_UPLOADS_BASE_PATH;
-            $contex['EF_UPLOADS_PATH'] = EF_UPLOADS_PATH;
-            $contex['FILEMAN_UPLOADS_PATH'] = FILEMAN_UPLOADS_PATH;
-            $contex['EF_DOWNLOAD_DIR'] = EF_DOWNLOAD_DIR;
-            $contex['FILEMAN_TEMP_PATH'] = FILEMAN_TEMP_PATH;
-            $contex['THUMB_IMG_PATH'] = THUMB_IMG_PATH;
+            $contex['EF_ROOT_PATH'] = defined('EF_ROOT_PATH') ? EF_ROOT_PATH : 'undefined';
+            $contex['EF_INDEX_PATH'] = defined('EF_INDEX_PATH') ? EF_INDEX_PATH : 'undefined';
+            $contex['EF_SBF_PATH'] = defined('EF_SBF_PATH') ? EF_SBF_PATH : 'undefined';
+            $contex['EF_TEMP_PATH'] = defined('EF_TEMP_PATH') ? EF_TEMP_PATH : 'undefined';
+            $contex['EF_CONF_PATH'] = defined('EF_CONF_PATH') ? EF_CONF_PATH : 'undefined';
+            $contex['EF_UPLOADS_PATH'] = defined('EF_UPLOADS_PATH') ? EF_UPLOADS_PATH : 'undefined';
+            $contex['FILEMAN_UPLOADS_PATH'] = defined('FILEMAN_UPLOADS_PATH') ? FILEMAN_UPLOADS_PATH : 'undefined';
+            $contex['EF_DOWNLOAD_DIR'] = defined('EF_DOWNLOAD_DIR') ? EF_DOWNLOAD_DIR : 'undefined';
+            $contex['FILEMAN_TEMP_PATH'] = defined('FILEMAN_TEMP_PATH') ? FILEMAN_TEMP_PATH : 'undefined';
+            $contex['THUMB_IMG_PATH'] = defined('THUMB_IMG_PATH') ? THUMB_IMG_PATH : 'undefined';
             
-            $contex['EF_TIMEZONE'] = EF_TIMEZONE;
+            $contex['EF_TIMEZONE'] = defined('EF_TIMEZONE') ? EF_TIMEZONE : 'undefined';
             
-            $contex['GIT_BRANCH'] = BGERP_GIT_BRANCH;
+            $contex['BGERP_GIT_BRANCH'] = defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : 'undefined';
             
             if (defined('PRIVATE_GIT_BRANCH')) {
-                $contex['PRIVATE_GIT_BRANCH'] = PRIVATE_GIT_BRANCH;
+                $contex['PRIVATE_GIT_BRANCH'] = defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : 'undefined';
             }
             
             $contex['BGERP_LAST_STABLE_VERSION'] = core_Setup::CURRENT_VERSION;
             
             if (defined('DEBUG_FATAL_ERRORS_PATH')) {
-                $contex['DEBUG_FATAL_ERRORS_PATH'] = DEBUG_FATAL_ERRORS_PATH;
+                $contex['DEBUG_FATAL_ERRORS_PATH'] = defined('DEBUG_FATAL_ERRORS_PATH') ? DEBUG_FATAL_ERRORS_PATH : 'undefined';
             }
         }
         

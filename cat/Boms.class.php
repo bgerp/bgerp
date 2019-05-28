@@ -333,7 +333,10 @@ class cat_Boms extends core_Master
             $nextActiveBomRec->modifiedOn = dt::now();
             
             // Ако има такава я активираме
-            return $this->save_($nextActiveBomRec, 'state,brState,modifiedOn');
+            $id = $this->save_($nextActiveBomRec, 'state,brState,modifiedOn');
+            doc_DocumentCache::cacheInvalidation($nextActiveBomRec->containerId);
+            
+            return $id;
         }
     }
     
@@ -371,6 +374,7 @@ class cat_Boms extends core_Master
                 $bomRec->brState = 'active';
                 $bomRec->modifiedOn = dt::now();
                 $mvc->save_($bomRec, 'state,brState,modifiedOn');
+                doc_DocumentCache::cacheInvalidation($bomRec->containerId);
                 $idCount++;
             }
             

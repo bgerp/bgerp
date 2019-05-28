@@ -80,4 +80,19 @@ class fconv_Setup extends core_ProtoSetup
         'FCONV_USE_TIME_LIMIT' => array('enum(no=Не, yes=Да)', 'caption=Дали да се използва скрипт за убиване на увиснали програми->Избор'),
         'FCONV_SALT' => array('varchar', 'caption=Ключ за отдалечено конвертиране->Ключ'),
     );
+    
+    
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+            array(
+                    'systemId' => 'DeleteOldProcesses',
+                    'description' => 'Изтриване на старите процеси',
+                    'controller' => 'fconv_Processes',
+                    'action' => 'DeleteOldProcesses',
+                    'period' => 180,
+                    'offset' => 0,
+                    'timeLimit' => 100
+            ));
 }

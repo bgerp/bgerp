@@ -29,11 +29,11 @@ DEFINE('EF_DB_USER', EF_APP_NAME);
 // с базата данни на потребителя, дефиниран в предходния ред
 DEFINE('EF_DB_PASS', 'USER_PASSWORD_FOR_DB');
 
-// Сървъра на базата данни
+// Адреса на MySQL сървъра
 DEFINE('EF_DB_HOST', 'localhost');
  
-// Кодировка на базата данни
-// DEFINE('EF_DB_CHARSET', 'utf8');
+// Кодировка на базата данни. По подразбиране utf8mb4
+// DEFINE('EF_DB_CHARSET', 'utf8mb4');
 
 
 /**
@@ -63,52 +63,35 @@ DEFINE('EF_APP_TITLE', 'bgERP');
 *                                                  *
 ****************************************************/
 
-// Път до gs файла
-# DEFINE('FILEMAN_GHOSTSCRIPT_PATH', '/var/www/ghostscript-9.23-linux-x86_64/gs-923-linux-x86_64');
-
 
 // Базова директория, където се намират по-директориите за
-// временните файлове. По подразбиране е в
-// EF_ROOT_PATH/temp
+// временните файлове. По подразбиране е системната папка за временни файлове
  # DEFINE( 'EF_TEMP_BASE_PATH', 'PATH_TO_FOLDER');
 
-// Базова директория, където се намират по-директориите за
-// потребителски файлове. По подразбиране е в
-// EF_ROOT_PATH/uploads
- # DEFINE( 'EF_UPLOADS_BASE_PATH', 'PATH_TO_FOLDER');
+// Директория за качване на потребителски файлове.
+// По подразбиране е EF_ROOT_PATH/uploads/EF_APP_NAME
+ # DEFINE('EF_UPLOADS_PATH', 'PATH_TO_FOLDER');
 
 // Език на интерфейса по подразбиране. Ако не се дефинира
 // се приема, че езика по подрзбиране е български
- # DEFINE('EF_DEFAULT_LANGUAGE', 'en');
+ # DEFINE('EF_DEFAULT_LANGUAGE', 'bg');
 
 // Дали вместо ник, за име на потребителя да се приема
 // неговия имейл адрес. По подразбиране се приема, че
 // трябва да се изисква отделен ник, въведен от потребителя
  # DEFINE('EF_USSERS_EMAIL_AS_NICK', TRUE);
-
-// Твърдо, фиксирано име на мениджъра с контролерните функции.
-// Ако се укаже, цялото проложение може да има само един такъв
-// мениджър функции. Това е удобство за специфични приложения,
-// при които не е добре името на мениджъра да се вижда в URL-то
- # DEFINE('EF_CTR_NAME', 'FIXED_CONTROLER');
-
-// Твърдо, фиксирано име на екшън (контролерна функция).
-// Ако се укаже, от URL-то се изпускат екшъните.
- # DEFINE('EF_ACT_NAME', 'FIXED_CONTROLER');
  
-// Дефинира се ако има нужда да се достъпват прикачените файлове през друг домейн
- # DEFINE('BGERP_ABSOLUTE_HTTP_HOST', 'experta2.local');
+// Статично задаване на домейна, в който отвън се вижда bgERP
+ # DEFINE('BGERP_ABSOLUTE_HTTP_HOST', 'bgerp.mycompany.com');
  
-// Дефинира пътя до частно репозитори
- # DEFINE('EF_PRIVATE_PATH', 'ABSOLUTE_PATH_TO_PRIVATE_REPOSITORY');
-
 // Git бранч - на частния пакет - ако не е дефинирано се взима бранча на основния пакет
-# DEFINE('PRIVATE_GIT_BRANCH', 'master');
+ # DEFINE('PRIVATE_GIT_BRANCH', 'master');
 
+// Път до gs GHOST SCRIPT командата
+ # DEFINE('FILEMAN_GHOSTSCRIPT_PATH', '/var/www/ghostscript-9.23-linux-x86_64/gs-923-linux-x86_64');
 
 // Игнориране на затварянето на модул "Help"
-DEFINE('BGERP_DEMO_MODE', false);
-
+ # DEFINE('BGERP_DEMO_MODE', false);
 
 
 /**

@@ -26,15 +26,15 @@ defIfNot('CORE_MAX_SQL_QUERY', 16000000);
  * @category  ef
  * @package   core
  *
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Milen Georgiev <milen@experta.bg>
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  * @link
  *
- * @method int  save(object &$rec, NULL|string|array $fields = NULL, NULL|string $mode = NULL)
- * @method bool     haveRightFor(string $action, NULL|int|object $id = NULL, int|NULL $userId = NULL)
+ * @method static int   save(object &$rec, NULL|string|array $fields = NULL, NULL|string $mode = NULL)
+ * @method static bool  haveRightFor(string $action, NULL|int|object $id = NULL, int|NULL $userId = NULL)
  */
 class core_Mvc extends core_FieldSet
 {

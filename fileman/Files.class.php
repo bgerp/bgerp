@@ -2265,6 +2265,8 @@ class fileman_Files extends core_Master
         
         // Отбелязваме като разгледан
         fileman_Log::updateLogInfo($fh, 'preview');
+        
+        bgerp_Notifications::clear(array($mvc, 'single', $fh));
     }
     
     

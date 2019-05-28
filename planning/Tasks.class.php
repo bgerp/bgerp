@@ -1171,7 +1171,7 @@ class planning_Tasks extends core_Master
         $productName = cat_Products::getVerbal($rec->productId, 'name');
         $code = cat_Products::getVerbal($rec->productId, 'code');
         $batchName = "{$productName}/{$code}/Opr{$rec->id}";
-        $batchName = str::removeWhitespaces($batchName);
+        $batchName = str::removeWhiteSpace($batchName);
         
         return $batchName;
     }

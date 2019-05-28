@@ -38,11 +38,11 @@ class help_Plugin extends core_Plugin
         } elseif ($act == ' ' || $act == 'default' || $act == null) {
             $act = 'list';
         }
-         
+        
         // Текущия език на интерфейса
         $lg = core_Lg::getCurrent();
-         
- 
+        
+        
         if (($act == 'list') && ($rec = help_Info::fetch(array("#class = '[#1#]' AND #lg = '[#2#]'", $ctr, $lg))) || haveRole('help')) {
             if (!$rec) {
                 $rec = new stdClass();
@@ -79,6 +79,12 @@ class help_Plugin extends core_Plugin
                 }
                 $hintText .= ht::createLink($imgEdit, $urlAE, null, array('class' => 'edit-tooltip'));
             }
+            
+            if ($rec->url) {
+                $hintText .= "<div class='clearfix21'><div style='float:right;font-size:0.8em;'>" . ht::createLink('» виж документацията', $rec->url, null, 'target=_blank') . '</div></div>';
+            }
+            
+            $hintText .=
             
             $hint = new ET("<div class='tooltip-text {$mustSeeClass}'><div class='tooltip-arrow'></div><a class='close-tooltip'></a>[#1#]</div>", $hintText);
             $url = toUrl(array('help_Log', 'CloseInfo', $rec->id));
