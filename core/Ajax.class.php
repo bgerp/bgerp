@@ -26,11 +26,6 @@ class core_Ajax extends core_Mvc
      */
     public function act_Get()
     {
-        // Ако е пуснат терминала, пускаме сесията
-        if (Request::get('Terminal')) {
-            peripheral_Terminal::setSessionPrefix();
-        }
-        
         // Ако не сме в DEBUG режим
         if (!isDebug()) {
             // Очаквае заявката да е по AJAX - да има такъв хедър

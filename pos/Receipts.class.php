@@ -174,8 +174,6 @@ class pos_Receipts extends core_Master
      */
     public function act_New()
     {
-        peripheral_Terminal::setSessionPrefix();
-        
         $cu = core_Users::getCurrent();
         $posId = pos_Points::getCurrent();
         $forced = Request::get('forced', 'int');
@@ -532,8 +530,6 @@ class pos_Receipts extends core_Master
      */
     public function act_Terminal()
     {
-        peripheral_Terminal::setSessionPrefix();
-        
         $this->requireRightFor('terminal');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
@@ -672,10 +668,6 @@ class pos_Receipts extends core_Master
         $img = ht::createElement('img', array('src' => sbf('pos/img/bgerp.png', '')));
         $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink', 'title' => 'Към портала'));
         $tpl->append($logo, 'LOGO');
-        
-        if (Mode::get('terminalId')) {
-            $tpl->replace(ht::createLink('', array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
-        }
         
         // Слагане на детайлите на бележката
         $detailsTpl = $this->pos_ReceiptDetails->renderReceiptDetail($data->receiptDetails);
@@ -841,8 +833,6 @@ class pos_Receipts extends core_Master
      */
     public function act_ShowDrafts()
     {
-        peripheral_Terminal::setSessionPrefix();
-        
         $this->requireRightFor('terminal');
         expect($id = Request::get('id'));
         expect($rec = $this->fetch($id));
@@ -895,8 +885,6 @@ class pos_Receipts extends core_Master
      */
     public function act_Transfer()
     {
-        peripheral_Terminal::setSessionPrefix();
-        
         $this->requireRightFor('transfer');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
@@ -1063,7 +1051,6 @@ class pos_Receipts extends core_Master
      */
     public function act_SearchContragents()
     {
-        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('terminal');
         
         if (!$receiptId = Request::get('receiptId', 'int')) {
@@ -1214,7 +1201,6 @@ class pos_Receipts extends core_Master
      */
     public function act_printReceipt()
     {
-        peripheral_Terminal::setSessionPrefix();
         expect(haveRole('pos, ceo'));
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
@@ -1255,7 +1241,6 @@ class pos_Receipts extends core_Master
      */
     public function act_addProduct()
     {
-        peripheral_Terminal::setSessionPrefix();
         $this->pos_ReceiptDetails->requireRightFor('add');
         
         // Трябва да има такава бележка
@@ -1459,8 +1444,6 @@ class pos_Receipts extends core_Master
      */
     public function act_Close()
     {
-        peripheral_Terminal::setSessionPrefix();
-        
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         if ($rec->state != 'draft') {
@@ -1489,7 +1472,6 @@ class pos_Receipts extends core_Master
      */
     public function act_getSearchResults()
     {
-        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('terminal');
         
         if ($searchString = Request::get('searchString')) {
@@ -1836,8 +1818,6 @@ class pos_Receipts extends core_Master
      */
     public function act_Revert()
     {
-        peripheral_Terminal::setSessionPrefix();
-        
         if (!$this->haveRightFor('revert')) {
             
             return $this->pos_ReceiptDetails->returnError(null);

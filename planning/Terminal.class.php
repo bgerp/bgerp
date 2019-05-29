@@ -15,7 +15,6 @@
  */
 class planning_Terminal extends core_Manager
 {
-    
     /**
      * Информация за табовете
      */
@@ -62,7 +61,7 @@ class planning_Terminal extends core_Manager
     {
         $url = (planning_Centers::haveRightFor('single', $rec->centerId)) ? array('planning_Centers', 'single', $rec->centerId) : array('bgerp_Portal', 'show');
         if(!core_Users::getCurrent('id', false)){
-            $url = (Mode::get('terminalId')) ? array('peripheral_Terminal', 'default', 'afterExit' => true) : array('core_Users', 'login', 'ret_url' => toUrl(array($this, 'open', $rec->id), 'local'));
+            $url = array('core_Users', 'login', 'ret_url' => toUrl(array($this, 'open', $rec->id), 'local'));
         }
         
         $object = ht::mixedToHtml($rec);
@@ -576,7 +575,6 @@ class planning_Terminal extends core_Manager
      */
     public function act_selectTask()
     {
-        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('selecttask');
         expect($id = Request::get('id', 'int'));
         expect($rec = planning_Points::fetch($id));
@@ -603,7 +601,6 @@ class planning_Terminal extends core_Manager
      */
     public function act_Search()
     {
-        peripheral_Terminal::setSessionPrefix();
         $id = Request::get('id', 'int');
         expect($rec = planning_Points::fetch($id), 'Неразпознат ресурс');
         if(!$this->haveRightFor('openterminal') || !$this->haveRightFor('openterminal', $rec)){
@@ -658,7 +655,6 @@ class planning_Terminal extends core_Manager
      */
     public function act_doAction()
     {
-        peripheral_Terminal::setSessionPrefix();
         $id = Request::get('id', 'int');
         expect($rec = planning_Points::fetch($id), 'Неразпознат ресурс');
         if(!$this->haveRightFor('openterminal') || !$this->haveRightFor('openterminal', $rec)){
@@ -711,7 +707,6 @@ class planning_Terminal extends core_Manager
      */
     public function act_Open()
     {
-        peripheral_Terminal::setSessionPrefix();
         expect($id = Request::get('id', 'int'));
         expect($rec = planning_Points::fetch($id));
         
@@ -741,11 +736,7 @@ class planning_Terminal extends core_Manager
         $tpl->replace(crm_Profiles::createLink(), 'userId');
         $img = ht::createImg(array('path' => 'img/16/logout.png'));
         
-        if (Mode::get('terminalId')) {
-            $tpl->replace(ht::createLink($img, array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала'), 'EXIT_TERMINAL');
-        } else {
-            $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
-        }
+        $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
         
         // Подготовка на урл-тата на табовете
         $taskListUrl = toUrl(array($this, 'renderTab', $rec->id, 'name' => 'taskList'), 'local');
@@ -810,7 +801,6 @@ class planning_Terminal extends core_Manager
     function act_renderTab()
     {
         // Кой е таба
-        peripheral_Terminal::setSessionPrefix();
         expect($id = Request::get('id', 'int'));
         expect($name = Request::get('name', 'varchar'));
         expect($rec = planning_Points::fetch($id));

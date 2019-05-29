@@ -29,12 +29,6 @@ class planning_Points extends core_Manager
     
     
     /**
-     * Поддържани интерфейси
-     */
-    public $interfaces = 'peripheral_TerminalIntf';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
     public $canList = 'no_one';
@@ -117,61 +111,6 @@ class planning_Points extends core_Manager
         if(planning_Terminal::haveRightFor('openterminal', $rec)){
             $row->terminal = ht::createBtn('Отвори', array('planning_Terminal', 'open', $rec->id), false, true, 'title=Отваряне на терминала за отчитане на производството,ef_icon=img/16/forward16.png');
         }
-        
-        // Подготовка на перфиферните терминали
-        $peripheralData = (object)array('masterMvc' => clone $mvc, 'masterId' => $rec->id);
-        cls::get('peripheral_Terminal')->prepareDetail($peripheralData);
-        if(count($peripheralData->rows)){
-            
-            // Ако има ще се покажат в таблицата
-            $row->terminalList = '<table class="innerTable">';
-            foreach ($peripheralData->rows as $pRow){
-                core_RowToolbar::createIfNotExists($pRow->_rowTools);
-                $pRow->brid = (!empty($pRow->brid)) ? $pRow->brid : "<i class='quiet'>N/A</i>";
-                $pRow->users = (!empty($pRow->users)) ? $pRow->users : "<i class='quiet'>" . tr('Всички') . " </i>";
-                $pRow->roles = (!empty($pRow->roles)) ? $pRow->roles : "<i class='quiet'>" . tr('Всички') . " </i>";
-                $row->terminalList .= "<tr><td>{$pRow->_rowTools->renderHtml()}</td>
-                                      <td style='text-align:left;padding-right:5px'><span class='quiet'>" . tr('Браузър') . "</span>: {$pRow->brid}</td>
-                                      <td style='text-align:left;padding-right:5px'><span class='quiet'>" . tr('Пин') . "</span>: {$pRow->usePin}</td>
-                                      <td style='text-align:left;padding-right:5px'><span class='quiet'>" . tr('Потребители') . "</span>: {$pRow->users}</td>
-                                      <td style='text-align:left;padding-right:5px'><span class='quiet'>" . tr('Роли') . "</span>: {$pRow->roles}</td>
-                                  </tr>";
-            }
-            $row->terminalList .= "</table>";
-        }
-    }
-
-
-    /**
-     * Връща всички достъпни за текущия потребител id-та на обекти, отговарящи на записи
-     *
-     * @return array
-     *
-     * @see peripheral_TerminalIntf
-     */
-    public function getTerminalOptions()
-    {
-        $options = array();
-        $cQuery = self::getQuery();
-        $cQuery->where("#state != 'rejected' AND #state != 'closed'");
-        while ($cRec = $cQuery->fetch()) {
-            $options[$cRec->id] = self::getRecTitle($cRec, false) . " ({$cRec->id})";
-        }
-
-        return $options;
-    }
-
-
-    /**
-     * Редиректва към посочения терминал в посочената точка и за посочения потребител
-     *
-     * @return Redirect
-     *
-     * @see peripheral_TerminalIntf
-     */
-    public function openTerminal($objectId, $userId)
-    {
-        return new Redirect(array($this, 'openTerminal', $objectId));
     }
     
     
@@ -206,10 +145,6 @@ class planning_Points extends core_Manager
         while($rec = $query->fetch()){
             $data->recs[$rec->id] = $rec;
             $row = $this->recToVerbal($rec);
-            if ($rec->state != 'closed' && peripheral_Terminal::haveRightFor('add', (object)array('classId' => $this->getClassId(), 'pointId' => $rec->id))) {
-                core_RowToolbar::createIfNotExists($row->_rowTools);
-                $row->_rowTools->addLink('Нов терминал', array('peripheral_Terminal', 'add', 'classId' => $this->getClassId(), 'pointId' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/monitor.png,title=Добавяне на нов терминал към точката за производство');
-            }
             
             $data->rows[$rec->id] = $row;
         }

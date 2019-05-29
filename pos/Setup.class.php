@@ -177,6 +177,9 @@ class pos_Setup extends core_ProtoSetup
     );
     
     
+    public $defClasses = 'pos_Terminal';
+    
+    
     /**
      * Миграция на крон процеса
      */
