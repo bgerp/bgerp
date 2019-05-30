@@ -509,8 +509,9 @@ class html2text_Converter
 
 
         // highlighting
-        $text = preg_replace_callback('/<(span|div|pre|p|font)\\s[^>]*style\\s?=\\s?(\\"|\\\')([^>]*(color|font-weight|font-style|text-decoration)\\s?:\\s?[^>]+)\\2[^>]*>(.*?)<\\/\\1>/i', array($this, 'highlighting'), $text);
-
+        $text = preg_replace_callback('/<(span|div|pre|p|font)\\s[^>]*style\\s?=\\s?(\\"|\\\')([^>]*(?\'style\'color|font-weight|font-style|text-decoration)\\s?:\\s?[^>]+)\\2[^>]*>(?\'text\'.*?)<\\/\\1>/i', array($this, 'highlighting'), $text);
+        $text = preg_replace_callback('/<font\s+([^>]*(?\'style\'color)\s*\=\s*(\"|\')([^\'|\"]+)(\"|\'))[^>]*\>(?\'text\'.*?)<\/font>/i', array($this, 'highlighting'), $text);
+        
         // <i>
         $text = preg_replace("/<i[^>]*>(.*?)<\/i[^>]*>/i", '[i]\\1[/i]', $text);
         
@@ -705,9 +706,9 @@ class html2text_Converter
      */
     public function highlighting($matches)
     {
-        $style = $matches[3];
+        $style = $matches['style'];
 
-        $text = $matches[5];
+        $text = $matches['text'];
 
         $ruleArr = explode(';', $style);
 
