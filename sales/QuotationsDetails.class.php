@@ -588,34 +588,6 @@ class sales_QuotationsDetails extends doc_Detail
     
     
     /**
-     * Опитваме се да намерим цена за записа, ако има два предишни записа със цени
-     */
-    private static function tryToCalcPrice($rec)
-    {
-        // Имали за този запис поне два други записа със различни количества
-        $checkQuery = self::getQuery();
-        $checkQuery->where("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}");
-        $checkQuery->show('quantity,price');
-        $checkQuery->orderBy('id', 'DESC');
-        $checkQuery->limit(2);
-        
-        // Ако да изчисляваме третата цена по формула
-        // (Q1 / Q3) * (P1 - (P1*Q1 - P2*Q2) / (Q1 - Q2)) + (P1*Q1 - P2*Q2) / (Q1 - Q2)
-        if ($checkQuery->count() == 2) {
-            $fRec = $checkQuery->fetch();
-            $sRec = $checkQuery->fetch();
-            
-            $newPrice = ($fRec->quantity / $rec->quantity) *
-                ($fRec->price - ($fRec->price * $fRec->quantity - $sRec->price * $sRec->quantity) /
-                ($fRec->quantity - $sRec->quantity)) + ($fRec->price * $fRec->quantity - $sRec->price * $sRec->quantity) /
-                ($fRec->quantity - $sRec->quantity);
-            
-            return $newPrice;
-        }
-    }
-    
-    
-    /**
      * Подготовка на бутоните за добавяне на нови редове на фактурата
      */
     protected static function on_AfterPrepareListToolbar($mvc, $data)
@@ -1132,5 +1104,15 @@ class sales_QuotationsDetails extends doc_Detail
         
         $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
         $rec->quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+        
+        // Ако артикула е стандартен и в момента не може да му се клонира цена да се клонира и старата му
+        $isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
+        if($isPublic == 'yes'){
+            $masterRec = sales_Quotations::fetch($rec->quotationId);
+            $livePrice = self::calcLivePrice($rec, $masterRec);
+            if(empty($livePrice)){
+                $rec->price = $oldRec->price;
+            }
+        }
     }
 }
