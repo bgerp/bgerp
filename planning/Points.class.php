@@ -31,7 +31,7 @@ class planning_Points extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'no_one';
+    public $canList = 'debug';
     
     
     /**
@@ -164,7 +164,7 @@ class planning_Points extends core_Manager
      */
     public function renderDetail_($data)
     {
-        $tpl = getTplFromFile('peripheral/tpl/TerminalDetailLayout.shtml');
+        $tpl = getTplFromFile('planning/tpl/PointDetailLayout.shtml');
         $tpl->append(tr('Точки на производство'), 'title');
         
         // Рендиране на таблицата с точките

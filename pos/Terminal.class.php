@@ -2,7 +2,7 @@
 
 
 /**
- *
+ * Контролер на терминала за пос продажби
  *
  * @category  bgerp
  * @package   pos
@@ -15,12 +15,23 @@
  */
 class pos_Terminal extends peripheral_Terminal
 {
-    
+    /**
+     * Заглавие
+     */
     public $title = 'ПОС Терминал';
     
+    
+    /**
+     * Име на източника
+     */
     protected $clsName = 'pos_Points';
     
+    
+    /**
+     * Полета
+     */
     protected $fieldArr = array('payments', 'policyId', 'caseId', 'storeId');
+    
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -35,6 +46,12 @@ class pos_Terminal extends peripheral_Terminal
         $fieldset->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад, mandatory');
     }
     
+    
+    /**
+     * След подготовка на формата за добавяне
+     *
+     * @param core_Fieldset $fieldset
+     */
     protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
     {
         $data->form->setDefault('policyId', cat_Setup::get('DEFAULT_PRICELIST'));
@@ -50,7 +67,6 @@ class pos_Terminal extends peripheral_Terminal
      */
     public function getTerminalUrl($pointId)
     {
-        
         return array('pos_Points', 'openTerminal', $pointId);
     }
 }

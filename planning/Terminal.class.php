@@ -2,7 +2,7 @@
 
 
 /**
- * Терминал за отчитане на производството
+ * Контролер на терминала за отчитане на производство
  * 
  * @category  bgerp
  * @package   planning
@@ -13,8 +13,27 @@
  *
  * @since     v 0.1
  */
-class planning_Terminal extends core_Manager
+class planning_Terminal extends peripheral_Terminal
 {
+    
+    /**
+     * Заглавие
+     */
+    public $title = 'Производствен терминал';
+    
+    
+    /**
+     * Име на източника
+     */
+    protected $clsName = 'planning_Points';
+    
+    
+    /**
+     * Полета
+     */
+    protected $fieldArr = array('centerId', 'fixedAssets', 'employees');
+
+    
     /**
      * Информация за табовете
      */
@@ -29,6 +48,43 @@ class planning_Terminal extends core_Manager
      * Кой има право да чете?
      */
     public $canOpenterminal = 'debug';
+    
+    
+    /**
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        $fieldset->FLD('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Център, mandatory,removeAndRefreshForm=fixedAssets|employees,silent');
+        $fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks,allowEmpty)', 'caption=Оборудване, input=none');
+        $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,allowEmpty)', 'caption=Оператори, input=none');
+    }
+    
+    
+    /**
+     * След подготовка на формата за добавяне
+     *
+     * @param core_Fieldset $fieldset
+     */
+    protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
+    {
+        cls::get('planning_Points')->invoke('AfterPrepareEditForm', array($data));
+    }
+    
+    
+    /**
+     * Редиректва към посочения терминал в посочената точка и за посочения потребител
+     *
+     * @return Redirect
+     *
+     * @see peripheral_TerminalIntf
+     */
+    public function getTerminalUrl($pointId)
+    {
+        return array('planning_Points', 'open', $pointId);
+    }
     
     
     /**

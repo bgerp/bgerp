@@ -177,6 +177,9 @@ class pos_Setup extends core_ProtoSetup
     );
     
     
+    /**
+     * Класове за зареждане
+     */
     public $defClasses = 'pos_Terminal';
     
     
