@@ -544,10 +544,12 @@ class pos_Receipts extends core_Master
         $tpl = getTplFromFile('pos/tpl/terminal/Layout.shtml');
         $tpl->replace(pos_Points::getTitleById($rec->pointId), 'PAGE_TITLE');
         $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/cash-register.png', '"', true) . '>', 'HEAD');
+        $img = ht::createImg(array('path' => 'img/16/logout.png'));
         
         // Добавяме бележката в изгледа
         $receiptTpl = $this->getReceipt($rec);
         $tpl->replace($receiptTpl, 'RECEIPT');
+        $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
         
         // Ако не сме в принтиране, сменяме обвивквата и рендираме табовете
         if (!Mode::is('printing')) {
