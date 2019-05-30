@@ -509,8 +509,8 @@ class html2text_Converter
 
 
         // highlighting
-        $text = preg_replace_callback('/<(span|div|pre|p)\\s[^>]*style\\s?=\\s?(\\"|\\\')([^>]*(color|font-weight|font-style|text-decoration)\\s?:\\s?[^>]+)\\2[^>]*>(.*?)<\\/\\1>/i', array($this, 'highlighting'), $text);
-        
+        $text = preg_replace_callback('/<(span|div|pre|p|font)\\s[^>]*style\\s?=\\s?(\\"|\\\')([^>]*(color|font-weight|font-style|text-decoration)\\s?:\\s?[^>]+)\\2[^>]*>(.*?)<\\/\\1>/i', array($this, 'highlighting'), $text);
+
         // <i>
         $text = preg_replace("/<i[^>]*>(.*?)<\/i[^>]*>/i", '[i]\\1[/i]', $text);
         
@@ -719,7 +719,7 @@ class html2text_Converter
             if($name == 'color') {
                 $text = '[color=' . self::getColor($value) . ']' . $text . '[/color]';
             } elseif($name == 'background-color') { 
-                $text = '[bg=' . self::getColor($value) . ']' . $text . '[/bgcolor]';
+                $text = '[bg=' . self::getColor($value) . ']' . $text . '[/bg]';
             } elseif($name == 'font-weight' && ($value == 'bold' || $value >= 600)) {
                 $text = '[b]' . $text . '[/b]';;
             } elseif($name == 'font-style' && $value == 'italic') {
