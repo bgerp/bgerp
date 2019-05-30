@@ -13,7 +13,7 @@
  *
  * @since     v 0.1
  */
-abstract class peripheral_Terminal extends core_Mvc
+abstract class peripheral_Terminal extends core_Manager
 {
     public $interfaces = 'peripheral_TerminalIntf';
     
