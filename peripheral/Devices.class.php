@@ -94,7 +94,7 @@ class peripheral_Devices extends embed_Manager
         $this->FLD('ip', 'text(rows=2)', 'caption=Компютър->IP');
         $this->FLD('data', 'blob(compress,serialize)', 'input=none, single=none, column=none');
         
-        $this->setDbIndex('name');
+        $this->setDbUnique('name');
     }
     
     
