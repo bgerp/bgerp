@@ -47,6 +47,12 @@ class planning_Points extends core_Manager
     
     
     /**
+     * Кой има право да чете?
+     */
+    public $canOpenterminal = 'debug';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -108,7 +114,7 @@ class planning_Points extends core_Manager
         $row->ROW_ATTR['class'] = "state-{$rec->state}";
         $row->centerId = planning_Centers::getHyperlink($rec->centerId, true);
         
-        if(planning_Terminal::haveRightFor('openterminal', $rec)){
+        if(planning_Points::haveRightFor('openterminal', $rec)){
             $row->terminal = ht::createBtn('Отвори', array('planning_Terminal', 'open', $rec->id), false, true, 'title=Отваряне на терминала за отчитане на производството,ef_icon=img/16/forward16.png');
         }
     }
@@ -199,5 +205,33 @@ class planning_Points extends core_Manager
         
         $rec->tasks = keylist::fromArray($tasks);
         self::save($rec, 'tasks');
+    }
+    
+    
+    /**
+     * Модификация на ролите
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
+    {
+        if($action == 'openterminal' && isset($rec)){
+            if(in_array($rec->state, array('closed', 'rejected'))){
+                $res = 'no_one';
+            }
+        }
+        
+        if($action == 'selecttask'){
+            $res = $mvc->getRequiredRoles('openterminal', $rec, $userId);
+            if(isset($rec)){
+                if(empty($rec->taskId)){
+                    $res = 'no_one';
+                } else {
+                    $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
+                    $taskRec = planning_Tasks::fetch($rec->taskId, 'state,folderId');
+                    if(in_array($taskRec->state, array('rejected', 'closed', 'stopped', 'draft')) || $folderId != $taskRec->folderId){
+                        $res = 'no_one';
+                    }
+                }
+            }
+        }
     }
 }

@@ -489,7 +489,7 @@ class planning_Terminal extends peripheral_Terminal
         $form->fieldsLayout->append($currentTaskHtml, 'currentTaskId');
         
         // Бутони за добавяне
-        $sendUrl = ($this->haveRightFor('terminal')) ?  toUrl(array($this, 'doAction', $pointRec->id), 'local') : array();
+        $sendUrl = (planning_Points::haveRightFor('terminal')) ?  toUrl(array($this, 'doAction', $pointRec->id), 'local') : array();
         $sendBtn = ht::createFnBtn("Изпълнение|* " . html_entity_decode('&#x23CE;'), null, null, array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'data-url' => $sendUrl, 'title' => 'Изпълнение по задачата'));
         $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
         
@@ -631,11 +631,11 @@ class planning_Terminal extends peripheral_Terminal
      */
     public function act_selectTask()
     {
-        $this->requireRightFor('selecttask');
+        planning_Points::requireRightFor('selecttask');
         expect($id = Request::get('id', 'int'));
         expect($rec = planning_Points::fetch($id));
         expect($rec->taskId = Request::get('taskId', 'int'));
-        $this->requireRightFor('selecttask', $rec);
+        planning_Points::requireRightFor('selecttask', $rec);
         Mode::setPermanent("currentTaskId{$rec->id}", $rec->taskId);
         Mode::setPermanent("activeTab{$rec->id}", 'taskProgress');
         $res = array($this, 'open', $rec->id);
@@ -659,7 +659,7 @@ class planning_Terminal extends peripheral_Terminal
     {
         $id = Request::get('id', 'int');
         expect($rec = planning_Points::fetch($id), 'Неразпознат ресурс');
-        if(!$this->haveRightFor('openterminal') || !$this->haveRightFor('openterminal', $rec)){
+        if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
             
             return new Redirect($url);
@@ -713,7 +713,7 @@ class planning_Terminal extends peripheral_Terminal
     {
         $id = Request::get('id', 'int');
         expect($rec = planning_Points::fetch($id), 'Неразпознат ресурс');
-        if(!$this->haveRightFor('openterminal') || !$this->haveRightFor('openterminal', $rec)){
+        if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
             
             return new Redirect($url);
@@ -766,7 +766,7 @@ class planning_Terminal extends peripheral_Terminal
         expect($id = Request::get('id', 'int'));
         expect($rec = planning_Points::fetch($id));
         
-        if(!$this->haveRightFor('openterminal') || !$this->haveRightFor('openterminal', $rec)){
+        if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
             
             return new Redirect($url);
@@ -862,7 +862,7 @@ class planning_Terminal extends peripheral_Terminal
         expect($rec = planning_Points::fetch($id));
         Mode::setPermanent("activeTab{$rec->id}", $name);
         
-        if(!$this->haveRightFor('openterminal') || !$this->haveRightFor('openterminal', $rec)){
+        if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
             
             return new Redirect($url);
@@ -876,33 +876,5 @@ class planning_Terminal extends peripheral_Terminal
         
         // Ако не сме в Ajax режим пренасочваме към терминала
         redirect(array($this, 'open', $rec->id));
-    }
-    
-    
-    /**
-     * Модификация на ролите
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
-    {
-        if($action == 'openterminal' && isset($rec)){
-            if(in_array($rec->state, array('closed', 'rejected'))){
-                $res = 'no_one';
-            }
-        }
-        
-        if($action == 'selecttask'){
-            $res = $mvc->getRequiredRoles('openterminal', $rec, $userId);
-            if(isset($rec)){
-                if(empty($rec->taskId)){
-                    $res = 'no_one';
-                } else {
-                    $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
-                    $taskRec = planning_Tasks::fetch($rec->taskId, 'state,folderId');
-                    if(in_array($taskRec->state, array('rejected', 'closed', 'stopped', 'draft')) || $folderId != $taskRec->folderId){
-                        $res = 'no_one';
-                    }
-                }
-            }
-        }
     }
 }
