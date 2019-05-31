@@ -389,6 +389,10 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             }
         }
         
+        if (!is_null($recs)) {
+            arr::sortObjects($recs, 'code', 'asc');
+        }
+        
         // Определяне на индикаторите за "свръх наличност" и "под минимум";
         foreach ($recs as $productId => $prodRec) {
             $prodRec->conditionQuantity = '3|ok';
