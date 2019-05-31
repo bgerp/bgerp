@@ -509,7 +509,7 @@ class html2text_Converter
 
 
         // highlighting
-        $text = preg_replace_callback('/<(span|div|pre|p|font)\\s[^>]*style\\s?=\\s?(\\"|\\\')([^>]*(?\'style\'color|font-weight|font-style|text-decoration)\\s?:\\s?[^>]+)\\2[^>]*>(?\'text\'.*?)<\\/\\1>/i', array($this, 'highlighting'), $text);
+        $text = preg_replace_callback('/<(span|div|pre|p|font)\\s[^>]*style\\s?=\\s?(\\"|\\\')(?\'style\'[^>]*(color|font-weight|font-style|text-decoration)\\s?:\\s?[^>]+)\\2[^>]*>(?\'text\'.*?)<\\/\\1>/i', array($this, 'highlighting'), $text);
         $text = preg_replace_callback('/<font\s+([^>]*(?\'style\'color)\s*\=\s*(\"|\')([^\'|\"]+)(\"|\'))[^>]*\>(?\'text\'.*?)<\/font>/i', array($this, 'highlighting'), $text);
         
         // <i>
