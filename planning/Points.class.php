@@ -57,7 +57,7 @@ class planning_Points extends core_Manager
      */
     public function description()
     {
-        $this->FLD('name', 'varchar(16)', 'caption=Наименование, mandatory');
+        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory');
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Център, mandatory,removeAndRefreshForm=fixedAssets|employees,silent');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks,allowEmpty)', 'caption=Оборудване, input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,allowEmpty)', 'caption=Оператори, input=none');
