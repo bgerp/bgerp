@@ -106,7 +106,7 @@ abstract class peripheral_Terminal extends core_Mvc
         $nameField = $Driver->nameField;
         $clsName = $Driver->clsName;
         
-        if (!$rec->data['clsName'] && !$rec->data['objVal']) {
+        if (!$rec->data['clsName'] || !$rec->data['objVal']) {
             $dRec = $clsName::fetch(array("#{$nameField} = '[#1#]'", $rec->{$nameField}));
         } else {
             $dRec = cls::get($rec->data['clsName'])->fetch($rec->data['objVal']);
