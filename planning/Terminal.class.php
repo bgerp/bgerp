@@ -83,7 +83,7 @@ class planning_Terminal extends peripheral_Terminal
      */
     public function getTerminalUrl($pointId)
     {
-        return array('planning_Points', 'open', $pointId);
+        return array('planning_Terminal', 'open', $pointId);
     }
     
     
