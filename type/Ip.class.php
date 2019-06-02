@@ -66,8 +66,9 @@ class type_IP extends type_Varchar
         }
         
         $time = $this->params['time'];
+        $coloring = $this->params['coloring'] != 'no';
         
-        $value = self::decorateIp($value, $time);
+        $value = self::decorateIp($value, $time, $coloring);
         
         return $value;
     }
@@ -80,13 +81,13 @@ class type_IP extends type_Varchar
      * @param string  $time
      * @param array $attr
      */
-    public static function decorateIp($ip, $time = null, $coloring = false, $showNames = false)
+    public static function decorateIp($ip, $time = null, $coloring = false)
     {
         $res = $ip;
         
         $me = cls::get(get_called_class());
         
-        $me->invoke('AfterDecorateIp', array(&$res, $ip, $time, $coloring, $showNames));
+        $me->invoke('AfterDecorateIp', array(&$res, $ip, $time, $coloring));
         
         return $res;
     }
