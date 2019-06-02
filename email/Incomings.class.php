@@ -990,6 +990,10 @@ class email_Incomings extends core_Master
                 $row->inReplyToOrigin = doc_Containers::getLinkForSingle($rec->originId);
             }
         }
+        
+        if (Mode::is('text', 'xhtml')) {
+            unset($row->ip);
+        }
     }
     
     

@@ -5614,6 +5614,11 @@ only screen and (max-width: 320px) {
       display: inline-block; }
   .external span.linkWithIcon {
     padding-left: 23px !important; }
+  .external .docOutgoings {
+    position: relative;
+    left: 100px; }
+    .external .docOutgoings .document {
+      background-color: #ddecfd; }
 
 .narrow .external div.hideLink {
   margin-top: 10px; }

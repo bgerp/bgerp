@@ -82,7 +82,7 @@ class frame_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'report,dashboard';
+    public $roles = 'report';
     
     
     /**

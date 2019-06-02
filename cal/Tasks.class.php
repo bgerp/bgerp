@@ -1881,7 +1881,7 @@ class cal_Tasks extends embed_Manager
         
         // Създаваме, кофа, където ще държим всички прикачени файлове в задачи
         $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket('calTasks', 'Прикачени файлове в задачи', null, '104857600', 'user', 'user');
+        $res .= $Bucket->createBucket('calTasks', 'Прикачени файлове в задачи', null, '104857600', 'user', 'every_one');
     }
     
     

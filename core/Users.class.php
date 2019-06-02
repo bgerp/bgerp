@@ -952,15 +952,17 @@ class core_Users extends core_Manager
         
         $form->info = "<center style='font-size:0.8em;color:#666;'>" . tr($conf->CORE_LOGIN_INFO) . '</center>';
         
+        // Ако е зададено да се използва имейл-а за ник
+        if (EF_USSERS_EMAIL_AS_NICK) {
+            $form->InputFields = 'email,pass,ret_url';
+        } else {
+            $form->InputFields = 'nick,pass,ret_url';
+        }
+        
         $this->invoke('PrepareLoginForm', array(&$form));
         
         if (!$currentUserRec->state == 'active') {
-            // Ако е зададено да се използва имейл-а за ник
-            if (EF_USSERS_EMAIL_AS_NICK) {
-                $inputs = $form->input('email,pass,ret_url,time,hash');
-            } else {
-                $inputs = $form->input('nick,pass,ret_url,time,hash');
-            }
+            $inputs = $form->input($form->InputFields . ',time,hash');
             
             // Ако логин формата е субмитната
             if (($inputs->nick || $inputs->email) && $form->isSubmitted()) {
@@ -1060,11 +1062,7 @@ class core_Users extends core_Manager
                     $layout = new ET("<table ><tr><td id='login-form'>[#FORM#]</td></tr></table>");
                 }
                 
-                if (EF_USSERS_EMAIL_AS_NICK) {
-                    $layout->append($form->renderHtml('email,pass,ret_url', $inputs), 'FORM');
-                } else {
-                    $layout->append($form->renderHtml('nick,pass,ret_url', $inputs), 'FORM');
-                }
+                $layout->append($form->renderHtml($form->InputFields, $inputs), 'FORM');
                 
                 $layout->prepend(tr('Вход') . ' « ', 'PAGE_TITLE');
                 if (EF_USERS_HASH_FACTOR > 0) {
