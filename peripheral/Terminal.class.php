@@ -106,7 +106,12 @@ abstract class peripheral_Terminal extends core_Mvc
         $nameField = $Driver->nameField;
         $clsName = $Driver->clsName;
         
-        $dRec = $clsName::fetch(array("#{$nameField} = '[#1#]'", $rec->{$nameField}));
+        if (!$rec->data['clsName'] || !$rec->data['objVal']) {
+            $dRec = $clsName::fetch(array("#{$nameField} = '[#1#]'", $rec->{$nameField}));
+        } else {
+            $dRec = cls::get($rec->data['clsName'])->fetch($rec->data['objVal']);
+        }
+        
         $msgStr = 'Редактиране на|* ';
         if (!$dRec) {
             $dRec = new stdClass();

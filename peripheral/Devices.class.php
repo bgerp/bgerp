@@ -95,6 +95,7 @@ class peripheral_Devices extends embed_Manager
         $this->FLD('data', 'blob(compress,serialize)', 'input=none, single=none, column=none');
         
         $this->setDbIndex('name');
+        $this->setDbUnique('name, driverClass');
     }
     
     
@@ -391,8 +392,21 @@ class peripheral_Devices extends embed_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
-        $row->brid = log_Browsers::getLink($rec->brid);
+        $row->ip = '';
+        $rec->ip = str_replace(array(',', ';'), ' ', $rec->ip);
+        $ipArr = explode(' ', $rec->ip);
+        foreach ($ipArr as $ip)  {
+            $row->ip .= $row->ip ? "<br>" : '';
+            $row->ip .= type_Ip::decorateIp($ip);
+        }
+        
+        $row->brid = '';
+        $rec->brid = str_replace(array(',', ';'), ' ', $rec->brid);
+        $bridArr = explode(' ', $rec->brid);
+        foreach ($bridArr as $brid)  {
+            $row->brid .= $row->brid ? "<br>" : '';
+            $row->brid .= " " . log_Browsers::getLink($brid);
+        }
     }
     
     

@@ -506,17 +506,18 @@ class html2text_Converter
         
         // <strong>
         $text = preg_replace_callback('/<strong[^>]*>(.*?)<\/strong[^>]*>/i', array($this, 'bold'), $text);
-
-
+        
+        
         // highlighting
-        $text = preg_replace_callback('/<(span|div|pre|p)\\s[^>]*style\\s?=\\s?(\\"|\\\')([^>]*(color|font-weight|font-style|text-decoration)\\s?:\\s?[^>]+)\\2[^>]*>(.*?)<\\/\\1>/i', array($this, 'highlighting'), $text);
+        $text = preg_replace_callback('/<(span|div|pre|p|font)\\s[^>]*style\\s?=\\s?(\\"|\\\')(?\'style\'[^>]*(color|font-weight|font-style|text-decoration)\\s?:\\s?[^>]+)\\2[^>]*>(?\'text\'.*?)<\\/\\1>/i', array($this, 'highlighting'), $text);
+        $text = preg_replace_callback('/<font\\s+([^>]*(?\'style\'(color)\\s*\\=\\s*(\\"|\\\')([^\\\'|\\"]+)(\\"|\\\')))[^>]*\\>(?\'text\'.*?)<\\/font>/i', array($this, 'highlighting'), $text);
         
         // <i>
         $text = preg_replace("/<i[^>]*>(.*?)<\/i[^>]*>/i", '[i]\\1[/i]', $text);
         
         // <em>
         $text = preg_replace("/<em[^>]*>(.*?)<\/em[^>]*>/i", '[b]\\1[/b]', $text);
-                
+        
         // <ul> and </ul>
         $text = preg_replace("/(<ul[^>]*>|<\/ul[^>]*>)/i", "\n\n", $text);
         
@@ -705,21 +706,22 @@ class html2text_Converter
      */
     public function highlighting($matches)
     {
-        $style = $matches[3];
-
-        $text = $matches[5];
-
+        $style = $matches['style'];
+        
+        $text = $matches['text'];
+        
         $ruleArr = explode(';', $style);
-
+        
         $color = $bgcolor = $bold = $italic = $underline = $strike = null;
-
+        
         foreach($ruleArr as $rule) {
             $rule = strtolower(str::removeWhiteSpace($rule));
             list($name, $value) = explode(':', $rule);
+            
             if($name == 'color') {
                 $text = '[color=' . self::getColor($value) . ']' . $text . '[/color]';
-            } elseif($name == 'background-color') { 
-                $text = '[bg=' . self::getColor($value) . ']' . $text . '[/bgcolor]';
+            } elseif($name == 'background-color') {
+                $text = '[bg=' . self::getColor($value) . ']' . $text . '[/bg]';
             } elseif($name == 'font-weight' && ($value == 'bold' || $value >= 600)) {
                 $text = '[b]' . $text . '[/b]';;
             } elseif($name == 'font-style' && $value == 'italic') {
@@ -728,21 +730,29 @@ class html2text_Converter
                 $text = '[u]' . $text . '[/u]';;
             } elseif($name == 'text-decoration' && $value == 'line-through') {
                 $text = '[s]' . $text . '[/s]';;
+            } elseif ($name && !$value) {
+                if (strpos($name, '=')) {
+                    list(,$value) = explode('=', $name);
+                    $value = trim($value, '"');
+                    $value = trim($value, "'");
+                    $text = '[color=' . self::getColor($value) . ']' . $text . '[/color]';
+                    bp($text);
+                }
             }
         }
-
+        
         return $text;
     }
-
-
+    
+    
     /**
      * Преобразува RGB/A цвят към HEX
      */
     public static function getColor($color)
     {
         $matches = array();
-
-        if(preg_match("/rgb\\((\\d+),(\\d+),(\\d+)\\)/", $color, $matches)) { 
+        
+        if(preg_match("/rgb\\((\\d+),(\\d+),(\\d+)\\)/", $color, $matches)) {
             $color = sprintf("#%02x%02x%02x", $matches[1], $matches[2], $matches[3]);
         } elseif(preg_match("/rgba\\((\\d+),(\\d+),(\\d+),([\\d\\.]+)\\)/", $color, $matches)) {
             $r = $matches[1];
@@ -752,13 +762,13 @@ class html2text_Converter
             $r = max(0, min(255, round(255*(1-$a) + $r*$a)));
             $g = max(0, min(255, round(255*(1-$a) + $g*$a)));
             $b = max(0, min(255, round(255*(1-$a) + $b*$a)));
-
+            
             $color = sprintf("#%02x%02x%02x", $r, $g, $b);
-        } 
-
+        }
+        
         return $color;
     }
-
+    
     
     public function boldt($matches)
     {

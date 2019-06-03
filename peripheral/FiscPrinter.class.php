@@ -79,4 +79,30 @@ class peripheral_FiscPrinter
     {
         return $this->class->getDisplayPrice($priceWithoutVat, $vat, $discountPercent);
     }
+    
+    
+    /**
+     * Дали във ФУ има е нагласена подадената валута
+     *
+     * @param stdClass $rec
+     * @param string $currencyCode
+     * @return boolean
+     */
+    public function isCurrencySupported($rec, $currencyCode)
+    {
+        return $this->class->isCurrencySupported($rec, $currencyCode);
+    }
+    
+    
+    /**
+     * Какъв е кода на плащането в настройките на апарата
+     *
+     * @param stdClass $rec
+     * @param int $paymentId
+     * @return string|null
+     */
+    public function getPaymentCode($rec, $paymentId)
+    {
+        return $this->class->getPaymentCode($rec, $paymentId);
+    }
 }
