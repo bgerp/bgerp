@@ -18,7 +18,7 @@ class vislog_DecoratePlugin extends core_Plugin
     /**
      * Декорира ip адреса с html връзки
      */
-    public static function on_AfterDecorateIp($type, &$res, $ip, $time = null, $coloring = false, $showNames = false)
+    public static function on_AfterDecorateIp($type, &$res, $ip, $time = null, $coloring = false)
     {
         static $cntArr = array();
         

@@ -754,26 +754,28 @@ class colab_FolderToPartners extends core_Manager
         
         // Задаваме дефолтните роли
         $dRolesArr = array('partner');
-        try {
-            $autoCreateQuote = cond_Parameters::getParameter($Class->getClassId(), $objectId, 'autoCreateQuote');
-            
-            if ($autoCreateQuote == 'yes') {
-                $dRolesArr[] = 'agent';
-            }
-        } catch (core_exception_Expect $e) {
-            reportException($e);
-        }
+        
+        
         $defRoles = array();
         foreach ($dRolesArr as $role) {
             $id = core_Roles::fetchByName($role);
             $defRoles[$id] = $id;
         }
+        
+        // Добавяне на дефолтни роли
+        $additionalRoles = colab_Setup::get('DEFAULT_ROLES_FOR_NEW_PARTNER');
+        $additionalRoles = keylist::toArray($additionalRoles);
+        foreach ($additionalRoles as $roleId) {
+            $defRoles[$roleId] = $roleId;
+        }
+        
         if (!empty($defRoles)) {
             $form->setDefault('roleOthers', $defRoles);
         }
         
         $form->input();
         
+        $fields = null;
         if ($form->isSubmitted()) {
             if (!$Users->isUnique($form->rec, $fields)) {
                 $loginLink = ht::createLink(tr('тук'), array('core_Users', 'login'));
@@ -782,6 +784,7 @@ class colab_FolderToPartners extends core_Manager
         }
         
         if ($form->isSubmitted()) {
+            $errorMsg = null;
             if (core_Users::isForbiddenNick($form->rec->nick, $errorMsg)) {
                 $form->setError('nick', $errorMsg);
             }

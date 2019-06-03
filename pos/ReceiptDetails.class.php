@@ -144,7 +144,6 @@ class pos_ReceiptDetails extends core_Detail
      */
     public function act_setDiscount()
     {
-        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('add');
         
         if (!$recId = Request::get('recId', 'int')) {
@@ -262,7 +261,6 @@ class pos_ReceiptDetails extends core_Detail
      */
     public function act_setQuantity()
     {
-        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('add');
         
         // Трябва да има избран ред
@@ -305,7 +303,7 @@ class pos_ReceiptDetails extends core_Detail
             if(is_object($originProductRec)){
                 $quantityId *= -1;
                 if(abs($originProductRec->quantity) < abs($quantityId)){
-                    core_Statuses::newStatus("Kоличеството е по-голямо от продаденото|* {$originProductRec->quantity}", 'error');
+                    core_Statuses::newStatus("Количеството е по-голямо от продаденото|* {$originProductRec->quantity}", 'error');
                     
                     return $this->returnError($rec->receiptId);
                 }
@@ -340,7 +338,6 @@ class pos_ReceiptDetails extends core_Detail
      */
     public function act_makePayment()
     {
-        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('add');
         
         // Трябва да е избрана бележка
@@ -430,7 +427,6 @@ class pos_ReceiptDetails extends core_Detail
      */
     public function act_DeleteRec()
     {
-        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('delete');
         
         // Трябва да има ид на ред за изтриване
@@ -779,7 +775,6 @@ class pos_ReceiptDetails extends core_Detail
      */
     public function act_Load()
     {
-        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('load');
         
         expect($receiptId = Request::get('receiptId', 'int'));
@@ -804,7 +799,7 @@ class pos_ReceiptDetails extends core_Detail
         }
         
         cls::get('pos_Receipts')->updateReceipt($receiptId);
-       
+        
         followRetUrl();
     }
 }

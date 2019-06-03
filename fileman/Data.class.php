@@ -4,7 +4,7 @@
 /**
  * Пътя до директорията за файловете е общ за всички инсталирани приложения
  */
-defIfNot('FILEMAN_UPLOADS_PATH', rtrim(EF_UPLOADS_PATH, '/\\') . '/fileman');
+defIfNot('FILEMAN_UPLOADS_PATH', substr(EF_UPLOADS_PATH, 0, strrpos(EF_UPLOADS_PATH, '/')) . '/fileman');
 
 
 /**

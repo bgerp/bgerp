@@ -13,26 +13,15 @@
  *
  * @since     v 0.1
  */
-class peripheral_TerminalIntf
+class peripheral_TerminalIntf extends peripheral_DeviceIntf
 {
     /**
-     * Връща всички достъпни за текущия потребител id-та на обекти, отговарящи на записи
-     *
-     * @return array
-     */
-    public function getTerminalOptions()
-    {
-        return $this->class->getTerminalOptions();
-    }
-    
-    
-    /**
      * Редиректва към посочения терминал в посочената точка и за посочения потребител
-     * 
+     *
      * @return Redirect
      */
-    public function openTerminal($pointId, $userId)
+    public function getTerminalUrl($pointId)
     {
-        return $this->class->openTerminal($pointId, $userId);
+        return $this->class->getTerminalUrl($pointId);
     }
 }

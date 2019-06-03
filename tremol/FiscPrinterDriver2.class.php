@@ -29,6 +29,19 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     
     /**
+     * Дефолтни кодове на начините на плащане
+     */
+    const DEFAULT_PAYMENT_MAP = array('Брой'       => 0,
+                                      'Чек'        => 1, 
+                                      'Талон'      => 2, 
+                                      'В.Талон'    => 3, 
+                                      'Амбалаж'    => 4, 
+                                      'Обслужване' => 5, 
+                                      'Повреди'    => 6, 
+                                      'Карта'      => 7, 
+                                      'Банка'      => 8);
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -60,6 +73,11 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
                 $fieldset->setField('tcpPass', 'input=none');
             }
         }
+        
+        // Добавяне на поелта за поддържани валути и кодове на методите на плащане
+        $fieldset->FLD('suppertedCurrencies', 'keylist(mvc=currency_Currencies,select=code,where=#code !\\= \\\'BGN\\\')', 'caption=Настройки на апарата->Валути');
+        $fieldset->FLD('paymentMap', 'table(columns=paymentId|code,captions=Вид|Код,batch_ro=readonly)', 'caption=Настройки на апарата->Плащания');
+        $fieldset->setFieldTypeParams('paymentMap', array('paymentId_opt' => array('' => '') + array('-1' => 'Брой') + cls::get('cond_Payments')->makeArray4Select('title')));
         
         $fieldset->FLD('header', 'enum(yes=Да, no=Не)', 'caption=Надпис хедър->Добавяне, mandatory, notNull, removeAndRefreshForm');
         $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър->Позиция, mandatory, notNull');
@@ -95,7 +113,6 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             }
         }
     }
-    
     
     /**
      * Може ли вградения обект да се избере
@@ -583,8 +600,25 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      */
     protected static function on_AfterPrepareEditForm($Driver, $Embedder, &$data)
     {
-        if (!$data->form->rec->id) {
-            $data->form->setDefault('footerText', 'Отпечатано с bgERP');
+        $form = &$data->form;
+        
+        if (!isset($form->rec->id)) {
+            $form->setDefault('footerText', 'Отпечатано с bgERP');
+        }
+        
+        if(empty($form->rec->paymentMap)){
+            
+            // Задаване на дефолтните кодове на начините на плащане
+            $paymentOptions = array('paymentId' => array(), 'code' => array());
+            foreach (self::DEFAULT_PAYMENT_MAP as $paymentName => $code){
+                $paymentId = ($paymentName == 'Брой') ? -1 : cond_Payments::fetchField("#title='{$paymentName}'");
+                if(!empty($paymentId)){
+                    $paymentOptions['paymentId'][] = $paymentId;
+                    $paymentOptions['code'][] = $code;
+                }
+            }
+            
+            $form->setDefault('paymentMap', $form->getFieldType('paymentMap')->fromVerbal($paymentOptions));
         }
     }
     
@@ -1125,5 +1159,42 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         core_Form::preventDoubleSubmission($tpl, $form);
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Дали във ФУ има е нагласена подадената валута
+     * 
+     * @param stdClass $rec
+     * @param string $currencyCode
+     * @return boolean
+     */
+    public function isCurrencySupported($rec, $currencyCode)
+    {
+        if($currencyCode != 'BGN'){
+            $currencyId = currency_Currencies::getIdByCode($currencyCode);
+            
+            return keylist::isIn($currencyId, $rec->suppertedCurrencies);
+        }
+        
+        return true;
+    }
+    
+    
+    /**
+     * Какъв е кода на плащането в настройките на апарата
+     *
+     * @param stdClass $rec
+     * @param int $paymentId
+     * @return string|null
+     */
+    public function getPaymentCode($rec, $paymentId)
+    {
+        $payments = type_Table::toArray($rec->paymentMap);
+        
+        $found = array_filter($payments, function($a) use ($paymentId) {return $a->paymentId == $paymentId;});
+        $found = $found[key($found)];
+       
+        return is_object($found) ? $found->code : null;
     }
 }

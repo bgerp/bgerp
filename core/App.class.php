@@ -306,7 +306,6 @@ class core_App
          */
         defIfNot('EF_TEMP_PATH', EF_TEMP_BASE_PATH . '/' . EF_APP_NAME);
         
-        
         /**
          * Директорията с качените и генерираните файлове
          */
@@ -314,7 +313,7 @@ class core_App
             if (defined('EF_BASE_UPLOADS_PATH')) {
                 define('EF_UPLOADS_PATH', EF_BASE_UPLOADS_PATH . '/' . EF_APP_NAME);
             } elseif (defined('EF_ROOT_PATH')) {
-                define('EF_UPLOADS_PATH', EF_ROOT_PATH . '/uploads');
+                define('EF_UPLOADS_PATH', EF_ROOT_PATH . '/uploads/' . EF_APP_NAME);
             } else {
                 die('Not possible to determine constant `EF_UPLOADS_PATH`');
             }
@@ -1115,7 +1114,7 @@ class core_App
     public static function getRepos()
     {
         static $repos;
-    
+        
         static $havePrivate = false;
         
         if (!is_array($repos)) {

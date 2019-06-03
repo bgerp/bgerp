@@ -496,10 +496,10 @@ class core_Packs extends core_Manager
     public function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         $data->toolbar->addBtn(
-            'Обновяване на системата',
-            array('core_Packs', 'systemUpdate'),
-            'ef_icon = img/16/download.png, title=Сваляне на най-новия код и инициализиране на системата, class=system-update-btn'
-        );
+                        'Обновяване на системата',
+                        array('core_Packs', 'systemUpdate'),
+                        'ef_icon = img/16/download.png, title=Сваляне на най-новия код и инициализиране на системата, class=system-update-btn'
+                        );
     }
     
     
@@ -728,7 +728,7 @@ class core_Packs extends core_Manager
             if ($verbose) {
                 
                 return "<h4>Невъзможност да се инсталира <span class=\"debug-error\">{$pack}</span>. " .
-                    'Липсва <span class="debug-error">Setup</span> клас.</h4>';
+                'Липсва <span class="debug-error">Setup</span> клас.</h4>';
             }
             
             return "<span class='debug-error'>Грешка при инсталиране на пакета '{$pack}'.</span>";
@@ -750,7 +750,7 @@ class core_Packs extends core_Manager
         // Започваме самото инсталиране
         if ($setup->startCtr && !$setupFlag) {
             $res .= '<h2>Инициализиране на пакета "<a href="' .
-            toUrl(array($setup->startCtr, $setup->startAct)) . "\"><b>{$pack}</b></a>\"&nbsp;";
+                            toUrl(array($setup->startCtr, $setup->startAct)) . "\"><b>{$pack}</b></a>\"&nbsp;";
         } else {
             $res .= "<h2>Инициализиране на пакета \"<b>{$pack}</b>\"&nbsp;";
         }
@@ -1065,16 +1065,16 @@ class core_Packs extends core_Manager
             
             
             if (($data[$field] || $data[$field] === (double) 0 || $data[$field] === (int) 0) &&
-                (!defined($field) || ($data[$field] != constant($field)))) {
-                $form->setDefault($field, $data[$field]);
-            } elseif (defined($field)) {
-                $form->setDefault($field, constant($field));
-                $form->setField($field, array('attr' => array('class' => 'const-default-value')));
-            }
-            
-            if ($params['readOnly']) {
-                $form->setReadOnly($field);
-            }
+                            (!defined($field) || ($data[$field] != constant($field)))) {
+                                $form->setDefault($field, $data[$field]);
+                            } elseif (defined($field)) {
+                                $form->setDefault($field, constant($field));
+                                $form->setField($field, array('attr' => array('class' => 'const-default-value')));
+                            }
+                            
+                            if ($params['readOnly']) {
+                                $form->setReadOnly($field);
+                            }
         }
         
         $form->setHidden('pack', $rec->name);
@@ -1098,11 +1098,11 @@ class core_Packs extends core_Manager
                     
                     // Да може да се зададе автоматичната стойност
                     if ((($fType instanceof type_Class) || ($fType instanceof type_Enum) || ($fType instanceof color_Type))
-                        && ($fType->params['allowEmpty']) && ($form->rec->{$field} === null)) {
-                        $data[$field] = null;
-                    } elseif ($form->rec->{$field} !== null) {
-                        $data[$field] = $form->rec->{$field};
-                    }
+                                    && ($fType->params['allowEmpty']) && ($form->rec->{$field} === null)) {
+                                        $data[$field] = null;
+                                    } elseif ($form->rec->{$field} !== null) {
+                                        $data[$field] = $form->rec->{$field};
+                                    }
                 } else {
                     $data[$field] = '';
                 }
