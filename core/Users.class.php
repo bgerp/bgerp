@@ -525,7 +525,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Проверява дали подададеният ник е в списъка със забранените
+     * Проверява дали подаденият ник е в списъка със забранените
      *
      * @param string      $nick
      * @param string|null $errorMsg
