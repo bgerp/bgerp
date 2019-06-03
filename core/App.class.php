@@ -311,8 +311,8 @@ class core_App
          * Директорията с качените и генерираните файлове
          */
         if (!defined('EF_UPLOADS_PATH')) {
-            if (defined('EF_BASE_UPLOADS_PATH')) {
-                define('EF_UPLOADS_PATH', EF_BASE_UPLOADS_PATH . '/' . EF_APP_NAME);
+            if (defined('EF_UPLOADS_BASE_PATH')) {
+                define('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);
             } elseif (defined('EF_ROOT_PATH')) {
                 define('EF_UPLOADS_PATH', EF_ROOT_PATH . '/uploads');
             } else {
