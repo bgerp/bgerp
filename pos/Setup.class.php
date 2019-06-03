@@ -178,6 +178,12 @@ class pos_Setup extends core_ProtoSetup
     
     
     /**
+     * Класове за зареждане
+     */
+    public $defClasses = 'pos_Terminal';
+    
+    
+    /**
      * Миграция на крон процеса
      */
     public function migrateCronSettings()

@@ -87,7 +87,7 @@ class sens2_RemoteDriver extends sens2_ProtoDriver
      */
     public static function getPicture($config)
     {
-        $path = 'bgerp/icon.jpg';
+        $path = 'bgerp/icon.png';
         
         return $path;
     }

@@ -52,6 +52,13 @@ class peripheral_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'peripheral_Devices',
-        'peripheral_Terminal',
+    );
+    
+    
+    /**
+     * Плъгини, които трябва да се инсталират
+     */
+    public $plugins = array(
+            array('Избор на терминал', 'peripheral_TerminalChoicePlg', 'core_Users', 'private'),
     );
 }

@@ -29,15 +29,9 @@ class planning_Points extends core_Manager
     
     
     /**
-     * Поддържани интерфейси
-     */
-    public $interfaces = 'peripheral_TerminalIntf';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
-    public $canList = 'no_one';
+    public $canList = 'debug';
     
     
     /**
@@ -53,11 +47,17 @@ class planning_Points extends core_Manager
     
     
     /**
+     * Кой има право да чете?
+     */
+    public $canOpenterminal = 'debug';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
-        $this->FLD('name', 'varchar(16)', 'caption=Наименование, mandatory');
+        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory');
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Център, mandatory,removeAndRefreshForm=fixedAssets|employees,silent');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks,allowEmpty)', 'caption=Оборудване, input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,allowEmpty)', 'caption=Оператори, input=none');
@@ -114,64 +114,9 @@ class planning_Points extends core_Manager
         $row->ROW_ATTR['class'] = "state-{$rec->state}";
         $row->centerId = planning_Centers::getHyperlink($rec->centerId, true);
         
-        if(planning_Terminal::haveRightFor('openterminal', $rec)){
+        if(planning_Points::haveRightFor('openterminal', $rec)){
             $row->terminal = ht::createBtn('Отвори', array('planning_Terminal', 'open', $rec->id), false, true, 'title=Отваряне на терминала за отчитане на производството,ef_icon=img/16/forward16.png');
         }
-        
-        // Подготовка на перфиферните терминали
-        $peripheralData = (object)array('masterMvc' => clone $mvc, 'masterId' => $rec->id);
-        cls::get('peripheral_Terminal')->prepareDetail($peripheralData);
-        if(count($peripheralData->rows)){
-            
-            // Ако има ще се покажат в таблицата
-            $row->terminalList = '<table class="innerTable">';
-            foreach ($peripheralData->rows as $pRow){
-                core_RowToolbar::createIfNotExists($pRow->_rowTools);
-                $pRow->brid = (!empty($pRow->brid)) ? $pRow->brid : "<i class='quiet'>N/A</i>";
-                $pRow->users = (!empty($pRow->users)) ? $pRow->users : "<i class='quiet'>" . tr('Всички') . " </i>";
-                $pRow->roles = (!empty($pRow->roles)) ? $pRow->roles : "<i class='quiet'>" . tr('Всички') . " </i>";
-                $row->terminalList .= "<tr><td>{$pRow->_rowTools->renderHtml()}</td>
-                                      <td style='text-align:left;padding-right:5px'><span class='quiet'>" . tr('Браузър') . "</span>: {$pRow->brid}</td>
-                                      <td style='text-align:left;padding-right:5px'><span class='quiet'>" . tr('Пин') . "</span>: {$pRow->usePin}</td>
-                                      <td style='text-align:left;padding-right:5px'><span class='quiet'>" . tr('Потребители') . "</span>: {$pRow->users}</td>
-                                      <td style='text-align:left;padding-right:5px'><span class='quiet'>" . tr('Роли') . "</span>: {$pRow->roles}</td>
-                                  </tr>";
-            }
-            $row->terminalList .= "</table>";
-        }
-    }
-
-
-    /**
-     * Връща всички достъпни за текущия потребител id-та на обекти, отговарящи на записи
-     *
-     * @return array
-     *
-     * @see peripheral_TerminalIntf
-     */
-    public function getTerminalOptions()
-    {
-        $options = array();
-        $cQuery = self::getQuery();
-        $cQuery->where("#state != 'rejected' AND #state != 'closed'");
-        while ($cRec = $cQuery->fetch()) {
-            $options[$cRec->id] = self::getRecTitle($cRec, false) . " ({$cRec->id})";
-        }
-
-        return $options;
-    }
-
-
-    /**
-     * Редиректва към посочения терминал в посочената точка и за посочения потребител
-     *
-     * @return Redirect
-     *
-     * @see peripheral_TerminalIntf
-     */
-    public function openTerminal($objectId, $userId)
-    {
-        return new Redirect(array($this, 'openTerminal', $objectId));
     }
     
     
@@ -206,10 +151,6 @@ class planning_Points extends core_Manager
         while($rec = $query->fetch()){
             $data->recs[$rec->id] = $rec;
             $row = $this->recToVerbal($rec);
-            if ($rec->state != 'closed' && peripheral_Terminal::haveRightFor('add', (object)array('classId' => $this->getClassId(), 'pointId' => $rec->id))) {
-                core_RowToolbar::createIfNotExists($row->_rowTools);
-                $row->_rowTools->addLink('Нов терминал', array('peripheral_Terminal', 'add', 'classId' => $this->getClassId(), 'pointId' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/monitor.png,title=Добавяне на нов терминал към точката за производство');
-            }
             
             $data->rows[$rec->id] = $row;
         }
@@ -229,7 +170,7 @@ class planning_Points extends core_Manager
      */
     public function renderDetail_($data)
     {
-        $tpl = getTplFromFile('peripheral/tpl/TerminalDetailLayout.shtml');
+        $tpl = getTplFromFile('planning/tpl/PointDetailLayout.shtml');
         $tpl->append(tr('Точки на производство'), 'title');
         
         // Рендиране на таблицата с точките
@@ -264,5 +205,33 @@ class planning_Points extends core_Manager
         
         $rec->tasks = keylist::fromArray($tasks);
         self::save($rec, 'tasks');
+    }
+    
+    
+    /**
+     * Модификация на ролите
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
+    {
+        if($action == 'openterminal' && isset($rec)){
+            if(in_array($rec->state, array('closed', 'rejected'))){
+                $res = 'no_one';
+            }
+        }
+        
+        if($action == 'selecttask'){
+            $res = $mvc->getRequiredRoles('openterminal', $rec, $userId);
+            if(isset($rec)){
+                if(empty($rec->taskId)){
+                    $res = 'no_one';
+                } else {
+                    $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
+                    $taskRec = planning_Tasks::fetch($rec->taskId, 'state,folderId');
+                    if(in_array($taskRec->state, array('rejected', 'closed', 'stopped', 'draft')) || $folderId != $taskRec->folderId){
+                        $res = 'no_one';
+                    }
+                }
+            }
+        }
     }
 }

@@ -400,7 +400,12 @@ class core_Classes extends core_Manager
         while ($rec = $query->fetch("#state = 'active'")) {
             $load = cls::load($rec->name, true);
             if ($load) {
-                $inst = cls::get($rec->name);
+                try {
+                    $inst = cls::get($rec->name);
+                } catch (Throwable $e) {
+                    $load = false;
+                }
+                
             }
             if (!$load) {
                 $rec->state = 'closed';

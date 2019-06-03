@@ -207,9 +207,10 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     
                     $prodForCut = ($arts + $grInArts) - $maxPost;
                     
-                    $numbersOfItemsToAdd = (ini_get('max_input_vars')/4) - 4;
+                    $numbersOfItemsToAdd = (ini_get('max_input_vars')/4) - (51+$arts);
+                    //$numbersOfItemsToAdd = 100;
                     
-                    if ((($arts + $numbersOfItemsToAdd) * 4) > $maxPost) {
+                    if ((($arts + $numbersOfItemsToAdd) * 4) > $maxPost) {bp(ini_get('max_input_vars'),self::MAX_POST_ART,$arts,$numbersOfItemsToAdd);
                         $form->setError('droupId', "Лимита за следени продукти е достигнат.
             				За да добавите група \" ${groupName}\" трябва да премахнете ${prodForCut} артикула ");
                     } else {
@@ -386,6 +387,10 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     'code' => $recProduct->code,
                 );
             }
+        }
+        
+        if (!is_null($recs)) {
+            arr::sortObjects($recs, 'code', 'asc');
         }
         
         // Определяне на индикаторите за "свръх наличност" и "под минимум";

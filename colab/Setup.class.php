@@ -8,6 +8,12 @@ defIfNot('COLAB_CREATABLE_DOCUMENTS_LIST', '');
 
 
 /**
+ * Регистриране на нов партньор Роли
+ */
+defIfNot('COLAB_DEFAULT_ROLES_FOR_NEW_PARTNER', '');
+
+
+/**
  * Клас 'colab_Setup'
  *
  * Исталиране/деинсталиране на colab
@@ -41,6 +47,7 @@ class colab_Setup extends core_ProtoSetup
     public $managers = array(
         'colab_FolderToPartners',
         'colab_DocumentLog',
+        'migrate::addAgentToPartners'
     );
     
     
@@ -55,7 +62,24 @@ class colab_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'COLAB_CREATABLE_DOCUMENTS_LIST' => array('keylist(mvc=core_Classes,select=name)', 'caption=Кои документи могат да се създават от партньори->Документи,optionsFunc=colab_Setup::getDocumentOptions'),
+        'COLAB_CREATABLE_DOCUMENTS_LIST' => array('keylist(mvc=core_Classes,select=name)', 'caption=Кои документи могат да се създават от партньори->Документи,optionsFunc=colab_Setup::getDocumentOptions'),
+        'COLAB_DEFAULT_ROLES_FOR_NEW_PARTNER' => array('keylist(mvc=core_Roles,select=name)', 'caption=Регистриране на нов партньор->Роли,optionsFunc=colab_Setup::getExternalRoles'),
     );
+    
+    
+    /**
+     * Допустими външни хора за партньори
+     */
+    public static function getExternalRoles()
+    {
+        $res = array();
+        $roles = core_Roles::getRolesByType('external', null, true);
+        foreach ($roles as $id){
+            $res[$id] = core_Roles::getVerbal($id, 'role');
+        }
+        
+        return $res;
+    }
     
     
     /**
@@ -170,5 +194,23 @@ class colab_Setup extends core_ProtoSetup
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция за добавяне на допълнителна роля на партньори
+     */
+    public function addAgentToPartners()
+    {
+        if(core_Users::count()){
+            $partners = core_Users::getByRole('partner');
+            if(is_array($partners)){
+                foreach ($partners as $userId){
+                    if(!haveRole('agent,distributor', $userId)){
+                        core_Users::addRole($userId, 'agent');
+                    }
+                }
+            }
+        }
     }
 }
