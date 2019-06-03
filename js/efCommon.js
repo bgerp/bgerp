@@ -4057,7 +4057,7 @@ function runHljs() {
 /**
  * Евалюиране на javaScript
  */
-function render_js()
+function render_js(data)
 {
 	// Евалюиране на скрипт
 	if(data.js){
