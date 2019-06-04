@@ -158,17 +158,21 @@ class acc_BalanceHistory extends core_Manager
             }
             
             if ($data->pager->page == 1) {
-                // Добавяне на последния ред
-                if (count($data->recs)) {
-                    array_unshift($data->recs, $data->lastRec);
-                } else {
-                    $data->recs = array($data->lastRec);
+                if(is_array($data->lastRec)){
+                    // Добавяне на последния ред
+                    if (count($data->recs)) {
+                        array_unshift($data->recs, $data->lastRec);
+                    } else {
+                        $data->recs = array($data->lastRec);
+                    }
                 }
             }
             
             // Ако сме на единствената страница или последната, показваме началното салдо
             if ($data->pager->page == $data->pager->pagesCount || $data->pager->pagesCount == 0) {
-                $data->recs[] = $data->zeroRec;
+                if(is_array($data->zeroRec)){
+                    $data->recs[] = $data->zeroRec;
+                }
             }
         } else {
             // Подготвя средното салдо
@@ -176,14 +180,31 @@ class acc_BalanceHistory extends core_Manager
                 $data->allRecs = array();
             }
             
-            $data->recs = array('zero' => $data->zeroRec) + $data->allRecs + array('last' => $data->lastRec);
+            $combined = array();
+            if(is_array($data->zeroRec)){
+                $combined += array('zero' => $data->zeroRec);
+            }
+            $combined += $data->allRecs;
+            if(is_array($data->lastRec)){
+                $combined += array('last' => $data->lastRec);
+            }
+            $data->recs = $combined;
         }
         
         // Подготвя средното салдо
         if (!count($data->allRecs)) {
             $data->allRecs = array();
         }
-        $data->allRecs = array('zero' => $data->zeroRec) + $data->allRecs + array('last' => $data->lastRec);
+        
+        $combined1 = array();
+        if(is_array($data->zeroRec)){
+            $combined1 += array('zero' => $data->zeroRec);
+        }
+        $combined1 += $data->allRecs;
+        if(is_array($data->lastRec)){
+            $combined1 += array('last' => $data->lastRec);
+        }
+        $data->allRecs = $combined1;
         
         $this->prepareMiddleBalance($data);
         
