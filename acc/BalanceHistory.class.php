@@ -303,14 +303,13 @@ class acc_BalanceHistory extends core_Manager
         $filter->class = 'simpleForm';
         
         self::addPeriodFields($filter);
-        
         $filter->FNC('accNum', 'int', 'input=hidden');
+        $filter->FNC('type', 'class(interface=acc_TransactionSourceIntf,select=title,allowEmpty)', 'input,caption=Документ');
         $filter->FNC('isGrouped', 'enum(yes=Да,no=Не)', 'input,caption=Групиране');
-        $filter->showFields = 'selectPeriod,toDate,fromDate,isGrouped';
+        $filter->showFields = 'selectPeriod,toDate,fromDate,type,isGrouped';
         $data->accountInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
         
         foreach (array(3, 2, 1) as $i) {
-            $ent = $data->rec->{"ent{$i}Id"};
             if (is_object($data->accountInfo->groups[$i])) {
                 $listRec = $data->accountInfo->groups[$i]->rec;
                 $filter->FNC("ent{$i}Id", "acc_type_Item(lists={$listRec->num},select=titleLink,showAll,allowEmpty)", "input,class=w75,caption={$listRec->name}");
@@ -351,6 +350,11 @@ class acc_BalanceHistory extends core_Manager
             
             if ($filter->rec->to) {
                 $data->toDate = $filter->rec->to;
+            }
+            
+            if ($filter->rec->type) {
+                $data->type = $filter->rec->type;
+                $data->isGrouped = $filter->rec->isGrouped;
             }
         }
     }
@@ -410,6 +414,16 @@ class acc_BalanceHistory extends core_Manager
         $balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->fromDate, $data->toDate, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, $isGrouped, false);
         $data->recs = $balHistory['history'];
         
+        $addStartAndEnd = true;
+        if(is_array($data->recs) && isset($data->type)){
+            $type = $data->type;
+            $data->recs = array_filter($data->recs, function($a) use ($type){
+                return $a['docType'] == $type;
+            });
+            
+            $addStartAndEnd = false;
+        }
+        
         $rec->baseAmount = $balHistory['summary']['baseAmount'];
         $rec->baseQuantity = $balHistory['summary']['baseQuantity'];
         $row->baseAmount = $Double->toVerbal($rec->baseAmount);
@@ -457,8 +471,10 @@ class acc_BalanceHistory extends core_Manager
             'creditAmount' => $balHistory['summary']['creditAmount'],
             'ROW_ATTR' => array('style' => 'background-color:#eee;font-weight:bold'));
         
-        $data->zeroRec = $zeroRec;
-        $data->lastRec = $lastRec;
+        if($addStartAndEnd){
+            $data->zeroRec = $zeroRec;
+            $data->lastRec = $lastRec;
+        }
     }
     
     
