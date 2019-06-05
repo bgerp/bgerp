@@ -301,6 +301,14 @@ class sales_Invoices extends deals_InvoiceMaster
         }
         
         parent::prepareInvoiceForm($mvc, $data);
+        if(!empty($form->rec->contragentVatNo)){
+            $Vats = cls::get('drdata_Vats');
+            list(, $vies) = $Vats->check($form->rec->contragentVatNo);
+            $vies = trim($vies);
+            if(!empty($vies)){
+                $form->info = "<b>VIES</b>: {$vies}";
+            }
+        }
         
         $form->setField('contragentPlace', 'mandatory');
         $form->setField('contragentAddress', 'mandatory');

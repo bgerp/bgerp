@@ -736,7 +736,6 @@ class html2text_Converter
                     $value = trim($value, '"');
                     $value = trim($value, "'");
                     $text = '[color=' . self::getColor($value) . ']' . $text . '[/color]';
-                    bp($text);
                 }
             }
         }

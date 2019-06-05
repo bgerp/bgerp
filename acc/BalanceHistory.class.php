@@ -158,17 +158,21 @@ class acc_BalanceHistory extends core_Manager
             }
             
             if ($data->pager->page == 1) {
-                // Добавяне на последния ред
-                if (count($data->recs)) {
-                    array_unshift($data->recs, $data->lastRec);
-                } else {
-                    $data->recs = array($data->lastRec);
+                if(is_array($data->lastRec)){
+                    // Добавяне на последния ред
+                    if (count($data->recs)) {
+                        array_unshift($data->recs, $data->lastRec);
+                    } else {
+                        $data->recs = array($data->lastRec);
+                    }
                 }
             }
             
             // Ако сме на единствената страница или последната, показваме началното салдо
             if ($data->pager->page == $data->pager->pagesCount || $data->pager->pagesCount == 0) {
-                $data->recs[] = $data->zeroRec;
+                if(is_array($data->zeroRec)){
+                    $data->recs[] = $data->zeroRec;
+                }
             }
         } else {
             // Подготвя средното салдо
@@ -176,14 +180,31 @@ class acc_BalanceHistory extends core_Manager
                 $data->allRecs = array();
             }
             
-            $data->recs = array('zero' => $data->zeroRec) + $data->allRecs + array('last' => $data->lastRec);
+            $combined = array();
+            if(is_array($data->zeroRec)){
+                $combined += array('zero' => $data->zeroRec);
+            }
+            $combined += $data->allRecs;
+            if(is_array($data->lastRec)){
+                $combined += array('last' => $data->lastRec);
+            }
+            $data->recs = $combined;
         }
         
         // Подготвя средното салдо
         if (!count($data->allRecs)) {
             $data->allRecs = array();
         }
-        $data->allRecs = array('zero' => $data->zeroRec) + $data->allRecs + array('last' => $data->lastRec);
+        
+        $combined1 = array();
+        if(is_array($data->zeroRec)){
+            $combined1 += array('zero' => $data->zeroRec);
+        }
+        $combined1 += $data->allRecs;
+        if(is_array($data->lastRec)){
+            $combined1 += array('last' => $data->lastRec);
+        }
+        $data->allRecs = $combined1;
         
         $this->prepareMiddleBalance($data);
         
@@ -303,14 +324,25 @@ class acc_BalanceHistory extends core_Manager
         $filter->class = 'simpleForm';
         
         self::addPeriodFields($filter);
-        
         $filter->FNC('accNum', 'int', 'input=hidden');
+        $filter->FNC('type', 'class(interface=acc_TransactionSourceIntf,select=title,allowEmpty)', 'input,caption=Документ');
         $filter->FNC('isGrouped', 'enum(yes=Да,no=Не)', 'input,caption=Групиране');
-        $filter->showFields = 'selectPeriod,toDate,fromDate,isGrouped';
+        $filter->showFields = 'selectPeriod,toDate,fromDate,type,isGrouped';
         $data->accountInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
         
+        // Добавяне само на наличните документи за избор на опция
+        $jQuery = acc_JournalDetails::getQuery();
+        acc_JournalDetails::filterQuery($jQuery, null, null, $data->rec->accountNum, null, $data->rec->ent1Id, $data->rec->ent2Id, $data->rec->ent3Id, true);
+        $jQuery->groupBy('docType');
+        $jQuery->show('docType');
+        $docTypes = arr::extractValuesFromArray($jQuery->fetchAll(), 'docType');
+        $docTypeOptions = array();
+        foreach ($docTypes as $docType){
+            $docTypeOptions[$docType] = core_Classes::getTitleById($docType, false);
+        }
+        $data->listFilter->setOptions('type', array('' => '') + $docTypeOptions);
+        
         foreach (array(3, 2, 1) as $i) {
-            $ent = $data->rec->{"ent{$i}Id"};
             if (is_object($data->accountInfo->groups[$i])) {
                 $listRec = $data->accountInfo->groups[$i]->rec;
                 $filter->FNC("ent{$i}Id", "acc_type_Item(lists={$listRec->num},select=titleLink,showAll,allowEmpty)", "input,class=w75,caption={$listRec->name}");
@@ -351,6 +383,11 @@ class acc_BalanceHistory extends core_Manager
             
             if ($filter->rec->to) {
                 $data->toDate = $filter->rec->to;
+            }
+            
+            if ($filter->rec->type) {
+                $data->type = $filter->rec->type;
+                $data->isGrouped = $filter->rec->isGrouped;
             }
         }
     }
@@ -410,6 +447,16 @@ class acc_BalanceHistory extends core_Manager
         $balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->fromDate, $data->toDate, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, $isGrouped, false);
         $data->recs = $balHistory['history'];
         
+        $addStartAndEnd = true;
+        if(is_array($data->recs) && isset($data->type)){
+            $type = $data->type;
+            $data->recs = array_filter($data->recs, function($a) use ($type){
+                return $a['docType'] == $type;
+            });
+            
+            $addStartAndEnd = false;
+        }
+        
         $rec->baseAmount = $balHistory['summary']['baseAmount'];
         $rec->baseQuantity = $balHistory['summary']['baseQuantity'];
         $row->baseAmount = $Double->toVerbal($rec->baseAmount);
@@ -457,8 +504,10 @@ class acc_BalanceHistory extends core_Manager
             'creditAmount' => $balHistory['summary']['creditAmount'],
             'ROW_ATTR' => array('style' => 'background-color:#eee;font-weight:bold'));
         
-        $data->zeroRec = $zeroRec;
-        $data->lastRec = $lastRec;
+        if($addStartAndEnd){
+            $data->zeroRec = $zeroRec;
+            $data->lastRec = $lastRec;
+        }
     }
     
     
