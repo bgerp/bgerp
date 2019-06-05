@@ -330,6 +330,18 @@ class acc_BalanceHistory extends core_Manager
         $filter->showFields = 'selectPeriod,toDate,fromDate,type,isGrouped';
         $data->accountInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
         
+        // Добавяне само на наличните документи за избор на опция
+        $jQuery = acc_JournalDetails::getQuery();
+        acc_JournalDetails::filterQuery($jQuery, null, null, $data->rec->accountNum, null, $data->rec->ent1Id, $data->rec->ent2Id, $data->rec->ent3Id, true);
+        $jQuery->groupBy('docType');
+        $jQuery->show('docType');
+        $docTypes = arr::extractValuesFromArray($jQuery->fetchAll(), 'docType');
+        $docTypeOptions = array();
+        foreach ($docTypes as $docType){
+            $docTypeOptions[$docType] = core_Classes::getTitleById($docType, false);
+        }
+        $data->listFilter->setOptions('type', array('' => '') + $docTypeOptions);
+        
         foreach (array(3, 2, 1) as $i) {
             if (is_object($data->accountInfo->groups[$i])) {
                 $listRec = $data->accountInfo->groups[$i]->rec;
