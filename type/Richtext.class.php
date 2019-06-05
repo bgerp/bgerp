@@ -1118,6 +1118,8 @@ class type_Richtext extends type_Blob
      */
     public function _catchColor($match)
     {
+        if (Mode::get('text') == 'plain') return '';
+        
         $color = parent::escape($match[2]);
         
         if (!$color) {
@@ -1133,6 +1135,8 @@ class type_Richtext extends type_Blob
      */
     public function _catchBg($match)
     {
+        if (Mode::get('text') == 'plain') return '';
+        
         $color = parent::escape($match[2]);
         
         if (!$color) {
