@@ -1188,12 +1188,12 @@ abstract class deals_Helper
         $Detail = cls::get($masterMvc->mainDetail);
         $dQuery = $Detail->getQuery();
         
+        if ($masterMvc instanceof deals_InvoiceMaster) {
+            $rateFld = 'rate';
+        }
+        
         $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {
-            if ($masterMvc instanceof deals_InvoiceMaster) {
-                $rateFld = 'rate';
-            }
-            
             $dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
             
             if ($masterMvc instanceof deals_InvoiceMaster) {
@@ -1204,13 +1204,32 @@ abstract class deals_Helper
             $Detail->save($dRec);
         }
         
+        $updateMaster = true;
         $rec->{$rateFld} = $newRate;
         if ($masterMvc instanceof deals_InvoiceMaster) {
             $rec->displayRate = $newRate;
+            
+            if($rec->dpOperation == 'accrued' || isset($rec->changeAmount)){
+                // Изчисляване на стойността на ддс-то
+                $vat = acc_Periods::fetchByDate()->vatRate;
+                if ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') {
+                    $vat = 0;
+                }
+                
+                $diff = $rec->changeAmount * $newRate;
+                $rec->vatAmount = $diff * $vat;
+                
+                // Стойността е променената сума
+                $rec->dealValue = $diff;
+                $updateMaster = false;
+            }
         }
         
         $masterMvc->save($rec);
-        $masterMvc->updateMaster_($rec->id);
+        
+        if($updateMaster){
+            $masterMvc->updateMaster_($rec->id);
+        }
         
         if ($rec->state == 'active') {
             acc_Journal::deleteTransaction($masterMvc->getClassId(), $rec->id);
