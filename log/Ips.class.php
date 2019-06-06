@@ -167,7 +167,7 @@ class log_Ips extends core_Manager
             while (strlen($rec->users) > 128) {
                 $userArr = explode(',', $rec->users);
                 array_pop($userArr);
-                $rec->users = implode(',', $rec->users);
+                $rec->users = implode(',', $userArr);
             }
             $mustSave = true;
         }

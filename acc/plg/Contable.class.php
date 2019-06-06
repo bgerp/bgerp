@@ -836,12 +836,14 @@ class acc_plg_Contable extends core_Plugin
         if(!isset($res)){
             $rec = $mvc->fetchRec($id);
             
-            acc_Journal::deleteTransaction($mvc, $rec->id);
-            $rec->state = 'draft';
-            $rec->brState = 'active';
-            $mvc->save($rec, 'state,brState');
-            $mvc->logWrite('Ревъртване на контировката', $rec);
-            $res = true;
+            if(acc_Journal::fetchByDoc($mvc, $rec->id)){
+                acc_Journal::deleteTransaction($mvc, $rec->id);
+                $rec->state = 'draft';
+                $rec->brState = 'active';
+                $mvc->save($rec, 'state,brState');
+                $mvc->logWrite('Ревъртване на контировката', $rec);
+                $res = true;
+            }
         }
     }
 }

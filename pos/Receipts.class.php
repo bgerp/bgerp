@@ -901,7 +901,7 @@ class pos_Receipts extends core_Master
         
         // Подготвяме масива с данните на новата продажба, подаваме склада и касата на точката
         $posRec = pos_Points::fetch($rec->pointId);
-        $fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId);
+        $fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId, 'receiptId' => $rec->id);
         
         $products = $this->getProducts($rec->id);
         
