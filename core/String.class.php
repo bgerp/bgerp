@@ -792,8 +792,11 @@ class core_String
      */
     public static function stringToNameCase($str)
     {
-        $str = mb_convert_case($str, MB_CASE_TITLE, 'UTF-8');
-        
+        $str = preg_replace_callback("/([\\w\\p{L}\\p{N}\\p{Pd}]+)/u",  function($m) {
+            
+            return mb_convert_case($m[1], MB_CASE_TITLE, 'UTF-8');
+        }, $str);
+  
         return $str;
     }
     
