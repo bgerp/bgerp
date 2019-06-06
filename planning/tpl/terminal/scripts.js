@@ -7,6 +7,8 @@ function planningActions() {
 	prepareKeyboard();
 	focusSerial();
 
+	$('.planning-task-progress').css('height', $(window).height() - 140);
+
 	$(document.body).on('click', ".nmpd-target", function(e){
 		$(this).siblings('input').addClass('highlight');
 	});

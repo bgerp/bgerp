@@ -203,7 +203,7 @@ class email_Incomings extends core_Master
     public function description()
     {
         $this->FLD('accId', 'key(mvc=email_Accounts,select=email, allowEmpty)', 'caption=Имейл акаунт, autoFilter');
-        $this->FLD('subject', 'varchar', 'caption=Тема, tdClass=emailListTitle');
+        $this->FLD('subject', 'varchar(utf8mb4=utf8)', 'caption=Тема, tdClass=emailListTitle');
         $this->FLD('fromEml', 'email', 'caption=От->Имейл');
         $this->FLD('fromName', 'varchar', 'caption=От->Име');
         

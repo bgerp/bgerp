@@ -96,7 +96,9 @@ class cash_NonCashPaymentDetails extends core_Manager
         if ($restAmount > 0 && count($data->recs)) {
             $r = (object) array('documentId' => $data->masterId, 'amount' => $restAmount, 'paymentId' => -1);
             $data->recs[] = $r;
-            $data->rows[] = $this->recToVerbal($r);
+            $row = $this->recToVerbal($r);
+            $row->paymentId .= ", {$toCurrencyCode}";
+            $data->rows[] = $row;
         }
         
         return $data;

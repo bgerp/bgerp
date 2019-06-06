@@ -381,4 +381,24 @@ class core_Toolbar extends core_BaseClass
             $this->buttons[$id]->url[$param] = $value;
         }
     }
+    
+    
+    /**
+     * Проверява дали даден бутон е ERROR
+     *
+     * @param int $id - ид на бутон
+     *
+     * @return bool TRUE/FALSE - имали го бутона или не
+     */
+    public function isErrorBtn($id)
+    {
+        if(isset($this->buttons[$id])){
+            if(!empty($this->buttons[$id]->error)) {
+                
+                return true;
+            }
+        }
+        
+        return false;
+    }
 }

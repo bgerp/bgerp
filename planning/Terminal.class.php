@@ -489,10 +489,16 @@ class planning_Terminal extends peripheral_Terminal
         $form->fieldsLayout->append($currentTaskHtml, 'currentTaskId');
         
         // Бутони за добавяне
-        $sendUrl = (planning_Points::haveRightFor('terminal')) ?  toUrl(array($this, 'doAction', $pointRec->id), 'local') : array();
-        $sendBtn = ht::createFnBtn("Изпълнение|* " . html_entity_decode('&#x23CE;'), null, null, array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'data-url' => $sendUrl, 'title' => 'Изпълнение по задачата'));
-        $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
+        $sendAttr = array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'title' => 'Изпълнение по задачата');
+        if(planning_Points::haveRightFor('openterminal')){
+            $sendUrl = toUrl(array($this, 'doAction', $pointRec->id), 'local');
+            $sendAttr['data-url'] = $sendUrl;
+        } else {
+            $sendAttr['class'] .= ' disabled';
+        }
+        $sendBtn = ht::createFnBtn("Изпълнение|* " . html_entity_decode('&#x23CE;'), null, null, $sendAttr);
         
+        $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
         $numpadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'numPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
         $serialPadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'serialPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
         $form->fieldsLayout->append($numpadBtn, 'NUM_PAD_BTN');

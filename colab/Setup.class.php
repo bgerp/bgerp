@@ -70,7 +70,7 @@ class colab_Setup extends core_ProtoSetup
     /**
      * Допустими външни хора за партньори
      */
-    public function getExternalRoles()
+    public static function getExternalRoles()
     {
         $res = array();
         $roles = core_Roles::getRolesByType('external', null, true);
