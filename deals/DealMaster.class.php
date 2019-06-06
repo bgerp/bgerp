@@ -1570,7 +1570,8 @@ abstract class deals_DealMaster extends deals_DealBase
      * 		o $fields['note'] 				-  бележки за сделката
      * 		o $fields['originId'] 			-  източник на документа
      *		o $fields['makeInvoice'] 		-  изисквали се фактура или не (yes = Да, no = Не), По дефолт 'yes'
-     *		o $fields['template'] 		-  бележки за сделката
+     *		o $fields['template'] 		    -  бележки за сделката
+     *      o $fields['receiptId']          -  информативно от коя бележка е
      *
      * @return mixed $id/FALSE - ид на запис или FALSE
      */
@@ -1587,6 +1588,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $allowedFields['originId'] = true;
         $allowedFields['currencyRate'] = true;
         $allowedFields['deliveryTermId'] = true;
+        $allowedFields['receiptId'] = true;
         
         // Проверяваме подадените полета дали са позволени
         if (count($fields)) {
@@ -1664,6 +1666,10 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Опиваме се да запишем мастъра на сделката
         $rec = (object) $fields;
+        if(isset($fields['receiptId'])){
+            $rec->_receiptId = $fields['receiptId'];
+        }
+        
         if ($id = $me->save($rec)) {
             doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
             

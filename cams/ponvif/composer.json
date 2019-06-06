@@ -1,0 +1,17 @@
+{
+    "name": "kuroneko-san/php-onvif",
+    "description": "PHP Onvif library to connect with Onvif devices",
+    "authors": [
+        {
+            "name": "KuroNeko-san"
+        },
+        {
+            "name": "Rick",
+            "email": "rick@rickdegraaff.nl"
+        }
+    ],
+    "autoload": {
+        "classmap": ["lib/class.ponvif.php"]
+    },
+    "license": "MIT"
+}

@@ -170,10 +170,10 @@ class planning_Points extends core_Manager
      */
     public function renderDetail_($data)
     {
-        $tpl = getTplFromFile('planning/tpl/PointDetailLayout.shtml');
+        // Рендиране на таблицата с точките
+        $tpl = getTplFromFile('planning/tpl/TerminalDetailLayout.shtml');
         $tpl->append(tr('Точки на производство'), 'title');
         
-        // Рендиране на таблицата с точките
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $table = cls::get('core_TableView', array('mvc' => $this));
         $content = $table->get($data->rows, $data->listFields);
