@@ -553,14 +553,16 @@ class planning_ProductionTaskDetails extends doc_Detail
             // Проверка има ли отклонение спрямо очакваното транспортно тегло
             if(!empty($rec->weight)){
                 $transportWeight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
+                
                 if(!empty($transportWeight)){
                     $deviation = abs(round(($transportWeight - $rec->weight) / (($transportWeight + $rec->weight) / 2), 2));
+                    $expectedWeightVerbal = core_Type::getByName('double(smartRound)')->toVerbal($transportWeight);
                     
                     // Показване на предупреждение или нотификация, ако има разминаване в теглото
                     if($deviation > $weightWarningPercent){
-                        $row->weight = ht::createHint($row->weight, 'Значително разминаване спрямо очакваното транспортно тегло', 'warning', false);
+                        $row->weight = ht::createHint($row->weight, "Значително разминаване спрямо очакваното транспортно тегло от|* {$expectedWeightVerbal} |кг|*", 'warning', false);
                     } elseif(!empty($masterRec->weightDeviationNotice) && $deviation > $masterRec->weightDeviationNotice){
-                        $row->weight = ht::createHint($row->weight, 'Разминаване спрямо очакваното транспортно тегло', 'notice', false);
+                        $row->weight = ht::createHint($row->weight, "Разминаване спрямо очакваното транспортно тегло от|* {$expectedWeightVerbal} |кг|*", 'notice', false);
                     }
                 }
             }
