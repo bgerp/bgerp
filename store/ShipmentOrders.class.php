@@ -518,9 +518,10 @@ class store_ShipmentOrders extends store_DocumentMaster
         
         if ($rec->state == 'active' && $rec->isReverse == 'no') {
              if(cash_Pko::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))){
-                 $amount = ($rec->amountDelivered - $rec->amountDiscount - 0.005) / $rec->currencyRate;
+                 $amount = ($data->rec->amountDelivered - $data->rec->amountDiscount - 0.005) / $data->rec->currencyRate;
                  $amount = round($amount, 2);
-                 $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $data->rec->containerId, 'amountDeal' => $data->rec->amount, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов документ');
+                 
+                 $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $data->rec->containerId, 'amountDeal' => $amount, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов документ');
              }
         }
     }
