@@ -23,8 +23,8 @@ class cams_driver_ONVIF
     {
         parent::init($params);
         
-        setIfNot($this->user, 'admin');
-        setIfNot($this->password, 'admin');
+        setIfNot($this->user, 'user');
+        setIfNot($this->password, 'Admin555');
     }
     
     
@@ -38,8 +38,8 @@ class cams_driver_ONVIF
             'ip',
             'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory'
         );
-        $form->FNC('user', 'varchar(64)', 'caption=Потребител,hint=Въведете потребителското име за администратора на камерата,input');
-        $form->FNC('password', 'password(show)', 'caption=Парола,hint=Въведете паролата за администратора на камерата,input');
+        $form->FNC('user', 'varchar(64)', 'caption=Потребител,hint=Въведете ONVIF потребител на камерата,input');
+        $form->FNC('password', 'password(show)', 'caption=Парола,hint=Въведете паролата ,input');
         $form->FNC('running', 'enum(yes=Активно,no=Спряно)', 'caption=Състояние,hint=Дали камерата да се наблюдава?,input');
     }
     
