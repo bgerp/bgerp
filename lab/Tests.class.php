@@ -312,7 +312,8 @@ class lab_Tests extends core_Master
         
         $compTest = Mode::get('testCompare_' . $mvc->getHandle($data->rec->id));
         
-        
+        Mode::setPermanent('testCompare_' . $mvc->getHandle($data->rec->id), null);
+     
         if ($compTest) {
             $cRec = $mvc->fetch($compTest);
             $data->row->RefHandle = $mvc->getHandle($compTest);
@@ -321,6 +322,9 @@ class lab_Tests extends core_Master
             $data->row->RefProvider = $mvc->getVerbal($cRec, 'provider');
             $data->row->RefBatch = $mvc->getVerbal($cRec, 'batch');
         }
+        
+        
+        
         $parameters = array();
         
         $parameters = keylist::toArray($data->rec->parameters);
