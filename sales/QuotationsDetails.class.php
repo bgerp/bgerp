@@ -980,9 +980,12 @@ class sales_QuotationsDetails extends doc_Detail
         }
         
         if (isset($term)) {
-            $row->term = core_Type::getByName('time(uom=days,noSmart)')->toVerbal($term);
-            if ($hintTerm === true) {
-                $row->term = ht::createHint($row->term, 'Срокът на доставка е изчислен автоматично на база количеството и параметрите на артикула');
+            $masterRec = sales_Quotations::fetch($rec->quotationId);
+            if(empty($masterRec->deliveryTermTime) && empty($masterRec->deliveryTime)){
+                $row->term = core_Type::getByName('time(uom=days,noSmart)')->toVerbal($term);
+                if ($hintTerm === true) {
+                    $row->term = ht::createHint($row->term, 'Срокът на доставка е изчислен автоматично на база количеството и параметрите на артикула');
+                }
             }
         }
         
