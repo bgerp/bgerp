@@ -280,8 +280,6 @@ class sales_Quotations extends core_Master
         $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, false);
         if (count($locations)) {
             $form->setOptions('deliveryPlaceId', array('' => '') + $locations);
-        } else {
-            $form->setReadOnly('deliveryPlaceId');
         }
         
         if (isset($form->rec->id)) {
