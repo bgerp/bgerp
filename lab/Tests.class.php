@@ -395,14 +395,14 @@ class lab_Tests extends core_Master
         // Prepare left test
         
         $leftTestName = $this->getVerbal($lRec, 'title');
-        
+       
         // Prepare right test
         $queryRight = $this->getQuery();
         
         while ($rec = $queryRight->fetch("#id != {$leftTestId} AND state='active'")) {
             $rightTestSelectArr[$rec->id] = $this->getHandle($rec->id) . '-' . $rec->title;
         }
-        
+    
         // END repare right test
         
         // Prepare form
@@ -431,6 +431,10 @@ class lab_Tests extends core_Master
             $this->requireRightFor('compare', $rRec);
             
             Mode::setPermanent('testCompare_' . $this->getHandle($lRec->id), $rRec->id);
+            
+            $this->touchRec($lRec);
+            
+            $this->logWrite('Добавено сравнение', $lRec);
             
             return new Redirect(getRetUrl());
         }
