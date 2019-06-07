@@ -285,13 +285,13 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             setIfNot($pArr['PRICE'], 0);
             setIfNot($pArr['VAT_CLASS'], 1);
             setIfNot($pArr['QTY'], 1);
-            setIfNot($pArr['DISC_ADD_P'], 0);
-            setIfNot($pArr['DISC_ADD_V'], 0);
+            setIfNot($pArr['DISC_ADD_P'], '');
+            setIfNot($pArr['DISC_ADD_V'], '');
             setIfNot($pArr['PLU_NAME'], '');
             
             expect(($pArr['VAT_CLASS'] >= 0) && ($pArr['VAT_CLASS'] <= 3));
             
-            expect(is_numeric($pArr['PRICE']) && is_numeric($pArr['QTY']) && is_numeric($pArr['DISC_ADD_P']) && is_numeric($pArr['DISC_ADD_V']));
+            expect(is_numeric($pArr['PRICE']) && is_numeric($pArr['QTY']) && (is_numeric($pArr['DISC_ADD_P']) || $pArr['DISC_ADD_P'] == '') && (is_numeric($pArr['DISC_ADD_V']) || $pArr['DISC_ADD_V'] == ''));
             
             $fpSalePLU = $js->getBlock('fpSalePLU');
             
@@ -299,8 +299,8 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             $fpSalePLU->replace($pArr['VAT_CLASS'], 'VAT_CLASS');
             $fpSalePLU->replace(json_encode($pArr['PRICE']), 'PRICE');
             $fpSalePLU->replace($pArr['QTY'], 'QTY');
-            $fpSalePLU->replace($pArr['DISC_ADD_P'], 'DISC_ADD_P');
-            $fpSalePLU->replace($pArr['DISC_ADD_V'], 'DISC_ADD_V');
+            $fpSalePLU->replace(json_encode($pArr['DISC_ADD_P']), 'DISC_ADD_P');
+            $fpSalePLU->replace(json_encode($pArr['DISC_ADD_V']), 'DISC_ADD_V');
             
             if (isset($pArr['BEFORE_PLU_TEXT'])) {
                 $this->replaceTextArr($pArr['BEFORE_PLU_TEXT'], $fpSalePLU, 'BEFORE_PLU_TEXT', true);
