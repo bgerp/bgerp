@@ -216,7 +216,7 @@ class eshop_ProductDetails extends core_Detail
                 }
                 $price = currency_CurrencyRates::convertAmount($price, null, null, $settings->currencyId);
                 
-                $res->price = $price;
+                $res->price = round($price, 5);
                 if (!empty($priceObject->discount)) {
                     $res->discount = $priceObject->discount;
                 }
@@ -316,7 +316,7 @@ class eshop_ProductDetails extends core_Detail
                 
                 return strnatcmp($obj1->orderCode, $obj2->orderCode);
             });
-            
+            bp($data->rows);
             $prev = null;
             foreach ($data->rows as &$row1) {
                 if (isset($prev) && $prev == $row1->productId) {
