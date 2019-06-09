@@ -106,6 +106,8 @@ class core_Ajax extends core_Mvc
             $urlArr['parentUrl'] = $parentUrl;
             
             try {
+                expect($urlArr['Ctr'], $urlArr);
+                
                 // Извикваме URL-то
                 $resArr = Request::forward($urlArr);
             } catch (core_exception_Expect $e) {
