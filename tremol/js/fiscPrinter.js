@@ -235,10 +235,6 @@ function getPrintVat(isPrintVat)
  */
 function fpSalePLU(name, vatClass, price, qty, discAddP, discAddV)
 {
-	if (name) {
-		name = name.substring(0, 32);
-	}
-	
 	if ((vatClass < 0) || (vatClass > 3)) {
 		throw new Error("Непозволен клас за VAT");
 	}
