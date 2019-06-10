@@ -84,7 +84,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         $fieldset->FLD('serialNumber', 'varchar(8)', 'caption=ФУ->Сериен номер');
         
         $fieldset->FLD('tcpIp', 'ip', 'caption=TCP->IP адрес, mandatory');
-        $fieldset->FLD('tcpPort', 'int', 'caption=TCP->TCP порт, mandatory');
+        $fieldset->FLD('tcpPort', 'int', 'caption=TCP->Порт, mandatory');
         $fieldset->FLD('tcpPass', 'password', 'caption=TCP->Парола, mandatory');
         
         $fieldset->FLD('serialPort', 'varchar', 'caption=Сериен->Порт, mandatory');
