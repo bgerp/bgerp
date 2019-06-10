@@ -712,8 +712,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
                                     fpSetDateTime({$now});
                                 } catch(ex) {
                                     render_showToast({timeOut: 800, text: '" . tr('Не може да се синхронизира времето') . ": ' + ex.message, isSticky: false, stayTime: 12000, type: 'warning'});
-                                }
-                            ";
+                                }";
                 $jsTpl->prepend($updateTime, 'OTHER');
                 
                 // Нулираме другихте хедъри
