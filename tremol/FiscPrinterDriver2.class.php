@@ -186,6 +186,8 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * DATE_TIME - времето за синхронизира във формат 'd-m-Y H:i:s'. Ако е false - няма да се синхронизира
      *
      * SERIAL_NUMBER - серийния номер на принтера за проверка. Ако е false - няма да се проверява. Ако има разминаване - спира процеса.
+     * 
+     * CHECK_AND_CANCEL_PREV_OPEN_RECEIPT - дали да се проверява и прекратява предишна активна бележка - ако не се подаде нищо, се приема за true
      *
      * SERIAL_KEEP_PORT_OPEN - дали порта да се държи отворен при серийна връзка - докато се приключи
      *
@@ -377,6 +379,14 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             $js->replace(json_encode($params['SERIAL_NUMBER']), 'SERIAL_NUMBER');
         } else {
             $js->removeBlock('SERIAL_NUMBER');
+        }
+        
+        // Проверява за отворена бележка и ако има я прекратява преди да започне новата
+        setIfNot($params['CHECK_AND_CANCEL_PREV_OPEN_RECEIPT'], true);
+        if ($params['CHECK_AND_CANCEL_PREV_OPEN_RECEIPT'] === true) {
+            $js->replace(' ', 'CHECK_AND_CANCEL_PREV_OPEN_RECEIPT');
+        } else {
+            $js->removeBlock('CHECK_AND_CANCEL_PREV_OPEN_RECEIPT');
         }
         
         if (isset($params['BEGIN_TEXT'])) {

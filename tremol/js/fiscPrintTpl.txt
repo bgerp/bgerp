@@ -27,6 +27,22 @@ function printFiscalReceipt(onSuccess, onError) {
                     fpCheckSerialNumber([#SERIAL_NUMBER#]);
                 <!--ET_END SERIAL_NUMBER-->
                 
+                // Проверка дали има отворена предишна бележка
+                <!--ET_BEGIN CHECK_AND_CANCEL_PREV_OPEN_RECEIPT-->
+                    [#CHECK_AND_CANCEL_PREV_OPEN_RECEIPT#]
+                    try {
+                        if (fpCheckOpenedFiscalReceipt()) {
+                            try {
+                                // Опитваме се да прекратим предишната бележка, ако има такава и да пуснем пак
+                                fpCancelFiscalReceipt();
+                                render_showToast({timeOut: 800, text: 'Прекратена предишна отворена бележка', isSticky: true, stayTime: 8000, type: 'notice'});
+                            } catch(ex) { }
+                        }
+                    } catch(ex) {
+                        console.log('Грешка при проверка на предишна бележка: ' + ex.message);
+                    }
+                <!--ET_END CHECK_AND_CANCEL_PREV_OPEN_RECEIPT-->
+                
                 // Опитваме се да отворим бележка
                 try {
                     <!--ET_BEGIN OPEN_FISC_RECEIPT_1-->

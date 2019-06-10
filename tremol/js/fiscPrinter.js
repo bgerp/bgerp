@@ -389,6 +389,25 @@ function fpProgramFooter(text)
 
 
 /**
+ * Проверява дали има отворена бележка
+ * 
+ * @return boolean
+ */
+function fpCheckOpenedFiscalReceipt()
+{
+	try {
+		var status = fp.ReadStatus();
+	} catch(ex) {
+		handleException(ex);
+		
+		return false;
+	}
+        
+    return status['Opened_Fiscal_Receipt'];
+};
+
+
+/**
  * Проверява серийния номер на ФП
  * 
  * @param serNumber
