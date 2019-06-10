@@ -27,6 +27,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     protected $rcpNumPattern = '/^[a-z0-9]{8}-[a-z0-9]{4}-[0-9]{7}$/i';
     
+    
     /**
      * Максимална дължина за касовите апарати
      * @var integer
@@ -59,14 +60,15 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * Дефолтни кодове на начините на плащане
      */
     const DEFAULT_PAYMENT_MAP = array('Брой'       => 0,
-                                      'Чек'        => 1, 
-                                      'Талон'      => 2, 
-                                      'В.Талон'    => 3, 
-                                      'Амбалаж'    => 4, 
-                                      'Обслужване' => 5, 
-                                      'Повреди'    => 6, 
-                                      'Карта'      => 7, 
+                                      'Чек'        => 1,
+                                      'Талон'      => 2,
+                                      'В.Талон'    => 3,
+                                      'Амбалаж'    => 4,
+                                      'Обслужване' => 5,
+                                      'Повреди'    => 6,
+                                      'Карта'      => 7,
                                       'Банка'      => 8);
+    
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -142,6 +144,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             }
         }
     }
+    
     
     /**
      * Може ли вградения обект да се избере
@@ -547,6 +550,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         if (!$driverVersion) {
             $driverVersion = '19.03.22';
         }
+        
         // Добавяме необходимите JS файлове
         $tpl->replace(sbf("tremol/js/{$driverVersion}/fp_core.js"), 'FP_CORE_JS');
         $tpl->replace(sbf("tremol/js/$driverVersion/fp.js"), 'FP_JS');
@@ -702,6 +706,16 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             
             // След запис, обновяваме хедър и футъра
             if (Request::get('update')) {
+                // Сверяваме времето
+                $now = json_encode(date('d-m-Y H:i:s'));
+                $updateTime = "try {
+                                    fpSetDateTime({$now});
+                                } catch(ex) {
+                                    render_showToast({timeOut: 800, text: '" . tr('Не може да се синхронизира времето') . ": ' + ex.message, isSticky: false, stayTime: 12000, type: 'warning'});
+                                }
+                            ";
+                $jsTpl->prepend($updateTime, 'OTHER');
+                
                 // Нулираме другихте хедъри
                 $headersTextStr = '';
                 
@@ -1247,7 +1261,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         
         $found = array_filter($payments, function($a) use ($paymentId) {return $a->paymentId == $paymentId;});
         $found = $found[key($found)];
-       
+        
         return is_object($found) ? $found->code : null;
     }
 }
