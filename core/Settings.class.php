@@ -685,14 +685,15 @@ class core_Settings extends core_Manager
             return false;
         }
     }
-
+    
+    
     /**
      * Връща масив с всички перонализации за посочената константа
      * Ключовете на масива са потребителите или ролите, а стойностите - стойностите на константата
      * 
      * @param string $constName името на константата
      * 
-     * @return string
+     * @return array
      */
     public static function fetchPersonalConfig($constName)
     {
@@ -704,7 +705,7 @@ class core_Settings extends core_Manager
                 $res[$rec->userOrRole] = $rec->data[$constName];
             }
         }
-
+        
         return $res;
     }
 }

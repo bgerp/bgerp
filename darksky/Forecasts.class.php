@@ -82,7 +82,9 @@ class darksky_Forecasts extends core_Manager
     public function cron_Update()
     {
         $apiKey = darksky_Setup::get('API_KEY');
-  
+        
+        $locations = array();
+        
         $locations[darksky_Setup::get('LOCATION')] = darksky_Setup::get('LOCATION');
 
         $userLoc = core_Settings::fetchPersonalConfig('DARKSKY_LOCATION');
