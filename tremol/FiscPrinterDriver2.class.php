@@ -333,8 +333,6 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             
             $fpSalePLU = $js->getBlock('fpSalePLU');
             
-            $pArr['PLU_NAME'] = str::limitLen($pArr['PLU_NAME'], $maxPluLen);
-            
             $fpSalePLU->replace(json_encode($pArr['PLU_NAME']), 'PLU_NAME');
             $fpSalePLU->replace($pArr['VAT_CLASS'], 'VAT_CLASS');
             $fpSalePLU->replace(json_encode($pArr['PRICE']), 'PRICE');
