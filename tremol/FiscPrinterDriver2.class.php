@@ -314,7 +314,6 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         $js->replace($params['IS_PRINT_VAT'], 'IS_PRINT_VAT');
         $js->replace(json_encode($params['PRINT_TYPE_STR']), 'PRINT_TYPE_STR');
         
-        $maxPluLen = ($pRec->fpType == 'fiscalPrinter') ? $this->fpPluNameLen : $this->crLen;
         $maxTextLen = ($pRec->fpType == 'fiscalPrinter') ? $this->fpLen : $this->crLen;
         $maxTextLen -= $this->mLen;
         
