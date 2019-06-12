@@ -70,8 +70,8 @@ class core_Settings extends core_Manager
     {
         $this->FLD('key', 'varchar(16)', 'caption=Ключ');
         $this->FLD('objectId', 'int', 'caption=Обект, input=none');
-        $this->FLD('userOrRole', 'userOrRole(rolesType=team)', 'caption=Потребител/и');
-        $this->FLD('data', 'blob(serialize, compress)', 'caption=Потребител/и');
+        $this->FLD('userOrRole', 'userOrRole(rolesType=team)', 'caption=Потребител/Роля');
+        $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни');
         
         $this->setDbUnique('key, objectId, userOrRole');
     }
@@ -684,5 +684,28 @@ class core_Settings extends core_Manager
             // За да не се изпълнява по - нататък
             return false;
         }
+    }
+    
+    
+    /**
+     * Връща масив с всички перонализации за посочената константа
+     * Ключовете на масива са потребителите или ролите, а стойностите - стойностите на константата
+     * 
+     * @param string $constName името на константата
+     * 
+     * @return array
+     */
+    public static function fetchPersonalConfig($constName)
+    {
+        $res = array();
+        $query = self::getQuery();
+        $query->where("#key = 'crm_Profiles'");
+        while($rec = $query->fetch()) {
+            if(isset($rec->data[$constName])) {
+                $res[$rec->userOrRole] = $rec->data[$constName];
+            }
+        }
+        
+        return $res;
     }
 }

@@ -29,17 +29,46 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     
     /**
+     * Максимална дължина за касовите апарати
+     * @var integer
+     */
+    protected $crLen = 32;
+    
+    
+    /**
+     * Максимална дължина за фискалните принтери
+     * @var integer
+     */
+    protected $fpLen = 48;
+    
+    
+    /**
+     * Максимална дължина за фискалните принтери - за име на артикул
+     * @var integer
+     */
+    protected $fpPluNameLen = 34;
+    
+    
+    /**
+     * "Маргин" при печатане на текст - по един # в началото и в края
+     * @var integer
+     */
+    protected $mLen = 2;
+    
+    
+    /**
      * Дефолтни кодове на начините на плащане
      */
     const DEFAULT_PAYMENT_MAP = array('Брой'       => 0,
-                                      'Чек'        => 1, 
-                                      'Талон'      => 2, 
-                                      'В.Талон'    => 3, 
-                                      'Амбалаж'    => 4, 
-                                      'Обслужване' => 5, 
-                                      'Повреди'    => 6, 
-                                      'Карта'      => 7, 
+                                      'Чек'        => 1,
+                                      'Талон'      => 2,
+                                      'В.Талон'    => 3,
+                                      'Амбалаж'    => 4,
+                                      'Обслужване' => 5,
+                                      'Повреди'    => 6,
+                                      'Карта'      => 7,
                                       'Банка'      => 8);
+    
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -50,12 +79,14 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     {
         $fieldset->FLD('serverIp', 'ip', 'caption=Сървър->IP адрес, mandatory');
         $fieldset->FLD('serverTcpPort', 'int', 'caption=Сървър->TCP порт, mandatory');
-        $fieldset->FLD('type', 'enum(tcp=TCP връзка, serial=Сериен порт)', 'caption=ФУ->Връзка, mandatory, notNull, removeAndRefreshForm=tcpIp|tcpPort|tcpPass|serialPort|serialSpeed');
         
+        $fieldset->FLD('driverVersion', 'enum(19.05.17,19.03.22,19.02.20)', 'caption=ФУ->Версия, mandatory, notNull');
+        $fieldset->FLD('fpType', 'enum(cashRegister=Касов апарат, fiscalPrinter=Фискален принтер)', 'caption=ФУ->Тип, mandatory, notNull');
+        $fieldset->FLD('type', 'enum(tcp=TCP връзка, serial=Сериен порт)', 'caption=ФУ->Връзка, mandatory, notNull, removeAndRefreshForm=tcpIp|tcpPort|tcpPass|serialPort|serialSpeed');
         $fieldset->FLD('serialNumber', 'varchar(8)', 'caption=ФУ->Сериен номер');
         
         $fieldset->FLD('tcpIp', 'ip', 'caption=TCP->IP адрес, mandatory');
-        $fieldset->FLD('tcpPort', 'int', 'caption=TCP->TCP порт, mandatory');
+        $fieldset->FLD('tcpPort', 'int', 'caption=TCP->Порт, mandatory');
         $fieldset->FLD('tcpPass', 'password', 'caption=TCP->Парола, mandatory');
         
         $fieldset->FLD('serialPort', 'varchar', 'caption=Сериен->Порт, mandatory');
@@ -81,13 +112,13 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         
         $fieldset->FLD('header', 'enum(yes=Да, no=Не)', 'caption=Надпис хедър->Добавяне, mandatory, notNull, removeAndRefreshForm');
         $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър->Позиция, mandatory, notNull');
-        $fieldset->FLD('headerText1', 'varchar(32)', 'caption=Надпис хедър->Текст 1');
-        $fieldset->FLD('headerText2', 'varchar(32)', 'caption=Надпис хедър->Текст 2');
-        $fieldset->FLD('headerText3', 'varchar(32)', 'caption=Надпис хедър->Текст 3');
-        $fieldset->FLD('headerText4', 'varchar(32)', 'caption=Надпис хедър->Текст 4');
-        $fieldset->FLD('headerText5', 'varchar(32)', 'caption=Надпис хедър->Текст 5');
-        $fieldset->FLD('headerText6', 'varchar(32)', 'caption=Надпис хедър->Текст 6');
-        $fieldset->FLD('headerText7', 'varchar(32)', 'caption=Надпис хедър->Текст 7');
+        $fieldset->FLD('headerText1', "varchar({$this->fpLen})", 'caption=Надпис хедър->Текст 1');
+        $fieldset->FLD('headerText2', "varchar({$this->fpLen})", 'caption=Надпис хедър->Текст 2');
+        $fieldset->FLD('headerText3', "varchar({$this->fpLen})", 'caption=Надпис хедър->Текст 3');
+        $fieldset->FLD('headerText4', "varchar({$this->fpLen})", 'caption=Надпис хедър->Текст 4');
+        $fieldset->FLD('headerText5', "varchar({$this->fpLen})", 'caption=Надпис хедър->Текст 5');
+        $fieldset->FLD('headerText6', "varchar({$this->fpLen})", 'caption=Надпис хедър->Текст 6');
+        $fieldset->FLD('headerText7', "varchar({$this->fpLen})", 'caption=Надпис хедър->Текст 7');
         if ($fieldset instanceof core_Form) {
             $fieldset->input('header');
             if ($fieldset->rec->header == 'no') {
@@ -104,7 +135,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         
         $fieldset->FLD('footer', 'enum(yes=Да, no=Не)', 'caption=Надпис футър->Добавяне, mandatory, notNull, removeAndRefreshForm');
         $fieldset->FLD('footerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис футър->Позиция, mandatory, notNull');
-        $fieldset->FLD('footerText', 'varchar(32)', 'caption=Надпис футър->Текст');
+        $fieldset->FLD('footerText', "varchar({$this->fpLen})", 'caption=Надпис футър->Текст');
         if ($fieldset instanceof core_Form) {
             $fieldset->input('footer');
             if ($fieldset->rec->footer == 'no') {
@@ -113,6 +144,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             }
         }
     }
+    
     
     /**
      * Може ли вградения обект да се избере
@@ -154,6 +186,8 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * DATE_TIME - времето за синхронизира във формат 'd-m-Y H:i:s'. Ако е false - няма да се синхронизира
      *
      * SERIAL_NUMBER - серийния номер на принтера за проверка. Ако е false - няма да се проверява. Ако има разминаване - спира процеса.
+     * 
+     * CHECK_AND_CANCEL_PREV_OPEN_RECEIPT - дали да се проверява и прекратява предишна активна бележка - ако не се подаде нищо, се приема за true
      *
      * SERIAL_KEEP_PORT_OPEN - дали порта да се държи отворен при серийна връзка - докато се приключи
      *
@@ -205,7 +239,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         // Шаблона за JS
         $js = getTplFromFile('/tremol/js/fiscPrintTpl.txt');
         
-        $this->addTplFile($js);
+        $this->addTplFile($js, $pRec->driverVersion);
         
         $this->connectToPrinter($js, $pRec, $params['SERIAL_KEEP_PORT_OPEN']);
         
@@ -280,18 +314,21 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         $js->replace($params['IS_PRINT_VAT'], 'IS_PRINT_VAT');
         $js->replace(json_encode($params['PRINT_TYPE_STR']), 'PRINT_TYPE_STR');
         
+        $maxTextLen = ($pRec->fpType == 'fiscalPrinter') ? $this->fpLen : $this->crLen;
+        $maxTextLen -= $this->mLen;
+        
         // Добавяме продуктите към бележката
         foreach ($params['products'] as $pArr) {
             setIfNot($pArr['PRICE'], 0);
             setIfNot($pArr['VAT_CLASS'], 1);
             setIfNot($pArr['QTY'], 1);
-            setIfNot($pArr['DISC_ADD_P'], 0);
-            setIfNot($pArr['DISC_ADD_V'], 0);
+            setIfNot($pArr['DISC_ADD_P'], '');
+            setIfNot($pArr['DISC_ADD_V'], '');
             setIfNot($pArr['PLU_NAME'], '');
             
             expect(($pArr['VAT_CLASS'] >= 0) && ($pArr['VAT_CLASS'] <= 3));
             
-            expect(is_numeric($pArr['PRICE']) && is_numeric($pArr['QTY']) && is_numeric($pArr['DISC_ADD_P']) && is_numeric($pArr['DISC_ADD_V']));
+            expect(is_numeric($pArr['PRICE']) && is_numeric($pArr['QTY']) && (is_numeric($pArr['DISC_ADD_P']) || $pArr['DISC_ADD_P'] == '') && (is_numeric($pArr['DISC_ADD_V']) || $pArr['DISC_ADD_V'] == ''));
             
             $fpSalePLU = $js->getBlock('fpSalePLU');
             
@@ -299,23 +336,27 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             $fpSalePLU->replace($pArr['VAT_CLASS'], 'VAT_CLASS');
             $fpSalePLU->replace(json_encode($pArr['PRICE']), 'PRICE');
             $fpSalePLU->replace($pArr['QTY'], 'QTY');
-            $fpSalePLU->replace($pArr['DISC_ADD_P'], 'DISC_ADD_P');
-            $fpSalePLU->replace($pArr['DISC_ADD_V'], 'DISC_ADD_V');
+            $fpSalePLU->replace(json_encode($pArr['DISC_ADD_P']), 'DISC_ADD_P');
+            $fpSalePLU->replace(json_encode($pArr['DISC_ADD_V']), 'DISC_ADD_V');
             
             if (isset($pArr['BEFORE_PLU_TEXT'])) {
-                $this->replaceTextArr($pArr['BEFORE_PLU_TEXT'], $fpSalePLU, 'BEFORE_PLU_TEXT', true);
+                $this->replaceTextArr($pArr['BEFORE_PLU_TEXT'], $fpSalePLU, 'BEFORE_PLU_TEXT', true, $maxTextLen);
             }
             
             if (isset($pArr['AFTER_PLU_TEXT'])) {
-                $this->replaceTextArr($pArr['AFTER_PLU_TEXT'], $fpSalePLU, 'AFTER_PLU_TEXT', true);
+                $this->replaceTextArr($pArr['AFTER_PLU_TEXT'], $fpSalePLU, 'AFTER_PLU_TEXT', true, $maxTextLen);
             }
             
             $fpSalePLU->removeBlocks();
             $fpSalePLU->append2master();
         }
         
-        // Синхронизираме времената
-        setIfNot($params['DATE_TIME'], date('d-m-Y H:i:s'));
+        setIfNot($params['DATE_TIME'], false);
+        
+        if ($params['DATE_TIME'] === true) {
+            $params['DATE_TIME'] = date('d-m-Y H:i:s');
+        }
+        
         if ($params['DATE_TIME'] !== false) {
             expect(dt::verbal2mysql($params['DATE_TIME']));
             $js->replace(json_encode($params['DATE_TIME']), 'DATE_TIME');
@@ -337,12 +378,20 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             $js->removeBlock('SERIAL_NUMBER');
         }
         
+        // Проверява за отворена бележка и ако има я прекратява преди да започне новата
+        setIfNot($params['CHECK_AND_CANCEL_PREV_OPEN_RECEIPT'], true);
+        if ($params['CHECK_AND_CANCEL_PREV_OPEN_RECEIPT'] === true) {
+            $js->replace(' ', 'CHECK_AND_CANCEL_PREV_OPEN_RECEIPT');
+        } else {
+            $js->removeBlock('CHECK_AND_CANCEL_PREV_OPEN_RECEIPT');
+        }
+        
         if (isset($params['BEGIN_TEXT'])) {
-            $this->replaceTextArr($params['BEGIN_TEXT'], $js, 'BEGIN_TEXT');
+            $this->replaceTextArr($params['BEGIN_TEXT'], $js, 'BEGIN_TEXT', false, $maxTextLen);
         }
         
         if (isset($params['END_TEXT'])) {
-            $this->replaceTextArr($params['END_TEXT'], $js, 'END_TEXT');
+            $this->replaceTextArr($params['END_TEXT'], $js, 'END_TEXT', false, $maxTextLen);
         }
         
         // Добавяме начините на плащане
@@ -410,7 +459,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
                                 }
                             [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]');
         
-        $this->addTplFile($jsTpl);
+        $this->addTplFile($jsTpl, $pRec->driverVersion);
         $this->connectToPrinter($jsTpl, $pRec, false);
         
         $js = $jsTpl->getContent();
@@ -449,7 +498,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
                                 }
                             [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]');
         
-        $this->addTplFile($jsTpl);
+        $this->addTplFile($jsTpl, $pRec->driverVersion);
         $this->connectToPrinter($jsTpl, $pRec, false);
         
         if ($printAvailability) {
@@ -501,13 +550,18 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * Помощна функция за добавяне на необходимите JS файлове
      *
      * @param core_ET $tpl
+     * @param string $driverVersion
      */
-    protected function addTplFile(&$tpl)
+    protected function addTplFile(&$tpl, $driverVersion)
     {
+        if (!$driverVersion) {
+            $driverVersion = '19.03.22';
+        }
+        
         // Добавяме необходимите JS файлове
-        $tpl->replace(sbf('tremol/js/' . tremol_Setup::get('FP_DRIVER_VERSION') . '/fp_core.js'), 'FP_CORE_JS');
-        $tpl->replace(sbf('tremol/js/' . tremol_Setup::get('FP_DRIVER_VERSION') . '/fp.js'), 'FP_JS');
-        $tpl->replace(sbf('tremol/js/fiscPrinter.js'), 'FISC_PRINT_JS');
+        $tpl->replace(sbf("tremol/js/{$driverVersion}/fp_core.js"), 'FP_CORE_JS');
+        $tpl->replace(sbf("tremol/js/$driverVersion/fp.js"), 'FP_JS');
+        $tpl->replace(sbf("tremol/js/fiscPrinter.js"), 'FISC_PRINT_JS');
     }
     
     
@@ -560,16 +614,20 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * @param array|string $tArr
      * @param core_ET      $jTpl
      * @param string       $placeName
+     * @param boolean       $removeBlock
+     * @param integer       $maxLen
      */
-    protected function replaceTextArr($tArr, &$jTpl, $placeName, $removeBlock = false)
+    protected function replaceTextArr($tArr, &$jTpl, $placeName, $removeBlock = false, $maxLen = 30)
     {
         $resStrArr = array();
         if (!is_array($tArr)) {
             $tArr = array($tArr);
         }
         
+        $minLen = $maxLen - 5;
+        
         foreach ($tArr as $tStr) {
-            $tStr = hyphen_Plugin::getHyphenWord($tStr, 25, 30, '<wbr>');
+            $tStr = hyphen_Plugin::getHyphenWord($tStr, $minLen, $maxLen, '<wbr>');
             
             $resStrArr = array_merge($resStrArr, explode('<wbr>', $tStr));
         }
@@ -655,14 +713,25 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             
             // След запис, обновяваме хедър и футъра
             if (Request::get('update')) {
+                // Сверяваме времето
+                $now = json_encode(date('d-m-Y H:i:s'));
+                $updateTime = "try {
+                                    fpSetDateTime({$now});
+                                } catch(ex) {
+                                    render_showToast({timeOut: 800, text: '" . tr('Не може да се синхронизира времето') . ": ' + ex.message, isSticky: false, stayTime: 12000, type: 'warning'});
+                                }";
+                $jsTpl->prepend($updateTime, 'OTHER');
+                
                 // Нулираме другихте хедъри
                 $headersTextStr = '';
+                
+                $maxTextLen = ($data->rec->fpType == 'fiscalPrinter') ? $Driver->fpLen : $Driver->crLen;
                 
                 if ($data->rec->header == 'yes') {
                     for ($i = 1; $i <= 7; $i++) {
                         $h = headerText . $i;
                         $ht = (string) $data->rec->{$h};
-                        $ht = self::formatText($ht, $data->rec->headerPos);
+                        $ht = self::formatText($ht, $data->rec->headerPos, $maxTextLen);
                         $ht = json_encode($ht);
                         $headersTextStr .= "fpProgramHeader({$ht}, {$i});";
                     }
@@ -670,7 +739,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
                 $footerTextStr = '';
                 if ($data->rec->footer == 'yes') {
                     $ft = (string) $data->rec->footerText;
-                    $ft = self::formatText($ft, $data->rec->footerPos);
+                    $ft = self::formatText($ft, $data->rec->footerPos, $maxTextLen);
                     $ft = json_encode($ft);
                     $footerTextStr = "fpProgramFooter({$ft});";
                 }
@@ -691,7 +760,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
                 }
             }
             
-            $Driver->addTplFile($jsTpl);
+            $Driver->addTplFile($jsTpl, $data->rec->driverVersion);
             $Driver->connectToPrinter($jsTpl, $data->rec, false);
             
             $jsTpl->removePlaces();
@@ -1015,7 +1084,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             
             $jsTpl->prepend('$(\'body\').append(\'<div class="fullScreenBg" style="position: fixed; top: 0; z-index: 10; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"></div>\');');
             
-            $this->addTplFile($jsTpl);
+            $this->addTplFile($jsTpl, $pRec->driverVersion);
             $this->connectToPrinter($jsTpl, $pRec, false);
             
             $closeBtnName = 'Назад';
@@ -1080,8 +1149,12 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         
         $form->FLD('type', "enum({$enumStr})", 'caption=Действие, mandatory, removeAndRefreshForm');
         
+        $len = ($pRec->fpType == 'fiscalPrinter') ? $this->fpLen : $this->crLen;
+        
+        $len -= $this->mLen;
+        
         $form->FLD('amount', 'double(min=0)', 'caption=Сума, mandatory');
-        $form->FLD('text', 'varchar(30)', 'caption=Текст');
+        $form->FLD('text', "varchar({$len})", 'caption=Текст');
         $form->FLD('printAvailability', 'enum(yes=Да,no=Не)', 'caption=Отпечатване на->Наличност');
         
         $form->input();
@@ -1194,7 +1267,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         
         $found = array_filter($payments, function($a) use ($paymentId) {return $a->paymentId == $paymentId;});
         $found = $found[key($found)];
-       
+        
         return is_object($found) ? $found->code : null;
     }
 }

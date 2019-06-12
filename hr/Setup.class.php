@@ -103,6 +103,8 @@ class hr_Setup extends core_ProtoSetup
         array('hrTrips'),
         array('hr', 'hrSickdays, hrLeaves, hrTrips'),
         array('hrMaster', 'hr'),
+        array('hrAll'),
+        array('hrAllGlobal', 'hrAll'),
     );
     
     

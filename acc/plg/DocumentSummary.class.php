@@ -79,6 +79,9 @@ class acc_plg_DocumentSummary extends core_Plugin
         'planning_ReturnNotes' => 'planningAll,storeAll',
         'planning_Jobs' => 'planningAll',
         'planning_Tasks' => 'planningAll',
+        'hr_Sickdays' => 'hrAll',
+        'hr_Trips' => 'hrAll',
+        'hr_Leaves' => 'hrAll',
     );
     
     

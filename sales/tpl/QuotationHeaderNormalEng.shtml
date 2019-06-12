@@ -77,9 +77,9 @@
 				        <!--ET_BEGIN deliveryTermId-->
 				        <li>Delivery: [#deliveryTermId#]</li>
 				        <!--ET_END deliveryTermId-->
-				        <!--ET_BEGIN deliveryTermId-->
+				        <!--ET_BEGIN deliveryTermTime-->
 				        <li>Delivery up to: [#deliveryTermTime#]</li>
-				        <!--ET_END deliveryTermId-->
+				        <!--ET_END deliveryTermTime-->
 				        <!--ET_BEGIN deliveryTime-->
 				        <li>Delivery till: [#deliveryTime#]</li>
 				        <!--ET_END deliveryTime-->

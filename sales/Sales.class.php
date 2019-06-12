@@ -483,7 +483,7 @@ class sales_Sales extends deals_DealMaster
                 $data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/invoice.png,title=Създаване на нова фактура,order=9.9993');
             }
             
-            if (cash_Pko::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
+            if (cash_Pko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'originId' => $rec->containerId))) {
                 $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер');
             }
             
