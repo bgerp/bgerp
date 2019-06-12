@@ -6323,6 +6323,9 @@ body.narrow {
 		.document {
 			background-color: #ddecfd;
 		}
+		&.currentEmailDoc .document {
+			background-color: #b6d6fa;
+		}
 	}
 }
 .narrow .external div.hideLink {

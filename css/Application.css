@@ -5619,6 +5619,8 @@ only screen and (max-width: 320px) {
     left: 100px; }
     .external .docOutgoings .document {
       background-color: #ddecfd; }
+    .external .docOutgoings.currentEmailDoc .document {
+      background-color: #b6d6fa; }
 
 .narrow .external div.hideLink {
   margin-top: 10px; }
