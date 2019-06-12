@@ -248,7 +248,7 @@ class bgerp_L extends core_Manager
                     // Ако има повече от един имейл в нишката
                     $tEmailArr = $this->getThreadEmails($cid, $mid, true);
                     if (count($tEmailArr) > 1) {
-                        $html->append(ht::createLink(tr('Вижте цялата нишка'), array($this, 'T', $cid, 'm' => $mid, 'ret_url' => true), null, array('class' => 'hideLink', 'ef_icon' => 'img/16/page_copy.png')));
+                        $html->append(ht::createLink(tr('Вижте цялата нишка от имейли'), array($this, 'T', $cid, 'm' => $mid, '#' => $doc->getHandle()), null, array('class' => 'hideLink', 'ef_icon' => 'img/16/page_copy.png')));
                     }
                 }
             }
@@ -400,6 +400,10 @@ class bgerp_L extends core_Manager
                     $className .= 'Incomings';
                 }
                 
+                if ($cid == $containerId) {
+                    $className .= ' currentEmailDoc';
+                }
+                
                 $options = array();
                 if ($dRec->_mid) {
                     // Маркираме документа като отворен
@@ -420,8 +424,10 @@ class bgerp_L extends core_Manager
                     Mode::push('action', NULL);
                 }
                 
+                $hnd = $dDoc->getHandle();
+                
                 // Рендираме документа
-                $html .= "<div class='{$className}'>" . $dDoc->getDocumentBody('xhtml', (object) $options) . '</div>';
+                $html .= "<div class='{$className}' id='{$hnd}'>" . $dDoc->getDocumentBody('xhtml', (object) $options) . '</div>';
                 
                 if (!$dRec->_mid) {
                     Mode::pop('action');

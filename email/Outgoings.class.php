@@ -1444,6 +1444,8 @@ class email_Outgoings extends core_Master
     {
         core_Lg::push($lg);
         
+        self::appendToBody($oRec);
+        
         $textTpl = static::getDocumentBody($oRec->id, 'plain', (object) array('rec' => $oRec));
         $text = $textTpl->getContent();
         
@@ -1489,6 +1491,8 @@ class email_Outgoings extends core_Master
     public static function getEmailHtml($rec, $lg, $css = '')
     {
         core_Lg::push($lg);
+        
+        self::appendToBody($rec);
         
         // Използваме интерфейсния метод doc_DocumentIntf::getDocumentBody() за да рендираме
         // тялото на документа (изходящия имейл)
@@ -1542,6 +1546,21 @@ class email_Outgoings extends core_Master
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Добавя допълнителна информация в края на имейла
+     *
+     * @param stdClass $rec
+     */
+    protected static function appendToBody(&$rec)
+    {
+        static $isAppended = false;
+        if (!$isAppended && email_Setup::get('SHOW_THREAD_IN_EXTERNAL') == 'yes') {
+            $rec->body .= "\n[hr]\n[link=" . toUrl(array('L', 'T', $rec->containerId, 'm' => doc_DocumentPlg::getMidPlace(), '#' => self::getHandle($rec)), 'absolute') . ']' . tr('Вижте цялата нишка от имейли') . '[/link]';
+            $isAppended = true;
+        }
     }
     
     
