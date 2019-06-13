@@ -1778,8 +1778,11 @@ a.tOld {
   color: #bb0000;
   border: 1px dotted #bb0000;
   display: inline-block;
-  font-size: 0.8em;
-  transform: rotate(6deg);
+  font-size: 1em;
+  position: relative;
+  z-index: 10000000;
+  top: 50px;
+  transform: rotate(16deg);
   padding: 1px 2px 0px 2px !important;
   border-radius: 3px; }
 
