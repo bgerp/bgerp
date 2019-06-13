@@ -490,6 +490,7 @@ class trans_Lines extends core_Master
         $linesArr = array();
         $query = self::getQuery();
         $query->where("#state = 'pending'");
+        $query->orderBy('id', 'DESC');
         
         $recs = $query->fetchAll();
         array_walk($recs, function ($rec) use (&$linesArr) {
