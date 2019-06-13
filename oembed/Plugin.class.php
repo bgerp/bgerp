@@ -125,7 +125,7 @@ class oembed_Plugin extends core_Plugin
     
     public static function on_AfterExternalUrl($hostObj, &$htmlString, $url)
     {
-        if (($html = static::getEmbedHtml($url)) !== false) {
+        if (($hostObj->params['oembed'] != 'none') && ($html = static::getEmbedHtml($url)) !== false) {
             $link = core_Html::createLink($url, $url);
             $link = core_Html::createElement('div', array('class' => 'orig'), $link, true);
             
