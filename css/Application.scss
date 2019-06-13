@@ -2062,12 +2062,17 @@ a.tOld {
 	color: #b00;
 	border: 1px dotted #b00;
 	display: inline-block;
-	font-size: 0.8em;
+    font-size: 1em;
+    position: relative;
+    z-index: 10000000;
+    top: 50px;
+    transform: rotate(16deg);
 	padding: 1px 2px 0px 2px !important;
 	border-radius: 3px;
 }
 .approved {
-	margin-top: 3px;
+  transform: rotate(10deg);
+	margin-top: 10px;
 	padding: 10px 10px 5px !important
 }
 
@@ -6322,6 +6327,9 @@ body.narrow {
 		left: 100px;
 		.document {
 			background-color: #ddecfd;
+		}
+		&.currentEmailDoc .document {
+			background-color: #b6d6fa;
 		}
 	}
 }

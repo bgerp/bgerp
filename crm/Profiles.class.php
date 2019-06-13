@@ -908,6 +908,12 @@ class crm_Profiles extends core_Master
             );
             if (isset($user->country)) {
                 $person->country = drdata_Countries::getIdByName($user->country);
+            } elseif (!isset($person->country)) {
+                $person->country = drdata_Countries::getByIp();
+            }
+            
+            if (!isset($person->country)) {
+                $person->country = drdata_Countries::getIdByName("Bulgaria");
             }
             $mustSave = true;
         }

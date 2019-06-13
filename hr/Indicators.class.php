@@ -589,6 +589,7 @@ class hr_Indicators extends core_Manager
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
         $data->listFilter->FLD('period', 'date(select2MinItems=11)', 'caption=Период,silent,placeholder=Всички');
         $data->listFilter->FLD('document', 'varchar(16)', 'caption=Документ,silent,placeholder=Всички');
+        $data->listFilter->FLD('Protected', 'varchar', 'caption=Документ,silent,input=hidden');
         $data->listFilter->input(null, 'silent');
         
         $cloneQuery = clone $data->query;
@@ -609,8 +610,8 @@ class hr_Indicators extends core_Manager
         } else {
             $data->listFilter->setFieldTypeParams('personId', array('allowEmpty' => 'allowEmpty'));
             $data->listFilter->setFieldTypeParams('indicatorId', array('allowEmpty' => 'allowEmpty'));
-            $data->listFilter->showFields = 'period,document,personId,indicatorId';
-            $data->listFilter->input('period,document,personId,indicatorId');
+            $data->listFilter->showFields = 'period,document,personId,indicatorId,Protected';
+            $data->listFilter->input('period,document,personId,indicatorId,Protected');
         }
         
         // В хоризонтален вид
@@ -646,6 +647,8 @@ class hr_Indicators extends core_Manager
             if (!empty($fRec->document)) {
                 if ($document = doc_Containers::getDocumentByHandle($fRec->document)) {
                     $data->query->where("#docClass = {$document->getClassId()} AND #docId = {$document->that}");
+                } else {
+                    $data->query->where("1=2");
                 }
             }
         }

@@ -71,7 +71,7 @@ class core_Packs extends core_Manager
     {
         $this->FLD('name', 'identifier(32)', 'caption=Пакет,notNull');
         $this->FLD('version', 'double(decimals=2)', 'caption=Версия,input=none');
-        $this->FLD('info', 'varchar(128)', 'caption=Информация,input=none');
+        $this->FLD('info', 'html(128)', 'caption=Информация,input=none');
         $this->FLD('startCtr', 'varchar(64)', 'caption=Стартов->Мениджър,input=none,column=none');
         $this->FLD('startAct', 'varchar(64)', 'caption=Стартов->Контролер,input=none,column=none');
         

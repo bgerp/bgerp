@@ -216,7 +216,7 @@ class eshop_ProductDetails extends core_Detail
                 }
                 $price = currency_CurrencyRates::convertAmount($price, null, null, $settings->currencyId);
                 
-                $res->price = $price;
+                $res->price = round($price, 5);
                 if (!empty($priceObject->discount)) {
                     $res->discount = $priceObject->discount;
                 }
