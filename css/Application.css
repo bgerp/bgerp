@@ -1787,7 +1787,8 @@ a.tOld {
   border-radius: 3px; }
 
 .approved {
-  margin-top: 3px;
+  transform: rotate(10deg);
+  margin-top: 10px;
   padding: 10px 10px 5px !important; }
 
 .wide .approved {
