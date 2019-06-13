@@ -255,6 +255,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         }
         $unicart = $salesArr = array();
         $unicartPrev = $salesArrPrev = array();
+        $unicartLast = $salesArrLast = array();
         
         while ($recPrime = $query->fetch()) {
             $sellValuePrevious = $sellValueLastYear = $sellValue = $delta = $deltaPrevious = $deltaLastYear = 0;
@@ -359,6 +360,25 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     } else {
                         $sellValueLastYear = $recPrime->sellCost * $recPrime->quantity;
                         $deltaLastYear = $recPrime->delta;
+                    }
+                    
+                    //Масив с Id-та на уникалнни артикули
+                    if (!is_array($unicartLast[$id])) {
+                        $unicartLast[$id] = array();
+                    }
+                    if (!in_array($recPrime->productId, $unicartLast[$id])) {
+                        array_push($unicartLast[$id], $recPrime->productId);
+                    }
+                    
+                    
+                    // Масив сделки
+                    if (!is_array($salesArrLast[$id])) {
+                        $salesArrLast[$id] = array();
+                    }
+                    
+                    $saleId = $detClassName::fetch($recPrime->detailRecId)->saleId;
+                    if (!in_array($saleId, $salesArrLast[$id])) {
+                        array_push($salesArrLast[$id], $saleId);
                     }
                 }
             }
@@ -494,8 +514,10 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $v->groupDeltas = $groupDeltas[$v->groupList];
             $v->unicart = count($unicart[$v->contragentId]);
             $v->unicartPrevious = count($unicartPrev[$v->contragentId]);
+            $v->unicartLast = count($unicartLast[$v->contragentId]);
             $v->salesArr = count($salesArr[$v->contragentId]);
             $v->salesArrPrevious = count($salesArrPrev[$v->contragentId]);
+            $v->salesArrLast = count($salesArrLast[$v->contragentId]);
         }
         
         
@@ -583,10 +605,10 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Делта,tdClass=newCol");
                 }
                 if (strpos($rec->see, 'articles') !== false) {
-                    $fld->FLD('unicartPrevious', 'int', "smartCenter,caption={$name2}->Артикули");
+                    $fld->FLD('unicartCompare', 'int', "smartCenter,caption={$name2}->Артикули");
                 }
                 if (strpos($rec->see, 'sales') !== false) {
-                    $fld->FLD('salesPreviousCount', 'int', "smartCenter,caption={$name2}->Сделки");
+                    $fld->FLD('salesCompareCount', 'int', "smartCenter,caption={$name2}->Сделки");
                 }
                 $fld->FLD('changeSales', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Продажби');
                 if (!is_null($rec->seeDelta)) {
@@ -747,8 +769,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValuePrevious);
                 $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->sellValuePrevious);
                 
-                $row->unicartPrevious = core_Type::getByName('int')->toVerbal($dRec->unicartPrevious);
-                $row->salesPreviousCount = core_Type::getByName('int')->toVerbal($dRec->salesArrPrevious);
+                $row->unicartCompare = core_Type::getByName('int')->toVerbal($dRec->unicartPrevious);
+                $row->salesCompareCount = core_Type::getByName('int')->toVerbal($dRec->salesArrPrevious);
                 
                 $row->deltaCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deltaPrevious);
                 $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->deltaPrevious);
@@ -774,6 +796,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValueLastYear);
                 $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->sellValueLastYear);
                 
+                $row->unicartCompare = core_Type::getByName('int')->toVerbal($dRec->unicartLast);
+                $row->salesCompareCount = core_Type::getByName('int')->toVerbal($dRec->salesArrLast);
+                
                 $row->deltaCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deltaLastYear);
                 $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->deltaLastYear);
                 
@@ -784,6 +809,14 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 $changeDeltas = $dRec->delta - $dRec->deltaLastYear;
                 $row->changeDeltas = core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas);
                 $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
+                
+                $changeArticles = $dRec->unicart - $dRec->unicartLast;
+                $row->changeArticles = core_Type::getByName('int')->toVerbal($changeArticles);
+                $row->changeArticles = ht::styleNumber($row->changeArticles, $changeArticles);
+                
+                $changeSalesCount = $dRec->salesArr - $dRec->salesArrLast;
+                $row->changeSalesCount = core_Type::getByName('int')->toVerbal($changeSalesCount);
+                $row->changeSalesCount = ht::styleNumber($row->changeSalesCount, $changeSalesCount);
             }
         }
         
