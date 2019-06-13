@@ -591,10 +591,9 @@ class bgerp_L extends core_Manager
                 }
             }
             
-            $continue = true;
             foreach ($midEmailsArr as $email) {
-                if ($emailArr[$email]) {
-                    $continue = false;
+                if (!$emailArr[$email]) {
+                    $continue = true;
                     
                     break;
                 }
