@@ -72,6 +72,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=group,single=none');
         $fieldset->FLD('seeDelta', 'set(yes = )', 'caption=Делти,after=articleType,single=none');
+        $fieldset->FLD('see', 'set(sales=Сделки, articles=Артикули)', 'notNull,caption=Покажи,maxRadio=2,after=articleType,single=none');
     }
     
     
@@ -115,6 +116,10 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $suggestions = array();
         $form = $data->form;
         $rec = $form->rec;
+        
+        if (!core_Users::haveRole(array('ceo'))) {
+            $form->setField('seeDelta', 'input=hidden');
+        }
         
         if ($rec->compare == 'month') {
             $form->setField('from', 'input=hidden');
@@ -165,6 +170,10 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        if (is_null($rec->crmGroup) && is_null($rec->contragent)) {
+            $this->groupByField = '';
+        }
+        
         $recs = array();
         $salesWithShipArr = array();
         
@@ -244,6 +253,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         if ($timeLimit >= 30) {
             core_App::setTimeLimit($timeLimit);
         }
+        $unicart = $salesArr = array();
+        $unicartPrev = $salesArrPrev = array();
         
         while ($recPrime = $query->fetch()) {
             $sellValuePrevious = $sellValueLastYear = $sellValue = $delta = $deltaPrevious = $deltaLastYear = 0;
@@ -317,6 +328,25 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     } else {
                         $sellValuePrevious = $recPrime->sellCost * $recPrime->quantity;
                         $deltaPrevious = $recPrime->delta;
+                        
+                        //Масив с Id-та на уникалнни артикули
+                        if (!is_array($unicartPrev[$id])) {
+                            $unicartPrev[$id] = array();
+                        }
+                        if (!in_array($recPrime->productId, $unicartPrev[$id])) {
+                            array_push($unicartPrev[$id], $recPrime->productId);
+                        }
+                        
+                        
+                        // Масив сделки
+                        if (!is_array($salesArrPrev[$id])) {
+                            $salesArrPrev[$id] = array();
+                        }
+                        
+                        $saleId = $detClassName::fetch($recPrime->detailRecId)->saleId;
+                        if (!in_array($saleId, $salesArrPrev[$id])) {
+                            array_push($salesArrPrev[$id], $saleId);
+                        }
                     }
                 }
             }
@@ -342,6 +372,25 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     $sellValue = $recPrime->sellCost * $recPrime->quantity;
                     
                     $delta = $recPrime->delta;
+                    
+                    //Масив с Id-та на уникалнни артикули
+                    if (!is_array($unicart[$id])) {
+                        $unicart[$id] = array();
+                    }
+                    if (!in_array($recPrime->productId, $unicart[$id])) {
+                        array_push($unicart[$id], $recPrime->productId);
+                    }
+                    
+                    
+                    // Масив сделки
+                    if (!is_array($salesArr[$id])) {
+                        $salesArr[$id] = array();
+                    }
+                    
+                    $saleId = $detClassName::fetch($recPrime->detailRecId)->saleId;
+                    if (!in_array($saleId, $salesArr[$id])) {
+                        array_push($salesArr[$id], $saleId);
+                    }
                 }
             }
             
@@ -359,6 +408,12 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     'group' => cat_Products::fetchField($recPrime->productId, 'groups'),
                     'groupList' => $contragentGroupsList,
                     'delta' => $delta,
+                    'unicart' => '',
+                    'unicartPrevious' => '',
+                    'unicartLast' => '',
+                    'salesArr' => '',
+                    'salesArrPrevious' => '',
+                    'salesArrLast' => '',
                     'change' => '',
                     'groupValues' => '',
                     'groupDeltas' => ''
@@ -437,6 +492,10 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         foreach ($recs as $v) {
             $v->groupValues = $groupValues[$v->groupList];
             $v->groupDeltas = $groupDeltas[$v->groupList];
+            $v->unicart = count($unicart[$v->contragentId]);
+            $v->unicartPrevious = count($unicartPrev[$v->contragentId]);
+            $v->salesArr = count($salesArr[$v->contragentId]);
+            $v->salesArrPrevious = count($salesArrPrev[$v->contragentId]);
         }
         
         
@@ -486,44 +545,74 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         if ($export === false) {
             $fld->FLD('contragentId', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
             
-            $fld->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Група контрагенти');
+            if (!is_null($rec->crmGroup) && !is_null($rec->contragent)) {
+                $fld->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Група контрагенти');
+            }
+            
+            //  $fld->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Група контрагенти');
             
             if ($rec->compare != 'no') {
                 $fld->FLD('saleValue', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Продажби");
-                if ($rec->seeDelta == 'yes') {
+                if (!is_null($rec->seeDelta)) {
                     $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Делта");
+                }
+                if (strpos($rec->see, 'articles') !== false) {
+                    $fld->FLD('articles', 'int', "smartCenter,caption={$name1}->Артикули");
+                }
+                
+                if (strpos($rec->see, 'sales') !== false) {
+                    $fld->FLD('sales', 'int', "smartCenter,caption={$name1}->Сделки");
                 }
             } else {
                 $fld->FLD('saleValue', 'double(smartRound,decimals=2)', 'smartCenter,caption=Продажби');
-                if ($rec->seeDelta == 'yes') {
+                if (!is_null($rec->seeDelta)) {
                     $fld->FLD('delta', 'double(smartRound,decimals=2)', 'smartCenter,caption=Делта');
+                }
+                if (strpos($rec->see, 'articles') !== false) {
+                    $fld->FLD('articles', 'int', 'smartCenter,caption=Артикули');
+                }
+                
+                if (strpos($rec->see, 'sales') !== false) {
+                    $fld->FLD('sales', 'int', 'smartCenter,caption=Сделки');
                 }
             }
             
             if ($rec->compare != 'no') {
                 $fld->FLD('sellValueCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Продажби,tdClass=newCol");
-                if ($rec->seeDelta == 'yes') {
+                if (!is_null($rec->seeDelta)) {
                     $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Делта,tdClass=newCol");
                 }
+                if (strpos($rec->see, 'articles') !== false) {
+                    $fld->FLD('unicartPrevious', 'int', "smartCenter,caption={$name2}->Артикули");
+                }
+                if (strpos($rec->see, 'sales') !== false) {
+                    $fld->FLD('salesPreviousCount', 'int', "smartCenter,caption={$name2}->Сделки");
+                }
                 $fld->FLD('changeSales', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Продажби');
-                if ($rec->seeDelta == 'yes') {
+                if (!is_null($rec->seeDelta)) {
                     $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
+                }
+                if (strpos($rec->see, 'articles') !== false) {
+                    $fld->FLD('changeArticles', 'int', 'smartCenter,caption=Промяна->Артикули');
+                }
+                if (strpos($rec->see, 'sales') !== false) {
+                    $fld->FLD('changeSalesCount', 'int', 'smartCenter,caption=Промяна->Сделки');
                 }
             }
         } else {
             $fld->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Група контрагенти');
             $fld->FLD('contragentId', 'varchar', 'caption=Контрагент');
             $fld->FLD('saleValue', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Продажби");
-            if ($rec->seeDelta == 'yes') {
+            if (!is_null($rec->seeDelta)) {
                 $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Делта");
             }
             if ($rec->compare != 'no') {
                 $fld->FLD('sellValueCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Продажби");
-                if ($rec->seeDelta == 'yes') {
+                if (!is_null($rec->seeDelta)) {
                     $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Делта");
                 }
                 $fld->FLD('changeSales', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Продажби');
-                if ($rec->seeDelta == 'yes') {
+                if (!is_null($rec->seeDelta)) {
                     $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
                 }
             }
@@ -587,128 +676,142 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $row = new stdClass();
         $contragentClassName = '';
         
-     //   try {
-            if ($dRec->totalValue) {
-                $row->contragentId = '<b>' . 'ОБЩО' . '</b>';
-                
-                $row->saleValue = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue) . '</b>';
-                $row->saleValue = ht::styleNumber($row->saleValue, $dRec->totalValue);
-                
-                $row->delta = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta) . '</b>';
-                $row->delta = ht::styleNumber($row->delta, $dRec->totalDelta);
-                
-                $row->groupList = '';
-                
-                if ($rec->compare != 'no') {
-                    if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                        $row->sellValueCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValuePrevious) . '</b>';
-                        $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->totalValuePrevious);
-                        
-                        $row->deltaCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDeltaPrevious) . '</b>';
-                        $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->totalDeltaPrevious);
-                        
-                        $changeSales = $dRec->totalValue - $dRec->totalValuePrevious;
-                        $row->changeSales = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeSales) . '</b>';
-                        $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
-                        
-                        $changeDeltas = $dRec->totalDelta - $dRec->totalDeltaPrevious;
-                        $row->changeDeltas = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas) . '</b>';
-                        $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
-                    }
-                    
-                    if ($rec->compare == 'year') {
-                        $row->sellValueCompare = '<b>' .core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValueLastYear). '</b>';
-                        $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->totalValueLastYear);
-                        
-                        $row->deltaCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDeltaLastYear) . '</b>';
-                        $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->totalDeltaLastYear);
-                        
-                        $changeSales = $dRec->totalValue - $dRec->totalValueLastYear;
-                        $row->changeSales = '<b>'  . core_Type::getByName('double(decimals=2)')->toVerbal($changeSales) . '</b>';
-                        $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
-                        
-                        $changeDeltas = $dRec->totalDelta - $dRec->totalDeltaLastYear;
-                        $row->changeDeltas = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas) . '</b>';
-                        $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
-                    }
-                }
-                
-                return $row;
-            }
+        //   try {
+        if ($dRec->totalValue) {
+            $row->contragentId = '<b>' . 'ОБЩО' . '</b>';
             
-            if (isset($dRec->code)) {
-                $row->code = $dRec->code;
-            }
+            $row->saleValue = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue) . '</b>';
+            $row->saleValue = ht::styleNumber($row->saleValue, $dRec->totalValue);
             
-            $row->contragentId = self::getContragent($dRec, true, $rec);
+            $row->delta = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta) . '</b>';
+            $row->delta = ht::styleNumber($row->delta, $dRec->totalDelta);
             
-            foreach (array(
-                'saleValue',
-                'delta'
-            ) as $fld) {
-                $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
-                $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
-            }
+            $row->groupList = '';
             
             if ($rec->compare != 'no') {
                 if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                    $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValuePrevious);
-                    $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->sellValuePrevious);
+                    $row->sellValueCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValuePrevious) . '</b>';
+                    $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->totalValuePrevious);
                     
-                    $row->deltaCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deltaPrevious);
-                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->deltaPrevious);
+                    $row->deltaCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDeltaPrevious) . '</b>';
+                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->totalDeltaPrevious);
                     
-                    $changeSales = $dRec->saleValue - $dRec->sellValuePrevious;
-                    $row->changeSales = core_Type::getByName('double(decimals=2)')->toVerbal($changeSales);
+                    $changeSales = $dRec->totalValue - $dRec->totalValuePrevious;
+                    $row->changeSales = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeSales) . '</b>';
                     $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
                     
-                    $changeDeltas = $dRec->delta - $dRec->deltaPrevious;
-                    $row->changeDeltas = core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas);
+                    $changeDeltas = $dRec->totalDelta - $dRec->totalDeltaPrevious;
+                    $row->changeDeltas = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas) . '</b>';
                     $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
                 }
                 
                 if ($rec->compare == 'year') {
-                    $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValueLastYear);
-                    $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->sellValueLastYear);
+                    $row->sellValueCompare = '<b>' .core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValueLastYear). '</b>';
+                    $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->totalValueLastYear);
                     
-                    $row->deltaCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deltaLastYear);
-                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->deltaLastYear);
+                    $row->deltaCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDeltaLastYear) . '</b>';
+                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->totalDeltaLastYear);
                     
-                    $changeSales = $dRec->saleValue - $dRec->sellValueLastYear;
-                    $row->changeSales = core_Type::getByName('double(decimals=2)')->toVerbal($changeSales);
+                    $changeSales = $dRec->totalValue - $dRec->totalValueLastYear;
+                    $row->changeSales = '<b>'  . core_Type::getByName('double(decimals=2)')->toVerbal($changeSales) . '</b>';
                     $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
                     
-                    $changeDeltas = $dRec->delta - $dRec->deltaLastYear;
-                    $row->changeDeltas = core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas);
+                    $changeDeltas = $dRec->totalDelta - $dRec->totalDeltaLastYear;
+                    $row->changeDeltas = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas) . '</b>';
                     $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
                 }
             }
             
-            if (is_numeric($dRec->groupList)) {
-                $row->groupList.= crm_Groups::getVerbal($dRec->groupList, 'name').
+            return $row;
+        }
+        
+        if (isset($dRec->code)) {
+            $row->code = $dRec->code;
+        }
+        
+        $row->contragentId = self::getContragent($dRec, true, $rec);
+        
+        foreach (array(
+            'saleValue',
+            'delta'
+        ) as $fld) {
+            $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
+            $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
+        }
+        
+        $row->articles = core_Type::getByName('int')->toVerbal($dRec->unicart);
+        $row->sales = core_Type::getByName('int')->toVerbal($dRec->salesArr);
+        
+        if ($rec->compare != 'no') {
+            if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
+                $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValuePrevious);
+                $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->sellValuePrevious);
+                
+                $row->unicartPrevious = core_Type::getByName('int')->toVerbal($dRec->unicartPrevious);
+                $row->salesPreviousCount = core_Type::getByName('int')->toVerbal($dRec->salesArrPrevious);
+                
+                $row->deltaCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deltaPrevious);
+                $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->deltaPrevious);
+                
+                $changeSales = $dRec->saleValue - $dRec->sellValuePrevious;
+                $row->changeSales = core_Type::getByName('double(decimals=2)')->toVerbal($changeSales);
+                $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
+                
+                $changeDeltas = $dRec->delta - $dRec->deltaPrevious;
+                $row->changeDeltas = core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas);
+                $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
+                
+                $changeArticles = $dRec->unicart - $dRec->unicartPrevious;
+                $row->changeArticles = core_Type::getByName('int')->toVerbal($changeArticles);
+                $row->changeArticles = ht::styleNumber($row->changeArticles, $changeArticles);
+                
+                $changeSalesCount = $dRec->salesArr - $dRec->salesArrPrevious;
+                $row->changeSalesCount = core_Type::getByName('int')->toVerbal($changeSalesCount);
+                $row->changeSalesCount = ht::styleNumber($row->changeSalesCount, $changeSalesCount);
+            }
+            
+            if ($rec->compare == 'year') {
+                $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValueLastYear);
+                $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->sellValueLastYear);
+                
+                $row->deltaCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deltaLastYear);
+                $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->deltaLastYear);
+                
+                $changeSales = $dRec->saleValue - $dRec->sellValueLastYear;
+                $row->changeSales = core_Type::getByName('double(decimals=2)')->toVerbal($changeSales);
+                $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
+                
+                $changeDeltas = $dRec->delta - $dRec->deltaLastYear;
+                $row->changeDeltas = core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas);
+                $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
+            }
+        }
+        
+        if (is_numeric($dRec->groupList)) {
+            $row->groupList .= crm_Groups::getVerbal($dRec->groupList, 'name').
                 "<span class= 'fright'><span class= ''>" . 'Общо за групата ( стойност: '.
                 core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues). '</span>';
-                
-           
-                if (!is_null($rec->seeDelta)){
-                    $row->groupList .="<span class= 'fright'><span class= ''>" . ', делта: '.
+            
+            
+            if (!is_null($rec->seeDelta)) {
+                $row->groupList .= "<span class= 'fright'><span class= ''>" . ', делта: '.
                     core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupDeltas). '</span>';
-                }
-                $row->groupList .="<span class= 'fright'><span class= ''>" . ' )'. '</span>';
-                
-            } else {
-                if ($dRec->groupList) { 
-                    $row->group = $dRec->groupList.
+            }
+            $row->groupList .= "<span class= 'fright'><span class= ''>" . ' )'. '</span>';
+        } else {
+            if ($dRec->groupList) {
+                $row->group = $dRec->groupList.
                     "<span class= 'fright'><span class= ''>" . 'Общо за групата ( стойност: '.
                     core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues[$dRec->groupList]) .', делта: '.
                     core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupDeltas[$dRec->groupList]) .' )'. '</span>';
-                } else {
-                    unset($row->group);
-                }
+            } else {
+                unset($row->group);
             }
-      //  } catch (Exception $e) {
+        }
+        
+        //  } catch (Exception $e) {
         //    reportException($e);
-       // }
+        // }
         
         return $row;
     }
