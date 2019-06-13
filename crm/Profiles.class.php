@@ -1051,8 +1051,6 @@ class crm_Profiles extends core_Master
             self::save($profile, 'searchKeywords');
         }
         
-        //if (empty($userRec->))
-        
         core_Users::save($userRec);
     }
     
