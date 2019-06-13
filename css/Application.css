@@ -1779,6 +1779,7 @@ a.tOld {
   border: 1px dotted #bb0000;
   display: inline-block;
   font-size: 0.8em;
+  transform: rotate(6deg);
   padding: 1px 2px 0px 2px !important;
   border-radius: 3px; }
 
