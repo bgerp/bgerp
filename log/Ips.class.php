@@ -190,7 +190,8 @@ class log_Ips extends core_Manager
         static $calls = 0;
         
         $mustSave = false;
-        $rec = self::fetch(array("#id = '[#1#]'", $ip));
+        $rec = self::fetch(array("#ip = '[#1#]'", $ip));
+        
         if (!$rec) {
             $id = self::getIpId($ip);
             $rec = self::fetch($id);
@@ -198,21 +199,23 @@ class log_Ips extends core_Manager
         
         // $host
         if (!$rec->host) {
-            if ($calls < 3) {
+            if ($calls < 2) {
                 $rec->host = self::getHost($ip);
                 $calls++;
                 $mustSave = true;
             }
         }
+
         $host = $rec->host ? $rec->host : $ip;
+
         if ($coloring) {
-            $host = str::coloring($host, $ip);
+            $ip = str::coloring($ip, $ip);
         }
         
         // $title
         $title = '';
         if ($host != $ip) {
-            $title = $ip;
+            $title = $host;
         }
         if ($rec->users) {
             $title .= ($title ? ': ' : '') . $rec->users;
@@ -266,10 +269,11 @@ class log_Ips extends core_Manager
                 $count = $titleCnt;
             }
         }
+
         if ($count) {
-            $res = new ET("<div class='vislog'>[#1#]&nbsp;<span class='vislog-ip' title='[#2#]'>[#3#]</span>&nbsp;[#4#]</div>", $country, $title, $host, $count);
+            $res = new ET("<div class='vislog'>[#1#]&nbsp;<span class='vislog-ip' title='[#2#]'>[#3#]</span>&nbsp;[#4#]</div>", $country, $title, $ip, $count);
         } else {
-            $res = new ET("<div class='vislog'>[#1#]&nbsp;<span class='vislog-ip' title='[#2#]'>[#3#]</span></div>", $country, $title, $host);
+            $res = new ET("<div class='vislog'>[#1#]&nbsp;<span class='vislog-ip' title='[#2#]'>[#3#]</span></div>", $country, $title, $ip);
         }
         
         return $res;
