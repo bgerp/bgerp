@@ -912,7 +912,7 @@ class core_String
     /**
      * Оцветява текст по относително уникален начин, в зависимост от съдържанието му
      */
-    public static function coloring($text, $colorFactor = null)
+    public static function coloring($text, $colorFactor = null, $attr = array())
     {
         if (!$colorFactor) {
             $colorFactor = $text;
@@ -921,7 +921,9 @@ class core_String
         
         $bgColor = str_pad(dechex(hexdec(substr($hash, 6, 6)) | 0x808080), 6, '0', STR_PAD_LEFT);
         
-        $text = "<span style='color:#{$txColor}; background-color:#{$bgColor}'>" . $text . '</span>';
+        $attr['style'] =( $attr['style'] ? rtrim($attr['style'], '; ') . ';' : '') . "color:#{$txColor}; background-color:#{$bgColor}";
+
+        $text = ht::createElement('span', $attr, $text);
         
         return $text;
     }

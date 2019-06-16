@@ -81,7 +81,7 @@ class type_IP extends type_Varchar
      * @param string  $time
      * @param array $attr
      */
-    public static function decorateIp($ip, $time = null, $coloring = false)
+    public static function decorateIp($ip, $time = null, $coloring = true)
     {
         $res = $ip;
         

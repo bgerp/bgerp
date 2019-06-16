@@ -207,10 +207,6 @@ class log_Ips extends core_Manager
         }
 
         $host = $rec->host ? $rec->host : $ip;
-
-        if ($coloring) {
-            $ip = str::coloring($ip, $ip);
-        }
         
         // $title
         $title = '';
@@ -268,6 +264,10 @@ class log_Ips extends core_Manager
             } else {
                 $count = $titleCnt;
             }
+        }
+
+        if ($coloring) {
+            $ip = str::coloring($ip, $ip);
         }
 
         if ($count) {
