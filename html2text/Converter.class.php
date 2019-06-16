@@ -459,7 +459,7 @@ class html2text_Converter
         // Run our defined search-and-replace
         
         // <pre>
-        $text = preg_replace_callback("/<pre[^>]*>(.*?)<\/pre>/si", array($this, 'pre'), $text);
+        $text = preg_replace_callback("/<pre[^>]*>(.+)<\/pre>/si", array($this, 'pre'), $text);
         
         // Non-legal carriage return
         $text = preg_replace("/\r/", '', $text);
@@ -483,10 +483,10 @@ class html2text_Converter
 //        $text = preg_replace('/<!-- .* -->/', '', $text);
         
         // H1 - H6
-        $text = preg_replace_callback('/<h([123456])[^>]*>(.*?)<\/h([123456])>/i', array($this, 'h'), $text);
+        $text = preg_replace_callback('/<h([123456])[^>]*>(.+)<\/h([123456])>/i', array($this, 'h'), $text);
         
         // Title
-        $text = preg_replace_callback('/<title>(.*?)<\/title>/i', array($this, 'title'), $text);
+        $text = preg_replace_callback('/<title>(.+)<\/title>/i', array($this, 'title'), $text);
         
         // <P>
         $text = preg_replace('/<p[^>]*>/i', "\n\n", $text);
@@ -502,10 +502,10 @@ class html2text_Converter
         $text = preg_replace("/<\/blockquote[^>]*>/i", '[/bQuote]', $text);
         
         // <b>
-        $text = preg_replace_callback('/<b[^>]*>(.*?)<\/b[^>]*>/i', array($this, 'bold'), $text);
+        $text = preg_replace_callback('/<b[^>]*>(.+)<\/b[^>]*>/i', array($this, 'bold'), $text);
         
         // <strong>
-        $text = preg_replace_callback('/<strong[^>]*>(.*?)<\/strong[^>]*>/i', array($this, 'bold'), $text);
+        $text = preg_replace_callback('/<strong[^>]*>(.+)<\/strong[^>]*>/i', array($this, 'bold'), $text);
         
         
         // highlighting
@@ -513,10 +513,10 @@ class html2text_Converter
         $text = preg_replace_callback('/<font\\s+([^>]*(?\'style\'(color)\\s*\\=\\s*(\\"|\\\')([^\\\'|\\"]+)(\\"|\\\')))[^>]*\\>(?\'text\'.*?)<\\/font>/i', array($this, 'highlighting'), $text);
         
         // <i>
-        $text = preg_replace("/<i[^>]*>(.*?)<\/i[^>]*>/i", '[i]\\1[/i]', $text);
+        $text = preg_replace("/<i[^>]*>(.+)<\/i[^>]*>/i", '[i]\\1[/i]', $text);
         
         // <em>
-        $text = preg_replace("/<em[^>]*>(.*?)<\/em[^>]*>/i", '[b]\\1[/b]', $text);
+        $text = preg_replace("/<em[^>]*>(.+)<\/em[^>]*>/i", '[b]\\1[/b]', $text);
         
         // <ul> and </ul>
         $text = preg_replace("/(<ul[^>]*>|<\/ul[^>]*>)/i", "\n\n", $text);
@@ -525,7 +525,7 @@ class html2text_Converter
         $text = preg_replace("/(<ol[^>]*>|<\/ol[^>]*>)/i", "\n\n", $text);
         
         // <li> and </li>
-        $text = preg_replace("/<li[^>]*>(.*?)<\/li[^>]*>/i", "\t* \\1\n", $text);
+        $text = preg_replace("/<li[^>]*>(.+)<\/li[^>]*>/i", "\t* \\1\n", $text);
         
         // <li>
         $text = preg_replace('/<li[^>]*>/i', "\n\t* ", $text);
