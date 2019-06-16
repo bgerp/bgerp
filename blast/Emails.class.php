@@ -214,8 +214,8 @@ class blast_Emails extends core_Master
         
         $this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От, mandatory, changable');
         $this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory, changable');
-        $this->FLD('body', 'richtext(rows=15,bucket=Blast)', 'caption=Съобщение,mandatory, changable');
-        $this->FLD('unsubscribe', 'richtext(rows=3,bucket=Blast)', 'caption=Отписване, changable', array('attr' => array('id' => 'unsId')));
+        $this->FLD('body', 'richtext(rows=15,bucket=Blast,oembed=none)', 'caption=Съобщение,mandatory, changable');
+        $this->FLD('unsubscribe', 'richtext(rows=3,bucket=Blast,oembed=none)', 'caption=Отписване, changable', array('attr' => array('id' => 'unsId')));
         $this->FLD('sendPerCall', 'int(min=1, max=100)', 'caption=Изпращания заедно, input=none, mandatory, oldFieldName=sendPerMinute, title=Максимален брой изпращания за минута, unit=на мин.');
         
         $this->FLD('sendingFrom', 'time(suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Начален час, input=none');
@@ -1331,8 +1331,7 @@ class blast_Emails extends core_Master
         // GET променливите от линка
         $mid = Request::get('m');
         $lang = Request::get('lg');
-        //$id = Request::get('id', 'int');
-        $id = (int) $_GET['id'];
+        $id = (int) Request::get('id');
         $uns = Request::get('uns');
         
         expect($id);

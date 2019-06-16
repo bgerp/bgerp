@@ -316,7 +316,7 @@ class eshop_ProductDetails extends core_Detail
                 
                 return strnatcmp($obj1->orderCode, $obj2->orderCode);
             });
-            bp($data->rows);
+            
             $prev = null;
             foreach ($data->rows as &$row1) {
                 if (isset($prev) && $prev == $row1->productId) {

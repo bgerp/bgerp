@@ -74,6 +74,12 @@ class core_Settings extends core_Manager
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни');
         
         $this->setDbUnique('key, objectId, userOrRole');
+        
+        $this->setDbIndex('key');
+        $this->setDbIndex('key, objectId');
+        $this->setDbIndex('key, userOrRole');
+        $this->setDbIndex('key, userOrRole, objectId');
+        $this->setDbIndex('userOrRole');
     }
     
     
@@ -135,12 +141,15 @@ class core_Settings extends core_Manager
     {
         // Подготвяме ключа и потребителя/групата
         $userOrRole = self::prepareUserOrRole($userOrRole);
+        
+        list(, $objectId) = explode('::', $key);
+        
         $key = self::prepareKey($key);
         
         static $allResArr = array();
         
         // Ако стойността е извличана преди, връщаме я
-        $keyHash = md5($key . '|' . $userOrRole . '|' . $fetchForUser . '|' . $type);
+        $keyHash = md5($key . '|' . $userOrRole . '|' . $fetchForUser . '|' . $type . '|' . $objectId);
         if (isset($allResArr[$keyHash])) {
             
             return $allResArr[$keyHash];
@@ -154,7 +163,11 @@ class core_Settings extends core_Manager
         
         $query = self::getQuery();
         
-        $query->where(array("#key = '[#1#]'", $key));
+        if (isset($objectId)) {
+            $query->where(array("#key = '[#1#]' AND #objectId = '[#2#]'", $key, $objectId));
+        } else {
+            $query->where(array("#key = '[#1#]'", $key));
+        }
         
         // Ако е потребител
         if ($userOrRole > 0) {
@@ -231,11 +244,13 @@ class core_Settings extends core_Manager
      */
     public static function fetchUsers($key, $property = null, $value = null)
     {
+        list(, $objectId) = explode('::', $key);
+        
         // Подготвяме ключа
         $key = self::prepareKey($key);
         
         // Ако данните са били извлечени, само ги връщаме
-        $hashStr = md5($key . '|' . $property . '|' . $value);
+        $hashStr = md5($key . '|' . $property . '|' . $value . '|' . $objectId);
         static $resArr = array();
         if (isset($resArr[$hashStr])) {
             
@@ -248,7 +263,12 @@ class core_Settings extends core_Manager
         $fetched = array();
         
         $query = self::getQuery();
-        $query->where(array("#key = '[#1#]'", $key));
+        
+        if (isset($objectId)) {
+            $query->where(array("#key = '[#1#]' AND #objectId = '[#2#]'", $key, $objectId));
+        } else {
+            $query->where(array("#key = '[#1#]'", $key));
+        }
         
         // С по-голям приоритет са данните въведени от потребителя
         $query->orderBy('userOrRole', 'DESC');
@@ -322,12 +342,17 @@ class core_Settings extends core_Manager
     {
         $dataVal = array();
         
+        list(, $objectId) = explode('::', $key);
+        
         $key = self::prepareKey($key);
         
         $userOrRole = self::prepareUserOrRole($userOrRole);
         
-        // Вземаме записа
-        $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '{$userOrRole}'", $key));
+        if (isset($objectId)) {
+            $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]' AND #objectId = '[#3#]'", $key, $userOrRole, $objectId));
+        } else {
+            $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $key, $userOrRole));
+        }
         
         // Ако има запис връщаме масива с данните
         if ($rec) {
@@ -548,8 +573,13 @@ class core_Settings extends core_Manager
                 self::setValues($key, (array) $oldSArr, $allSystemId);
             }
             
+            list(, $objectId) = explode('::', $key);
             $pKey = self::prepareKey($key);
-            $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $pKey, $userOrRole));
+            if (isset($objectId)) {
+                $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]' AND #objectId = '[#3#]'", $pKey, $userOrRole, $objectId));
+            } else {
+                $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $pKey, $userOrRole));
+            }
             
             $this->logWrite('Промяна на настройките', $rec);
             
@@ -685,14 +715,15 @@ class core_Settings extends core_Manager
             return false;
         }
     }
-
+    
+    
     /**
      * Връща масив с всички перонализации за посочената константа
      * Ключовете на масива са потребителите или ролите, а стойностите - стойностите на константата
      * 
      * @param string $constName името на константата
      * 
-     * @return string
+     * @return array
      */
     public static function fetchPersonalConfig($constName)
     {
@@ -704,7 +735,7 @@ class core_Settings extends core_Manager
                 $res[$rec->userOrRole] = $rec->data[$constName];
             }
         }
-
+        
         return $res;
     }
 }
