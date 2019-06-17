@@ -490,10 +490,38 @@ class log_Browsers extends core_Master
         $bridHash = str::addHash($brid, self::HASH_LENGTH, $bridSalt);
         $cArr = array('expires' => time() + $conf->CORE_COOKIE_LIFETIME, 'path' => '/', 'secure' => (EF_HTTPS == 'MANDATORY') ? true : false, 'httponly' => true, 'samesite' => 'Strict');
         
+        // Опитваме се да определим домейна за кукито
+        $cArr['domain'] = null;
+        if (!defined('BRID_DOMAIN_NAME')) {
+            if ($httpHost = $_SERVER['HTTP_HOST']) {
+                $urlArr = core_Url::parseUrl($httpHost);
+                if ($urlArr['domain']) {
+                    list($dL, $dR) = explode('.', $urlArr['domain']);
+                    $cArr['domain'] = '.';
+                    
+                    if ((strlen($dL) <= 2) && (strlen($dR) <= 2)) {
+                        $uArr = explode('.', $urlArr['host']);
+                        $cnt = count($uArr);
+                        if ($cnt > 2) {
+                            $cArr['domain'] .= $uArr[$cnt-3] . '.' . $uArr[$cnt-2] . '.' . $uArr[$cnt-1];
+                        } else {
+                            $cArr['domain'] .= $urlArr['domain'];
+                        }
+                    } else {
+                        $cArr['domain'] .= $urlArr['domain'];
+                    }
+                }
+            }
+        } else {
+            if (BRID_DOMAIN_NAME !== false) {
+                $cArr['domain'] = BRID_DOMAIN_NAME;
+            }
+        }
+        
         if (PHP_VERSION_ID >= 70300) {
             setcookie(self::BRID_NAME, $bridHash, $cArr);
         } else {
-            setcookie(self::BRID_NAME, $bridHash, $cArr['expires'], '/; samesite=' . $cArr['samesite'], null, $cArr['secure'], $cArr['httponly']);
+            setcookie(self::BRID_NAME, $bridHash, $cArr['expires'], '/; samesite=' . $cArr['samesite'], $cArr['domain'], $cArr['secure'], $cArr['httponly']);
         }
     }
     
