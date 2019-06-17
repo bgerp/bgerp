@@ -986,6 +986,8 @@ class sales_QuotationsDetails extends doc_Detail
                 if ($hintTerm === true) {
                     $row->term = ht::createHint($row->term, 'Срокът на доставка е изчислен автоматично на база количеството и параметрите на артикула');
                 }
+            } else {
+                unset($row->term);
             }
         }
         
