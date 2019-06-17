@@ -197,15 +197,6 @@ class log_Ips extends core_Manager
             $rec = self::fetch($id);
         }
         
-        // $host
-        if (!$rec->host) {
-            if ($calls < 2) {
-                $rec->host = self::getHost($ip);
-                $calls++;
-                $mustSave = true;
-            }
-        }
-
         $host = $rec->host ? $rec->host : $ip;
         
         // $title
@@ -332,9 +323,10 @@ class log_Ips extends core_Manager
     public function cron_UpdateIpInfo()
     {
         $query = self::getQuery();
-        $before1day = dt::addDays(-1);
+        $before1day = dt::addDays(-3);
+        $query->orderBy('createdOn', 'DESC');
         $query->limit(10);
-        $query->where("#createdOn < '{$before1day}' AND (#host IS NULL OR #country2 IS NULL)");
+        $query->where("#createdOn > '{$before1day}' AND (#host IS NULL OR #country2 IS NULL)");
         while($rec = $query->fetch()) {
             self::decorateIp($rec->ip);
         }
