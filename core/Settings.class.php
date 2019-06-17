@@ -630,8 +630,11 @@ class core_Settings extends core_Manager
         // Ограничаваме дължината на ключа
         $key = self::prepareKey($key);
         
-        // Стария запис
-        $oldRec = static::fetch(array("#key = '[#1#]' AND #userOrRole = '{$userOrRole}'", $key));
+        if (isset($objectId)) {
+            $oldRec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]' AND #objectId = '[#3#]'", $key, $userOrRole, $objectId));
+        } else {
+            $oldRec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $key, $userOrRole));
+        }
         
         if ($mergeVals && $oldRec) {
             $valArr = array_merge((array) $oldRec->data, (array) $valArr);
