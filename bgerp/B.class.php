@@ -15,6 +15,14 @@
  */
 class bgerp_B extends core_Manager
 {
+    
+    
+    /**
+     * Дали id-тата на този модел да са защитени?
+     */
+    public $protectId = false;
+    
+    
     /**
      * Заглавие
      */
@@ -38,21 +46,6 @@ class bgerp_B extends core_Manager
         $vid = Request::get('id');
         
         return blast_Redirect::doRedirect($vid);
-    }
-    
-    
-    /**
-     * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
-     */
-    public function unprotectId_($id)
-    {
-        $act = strtolower($_GET['Act']);
-        $ctr = strtolower($_GET['Ctr']);
-        if ($act == 'r' || $ctr != 'b') {
-            $this->protectId = false;
-        }
-        
-        return parent::unprotectId_($id);
     }
     
     

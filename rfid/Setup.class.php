@@ -48,13 +48,15 @@ class rfid_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'rfid_Readers',
-        'rfid_Events',
+        'rfid_Assignments',
         'rfid_Tags',
-        'rfid_Holders',
-        'rfid_Ownerships'
     );
     
-    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'rfid_driver_HolderPerson';
+
     /**
      * Роли за достъп до модула
      */
