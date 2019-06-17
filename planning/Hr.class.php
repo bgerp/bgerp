@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     0.12
@@ -223,6 +223,12 @@ class planning_Hr extends core_Master
                 $data->addExtUrl = array($this, 'add', 'personId' => $data->masterId, 'ret_url' => true);
             }
         }
+        
+        $fodlerQuery = planning_AssetResourceFolders::getQuery();
+        $fodlerQuery->where("#classId={$this->getClassId()} AND #objectId = {$data->rec->id}");
+        $fodlerQuery->show('folderId');
+        $folders = arr::extractValuesFromArray($fodlerQuery->fetchAll(), 'folderId');
+        $data->row->folders = core_Type::getByName('keylist(mvc=doc_Folders,select=title)')->toVerbal(keylist::fromArray($folders));
     }
     
     
