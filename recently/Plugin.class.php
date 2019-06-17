@@ -23,6 +23,9 @@ class recently_Plugin extends core_Plugin
     public function on_BeforeRenderFields(&$form)
     {
         setIfNot($prefix, $form->mvc->dbTableName, $form->name, '_');
+        if ($prefix == '_') {
+            wp($form);
+        }
         
         $inputFields = $form->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none')");
         
