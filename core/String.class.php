@@ -504,8 +504,8 @@ class core_String
     public static function limitLen($str, $maxLen, $showEndFrom = 20, $dots = ' ... ', $hyphen = false)
     {
         if (Mode::is('screenMode', 'narrow')) {
-            $maxLen = round($maxLen / 1.25);
-            $showEndFrom = round($showEndFrom / 1.25);
+            $maxLen = round($maxLen / 1.05);
+            $showEndFrom = round($showEndFrom / 1.05);
         }
         if (mb_strlen($str) > $maxLen) {
             if ($maxLen >= $showEndFrom) {
