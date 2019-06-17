@@ -66,7 +66,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,single=none,input=none');
         $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,single=none,input=none');
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,mandatory,after=to');
-        $fieldset->FLD('orderBy', 'enum(saleValue=Продажби, delta=Делта,change=Промяна)', 'caption=Подреди по,maxRadio=3,columns=3,after=dealers');
+        $fieldset->FLD('orderBy', 'enum(saleValue=Продажби, delta=Делта,change=Промяна)', 'caption=Подреди по,after=dealers');
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=orderBy');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
@@ -256,7 +256,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $unicart = $salesArr = array();
         $unicartPrev = $salesArrPrev = array();
         $unicartLast = $salesArrLast = array();
-        
+       
         while ($recPrime = $query->fetch()) {
             $sellValuePrevious = $sellValueLastYear = $sellValue = $delta = $deltaPrevious = $deltaLastYear = 0;
             $contragentId = $contragentClassId = $contragentClassName = 0;
@@ -344,7 +344,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                             $salesArrPrev[$id] = array();
                         }
                         
-                        $saleId = $detClassName::fetch($recPrime->detailRecId)->saleId;
+                        $masterKey = cls::get($detClassName)->masterKey;
+                        $saleId = $detClassName::fetch($recPrime->detailRecId)->$masterKey;
                         if (!in_array($saleId, $salesArrPrev[$id])) {
                             array_push($salesArrPrev[$id], $saleId);
                         }
@@ -376,7 +377,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                         $salesArrLast[$id] = array();
                     }
                     
-                    $saleId = $detClassName::fetch($recPrime->detailRecId)->saleId;
+                    $masterKey = cls::get($detClassName)->masterKey;
+                    $saleId = $detClassName::fetch($recPrime->detailRecId)->$masterKey;
                     if (!in_array($saleId, $salesArrLast[$id])) {
                         array_push($salesArrLast[$id], $saleId);
                     }
@@ -406,8 +408,12 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     if (!is_array($salesArr[$id])) {
                         $salesArr[$id] = array();
                     }
+                   
                     
-                    $saleId = $detClassName::fetch($recPrime->detailRecId)->saleId;
+                    $masterKey = cls::get($detClassName)->masterKey;
+                    $saleId = $detClassName::fetch($recPrime->detailRecId)->$masterKey;
+                    
+                    
                     if (!in_array($saleId, $salesArr[$id])) {
                         array_push($salesArr[$id], $saleId);
                     }
@@ -460,7 +466,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             
             $totalValueLastYear += $sellValueLastYear;
         }
-        
+      
         $tempArr = array();
         
         foreach ($recs as $v) {
@@ -537,7 +543,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         );
         
         array_unshift($recs, $totalArr['total']);
-        
+      
         return $recs;
     }
     
