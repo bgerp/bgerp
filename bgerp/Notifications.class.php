@@ -1069,8 +1069,14 @@ class bgerp_Notifications extends core_Manager
                 core_Settings::setValues($key, $vRecArr);
                 
                 // Записваме в лога
+                list(, $objectId) = explode('::', $key);
                 $pKey = core_Settings::prepareKey($key);
-                $sRec = core_Settings::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $pKey, core_Users::getCurrent()));
+                if (isset($objectId)) {
+                    $sRec = core_Settings::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]' AND #objectId = '[#3#]'", $pKey, core_Users::getCurrent(), $objectId));
+                } else {
+                    $sRec = core_Settings::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $pKey, core_Users::getCurrent()));
+                }
+                
                 core_Settings::logWrite('Промяна на настройките', $sRec);
             }
             
