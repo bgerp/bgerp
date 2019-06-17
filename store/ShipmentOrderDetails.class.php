@@ -52,7 +52,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, doc_plg_HidePrices,store_plg_RequestDetail,
                         plg_AlignDecimals2, plg_Sorting, doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy,
-                        ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
+                        ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,acc_plg_ExpenseAllocation,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
     
     
     /**
@@ -156,7 +156,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         $form = &$data->form;
         $masterRec = $data->masterRec;
         $property = ($masterRec->isReverse == 'yes') ? 'canBuy' : 'canSell';
-        $property .= ',canStore';
         
         $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property));
     }
@@ -180,10 +179,13 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             if (isset($rec->productId, $masterRec)) {
                 $foundQuantity = null;
                 $masterStore = $masterRec->storeId;
-                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore, $foundQuantity);
-                $form->info = $storeInfo->formInfo;
-                if (!empty($foundQuantity) && $foundQuantity > 0) {
-                    $form->setSuggestions('baseQuantity', array('' => '', "{$foundQuantity}" => $foundQuantity));
+                $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+                if($canStore == 'yes'){
+                    $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore, $foundQuantity);
+                    $form->info = $storeInfo->formInfo;
+                    if (!empty($foundQuantity) && $foundQuantity > 0) {
+                        $form->setSuggestions('baseQuantity', array('' => '', "{$foundQuantity}" => $foundQuantity));
+                    }
                 }
             }
         }

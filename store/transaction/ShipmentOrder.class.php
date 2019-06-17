@@ -64,8 +64,8 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             
             // Проверка на артикулите
             $property = ($rec->isReverse == 'yes') ? 'canBuy' : 'canSell';
-            $msg = ($rec->isReverse == 'yes') ? 'купуваеми и складируеми' : 'продаваеми и складируеми';
-            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), "canStore,{$property}");
+            $msg = ($rec->isReverse == 'yes') ? 'купуваемии' : 'продаваеми';
+            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), $property);
             if(count($productCheck['notActive'])){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
@@ -197,30 +197,53 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             $amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
             $amount = round($amount, 2);
             
-            $pInfo = cat_Products::getProductInfo($detailRec->productId, $detailRec->packagingId);
-            
             // Вложимите кредит 706, другите 701
             $creditAccId = '701';
-            
-            $entries[] = array(
-                'amount' => $sign * $amount * $currencyRate, // В основна валута
+            $canStore = cat_Products::fetchField($detailRec->productId, 'canStore');
+           
+            if($canStore == 'yes'){
+                $entries[] = array(
+                    'amount' => $sign * $amount * $currencyRate, // В основна валута
+                    
+                    'debit' => array(
+                        $rec->accountId,
+                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                        array($origin->className, $origin->that),			// Перо 2 - Сделка
+                        array('currency_Currencies', $currencyId),     		// Перо 3 - Валута
+                        'quantity' => $sign * $amount, // "брой пари" във валутата на продажбата
+                    ),
+                    
+                    'credit' => array(
+                        $creditAccId,
+                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                        array($origin->className, $origin->that),			// Перо 2 - Сделка
+                        array('cat_Products', $detailRec->productId), // Перо 3 - Артикул
+                        'quantity' => $sign * $detailRec->quantity, // Количество продукт в основната му мярка
+                    ),
+                );
+            } else {
+                $entries[] = array(
+                    'amount' => $sign * $amount * $rec->currencyRate, // В основна валута
+                    
+                    'debit' => array(
+                        $rec->accountId,
+                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                        array($origin->className, $origin->that),			// Перо 2 - Сделка
+                        array('currency_Currencies', $currencyId),     		// Перо 3 - Валута
+                        'quantity' => $sign * $amount, // "брой пари" във валутата на продажбата
+                    ),
+                    
+                    'credit' => array(
+                        '703', // Сметка "703". Приходи от продажби на услуги
+                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                        array($origin->className, $origin->that),			// Перо 2 - Сделка
+                        array('cat_Products', $detailRec->productId), // Перо 3 - Артикул
+                        'quantity' => $sign * $detailRec->quantity, // Количество продукт в основната му мярка
+                    ),
+                );
                 
-                'debit' => array(
-                    $rec->accountId,
-                    array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                    array($origin->className, $origin->that),			// Перо 2 - Сделка
-                    array('currency_Currencies', $currencyId),     		// Перо 3 - Валута
-                    'quantity' => $sign * $amount, // "брой пари" във валутата на продажбата
-                ),
                 
-                'credit' => array(
-                    $creditAccId,
-                    array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                    array($origin->className, $origin->that),			// Перо 2 - Сделка
-                    array('cat_Products', $detailRec->productId), // Перо 3 - Артикул
-                    'quantity' => $sign * $detailRec->quantity, // Количество продукт в основната му мярка
-                ),
-            );
+            }
         }
         
         if ($this->class->_total->vat) {
@@ -243,7 +266,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
                 ),
             );
         }
-        
+      
         return $entries;
     }
     
@@ -274,7 +297,9 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             if (empty($detailRec->quantity) && Mode::get('saveTransaction')) {
                 continue;
             }
+            
             $pInfo = cat_Products::getProductInfo($detailRec->productId, $detailRec->packagingId);
+            if(!isset($pInfo->meta['canStore'])) continue;
             
             // Вложимите кредит 706, другите 701
             $debitAccId = (isset($pInfo->meta['materials'])) ? '706' : '701';
