@@ -340,14 +340,20 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                         
                         
                         // Масив сделки
-                        if (!is_array($salesArrPrev[$id])) {
-                            $salesArrPrev[$id] = array();
+                        if (!is_array($salesArr[$id])) {
+                            $salesArr[$id] = array();
                         }
                         
-                        $masterKey = cls::get($detClassName)->masterKey;
-                        $saleId = $detClassName::fetch($recPrime->detailRecId)->$masterKey;
-                        if (!in_array($saleId, $salesArrPrev[$id])) {
-                            array_push($salesArrPrev[$id], $saleId);
+                        if ($DetClass instanceof sales_SalesDetails) {
+                            
+                            $saleId = $detClassName::fetch($recPrime->detailRecId)->saleId;
+                        }else{
+                            $saleId=doc_Threads::getFirstDocument($recPrime->threadId)->that;
+                            
+                        }
+                        
+                        if (!in_array($saleId, $salesArr[$id])) {
+                            array_push($salesArr[$id], $saleId);
                         }
                     }
                 }
@@ -373,14 +379,20 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     
                     
                     // Масив сделки
-                    if (!is_array($salesArrLast[$id])) {
-                        $salesArrLast[$id] = array();
+                    if (!is_array($salesArr[$id])) {
+                        $salesArr[$id] = array();
                     }
                     
-                    $masterKey = cls::get($detClassName)->masterKey;
-                    $saleId = $detClassName::fetch($recPrime->detailRecId)->$masterKey;
-                    if (!in_array($saleId, $salesArrLast[$id])) {
-                        array_push($salesArrLast[$id], $saleId);
+                    if ($DetClass instanceof sales_SalesDetails) {
+                        
+                        $saleId = $detClassName::fetch($recPrime->detailRecId)->saleId;
+                    }else{
+                        $saleId=doc_Threads::getFirstDocument($recPrime->threadId)->that;
+                        
+                    }
+                    
+                    if (!in_array($saleId, $salesArr[$id])) {
+                        array_push($salesArr[$id], $saleId);
                     }
                 }
             }
@@ -409,10 +421,13 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                         $salesArr[$id] = array();
                     }
                    
-                    
-                    $masterKey = cls::get($detClassName)->masterKey;
-                    $saleId = $detClassName::fetch($recPrime->detailRecId)->$masterKey;
-                    
+                    if ($DetClass instanceof sales_SalesDetails) {
+                       
+                        $saleId = $detClassName::fetch($recPrime->detailRecId)->saleId;
+                    }else{
+                        $saleId=doc_Threads::getFirstDocument($recPrime->threadId)->that;
+                        
+                    }
                     
                     if (!in_array($saleId, $salesArr[$id])) {
                         array_push($salesArr[$id], $saleId);
@@ -426,20 +441,27 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     
                     'contragentId' => $id,
                     'contragentClassName' => $contragentClassName,
+                    
+                    'saleValue' => $sellValue,
+                    'delta' => $delta,
+                    
                     'sellValuePrevious' => $sellValuePrevious,
                     'deltaPrevious' => $deltaPrevious,
+                   
                     'sellValueLastYear' => $sellValueLastYear,
                     'deltaLastYear' => $deltaLastYear,
-                    'saleValue' => $sellValue,
+                   
                     'group' => cat_Products::fetchField($recPrime->productId, 'groups'),
                     'groupList' => $contragentGroupsList,
-                    'delta' => $delta,
+                    
                     'unicart' => '',
                     'unicartPrevious' => '',
                     'unicartLast' => '',
+                    
                     'salesArr' => '',
                     'salesArrPrevious' => '',
                     'salesArrLast' => '',
+                    
                     'change' => '',
                     'groupValues' => '',
                     'groupDeltas' => ''
