@@ -720,7 +720,13 @@ abstract class deals_Helper
      */
     public static function getQuantityHint(&$html, $productId, $storeId, $quantity, $state)
     {
-        if (!in_array($state, array('draft', 'pending'))) {
+        if(!in_array($state, array('draft', 'pending'))) {
+            
+            return;
+        }
+        
+        $canStore = cat_Products::fetchField($productId, 'canStore');
+        if($canStore != 'yes') {
             
             return;
         }
