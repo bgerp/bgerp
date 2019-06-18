@@ -92,7 +92,8 @@ class rack_plg_Shipments extends core_Plugin
             if(isset($mvc->mainDetail)){
                 $Detail = cls::get($mvc->mainDetail);
                 $dQuery = $Detail->getQuery();
-                $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+                $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$Detail->productFld}");
+                $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #canStore = 'yes'");
                 
                 while($dRec = $dQuery->fetch()){
                     
