@@ -1745,6 +1745,12 @@ abstract class deals_Helper
         }
         
         foreach ($arr as $obj) {
+            $canStore = cat_Products::fetchField($obj->{$productFld}, 'canStore');
+            if($canStore != 'yes') {
+                
+                return;
+            }
+            
             $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, ($state == 'pending' ? 0 : $obj->{$quantityFld}));
             if ($available < 0) {
                 $productsWithNegativeQuantity[] = cat_Products::getTitleById($obj->{$productFld}, false);
