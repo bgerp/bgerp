@@ -765,6 +765,23 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Променяме шаблона в зависимост от мода
+     *
+     * @param blast_Emails $mvc
+     * @param core_ET      $tpl
+     * @param object       $data
+     */
+    public function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        if (Mode::is('externalThreadView')) {
+            $mvc->singleLayoutFile = 'email/tpl/ExternalThreadViewSingleIncomings.shtml';
+            
+            $data->row->ExternalThreadViewAvatar = avatar_Plugin::getImg(null, $data->rec->fromEml);
+        }
+    }
+    
+    
+    /**
      * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
      */
     public static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)

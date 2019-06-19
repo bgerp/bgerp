@@ -388,7 +388,18 @@ class bgerp_L extends core_Manager
             
             $html = '<div class="externalThread">';
             
+            Mode::set('externalThreadView', true);
+            
             Mode::set('noBlank', true);
+            
+            $mRec = doclog_Documents::fetchByMid($mid);
+            $mRecToArr = type_Emails::toArray(strtolower($mRec->data->to));
+            $mRecCcArr = type_Emails::toArray(strtolower($mRec->data->cc));
+            
+            $mRecToArr = arr::make($mRecToArr, true);
+            $mRecCcArr = arr::make($mRecCcArr, true);
+            
+            $mAllEmails = $mRecToArr + $mRecCcArr;
             
             foreach ($tEmailsDocArr as $containerId => $dRec) {
                 $dDoc = doc_Containers::getDocument($containerId);
@@ -409,6 +420,37 @@ class bgerp_L extends core_Manager
                     // Маркираме документа като отворен
                     doclog_Documents::opened($containerId, $dRec->_mid);
                     $options = $this->getDocOptions($containerId, $dRec->_mid);
+                }
+                $options['rec'] = $dDoc->fetch();
+                
+                // Подготвяме данните за имейла от изпращането
+                if ($dRec->_mid) {
+                    $cRecVal = doclog_Documents::fetchByMid($dRec->_mid);
+                    
+                    if ($cRecVal) {
+                        $cRecToArr = type_Emails::toArray(strtolower($cRecVal->data->to));
+                        $cRecCcArr = type_Emails::toArray(strtolower($cRecVal->data->cc));
+                        
+                        $options['rec']->ExternalThreadViewDate = dt::mysql2verbal($cRecVal->createdOn);
+                        
+                        if ($cRecToArr) {
+                            $options['rec']->ExternalThreadViewTo = type_Emails::fromArray($cRecToArr);
+                        }
+                        
+                        if ($cRecCcArr) {
+                            $options['rec']->ExternalThreadViewCc = type_Emails::fromArray($cRecCcArr);
+                        }
+                        
+                        $fromEmail = email_Inboxes::fetchField($cRecVal->data->from, 'email');
+                        $options['rec']->ExternalThreadViewFrom = $fromEmail;
+                        
+                        if ($options['rec']->createdBy > 0) {
+                            $avatar = avatar_Plugin::getImg($options['rec']->createdBy, $fromEmail);
+                        } else {
+                            $avatar = avatar_Plugin::getImg($cRecVal->data->sendedBy, $fromEmail);
+                        }
+                        $options['rec']->ExternalThreadViewAvatar = $avatar;
+                    }
                 }
                 
                 Mode::push('saveObjectsToCid', $containerId);
@@ -535,8 +577,8 @@ class bgerp_L extends core_Manager
         $cQuery->where(array("#docClass = '[#1#]'", $inClsId));
         $cQuery->orWhere(array("#docClass = '[#1#]'", $outClsId));
         
-        $cQuery->orderBy('createdOn', 'DESC');
-        $cQuery->orderBy('id', 'DESC');
+        $cQuery->orderBy('createdOn', 'ASC');
+        $cQuery->orderBy('id', 'ASC');
         
         while ($cRec = $cQuery->fetch()) {
             $continue = false;

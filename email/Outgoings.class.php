@@ -2415,6 +2415,14 @@ class email_Outgoings extends core_Master
             core_Lg::push($data->lg);
         }
         
+        if (Mode::is('externalThreadView')) {
+            $data->row->ExternalThreadViewDate = $data->rec->ExternalThreadViewDate;
+            $data->row->ExternalThreadViewTo = $data->rec->ExternalThreadViewTo;
+            $data->row->ExternalThreadViewCc = $data->rec->ExternalThreadViewCc;
+            $data->row->ExternalThreadViewFrom = $data->rec->ExternalThreadViewFrom;
+            $data->row->ExternalThreadViewAvatar = $data->rec->ExternalThreadViewAvatar;
+        }
+        
         //Полета До и Към
         $attn = $data->row->recipient . $data->row->attn;
         $attn = trim($attn);
@@ -2459,6 +2467,10 @@ class email_Outgoings extends core_Master
         // Определяме лейаута според режима на рендиране
         
         switch (true) {
+            case Mode::is('externalThreadView'):
+                $tpl = 'email/tpl/ExternalThreadViewSingleOutgoings.shtml';
+            break;
+            
             case Mode::is('text', 'plain'):
                 $tpl = 'email/tpl/SingleLayoutOutgoings.txt';
             break;
@@ -2476,11 +2488,6 @@ class email_Outgoings extends core_Master
                 }
             
             break;
-        }
-        
-        $layoutText = getTplFromFile($this->singleLayoutFile);
-        if (Mode::is('screenMode', 'narrow') && isset($this->singleLayoutFileNarrow)) {
-            $layoutText = getTplFromFile($this->singleLayoutFileNarrow);
         }
         
         $tpl = getTplFromFile($tpl);
