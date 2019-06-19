@@ -182,6 +182,8 @@ class bgerp_L extends core_Manager
             
             expect(doclog_Documents::opened($cid, $mid));
             
+            vislog_History::add('Разглеждане на имейла');
+            
             // Ако потребителя има права до треда на документа, то той му се показва
             if ($rec && $rec->threadId) {
                 if ($doc->getInstance()->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
@@ -365,6 +367,8 @@ class bgerp_L extends core_Manager
             expect($mid = Request::get('m'));
             
             expect(doclog_Documents::opened($cid, $mid));
+            
+            vislog_History::add('Разглеждане на нишка от имейли');
             
             // Ако потребителя има права до треда на документа, то той му се показва
             if ($rec && $rec->threadId) {
