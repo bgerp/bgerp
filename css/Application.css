@@ -5619,13 +5619,48 @@ only screen and (max-width: 320px) {
       display: inline-block; }
   .external span.linkWithIcon {
     padding-left: 23px !important; }
+  .external .docIncomings {
+    width: 1002px; }
+    .external .docIncomings .document {
+      box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.1); }
+      .external .docIncomings .avatar img {
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.9); }
+      .external .docIncomings .avatar span {
+        position: relative;
+        right: 4px;
+        top: -56px;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 30px 30px 0 0;
+        border-color: white rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgba(0, 0, 0, 0); }
   .external .docOutgoings {
-    position: relative;
-    left: 100px; }
+    width: 1002px; }
+    .external .docOutgoings .avatar {
+      margin: 10px 0 0 10px; }
+      .external .docOutgoings .avatar img {
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.9); }
+      .external .docOutgoings .avatar span {
+        display: inline-block;
+        position: relative;
+        left: 4px;
+        top: -55px;
+        width: 0;
+        height: 15px !important;
+        border-style: solid;
+        border-width: 30px 30px 0 0;
+        border-color: #ddecfd rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgba(0, 0, 0, 0);
+        transform: scaleX(-1); }
     .external .docOutgoings .document {
-      background-color: #ddecfd; }
+      margin-left: 0 !important;
+      float: right !important;
+      background-color: #ddecfd;
+      border: 1px solid rgba(0, 0, 0, 0);
+      box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.1); }
     .external .docOutgoings.currentEmailDoc .document {
-      background-color: #b6d6fa; }
+      box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.3); }
+  .external .externalThread .avatar img {
+    border-radius: 50%; }
 
 .narrow .external div.hideLink {
   margin-top: 10px; }

@@ -1,7 +1,9 @@
-[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+
 <!--ET_BEGIN ExternalThreadViewDate-->
-    <div>[#ExternalThreadViewAvatar#]</div>
+<div class="fright avatar"><span></span>[#ExternalThreadViewAvatar#]</div>
 <!--ET_END ExternalThreadViewDate-->
+
+<div class='document'>
     <div  class='clearfix21 antetka'>
         <div class="em-holder" style='float:left;margin-right:10px;'>
             <div class="small">
@@ -54,5 +56,5 @@
         <div>[#textPart#]</div>
         <!--ET_END textPart--> 
     </div>
-   
+    <div class="clearfix21"></div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

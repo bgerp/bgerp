@@ -1,7 +1,7 @@
 <!--ET_BEGIN ExternalThreadViewDate-->
-    <div>[#ExternalThreadViewAvatar#]</div>
+    <div class="fleft avatar">[#ExternalThreadViewAvatar#]<span></span></div>
 <!--ET_END ExternalThreadViewDate-->
-<div class='document' style="max-width:840px;">
+<div class='document fright'>
     <div class='scrolling-holder'>
         <div class='display-table'>
             <div class='antetka'>
