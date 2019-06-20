@@ -499,7 +499,7 @@ class log_Browsers extends core_Master
                     list($dL, $dR) = explode('.', $urlArr['domain']);
                     $cArr['domain'] = '.';
                     
-                    if ((strlen($dL) <= 2) && (strlen($dR) <= 2)) {
+                    if ((strlen($dL) <= 3) && (strlen($dR) <= 2)) {
                         $uArr = explode('.', $urlArr['host']);
                         $cnt = count($uArr);
                         if ($cnt > 2) {
