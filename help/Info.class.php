@@ -443,11 +443,10 @@ class help_Info extends core_Master
             if (Mode::is('screenMode', 'narrow')) {
                 $vStr = "<br>" . mb_strtolower($cVersionArr[1]);
             } else {
-                $vStr = ' ' . $delimiter . '(' . $cVersionArr[1] . ')';
+                $vStr = ' (' . $cVersionArr[1] . ')';
             }
             
             $data->_infoTitleVersionName = $cVersionArr[0] . $vStr;
-        
         }
         
         $data->title = "|Помощ за|* {$data->_infoTitlebgERPName} {$data->_infoTitleVersionName}";
