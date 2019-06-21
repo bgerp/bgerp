@@ -1405,8 +1405,8 @@ abstract class deals_DealMaster extends deals_DealBase
             
             // Контиране на документа
             $this->conto($id);
-            
             $this->logWrite('Активиране/Контиране на сделка', $id);
+            $this->invoke('AfterContoQuickSale', array($rec));
             
             // Редирект
             return new Redirect(array($this, 'single', $id));
