@@ -1405,7 +1405,7 @@ abstract class deals_DealMaster extends deals_DealBase
             
             // Контиране на документа
             $this->conto($id);
-            $this->logWrite('Активиране/Контиране на сделка', $id);
+            
             $this->invoke('AfterContoQuickSale', array($rec));
             
             // Редирект
@@ -1418,6 +1418,9 @@ abstract class deals_DealMaster extends deals_DealBase
         // Рендиране на формата
         $tpl = $this->renderWrapping($form->renderHtml());
         core_Form::preventDoubleSubmission($tpl, $form);
+        if(!$form->gotErrors()){
+            $this->logWrite('Избор на операция', $id);
+        }
         
         return $tpl;
     }
