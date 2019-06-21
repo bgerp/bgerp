@@ -36,7 +36,13 @@ function printFiscalReceipt(onSuccess, onError) {
                                 // Опитваме се да прекратим предишната бележка, ако има такава и да пуснем пак
                                 fpCancelFiscalReceipt();
                                 render_showToast({timeOut: 800, text: 'Прекратена предишна отворена бележка', isSticky: true, stayTime: 8000, type: 'notice'});
-                            } catch(ex) { }
+                            } catch(ex) { 
+                                try {
+                                    // Няма друго какво да се направи и затово прекратяваме предишната бележка
+                                    fpCloseReceiptInCash();
+                                    render_showToast({timeOut: 800, text: 'Отпечатана предишна отворена бележка', isSticky: true, stayTime: 8000, type: 'notice'});
+                                } catch(ex) { }
+                            }
                         }
                     } catch(ex) {
                         console.log('Грешка при проверка на предишна бележка: ' + ex.message);
