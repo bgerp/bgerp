@@ -423,4 +423,35 @@ class help_Info extends core_Master
         
         return $res;
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на листовия изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
+    {
+        setIfNot($data->_infoTitlebgERPName, 'bgERP');
+        if (!$data->_infoTitleVersionName) {
+            $cVersion = core_setup::CURRENT_VERSION;
+            $cVersionArr = explode('-', $cVersion, 2);
+            if (Mode::is('screenMode', 'narrow')) {
+                $vStr = "<br>" . mb_strtolower($cVersionArr[1]);
+            } else {
+                $vStr = ' ' . $delimiter . '(' . $cVersionArr[1] . ')';
+            }
+            
+            $data->_infoTitleVersionName = $cVersionArr[0] . $vStr;
+        
+        }
+        
+        $data->title = "|Помощ за|* {$data->_infoTitlebgERPName} {$data->_infoTitleVersionName}";
+        
+        $eArr = explode('(', $data->title);
+    }
 }
