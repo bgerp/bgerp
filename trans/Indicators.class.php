@@ -20,7 +20,6 @@
 class trans_Indicators extends core_BaseClass
 {
     
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -82,13 +81,13 @@ class trans_Indicators extends core_BaseClass
         $numberOfTransportLinesArr = self::getNumberOfTransportLines($timeline);
         $result = array_merge($numberOfTransportLinesArr, $result);
         
-//         // Индикатори за брой доставени пратки
-//         $numberOfShipmentsDeliveredArr = self::getNumberOfShipmentsDelivered($timeline);
-//         $result = array_merge($numberOfShipmentsDeliveredArr, $result);
+        // Индикатори за брой доставени пратки
+        $numberOfShipmentsDeliveredArr = self::getNumberOfShipmentsDelivered($timeline);
+        $result = array_merge($numberOfShipmentsDeliveredArr, $result);
         
-//         // Индикатори за доставено тегло
-//         $deliveredWeightArr = self::getDeliveredWeight($timeline);
-//         $result = array_merge($deliveredWeightArr, $result);
+        // Индикатори за доставено тегло
+        $deliveredWeightArr = self::getDeliveredWeight($timeline);
+        $result = array_merge($deliveredWeightArr, $result);
         
         return $result;
     }
@@ -112,7 +111,7 @@ class trans_Indicators extends core_BaseClass
             return $result;
         }
      
-        $masters = array();
+        //$masters = array();
     
         $query = trans_Lines::getQuery();
         
@@ -146,6 +145,150 @@ class trans_Indicators extends core_BaseClass
         return $result;
     }
     
+    /**
+     * Брой доставени пратки
+     *
+     * @param  datetime  $timeline
+     * @return array $result
+     */
+    private static function getNumberOfShipmentsDelivered($timeline)
+    {
+        $result = array();
+        $numberOfShipmentsDelivered = hr_IndicatorNames::force('Брой_доставени_пратки', __CLASS__, 2)->id;
+        
+        $from = trans_Setup::get('DATE_FOR_TRANS_INDICATORS');
+        
+        if (empty($from)) {
+            
+            return $result;
+        }
+        
+        $details = array();
+        
+        $detQuery = trans_LineDetails::getQuery();
+        $detQuery->EXT('modifiedOn', trans_Lines, "externalName=modifiedOn,externalKey=lineId");
+        $detQuery->EXT('start', trans_Lines, "externalName=start,externalKey=lineId");
+        $detQuery->where("#start >= '{$from}'");
+        $detQuery->where("#modifiedOn >= '{$timeline}'");
+        
+        while ($detRec = $detQuery->fetch()) {
+            
+            $details[$detRec->id] = $detRec->lineId;
+            
+        }
+       
+        $query = trans_Lines::getQuery();
+        
+        $query->where("#start >= '{$from}'");
+        
+        $query->where("#modifiedOn >= '{$timeline}'");
+        
+        while ($iRec = $query->fetch()) {
+            
+            if (empty($iRec->forwarderPersonId)) {
+                continue;
+            }
+            
+            
+            
+            $personId =$iRec->forwarderPersonId;
+            
+            $Document = doc_Containers::getDocument($iRec->containerId);
+            
+            $docId = $Document->that;
+            
+            $docClassId = $Document->getClassId();
+            
+            $indicatorId = $numberOfShipmentsDelivered;
+            
+            $value = 0;
+            foreach ($details as $key => $val){
+                
+                if ($val == $iRec->id){
+                    $value ++;
+                }
+            }
+            
+            $isRejected = $iRec->state == 'rejected'? true: false;
+            
+            hr_Indicators::addIndicatorToArray($result, $iRec->start, $personId,$docId,$docClassId, $indicatorId, $value, $isRejected);
+        }
+        
+        return $result;
+    }
     
+    /**
+     * Доставено тегло
+     *
+     * @param  datetime  $timeline
+     * @return array $result
+     */
+    private static function getDeliveredWeight($timeline)
+    {
+        $result = array();
+        $deliveredWeight = hr_IndicatorNames::force('Доставено_тегло', __CLASS__, 3)->id;
+        
+        $from = trans_Setup::get('DATE_FOR_TRANS_INDICATORS');
+        
+        if (empty($from)) {
+            
+            return $result;
+        }
+        
+        $weights = array();
+        
+        $detQuery = trans_LineDetails::getQuery();
+        $detQuery->EXT('modifiedOn', trans_Lines, "externalName=modifiedOn,externalKey=lineId");
+        $detQuery->EXT('start', trans_Lines, "externalName=start,externalKey=lineId");
+        $detQuery->where("#start >= '{$from}'");
+        $detQuery->where("#modifiedOn >= '{$timeline}'");
+        
+        while ($detRec = $detQuery->fetch()) {
+            
+            $Document = doc_Containers::getDocument($detRec->containerId);
+            $transInfo = $Document->getTransportLineInfo();
+            $weights[$detRec->lineId] += $transInfo['weight'];
+            
+        }
+        
+        $query = trans_Lines::getQuery();
+        
+        $query->where("#start >= '{$from}'");
+        
+        $query->where("#modifiedOn >= '{$timeline}'");
+        
+        while ($iRec = $query->fetch()) {
+            
+            if (empty($iRec->forwarderPersonId)) {
+                continue;
+            }
+            
+            
+            
+            $personId =$iRec->forwarderPersonId;
+            
+            $Document = doc_Containers::getDocument($iRec->containerId);
+            
+            $docId = $Document->that;
+            
+            $docClassId = $Document->getClassId();
+            
+            $indicatorId = $deliveredWeight;
+            
+            $value = 0;
+            foreach ($weights as $key => $val){
+                
+                if ($key == $iRec->id){
+                    $value +=$val;
+                }
+            }
+            
+            $isRejected = $iRec->state == 'rejected'? true: false;
+            
+            hr_Indicators::addIndicatorToArray($result, $iRec->start, $personId,$docId,$docClassId, $indicatorId, $value, $isRejected);
+        }
+        
+        return $result;
+    }
    
 }
