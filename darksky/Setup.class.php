@@ -62,7 +62,7 @@ class darksky_Setup extends core_ProtoSetup
         // Api key за darksky.com
         'DARKSKY_API_KEY' => array('varchar', 'mandatory, caption=Прогноза за времето от darksky.net->Ключ'),
         
-      
+        
         // Задаване на мястото по подразбиране
         'DARKSKY_LOCATION' => array('location_Type', 'caption=Прогноза за времето от darksky.net->Място, customizeBy=powerUser'),
     
@@ -75,8 +75,8 @@ class darksky_Setup extends core_ProtoSetup
     public $managers = array(
         'darksky_Forecasts',
     );
-
-
+    
+    
     /**
      * Плъгини, които трябва да се инсталират
      */
@@ -84,21 +84,28 @@ class darksky_Setup extends core_ProtoSetup
             array('DarkSky Forecast', 'darksky_Plugin', 'cal_Calendar', 'private'),
         );
     
-
+    
     /**
      * Настройки за Cron
      */
     public $cronSettings = array(
-        array(
-            'systemId' => 'Get forecasts from darksky.net',
-            'description' => 'Извличане на прогнози от darksky.net',
-            'controller' => 'darksky_Forecasts',
-            'action' => 'Update',
-            'period' => 3 * 60,
-            'offset' => 73,
-            'delay' => 0,
-            'timeLimit' => 50,
+            array(
+                    'systemId' => 'Get forecasts from darksky.net',
+                    'description' => 'Извличане на прогнози от darksky.net',
+                    'controller' => 'darksky_Forecasts',
+                    'action' => 'Update',
+                    'period' => 3 * 60,
+                    'offset' => 73,
+                    'delay' => 0,
+                    'timeLimit' => 50,
+            ),array(
+                    'systemId' => 'Delete old rec from forecast',
+                    'description' => 'Изтриване на старите записи за прогнозата',
+                    'controller' => 'darksky_Forecasts',
+                    'action' => 'DeleteOld',
+                    'period' => 24 * 60,
+                    'timeLimit' => 50,
             ),
         );
-    
+
 }

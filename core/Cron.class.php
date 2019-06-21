@@ -789,7 +789,7 @@ class core_Cron extends core_Manager
         
         if ($res) {
             
-            return "<li style='color:green;'>Премахнати бяха липсващите входни точки за Cron: {$res}</li>";
+            return "<li style='color:brown;'>Премахнати бяха липсващите входни точки за Cron: {$res}</li>";
         }
     }
     
