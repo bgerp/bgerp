@@ -182,6 +182,8 @@ class bgerp_L extends core_Manager
             
             expect(doclog_Documents::opened($cid, $mid));
             
+            vislog_History::add('Разглеждане на имейла');
+            
             // Ако потребителя има права до треда на документа, то той му се показва
             if ($rec && $rec->threadId) {
                 if ($doc->getInstance()->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
@@ -309,16 +311,7 @@ class bgerp_L extends core_Manager
         } catch (core_exception_Expect $ex) {
             // Опит за зареждане на несъществуващ документ или документ с невалиден MID.
             
-            // Нелогнатите потребители не трябва да могат да установят наличието / липсата на
-            // документ. За тази цел системата трябва да реагира както когато документа е
-            // наличен, но няма достатъчно права за достъп до него, а именно - да покаже
-            // логин форма.
-            
-            requireRole('user');  // Ако има логнат потребител, този ред няма никакъв ефект.
-            // Ако няма - това ще форсира потребителя да се логне и ако
-            // логинът е успешен, управлението ще се върне отново тук
-            
-            // До тук се стига ако логнат потребител заяви липсващ документ или документ с
+            // До тук се стига, ако логнат потребител заяви липсващ документ или документ с
             // невалиден MID.
             
             // Ако потребителя има права до треда на документа, то той му се показва
@@ -331,8 +324,7 @@ class bgerp_L extends core_Manager
                 }
             }
             
-            expect(false);  // Същото се случва и ако документа съществува, но потребителя няма
-            // достъп до него.
+            redirect(array('Index'), false, '|Изтекла или липсваща връзка', 'error');
         }
     }
     
@@ -366,6 +358,8 @@ class bgerp_L extends core_Manager
             
             expect(doclog_Documents::opened($cid, $mid));
             
+            vislog_History::add('Разглеждане на нишка от имейли');
+            
             // Ако потребителя има права до треда на документа, то той му се показва
             if ($rec && $rec->threadId) {
                 if ($doc->getInstance()->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
@@ -388,7 +382,18 @@ class bgerp_L extends core_Manager
             
             $html = '<div class="externalThread">';
             
+            Mode::set('externalThreadView', true);
+            
             Mode::set('noBlank', true);
+            
+            $mRec = doclog_Documents::fetchByMid($mid);
+            $mRecToArr = type_Emails::toArray(strtolower($mRec->data->to));
+            $mRecCcArr = type_Emails::toArray(strtolower($mRec->data->cc));
+            
+            $mRecToArr = arr::make($mRecToArr, true);
+            $mRecCcArr = arr::make($mRecCcArr, true);
+            
+            $mAllEmails = $mRecToArr + $mRecCcArr;
             
             foreach ($tEmailsDocArr as $containerId => $dRec) {
                 $dDoc = doc_Containers::getDocument($containerId);
@@ -409,6 +414,37 @@ class bgerp_L extends core_Manager
                     // Маркираме документа като отворен
                     doclog_Documents::opened($containerId, $dRec->_mid);
                     $options = $this->getDocOptions($containerId, $dRec->_mid);
+                }
+                $options['rec'] = $dDoc->fetch();
+                
+                // Подготвяме данните за имейла от изпращането
+                if ($dRec->_mid) {
+                    $cRecVal = doclog_Documents::fetchByMid($dRec->_mid);
+                    
+                    if ($cRecVal) {
+                        $cRecToArr = type_Emails::toArray(strtolower($cRecVal->data->to));
+                        $cRecCcArr = type_Emails::toArray(strtolower($cRecVal->data->cc));
+                        
+                        $options['rec']->ExternalThreadViewDate = dt::mysql2verbal($cRecVal->createdOn);
+                        
+                        if ($cRecToArr) {
+                            $options['rec']->ExternalThreadViewTo = type_Emails::fromArray($cRecToArr);
+                        }
+                        
+                        if ($cRecCcArr) {
+                            $options['rec']->ExternalThreadViewCc = type_Emails::fromArray($cRecCcArr);
+                        }
+                        
+                        $fromEmail = email_Inboxes::fetchField($cRecVal->data->from, 'email');
+                        $options['rec']->ExternalThreadViewFrom = $fromEmail;
+                        
+                        if ($options['rec']->createdBy > 0) {
+                            $avatar = avatar_Plugin::getImg($options['rec']->createdBy, $fromEmail);
+                        } else {
+                            $avatar = avatar_Plugin::getImg($cRecVal->data->sendedBy, $fromEmail);
+                        }
+                        $options['rec']->ExternalThreadViewAvatar = $avatar;
+                    }
                 }
                 
                 Mode::push('saveObjectsToCid', $containerId);
@@ -457,8 +493,6 @@ class bgerp_L extends core_Manager
             
             return $html;
         } catch (core_exception_Expect $ex) {
-            requireRole('user');
-            
             // Ако потребителя има права до треда на документа, то той му се показва
             if ($doc) {
                 $urlArray = $doc->getSingleUrlArray();
@@ -469,7 +503,7 @@ class bgerp_L extends core_Manager
                 }
             }
             
-            expect(false);
+            redirect(array('Index'), false, '|Изтекла или липсваща връзка', 'error');
         }
     }
     
@@ -535,8 +569,8 @@ class bgerp_L extends core_Manager
         $cQuery->where(array("#docClass = '[#1#]'", $inClsId));
         $cQuery->orWhere(array("#docClass = '[#1#]'", $outClsId));
         
-        $cQuery->orderBy('createdOn', 'DESC');
-        $cQuery->orderBy('id', 'DESC');
+        $cQuery->orderBy('createdOn', 'ASC');
+        $cQuery->orderBy('id', 'ASC');
         
         while ($cRec = $cQuery->fetch()) {
             $continue = false;

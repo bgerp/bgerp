@@ -5449,7 +5449,7 @@ $.fn.isInViewport = function() {
  */
 function focusOnce(id, rand) {
 	
-    if (typeof(Storage) !== "undefined") {
+    if ((typeof(Storage) !== "undefined") && (typeof(localStorage) !== "undefined")) {
         if(localStorage.getItem(rand) !== null) {
             return;
         }

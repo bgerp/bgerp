@@ -187,9 +187,6 @@ class log_Ips extends core_Manager
      */
     public static function decorateIp($ip, $coloring = false, $cnt = 0, $old = 0)
     {
-        static $calls = 0;
-        
-        $mustSave = false;
         $rec = self::fetch(array("#ip = '[#1#]'", $ip));
         
         if (!$rec) {
@@ -197,6 +194,15 @@ class log_Ips extends core_Manager
             $rec = self::fetch($id);
         }
         
+        // Слагаме нова датана създаване, ако записа няма хост или държава
+        if(empty($rec->host) || empty($rec->country2)) {
+            $before3days = dt::addDays(-3);
+            if($rec->createdOn && $rec->createdOn < $before3days) {
+                $rec->createdOn = dt::now();
+                self::save($rec, 'createdOn');
+            }
+        }
+
         $host = $rec->host ? $rec->host : $ip;
         
         // $title
@@ -208,17 +214,7 @@ class log_Ips extends core_Manager
             $title .= ($title ? ': ' : '') . $rec->users;
         }
         $title = ht::escapeAttr($title);
-        
-        // $country
-        if (!$rec->country2) {
-            $rec->country2 = self::getCountry2($ip);
-            $mustSave = true;
-        }
-        
-        if ($mustSave) {
-            self::save($rec, 'host,country2', 'IGNORE');
-        }
-        
+                
         $country = $rec->country2;
         $countryName = null;
         if ($rec->country2 == 'p') {
@@ -308,7 +304,7 @@ class log_Ips extends core_Manager
                 unset($domainArr[0]);
                 $hostName = implode('.', $domainArr);
             }
-            if (strlen($hostName) > 24 || strlen($hostName) < 6) {
+            if (strlen($hostName) > 64 || strlen($hostName) < 3) {
                 $hostName = $ip;
             }
         }
@@ -323,12 +319,22 @@ class log_Ips extends core_Manager
     public function cron_UpdateIpInfo()
     {
         $query = self::getQuery();
-        $before1day = dt::addDays(-3);
-        $query->orderBy('createdOn', 'DESC');
+        $before3days = dt::addDays(-3);
         $query->limit(10);
-        $query->where("#createdOn > '{$before1day}' AND (#host IS NULL OR #country2 IS NULL)");
+        $query->where("#createdOn > '{$before3days}' AND (#host IS NULL OR #country2 IS NULL)");
         while($rec = $query->fetch()) {
-            self::decorateIp($rec->ip);
+
+            // $host
+            if (!$rec->host) {
+                $rec->host = self::getHost($rec->ip);
+            }
+
+            // $country
+            if (!$rec->country2) {
+                $rec->country2 = self::getCountry2($rec->ip);
+            }
+            
+            self::save($rec, 'host,country2', 'IGNORE');
         }
     }
 }

@@ -51,8 +51,8 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             
             // Проверка на артикулите
             $property = ($rec->isReverse == 'yes') ? 'canSell' : 'canBuy';
-            $msg = ($rec->isReverse == 'yes') ? 'продаваеми и складируеми' : 'купуваеми и складируеми';
-            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), "canStore,{$property}");
+            $msg = ($rec->isReverse == 'yes') ? 'продаваеми' : 'купуваеми';
+            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), $property);
             if(count($productCheck['notActive'])){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
@@ -149,36 +149,70 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
         $currencyId = currency_Currencies::getIdByCode($currencyCode);
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
-        
+        $dClass = ($reverse) ? 'store_ShipmentOrderDetails' : 'store_ReceiptDetails';
+       
         foreach ($rec->details as $detailRec) {
             if (empty($detailRec->quantity) && Mode::get('saveTransaction')) {
                 continue;
             }
-            $pInfo = cat_Products::getProductInfo($detailRec->productId);
+            $canStore = cat_Products::fetchField($detailRec->productId, 'canStore');
             $amount = $detailRec->amount;
             $amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
             $amount = round($amount, 2);
             
-            $debitAccId = '321';
-            
-            $debit = array(
-                $debitAccId,
-                array('store_Stores', $rec->storeId), // Перо 1 - Склад
-                array('cat_Products', $detailRec->productId),  // Перо 2 - Артикул
-                'quantity' => $sign * $detailRec->quantity, // Количество продукт в основната му мярка
-            );
-            
-            $entries[] = array(
-                'amount' => $sign * $amount * $rec->currencyRate,
-                'debit' => $debit,
-                'credit' => array(
-                    $rec->accountId,
-                    array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
-                    array($origin->className, $origin->that),		   // Перо 2 - Сделка
-                    array('currency_Currencies', $currencyId),          // Перо 3 - Валута
-                    'quantity' => $sign * $amount, // "брой пари" във валутата на покупката
-                ),
-            );
+            if($canStore != 'yes'){
+                // Към кои разходни обекти ще се разпределят разходите
+                $splitRecs = acc_CostAllocations::getRecsByExpenses($dClass, $detailRec->id, $detailRec->productId, $detailRec->quantity, $amount, $detailRec->discount);
+                
+                foreach ($splitRecs as $dRec1) {
+                    $amount = $dRec1->amount;
+                    $amountAllocated = $amount * $rec->currencyRate;
+                    
+                    $entries[] = array(
+                        'amount' => $sign * $amountAllocated, // В основна валута
+                        'debit' => array('60201',
+                            $dRec1->expenseItemId,
+                            array('cat_Products', $dRec1->productId),
+                            'quantity' => $sign * $dRec1->quantity),
+                        'credit' => array($rec->accountId,
+                            array($rec->contragentClassId, $rec->contragentId),
+                            array($origin->className, $origin->that),
+                            array('currency_Currencies', $currencyId),
+                            'quantity' => $sign * $amount,
+                        ),
+                        'reason' => $dRec1->reason,
+                    );
+                    
+                    // Корекция на стойности при нужда
+                    if (isset($dRec1->correctProducts) && count($dRec1->correctProducts)) {
+                        $correctionEntries = acc_transaction_ValueCorrection::getCorrectionEntries($dRec1->correctProducts, $dRec1->productId, $dRec1->expenseItemId, $dRec1->quantity, $dRec1->allocationBy, $reverse);
+                        if (count($correctionEntries)) {
+                            $entries = array_merge($entries, $correctionEntries);
+                        }
+                    }
+                }
+            } else {
+                $debitAccId = '321';
+                
+                $debit = array(
+                    $debitAccId,
+                    array('store_Stores', $rec->storeId), // Перо 1 - Склад
+                    array('cat_Products', $detailRec->productId),  // Перо 2 - Артикул
+                    'quantity' => $sign * $detailRec->quantity, // Количество продукт в основната му мярка
+                );
+                
+                $entries[] = array(
+                    'amount' => $sign * $amount * $rec->currencyRate,
+                    'debit' => $debit,
+                    'credit' => array(
+                        $rec->accountId,
+                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
+                        array($origin->className, $origin->that),		   // Перо 2 - Сделка
+                        array('currency_Currencies', $currencyId),          // Перо 3 - Валута
+                        'quantity' => $sign * $amount, // "брой пари" във валутата на покупката
+                    ),
+                );
+            }
         }
         
         if ($this->class->_total->vat) {

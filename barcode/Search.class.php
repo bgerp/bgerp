@@ -55,6 +55,8 @@ class barcode_Search extends core_Manager
         
         $form->FNC('search', 'varchar', 'caption=Баркод...,silent,input,recently');
         
+        $form->name = 'barcode_search';
+        
         $form->show = 'search';
         
         $form->input(null, true);

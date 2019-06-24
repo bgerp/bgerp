@@ -234,10 +234,10 @@ abstract class deals_DealBase extends core_Master
         $dealQuery->where("#id != {$rec->id}");
         $dealQuery->where("#folderId = {$rec->folderId}");
         $dealQuery->where("#currencyId = '{$rec->currencyId}'");
+        $dealQuery->where("#currencyRate = '{$rec->currencyRate}'");
         $dealQuery->where("#state = 'active'");
         $dealQuery->where("#closedDocuments = ''");
         
-        $valiorFld = ($this->valior) ? $this->valior : 'createdOn';
         while ($dealRec = $dealQuery->fetch()) {
             $title = $this->getRecTitle($dealRec) . ' / ' . (($this->valiorFld) ? $this->getVerbal($dealRec, $this->valiorFld) : '');
             $docs[$dealRec->id] = $title;
