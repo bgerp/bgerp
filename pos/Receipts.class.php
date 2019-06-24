@@ -1808,7 +1808,9 @@ class pos_Receipts extends core_Master
         $title = "{$pointIdVerbal}/{$rec->id}/{$valiorVerbal}";
         
         if (isset($rec->revertId)) {
-            $title = $title . " <span class='stamp'>" . tr('сторно') . '</span>';
+            $title = ht::createHint($title, 'сторно');
+            $title->prepend("<span class='red'>");
+            $title->append("</span>");
         }
         
         return $title;
