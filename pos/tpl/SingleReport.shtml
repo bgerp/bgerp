@@ -28,7 +28,7 @@
 		        			<br><span style='font-weight:normal'>|От|*: [#baseAccountId#]</span>
 		        			<!--ET_END baseAccountId-->
                         </td>
-                        <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left;width:1%'>
+                        <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left'>
 						     <!--ET_BEGIN ROW-->
 								[#ROW#]
 						     	<div style='font-weight:normal'>[#receiptBy#]: [#receiptTotal#] <span class='cCode'>[#baseCurrency#]</span></div>
