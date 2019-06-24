@@ -6322,6 +6322,12 @@ body.narrow {
 	span.linkWithIcon{
 		padding-left: 23px !important;
 	}
+	.docOutgoings .document {
+		background-color: #ddecfd;
+	}
+
+}
+.wide .external {
 	.docIncomings {
 		width: 1002px;
 		.document {
@@ -6367,7 +6373,6 @@ body.narrow {
 		.document {
 			margin-left: 0 !important;
 			float:  right !important;
-			background-color: #ddecfd;
 			border: 1px solid transparent;
 			box-shadow: 2px 2px 1px rgba(0,0,0,0.1);
 		}
@@ -6379,6 +6384,7 @@ body.narrow {
 		border-radius: 50%;
 	}
 }
+
 .narrow .external div.hideLink {
 	margin-top: 10px;
 }

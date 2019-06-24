@@ -2468,7 +2468,7 @@ class email_Outgoings extends core_Master
         
         switch (true) {
             case Mode::is('externalThreadView'):
-                $tpl = 'email/tpl/ExternalThreadViewSingleOutgoings.shtml';
+                $tpl =  Mode::get('screenMode') == "wide" ?  'email/tpl/ExternalThreadViewSingleOutgoings.shtml' : 'email/tpl/ExternalThreadViewSingleOutgoingsNarrow.shtml';
             break;
             
             case Mode::is('text', 'plain'):

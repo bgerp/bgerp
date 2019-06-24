@@ -774,7 +774,7 @@ class email_Incomings extends core_Master
     public function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
     {
         if (Mode::is('externalThreadView')) {
-            $mvc->singleLayoutFile = 'email/tpl/ExternalThreadViewSingleIncomings.shtml';
+            $mvc->singleLayoutFile =  Mode::get('screenMode') == "wide" ? 'email/tpl/ExternalThreadViewSingleIncomings.shtml' : 'email/tpl/ExternalThreadViewSingleIncomingsNarrow.shtml';
             
             $data->row->ExternalThreadViewAvatar = avatar_Plugin::getImg(null, $data->rec->fromEml);
         }
