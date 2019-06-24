@@ -98,13 +98,15 @@ class log_System extends core_Manager
      */
     public function description()
     {
-        $this->FLD('className', 'varchar(64)');
+        $this->FLD('className', 'varchar(64)', 'placeholder=Клас, autoFilter, allowEmpty, silent, recently');
         $this->FLD('objectId', 'int');
         $this->FLD('detail', 'text');
         $this->FLD('lifeDays', 'int', 'value=120, oldFieldName=lifeTime');
         $this->FLD('type', 'enum(info=Инфо,alert=Тревога,err=Грешка,warning=Предупреждение,notice=Известие,debug=Дебъг,logErr=Грешка в лога, logNotice=Известие в лога)', 'caption=Тип');
+        $this->FLD('lastSaved', 'datetime(smartTime)', 'caption=Последно');
         
         $this->setDbIndex('createdOn');
+        $this->setDbIndex('lastSaved');
         $this->setDbIndex('className');
         $this->setDbIndex('objectId');
         $this->setDbIndex('type');
@@ -134,9 +136,21 @@ class log_System extends core_Manager
      * @param string            $action
      * @param string            $type
      * @param int               $lifeDays
+     * @param null|int          $notDublicateTime
+     * @param null|int          $forceDublicateTime
      */
-    public static function add($className, $action, $objectId = null, $type = 'info', $lifeDays = 7)
+    public static function add($className, $action, $objectId = null, $type = 'info', $lifeDays = 7, $notDublicateTime = null, $forceDublicateTime = null)
     {
+        if (in_array($type, self::$notifyErrArr)) {
+            if (!isset($notDublicateTime)) {
+                $notDublicateTime = 300;
+            }
+            
+            if (!isset($forceDublicateTime)) {
+                $forceDublicateTime = 86400;
+            }
+        }
+        
         if (is_object($className)) {
             $className = cls::getClassName($className);
         }
@@ -152,11 +166,44 @@ class log_System extends core_Manager
         
         expect(is_string($className));
         
+        // Ако е зададено да се предпазва от дублирани записи
+        if ($notDublicateTime) {
+            $query = self::getQuery();
+            $query->where(array("#className = '[#1#]'", $className));
+            if (isset($objectId)) {
+                $query->where(array("#objectId = '[#1#]'", $objectId));
+            }
+            $query->where(array("#detail = '[#1#]'", $action));
+            $query->where(array("#type = '[#1#]'", $type));
+            $query->where(array("#lastSaved >= '[#1#]'", dt::subtractSecs($notDublicateTime)));
+            $query->orderBy('lastSaved', 'DESC');
+            
+            $oRec = $query->fetch();
+            if ($oRec) {
+                $mustUpdate = true;
+                if ($forceDublicateTime) {
+                    $forceDublicateTime = dt::subtractSecs($forceDublicateTime);
+                    if (($oRec->lastSaved > $forceDublicateTime) && ($oRec->createdOn > $forceDublicateTime)) {
+                        $mustUpdate = true;
+                    } else {
+                        $mustUpdate = false;
+                    }
+                }
+                
+                if ($mustUpdate) {
+                    $oRec->lastSaved = dt::now();
+                    
+                    return self::save($oRec, 'lastSaved');
+                }
+            }
+        }
+        
         $rec = new stdClass();
         $rec->className = $className;
         $rec->objectId = $objectId;
         $rec->detail = $action;
         $rec->lifeDays = $lifeDays;
+        $rec->lastSaved = dt::now();
         $rec->type = $type;
         
         return self::save($rec);
@@ -180,21 +227,16 @@ class log_System extends core_Manager
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->FNC('date', 'date', 'placeholder=Дата');
-        $data->listFilter->FNC('class', 'varchar', 'placeholder=Клас,autoFilter, allowEmpty, silent');
+        $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене, autoFilter, allowEmpty, silent');
         
         $data->listFilter->fields['type']->caption = 'Тип';
         $data->listFilter->fields['type']->type->options = array('' => '') + $data->listFilter->fields['type']->type->options;
         $data->listFilter->fields['type']->autoFilter = 'autoFilter';
         
-        $data->listFilter->setSuggestions('class', core_Classes::makeArray4Select('name'));
-        $data->listFilter->showFields = 'date, class, type';
+        $data->listFilter->showFields = 'date, search, type';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input($data->listFilter->showFields, 'silent');
-        
-        if (is_null(Request::get('date'))) {
-            $data->listFilter->setDefault('date', dt::now(false));
-        }
         
         $query = $data->query;
         
@@ -209,10 +251,6 @@ class log_System extends core_Manager
             }
         }
         
-        if ($fRec->class) {
-            $query->where("#className = '{$fRec->class}'");
-        }
-        
         $objectId = Request::get('objectId', 'int');
         if ($objectId) {
             if ($objectId == 'NULL') {
@@ -222,30 +260,11 @@ class log_System extends core_Manager
             }
         }
         
-        // Добавяме класовете, за които има запис в търсения резултат
-        $classSuggArr = array();
-        $cQuery = clone $query;
-        
-        $cQuery->groupBy('className');
-        $cQuery->show('className');
-        $cQuery->orderBy('#className', 'ASC');
-        
-        while ($cRec = $cQuery->fetch()) {
-            $className = trim($cRec->className);
-            
-            if ($className) {
-                $classSuggArr[$className] = $className;
-            }
-        }
-        
-        if ($classSuggArr) {
-            $classSuggArr = array('' => '') + $classSuggArr;
-            $data->listFilter->setOptions('class', $classSuggArr);
-        }
-        
-        if ($fRec->class) {
-            $class = mb_strtolower($fRec->class);
-            $query->where(array("LOWER (#className) = '[#1#]'", $class));
+        $search = trim($fRec->search);
+        if ($search) {
+            $search = mb_strtolower($fRec->search);
+            $query->where(array("LOWER (#className) LIKE '%[#1#]%'", $search));
+            $query->orWhere(array("LOWER (#detail) LIKE '%[#1#]%'", $search));
         }
         
         // Филтрираме по тип
@@ -253,7 +272,7 @@ class log_System extends core_Manager
             $query->where(array("#type = '[#1#]'", $fRec->type));
         }
         
-        $query->orderBy('#id', 'DESC');
+        $query->orderBy('#createdOn', 'DESC');
     }
     
     
@@ -340,17 +359,21 @@ class log_System extends core_Manager
         $query = $this->getQuery();
         $query->where("#createdOn >= '{$from}'");
         $query->orWhereArr('type', self::$notifyErrArr);
-        $query->groupBy('type');
+        $query->orderBy('createdOn', 'ASC');
         
         $roleId = core_Roles::fetchByName('admin');
         $adminsArr = core_Users::getByRole($roleId);
         while ($rec = $query->fetch()) {
+            $more = false;
+            $errType = '';
             switch ($rec->type) {
                 case 'alert':
                     $msgType = 'спешни';
+                    $errType = 'alert';
                 break;
                 
                 case 'logErr':
+                    $errType = 'logErr';
                     $msgType = 'PHP';
                 break;
                 
@@ -359,20 +382,50 @@ class log_System extends core_Manager
                 break;
             }
             
+            // Опитваме се да определим най-важната част на стринга
+            list($detStr) = explode(':', $rec->detail, 2);
+            $detStr = mb_substr($detStr, 0, 30);
+            if ($detStr != $rec->detail) {
+                $detStr .= '...';
+            }
+            
+            if ($errTypeArr[$errType]) {
+                if ($errTypeArr[$errType] != $detStr) {
+                    $more = true;
+                }
+            }
+            $errTypeArr[$errType] = $detStr;
+            
             $msgType .= $msgType ? ' ' : '';
             
-            $msg = "|Нови {$msgType}грешки в системния лог";
-            
             foreach ($adminsArr as $userId) {
+                $moreUsr = false;
+                $msg = "|Нови {$msgType}грешки в системния лог|*";
+                
+                $urlArr = array($this, 'list', 'type' => $rec->type);
+                
+                if ($errTypeArr[$errType]) {
+                    $msg .= ' - "' . $errTypeArr[$errType] . '"';
+                }
+                
+                if (!$more) {
+                    $lastActiveMsg = bgerp_Notifications::getActiveMsgFor($urlArr, $userId);
+                    if ($lastActiveMsg) {
+                        if (($msg != $lastActiveMsg) && mb_strrpos($lastActiveMsg, ' |и др.|*') === false) {
+                            $moreUsr = true;
+                        }
+                    }
+                }
+                
+                if ($more || $moreUsr) {
+                    $msg .= " |и др.|*";
+                }
+                
                 if (!$this->haveRightFor('list', null, $userId)) {
                     continue;
                 }
-                $cUrlArr = array($this, 'list', 'type' => $rec->type);
-                $urlArr = $cUrlArr;
                 
-                $cUrlArr['date'] = dt::now(false);
-                
-                bgerp_Notifications::add($msg, $urlArr, $userId, 'warning', $cUrlArr);
+                bgerp_Notifications::add($msg, $urlArr, $userId, 'warning');
             }
         }
     }

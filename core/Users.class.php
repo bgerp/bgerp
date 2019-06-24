@@ -263,6 +263,10 @@ class core_Users extends core_Manager
             in_array('roles', $fields)) {
             bgerp_Menu::clearCache($rec->id);
         }
+        
+        if ($rec->__updateRoleLogs) {
+            core_RoleLogs::add($rec->roles, $rec->state, $rec->id);
+        }
     }
     
     
@@ -1198,6 +1202,32 @@ class core_Users extends core_Manager
             $rolesArr[$userRoleId] = $userRoleId;
             
             $rec->roles = keylist::fromArray($rolesArr);
+        }
+        
+        if (!$fields || in_array('roles', $fields = arr::make($fields)) || in_array('state', $fields = arr::make($fields))) {
+            if ($rec->id) {
+                $oRec = $mvc->fetch($rec->id);
+                
+                if (!$fields || in_array('state', $fields = arr::make($fields))) {
+                    if ($oRec->state != $rec->state) {
+                        $rec->__updateRoleLogs = true;
+                    }
+                }
+                
+                if (!$rec->__updateRoleLogs) {
+                    if (!$fields || in_array('roles', $fields = arr::make($fields))) {
+                        
+                        if ($oRec->roles != $rec->roles) {
+                            $dArr = type_Keylist::getDiffArr($rec->roles, $oRec->roles);
+                            if (!empty($dArr['delete']) || !empty($dArr['add'])) {
+                                $rec->__updateRoleLogs = true;
+                            }
+                        }
+                    }
+                }
+            } else {
+                $rec->__updateRoleLogs = true;
+            }
         }
         
         if ($rec->id) {

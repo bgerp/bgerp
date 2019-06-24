@@ -34,6 +34,8 @@ class rack_plg_IncomingShipmentDetails extends core_Plugin
         
         foreach ($rows as $id => &$row) {
             $rec = $data->recs[$id];
+            $canStore = cat_Products::fetchField($rec->{$mvc->productFld}, 'canStore');
+            if($canStore != 'yes') continue;
             
             $batchDef = batch_Defs::getBatchDef($rec->{$mvc->productFld});
             if(empty($batchDef)){

@@ -841,7 +841,6 @@ class acc_plg_Contable extends core_Plugin
                 $rec->state = 'draft';
                 $rec->brState = 'active';
                 $mvc->save($rec, 'state,brState');
-                $mvc->logWrite('Ревъртване на контировката', $rec);
                 $res = true;
             }
         }

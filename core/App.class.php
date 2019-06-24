@@ -306,6 +306,7 @@ class core_App
          */
         defIfNot('EF_TEMP_PATH', EF_TEMP_BASE_PATH . '/' . EF_APP_NAME);
         
+        
         /**
          * Директорията с качените и генерираните файлове
          */
@@ -1124,7 +1125,7 @@ class core_App
         }
         
         if (!$havePrivate && defined('EF_PRIVATE_PATH')) {
-            $repos = self::getReposByPathAndBranch(EF_PRIVATE_PATH, defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : null) + $repos;
+            $repos = self::getReposByPathAndBranch(EF_PRIVATE_PATH, defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : (defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null)) + $repos;
             $havePrivate = true;
         }
         

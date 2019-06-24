@@ -54,6 +54,7 @@ abstract class acc_DocumentTransactionSource
             reportException($e);
             $this->class->logErr('Грешка при финализиране на транзакция', $rec->id);
             $this->class->rollbackConto($rec);
+            core_Statuses::newStatus('Грешка при финализиране на транзакция');
         }
         
         return $id;

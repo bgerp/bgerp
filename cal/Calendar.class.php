@@ -2395,7 +2395,9 @@ class cal_Calendar extends core_Master
     	$jsFnc = "
     	function createMonthLink(dt)
     	{
-    		document.location = '{$urlMonth}?from=' + dt;
+    	    if(dt) {
+    		    document.location = '{$urlMonth}?from=' + dt;
+    	    }
 		}";
     	
     	$tpl->appendOnce($jsFnc, 'SCRIPTS');
@@ -2456,7 +2458,9 @@ class cal_Calendar extends core_Master
     	$jsFnc = "
     	function createLink(dt)
     	{
-    		document.location = '{$urlYear}?from=' + dt;
+    	    if(dt) {
+    		    document.location = '{$urlYear}?from=' + dt;
+    	    }
 		}";
     	
     	$tpl->appendOnce($jsFnc, 'SCRIPTS');
