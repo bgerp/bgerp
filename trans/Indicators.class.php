@@ -26,11 +26,6 @@ class trans_Indicators extends core_BaseClass
     public $interfaces = 'hr_IndicatorsSourceIntf';
     
     
-    /**
-     * Работен кеш
-     */
-    private static $cache = array();
-    
     
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
@@ -62,10 +57,10 @@ class trans_Indicators extends core_BaseClass
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param  date  $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param  datetime  $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
      * @return array $result  - масив с обекти
      *
-     * 			o date        - дата на стайноста
+     * 			o date        - дата на стойноста
      * 		    o personId    - ид на лицето
      *          o docId       - ид на документа
      *          o docClass    - клас ид на документа
@@ -81,11 +76,11 @@ class trans_Indicators extends core_BaseClass
         $numberOfTransportLinesArr = self::getNumberOfTransportLines($timeline);
         $result = array_merge($numberOfTransportLinesArr, $result);
         
-        // Индикатори за брой доставени пратки
+        // Индикатор за брой доставени пратки
         $numberOfShipmentsDeliveredArr = self::getNumberOfShipmentsDelivered($timeline);
         $result = array_merge($numberOfShipmentsDeliveredArr, $result);
         
-        // Индикатори за доставено тегло
+        // Индикатор за доставено тегло
         $deliveredWeightArr = self::getDeliveredWeight($timeline);
         $result = array_merge($deliveredWeightArr, $result);
         
@@ -111,8 +106,6 @@ class trans_Indicators extends core_BaseClass
             return $result;
         }
      
-        //$masters = array();
-    
         $query = trans_Lines::getQuery();
         
         $query->where("#start >= '{$from}'");
@@ -202,7 +195,7 @@ class trans_Indicators extends core_BaseClass
             $indicatorId = $numberOfShipmentsDelivered;
             
             $value = 0;
-            foreach ($details as $key => $val){
+            foreach ($details as $val){
                 
                 if ($val == $iRec->id){
                     $value ++;
