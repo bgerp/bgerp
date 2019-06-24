@@ -327,11 +327,41 @@ class bgerp_Notifications extends core_Manager
             $query->where(array("#urlId = '[#1#]'", $urlId));
         }
         
-        $query->where("#url = '{$url}' AND #userId = '{$userId}'");
+        $query->where(array("#url = '[#1#]' AND #userId = '[#2#]'", $url, $userId));
+        
+        $query->limit(1);
         
         if ($rec = $query->fetch()) {
             
             return $rec->closedOn;
+        }
+    }
+    
+    
+    /**
+     * Връща текста на активното съобщение, ако има такова
+     */
+    public static function getActiveMsgFor($urlArr, $userId)
+    {
+        $url = toUrl($urlArr, 'local', false);
+        
+        $query = self::getQuery();
+        
+        $urlId = self::prepareUrlId($url);
+        if ($urlId) {
+            $query->where(array("#urlId = '[#1#]'", $urlId));
+        }
+        
+        $query->where("#state = 'active'");
+        $query->where("#hidden = 'no'");
+        
+        $query->where(array("#url = '[#1#]' AND #userId = '[#2#]'", $url, $userId));
+        
+        $query->limit(1);
+        
+        if ($rec = $query->fetch()) {
+            
+            return $rec->msg;
         }
     }
     

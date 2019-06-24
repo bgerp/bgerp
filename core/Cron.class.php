@@ -263,7 +263,7 @@ class core_Cron extends core_Manager
             'Логове на Cron',
             array(
                 'log_System',
-                'class' => $mvc->className
+                'search' => $mvc->className
             ),
             'ef_icon = img/16/action_log.png'
         );
