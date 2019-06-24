@@ -361,6 +361,9 @@ class remote_BgerpDriver extends core_Mvc
                 if (is_array($nCnt)) {
                     $priority = $nCnt['priority'];
                     $nCnt = $nCnt['cnt'];
+                    if(isset($nCnt['msg'])) {
+                        $nMsg = $nCnt['msg'];
+                    }
                 } else {
                     $priority = 'normal';
                 }
@@ -383,6 +386,10 @@ class remote_BgerpDriver extends core_Mvc
                     $url = str_replace(array('http://', 'https://'), array('', ''), $rec->url);
                     $message = "|Имате|* {$nCnt} |в|* {$url}";
                     
+                    if($nMsg) {
+                        $message .= ' : ' . $nMsg;
+                    }
+
                     // Добавя, ако няма нофификация
                     bgerp_Notifications::add($message, $nUrl, $userId, $priority, null, true);
                 } else {

@@ -1591,15 +1591,19 @@ class bgerp_Notifications extends core_Manager
         
         
         if (is_array($arg) && $arg['priority']) {
-            if (self::fetch("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}' AND #priority = 'alert'")) {
+            if ($msgRec = self::fetch("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}' AND #priority = 'alert'")) {
                 $priority = 'alert';
-            } elseif (self::fetch("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}' AND #priority = 'warning'")) {
+            } elseif ($msgRec = self::fetch("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}' AND #priority = 'warning'")) {
                 $priority = 'warning';
             } else {
                 $priority = 'normal';
             }
             
             $res = array('cnt' => $res, 'priority' => $priority);
+
+            if(isset($msgRec)) {
+                $res['msg'] = $msgRec->msg;
+            }
         }
         
         return $res;
