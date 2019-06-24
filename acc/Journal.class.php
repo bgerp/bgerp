@@ -300,6 +300,15 @@ class acc_Journal extends core_Master
         // Дали имаме права за контиране
         $mvc->requireRightFor('conto', $docId);
         
+        // Ако случайно има замърсена контировка, и документа не е активиран да се изтрие да не гърми поради дупликация
+        $docState = $mvc->fetchField($docId, 'state');
+        if($docState == 'draft'){
+            if($exJournalRec = self::fetchByDoc($mvc, $docId)){
+                self::delete("#id = {$exJournalRec->id}");
+                wp($exJournalRec, $docState);
+            }
+        }
+        
         // Контиране на документа
         $mvc->conto($docId);
         

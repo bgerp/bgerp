@@ -276,9 +276,11 @@ body {
       table-layout: fixed; }
     .formHolder .formContent td {
       padding: 7px; }
+    .formHolder .formContent .wide .select2-container .select2-selection--single,
+    .formHolder .formContent .wide input[type=text] {
+      height: 34px; }
     .formHolder .formContent .select2-container .select2-selection--single,
     .formHolder .formContent input[type=text] {
-      height: 34px;
       border-color: #cccccc; }
     .formHolder .formContent .select2-container .select2-selection--multiple,
     .formHolder .formContent textarea,
@@ -291,11 +293,12 @@ body {
       margin-top: 10px; }
       .formHolder .formContent textarea.inputError {
         border-color: #cc0000; }
+    .formHolder .formContent .wide select {
+      height: 32px !important; }
     .formHolder .formContent select {
-      height: 32px !important;
       border-color: #cccccc;
       width: 100%; }
-    .formHolder .formContent input[type=search] {
+    .formHolder .formContent .wide input[type=search] {
       height: 30px; }
     .formHolder .formContent .w50 {
       width: 100% !important; }
@@ -303,7 +306,7 @@ body {
       font-size: 1.2em;
       position: relative;
       top: 3px; }
-    .formHolder .formContent .select2-container .select2-selection--single .select2-selection__rendered {
+    .formHolder .formContent .wide .select2-container .select2-selection--single .select2-selection__rendered {
       line-height: 32px !important;
       max-height: 32px !important; }
     .formHolder .formContent .simple td {
@@ -330,16 +333,14 @@ only screen and (min-width: 760px) and (max-width: 800px) {
 
   .terminalHeader .userInfo {
     white-space: nowrap;
-    width: 320px;
-    font-size: 15px !important; }
+    width: 320px; }
 
   .wide table.listAction {
     min-width: 480px; }
 
   .terminalHeader {
     padding: 6px;
-    height: 30px;
-    font-size: 15px !important; }
+    height: 30px; }
 
   .centerContent {
     width: 100%; }
@@ -368,18 +369,6 @@ only screen and (min-width: 760px) and (max-width: 800px) {
       font-size: 0.85em !important; }
       .formHolder .formContent td {
         padding: 5px; }
-      .formHolder .formContent .select2-container .select2-selection--single,
-      .formHolder .formContent input[type=text] {
-        height: 30px; }
-      .formHolder .formContent select {
-        height: 28px !important; }
-      .formHolder .formContent input[type=search] {
-        height: 26px; }
-      .formHolder .formContent .select2-selection__choice {
-        font-size: 1em; }
-      .formHolder .formContent .select2-container .select2-selection--single .select2-selection__rendered {
-        line-height: 28px !important;
-        max-height: 28px !important; }
 
   #task-support-content .formContent,
   #task-support-content .formHolder {
@@ -554,4 +543,84 @@ only screen and (max-width:740px) {
 
   .formHolder {
     width: 26%; } }
+
+@media only screen and (device-width : 1280px) {
+  .tabContent {
+    overflow: hidden !important;
+    font-size: 1.3em; }
+
+  .formHolder {
+    width: 380px; }
+
+  .sum-th,
+  .subInfo {
+    font-size: 22px !important; }
+
+  .planning-task-table,
+  .tab-link,
+  .jobTable,
+  .planning_ProductionTaskProducts .listTable {
+    font-size: 1.2em !important; }
+
+  #task-support-content .formHolder {
+    width: auto;
+    float: left; }
+
+  .taskHolder {
+    width: 850px;
+    float: left;
+    clear: none; }
+
+  .terminalHeader {
+    font-size: 1.3em; } }
+
+@media only screen and (device-width : 800px) {
+  body {
+    font-size: 1.5em; }
+
+  .sum-th,
+  .subInfo {
+    font-size: 22px !important; }
+
+  .formHolder .formContent,
+  .formHolder {
+    width: 100% !important; }
+
+  .formContent td {
+    padding-top: 10px !important; }
+
+  .narrow .formSection {
+    width: 100% !important;
+    max-width: none !important;
+    font-size: 2em !important; }
+
+  .taskHolder {
+    clear: both;
+    float: none;
+    width: 100%; }
+
+  .centerContent {
+    width: 100%; }
+
+  .tabContent {
+    overflow-x: auto; }
+
+  .planning_ProductionTaskDetails {
+    width: 100%; }
+
+  .vertical .formTable {
+    max-width: none !important; }
+
+  .formHolder {
+    width: 100%;
+    max-width: none; }
+
+  .planning-task-progress,
+  .planning-task-table,
+  .document,
+  .taskHolder {
+    font-size: 1.5em !important; }
+
+  .terminalHeader {
+    font-size: 1.05em !important; } }
 

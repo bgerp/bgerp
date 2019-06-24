@@ -1387,6 +1387,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // След като формата се изпрати
         if ($form->isSubmitted()) {
+            
             // обновяване на записа с избраните операции
             $form->rec->action = 'activate' . (($form->rec->action) ? ',' : '') . $form->rec->action;
             $rec->contoActions = $form->rec->action;
@@ -1404,9 +1405,9 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             // Контиране на документа
+            $this->logWrite('Избор на операция', $id);
             $this->conto($id);
-            
-            $this->logWrite('Активиране/Контиране на сделка', $id);
+            $this->invoke('AfterContoQuickSale', array($rec));
             
             // Редирект
             return new Redirect(array($this, 'single', $id));

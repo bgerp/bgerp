@@ -1,0 +1,39 @@
+    <div class='document' style="margin-bottom: 20px;">
+
+        <div class='scrolling-holder'>
+            <div class='display-table'>
+                <div class='antetka'>
+                    <div class="small fleft">
+                            <!--ET_BEGIN ExternalThreadViewFrom-->
+                                <div>|От|*: <b>[#ExternalThreadViewFrom#]</b></div>
+                            <!--ET_END ExternalThreadViewFrom-->
+
+                            <!--ET_BEGIN ExternalThreadViewTo-->
+                                <div>|До|*: <b>[#ExternalThreadViewTo#]</b></div>
+                            <!--ET_END ExternalThreadViewTo-->
+
+                            <!--ET_BEGIN ExternalThreadViewCc-->
+                                <div>|Копие|*: <b>[#ExternalThreadViewCc#]</b></div>
+                            <!--ET_END ExternalThreadViewCc-->
+
+                            <!--ET_BEGIN ExternalThreadViewDate-->
+                                <div>|Дата|*: [#ExternalThreadViewDate#]</div>
+                            <!--ET_END ExternalThreadViewDate-->
+                    </div>
+                    <div class="avatar fright" style="position: relative; top: 2px; right: 2px;">[#ExternalThreadViewAvatar#]</div>
+                    <div class="clearfix21"></div>
+                </div>
+            </div>
+        </div>
+        <!--ET_BEGIN subject-->
+        <!--ET_BEGIN subject--><h3 class='richtext-title' style='padding-top: 10px;'>[#subject#]</h3><!--ET_END subject-->
+        <!--ET_END subject-->
+        <!--ET_BEGIN body-->
+        <div>[#body#]</div>
+        <!--ET_END body-->
+        <div style='clear: both;'></div>
+        <div class='clear_l f_left block_subtitle mt_50px'>
+        </div>
+        <div style='clear: both;'></div>
+    </div>
+    <div style='clear: both;'></div>

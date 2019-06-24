@@ -6322,17 +6322,69 @@ body.narrow {
 	span.linkWithIcon{
 		padding-left: 23px !important;
 	}
-	.docOutgoings {
-		position: relative;
-		left: 100px;
+	.docOutgoings .document {
+		background-color: #ddecfd;
+	}
+
+}
+.wide .external {
+	.docIncomings {
+		width: 1002px;
 		.document {
-			background-color: #ddecfd;
+			box-shadow: 2px 2px 1px rgba(0,0,0,0.1);
 		}
-		&.currentEmailDoc .document {
-			background-color: #b6d6fa;
+		.avatar {
+			img {
+				box-shadow: 0 0 2px rgba(0,0,0,0.9);
+			}
+			span {
+				position: relative;
+				right: 4px;
+				top: -56px;
+				width: 0;
+				height: 0;
+				border-style: solid;
+				border-width: 30px 30px 0 0;
+				border-color: #ffffff transparent transparent transparent;
+
+			}
 		}
 	}
+	.docOutgoings {
+		width: 1002px;
+		.avatar {
+			margin: 10px 0 0 10px;
+			img {
+				box-shadow: 0 0 2px rgba(0,0,0,0.9);
+			}
+			span {
+				display: inline-block;
+				position: relative;
+				left: 4px;
+				top: -55px;
+				width: 0;
+				height: 15px !important;
+				border-style: solid;
+				border-width: 30px 30px  0 0;
+				border-color:  #ddecfd transparent transparent transparent;
+				transform: scaleX(-1);
+			}
+		}
+		.document {
+			margin-left: 0 !important;
+			float:  right !important;
+			border: 1px solid transparent;
+			box-shadow: 2px 2px 1px rgba(0,0,0,0.1);
+		}
+		&.currentEmailDoc .document {
+			box-shadow: 2px 2px 2px rgba(0,0,0,0.3);
+		}
+	}
+	.externalThread .avatar img {
+		border-radius: 50%;
+	}
 }
+
 .narrow .external div.hideLink {
 	margin-top: 10px;
 }

@@ -1190,7 +1190,7 @@ class core_Html
                         $name = $prop->getName();
                         
                         if (!$scopeArr[$name]) {
-                            $res[$name] = $prop->getValue($o);
+                            $res[$name] = @$prop->getValue($o);
                             if ($prop->isStatic()) {
                                 $scopeArr[$name] = 'static';
                             } elseif ($prop->isPublic()) {

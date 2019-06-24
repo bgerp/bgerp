@@ -720,7 +720,13 @@ abstract class deals_Helper
      */
     public static function getQuantityHint(&$html, $productId, $storeId, $quantity, $state)
     {
-        if (!in_array($state, array('draft', 'pending'))) {
+        if(!in_array($state, array('draft', 'pending'))) {
+            
+            return;
+        }
+        
+        $canStore = cat_Products::fetchField($productId, 'canStore');
+        if($canStore != 'yes') {
             
             return;
         }
@@ -1739,6 +1745,12 @@ abstract class deals_Helper
         }
         
         foreach ($arr as $obj) {
+            $canStore = cat_Products::fetchField($obj->{$productFld}, 'canStore');
+            if($canStore != 'yes') {
+                
+                return;
+            }
+            
             $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, ($state == 'pending' ? 0 : $obj->{$quantityFld}));
             if ($available < 0) {
                 $productsWithNegativeQuantity[] = cat_Products::getTitleById($obj->{$productFld}, false);
