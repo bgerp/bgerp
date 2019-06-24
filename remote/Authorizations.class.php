@@ -322,7 +322,7 @@ class remote_Authorizations extends embed_Manager
         }
         
         // Обикаля по всички известия от последните 48 часа, което не са затворени
-        $ntfs = array();
+        $ntfs = $ntfsMsg = array();
         $nQuery = bgerp_Notifications::getQuery();
         $last48hours = dt::addSecs(-48 * 3600);
         $nQuery->where("#state = 'active' AND #activatedOn > '{$last48hours}' AND #userId IN (" . implode(',', array_keys($userSenders)) . ')');
@@ -339,6 +339,7 @@ class remote_Authorizations extends embed_Manager
             } else {
                 $ntfs[$nRec->userId][$nRec->priority] = min($nRec->activatedOn, $ntfs[$nRec->userId][$nRec->priority]);
             }
+            $ntfsMsg[$nRec->userId][$nRec->priority] = $nRec->msg;
         }
         if (!count($ntfs)) {
             log_System::add('remote_Authorizations', 'Няма невидени нотификации', null, 'info');
@@ -355,7 +356,7 @@ class remote_Authorizations extends embed_Manager
         } else {
             $dayTime = 'working';
         }
-        
+       
         foreach ($ntfs as $userId => $nArr) {
             $lastSent['alert'] = bgerp_LastTouch::get('sent_alert', $userId);
             $lastSent['warning'] = bgerp_LastTouch::get('sent_warning', $userId);
@@ -388,7 +389,7 @@ class remote_Authorizations extends embed_Manager
                         continue;
                     }
                     
-                    $msg = 'There is ' . $mapNames[$priority] . ' notifications on ' . toUrl(array('bgerp_Portal', 'Show'), 'absolute');
+                    $msg = 'There is ' . $mapNames[$priority] . ' notifications on ' . toUrl(array('bgerp_Portal', 'Show'), 'absolute') . ' : ' . $ntfsMsg[$userId][$priority];
                     
                     // Изпращаме нотификацията
                     foreach ($userSenders[$userId] as $rec) {
