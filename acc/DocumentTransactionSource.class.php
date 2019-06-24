@@ -43,11 +43,17 @@ abstract class acc_DocumentTransactionSource
         // Промяна на състоянието на документа
         $rec->state = $this->finalizedState;
         
-        // Запазване на промененото състояние
-        if ($id = $this->class->save($rec)) {
-            
-            // Ако записа е успешен, нотифицираме документа, че е бил активиран
-            $this->class->invoke('AfterActivation', array($rec));
+        try{
+            // Запазване на промененото състояние
+            if ($id = $this->class->save($rec)) {
+                
+                // Ако записа е успешен, нотифицираме документа, че е бил активиран
+                $this->class->invoke('AfterActivation', array($rec));
+            }
+        } catch(core_exception_Db $e){
+            reportException($e);
+            $this->class->logErr('Грешка при финализиране на транзакция', $rec->id);
+            $this->class->rollbackConto($rec);
         }
         
         return $id;
