@@ -1157,7 +1157,7 @@ class pos_Receipts extends core_Master
         // Добавяне на бутон за сторниране на бележка
         if ($this->haveRightFor('revert')) {
             $revertUrl = toUrl(array($this, 'revert'), 'local');
-            $block->append(ht::createFnBtn('Сторно', '', '', array('class' => 'actionBtn revertBtn', 'title' => 'Сторниране на бележка', 'data-url' => $revertUrl)), 'CLOSE_BTNS');
+            $block->append(ht::createFnBtn('Сторно', '', '', array('class' => 'actionBtn revertBtn', 'title' => 'Сторниране на бележка по зададен номер', 'data-url' => $revertUrl)), 'CLOSE_BTNS');
         }
         
         return $block;
@@ -1826,17 +1826,18 @@ class pos_Receipts extends core_Master
             
             return $this->pos_ReceiptDetails->returnError(null);
         }
-        
+       
         $search = Request::get('search', 'varchar');
         if (empty($search)) {
             core_Statuses::newStatus('|Не е въведен номер на вече издадена бележка|*!', 'error');
             
             return $this->pos_ReceiptDetails->returnError(null);
         }
-        
+       
         // Ако не е разпозната бележка, не се прави нищо
         $search = trim($search);
         $foundArr = $this->findReceiptByNumber($search, true);
+        
         if (!is_object($foundArr['rec'])) {
             core_Statuses::newStatus($foundArr['notFoundError'], 'error');
             
