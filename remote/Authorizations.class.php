@@ -339,7 +339,7 @@ class remote_Authorizations extends embed_Manager
             } else {
                 $ntfs[$nRec->userId][$nRec->priority] = min($nRec->activatedOn, $ntfs[$nRec->userId][$nRec->priority]);
             }
-            $ntfsMsg[$nRec->userId][$nRec->priority] = $nRec->msg;
+            $ntfsMsg[$nRec->userId][$nRec->priority] = tr("|*{$nRec->msg}");
         }
         if (!count($ntfs)) {
             log_System::add('remote_Authorizations', 'Няма невидени нотификации', null, 'info');
