@@ -247,6 +247,8 @@ class bgerp_Notifications extends core_Manager
         
         if ($customUrl) {
             $rec->customUrl = toUrl($customUrl, 'local', false);
+        } else {
+            $rec->customUrl = null;
         }
         
         bgerp_Notifications::save($rec);
