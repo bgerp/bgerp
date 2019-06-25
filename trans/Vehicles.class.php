@@ -10,7 +10,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -119,5 +119,29 @@ class trans_Vehicles extends core_Master
         if ($action == 'delete' && isset($rec->lastUsedOn)) {
             $res = 'no_one';
         }
+    }
+    
+    
+    /**
+     * Връща списък с достъпните за избор водачи на МПС
+     * 
+     * @return array $options
+     */
+    public static function getDriverOptions()
+    {
+        $emplGroupId = crm_Groups::getIdFromSysId('employees');
+        $vehicleDriverGroupId = crm_Groups::getIdFromSysId('vehicleDrivers');
+        $keylist = keylist::addKey('', $emplGroupId);
+        $keylist = keylist::addKey($keylist, $vehicleDriverGroupId);
+        
+        $options = array();
+        $query = crm_Persons::getQuery();
+        $query->likeKeylist('groupList', $keylist);
+        $query->show('name');
+        while ($dRec = $query->fetch()){
+            $options[$dRec->id] = "{$dRec->name} ({$dRec->id})";
+        }
+        
+        return $options;
     }
 }

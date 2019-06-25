@@ -119,6 +119,7 @@ class trans_Setup extends core_ProtoSetup
         return $html;
     }
     
+    
     /**
      * Ъпдейт на ЛЕ в ЕН
      */
