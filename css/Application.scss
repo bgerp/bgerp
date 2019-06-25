@@ -6325,6 +6325,9 @@ body.narrow {
 	.docOutgoings .document {
 		background-color: #ddecfd;
 	}
+	.document {
+		background-color: #fdffe5;
+	}
 
 }
 .wide .external {
@@ -6345,7 +6348,7 @@ body.narrow {
 				height: 0;
 				border-style: solid;
 				border-width: 30px 30px 0 0;
-				border-color: #ffffff transparent transparent transparent;
+				border-color: #fdffe5 transparent transparent transparent;
 
 			}
 		}

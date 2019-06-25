@@ -5621,6 +5621,8 @@ only screen and (max-width: 320px) {
     padding-left: 23px !important; }
   .external .docOutgoings .document {
     background-color: #ddecfd; }
+  .external .document {
+    background-color: #fdffe5; }
 
   .wide .external .docIncomings {
     width: 1002px; }
@@ -5636,7 +5638,7 @@ only screen and (max-width: 320px) {
         height: 0;
         border-style: solid;
         border-width: 30px 30px 0 0;
-        border-color: white rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgba(0, 0, 0, 0); }
+        border-color: #fdffe5 rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgba(0, 0, 0, 0); }
   .wide .external .docOutgoings {
     width: 1002px; }
     .wide .external .docOutgoings .avatar {
