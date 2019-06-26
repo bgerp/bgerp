@@ -295,7 +295,7 @@ class core_Toolbar extends core_BaseClass
         }
         
         foreach ($this->buttons as $id => $btn) {
-            $place = ($btn->attr['row'] == 2 && $onRow2 != 1) ? 'ROW2' : (($hiddenBtns > 1 && $btn->attr['row'] == 3) ? 'HIDDEN' : 'ROW1') ;
+            $place = ($btn->attr['row'] == 2 && $onRow2 > 0) ? 'ROW2' : (($hiddenBtns > 1 && $btn->attr['row'] == 3) ? 'HIDDEN' : 'ROW1') ;
             
             if ($place == 'ROW2') {
                 $flagRow2 = true;
