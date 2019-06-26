@@ -785,9 +785,24 @@ class pos_Receipts extends core_Master
             $block->append($htmlScan, 'FIRST_TOOLS_ROW');
         }
         
-        $params = array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въвеждане');
+        $params = array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въвеждане', 'list' => 'suggestions');
         if(Mode::is('screenMode', 'narrow')) {
             $params['readonly'] = 'readonly';
+        }
+        
+        // Показване на даталист на сторно бележката, с предложения на артикулите, които се срещат в оригинала
+        if(isset($rec->revertId)){
+            $dQuery = pos_ReceiptDetails::getQuery();
+            $dQuery->where(array('#receiptId = [#1#]', $rec->revertId));
+            $dQuery->where('#productId IS NOT NULL');
+            $datalist = "<datalist id='suggestions'>";
+            while ($dRec = $dQuery->fetch()){
+                $pCode = cat_Products::getVerbal($dRec->productId, 'code');
+                $pName = cat_Products::getTitleById($dRec->productId, false);
+                $datalist .= "<option data-value = '{$pCode}' value='{$pName}'>";
+            }
+            $datalist .= "</datalist>";
+            $block->append($datalist, 'INPUT_DATA_LIST');
         }
         
         $block->append(ht::createElement('input', $params), 'INPUT_FLD');
