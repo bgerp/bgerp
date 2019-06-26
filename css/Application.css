@@ -1780,7 +1780,7 @@ a.tOld {
   display: inline-block;
   font-size: 1em;
   position: relative;
-  z-index: 10000000;
+  z-index: 100;
   top: 50px;
   transform: rotate(16deg);
   padding: 1px 2px 0px 2px !important;
