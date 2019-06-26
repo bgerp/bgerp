@@ -34,6 +34,10 @@ class peripheral_TerminalChoicePlg extends core_Plugin
         $form->InputFields .= ',terminal';
         
         $form->setOptions('terminal', $tArr);
+        
+        if (!empty($tArr)) {
+            $form->setDefault('terminal', key($tArr));
+        }
     }
     
     
