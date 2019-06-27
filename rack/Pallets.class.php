@@ -138,6 +138,7 @@ class rack_Pallets extends core_Manager
                 $mQuery = rack_Movements::getQuery();
                 $mQuery->XPR('sum', 'double', 'ROUND(#quantity, 2)');
                 $mQuery->where("#palletId = {$rec->id} AND #state = 'pending'");
+                $mQuery->show('quantity,sum');
                 $fRec = $mQuery->fetch();
                 $sum = is_object($fRec) ? $fRec->sum : null;
                 if(isset($sum) && $rec->quantity >= $sum){
