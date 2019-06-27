@@ -223,7 +223,7 @@ class location_Places extends core_Master
      * @return integer
      */
     
-    function angleFromCoordinate($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo) {
+    protected static function angleFromCoordinate($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo) {
         
         $lat1 = deg2rad($latitudeFrom);
         $lat2 = deg2rad($latitudeTo);
