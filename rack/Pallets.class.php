@@ -125,13 +125,22 @@ class rack_Pallets extends core_Manager
         if(!is_null($batch)){
             $query->where("#batch = '{$batch}'");
         }
-        
+       
         $query->orderBy('createdOn', 'ASC');
         while ($rec = $query->fetch()) {
             
             // Ако се изискват само палети, към които няма чакащи движения, другите се пропускат
             if ($withoutPendingMovements === true) {
-                if (rack_Movements::fetchField("#palletId = {$rec->id} AND #state = 'pending'")) {
+                
+                // Палет, от който има неприключено движение не се изключва автоматично от подаваните, а се сумират количествата
+                // на всички неприключени движения насочени от него, и ако въпросната сума е по-малка от наличното на палета
+                // количество, той се подава на функцията.
+                $mQuery = rack_Movements::getQuery();
+                $mQuery->XPR('sum', 'double', 'ROUND(#quantity, 2)');
+                $mQuery->where("#palletId = {$rec->id} AND #state = 'pending'");
+                $fRec = $mQuery->fetch();
+                $sum = is_object($fRec) ? $fRec->sum : null;
+                if(isset($sum) && $rec->quantity >= $sum){
                     continue;
                 }
             }
