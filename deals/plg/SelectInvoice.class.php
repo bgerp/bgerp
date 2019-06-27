@@ -58,6 +58,7 @@ class deals_plg_SelectInvoice extends core_Plugin
             } else {
                 $row->fromContainerId = $Document->getLink(0);
             }
+            $row->fromContainerName = tr(mb_strtolower($Document->singleTitle));
         }
         
         if (!Mode::isReadOnly() && !isset($fields['-list'])) {
