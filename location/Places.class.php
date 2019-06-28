@@ -199,13 +199,13 @@ class location_Places extends core_Master
     {
         switch ($angle) {
             
-            case (($angle > 0 && $angle <= 22.5) || ($angle > 337.5 && $angle <= 0)): $direction = 'Север'; break;
+            case (($angle > 0 && $angle <= 22.5) || ($angle > 337.5 && $angle <= 360)): $direction = 'Северно'; break;
             case ($angle > 22.5 && $angle <= 67.5): $direction = 'СИ'; break;
-            case ($angle > 67.5 && $angle <= 112.5): $direction = 'Изток'; break;
+            case ($angle > 67.5 && $angle <= 112.5): $direction = 'Източно'; break;
             case ($angle > 112.5 && $angle <= 157.5): $direction = 'ЮИ'; break;
-            case ($angle > 157.5 && $angle <= 202.5): $direction = 'Юг'; break;
+            case ($angle > 157.5 && $angle <= 202.5): $direction = 'Южно'; break;
             case ($angle > 202.5 && $angle <= 247.5): $direction = 'ЮЗ'; break;
-            case ($angle > 247.5 && $angle <= 292.5): $direction = 'Запад'; break;
+            case ($angle > 247.5 && $angle <= 292.5): $direction = 'Западно'; break;
             case ($angle > 292.5 && $angle <= 337.5): $direction = 'СЗ'; break;
             
             
@@ -255,6 +255,9 @@ class location_Places extends core_Master
     {
         
         $query = self::getQuery();
+        
+        $query-> where("#state = 'active'");
+        
         expect(!empty($query->fetchAll()),"Трябва да има регистрирана поне една база");
         
         while ($base = $query->fetch()){
