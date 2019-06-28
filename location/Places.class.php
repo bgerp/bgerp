@@ -34,7 +34,7 @@ class location_Places extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo';
+    public $canList = 'ceo,admin,tracking';
     
     
     /**
@@ -42,7 +42,7 @@ class location_Places extends core_Master
      *
      * @var string|array
      */
-    public $canEdit = 'ceo';
+    public $canEdit = 'ceo,admin,tracking';
     
     
     /**
@@ -50,7 +50,7 @@ class location_Places extends core_Master
      *
      * @var string|array
      */
-    public $canAdd = 'ceo';
+    public $canAdd = 'ceo,admin,tracking';
     
     
     /**
@@ -58,7 +58,7 @@ class location_Places extends core_Master
      *
      * @var string|array
      */
-    public $canView = 'ceo';
+    public $canView = 'ceo,admin,tracking';
     
     
     /**
@@ -66,7 +66,7 @@ class location_Places extends core_Master
      *
      * @var string|array
      */
-    public $canDelete = 'ceo';
+    public $canDelete = 'ceo,admin,tracking';
     
     
     /**
