@@ -123,8 +123,9 @@ class location_Places extends core_Master
         
         //Определяне координатите на най–близката база
         $closestBaseId = self::getClosestBase($latitudeTo, $longitudeTo);
-        $closestBaseName = self::fetch($closestBaseId)->place;
-        $closestBaseCoordinates = self::fetch($closestBaseId)->location;
+        $closestBase = self::fetch($closestBaseId);
+        $closestBaseName = $closestBase->place;
+        $closestBaseCoordinates = $closestBase->location;
         list($latitudeFrom,$longitudeFrom)=explode(',', $closestBaseCoordinates);
         
         //Определяне на разстоянието от най–близката база до обекта
@@ -136,7 +137,7 @@ class location_Places extends core_Master
         //Вербализиране на посоката
         $direction = self::getDirection($angle);
         
-        if($distace > $posFrom->diameter){
+        if($distace > $closestBase->diameter){
             
             if($distace < 1000){
                 
