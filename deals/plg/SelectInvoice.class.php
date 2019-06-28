@@ -56,7 +56,7 @@ class deals_plg_SelectInvoice extends core_Plugin
                     $row->fromContainerId = ht::createLink($row->fromContainerId, $Document->getSingleurlArray());
                 }
             } else {
-                $row->fromContainerId = $Document->getLink(0);
+                $row->fromContainerId = ht::createLink("#{$Document->getHandle()}", $Document->getSingleUrlArray());
             }
             $row->fromContainerName = tr(mb_strtolower($Document->singleTitle));
         }
