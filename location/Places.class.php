@@ -150,7 +150,7 @@ class location_Places extends core_Master
             }
         }else{
             $measure = '';
-            $distace = 'в '.$posFrom->place;
+            $distace = 'в '.$closestBaseName;
             $direction = '';
         }
         
@@ -216,7 +216,7 @@ class location_Places extends core_Master
     }
     
     /**
-     * Calculate angle between 2 given latLng
+     * Намира азимута между две точки lat, lаng
      * @param  float $latitudeFrom
      * @param  float $latitudeTo
      * @param  float $longitudeFrom
