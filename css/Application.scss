@@ -2071,8 +2071,6 @@ a.tOld {
 	border-radius: 3px;
 }
 .approved {
-  transform: rotate(10deg);
-	margin-top: 10px;
 	padding: 10px 10px 5px !important
 }
 
@@ -2080,6 +2078,13 @@ a.tOld {
 	position: absolute;
 	top:7px;
 	right: 2px;
+	transform: rotate(10deg);
+	margin-top: 10px;
+}
+
+.narrow .approved {
+	transform: rotate(0deg);
+	top: 0;
 }
 
 .centered {
