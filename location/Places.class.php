@@ -100,44 +100,40 @@ class location_Places extends core_Master
     
     
     /**
-     * След рендиране на единичния изглед
-     *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_Form         $form
-     * @param stdClass          $data
+     * Добавя бутони  към единичния изглед на документа
      */
-    protected static function on_AfterInputEditForm($mvc, &$form)
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        if ($form->isSubmitted()) {
-            
-        }
+        
+        $data->toolbar->addBtn('Изход', array('location_Places','ret_url' => true));
     }
-    
+   
     
     /**
-     * Преди показване на листовия тулбар
+     *Вербализира позицията на обекта спрямо базата
      *
-     * @param core_Manager $mvc
-     * @param stdClass     $data
+     *@param  string $coordinates във вида: 'latitude, longitude'
+     *
+     *@return string
      */
-    public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    public static function toVerbal($coordinates)
     {
-        $data->toolbar->addBtn('Вербализирай', array($mvc, 'ToVerbal'));
-    }
-    public function act_ToVerbal()
-    {
+        // Координати на обекта чиято позиция вербализираме
+        list($latitudeTo,$longitudeTo)=explode(',', $coordinates);
         
-        $posFrom = self::fetch(1);
-        $posTo = self::fetch(8);
+        //Определяне координатите на най–близката база
+        $closestBaseId = self::getClosestBase($latitudeTo, $longitudeTo);
+        $closestBaseName = self::fetch($closestBaseId)->place;
+        $closestBaseCoordinates = self::fetch($closestBaseId)->location;
+        list($latitudeFrom,$longitudeFrom)=explode(',', $closestBaseCoordinates);
         
-        list($latitudeFrom,$longitudeFrom)=explode(',', $posFrom->location);
-        list($latitudeTo,$longitudeTo)=explode(',', $posTo->location);
-        
+        //Определяне на разстоянието от най–близката база до обекта
         $distace = self::vincentyGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo);
         
+        //Определяне на азимута от най–близката база към обекта
         $angle = self::angleFromCoordinate($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo);
         
+        //Вербализиране на посоката
         $direction = self::getDirection($angle);
         
         if($distace > $posFrom->diameter){
@@ -158,11 +154,9 @@ class location_Places extends core_Master
             $direction = '';
         }
         
-        $position = is_numeric($distace) ? $distace.$measure.' / '.$direction :$distace;
-        
-        bp($position,$posFrom->place,$posTo->place,'azimut: '.$angle,'distance: '.$distace,'direction: '.$direction,$latitudeFrom,$longitudeFrom,$latitudeTo,$longitudeTo);
-        
-        
+        $position = is_numeric($distace) ? $distace.$measure.' / '.$direction.' от '.$closestBaseName :$distace;
+      
+        return $position;
     }
     
     /**
@@ -176,7 +170,7 @@ class location_Places extends core_Master
      * @param float $earthRadius Mean earth radius in [m]
      * @return float Distance between points in [m] (same as earthRadius)
      */
-    public static function vincentyGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $earthRadius = 6371000)
+    protected static function vincentyGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $earthRadius = 6371000)
     {
         // convert from degrees to radians
         $latFrom = deg2rad($latitudeFrom);
@@ -194,7 +188,14 @@ class location_Places extends core_Master
         return $angle * $earthRadius;
     }
     
-    public static function getDirection($angle)
+    
+    /**
+    *Вербализира азимута на точка спрямо базата
+    *
+    *@param  float $angle
+    *@return string
+    */
+    protected static function getDirection($angle)
     {
         switch ($angle) {
             
@@ -241,6 +242,35 @@ class location_Places extends core_Master
         $brng = fmod($brng + 360, 360);
         
         return $brng;
+    }
+    
+    /**
+     *Вербализира азимута на точка спрямо базата
+     *
+     *@param  float $latitudeTo
+     *@param  float $longitudeTo
+     *@return int
+     */
+    protected static function getClosestBase($latitudeTo, $longitudeTo)
+    {
+        
+        $query = self::getQuery();
+        expect(!empty($query->fetchAll()),"Трябва да има регистрирана поне една база");
+        
+        while ($base = $query->fetch()){
+            
+            $latitudeFrom = $longitudeFrom = $distance = 0;
+            
+            list($latitudeFrom,$longitudeFrom)=explode(',', $base->location);
+            
+            $distance = self::vincentyGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo);
+            
+            $baseDestanceArr[$base->id]=$distance;
+        }
+       
+        $closestBaseId = array_keys($baseDestanceArr, min($baseDestanceArr))[0];
+        
+        return $closestBaseId;
     }
     
   
