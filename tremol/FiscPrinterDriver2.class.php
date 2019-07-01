@@ -251,7 +251,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * ADDRESS - 30 символа за адрес на клиента
      * UIC_TYPE_STR - типа на UIC номера - bulstat, EGN, FN, NRA
      * RELATED_TO_INV_NUM - 10 символа за фактурата, която се сторница
-     * RELATED_TO_INV_DATE_TIME - дата и час на фискалния бон, който ще се сторнира - може да се попълни от QR_CODE_DATA, ако не е попълнено
+     * RELATED_TO_INV_DATE_TIME - дата и час на фактурата, която ще се сторнира - може да се попълни от QR_CODE_DATA, ако не е попълнено
      * 
      * Другите параметри са: OPER_NUM, OPER_PASS, PRINT_TYPE_STR - като при издаване на ФБ
      * Другите параметри са: STORNO_REASON, RELATED_TO_RCP_NUM, FM_NUM, RELATED_TO_URN, QR_CODE_DATA - като при издаване на СТОРНО
