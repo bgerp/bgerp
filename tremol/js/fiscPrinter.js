@@ -172,8 +172,6 @@ function fpOpenStornoReceipt(operNum, operPass, isDetailed, isPrintVat, printTyp
  */
 function fpOpenCreditNoteWithFreeCustomerData(operNum, operPass, printTypeStr, recipient, buyer, VATNumber, UIC, address, UICTypeStr, stornoReason, relatedToInvNum, relatedToInvDateTime, relatedToRcpNum, FMNum, relatedToURN)
 {
-	console.log(operNum, operPass, printTypeStr, recipient, buyer, VATNumber, UIC, address, UICTypeStr, stornoReason, relatedToInvNum, relatedToInvDateTime, relatedToRcpNum, FMNum, relatedToURN);
-	
 	checkOperNum(operNum);
 	
 	checkOperPass(operPass);
@@ -224,7 +222,7 @@ function fpOpenCreditNoteWithFreeCustomerData(operNum, operPass, printTypeStr, r
 		throw new Error("Непозволена причина за сторно");
 	}
 	
-	if (relatedToInvNum.length > 6) {
+	if (relatedToInvNum.length > 10) {
 		throw new Error("Дължината на номера на фактурата трябва да е до 10 символа");
 	}
 	
@@ -245,7 +243,6 @@ function fpOpenCreditNoteWithFreeCustomerData(operNum, operPass, printTypeStr, r
 	}
 	
 	try {
-		console.log(operNum, operPass, printType, recipient, buyer, VATNumber, UIC, address, UICType, stornoReason, relatedToInvNum, relatedToInvDateTime, relatedToRcpNum, FMNum, relatedToURN);
 		fp.OpenCreditNoteWithFreeCustomerData(operNum, operPass, printType, recipient, buyer, VATNumber, UIC, address, UICType, stornoReason, relatedToInvNum, relatedToInvDateTime, relatedToRcpNum, FMNum, relatedToURN);
 	} catch(ex) {
 	    handleException(ex);
