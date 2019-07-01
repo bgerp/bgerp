@@ -229,7 +229,9 @@ body {
     border: none;
     color: #333333;
     font-size: 1.15em;
-    background: none; }
+    background: none;
+    width: 100% !important;
+    min-width: auto !important; }
     .formHolder .formTitle a {
       font-weight: bold; }
   .formHolder table {

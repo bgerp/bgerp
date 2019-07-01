@@ -735,9 +735,8 @@ class store_InventoryNotes extends core_Master
     public static function invalidateCache($rec)
     {
         $rec = static::fetchRec($rec);
-        $key = self::getCacheKey($rec);
         
-        core_Cache::remove('store_InventoryNotes', $key);
+        core_Cache::removeByType("store_InventoryNotes_{$rec->id}");
     }
     
     
@@ -754,7 +753,7 @@ class store_InventoryNotes extends core_Master
         $cu = core_Users::getCurrent();
         $lg = core_Lg::getCurrent();
         $isNarrow = (Mode::is('screenMode', 'narrow')) ? true : false;
-        $key = "ip{$cu}|{$lg}|{$rec->id}|{$isNarrow}|";
+        $key = "ip{$cu}|{$lg}|{$isNarrow}|";
         
         // Връщаме готовия ключ
         return $key;

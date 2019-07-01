@@ -27,9 +27,9 @@ class polygonteam_Scales extends core_Mvc
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('user', 'varchar', 'caption=Потребителско име,mandatory');
-        $fieldset->FLD('pass', 'password', 'caption=Парола,mandatory');
-        $fieldset->FLD('hostName', 'varchar', 'caption=Хост,mandatory');
+        $fieldset->FLD('user', 'varchar', 'caption=Настройки за връзка с везната->Потребителско име,mandatory');
+        $fieldset->FLD('pass', 'password', 'caption=Настройки за връзка с везната->Парола,mandatory');
+        $fieldset->FLD('hostName', 'varchar', 'caption=Настройки за връзка с везната->Хост,mandatory');
     }
     
     
@@ -60,5 +60,20 @@ class polygonteam_Scales extends core_Mvc
         $jsTpl->placeObject($params);
         
         return $jsTpl;
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param tremol_FiscPrinterDriver2 $Driver
+     * @param peripheral_Devices        $Embedder
+     * @param stdClass                  $data
+     */
+    protected static function on_AfterPrepareEditForm($Driver, $Embedder, &$data)
+    {
+        $data->form->setDefault('user', 'admin');
+        $data->form->setDefault('pass', 'admin');
+        $data->form->setDefault('hostName', 'localhost');
     }
 }

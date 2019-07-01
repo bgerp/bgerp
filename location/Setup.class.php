@@ -29,11 +29,19 @@ class location_Setup extends core_ProtoSetup
      */
     public $info = 'Локация';
     
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    public $managers = array(
+        'location_Places',
+       
+    );
+    
     
     /**
      * Пакет без инсталация
      */
-    public $noInstall = true;
+  //  public $noInstall = true;
     
     
     /**
