@@ -1359,4 +1359,18 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         
         return is_object($found) ? $found->code : null;
     }
+    
+    
+    /**
+     * Какви са разрешените основания за сторниране
+     *
+     * @param stdClass $rec - запис
+     * @return array  - $res
+     */
+    public function getStornoReasons($rec)
+    {
+        $res = arr::make(array_keys(self::DEFAULT_STORNO_REASONS_MAP), true);
+       
+        return $res;
+    }
 }
