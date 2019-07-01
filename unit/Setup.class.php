@@ -45,12 +45,6 @@ class unit_Setup extends core_ProtoSetup
     
     
     /**
-     * Пакет без инсталация
-     */
-    public $noInstall = true;
-    
-    
-    /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
@@ -59,4 +53,19 @@ class unit_Setup extends core_ProtoSetup
         'UNIT_DEFAULT_USER_PASS' => array('varchar', 'caption=Потребител по подразбиране->Парола'),
         'UNIT_DEFAULT_HOST' => array('varchar', 'caption=Сървър по подразбиране->Име'),
     );
+    
+    
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+        $html .= parent::install();
+        
+        core_Composer2::install('behat/mink', '^1.7');
+        core_Composer2::install('behat/mink-goutte-driver', '~1.0');
+        core_Composer2::updateComposer();
+        
+        return $html;
+    }
 }
