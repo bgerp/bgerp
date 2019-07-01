@@ -81,7 +81,7 @@ abstract class peripheral_Terminal extends core_Mvc
             $data->form->input('name');
             
             if ($data->form->rec->name && $pArr[$data->form->rec->name]) {
-                $pRec = pos_Points::fetch(array("#{$nameField} = '[#1#]'", $data->form->rec->name));
+                $pRec = $clsName::fetch(array("#{$nameField} = '[#1#]'", $data->form->rec->name));
                 
                 foreach ($Driver->fieldArr as $fName) {
                     $data->form->setDefault($fName, $pRec->{$fName});
