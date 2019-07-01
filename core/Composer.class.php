@@ -50,6 +50,8 @@ class core_Composer extends core_Mvc
             
             $composerCmd =  dirname(EF_VENDOR_PATH) . '/composer.phar';
             
+            $composerHome = self::getComposerHome();
+            
             if(!file_exists($composerCmd)) {
                 
                 $sig = trim(file_get_contents('https://composer.github.io/installer.sig'));
@@ -59,7 +61,6 @@ class core_Composer extends core_Mvc
                 file_put_contents($setupPath, file_get_contents('https://getcomposer.org/installer'));
                 
                 if($sig == hash_file('sha384', $setupPath)) {
-                    $composerHome = self::getComposerHome();
                     
                     $cmd = $composerHome . ' "' . $phpCmd . '" ' . $setupPath . ' --quiet --install-dir=' . dirname(EF_VENDOR_PATH);
                     exec($cmd, $output, $returnvar);
@@ -70,7 +71,7 @@ class core_Composer extends core_Mvc
                     self::$error = 'Грешка: неточна SHA384 сигнатура';
                 }
             } else {
-                exec('"{$phpCmd}" ' . $composerCmd . ' self-update --quiet', $output, $returnvar);
+                exec($composerHome . ' "' . $phpCmd . '" ' . $composerCmd . ' self-update --quiet', $output, $returnvar);
             }
             
             if(file_exists($setupPath)) {
@@ -162,8 +163,10 @@ class core_Composer extends core_Mvc
             $pack = "{$pack}#{$version}";
         }
         
+        $composerHome = self::getComposerHome();
+        
         $wd = '--working-dir=' . EF_VENDOR_PATH;
-        $cmd = "\"{$phpCmd}\" \"$bowerphp\" install {$pack} {$wd}";
+        $cmd = "{$composerHome} \"{$phpCmd}\" \"$bowerphp\" install {$pack} {$wd}";
         
         exec($cmd, $lines, $result);
         
