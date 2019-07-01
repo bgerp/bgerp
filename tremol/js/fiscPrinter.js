@@ -152,6 +152,108 @@ function fpOpenStornoReceipt(operNum, operPass, isDetailed, isPrintVat, printTyp
 
 
 /**
+ * Кредитно известие
+ * 
+ * @param operNum
+ * @param operPass
+ * @param printTypeStr
+ * @param recipient
+ * @param buyer
+ * @param VATNumber
+ * @param UIC
+ * @param address
+ * @param UICTypeStr
+ * @param stornoReason
+ * @param relatedToInvNum
+ * @param relatedToInvDateTime
+ * @param relatedToRcpNum
+ * @param FMNum
+ * @param relatedToURN
+ */
+function fpOpenCreditNoteWithFreeCustomerData(operNum, operPass, printTypeStr, recipient, buyer, VATNumber, UIC, address, UICTypeStr, stornoReason, relatedToInvNum, relatedToInvDateTime, relatedToRcpNum, FMNum, relatedToURN)
+{
+	console.log(operNum, operPass, printTypeStr, recipient, buyer, VATNumber, UIC, address, UICTypeStr, stornoReason, relatedToInvNum, relatedToInvDateTime, relatedToRcpNum, FMNum, relatedToURN);
+	
+	checkOperNum(operNum);
+	
+	checkOperPass(operPass);
+	
+	if (printTypeStr == 'postponed') {
+		var printType = Tremol.Enums.OptionInvoiceCreditNotePrintType.Postponed_Printing;
+	} else if (printTypeStr == 'buffered') {
+		var printType = Tremol.Enums.OptionInvoiceCreditNotePrintType.Buffered_Printing;
+	} else if (printTypeStr == 'stepByStep') {
+		var printType = Tremol.Enums.OptionInvoiceCreditNotePrintType.Step_by_step_printing;
+	} else {
+		throw new Error("Непозволен тип за принтиране");
+	}
+	
+	if (recipient.length > 26) {
+		throw new Error("Максималната дължина на получателя е 26 символа");
+	}
+	
+	if (buyer.length > 16) {
+		throw new Error("Максималната дължина на купувача е 16 символа");
+	}
+	
+	if (VATNumber.length > 13) {
+		throw new Error("Максималната дължина на VAT номера е 13 символа");
+	}
+	
+	if (UIC.length > 13) {
+		throw new Error("Максималната дължина на UIC номера е 13 символа");
+	}
+	
+	if (address.length > 30) {
+		throw new Error("Максималната дължина на адрес номера е 30 символа");
+	}
+	
+	if (UICTypeStr == 'bulstat') {
+		var UICType = 0;
+	} else if (UICTypeStr == 'EGN') {
+		var UICType = 1;
+	} else if (UICTypeStr == 'FN') {
+		var UICType = 2;
+	} else if (UICTypeStr == 'NRA') {
+		var UICType = 3;
+	} else {
+		throw new Error("Непозволен тип за UIC тип");
+	}
+	
+	if ((stornoReason < 0) || (stornoReason > 2)) {
+		throw new Error("Непозволена причина за сторно");
+	}
+	
+	if (relatedToInvNum.length > 6) {
+		throw new Error("Дължината на номера на фактурата трябва да е до 10 символа");
+	}
+	
+	if (relatedToInvDateTime.length > 19) {
+		throw new Error("Времето на фактурата не може да е над 19 символа");
+	}
+	
+	if (relatedToRcpNum.length > 6) {
+		throw new Error("Дължината на номера на ФБ трябва да е до 6 символа");
+	}
+	
+	if (FMNum.length != 8) {
+		throw new Error("Номера на фискалната памет трябва да е 8 символа");
+	}
+	
+	if (relatedToURN) {
+		checkRcpNum(relatedToURN);
+	}
+	
+	try {
+		console.log(operNum, operPass, printType, recipient, buyer, VATNumber, UIC, address, UICType, stornoReason, relatedToInvNum, relatedToInvDateTime, relatedToRcpNum, FMNum, relatedToURN);
+		fp.OpenCreditNoteWithFreeCustomerData(operNum, operPass, printType, recipient, buyer, VATNumber, UIC, address, UICType, stornoReason, relatedToInvNum, relatedToInvDateTime, relatedToRcpNum, FMNum, relatedToURN);
+	} catch(ex) {
+	    handleException(ex);
+	}
+}
+
+
+/**
  * Помощна фунцкия за проверка на номера на оператор
  * 
  * @param operNum

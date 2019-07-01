@@ -61,6 +61,11 @@ function printFiscalReceipt(onSuccess, onError) {
                         fpOpenStornoReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#STORNO_REASON#], [#RELATED_TO_RCP_NUM#], [#RELATED_TO_RCP_DATE_TIME#], [#FM_NUM#], [#RELATED_TO_URN#]);
                     <!--ET_END OPEN_STORNO_RECEIPT_1-->
                     
+                    <!--ET_BEGIN OPEN_CREDIT_NOTE_1-->
+                        [#OPEN_CREDIT_NOTE_1#]
+                        fpOpenCreditNoteWithFreeCustomerData([#OPER_NUM#], [#OPER_PASS#], [#PRINT_TYPE_STR#], [#RECIPIENT#], [#BUYER#], [#VAT_NUMBER#], [#UIC#], [#ADDRESS#], [#UIC_TYPE_STR#], [#STORNO_REASON#], [#RELATED_TO_INV_NUM#], [#RELATED_TO_INV_DATE_TIME#], [#RELATED_TO_RCP_NUM#], [#FM_NUM#], [#RELATED_TO_URN#]);
+                    <!--ET_END OPEN_CREDIT_NOTE_1-->
+                    
                     isFiscIsOpen = true;
                 } catch(ex) {
                     // Ако не може да се отвори бележка, прекратяваме предишната
@@ -83,6 +88,11 @@ function printFiscalReceipt(onSuccess, onError) {
                             [#OPEN_STORNO_RECEIPT_2#]
                             fpOpenStornoReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#STORNO_REASON#], [#RELATED_TO_RCP_NUM#], [#RELATED_TO_RCP_DATE_TIME#], [#FM_NUM#], [#RELATED_TO_URN#]);
                         <!--ET_END OPEN_STORNO_RECEIPT_2-->
+                        
+                        <!--ET_BEGIN OPEN_CREDIT_NOTE_2-->
+                            [#OPEN_CREDIT_NOTE_2#]
+                            fpOpenCreditNoteWithFreeCustomerData([#OPER_NUM#], [#OPER_PASS#], [#PRINT_TYPE_STR#], [#RECIPIENT#], [#BUYER#], [#VAT_NUMBER#], [#UIC#], [#ADDRESS#], [#UIC_TYPE_STR#], [#STORNO_REASON#], [#RELATED_TO_INV_NUM#], [#RELATED_TO_INV_DATE_TIME#], [#RELATED_TO_RCP_NUM#], [#FM_NUM#], [#RELATED_TO_URN#]);
+                        <!--ET_END OPEN_CREDIT_NOTE_2-->
                         
                         isFiscIsOpen = true;
                     } else {
