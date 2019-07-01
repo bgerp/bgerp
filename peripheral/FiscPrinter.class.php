@@ -105,4 +105,17 @@ class peripheral_FiscPrinter
     {
         return $this->class->getPaymentCode($rec, $paymentId);
     }
+    
+    
+    /**
+     * Какъв е кода на основанието за сторниране
+     *
+     * @param stdClass $rec - запис
+     * @param string $reason   - основание
+     * @return string|null  - намерения код или null, ако няма
+     */
+    public function getStornoReasonCode($rec, $reason)
+    {
+        return $this->class->getStornoReasonCode($rec, $reason);
+    }
 }
