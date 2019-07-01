@@ -71,6 +71,14 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     
     /**
+     * Дефолтни кодове на начините на плащане
+     */
+    const DEFAULT_STORNO_REASONS_MAP = array('Операторска грешка' => 0,
+                                             'Връщане/Рекламация' => 1,
+                                             'Данъчно облекчение' => 2,);
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -105,10 +113,14 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             }
         }
         
-        // Добавяне на поелта за поддържани валути и кодове на методите на плащане
+        // Добавяне на полета за поддържани валути и кодове на методите на плащане
         $fieldset->FLD('suppertedCurrencies', 'keylist(mvc=currency_Currencies,select=code,where=#code !\\= \\\'BGN\\\')', 'caption=Настройки на апарата->Валути');
         $fieldset->FLD('paymentMap', 'table(columns=paymentId|code,captions=Вид|Код,batch_ro=readonly)', 'caption=Настройки на апарата->Плащания');
         $fieldset->setFieldTypeParams('paymentMap', array('paymentId_opt' => array('' => '') + array('-1' => 'Брой') + cls::get('cond_Payments')->makeArray4Select('title')));
+        
+        // Добавяне на поле за поддържаните основания за сторниране с техните кодове
+        $fieldset->FLD('reasonMap', 'table(columns=reason|code,captions=Основание|Код,batch_ro=readonly)', 'caption=Настройки на апарата->Сторно основания');
+        $fieldset->setFieldTypeParams('reasonMap', array('reason_opt' => array('' => '') + arr::make(array_keys(self::DEFAULT_STORNO_REASONS_MAP), true)));
         
         $fieldset->FLD('header', 'enum(yes=Да,no=Не)', 'caption=Надпис хедър в касовата бележка->Добавяне, mandatory, notNull, removeAndRefreshForm');
         $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър в касовата бележка->Позиция, mandatory, notNull');
@@ -704,6 +716,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             $form->setDefault('footerText', 'Отпечатано с bgERP');
         }
         
+        // Дефолти на начините на плащане
         if(empty($form->rec->paymentMap)){
             
             // Задаване на дефолтните кодове на начините на плащане
@@ -717,6 +730,17 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             }
             
             $form->setDefault('paymentMap', $form->getFieldType('paymentMap')->fromVerbal($paymentOptions));
+        }
+        
+        // Дефолти на сторно основанията
+        if(empty($form->rec->reasonMap)){
+            $reasonOptions = array('reason' => array(), 'code' => array());
+            foreach (self::DEFAULT_STORNO_REASONS_MAP as $reason => $code){
+                $reasonOptions['reason'][] = $reason;
+                $reasonOptions['code'][] = $code;
+            }
+            
+            $form->setDefault('reasonMap', $form->getFieldType('reasonMap')->fromVerbal($reasonOptions));
         }
         
         $form->setDefault('serialSpeed', 115200);
@@ -1313,6 +1337,24 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         $payments = type_Table::toArray($rec->paymentMap);
         
         $found = array_filter($payments, function($a) use ($paymentId) {return $a->paymentId == $paymentId;});
+        $found = $found[key($found)];
+        
+        return is_object($found) ? $found->code : null;
+    }
+    
+    
+    /**
+     * Какъв е кода на основанието за сторниране
+     *
+     * @param stdClass $rec - запис
+     * @param string $reason   - основание
+     * @return string|null  - намерения код или null, ако няма
+     */
+    public function getStornoReasonCode($rec, $reason)
+    {
+        $payments = type_Table::toArray($rec->reasonMap);
+        
+        $found = array_filter($payments, function($a) use ($reason) {return $a->reason == $reason;});
         $found = $found[key($found)];
         
         return is_object($found) ? $found->code : null;
