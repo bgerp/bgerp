@@ -68,8 +68,7 @@ abstract class peripheral_Terminal extends core_Mvc
             $pQuery->notIn('id', $pIdArr);
         }
         
-        $pArr = array();
-        
+        $pArr = array('' => '');
         while ($pRec = $pQuery->fetch()) {
             $pArr[$pRec->{$nameField}] = $pRec->{$nameField};
         }
