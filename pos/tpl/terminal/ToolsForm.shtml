@@ -1,5 +1,6 @@
 <!--ET_BEGIN TAB_TOOLS-->
 	<div class='input-field'>[#INPUT_FLD#]</div>
+	[#INPUT_DATA_LIST#]
 	<div class='clearfix21'></div>
 	<div class='num-keyboard'>
 	<input class="buttonForm numPad" type="button" value="1"/>

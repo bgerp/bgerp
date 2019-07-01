@@ -49,7 +49,9 @@ class type_Password extends type_Varchar
         
         $this->params['noTrim'] = 'noTrim';
         
-        $this->maxFieldSize = 10;
+        if($attr['size'] < 32) {
+            $this->maxFieldSize = 10;
+        }
         
         return parent::renderInput_($name, $value, $attr);
     }

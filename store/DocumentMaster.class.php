@@ -280,7 +280,15 @@ abstract class store_DocumentMaster extends core_Master
             
             if (count($agreedProducts)) {
                 foreach ($agreedProducts as $index => $product) {
-                    $info = cat_Products::getProductInfo($product->productId);
+                    
+                    // Игнориране на услуги или складируемите ако е избрано друго
+                    if(isset($rec->importProducts) && in_array($rec->importProducts, array('notshippedstorable', 'notshippedservices', 'services'))){
+                        $canStore = cat_Products::fetchField($product->productId, 'canStore');
+                        $skipIfNot = ($rec->importProducts == 'notshippedstorable') ? 'yes' : 'no';
+                        if($canStore != $skipIfNot){
+                            continue;
+                        }
+                    }
                     
                     if (isset($normalizedProducts[$index])) {
                         $toShip = $normalizedProducts[$index]->quantity;
