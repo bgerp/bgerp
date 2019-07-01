@@ -1,6 +1,9 @@
 <?php
 
 
+require_once(EF_APP_PATH . '/vendor/autoload.php');
+
+
 /**
  * Клас 'unit_Browser' - прототип за тестер на класове
  *

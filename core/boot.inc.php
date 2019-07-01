@@ -81,13 +81,11 @@ try {
     
     // Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
     ob_clean();
-    
+
+
     // PHP5.4 bugFix
     ini_set('zlib.output_compression', 'Off');
-    
-    // Зареждаме autoload.php на композера
-    core_Composer2::enableAutoload();
-    
+
     require_once(EF_APP_PATH . '/setup/Controller.class.php');
 
     // Файл за лога на сетъп процеса
@@ -97,7 +95,8 @@ try {
     if (isset($_GET['SetupKey'])) {
         require_once(EF_APP_PATH . '/core/Setup.inc.php');
     }
-    
+
+
     // Стартира записа в буфера, като по възможност компресира съдържанието
     ob_start();
 
