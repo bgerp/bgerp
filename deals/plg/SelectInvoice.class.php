@@ -23,7 +23,7 @@ class deals_plg_SelectInvoice extends core_Plugin
      */
     public static function on_AfterDescription(core_Master &$mvc)
     {
-        $mvc->FLD('fromContainerId', 'int', 'caption=Към фактура,input=hidden,silent');
+        $mvc->FLD('fromContainerId', 'int', 'caption=Към,input=hidden,silent');
         $mvc->setDbIndex('fromContainerId');
     }
     
@@ -48,11 +48,17 @@ class deals_plg_SelectInvoice extends core_Plugin
     {
         if (isset($rec->fromContainerId)) {
             $Document = doc_Containers::getDocument($rec->fromContainerId);
-            $number = str_pad($Document->fetchField('number'), '10', '0', STR_PAD_LEFT);
-            $row->fromContainerId = "#{$Document->abbr}{$number}";
-            if (!Mode::isReadOnly()) {
-                $row->fromContainerId = ht::createLink($row->fromContainerId, $Document->getSingleurlArray());
+            if($Document->isInstanceOf('deals_InvoiceMaster')){
+                $number = str_pad($Document->fetchField('number'), '10', '0', STR_PAD_LEFT);
+                $row->fromContainerId = "#{$Document->abbr}{$number}";
+                
+                if (!Mode::isReadOnly()) {
+                    $row->fromContainerId = ht::createLink($row->fromContainerId, $Document->getSingleurlArray());
+                }
+            } else {
+                $row->fromContainerId = ht::createLink("#{$Document->getHandle()}", $Document->getSingleUrlArray());
             }
+            $row->fromContainerName = tr(mb_strtolower($Document->singleTitle));
         }
         
         if (!Mode::isReadOnly() && !isset($fields['-list'])) {
@@ -85,9 +91,9 @@ class deals_plg_SelectInvoice extends core_Plugin
         
         $form = cls::get('core_Form');
         $form->title = core_Detail::getEditTitle($mvc, $rec->id, 'информация', $rec->id);
-        $form->FLD('fromContainerId', 'int', 'caption=За фактура');
+        $form->FLD('fromContainerId', 'int', 'caption=Към');
         
-        $invoices = ($rec->isReverse == 'yes') ? deals_Helper::getInvoicesInThread($rec->threadId, null, false, false, true) : deals_Helper::getInvoicesInThread($rec->threadId, null, true, true, false);
+        $invoices = $mvc->getReasonContainerOptions($rec);
         $form->setOptions('fromContainerId', array('' => '') + $invoices);
         $form->setDefault('fromContainerId', $rec->fromContainerId);
         
@@ -101,7 +107,7 @@ class deals_plg_SelectInvoice extends core_Plugin
                 doc_DocumentCache::cacheInvalidation($rec->containerId);
             }
             
-            $mvc->logWrite("Отнасяне към фактура|* '{$invoices[$rec->fromContainerId]}'", $rec->id);
+            $mvc->logWrite("Отнасяне към документ", $rec->id);
             followRetUrl(null, 'Промяната е записана успешно');
         }
         
@@ -120,6 +126,15 @@ class deals_plg_SelectInvoice extends core_Plugin
     
     
     /**
+     * Опциите за избор на основание
+     */
+    public static function on_AfterGetReasonContainerOptions($mvc, &$res, $rec)
+    {
+        $res = ($rec->isReverse == 'yes') ? deals_Helper::getInvoicesInThread($rec->threadId, null, false, false, true) : deals_Helper::getInvoicesInThread($rec->threadId, null, true, true, false);
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
@@ -131,7 +146,7 @@ class deals_plg_SelectInvoice extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'selectinvoice' && isset($rec)) {
-            $hasInvoices = ($rec->isReverse == 'yes') ? deals_Helper::getInvoicesInThread($rec->threadId, null, false, false, true) : deals_Helper::getInvoicesInThread($rec->threadId, null, true, true, false);
+            $hasInvoices = $mvc->getReasonContainerOptions($rec);
             
             if ($rec->state == 'rejected' || !$hasInvoices) {
                 $requiredRoles = 'no_one';

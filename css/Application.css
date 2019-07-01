@@ -1780,21 +1780,25 @@ a.tOld {
   display: inline-block;
   font-size: 1em;
   position: relative;
-  z-index: 10000000;
+  z-index: 100;
   top: 50px;
   transform: rotate(16deg);
   padding: 1px 2px 0px 2px !important;
   border-radius: 3px; }
 
 .approved {
-  transform: rotate(10deg);
-  margin-top: 10px;
   padding: 10px 10px 5px !important; }
 
 .wide .approved {
   position: absolute;
   top: 7px;
-  right: 2px; }
+  right: 2px;
+  transform: rotate(10deg);
+  margin-top: 10px; }
+
+.narrow .approved {
+  transform: rotate(0deg);
+  top: 0; }
 
 .centered {
   text-align: center; }
@@ -5621,6 +5625,8 @@ only screen and (max-width: 320px) {
     padding-left: 23px !important; }
   .external .docOutgoings .document {
     background-color: #ddecfd; }
+  .external .document {
+    background-color: #fdffe5; }
 
   .wide .external .docIncomings {
     width: 1002px; }
@@ -5636,7 +5642,7 @@ only screen and (max-width: 320px) {
         height: 0;
         border-style: solid;
         border-width: 30px 30px 0 0;
-        border-color: white rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgba(0, 0, 0, 0); }
+        border-color: #fdffe5 rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgba(0, 0, 0, 0); }
   .wide .external .docOutgoings {
     width: 1002px; }
     .wide .external .docOutgoings .avatar {

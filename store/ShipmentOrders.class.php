@@ -230,7 +230,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         if (!isset($data->form->rec->id)) {
             expect($origin = static::getOrigin($data->form->rec), $data->form->rec);
             if ($origin->isInstanceOf('sales_Sales')) {
-                $data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани,stocked=Неекспедирани и налични,all=Всички)', 'caption=Вкарване от продажбата->Артикули, input,before=sharedUsers');
+                $data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани (Всички),stocked=Неекспедирани и налични,notshippedstorable=Неекспедирани (Складируеми),notshippedservices=Неекспедирани (Услуги),services=Услуги (Всички),all=Всички)', 'caption=Вкарване от продажбата->Артикули, input,before=sharedUsers');
             }
         }
     }

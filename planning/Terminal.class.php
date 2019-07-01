@@ -110,14 +110,17 @@ class planning_Terminal extends peripheral_Terminal
      * УРЛ към, което да бъде редиректнат потребителя, ако има проблем
      *
      * @param stdClass $rec
+     * @param string|null $msg
      *
      * @return array $url
      */
-    private function getRedirectUrlAfterProblemIsFound($rec)
+    private function getRedirectUrlAfterProblemIsFound($rec, &$msg)
     {
         $url = (planning_Centers::haveRightFor('single', $rec->centerId)) ? array('planning_Centers', 'single', $rec->centerId) : array('bgerp_Portal', 'show');
+        $msg = 'Нямате достъп до терминала|*!';
         if(!core_Users::getCurrent('id', false)){
             $url = array('core_Users', 'login', 'ret_url' => toUrl(array($this, 'open', $rec->id), 'local'));
+            $msg = 'Трябва да сте логнат за достъп до терминала|*!';
         }
         
         $object = ht::mixedToHtml($rec);
@@ -292,13 +295,14 @@ class planning_Terminal extends peripheral_Terminal
         $Tasks->prepareListRows($data);
         if(count($data->recs)){
             foreach ($data->rows as $id => &$row){
+                $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
                 if($id != $taskId){
                     $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
                     $img = ht::createImg(array('path' => 'img/32/right.png'));
                     $row->selectBtn = ht::createLink($img, $selectUrl, false, 'title=Избиране на операцията за текуща,class=imgNext changeTab');
                 } else {
-                    $img =  ht::createImg(array('path' =>'img/32/dialog_ok.png'));
-                    $row->selectBtn = ht::createLink($img, "", false, 'title=Текуща операция,class=imgNext');
+                    $img =  ht::createImg(array('path' =>'img/32/right-ok.png'));
+                    $row->selectBtn = ht::createLink($img, $selectUrl, false, 'title=Отворяне на текуща операция,class=imgNext');
                     $row->ROW_ATTR['class'] .= ' task-selected';
                 }
                 unset($row->_rowTools);
@@ -666,9 +670,10 @@ class planning_Terminal extends peripheral_Terminal
         $id = Request::get('id', 'int');
         expect($rec = planning_Points::fetch($id), 'Неразпознат ресурс');
         if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
-            $url = $this->getRedirectUrlAfterProblemIsFound($rec);
+            $msg = null;
+            $url = $this->getRedirectUrlAfterProblemIsFound($rec, $msg);
             
-            return new Redirect($url);
+            return new Redirect($url, $msg, 'warning');
         }
         
         $this->logRead('Търсене в терминала', $rec->id);
@@ -720,9 +725,10 @@ class planning_Terminal extends peripheral_Terminal
         $id = Request::get('id', 'int');
         expect($rec = planning_Points::fetch($id), 'Неразпознат ресурс');
         if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
-            $url = $this->getRedirectUrlAfterProblemIsFound($rec);
+            $msg = null;
+            $url = $this->getRedirectUrlAfterProblemIsFound($rec, $msg);
             
-            return new Redirect($url);
+            return new Redirect($url, $msg, 'error');
         }
         
         try{
@@ -773,9 +779,10 @@ class planning_Terminal extends peripheral_Terminal
         expect($rec = planning_Points::fetch($id));
         
         if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
-            $url = $this->getRedirectUrlAfterProblemIsFound($rec);
+            $msg = null;
+            $url = $this->getRedirectUrlAfterProblemIsFound($rec, $msg);
             
-            return new Redirect($url);
+            return new Redirect($url, $msg, 'error');
         }
         
         Mode::setPermanent('currentPlanningPoint', $id);
@@ -869,9 +876,10 @@ class planning_Terminal extends peripheral_Terminal
         Mode::setPermanent("activeTab{$rec->id}", $name);
         
         if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
-            $url = $this->getRedirectUrlAfterProblemIsFound($rec);
+            $msg = null;
+            $url = $this->getRedirectUrlAfterProblemIsFound($rec, $msg);
             
-            return new Redirect($url);
+            return new Redirect($url, $msg, 'error');
         }
         
         if (Request::get('ajax_mode')) {

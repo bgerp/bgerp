@@ -43,6 +43,15 @@
 	left:0px;
 }
 
+.filemanUpload select {
+	max-width: 200px !important;
+	margin-right: 0 !important;
+}
+
+.filemanUpload input.combo {
+	width: 180px !important;
+}
+
 /*бутона за IE*/
 .ulfile {
 	position: absolute;

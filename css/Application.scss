@@ -2064,15 +2064,13 @@ a.tOld {
 	display: inline-block;
     font-size: 1em;
     position: relative;
-    z-index: 10000000;
+    z-index: 100;
     top: 50px;
     transform: rotate(16deg);
 	padding: 1px 2px 0px 2px !important;
 	border-radius: 3px;
 }
 .approved {
-  transform: rotate(10deg);
-	margin-top: 10px;
 	padding: 10px 10px 5px !important
 }
 
@@ -2080,6 +2078,13 @@ a.tOld {
 	position: absolute;
 	top:7px;
 	right: 2px;
+	transform: rotate(10deg);
+	margin-top: 10px;
+}
+
+.narrow .approved {
+	transform: rotate(0deg);
+	top: 0;
 }
 
 .centered {
@@ -6325,6 +6330,9 @@ body.narrow {
 	.docOutgoings .document {
 		background-color: #ddecfd;
 	}
+	.document {
+		background-color: #fdffe5;
+	}
 
 }
 .wide .external {
@@ -6345,7 +6353,7 @@ body.narrow {
 				height: 0;
 				border-style: solid;
 				border-width: 30px 30px 0 0;
-				border-color: #ffffff transparent transparent transparent;
+				border-color: #fdffe5 transparent transparent transparent;
 
 			}
 		}

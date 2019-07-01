@@ -106,6 +106,21 @@ class trans_Setup extends core_ProtoSetup
     
     
     /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
+        
+        // Добавяне на системна група за водачи на МПС
+        $groupRec = (object)array('name' => 'Водачи МПС', 'sysId' => 'vehicleDrivers', 'allow' => 'persons');
+        crm_Groups::forceGroup($groupRec);
+        
+        return $html;
+    }
+    
+    
+    /**
      * Ъпдейт на ЛЕ в ЕН
      */
     private function updateLu()

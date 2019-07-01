@@ -77,20 +77,20 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('serverIp', 'ip', 'caption=Сървър->IP адрес, mandatory');
-        $fieldset->FLD('serverTcpPort', 'int', 'caption=Сървър->TCP порт, mandatory');
+        $fieldset->FLD('serverIp', 'ip', 'caption=Настройки за връзка със ZFPLAB сървър->IP адрес, mandatory');
+        $fieldset->FLD('serverTcpPort', 'int', 'caption=Настройки за връзка със ZFPLAB сървър->TCP порт, mandatory');
         
-        $fieldset->FLD('driverVersion', 'enum(19.05.17,19.03.22,19.02.20)', 'caption=ФУ->Версия, mandatory, notNull');
-        $fieldset->FLD('fpType', 'enum(cashRegister=Касов апарат, fiscalPrinter=Фискален принтер)', 'caption=ФУ->Тип, mandatory, notNull');
-        $fieldset->FLD('type', 'enum(tcp=TCP връзка, serial=Сериен порт)', 'caption=ФУ->Връзка, mandatory, notNull, removeAndRefreshForm=tcpIp|tcpPort|tcpPass|serialPort|serialSpeed');
-        $fieldset->FLD('serialNumber', 'varchar(8)', 'caption=ФУ->Сериен номер');
+        $fieldset->FLD('driverVersion', 'enum(19.06.13,19.05.17,19.03.22,19.02.20)', 'caption=Настройки на ФУ->Версия, mandatory, notNull');
+        $fieldset->FLD('fpType', 'enum(cashRegister=Касов апарат, fiscalPrinter=Фискален принтер)', 'caption=Настройки на ФУ->Тип, mandatory, notNull');
+        $fieldset->FLD('serialNumber', 'varchar(8)', 'caption=Настройки на ФУ->Сериен номер');
         
-        $fieldset->FLD('tcpIp', 'ip', 'caption=TCP->IP адрес, mandatory');
-        $fieldset->FLD('tcpPort', 'int', 'caption=TCP->Порт, mandatory');
-        $fieldset->FLD('tcpPass', 'password', 'caption=TCP->Парола, mandatory');
+        $fieldset->FLD('type', 'enum(tcp=TCP връзка, serial=Сериен порт)', 'caption=Настройки за връзка с ФУ->Връзка, mandatory, notNull, removeAndRefreshForm=tcpIp|tcpPort|tcpPass|serialPort|serialSpeed');
+        $fieldset->FLD('tcpIp', 'ip', 'caption=Настройки за връзка с ФУ->IP адрес, mandatory');
+        $fieldset->FLD('tcpPort', 'int', 'caption=Настройки за връзка с ФУ->Порт, mandatory');
+        $fieldset->FLD('tcpPass', 'password', 'caption=Настройки за връзка с ФУ->Парола, mandatory');
         
-        $fieldset->FLD('serialPort', 'varchar', 'caption=Сериен->Порт, mandatory');
-        $fieldset->FLD('serialSpeed', 'int', 'caption=Сериен->Скорост, mandatory');
+        $fieldset->FLD('serialPort', 'varchar', 'caption=Настройки за връзка с ФУ->Порт, mandatory');
+        $fieldset->FLD('serialSpeed', 'int', 'caption=Настройки за връзка с ФУ->Скорост, mandatory');
         
         if ($fieldset instanceof core_Form) {
             $fieldset->input('type');
@@ -110,15 +110,15 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         $fieldset->FLD('paymentMap', 'table(columns=paymentId|code,captions=Вид|Код,batch_ro=readonly)', 'caption=Настройки на апарата->Плащания');
         $fieldset->setFieldTypeParams('paymentMap', array('paymentId_opt' => array('' => '') + array('-1' => 'Брой') + cls::get('cond_Payments')->makeArray4Select('title')));
         
-        $fieldset->FLD('header', 'enum(yes=Да, no=Не)', 'caption=Надпис хедър->Добавяне, mandatory, notNull, removeAndRefreshForm');
-        $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър->Позиция, mandatory, notNull');
-        $fieldset->FLD('headerText1', "varchar({$this->fpLen})", 'caption=Надпис хедър->Текст 1');
-        $fieldset->FLD('headerText2', "varchar({$this->fpLen})", 'caption=Надпис хедър->Текст 2');
-        $fieldset->FLD('headerText3', "varchar({$this->fpLen})", 'caption=Надпис хедър->Текст 3');
-        $fieldset->FLD('headerText4', "varchar({$this->fpLen})", 'caption=Надпис хедър->Текст 4');
-        $fieldset->FLD('headerText5', "varchar({$this->fpLen})", 'caption=Надпис хедър->Текст 5');
-        $fieldset->FLD('headerText6', "varchar({$this->fpLen})", 'caption=Надпис хедър->Текст 6');
-        $fieldset->FLD('headerText7', "varchar({$this->fpLen})", 'caption=Надпис хедър->Текст 7');
+        $fieldset->FLD('header', 'enum(yes=Да,no=Не)', 'caption=Надпис хедър в касовата бележка->Добавяне, mandatory, notNull, removeAndRefreshForm');
+        $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър в касовата бележка->Позиция, mandatory, notNull');
+        $fieldset->FLD('headerText1', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 1');
+        $fieldset->FLD('headerText2', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 2');
+        $fieldset->FLD('headerText3', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 3');
+        $fieldset->FLD('headerText4', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 4');
+        $fieldset->FLD('headerText5', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 5');
+        $fieldset->FLD('headerText6', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 6');
+        $fieldset->FLD('headerText7', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 7');
         if ($fieldset instanceof core_Form) {
             $fieldset->input('header');
             if ($fieldset->rec->header == 'no') {
@@ -133,9 +133,9 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             }
         }
         
-        $fieldset->FLD('footer', 'enum(yes=Да, no=Не)', 'caption=Надпис футър->Добавяне, mandatory, notNull, removeAndRefreshForm');
-        $fieldset->FLD('footerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис футър->Позиция, mandatory, notNull');
-        $fieldset->FLD('footerText', "varchar({$this->fpLen})", 'caption=Надпис футър->Текст');
+        $fieldset->FLD('footer', 'enum(yes=Да, no=Не)', 'caption=Надпис футър в касовата бележка->Добавяне, mandatory, notNull, removeAndRefreshForm');
+        $fieldset->FLD('footerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис футър в касовата бележка->Позиция, mandatory, notNull');
+        $fieldset->FLD('footerText', "varchar({$this->fpLen})", 'caption=Надпис футър в касовата бележка->Текст');
         if ($fieldset instanceof core_Form) {
             $fieldset->input('footer');
             if ($fieldset->rec->footer == 'no') {
@@ -229,7 +229,21 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * QR_CODE_DATA - резултата от ReadLastReceiptQRcodeData. Връща се в fpOnSuccess функцията - FM Number*Receipt Number*Receipt Date*Receipt Hour*Receipt Amount
      * Може да се подаде този номер и от там автоматично да се извлече FM_NUM, RELATED_TO_RCP_NUM и RELATED_TO_RCP_DATE_TIME, ако не са подадени.
      * Помощен параметър за определяне на някои стойности
-     *
+     * 
+     * // Параметри за кредитно известие
+     * IS_CREDIT_NOTE - дали се създава кредитно известие. По подобен начин на СТОРНО, само, че в бележката е кредитно известие
+     * RECIPIENT - 26 символа за получателя на фактурата
+     * BUYER - 16 симвла за купувача
+     * VAT_NUMBER - 13 символа за VAT номер
+     * UIC - 13 символа за UIC номер на клиента
+     * ADDRESS - 30 символа за адрес на клиента
+     * UIC_TYPE_STR - типа на UIC номера - bulstat, EGN, FN, NRA
+     * RELATED_TO_INV_NUM - 10 символа за фактурата, която се сторница
+     * RELATED_TO_INV_DATE_TIME - дата и час на фискалния бон, който ще се сторнира - може да се попълни от QR_CODE_DATA, ако не е попълнено
+     * 
+     * Другите параметри са: OPER_NUM, OPER_PASS, PRINT_TYPE_STR - като при издаване на ФБ
+     * Другите параметри са: STORNO_REASON, RELATED_TO_RCP_NUM, FM_NUM, RELATED_TO_URN, QR_CODE_DATA - като при издаване на СТОРНО
+     * 
      * @return string
      *
      * @see peripheral_FiscPrinter
@@ -258,18 +272,20 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         }
         setIfNot($params['PRINT_TYPE_STR'], 'buffered');
         
-        if (!$params['IS_STORNO']) {
+        if (!$params['IS_STORNO'] && !$params['IS_CREDIT_NOTE']) {
             expect($params['RCP_NUM'] && preg_match($this->rcpNumPattern, $params['RCP_NUM']));
             $js->replace(json_encode($params['RCP_NUM']), 'RCP_NUM');
             
             $js->removeBlock('OPEN_STORNO_RECEIPT_1');
             $js->removeBlock('OPEN_STORNO_RECEIPT_2');
+            $js->removeBlock('OPEN_CREDIT_NOTE_1');
+            $js->removeBlock('OPEN_CREDIT_NOTE_2');
         } else {
             
-            // Ако ще се прави сторно
+            // Ако ще се прави сторно или кредитно известие
             
             // Опитваме се да попълним няко от задължителните параметри
-            if ($params['QR_CODE_DATA'] && (!$params['RELATED_TO_RCP_NUM'] || !$params['RELATED_TO_RCP_DATE_TIME'] || !$params['FM_NUM'])) {
+            if ($params['QR_CODE_DATA']) {
                 list($fmNum, $toRcpNum, $toRcpDate, $toRcpTime) = explode('*', $params['QR_CODE_DATA']);
                 
                 setIfNot($params['FM_NUM'], $fmNum);
@@ -278,14 +294,27 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
                 $toRcpDateAndTime = $toRcpDate . ' ' . $toRcpTime;
                 $toRcpDateAndTime = dt::mysql2verbal($toRcpDateAndTime, 'd-m-Y H:i:s', null, false, false);
                 setIfNot($params['RELATED_TO_RCP_DATE_TIME'], $toRcpDateAndTime);
+                
+                setIfNot($params['RELATED_TO_INV_DATE_TIME'], $toRcpDateAndTime);
             }
             
-            expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_RCP_DATE_TIME'] && $params['FM_NUM']);
+            if ($params['IS_STORNO']) {
+                expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_RCP_DATE_TIME'] && $params['FM_NUM']);
+                expect(dt::verbal2mysql($params['RELATED_TO_RCP_DATE_TIME']));
+                
+                $js->removeBlock('OPEN_CREDIT_NOTE_1');
+                $js->removeBlock('OPEN_CREDIT_NOTE_2');
+            } else if ($params['IS_CREDIT_NOTE']) {
+                expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_INV_DATE_TIME'] && $params['FM_NUM']);
+                expect(dt::verbal2mysql($params['RELATED_TO_INV_DATE_TIME']));
+                
+                $js->removeBlock('OPEN_STORNO_RECEIPT_1');
+                $js->removeBlock('OPEN_STORNO_RECEIPT_2');
+            }
             
             setIfNot($params['STORNO_REASON'], 1);
             expect(($params['STORNO_REASON'] >= 0) && ($params['STORNO_REASON'] <= 2));
             expect(strlen($params['RELATED_TO_RCP_NUM']) <= 6);
-            expect(dt::verbal2mysql($params['RELATED_TO_RCP_DATE_TIME']));
             expect(strlen($params['FM_NUM']) == 8);
             
             $js->replace($params['STORNO_REASON'], 'STORNO_REASON');
@@ -302,6 +331,17 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             
             $js->removeBlock('OPEN_FISC_RECEIPT_1');
             $js->removeBlock('OPEN_FISC_RECEIPT_2');
+            
+            if ($params['IS_CREDIT_NOTE']) {
+                $js->replace(json_encode($params['RECIPIENT']), 'RECIPIENT');
+                $js->replace(json_encode($params['BUYER']), 'BUYER');
+                $js->replace(json_encode($params['VAT_NUMBER']), 'VAT_NUMBER');
+                $js->replace(json_encode($params['UIC']), 'UIC');
+                $js->replace(json_encode($params['ADDRESS']), 'ADDRESS');
+                $js->replace(json_encode($params['UIC_TYPE_STR']), 'UIC_TYPE_STR');
+                $js->replace(json_encode($params['RELATED_TO_INV_NUM']), 'RELATED_TO_INV_NUM');
+                $js->replace(json_encode($params['RELATED_TO_INV_DATE_TIME']), 'RELATED_TO_INV_DATE_TIME');
+            }
         }
         
         expect(($params['OPER_NUM'] >= 1) && ($params['OPER_NUM'] <= 20));
@@ -678,6 +718,13 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             
             $form->setDefault('paymentMap', $form->getFieldType('paymentMap')->fromVerbal($paymentOptions));
         }
+        
+        $form->setDefault('serialSpeed', 115200);
+        $form->setDefault('serverIp', '127.0.0.1');
+        $form->setDefault('serverTcpPort', 4444);
+        $form->setDefault('tcpPort', 8000);
+        $form->setDefault('tcpPass', 1234);
+        $form->setDefault('footerText', 'Отпечатано с bgERP');
     }
     
     

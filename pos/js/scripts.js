@@ -2,6 +2,16 @@ function posActions() {
 
 	var pageWidth = parseInt($(window).width());
 	
+	$(document.body).on('input', "input[name=ean]", function(e){
+		var userText = $(this).val();
+		$("#suggestions").find("option").each(function() {
+		      if ($(this).val() == userText) {
+		    	  $value = $(this).attr("data-value");
+		    	  $("input[name=ean]").val($value);
+		      }
+		})
+	});
+	
 	// Забраняване на скалирането, за да избегнем забавяне
 	if(isTouchDevice()){
 		 $('meta[name=viewport]').remove();

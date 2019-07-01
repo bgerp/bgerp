@@ -20,7 +20,7 @@ abstract class cat_ProductDriver extends core_BaseClass
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, cat, sales, purchase';
+    public $canSelectDriver = 'user';
     
     
     /**
@@ -64,9 +64,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function canSelectDriver($userId = null)
     {
-        $roles = core_Users::haveRole('partner', $userId) ? 'partner' : $this->canSelectDriver;
-        
-        return core_Users::haveRole($roles, $userId);
+        return core_Users::haveRole($this->canSelectDriver, $userId);
     }
     
     
