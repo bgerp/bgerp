@@ -61,7 +61,7 @@ class core_Composer extends core_Mvc
                     $cmd = '"' . $phpCmd . '" ' . $setupPath . ' --quiet --install-dir=' . dirname(EF_VENDOR_PATH);  
                     exec($cmd, $output, $returnvar);
                     if($returnvar != 0) {
-                        self::$error = 'Грешка ($cmd):' . implode('; ', $output);
+                        self::$error = "Грешка ($cmd):" . implode('; ', $output);
                     }
                 } else {
                     self::$error = 'Грешка: неточна SHA384 сигнатура';
@@ -133,7 +133,7 @@ class core_Composer extends core_Mvc
                 return $res;
             }
         }
-
+        
         $phpCmd = core_Os::getPhpCmd();
         if(!$phpCmd) {
                 
