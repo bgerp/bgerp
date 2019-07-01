@@ -292,13 +292,14 @@ class planning_Terminal extends peripheral_Terminal
         $Tasks->prepareListRows($data);
         if(count($data->recs)){
             foreach ($data->rows as $id => &$row){
+                $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
                 if($id != $taskId){
                     $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
                     $img = ht::createImg(array('path' => 'img/32/right.png'));
                     $row->selectBtn = ht::createLink($img, $selectUrl, false, 'title=Избиране на операцията за текуща,class=imgNext changeTab');
                 } else {
-                    $img =  ht::createImg(array('path' =>'img/32/dialog_ok.png'));
-                    $row->selectBtn = ht::createLink($img, "", false, 'title=Текуща операция,class=imgNext');
+                    $img =  ht::createImg(array('path' =>'img/32/right-ok.png'));
+                    $row->selectBtn = ht::createLink($img, $selectUrl, false, 'title=Отворяне на текуща операция,class=imgNext');
                     $row->ROW_ATTR['class'] .= ' task-selected';
                 }
                 unset($row->_rowTools);
