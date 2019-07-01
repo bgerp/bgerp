@@ -72,7 +72,7 @@ class vislog_Referer extends core_Manager
      */
     public function description()
     {
-        $this->FLD('referer', 'varchar(255)', 'caption=Referer,oldFieldName=refferer');
+        $this->FLD('referer', 'url(255)', 'caption=Referer,oldFieldName=refferer');
         $this->FLD('query', 'varchar(255)', 'caption=Query,column=none');
         $this->FLD('searchLogResourceId', 'key(mvc=vislog_HistoryResources,title=query)', 'caption=Ресурс');
         $this->FLD('ip', 'ip(15,showNames)', 'caption=Ip');

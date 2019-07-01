@@ -54,22 +54,4 @@ class sass_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Премахваме от type_Keylist полета
-        $Plugins->deinstallPlugin('sass_Plugin');
-        $html .= "<li>Премахнати са всички инсталации на 'sass_Plugin'";
-        
-        return $html;
-    }
 }

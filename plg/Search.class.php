@@ -479,6 +479,12 @@ class plg_Search extends core_Plugin
         $str = preg_replace('/[ ]+/', ' ', $str);
         
         $str = str::utf2ascii($str);
+        if ($str) {
+            $iConvStr = @iconv('UTF-8', 'ASCII//TRANSLIT', $str);
+            if (isset($iConvStr)) {
+                $str = $iConvStr;
+            }
+        }
         
         $str = strtolower($str);
         $ignoreStr = '';
@@ -509,6 +515,10 @@ class plg_Search extends core_Plugin
         
         if ($latin) {
             $str = str::utf2ascii($str);
+            $iConvStr = @iconv('UTF-8', 'ASCII//TRANSLIT', $str);
+            if (isset($iConvStr)) {
+                $str = $iConvStr;
+            }
         }
         
         $str = strtolower($str);

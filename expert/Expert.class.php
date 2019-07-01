@@ -222,7 +222,7 @@ class expert_Expert extends core_FieldSet
     /**
      * Задава типа на съобщението за редирект
      *
-     * @param enum $type - Типа на съобщението - success, notice, warning, error
+     * @param string $type - Типа на съобщението - success, notice, warning, error
      */
     public function setRedirectMsgType($type = 'notice')
     {
@@ -723,6 +723,8 @@ class expert_Expert extends core_FieldSet
         }
         
         if (Request::get('AjaxCmd')) {
+            $res = new stdClass();
+            
             if ($this->midRes->alert) {
                 $res->alert = $this->midRes->alert;
             }

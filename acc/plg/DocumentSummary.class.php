@@ -70,12 +70,18 @@ class acc_plg_DocumentSummary extends core_Plugin
         'cash_InternalMoneyTransfer' => 'cashAll',
         'cash_ExchangeDocument' => 'cashAll',
         'sales_Sales' => 'saleAll',
+        'sales_Quotations' => 'saleAll',
+        'sales_Proformas' => 'saleAll',
+        'sales_Services' => 'saleAll',
         'purchase_Purchases' => 'purchaseAll',
         'planning_DirectProductionNote' => 'planningAll,storeAll',
         'planning_ConsumptionNotes' => 'planningAll,storeAll',
         'planning_ReturnNotes' => 'planningAll,storeAll',
         'planning_Jobs' => 'planningAll',
         'planning_Tasks' => 'planningAll',
+        'hr_Sickdays' => 'hrAll',
+        'hr_Trips' => 'hrAll',
+        'hr_Leaves' => 'hrAll',
     );
     
     

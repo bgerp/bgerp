@@ -284,7 +284,7 @@ class fileman_Indexes extends core_Manager
     /**
      * Връща десериализараната информация за съответния файл и съответния тип
      *
-     * @param fileHandler $fileHnd - Манипулатор на файла
+     * @param string $fileHnd - Манипулатор на файла
      * @param string      $type    - Типа на файла
      *
      * @return mixed $content - Десериализирания стринг

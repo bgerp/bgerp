@@ -36,7 +36,6 @@ core_Debug::init();
 // Зареждаме 'CLS' класа за работа с класове
 require_once(EF_APP_PATH . '/core/Cls.class.php');
 
-
 // Зареждаме 'APP' класа с помощни функции за приложението
 require_once(EF_APP_PATH . '/core/App.class.php');
 

@@ -147,7 +147,7 @@ class plg_UserReg extends core_Plugin
             
             $userId = (int) core_Cache::get(USERREG_CACHE_TYPE, $id);
             
-            if (!$userId || (!($rec = $mvc->fetch(array("#id = [#1#] AND (#state = 'active' OR #state = 'blocked')", $userId))))) {
+            if (!$userId || (!($rec = $mvc->fetch(array("#id = [#1#] AND (#state = 'draft' OR #state = 'active' OR #state = 'blocked')", $userId))))) {
                 redirect(array('Index'), false, '|Този линк е невалиден. Вероятно е използван или е изтекъл.', 'error');
             }
             

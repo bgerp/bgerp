@@ -333,6 +333,7 @@ class core_Setup extends core_ProtoSetup
         'core_Lg',
         'core_UserTranslates',
         'core_Roles',
+        'core_RoleLogs',
         'core_Users',
         'core_Locks',
         'core_LoginLog',

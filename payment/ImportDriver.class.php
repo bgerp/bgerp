@@ -83,8 +83,6 @@ class payment_ImportDriver extends import2_AbstractDriver
      * Съответстващия 'importRecs' метод, трябва да очаква
      * същите данни (@see import_DestinationIntf)
      *
-     * @see import_DriverIntf
-     *
      * @param object $rec
      *                    o xmlFile        - ид на файл от филеман
      *

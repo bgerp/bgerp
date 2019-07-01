@@ -8,6 +8,10 @@
   padding: 10px;
   position: relative; }
 
+.terminal-receipt-subtitle {
+  padding-top: 2px;
+  padding-bottom: 5px; }
+
 .narrow .single-receipt-wrapper {
   background: white; }
 

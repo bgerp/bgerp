@@ -121,8 +121,7 @@ class store_TransfersDetails extends doc_Detail
     public function description()
     {
         $this->FLD('transferId', 'key(mvc=store_Transfers)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('newProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,maxSuggestions=100,forceAjax)', 'class=w100,caption=Продукт,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
-        $this->FLD('productId', 'key(mvc=store_Products,select=productId)', 'caption=Продукт,input=none,mandatory,silent,refreshForm');
+        $this->FLD('newProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Продукт,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
@@ -174,8 +173,6 @@ class store_TransfersDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
-        $rows = $data->rows;
-        
         if (count($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
@@ -251,6 +248,7 @@ class store_TransfersDetails extends doc_Detail
         if ($form->isSubmitted()) {
             
             // Проверка на к-то
+            $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
                 $form->setError('packQuantity', $warning);
             }

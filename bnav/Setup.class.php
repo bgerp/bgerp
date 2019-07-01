@@ -36,6 +36,11 @@ class bnav_Setup extends core_ProtoSetup
      */
     public $startAct = 'default';
     
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'bnav_bnavExport_ContragentsExport,bnav_bnavExport_ItemsExport,bnav_bnavExport_SalesInvoicesExport,bnav_bnavExport_PurchaseInvoicesExport';
+    
     
     /**
      * Описание на модула
@@ -59,27 +64,6 @@ class bnav_Setup extends core_ProtoSetup
         // Добавяме Импортиращия драйвър в core_Classes
         $html .= core_Classes::add('bnav_bnavImporter');
         $html .= cls::get('cat_Products')->setupMvc();
-        
-        return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Инсталираме клавиатурата към password полета
-        if ($delCnt = $Plugins->deinstallPlugin('bnav_Plugin')) {
-            $html .= "<li>Премахнати са {$delCnt} закачания на 'bnav_Plugin'";
-        } else {
-            $html .= '<li>Не са премахнати закачания на плъгина';
-        }
         
         return $html;
     }

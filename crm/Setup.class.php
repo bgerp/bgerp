@@ -110,6 +110,7 @@ class crm_Setup extends core_ProtoSetup
         'crm_Formatter',
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
+        'migrate::repairSerchKeywords0619',
     );
     
     
@@ -123,7 +124,7 @@ class crm_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(1.32, 'Указател', 'Визитник', 'crm_Companies', 'default', 'crm, user'),
+        array(1.32, 'Указател', 'Визитник', 'crm_Companies', 'default', 'powerUser'),
     );
     
     
@@ -170,13 +171,11 @@ class crm_Setup extends core_ProtoSetup
     
     
     /**
-     * Деинсталиране
+     * Миграция за регенериране на ключовите думи
      */
-    public function deinstall()
+    public static function repairSerchKeywords0619()
     {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'crm_Companies', dt::addSecs(120));
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'crm_Persons', dt::addSecs(180));
     }
 }

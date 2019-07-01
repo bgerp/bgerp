@@ -85,7 +85,7 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Екшън - входна точка в пакета
      */
-    public $startAct = 'getStartCtr';
+    public $startAct = 'planning_DirectProductionNote';
     
     
     /**
@@ -157,14 +157,16 @@ class planning_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.21, 'Производство', 'Планиране', 'planning_Wrapper', 'getStartCtr', 'planning, ceo, job, store, taskWorker, taskPlanning'),
+        array(3.21, 'Производство', 'Планиране', 'planning_DirectProductionNote', 'list', 'ceo,planning,store,production'),
     );
     
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,planning_interface_ImportFromLastBom,planning_interface_StageDriver';
+    public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,
+                          planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
+                          planning_interface_ImportFromLastBom,planning_interface_StageDriver,planning_reports_Workflows,planning_Terminal';
     
     
     /**
@@ -183,18 +185,6 @@ class planning_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StageDriver', 'private');
         
         return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
     }
     
     
@@ -270,14 +260,14 @@ class planning_Setup extends core_ProtoSetup
         
         $updateArr = array();
         $query = $Tasks->getQuery();
-        $query->where("#indPackagingId IS NULL");
+        $query->where('#indPackagingId IS NULL');
         $query->show('packagingId');
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()) {
             $rec->indPackagingId = $rec->packagingId;
             $updateArr[$rec->id] = $rec;
         }
         
-        if(count($updateArr)){
+        if (count($updateArr)) {
             $Tasks->saveArray($updateArr, 'id,indPackagingId');
         }
     }
@@ -294,16 +284,16 @@ class planning_Setup extends core_ProtoSetup
         $TaskDetails = cls::get('planning_ProductionTaskDetails');
         $TaskDetails->setupMvc();
         
-        if(!count($Tasks)) {
+        if (!count($Tasks)) {
             
             return;
         }
         
         $updateArr = array();
         $query = $Tasks->getQuery();
-        $query->where("#measureId IS NULL");
+        $query->where('#measureId IS NULL');
         $query->show('measureId,quantityInPack,productId');
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()) {
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
             $rec->measureId = $measureId;
             $rec->quantityInPack = 1;
@@ -311,7 +301,7 @@ class planning_Setup extends core_ProtoSetup
             $updateArr[] = $rec;
         }
         
-        if(count($updateArr)){
+        if (count($updateArr)) {
             $Tasks->saveArray($updateArr, 'id,measureId,quantityInPack');
         }
     }

@@ -172,20 +172,8 @@ class blast_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(1.36, 'Указател', 'Разпращане', 'blast_Lists', 'default', 'ceo, blast'),
+        array(1.36, 'Указател', 'Разпращане', 'blast_Lists', 'default', 'blast,ceo,admin'),
     );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
     
     
     /**

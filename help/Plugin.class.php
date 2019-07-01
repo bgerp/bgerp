@@ -42,11 +42,11 @@ class help_Plugin extends core_Plugin
         // Текущия език на интерфейса
         $lg = core_Lg::getCurrent();
         
-        if (($rec = help_Info::fetch(array("#class = '[#1#]' AND #action = '[#2#]' AND #lg = '[#3#]'", $ctr, $act, $lg))) || haveRole('help')) {
+        
+        if (($act == 'list') && ($rec = help_Info::fetch(array("#class = '[#1#]' AND #lg = '[#2#]'", $ctr, $lg))) || haveRole('help')) {
             if (!$rec) {
                 $rec = new stdClass();
                 $rec->class = $ctr;
-                $rec->action = $act;
                 $rec->lg = $lg;
             } else {
                 // Трябва ли да бъде първоначално отворен хинта и дали въобще да го показваме?
@@ -79,6 +79,12 @@ class help_Plugin extends core_Plugin
                 }
                 $hintText .= ht::createLink($imgEdit, $urlAE, null, array('class' => 'edit-tooltip'));
             }
+            
+            if ($rec->url) {
+                $hintText .= "<div class='clearfix21'><div style='float:right;font-size:0.8em;'>" . ht::createLink('» виж документацията', $rec->url, null, 'target=_blank') . '</div></div>';
+            }
+            
+            $hintText .=
             
             $hint = new ET("<div class='tooltip-text {$mustSeeClass}'><div class='tooltip-arrow'></div><a class='close-tooltip'></a>[#1#]</div>", $hintText);
             $url = toUrl(array('help_Log', 'CloseInfo', $rec->id));

@@ -64,16 +64,4 @@ class draw_Setup extends core_ProtoSetup
         array('draw'),
         array('drawMaster', 'draw'),
     );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
 }

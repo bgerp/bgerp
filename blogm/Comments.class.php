@@ -455,6 +455,7 @@ class blogm_Comments extends core_Detail
         $before5d = dt::addDays(-5);
         $before14d = dt::addDays(-14);
         $deleteCnt = $deleteCnt = 0;
+        $rejectedCnt = 0;
         
         // Оттегляме, всички, които по-голям рейтинг от 5 и са на повече от 25 минути или имат по-голям рейтинг от 3 и са от преди повече от 5 дни
         $query = $this->getQuery();

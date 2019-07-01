@@ -1172,7 +1172,7 @@ class blast_Letters extends core_Master
     /**
      * Връща масив с плейсхолдери за съответната група
      *
-     * @param sting $group - Групата
+     * @param string $group - Групата
      *
      * @return array $arr - Масив с плейсхолдери
      */
@@ -1309,7 +1309,7 @@ class blast_Letters extends core_Master
     /**
      * Намира предполагаемия език на текста
      *
-     * @param text $body - Текста, в който ще се търси
+     * @param string $body - Текста, в който ще се търси
      *
      * @return string $lg - Двубуквеното означение на предполагаемия език
      */

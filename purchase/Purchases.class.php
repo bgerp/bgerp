@@ -88,15 +88,15 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=@Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid,amountInvoiced,dealerId=Закупчик,paymentState,createdOn, createdBy';
-
-
+    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid,amountInvoiced,dealerId=Закупчик,paymentState,createdOn, createdBy';
+    
+    
     /**
-     * Отделния ред в листовия изглед да е отгоре
+     * Името на полето, което ще е на втори ред
      */
-    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
-
-
+    public $listFieldsExtraLine = 'title';
+    
+    
     /**
      * Детайла, на модела
      */
@@ -372,8 +372,6 @@ class purchase_Purchases extends deals_DealMaster
             }
             
             // Ако експедирането е на момента се добавя бутон за нова фактура
-            $actions = type_Set::toArray($rec->contoActions);
-            
             if (deals_Helper::showInvoiceBtn($rec->threadId) && purchase_Invoices::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
                 $data->toolbar->addBtn('Вх. фактура', array('purchase_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/invoice.png,title=Създаване на входяща фактура,order=9.9993');
             }
@@ -542,7 +540,6 @@ class purchase_Purchases extends deals_DealMaster
                 $p->{$fld} = $dRec->{$fld};
             }
             
-            $info = cat_Products::getProductInfo($p->productId);
             $p->expenseRecId = acc_CostAllocations::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
             
             if (core_Packs::isInstalled('batch')) {
@@ -672,6 +669,7 @@ class purchase_Purchases extends deals_DealMaster
      */
     protected function setTemplates(&$res)
     {
+        $tplArr = array();
         $tplArr[] = array('name' => 'Договор за покупка', 'content' => 'purchase/tpl/purchases/Purchase.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrow.shtml');
         $tplArr[] = array('name' => 'Договор за покупка на услуга', 'content' => 'purchase/tpl/purchases/Service.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/ServiceNarrow.shtml');
         $tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/PurchaseEN.shtml', 'lang' => 'en', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowEN.shtml');
@@ -706,7 +704,7 @@ class purchase_Purchases extends deals_DealMaster
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionPur')) {
                 $row->commonCondition = cls::get('type_Url')->toVerbal($cond);
             }
-        } else if (isset($fields['-list'])) {
+        } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->title = "<b>" . $row->title . "</b>";
             $row->title .= "  «  " . $row->folderId;
         }

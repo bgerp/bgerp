@@ -158,7 +158,7 @@ class email_Salutations extends core_Manager
      *
      * @param doc_Folders $folderId - id на папка
      * @param doc_Threads $threadId - id на нишка
-     * @param stribg      $email    - Имейл
+     * @param string      $email    - Имейл
      * @param core_Users  $userId   - id на потребител
      *
      * @return NULL|string - Поздрава

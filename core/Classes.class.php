@@ -355,8 +355,11 @@ class core_Classes extends core_Manager
     public static function on_AfterDbTableUpdated($mvc)
     {
         // Ако в момента се изпълнява обновлението на таблицата с класове - не изтриваме кеша
-        if(Mode::is('RebuildingClasses')) return;
-
+        if (Mode::is('RebuildingClasses')) {
+            
+            return;
+        }
+        
         self::$classes = array();
         $cache = cls::get('core_Cache');
         $cache->deleteData(md5(EF_DB_NAME . '|' . CORE_CACHE_PREFIX_SALT . self::$classHashName));
@@ -370,13 +373,17 @@ class core_Classes extends core_Manager
     {
         $query = self::getQuery();
         $preffix = $pack . '_';
+        $res = '';
         
         while ($rec = $query->fetch(array("#state = 'active' AND #name LIKE '[#1#]%'", $preffix))) {
             $rec->state = 'closed';
-            core_CLasses::save($rec);
+            core_Classes::save($rec);
+            $res .= "<li class='debug-notice'>Беше деактивиран класа `{$rec->name}`</li>";
         }
         
         self::rebuild();
+        
+        return $res;
     }
     
     
@@ -393,7 +400,12 @@ class core_Classes extends core_Manager
         while ($rec = $query->fetch("#state = 'active'")) {
             $load = cls::load($rec->name, true);
             if ($load) {
-                $inst = cls::get($rec->name);
+                try {
+                    $inst = cls::get($rec->name);
+                } catch (Throwable $e) {
+                    $load = false;
+                }
+                
             }
             if (!$load) {
                 $rec->state = 'closed';
@@ -409,7 +421,7 @@ class core_Classes extends core_Manager
         }
         Mode::set('RebuildingClasses', false);
         self::on_AfterDbTableUpdated($query->mvc);
-
+        
         return $res;
     }
     
@@ -473,12 +485,12 @@ class core_Classes extends core_Manager
                 if (self::$staticInterfaceMehods[$intName]) {
                     $hint = implode(', ', self::$staticInterfaceMehods[$intName]);
                     $hint = 'Статични методи: ' . $hint;
-                    $verbalInterfaces .= " <span class='interface-container not-implemented' style='color:red;'  title='{$hint}'>{$intName}</span>";
+                    $verbalInterfaces .= ' ' . ht::createHint("<span class='interface-container not-implemented' style='color:red;'>{$intName}</span>", $hint, 'error');
                 } elseif (!count($notImplemented)) {
                     $verbalInterfaces .= " <span class='interface-container not-implemented' style='color:green;'>{$intName}</span>";
                 } else {
-                    $hint = implode(', ', $notImplemented);
-                    $verbalInterfaces .= " <span class='interface-container implemented' style='color:orange;' title='{$hint}'>{$intName}</span>";
+                    $hint = 'Не са имплементирани: ' . implode(', ', $notImplemented);
+                    $verbalInterfaces .= ' ' . ht::createHint("<span class='interface-container not-implemented' style='color:orange;'>{$intName}</span>", $hint, 'warning');
                 }
             }
         }

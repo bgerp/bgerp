@@ -12,7 +12,10 @@ defIfNot('TRANS_CMR_SENDER_INSTRUCTIONS', '');
  */
 defIfNot('TRANS_CMR_SHOW_BTN', 'no');
 
-
+/**
+ * От коя дата да започнат да се изчисляват индикаторите за транспортните линии
+ */
+defIfNot('TRANS_DATE_FOR_TRANS_INDICATORS', '');
 
 /**
  * Транспорт
@@ -79,6 +82,12 @@ class trans_Setup extends core_ProtoSetup
     
     
     /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'trans_Indicators';
+    
+    
+    /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
@@ -92,19 +101,8 @@ class trans_Setup extends core_ProtoSetup
     public $configDescription = array(
         'TRANS_CMR_SENDER_INSTRUCTIONS' => array('text(rows=2)','caption=ЧМР->13. Инструкции на изпращача'),
         'TRANS_CMR_SHOW_BTN' => array('enum(yes=Включено,no=Изключено)','caption=При липса на условие на доставка. Да се показва ли бутона за ЧМР->Избор'),
+        'TRANS_DATE_FOR_TRANS_INDICATORS' => array('date', 'caption=От коя дата да се изчисляват индикатори транспортни линии->Дата'),
     );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
-        
-        return $res;
-    }
     
     
     /**
@@ -169,8 +167,6 @@ class trans_Setup extends core_ProtoSetup
      */
     private function updateStoreMasters()
     {
-        $arr = array('store_ShipmentOrders');
-        $sod = cls::get('store_ShipmentOrderDetails');
         $loadId = trans_TransportUnits::fetchIdByName('load');
         
         //, 'store_Receipts' => 'store_ReceiptDetails', 'store_Transfers' => 'store_TransfersDetails'
@@ -207,7 +203,6 @@ class trans_Setup extends core_ProtoSetup
      */
     private function addDetailsToLines()
     {
-        $lines = array();
         foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_Transfers', 'store_ConsignmentProtocols') as $Doc) {
             $D = cls::get($Doc);
             $D->setupMvc();

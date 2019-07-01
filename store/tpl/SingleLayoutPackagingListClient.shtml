@@ -54,7 +54,7 @@
                     <b>[#contragentName#]</b>
                     <div class='address-block'>
                         [#contragentCountryId#]
-                        <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                        <!--ET_BEGIN contragentAddress-->555[#contragentAddress#] <!--ET_END contragentAddress-->
                     </div>
                     <!--ET_BEGIN locationId-->
                     <hr style="margin: 3px 0 1px;">

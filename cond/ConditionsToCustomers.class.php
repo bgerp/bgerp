@@ -247,7 +247,9 @@ class cond_ConditionsToCustomers extends core_Manager
         }
         
         $row->value = cond_Parameters::toVerbal($paramRec, $rec->cClass, $rec->cId, $rec->value);
-        $row->value = cond_Parameters::limitValue($paramRec->driverClass, $row->value);
+        if($paramRec->driverClass) {
+            $row->value = cond_Parameters::limitValue($paramRec->driverClass, $row->value);
+        }
         
         if (!empty($paramRec->suffix)) {
             $row->value .= ' ' . cls::get('type_Varchar')->toVerbal(tr($paramRec->suffix));

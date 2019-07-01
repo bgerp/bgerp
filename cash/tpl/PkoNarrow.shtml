@@ -61,14 +61,17 @@
                      				<div class='richtext-holder'><span class='quiet'>|Очаквано на|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
                      				<!--ET_END termDate-->
 			                   	</td>
-			                    <td style='padding-left:10px; padding-top: 10px;'>
-			                        <div><span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span></div>
-			                    	<!--ET_BEGIN cash_NonCashPaymentDetails-->
-                        				<hr />
-                        				[#cash_NonCashPaymentDetails#]
-                        			<!--ET_END cash_NonCashPaymentDetails-->
-			                    </td>
+
 			                </tr>
+							<tr>
+								<td style='padding-left:10px; padding-top: 10px;'>
+									<div><span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span></div>
+									<!--ET_BEGIN cash_NonCashPaymentDetails-->
+									<hr />
+									[#cash_NonCashPaymentDetails#]
+									<!--ET_END cash_NonCashPaymentDetails-->
+								</td>
+							</tr>
 			            </table>
 			         </td>
 			    </tr>

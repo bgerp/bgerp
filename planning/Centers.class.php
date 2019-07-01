@@ -420,4 +420,13 @@ class planning_Centers extends core_Master
         
         return $options;
     }
+    
+    
+    /**
+     * След подготовка на филтъра
+     */
+    protected static function on_BeforePrepareListFilter($mvc, &$res, $data)
+    {
+        $data->query->orderBy('#state');
+    }
 }

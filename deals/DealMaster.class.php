@@ -433,6 +433,8 @@ abstract class deals_DealMaster extends deals_DealBase
             $data->listFilter->setDefault('type', 'active');
             $data->listFilter->showFields .= ',type';
         }
+        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'caption=Група,refreshForm');
+        $data->listFilter->showFields .= ',groupId';
         
         $data->listFilter->input();
         if ($filter = $data->listFilter->rec) {
@@ -440,6 +442,16 @@ abstract class deals_DealMaster extends deals_DealBase
             $data->query->XPR('dealRound', 'double', 'ROUND(COALESCE(#amountDeal, 0), 2)');
             $data->query->XPR('invRound', 'double', 'ROUND(COALESCE(#amountInvoiced, 0), 2)');
             $data->query->XPR('deliveredRound', 'double', 'ROUND(COALESCE(#amountDelivered, 0), 2)');
+            
+            // Ако има филтър по клиентска група
+            if(isset($filter->groupId)){
+                $foldersArr = crm_Groups::getFolderByContragentGroupId($filter->groupId);
+                if(count($foldersArr)){
+                    $data->query->in('folderId', $foldersArr);
+                } else {
+                    $data->query->where("1=2");
+                }
+            }
             
             if ($filter->type) {
                 switch ($filter->type) {
@@ -1375,6 +1387,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // След като формата се изпрати
         if ($form->isSubmitted()) {
+            
             // обновяване на записа с избраните операции
             $form->rec->action = 'activate' . (($form->rec->action) ? ',' : '') . $form->rec->action;
             $rec->contoActions = $form->rec->action;
@@ -1392,9 +1405,9 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             // Контиране на документа
+            $this->logWrite('Избор на операция', $id);
             $this->conto($id);
-            
-            $this->logWrite('Активиране/Контиране на сделка', $id);
+            $this->invoke('AfterContoQuickSale', array($rec));
             
             // Редирект
             return new Redirect(array($this, 'single', $id));
@@ -1558,7 +1571,8 @@ abstract class deals_DealMaster extends deals_DealBase
      * 		o $fields['note'] 				-  бележки за сделката
      * 		o $fields['originId'] 			-  източник на документа
      *		o $fields['makeInvoice'] 		-  изисквали се фактура или не (yes = Да, no = Не), По дефолт 'yes'
-     *		o $fields['template'] 		-  бележки за сделката
+     *		o $fields['template'] 		    -  бележки за сделката
+     *      o $fields['receiptId']          -  информативно от коя бележка е
      *
      * @return mixed $id/FALSE - ид на запис или FALSE
      */
@@ -1575,6 +1589,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $allowedFields['originId'] = true;
         $allowedFields['currencyRate'] = true;
         $allowedFields['deliveryTermId'] = true;
+        $allowedFields['receiptId'] = true;
         
         // Проверяваме подадените полета дали са позволени
         if (count($fields)) {
@@ -1652,6 +1667,10 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Опиваме се да запишем мастъра на сделката
         $rec = (object) $fields;
+        if(isset($fields['receiptId'])){
+            $rec->_receiptId = $fields['receiptId'];
+        }
+        
         if ($id = $me->save($rec)) {
             doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
             

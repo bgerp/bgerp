@@ -88,6 +88,9 @@ class hr_Setup extends core_ProtoSetup
         'hr_Trips',
         'hr_Bonuses',
         'hr_Deductions',
+        'hr_FormCv',
+        'hr_WorkPreff',
+        'hr_WorkPreffDetails',
     );
     
     
@@ -100,6 +103,8 @@ class hr_Setup extends core_ProtoSetup
         array('hrTrips'),
         array('hr', 'hrSickdays, hrLeaves, hrTrips'),
         array('hrMaster', 'hr'),
+        array('hrAll'),
+        array('hrAllGlobal', 'hrAll'),
     );
     
     
@@ -154,17 +159,5 @@ class hr_Setup extends core_ProtoSetup
         $html .= $Bucket->createBucket('humanResources', 'Прикачени файлове в човешки ресурси', null, '1GB', 'user', 'powerUser');
         
         return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
     }
 }

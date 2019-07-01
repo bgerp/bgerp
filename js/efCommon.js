@@ -1020,10 +1020,8 @@ function colorByLen(input, maxLen, blur) {
     var rest = maxLen - input.value.length;
     var color = 'white';
     if (rest < 0) color = 'red';
-    if (rest == 0 && input.value.length > 3 && !blur) color = '#ff9999';
-    if (rest == 1 && input.value.length > 3 && !blur) color = '#ffbbbb';
-    if (rest == 2 && input.value.length > 3 && !blur) color = '#ffdddd';
-    if (rest >= 3) color = '#ffffff';
+    if (rest == 0 && input.value.length > 0 && !blur) color = '#ddffdd';
+    if (rest >= 1) color = '#ffffff';
     input.style.backgroundColor = color;
 }
 
@@ -1158,7 +1156,14 @@ function toggleDisplay(id) {
     $("#" + id).fadeToggle("slow");
     elem.toggleClass('show-btn');
 }
+function saveChecked(ul){
+    var text = "";
+    $('#' + ul).find('input[type=checkbox]:checked').each(function () {
+        text += "<span class='group-link'>" + $(this).siblings('label').text() + "</span> ";
+    });
 
+    return text;
+}
 
 // Задейства елементите, които могат да скриват/показват части
 function setTrigger() {
@@ -1174,7 +1179,22 @@ function setTrigger() {
          }
          event.stopPropagation();
     });
-    
+    $('.treelist .verbal').on('click', function(){
+        $(this).siblings('.more-btn').click();
+    });
+
+    $('.treelist .more-btn').on('click', function(){
+        var btn = $(this);
+        $(btn).parent().toggleClass("closed");
+        $(btn).toggleClass("plus-icon");
+        $(btn).toggleClass("minus-icon");
+        var verbal = $(btn).siblings('.verbal').attr('id');
+        var ul = $(btn).siblings('ul').attr('id');
+        $(btn).siblings('.verbal').html(saveChecked(ul));
+        toggleDisplay( verbal );
+        toggleDisplay(ul);
+    });
+
     $('.treelist .toggleCheck').click(function(event) {
         if($(this).siblings('.trigger').html() ==  '▼') {
             var forAttr = $(this).attr("for");
@@ -4035,6 +4055,18 @@ function runHljs() {
 
 
 /**
+ * Евалюиране на javaScript
+ */
+function render_js(data)
+{
+	// Евалюиране на скрипт
+	if(data.js){
+		eval(data.js);
+	}
+}
+
+
+/**
  * Функция, която редиректва към определена страница, може да се
  * използва с efae
  *
@@ -5417,7 +5449,7 @@ $.fn.isInViewport = function() {
  */
 function focusOnce(id, rand) {
 	
-    if (typeof(Storage) !== "undefined") {
+    if ((typeof(Storage) !== "undefined") && (typeof(localStorage) !== "undefined")) {
         if(localStorage.getItem(rand) !== null) {
             return;
         }

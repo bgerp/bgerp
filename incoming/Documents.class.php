@@ -50,7 +50,7 @@ class incoming_Documents extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'admin, doc';
+    public $canRead = 'powerUser';
     
     
     /**
@@ -80,7 +80,7 @@ class incoming_Documents extends core_Master
     /**
      * Необходими роли за оттегляне на документа
      */
-    public $canReject = 'admin, doc';
+    public $canReject = 'powerUser';
     
     
     /**
@@ -317,7 +317,7 @@ class incoming_Documents extends core_Master
      *
      * @param mixed $rec - id' то на записа или самия запис, в който ще се търси
      *
-     * @return arrray - Масив името на файла и манипулатора му (ключ на масива)
+     * @return array - Масив името на файла и манипулатора му (ключ на масива)
      */
     public static function getAttachments($rec)
     {

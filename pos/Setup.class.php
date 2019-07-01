@@ -153,18 +153,6 @@ class pos_Setup extends core_ProtoSetup
     
     
     /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-    
-    
-    /**
      * Настройки за Cron
      */
     public $cronSettings = array(
@@ -190,12 +178,18 @@ class pos_Setup extends core_ProtoSetup
     
     
     /**
+     * Класове за зареждане
+     */
+    public $defClasses = 'pos_Terminal';
+    
+    
+    /**
      * Миграция на крон процеса
      */
-    function migrateCronSettings()
+    public function migrateCronSettings()
     {
-        if($cronRec =  core_Cron::getRecForSystemId("Close reports")){
-            if($cronRec->offset != 1380){
+        if ($cronRec = core_Cron::getRecForSystemId('Close reports')) {
+            if ($cronRec->offset != 1380) {
                 $cronRec->offset = 1380;
                 core_Cron::save($cronRec, 'offset');
             }

@@ -212,18 +212,6 @@ defIfNot('EMAIL_SHOW_THREAD_IN_EXTERNAL', 'yes');
 
 
 /**
- * Ограничение по дата при преглед на нишката във външната част
- */
-defIfNot('EMAIL_SHOW_THREAD_DATE_LIMITATION', 'yes');
-
-
-/**
- * Ограничение по имейл при преглед на нишката във външната част
- */
-defIfNot('EMAIL_SHOW_THREAD_EMAIL_LIMITATION', 'yes');
-
-
-/**
  * Имейли изпратени на какъв език да се превеждат?
  */
 defIfNot('EMAIL_INCOMINGS_TRANSLATE_LG', '');
@@ -356,10 +344,6 @@ class email_Setup extends core_ProtoSetup
         'EMAIL_REJECT_SPAM_SCORE' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Оттегляне'),
         
         'EMAIL_SHOW_THREAD_IN_EXTERNAL' => array('enum(yes=Да, no=Не)', 'caption=Преглед на нишката с имейлите във външната част->Показване'),
-        
-        'EMAIL_SHOW_THREAD_DATE_LIMITATION' => array('enum(yes=Да, no=Не)', 'caption=Преглед на нишката с имейлите във външната част->Ограничение по дата'),
-        
-        'EMAIL_SHOW_THREAD_EMAIL_LIMITATION' => array('enum(yes=Да, no=Не)', 'caption=Преглед на нишката с имейлите във външната част->Ограничение по имейл'),
     );
     
     
@@ -403,7 +387,7 @@ class email_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(1.23, 'Документи', 'Имейли', 'email_Outgoings', 'default', 'admin, email, fax, user'),
+        array(1.23, 'Документи', 'Имейли', 'email_Outgoings', 'default', 'powerUser'),
     );
     
     
@@ -433,18 +417,6 @@ class email_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Email Translate', 'email_plg_IncomingsTranslate', 'email_Incomings', 'private');
         
         return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
     }
     
     

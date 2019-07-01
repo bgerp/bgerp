@@ -31,7 +31,7 @@ class batch_definitions_Document extends batch_definitions_Proto
      * @param mixed     $documentClass - класа за който ще връщаме партидата
      * @param int       $id            - ид на документа за който ще връщаме партидата
      * @param int       $storeId       - склад
-     * @param date|NULL $date          - дата
+     * @param datetime|NULL $date          - дата
      *
      * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
      */
@@ -55,14 +55,14 @@ class batch_definitions_Document extends batch_definitions_Proto
      * Проверява дали стойността е невалидна
      *
      * @param string   $value    - стойноста, която ще проверяваме
-     * @param quantity $quantity - количеството
+     * @param double $quantity - количеството
      * @param string   &$msg     - текста на грешката ако има
      *
      * @return bool - валиден ли е кода на партидата според дефиницията или не
      */
     public function isValid($value, $quantity, &$msg)
     {
-        if (!preg_match("/^[0-9]{8}[\-]{1}[A-Z]{1,3}[0-9]+/", $value, $matches)) {
+        if (!preg_match("/^[0-9]{8}[\-]{1}[A-Z]{1,3}[0-9]+/", $value)) {
             $date = str_replace('-', '', dt::today());
             $msg = "Формата трябва да е във вида на|* {$date}-SAL1";
             
@@ -100,7 +100,7 @@ class batch_definitions_Document extends batch_definitions_Proto
      *
      * @param array     $batches - наличните партиди
      *                           ['batch_name'] => ['quantity']
-     * @param date|NULL $date
+     * @param datetime|NULL $date
      *                           return void
      */
     public function orderBatchesInStore(&$batches, $storeId, $date = null)

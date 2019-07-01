@@ -95,7 +95,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     public function prepareEmbeddedForm(core_Form &$form)
     {
         // Поставяме удобни опции за избор на период
-        $op = acc_Periods::getPeriodOptions();
+        $op = acc_Balances::getPeriodOptions();
         
         $form->setSuggestions('from', array('' => '') + $op->fromOptions);
         $form->setSuggestions('to', array('' => '') + $op->toOptions);
@@ -543,7 +543,8 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         $tpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrencyCode');
         
         $cntItem = array();
-        for ($i = 0; $i <= count($data->rows); $i++) {
+        $totalRows = count($data->rows);
+        for ($i = 0; $i <= $totalRows; $i++) {
             foreach (range(1, 6) as $l) {
                 if (!empty($data->rows[$i]->{"item{$l}"})) {
                     $cntItem[$l] = "item{$l}";

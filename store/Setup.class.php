@@ -46,7 +46,7 @@ class store_Setup extends core_ProtoSetup
     /**
      * Стартов контролер за връзката в системното меню
      */
-    public $startCtr = 'store_Stores';
+    public $startCtr = 'store_Products';
     
     
     /**
@@ -80,6 +80,7 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNotes',
         'store_InventoryNoteSummary',
         'store_InventoryNoteDetails',
+        'migrate::deleteReservedCache',
     );
     
     
@@ -98,7 +99,7 @@ class store_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.2, 'Логистика', 'Склад', 'store_Stores', 'default', 'storeWorker,ceo'),
+        array(3.2, 'Логистика', 'Склад', 'store_Products', 'default', 'storeWorker,ceo'),
     );
     
     
@@ -174,18 +175,6 @@ store_iface_ImportShippedProducts,store_reports_DeficitInStores,store_reports_Un
     
     
     /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-    
-    
-    /**
      * Изтриване на кеш
      */
     public function truncateCacheProducts1()
@@ -201,5 +190,15 @@ store_iface_ImportShippedProducts,store_reports_DeficitInStores,store_reports_Un
         } catch (core_exception_Expect $e) {
             reportException($e);
         }
+    }
+    
+    
+    /**
+     * Миграция за изтриване на перманентния кеш
+     */
+    public function deleteReservedCache()
+    {
+        core_Permanent::remove('reserved_', true);
+        cls::get('store_Products')->cron_CalcReservedQuantity();
     }
 }

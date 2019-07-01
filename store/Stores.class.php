@@ -153,13 +153,7 @@ class store_Stores extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=@Наименование, chiefs,activateRoles,selectUsers,selectRoles,workersIds=Товарачи';
-    
-    
-    /**
-     * Отделния ред в листовия изглед да е отгоре
-     */
-    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+    public $listFields = 'name=Наименование, chiefs,activateRoles,selectUsers,selectRoles,workersIds=Товарачи';
     
     
     /**
@@ -199,10 +193,6 @@ class store_Stores extends core_Master
         $this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,notNull,default=active,input=none');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
-        
-        if (core_Packs::isInstalled('pallet')) {
-            $this->FLD('strategy', 'class(interface=pallet_ArrangeStrategyIntf,allowEmpty)', 'caption=Управление на стелажите->Стратегия');
-        }
         
         $this->setDbUnique('name');
     }
@@ -315,20 +305,11 @@ class store_Stores extends core_Master
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperLink($rec->locationId, true);
             }
-        } else if (isset($fields['-list'])) {
+        } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->name = "<b style='position:relative; top: 5px;'>" . $row->name . "</b>";
             $row->name .= "    <span class='fright'>" . $row->currentPlg . "</span>";
             unset($row->currentPlg);
         }
-    }
-    
-    
-    /**
-     * Преди рендиране на таблицата
-     */
-    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
-    {
-        unset($data->listFields['currentPlg']);
     }
     
     
@@ -347,5 +328,28 @@ class store_Stores extends core_Master
         $res[] = store_InventoryNotes::getClassId();
         
         return $res;
+    }
+    
+    
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
+            unset($data->listFields['currentPlg']);
+        }
+    }
+    
+    
+    /**
+     * Извиква се преди подготовката на колоните
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, $data)
+    {
+        if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
+            $data->listFields['name'] = '@' . $data->listFields['name'];
+            $mvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+        }
     }
 }

@@ -31,15 +31,9 @@ class pos_Favourites extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, pack=Мярка/Опаковка, pointId, catId=@Категория, createdOn, createdBy, state';
-
-
-    /**
-     * Отделния ред в листовия изглед да е отгоре
-     */
-    public $tableRowTpl = "<tbody class='rowBlock'>[#ROW#][#ADD_ROWS#]</tbody>";
-
-
+    public $listFields = 'productId, pack=Мярка/Опаковка, pointId, catId=Категория, createdOn, createdBy, state';
+    
+    
     /**
      * Заглавие на единичния обект
      */
@@ -215,6 +209,8 @@ class pos_Favourites extends core_Manager
         
         if ($rec->image) {
             $arr['image'] = $rec->image;
+        } else {
+            $arr['image'] = cat_Products::getParams($rec->productId, 'preview');
         }
         
         return (object) $arr;
@@ -306,6 +302,10 @@ class pos_Favourites extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        if(!$rec->image) {
+            $rec->image =  cat_Products::getParams($rec->productId, 'preview');
+        
+        }
         if ($rec->image) {
             $Fancybox = cls::get('fancybox_Fancybox');
             $row->image = $Fancybox->getImage($rec->image, array(30, 30), array(400, 400));
@@ -383,5 +383,16 @@ class pos_Favourites extends core_Manager
         
         // Чистене на кеша за всеки случай
         core_Cache::removeByType('pos_Favourites');
+    }
+    
+    
+    /**
+     * Извиква се преди подготовката на колоните
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, $data)
+    {
+        if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
+            $data->listFields['catId'] = '@' . $data->listFields['catId'];
+        }
     }
 }

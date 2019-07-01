@@ -60,10 +60,12 @@
                      				<div class='richtext-holder'><span class='quiet'>|Срок|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
                      				<!--ET_END termDate-->
 			                    </td>
-			                    <td style='padding-left:10px; padding-top: 10px;'>
-			                        <span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
-			                    </td>
 			                </tr>
+                            <tr>
+                                <td style='padding-left:10px; padding-top: 10px;'>
+                                    <span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
+                                </td>
+                            </tr>
 			            </table>
 			            </td>
 			            </tr>

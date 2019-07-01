@@ -76,18 +76,6 @@ class lab_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(2.45, 'Обслужване', 'Лаб', 'lab_Tests', 'default', 'lab, ceo'),
+        array(2.45, 'Обслужване', 'Лаб', 'lab_Tests', 'default', 'ceo,lab,masterLab'),
     );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
 }

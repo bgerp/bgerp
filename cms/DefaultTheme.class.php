@@ -43,7 +43,7 @@ class cms_DefaultTheme extends core_ProtoInner
         $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 3');
         $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 4');
         $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 5');
-        $form->FLD('colabImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка при колаборатор (1000x150px)->Изображение');
+        $form->FLD('colabImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка за логин и при колаборатор (1000x150px)->Изображение');
         
         $form->FLD('interframeImage', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1000x288px)->Междинна');
         $form->FLD('fadeDelay', 'int', 'caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000');
@@ -223,8 +223,9 @@ class cms_DefaultTheme extends core_ProtoInner
      */
     public function getHeaderImg()
     {
+        $imgs = array();
         if (!Mode::is('screenMode', 'narrow')) {
-            if (core_Users::isContractor() && $this->innerForm->colabImg) {
+            if ((core_Users::isContractor() || (!core_Users::getCurrent('id', false) && Request::get('Act') == 'login')) && $this->innerForm->colabImg) {
                 $img = new thumb_Img(array($this->innerForm->colabImg, 1000, 150, 'fileman', 'isAbsolute' => true,'mode' => 'large-no-change'));
                 $imageURL = $img->getUrl('forced');
             } else {
@@ -248,6 +249,7 @@ class cms_DefaultTheme extends core_ProtoInner
                     }
                     
                     $banner .= '<div class="fadein">';
+                    $style = '';
                     foreach ($imgs as $iHash) {
                         $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                         $imageURL = $img->getUrl('forced');

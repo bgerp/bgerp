@@ -77,25 +77,4 @@ class google_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Инсталираме клавиатурата към password полета
-        if ($delCnt = $Plugins->deinstallPlugin('google_plg_LgTranslate')) {
-            $html .= "<li>Премахнати са {$delCnt} закачания на 'google_plg_LgTranslate'";
-        } else {
-            $html .= '<li>Не са премахнати закачания на плъгина';
-        }
-        
-        return $html;
-    }
 }

@@ -122,9 +122,15 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=@Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
+    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
                              dealerId=Търговец,paymentState,
                              createdOn, createdBy';
+    
+    
+    /**
+     * Името на полето, което ще е на втори ред
+     */
+    public $listFieldsExtraLine = 'title';
     
     
     /**
@@ -188,12 +194,6 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * Отделния ред в листовия изглед да е отгоре
-     */
-    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
-    
-    
-    /**
      * Кой има право да експортва?
      */
     public $canExport = 'ceo,invoicer';
@@ -204,7 +204,7 @@ class sales_Sales extends deals_DealMaster
      *
      * @see bgerp_plg_CsvExport
      */
-    public $exportableCsvFields = 'valior,id,folderId,currencyId,amountDeal,amountDelivered,amountPaid,amountInvoiced';
+    public $exportableCsvFields = 'valior,id,folderId,currencyId,amountDeal,amountDelivered,amountPaid,amountInvoiced,invoices=Фактури';
     
     
     /**
@@ -483,7 +483,7 @@ class sales_Sales extends deals_DealMaster
                 $data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/invoice.png,title=Създаване на нова фактура,order=9.9993');
             }
             
-            if (cash_Pko::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
+            if (cash_Pko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'originId' => $rec->containerId))) {
                 $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер');
             }
             
@@ -1211,7 +1211,7 @@ class sales_Sales extends deals_DealMaster
                     $row->btnTransport = $link->getContent();
                 }
             }
-        } else if (isset($fields['-list'])) {
+        } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->title = "<b>" . $row->title . "</b>";
             $row->title .= "  «  " . $row->folderId;
         }
@@ -1608,6 +1608,11 @@ class sales_Sales extends deals_DealMaster
                     } else {
                         $rec->{"amount{$amnt}"} = 0;
                     }
+                }
+                
+                $invoices = deals_Helper::getInvoicesInThread($rec->threadId);
+                if(count($invoices)){
+                    $rec->invoices = str_replace('#Inv', '', implode(', ', $invoices));
                 }
             }
         }

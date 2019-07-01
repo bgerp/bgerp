@@ -210,7 +210,7 @@ class rack_ZoneDetails extends core_Detail
             $newRec = (object) array('zoneId' => $zoneId, 'productId' => $productId, 'packagingId' => $packagingId, 'movementQuantity' => 0, 'documentQuantity' => null, 'batch' => $batch);
         }
         $newRec->movementQuantity += $quantity;
-        $newRec->movementQuantity = round($newRec->movementQuantity, 6);
+        $newRec->movementQuantity = round($newRec->movementQuantity, 4);
         
         self::save($newRec);
     }
@@ -236,6 +236,9 @@ class rack_ZoneDetails extends core_Detail
                         $newRec = (object) array('zoneId' => $zoneId, 'productId' => $obj->productId, 'packagingId' => $obj->packagingId, 'batch' => $obj->batch, 'movementQuantity' => null, 'documentQuantity' => 0);
                     }
                     $newRec->documentQuantity = $obj->quantity;
+                    if(!empty($newRec->documentQuantity)){
+                        $newRec->documentQuantity = round($newRec->documentQuantity, 4);
+                    }
                     
                     self::save($newRec);
                     $notIn[$newRec->id] = $newRec->id;

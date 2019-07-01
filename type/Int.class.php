@@ -183,7 +183,7 @@ class type_Int extends core_Type
             
             // Ако е сетнат флаг да няма интервали в номера да няма
             if (isset($this->params['noWhitespace'])) {
-                $value = str::removeWhitespaces($value);
+                $value = str::removeWhiteSpace($value);
             }
         }
         

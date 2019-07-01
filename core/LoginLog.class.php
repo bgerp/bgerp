@@ -114,8 +114,9 @@ class core_LoginLog extends core_Manager
 									user_reg=Регистриране,
 									user_activate=Активиране
 								  )', 'caption=Статус, silent, autoFilter');
-        $this->FLD('timestamp', 'int', 'caption=Време, input=none');
+        $this->FLD('timestamp', 'int', 'caption=Време, input=none,column=none');
         
+        $this->setDbIndex('userId');
         $this->setDbIndex('createdOn');
         $this->setDbIndex('ip');
         $this->setDbIndex('brid');

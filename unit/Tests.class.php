@@ -23,8 +23,7 @@ class unit_Tests extends core_Manager
     public function on_BeforeAction($mvc, &$res, $act)
     {
         $act = trim(Request::get('Act', 'identifier'), '_');
-        
-        $classes = array();
+        $tests = $classes = array();
         
         if ($act && cls::load($act, true)) {
             $classes[] = $act;
@@ -41,8 +40,6 @@ class unit_Tests extends core_Manager
                 }
             }
         }
-        
-        $requestMetod = strtolower(Request::get('id', 'identifier'));
         
         // Правим тестове на всички открити файлове
         if (count($tests)) {

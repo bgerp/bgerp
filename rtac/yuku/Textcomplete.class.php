@@ -97,26 +97,47 @@ class rtac_yuku_Textcomplete extends core_Manager
                     match: /([^\s]*)$/,
                     index: 1,
                     search: function (term, callback) {
-                		
                     	
                         callback($.map(rtacObj.textCompleteObj.{$textId}, function (element) {
-                        	
                         	if (typeof term == 'undefined') return ;
                         	if ((term == ' ') || (term == '')) return ;
                         	term = term.toLowerCase();
                         	
-                        	var text = element.toLowerCase();
-                        	return text.indexOf(term) === 0 ? element : null;
+                            if (typeof element == 'string') {
+                                var text = element.toLowerCase();
+
+                                return text.indexOf(term) === 0 ? element : null;
+                            } else {
+                                var text = element.search.toLowerCase();
+                                
+                                // Ако започват с буквата/думата или преди интервала има такава буква/дума
+                                if ((text.indexOf(term) === 0) || (text.indexOf(' ' + term) != -1)) {
+                                    return element;
+                                } else {
+                                    return null;
+                                }
+                            }
                     	}));
                     },
                     replace: function (textComplete) {
+                        if (typeof textComplete == 'string') {
+                            var text = textComplete;
+                        } else {
+                            var text = textComplete.val;
+                        }
                         
-                        return textComplete + rtacObj.textCompleteStrEnd.{$textId};
+                        return text + rtacObj.textCompleteStrEnd.{$textId};
                     },
                     maxCount: {$maxCount},
                     cache: true,
                     template: function(textComplete) {
-                    	return textComplete;
+                        if (typeof textComplete == 'string') {
+                            var text = textComplete;
+                        } else {
+                            var text = textComplete.template;
+                        }
+                        
+                    	return text;
     				}
                 }
             );

@@ -3242,9 +3242,6 @@ div.statuses-message h2 {
 .debug-info {
   color: black; }
 
-.debug-notice {
-  color: #880000; }
-
 .debug-new {
   color: #00aa00; }
 
@@ -3407,6 +3404,10 @@ span.cng {
   .toast-container a:hover {
     text-decoration: underline; }
 
+.toast-item-wrapper .debug-notice {
+  color: #ff2828;
+  font-size: 0.85em; }
+
 .toast-item-wrapper p {
   max-height: 150px;
   overflow-y: auto;
@@ -3501,11 +3502,21 @@ td.leftColImportant {
       color: black !important;
       opacity: 1;
       font-family: Helvetica, Arial, Verdana, Sans-serif; }
+    .treelist .verbal span:hover {
+      cursor: default !important; }
+  .treelist .underline {
+    border-bottom: 1px dashed #cccccc; }
   .treelist .hidden {
     display: none; }
-  .treelist .plus {
-    font-weight: bold;
+  .treelist .more-btn {
+    background-position: center;
+    background-repeat: no-repeat;
     position: absolute;
-    right: 5px;
-    top: 4px; }
+    right: 4px;
+    top: 6px;
+    cursor: pointer; }
+  .treelist .plus-icon {
+    background-image: url('../img/16/toggle1.png') !important; }
+  .treelist .minus-icon {
+    background-image: url('../img/16/toggle2.png') !important; }
 

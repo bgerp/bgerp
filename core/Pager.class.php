@@ -199,7 +199,7 @@ class core_Pager extends core_BaseClass
     {
         // Дали да използва кеширане
         $useCache = $query->useCacheForPager;
-
+        
         if ($useCache) {
             if ($limit = doc_Setup::get('SEARCH_LIMIT')) {
                 $query->limit($limit);
@@ -233,14 +233,14 @@ class core_Pager extends core_BaseClass
         
         // Подготовка на заявката за извличане на id
         $limit = $this->rangeEnd - $this->rangeStart + round(0.5 * $this->itemsPerPage);
- 
-        if($query->mvc->simplePaging) {
+        
+        if ($query->mvc->simplePaging) {
             $query->limit($limit);
             $query->startFrom($this->rangeStart);
             
             return;
         }
-
+        
         $query->show('id');
         $rQuery = clone $query;
         $query->limit($limit);
@@ -382,13 +382,13 @@ class core_Pager extends core_BaseClass
         
         $start = $this->getPage() - $this->pagesAround;
         
-        if ($start < $this->pagesAround) {
+        if ($start <= $this->pagesAround) {
             $start = 1;
         }
         
         $end = $this->getPage() + $this->pagesAround;
         
-        if (($end > $this->getPagesCount()) || ($this->getPagesCount() - $end) < $this->pagesAround) {
+        if (($end > $this->getPagesCount()) || ($this->getPagesCount() - $end) <= $this->pagesAround) {
             $end = $this->getPagesCount();
         }
         

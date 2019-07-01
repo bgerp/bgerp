@@ -28,7 +28,7 @@ class plg_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Пакет за работа с плъгини';
+    public $info = 'Пакет с базови плъгини';
     
     
     /**

@@ -178,8 +178,8 @@ class cal_Calendar extends core_Master
      * Обновява събитията в календара
      *
      * @param  array     $events      Масив със събития
-     * @param  date      $fromDate    Начало на периода за който се отнасят събитията
-     * @param  date      $fromDate    Край на периода за който се отнасят събитията
+     * @param  datetime      $fromDate    Начало на периода за който се отнасят събитията
+     * @param  datetime      $fromDate    Край на периода за който се отнасят събитията
      * @param  string    $prefix      Префикс на ключовете за събитията от този източник
      * 
      * @return array                  Статус на операцията, който съдържа:
@@ -2395,7 +2395,9 @@ class cal_Calendar extends core_Master
     	$jsFnc = "
     	function createMonthLink(dt)
     	{
-    		document.location = '{$urlMonth}?from=' + dt;
+    	    if(dt) {
+    		    document.location = '{$urlMonth}?from=' + dt;
+    	    }
 		}";
     	
     	$tpl->appendOnce($jsFnc, 'SCRIPTS');
@@ -2456,7 +2458,9 @@ class cal_Calendar extends core_Master
     	$jsFnc = "
     	function createLink(dt)
     	{
-    		document.location = '{$urlYear}?from=' + dt;
+    	    if(dt) {
+    		    document.location = '{$urlYear}?from=' + dt;
+    	    }
 		}";
     	
     	$tpl->appendOnce($jsFnc, 'SCRIPTS');

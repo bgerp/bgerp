@@ -474,7 +474,7 @@ class core_Url
      * Drupal menu paths, which can contain arbitrary characters.
      * Valid values per RFC 3986.
      *
-     * @param $url
+     * @param string $url
      * The URL to verify.
      * TRUE if the URL is in a valid format.
      */
@@ -1030,9 +1030,9 @@ class core_Url
      * Аналогична фунция на urldecode()
      * Прави опити за конвертиране в UTF-8. Ако не успее връща оригиналното URL.
      *
-     * @param URL $url
+     * @param string $url
      *
-     * @return URL
+     * @return string
      */
     public static function decodeUrl($url)
     {

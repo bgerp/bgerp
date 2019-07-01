@@ -47,7 +47,7 @@ class incoming_Setup extends core_ProtoSetup
     public $managers = array(
         'incoming_Documents',
         'incoming_Types',
-       
+    
     );
     
     
@@ -73,17 +73,5 @@ class incoming_Setup extends core_ProtoSetup
         $html = parent::install();
         
         return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
     }
 }

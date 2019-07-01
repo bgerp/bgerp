@@ -167,6 +167,7 @@ class hr_Shifts extends core_Master
         
         // Броя на дните в месеца (= на последната дата в месеца);
         $lastDay = date('t', $firstDayTms);
+        $d = array();
         
         for ($i = 1; $i <= $lastDay; $i++) {
             $daysTs = mktime(0, 0, 0, $month, $i, $year);
@@ -195,7 +196,7 @@ class hr_Shifts extends core_Master
             }
         }
         
-        $res->row->month = dt::getMonth($month, $format = 'F', $lg = 'bg');
+        $res->row->month = dt::getMonth($month, 'F', 'bg');
         $res->row->calendar = cal_Calendar::renderCalendar($year, $month, $d, $header);
     }
     

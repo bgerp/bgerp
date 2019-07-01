@@ -203,7 +203,7 @@ class email_Incomings extends core_Master
     public function description()
     {
         $this->FLD('accId', 'key(mvc=email_Accounts,select=email, allowEmpty)', 'caption=Имейл акаунт, autoFilter');
-        $this->FLD('subject', 'varchar', 'caption=Тема, tdClass=emailListTitle');
+        $this->FLD('subject', 'varchar(utf8mb4=utf8)', 'caption=Тема, tdClass=emailListTitle');
         $this->FLD('fromEml', 'email', 'caption=От->Имейл');
         $this->FLD('fromName', 'varchar', 'caption=От->Име');
         
@@ -215,7 +215,7 @@ class email_Incomings extends core_Master
         $this->FLD('toBox', 'email(link=no)', 'caption=До->Кутия');
         
         $this->FLD('headers', 'blob(serialize,compress)', 'caption=Хедъри');
-        $this->FLD('textPart', 'richtext(hndToLink=no, nickToLink=no,bucket=Postings)', 'caption=Текстова част');
+        $this->FLD('textPart', 'richtext(hndToLink=no, nickToLink=no,bucket=Postings,oembed=none)', 'caption=Текстова част');
         $this->FLD('spam', 'int', 'caption=Спам');
         $this->FLD('lg', 'varchar', 'caption=Език');
         $this->FLD('date', 'datetime(format=smartTime)', 'caption=Дата');
@@ -765,6 +765,23 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Променяме шаблона в зависимост от мода
+     *
+     * @param blast_Emails $mvc
+     * @param core_ET      $tpl
+     * @param object       $data
+     */
+    public function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        if (Mode::is('externalThreadView')) {
+            $mvc->singleLayoutFile =  Mode::get('screenMode') == "wide" ? 'email/tpl/ExternalThreadViewSingleIncomings.shtml' : 'email/tpl/ExternalThreadViewSingleIncomingsNarrow.shtml';
+            
+            $data->row->ExternalThreadViewAvatar = avatar_Plugin::getImg(null, $data->rec->fromEml);
+        }
+    }
+    
+    
+    /**
      * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
      */
     public static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)
@@ -989,6 +1006,10 @@ class email_Incomings extends core_Master
             if ($fCid == $rec->containerId) {
                 $row->inReplyToOrigin = doc_Containers::getLinkForSingle($rec->originId);
             }
+        }
+        
+        if (Mode::is('text', 'xhtml')) {
+            unset($row->ip);
         }
     }
     

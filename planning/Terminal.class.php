@@ -2,7 +2,7 @@
 
 
 /**
- * Терминал за отчитане на производството
+ * Контролер на терминала за отчитане на производство
  * 
  * @category  bgerp
  * @package   planning
@@ -13,8 +13,26 @@
  *
  * @since     v 0.1
  */
-class planning_Terminal extends core_Manager
+class planning_Terminal extends peripheral_Terminal
 {
+    
+    /**
+     * Заглавие
+     */
+    public $title = 'Производствен терминал';
+    
+    
+    /**
+     * Име на източника
+     */
+    protected $clsName = 'planning_Points';
+    
+    
+    /**
+     * Полета
+     */
+    protected $fieldArr = array('centerId', 'fixedAssets', 'employees');
+
     
     /**
      * Информация за табовете
@@ -30,6 +48,43 @@ class planning_Terminal extends core_Manager
      * Кой има право да чете?
      */
     public $canOpenterminal = 'debug';
+    
+    
+    /**
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        $fieldset->FLD('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Център, mandatory,removeAndRefreshForm=fixedAssets|employees,silent');
+        $fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks,allowEmpty)', 'caption=Оборудване, input=none');
+        $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,allowEmpty)', 'caption=Оператори, input=none');
+    }
+    
+    
+    /**
+     * След подготовка на формата за добавяне
+     *
+     * @param core_Fieldset $fieldset
+     */
+    protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
+    {
+        cls::get('planning_Points')->invoke('AfterPrepareEditForm', array($data));
+    }
+    
+    
+    /**
+     * Редиректва към посочения терминал в посочената точка и за посочения потребител
+     *
+     * @return Redirect
+     *
+     * @see peripheral_TerminalIntf
+     */
+    public function getTerminalUrl($pointId)
+    {
+        return array('planning_Terminal', 'open', $pointId);
+    }
     
     
     /**
@@ -62,7 +117,7 @@ class planning_Terminal extends core_Manager
     {
         $url = (planning_Centers::haveRightFor('single', $rec->centerId)) ? array('planning_Centers', 'single', $rec->centerId) : array('bgerp_Portal', 'show');
         if(!core_Users::getCurrent('id', false)){
-            $url = (Mode::get('terminalId')) ? array('peripheral_Terminal', 'default', 'afterExit' => true) : array('core_Users', 'login', 'ret_url' => toUrl(array($this, 'open', $rec->id), 'local'));
+            $url = array('core_Users', 'login', 'ret_url' => toUrl(array($this, 'open', $rec->id), 'local'));
         }
         
         $object = ht::mixedToHtml($rec);
@@ -122,7 +177,7 @@ class planning_Terminal extends core_Manager
         $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/SupportFormLayout.shtml');
         $tpl->append($form->renderHtml(), 'FORM');
         $tpl->removeBlocksAndPlaces();
-        $tpl->append($this->getTasksListTable($rec->tasks));
+        $tpl->append($this->getTasks4SupportTable($rec->tasks));
         $tpl->append("<div class='clearfix21'></div>");
         
         return $tpl;
@@ -135,7 +190,7 @@ class planning_Terminal extends core_Manager
      * @param mixed $id
      * @return core_ET $tpl
      */
-    private function getTasksListTable($tasks)
+    private function getTasks4SupportTable($tasks)
     {
         $tpl = new core_ET("");
         $tasks = keylist::toArray($tasks);
@@ -147,7 +202,7 @@ class planning_Terminal extends core_Manager
                 $taskRec = cal_Tasks::fetch($taskId, 'state,progress,createdOn');
                 $taskRow = cal_Tasks::recToVerbal($taskRec, 'progressBar,progress,createdOn');
                 $taskRow->title = cal_Tasks::getHyperlink($taskRec->id, true);
-                $tpl->append("<tr class='state-{$taskRec->state}'><td>{$taskRow->createdOn}</td><td>{$taskRow->title}</td><td>{$taskRow->progressBar} {$taskRow->progress}</td></tr>");
+                $tpl->append("<tr class='state-{$taskRec->state}'><td class='nowrap'>{$taskRow->createdOn}</td><td>{$taskRow->title}</td><td>{$taskRow->progressBar} {$taskRow->progress}</td></tr>");
             }
             $tpl->append("</table></div>");
         }
@@ -365,10 +420,10 @@ class planning_Terminal extends core_Manager
      */
     private function getFormHtml($id)
     {
-        $rec = planning_Points::fetchRec($id);
+        $pointRec = planning_Points::fetchRec($id);
         
         // Коя е текущата задача, ако има
-        $currentTaskId = Mode::get("currentTaskId{$rec->id}");
+        $currentTaskId = Mode::get("currentTaskId{$pointRec->id}");
         expect($taskRec = planning_Tasks::fetch($currentTaskId));
         $Details = cls::get('planning_ProductionTaskDetails');
         Mode::push('terminalProgressForm', $currentTaskId);
@@ -401,7 +456,7 @@ class planning_Terminal extends core_Manager
         
         $userAgent = log_Browsers::getUserAgentOsName();
         if ($userAgent == 'Android') {
-            $url = toUrl(array($this, 'open', $rec->id, 'serial' => '__CODE__'), true);
+            $url = toUrl(array($this, 'open', $pointRec->id, 'serial' => '__CODE__'), true);
             $scannerUrl = barcode_Search::getScannerActivateUrl($url);
             $form->setFieldAttr('serial', array('data-url' => $scannerUrl));
         }
@@ -434,10 +489,16 @@ class planning_Terminal extends core_Manager
         $form->fieldsLayout->append($currentTaskHtml, 'currentTaskId');
         
         // Бутони за добавяне
-        $sendUrl = ($this->haveRightFor('terminal')) ?  toUrl(array($this, 'doAction', $rec->id), 'local') : array();
-        $sendBtn = ht::createFnBtn("Изпълнение|* " . html_entity_decode('&#x23CE;'), null, null, array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'data-url' => $sendUrl, 'title' => 'Изпълнение по задачата'));
-        $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
+        $sendAttr = array('class' => "planning-terminal-form-btn", 'id' => 'sendBtn', 'title' => 'Изпълнение по задачата');
+        if(planning_Points::haveRightFor('openterminal')){
+            $sendUrl = toUrl(array($this, 'doAction', $pointRec->id), 'local');
+            $sendAttr['data-url'] = $sendUrl;
+        } else {
+            $sendAttr['class'] .= ' disabled';
+        }
+        $sendBtn = ht::createFnBtn("Изпълнение|* " . html_entity_decode('&#x23CE;'), null, null, $sendAttr);
         
+        $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
         $numpadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'numPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
         $serialPadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'serialPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
         $form->fieldsLayout->append($numpadBtn, 'NUM_PAD_BTN');
@@ -576,12 +637,11 @@ class planning_Terminal extends core_Manager
      */
     public function act_selectTask()
     {
-        peripheral_Terminal::setSessionPrefix();
-        $this->requireRightFor('selecttask');
+        planning_Points::requireRightFor('selecttask');
         expect($id = Request::get('id', 'int'));
         expect($rec = planning_Points::fetch($id));
         expect($rec->taskId = Request::get('taskId', 'int'));
-        $this->requireRightFor('selecttask', $rec);
+        planning_Points::requireRightFor('selecttask', $rec);
         Mode::setPermanent("currentTaskId{$rec->id}", $rec->taskId);
         Mode::setPermanent("activeTab{$rec->id}", 'taskProgress');
         $res = array($this, 'open', $rec->id);
@@ -603,10 +663,9 @@ class planning_Terminal extends core_Manager
      */
     public function act_Search()
     {
-        peripheral_Terminal::setSessionPrefix();
         $id = Request::get('id', 'int');
         expect($rec = planning_Points::fetch($id), 'Неразпознат ресурс');
-        if(!$this->haveRightFor('openterminal') || !$this->haveRightFor('openterminal', $rec)){
+        if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
             
             return new Redirect($url);
@@ -658,10 +717,9 @@ class planning_Terminal extends core_Manager
      */
     public function act_doAction()
     {
-        peripheral_Terminal::setSessionPrefix();
         $id = Request::get('id', 'int');
         expect($rec = planning_Points::fetch($id), 'Неразпознат ресурс');
-        if(!$this->haveRightFor('openterminal') || !$this->haveRightFor('openterminal', $rec)){
+        if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
             
             return new Redirect($url);
@@ -711,11 +769,10 @@ class planning_Terminal extends core_Manager
      */
     public function act_Open()
     {
-        peripheral_Terminal::setSessionPrefix();
         expect($id = Request::get('id', 'int'));
         expect($rec = planning_Points::fetch($id));
         
-        if(!$this->haveRightFor('openterminal') || !$this->haveRightFor('openterminal', $rec)){
+        if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
             
             return new Redirect($url);
@@ -741,11 +798,7 @@ class planning_Terminal extends core_Manager
         $tpl->replace(crm_Profiles::createLink(), 'userId');
         $img = ht::createImg(array('path' => 'img/16/logout.png'));
         
-        if (Mode::get('terminalId')) {
-            $tpl->replace(ht::createLink($img, array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала'), 'EXIT_TERMINAL');
-        } else {
-            $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
-        }
+        $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
         
         // Подготовка на урл-тата на табовете
         $taskListUrl = toUrl(array($this, 'renderTab', $rec->id, 'name' => 'taskList'), 'local');
@@ -810,13 +863,12 @@ class planning_Terminal extends core_Manager
     function act_renderTab()
     {
         // Кой е таба
-        peripheral_Terminal::setSessionPrefix();
         expect($id = Request::get('id', 'int'));
         expect($name = Request::get('name', 'varchar'));
         expect($rec = planning_Points::fetch($id));
         Mode::setPermanent("activeTab{$rec->id}", $name);
         
-        if(!$this->haveRightFor('openterminal') || !$this->haveRightFor('openterminal', $rec)){
+        if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
             $url = $this->getRedirectUrlAfterProblemIsFound($rec);
             
             return new Redirect($url);
@@ -830,33 +882,5 @@ class planning_Terminal extends core_Manager
         
         // Ако не сме в Ajax режим пренасочваме към терминала
         redirect(array($this, 'open', $rec->id));
-    }
-    
-    
-    /**
-     * Модификация на ролите
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
-    {
-        if($action == 'openterminal' && isset($rec)){
-            if(in_array($rec->state, array('closed', 'rejected'))){
-                $res = 'no_one';
-            }
-        }
-        
-        if($action == 'selecttask'){
-            $res = $mvc->getRequiredRoles('openterminal', $rec, $userId);
-            if(isset($rec)){
-                if(empty($rec->taskId)){
-                    $res = 'no_one';
-                } else {
-                    $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
-                    $taskRec = planning_Tasks::fetch($rec->taskId, 'state,folderId');
-                    if(in_array($taskRec->state, array('rejected', 'closed', 'stopped', 'draft')) || $folderId != $taskRec->folderId){
-                        $res = 'no_one';
-                    }
-                }
-            }
-        }
     }
 }

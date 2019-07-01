@@ -73,13 +73,13 @@ class colab_FolderToPartners extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Споделени партньори';
+    public $title = 'Споделения с партньори';
     
     
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Споделен партньор';
+    public $singleTitle = 'Споделяне с партньор';
     
     
     /**
@@ -198,7 +198,7 @@ class colab_FolderToPartners extends core_Manager
                     $fQuery->where("#state != 'rejected'");
                     $fRec = $fQuery->fetch();
                     if ($fRec) {
-                        $folderId = $rec->id;
+                        $folderId = $fRec->id;
                     }
                 }
             }
@@ -228,9 +228,6 @@ class colab_FolderToPartners extends core_Manager
         $excludeArr = array();
         if ($params['removeDuplicate'] || $params['exludeContractors']) {
             $query = self::getQuery();
-            
-            $query->in('folderId', $fArr);
-            
             $query->show('folderId');
             
             if ($params['exludeContractors']) {
@@ -757,26 +754,28 @@ class colab_FolderToPartners extends core_Manager
         
         // Задаваме дефолтните роли
         $dRolesArr = array('partner');
-        try {
-            $autoCreateQuote = cond_Parameters::getParameter($Class->getClassId(), $objectId, 'autoCreateQuote');
-            
-            if ($autoCreateQuote == 'yes') {
-                $dRolesArr[] = 'agent';
-            }
-        } catch (core_exception_Expect $e) {
-            reportException($e);
-        }
+        
+        
         $defRoles = array();
         foreach ($dRolesArr as $role) {
             $id = core_Roles::fetchByName($role);
             $defRoles[$id] = $id;
         }
+        
+        // Добавяне на дефолтни роли
+        $additionalRoles = colab_Setup::get('DEFAULT_ROLES_FOR_NEW_PARTNER');
+        $additionalRoles = keylist::toArray($additionalRoles);
+        foreach ($additionalRoles as $roleId) {
+            $defRoles[$roleId] = $roleId;
+        }
+        
         if (!empty($defRoles)) {
             $form->setDefault('roleOthers', $defRoles);
         }
         
         $form->input();
         
+        $fields = null;
         if ($form->isSubmitted()) {
             if (!$Users->isUnique($form->rec, $fields)) {
                 $loginLink = ht::createLink(tr('тук'), array('core_Users', 'login'));
@@ -785,6 +784,7 @@ class colab_FolderToPartners extends core_Manager
         }
         
         if ($form->isSubmitted()) {
+            $errorMsg = null;
             if (core_Users::isForbiddenNick($form->rec->nick, $errorMsg)) {
                 $form->setError('nick', $errorMsg);
             }
@@ -826,7 +826,6 @@ class colab_FolderToPartners extends core_Manager
                         if(trim($contragentRec->name) == trim($form->rec->names)){
                             $form->rec->personId = $objectId;
                             $force = false;
-                            crm_Persons::forceGroup($objectId, 'users');
                         }
                     }
                 }

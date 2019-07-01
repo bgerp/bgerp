@@ -37,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'createdOn, modifiedOn, valior, title=Заглавие, pointId=Точка, contragentName, total, paid, change, state';
+    public $listFields = 'createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentName, total, paid, change, state';
     
     
     /**
@@ -174,8 +174,6 @@ class pos_Receipts extends core_Master
      */
     public function act_New()
     {
-        peripheral_Terminal::setSessionPrefix();
-        
         $cu = core_Users::getCurrent();
         $posId = pos_Points::getCurrent();
         $forced = Request::get('forced', 'int');
@@ -263,6 +261,10 @@ class pos_Receipts extends core_Master
             }
         }
         
+        if(isset($fields['-terminal'])){
+            $row->id = ht::createLink($row->id, pos_Receipts::getSingleUrlArray($rec->id));
+        }
+        
         foreach (array('total', 'paid', 'change') as $fld) {
             $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
         }
@@ -280,7 +282,6 @@ class pos_Receipts extends core_Master
             }
         }
         
-        //bp($row->PAID_CAPTION);
         // Слагаме бутон за оттегляне ако имаме права
         if (!Mode::is('printing')) {
             if ($mvc->haveRightFor('reject', $rec)) {
@@ -466,7 +467,6 @@ class pos_Receipts extends core_Master
             }
         }
         
-        
         // Ако бележката е започната, може да се изтрие
         if ($action == 'delete' && isset($rec)) {
             if ($rec->state != 'draft') {
@@ -530,8 +530,6 @@ class pos_Receipts extends core_Master
      */
     public function act_Terminal()
     {
-        peripheral_Terminal::setSessionPrefix();
-        
         $this->requireRightFor('terminal');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
@@ -546,10 +544,12 @@ class pos_Receipts extends core_Master
         $tpl = getTplFromFile('pos/tpl/terminal/Layout.shtml');
         $tpl->replace(pos_Points::getTitleById($rec->pointId), 'PAGE_TITLE');
         $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/cash-register.png', '"', true) . '>', 'HEAD');
+        $img = ht::createImg(array('path' => 'img/16/logout.png'));
         
         // Добавяме бележката в изгледа
         $receiptTpl = $this->getReceipt($rec);
         $tpl->replace($receiptTpl, 'RECEIPT');
+        $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
         
         // Ако не сме в принтиране, сменяме обвивквата и рендираме табовете
         if (!Mode::is('printing')) {
@@ -626,7 +626,7 @@ class pos_Receipts extends core_Master
      *
      * @return core_ET $tpl - шаблона
      */
-    public function getReceipt($id)
+    public function getReceipt_($id)
     {
         expect($rec = $this->fetchRec($id));
         
@@ -670,10 +670,6 @@ class pos_Receipts extends core_Master
         $img = ht::createElement('img', array('src' => sbf('pos/img/bgerp.png', '')));
         $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink', 'title' => 'Към портала'));
         $tpl->append($logo, 'LOGO');
-        
-        if (Mode::get('terminalId')) {
-            $tpl->replace(ht::createLink('', array('peripheral_Terminal', 'exitTerminal'), false, 'title=Изход от терминала,ef_icon=img/16/logout.png'), 'EXIT_TERMINAL');
-        }
         
         // Слагане на детайлите на бележката
         $detailsTpl = $this->pos_ReceiptDetails->renderReceiptDetail($data->receiptDetails);
@@ -839,8 +835,6 @@ class pos_Receipts extends core_Master
      */
     public function act_ShowDrafts()
     {
-        peripheral_Terminal::setSessionPrefix();
-        
         $this->requireRightFor('terminal');
         expect($id = Request::get('id'));
         expect($rec = $this->fetch($id));
@@ -893,8 +887,6 @@ class pos_Receipts extends core_Master
      */
     public function act_Transfer()
     {
-        peripheral_Terminal::setSessionPrefix();
-        
         $this->requireRightFor('transfer');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
@@ -909,7 +901,7 @@ class pos_Receipts extends core_Master
         
         // Подготвяме масива с данните на новата продажба, подаваме склада и касата на точката
         $posRec = pos_Points::fetch($rec->pointId);
-        $fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId);
+        $fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId, 'receiptId' => $rec->id);
         
         $products = $this->getProducts($rec->id);
         
@@ -1061,7 +1053,6 @@ class pos_Receipts extends core_Master
      */
     public function act_SearchContragents()
     {
-        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('terminal');
         
         if (!$receiptId = Request::get('receiptId', 'int')) {
@@ -1124,7 +1115,7 @@ class pos_Receipts extends core_Master
      *
      * @param int $id -ид на бележка
      */
-    public function renderPaymentTab($id)
+    public function renderPaymentTab_($id)
     {
         expect($rec = $this->fetchRec($id));
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PAYMENTS_BLOCK');
@@ -1166,7 +1157,7 @@ class pos_Receipts extends core_Master
         // Добавяне на бутон за сторниране на бележка
         if ($this->haveRightFor('revert')) {
             $revertUrl = toUrl(array($this, 'revert'), 'local');
-            $block->append(ht::createFnBtn('Сторно', '', '', array('class' => 'actionBtn revertBtn', 'title' => 'Сторниране на бележка', 'data-url' => $revertUrl)), 'CLOSE_BTNS');
+            $block->append(ht::createFnBtn('Сторно', '', '', array('class' => 'actionBtn revertBtn', 'title' => 'Сторниране на бележка по зададен номер', 'data-url' => $revertUrl)), 'CLOSE_BTNS');
         }
         
         return $block;
@@ -1212,7 +1203,6 @@ class pos_Receipts extends core_Master
      */
     public function act_printReceipt()
     {
-        peripheral_Terminal::setSessionPrefix();
         expect(haveRole('pos, ceo'));
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
@@ -1253,7 +1243,6 @@ class pos_Receipts extends core_Master
      */
     public function act_addProduct()
     {
-        peripheral_Terminal::setSessionPrefix();
         $this->pos_ReceiptDetails->requireRightFor('add');
         
         // Трябва да има такава бележка
@@ -1293,6 +1282,7 @@ class pos_Receipts extends core_Master
         
         // Ако е зададен код на продукта
         if ($ean = Request::get('ean')) {
+            $matches = array();
             
             // Проверяваме дали въведения "код" дали е във формата '< число > * < код >',
             // ако да то приемаме числото преди '*' за количество а след '*' за код
@@ -1456,8 +1446,6 @@ class pos_Receipts extends core_Master
      */
     public function act_Close()
     {
-        peripheral_Terminal::setSessionPrefix();
-        
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         if ($rec->state != 'draft') {
@@ -1486,7 +1474,6 @@ class pos_Receipts extends core_Master
      */
     public function act_getSearchResults()
     {
-        peripheral_Terminal::setSessionPrefix();
         $this->requireRightFor('terminal');
         
         if ($searchString = Request::get('searchString')) {
@@ -1821,7 +1808,9 @@ class pos_Receipts extends core_Master
         $title = "{$pointIdVerbal}/{$rec->id}/{$valiorVerbal}";
         
         if (isset($rec->revertId)) {
-            $title = $title . " <span class='stamp'>" . tr('сторно') . '</span>';
+            $title = ht::createHint($title, 'Сторно бележка');
+            $title->prepend("<span class='red'>");
+            $title->append("</span>");
         }
         
         return $title;
@@ -1833,23 +1822,22 @@ class pos_Receipts extends core_Master
      */
     public function act_Revert()
     {
-        peripheral_Terminal::setSessionPrefix();
-        
         if (!$this->haveRightFor('revert')) {
             
             return $this->pos_ReceiptDetails->returnError(null);
         }
-        
+       
         $search = Request::get('search', 'varchar');
         if (empty($search)) {
             core_Statuses::newStatus('|Не е въведен номер на вече издадена бележка|*!', 'error');
             
             return $this->pos_ReceiptDetails->returnError(null);
         }
-        
+       
         // Ако не е разпозната бележка, не се прави нищо
         $search = trim($search);
         $foundArr = $this->findReceiptByNumber($search, true);
+        
         if (!is_object($foundArr['rec'])) {
             core_Statuses::newStatus($foundArr['notFoundError'], 'error');
             

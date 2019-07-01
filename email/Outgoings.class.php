@@ -198,7 +198,7 @@ class email_Outgoings extends core_Master
     public function description()
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,reduceText,changable,tdClass=emailListTitle');
-        $this->FLD('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory,changable');
+        $this->FLD('body', 'richtext(rows=15,bucket=Postings,oembed=none)', 'caption=Съобщение,mandatory,changable');
         
         $this->FLD('waiting', 'time', 'input=none, caption=Изчакване');
         $this->FLD('lastSendedOn', 'datetime(format=smartTime)', 'input=none, caption=Изпратено->на');
@@ -990,9 +990,6 @@ class email_Outgoings extends core_Master
             $query->where(array("#email = '[#1#]'", $email));
         }
         
-        // Които имат време за изчакване
-        $query->where('#waiting IS NOT NULL');
-        
         // В съответните състояние
         $query->where("#state = 'waiting'");
         $query->orWhere("#state = 'wakeup'");
@@ -1448,6 +1445,8 @@ class email_Outgoings extends core_Master
     {
         core_Lg::push($lg);
         
+        self::appendToBody($oRec);
+        
         $textTpl = static::getDocumentBody($oRec->id, 'plain', (object) array('rec' => $oRec));
         $text = $textTpl->getContent();
         
@@ -1493,6 +1492,8 @@ class email_Outgoings extends core_Master
     public static function getEmailHtml($rec, $lg, $css = '')
     {
         core_Lg::push($lg);
+        
+        self::appendToBody($rec);
         
         // Използваме интерфейсния метод doc_DocumentIntf::getDocumentBody() за да рендираме
         // тялото на документа (изходящия имейл)
@@ -1546,6 +1547,21 @@ class email_Outgoings extends core_Master
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Добавя допълнителна информация в края на имейла
+     *
+     * @param stdClass $rec
+     */
+    protected static function appendToBody(&$rec)
+    {
+        static $isAppended = false;
+        if (!$isAppended && email_Setup::get('SHOW_THREAD_IN_EXTERNAL') == 'yes') {
+            $rec->body .= "\n[hr]\n[link=" . toUrl(array('L', 'T', $rec->containerId, 'm' => doc_DocumentPlg::getMidPlace(), '#' => self::getHandle($rec)), 'absolute') . ']' . tr('Вижте цялата нишка от имейли') . '[/link]';
+            $isAppended = true;
+        }
     }
     
     
@@ -2400,6 +2416,14 @@ class email_Outgoings extends core_Master
             core_Lg::push($data->lg);
         }
         
+        if (Mode::is('externalThreadView')) {
+            $data->row->ExternalThreadViewDate = $data->rec->ExternalThreadViewDate;
+            $data->row->ExternalThreadViewTo = $data->rec->ExternalThreadViewTo;
+            $data->row->ExternalThreadViewCc = $data->rec->ExternalThreadViewCc;
+            $data->row->ExternalThreadViewFrom = $data->rec->ExternalThreadViewFrom;
+            $data->row->ExternalThreadViewAvatar = $data->rec->ExternalThreadViewAvatar;
+        }
+        
         //Полета До и Към
         $attn = $data->row->recipient . $data->row->attn;
         $attn = trim($attn);
@@ -2444,6 +2468,10 @@ class email_Outgoings extends core_Master
         // Определяме лейаута според режима на рендиране
         
         switch (true) {
+            case Mode::is('externalThreadView'):
+                $tpl =  Mode::get('screenMode') == "wide" ?  'email/tpl/ExternalThreadViewSingleOutgoings.shtml' : 'email/tpl/ExternalThreadViewSingleOutgoingsNarrow.shtml';
+            break;
+            
             case Mode::is('text', 'plain'):
                 $tpl = 'email/tpl/SingleLayoutOutgoings.txt';
             break;
@@ -2461,11 +2489,6 @@ class email_Outgoings extends core_Master
                 }
             
             break;
-        }
-        
-        $layoutText = getTplFromFile($this->singleLayoutFile);
-        if (Mode::is('screenMode', 'narrow') && isset($this->singleLayoutFileNarrow)) {
-            $layoutText = getTplFromFile($this->singleLayoutFileNarrow);
         }
         
         $tpl = getTplFromFile($tpl);
@@ -2900,8 +2923,8 @@ class email_Outgoings extends core_Master
      * @param string $emails - Стринг от имейли (и факсове)
      *
      * @return array $arr - Масив с имейли и факсове
-     * @return arry  $arr['fax'] - Масив с всчики факс номера
-     * @return arry  $arr['email'] - Масив с всчики имейли
+     * @return array  $arr['fax'] - Масив с всчики факс номера
+     * @return array  $arr['email'] - Масив с всчики имейли
      */
     public static function explodeEmailsAndFax($emails)
     {
@@ -3215,7 +3238,7 @@ class email_Outgoings extends core_Master
      * 5.2 Кутия на която е inCharge от съответния корпоративен акаунт
      * 6. Последната кутия на която сме inCharge
      *
-     * @param email $email - Имейл
+     * @param string $email - Имейл
      *
      * @return doc_Folders $folderId - id на папка
      */
@@ -3326,7 +3349,7 @@ class email_Outgoings extends core_Master
     /**
      * Връща папката от имейла при препращане
      *
-     * @param email $email - Имейла, към който ще препращаме
+     * @param string $email - Имейла, към който ще препращаме
      *
      * Начин за определяна не папката:
      * 1. Ако е на фирма

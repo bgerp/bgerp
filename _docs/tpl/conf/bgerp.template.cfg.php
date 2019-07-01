@@ -92,7 +92,7 @@
 // Базова директория, където се намират по-директориите за
 // потребителски файлове. По подразбиране е в
 // EF_ROOT_PATH/uploads
- # defIfNot( 'EF_UPLOADS_BASE_PATH', 'PATH_TO_FOLDER');
+   # defIfNot( 'EF_UPLOADS_BASE_PATH', 'PATH_TO_FOLDER');
 
 // Твърдо, фиксирано име на мениджъра с контролерните функции.
 // Ако се укаже, цялотоможе да има само един такъв
@@ -333,11 +333,11 @@ defIfNot('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'https://experta.bg/api_Companies/ge
 
 
 // Базова директория, където се намират под-директориите с качените файлове
- # defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH.'/uploads');
+   # defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH.'/uploads');
 
 
 // Директорията с качените и генерираните файлове
- # defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH.'/'.EF_APP_NAME);
+   # defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH.'/'.EF_APP_NAME);
  
 // Времето в секунди за изчакване при рефреш на портала
   defIfNot('BGERP_DOCUMENT_SLEEP_TIME', 0);
@@ -1359,31 +1359,6 @@ defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
 // След колко минити да се изтрие от индекса, записа (грешката) за съответния тип на файла
  # defIfNot('FILEMAN_WEBDRV_ERROR_CLEAN', 5);
 
-
-/*****************************************************************************
- *                                                                           *
- * Клас 'flexpaper_Render'                                                   *
- *                                                                           *
- * vendors/flexpaper/Render                                                  *
- *                                                                           *
- *****************************************************************************/
-
-// Път до външния файл
- # defIfNot('FLEXPAPER_PATH', sbf("flexpaper/1.4.5/FlexPaperViewer.swf"));
-
-
-/*****************************************************************************
- *                                                                           *
- * Генерира необходимият код за плейване на flv файлове                      *
- *                                                                           *
- * vendors/flvplayer/Embedder                                                *
- *                                                                           *
- *****************************************************************************/
-
-// @todo Чака за документация...
- # defIfNot('FLVPLAYER_PATH', sbf("flvplayer/1.6.0/player_flv_maxi.swf"));
-
-
 /*****************************************************************************
  *                                                                           *
  * Клас 'hclean_Purifier' - Пречистване на HTML                              *
@@ -1732,19 +1707,6 @@ defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
 
 // xvfb-run - Дълбочина на цвета
  # defIfNot('WEBKIT_TO_PDF_SCREEN_BIT', "16");
-
-
-/*****************************************************************************
- *                                                                           *
- * class currency_Setup                                                      *
- *                                                                           *
- * vendors/wund/Setup                                                        *
- *                                                                           *
- *****************************************************************************/
-
-// Задаване на основна валута
- # defIfNot('WUND_DEFAULT_LOCATION', 'Bulgaria/Sofia');
-
 
 /*****************************************************************************
  *                                                                           *

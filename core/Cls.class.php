@@ -221,15 +221,17 @@ class core_Cls
     {
         $obj = new $class;
         
-        // Прикача плъгините, които са регистрирани за този клас
-        $Plugins = cls::get('core_Plugins');
-        
-        if (is_a($Plugins, 'core_Plugins')) {
-            try {
-                $Plugins->attach($obj);
-            } catch (core_exception_Expect $e) {
-            }
-        }
+		if($obj instanceof core_BaseClass) {
+			// Прикача плъгините, които са регистрирани за този клас
+			$Plugins = cls::get('core_Plugins');
+			
+			if (is_a($Plugins, 'core_Plugins')) {
+				try {
+					$Plugins->attach($obj);
+				} catch (core_exception_Expect $e) {
+				}
+			}
+		}
         
         // Ако има допълнителни параметри - използва ги за инициализиране
         if (is_callable(array($obj, 'init'))) {
@@ -518,7 +520,7 @@ class core_Cls
      * @param mixed $class      - име или инстанция на клас
      * @param bool  $onlyStatic
      *
-     * @return param $array - всички достъпни методи за класа
+     * @return array $array - всички достъпни методи за класа
      */
     public static function getAccessibleMethods($class, $onlyStatic = false)
     {

@@ -18,8 +18,14 @@
 class cms_LibraryIntf extends embed_DriverIntf
 {
     /**
-     * Връща HTML представянето на обекта 
-     * 
+     * Общото наименование на драйверите
+     */
+    public $driversCommonName = 'драйвери за визуални елементи';
+    
+    
+    /**
+     * Връща HTML представянето на обекта
+     *
      * @param stdClass $rec Записа за елемента от модела-библиотека
      * @param $maxWidth int Максимална широчина на елемента
      * @param $isAbsolute bool Дали URL-тата да са абсолютни
@@ -34,10 +40,13 @@ class cms_LibraryIntf extends embed_DriverIntf
     
     /**
      * Връща наименованието на обекта
+     *
+     * @param stdClass $rec запис в ембедъра
+     *
+     * @return string
      */
     public function getName($rec)
     {
         return $this->class->getName($rec);
     }
-    
 }

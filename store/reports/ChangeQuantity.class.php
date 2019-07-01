@@ -129,7 +129,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         }
         
         foreach ($recs as $idProd => $products) {
-            $products->freeQuantity = $products->quantity - $products->reservedQuantity;
+            $products->freeQuantity = $products->quantity - $products->reservedQuantity + $products->expectedQuantity;
             
             if (is_array($oldData) && count($oldData)) {
                 foreach ($oldData as $oData) {

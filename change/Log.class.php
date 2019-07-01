@@ -555,8 +555,8 @@ class change_Log extends core_Manager
     /**
      * Връща масив с всички избрани версии
      *
-     * @param id $classId - id на класа
-     * @param id $docId   - id на документа
+     * @param int $classId - id на класа
+     * @param int $docId   - id на документа
      *
      * @return array - Масив с избраните версии
      */
@@ -583,8 +583,8 @@ class change_Log extends core_Manager
     /**
      * Връща ключа за версиите
      *
-     * @param id $classId - id на класа
-     * @param id $docId   - id на документа
+     * @param int $classId - id на класа
+     * @param int $docId   - id на документа
      */
     public static function getVersionKey($classId, $docId)
     {
@@ -621,7 +621,7 @@ class change_Log extends core_Manager
      * @param mixed      $classId    - Името или id на класа
      * @param string     $docId      - id' на документа
      * @param string     $version    - Версията
-     * @param subVersion $subVersion - Подверсията
+     * @param string $subVersion - Подверсията
      */
     public static function addVersion($classId, $docId, $recId)
     {
@@ -1089,7 +1089,7 @@ class change_Log extends core_Manager
      * Връща за дадено поле
      *
      * @param int    $docClass
-     * @param intege $docId
+     * @param int $docId
      * @param mixed  $field
      */
     public static function getRec($docClass, $docId, $field = false)

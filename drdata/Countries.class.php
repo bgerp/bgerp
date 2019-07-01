@@ -196,7 +196,7 @@ class drdata_Countries extends core_Manager
     /**
      * Връща id-то на държавата от която посоченото или текущото ip
      */
-    public function getByIp($ip = null)
+    public static function getByIp($ip = null)
     {
         $cCode2 = drdata_IpToCountry::get($ip);
         

@@ -313,11 +313,12 @@ class sales_QuotationsDetails extends doc_Detail
             // Ако има само 1 артикул и той е в 1 бройка и няма опционални и цената му е динамично изчислена
             if (is_object($onlyNotOptionalRec)) {
                 if ($onlyNotOptionalRec->livePrice === true) {
+                    
                     $rowAmount = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($onlyNotOptionalRec->amount);
                     $data->summary->value = "<span style='color:blue'>{$rowAmount}</span>";
                     $data->summary->value = ht::createHint($data->summary->value, 'Сумата е динамично изчислена. Ще бъде записана при активиране', 'notice', false, 'width=14px,height=14px');
                     
-                    $data->summary->total = "<span style='color:blue'>{$rowAmount}</span>";
+                    $data->summary->total = "<span style='color:blue'>{$data->summary->total}</span>";
                     $data->summary->total = ht::createHint($data->summary->total, 'Сумата е динамично изчислена. Ще бъде записана при активиране', 'notice', false, 'width=14px,height=14px');
                 }
             }
@@ -583,34 +584,6 @@ class sales_QuotationsDetails extends doc_Detail
                     sales_TransportValues::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId', 'countryId' => 'contragentCountryId'));
                 }
             }
-        }
-    }
-    
-    
-    /**
-     * Опитваме се да намерим цена за записа, ако има два предишни записа със цени
-     */
-    private static function tryToCalcPrice($rec)
-    {
-        // Имали за този запис поне два други записа със различни количества
-        $checkQuery = self::getQuery();
-        $checkQuery->where("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}");
-        $checkQuery->show('quantity,price');
-        $checkQuery->orderBy('id', 'DESC');
-        $checkQuery->limit(2);
-        
-        // Ако да изчисляваме третата цена по формула
-        // (Q1 / Q3) * (P1 - (P1*Q1 - P2*Q2) / (Q1 - Q2)) + (P1*Q1 - P2*Q2) / (Q1 - Q2)
-        if ($checkQuery->count() == 2) {
-            $fRec = $checkQuery->fetch();
-            $sRec = $checkQuery->fetch();
-            
-            $newPrice = ($fRec->quantity / $rec->quantity) *
-                ($fRec->price - ($fRec->price * $fRec->quantity - $sRec->price * $sRec->quantity) /
-                ($fRec->quantity - $sRec->quantity)) + ($fRec->price * $fRec->quantity - $sRec->price * $sRec->quantity) /
-                ($fRec->quantity - $sRec->quantity);
-            
-            return $newPrice;
         }
     }
     
@@ -1007,9 +980,14 @@ class sales_QuotationsDetails extends doc_Detail
         }
         
         if (isset($term)) {
-            $row->term = core_Type::getByName('time(uom=days,noSmart)')->toVerbal($term);
-            if ($hintTerm === true) {
-                $row->term = ht::createHint($row->term, 'Срокът на доставка е изчислен автоматично на база количеството и параметрите на артикула');
+            $masterRec = sales_Quotations::fetch($rec->quotationId);
+            if(empty($masterRec->deliveryTermTime) && empty($masterRec->deliveryTime)){
+                $row->term = core_Type::getByName('time(uom=days,noSmart)')->toVerbal($term);
+                if ($hintTerm === true) {
+                    $row->term = ht::createHint($row->term, 'Срокът на доставка е изчислен автоматично на база количеството и параметрите на артикула');
+                }
+            } else {
+                unset($row->term);
             }
         }
         
@@ -1036,9 +1014,9 @@ class sales_QuotationsDetails extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'add' || $action == 'delete') && isset($rec)) {
+        if (($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec)) {
             $quoteState = $mvc->Master->fetchField($rec->quotationId, 'state');
-            if ($quoteState != 'draft') {
+            if (!in_array($quoteState, array('draft'))) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -1132,5 +1110,15 @@ class sales_QuotationsDetails extends doc_Detail
         
         $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
         $rec->quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+        
+        // Ако артикула е стандартен и в момента не може да му се клонира цена да се клонира и старата му
+        $isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
+        if($isPublic == 'yes'){
+            $masterRec = sales_Quotations::fetch($rec->quotationId);
+            $livePrice = self::calcLivePrice($rec, $masterRec);
+            if(empty($livePrice)){
+                $rec->price = $oldRec->price;
+            }
+        }
     }
 }

@@ -113,7 +113,7 @@ class callcenter_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(2.04, 'Обслужване', 'Централа', 'callcenter_Talks', 'default', 'user'),
+        array(2.04, 'Обслужване', 'Централа', 'callcenter_Talks', 'default', 'powerUser'),
     );
     
     
@@ -142,23 +142,7 @@ class callcenter_Setup extends core_ProtoSetup
         // Прикачаме плъгина
         $html .= $Plugins->forcePlugin('Линкове към централа', 'callcenter_LinkPlg', 'drdata_PhoneType', 'private');
         
-        //инсталиране на кофата
-//        $Bucket = cls::get('fileman_Buckets');
-//        $html .= $Bucket->createBucket('callcenter', 'Прикачени файлове в КЦ', NULL, '300 MB', 'user', 'user');
-        
         return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
     }
     
     

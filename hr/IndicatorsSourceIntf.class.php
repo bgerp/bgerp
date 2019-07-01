@@ -20,7 +20,7 @@ class hr_IndicatorsSourceIntf
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param datetime $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
      *
      * @return array $result  - масив с обекти
      *
@@ -44,6 +44,6 @@ class hr_IndicatorsSourceIntf
      */
     public function getIndicatorNames()
     {
-        return $this->class->getIndicatorNames($afterTheTime);
+        return $this->class->getIndicatorNames();
     }
 }

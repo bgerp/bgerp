@@ -559,7 +559,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr)
     {
        if(Mode::is('screenMode', 'narrow') && !Mode::is('printing')) {
-            $res = new ET("<table class='lqlql'>");
+            $res = new ET("<table class='subInfo'>");
             foreach ((array) $headerArr as $value) {
                 $val = new ET("<td class='antetkaCell' style=\"padding-bottom: 10px;\"><b>{$value['val']}</b></td>");
                 $name = new ET("<td class='nowrap' style='width: 1%;border-bottom: 1px solid #ccc; font-weight: bold;'>{$value['name']}</td>");
@@ -1171,7 +1171,7 @@ class planning_Tasks extends core_Master
         $productName = cat_Products::getVerbal($rec->productId, 'name');
         $code = cat_Products::getVerbal($rec->productId, 'code');
         $batchName = "{$productName}/{$code}/Opr{$rec->id}";
-        $batchName = str::removeWhitespaces($batchName);
+        $batchName = str::removeWhiteSpace($batchName);
         
         return $batchName;
     }

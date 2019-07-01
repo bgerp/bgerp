@@ -82,7 +82,7 @@ defIfNot('USERS_DRAFT_MAX_DAYS', 3);
 /**
  * Ще има ли криптиращ протокол?
  * NO - не
- * OPTIONAL - да, където може изпозлвай криптиране
+ * OPTIONAL - да, където може използвай криптиране
  * MANDATORY - да, използвай задължително
  */
 defIfNot('EF_HTTPS', 'NO');
@@ -97,7 +97,7 @@ defIfNot('EF_HTTPS_PORT', 443);
 /**
  * Клас 'core_Users' - Мениджър за потребителите на системата
  *
- * Необходимия набор от функции за регистриране, логране и
+ * Необходимият набор от функции за регистриране, логване и
  * дел-логване на потребители на системата
  *
  *
@@ -258,6 +258,15 @@ class core_Users extends core_Manager
             in_array('roles', $fields)) {
             core_Cache::remove(self::ROLES_WITH_USERS_CACHE_ID, self::ROLES_WITH_USERS_CACHE_ID);
         }
+        if (!$fields ||
+            in_array('rolesInput', $fields) ||
+            in_array('roles', $fields)) {
+            bgerp_Menu::clearCache($rec->id);
+        }
+        
+        if ($rec->__updateRoleLogs) {
+            core_RoleLogs::add($rec->roles, $rec->state, $rec->id);
+        }
     }
     
     
@@ -388,7 +397,7 @@ class core_Users extends core_Manager
      */
     public static function prepareUserNames_($names)
     {
-        // Масив с именатата
+        // Масив с имената
         $namesArr = explode(' ', $names);
         
         // Име с първа главна буква
@@ -408,7 +417,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Проверява дали подадения потребител е контрактор
+     * Проверява дали подаденият потребител е контрактор
      *
      * @param object|NULL|int $rec
      * @param bool            $force
@@ -440,7 +449,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Проверява дали потребителя има роля powerUser
+     * Проверява дали потребителят има роля powerUser
      *
      * @param object|NULL|int $rec
      *
@@ -500,7 +509,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Връща масив със списъка със забраненените имейли
+     * Връща масив със списъка със забранените имейли
      */
     public static function getForbiddenNicksArr()
     {
@@ -520,7 +529,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Проверява дали подададения ник е в списъка със забранените
+     * Проверява дали подаденият ник е в списъка със забранените
      *
      * @param string      $nick
      * @param string|null $errorMsg
@@ -947,15 +956,17 @@ class core_Users extends core_Manager
         
         $form->info = "<center style='font-size:0.8em;color:#666;'>" . tr($conf->CORE_LOGIN_INFO) . '</center>';
         
+        // Ако е зададено да се използва имейл-а за ник
+        if (EF_USSERS_EMAIL_AS_NICK) {
+            $form->InputFields = 'email,pass,ret_url';
+        } else {
+            $form->InputFields = 'nick,pass,ret_url';
+        }
+        
         $this->invoke('PrepareLoginForm', array(&$form));
         
         if (!$currentUserRec->state == 'active') {
-            // Ако е зададено да се използва имейл-а за ник
-            if (EF_USSERS_EMAIL_AS_NICK) {
-                $inputs = $form->input('email,pass,ret_url,time,hash');
-            } else {
-                $inputs = $form->input('nick,pass,ret_url,time,hash');
-            }
+            $inputs = $form->input($form->InputFields . ',time,hash');
             
             // Ако логин формата е субмитната
             if (($inputs->nick || $inputs->email) && $form->isSubmitted()) {
@@ -994,13 +1005,13 @@ class core_Users extends core_Manager
                         $url = toUrl($url);
                         $msg = 'Този потребител е блокиран|*.<br>|Може да го активирате от тук:|* <a href="' . $url . '">[*]</a>';
                     } else {
-                        $msg = 'Този потребител е блокиран|*.<br>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация|*.';
+                        $msg = 'Този потребител е блокиран|*.<br>|На имейла от регистрацията е изпратена информация и инструкция за ре-активация|*.';
                     }
                     $form->setError('nick', $msg);
                     $this->logLoginMsg($inputs, 'blocked_user');
                     core_LoginLog::add('block', $userRec->id, $inputs->time);
                 } elseif ($userRec->state == 'draft') {
-                    $form->setError('nick', 'Този потребител все още не е активиран|*.<br>|На имейлът от регистрацията е изпратена информация и инструкция за активация|*.');
+                    $form->setError('nick', 'Този потребител все още не е активиран|*.<br>|На имейла от регистрацията е изпратена информация и инструкция за активация|*.');
                     $this->logLoginMsg($inputs, 'draft_user');
                     core_LoginLog::add('draft', $userRec->id, $inputs->time);
                 } elseif (!$inputs->hash || $inputs->isEmptyPass) {
@@ -1055,11 +1066,7 @@ class core_Users extends core_Manager
                     $layout = new ET("<table ><tr><td id='login-form'>[#FORM#]</td></tr></table>");
                 }
                 
-                if (EF_USSERS_EMAIL_AS_NICK) {
-                    $layout->append($form->renderHtml('email,pass,ret_url', $inputs), 'FORM');
-                } else {
-                    $layout->append($form->renderHtml('nick,pass,ret_url', $inputs), 'FORM');
-                }
+                $layout->append($form->renderHtml($form->InputFields, $inputs), 'FORM');
                 
                 $layout->prepend(tr('Вход') . ' « ', 'PAGE_TITLE');
                 if (EF_USERS_HASH_FACTOR > 0) {
@@ -1197,6 +1204,32 @@ class core_Users extends core_Manager
             $rec->roles = keylist::fromArray($rolesArr);
         }
         
+        if (!$fields || in_array('roles', $fields = arr::make($fields)) || in_array('state', $fields = arr::make($fields))) {
+            if ($rec->id) {
+                $oRec = $mvc->fetch($rec->id);
+                
+                if (!$fields || in_array('state', $fields = arr::make($fields))) {
+                    if ($oRec->state != $rec->state) {
+                        $rec->__updateRoleLogs = true;
+                    }
+                }
+                
+                if (!$rec->__updateRoleLogs) {
+                    if (!$fields || in_array('roles', $fields = arr::make($fields))) {
+                        
+                        if ($oRec->roles != $rec->roles) {
+                            $dArr = type_Keylist::getDiffArr($rec->roles, $oRec->roles);
+                            if (!empty($dArr['delete']) || !empty($dArr['add'])) {
+                                $rec->__updateRoleLogs = true;
+                            }
+                        }
+                    }
+                }
+            } else {
+                $rec->__updateRoleLogs = true;
+            }
+        }
+        
         if ($rec->id) {
             // Ако е сменен ника
             if ($mvc->changeNick) {
@@ -1211,6 +1244,11 @@ class core_Users extends core_Manager
             if ($mvc->addNewUser) {
                 core_LoginLog::add('new_user', core_Users::getCurrent());
             }
+        }
+        
+        // Автоматично попълва на ПИН код на новите потребители
+        if (!$rec->pinCode && !$rec->id) {
+            $rec->pinCode = str::getRand('######');
         }
     }
     
@@ -1444,12 +1482,12 @@ class core_Users extends core_Manager
         if ($userRec->state == 'blocked') {
             $Users->logout();
             redirect(array('Index'), false, '|Този акаунт е блокиран|*.<BR>|Причината най-вероятно е едновременно използване от две места|*.' .
-                '<BR>|На имейлът от регистрацията е изпратена информация и инструкция за отблокиране|*.');
+                '<BR>|На имейла от регистрацията е изпратена информация и инструкция за отблокиране|*.');
         }
         
         if ($userRec->state == 'draft') {
             redirect(array('Index'), false, '|Този акаунт все още не е активиран|*.<BR>' .
-                '|На имейлът от регистрацията е изпратена информация и инструкция за активация|*.');
+                '|На имейла от регистрацията е изпратена информация и инструкция за активация|*.');
         }
         
         if ($userRec->state != 'active' || $userRec->maxIdleTime > EF_USERS_SESS_TIMEOUT) {
@@ -1469,7 +1507,7 @@ class core_Users extends core_Manager
             self::save($userRec, 'lastActivityTime');
         }
         
-        // Ако потребителя е партньор се записва в сесията първата му споделена папка като активна
+        // Ако потребителят е партньор се записва в сесията първата му споделена папка като активна
         if (core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)) {
             colab_Folders::setLastActiveContragentFolder(null, $userRec->id);
         }
@@ -1515,7 +1553,7 @@ class core_Users extends core_Manager
         $nick = $inputs->nick ? $inputs->nick : $inputs->email;
         
         if ($nick) {
-            vislog_IpNames::add($nick);
+            log_Ips::addUser($nick);
         }
         
         // Обновяваме времето на BRID кукито
@@ -1678,7 +1716,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Ако потребителя не е логнат - караме го да го направи
+     * Ако потребителят не е логнат - караме го да го направи
      */
     public static function forceLogin($retUrl)
     {
@@ -1819,7 +1857,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Връща всички членове на екипите, в които участва потребителя
+     * Връща всички членове на екипите, в които участва потребителят
      */
     public static function getTeammates($userId)
     {
@@ -1934,7 +1972,7 @@ class core_Users extends core_Manager
         // Вземаме съотборниците на първия потребител
         $teamMates = static::getTeammates($user1);
         
-        // Проверяваме дали втория е при тях
+        // Проверяваме дали вторият е при тях
         return type_Keylist::isIn($user2, $teamMates);
     }
     
@@ -1975,7 +2013,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Проверка дали потребителя има посочената роля/роли
+     * Проверка дали потребителят има посочената роля/роли
      *
      * @param $roles array, keylist, list
      */
@@ -2038,8 +2076,8 @@ class core_Users extends core_Manager
     
     
     /**
-     * Генерира грешка, ако указания потребител няма нито една от посочените роли
-     * Ако не е логнат, потребителя се подканва да се логне
+     * Генерира грешка, ако указаният потребител няма нито една от посочените роли
+     * Ако не е логнат, потребителят се подканва да се логне
      */
     public static function requireRole($requiredRoles, $retUrl = null, $action = null)
     {
@@ -2242,7 +2280,7 @@ class core_Users extends core_Manager
         }
         
         // Калкулиране на хеша на старата парола
-        // Стара парола трябва да имаме винаги, когато потребителя е логнат
+        // Стара парола трябва да имаме винаги, когато потребителят е логнат
         if ($rec->passEx) {
             $rec->passExHash = self::encodePwd($rec->passEx, $nick);
         }
@@ -2313,7 +2351,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Проверявамед дали потребителя е активен
+     * Проверяваме дали потребителят е активен
      */
     public static function isActiveUser($nick)
     {
@@ -2384,7 +2422,7 @@ class core_Users extends core_Manager
             $nick = self::fetch($userId)->nick;
         } elseif ($userId == core_Users::SYSTEM_USER) {
             
-            // Ако е сустемния потребител
+            // Ако е системният потребител
             $nick = core_Setup::get('SYSTEM_NICK');
         } else {
             
@@ -2414,7 +2452,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Филтрира опциите за избор на потребител при мограцията
+     * Филтрира опциите за избор на потребител при миграцията
      */
     public static function filterUserForMigrateFolders($type)
     {

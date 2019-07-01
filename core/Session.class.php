@@ -256,9 +256,19 @@ class core_Session
             @session_cache_limiter('nocache');
             @session_set_cookie_params(0);
             
-            // ini_set('session.cookie_secure', 1);
             ini_set('session.cookie_httponly', 1);
             ini_set('session.use_only_cookies', 1);
+            
+            if (EF_HTTPS == 'MANDATORY') {
+                ini_set('session.cookie_secure', 1);
+            }
+            
+//             if (PHP_VERSION_ID >= 70300) {
+//                 ini_set('session.cookie_samesite', 'Lax');
+//             } else {
+//                 ini_set('session.cookie_path', '/; samesite=lax');
+//             }
+            
             @session_start();
             
             $this->_started = true;

@@ -213,10 +213,10 @@ abstract class deals_Helper
      * Подготвя данните за съмаризиране ценовата информация на един документ
      *
      * @param array     $values       - масив с стойности на сумата на всеки ред, ддс-то и отстъпката
-     * @param date      $date         - дата
-     * @param doublr    $currencyRate - курс
+     * @param datetime      $date         - дата
+     * @param double    $currencyRate - курс
      * @param string(3) $currencyId   - код на валута
-     * @param enum      $chargeVat    - ддс режима
+     * @param string      $chargeVat    - ддс режима
      * @param bool      $invoice      - дали документа е фактура
      *
      * @return stdClass $arr  - Масив с нужната информация за показване:
@@ -336,7 +336,7 @@ abstract class deals_Helper
      * @param float                        $price     - цена във валута
      * @param float                        $vat       - ддс
      * @param float                        $rate      - валутен курс
-     * @param enum(yes,no,separate,exempt) $chargeVat - как се начислява ДДС-то
+     * @param string $chargeVat - как се начислява ДДС-то
      * @param int                          $round     - до колко знака да се закръгли
      *
      * @return float $price - цената във валутата
@@ -378,7 +378,7 @@ abstract class deals_Helper
      * @param float                        $price     - цена във валута
      * @param float                        $vat       - ддс
      * @param float                        $rate      - валутен курс
-     * @param enum(yes,no,separate,exempt) $chargeVat - как се начислява ддс-то
+     * @param string $chargeVat - как се начислява ддс-то
      *
      * @return float $price - цената в основна валута без ддс
      */
@@ -720,7 +720,13 @@ abstract class deals_Helper
      */
     public static function getQuantityHint(&$html, $productId, $storeId, $quantity, $state)
     {
-        if (!in_array($state, array('draft', 'pending'))) {
+        if(!in_array($state, array('draft', 'pending'))) {
+            
+            return;
+        }
+        
+        $canStore = cat_Products::fetchField($productId, 'canStore');
+        if($canStore != 'yes') {
             
             return;
         }
@@ -729,7 +735,7 @@ abstract class deals_Helper
         $stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
         $Double = core_Type::getByName('double(smartRound)');
         
-        $freeQuantityOriginal = $stRec->quantity - $stRec->reservedQuantity;
+        $freeQuantityOriginal = $stRec->quantity - $stRec->reservedQuantity + $stRec->expectedQuantity;
         $freeQuantity = ($state == 'draft') ? $freeQuantityOriginal - $quantity : $freeQuantityOriginal;
         $futureQuantity = $stRec->quantity - $quantity;
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
@@ -1188,12 +1194,12 @@ abstract class deals_Helper
         $Detail = cls::get($masterMvc->mainDetail);
         $dQuery = $Detail->getQuery();
         
+        if ($masterMvc instanceof deals_InvoiceMaster) {
+            $rateFld = 'rate';
+        }
+        
         $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {
-            if ($masterMvc instanceof deals_InvoiceMaster) {
-                $rateFld = 'rate';
-            }
-            
             $dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
             
             if ($masterMvc instanceof deals_InvoiceMaster) {
@@ -1204,13 +1210,32 @@ abstract class deals_Helper
             $Detail->save($dRec);
         }
         
+        $updateMaster = true;
         $rec->{$rateFld} = $newRate;
         if ($masterMvc instanceof deals_InvoiceMaster) {
             $rec->displayRate = $newRate;
+            
+            if($rec->dpOperation == 'accrued' || isset($rec->changeAmount)){
+                // Изчисляване на стойността на ддс-то
+                $vat = acc_Periods::fetchByDate()->vatRate;
+                if ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') {
+                    $vat = 0;
+                }
+                
+                $diff = $rec->changeAmount * $newRate;
+                $rec->vatAmount = $diff * $vat;
+                
+                // Стойността е променената сума
+                $rec->dealValue = $diff;
+                $updateMaster = false;
+            }
         }
         
         $masterMvc->save($rec);
-        $masterMvc->updateMaster_($rec->id);
+        
+        if($updateMaster){
+            $masterMvc->updateMaster_($rec->id);
+        }
         
         if ($rec->state == 'active') {
             acc_Journal::deleteTransaction($masterMvc->getClassId(), $rec->id);
@@ -1303,7 +1328,7 @@ abstract class deals_Helper
      * Връща масив с фактурите в треда (тредовете)
      *
      * @param mixed     $threadId        - ид на нишка или масив от ид-та на нишки
-     * @param date|NULL $valior          - ф-рите до дата, или NULL за всички
+     * @param datetime|NULL $valior          - ф-рите до дата, или NULL за всички
      * @param bool      $showInvoices    - да се показват само обикновените ф-ри
      * @param bool      $showDebitNotes  - да се показват и ДИ
      * @param bool      $showCreditNotes - да се показват и КИ
@@ -1359,7 +1384,7 @@ abstract class deals_Helper
      * Помощен метод връщащ разпределението на плащанията по фактури
      *
      * @param int       $threadId - ид на тред
-     * @param date|NULL $valior   - към коя дата
+     * @param datetime|NULL $valior   - към коя дата
      *
      * @return array $paid      - масив с разпределените плащания
      */
@@ -1543,7 +1568,7 @@ abstract class deals_Helper
         $revInvArr = array_reverse($invArr, true);
         
         // Разпределяме всички остатъци от плащания
-        foreach ($payArr as $i => $pay) {
+        foreach ($payArr as $pay) {
             if ($pay->available > 0) {
                 // Обикаляме по фактурите от начало към край и попълваме само дупките
                 foreach ($invArr as $inv) {
@@ -1579,7 +1604,7 @@ abstract class deals_Helper
         // Събираме остатъците от всички платежни документи и ги нанасяме от зад напред
         $rest = 0;
         $used = $payments = array();
-        foreach ($payArr as $i => $pay) {
+        foreach ($payArr as $pay) {
             if ($pay->available != 0) {
                 $rest += $pay->available;
                 $pay->available = 0;
@@ -1720,6 +1745,12 @@ abstract class deals_Helper
         }
         
         foreach ($arr as $obj) {
+            $canStore = cat_Products::fetchField($obj->{$productFld}, 'canStore');
+            if($canStore != 'yes') {
+                
+                return;
+            }
+            
             $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, ($state == 'pending' ? 0 : $obj->{$quantityFld}));
             if ($available < 0) {
                 $productsWithNegativeQuantity[] = cat_Products::getTitleById($obj->{$productFld}, false);

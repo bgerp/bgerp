@@ -74,13 +74,13 @@ class plg_RowTools2 extends core_Plugin
         }
         
         $editUrl = $mvc->getEditUrl($rec);
-        if(!empty($editUrl)){
+        if (!empty($editUrl)) {
             $editUrl = $mvc->getEditUrl($rec);
             $ddTools->addLink('Редактиране', $editUrl, "ef_icon=img/16/edit-icon.png,title=Редактиране на|* {$singleTitle},id=edt{$rec->id}");
         }
         
         $deleteUrl = $mvc->getDeleteUrl($rec);
-        if(!empty($deleteUrl)){
+        if (!empty($deleteUrl)) {
             $deleteUrl = $deleteUrl;
             $ddTools->addLink('Изтриване', $deleteUrl, "ef_icon=img/16/delete.png,warning=Наистина ли желаете записът да бъде изтрит?,id=del{$rec->id},title=Изтриване на|* {$singleTitle}");
         }
@@ -143,7 +143,10 @@ class plg_RowTools2 extends core_Plugin
      */
     public static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
     {
-        if (!$mvc->haveRightFor('edit', $rec)) return null;
+        if (!$mvc->haveRightFor('edit', $rec)) {
+            
+            return;
+        }
         $retUrl = (cls::existsMethod($mvc, 'getRetUrl')) ? $mvc->getRetUrl($rec) : true;
         
         $editUrl = array(
@@ -164,7 +167,10 @@ class plg_RowTools2 extends core_Plugin
      */
     public static function on_BeforeGetDeleteUrl($mvc, &$deleteUrl, $rec)
     {
-        if (!$mvc->haveRightFor('delete', $rec)) return null;
+        if (!$mvc->haveRightFor('delete', $rec)) {
+            
+            return;
+        }
         $retUrl = (cls::existsMethod($mvc, 'getDeleteUrl')) ? $mvc->getDeleteUrl($rec) : true;
         
         $deleteUrl = array(

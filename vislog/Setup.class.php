@@ -54,7 +54,6 @@ class vislog_Setup extends core_ProtoSetup
         'vislog_HistoryResources',
         'vislog_History',
         'vislog_Referer',
-        'vislog_IpNames',
         'vislog_Adwords',
     );
     
@@ -98,14 +97,5 @@ class vislog_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Декориране на IP', 'vislog_DecoratePlugin', 'type_Ip', 'private');
         
         return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        return '';
     }
 }

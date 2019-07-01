@@ -214,6 +214,7 @@ class planning_Stages extends core_Extender
         $data->listFilter->view = 'horizontal';
         $data->listFilter->input();
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->query->orderBy('state', 'asc');
         
         if($filterRec = $data->listFilter->rec){
             if(!empty($filterRec->centerFolderId)){

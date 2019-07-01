@@ -459,7 +459,7 @@ class html2text_Converter
         // Run our defined search-and-replace
         
         // <pre>
-        $text = preg_replace_callback("/<pre[^>]*>(.*?)<\/pre>/si", array($this, 'pre'), $text);
+        $text = preg_replace_callback("/<pre[^>]*>(.+)<\/pre>/si", array($this, 'pre'), $text);
         
         // Non-legal carriage return
         $text = preg_replace("/\r/", '', $text);
@@ -483,10 +483,10 @@ class html2text_Converter
 //        $text = preg_replace('/<!-- .* -->/', '', $text);
         
         // H1 - H6
-        $text = preg_replace_callback('/<h([123456])[^>]*>(.*?)<\/h([123456])>/i', array($this, 'h'), $text);
+        $text = preg_replace_callback('/<h([123456])[^>]*>(.+)<\/h([123456])>/i', array($this, 'h'), $text);
         
         // Title
-        $text = preg_replace_callback('/<title>(.*?)<\/title>/i', array($this, 'title'), $text);
+        $text = preg_replace_callback('/<title>(.+)<\/title>/i', array($this, 'title'), $text);
         
         // <P>
         $text = preg_replace('/<p[^>]*>/i', "\n\n", $text);
@@ -502,22 +502,21 @@ class html2text_Converter
         $text = preg_replace("/<\/blockquote[^>]*>/i", '[/bQuote]', $text);
         
         // <b>
-        $text = preg_replace_callback('/<b[^>]*>(.*?)<\/b[^>]*>/i', array($this, 'bold'), $text);
+        $text = preg_replace_callback('/<b[^>]*>(.+)<\/b[^>]*>/i', array($this, 'bold'), $text);
         
         // <strong>
-        $text = preg_replace_callback('/<strong[^>]*>(.*?)<\/strong[^>]*>/i', array($this, 'bold'), $text);
+        $text = preg_replace_callback('/<strong[^>]*>(.+)<\/strong[^>]*>/i', array($this, 'bold'), $text);
+        
+        
+        // highlighting
+        $text = preg_replace_callback('/<(span|div|pre|p|font)\\s[^>]*style\\s?=\\s?(\\"|\\\')(?\'style\'[^>]*(color|font-weight|font-style|text-decoration)\\s?:\\s?[^>]+)\\2[^>]*>(?\'text\'.*?)<\\/\\1>/i', array($this, 'highlighting'), $text);
+        $text = preg_replace_callback('/<font\\s+([^>]*(?\'style\'(color)\\s*\\=\\s*(\\"|\\\')([^\\\'|\\"]+)(\\"|\\\')))[^>]*\\>(?\'text\'.*?)<\\/font>/i', array($this, 'highlighting'), $text);
         
         // <i>
-        $text = preg_replace("/<i[^>]*>(.*?)<\/i[^>]*>/i", '[i]\\1[/i]', $text);
+        $text = preg_replace("/<i[^>]*>(.+)<\/i[^>]*>/i", '[i]\\1[/i]', $text);
         
         // <em>
-        $text = preg_replace("/<em[^>]*>(.*?)<\/em[^>]*>/i", '[b]\\1[/b]', $text);
-        
-        
-        // $text = preg_replace("/<table[^>]*>(.*?)<\/table[^>]*>/i", "[table]\\1[/table]", $text);
-        // $text = preg_replace("/<tr[^>]*>(.*?)<\/tr[^>]*>/i", "[tr]\\1[/tr]", $text);
-        // $text = preg_replace("/<td[^>]*>(.*?)<\/td[^>]*>/i", "[td]\\1[/td]", $text);
-        // $text = preg_replace("/<th[^>]*>(.*?)<\/th[^>]*>/i", "[th]\\1[/th]", $text);
+        $text = preg_replace("/<em[^>]*>(.+)<\/em[^>]*>/i", '[b]\\1[/b]', $text);
         
         // <ul> and </ul>
         $text = preg_replace("/(<ul[^>]*>|<\/ul[^>]*>)/i", "\n\n", $text);
@@ -526,7 +525,7 @@ class html2text_Converter
         $text = preg_replace("/(<ol[^>]*>|<\/ol[^>]*>)/i", "\n\n", $text);
         
         // <li> and </li>
-        $text = preg_replace("/<li[^>]*>(.*?)<\/li[^>]*>/i", "\t* \\1\n", $text);
+        $text = preg_replace("/<li[^>]*>(.+)<\/li[^>]*>/i", "\t* \\1\n", $text);
         
         // <li>
         $text = preg_replace('/<li[^>]*>/i', "\n\t* ", $text);
@@ -582,9 +581,6 @@ class html2text_Converter
         // Euro sign
         $text = preg_replace('/&(euro|#8364);/i', '€', $text);
         
-        // Unknown/unhandled entities
-//        $text = preg_replace("'/&[^&;]+;/i'", "", $text);
-        
         // Runs of spaces, post-handling
         $text = preg_replace('/[ ]{2,}/', ' ', $text);
         
@@ -593,8 +589,7 @@ class html2text_Converter
         // Strip any other HTML tags
         $text = strip_tags($text, $this->allowed_tags);
         
-        // ������������ ���������� � ����������� HTML �����
-        // $text = preg_replace(array('/&gt;/i', '/&lt;/i', '/&(amp|#38);/i'), array('>', '<', '&'), $text);
+        // Декодираме енититата
         $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
         
         // Bring down number of empty lines to 2 max
@@ -698,11 +693,79 @@ class html2text_Converter
     
     
     /**
-     * ���������� ��������� ������ ��� ������ �����
+     * пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
      */
     public function bold($matches)
     {
         return "[b]{$matches[1]}[/b]";
+    }
+    
+    
+    /**
+     * Замества форматиращи тагове, зададени чрез стилове към HTML елементи
+     */
+    public function highlighting($matches)
+    {
+        $style = $matches['style'];
+        
+        $text = $matches['text'];
+        
+        $ruleArr = explode(';', $style);
+        
+        $color = $bgcolor = $bold = $italic = $underline = $strike = null;
+        
+        foreach($ruleArr as $rule) {
+            $rule = strtolower(str::removeWhiteSpace($rule));
+            list($name, $value) = explode(':', $rule);
+            
+            if($name == 'color') {
+                $text = '[color=' . self::getColor($value) . ']' . $text . '[/color]';
+            } elseif($name == 'background-color') {
+                $text = '[bg=' . self::getColor($value) . ']' . $text . '[/bg]';
+            } elseif($name == 'font-weight' && ($value == 'bold' || $value >= 600)) {
+                $text = '[b]' . $text . '[/b]';;
+            } elseif($name == 'font-style' && $value == 'italic') {
+                $text = '[i]' . $text . '[/i]';;
+            } elseif($name == 'text-decoration' && $value == 'underline') {
+                $text = '[u]' . $text . '[/u]';;
+            } elseif($name == 'text-decoration' && $value == 'line-through') {
+                $text = '[s]' . $text . '[/s]';;
+            } elseif ($name && !$value) {
+                if (strpos($name, '=')) {
+                    list(,$value) = explode('=', $name);
+                    $value = trim($value, '"');
+                    $value = trim($value, "'");
+                    $text = '[color=' . self::getColor($value) . ']' . $text . '[/color]';
+                }
+            }
+        }
+        
+        return $text;
+    }
+    
+    
+    /**
+     * Преобразува RGB/A цвят към HEX
+     */
+    public static function getColor($color)
+    {
+        $matches = array();
+        
+        if(preg_match("/rgb\\((\\d+),(\\d+),(\\d+)\\)/", $color, $matches)) {
+            $color = sprintf("#%02x%02x%02x", $matches[1], $matches[2], $matches[3]);
+        } elseif(preg_match("/rgba\\((\\d+),(\\d+),(\\d+),([\\d\\.]+)\\)/", $color, $matches)) {
+            $r = $matches[1];
+            $g = $matches[2];
+            $b = $matches[3];
+            $a = (float) $matches[4];
+            $r = max(0, min(255, round(255*(1-$a) + $r*$a)));
+            $g = max(0, min(255, round(255*(1-$a) + $g*$a)));
+            $b = max(0, min(255, round(255*(1-$a) + $b*$a)));
+            
+            $color = sprintf("#%02x%02x%02x", $r, $g, $b);
+        }
+        
+        return $color;
     }
     
     
@@ -713,7 +776,7 @@ class html2text_Converter
     
     
     /**
-     * ����� ������ �����, ����� ������� ����� �� ����
+     * пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
      */
     public function ucwords($stri)
     {
@@ -722,7 +785,7 @@ class html2text_Converter
     
     
     /**
-     * ������� ������� �� ��������������� �����
+     * пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
      */
     public static function pre($matches)
     {
@@ -732,12 +795,12 @@ class html2text_Converter
             $matches[1]
         );
         
-        return '[code=text]' . $text . '[/code]';
+        return '[bQuote]' . $text . '[/bQuote]';
     }
     
     
     /**
-     * �������� �������� <h*>
+     * пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ <h*>
      */
     public function h($matches)
     {

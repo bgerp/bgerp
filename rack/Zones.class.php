@@ -648,7 +648,7 @@ class rack_Zones extends core_Master
                 $ready++;
             }
             
-            if (!empty($dRec->documentQuantity) || !empty($dRec->movementQuantity)){
+            if (!empty(round($dRec->documentQuantity, 4)) || !empty(round($dRec->movementQuantity, 4))){
                 $count++;
             }
         }

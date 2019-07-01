@@ -161,7 +161,7 @@ class fileman_Data extends core_Manager
     /**
      * Връща размера на файла във вербален вид
      *
-     * @param numeric $id - id' то на файла
+     * @param int $id - id' то на файла
      *
      * @return string $verbalSize - Вербалното представяне на файла
      */
@@ -185,7 +185,7 @@ class fileman_Data extends core_Manager
      * Първо проверява с поддиректория, след това
      *
      * @param stdClass $rec
-     * @param bolean   $createDir - Създва директорията, ако липсва
+     * @param bool     $createDir - Създва директорията, ако липсва
      *
      * @return string
      */
@@ -209,9 +209,9 @@ class fileman_Data extends core_Manager
     /**
      * Връща пътя до файла на съответния запис
      *
-     * @param mixed  $rec       - id' на файла или записа на файла
-     * @param bolean $subDir    - дали името да се раздели на поддиректрии
-     * @param bolean $createDir - Създва директорията, ако липсва
+     * @param mixed $rec       - id' на файла или записа на файла
+     * @param bool  $subDir    - дали името да се раздели на поддиректрии
+     * @param bool  $createDir - Създва директорията, ако липсва
      *
      * @return string $path - Пътя на файла
      */
@@ -241,8 +241,8 @@ class fileman_Data extends core_Manager
     /**
      * Връща името на файла
      *
-     * @param mixed  $rec    - id' на файла или записа на файла
-     * @param bolean $subDir - дали името да се раздели на поддиректрии
+     * @param mixed $rec    - id' на файла или записа на файла
+     * @param bool  $subDir - дали името да се раздели на поддиректрии
      *
      * @return string $name - Името на файла
      */

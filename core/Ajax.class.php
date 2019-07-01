@@ -26,11 +26,6 @@ class core_Ajax extends core_Mvc
      */
     public function act_Get()
     {
-        // Ако е пуснат терминала, пускаме сесията
-        if (Request::get('Terminal')) {
-            peripheral_Terminal::setSessionPrefix();
-        }
-        
         // Ако не сме в DEBUG режим
         if (!isDebug()) {
             // Очаквае заявката да е по AJAX - да има такъв хедър
@@ -111,6 +106,8 @@ class core_Ajax extends core_Mvc
             $urlArr['parentUrl'] = $parentUrl;
             
             try {
+                expect($urlArr['Ctr'], $urlArr);
+                
                 // Извикваме URL-то
                 $resArr = Request::forward($urlArr);
             } catch (core_exception_Expect $e) {

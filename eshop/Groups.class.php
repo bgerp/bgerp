@@ -107,6 +107,12 @@ class eshop_Groups extends core_Master
     
     
     /**
+     * Кой може да променя състоянието
+     */
+    public $canChangestate = 'eshop,ceo';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -177,6 +183,10 @@ class eshop_Groups extends core_Master
         if ($form->rec->menuId && !$opt[$form->rec->menuId]) {
             $form->rec->menuId = key($opt);
         }
+
+        if(count($opt) && !$form->isSubmitted()) { 
+            $form->rec->menuId = key($opt);
+        }
         
         if ($form->rec->menuId) {
             $data->query->where(array("#menuId = '[#1#]'", $form->rec->menuId));
@@ -196,9 +206,7 @@ class eshop_Groups extends core_Master
             $row->name = $mvc->getHyperlink($rec, true);
             
             $row->name = $mvc->saoGetTitle($rec, $row->name, '&nbsp;&nbsp;');
-            
-            //      if($rec->saoLevel > 1) bp($row->name);
-            
+                        
             if (haveRole('powerUser') && $rec->state != 'closed') {
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
@@ -434,6 +442,8 @@ class eshop_Groups extends core_Master
                 if ($rec->icon) {
                     $img = new thumb_Img($rec->icon, 400, 300, 'fileman');
                     $tpl->replace(ht::createLink($img->createImg(), $rec->url), 'img');
+                } else {
+                    continue;
                 }
                 $name = ht::createLink($this->getVerbal($rec, 'name'), $rec->url);
                 $tpl->replace($name, 'name');
@@ -840,9 +850,10 @@ class eshop_Groups extends core_Master
         while ($rec = $query->fetch()) {
             $resObj = new stdClass();
             $resObj->loc = $this->getUrl($rec, true);
+            
             $modifiedOn = $rec->modifiedOn ? $rec->modifiedOn : $rec->createdOn;
             
-            $resObj->lastmod = date('c', dt::mysql2timestamp($rec->modifiedOn));
+            $resObj->lastmod = date('c', dt::mysql2timestamp($modifiedOn));
             $resObj->priority = 1;
             $res[] = $resObj;
             

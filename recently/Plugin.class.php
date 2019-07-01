@@ -29,6 +29,9 @@ class recently_Plugin extends core_Plugin
         if (count($inputFields)) {
             foreach ($inputFields as $name => $field) {
                 if ($field->recently) {
+                    if ($prefix == '_') {
+                        wp($form);
+                    }
                     $saveName = $prefix . '.' . $name;
                     
                     $suggetions = recently_Values::fetchSuggestions($saveName);

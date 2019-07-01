@@ -37,12 +37,6 @@ class cat_ProductTplCache extends core_Master
     /**
      * Права за запис
      */
-    public $canRead = 'ceo, cat';
-    
-    
-    /**
-     * Права за запис
-     */
     public $canDelete = 'ceo, cat';
     
     
@@ -150,7 +144,7 @@ class cat_ProductTplCache extends core_Master
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if (haveRole('admin,debug,ceo')) {
-            $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
+            $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
         }
     }
     

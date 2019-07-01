@@ -123,10 +123,10 @@ class docoffice_Office
         if ($res === 0) {
             
             // Премахваме от перманентните данни
-            permanent_Data::remove('countOfficeProccess');
+            core_Permanent::remove('countOfficeProccess');
             
             // Премахваме от перманентните данни порта на офис пакета
-            permanent_Data::remove('officePort');
+            core_Permanent::remove('officePort');
             
             // Отключваме процеса
             static::unlockOffice();
@@ -175,7 +175,7 @@ class docoffice_Office
         $data = static::getConvertedCount();
         
         // Увеличаваме с единица
-        permanent_Data::write('countOfficeProccess', ++$data);
+        core_Permanent::set('countOfficeProccess', ++$data, 100000);
     }
     
     
@@ -184,7 +184,7 @@ class docoffice_Office
      */
     public static function getConvertedCount()
     {
-        $data = (int) permanent_Data::read('countOfficeProccess');
+        $data = (int) core_Permanent::get('countOfficeProccess');
         
         return $data;
     }
@@ -195,7 +195,7 @@ class docoffice_Office
      */
     public static function emptyConvertCount()
     {
-        permanent_Data::write('countOfficeProccess', 0);
+        core_Permanent::set('countOfficeProccess', 0, 100000);
     }
     
     
@@ -250,7 +250,7 @@ class docoffice_Office
         $port = static::findEmptyPort();
         
         // Записваме номера на порта
-        permanent_Data::write('officePort', $port);
+        core_Permanent::set('officePort', $port, 100000);
     }
     
     
@@ -284,7 +284,7 @@ class docoffice_Office
      */
     public static function getOfficePort()
     {
-        return permanent_Data::read('officePort');
+        return core_Permanent::get('officePort');
     }
     
     

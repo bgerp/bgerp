@@ -504,8 +504,8 @@ class core_String
     public static function limitLen($str, $maxLen, $showEndFrom = 20, $dots = ' ... ', $hyphen = false)
     {
         if (Mode::is('screenMode', 'narrow')) {
-            $maxLen = round($maxLen / 1.25);
-            $showEndFrom = round($showEndFrom / 1.25);
+            $maxLen = round($maxLen / 1.05);
+            $showEndFrom = round($showEndFrom / 1.05);
         }
         if (mb_strlen($str) > $maxLen) {
             if ($maxLen >= $showEndFrom) {
@@ -622,7 +622,6 @@ class core_String
      */
     public static function parseWords($string, &$out = null, $callback = null, $deviders = null, $html = true)
     {
-        $flagWord = true;
         $flagHtml = false;
         $pointer = 0;
         setIfNot($deviders, array(' ', ',', '"', '\'', ';', '[', ']', '.', '<', '>', "\n", "\r", "\t", ':', '?', '!', '-', '(', ')', '“', '„', '…', '&', '_', '/', '=', '+', '*'));
@@ -704,9 +703,9 @@ class core_String
     /**
      * Проверява даден символ дали е гласна буква
      *
-     * @param char $char - Симвът, който ще проверяваме
+     * @param string $char - Симвът, който ще проверяваме
      *
-     * @return boolena - Ако е гласна връщаме TRUE
+     * @return string - Ако е гласна връщаме TRUE
      */
     public static function isVowel($char)
     {
@@ -745,7 +744,7 @@ class core_String
     /**
      * Проверява дали подадения символ е пунктуационен
      *
-     * @param char $char
+     * @param string $char
      *
      * @return bool
      */
@@ -760,9 +759,9 @@ class core_String
     /**
      * Проверява даден символ дали е съгласна буква
      *
-     * @param char $char - Симвът, който ще проверяваме
+     * @param string $char - Симвът, който ще проверяваме
      *
-     * @return boolena - Ако е съгласна връщаме TRUE
+     * @return boolean - Ако е съгласна връщаме TRUE
      */
     public static function isConsonent($char)
     {
@@ -793,8 +792,11 @@ class core_String
      */
     public static function stringToNameCase($str)
     {
-        $str = mb_convert_case($str, MB_CASE_TITLE, 'UTF-8');
-        
+        $str = preg_replace_callback("/([\\w\\p{L}\\p{N}\\p{Pd}]+)/u",  function($m) {
+            
+            return mb_convert_case($m[1], MB_CASE_TITLE, 'UTF-8');
+        }, $str);
+  
         return $str;
     }
     
@@ -910,7 +912,7 @@ class core_String
     /**
      * Оцветява текст по относително уникален начин, в зависимост от съдържанието му
      */
-    public static function coloring($text, $colorFactor = null)
+    public static function coloring($text, $colorFactor = null, $attr = array())
     {
         if (!$colorFactor) {
             $colorFactor = $text;
@@ -919,7 +921,9 @@ class core_String
         
         $bgColor = str_pad(dechex(hexdec(substr($hash, 6, 6)) | 0x808080), 6, '0', STR_PAD_LEFT);
         
-        $text = "<span style='color:#{$txColor}; background-color:#{$bgColor}'>" . $text . '</span>';
+        $attr['style'] =( $attr['style'] ? rtrim($attr['style'], '; ') . ';' : '') . "color:#{$txColor}; background-color:#{$bgColor}";
+
+        $text = ht::createElement('span', $attr, $text);
         
         return $text;
     }
@@ -975,7 +979,7 @@ class core_String
      *
      * @param int $u
      *
-     * @return char
+     * @return string
      */
     public static function unichr($u)
     {
@@ -987,11 +991,11 @@ class core_String
      * Връща най-доброто съвпадение за дума от масива
      *
      * @param array      $wordsArr
-     * @param strng      $string
+     * @param string      $string
      * @param NULL|float $percent
      * @param bool       $ci
      *
-     * @return NULL|strng
+     * @return NULL|string
      */
     public static function getClosestWord($wordsArr, $string, &$percent = null, $ci = false)
     {
@@ -1114,7 +1118,7 @@ class core_String
      *
      * @return string
      */
-    public static function removeWhitespaces($string, $replace = '')
+    public static function removeWhiteSpace($string, $replace = '')
     {
         return preg_replace('/\s+/', $replace, $string);
     }

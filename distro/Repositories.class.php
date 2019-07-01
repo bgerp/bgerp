@@ -42,10 +42,10 @@ class distro_Repositories extends core_Master
     /**
      * Заглавие на таблицата
      */
-    public $title = 'Път до хранилище';
+    public $title = 'SSH Хранилища';
     
     
-    public $singleTitle = 'Хранилище';
+    public $singleTitle = 'SSH Хранилище';
     
     
     /**
@@ -127,7 +127,7 @@ class distro_Repositories extends core_Master
     {
         $this->FLD('hostId', 'key(mvc=ssh_Hosts, select=name)', 'caption=Хост,input,mandatory');
         $this->FLD('name', 'varchar', 'caption=Име, mandatory');
-        $this->FLD('path', 'varchar', 'caption=Път на хранилището, mandatory');
+        $this->FLD('path', 'varchar', 'caption=Път, mandatory');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Информация');
         $this->FLD('lineHash', 'varchar(32)', 'caption=Хеш, input=none');
         $this->FLD('url', 'url', 'caption=Линк за сваляне');
@@ -424,7 +424,7 @@ class distro_Repositories extends core_Master
     /**
      * Връща настройките на хост за съответното хранилище
      *
-     * @param int|stdObjec $id
+     * @param mixed $id
      *
      * @return FALSE|array
      */

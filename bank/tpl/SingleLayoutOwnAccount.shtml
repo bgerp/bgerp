@@ -45,6 +45,13 @@
                             	<td>[#comment#]</td>
                             </tr>
                             <!--ET_END comment-->
+                            [#INFO_BLOCK#]
+                    		<!--ET_BEGIN CAPTION_VALUE-->
+                    		<tr>
+                            	<td class='dt'>[#CAPTION#]:</td>
+                            	<td>[#CAPTION_VALUE#]</td>
+                        	</tr>
+                    		<!--ET_END CAPTION_VALUE-->
                             <!--ET_BEGIN CloseTime-->
                             <tr>
                                 <td class='dt'>|Затваряне на нишките|*:</td>

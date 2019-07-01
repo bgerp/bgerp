@@ -111,15 +111,15 @@ class store_Transfers extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'deliveryTime,valior, title=@Документ, folderId , weight, volume,lineId';
-
-
+    public $listFields = 'deliveryTime,valior, title=Документ, fromStore, toStore, weight, volume,lineId, folderId, createdOn, createdBy';
+    
+    
     /**
-     * Отделния ред в листовия изглед да е отгоре
+     * Името на полето, което ще е на втори ред
      */
-    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
-
-
+    public $listFieldsExtraLine = 'title=bottom';
+    
+    
     /**
      * Детайла, на модела
      */
@@ -307,11 +307,14 @@ class store_Transfers extends core_Master
         
         if ($fields['-list']) {
             $row->title = $mvc->getLink($rec->id, 0);
-            $row->title = "<b>" . $row->title . "</b>";
-            $row->title .=  "  " . $row->fromStore . " » " . $row->toStore;
-            $row->createdBy = crm_Profiles::createLink($rec->createdBy);
-            $row->createdOn = $mvc->getVerbal($rec, 'createdOn');
-            $row->title .= "<span class='fright'>" . $row->createdOn . " " . tr('от') . " " .   $row->createdBy . "</span>";
+            
+            if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
+                $row->title = "<b>" . $row->title . "</b>";
+                $row->title .=  "  " . $row->fromStore . " » " . $row->toStore;
+                $row->createdBy = crm_Profiles::createLink($rec->createdBy);
+                $row->createdOn = $mvc->getVerbal($rec, 'createdOn');
+                $row->title .= "<span class='fright'>" . $row->createdOn . " " . tr('от') . " " .   $row->createdBy . "</span>";
+            }
         }
     }
     
@@ -597,5 +600,16 @@ class store_Transfers extends core_Master
         $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->fromStore, $rec->state, 'newProductId');
         
         return $warning;
+    }
+    
+    
+    /**
+     * Извиква се преди подготовката на колоните
+     */
+    protected static function on_BeforePrepareListFields($mvc, &$res, $data)
+    {
+        if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
+            $data->listFields = 'deliveryTime,valior, title=Документ, folderId , weight, volume,lineId';
+        }
     }
 }

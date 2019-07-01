@@ -68,15 +68,15 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=@Заглавие, personNames, company, email, folderId, createdOn, createdBy';
-
-
+    public $listFields = 'title=Заглавие, personNames, company, email, folderId, createdOn, createdBy';
+    
+    
     /**
-     * Отделния ред в листовия изглед да е отгоре
+     * Името на полето, което ще е на втори ред
      */
-    public $tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
-
-
+    public $listFieldsExtraLine = 'title';
+    
+    
     /**
      * Групиране на документите
      */
@@ -989,10 +989,10 @@ class marketing_Inquiries2 extends embed_Manager
                     $singleUrl = self::getSingleUrlArray($id);
                     if (count($singleUrl)) {
                         
-                        return redirect($singleUrl, false, '|Благодарим Ви за запитването', 'success');
+                        return redirect($singleUrl, false, 'Благодарим Ви за запитването|*!', 'success');
                     }
                     
-                    return followRetUrl(null, '|Благодарим Ви за запитването', 'success');
+                    return followRetUrl(null, 'Благодарим Ви за запитването|*!', 'success');
                 }
             }
         }

@@ -312,7 +312,8 @@ class lab_Tests extends core_Master
         
         $compTest = Mode::get('testCompare_' . $mvc->getHandle($data->rec->id));
         
-        
+        Mode::setPermanent('testCompare_' . $mvc->getHandle($data->rec->id), null);
+     
         if ($compTest) {
             $cRec = $mvc->fetch($compTest);
             $data->row->RefHandle = $mvc->getHandle($compTest);
@@ -321,6 +322,9 @@ class lab_Tests extends core_Master
             $data->row->RefProvider = $mvc->getVerbal($cRec, 'provider');
             $data->row->RefBatch = $mvc->getVerbal($cRec, 'batch');
         }
+        
+        
+        
         $parameters = array();
         
         $parameters = keylist::toArray($data->rec->parameters);
@@ -395,14 +399,14 @@ class lab_Tests extends core_Master
         // Prepare left test
         
         $leftTestName = $this->getVerbal($lRec, 'title');
-        
+       
         // Prepare right test
         $queryRight = $this->getQuery();
         
         while ($rec = $queryRight->fetch("#id != {$leftTestId} AND state='active'")) {
             $rightTestSelectArr[$rec->id] = $this->getHandle($rec->id) . '-' . $rec->title;
         }
-        
+    
         // END repare right test
         
         // Prepare form
@@ -431,6 +435,10 @@ class lab_Tests extends core_Master
             $this->requireRightFor('compare', $rRec);
             
             Mode::setPermanent('testCompare_' . $this->getHandle($lRec->id), $rRec->id);
+            
+            $this->touchRec($lRec);
+            
+            $this->logWrite('Добавено сравнение', $lRec);
             
             return new Redirect(getRetUrl());
         }

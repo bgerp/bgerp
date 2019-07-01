@@ -14,7 +14,7 @@ class core_App
     /**
      * Кога е зададено последно увеличение на времето за изпълнение на скрипта
      *
-     * @var time
+     * @var int
      */
     protected static $timeSetTimeLimit;
     
@@ -26,9 +26,9 @@ class core_App
         if (!strlen($boot) || strlen($boot) && strpos($vUrl, $boot) === 0) {
             $filename = strtolower(trim(substr($vUrl, strlen($boot)), '/\\'));
         }
-
+        
         if (preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{2,4}$/i', $filename)) {
- 
+            
             // Ако имаме заявка за статичен файл от коренната директория на уеб-сървъра
             core_Webroot::serve($filename);
         } elseif (isset($_GET[EF_SBF]) && !empty($_GET[EF_SBF])) {
@@ -102,11 +102,6 @@ class core_App
          * Базовото име на директорията за статичните браузърни файлове
          */
         defIfNot('EF_SBF', 'sbf');
-        
-        
-        // Разрешаваме грешките, ако инсталацията е Debug
-        //ini_set("display_errors", EF_DEBUG);
-        //ini_set("display_startup_errors", EF_DEBUG);
         
         
         // Вътрешно кодиране
@@ -246,7 +241,7 @@ class core_App
         if (empty($_GET['App']) && defined('EF_DEFAULT_APP_NAME')) {
             $_GET['App'] = EF_DEFAULT_APP_NAME;
         }
-
+        
         return $q;
     }
     
@@ -313,23 +308,16 @@ class core_App
         
         
         /**
-         * Базова директория, където се намират под-директориите с качените файлове
-         */
-        if (defined('EF_ROOT_PATH')) {
-            defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH . '/uploads');
-        }
-        
-        
-        /**
          * Директорията с качените и генерираните файлове
          */
-        if (defined('EF_UPLOADS_BASE_PATH')) {
-            defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);
-        }
-        
-        
         if (!defined('EF_UPLOADS_PATH')) {
-            die('Not possible to determine constant `EF_UPLOADS_PATH`');
+            if (defined('EF_UPLOADS_BASE_PATH')) {
+                define('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);
+            } elseif (defined('EF_ROOT_PATH')) {
+                define('EF_UPLOADS_PATH', EF_ROOT_PATH . '/uploads/' . EF_APP_NAME);
+            } else {
+                die('Not possible to determine constant `EF_UPLOADS_PATH`');
+            }
         }
         
         
@@ -496,6 +484,12 @@ class core_App
             //header('Pragma: no-cache'); // HTTP 1.0.
             header('Expires: -1'); // Proxies.
             header('Connection: close');
+            
+            // Добавяме допълнителните хедъри
+            $aHeadersArr = self::getAdditionalHeadersArr();
+            foreach ($aHeadersArr as $hStr) {
+                header($hStr);
+            }
         }
         
         // Логваме съдържанието
@@ -514,6 +508,31 @@ class core_App
             ob_end_flush();
             flush();
         }
+    }
+    
+    
+    /**
+     * Връща допълнителните хедъри за страницата
+     *
+     * @return array
+     */
+    public static function getAdditionalHeadersArr()
+    {
+        $resArr = array();
+        
+        if ((BGERP_GIT_BRANCH == 'dev') || (BGERP_GIT_BRANCH == 'test')) {
+            if (EF_HTTPS == 'MANDATORY') {
+                $resArr[] = 'Strict-Transport-Security: max-age=86400';
+            }
+            
+            $resArr[] = 'X-Frame-Options: sameorigin';
+            $resArr[] = 'X-XSS-Protection: 1; mode=block';
+            $resArr[] = 'X-Content-Type-Options: nosniff';
+            $resArr[] = 'Expect-CT: max-age=86400, enforce';
+            $resArr[] = "Feature-Policy: camera 'self'; microphone 'self'";
+        }
+        
+        return $resArr;
     }
     
     
@@ -627,6 +646,12 @@ class core_App
         
         // Указваме, че ще се връща JSON
         header('Content-Type: application/json');
+        
+        // Добавяме допълнителните хедъри
+        $aHeadersArr = self::getAdditionalHeadersArr();
+        foreach ($aHeadersArr as $hStr) {
+            header($hStr);
+        }
         
         // Връщаме резултата в JSON формат
         echo json_encode($resArr);
@@ -985,9 +1010,9 @@ class core_App
         if ($urlHash) {
             $urlQuery .= '#' . $urlHash;
         }
-            
+        
         $pre = rtrim($pre, '/');
-     
+        
         switch ($type) {
             case 'local':
                 $url = ltrim($pre . $urlQuery, '/');
@@ -1072,35 +1097,70 @@ class core_App
         }
         
         $boot = rtrim($boot, '/');
-                
+        
         if (EF_APP_NAME_FIXED !== true && $addAppName) {
             $boot .= '/' . (Request::get('App') ? Request::get('App') : EF_APP_NAME);
         }
- 
+        
         return $boot;
     }
     
     
     /**
-     * Връща масив с пътищата до всички репозиторита, които участват в системата
+     * Връща масив с пътищата до всички репозиторита, които участват в системата, като ключове и
+     * '' или името на бранча, ако е аргумента $ branches
      *
      * @return array
      */
     public static function getRepos()
     {
-        if (defined('EF_PRIVATE_PATH')) {
-            $paths = EF_PRIVATE_PATH . ';' . EF_APP_PATH;
-        } else {
-            $paths = EF_APP_PATH;
+        static $repos;
+        
+        static $havePrivate = false;
+        
+        if (!is_array($repos)) {
+            $repos = array();
+            
+            $repos += self::getReposByPathAndBranch(EF_APP_PATH, defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null);
         }
         
-        $pathsArr = explode(';', str_replace('\\', '/', $paths));
-        $pathsArr = array_filter($pathsArr, function ($value) {
-            
-            return $value !== '';
-        });
+        if (!$havePrivate && defined('EF_PRIVATE_PATH')) {
+            $repos = self::getReposByPathAndBranch(EF_PRIVATE_PATH, defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : (defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null)) + $repos;
+            $havePrivate = true;
+        }
         
-        return $pathsArr;
+        return $repos;
+    }
+    
+    
+    /**
+     * При зададени списъци с пътища и бранчове, връща масив в който ключове са пътищата, а стойности - бранчовета
+     */
+    private static function getReposByPathAndBranch($paths, $branches)
+    {
+        $pathArr = explode(',', str_replace(array('\\', ';'), array('/', ','), $paths));
+        $pathArr = array_filter($pathArr, function ($value) {
+            
+            return trim($value) !== '';
+        });
+        $branchArr = explode(',', str_replace(array('\\', ';'), array('/', ','), $branches));
+        
+        $branchArr = array_filter($branchArr, function ($value) {
+            
+            return trim($value) !== '';
+        });
+        $cntBranches = count($branchArr);
+        
+        $res = array();
+        foreach ($pathArr as $i => $line) {
+            list($p, $b) = explode('=', $line);
+            if (empty($b) && $cntBranches) {
+                $b = $branchArr[min($i, $cntBranches - 1)];
+            }
+            $res[$p] = $b;
+        }
+        
+        return $res;
     }
     
     
@@ -1115,19 +1175,17 @@ class core_App
         // Не може да има връщане назад, в името на файла
         expect(!preg_match('/\.\.(\\\|\/)/', $shortPath));
         
-        if (@is_readable($shortPath)) {
-            
-            return $shortPath;
-        }
-        
         $repos = self::getRepos();
         
-        foreach ($repos as $base) {
+        foreach (array_keys($repos) as $base) {
             $fullPath = $base . '/' . $shortPath;
             
             if (@is_readable($fullPath)) {
                 
                 return $fullPath;
+            } elseif (stripos($shortPath, $base) === 0 && @is_readable($shortPath)) {
+                
+                return $shortPath;
             }
         }
         

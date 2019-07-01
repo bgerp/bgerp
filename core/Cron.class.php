@@ -263,7 +263,7 @@ class core_Cron extends core_Manager
             'Логове на Cron',
             array(
                 'log_System',
-                'class' => $mvc->className
+                'search' => $mvc->className
             ),
             'ef_icon = img/16/action_log.png'
         );
@@ -687,6 +687,9 @@ class core_Cron extends core_Manager
         // Търсим дали има съществуващ запис със същото id
         $exRec = self::fetch(array("#systemId = '[#1#]'", $rec->systemId));
         
+        if (!$exRec && isset($rec->exSystemId)) {
+            $exRec = self::fetch(array("#systemId = '[#1#]'", $rec->exSystemId));
+        }
         
         // Записваме, че записът е създаден от системния потребител
         setIfNot($rec->createdBy, -1);
@@ -711,7 +714,7 @@ class core_Cron extends core_Manager
                                   $rec->action != $exRec->action);
             if ($exRec->modifiedBy == -1 || !$exRec->modifiedBy) {
                 // Ако не е редактиран и има промени го обновяваме
-                if ($systemDataChanged || $rec->period != $exRec->period || $rec->offset != $exRec->offset ||
+                if ($systemDataChanged || $rec->period != $exRec->period ||
                       floor($rec->delay) != floor($exRec->delay) ||
                       $rec->timeLimit != $exRec->timeLimit
                     ) {
@@ -750,9 +753,15 @@ class core_Cron extends core_Manager
      */
     public static function deinstallPack($pack)
     {
+        $res = '';
         $query = self::getQuery();
         $preffix = $pack . '_';
-        $query->delete(array("#controller LIKE '[#1#]%'", $preffix));
+        $rowCnt = $query->delete(array("#controller LIKE '[#1#]%'", $preffix));
+        if ($rowCnt) {
+            $res .= "<li class='debug-notice'>Бяха премахнати {$rowCnt} нагласения на Cron</li>";
+        }
+        
+        return $res;
     }
     
     
@@ -780,7 +789,7 @@ class core_Cron extends core_Manager
         
         if ($res) {
             
-            return "<li style='color:green;'>Премахнати бяха липсващите входни точки за Cron: {$res}</li>";
+            return "<li style='color:brown;'>Премахнати бяха липсващите входни точки за Cron: {$res}</li>";
         }
     }
     
@@ -790,7 +799,7 @@ class core_Cron extends core_Manager
      *
      * @param string $systemId
      *
-     * @return date|NULL|FALSE $nextStartTime
+     * @return datetime|NULL|FALSE $nextStartTime
      */
     public static function getNextStartTime($systemId)
     {

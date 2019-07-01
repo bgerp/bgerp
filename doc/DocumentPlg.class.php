@@ -493,7 +493,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if (isset($data->rec->id) && log_System::haveRightFor('list')) {
-            $data->toolbar->addBtn('Системен лог', array('log_System', 'list', 'class' => $mvc->className, 'objectId' => $data->rec->id), 'ef_icon=img/16/bug.png, title=Разглеждане на логовете на документа, order=20, row=3');
+            $data->toolbar->addBtn('Системен лог', array('log_System', 'list', 'search' => $mvc->className, 'objectId' => $data->rec->id), 'ef_icon=img/16/bug.png, title=Разглеждане на логовете на документа, order=20, row=3');
         }
         
         $classId = $mvc->getClassId();
@@ -550,6 +550,27 @@ class doc_DocumentPlg extends core_Plugin
         if (Request::get('Rejected')) {
             $data->title = new ET('[#1#]', tr($data->title));
             $data->title->append("&nbsp;<span class='state-rejected'>&nbsp;[" . tr('оттеглени') . ']&nbsp;</span>');
+        }
+    }
+    
+    
+    /**
+     * Извиква се преди подготовката на колоните
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, $data)
+    {
+        if (isset($mvc->listFieldsExtraLine)) {
+            if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
+                list($listFieldsName,$listFieldsPos) = explode('=', $mvc->listFieldsExtraLine);
+                
+                if (isset($data->listFields[$listFieldsName]) && $data->listFields[$listFieldsName]{0} != '@') {
+                    $data->listFields[$listFieldsName] = '@' . $data->listFields[$listFieldsName];
+                }
+                
+                if ($listFieldsPos != 'bottom') {
+                    $mvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
+                }
+            }
         }
     }
     

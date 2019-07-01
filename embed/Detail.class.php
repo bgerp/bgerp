@@ -79,7 +79,13 @@ class embed_Detail extends core_Detail
         
         // Ако няма достъпни драйвери редирект със съобщение
         if (!count($interfaces)) {
-            followRetUrl(null, '|Липсват възможни видове|* ' . $this->title, 'error');
+            $intf = cls::get($this->driverInterface);
+             $msg = '|Липсват опции за|* |' . ($intf->driversCommonName ? $intf->driversCommonName : $this->title);
+            if (haveRole('admin')) {
+                redirect(array('core_Packs'), false, $msg, 'error');
+            } else {
+                followRetUrl(null, $msg, 'error');
+            }
         } else {
             $form->setOptions($this->driverClassField, $interfaces);
             

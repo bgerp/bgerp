@@ -88,11 +88,11 @@ class spas_Setup extends core_ProtoSetup
         try {
             $res = $sa->ping();
         } catch (spas_client_Exception $e) {
-            $resStr .= "<li class='error'>Грешка: {$e->getMessage()}</li>";
+            $resStr .= "<li class='debug-error'>Грешка: {$e->getMessage()}</li>";
         }
         
         if ($res === true) {
-            $resStr .= "<li style='color:green'>Има връзка със SPAS</li>";
+            $resStr .= "<li class='debug-info'>Има връзка със SPAS</li>";
         }
         
         return $resStr;

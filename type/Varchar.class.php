@@ -83,6 +83,10 @@ class type_Varchar extends core_Type
             }
         }
         
+        if ($this->params['utf8mb4'] == 'utf8') {
+            $value = i18n_Charset::utf8mb4ToUtf8($value);
+        }
+        
         $value = parent::fromVerbal_($value);
         
         return $value;

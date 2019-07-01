@@ -95,6 +95,8 @@ class doc_Wrapper extends plg_ProtoWrapper
         
         $this->TAB('doc_Search', 'Търсене', 'powerUser');
         
+        $this->TAB('frame2_Reports', 'Справки', 'ceo, report, admin');
+        
         $this->TAB('doc_Files', 'Файлове', 'powerUser');
         
         $this->TAB('doc_UnsortedFolders', 'Проекти', 'admin,ceo');

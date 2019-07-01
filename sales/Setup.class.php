@@ -406,7 +406,7 @@ class sales_Setup extends core_ProtoSetup
             'period' => 1440,
             'timeLimit' => 360
         )
-
+    
     );
     
     
@@ -423,18 +423,6 @@ class sales_Setup extends core_ProtoSetup
             'sales'
         )
     );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
     
     
     /**
@@ -577,8 +565,8 @@ class sales_Setup extends core_ProtoSetup
         
         $fQuery = $Reports::getQuery();
         
+        $classIds = array();
         $classIds[sales_reports_SalesByContragents::getClassId()] = sales_reports_SalesByContragents::getClassId();
-        
         $classIds[sales_reports_SoldProductsRep::getClassId()] = sales_reports_SoldProductsRep::getClassId();
         
         $fQuery-> in('driverClass', $classIds);

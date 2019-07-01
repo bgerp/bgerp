@@ -8,7 +8,7 @@ defIfNot('CONVERSEJS_BOSH_SERVICE_URL', 'https://conversejs.org/http-bind/');
 
 
 /**
- * Клас 'chosen_Setup' - Предава по добър изглед на keylist полетата
+ * Клас 'conversejs_Setup' - Предава по добър изглед на keylist полетата
  *
  *
  * @category  bgerp
@@ -75,24 +75,6 @@ class conversejs_Setup extends core_ProtoSetup
         
         // Инсталираме
         $html .= $Plugins->forcePlugin('ConverseJS Chat', 'conversejs_Plugin', 'core_page_InternalModern', 'private');
-        
-        return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Премахваме от type_Keylist полета
-        $Plugins->deinstallPlugin('conversejs_Plugin');
-        $html .= "<li>Премахнати са всички инсталации на 'conversejs_Plugin'";
         
         return $html;
     }

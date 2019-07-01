@@ -2,16 +2,16 @@
 
 
 /**
- * Документ "Оферта"
+ * Документ "Изходяща оферта"
  *
- * Мениджър на документи за Оферта за продажба
+ * Мениджър на документи за Изходящи оферти
  *
  *
  * @category  bgerp
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -144,6 +144,12 @@ class sales_Quotations extends core_Master
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo, sales';
+    
+    
+    /**
      * Кой  може да клонира системни записи
      */
     public $canClonesysdata = 'ceo, sales';
@@ -231,6 +237,8 @@ class sales_Quotations extends core_Master
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Обект,hint=Изберете обект');
         $this->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Място');
+        $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до');
+        $this->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни');
         
         $this->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData,input=hidden');
         $this->FLD('person', 'varchar', 'caption=Име, changable, class=contactData,after=reff');
@@ -272,8 +280,6 @@ class sales_Quotations extends core_Master
         $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, false);
         if (count($locations)) {
             $form->setOptions('deliveryPlaceId', array('' => '') + $locations);
-        } else {
-            $form->setReadOnly('deliveryPlaceId');
         }
         
         if (isset($form->rec->id)) {
@@ -458,6 +464,10 @@ class sales_Quotations extends core_Master
             $defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
             if ($defCurrency != $rec->currencyId) {
                 $form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
+            }
+            
+            if (isset($rec->deliveryTermTime, $rec->deliveryTime)) {
+                $form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
             }
         }
     }
@@ -676,6 +686,14 @@ class sales_Quotations extends core_Master
                    $row->deliveryError = tr('За транспортните разходи, моля свържете се с представител на фирмата');
                 }
             }
+            
+            if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
+                $deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
+                if ($deliveryTermTime) {
+                    $deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
+                    $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова на най-големия срок за доставка от артикулите');
+                }
+            }
         }
         
         if ($fields['-list']) {
@@ -683,6 +701,41 @@ class sales_Quotations extends core_Master
         }
         
         return $row;
+    }
+    
+    
+    /**
+     * Най-големия срок на доставка
+     *
+     * @param int $id
+     *
+     * @return int|NULL
+     */
+    public function getMaxDeliveryTime($id)
+    {
+        $maxDeliveryTime = null;
+        
+        $query = sales_QuotationsDetails::getQuery();
+        $query->where("#quotationId = {$id} AND #optional = 'no'");
+        $query->show("productId,term,quantity,quotationId");
+        
+        while ($dRec = $query->fetch()) {
+            $term = $dRec->term;
+            if (!isset($term)) {
+                $term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity);
+                
+                $cRec = sales_TransportValues::get($this, $dRec->quotationId, $dRec->id);
+                if (isset($cRec->deliveryTime)) {
+                    $term = $cRec->deliveryTime + $term;
+                }
+            }
+            
+            if (isset($term)) {
+                $maxDeliveryTime = max($maxDeliveryTime, $term);
+            }
+        }
+        
+        return $maxDeliveryTime;
     }
     
     
@@ -911,6 +964,13 @@ class sales_Quotations extends core_Master
             $rec->date = dt::today();
         }
         
+        if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
+            $rec->deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
+            if (isset($rec->deliveryTermTime)) {
+                $updateFields[] = 'deliveryTermTime';
+            }
+        }
+        
         if (count($updateFields)) {
             $mvc->save($rec, $updateFields);
         }
@@ -1046,6 +1106,8 @@ class sales_Quotations extends core_Master
             'originId' => $rec->containerId,
             'template' => $templateId,
             'deliveryAdress' => $rec->deliveryAdress,
+            'deliveryTime' => $rec->deliveryTime,
+            'deliveryTermTime' => $rec->deliveryTermTime,
             'deliveryLocationId' => crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id'),
         );
         
@@ -1357,7 +1419,7 @@ class sales_Quotations extends core_Master
             return;
         }
         
-        $data->listFilter->FNC('sState', 'enum(all=Всички,draft=Чернова,active=Активен,closed=Приключен)', 'caption=Състояние,autoFilter');
+        $data->listFilter->FNC('sState', 'enum(all=Всички,draft=Чернова,pending=Заявка,active=Активен,closed=Приключен)', 'caption=Състояние,autoFilter');
         $data->listFilter->showFields .= ',sState';
         $data->listFilter->setDefault('sState', 'active');
         $data->listFilter->input();

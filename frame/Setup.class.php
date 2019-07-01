@@ -82,7 +82,7 @@ class frame_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'report,dashboard';
+    public $roles = 'report';
     
     
     /**
@@ -99,16 +99,4 @@ class frame_Setup extends core_ProtoSetup
             'timeLimit' => 50
         ),
     );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
 }

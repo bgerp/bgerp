@@ -154,6 +154,12 @@ defIfNot('DOC_LINKED_LAST_SHOW_LIMIT', 3);
 
 
 /**
+ * Допълнителен ред в листовия изглед
+ */
+defIfNot('DOC_LIST_FIELDS_EXTRA_LINE', 'yes');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с DOC
  *
@@ -233,6 +239,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_NOTIFY_FOR_OPEN_IN_REJECTED_USERS' => array('userList', 'caption=Известяване за отворени теми в папки на оттеглени потребители->Потребители'),
         'DOC_DELETE_REJECTED_THREADS_PERIOD' => array('time(suggestions=15 дни|1 месец|6 месеца|1 година)', 'caption=След колко време да се изтриват оттеглените нишки->Време'),
         'DOC_LINKED_LAST_SHOW_LIMIT' => array('int(min=0)', 'caption=До колко документа от последните добавени връзки да се показват при нова->Брой, customizeBy=powerUser'),
+        'DOC_LIST_FIELDS_EXTRA_LINE' => array('enum(yes=Да,no=Не)', 'caption=Допълнителен ред в листовия изглед->Избор, customizeBy=powerUser'),
     );
     
     
@@ -389,7 +396,7 @@ class doc_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Файлове в документи', 'doc_FilesPlg', 'fileman_Files', 'private');
         
         // Добавяме елемент в менюто
-        $html .= bgerp_Menu::addOnce(1.22, 'Документи', 'Всички', 'doc_Folders', 'default', 'user');
+        $html .= bgerp_Menu::addOnce(1.22, 'Документи', 'Всички', 'doc_Folders', 'default', 'powerUser');
         
         return $html;
     }
@@ -399,18 +406,6 @@ class doc_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = 'currency';
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
     
     
     /**
@@ -455,7 +450,9 @@ class doc_Setup extends core_ProtoSetup
                 continue ;
             }
             
-            if (!$rec->showDocumentsAsButtons) continue;
+            if (!$rec->showDocumentsAsButtons) {
+                continue;
+            }
             
             $fKey = doc_Folders::getSettingsKey($rec->folderId);
             

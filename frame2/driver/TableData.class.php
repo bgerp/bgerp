@@ -209,7 +209,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         if (is_array($data->recs)) {
             
             // Ако има поле за групиране, предварително се групират записите
-            if (isset($data->groupByField)) {
+            if (!empty($data->groupByField)) {
                 $data->recs = $this->orderByGroupField($data->recs, $data->groupByField);
             }
             

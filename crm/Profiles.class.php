@@ -109,6 +109,12 @@ class crm_Profiles extends core_Master
     
     
     /**
+     * Кой може да види действията на потребителя
+     */
+    public $canViewrolesact = 'powerUser';
+    
+    
+    /**
      * Поле за търсене
      */
     public $searchFields = 'userId, personId';
@@ -228,6 +234,10 @@ class crm_Profiles extends core_Master
         $url['#'] = 'profileActionLog';
         $tabs->TAB('action', 'Действия', $url);
         
+        $url['logTab'] = 'roleLogs';
+        $url['#'] = 'roleLogs';
+        $tabs->TAB('roleLogs', 'Роли', $url);
+        
         $data->tabs = $tabs;
     }
     
@@ -330,7 +340,11 @@ class crm_Profiles extends core_Master
             
             if ((core_Users::getCurrent() == $data->User->rec->id) || haveRole('admin,ceo')) {
                 if ($data->User->rec->pinCode) {
-                    $data->User->row->pinCode = tr('Да');
+                    if ($data->rec->userId == core_Users::getCurrent()) {
+                        $data->User->row->pinCode = type_Varchar::escape($data->User->rec->pinCode);
+                    } else {
+                        $data->User->row->pinCode = tr('Да');
+                    }
                 } else {
                     $data->User->row->pinCode = tr('Не');
                 }
@@ -439,6 +453,33 @@ class crm_Profiles extends core_Master
                     $data->ActionLog->actionLogLink = ht::createLink(tr('Още...'), $loginLogUrl, false, $attr);
                 }
             }
+            
+            // Рендираме екшън лога на потребителя
+            if (($data->LogTab == 'roleLogs') && $mvc->haveRightFor('viewrolesact', $data->rec)) {
+                $data->HaveRightForLog = true;
+                
+                $data->RoleLogs = new stdClass();
+                
+                $userLogAct = core_RoleLogs::getLogsForUser($data->rec->userId, 5);
+                $data->RoleLogs->rowsArr = $userLogAct['rows'];
+                $data->RoleLogs->pager = $userLogAct['pager'];
+                
+                // Ако има роля admin
+                if (!empty($userLogAct['rows']) && core_RoleLogs::haveRightFor('list')) {
+                    
+                    // id на потребитяля за търсене
+                    $userTeams = type_User::getUserFromTeams($data->rec->userId);
+                    reset($userTeams);
+                    $userId = key($userTeams);
+                    
+                    $attr = array();
+                    $attr['ef_icon'] = '/img/16/page_go.png';
+                    $attr['title'] = 'История на смяната на ролите';
+                    
+                    // Създаме линка
+                    $data->RoleLogs->actionLogLink = ht::createLink(tr('Още...'), array('core_RoleLogs', 'list', 'users' => $userId, 'ret_url' => true), false, $attr);
+                }
+            }
         }
         
         // Бутон за персонализиране
@@ -545,6 +586,25 @@ class crm_Profiles extends core_Master
                 
                 $lTpl->append($data->ActionLog->pager->getHtml(), 'pager');
                 $lTpl->append($data->ActionLog->actionLogLink, 'actionLogLink');
+            } else {
+                $lTpl = new ET(tr('Няма данни'));
+            }
+        }
+        
+        if ($data->RoleLogs) {
+            if ($data->RoleLogs->rowsArr) {
+                $lTpl = getTplFromFile('crm/tpl/SingleProfileRoleLogsLayout.shtml');
+                
+                $logBlockTpl = $lTpl->getBlock('log');
+                
+                foreach ((array) $data->RoleLogs->rowsArr as $rows) {
+                    $logBlockTpl->placeObject($rows);
+                    $logBlockTpl->replace($rows->ROW_ATTR['class'], 'logClass');
+                    $logBlockTpl->append2Master();
+                }
+                
+                $lTpl->append($data->RoleLogs->pager->getHtml(), 'pager');
+                $lTpl->append($data->RoleLogs->actionLogLink, 'actionLogLink');
             } else {
                 $lTpl = new ET(tr('Няма данни'));
             }
@@ -904,20 +964,27 @@ class crm_Profiles extends core_Master
             );
             if (isset($user->country)) {
                 $person->country = drdata_Countries::getIdByName($user->country);
+            } elseif (!isset($person->country)) {
+                $person->country = drdata_Countries::getByIp();
+            }
+            
+            if (!isset($person->country)) {
+                $person->country = drdata_Countries::getIdByName("Bulgaria");
             }
             $mustSave = true;
         }
         
-        
         // Задаваме групата
         $profilesGroup = crm_Groups::fetch("#sysId = 'users'");
-        $exGroupList = $person->groupList;
+        $Persons = cls::get('crm_Persons');
+        $groupExpandField = $Persons->expandInputFieldName;
+        $exGroupList = $person->{$groupExpandField};
         if ($user->state == 'rejected') {
-            $person->groupList = keylist::removeKey($person->groupList, $profilesGroup->id);
+            $person->{$groupExpandField} = keylist::removeKey($person->{$groupExpandField}, $profilesGroup->id);
         } else {
-            $person->groupList = keylist::addKey($person->groupList, $profilesGroup->id);
+            $person->{$groupExpandField} = keylist::addKey($person->{$groupExpandField}, $profilesGroup->id);
         }
-        if ($person->groupList != $exGroupList) {
+        if ($person->{$groupExpandField} != $exGroupList) {
             $mustSave = true;
         }
         
@@ -980,9 +1047,9 @@ class crm_Profiles extends core_Master
                     self::save($profile, 'searchKeywords');
                 }
             }
-            
-            return $person->id;
         }
+        
+        return $person->id;
     }
     
     
@@ -1403,6 +1470,14 @@ class crm_Profiles extends core_Master
         if ($action == 'viewlogact') {
             if ($rec) {
                 if (!log_Data::canViewUserLog($rec->userId, $userId)) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+        
+        if ($action == 'viewrolesact') {
+            if ($rec) {
+                if (!core_RoleLogs::canViewUserLog($rec->userId, $userId)) {
                     $requiredRoles = 'no_one';
                 }
             }

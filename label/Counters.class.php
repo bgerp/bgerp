@@ -275,7 +275,7 @@ class label_Counters extends core_Master
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
-     * @param label_Counter $mvc
+     * @param core_Mvc $mvc
      * @param core_Form     $form
      */
     public static function on_AfterInputEditForm($mvc, &$form)

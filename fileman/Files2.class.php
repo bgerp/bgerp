@@ -470,7 +470,7 @@ class fileman_Files2 extends core_Master
     /**
      * Връща всички мета-характеристики на файла
      *
-     * @param strign $fh - Манипулатор на файла
+     * @param string $fh - Манипулатор на файла
      * @param return array(
      *      'name' => '...',
      *      'bucket' => '...',
@@ -757,7 +757,7 @@ class fileman_Files2 extends core_Master
      *
      * @param string $path - Пътя до файла
      *
-     * @return timeStamp - Времето на последна промяна на файла
+     * @return int - Времето на последна промяна на файла
      */
     public static function getModificationTimeFromFilePath($path)
     {
@@ -773,7 +773,7 @@ class fileman_Files2 extends core_Master
      *
      * @param string $path - Пътя до файла
      *
-     * @return timeStamp - Времето на създаване на файла
+     * @return int - Времето на създаване на файла
      */
     public static function getCreationTimeFromFilePath($path)
     {
@@ -789,7 +789,7 @@ class fileman_Files2 extends core_Master
      *
      * @param string $path - Пътя до файла
      *
-     * @return timeStamp - Времето на последен достъп до файла
+     * @return int - Времето на последен достъп до файла
      */
     public static function getAccessTimeFromFilePath($path)
     {
@@ -881,7 +881,7 @@ class fileman_Files2 extends core_Master
     /**
      * Връща линк към сингъла на файла
      *
-     * @param fileHnd     $fh       - Манипулатор на файла
+     * @param string     $fh       - Манипулатор на файла
      * @param bool        $absolute - Дали линка да е абсолютен
      * @param array       $attr     - Други параметри
      * @param string|NULL $name     - Името, което да се използва
@@ -949,7 +949,7 @@ class fileman_Files2 extends core_Master
     /**
      * Връща URL към сингъла на файла
      *
-     * @param fileHnd $fh       - Манипулатор на файла
+     * @param string $fh       - Манипулатор на файла
      * @param bool    $absolute - Дали URL-то да е абсолютен
      *
      * @return string - URL към сингъла

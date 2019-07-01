@@ -83,6 +83,17 @@ class sens2_RemoteDriver extends sens2_ProtoDriver
     
     
     /**
+     * Връща снимка на контролера
+     */
+    public static function getPicture($config)
+    {
+        $path = 'bgerp/icon.png';
+        
+        return $path;
+    }
+    
+    
+    /**
      * Връща масив със стойностите на изразходваната активна мощност
      */
     public function readInputs($inputs, $config, &$persistentState)

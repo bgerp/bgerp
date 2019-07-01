@@ -23,14 +23,14 @@ class store_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $this->TAB('store_Stores', 'Складове', 'ceo,storeWorker');
         $this->TAB('store_Products', 'Наличности', 'ceo,storeWorker');
+        $this->TAB('store_Stores', 'Складове', 'ceo,storeWorker');
         $this->TAB(array('deals_OpenDeals', 'show' => 'store'), 'Документи->Чакащи', 'store,ceo');
-        $this->TAB('store_ShipmentOrders', 'Документи->Експедиции');
-        $this->TAB('store_Receipts', 'Документи->Получавания');
-        $this->TAB('store_Transfers', 'Документи->Междускладови трансфери');
-        $this->TAB('store_ConsignmentProtocols', 'Документи->Отговорно пазене');
-        $this->TAB('store_InventoryNotes', 'Документи->Инвентаризация');
+        $this->TAB('store_ShipmentOrders', 'Документи->Експедиции', 'store,ceo');
+        $this->TAB('store_Receipts', 'Документи->Получавания', 'store,ceo');
+        $this->TAB('store_Transfers', 'Документи->Междускладови трансфери', 'store,ceo');
+        $this->TAB('store_ConsignmentProtocols', 'Документи->Отговорно пазене', 'store,ceo');
+        $this->TAB('store_InventoryNotes', 'Документи->Инвентаризация', 'store,ceo');
         
         $this->title = 'Склад';
     }

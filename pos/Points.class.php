@@ -110,14 +110,7 @@ class pos_Points extends core_Master
     /**
      * Детайли на бележката
      */
-    public $details = 'Receipts=pos_Receipts, peripheral_Terminal';
-     
-     
-    /**
-     * Поддържани интерфейси
-     *
-     */
-    public $interfaces = 'peripheral_TerminalIntf';
+    public $details = 'Receipts=pos_Receipts';
     
     
     /**
@@ -236,8 +229,6 @@ class pos_Points extends core_Master
     {
         expect($pointId = Request::get('id', 'int'));
         
-        peripheral_Terminal::setSessionPrefix();
-        
         $this->requireRightFor('select', $pointId);
         $this->selectCurrent($pointId);
         
@@ -350,42 +341,5 @@ class pos_Points extends core_Master
                 $query->where("#{$pointFld} = {$filterRec->point}");
             }
         }
-    }
-    
-    
-    /**
-     * Връща всички достъпни за текущия потребител id-та на обекти, отговарящи на записи
-     *
-     * @return array
-     *
-     * @see peripheral_TerminalIntf
-     */
-    public function getTerminalOptions()
-    {
-        $query = $this->getQuery();
-        $query->where("#state != 'rejected'");
-        
-        $resArr = array();
-        
-        $query->showFields = 'id,name';
-        
-        while ($rec = $query->fetchAndCache()) {
-            $resArr[$rec->id] = $rec->name;
-        }
-        
-        return $resArr;
-    }
-    
-    
-    /**
-     * Редиректва към посочения терминал в посочената точка и за посочения потребител
-     *
-     * @return Redirect
-     *
-     * @see peripheral_TerminalIntf
-     */
-    public function openTerminal($pointId, $userId)
-    {
-        return new Redirect(array($this, 'openTerminal', $pointId));
     }
 }

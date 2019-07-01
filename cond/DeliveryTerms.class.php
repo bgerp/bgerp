@@ -27,7 +27,7 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'codeName, term, costCalc=Транспорт->Калкулатор, calcCost=Транспорт->Скрито,properties, lastUsedOn=Последно, state, createdBy,createdOn';
+    public $listFields = 'codeName, term, costCalc=Транспорт->Калкулатор, calcCost=Транспорт->Скрито,properties, address, state, createdBy,createdOn';
     
     
     /**

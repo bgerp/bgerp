@@ -332,9 +332,6 @@ class hr_Indicators extends core_Manager
         
         // За всеки един договор, се опитваме да намерим формулата за заплащането от позицията.
         foreach ($ecArr as $personId => $ecRec) {
-            $res = (object) array('personId' => $personId,
-                'periodId' => $pRec->id);
-            
             $sum = array();
             
             if (isset($ecRec->positionId)) {
@@ -492,8 +489,6 @@ class hr_Indicators extends core_Manager
         $this->prepareListFilter($data->IData);
         $data->IData->listFilter->method = 'GET';
         
-        $date = new DateTime();
-        
         if ($data->IData->pager) {
             $data->IData->pager->setLimit($data->IData->query);
         }
@@ -530,6 +525,7 @@ class hr_Indicators extends core_Manager
         if (str::prepareMathExpr($expr) === false) {
             $data->IData->salary = ht::styleIfNegative(tr('Невъзможно изчисление'), -1);
         } else {
+            $success = null;
             $data->IData->salary = str::calcMathExpr($expr, $success);
             $data->IData->salary = core_type::getByName('double(decimals=2)')->toVerbal($data->IData->salary);
             $data->IData->salary = ht::styleIfNegative($data->IData->salary, $data->IData->salary);
@@ -593,6 +589,7 @@ class hr_Indicators extends core_Manager
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
         $data->listFilter->FLD('period', 'date(select2MinItems=11)', 'caption=Период,silent,placeholder=Всички');
         $data->listFilter->FLD('document', 'varchar(16)', 'caption=Документ,silent,placeholder=Всички');
+        $data->listFilter->FLD('Protected', 'varchar', 'caption=Документ,silent,input=hidden');
         $data->listFilter->input(null, 'silent');
         
         $cloneQuery = clone $data->query;
@@ -613,8 +610,8 @@ class hr_Indicators extends core_Manager
         } else {
             $data->listFilter->setFieldTypeParams('personId', array('allowEmpty' => 'allowEmpty'));
             $data->listFilter->setFieldTypeParams('indicatorId', array('allowEmpty' => 'allowEmpty'));
-            $data->listFilter->showFields = 'period,document,personId,indicatorId';
-            $data->listFilter->input('period,document,personId,indicatorId');
+            $data->listFilter->showFields = 'period,document,personId,indicatorId,Protected';
+            $data->listFilter->input('period,document,personId,indicatorId,Protected');
         }
         
         // В хоризонтален вид
@@ -650,6 +647,8 @@ class hr_Indicators extends core_Manager
             if (!empty($fRec->document)) {
                 if ($document = doc_Containers::getDocumentByHandle($fRec->document)) {
                     $data->query->where("#docClass = {$document->getClassId()} AND #docId = {$document->that}");
+                } else {
+                    $data->query->where("1=2");
                 }
             }
         }

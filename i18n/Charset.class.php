@@ -1136,6 +1136,27 @@ class i18n_Charset extends core_MVC
     
     
     /**
+     * Конвертира utf8mb4 към UTF8
+     * 
+     * @param string $text
+     * @param boolean $checkCharset
+     * 
+     * @return string
+     */
+    public static function utf8mb4ToUtf8($text, $checkCharset = true)
+    {
+        if ($checkCharset && defined('EF_DB_CHARSET') && (EF_DB_CHARSET == 'utf8mb4')) {
+            
+            return $text;
+        }
+        
+        $text = preg_replace('/[\x{10000}-\x{10FFFF}]/u', "\xEF\xBF\xBD", $text);
+        
+        return $text;
+    }
+    
+    
+    /**
      * Проверява дали аргумента е 7 битов стринг
      *
      * @param string $text - Стринга, който ще се проверява

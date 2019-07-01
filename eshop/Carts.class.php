@@ -1334,10 +1334,9 @@ class eshop_Carts extends core_Master
             unset($row->freeDelivery);
         }
         
-       // bp($rec->total, $rec->totalNoVat, $rec->deliveryNoVat);
         $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
         $totalNoVat = currency_CurrencyRates::convertAmount($rec->totalNoVat, null, null, $settings->currencyId);
-        $deliveryNoVat = currency_CurrencyRates::convertAmount($rec->deliveryNoVat, null, null, $settings->currencyId);
+        $deliveryNoVat = ($rec->freeDelivery != 'no') ? 0 : currency_CurrencyRates::convertAmount($rec->deliveryNoVat, null, null, $settings->currencyId);
         $vatAmount = $total - $totalNoVat - $deliveryNoVat;
         
         $amountWithoutDelivery = ($settings->chargeVat == 'yes') ? $total : $totalNoVat;
@@ -2329,7 +2328,7 @@ class eshop_Carts extends core_Master
             $body->{$var} = $body->{$var}->getContent();
         }
         
-        $options = array('encoding' => 'utf-8', 'no_thread_hnd' => true);
+        $options = array('encoding' => 'utf-8', 'no_thread_hnd' => true, 'no_return_path' => 'no_return_path', 'no_return_receipt' => 'no_return_receipt');
         $subject = tr("Незавършена поръчка в") . " {$domainName}";
         
         // Опит за изпращане на имейл-а

@@ -109,6 +109,7 @@
                         <span class='quiet'>|Каса|*: </span>[#caseId#]
                     </div>
                     <!--ET_END caseId-->
+                    [#ADDITIONAL_BLOCK#]
                 </td>
                 <!--ET_BEGIN conditions-->
                 [#conditions#]

@@ -48,13 +48,15 @@ class rfid_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'rfid_Readers',
-        'rfid_Events',
+        'rfid_Assignments',
         'rfid_Tags',
-        'rfid_Holders',
-        'rfid_Ownerships'
     );
     
-    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'rfid_driver_HolderPerson';
+
     /**
      * Роли за достъп до модула
      */
@@ -67,16 +69,4 @@ class rfid_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(3.4, 'Мониторинг', 'RFID', 'rfid_Events', 'default', 'rfid, ceo,admin'),
     );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
 }

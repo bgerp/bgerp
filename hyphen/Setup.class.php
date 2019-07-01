@@ -42,25 +42,4 @@ class hyphen_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Деинсталираме toast съобщения
-        if ($delCnt = $Plugins->deinstallPlugin('hyphen_Plugin')) {
-            $html .= "<li>Премахнати са {$delCnt} закачания на 'type_Richtext'";
-        } else {
-            $html .= '<li>Не са премахнати закачания на плъгина';
-        }
-        
-        return $res;
-    }
 }

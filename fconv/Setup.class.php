@@ -83,13 +83,16 @@ class fconv_Setup extends core_ProtoSetup
     
     
     /**
-     * Де-инсталиране на пакета
+     * Настройки за Cron
      */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
+    public $cronSettings = array(
+            array(
+                    'systemId' => 'DeleteOldProcesses',
+                    'description' => 'Изтриване на старите процеси',
+                    'controller' => 'fconv_Processes',
+                    'action' => 'DeleteOldProcesses',
+                    'period' => 180,
+                    'offset' => 0,
+                    'timeLimit' => 100
+            ));
 }

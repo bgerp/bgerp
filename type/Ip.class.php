@@ -66,8 +66,9 @@ class type_IP extends type_Varchar
         }
         
         $time = $this->params['time'];
+        $coloring = $this->params['coloring'] != 'no';
         
-        $value = self::decorateIp($value, $time);
+        $value = self::decorateIp($value, $time, $coloring);
         
         return $value;
     }
@@ -76,17 +77,17 @@ class type_IP extends type_Varchar
     /**
      * Декорира ip адреса
      *
-     * @param IP    $ip
-     * @param time  $time
+     * @param string    $ip
+     * @param string  $time
      * @param array $attr
      */
-    public static function decorateIp($ip, $time = null, $coloring = false, $showNames = false)
+    public static function decorateIp($ip, $time = null, $coloring = true)
     {
         $res = $ip;
         
         $me = cls::get(get_called_class());
         
-        $me->invoke('AfterDecorateIp', array(&$res, $ip, $time, $coloring, $showNames));
+        $me->invoke('AfterDecorateIp', array(&$res, $ip, $time, $coloring));
         
         return $res;
     }
@@ -160,8 +161,8 @@ class type_IP extends type_Varchar
         
         return $isLocal;
     }
-    
-    
+
+
     /**
      * Дали посоченото IP е публично
      */

@@ -92,7 +92,8 @@ class rack_plg_Shipments extends core_Plugin
             if(isset($mvc->mainDetail)){
                 $Detail = cls::get($mvc->mainDetail);
                 $dQuery = $Detail->getQuery();
-                $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+                $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$Detail->productFld}");
+                $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #canStore = 'yes'");
                 
                 while($dRec = $dQuery->fetch()){
                     
@@ -155,7 +156,7 @@ class rack_plg_Shipments extends core_Plugin
         $readiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
         if(isset($readiness)){
             if($readiness != 1){
-                core_Statuses::newStatus('Документът не може да се контира, не е нагласен в зоните на палетния склад', 'error');
+                core_Statuses::newStatus('Документът не може да се контира. Не е нагласен в зоните на палетния склад', 'error');
                 
                 return false;
             }

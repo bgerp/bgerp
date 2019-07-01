@@ -65,37 +65,39 @@ class price_interface_LabelImpl
         $rec = frame2_Reports::fetchRec($id);
         $recs = $rec->data->recs;
         $round = isset($rec->round) ? $rec->round : price_reports_PriceList::DEFAULT_ROUND;
-        
         $Double = core_Type::getByName("double(decimals={$round})");
         
         $currentCount = 0;
         Mode::push('text', 'plain');
-        foreach ($recs as $pRec){
-            $ean = '';
-            if($onlyPreview === true){
-                $ean = '0000000000000';
-            }
-            
-            $name = cat_Products::getVerbal($pRec->productId, 'name');
-            $name = str::limitLen($name, 70);
-            $code = cat_Products::getVerbal($pRec->productId, 'code');
-            $code = !empty($code) ? $code : "Art{$pRec->productId}";
-            
-            if($rec->showMeasureId == 'yes' && !empty($pRec->price)){
-                $res = array('EAN' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $Double->toVerbal($pRec->price), "CODE" => $code);
-                $resArr[] = $res;
-                $currentCount++;
-                if($currentCount == $cnt) break;
-            }
-            
-            foreach ($pRec->packs as $packRec){
-                $ean = $packRec->eanCode;
-                $res = array('EAN' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($pRec->price), "CODE" => $code);
-                $resArr[] = $res;
-                $currentCount++;
-                if($currentCount == $cnt) break;
+        if(is_array($recs)){
+            foreach ($recs as $pRec){
+                $ean = '';
+                if($onlyPreview === true){
+                    $ean = '0000000000000';
+                }
+                
+                $name = cat_Products::getVerbal($pRec->productId, 'name');
+                $name = str::limitLen($name, 70);
+                $code = cat_Products::getVerbal($pRec->productId, 'code');
+                $code = !empty($code) ? $code : "Art{$pRec->productId}";
+                
+                if($rec->showMeasureId == 'yes' && !empty($pRec->price)){
+                    $res = array('EAN' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $Double->toVerbal($pRec->price), "CODE" => $code);
+                    $resArr[] = $res;
+                    $currentCount++;
+                    if($currentCount == $cnt) break;
+                }
+                
+                foreach ($pRec->packs as $packRec){
+                    $ean = $packRec->eanCode;
+                    $res = array('EAN' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($pRec->price), "CODE" => $code);
+                    $resArr[] = $res;
+                    $currentCount++;
+                    if($currentCount == $cnt) break;
+                }
             }
         }
+        
         Mode::pop('text', 'plain');
         
         return $resArr;
@@ -114,11 +116,13 @@ class price_interface_LabelImpl
         $rec = frame2_Reports::fetchRec($id);
         
         $count = 0;
-        foreach ($rec->data->recs as $dRec){
-            if($rec->showMeasureId == 'yes' && !empty($dRec->price)){
-                $count++;
+        if(is_array($rec->data->recs)){
+            foreach ($rec->data->recs as $dRec){
+                if($rec->showMeasureId == 'yes' && !empty($dRec->price)){
+                    $count++;
+                }
+                $count += count($dRec->packs);
             }
-            $count += count($dRec->packs);
         }
         
         return $count;

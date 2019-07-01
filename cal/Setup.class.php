@@ -98,7 +98,7 @@ class cal_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(1.33, 'Указател', 'Календар', 'cal_Calendar', 'default', 'powerUser, admin'),
+        array(1.33, 'Указател', 'Календар', 'cal_Calendar', 'list', 'powerUser'),
     );
     
     
@@ -138,18 +138,6 @@ class cal_Setup extends core_ProtoSetup
         $html .= $Bucket->createBucket('calReminders', 'Прикачени файлове в напомнянията', null, '104857600', 'user', 'user');
         
         return $html;
-    }
-    
-    
-    /**
-     * Деинсталиране
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
     }
     
     

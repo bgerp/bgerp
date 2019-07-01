@@ -69,7 +69,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,input,after=policyId,single=none');
         $fieldset->FLD('vat', 'enum(yes=с включено ДДС,no=без ДДС)', 'caption=Цени->ДДС,after=currencyId,single=none');
         $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Цени->Изменени цени,after=vat,single=none');
-        $fieldset->FLD('round', 'int(Min=0)', 'caption=Цени->Точност,autohide,after=period');
+        $fieldset->FLD('round', 'int(Min=0,max=6)', 'caption=Цени->Точност,autohide,after=period');
         $fieldset->FLD('packType', 'enum(yes=Да,no=Не,base=Основна)', 'caption=Филтър->Опаковки,columns=3,after=round,single=none,silent,removeAndRefreshForm=packagings');
         $fieldset->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Филтър->Избор,columns=3,placeholder=Всички опаковки,after=packType,single=none');
         $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Филтър->Групи,columns=2,placeholder=Всички,after=packagings,single=none');
@@ -339,9 +339,11 @@ class price_reports_PriceList extends frame2_driver_TableData
         }
         
         // Ако има баркод на основната мярка да се показва и той
-        if(!empty($dRec->eanCode) && !Mode::isReadOnly() && barcode_Search::haveRightFor('list')){
+        if(!empty($dRec->eanCode)){
             $eanCode = core_Type::getByName('varchar')->toVerbal($dRec->eanCode);
-            $eanCode = ht::createLink($eanCode, array('barcode_Search', 'search' => $eanCode));
+            if(!Mode::isReadOnly() && barcode_Search::haveRightFor('list')){
+                $eanCode = ht::createLink($eanCode, array('barcode_Search', 'search' => $eanCode));
+            }
             $row->measureId = "{$eanCode} {$row->measureId}";
         }
         
@@ -368,8 +370,8 @@ class price_reports_PriceList extends frame2_driver_TableData
             $decimals = isset($rec->round) ? $rec->round : self::DEFAULT_ROUND;
             $rows[$packRec->packagingId] = (object) array('packagingId' => $packName, 'price' => core_Type::getByName("double(decimals={$decimals})")->toVerbal($packRec->price));
             if (!empty($packRec->eanCode)) {
+                $eanCode = core_Type::getByName('varchar')->toVerbal($packRec->eanCode);
                 if (!Mode::isReadOnly() && barcode_Search::haveRightFor('list')) {
-                    $eanCode = core_Type::getByName('varchar')->toVerbal($packRec->eanCode);
                     $eanCode = ht::createLink($eanCode, array('barcode_Search', 'search' => $eanCode));
                 }
                 $rows[$packRec->packagingId]->eanCode = $eanCode;
@@ -612,6 +614,19 @@ class price_reports_PriceList extends frame2_driver_TableData
      * @return bool
      */
     public function canBeSendAsEmail($rec)
+    {
+        return true;
+    }
+    
+    
+    /**
+     * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
+     *
+     * @param stdClass $rec
+     *
+     * @return bool $res
+     */
+    public function canSendNotificationOnRefresh($rec)
     {
         return true;
     }

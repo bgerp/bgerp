@@ -247,6 +247,8 @@ class bgerp_Notifications extends core_Manager
         
         if ($customUrl) {
             $rec->customUrl = toUrl($customUrl, 'local', false);
+        } else {
+            $rec->customUrl = null;
         }
         
         bgerp_Notifications::save($rec);
@@ -327,11 +329,41 @@ class bgerp_Notifications extends core_Manager
             $query->where(array("#urlId = '[#1#]'", $urlId));
         }
         
-        $query->where("#url = '{$url}' AND #userId = '{$userId}'");
+        $query->where(array("#url = '[#1#]' AND #userId = '[#2#]'", $url, $userId));
+        
+        $query->limit(1);
         
         if ($rec = $query->fetch()) {
             
             return $rec->closedOn;
+        }
+    }
+    
+    
+    /**
+     * Връща текста на активното съобщение, ако има такова
+     */
+    public static function getActiveMsgFor($urlArr, $userId)
+    {
+        $url = toUrl($urlArr, 'local', false);
+        
+        $query = self::getQuery();
+        
+        $urlId = self::prepareUrlId($url);
+        if ($urlId) {
+            $query->where(array("#urlId = '[#1#]'", $urlId));
+        }
+        
+        $query->where("#state = 'active'");
+        $query->where("#hidden = 'no'");
+        
+        $query->where(array("#url = '[#1#]' AND #userId = '[#2#]'", $url, $userId));
+        
+        $query->limit(1);
+        
+        if ($rec = $query->fetch()) {
+            
+            return $rec->msg;
         }
     }
     
@@ -652,7 +684,7 @@ class bgerp_Notifications extends core_Manager
                 $containerId = $url['containerId'];
                 
                 if ($dId) {
-                    if ($dRec = $ctr::fetch($dId)) {
+                    if (is_numeric($dId) && $dRec = $ctr::fetch($dId)) {
                         $folderId = $dRec->folderId;
                         $threadId = $dRec->threadId;
                         $containerId = $dRec->containerId;
@@ -1069,8 +1101,14 @@ class bgerp_Notifications extends core_Manager
                 core_Settings::setValues($key, $vRecArr);
                 
                 // Записваме в лога
+                list(, $objectId) = explode('::', $key);
                 $pKey = core_Settings::prepareKey($key);
-                $sRec = core_Settings::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $pKey, core_Users::getCurrent()));
+                if (isset($objectId)) {
+                    $sRec = core_Settings::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]' AND #objectId = '[#3#]'", $pKey, core_Users::getCurrent(), $objectId));
+                } else {
+                    $sRec = core_Settings::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $pKey, core_Users::getCurrent()));
+                }
+                
                 core_Settings::logWrite('Промяна на настройките', $sRec);
             }
             
@@ -1555,15 +1593,19 @@ class bgerp_Notifications extends core_Manager
         
         
         if (is_array($arg) && $arg['priority']) {
-            if (self::fetch("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}' AND #priority = 'alert'")) {
+            if ($msgRec = self::fetch("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}' AND #priority = 'alert'")) {
                 $priority = 'alert';
-            } elseif (self::fetch("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}' AND #priority = 'warning'")) {
+            } elseif ($msgRec = self::fetch("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}' AND #priority = 'warning'")) {
                 $priority = 'warning';
             } else {
                 $priority = 'normal';
             }
             
             $res = array('cnt' => $res, 'priority' => $priority);
+
+            if(isset($msgRec)) {
+                $res['msg'] = $msgRec->msg;
+            }
         }
         
         return $res;
@@ -1615,7 +1657,7 @@ class bgerp_Notifications extends core_Manager
         $closedBefore = dt::addDays(-1 * (bgerp_Setup::get('NOTIFICATION_KEEP_DAYS') / (24 * 3600)));
         $modifiedBefore = dt::addDays(-1 * ((bgerp_Setup::get('NOTIFICATION_KEEP_DAYS') * 2) / (24 * 3600)));
         
-        $res = self::delete("((#closedOn IS NOT NULL) AND (#closedOn < '{$closedBefore}')) OR ((#closedOn IS NULL) AND (#modifiedOn < '{$modifiedBefore}'))");
+        $res = self::delete("((#closedOn IS NOT NULL) AND (#closedOn < '{$closedBefore}')) OR (#modifiedOn < '{$modifiedBefore}')");
         
         if ($res) {
             $this->logNotice("Бяха изтрити {$res} записа");

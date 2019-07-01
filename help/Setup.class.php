@@ -95,6 +95,7 @@ class help_Setup extends core_ProtoSetup
     public $managers = array(
         'help_Info',
         'help_Log',
+        'migrate::version2',
     );
     
     
@@ -123,18 +124,6 @@ class help_Setup extends core_ProtoSetup
     
     
     /**
-     * Път до js файла
-     */
-//    var $commonJS = 'js/tooltipCustom.js';
-    
-    
-    /**
-     * Път до css файла
-     */
-//    var $commonCSS = 'css/tooltip.css';
-    
-    
-    /**
      * Инсталиране на пакета
      */
     public function install()
@@ -154,13 +143,22 @@ class help_Setup extends core_ProtoSetup
     
     
     /**
-     * Де-инсталиране на пакета
+     * Миграция към втория формат
      */
-    public function deinstall()
+    public function version2()
     {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
+        $query = help_Info::getQuery();
+        $info = $query->mvc;
+        $info->setupMvc();
         
-        return $res;
+        if ($info->db->isFieldExists($info->dbTableName, 'action') || 1) {
+            //$query->FLD('action', 'varchar');
+            //$query->delete("#action != 'list'");
+            //$info->db->query("ALTER TABLE `{$info->dbTableName}` DROP COLUMN `action`");
+            $query = $info->getQuery();
+            while ($rec = $query->fetch()) {
+                $info->save($rec);
+            }
+        }
     }
 }

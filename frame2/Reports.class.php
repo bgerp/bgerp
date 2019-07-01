@@ -2,14 +2,14 @@
 
 
 /**
- * Мениджър за динамични справки
+ * Мениджър за справки от нов тип
  *
  *
  * @category  bgerp
  * @package   frame2
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,7 +31,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone, doc_plg_Close, doc_EmailCreatePlg';
+    public $loadList = 'plg_RowTools2, doc_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone, doc_plg_Close, doc_EmailCreatePlg, plg_Sorting';
     
     
     /**
@@ -133,7 +133,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = false;
+    public $newBtnGroup = '1.5|Общи';
     
     
     /**
@@ -205,6 +205,12 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = true;
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -215,9 +221,10 @@ class frame2_Reports extends embed_Manager
         $this->FLD('notificationText', 'varchar', 'caption=Обновяване и известяване->Текст,autohide');
         $this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Обновяване и известяване->Потребители,autohide');
         $this->FLD('changeFields', 'set', 'caption=Други настройки->Промяна,autohide,input=none');
-        $this->FLD('maxKeepHistory', 'int(Min=0)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
+        $this->FLD('maxKeepHistory', 'int(Min=0,max=40)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
         $this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none');
         $this->FLD('lastRefreshed', 'datetime', 'caption=Последно актуализиране,input=none');
+        $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Други настройки->Видими от партньори,input=none,after=maxKeepHistory');
     }
     
     
@@ -229,6 +236,20 @@ class frame2_Reports extends embed_Manager
     public static function on_AfterDescription(core_Master &$mvc)
     {
         $mvc->setField('priority', 'caption=Обновяване и известяване->Приоритет,after=sharedUsers');
+    }
+    
+    
+    /**
+     * 
+     * @param frame2_Reports $mvc
+     * @param null|stdClass $res
+     * @param core_ET $tpl
+     * @param null|stdClass $data
+     */
+    public static function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = null)
+    {
+        Mode::set('pageMenu', 'Документи');
+        Mode::set('pageSubMenu', 'Всички');
     }
     
     
@@ -504,30 +525,25 @@ class frame2_Reports extends embed_Manager
         
         // Рендиране на данните
         if ($Driver = $mvc->getDriver($rec)) {
-            
             $lang = $Driver->getRenderLang($rec);
             if(isset($lang)){
                 core_Lg::push($lang);
             }
             
             $tplData = $Driver->renderData($rec);
-            
             if(isset($lang)){
                 core_Lg::pop();
             }
             
             if (Mode::is('saveJS')) {
-                
                 $tpl->replace($tplData, 'DRIVER_DATA');
-                
             } else{
-           
                 $tpl->replace($tplData->getContent(), 'DRIVER_DATA');
             }
-        
-            } else {
-                $tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на справката') . '</b></span>', 'DRIVER_DATA');
-            }
+            
+        } else {
+             $tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на справката') . '</b></span>', 'DRIVER_DATA');
+        }
         
         // Връщане на оригиналния рек ако е пушнат
         if (isset($data->originalRec)) {
@@ -1121,6 +1137,7 @@ class frame2_Reports extends embed_Manager
     {
         // Източника на етикета ще е драйвера
         if($Driver = static::getDriver($rec)){
+            
             return array('class' => $Driver, 'id' => $rec->id);
         }
     }
@@ -1143,5 +1160,37 @@ class frame2_Reports extends embed_Manager
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->listFilter->FLD('user', 'user(rolesForAll=ceo, rolesForTeams=manager|officer, roles=executive, allowEmpty)', 'caption=Потребител');
+        $data->listFilter->showFields = 'search, driverClass, user';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->input();
+        $rec = $data->listFilter->rec;
+        if ($rec->driverClass) {
+            $data->query->where(array("#driverClass = '[#1#]'", $rec->driverClass));
+        }
+        
+        if ($rec->user) {
+            $data->query->like('sharedUsers', '|' . $rec->user . '|');
+            $data->query->orWhere(array("#createdBy = '[#1#]'", $rec->user));
+        }
+        
+        $data->query->orderBy('state', 'ASC');
+        $data->query->orderBy('modifiedOn', 'DESC');
     }
 }

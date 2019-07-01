@@ -33,7 +33,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
     public function addFields(core_Fieldset &$fieldset)
     {
         parent::addFields($fieldset);
-        $fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец)', 'caption=Срок до,unit=след текущата дата');
+        $fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец)', 'caption=Срок по подразбиране,unit=след текущата дата');
     }
     
     
@@ -43,17 +43,24 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
      * @param mixed     $documentClass - класа за който ще връщаме партидата
      * @param int       $id            - ид на документа за който ще връщаме партидата
      * @param int       $storeId       - склад
-     * @param date|NULL $date          - дата
+     * @param datetime|NULL $date          - дата
      *
      * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
      */
     public function getAutoValue($documentClass, $id, $storeId, $date = null)
     {
         $date = dt::today();
-        if (isset($this->rec->time)) {
-            $date = dt::addSecs($this->rec->time, $date);
+        
+        $time = cat_Products::getParams($this->rec->productId, 'expiryTime');
+        if(!isset($time)){
+            $time = $this->rec->time;
+        }
+        
+        if (isset($time)) {
+            $date = dt::addSecs($time, $date);
             $date = dt::verbal2mysql($date, false);
         }
+        
         $date = dt::mysql2verbal($date, $this->rec->format);
         
         return $date;
@@ -178,7 +185,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
      *
      * @param array     $batches - наличните партиди
      *                           ['batch_name'] => ['quantity']
-     * @param date|NULL $date
+     * @param datetime|NULL $date
      *                           return void
      */
     public function orderBatchesInStore(&$batches, $storeId, $date = null)

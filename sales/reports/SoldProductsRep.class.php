@@ -74,7 +74,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
       
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
-        $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=group,single=none');
+        $fieldset->FLD('products', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Артикули->Артикули,after=group,single=none,class=w100');
+        $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=productId,single=none');
         
         //Покаване на резултата
         $fieldset->FLD('grouping', 'enum(yes=Групирано, no=По артикули)', 'caption=Показване->Вид,maxRadio=2,after=articleType');
@@ -176,6 +177,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if (!is_null($contragent->contragentId)) {
                 $suggestions[$contragent->folderId] = $contragent->folderTitle;
             }
+            
         }
         
         asort($suggestions);
@@ -319,6 +321,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $query->likeKeylist('groupMat', $rec->group);
         }
         
+        //Филтър по артикули
+        if (isset($rec->products)) { 
+            
+            $prodsArr = keylist::toArray( $rec->products);
+            $query->in('productId',$prodsArr);
+        }
+        
+        //Филтър за стандартни артикули
         if ($rec->articleType != 'all') {
             $query->where("#isPublic = '{$rec->articleType}'");
         }
@@ -332,7 +342,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             core_App::setTimeLimit($timeLimit);
         }
         
-        
+      
         while ($recPrime = $query->fetch()) {
             
             $quantity = $primeCost = $delta = 0;

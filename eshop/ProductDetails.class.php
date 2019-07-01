@@ -94,7 +94,7 @@ class eshop_ProductDetails extends core_Detail
     public function description()
     {
         $this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Е-артикул,mandatory,silent');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=price_ListRules::getSellableProducts)', 'caption=Артикул,silent,removeAndRefreshForm=packagings,mandatory');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=price_ListRules::getSellableProducts,titleFld=name)', 'caption=Артикул,silent,removeAndRefreshForm=packagings,mandatory');
         $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки/Мерки,mandatory');
         $this->FLD('title', 'varchar(nullIfEmpty)', 'caption=Заглавие');
         $this->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
@@ -216,7 +216,7 @@ class eshop_ProductDetails extends core_Detail
                 }
                 $price = currency_CurrencyRates::convertAmount($price, null, null, $settings->currencyId);
                 
-                $res->price = $price;
+                $res->price = round($price, 5);
                 if (!empty($priceObject->discount)) {
                     $res->discount = $priceObject->discount;
                 }

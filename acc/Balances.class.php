@@ -945,7 +945,7 @@ class acc_Balances extends core_Master
     
     /**
      * Връща урл-то към крон процеса за преизчисляване на баланса
-     * 
+     *
      * @return array $url
      */
     public static function getRecalcCronUrl()
@@ -971,10 +971,10 @@ class acc_Balances extends core_Master
     
     /**
      * Кои са незатворените баланси
-     * 
+     *
      * @param string $order
-     * @param boolean $skipClosed
-     * 
+     * @param bool   $skipClosed
+     *
      * @return array $balances
      */
     public static function getSelectOptions($order = 'DESC', $skipClosed = true)
@@ -982,15 +982,51 @@ class acc_Balances extends core_Master
         $balances = array();
         $query = acc_Balances::getQuery();
         $query->EXT('state', 'acc_Periods', 'externalName=state,externalKey=periodId');
-        if($skipClosed === true){
+        if ($skipClosed === true) {
             $query->where("#state != 'closed'");
         }
         
         $query->orderBy('id', $order);
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()) {
             $balances[$rec->id] = acc_Periods::getTitleById($rec->periodId, false);
         }
         
         return $balances;
+    }
+    
+    
+    /**
+     * Помощна функция подготвяща опции за начало и край на период със всички периоди в системата
+     * както и вербални опции като : Днес, Вчера, Завчера
+     *
+     * @return stdClass $res
+     *                  $res->fromOptions - опции за начало
+     *                  $res->toOptions - опции за край на период
+     */
+    public static function getPeriodOptions()
+    {
+        // За начална и крайна дата, слагаме по подразбиране, датите на периодите
+        // за които има изчислени оборотни ведомости
+        $balanceQuery = self::getQuery();
+        $balanceQuery->where('#periodId IS NOT NULL');
+        $balanceQuery->orderBy('#fromDate', 'DESC');
+        
+        $yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), false);
+        $daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), false);
+        $optionsFrom = $optionsTo = array();
+        $optionsFrom[dt::today()] = 'Днес';
+        $optionsFrom[$yesterday] = 'Вчера';
+        $optionsFrom[$daybefore] = 'Завчера';
+        $optionsTo[dt::today()] = 'Днес';
+        $optionsTo[$yesterday] = 'Вчера';
+        $optionsTo[$daybefore] = 'Завчера';
+        
+        while ($bRec = $balanceQuery->fetch()) {
+            $bRow = self::recToVerbal($bRec, 'periodId,id,fromDate,toDate,-single');
+            $optionsFrom[$bRec->fromDate] = $bRow->periodId . " ({$bRow->fromDate})";
+            $optionsTo[$bRec->toDate] = $bRow->periodId . " ({$bRow->toDate})";
+        }
+        
+        return (object) array('fromOptions' => $optionsFrom, 'toOptions' => $optionsTo);
     }
 }

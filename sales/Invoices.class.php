@@ -73,12 +73,6 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Старо име на класа
-     */
-    public $oldClassName = 'acc_Invoices';
-    
-    
-    /**
      * Кой може да сторнира
      */
     public $canRevert = 'salesMaster, ceo';
@@ -185,7 +179,7 @@ class sales_Invoices extends deals_InvoiceMaster
      *
      * @see bgerp_plg_CsvExport
      */
-    public $exportableCsvFields = 'date,contragentName,contragentVatNo,uicNo,dealValue,accountId,number,state';
+    public $exportableCsvFields = 'date,number,contragentName,contragentVatNo,uicNo,dealValue=Сума фактура,valueNoVat=Данъчна основа,vatAmount=Сума ДДС,currencyId,accountId,state';
     
     
     /**
@@ -269,7 +263,7 @@ class sales_Invoices extends deals_InvoiceMaster
             return;
         }
         
-        $unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo', 'dueDate', 'dueTime', 'template');
+        $unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo', 'dueDate', 'dueTime', 'template', 'activatedOn', 'activatedBy');
         foreach ($unsetFields as $fld) {
             unset($proformaRec->{$fld});
         }
@@ -307,6 +301,14 @@ class sales_Invoices extends deals_InvoiceMaster
         }
         
         parent::prepareInvoiceForm($mvc, $data);
+        if(!empty($form->rec->contragentVatNo)){
+            $Vats = cls::get('drdata_Vats');
+            list(, $vies) = $Vats->check($form->rec->contragentVatNo);
+            $vies = trim($vies);
+            if(!empty($vies)){
+                $form->info = "<b>VIES</b>: {$vies}";
+            }
+        }
         
         $form->setField('contragentPlace', 'mandatory');
         $form->setField('contragentAddress', 'mandatory');
@@ -406,6 +408,7 @@ class sales_Invoices extends deals_InvoiceMaster
         if ($form->isSubmitted()) {
             
             // Валидна ли е датата (при само промяна няма да се изпълни)
+            $warning = null;
             if (!$mvc->isAllowedToBePosted($rec, $warning) && $rec->__isBeingChanged !== true) {
                 $form->setError('date', $warning);
             }
@@ -492,17 +495,17 @@ class sales_Invoices extends deals_InvoiceMaster
             $amount = round($amount, 2);
             
             if ($amount < 0) {
-                if (cash_Rko::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
+                if (cash_Rko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
                     $data->toolbar->addBtn('РКО', array('cash_Rko', 'add', 'originId' => $rec->originId, 'amountDeal' => abs($amount), 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate,'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов разходен касов ордер към документа');
                 }
-                if (bank_SpendingDocuments::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
+                if (bank_SpendingDocuments::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
                     $data->toolbar->addBtn('РБД', array('bank_SpendingDocuments', 'add', 'originId' => $rec->originId, 'amountDeal' => abs($amount), 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), 'ef_icon=img/16/bank_add.png,title=Създаване на нов разходен банков документ');
                 }
             } else {
-                if (cash_Pko::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
+                if (cash_Pko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
                     $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $rec->originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер към документа');
                 }
-                if (bank_IncomeDocuments::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
+                if (bank_IncomeDocuments::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
                     $data->toolbar->addBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $rec->originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ');
                 }
             }
@@ -652,9 +655,16 @@ class sales_Invoices extends deals_InvoiceMaster
             return ;
         }
         
+        $fields = $mvc->selectFields();
+        $fields['-list'] = true;
         foreach ($recs as &$rec) {
             $rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-            $rec->dealValue = round($rec->dealValue - $rec->discountAmount, 2);
+            
+            $row = new stdClass();
+            parent::getVerbalInvoice($mvc, $rec, $row, $fields);
+            $rec->dealValue = strip_tags(str_replace('&nbsp;', '', $row->dealValue));
+            $rec->valueNoVat = strip_tags(str_replace('&nbsp;', '', $row->valueNoVat));
+            $rec->vatAmount = strip_tags(str_replace('&nbsp;', '', $row->vatAmount));
         }
     }
     
@@ -760,6 +770,7 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public static function on_AfterGetRestoreBtnErrStr($mvc, &$res, $rec)
     {
+        $error = null;
         if (!$mvc->isAllowedToBePosted($rec, $error, true)) {
             $res = $error;
         }
@@ -771,6 +782,7 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public static function on_AfterGetContoBtnErrStr($mvc, &$res, $rec)
     {
+        $error = null;
         if ($rec->date > dt::today()) {
             $res = 'Фактурата е с бъдещата дата и не може да бъде контирана';
         } elseif (!$mvc->isAllowedToBePosted($rec, $error)) {

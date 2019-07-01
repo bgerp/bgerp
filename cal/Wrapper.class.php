@@ -32,11 +32,11 @@ class cal_Wrapper extends plg_ProtoWrapper
         
         $from = dt::mysql2verbal($from, 'd.m.Y', null, false);
         
-        $this->TAB(array('cal_Calendar', 'list',  'from' => $from), 'Календар->Списък', 'powerUser,admin');
-        $this->TAB(array('cal_Calendar', 'day',  'from' => $from), 'Календар->Ден', 'powerUser,admin');
-        $this->TAB(array('cal_Calendar', 'week',  'from' => $from), 'Календар->Седмица', 'powerUser,admin');
-        $this->TAB(array('cal_Calendar', 'month',  'from' => $from), 'Календар->Месец', 'powerUser,admin');
-        $this->TAB(array('cal_Calendar', 'year',  'from' => $from), 'Календар->Година', 'powerUser,admin');
+        $this->TAB(array('cal_Calendar', 'list',  'from' => $from), 'Календар->Списък', 'powerUser');
+        $this->TAB(array('cal_Calendar', 'day',  'from' => $from), 'Календар->Ден', 'powerUser');
+        $this->TAB(array('cal_Calendar', 'week',  'from' => $from), 'Календар->Седмица', 'powerUser');
+        $this->TAB(array('cal_Calendar', 'month',  'from' => $from), 'Календар->Месец', 'powerUser');
+        $this->TAB(array('cal_Calendar', 'year',  'from' => $from), 'Календар->Година', 'powerUser');
         
         $this->TAB('cal_Tasks', 'Задачи', 'admin,doc,powerUser');
         

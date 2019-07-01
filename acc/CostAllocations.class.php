@@ -336,11 +336,13 @@ class acc_CostAllocations extends core_Manager
         $Register = new core_ObjectReference($iRec->classId, $iRec->objectId);
         if (method_exists($Register->getInstance(), 'getSingleUrlArray_') && !Mode::isReadOnly()) {
             $singleUrl = $Register->getSingleUrlArray();
-            $singleUrl['Sid'] = $Register->fetchField('containerId');
-            $eItem = ht::createLink($eItem, $singleUrl);
-            if ($iRec->state == 'closed') {
-                $eItem = ht::createHint($eItem, 'Перото е затворено', 'warning', false, array('height' => 14, 'width' => 14))->getContent();
-                $eItem = "<span class='state-closed' style='padding:3px'>{$eItem}</span>";
+            if(count($singleUrl)){
+                $singleUrl['Sid'] = $Register->fetchField('containerId');
+                $eItem = ht::createLink($eItem, $singleUrl);
+                if ($iRec->state == 'closed') {
+                    $eItem = ht::createHint($eItem, 'Перото е затворено', 'warning', false, array('height' => 14, 'width' => 14))->getContent();
+                    $eItem = "<span class='state-closed' style='padding:3px'>{$eItem}</span>";
+                }
             }
         }
         

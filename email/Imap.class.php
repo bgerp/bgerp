@@ -275,7 +275,7 @@ class email_Imap extends core_BaseClass
      * Затваря връзката
      *
      * @param resource $connection - Връзката към пощенската кутия
-     * @param const    $flag       - Ако е CL_EXPUNGE тогава преди затварянето на конекцията
+     * @param mixed    $flag       - Ако е CL_EXPUNGE тогава преди затварянето на конекцията
      *                             се изтриват всички имейли, които са маркирани за изтриване
      *
      * @return bool

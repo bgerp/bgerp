@@ -76,7 +76,7 @@ class rack_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.2, 'Логистика', 'Стелажи', 'rack_Movements', 'default', 'rack,ceo,store,storeWorker'),
+        array(3.2, 'Логистика', 'Стелажи', 'rack_Movements', 'default', 'rack,ceo'),
     );
     
     
@@ -111,8 +111,8 @@ class rack_Setup extends core_ProtoSetup
             'delay' => 0,
         )
     );
-        
-
+    
+    
     /**
      * Инсталиране на пакета
      */
@@ -131,18 +131,6 @@ class rack_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Връзка между Протокола за влагане и и входящия палетен склад', 'rack_plg_IncomingShipmentDetails', 'planning_ReturnNoteDetails', 'private');
         
         return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    public function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
     }
     
     
@@ -186,17 +174,20 @@ class rack_Setup extends core_ProtoSetup
         $Zones = cls::get('rack_ZoneDetails');
         $Zones->setupMvc();
         
-        if(!$Zones->count()) return;
+        if (!$Zones->count()) {
+            
+            return;
+        }
         
         $toSave = array();
         $zQuery = rack_ZoneDetails::getQuery();
-        $zQuery->where("#batch IS NULL");
-        while($zRec = $zQuery->fetch()){
+        $zQuery->where('#batch IS NULL');
+        while ($zRec = $zQuery->fetch()) {
             $zRec->batch = '';
             $toSave[$zRec->id] = $zRec;
         }
         
-        if(count($toSave)){
+        if (count($toSave)) {
             $Zones->saveArray($toSave, 'id,batch');
         }
         
@@ -204,9 +195,11 @@ class rack_Setup extends core_ProtoSetup
         $query2 = $Zones->getQuery();
         $query2->where("#batch = ''");
         $query2->orderBy('id', 'ASC');
-        while($rec2 = $query2->fetch()){
+        while ($rec2 = $query2->fetch()) {
             $exRec = rack_ZoneDetails::fetch("#id != '{$rec2->id}' AND #zoneId = {$rec2->zoneId} AND #productId = {$rec2->productId} AND #packagingId = {$rec2->packagingId} AND #batch = ''");
-            if(!$exRec) continue;
+            if (!$exRec) {
+                continue;
+            }
             
             $rec2->movementQuantity = !empty($rec2->movementQuantity) ? $rec2->movementQuantity : $exRec->movementQuantity;
             $rec2->documentQuantity = !empty($rec2->documentQuantity) ? $rec2->documentQuantity : $exRec->documentQuantity;

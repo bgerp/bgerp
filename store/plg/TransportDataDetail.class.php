@@ -75,6 +75,9 @@ class store_plg_TransportDataDetail extends core_Plugin
         $row->weight = deals_Helper::getWeightRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->weightField});
         $row->volume = deals_Helper::getVolumeRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->volumeField});
         
+        $canStore = cat_Products::fetchField($rec->{$mvc->productFld}, 'canStore');
+        if($canStore != 'yes') return;
+        
         // Показване на ЛЕ на реда, ако ако не е зададена същата такава от потребителя
         $masterInputUnits = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'transUnitsInput');
         $masterInputUnits = is_array($masterInputUnits) ? $masterInputUnits : array();
@@ -107,6 +110,8 @@ class store_plg_TransportDataDetail extends core_Plugin
         
         // За всеки запис
         while ($rec = $query->fetch()) {
+            $canStore = cat_Products::fetchField($rec->{$mvc->productFld}, 'canStore');
+            if($canStore != 'yes') continue;
             
             // Изчислява се теглото
             $w = $mvc->getWeight($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->weightField});
@@ -252,9 +257,12 @@ class store_plg_TransportDataDetail extends core_Plugin
         $res = array();
         $dQuery = $mvc->getQuery();
         $dQuery->where("#{$mvc->masterKey} = {$masterRec->id}");
-        $dQuery->show('transUnitId,transUnitQuantity');
+        $dQuery->show("transUnitId,transUnitQuantity,{$mvc->productFld}");
         
         while ($dRec = $dQuery->fetch()) {
+            $canStore = cat_Products::fetchField($dRec->{$mvc->productFld}, 'canStore');
+            if($canStore != 'yes') continue;
+            
             if (!empty($dRec->transUnitId)) {
                 $res[$dRec->transUnitId] += $dRec->transUnitQuantity;
             } else {

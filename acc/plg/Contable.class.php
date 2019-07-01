@@ -826,4 +826,23 @@ class acc_plg_Contable extends core_Plugin
         
         return ($cQuery->fetch()) ? true : false;
     }
+    
+    
+    /**
+     * Ролбакване на транзакцията за контиране
+     */
+    public static function on_AfterRollbackConto($mvc, $res, $id)
+    {
+        if(!isset($res)){
+            $rec = $mvc->fetchRec($id);
+            
+            if(acc_Journal::fetchByDoc($mvc, $rec->id)){
+                acc_Journal::deleteTransaction($mvc, $rec->id);
+                $rec->state = 'draft';
+                $rec->brState = 'active';
+                $mvc->save($rec, 'state,brState');
+                $res = true;
+            }
+        }
+    }
 }
