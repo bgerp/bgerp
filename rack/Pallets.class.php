@@ -141,7 +141,7 @@ class rack_Pallets extends core_Manager
                 $mQuery->show('quantity,sum');
                 $fRec = $mQuery->fetch();
                 $sum = is_object($fRec) ? $fRec->sum : null;
-                if(isset($sum) && $rec->quantity >= $sum){
+                if(isset($sum) && $sum >= $rec->quantity){
                     continue;
                 }
             }
