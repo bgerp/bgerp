@@ -172,8 +172,6 @@ function fpOpenStornoReceipt(operNum, operPass, isDetailed, isPrintVat, printTyp
  */
 function fpOpenCreditNoteWithFreeCustomerData(operNum, operPass, printTypeStr, recipient, buyer, VATNumber, UIC, address, UICTypeStr, stornoReason, relatedToInvNum, relatedToInvDateTime, relatedToRcpNum, FMNum, relatedToURN)
 {
-	console.log(operNum, operPass, printTypeStr, recipient, buyer, VATNumber, UIC, address, UICTypeStr, stornoReason, relatedToInvNum, relatedToInvDateTime, relatedToRcpNum, FMNum, relatedToURN);
-	
 	checkOperNum(operNum);
 	
 	checkOperPass(operPass);
@@ -188,23 +186,23 @@ function fpOpenCreditNoteWithFreeCustomerData(operNum, operPass, printTypeStr, r
 		throw new Error("Непозволен тип за принтиране");
 	}
 	
-	if (recipient.length > 26) {
+	if (recipient && recipient.length > 26) {
 		throw new Error("Максималната дължина на получателя е 26 символа");
 	}
 	
-	if (buyer.length > 16) {
+	if (buyer && buyer.length > 16) {
 		throw new Error("Максималната дължина на купувача е 16 символа");
 	}
 	
-	if (VATNumber.length > 13) {
+	if (VATNumber && VATNumber.length > 13) {
 		throw new Error("Максималната дължина на VAT номера е 13 символа");
 	}
 	
-	if (UIC.length > 13) {
+	if (UIC && UIC.length > 13) {
 		throw new Error("Максималната дължина на UIC номера е 13 символа");
 	}
 	
-	if (address.length > 30) {
+	if (address && address.length > 30) {
 		throw new Error("Максималната дължина на адрес номера е 30 символа");
 	}
 	
@@ -224,15 +222,15 @@ function fpOpenCreditNoteWithFreeCustomerData(operNum, operPass, printTypeStr, r
 		throw new Error("Непозволена причина за сторно");
 	}
 	
-	if (relatedToInvNum.length > 6) {
+	if (relatedToInvNum && relatedToInvNum.length > 10) {
 		throw new Error("Дължината на номера на фактурата трябва да е до 10 символа");
 	}
 	
-	if (relatedToInvDateTime.length > 19) {
+	if (relatedToInvDateTime && relatedToInvDateTime.length > 19) {
 		throw new Error("Времето на фактурата не може да е над 19 символа");
 	}
 	
-	if (relatedToRcpNum.length > 6) {
+	if (relatedToRcpNum && relatedToRcpNum.length > 6) {
 		throw new Error("Дължината на номера на ФБ трябва да е до 6 символа");
 	}
 	
@@ -245,7 +243,6 @@ function fpOpenCreditNoteWithFreeCustomerData(operNum, operPass, printTypeStr, r
 	}
 	
 	try {
-		console.log(operNum, operPass, printType, recipient, buyer, VATNumber, UIC, address, UICType, stornoReason, relatedToInvNum, relatedToInvDateTime, relatedToRcpNum, FMNum, relatedToURN);
 		fp.OpenCreditNoteWithFreeCustomerData(operNum, operPass, printType, recipient, buyer, VATNumber, UIC, address, UICType, stornoReason, relatedToInvNum, relatedToInvDateTime, relatedToRcpNum, FMNum, relatedToURN);
 	} catch(ex) {
 	    handleException(ex);
