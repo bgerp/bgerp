@@ -98,6 +98,7 @@ class unipi_Evoc
         }
     }
 
+
     /**
      * Generate key data for $json_string.
      * This method is directly related to the EVOK REST API.
@@ -154,7 +155,7 @@ class unipi_Evoc
     /**
      * Търси за записи в evocJson, които отговарят на посочените критерии и после им връща стойността
      */
-    public function searchValues($circuit, $dev)
+    public function searchValues($circuit, $dev = null)
     {
         $res = array();
 
@@ -166,7 +167,7 @@ class unipi_Evoc
             $key = (int) str_replace($circuit, '', $field['circuit']);
             $res[$key] = $field['value'];
         }
-        
+      
         ksort($res);
 
         return $res;
@@ -207,7 +208,9 @@ class unipi_Evoc
      * @see https://evok.api-docs.io/1.0/rest
      */
     public function update()
-    {          
+    {   
+        $response = null;  
+ 
         if(!strlen($response)) {
 
             // Init CURL object.
