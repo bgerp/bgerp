@@ -79,6 +79,15 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     
     /**
+     * Дефолтни кодове за ДДС групите
+     */
+    const DEFAULT_VAT_GROUPS_MAP = array('A' => 0,
+                                         'B' => 1,
+                                         'V' => 2,
+                                         'G' => 3,);
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -115,7 +124,10 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         
         // Добавяне на полета за поддържани валути и кодове на методите на плащане
         $fieldset->FLD('suppertedCurrencies', 'keylist(mvc=currency_Currencies,select=code,where=#code !\\= \\\'BGN\\\')', 'caption=Настройки на апарата->Валути');
-        $fieldset->FLD('paymentMap', 'table(columns=paymentId|code,captions=Вид|Код,batch_ro=readonly)', 'caption=Настройки на апарата->Плащания');
+        $fieldset->FLD('vatGroups', 'table(columns=groupId|code,captions=Група|Код)', 'caption=Настройки на апарата->ДДС групи');
+        $fieldset->setFieldTypeParams('vatGroups', array('groupId_opt' => array('' => '') + cls::get('acc_VatGroups')->makeArray4Select('title')));
+        
+        $fieldset->FLD('paymentMap', 'table(columns=paymentId|code,captions=Вид|Код)', 'caption=Настройки на апарата->Плащания');
         $fieldset->setFieldTypeParams('paymentMap', array('paymentId_opt' => array('' => '') + array('-1' => 'Брой') + cls::get('cond_Payments')->makeArray4Select('title')));
         
         // Добавяне на поле за поддържаните основания за сторниране с техните кодове
@@ -741,6 +753,17 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
             }
             
             $form->setDefault('reasonMap', $form->getFieldType('reasonMap')->fromVerbal($reasonOptions));
+        }
+        
+        // Задаване на дефолтните кодове на ДДС групите
+        if(empty($form->rec->vatGroups)){
+            $groupOptions = array('groupId' => array(), 'code' => array());
+            foreach (self::DEFAULT_VAT_GROUPS_MAP as $group => $code){
+                $groupOptions['groupId'][] = acc_VatGroups::getIdBySysId($group);
+                $groupOptions['code'][] = $code;
+            }
+            
+            $form->setDefault('vatGroups', $form->getFieldType('vatGroups')->fromVerbal($groupOptions));
         }
         
         $form->setDefault('serialSpeed', 115200);
@@ -1372,5 +1395,22 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         $res = arr::make(array_keys(self::DEFAULT_STORNO_REASONS_MAP), true);
        
         return $res;
+    }
+    
+    
+    /**
+     * Какъв е кода отговарящ на ДДС групата на артикула
+     *
+     * @param int $groupId  - ид на ДДС група
+     * @param stdClass $rec - запис
+     * @return string|null  - намерения код или null, ако няма
+     */
+    public function getVatGroupCode($groupId, $rec)
+    {
+        $payments = type_Table::toArray($rec->vatGroups);
+        $found = array_filter($payments, function($a) use ($groupId) {return $a->groupId == $groupId;});
+        $found = $found[key($found)];
+        
+        return is_object($found) ? $found->code : null;
     }
 }
