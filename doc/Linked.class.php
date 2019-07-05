@@ -1531,30 +1531,35 @@ class doc_Linked extends core_Manager
     protected static function getVerbalLinkForType($type, $valId, &$comment = null, $getUrlWithAccess = false)
     {
         if ($type == 'doc') {
-            // Документа
-            $doc = doc_Containers::getDocument($valId);
-            
-            $hnd = '#' . $doc->getHandle();
-            
-            // Полетата на документа във вербален вид
-            $docRow = $doc->getDocumentRow();
-            
-            $url = $doc->getSingleUrlArray();
-            if (empty($url) && ($getUrlWithAccess)) {
-                $url = $doc->getUrlWithAccess($doc->instance, $doc->that);
+            try{
+                // Документа
+                $doc = doc_Containers::getDocument($valId);
+                
+                $hnd = '#' . $doc->getHandle();
+                
+                // Полетата на документа във вербален вид
+                $docRow = $doc->getDocumentRow();
+                
+                $url = $doc->getSingleUrlArray();
+                if (empty($url) && ($getUrlWithAccess)) {
+                    $url = $doc->getUrlWithAccess($doc->instance, $doc->that);
+                }
+                
+                // Атрибутеите на линка
+                $attr = array();
+                $attr['ef_icon'] = $doc->getIcon($doc->that);
+                $attr['title'] = 'Документ|*: ' . $docRow->title;
+                
+                // Ако документа е оттеглен
+                $dRec = $doc->fetch();
+                if ($dRec->state == 'rejected') {
+                    $attr['class'] = 'state-rejected';
+                    $attr['style'] = 'text-decoration: line-through; color: #666;';
+                }
+            } catch(core_exception_Expect $e){
+                $hnd = "<span class='red'>" . tr('Проблем при показването') . " </span>";
             }
             
-            // Атрибутеите на линка
-            $attr = array();
-            $attr['ef_icon'] = $doc->getIcon($doc->that);
-            $attr['title'] = 'Документ|*: ' . $docRow->title;
-            
-            // Ако документа е оттеглен
-            $dRec = $doc->fetch();
-            if ($dRec->state == 'rejected') {
-                $attr['class'] = 'state-rejected';
-                $attr['style'] = 'text-decoration: line-through; color: #666;';
-            }
             
             $link = ht::createLink($hnd, $url, null, $attr);
             
