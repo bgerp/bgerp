@@ -118,4 +118,16 @@ class peripheral_FiscPrinter
     {
         return $this->class->getStornoReasonCode($rec, $reason);
     }
+    
+    
+    /**
+     * Какви са разрешените основания за сторниране
+     *
+     * @param stdClass $rec - запис
+     * @return array  - $res
+     */
+    public function getStornoReasons($rec)
+    {
+        return $this->class->getStornoReasons($rec);
+    }
 }

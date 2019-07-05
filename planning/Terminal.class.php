@@ -805,7 +805,7 @@ class planning_Terminal extends peripheral_Terminal
         $tpl->replace(crm_Profiles::createLink(), 'userId');
         $img = ht::createImg(array('path' => 'img/16/logout.png'));
         
-        $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
+        $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => array('core_Users', 'login')), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
         
         // Подготовка на урл-тата на табовете
         $taskListUrl = toUrl(array($this, 'renderTab', $rec->id, 'name' => 'taskList'), 'local');
