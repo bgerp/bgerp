@@ -130,4 +130,17 @@ class peripheral_FiscPrinter
     {
         return $this->class->getStornoReasons($rec);
     }
+    
+    
+    /**
+     * Какъв е кода отговарящ на ДДС групата на артикула
+     *
+     * @param int $groupId  - ид на ДДС група
+     * @param stdClass $rec - запис
+     * @return string|null  - намерения код или null, ако няма
+     */
+    public function getVatGroupCode($groupId, $rec)
+    {
+        return $this->class->getVatGroupCode($groupId, $rec);
+    }
 }

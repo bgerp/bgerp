@@ -69,7 +69,12 @@
                             <td>[#deliveryTime#]</td>
                         </tr>
                         <!--ET_END deliveryTime-->
-                        <!--ET_BEGIN deliveryAddressBlock-->
+                       <!--ET_BEGIN fromContainerId-->
+                       <tr>
+                           <td colspan='2'><span class='quiet'>To [#fromContainerName#]:</span> [#fromContainerId#]</td>
+                       </tr>
+                       <!--ET_END fromContainerId-->
+                       <!--ET_BEGIN deliveryAddressBlock-->
                         [#deliveryAddressBlock#]
                         <tr>
                             <td class='quiet nowrap aright'>Delivery address:</td>
