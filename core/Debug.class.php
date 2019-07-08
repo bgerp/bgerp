@@ -396,15 +396,17 @@ class core_Debug
     {
         $result = '';
         
+        $v = ht::fixObject($v);
+
         if (is_string($v)) {
             $result = "'" . htmlentities($v, ENT_COMPAT | ENT_IGNORE, 'UTF-8') . "'";
-        } elseif (is_array($v)) {
+        } elseif (is_array($v) && !is_object($v)) {
             $result = self::arrayToString($v);
         } elseif (is_null($v)) {
             $result = 'NULL';
         } elseif (is_bool($v)) {
             $result = ($v) ? 'TRUE' : 'FALSE';
-        } elseif (is_object($v)) {
+        } elseif (is_object($v)) { 
             if (get_class($v) == 'stdClass') {
                 $result = ht::createElement('span', array('title' => mb_strcut(self::arrayToString($v), 0, 500)), get_class($v), false, false);
             } else {
@@ -415,7 +417,7 @@ class core_Debug
         } else {
             $result = $v;
         }
-        
+         
         return $result;
     }
     

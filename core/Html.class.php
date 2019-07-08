@@ -1136,6 +1136,7 @@ class core_Html
      */
     public static function mixedToHtml($o, $hideLevel = 3, $maxLevel = 5, $prefix = '')
     {
+        ht::fixObject($o);
         static $i = 0;
         
         $i++;
@@ -1274,6 +1275,20 @@ class core_Html
         }
         
         return $html;
+    }
+
+
+    /**
+     * Фиксира  PHPIncompleteClass
+     */
+    function fixObject (&$object)
+    {
+        if ($object instanceof __PHP_Incomplete_Class) {
+           
+            return ($object = unserialize(preg_replace('/^O:\d+:"[^"]++"/', 'O:' . strlen($class) . ':"' . $class . '"', serialize($object))));
+        }
+
+        return $object;
     }
     
     

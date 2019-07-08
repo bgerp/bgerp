@@ -1751,7 +1751,7 @@ class core_Users extends core_Manager
     {
         $currentUserRec = Mode::get('currentUserRec');
         
-        if (!$currentUserRec) {
+        if (!$currentUserRec->id) {
             
             return;
         }
