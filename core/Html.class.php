@@ -1281,7 +1281,7 @@ class core_Html
     /**
      * Фиксира  PHPIncompleteClass
      */
-    function fixObject (&$object)
+    public static function fixObject (&$object)
     {
         if ($object instanceof __PHP_Incomplete_Class) {
            
