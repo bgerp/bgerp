@@ -291,7 +291,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         parent::prepareProductDescription($data);
         
         $data->masterId = $data->rec->id;
-        $data->masterClassId = $data->Embedder->getClassId();
+        $data->masterClassId = cls::get($data->Embedder)->getClassId();
         cat_products_Params::prepareParams($data);
     }
     

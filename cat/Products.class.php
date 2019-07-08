@@ -2778,7 +2778,7 @@ class cat_Products extends embed_Manager
             $data->rec = static::fetchRec($id);
             $data->row = cat_Products::recToVerbal($data->rec);
             $data->documentType = $documentType;
-            $data->Embedder = cls::get('cat_Products');
+            $data->Embedder = cat_Products::getClassId();
             $data->isSingle = false;
             $data->noChange = true;
             $Driver->prepareProductDescription($data);
