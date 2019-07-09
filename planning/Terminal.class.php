@@ -204,7 +204,7 @@ class planning_Terminal extends peripheral_Terminal
             foreach ($tasks as $taskId){
                 $taskRec = cal_Tasks::fetch($taskId, 'state,progress,createdOn');
                 $taskRow = cal_Tasks::recToVerbal($taskRec, 'progressBar,progress,createdOn');
-                $taskRow->title = cal_Tasks::getHyperlink($taskRec->id, true);
+                $taskRow->title = cal_Tasks::getTitleById($taskRec->id, true);
                 $tpl->append("<tr class='state-{$taskRec->state}'><td class='nowrap'>{$taskRow->createdOn}</td><td>{$taskRow->title}</td><td>{$taskRow->progressBar} {$taskRow->progress}</td></tr>");
             }
             $tpl->append("</table></div>");
@@ -231,8 +231,9 @@ class planning_Terminal extends peripheral_Terminal
             $taskContainerId = planning_Tasks::fetchField($taskId, 'containerId');
             $taskObject = doc_Containers::getDocument($taskContainerId);
             
-            $mode = (Mode::get('terminalId')) ? 'xhtml' : 'html';
-            $tpl = $taskObject->getInlineDocumentBody($mode);
+            Mode::push('noBlank', true);
+            $tpl = $taskObject->getInlineDocumentBody('xhtml');
+            Mode::pop('noBlank');
             Mode::pop('hideToolbar');
             Mode::pop('taskInTerminal');
         }
@@ -256,8 +257,9 @@ class planning_Terminal extends peripheral_Terminal
             $jobContainerId = planning_Tasks::fetchField($taskId, 'originId');
             $jobObject = doc_Containers::getDocument($jobContainerId);
             
-            $mode = (Mode::get('terminalId')) ? 'xhtml' : 'html';
-            $tpl = $jobObject->getInlineDocumentBody($mode);
+            Mode::push('noBlank', true);
+            $tpl = $jobObject->getInlineDocumentBody('xhtml');
+            Mode::pop('noBlank', true);
         }
         
         return $tpl;
@@ -285,9 +287,7 @@ class planning_Terminal extends peripheral_Terminal
             $data->query->likeKeylist('fixedAssets', $rec->fixedAssets);
         }
         
-        if(Mode::get('terminalId')) {
-            Mode::push('text', 'xhtml');
-        }
+        Mode::push('text', 'xhtml');
         
         // Подготовка на табличните данни
         $Tasks->prepareListFields($data);
@@ -316,10 +316,7 @@ class planning_Terminal extends peripheral_Terminal
         setIfNot($data->listTableMvc, clone $Tasks);
         $data->listTableMvc->FLD('selectBtn', 'varchar', 'tdClass=small-field centered');
         $tpl = $Tasks->renderList($data);
-        
-        if(Mode::get('terminalId')) {
-            Mode::pop('text', 'xhtml');
-        }
+        Mode::pop('text', 'xhtml');
         
         return $tpl;
     }
@@ -333,10 +330,7 @@ class planning_Terminal extends peripheral_Terminal
      */
     private function getProgressTable($id)
     {
-        if(Mode::get('terminalId')) {
-            Mode::push('text', 'xhtml');
-        }
-        
+        Mode::push('text', 'xhtml');
         $rec = planning_Points::fetchRec($id);
         Mode::push('taskProgressInTerminal', $rec->id);
         Mode::push('hideToolbar', true);
@@ -361,10 +355,7 @@ class planning_Terminal extends peripheral_Terminal
         $tpl = $Details->renderDetail($data);
         Mode::pop('hideToolbar');
         Mode::pop('taskProgressInTerminal');
-        
-        if(Mode::get('terminalId')) {
-            Mode::pop('text');
-        }
+        Mode::pop('text');
         
         $formTpl = $this->getFormHtml($rec);
         $formTpl->prepend("<div class='formHolder fright'>");
@@ -484,8 +475,7 @@ class planning_Terminal extends peripheral_Terminal
         
         // Кустом рендиране на полетата
         $form->fieldsLayout = getTplFromFile('planning/tpl/terminal/FormFields.shtml');
-        $taskName = (Mode::get('terminalId')) ? planning_Tasks::getTitleById($currentTaskId, true) : planning_Tasks::getHyperlink($currentTaskId, true);
-        $currentTaskHtml = ($currentTaskId)  ? $taskName : tr('Няма текуща задача');
+        $currentTaskHtml = ($currentTaskId)  ? planning_Tasks::getTitleById($currentTaskId, true) : tr('Няма текуща задача');
         $form->fieldsLayout->append($currentTaskHtml, 'currentTaskId');
         
         // Бутони за добавяне
@@ -783,22 +773,17 @@ class planning_Terminal extends peripheral_Terminal
         
         Mode::setPermanent('currentPlanningPoint', $id);
         Mode::set('wrapper', 'page_Empty');
-        $verbalAsset = core_Type::getByName('keylist(mvc=planning_AssetResources,select=code)')->toVerbal($rec->fixedAssets);
+        $verbalAsset = strip_tags(core_Type::getByName('keylist(mvc=planning_AssetResources,select=code)')->toVerbal($rec->fixedAssets));
         
         $tpl = getTplFromFile('planning/tpl/terminal/Point.shtml');
         $tpl->replace($rec->name, 'name');
         $tpl->replace($rec->id, 'id');
         $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/monitor.png', '"', true) . '>', 'HEAD');
         
-        $img = ht::createElement('img', array('src' => sbf('pos/img/bgerp.png', '')));
-        $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink', 'title' => 'Към портала'));
-        $tpl->append($logo, 'LOGO');
-        
-        $centerName = (Mode::get('terminalId')) ? planning_Centers::getTitleById($rec->centerId) : planning_Centers::getHyperlink($rec->centerId, true);
-        $tpl->replace($centerName, 'centerId');
+        $tpl->replace(planning_Centers::getTitleById($rec->centerId), 'centerId');
         $tpl->replace($verbalAsset, 'fixedAssets');
         $tpl->replace(dt::mysql2verbal(dt::now(), 'd/m/y'), 'date');
-        $tpl->replace(crm_Profiles::createLink(), 'userId');
+        $tpl->replace(strip_tags(crm_Profiles::createLink()), 'userId');
         $img = ht::createImg(array('path' => 'img/16/logout.png'));
         
         $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => array('core_Users', 'login')), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
