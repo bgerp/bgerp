@@ -296,13 +296,9 @@ class planning_Terminal extends peripheral_Terminal
         if(count($data->recs)){
             foreach ($data->rows as $id => &$row){
                 $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
-                if($id != $taskId){
-                    $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
-                    $img = ht::createImg(array('path' => 'img/32/right.png'));
-                    $row->selectBtn = ht::createLink($img, $selectUrl, false, 'title=Избиране на операцията за текуща,class=imgNext changeTab');
-                } else {
-                    $img =  ht::createImg(array('path' =>'img/32/right-ok.png'));
-                    $row->selectBtn = ht::createLink($img, $selectUrl, false, 'title=Отворяне на текуща операция,class=imgNext');
+                $row->title = ht::createLink($data->recs[$id]->title, $selectUrl, false, "title=Избиране на операцията за текуща,class=imgNext changeTab,ef_icon={$Tasks->singleIcon}");
+                $row->title .= "<small>{$row->originShortLink}</small>";
+                if($id == $taskId){
                     $row->ROW_ATTR['class'] .= ' task-selected';
                 }
                 unset($row->_rowTools);
@@ -314,7 +310,7 @@ class planning_Terminal extends peripheral_Terminal
         unset($data->listFields['modifiedBy']);
         unset($data->listFields['folderId']);
         unset($data->listFields['state']);
-        $data->listFields = array('selectBtn' => 'Избор') + $data->listFields;
+        $data->listFields = $data->listFields;
         $data->listFields['title'] = 'Операция';
         
         setIfNot($data->listTableMvc, clone $Tasks);
