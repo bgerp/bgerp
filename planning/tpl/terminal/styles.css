@@ -150,7 +150,7 @@ task-selectedbody {
     .terminalHeader .fleft #nameHolder {
       line-height: 30px;
       display: inline-block;
-      margin-left: 10px;
+      margin-right: 10px;
       margin-bottom: 0 !important;
       float: left; }
   .terminalHeader .userInfo {
