@@ -379,11 +379,13 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 $key = mb_strtolower($recProduct->code);
                 
                 if(is_string($minQuantity[$key]) && strpos($minQuantity[$key], ',')){
-                    $minQuantity[$key] = substr_replace($minQuantity[$key], '.', strpos($minQuantity[$key], ','),1);
+                    $pos = strpos($minQuantity[$key], ',');
+                    $minQuantity[$key][$pos] = '.';
                 }
                 
-                if(is_string($minQuantity[$key]) && strpos($minQuantity[$key], ',')){
-                    $maxQuantity[$key] = substr_replace($maxQuantity[$key], '.', strpos($maxQuantity[$key], ','),1);
+                if(is_string($maxQuantity[$key]) && strpos($maxQuantity[$key], ',')){
+                    $pos = strpos($maxQuantity[$key], ',');
+                    $maxQuantity[$key][$pos] = '.';
                 }
                 $recs[$productId] = (object) array(
                     'measure' => $recProduct->measureId,
