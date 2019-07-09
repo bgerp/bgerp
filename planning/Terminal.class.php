@@ -787,7 +787,7 @@ class planning_Terminal extends peripheral_Terminal
         
         Mode::setPermanent('currentPlanningPoint', $id);
         Mode::set('wrapper', 'page_Empty');
-        $verbalAsset = planning_Points::getVerbal($rec, 'fixedAssets');
+        $verbalAsset = core_Type::getByName('keylist(mvc=planning_AssetResources,select=code)')->toVerbal($rec->fixedAssets);
         
         $tpl = getTplFromFile('planning/tpl/terminal/Point.shtml');
         $tpl->replace($rec->name, 'name');
