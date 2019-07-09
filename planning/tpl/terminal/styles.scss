@@ -1,4 +1,4 @@
-body {
+task-selectedbody {
 	background: #f1f1f1;
 	width: 100%;
 	overflow-x: hidden;
@@ -78,6 +78,12 @@ body {
 			}
 		}
 
+	}
+}
+.task-selected {
+	background-color: #e0ffe0;
+	&:hover {
+		background-color: #ccfecc !important;
 	}
 }
 

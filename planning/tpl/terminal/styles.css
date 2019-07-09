@@ -1,4 +1,4 @@
-body {
+task-selectedbody {
   background: #f1f1f1;
   width: 100%;
   overflow-x: hidden; }
@@ -65,6 +65,11 @@ body {
       .tabs-holder .navigation li.disabled a {
         cursor: default;
         color: #999999 !important; }
+
+.task-selected {
+  background-color: #e0ffe0; }
+  .task-selected:hover {
+    background-color: #ccfecc !important; }
 
 .task-selected .specialLink,
 .task-selected .rightCol {
