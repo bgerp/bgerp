@@ -191,7 +191,7 @@ class email_Inboxes extends core_Master
         
         $res = self::fetchField($id, 'name');
         
-        return $res;
+        return (string) $res;
     }
     
     
