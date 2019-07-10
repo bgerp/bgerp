@@ -111,15 +111,6 @@ task-selectedbody {
 	margin-top: 5px;
 }
 
-.imgNext {
-	display: block;
-	margin: 0 5px !important;
-	padding: 5px;
-	img {
-		width: 32px !important;
-		height: 32px !important;
-	}
-}
 .keyboardHolder {
 	position: relative;
 	.quantityField, .weightField {
@@ -458,14 +449,6 @@ task-selectedbody {
 		width: 240px !important;
 		padding: 10px !important;
 		font-size: 0.95em !important;
-	}
-	.imgNext {
-		padding: 5px;
-		margin: 0 !important;
-		img {
-			width: 30px !important;
-			height: 30px !important;
-		}
 	}
 	.progress{
 		white-space: nowrap;

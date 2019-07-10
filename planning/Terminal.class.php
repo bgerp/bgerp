@@ -296,8 +296,8 @@ class planning_Terminal extends peripheral_Terminal
         if(count($data->recs)){
             foreach ($data->rows as $id => &$row){
                 $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
-                $row->title = ht::createLink($data->recs[$id]->title, $selectUrl, false, "title=Избиране на операцията за текуща,class=imgNext changeTab,ef_icon={$Tasks->singleIcon}");
-                $row->title .= "<small>{$row->originShortLink}</small>";
+                $row->title = ht::createLink($data->recs[$id]->title, $selectUrl, false, "title=Избиране на операцията за текуща,class=changeTab,ef_icon={$Tasks->singleIcon}");
+                $row->title .= "<br><small>{$row->originShortLink}</small>";
                 if($id == $taskId){
                     $row->ROW_ATTR['class'] .= ' task-selected';
                 }
