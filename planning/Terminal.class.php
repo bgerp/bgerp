@@ -802,7 +802,6 @@ class planning_Terminal extends peripheral_Terminal
         
         // Какъв да е тайтъла на страницата
         $pageTitle = $rec->name . ((!empty($verbalAsset) ? " « " . strip_tags($verbalAsset) : ""));
-        $pageTitle .= " « " . strip_tags($centerName);
         $tpl->replace($pageTitle, 'PAGE_TITLE');
         Mode::setPermanent("activeTab{$rec->id}", $this->getActiveTab($rec));
         $activeTab = Mode::get("activeTab{$rec->id}");
