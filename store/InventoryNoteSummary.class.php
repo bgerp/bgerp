@@ -112,6 +112,12 @@ class store_InventoryNoteSummary extends doc_Detail
     
     
     /**
+     * Полета, които се експортват
+     */
+    public $exportToMaster = 'blQuantity, quantity, delta';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
