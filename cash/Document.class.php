@@ -211,7 +211,7 @@ abstract class cash_Document extends deals_PaymentDocument
      * @param stdClass $rec
      * @return NULL|int $amount
      */
-    public function getExpectedAmount_($fromContainerId, $rec)
+    protected function getExpectedAmount_($fromContainerId, $rec)
     {
         $amount = null;
        
