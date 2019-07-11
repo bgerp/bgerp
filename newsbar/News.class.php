@@ -249,7 +249,7 @@ class newsbar_News extends core_Master
         if (!$form->rec->id) {
             $form->setDefault('domainId', cms_Domains::getCurrent());
         }
-
+        
         if (!$form->rec->padding) {
             $form->setDefault('padding', 10);
         }

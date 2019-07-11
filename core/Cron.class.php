@@ -348,7 +348,7 @@ class core_Cron extends core_Manager
                 ), 'absolute-force'), 'r');
             }
         }
-                
+        
         $this->logThenStop("Стартирани са {$i} процеса", null, 'info');
     }
     
@@ -884,11 +884,11 @@ class core_Cron extends core_Manager
             }
         }
     }
-
-
+    
+    
     /**
      * Самообраняващ процес
-     * Ако открие, че Крон е пропуснал да изпълни процеси в последната минута, 
+     * Ако открие, че Крон е пропуснал да изпълни процеси в последната минута,
      * то предизвиква периодично запалването му
      */
     public function act_Watchdog()
@@ -901,7 +901,7 @@ class core_Cron extends core_Manager
         header("Content-Length: 0\r\n");
         header("Connection: close\r\n");
         header("Content-Encoding: none\r\n");
-
+        
         if (function_exists('fastcgi_finish_request')) {
             fastcgi_finish_request();
         } else {
@@ -911,30 +911,29 @@ class core_Cron extends core_Manager
         }
         
         // Пробваме да вземем lock за този процес, за 65 секунди
-        while(core_Locks::get('core_Cron::Watchdog', 80)) {
-           
+        while (core_Locks::get('core_Cron::Watchdog', 80)) {
             set_time_limit(120);
-
+            
             // Изчакваме да стане 5-тата секунда от минутата
-            $rest = (70 - (time() % 60)) % 60; 
-            if($rest > 0) sleep($rest);
-
-            // Ако има пуснати процеси, преди по-малко или равно на 5 секунди, 
+            $rest = (70 - (time() % 60)) % 60;
+            if ($rest > 0) {
+                sleep($rest);
+            }
+            
+            // Ако има пуснати процеси, преди по-малко или равно на 5 секунди,
             // излизаме, защото някой друг се грижи
             $lastStartBefore = time() - dt::mysql2timestamp(self::getLastStartTime());
-            if($lastStartBefore <= 10) {
-                
+            if ($lastStartBefore <= 10) {
                 $okTrays++;
-
-                if($okTrays > 3) {
-
+                
+                if ($okTrays > 3) {
+                    
                     return;
                 }
             } else {
-
                 $okTrays = 0;
             }
-
+            
             // Самостартираме крон
             @fopen(toUrl(array('core_Cron', 'cron'), 'absolute-force'), 'r');
             

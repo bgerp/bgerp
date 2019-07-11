@@ -678,7 +678,9 @@ class core_DateTime
         while (dt::isHoliday($date)) {
             $date = dt::addDays($direction, $date);
             
-            if ($maxCnt++ > 10000) break;
+            if ($maxCnt++ > 10000) {
+                break;
+            }
         }
         
         return $date;
@@ -1007,10 +1009,10 @@ class core_DateTime
      *
      * @param datetime      $startDate - начална дата
      * @param datetime|NULL $endDate   - крайна дата, NULL за текущата
-     * @param string $direction        - посока ASC за възходяща и DESC за низходяща
-     * @param string $mask             - маска
-     * 
-     * @return array  $months     - масив с месеци
+     * @param string        $direction - посока ASC за възходяща и DESC за низходяща
+     * @param string        $mask      - маска
+     *
+     * @return array $months     - масив с месеци
      */
     public static function getMonthsBetween($startDate, $endDate = null, $direction = 'ASC', $mask = 'M Y')
     {
@@ -1029,11 +1031,11 @@ class core_DateTime
             $months[$nextDate] = dt::mysql2verbal($nextDate, $mask);
         }
         
-        if(isset($direction)){
-            expect(in_array($direction, array('ASC', "DESC")));
+        if (isset($direction)) {
+            expect(in_array($direction, array('ASC', 'DESC')));
         }
         
-        if($direction != 'ASC'){
+        if ($direction != 'ASC') {
             $months = array_reverse($months, true);
         }
         

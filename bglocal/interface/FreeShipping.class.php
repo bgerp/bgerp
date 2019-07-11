@@ -37,10 +37,10 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     /**
      * Определяне на обемното тегло, на база на обема на товара
      *
-     * @param float $weight        - Тегло на товара
-     * @param float $volume        - Обем  на товара
-     * @param int $deliveryTermId  - Условие на доставка
-     * @param array $params        - допълнителни параметри
+     * @param float $weight         - Тегло на товара
+     * @param float $volume         - Обем  на товара
+     * @param int   $deliveryTermId - Условие на доставка
+     * @param array $params         - допълнителни параметри
      *
      * @return float - Обемно тегло на товара
      */

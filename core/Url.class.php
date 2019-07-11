@@ -475,8 +475,8 @@ class core_Url
      * Valid values per RFC 3986.
      *
      * @param string $url
-     * The URL to verify.
-     * TRUE if the URL is in a valid format.
+     *                    The URL to verify.
+     *                    TRUE if the URL is in a valid format.
      */
     public static function isValidUrl($url, $absolute = true)
     {
@@ -1152,20 +1152,20 @@ class core_Url
     
     /**
      * Проверява дали абсолютно урл сочи към обект от системата
-     * 
-     * @param string $string - урл-то, което ще се проверява
+     *
+     * @param string                    $string    - урл-то, което ще се проверява
      * @param core_ObjectReference|null $reference - намерения обект от системата
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
     public static function isUrlToSingle($string, &$reference = null)
     {
-        if(!core_Url::isValidUrl2($string)) {
+        if (!core_Url::isValidUrl2($string)) {
             
             return false;
         }
         
-        if(!core_Url::isLocal($string)) {
+        if (!core_Url::isLocal($string)) {
             
             return false;
         }
@@ -1173,8 +1173,8 @@ class core_Url
         $urlArr = explode('/', $string);
         $len = count($urlArr);
         
-        $id = $urlArr[$len-1];
-        $cls = $urlArr[$len-3];
+        $id = $urlArr[$len - 1];
+        $cls = $urlArr[$len - 3];
         
         if ($cls && cls::load($cls, true)) {
             $clsInst = cls::get($cls);

@@ -40,9 +40,9 @@ class batch_definitions_Component extends batch_definitions_Proto
     /**
      * Проверява дали стойността е невалидна
      *
-     * @param string   $value    - стойноста, която ще проверяваме
-     * @param double $quantity - количеството
-     * @param string   &$msg     -текста на грешката ако има
+     * @param string $value    - стойноста, която ще проверяваме
+     * @param float  $quantity - количеството
+     * @param string &$msg     -текста на грешката ако има
      *
      * @return bool - валиден ли е кода на партидата според дефиницията или не
      */
