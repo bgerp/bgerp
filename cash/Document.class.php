@@ -215,7 +215,6 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $amount = null;
        
-        //return $amount;
         $Document = doc_Containers::getDocument($fromContainerId);
         $documentRec = $Document->fetch();
         if($Document->isInstanceOf('deals_InvoiceMaster')){
@@ -259,7 +258,7 @@ abstract class cash_Document extends deals_PaymentDocument
         if ($expectedPayment = $dealInfo->get('expectedPayment')) {
             $realOriginId = isset($form->rec->fromContainerId) ? $form->rec->fromContainerId : $form->rec->originId;
             if(isset($realOriginId) ){
-                if($expectedPayment1 = $mvc->getExpectedAmount($realOriginId, $rec)){
+                if($expectedPayment1 = $mvc->getExpectedAmount($realOriginId, $form->rec)){
                     $expectedPayment = $expectedPayment1 * $dealInfo->get('rate');
                 }
             }
