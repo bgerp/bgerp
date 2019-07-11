@@ -208,9 +208,10 @@ abstract class cash_Document extends deals_PaymentDocument
      * Връща очакваната сума според оридижна
      * 
      * @param int $fromContainerId
+     * @param stdClass $rec
      * @return NULL|int $amount
      */
-    public function getExpectedAmount_($fromContainerId)
+    public function getExpectedAmount_($fromContainerId, $rec)
     {
         $amount = null;
        
@@ -256,9 +257,9 @@ abstract class cash_Document extends deals_PaymentDocument
         $form->setDefault('currencyId', $cId);
         
         if ($expectedPayment = $dealInfo->get('expectedPayment')) {
-            $realOriginid = isset($form->rec->fromContainerId) ? $form->rec->fromContainerId : $form->rec->originId;
-            if(isset($realOriginid) ){
-                if($expectedPayment1 = $mvc->getExpectedAmount($realOriginid)){
+            $realOriginId = isset($form->rec->fromContainerId) ? $form->rec->fromContainerId : $form->rec->originId;
+            if(isset($realOriginId) ){
+                if($expectedPayment1 = $mvc->getExpectedAmount($realOriginId, $rec)){
                     $expectedPayment = $expectedPayment1 * $dealInfo->get('rate');
                 }
             }
