@@ -205,6 +205,33 @@ abstract class cash_Document extends deals_PaymentDocument
     
     
     /**
+     * Връща очакваната сума според оридижна
+     * 
+     * @param int $fromContainerId
+     * @return NULL|int $amount
+     */
+    public function getExpectedAmount_($fromContainerId)
+    {
+        $amount = null;
+       
+        //return $amount;
+        $Document = doc_Containers::getDocument($fromContainerId);
+        $documentRec = $Document->fetch();
+        if($Document->isInstanceOf('deals_InvoiceMaster')){
+            $minus = ($documentRec->type == 'dc_note') ? 0 : 0.005;
+            $amount = ($documentRec->dealValue - $documentRec->discountAmount) + $documentRec->vatAmount - $minus;
+            $amount /= ($documentRec->displayRate) ? $documentRec->displayRate : $documentRec->rate;
+            $amount = round($amount, 2);
+        } elseif($Document->isInstanceOf('store_DocumentMaster')){
+            $amount = $documentRec->amountDelivered / $documentRec->currencyRate;
+            $amount = round($amount, 2);
+        }
+        
+        return $amount;
+    }
+    
+    
+    /**
      *  Обработка на формата за редакция и добавяне
      */
     public static function on_AfterPrepareEditForm($mvc, $res, $data)
@@ -229,8 +256,11 @@ abstract class cash_Document extends deals_PaymentDocument
         $form->setDefault('currencyId', $cId);
         
         if ($expectedPayment = $dealInfo->get('expectedPayment')) {
-            if (isset($form->rec->originId, $form->rec->amountDeal)) {
-                $expectedPayment = $form->rec->amountDeal * $dealInfo->get('rate');
+            $realOriginid = isset($form->rec->fromContainerId) ? $form->rec->fromContainerId : $form->rec->originId;
+            if(isset($realOriginid) ){
+                if($expectedPayment1 = $mvc->getExpectedAmount($realOriginid)){
+                    $expectedPayment = $expectedPayment1 * $dealInfo->get('rate');
+                }
             }
             
             $amount = core_Math::roundNumber($expectedPayment / $dealInfo->get('rate'));
