@@ -405,7 +405,6 @@ class core_Classes extends core_Manager
                 } catch (Throwable $e) {
                     $load = false;
                 }
-                
             }
             if (!$load) {
                 $rec->state = 'closed';

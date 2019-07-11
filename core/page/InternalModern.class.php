@@ -418,9 +418,9 @@ class core_page_InternalModern extends core_page_Active
         $attr = array();
         $attr['onClick'] = "return searchInLink(this, 'serch-input-modern', 'search', false);";
         $searchLink = '';
-        $colum1 = "";
-        $colum2 = "";
-
+        $colum1 = '';
+        $colum2 = '';
+        
         if (doc_Search::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/doc_empty.png';
             $attr['id'] = 'modern-doc-search';
@@ -458,7 +458,7 @@ class core_page_InternalModern extends core_page_Active
             $attr['id'] = 'modern-help-info';
             $colum2 .= ht::createLink(tr('Помощ'), array('help_Info', 'list'), null, $attr);
         }
-        $searchLink = "<table><tr><td>{$colum1}</td><td>$colum2</td></tr></table>";
+        $searchLink = "<table><tr><td>{$colum1}</td><td>${colum2}</td></tr></table>";
         $tpl->replace($searchLink, 'SEARCH_LINK');
     }
     
