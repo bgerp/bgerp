@@ -59,7 +59,7 @@ class google_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-        'GOOGLE_API_KEY' => array('varchar', 'caption=Ключ за приложенията на google->API KEY')
+        'GOOGLE_API_KEY' => array('password(size=64)', 'caption=Ключ за приложенията на google->API KEY')
     );
     
     

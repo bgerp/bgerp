@@ -125,18 +125,38 @@ class rack_Pallets extends core_Manager
         if(!is_null($batch)){
             $query->where("#batch = '{$batch}'");
         }
-        
+       
         $query->orderBy('createdOn', 'ASC');
         while ($rec = $query->fetch()) {
+            $rest = $rec->quantity;
             
             // Ако се изискват само палети, към които няма чакащи движения, другите се пропускат
             if ($withoutPendingMovements === true) {
-                if (rack_Movements::fetchField("#palletId = {$rec->id} AND #state = 'pending'")) {
+                
+                // Палет, от който има неприключено движение не се изключва автоматично от подаваните, а се сумират количествата
+                // на всички неприключени движения насочени от него, и ако въпросната сума е по-малка от наличното на палета
+                // количество, той се подава на функцията, с остатъчното количество.
+                $sum = null;
+                $mQuery = rack_Movements::getQuery();
+                $mQuery->XPR('sum', 'double', 'ROUND(#quantity, 2)');
+                $mQuery->where("#palletId = {$rec->id} AND #state = 'pending'");
+                while($mRec = $mQuery->fetch()){
+                    $zones = type_Table::toArray($mRec->zones);
+                    if(count($zones)){
+                        array_filter($zones, function($a) use (&$sum){$sum += $a->quantity;});
+                    }
+                }
+                
+                
+                if(isset($sum) && $sum >= $rec->quantity){
                     continue;
                 }
+                
+                $rest = $rec->quantity - $sum;
             }
             
-            $pallets[$rec->id] = (object) array('quantity' => $rec->quantity, 'position' => $rec->position);
+            // разликата
+            $pallets[$rec->id] = (object) array('quantity' => $rest, 'position' => $rec->position);
         }
         
         return $pallets;

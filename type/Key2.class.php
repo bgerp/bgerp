@@ -376,6 +376,8 @@ class type_Key2 extends type_Int
         
         $rOrdStr = '31|33|34|35|37|38|39|40|41|42|43|44|45|46|47|58|59|64|91|93|95|96|124';
         
+        $rOrdStrSlashCntArr = array('95' => 2);
+        
         $rArr = explode('|', $rOrdStr);
         
         $rStr = '';
@@ -383,7 +385,12 @@ class type_Key2 extends type_Int
             if ($ord > 127) {
                 continue;
             }
-            $rStr .= '\\\\\\' . chr($ord) . '|';
+            $slashCnt = 3;
+            if (isset($rOrdStrSlashCntArr[$ord])) {
+                $slashCnt = $rOrdStrSlashCntArr[$ord];
+            }
+            
+            $rStr .= str_repeat("\\", $slashCnt) . chr($ord) . '|';
         }
         
         if ($addEmpty) {

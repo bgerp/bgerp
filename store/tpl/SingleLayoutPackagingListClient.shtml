@@ -54,7 +54,7 @@
                     <b>[#contragentName#]</b>
                     <div class='address-block'>
                         [#contragentCountryId#]
-                        <!--ET_BEGIN contragentAddress-->555[#contragentAddress#] <!--ET_END contragentAddress-->
+                        <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
                     </div>
                     <!--ET_BEGIN locationId-->
                     <hr style="margin: 3px 0 1px;">
@@ -88,6 +88,11 @@
                             <td>[#deliveryTime#]</td>
                         </tr>
                         <!--ET_END deliveryTime-->
+                       <!--ET_BEGIN fromContainerId-->
+                       <tr>
+                           <td colspan='2'><span class='quiet'>To [#fromContainerName#]:</span> [#fromContainerId#]</td>
+                       </tr>
+                       <!--ET_END fromContainerId-->
                         <!--ET_BEGIN lineId-->
                         <tr>
                             <td class='nowrap quiet aright'>Transport: </td>

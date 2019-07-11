@@ -32,7 +32,7 @@ class sens2_ioport_AO extends sens2_ioport_Abstract
             'options' => null,
             'min' => 0,
             'max' => 10,
-            'readable' => false,
+            'readable' => true,
             'writable' => true,
         ),
     );

@@ -105,4 +105,42 @@ class peripheral_FiscPrinter
     {
         return $this->class->getPaymentCode($rec, $paymentId);
     }
+    
+    
+    /**
+     * Какъв е кода на основанието за сторниране
+     *
+     * @param stdClass $rec - запис
+     * @param string $reason   - основание
+     * @return string|null  - намерения код или null, ако няма
+     */
+    public function getStornoReasonCode($rec, $reason)
+    {
+        return $this->class->getStornoReasonCode($rec, $reason);
+    }
+    
+    
+    /**
+     * Какви са разрешените основания за сторниране
+     *
+     * @param stdClass $rec - запис
+     * @return array  - $res
+     */
+    public function getStornoReasons($rec)
+    {
+        return $this->class->getStornoReasons($rec);
+    }
+    
+    
+    /**
+     * Какъв е кода отговарящ на ДДС групата на артикула
+     *
+     * @param int $groupId  - ид на ДДС група
+     * @param stdClass $rec - запис
+     * @return string|null  - намерения код или null, ако няма
+     */
+    public function getVatGroupCode($groupId, $rec)
+    {
+        return $this->class->getVatGroupCode($groupId, $rec);
+    }
 }

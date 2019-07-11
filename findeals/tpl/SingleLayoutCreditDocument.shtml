@@ -18,7 +18,7 @@
         </tr>
         <!--ET_BEGIN fromContainerId-->
         <tr>
-            <td>|Към фактура|*</td>
+            <td>|Към|* [#fromContainerName#]</td>
             <td>[#fromContainerId#]</td>
         </tr>
         <!--ET_END fromContainerId-->

@@ -275,6 +275,8 @@ body {
 		color: #333;
 		font-size: 1.15em;
 		background: none;
+		width: 100% !important;
+		min-width: auto !important;
 		a {
 			font-weight: bold;
 		}

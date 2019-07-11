@@ -37,8 +37,14 @@ class doc_View extends core_Master
      * Заглавие в единствено число
      */
     public $singleTitle = 'Изглед';
-    
-    
+
+
+    /**
+     * Полета, които се показват в листови изглед
+     */
+    public $listFields = 'id,tplId,clsId,createdOn,createdBy,modifiedOn,modifiedBy,activatedOn,activatedBy';
+
+
     /**
      * Кой има право да го чете?
      */

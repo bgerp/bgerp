@@ -158,6 +158,7 @@ class unipi_Neuron extends sens2_ProtoDriver
             
             list($slotType, $slotNumber) = explode('-', $pRec->slot);
             
+            
             // Продготвяне на стойността за порта
             $prepareMethod = 'prepare' . $slotType;
             
@@ -169,7 +170,7 @@ class unipi_Neuron extends sens2_ProtoDriver
                 $res[$pRec->name . ($name ? '.':'') . $name] = $val;
             }
         }
-        
+  
         return $res;
     }
     
@@ -245,7 +246,10 @@ class unipi_Neuron extends sens2_ProtoDriver
      * Подготвя данните извлечени от дадения слот и unitId
      */
     public function prepare1WIRE($slotNo, $portIdent)
-    {
+    {        
+        $res = $this->evoc->searchValues($portIdent);
+ 
+        return $res[0];
     }
     
     
@@ -254,6 +258,15 @@ class unipi_Neuron extends sens2_ProtoDriver
      */
     public function prepareDI($slotNo, $portIdent)
     {
+        if(!strlen($portIdent))  {
+            $portIdent = $slotNo;
+        }
+
+        $inputAddr = str_pad($portIdent, 2, "0", STR_PAD_LEFT);
+        
+        $res = $this->evoc->searchValues('1_' . $inputAddr, 'input');
+ 
+        return $res[0];
     }
     
     
@@ -262,6 +275,15 @@ class unipi_Neuron extends sens2_ProtoDriver
      */
     public function prepareDO($slotNo, $portIdent)
     {
+        if(!strlen($portIdent))  {
+            $portIdent = $slotNo;
+        }
+
+        $inputAddr = str_pad($portIdent, 2, "0", STR_PAD_LEFT);
+        
+        $res = $this->evoc->searchValues('1_' . $inputAddr, 'relay');
+ 
+        return $res[0];
     }
     
     
@@ -270,7 +292,11 @@ class unipi_Neuron extends sens2_ProtoDriver
      */
     public function prepareAI($slotNo, $portIdent)
     {
-        $inputAddr = str_pad($slotNo, 2, "0", STR_PAD_LEFT);
+        if(!strlen($portIdent))  {
+            $portIdent = $slotNo;
+        }
+
+        $inputAddr = str_pad($portIdent, 2, "0", STR_PAD_LEFT);
         
         $res = $this->evoc->searchValues('1_' . $inputAddr, 'ai');
  
@@ -283,5 +309,13 @@ class unipi_Neuron extends sens2_ProtoDriver
      */
     public function prepareAO($slotNo, $portIdent)
     {
+        if(!strlen($portIdent))  {
+            $portIdent = $slotNo;
+        }
+        $inputAddr = str_pad($portIdent, 2, "0", STR_PAD_LEFT);
+ 
+        $res = $this->evoc->searchValues('1_' . $inputAddr, 'ao');
+
+        return $res[0];
     }
 }

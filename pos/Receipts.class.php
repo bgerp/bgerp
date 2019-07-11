@@ -785,9 +785,24 @@ class pos_Receipts extends core_Master
             $block->append($htmlScan, 'FIRST_TOOLS_ROW');
         }
         
-        $params = array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въвеждане');
+        $params = array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въвеждане', 'list' => 'suggestions');
         if(Mode::is('screenMode', 'narrow')) {
             $params['readonly'] = 'readonly';
+        }
+        
+        // Показване на даталист на сторно бележката, с предложения на артикулите, които се срещат в оригинала
+        if(isset($rec->revertId)){
+            $dQuery = pos_ReceiptDetails::getQuery();
+            $dQuery->where(array('#receiptId = [#1#]', $rec->revertId));
+            $dQuery->where('#productId IS NOT NULL');
+            $datalist = "<datalist id='suggestions'>";
+            while ($dRec = $dQuery->fetch()){
+                $pCode = cat_Products::getVerbal($dRec->productId, 'code');
+                $pName = cat_Products::getTitleById($dRec->productId, false);
+                $datalist .= "<option data-value = '{$pCode}' value='{$pName}'>";
+            }
+            $datalist .= "</datalist>";
+            $block->append($datalist, 'INPUT_DATA_LIST');
         }
         
         $block->append(ht::createElement('input', $params), 'INPUT_FLD');
@@ -869,7 +884,7 @@ class pos_Receipts extends core_Master
             $between = ($between != 0) ? " <span class='num'>-${between}</span>" : null;
             
             $revertClass = isset($rec->revertId) ? 'revert-receipt' : '';
-            $row = ht::createLink("<span class='pos-span-name'>№{$rec->id} <br> {$date}$between</span>", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => "pos-notes {$revertClass}", 'title' => 'Отваряне на бележката'));
+            $row = ht::createLink("<span class='pos-span-name'>№{$rec->id} <br> {$date}$between</span>", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => "pos-notes {$revertClass}", 'title' => 'Преглед на бележката'));
             $block->append($row);
         }
         
@@ -1145,14 +1160,13 @@ class pos_Receipts extends core_Master
             $block->append(ht::createFnBtn('>>', '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-url' => $payUrl)) . '</span>', 'CLOSE_BTNS');
         }
         
-        $printUrl = array($this, 'terminal', $rec->id, 'Printing' => 'yes');
-        $block->append(ht::createBtn('Печат', $printUrl, null, null, array('class' => 'actionBtn', 'title' => 'Принтиране на бележката')), 'CLOSE_BTNS');
+        $buttons = $this->getPaymentTabBtns($rec);
+        if(is_array($buttons)){
+            foreach ($buttons as $btn){
+                $block->append($btn, 'CLOSE_BTNS');
+            }
+        }
         
-        $receiptBtn = $this->getPrintReceiptBtn($rec);
-        $block->append($receiptBtn, 'CLOSE_BTNS');
-        
-        $closeBtn = $this->getCloseReceiptBtn($rec);
-        $block->append($closeBtn, 'CLOSE_BTNS');
         
         // Добавяне на бутон за сторниране на бележка
         if ($this->haveRightFor('revert')) {
@@ -1165,36 +1179,36 @@ class pos_Receipts extends core_Master
     
     
     /**
-     * Какво е урл-то за печат на бележката
+     * Допълнителни бутони към таба за плащанията в бележката
+     * 
+     * @param stdClass $rec
+     * @return array $buttons
      */
-    protected static function on_AfterGetCloseReceiptBtn($mvc, &$tpl, $rec)
+    protected function getPaymentTabBtns_($rec)
     {
-        if (!$tpl) {
-            if ($mvc->haveRightFor('close', $rec)) {
-                $contoUrl = array('pos_Receipts', 'close', $rec->id);
-                $hint = tr('Приключване на продажбата');
-            } else {
-                $contoUrl = null;
-                $hint = tr('Не може да приключите бележката, докато не е платена');
-            }
-            $disClass = ($contoUrl) ? '' : 'disabledBtn';
-            
-            $tpl = ht::createBtn('Приключи', $contoUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-close', 'title' => $hint));
+        $buttons = array();
+        
+        // Бутон за печат на бележката
+        $printUrl = array($this, 'terminal', $rec->id, 'Printing' => 'yes');
+        $buttons[] = ht::createBtn('Печат', $printUrl, null, null, array('class' => 'actionBtn', 'title' => 'Принтиране на бележката'));
+        
+        // Бутон за отпечатване на Фискален бон
+        $url = ($this->haveRightFor('printReceipt', $rec)) ? array($this, 'printReceipt', $rec->id) : array();
+        $disClass = ($url) ? '' : 'disabledBtn';
+        $buttons[] = ht::createBtn('Фискален бон', $url, null, null, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издаване на касова бележка'));
+        
+        // Добавяне на бутон за приключване на бележката
+        if ($this->haveRightFor('close', $rec)) {
+            $contoUrl = array('pos_Receipts', 'close', $rec->id);
+            $hint = tr('Приключване на продажбата');
+        } else {
+            $contoUrl = null;
+            $hint = tr('Не може да приключите бележката, докато не е платена');
         }
-    }
-    
-    
-    /**
-     * Какво е урл-то за печат на бележката
-     */
-    protected static function on_AfterGetPrintReceiptBtn($mvc, &$tpl, $rec)
-    {
-        if (!$tpl) {
-            $url = ($mvc->haveRightFor('printReceipt', $rec)) ? array($mvc, 'printReceipt', $rec->id) : array();
-            $disClass = ($url) ? '' : 'disabledBtn';
-            
-            $tpl = ht::createBtn('Касов бон', $url, null, null, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издаване на касова бележка'));
-        }
+        $disClass = ($contoUrl) ? '' : 'disabledBtn';
+        $buttons[] = ht::createBtn('Приключи', $contoUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-close', 'title' => $hint));
+        
+        return $buttons;
     }
     
     

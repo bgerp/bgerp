@@ -145,4 +145,15 @@ class acc_VatGroups extends core_Manager
         
         return $options;
     }
+    
+    
+    /**
+     * Намира ид-то съответстващо на систем ид-то
+     * 
+     * @param int $sysId
+     */
+    public static function getIdBySysId($sysId)
+    {
+        return self::fetchField(array("#sysId = '[#1#]'", $sysId));
+    }
 }

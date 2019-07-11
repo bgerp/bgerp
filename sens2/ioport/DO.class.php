@@ -32,7 +32,7 @@ class sens2_ioport_DO extends sens2_ioport_Abstract
             'options' => array(0,1),
             'min' => 0,
             'max' => 1,
-            'readable' => false,
+            'readable' => true,
             'writable' => true,
         ),
     );

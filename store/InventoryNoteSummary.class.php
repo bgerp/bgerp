@@ -751,7 +751,8 @@ class store_InventoryNoteSummary extends doc_Detail
         $key = store_InventoryNotes::getCacheKey($data->masterData->rec);
         
         // Проверяваме имали кеш за $data->rows
-        $cache = core_Cache::get($this->Master->className, $key);
+        
+        $cache = core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}", $key);
         $cacheRows = !empty($data->listFilter->rec->search) ? false : true;
         if (!empty($data->listFilter->rec->search) || Mode::is('printing')) {
             $cacheRows = false;
@@ -787,12 +788,12 @@ class store_InventoryNoteSummary extends doc_Detail
             
             if ($cacheRows === true) {
                 $nCache = (object) array('recs' => $data->recs, 'rows' => $data->rows);
-                core_Cache::set($this->Master->className, $key, $nCache, 1440);
+                core_Cache::set("{$this->Master->className}_{$data->masterData->rec->id}", $key, $nCache, 1440);
             }
         }
         
         if (empty($data->listFilter->rec->search) && !Mode::is('blank')) {
-            $cached = core_Cache::get($this->Master->className, $key);
+            $cached = core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}", $key);
             $data->recs = $cached->recs;
             $data->rows = $cached->rows;
         }

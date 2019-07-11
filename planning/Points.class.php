@@ -49,7 +49,7 @@ class planning_Points extends core_Manager
     /**
      * Кой има право да чете?
      */
-    public $canOpenterminal = 'debug';
+    public $canOpenterminal = 'ceo,taskWorker';
     
     
     /**
