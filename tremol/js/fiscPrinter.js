@@ -467,8 +467,6 @@ function fpPrintLastReceiptDuplicate()
     } catch(ex) {
         handleException(ex);
     }
-    
-    return res;
 };
 
 
