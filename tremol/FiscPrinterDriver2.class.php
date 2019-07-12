@@ -536,6 +536,40 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     
     /**
+     * Връща JS функция, за отпечатване на дубликат
+     * При успех вика `fpOnDuplicateSuccess`, а при грешка fpOnDuplicateErr
+     *
+     * @param stdClass $pRec - запис от peripheral_Devices
+     *
+     * @return string
+     *
+     * @see peripheral_FiscPrinter
+     */
+    public function getJsForDuplicate($pRec)
+    {
+        $jsTpl = new ET('[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                                try {
+                                    [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                    fpPrintLastReceiptDuplicate();
+                                    fpOnDuplicateSuccess();
+                                } catch(ex) {
+                                    fpOnDuplicateErr(ex.message);
+                                }
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]');
+        
+        $this->addTplFile($jsTpl, $pRec->driverVersion);
+        $this->connectToPrinter($jsTpl, $pRec, false);
+        
+        $js = $jsTpl->getContent();
+        
+        // Минифициране на JS
+        $js = minify_Js::process($js);
+        
+        return $js;
+    }
+    
+    
+    /**
      * Връща JS функция за добавяне/изкарване на пари от касата
      *
      * @param stdClass $pRec
@@ -623,8 +657,8 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         }
         
         // Добавяме необходимите JS файлове
-        $tpl->replace(sbf("tremol/js/{$driverVersion}/fp_core.js"), 'FP_CORE_JS');
-        $tpl->replace(sbf("tremol/js/$driverVersion/fp.js"), 'FP_JS');
+        $tpl->replace(sbf("tremol/libs/{$driverVersion}/fp_core.js"), 'FP_CORE_JS');
+        $tpl->replace(sbf("tremol/libs/$driverVersion/fp.js"), 'FP_JS');
         $tpl->replace(sbf("tremol/js/fiscPrinter.js"), 'FISC_PRINT_JS');
     }
     
@@ -1393,7 +1427,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     public function getStornoReasons($rec)
     {
         $res = arr::make(array_keys(self::DEFAULT_STORNO_REASONS_MAP), true);
-       
+        
         return $res;
     }
     

@@ -49,6 +49,19 @@ class peripheral_FiscPrinter
     
     
     /**
+     * Връща JS функция, за отпечатване на дубликат
+     *
+     * @param stdClass $pRec
+     *
+     * @return string
+     */
+    public function getJsForDuplicate($pRec)
+    {
+        return $this->class->getJsForDuplicate($pRec);
+    }
+    
+    
+    /**
      * Връща JS функция за добавяне/изкарване на пари от касата
      *
      * @param stdClass $pRec

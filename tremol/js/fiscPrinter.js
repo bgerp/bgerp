@@ -458,6 +458,21 @@ function fpSerialNumber()
 
 
 /**
+ * Отпечатване на дубликат
+ */
+function fpPrintLastReceiptDuplicate()
+{
+    try {
+        fp.PrintLastReceiptDuplicate();
+    } catch(ex) {
+        handleException(ex);
+    }
+    
+    return res;
+};
+
+
+/**
  * Връща серийния номер на устройството
  * 
  * @return string
