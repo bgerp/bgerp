@@ -80,7 +80,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         $checkDate = dt::today();
         $form->setDefault('checkDate', "{$checkDate}");
-        $form->setDefault('typeGrupping', 'contragentId');
+        $form->setDefault('typeGrupping', 'contragent');
         
         $salesQuery = sales_Sales::getQuery();
         
@@ -112,7 +112,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        $this->groupByField = $rec->typeGrupping;
+       $this->groupByField = $rec->typeGrupping;
         $recs = array();
         $isRec = array();
         
