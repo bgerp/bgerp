@@ -1066,15 +1066,15 @@ class core_Packs extends core_Manager
             
             if (($data[$field] || $data[$field] === (double) 0 || $data[$field] === (int) 0) &&
                             (!defined($field) || ($data[$field] != constant($field)))) {
-                                $form->setDefault($field, $data[$field]);
-                            } elseif (defined($field)) {
-                                $form->setDefault($field, constant($field));
-                                $form->setField($field, array('attr' => array('class' => 'const-default-value')));
-                            }
-                            
-                            if ($params['readOnly']) {
-                                $form->setReadOnly($field);
-                            }
+                $form->setDefault($field, $data[$field]);
+            } elseif (defined($field)) {
+                $form->setDefault($field, constant($field));
+                $form->setField($field, array('attr' => array('class' => 'const-default-value')));
+            }
+            
+            if ($params['readOnly']) {
+                $form->setReadOnly($field);
+            }
         }
         
         $form->setHidden('pack', $rec->name);
@@ -1099,10 +1099,10 @@ class core_Packs extends core_Manager
                     // Да може да се зададе автоматичната стойност
                     if ((($fType instanceof type_Class) || ($fType instanceof type_Enum) || ($fType instanceof color_Type))
                                     && ($fType->params['allowEmpty']) && ($form->rec->{$field} === null)) {
-                                        $data[$field] = null;
-                                    } elseif ($form->rec->{$field} !== null) {
-                                        $data[$field] = $form->rec->{$field};
-                                    }
+                        $data[$field] = null;
+                    } elseif ($form->rec->{$field} !== null) {
+                        $data[$field] = $form->rec->{$field};
+                    }
                 } else {
                     $data[$field] = '';
                 }

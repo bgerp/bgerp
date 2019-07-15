@@ -608,6 +608,7 @@ class colab_FolderToPartners extends core_Manager
     private function sendRegistrationEmail($rec)
     {
         $sentFrom = email_Inboxes::fetchField($rec->from, 'email');
+        $sentFromName = email_Inboxes::getFromName($rec->from);
         
         // Изпращане на имейл с phpmailer
         $PML = email_Accounts::getPML($sentFrom);
@@ -655,7 +656,7 @@ class colab_FolderToPartners extends core_Manager
         }
         
         // От кой адрес е изпратен
-        $PML->SetFrom($sentFrom);
+        $PML->SetFrom($sentFrom, $sentFromName);
         
         // Изпращане
         $isSended = $PML->Send();

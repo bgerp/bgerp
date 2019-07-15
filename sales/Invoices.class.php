@@ -496,14 +496,14 @@ class sales_Invoices extends deals_InvoiceMaster
             
             if ($amount < 0) {
                 if (cash_Rko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
-                    $data->toolbar->addBtn('РКО', array('cash_Rko', 'add', 'originId' => $rec->originId, 'amountDeal' => abs($amount), 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate,'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов разходен касов ордер към документа');
+                    $data->toolbar->addBtn('РКО', array('cash_Rko', 'add', 'originId' => $rec->originId, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate,'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов разходен касов ордер към документа');
                 }
                 if (bank_SpendingDocuments::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
                     $data->toolbar->addBtn('РБД', array('bank_SpendingDocuments', 'add', 'originId' => $rec->originId, 'amountDeal' => abs($amount), 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), 'ef_icon=img/16/bank_add.png,title=Създаване на нов разходен банков документ');
                 }
             } else {
                 if (cash_Pko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
-                    $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $rec->originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер към документа');
+                    $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $rec->originId, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер към документа');
                 }
                 if (bank_IncomeDocuments::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
                     $data->toolbar->addBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $rec->originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ');

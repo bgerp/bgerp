@@ -761,7 +761,7 @@ class core_String
      *
      * @param string $char - Симвът, който ще проверяваме
      *
-     * @return boolean - Ако е съгласна връщаме TRUE
+     * @return bool - Ако е съгласна връщаме TRUE
      */
     public static function isConsonent($char)
     {
@@ -792,11 +792,11 @@ class core_String
      */
     public static function stringToNameCase($str)
     {
-        $str = preg_replace_callback("/([\\w\\p{L}\\p{N}\\p{Pd}]+)/u",  function($m) {
+        $str = preg_replace_callback('/([\\w\\p{L}\\p{N}\\p{Pd}]+)/u', function ($m) {
             
             return mb_convert_case($m[1], MB_CASE_TITLE, 'UTF-8');
         }, $str);
-  
+        
         return $str;
     }
     
@@ -921,8 +921,8 @@ class core_String
         
         $bgColor = str_pad(dechex(hexdec(substr($hash, 6, 6)) | 0x808080), 6, '0', STR_PAD_LEFT);
         
-        $attr['style'] =( $attr['style'] ? rtrim($attr['style'], '; ') . ';' : '') . "color:#{$txColor}; background-color:#{$bgColor}";
-
+        $attr['style'] = ($attr['style'] ? rtrim($attr['style'], '; ') . ';' : '') . "color:#{$txColor}; background-color:#{$bgColor}";
+        
         $text = ht::createElement('span', $attr, $text);
         
         return $text;
@@ -991,7 +991,7 @@ class core_String
      * Връща най-доброто съвпадение за дума от масива
      *
      * @param array      $wordsArr
-     * @param string      $string
+     * @param string     $string
      * @param NULL|float $percent
      * @param bool       $ci
      *
@@ -1242,14 +1242,14 @@ class core_String
         
         return $res;
     }
-
-
+    
+    
     /**
      * Добавя в списък полето
      */
     public static function addToList(&$list, $field)
     {
-        if(is_array($list)) {
+        if (is_array($list)) {
             $list[$field] = $field;
         } else {
             $list .= ($list ? ',' : '') . $field;

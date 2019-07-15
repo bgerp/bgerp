@@ -25,6 +25,10 @@ class bgerp_plg_CheckCronOnLogin extends core_Plugin
             
             return ;
         }
+
+        // Стартираме самоподдържащия процес за Крон
+        fopen(toUrl(array('core_Cron', 'Watchdog'), 'absolute-force'), 'r');
+
         
         $adminId = core_Users::getCurrent();
         

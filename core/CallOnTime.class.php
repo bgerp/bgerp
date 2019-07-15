@@ -68,11 +68,11 @@ class core_CallOnTime extends core_Manager
     /**
      * Добавя функция, която да се изпълни след определено време
      *
-     * @param string $className
-     * @param string $methodName
-     * @param mixed  $data
-     * @param datetime   $callOn
-     * @param bool   $once
+     * @param string   $className
+     * @param string   $methodName
+     * @param mixed    $data
+     * @param datetime $callOn
+     * @param bool     $once
      *
      * @return int
      */
@@ -118,10 +118,10 @@ class core_CallOnTime extends core_Manager
     /**
      * Еднократно добавя функция, която да се изпълни след определно време
      *
-     * @param string $className
-     * @param string $methodName
-     * @param mixed  $data
-     * @param datetime   $callOn
+     * @param string   $className
+     * @param string   $methodName
+     * @param mixed    $data
+     * @param datetime $callOn
      *
      * @return int
      */

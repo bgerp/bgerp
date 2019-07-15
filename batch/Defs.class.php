@@ -177,7 +177,7 @@ class batch_Defs extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if(isset($rec->productId)){
+        if (isset($rec->productId)) {
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
         }
         $row->ROW_ATTR['class'] = 'state-active';

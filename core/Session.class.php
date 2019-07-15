@@ -262,7 +262,7 @@ class core_Session
             if (EF_HTTPS == 'MANDATORY') {
                 ini_set('session.cookie_secure', 1);
             }
-            
+
 //             if (PHP_VERSION_ID >= 70300) {
 //                 ini_set('session.cookie_samesite', 'Lax');
 //             } else {

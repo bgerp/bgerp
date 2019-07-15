@@ -40,9 +40,9 @@ class batch_definitions_Digits extends batch_definitions_Proto
     /**
      * Връща автоматичния партиден номер според класа
      *
-     * @param mixed     $documentClass - класа за който ще връщаме партидата
-     * @param int       $id            - ид на документа за който ще връщаме партидата
-     * @param int       $storeId       - склад
+     * @param mixed         $documentClass - класа за който ще връщаме партидата
+     * @param int           $id            - ид на документа за който ще връщаме партидата
+     * @param int           $storeId       - склад
      * @param datetime|NULL $date          - дата
      *
      * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
@@ -59,7 +59,8 @@ class batch_definitions_Digits extends batch_definitions_Proto
      * Генерира следващия пореден номер от партидата
      *
      * @param datetime $expiryDate - срок на годност
-     * @return string|NULL         - генерирания номер според типа на партидата
+     *
+     * @return string|NULL - генерирания номер според типа на партидата
      */
     private function getNextBatch()
     {
@@ -68,21 +69,19 @@ class batch_definitions_Digits extends batch_definitions_Proto
         rsort($existingBatches);
         
         $nextNumber = isset($existingBatches[0]) ? str::increment($existingBatches[0]) : 1;
-        if(empty($this->rec->length) || strlen($nextNumber) <= $this->rec->length){
+        if (empty($this->rec->length) || strlen($nextNumber) <= $this->rec->length) {
             
             return $nextNumber;
         }
-        
-        return null;
     }
     
     
     /**
      * Проверява дали стойността е невалидна
      *
-     * @param string   $value    - стойноста, която ще проверяваме
-     * @param double $quantity - количеството
-     * @param string   &$msg     - текста на грешката ако има
+     * @param string $value    - стойноста, която ще проверяваме
+     * @param float  $quantity - количеството
+     * @param string &$msg     - текста на грешката ако има
      *
      * @return bool - валиден ли е кода на партидата според дефиницията или не
      */

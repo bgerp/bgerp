@@ -22,7 +22,6 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
     public $canSelectDriver = 'ceo,admin,debug';
     
     
-    
     /**
      * Брой записи на страница
      *
@@ -44,12 +43,8 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
-        
-        
-        
     }
     
     
@@ -65,7 +60,6 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-        
     }
     
     
@@ -85,8 +79,6 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
             if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
                 $form->setError('from,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
             }
-            
-            
         }
     }
     
@@ -114,7 +106,6 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
                 "#date >= '[#1#]'",
                 $rec->from . ' 00:00:00'
             ));
-            
         }
         
         //Крайна дата / 'към дата'
@@ -123,13 +114,12 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
                 "#date <= '[#1#]'",
                 $rec->to . ' 23:59:59'
             ));
-            
         }
         
         
-        $invoices  = array();
+        $invoices = array();
         
-        while ($pRec = $pQuery->fetch()){
+        while ($pRec = $pQuery->fetch()) {
             
             //Масив с фактури от продажбите
             $id = $pRec->id;
@@ -137,35 +127,32 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
             //Код на контрагента, така както е експортиран в БН. В случая folderId  на контрагента
             $contragentClassName = core_Classes::getName($pRec->contragentClassId);
             $contragentCode = $contragentClassName::fetch($pRec->contragentId)->folderId;
-           
+            
             // Запис в масива
             if (!array_key_exists($id, $invoices)) {
                 $invoices[$id] = (object) array(
                     
                     'type' => $pRec->type,
                     'number' => $pRec->number,
-                    'date' =>$pRec->date,
+                    'date' => $pRec->date,
                     'contragentCode' => $contragentCode,
-                    'accItem' =>'',
-                    'currencyId' =>$pRec->currencyId,
-                    'rate' =>$pRec->rate,
-                    'dealValue' =>$pRec->dealValue,
-                    'vatRate'=>$pRec->vatRate
-                    
+                    'accItem' => '',
+                    'currencyId' => $pRec->currencyId,
+                    'rate' => $pRec->rate,
+                    'dealValue' => $pRec->dealValue,
+                    'vatRate' => $pRec->vatRate
+                
                 );
             }
-            
-            
         }
         
         $invArr = array_keys($invoices);
         
         $dQuery = purchase_InvoiceDetails::getQuery();
-        $dQuery->in('invoiceId' , $invArr);
+        $dQuery->in('invoiceId', $invArr);
         
         
-        while ($dRec = $dQuery->fetch()){
-            
+        while ($dRec = $dQuery->fetch()) {
             $id = $dRec->id;
             
             $prodRec = cat_Products::fetch($dRec->productId);
@@ -177,23 +164,17 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object) array(
-                    'invoice'=>$invoices[$dRec->invoiceId],
+                    'invoice' => $invoices[$dRec->invoiceId],
                     'prodCode' => $prodCode,
                     'quantity' => $dRec->quantity,
-                    'price' =>$dRec->price,
+                    'price' => $dRec->price,
                     'vatAmount' => '',
-                    'measure' =>$measure,
-                    'vat' =>cat_Products::getVat($prodRec->id)*100,
-                    
-                    
+                    'measure' => $measure,
+                    'vat' => cat_Products::getVat($prodRec->id) * 100,
+                
+                
                 );
             }
-            
-            
-            
-            
-            
-            
         }
         
         return $recs;
@@ -215,13 +196,11 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         
         if ($export === false) {
-            
-            
-            
             $fld->FLD('type', 'varchar', 'caption=Тип на документа');
             $fld->FLD('number', 'varchar', 'caption=Номер на документа,tdClass=centered');
             $fld->FLD('date', 'varchar', 'caption=Дата');
             $fld->FLD('contragentCode', 'varchar', 'caption=Код на доставчика');
+            
             //$fld->FLD('accItem', 'varchar', 'caption=Счетоводна сметка');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
             $fld->FLD('rate', 'double', 'caption=Курс на валутата');
@@ -231,19 +210,12 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
             $fld->FLD('price', 'double', 'caption=Ед цена');
             $fld->FLD('measure', 'varchar', 'caption=Мерна единица,tdClass=centered');
             $fld->FLD('vat', 'varchar', 'caption=% ДДС');
-            
         } else {
-            
             $fld->FLD('full', 'varchar', 'caption= ');
-            
         }
-        
         
         return $fld;
     }
-    
-    
-    
     
     
     /**
@@ -279,10 +251,8 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
         $row->measure = $dRec->measure;
         $row->vat = $dRec->vat;
         
-        
         return $row;
     }
-    
     
     
     /**
@@ -298,21 +268,18 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         
         $res->full = $dRec->invoice->type.','.
-            $dRec->invoice->number.','.
-            $Date->toVerbal($dRec->invoice->date).','.
-            $dRec->invoice->contragentCode.','.
-            $dRec->invoice->accItem.','.
-            $dRec->invoice->currencyId.','.
-            $dRec->invoice->rate.','.
-            $dRec->invoice->dealValue.','.
-            $dRec->prodCode.','.
-            $dRec->quantity.','.
-            $dRec->price.','.
-            $dRec->measure.','.
-            $dRec->vat
-            ;
-            
+                     $dRec->invoice->number.','.
+                     $dRec->invoice->date.','.
+                     $dRec->invoice->contragentCode.','.
+                     $dRec->invoice->accItem.','.
+                     $dRec->invoice->currencyId.','.
+                     $dRec->invoice->rate.','.
+                     $dRec->invoice->dealValue.','.
+                     $dRec->prodCode.','.
+                     $dRec->quantity.','.
+                     $dRec->price.','.
+                     $dRec->measure.','.
+                     $dRec->vat
+                     ;
     }
-    
-    
 }
