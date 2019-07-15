@@ -52,6 +52,7 @@ class email_Sent
             'attachments' => array_merge((array) $body->attachmentsFh, (array) $body->documentsFh),
             'headers' => array('X-Bgerp-Hash' => EMAIL_SENT_DOMAIN_HASH),
             'emailFrom' => email_Inboxes::fetchField($boxFrom, 'email'),
+            'emailName' => email_Inboxes::getFromName($boxFrom),
             'charset' => $options['encoding'],
         );
         
@@ -150,7 +151,7 @@ class email_Sent
                 $PML->AddCC($cc);
             }
         }
-        $PML->SetFrom($message->emailFrom);
+        $PML->SetFrom($message->emailFrom, $message->emailName);
         $PML->Subject = $message->subject;
         $PML->CharSet = $message->charset;
         $PML->MessageID = $message->messageId;

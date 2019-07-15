@@ -124,13 +124,13 @@ class core_SystemLock
                 $after = 'малко';
                 $afterEn = 'a while';
             }
-
-            if(Mode::get('screenMode') == 'wide') {
-                $style = "left:50%;-webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%);";
+            
+            if (Mode::get('screenMode') == 'wide') {
+                $style = 'left:50%;-webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%);';
             } else {
-                $style = "left:40%;-webkit-transform: translate(-35%, -50%); transform: translate(-35%, -50%);";
+                $style = 'left:40%;-webkit-transform: translate(-35%, -50%); transform: translate(-35%, -50%);';
             }
-
+            
             echo "<html><head>
                     <meta name='viewport' content='width=device-width'>
                     <meta charset=\"UTF-8\">

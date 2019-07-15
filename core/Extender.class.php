@@ -2,7 +2,7 @@
 
 
 /**
- * Kлас за наследяване на екстендъри на класове
+ * Клас за наследяване на екстендъри на класове
  *
  *
  * @category  bgerp
@@ -193,7 +193,7 @@ abstract class core_Extender extends core_Master
             $data->toolbar->addBtn('Редакция', $editUrl, 'id=btnEdit', 'ef_icon = img/16/edit-icon.png,title=Редактиране на записа');
         }
     }
-
+    
     
     /**
      * Какво да е дефолтното урл, за добавяне от листовия изглед
@@ -216,6 +216,7 @@ abstract class core_Extender extends core_Master
     {
         $me = cls::get(get_called_class());
         if(cls::load($rec->{$me->mainClassFieldName}, true)){
+            
             return new core_ObjectReference($rec->{$me->mainClassFieldName}, $rec->{$me->mainIdFieldName});
         }
         

@@ -714,25 +714,25 @@ class html2text_Converter
         
         $color = $bgcolor = $bold = $italic = $underline = $strike = null;
         
-        foreach($ruleArr as $rule) {
+        foreach ($ruleArr as $rule) {
             $rule = strtolower(str::removeWhiteSpace($rule));
             list($name, $value) = explode(':', $rule);
             
-            if($name == 'color') {
+            if ($name == 'color') {
                 $text = '[color=' . self::getColor($value) . ']' . $text . '[/color]';
-            } elseif($name == 'background-color') {
+            } elseif ($name == 'background-color') {
                 $text = '[bg=' . self::getColor($value) . ']' . $text . '[/bg]';
-            } elseif($name == 'font-weight' && ($value == 'bold' || $value >= 600)) {
-                $text = '[b]' . $text . '[/b]';;
-            } elseif($name == 'font-style' && $value == 'italic') {
-                $text = '[i]' . $text . '[/i]';;
-            } elseif($name == 'text-decoration' && $value == 'underline') {
-                $text = '[u]' . $text . '[/u]';;
-            } elseif($name == 'text-decoration' && $value == 'line-through') {
-                $text = '[s]' . $text . '[/s]';;
+            } elseif ($name == 'font-weight' && ($value == 'bold' || $value >= 600)) {
+                $text = '[b]' . $text . '[/b]';
+            } elseif ($name == 'font-style' && $value == 'italic') {
+                $text = '[i]' . $text . '[/i]';
+            } elseif ($name == 'text-decoration' && $value == 'underline') {
+                $text = '[u]' . $text . '[/u]';
+            } elseif ($name == 'text-decoration' && $value == 'line-through') {
+                $text = '[s]' . $text . '[/s]';
             } elseif ($name && !$value) {
                 if (strpos($name, '=')) {
-                    list(,$value) = explode('=', $name);
+                    list(, $value) = explode('=', $name);
                     $value = trim($value, '"');
                     $value = trim($value, "'");
                     $text = '[color=' . self::getColor($value) . ']' . $text . '[/color]';
@@ -751,18 +751,18 @@ class html2text_Converter
     {
         $matches = array();
         
-        if(preg_match("/rgb\\((\\d+),(\\d+),(\\d+)\\)/", $color, $matches)) {
-            $color = sprintf("#%02x%02x%02x", $matches[1], $matches[2], $matches[3]);
-        } elseif(preg_match("/rgba\\((\\d+),(\\d+),(\\d+),([\\d\\.]+)\\)/", $color, $matches)) {
+        if (preg_match('/rgb\\((\\d+),(\\d+),(\\d+)\\)/', $color, $matches)) {
+            $color = sprintf('#%02x%02x%02x', $matches[1], $matches[2], $matches[3]);
+        } elseif (preg_match('/rgba\\((\\d+),(\\d+),(\\d+),([\\d\\.]+)\\)/', $color, $matches)) {
             $r = $matches[1];
             $g = $matches[2];
             $b = $matches[3];
             $a = (float) $matches[4];
-            $r = max(0, min(255, round(255*(1-$a) + $r*$a)));
-            $g = max(0, min(255, round(255*(1-$a) + $g*$a)));
-            $b = max(0, min(255, round(255*(1-$a) + $b*$a)));
+            $r = max(0, min(255, round(255 * (1 - $a) + $r * $a)));
+            $g = max(0, min(255, round(255 * (1 - $a) + $g * $a)));
+            $b = max(0, min(255, round(255 * (1 - $a) + $b * $a)));
             
-            $color = sprintf("#%02x%02x%02x", $r, $g, $b);
+            $color = sprintf('#%02x%02x%02x', $r, $g, $b);
         }
         
         return $color;

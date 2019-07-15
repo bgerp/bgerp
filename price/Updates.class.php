@@ -572,15 +572,7 @@ class price_Updates extends core_Manager
      * @return void
      */
     public function prepareUpdates(&$data)
-    {
-        // Можем ли да виждаме таба?
-        $type = ($data->masterMvc instanceof cat_Categories) ? 'category' : 'product';
-        if (!$this->haveRightFor('read', (object) array('type' => $type, 'objectId' => $data->masterId))) {
-            $data->hide = true;
-            
-            return;
-        }
-        
+    {   
         // Как да се казва таба
         $data->TabCaption = 'Обновяване';
         

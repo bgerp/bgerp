@@ -1,4 +1,4 @@
-body {
+task-selectedbody {
   background: #f1f1f1;
   width: 100%;
   overflow-x: hidden; }
@@ -66,6 +66,11 @@ body {
         cursor: default;
         color: #999999 !important; }
 
+.task-selected {
+  background-color: #e0ffe0; }
+  .task-selected:hover {
+    background-color: #ccfecc !important; }
+
 .task-selected .specialLink,
 .task-selected .rightCol {
   font-weight: bold; }
@@ -84,14 +89,6 @@ body {
 
 .progress {
   margin-top: 5px; }
-
-.imgNext {
-  display: block;
-  margin: 0 5px !important;
-  padding: 5px; }
-  .imgNext img {
-    width: 32px !important;
-    height: 32px !important; }
 
 .keyboardHolder {
   position: relative; }
@@ -145,7 +142,7 @@ body {
     .terminalHeader .fleft #nameHolder {
       line-height: 30px;
       display: inline-block;
-      margin-left: 10px;
+      margin-right: 10px;
       margin-bottom: 0 !important;
       float: left; }
   .terminalHeader .userInfo {
@@ -385,13 +382,6 @@ only screen and (min-width: 760px) and (max-width: 800px) {
     width: 240px !important;
     padding: 10px !important;
     font-size: 0.95em !important; }
-
-  .imgNext {
-    padding: 5px;
-    margin: 0 !important; }
-    .imgNext img {
-      width: 30px !important;
-      height: 30px !important; }
 
   .progress {
     white-space: nowrap;

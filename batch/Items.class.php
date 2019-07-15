@@ -370,8 +370,7 @@ class batch_Items extends core_Master
      *
      * @param int      $productId - артикул
      * @param int|NULL $storeId   - склад
-     * @param boolean  $pureText  - дали да са само текст
-     *
+     * @param bool     $pureText  - дали да са само текст
      *
      * @return array $res       - масив с артикули
      */
@@ -553,11 +552,11 @@ class batch_Items extends core_Master
     /**
      * Изчислява количествата на партидите на артикул към дадена дата и склад
      *
-     * @param int       $productId - ид на артикул
-     * @param int       $storeId   - ид на склад
+     * @param int           $productId - ид на артикул
+     * @param int           $storeId   - ид на склад
      * @param datetime|NULL $date      - към дата, ако е празно текущата
-     * @param int|NULL  $limit     - лимит на резултатите
-     * @param array     $except    - кой документ да се игнорира
+     * @param int|NULL      $limit     - лимит на резултатите
+     * @param array         $except    - кой документ да се игнорира
      *
      * @return array $res - масив с партидите и к-та
      *               ['batch'] => ['quantity']

@@ -28,12 +28,12 @@ class slick_Setup extends core_ProtoSetup
      */
     public $info = 'Адаптер за slick - слайдер за картинки';
     
-
+    
     /**
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'slick_Driver';
-
+    
     
     /**
      * Описание на конфигурационните константи
@@ -43,6 +43,4 @@ class slick_Setup extends core_ProtoSetup
         'SLICK_VERSION' => array('enum(1.9)', 'mandatory, caption=Версията на програмата->Версия')
     
     );
-    
-  
 }

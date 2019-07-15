@@ -1216,7 +1216,6 @@ class core_Users extends core_Manager
                 
                 if (!$rec->__updateRoleLogs) {
                     if (!$fields || in_array('roles', $fields = arr::make($fields))) {
-                        
                         if ($oRec->roles != $rec->roles) {
                             $dArr = type_Keylist::getDiffArr($rec->roles, $oRec->roles);
                             if (!empty($dArr['delete']) || !empty($dArr['add'])) {
@@ -1751,7 +1750,7 @@ class core_Users extends core_Manager
     {
         $currentUserRec = Mode::get('currentUserRec');
         
-        if (!$currentUserRec) {
+        if (!$currentUserRec->id) {
             
             return;
         }

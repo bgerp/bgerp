@@ -171,6 +171,39 @@ class email_Accounts extends core_Master
     
     
     /**
+     * Връща всички активни корпоративни и общи имейли
+     *  
+     * @param string $type
+     *
+     * @return array
+     */
+    public static function getCommonAndCorporate($type = null)
+    {
+        // Масива, който ще връщаме
+        $arr = array();
+        
+        // Запитване за извличане на активните корпоративни и общи домейни
+        $query = static::getQuery();
+        
+        if (!$type) {
+            $query->where("#type = 'corporate'");
+            $query->orWhere("#type = 'common'");
+        } else {
+            $query->where(array("#type = '[#1#]'", $type));
+        }
+        
+        $query->where("#state = 'active'");
+        
+        while ($rec = $query->fetch()) {
+            $email = mb_strtolower(trim($rec->email));
+            $arr[$email] = $email;
+        }
+        
+        return $arr;
+    }
+    
+    
+    /**
      * Връща всички активни корпоративни и общи домейни
      *
      * @param string $type

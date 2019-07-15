@@ -339,7 +339,7 @@ class core_Debug
                 }
                 
                 //@todo временно да не се появява: Object of class __PHP_Incomplete_Class could not be converted to string
-                if(is_array($args)){
+                if (is_array($args)) {
                     $args = join(', ', $args);
                 }
             }
@@ -396,9 +396,11 @@ class core_Debug
     {
         $result = '';
         
+        $v = ht::fixObject($v);
+        
         if (is_string($v)) {
             $result = "'" . htmlentities($v, ENT_COMPAT | ENT_IGNORE, 'UTF-8') . "'";
-        } elseif (is_array($v)) {
+        } elseif (is_array($v) && !is_object($v)) {
             $result = self::arrayToString($v);
         } elseif (is_null($v)) {
             $result = 'NULL';
