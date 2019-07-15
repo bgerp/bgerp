@@ -36,7 +36,7 @@ class color_Colors
      * След това трябва да му се заредят стойностите
      *
      * @param string $type - цветовия модел
-     *                   Допустими типове (rgb, cmyk, hsv, cielab, xyz)
+     *                     Допустими типове (rgb, cmyk, hsv, cielab, xyz)
      */
     public static function get($type)
     {

@@ -377,6 +377,16 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 $obj->quantity += $quantity;
             } else {
                 $key = mb_strtolower($recProduct->code);
+                
+                if(is_string($minQuantity[$key]) && strpos($minQuantity[$key], ',')){
+                    $pos = strpos($minQuantity[$key], ',');
+                    $minQuantity[$key][$pos] = '.';
+                }
+                
+                if(is_string($maxQuantity[$key]) && strpos($maxQuantity[$key], ',')){
+                    $pos = strpos($maxQuantity[$key], ',');
+                    $maxQuantity[$key][$pos] = '.';
+                }
                 $recs[$productId] = (object) array(
                     'measure' => $recProduct->measureId,
                     'productId' => $productId,
@@ -394,7 +404,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
         
         // Определяне на индикаторите за "свръх наличност" и "под минимум";
-        foreach ($recs as $productId => $prodRec) {
+        foreach ($recs as $productId => $prodRec) {//if ($prodRec->code == '15-14')bp($prodRec);
             $prodRec->conditionQuantity = '3|ok';
             $prodRec->conditionColor = 'green';
             if ($prodRec->maxQuantity == 0 && $prodRec->minQuantity == 0) {

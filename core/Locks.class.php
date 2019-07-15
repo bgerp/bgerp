@@ -81,7 +81,7 @@ class core_Locks extends core_Manager
         $this->FLD('user', 'key(mvc=core_Users)', 'caption=Потребител');
         
         $this->setDbUnique('objectId');
-                
+        
         $this->dbEngine = 'memory';
     }
     

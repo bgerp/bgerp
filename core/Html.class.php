@@ -821,10 +821,10 @@ class core_Html
     /**
      * Създава хипервръзка
      *
-     * @param string                $title
-     * @param false|array|string    $url
-     * @param false|string          $warning
-     * @param array|string          $attr
+     * @param string             $title
+     * @param false|array|string $url
+     * @param false|string       $warning
+     * @param array|string       $attr
      *
      * @return core_ET
      */
@@ -1276,18 +1276,18 @@ class core_Html
         
         return $html;
     }
-
-
+    
+    
     /**
      * Фиксира  PHPIncompleteClass
      */
-    function fixObject (&$object)
+    public static function fixObject(&$object)
     {
         if ($object instanceof __PHP_Incomplete_Class) {
-           
+            
             return ($object = unserialize(preg_replace('/^O:\d+:"[^"]++"/', 'O:' . strlen($class) . ':"' . $class . '"', serialize($object))));
         }
-
+        
         return $object;
     }
     

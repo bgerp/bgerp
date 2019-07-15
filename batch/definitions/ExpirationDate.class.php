@@ -40,9 +40,9 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
     /**
      * Връща автоматичния партиден номер според класа
      *
-     * @param mixed     $documentClass - класа за който ще връщаме партидата
-     * @param int       $id            - ид на документа за който ще връщаме партидата
-     * @param int       $storeId       - склад
+     * @param mixed         $documentClass - класа за който ще връщаме партидата
+     * @param int           $id            - ид на документа за който ще връщаме партидата
+     * @param int           $storeId       - склад
      * @param datetime|NULL $date          - дата
      *
      * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
@@ -52,7 +52,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
         $date = dt::today();
         
         $time = cat_Products::getParams($this->rec->productId, 'expiryTime');
-        if(!isset($time)){
+        if (!isset($time)) {
             $time = $this->rec->time;
         }
         
@@ -183,10 +183,10 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
     /**
      * Подрежда подадените партиди
      *
-     * @param array     $batches - наличните партиди
-     *                           ['batch_name'] => ['quantity']
+     * @param array         $batches - наличните партиди
+     *                               ['batch_name'] => ['quantity']
      * @param datetime|NULL $date
-     *                           return void
+     *                               return void
      */
     public function orderBatchesInStore(&$batches, $storeId, $date = null)
     {

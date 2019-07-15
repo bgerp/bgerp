@@ -723,10 +723,10 @@ class core_Settings extends core_Manager
     /**
      * Връща масив с всички перонализации за посочената константа
      * Ключовете на масива са потребителите или ролите, а стойностите - стойностите на константата
-     * 
+     *
      * @param string $constName името на константата
      * @param string $key
-     * 
+     *
      * @return array
      */
     public static function fetchPersonalConfig($constName, $key)
@@ -737,8 +737,8 @@ class core_Settings extends core_Manager
         
         $query->orderBy('userOrRole', 'DESC');
         
-        while($rec = $query->fetch()) {
-            if(isset($rec->data[$constName])) {
+        while ($rec = $query->fetch()) {
+            if (isset($rec->data[$constName])) {
                 $res[$rec->userOrRole] = $rec->data[$constName];
             }
         }

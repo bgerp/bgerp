@@ -221,12 +221,12 @@ class batch_plg_InventoryNotes extends core_Plugin
     /**
      * Взима съмарите на артикула
      *
-     * @param int   $noteId
-     * @param int   $productId
-     * @param float $expectedQuantity
-     * @param int   $storeId
-     * @param datetime  $valior
-     * @param bool  $alwaysShowBatches
+     * @param int      $noteId
+     * @param int      $productId
+     * @param float    $expectedQuantity
+     * @param int      $storeId
+     * @param datetime $valior
+     * @param bool     $alwaysShowBatches
      *
      * @return array|FALSE
      */

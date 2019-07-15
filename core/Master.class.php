@@ -752,9 +752,9 @@ class core_Master extends core_Manager
     /**
      * Метод по подразбиране
      * Връща иконата на документа
-     * 
+     *
      * @param int|null $id
-     * 
+     *
      * @return string|null
      */
     public function getIcon_($id = null)

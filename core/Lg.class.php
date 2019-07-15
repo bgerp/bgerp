@@ -205,7 +205,6 @@ class core_Lg extends core_Manager
         
         // Когато се извършва начална инсталация - също не се превежда
         if (Mode::is('dbInit')) {
-            
             $kstring = str_replace(array('|*', '|'), array('', ''), $kstring);
             
             return $kstring;
@@ -357,7 +356,6 @@ class core_Lg extends core_Manager
                 } catch (core_exception_Expect $e) {
                     reportException($e);
                 }
-                
             } else {
                 $lg = self::getDefaultLang();
             }

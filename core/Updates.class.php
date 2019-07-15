@@ -350,7 +350,7 @@ class core_Updates extends core_Manager
             $version = self::parseVersion(core_Setup::get('LAST_DB_VERSION'));
         }
         
-        if(is_array($releases)) {
+        if (is_array($releases)) {
             foreach ($releases as $rel) {
                 if ($v = self::parseVersion($rel->tag_name)) {
                     if ($v > $version && $v < $best) {

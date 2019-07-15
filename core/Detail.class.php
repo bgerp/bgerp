@@ -376,7 +376,9 @@ class core_Detail extends core_Manager
             
             // Ако в сесията е спряно обновяването на мастъра, спира се
             $stopMasterUpdate = Mode::get("stopMasterUpdate{$rec->{$masterKey}}");
-            if($stopMasterUpdate === true) break;
+            if ($stopMasterUpdate === true) {
+                break;
+            }
             
             $masterInstance->invoke('AfterUpdateDetail', array($masterId, $this));
         }
@@ -517,8 +519,8 @@ class core_Detail extends core_Manager
         parent::prepareListFilter_($data);
         
         // Ако детайла се подготвя за показване в мастъра
-        if(is_object($data->listFilter) && isset($data->masterMvc)){
-           
+        if (is_object($data->listFilter) && isset($data->masterMvc)) {
+            
             // Кои са хидън полетата на мастъра?
             $masterFields = $data->masterMvc->selectFields("#input == 'hidden'");
             

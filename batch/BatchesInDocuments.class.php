@@ -120,8 +120,8 @@ class batch_BatchesInDocuments extends core_Manager
      * Рендиране на партидите на даде обект
      *
      * @param mixed $detailClassId - клас на обект
-     * @param int    $detailRecId   - ид на обект
-     * @param int    $storeId       - ид на склад
+     * @param int   $detailRecId   - ид на обект
+     * @param int   $storeId       - ид на склад
      *
      * @return core_ET $tpl        - шаблона с рендирането
      */
@@ -179,8 +179,8 @@ class batch_BatchesInDocuments extends core_Manager
                 $quantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($q);
                 $quantity .= ' ' . tr(cat_UoM::getShortName($rInfo->packagingId));
                 
-                if($showBatchLink){
-                    if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $q, $rec->batch)){
+                if ($showBatchLink) {
+                    if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $q, $rec->batch)) {
                         $label = $palletImgLink . $label;
                     }
                 }
@@ -189,8 +189,8 @@ class batch_BatchesInDocuments extends core_Manager
             }
             
             if ($batchDef instanceof batch_definitions_Serial) {
-                if($showBatchLink){
-                    if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, 1, $rec->batch)){
+                if ($showBatchLink) {
+                    if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, 1, $rec->batch)) {
                         $batch = $palletImgLink . $batch;
                     }
                 }
@@ -219,12 +219,11 @@ class batch_BatchesInDocuments extends core_Manager
                 $quantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($noBatchQuantity);
                 $quantity .= ' ' . tr(cat_UoM::getShortName($rInfo->packagingId));
                 
-                if($showBatchLink){
-                    if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $noBatchQuantity)){
+                if ($showBatchLink) {
+                    if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $noBatchQuantity)) {
                         $batch = $palletImgLink . $batch;
                     }
                 }
-                
             } else {
                 $batch = "<i style='color:red'>" . tr('Несъответствие') . '</i>';
                 $batch = ht::createHint($batch, 'К-то на разпределените партиди е повече от това на реда', 'error');
@@ -751,7 +750,7 @@ class batch_BatchesInDocuments extends core_Manager
     /**
      * Помощна ф-я за показване на партидите във фактура
      *
-     * @param int  $productId
+     * @param int    $productId
      * @param string $batches
      *
      * @return NULL|string
@@ -790,19 +789,20 @@ class batch_BatchesInDocuments extends core_Manager
     
     /**
      * Връща използваните партиди филтрирани по клас
-     * 
+     *
      * @param mixed $class
      * @param array $fields
+     *
      * @return array
      */
     public static function getBatchByType($class, $fields = array())
     {
         $Class = cls::get($class);
-        $tQuery =  batch_Templates::getQuery();
-        $tQuery->where("#driverClass = " . $Class->getClassId());
+        $tQuery = batch_Templates::getQuery();
+        $tQuery->where('#driverClass = ' . $Class->getClassId());
         $tQuery->show('id');
         $templates = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
-        if(!count($templates)){
+        if (!count($templates)) {
             
             return array();
         }
@@ -810,7 +810,7 @@ class batch_BatchesInDocuments extends core_Manager
         $bQuery = batch_BatchesInDocuments::getQuery();
         $bQuery->EXT('templateId', 'batch_Defs', 'externalName=templateId,remoteKey=productId,externalFieldName=productId');
         $bQuery->in('templateId', $templates);
-        if(count($fields)){
+        if (count($fields)) {
             $fields = arr::make($fields, true);
             $bQuery->show($fields);
         }

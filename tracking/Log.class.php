@@ -40,7 +40,7 @@ class tracking_Log extends core_Master
      *
      * var string|array
      */
-    public $listFields = 'id,vehicleId, driverId, text, location, fixTime, remoteIp, createdOn';
+    public $listFields = 'id,vehicleId, driverId, location, fixTime, remoteIp, createdOn';
     
     
     /**
@@ -100,11 +100,20 @@ class tracking_Log extends core_Master
         $data->query->orderBy('#fixTime', 'DESC');
     }
     
+    
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $data = self::parseTrackingData($rec->data);
         $l = cls::get('location_Type');
-        $row->location = $l->toVerbal(self::DMSToDD($data['latitude']) . ',' . self::DMSToDD($data['longitude']));
+      //  $row->location = $l->toVerbal(self::DMSToDD($data['latitude']) . ',' . self::DMSToDD($data['longitude']));
+        
+        $place = location_Places::toVerbal(self::DMSToDD($data['latitude']) . ',' . self::DMSToDD($data['longitude']));
+        
+        $row->location = $place;
+        $row->location .= ' - покажи  <a href="https://maps.google.com/?q='
+            . self::DMSToDD($data['latitude'])
+            . ',' . self::DMSToDD($data['longitude']) . '" target=_new>карта</a><br>';
+        
     }
     
     protected function on_CalcText($mvc, $rec)
