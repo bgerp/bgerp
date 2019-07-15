@@ -567,7 +567,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
                 
                 // Ако има избрано отклонение спрямо средното тегло
-                if($masterRec->weightDeviationAverageWarning){
+                if($masterRec->weightDeviationAverageWarning && $rec->state != 'rejected'){
                     
                     // Колко е средното тегло досега
                     if($average = self::getAverageWeight($rec->taskId, $rec->productId)){
@@ -1059,7 +1059,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         $arr = array();
         $query = self::getQuery();
-        $query->where("#taskId = {$taskId} AND #productId = {$productId} AND #type = 'production'");
+        $query->where("#taskId = {$taskId} AND #productId = {$productId} AND #type = 'production' AND #state != 'rejected'");
         while ($fRec = $query->fetch()){
             $weight = $fRec->weight / $fRec->quantity;
             $arr[] = max(array($weight / 10, 1));
