@@ -36,7 +36,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
     public function isApplicable($mvc)
     {
         $exportableFields = $this->getCsvFieldSet($mvc)->selectFields();
-       
+        
         return empty($exportableFields) ? false : true;
     }
     
@@ -52,9 +52,9 @@ class bgerp_plg_CsvExport extends core_BaseClass
         $fieldset = new core_FieldSet();
         
         $exportableFields = arr::make($mvc->exportableCsvFields, true);
-        foreach ($exportableFields as $name => $caption){
+        foreach ($exportableFields as $name => $caption) {
             $fieldset->FLD($name, 'varchar', "caption={$caption}");
-            if($mvc->getField($name, false)){
+            if ($mvc->getField($name, false)) {
                 $fieldset->fields[$name] = $mvc->getField($name, false);
             }
         }
@@ -117,6 +117,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
      */
     public function export($filter)
     {
+        bp($filter);
         $cu = core_Users::getCurrent();
         $recs = core_Cache::get($this->mvc->className, "exportRecs{$cu}");
         core_App::setTimeLimit(count($recs) / 10);

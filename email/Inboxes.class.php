@@ -171,10 +171,65 @@ class email_Inboxes extends core_Master
     public function description()
     {
         $this->FLD('email', 'email(link=no)', 'caption=Имейл, mandatory, silent');
+        $this->FLD('name', 'varchar(128)', 'caption=Име, silent');
         $this->FLD('accountId', 'key(mvc=email_Accounts, select=email)', 'caption=Сметка, refreshForm, mandatory, notNull, silent');
         $this->FLD('notifyForEmail', 'enum(yes=Винаги,no=Стандартно за системата)', 'caption=Нотифициране на отговорниците за получен имейл->Избор, notNull');
         
         $this->setDbUnique('email');
+    }
+    
+    
+    /**
+     * Връща името за "From:" хедъра
+     * 
+     * @param integer $id
+     * 
+     * @return string
+     */
+    public static function getFromName($id)
+    {
+        $res = '';
+        
+        $rec = self::fetch($id);
+        
+        if (!$rec) {
+            
+            return $res;
+        }
+        
+        $res = trim($rec->name);
+        
+        if (!$res) {
+            $email = mb_strtolower(trim($rec->email));
+            
+            $cEmailArr = email_Accounts::getCommonAndCorporate();
+            
+            $ourCRec = crm_Companies::fetchOurCompany('name');
+            
+            if ($cEmailArr[$email]) {
+                $res = $ourCRec->name;
+            } else {
+                if (!email_Accounts::fetch(array("LOWER(#email) = '[#1#]' AND #state = 'active'", $email))) {
+                    if ($rec->inCharge > 0) {
+                        $names = core_Users::fetchField($rec->inCharge, 'names');
+                        $names = core_Users::prepareUserNames($names);
+                        
+                        if ($names) {
+                            $res .= $names;
+                        }
+                        $res .= $res ? ', ' : '';
+                        
+                        if (defined('OUR_COMPANY_SHORT_NAME')) {
+                            $res .= OUR_COMPANY_SHORT_NAME;
+                        } else {
+                            $res .= $ourCRec->name;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return (string) $res;
     }
     
     

@@ -312,35 +312,35 @@ class core_Os
      */
     public static function getPhpCmd()
     {
-        $paths = array( defined(EF_PHP_PATH) ? EF_PHP_PATH : false, 
-                        defined('PHP_PATH') ? PHP_PATH : false,
-                        getenv('PHP_PATH'), 
-                        defined('PHP_BINARY') ? PHP_BINARY : false);
-
-        foreach($paths as $p) { 
-            if($p && file_exists($p) && is_executable($p) && strpos(basename($p), 'php') !== false) {
-
+        $paths = array(defined(EF_PHP_PATH) ? EF_PHP_PATH : false,
+            defined('PHP_PATH') ? PHP_PATH : false,
+            getenv('PHP_PATH'),
+            defined('PHP_BINARY') ? PHP_BINARY : false);
+        
+        foreach ($paths as $p) {
+            if ($p && file_exists($p) && is_executable($p) && strpos(basename($p), 'php') !== false) {
+                
                 return $p;
             }
         }
         
-        if(self::isWindows()) {
-            $cmd = "where php";
+        if (self::isWindows()) {
+            $cmd = 'where php';
         } else {
-            $cmd = "which php";
+            $cmd = 'which php';
         }
-
+        
         exec($cmd, $lines, $returnVal);
         
         $php = false;
-
-        if($returnVal == 0 && strlen($lines[0]) && is_executable($lines[0])) {
+        
+        if ($returnVal == 0 && strlen($lines[0]) && is_executable($lines[0])) {
             $php = $lines[0];
         }
-
+        
         return $php;
     }
-
+    
     
     /**
      * Връща броя на стартираните процеси на Apache

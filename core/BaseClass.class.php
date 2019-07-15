@@ -365,9 +365,9 @@ class core_BaseClass
      */
     public function hasPlugin($name)
     {
-        if(is_array($this->_plugins)){
-            foreach ($this->_plugins as $Plugin){
-                if($Plugin instanceof $name){
+        if (is_array($this->_plugins)) {
+            foreach ($this->_plugins as $Plugin) {
+                if ($Plugin instanceof $name) {
                     
                     return true;
                 }

@@ -2778,7 +2778,7 @@ class cat_Products extends embed_Manager
             $data->rec = static::fetchRec($id);
             $data->row = cat_Products::recToVerbal($data->rec);
             $data->documentType = $documentType;
-            $data->Embedder = cls::get('cat_Products');
+            $data->Embedder = cat_Products::getClassId();
             $data->isSingle = false;
             $data->noChange = true;
             $Driver->prepareProductDescription($data);
@@ -3451,6 +3451,7 @@ class cat_Products extends embed_Manager
      */
     public function getExportFieldsNameFromMaster()
     {
+        
         return array('productId' => 'code', 'packQuantity', 'packagingId', 'packPrice', 'batch');
     }
     
@@ -3536,7 +3537,14 @@ class cat_Products extends embed_Manager
                     $recs[$dRec->id] = new stdClass();
                 }
                 
-                foreach ($fFieldsArr as $k => $vArr) {
+                $allFFieldsArr = $fFieldsArr;
+                
+                if ($dInst->exportToMaster) {
+                    $exportToMasterArr = arr::make($dInst->exportToMaster, true);
+                    $allFFieldsArr += $exportToMasterArr;
+                }
+                
+                foreach ($allFFieldsArr as $k => $vArr) {
                     if (!$dInst->fields[$k]) {
                         continue;
                     }
@@ -3605,14 +3613,14 @@ class cat_Products extends embed_Manager
                 }
                 
                 // Добавяме отстъпката към цената
-                if ($fFieldsArr['packPrice']) {
+                if ($allFFieldsArr['packPrice']) {
                     if ($recs[$dRec->id]->packPrice && $dRec->discount) {
                         $recs[$dRec->id]->packPrice -= ($recs[$dRec->id]->packPrice * $dRec->discount);
                     }
                 }
                 
                 // За добавяне на бачовете
-                if ($fFieldsArr['batch'] && $masterMvc->storeFieldName && $mRec->{$masterMvc->storeFieldName}) {
+                if ($allFFieldsArr['batch'] && $masterMvc->storeFieldName && $mRec->{$masterMvc->storeFieldName}) {
                     $Def = batch_Defs::getBatchDef($dRec->{$dInst->productFld});
                     if ($recs[$dRec->id] && isset($recs[$dRec->id]->packQuantity) && $Def) {
                         if (!$csvFields->fields['batch']) {

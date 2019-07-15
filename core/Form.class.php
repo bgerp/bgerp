@@ -218,7 +218,7 @@ class core_Form extends core_FieldSet
             }
             
             $type = $field->type;
-            if($this->cmd == 'refresh'){
+            if ($this->cmd == 'refresh') {
                 $type->_isRefreshed = true;
             }
             
@@ -575,12 +575,13 @@ class core_Form extends core_FieldSet
             
             $cntErr = 0;
             $cntWrn = 0;
-             
+            
             foreach ($this->errors as $field => $errRec) {
+                if ($errRec->msg === false) {
+                    continue;
+                }
                 
-                if($errRec->msg === false) continue;
-
-                if(empty($errRec->msg)){
+                if (empty($errRec->msg)) {
                     $fieldCaption = tr($this->fields[$field]->caption);
                     $errRec->msg = "Има проблем с полето|* <b>{$fieldCaption}</b>";
                 }
@@ -700,7 +701,6 @@ class core_Form extends core_FieldSet
             
             // Скрива полетата, които имат само една опция и атрибут `hideIfOne`
             foreach ($fields as $name => $field) {
-                
                 if ($field->hideIfOne) {
                     if ($field->type instanceof type_Key) {
                         $field->type->prepareOptions();
@@ -740,7 +740,7 @@ class core_Form extends core_FieldSet
                 $options = $field->options;
                 
                 $attr = $field->attr ? $field->attr : array();
-                if(isset($field->elementId)){
+                if (isset($field->elementId)) {
                     $attr['id'] = $field->elementId;
                 }
                 
@@ -783,14 +783,14 @@ class core_Form extends core_FieldSet
                         $attr['class'] .= ' inputWarning';
                         $attr['errorClass'] .= ' inputWarning';
                         
-                        if(isset($field->displayInBottom)){
+                        if (isset($field->displayInBottom)) {
                             $fieldsLayout->replace('bottomWarningClass', 'FORM_BOTTOM_CLASS');
                         }
                     } else {
                         $attr['class'] .= ' inputError';
                         $attr['errorClass'] .= ' inputError';
                         
-                        if(isset($field->displayInBottom)){
+                        if (isset($field->displayInBottom)) {
                             $fieldsLayout->replace('bottomErrorClass', 'FORM_BOTTOM_CLASS');
                         }
                     }
@@ -973,7 +973,7 @@ class core_Form extends core_FieldSet
                             list($group, $en) = explode('||', $group);
                         }
                     }
-
+                    
                     // Удебеляваме имената на задължителните полета
                     if ($field->mandatory || ($id != ($captionArrCount - 1))) {
                         $caption = "<b>${caption}</b>";
@@ -1030,8 +1030,8 @@ class core_Form extends core_FieldSet
                     $fld = new ET(" {$caption} [#{$field->name}#]{$unit}");
                     $tpl->prepend($fld, $field->inlineTo);
                     $tpl->prepend(' inlineTo', $field->inlineTo . '_INLINETO_CLASS');
-                } elseif($field->displayInBottom){
-                    if($field->noCaption){
+                } elseif ($field->displayInBottom) {
+                    if ($field->noCaption) {
                         $fld = new ET("[#{$field->name}#]{$unit}");
                     } else {
                         $fld = new ET(" {$caption} [#{$field->name}#]{$unit}");

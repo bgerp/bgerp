@@ -42,9 +42,9 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
     /**
      * Връща автоматичния партиден номер според класа
      *
-     * @param mixed     $documentClass - класа за който ще връщаме партидата
-     * @param int       $id            - ид на документа за който ще връщаме партидата
-     * @param int       $storeId       - склад
+     * @param mixed         $documentClass - класа за който ще връщаме партидата
+     * @param int           $id            - ид на документа за който ще връщаме партидата
+     * @param int           $storeId       - склад
      * @param datetime|NULL $date          - дата
      *
      * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
@@ -54,9 +54,9 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         $batch = null;
         
         // Ако ще се генерира автоматична стойност
-        if($this->rec->autoValue == 'yes'){
+        if ($this->rec->autoValue == 'yes') {
             $time = cat_Products::getParams($this->rec->productId, 'expiryTime');
-            if(!isset($time)){
+            if (!isset($time)) {
                 $time = $this->rec->time;
             }
             
@@ -76,9 +76,10 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
     
     /**
      * Генерира следващия пореден номер от партидата
-     * 
+     *
      * @param datetime $expiryDate - срок на годност
-     * @return string|NULL         - генерирания номер според типа на партидата
+     *
+     * @return string|NULL - генерирания номер според типа на партидата
      */
     private function getNextBatch($expiryDate)
     {
@@ -87,8 +88,8 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
         
         $normalized = array();
-        foreach ($existingBatches as $batch){
-            list($batchNormalized,) = explode($delimiter, $batch, 2);
+        foreach ($existingBatches as $batch) {
+            list($batchNormalized, ) = explode($delimiter, $batch, 2);
             $normalized[] = str_replace($this->rec->prefix, '', $batchNormalized);
         }
         rsort($normalized);
@@ -97,14 +98,14 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         $nextNumber = isset($max) ? str::increment($max) : str_pad(1, $this->rec->length, '0', STR_PAD_LEFT);
         $nextNumber = "{$this->rec->prefix}{$nextNumber}";
         
-        if(!empty($this->rec->length) && strlen($nextNumber) > $this->rec->length){
+        if (!empty($this->rec->length) && strlen($nextNumber) > $this->rec->length) {
             
-            return null;
+            return;
         }
         
         $date = dt::mysql2verbal($expiryDate, $this->rec->format);
         $nextNumber = "{$nextNumber}{$delimiter}{$date}";
-            
+        
         return $nextNumber;
     }
     
@@ -112,9 +113,9 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
     /**
      * Проверява дали стойността е невалидна
      *
-     * @param string   $value    - стойноста, която ще проверяваме
-     * @param double $quantity - количеството
-     * @param string   &$msg     -текста на грешката ако има
+     * @param string $value    - стойноста, която ще проверяваме
+     * @param float  $quantity - количеството
+     * @param string &$msg     -текста на грешката ако има
      *
      * @return bool - валиден ли е кода на партидата според дефиницията или не
      */
@@ -217,10 +218,10 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
     /**
      * Подрежда подадените партиди
      *
-     * @param array     $batches - наличните партиди
-     *                           ['batch_name'] => ['quantity']
+     * @param array         $batches - наличните партиди
+     *                               ['batch_name'] => ['quantity']
      * @param datetime|NULL $date
-     *                           return void
+     *                               return void
      */
     public function orderBatchesInStore(&$batches, $storeId, $date = null)
     {

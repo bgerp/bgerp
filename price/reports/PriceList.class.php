@@ -221,7 +221,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                         $difference = -1;
                     } else {
                         $difference = (round(trim($priceByPolicy), $round) - trim($oldPrice)) / $oldPrice;
-                        $difference = round($difference, 2);
+                        $difference = round($difference, 4);
                     }
                     
                     // Ако няма промяна, артикулът не се показва

@@ -13,11 +13,11 @@
  *
  * @since     v 0.1
  */
-class tremol_FiscPrinterDriver2 extends core_Mvc
+class tremol_FiscPrinterDriverWeb extends core_Mvc
 {
-    public $interfaces = 'peripheral_DeviceIntf, peripheral_FiscPrinter';
+    public $interfaces = 'peripheral_DeviceIntf, peripheral_FiscPrinterWeb';
     
-    public $title = 'FP Tremol';
+    public $title = 'Уеб ФУ на Тремол';
     
     protected $canCashReceived = 'admin, peripheral';
     
@@ -26,6 +26,12 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     protected $canMakeReport = 'admin, peripheral';
     
     protected $rcpNumPattern = '/^[a-z0-9]{8}-[a-z0-9]{4}-[0-9]{7}$/i';
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'tremol_FiscPrinterDriver2';
     
     
     /**
@@ -270,7 +276,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      * 
      * @return string
      *
-     * @see peripheral_FiscPrinter
+     * @see peripheral_FiscPrinterWeb
      */
     public function getJs($pRec, $params)
     {
@@ -509,7 +515,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      *
      * @return string
      *
-     * @see peripheral_FiscPrinter
+     * @see peripheral_FiscPrinterWeb
      */
     public function getJsIsWorking($pRec)
     {
@@ -520,6 +526,40 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
                                     fpOnConnectionSuccess();
                                 } catch(ex) {
                                     fpOnConnectionErr(ex.message);
+                                }
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]');
+        
+        $this->addTplFile($jsTpl, $pRec->driverVersion);
+        $this->connectToPrinter($jsTpl, $pRec, false);
+        
+        $js = $jsTpl->getContent();
+        
+        // Минифициране на JS
+        $js = minify_Js::process($js);
+        
+        return $js;
+    }
+    
+    
+    /**
+     * Връща JS функция, за отпечатване на дубликат
+     * При успех вика `fpOnDuplicateSuccess`, а при грешка fpOnDuplicateErr
+     *
+     * @param stdClass $pRec - запис от peripheral_Devices
+     *
+     * @return string
+     *
+     * @see peripheral_FiscPrinterWeb
+     */
+    public function getJsForDuplicate($pRec)
+    {
+        $jsTpl = new ET('[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                                try {
+                                    [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                    fpPrintLastReceiptDuplicate();
+                                    fpOnDuplicateSuccess();
+                                } catch(ex) {
+                                    fpOnDuplicateErr(ex.message);
                                 }
                             [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]');
         
@@ -547,7 +587,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
      *
      * @return string
      *
-     * @see peripheral_FiscPrinter
+     * @see peripheral_FiscPrinterWeb
      */
     public function getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $printAvailability = false, $text = '')
     {
@@ -623,8 +663,8 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
         }
         
         // Добавяме необходимите JS файлове
-        $tpl->replace(sbf("tremol/js/{$driverVersion}/fp_core.js"), 'FP_CORE_JS');
-        $tpl->replace(sbf("tremol/js/$driverVersion/fp.js"), 'FP_JS');
+        $tpl->replace(sbf("tremol/libs/{$driverVersion}/fp_core.js"), 'FP_CORE_JS');
+        $tpl->replace(sbf("tremol/libs/$driverVersion/fp.js"), 'FP_JS');
         $tpl->replace(sbf("tremol/js/fiscPrinter.js"), 'FISC_PRINT_JS');
     }
     
@@ -716,9 +756,9 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param tremol_FiscPrinterDriver2 $Driver
-     * @param peripheral_Devices        $Embedder
-     * @param stdClass                  $data
+     * @param tremol_FiscPrinterDriverWeb $Driver
+     * @param peripheral_Devices          $Embedder
+     * @param stdClass                    $data
      */
     protected static function on_AfterPrepareEditForm($Driver, $Embedder, &$data)
     {
@@ -778,7 +818,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     /**
      * След рендиране на единичния изглед
      *
-     * @param tremol_FiscPrinterDriver2 $Driver
+     * @param tremol_FiscPrinterDriverWeb $Driver
      * @param peripheral_Devices        $Embedder
      * @param core_ET                   $tpl
      * @param stdClass                  $data
@@ -956,7 +996,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     
     /**
      *
-     * @param tremol_FiscPrinterDriver2 $Driver
+     * @param tremol_FiscPrinterDriverWeb $Driver
      * @param peripheral_Devices        $Embedder
      * @param object                    $data
      */
@@ -971,7 +1011,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     /**
      * След подготовка на тулбара на единичен изглед
      *
-     * @param tremol_FiscPrinterDriver2 $Driver
+     * @param tremol_FiscPrinterDriverWeb $Driver
      * @param peripheral_Devices        $mvc
      * @param object                    $res
      * @param object                    $data
@@ -1393,7 +1433,7 @@ class tremol_FiscPrinterDriver2 extends core_Mvc
     public function getStornoReasons($rec)
     {
         $res = arr::make(array_keys(self::DEFAULT_STORNO_REASONS_MAP), true);
-       
+        
         return $res;
     }
     

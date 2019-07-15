@@ -66,9 +66,9 @@ class polygonteam_Scales extends core_Mvc
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param tremol_FiscPrinterDriver2 $Driver
-     * @param peripheral_Devices        $Embedder
-     * @param stdClass                  $data
+     * @param tremol_FiscPrinterDriverWeb $Driver
+     * @param peripheral_Devices          $Embedder
+     * @param stdClass                    $data
      */
     protected static function on_AfterPrepareEditForm($Driver, $Embedder, &$data)
     {

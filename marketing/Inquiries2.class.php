@@ -533,6 +533,7 @@ class marketing_Inquiries2 extends embed_Manager
             
             // Имейла съответстващ на избраната кутия
             $sentFrom = email_Inboxes::fetchField($sentFromBox, 'email');
+            $sentFromName = email_Inboxes::getFromName($sentFromBox);
             
             // Изпращане на имейл с phpmailer
             $PML = email_Accounts::getPML($sentFrom);
@@ -593,7 +594,7 @@ class marketing_Inquiries2 extends embed_Manager
             $PML->AddCustomHeader("Customer-Origin-Email: {$rec->email}");
             
             // От кой адрес е изпратен
-            $PML->SetFrom($sentFrom);
+            $PML->SetFrom($sentFrom, $sentFromName);
             
             if ($sendStatus = $PML->Send()) {
                 // Задаваме екшъна за изпращането
