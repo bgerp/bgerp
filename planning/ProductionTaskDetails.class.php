@@ -565,6 +565,22 @@ class planning_ProductionTaskDetails extends doc_Detail
                         $row->weight = ht::createHint($row->weight, "Разминаване спрямо очакваното транспортно тегло от|* {$expectedWeightVerbal} |кг|*", 'notice', false);
                     }
                 }
+                
+                // Ако има избрано отклонение спрямо средното тегло
+                if($masterRec->weightDeviationAverageWarning && $rec->state != 'rejected'){
+                    
+                    // Колко е средното тегло досега
+                    if($average = self::getAverageWeight($rec->taskId, $rec->productId)){
+                        $singleWeight = $rec->weight / $rec->quantity;
+                        $deviation = abs(round(($average - $singleWeight) / (($average + $singleWeight) / 2), 2));
+                        
+                        // Има ли разминаване спрямо средното тегло
+                        if($deviation > $masterRec->weightDeviationAverageWarning){
+                            $expectedWeightVerbal = core_Type::getByName('double(smartRound)')->toVerbal($average * $rec->quantity);
+                            $row->weight = ht::createHint($row->weight, "Разминаване спрямо средното транспортно тегло в операцията от|* {$expectedWeightVerbal} |кг|*", 'error', false);
+                        }
+                    }
+                }
             }
             
             if (isset($data->masterMvc) && $masterRec->productId != $rec->productId) {
@@ -1029,5 +1045,31 @@ class planning_ProductionTaskDetails extends doc_Detail
         cls::get(get_called_class())->save($rec);
         
         return $rec;
+    }
+    
+    
+    /**
+     * Колко е единичното средно тегло на артикула от операцията
+     * 
+     * @param int $taskId
+     * @param int $productId
+     * @return double $average
+     */
+    public static function getAverageWeight($taskId, $productId)
+    {
+        $arr = array();
+        $query = self::getQuery();
+        $query->where("#taskId = {$taskId} AND #productId = {$productId} AND #type = 'production' AND #state != 'rejected'");
+        while ($fRec = $query->fetch()){
+            $weight = $fRec->weight / $fRec->quantity;
+            $arr[] = max(array($weight / 10, 1));
+        }
+        sort($arr);
+        unset($arr[count($arr) - 1]);
+        unset($arr[0]);
+        $sum = array_sum($arr);
+        $average = round($sum / count($arr), 4);
+       
+        return $average;
     }
 }

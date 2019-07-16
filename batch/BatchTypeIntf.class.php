@@ -41,9 +41,9 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Връща автоматичния партиден номер според класа
      *
-     * @param mixed     $documentClass - класа за който ще връщаме партидата
-     * @param int       $id            - ид на документа за който ще връщаме партидата
-     * @param int       $storeId       - склад
+     * @param mixed         $documentClass - класа за който ще връщаме партидата
+     * @param int           $id            - ид на документа за който ще връщаме партидата
+     * @param int           $storeId       - склад
      * @param datetime|NULL $date          - дата
      *
      * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
@@ -57,9 +57,9 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Проверява дали стойността е невалидна
      *
-     * @param string   $value    - стойноста, която ще проверяваме
-     * @param double $quantity - количеството
-     * @param string   &$msg     -текста на грешката ако има
+     * @param string $value    - стойноста, която ще проверяваме
+     * @param float  $quantity - количеството
+     * @param string &$msg     -текста на грешката ако има
      *
      * @return bool - валиден ли е кода на партидата според дефиницията или не
      */
@@ -165,10 +165,10 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Подрежда подадените партиди
      *
-     * @param array     $batches - наличните партиди
-     *                           ['batch_name'] => ['quantity']
+     * @param array         $batches - наличните партиди
+     *                               ['batch_name'] => ['quantity']
      * @param datetime|NULL $date
-     *                           return void
+     *                               return void
      */
     public function orderBatchesInStore(&$batches, $storeId, $date = null)
     {

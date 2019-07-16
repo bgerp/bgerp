@@ -1216,7 +1216,6 @@ class core_Users extends core_Manager
                 
                 if (!$rec->__updateRoleLogs) {
                     if (!$fields || in_array('roles', $fields = arr::make($fields))) {
-                        
                         if ($oRec->roles != $rec->roles) {
                             $dArr = type_Keylist::getDiffArr($rec->roles, $oRec->roles);
                             if (!empty($dArr['delete']) || !empty($dArr['add'])) {

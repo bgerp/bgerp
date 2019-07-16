@@ -44,13 +44,21 @@ class context_Plugin extends core_Plugin
     {
         if (count($mvc->buttons) > 5 && !Mode::is('screenMode', 'narrow') ||
         count($mvc->buttons) > 3 && Mode::is('screenMode', 'narrow')) {
-            $link = ht::createFnBtn('Още', "toggleDisplay('hidden_{$rowId}'); var trigger = $(this).closest('.toolbar-first').find('.more-btn'); $(this).remove(); $(trigger).contextMenu('destroy'); prepareContextMenu(); $(trigger).contextMenu('open'); $(trigger).contextMenu('open');", null, array('ef_icon' => 'img/16/dots.png', 'class' => 'linkWithIcon'));
-            
-            $layout = new ET("<div class='clearfix21 toolbar'><div class='toolbar-first'>[#ROW0#][#ROW1#]" .
-            "<!--ET_BEGIN ROW2--><div class='modal-toolbar twoColsContext' data-position='auto' id='Row2_{$rowId}'><span class='context-column'>[#ROW2#]</span>" .
-            "<!--ET_BEGIN HIDDEN--><span class='context-column sideBorder'>[#HIDDEN#]</span><!--ET_END HIDDEN-->" .
-            '</div><!--ET_END ROW2-->' .
-            '</div></div>');
+            $hiddenBtns = 0;
+            foreach ($mvc->buttons as $button) {
+                if($button->attr['row'] == 2) $hiddenBtns++;
+            }
+            if($hiddenBtns > 1) {
+                $link = ht::createFnBtn('Още', "toggleDisplay('hidden_{$rowId}'); var trigger = $(this).closest('.toolbar-first').find('.more-btn'); $(this).remove(); $(trigger).contextMenu('destroy'); prepareContextMenu(); $(trigger).contextMenu('open'); $(trigger).contextMenu('open');", null, array('ef_icon' => 'img/16/dots.png', 'class' => 'linkWithIcon'));
+
+                $layout = new ET("<div class='clearfix21 toolbar'><div class='toolbar-first'>[#ROW0#][#ROW1#]" .
+                    "<!--ET_BEGIN ROW2--><div class='modal-toolbar twoColsContext' data-position='auto' id='Row2_{$rowId}'><span class='context-column'>[#ROW2#]</span>" .
+                    "<!--ET_BEGIN HIDDEN--><span class='context-column sideBorder'>[#HIDDEN#]</span><!--ET_END HIDDEN-->" .
+                    '</div><!--ET_END ROW2-->' .
+                    '</div></div>');
+            } else {
+                $layout = new ET("<div class='clearfix21 toolbar' style='margin-bottom: 8px;'>[#ROW1#][#ROW2#][#HIDDEN#]</div>");
+            }
         } else {
             $layout = new ET("<div class='clearfix21 toolbar' style='margin-bottom: 8px;'>[#ROW1#][#ROW2#][#HIDDEN#]</div>");
         }

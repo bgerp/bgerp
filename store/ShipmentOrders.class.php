@@ -310,7 +310,9 @@ class store_ShipmentOrders extends store_DocumentMaster
             $logisticData['toPlace'] = core_Lg::transliterate($logisticData['toPlace']);
             $logisticData['toAddress'] = core_Lg::transliterate($logisticData['toAddress']);
             $row->inlineDeliveryAddress = "{$logisticData['toCountry']}, {$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toAddress']}";
-            $row->inlineContragentAddress = $row->inlineDeliveryAddress;
+            if (!Request::get('asClient')) {
+                $row->inlineContragentAddress = $row->inlineDeliveryAddress;
+            }
             $row->toCompany = $logisticData['toCompany'];
         }
         
@@ -519,10 +521,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         
         if ($rec->state == 'active' && $rec->isReverse == 'no') {
              if(cash_Pko::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))){
-                 $amount = ($data->rec->amountDelivered - 0.005) / $data->rec->currencyRate;
-                 $amount = round($amount, 2);
-                 
-                 $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $data->rec->containerId, 'amountDeal' => $amount, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов документ');
+                 $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов документ');
              }
         }
     }

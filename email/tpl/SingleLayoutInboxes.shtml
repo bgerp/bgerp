@@ -13,6 +13,12 @@
                                 <td class='dt'>|Имейл|*:</td>
                                 <td> <b>[#email#]</b></td>
                             </tr>
+                            <!--ET_BEGIN name-->
+                            <tr>
+                                <td class='dt'>|Име|*:</td>
+                                <td> <b>[#name#]</b></td>
+                            </tr>
+                            <!--ET_END name-->
                             <tr>
                                 <td class='dt'>|Сметка|*:</td>
                                 <td> <b>[#accountId#]</b></td>

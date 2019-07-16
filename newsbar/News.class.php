@@ -249,7 +249,7 @@ class newsbar_News extends core_Master
         if (!$form->rec->id) {
             $form->setDefault('domainId', cms_Domains::getCurrent());
         }
-
+        
         if (!$form->rec->padding) {
             $form->setDefault('padding', 10);
         }
@@ -326,7 +326,7 @@ class newsbar_News extends core_Master
         }
         
         if ($rec->newsHtml) {
-            $text .= hclean_Purifier::clean($rec->newsHtml, 'UTF-8');
+            $text .= $rec->newsHtml;
         }
         
         $html = new ET("<div class=\"defaultNewsbar [#class#]\" style=\"<!--ET_BEGIN padding-->padding: [#padding#]px;<!--ET_END padding-->background-color: rgb([#r#], [#g#], [#b#]);

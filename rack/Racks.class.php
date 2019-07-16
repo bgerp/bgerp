@@ -641,7 +641,7 @@ class rack_Racks extends core_Master
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         $mvc->clearDetails($id);
-        $mvc::on_AfterUpdateMaster($mvc, $id, $rec);
+        $mvc::on_AfterUpdateMaster($mvc, $id, $rec->id);
     }
     
     

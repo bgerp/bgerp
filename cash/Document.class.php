@@ -205,6 +205,33 @@ abstract class cash_Document extends deals_PaymentDocument
     
     
     /**
+     * Връща очакваната сума според оридижна
+     * 
+     * @param int $fromContainerId
+     * @param stdClass $rec
+     * @return NULL|int $amount
+     */
+    public function getExpectedAmount_($fromContainerId, $rec)
+    {
+        $amount = null;
+        
+        $Document = doc_Containers::getDocument($fromContainerId);
+        $documentRec = $Document->fetch();
+        if($Document->isInstanceOf('deals_InvoiceMaster')){ 
+            $minus = ($documentRec->type == 'dc_note') ? 0 : 0.005;
+            $amount = ($documentRec->dealValue - $documentRec->discountAmount) + $documentRec->vatAmount - $minus;
+            $amount /= ($documentRec->displayRate) ? $documentRec->displayRate : $documentRec->rate;
+            $amount = round($amount, 2);
+        } elseif($Document->isInstanceOf('store_DocumentMaster')){
+            $amount = $documentRec->amountDelivered / $documentRec->currencyRate;
+            $amount = round($amount, 2);
+        }
+       
+        return $amount;
+    }
+    
+    
+    /**
      *  Обработка на формата за редакция и добавяне
      */
     public static function on_AfterPrepareEditForm($mvc, $res, $data)
@@ -228,11 +255,17 @@ abstract class cash_Document extends deals_PaymentDocument
         $form->setDefault('dealCurrencyId', $cId);
         $form->setDefault('currencyId', $cId);
         
-        if ($expectedPayment = $dealInfo->get('expectedPayment')) {
-            if (isset($form->rec->originId, $form->rec->amountDeal)) {
-                $expectedPayment = $form->rec->amountDeal * $dealInfo->get('rate');
-            }
-            
+        $expectedPayment = null;
+        $realOriginId = isset($form->rec->fromContainerId) ? $form->rec->fromContainerId : $form->rec->originId;
+        if($expectedPayment1 = $mvc->getExpectedAmount($realOriginId, $form->rec)){
+            $expectedPayment = $expectedPayment1 * $dealInfo->get('rate');
+        }
+        
+        if(!isset($expectedPayment)){
+            $expectedPayment = $dealInfo->get('expectedPayment');
+        }
+        
+        if ($expectedPayment) {
             $amount = core_Math::roundNumber($expectedPayment / $dealInfo->get('rate'));
             
             if ($form->rec->currencyId == $form->rec->dealCurrencyId) {

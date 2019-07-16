@@ -415,7 +415,7 @@ class sales_Proformas extends deals_InvoiceMaster
             $amount = round($amount, 2);
             
             if (cash_Pko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
-                $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $rec->originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер към проформата');
+                $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $rec->originId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер към проформата');
             }
             
             if (bank_IncomeDocuments::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {

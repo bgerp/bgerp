@@ -452,10 +452,10 @@ class support_Systems extends core_Master
     
     /**
      * Променяме данните, които да се показват в ресурсите
-     * 
+     *
      * @param support_Systems $mvc
-     * @param stdClass $data
-     * @param string $detailName
+     * @param stdClass        $data
+     * @param string          $detailName
      */
     public static function on_AfterPrepareResourceData($mvc, $data, $detailName)
     {

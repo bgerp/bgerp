@@ -92,11 +92,11 @@ class core_RoleLogs extends core_Manager
     /**
      * Записва в лога опитите за логване
      *
-     * @param string       $roles
-     * @param string       $state
-     * @param null|integer $userId
-     * 
-     * @return integer
+     * @param string   $roles
+     * @param string   $state
+     * @param null|int $userId
+     *
+     * @return int
      */
     public static function add($roles, $state, $userId = null)
     {
@@ -119,10 +119,10 @@ class core_RoleLogs extends core_Manager
     /**
      * Проверка дали има права за разглеждане на лога на съответния потребител
      *
-     * @param integer $userId
-     * @param integer $CUserId
+     * @param int $userId
+     * @param int $CUserId
      *
-     * @return boolean
+     * @return bool
      */
     public static function canViewUserLog($userId, $CUserId)
     {
@@ -230,7 +230,7 @@ class core_RoleLogs extends core_Manager
      * @param string        $requiredRoles
      * @param string        $action
      * @param object        $rec
-     * @param integer       $userId
+     * @param int           $userId
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
