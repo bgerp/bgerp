@@ -930,6 +930,7 @@ class core_Cron extends core_Manager
                     
                     return;
                 }
+                continue;
             } else {
                 $okTrays = 0;
             }
