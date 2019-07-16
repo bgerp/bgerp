@@ -4,7 +4,7 @@
 /**
  * JS файловете
  */
-defIfNot('COMPACTOR_JS_FILES', 'jquery/[#jquery::JQUERY_VERSION#]/jquery.min.js, js/efCommon.js, js/overthrow-detect.js, toast/[#toast::TOAST_MESSAGE_VERSION#]/javascript/jquery.toastmessage.js');
+defIfNot('COMPACTOR_JS_FILES', 'jquery/[#jquery::JQUERY_VERSION#]/jquery.min.js, js/efCommon.js, toast/[#toast::TOAST_MESSAGE_VERSION#]/javascript/jquery.toastmessage.js');
 
 
 /**
