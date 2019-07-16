@@ -48,7 +48,7 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         $docs = $this->getShippedDocuments($mvc, $masterRec);
         
-        $form->FLD('doc', 'int', 'caption=Документи,removeAndRefreshForm=products,silent,mandatory');
+        $form->FLD('doc', 'int', 'caption=Документи,removeAndRefreshForm=products,silent,mandatory,class=w25');
         $form->setOptions('doc', array('' => '') + $docs);
         if (count($docs) == 1) {
             $form->setDefault('doc', key($docs));
