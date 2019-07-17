@@ -366,7 +366,20 @@ class core_Cls
                 $intf = $pIntf;
             }
         }
-        
+
+        // Добавяме интерфейсите на парент класовете
+        $class = self::getClassName($classObj);
+        while ($class = get_parent_class($class)) {
+            if(property_exists($class, 'interfaces')) {
+                $reflectionClass = new ReflectionClass($class);
+                $properties = $reflectionClass->getDefaultProperties(); 
+                if(trim($properties['interfaces'])) {
+                    $classObj->interfaces += arr::make($properties['interfaces'], true);
+                }
+            }
+        }
+
+
         return $classObj->interfaces;
     }
     

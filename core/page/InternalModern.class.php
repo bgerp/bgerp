@@ -45,7 +45,6 @@ class core_page_InternalModern extends core_page_Active
         }
         
         // Добавяне на базовия JS
-        $this->push('js/overthrow-detect.js', 'JS');
         $this->push('js/jPushMenu.js', 'JS');
         $this->push('js/modernTheme.js', 'JS');
         

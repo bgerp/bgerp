@@ -539,6 +539,10 @@ class cal_Calendar extends core_Master
      */
     public static function renderCalendar($year, $month, $data = array(), $header = NULL)
     {
+        // Падваме годината и месеца
+        $year  = str_pad($year, 2, '0', STR_PAD_LEFT);
+        $month = str_pad($month, 2, '0', STR_PAD_LEFT);
+ 
         // Таймстамп на първия ден на месеца
         $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
         
@@ -546,7 +550,7 @@ class cal_Calendar extends core_Master
         $lastDay = date('t', $firstDayTms);
         
         // Днес
-        $today = date('j-n-Y');
+        $today = date('d-m-Y');
         
         for($i = 1; $i <= $lastDay; $i++) {
             $t = mktime(0, 0, 0, $month, $i, $year);
@@ -1099,7 +1103,7 @@ class cal_Calendar extends core_Master
      * Генерираме масива за годината
      */
     public static function generateYear()
-    {
+    {  
     	$fromFilter = $from = Request::get('from');
     	$fromFilter = explode(".", $fromFilter);
 	    

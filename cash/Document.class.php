@@ -281,9 +281,9 @@ abstract class cash_Document extends deals_PaymentDocument
         $form->setOptions('operationSysId', $options);
         $defaultOperation = $dealInfo->get('defaultCaseOperation');
         
-        if (isset($defaultOperation) && array_key_exists($defaultOperation, $options)) {
+        if ($mvc instanceof cash_Rko || (isset($defaultOperation) && array_key_exists($defaultOperation, $options))) {
             $form->setDefault('operationSysId', $defaultOperation);
-            
+           
             $dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
             if ($dAmount != 0) {
                 $form->setDefault('amountDeal', $dAmount);

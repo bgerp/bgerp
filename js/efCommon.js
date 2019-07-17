@@ -2659,7 +2659,8 @@ function createObject(name) {
  * @param id: id на формата
  */
 function preventDoubleSubmission(id) {
-    var form = '#' + id;
+    if (!id) return;
+    var form = "#" + id;
     var lastSubmitStr, submitStr, lastSubmitTime, timeSinceSubmit;
 
     jQuery(form).bind('submit', function(event, data) {

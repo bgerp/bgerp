@@ -208,9 +208,7 @@ class core_Mvc extends core_FieldSet
         core_Users::forceSystemUser();
         
         $res = $this->setupMVC();
-        
-        $res .= core_Classes::add($this);
-        
+                
         // Де-форсираме системния потребител
         core_Users::cancelSystemUser();
         
@@ -1329,7 +1327,10 @@ class core_Mvc extends core_FieldSet
         } else {
             $html .= "<li class='debug-info'>" . ('Без установяване на DB таблици, защото липсва модел') . '</li>';
         }
-        
+
+        // Добавяме в списъка с интерфейсните класове
+        $html .= core_Classes::add($this);
+
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
         
