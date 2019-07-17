@@ -5625,7 +5625,7 @@ only screen and (max-width: 320px) {
     padding-left: 23px !important; }
   .external .docOutgoings .document {
     background-color: #ddecfd; }
-  .external .document {
+  .external .docIncomings .document {
     background-color: #fdffe5; }
 
   .wide .external .docIncomings {
