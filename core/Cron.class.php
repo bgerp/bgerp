@@ -932,10 +932,11 @@ class core_Cron extends core_Manager
                 }
             } else {
                 $okTrays = 0;
+
+                // Самостартираме крон
+                @fopen(toUrl(array('core_Cron', 'cron'), 'absolute-force'), 'r');
             }
             
-            // Самостартираме крон
-            @fopen(toUrl(array('core_Cron', 'cron'), 'absolute-force'), 'r');
             
             // Изчакваме още 2 секунди
             sleep(2);
