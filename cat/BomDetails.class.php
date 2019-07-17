@@ -978,6 +978,8 @@ class cat_BomDetails extends doc_Detail
         
         if ($toBomRec->type == 'production') {
             $activeBom = cat_Products::getLastActiveBom($productId, 'production');
+        } elseif($toBomRec->type == 'instant'){
+            $activeBom = cat_Products::getLastActiveBom($productId, 'instant');
         }
         
         if (!$activeBom) {

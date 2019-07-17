@@ -2197,7 +2197,7 @@ class cat_Products extends embed_Manager
      * Връща последната активна рецепта на артикула
      *
      * @param mixed  $id   - ид или запис
-     * @param string $type - вид работна или търговска
+     * @param string $type - вид работна/моментна/търговска
      *
      * @return mixed $res - записа на рецептата или FALSE ако няма
      */
@@ -2214,7 +2214,7 @@ class cat_Products extends embed_Manager
         $cond = "#productId = '{$rec->id}' AND #state = 'active'";
         
         if (isset($type)) {
-            expect(in_array($type, array('sales', 'production')));
+            expect(in_array($type, array('sales', 'instant', 'production')));
             $cond .= " AND #type = '{$type}'";
         }
         
