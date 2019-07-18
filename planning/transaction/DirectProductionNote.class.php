@@ -121,6 +121,22 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
     }
     
     
+    /**
+     * Връща транзакцията за производството на артикул
+     * 
+     * @param int $productId
+     * @param double $quantity
+     * @param int $storeId
+     * @param double|null $debitAmount
+     * @param mixed $classId
+     * @param int $documentId
+     * @param int $expenseItemId
+     * @param datetime $valior
+     * @param double|null $expenses
+     * @param array $details
+     * 
+     * @return array $entries
+     */
     public static function getProductionEntries($productId, $quantity, $storeId, $debitAmount, $classId, $documentId, $expenseItemId, $valior, $expenses, $details)
     {
         $entries = $array = array();
