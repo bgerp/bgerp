@@ -209,6 +209,8 @@ class sales_QuotationsDetails extends doc_Detail
     protected static function on_AfterPrepareListRecs($mvc, $data)
     {
         $recs = &$data->recs;
+        ksort($recs);
+        
         $masterRec = $data->masterData->rec;
         $notOptional = $optional = array();
         $total = new stdClass();
