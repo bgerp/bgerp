@@ -37,7 +37,7 @@ class price_ProductCosts extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=Пулт, productId, type, price, document=Документ, modifiedOn';
+    public $listFields = 'id=Пулт, productId, type, price, quantity, document=Документ, modifiedOn';
     
     
     /**
@@ -67,7 +67,7 @@ class price_ProductCosts extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'admin,debug';
+    public $canList = 'debug';
     
     
     /**
@@ -80,8 +80,9 @@ class price_ProductCosts extends core_Manager
     							 lastDelivery=Последна доставка (+разходи),
     							 activeDelivery=Текуща поръчка,
     							 lastQuote=Последна оферта,
-    							 bom=Последна рецепта)', 'caption=Тип');
-        $this->FLD('price', 'double', 'caption=Цена');
+    							 bom=Последна рецепта,average=Средно доставна)', 'caption=Тип');
+        $this->FLD('price', 'double', 'caption=Ед. цена');
+        $this->FLD('quantity', 'double', 'caption=К-во');
         $this->FLD('documentClassId', 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');
         $this->FLD('documentId', 'int', 'caption=Документ->Ид');
         $this->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Създадено на');
@@ -166,9 +167,10 @@ class price_ProductCosts extends core_Manager
         // Намираме цената
         foreach ($tmpArr as $index => $r) {
             $pId = acc_Items::fetchField($index, 'objectId');
-            $res[$pId] = (!$r->quantity) ? 0 : round($r->amount / $r->quantity, 5);
+            $amount = (!$r->quantity) ? 0 : round($r->amount / $r->quantity, 5);
+            $res[$pId] = (object)array('amount' => $amount, 'quantity' => $r->quantity);
         }
-        
+       
         // Връщаме резултатите
         return $res;
     }
@@ -206,10 +208,10 @@ class price_ProductCosts extends core_Manager
             $pQuery->EXT('threadId', 'purchase_Purchases', 'externalName=threadId,externalKey=requestId');
             $pQuery->EXT('containerId', 'purchase_Purchases', 'externalName=containerId,externalKey=requestId');
             $pQuery->where('#amountDelivered IS NOT NULL AND #amountDelivered != 0');
-            $pQuery->show('price,productId,threadId,requestId,containerId');
+            $pQuery->show('price,productId,threadId,requestId,containerId,quantity');
         } else {
             $pQuery->where('#amountDelivered IS NULL OR #amountDelivered = 0');
-            $pQuery->show('price,productId,requestId');
+            $pQuery->show('price,productId,requestId,quantity');
         }
         
         $pQuery->in('productId', $productKeys);
@@ -327,9 +329,10 @@ class price_ProductCosts extends core_Manager
             // създаване, така сме сигурни че ще се вземе първата срещната цена, която е цената по
             // последна активна поръчка
             if (!isset($res[$purRec->productId])) {
-                $res[$purRec->productId] = (object) array('documentId' => $purRec->requestId,
-                    'price' => round($purRec->price, 5));
-            }
+                $res[$purRec->productId] = (object) array('documentId' => $purRec->requestId, 
+                                                          'quantity' => $purRec->quantity, 
+                                                          'price' => round($purRec->price, 5));
+            };
         }
         
         // Връщаме намерените цени
@@ -466,7 +469,8 @@ class price_ProductCosts extends core_Manager
             if (isset($res['accCost'][$productId])) {
                 $obj = clone $bObject;
                 $obj->type = 'accCost';
-                $obj->price = $res['accCost'][$productId];
+                $obj->price = $res['accCost'][$productId]->price;
+                $obj->quantity = $res['accCost'][$productId]->quantity;
                 $nRes[] = $obj;
             }
             
@@ -483,6 +487,7 @@ class price_ProductCosts extends core_Manager
                 $obj = clone $bObject;
                 $obj->type = 'activeDelivery';
                 $obj->price = $res['activeDelivery'][$productId]->price;
+                $obj->quantity = $res['activeDelivery'][$productId]->quantity;
                 $obj->documentClassId = purchase_Purchases::getClassId();
                 $obj->documentId = $res['activeDelivery'][$productId]->documentId;
                 $nRes[] = $obj;
@@ -492,6 +497,7 @@ class price_ProductCosts extends core_Manager
                 $obj = clone $bObject;
                 $obj->type = 'lastDelivery';
                 $obj->price = $res['lastDelivery'][$productId]->price;
+                $obj->quantity = $res['lastDelivery'][$productId]->quantity;
                 $obj->documentClassId = purchase_Purchases::getClassId();
                 $obj->documentId = $res['lastDelivery'][$productId]->documentId;
                 $nRes[] = $obj;
@@ -501,6 +507,7 @@ class price_ProductCosts extends core_Manager
                 $obj = clone $bObject;
                 $obj->type = 'bom';
                 $obj->price = $res['bom'][$productId]->price;
+                $obj->quantity = 1;
                 $obj->documentClassId = cat_Boms::getClassId();
                 $obj->documentId = $res['bom'][$productId]->documentId;
                 $nRes[] = $obj;
@@ -512,7 +519,7 @@ class price_ProductCosts extends core_Manager
         $oldRecs = $query->fetchAll();
         
         // Синхронизираме новите със старите
-        $synced = arr::syncArrays($nRes, $oldRecs, 'productId,type', 'price,documentClassId,documentId');
+        $synced = arr::syncArrays($nRes, $oldRecs, 'productId,type', 'price,documentClassId,documentId,quantity');
         
         // Създаваме записите, които трябва
         $this->saveArray($synced['insert']);
