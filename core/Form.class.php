@@ -1000,6 +1000,10 @@ class core_Form extends core_FieldSet
                 $fUnit = tr($field->unit);
                 $fUnit = core_ET::escape($fUnit);
                 
+                if(isset($field->hint)){
+                    $caption = ht::createHint($caption, $field->hint, 'noicon');
+                }
+                
                 if (Mode::is('screenMode', 'narrow')) {
                     if ($emptyRow > 0) {
                         $tpl->append("\n<tr><td></td></tr>", 'FIELDS');
@@ -1022,7 +1026,6 @@ class core_Form extends core_FieldSet
                     }
                     
                     $unit = $fUnit ? ('&nbsp;' . $fUnit) : '';
-                    
                     $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}><td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td></tr>");
                 }
                 
