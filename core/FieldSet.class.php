@@ -590,7 +590,7 @@ class core_FieldSet extends core_BaseClass
     
     
     /**
-     * @todo Чака за документация...
+     * Връща път в PHP синтаксис до обекта на посоченото поле
      */
     public function makePhpFieldName($name)
     {
