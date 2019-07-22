@@ -207,6 +207,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $this->groupByField = 'group';
         }
         
+        
         $recs = array();
         
         if ($rec->quantityType == 'shipped'){
