@@ -119,6 +119,11 @@ class bgerp_plg_Import extends core_Plugin
                 if ($mvc->haveRightFor('import')) {
                     Mode::push('onExist', $onExist);
                     
+                    // Подготовка за тежка операция при импорт на много данни
+                    core_App::setTimeLimit(count($rows)/10 + 10);
+                    ini_set('memory_limit', '2048M');
+                    core_Debug::$isLogging = false;
+
                     // Импортиране на данните от масива в зададените полета
                     $msg = $Driver->import($rows, $fields);
                     Mode::pop('onExist');
