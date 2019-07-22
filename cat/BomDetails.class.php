@@ -606,7 +606,7 @@ class cat_BomDetails extends doc_Detail
         }
         
         if ($rec->type == 'pop') {
-            $row->resourceId = ht::createHint($row->resourceId, 'Артикулът е отпадък', 'img/16/recycle.png');
+            $row->resourceId = ht::createHint($row->resourceId, 'Артикулът е отпадък', 'notice', true, array('src' => 'img/16/recycle.png'));
         }
     }
     
