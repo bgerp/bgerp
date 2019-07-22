@@ -1025,14 +1025,14 @@ class core_Html
      *
      * @param mixed  $body        - тяло
      * @param string $hint        - текст на хинта
-     * @param string $icon        - име на иконката
+     * @param string $type        - тип на хинта
      * @param bool   $appendToEnd - дали хинта да се добави в края на стринга
      * @param array  $iconAttr    - атрибути на иконката
      * @param array  $elementArr  - атрибути на елемента
      *
      * @return core_ET $elementTpl  - шаблон с хинта
      */
-    public static function createHint($body, $hint, $icon = 'notice', $appendToEnd = true, $iconAttr = array(), $elementArr = array())
+    public static function createHint($body, $hint, $type = 'notice', $appendToEnd = true, $iconAttr = array(), $elementArr = array())
     {
         if (empty($hint)) {
             
@@ -1045,16 +1045,22 @@ class core_Html
         
         $hint = strip_tags(tr($hint));
         
-        $iconPath = ($icon == 'notice') ? 'img/16/info-gray.png' : (($icon == 'warning') ? 'img/16/dialog_warning.png' : (($icon == 'error') ? 'img/16/dialog_error.png' : $icon));
-        expect(is_string($iconPath), $iconPath);
-        
-        $iconAttr = arr::make($iconAttr, true) + array('src' => sbf($iconPath, ''));
-        $iconHtml = ht::createElement('img', $iconAttr);
-        
-        if ($appendToEnd === true) {
-            $element = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
+        if($type == 'noicon'){
+            $element = "<span class='endTooltip textHint' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#body#]</span>";
         } else {
-            $element = "<span class='frontToolip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+            $iconAttr = arr::make($iconAttr, true);
+            if(!array_key_exists('src', $iconAttr)){
+                $iconPath = ($type == 'notice') ? 'img/16/info-gray.png' : (($type == 'warning') ? 'img/16/dialog_warning.png' : (($type == 'error') ? 'img/16/dialog_error.png' : $type));
+                $iconAttr['src'] = $iconPath;
+            }
+            $iconAttr['src'] = sbf($iconAttr['src'], ''); 
+            $iconHtml = ht::createElement('img', $iconAttr);
+            
+            if ($appendToEnd === true) {
+                $element = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
+            } else {
+                $element = "<span class='frontToolip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+            }
         }
         
         $elementTpl = new core_ET($element);
