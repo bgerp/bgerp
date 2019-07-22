@@ -2126,6 +2126,9 @@ td.rowtools-column {
 .large-field{
 	width: 50%;
 }
+.narrow .largeNarrowCell {
+	min-width: 300px;
+}
 
 .listAction table.listTable>tbody>tr>td, table.listTable.listAction>tbody>tr>td.wideColumn {
 	max-width: none !important;
