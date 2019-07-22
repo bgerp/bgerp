@@ -6375,6 +6375,10 @@ only screen and (max-width: 320px) {
 .narrow .elem-holder .endTooltip {
   float: right; }
 
+.textHint {
+  display: inline-block;
+  border-bottom: 1px dashed; }
+
 .frontToolip {
   display: inline-block; }
 

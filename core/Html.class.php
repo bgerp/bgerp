@@ -1046,7 +1046,7 @@ class core_Html
         $hint = strip_tags(tr($hint));
         
         if($type == 'noicon'){
-            $element = "<span class='endTooltip textHint' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#body#]</span>";
+            $element = "<span class='textHint' title='[#hint#]' rel='tooltip'>[#body#]</span>";
         } else {
             $iconAttr = arr::make($iconAttr, true);
             if(!array_key_exists('src', $iconAttr)){

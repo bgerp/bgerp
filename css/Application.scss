@@ -7203,6 +7203,11 @@ body.narrow {
 	float: right;
 }
 
+.textHint {
+	display: inline-block;
+	border-bottom: 1px dashed;
+}
+
 .frontToolip {
 	display: inline-block;
 }
