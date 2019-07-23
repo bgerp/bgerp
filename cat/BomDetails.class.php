@@ -37,7 +37,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, plg_AlignDecimals2, planning_plg_ReplaceEquivalentProducts';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, plg_AlignDecimals2, planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext';
     
     
     /**
