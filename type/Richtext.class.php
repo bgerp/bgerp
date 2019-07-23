@@ -64,7 +64,7 @@ class type_Richtext extends type_Blob
     /**
      * Шаблон за намиране на цитати в текст
      */
-    const QUOTE_PATTERN = "#\[bQuote(=([^\]]+)|)\]((?:[^[]|\[(?!/?bQuote(=([^\]]+)|)\])|(?R))+)\[\/bQuote\]#misu";
+    const QUOTE_PATTERN = "#\[bQuote(=([^\]]+)|)\]((?:[^[]|\[(?!/?bQuote(=([^\]]+)|)\])|(?R))*)\[\/bQuote\]#misu";
     
     
     /**
@@ -324,10 +324,10 @@ class type_Richtext extends type_Blob
         $html = $this->replaceTags($html);
         
         // Обработваме елементите [color=????]
-        $html = preg_replace_callback("/\[color(=([^\]]*)|)\]\s*/si", array($this, '_catchColor'), $html);
+        $html = preg_replace_callback("/\[color(=([^\]]*)|)\]/si", array($this, '_catchColor'), $html);
         
         // Обработваме елементите [bg=????]
-        $html = preg_replace_callback("/\[bg(=([^\]]*)|)\]\s*/si", array($this, '_catchBg'), $html);
+        $html = preg_replace_callback("/\[bg(=([^\]]*)|)\]/si", array($this, '_catchBg'), $html);
         
         // Поставяме емотиконите на местата с елемента [em=????]
         $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
