@@ -3853,4 +3853,27 @@ class cat_Products extends embed_Manager
             $name = ht::createHint($name, $hint);
         }
     }
+    
+    
+    /**
+     * Обновява modified стойностите
+     *
+     * @param core_Master $mvc
+     * @param bool|NULL   $res
+     * @param int         $id
+     */
+    protected static function on_AfterTouchRec($mvc, &$res, $id)
+    {
+        if($rec = $mvc->fetchRec($id)){
+            $keywords = $mvc->getSearchKeywords($rec);
+            if($rec->searchKeywords != $keywords){
+                $rec->searchKeywords = $keywords;
+                $mvc->save_($rec, 'searchKeywords');
+                $cRec = (object)array('id' => $rec->containerId, 'searchKeywords' => $rec->searchKeywords);
+                
+                $containersInst = cls::get('doc_Containers');
+                $containersInst->save_($cRec, 'searchKeywords');
+            }
+        }
+    }
 }
