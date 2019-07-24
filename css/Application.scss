@@ -6317,14 +6317,25 @@ body.narrow {
 		text-transform: uppercase;
 	}
 	.hideLink {
-		display: block;
-		margin-left: 10px;
+		display: inline-block;
 		font-size: 0.9em;
 		margin-bottom: 10px;
 		margin-top: -6px;
+		&:hover {
+			text-decoration: underline;
+		}
 		&.inlineLinks {
 			margin-left: 0;
 			display: inline-block;
+		}
+	}
+	.docToolbar {
+		margin-left: 10px;
+		span {
+			font-size: 0.9em;
+			margin: 0 5px;
+			display: inline-block;
+			color: #888;
 		}
 	}
 	span.linkWithIcon{
@@ -7205,7 +7216,7 @@ body.narrow {
 
 .textHint {
 	display: inline-block;
-	border-bottom: 1px dashed;
+	border-bottom: 1px dashed;hideLink
 }
 
 .frontToolip {
