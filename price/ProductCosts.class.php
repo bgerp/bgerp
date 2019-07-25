@@ -169,7 +169,7 @@ class price_ProductCosts extends core_Manager
             $pId = acc_Items::fetchField($index, 'objectId');
             $amount = (!$r->quantity) ? 0 : round($r->amount / $r->quantity, 5);
             $r->quantity = (!$r->quantity) ? 0 : $r->quantity;
-            $res[$pId] = (object)array('amount' => $amount, 'quantity' => $r->quantity);
+            $res[$pId] = (object)array('price' => $amount, 'quantity' => $r->quantity);
         }
        
         // Връщаме резултатите
