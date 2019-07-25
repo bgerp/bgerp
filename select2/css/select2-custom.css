@@ -75,7 +75,7 @@
 .select2-results__option, .select2-container--default .select2-results__group {
     padding: 0;
 }
-.select2-results__option .select2-selection--multiple span{
+.select2-results__option  span{
     padding: 4px 6px;
     display: block;
 }
@@ -205,7 +205,12 @@ span.all-users{
 .s2-to-tree  .select2-results__option--highlighted,  .s2-to-tree  .select2-results__option--highlighted:hover,.s2-to-tree  .expand-collapse{
     background: none !important;
 }
-
+.s2-to-tree .select2-results__option  span{
+    padding: 0px ;
+}
+.s2-to-tree .select2-results__option  span.item-label{
+    padding: 3px ;
+}
 @-moz-document url-prefix() {
 	.narrow .color-preview {
 		vertical-align: -2px;
