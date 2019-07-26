@@ -294,7 +294,7 @@ class core_Lg extends core_Manager
             $rec->lg = $lg;
             
             // Само потребители с определена роля могат да добавят (автоматично) в превода
-            if (haveRole('translate') || !haveRole('powerUser')) {
+            if (haveRole('translate')) {
                 $this->save($rec, null, 'IGNORE');
                 
                 $tLg = substr($lg, 0, 2);

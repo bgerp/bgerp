@@ -928,7 +928,7 @@ class core_Cron extends core_Manager
                 
                 if ($okTrays > 3) {
                     
-                    return;
+                    core_App::shutdown(false);
                 }
             } else {
                 $okTrays = 0;
@@ -941,5 +941,7 @@ class core_Cron extends core_Manager
             // Изчакваме още 2 секунди
             sleep(2);
         }
+
+        core_App::shutdown(false);
     }
 }

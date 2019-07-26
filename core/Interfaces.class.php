@@ -39,7 +39,13 @@ class core_Interfaces extends core_Manager
      */
     public $title = 'Интерфейси';
     
-    
+
+    /**
+     * Избягваме автоматичното регистриране на класа, защото още моделите за регистъра не са създадени
+     */
+    public $automaticRegisterClass = false;
+
+
     /**
      * Описание на модела
      */

@@ -65,6 +65,12 @@ class core_Classes extends core_Manager
     public $searchFields = 'name, title';
     
     
+    /**
+     * Избягваме автоматичното регистриране на класа, защото още моделите за регистъра не са създадени
+     */
+    public $automaticRegisterClass = false;
+
+    
     protected static $classHashName = 'loadClasses1';
     
     
