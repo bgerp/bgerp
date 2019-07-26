@@ -24,18 +24,18 @@
                         <div>|Към|*: [#attn#]</div>
                         <!--ET_END attn-->
                         <!--ET_BEGIN emailLeft-->
-                        <div>|Имейл|*: <b>[#emailLeft#]</b></div>
+                        <div>|Имейл|*: [#emailLeft#]</div>
                         <!--ET_END emailLeft-->
                         <!--ET_BEGIN emailCcLeft-->
-                        <div>|Копие|*: <b>[#emailCcLeft#]</b></div>
+                        <div>|Копие|*: [#emailCcLeft#]</div>
                         <!--ET_END emailCcLeft-->
                     </div>
                     <div style='width: 49%; display: inline-block; text-align: right; vertical-align: top;'>
                         <!--ET_BEGIN email-->
-                        <div>|Имейл|*: <b>[#email#]</b></div>
+                        <div>|Имейл|*: [#email#]</div>
                         <!--ET_END email-->
                         <!--ET_BEGIN emailCc-->
-                        <div>|Копие|*: <b>[#emailCc#]</b></div>
+                        <div>|Копие|*: [#emailCc#]</div>
                         <!--ET_END emailCc-->
                         <!--ET_BEGIN fax-->
                         <div>|Факс|*: [#fax#]</div>

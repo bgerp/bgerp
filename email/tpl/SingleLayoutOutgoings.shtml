@@ -41,7 +41,7 @@
                                     <!--ET_BEGIN emailLeft-->          
                                     <tr>
                                         <td class='aright'>|Имейл|*:</td>
-                                        <td><b>[#emailLeft#]</b></td>
+                                        <td>[#emailLeft#]</td>
                                     </tr>
                                     <!--ET_END emailLeft-->
                                     <!--ET_BEGIN emailCcLeft-->          
@@ -57,13 +57,13 @@
                                     <!--ET_BEGIN email-->          
                                     <tr>
                                         <td class='aright'>|Имейл|*:</td>
-                                        <td><b>[#email#]</b></td>
+                                        <td>[#email#]</td>
                                     </tr>
                                     <!--ET_END email-->
                                     <!--ET_BEGIN emailCc-->          
                                     <tr>
                                         <td class='aright'>|Копие|*:</td>
-                                        <td><b>[#emailCc#]</b></td>
+                                        <td>[#emailCc#]</td>
                                     </tr>
                                     <!--ET_END emailCc-->
                                   
