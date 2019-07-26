@@ -661,19 +661,19 @@ class core_Debug
             if ($bName) {
                 $data['errTitle'] .= "<span class = 'errTitleLink'>";
                 
-                $canList = log_Debug::haveRightFor('list');
-                $canReport = log_Debug::haveRightFor('report');
+                $canList = true; //log_Debug::haveRightFor('list');
+                $canReport = true; //log_Debug::haveRightFor('report');
                 
                 if ($canList || $canReport) {
                     $data['errTitle'] .= ' - ';
                 }
                 
                 if ($canList) {
-                    $data['errTitle'] .= ht::createLink(tr('разглеждане'), array('log_Debug', 'default', 'debugFile' => $bName));
+                    $data['errTitle'] .= ht::createLink('разглеждане', array('log_Debug', 'default', 'debugFile' => $bName));
                     
                     $dUrl = log_Debug::getDownalodUrl($bName);
                     if ($dUrl) {
-                        $data['errTitle'] .= '|' . ht::createLink(tr('сваляне'), $dUrl);
+                        $data['errTitle'] .= '|' . ht::createLink('сваляне', $dUrl);
                     }
                 }
                 
