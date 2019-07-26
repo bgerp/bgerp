@@ -248,10 +248,9 @@ class core_Db
         $this->checkForErrors('изпълняване на заявка', $silent, $link);
         DEBUG::stopTimer('DB::query()');
         
-        if ($replication && defined('BGERP_SQL_LOG_PATH') && ($path = BGERP_SQL_LOG_PATH)) {
+        if ($replication) {
             if ($link->affected_rows > 0 || stripos($sqlQuery, 'truncate') !== false) {
-                $path .= '/' . date('Y-m-d_H') . '.sql';
-                file_put_contents($path, $sqlQuery . ";\n\r", FILE_APPEND);
+                core_Backup::addSqlLog($sqlQuery);
             }
         }
         
