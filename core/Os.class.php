@@ -486,7 +486,7 @@ class core_Os
      *
      * return string
      */
-    public static function createDirectories($directories, $mode = 0777, $recursive = true)
+    public static function createDirectories($directories, $mode = 0744, $recursive = true)
     {
         // Създава, ако е необходимо зададените папки
         foreach (arr::make($directories) as $path => $caption) {
@@ -522,7 +522,7 @@ class core_Os
         if (!is_dir($path)) {
             
             // Създаваме директория
-            if (!@mkdir($path, 0777, true)) {
+            if (!@mkdir($path, 0744, true)) {
                 
                 return false;
             }
