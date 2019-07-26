@@ -2197,7 +2197,7 @@ class cat_Products extends embed_Manager
      * Връща последната активна рецепта на артикула
      *
      * @param mixed  $id   - ид или запис
-     * @param string $type - вид работна или търговска
+     * @param string $type - вид работна/моментна/търговска
      *
      * @return mixed $res - записа на рецептата или FALSE ако няма
      */
@@ -2214,7 +2214,7 @@ class cat_Products extends embed_Manager
         $cond = "#productId = '{$rec->id}' AND #state = 'active'";
         
         if (isset($type)) {
-            expect(in_array($type, array('sales', 'production')));
+            expect(in_array($type, array('sales', 'instant', 'production')));
             $cond .= " AND #type = '{$type}'";
         }
         
@@ -3851,6 +3851,29 @@ class cat_Products extends embed_Manager
         
         if (!empty($hint)) {
             $name = ht::createHint($name, $hint);
+        }
+    }
+    
+    
+    /**
+     * Обновява modified стойностите
+     *
+     * @param core_Master $mvc
+     * @param bool|NULL   $res
+     * @param int         $id
+     */
+    protected static function on_AfterTouchRec($mvc, &$res, $id)
+    {
+        if($rec = $mvc->fetchRec($id)){
+            $keywords = $mvc->getSearchKeywords($rec);
+            if($rec->searchKeywords != $keywords){
+                $rec->searchKeywords = $keywords;
+                $mvc->save_($rec, 'searchKeywords');
+                $cRec = (object)array('id' => $rec->containerId, 'searchKeywords' => $rec->searchKeywords);
+                
+                $containersInst = cls::get('doc_Containers');
+                $containersInst->save_($cRec, 'searchKeywords');
+            }
         }
     }
 }

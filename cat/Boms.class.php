@@ -170,7 +170,7 @@ class cat_Boms extends core_Master
     public function description()
     {
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,mandatory');
-        $this->FLD('type', 'enum(sales=Търговска,production=Работна)', 'caption=Вид,input=none');
+        $this->FLD('type', 'enum(sales=Търговска,production=Работна,instant=Моментна)', 'caption=Вид,input=hidden,silent');
         $this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Забележки');
         $this->FLD('expenses', 'percent(Min=0)', 'caption=Общи режийни');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
@@ -228,7 +228,7 @@ class cat_Boms extends core_Master
             return;
         }
         
-        $mvc->singleTitle = ($type == 'sales') ? 'Търговска рецепта' : 'Работна рецепта';
+        $mvc->singleTitle = ($type == 'sales') ? 'Търговска рецепта' : (($type == 'instant') ? 'Моментна рецепта' : 'Работна рецепта');
     }
     
     
@@ -271,7 +271,9 @@ class cat_Boms extends core_Master
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
         if (isset($rec->threadId)) {
-            $rec->type = 'sales';
+            if(empty($rec->type)){
+                $rec->type = 'sales';
+            }
             $firstDocument = doc_Containers::getDocument($rec->originId);
             
             if ($firstDocument->isInstanceOf('planning_Jobs')) {
@@ -517,7 +519,7 @@ class cat_Boms extends core_Master
         
         $row->productId = cat_Products::getShortHyperlink($rec->productId);
         $row->title = $mvc->getLink($rec->id, 0);
-        $row->singleTitle = ($rec->type == 'sales') ? tr('Търговска рецепта') : ('Работна рецепта');
+        $row->singleTitle = ($rec->type == 'sales') ? tr('Търговска рецепта') : (($rec->type == 'instant') ? tr('Моментна рецепта') : ('Работна рецепта'));
         
         if ($row->quantity) {
             $measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
@@ -843,7 +845,8 @@ class cat_Boms extends core_Master
         
         // Проверяваме можем ли да добавяме нови рецепти
         if ($this->haveRightFor('add', (object) array('productId' => $data->masterId, 'originId' => $data->masterData->rec->containerId))) {
-            $data->addUrl = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'type' => 'sales', 'ret_url' => true);
+            $data->addUrl1 = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'type' => 'sales', 'ret_url' => true);
+            $data->addUrl2 = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'type' => 'instant', 'ret_url' => true);
         }
     }
     
@@ -866,11 +869,6 @@ class cat_Boms extends core_Master
         $title = tr('Технологични рецепти');
         $tpl->append($title, 'title');
         
-        if (isset($data->addUrl) && !Mode::isReadOnly()) {
-            $addBtn = ht::createLink('', $data->addUrl, false, 'ef_icon=img/16/add.png,title=Добавяне на нова търговска технологична рецепта');
-            $tpl->append($addBtn, 'title');
-        }
-        
         $data->listFields = arr::make('title=Рецепта,type=Вид,quantity=Количество,createdBy=От||By,createdOn=На');
         $table = cls::get('core_TableView', array('mvc' => $this));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
@@ -881,8 +879,19 @@ class cat_Boms extends core_Master
             $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ')</span>', 'title');
             $tpl->append('state-rejected', 'TAB_STATE');
         }
+        $tpl->append($details, 'content');
         
-        $tpl->replace($details, 'content');
+        if(!Mode::isReadOnly()){
+            if (isset($data->addUrl1)) {
+                $addBtn = ht::createBtn('Търговска', $data->addUrl1, false, false, "ef_icon={$this->singleIcon},title=Добавяне на нова търговска технологична рецепта");
+                $tpl->append($addBtn, 'toolbar');
+            }
+            
+            if (isset($data->addUrl2)) {
+                $addBtn = ht::createBtn('Моментна', $data->addUrl2, false, false, "ef_icon={$this->singleIcon},title=Добавяне на нова моментна технологична рецепта");
+                $tpl->append($addBtn, 'toolbar');
+            }
+        }
         
         return $tpl;
     }
@@ -1370,7 +1379,7 @@ class cat_Boms extends core_Master
     public function getIcon($id)
     {
         $rec = $this->fetch($id);
-        $icon = ($rec->type == 'sales') ? $this->singleIcon : $this->singleProductionBomIcon;
+        $icon = ($rec->type == 'sales') ? $this->singleIcon : (($rec->type == 'instant') ? $this->singleProductionBomIcon : $this->singleProductionBomIcon);
         
         return $icon;
     }
@@ -1382,7 +1391,7 @@ class cat_Boms extends core_Master
     protected static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
         $data->listFilter->showFields .= ',type';
-        $data->listFilter->setOptions('type', array('all' => 'Всички', 'sales' => 'Търговски', 'production' => 'Работни'));
+        $data->listFilter->setOptions('type', array('all' => 'Всички', 'sales' => 'Търговски', 'instant' => 'Моментни', 'production' => 'Работни'));
         $data->listFilter->setDefault('type', 'all');
         
         $data->listFilter->input();

@@ -37,7 +37,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, plg_AlignDecimals2, planning_plg_ReplaceEquivalentProducts';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, plg_AlignDecimals2, planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext';
     
     
     /**
@@ -606,7 +606,7 @@ class cat_BomDetails extends doc_Detail
         }
         
         if ($rec->type == 'pop') {
-            $row->resourceId = ht::createHint($row->resourceId, 'Артикулът е отпадък', 'img/16/recycle.png');
+            $row->resourceId = ht::createHint($row->resourceId, 'Артикулът е отпадък', 'notice', true, array('src' => 'img/16/recycle.png'));
         }
     }
     
@@ -978,6 +978,12 @@ class cat_BomDetails extends doc_Detail
         
         if ($toBomRec->type == 'production') {
             $activeBom = cat_Products::getLastActiveBom($productId, 'production');
+            
+            if(!is_object($activeBom)){
+                $activeBom = cat_Products::getLastActiveBom($productId, 'instant');
+            }
+        } elseif($toBomRec->type == 'instant'){
+            $activeBom = cat_Products::getLastActiveBom($productId, 'instant');
         }
         
         if (!$activeBom) {

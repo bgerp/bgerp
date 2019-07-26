@@ -107,7 +107,21 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
     private function getEntries($rec, $origin, $reverse = false)
     {
         // Записите от тип 1 (вземане от клиент)
-        $entries = $this->getTakingPart($rec, $origin, $reverse);
+        $entries = array();
+        
+        if(!$reverse){
+            
+            // Ако има артикули с моментно производство - произвеждат се
+            $entriesProduction = sales_transaction_Sale::getProductionEntries($rec, $this->class, 'storeId');
+            if (count($entriesProduction)) {
+                $entries = array_merge($entries, $entriesProduction);
+            }
+        }
+        
+        $entries3 = $this->getTakingPart($rec, $origin, $reverse);
+        if (count($entries3)) {
+            $entries = array_merge($entries, $entries3);
+        }
         
         // Записите от тип 2 (експедиция)
         $entries = array_merge($entries, $this->getDeliveryPart($rec, $origin, $reverse));

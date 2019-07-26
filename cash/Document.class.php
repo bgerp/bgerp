@@ -257,6 +257,7 @@ abstract class cash_Document extends deals_PaymentDocument
         
         $expectedPayment = null;
         $realOriginId = isset($form->rec->fromContainerId) ? $form->rec->fromContainerId : $form->rec->originId;
+        $realOriginId = isset($realOriginId) ? $realOriginId : doc_Threads::getFirstContainerId($form->rec->threadId);
         if($expectedPayment1 = $mvc->getExpectedAmount($realOriginId, $form->rec)){
             $expectedPayment = $expectedPayment1 * $dealInfo->get('rate');
         }
@@ -281,9 +282,9 @@ abstract class cash_Document extends deals_PaymentDocument
         $form->setOptions('operationSysId', $options);
         $defaultOperation = $dealInfo->get('defaultCaseOperation');
         
-        if (isset($defaultOperation) && array_key_exists($defaultOperation, $options)) {
+        if ($mvc instanceof cash_Rko || (isset($defaultOperation) && array_key_exists($defaultOperation, $options))) {
             $form->setDefault('operationSysId', $defaultOperation);
-            
+           
             $dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
             if ($dAmount != 0) {
                 $form->setDefault('amountDeal', $dAmount);

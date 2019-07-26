@@ -37,7 +37,7 @@ class price_ProductCosts extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=Пулт, productId, type, price, document=Документ, modifiedOn';
+    public $listFields = 'id=Пулт, productId, type, price, quantity, document=Документ, modifiedOn';
     
     
     /**
@@ -67,7 +67,7 @@ class price_ProductCosts extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'admin,debug';
+    public $canList = 'debug';
     
     
     /**
@@ -80,8 +80,9 @@ class price_ProductCosts extends core_Manager
     							 lastDelivery=Последна доставка (+разходи),
     							 activeDelivery=Текуща поръчка,
     							 lastQuote=Последна оферта,
-    							 bom=Последна рецепта)', 'caption=Тип');
-        $this->FLD('price', 'double', 'caption=Цена');
+    							 bom=Последна рецепта,average=Средно доставна)', 'caption=Тип');
+        $this->FLD('price', 'double', 'caption=Ед. цена');
+        $this->FLD('quantity', 'double', 'caption=К-во');
         $this->FLD('documentClassId', 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');
         $this->FLD('documentId', 'int', 'caption=Документ->Ид');
         $this->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Създадено на');
@@ -166,9 +167,11 @@ class price_ProductCosts extends core_Manager
         // Намираме цената
         foreach ($tmpArr as $index => $r) {
             $pId = acc_Items::fetchField($index, 'objectId');
-            $res[$pId] = (!$r->quantity) ? 0 : round($r->amount / $r->quantity, 5);
+            $amount = (!$r->quantity) ? 0 : round($r->amount / $r->quantity, 5);
+            $r->quantity = (!$r->quantity) ? 0 : $r->quantity;
+            $res[$pId] = (object)array('amount' => $amount, 'quantity' => $r->quantity);
         }
-        
+       
         // Връщаме резултатите
         return $res;
     }
@@ -206,10 +209,10 @@ class price_ProductCosts extends core_Manager
             $pQuery->EXT('threadId', 'purchase_Purchases', 'externalName=threadId,externalKey=requestId');
             $pQuery->EXT('containerId', 'purchase_Purchases', 'externalName=containerId,externalKey=requestId');
             $pQuery->where('#amountDelivered IS NOT NULL AND #amountDelivered != 0');
-            $pQuery->show('price,productId,threadId,requestId,containerId');
+            $pQuery->show('price,productId,threadId,requestId,containerId,quantity');
         } else {
             $pQuery->where('#amountDelivered IS NULL OR #amountDelivered = 0');
-            $pQuery->show('price,productId,requestId');
+            $pQuery->show('price,productId,requestId,quantity');
         }
         
         $pQuery->in('productId', $productKeys);
@@ -327,9 +330,10 @@ class price_ProductCosts extends core_Manager
             // създаване, така сме сигурни че ще се вземе първата срещната цена, която е цената по
             // последна активна поръчка
             if (!isset($res[$purRec->productId])) {
-                $res[$purRec->productId] = (object) array('documentId' => $purRec->requestId,
-                    'price' => round($purRec->price, 5));
-            }
+                $res[$purRec->productId] = (object) array('documentId' => $purRec->requestId, 
+                                                          'quantity' => $purRec->quantity, 
+                                                          'price' => round($purRec->price, 5));
+            };
         }
         
         // Връщаме намерените цени
@@ -455,6 +459,9 @@ class price_ProductCosts extends core_Manager
         // Намираме цените по последна рецепта
         $res['bom'] = $this->getLastBomCosts($productKeys);
         
+        // Намиране на средните цени
+        $res['average'] = $this->getAveragePrices($productKeys, $res['accCost']);
+        
         // Тук ще събираме готовите записи
         $nRes = array();
         $today = dt::now();
@@ -466,7 +473,8 @@ class price_ProductCosts extends core_Manager
             if (isset($res['accCost'][$productId])) {
                 $obj = clone $bObject;
                 $obj->type = 'accCost';
-                $obj->price = $res['accCost'][$productId];
+                $obj->price = $res['accCost'][$productId]->price;
+                $obj->quantity = $res['accCost'][$productId]->quantity;
                 $nRes[] = $obj;
             }
             
@@ -483,6 +491,7 @@ class price_ProductCosts extends core_Manager
                 $obj = clone $bObject;
                 $obj->type = 'activeDelivery';
                 $obj->price = $res['activeDelivery'][$productId]->price;
+                $obj->quantity = $res['activeDelivery'][$productId]->quantity;
                 $obj->documentClassId = purchase_Purchases::getClassId();
                 $obj->documentId = $res['activeDelivery'][$productId]->documentId;
                 $nRes[] = $obj;
@@ -492,8 +501,17 @@ class price_ProductCosts extends core_Manager
                 $obj = clone $bObject;
                 $obj->type = 'lastDelivery';
                 $obj->price = $res['lastDelivery'][$productId]->price;
+                $obj->quantity = $res['lastDelivery'][$productId]->quantity;
                 $obj->documentClassId = purchase_Purchases::getClassId();
                 $obj->documentId = $res['lastDelivery'][$productId]->documentId;
+                $nRes[] = $obj;
+            }
+            
+            if (isset($res['average'][$productId])) {
+                $obj = clone $bObject;
+                $obj->type = 'average';
+                $obj->price = $res['average'][$productId]->price;
+                $obj->quantity = $res['average'][$productId]->quantity;
                 $nRes[] = $obj;
             }
             
@@ -501,6 +519,7 @@ class price_ProductCosts extends core_Manager
                 $obj = clone $bObject;
                 $obj->type = 'bom';
                 $obj->price = $res['bom'][$productId]->price;
+                $obj->quantity = 1;
                 $obj->documentClassId = cat_Boms::getClassId();
                 $obj->documentId = $res['bom'][$productId]->documentId;
                 $nRes[] = $obj;
@@ -512,7 +531,7 @@ class price_ProductCosts extends core_Manager
         $oldRecs = $query->fetchAll();
         
         // Синхронизираме новите със старите
-        $synced = arr::syncArrays($nRes, $oldRecs, 'productId,type', 'price,documentClassId,documentId');
+        $synced = arr::syncArrays($nRes, $oldRecs, 'productId,type', 'price,documentClassId,documentId,quantity');
         
         // Създаваме записите, които трябва
         $this->saveArray($synced['insert']);
@@ -521,7 +540,13 @@ class price_ProductCosts extends core_Manager
         $this->saveArray($synced['update']);
         
         if (count($synced['delete'])) {
+            $query = self::getQuery();
+            $query->in('id', $synced['delete']);
+            $query->show('type');
+            $arr = $query->fetchAll();
+           
             foreach ($synced['delete'] as $id) {
+                if($arr[$id]->type == 'average') continue;
                 $this->delete($id);
             }
         }
@@ -540,9 +565,81 @@ class price_ProductCosts extends core_Manager
     {
         expect($productId);
         expect(in_array($priceType, array('accCost', 'lastDelivery', 'activeDelivery', 'lastQuote', 'bom',)));
-        
         $price = static::fetchField("#productId = {$productId} AND #type = '{$priceType}'", 'price');
         
         return $price;
+    }
+    
+    
+    /**
+     * Средната доставна цена
+     * 
+     * @param array $productKeys
+     * @param array $accCosts
+     * @return stdClass $res
+     */
+    public function getAveragePrices($productKeys, $accCosts)
+    {
+        // Кои пера са участвали в дебитирането на склада в последните 3 месеца
+        $beforeDate = dt::addMonths(-3);
+        $jQuery = acc_JournalDetails::getQuery();
+        $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
+        $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
+        $jQuery->where("#debitAccId = {$storeAccId} AND #valior >= '{$beforeDate}'");
+        $jQuery->show('debitItem2');
+        $jQuery->groupBy('debitItem2');
+        $itemsWithMovement = arr::extractValuesFromArray($jQuery->fetchAll(), 'debitItem2');
+        
+        // Кои ид-та на артикули, съответстват на тези пера
+        $iQuery = acc_Items::getQuery();
+        $iQuery->where("#state = 'active' AND #classId=" . cat_Products::getClassId());
+        $iQuery->in("id", $itemsWithMovement);
+        $iQuery->in("objectId", $productKeys);
+        $iQuery->show('id,objectId');
+        $productArr = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
+        
+        // Извличане на данните за покупки за тези артикули
+        $res = array();
+        $purQuery = purchase_PurchasesData::getQuery();
+        $purQuery->in('productId', $productArr);
+        $purQuery->where("#state != 'rejected'");
+        $purQuery->show('quantity,price,productId');
+        $purQuery->orderBy('valior', "DESC");
+        $all = $purQuery->fetchAll();
+        
+        // Нормализираме записите
+        foreach ($productKeys as $productId) {
+            
+            // Всички покупки на търсения артикул
+            $accObject = $accCosts[$productId];
+            $foundIn = array_filter($all, function ($a) use ($productId){return $a->productId == $productId && $a->quantity >= 0;});
+            
+            // Ако има к-ва в складовата наличност
+            $averageAmount = 0;
+            if(!empty($accObject->quantity)){
+                $neededQuantity = $accObject->quantity;
+                $sum = 0;
+                foreach ($foundIn as $delData){
+                    $neededQuantity -= $delData->quantity;
+                    $sum += $delData->quantity * $delData->price;
+                    
+                    if($neededQuantity <= 0) break;
+                }
+               
+                $averageAmount = round($sum / $accObject->quantity, 4);
+                $averageAmount = core_Math::roundNumber($averageAmount);
+            } else {
+                if(count($foundIn)){
+                    $foundIn = $foundIn[key($foundIn)];
+                    $averageAmount = $foundIn->price;
+                }
+            }
+            
+            $res[$productId] = (object) array('price' => $averageAmount,
+                                              'quantity' => $accObject->quantity,
+            );
+        }
+        
+        return $res;
     }
 }

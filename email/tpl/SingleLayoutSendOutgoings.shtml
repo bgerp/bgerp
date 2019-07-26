@@ -46,7 +46,7 @@
         </div>
     </div>
     <!--ET_BEGIN subject--> 
-   <!--ET_BEGIN subject--><h3 class='richtext-title' style='padding-top: 10px;'>[#subject#]</h3><!--ET_END subject-->
+    <h3 class='richtext-title' style='padding-top: 10px;'>[#subject#]</h3>
     <!--ET_END subject--> 
     <!--ET_BEGIN body--> 
     <div>[#body#]</div>

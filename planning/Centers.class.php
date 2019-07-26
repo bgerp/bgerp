@@ -288,14 +288,15 @@ class planning_Centers extends core_Master
         
         // Извличане на центровете към департамента
         $data->recs = $data->rows = array();
-        $query = $this->getQuery();
-        $query->where("#departmentId = {$data->masterId}");
-        while ($rec = $query->fetch()) {
+        $data->query = $this->getQuery();
+        $data->query->where("#departmentId = {$data->masterId}");
+        
+        $this->prepareListFields($data);
+        while ($rec = $data->query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
         
-        $this->prepareListFields($data);
         if ($this->haveRightFor('add')) {
             $data->addUrl = array($this, 'add', 'departmentId' => $data->masterId);
         }
