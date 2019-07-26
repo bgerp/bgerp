@@ -52,6 +52,7 @@ class cond_DialogWrapper extends core_Plugin
             $url['Ctr'] = $params['Ctr'];
             $url['Act'] = $params['Act'];
             $url['selectedTab'] = $name;
+            $url['Protected'] = Request::get('Protected');
             
             $title = $params['caption'];
             
