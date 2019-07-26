@@ -139,7 +139,13 @@ class core_Mvc extends core_FieldSet
      */
     public $doReplication = true;
     
-    
+
+    /**
+     * Дали класът да бъде добавен автоматично в регистъра на класове (core_Classes)
+     */
+    public $automaticRegisterClass = true;
+
+
     /**
      * Конструктора на таблицата. По подразбиране работи със singleton
      * адаптор за база данни на име "db". Разчита, че адапторът
@@ -1329,7 +1335,9 @@ class core_Mvc extends core_FieldSet
         }
 
         // Добавяме в списъка с интерфейсните класове
-        $html .= core_Classes::add($this);
+        if($this->automaticRegisterClass) {
+            $html .= core_Classes::add($this);
+        }
 
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
