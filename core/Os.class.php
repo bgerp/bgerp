@@ -512,6 +512,24 @@ class core_Os
         
         return $res;
     }
+
+
+    /**
+     * Създава директория, ако тя не съществува
+     */
+    public static function forceDir($path)
+    {
+        if (!is_dir($path)) {
+            
+            // Създаваме директория
+            if (!@mkdir($path, 0777, true)) {
+                
+                return false;
+            }
+        }
+
+        return true;
+    }
     
     
     /**
