@@ -40,7 +40,7 @@ class core_Sbf extends core_Mvc
         if (!is_dir($dir = dirname($path))) {
             
             // Създаваме директория
-            if (!@mkdir($dir, 0777, true)) {
+            if (!core_Os::forceDir($dir)) {
                 
                 return false;
             }

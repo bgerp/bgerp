@@ -482,11 +482,29 @@ class core_Os
     
     
     /**
+     * Създава директория, ако тя не съществува
+     */
+    public static function forceDir($path, $permissions = 0744, $recursive = true)
+    {
+        if (!is_dir($path)) {
+            
+            // Създаваме директория
+            if (!@mkdir($path, $permissions, $recursive)) {
+                
+                return false;
+            }
+        }
+        
+        return @is_writable($path);
+    }
+    
+    
+    /**
      * Съдава пътищата посочени във входния аргумент
      *
      * return string
      */
-    public static function createDirectories($directories, $mode = 0744, $recursive = true)
+    public static function createDirectories($directories, $permissions = 0744, $recursive = true)
     {
         // Създава, ако е необходимо зададените папки
         foreach (arr::make($directories) as $path => $caption) {
@@ -494,10 +512,11 @@ class core_Os
                 $path = $caption;
                 $caption = '';
             }
-            
+            $error = false;
             if (!is_dir($path)) {
-                if (!mkdir($path, $mode, $recursive)) {
+                if (!@mkdir($path, $permissions, $recursive)) {
                     $res .= "<li class='debug-error'>Не може да се създаде директорията <b>{$path}</b> {$caption}</li>";
+                    $error = true;
                 } else {
                     $res .= "<li class='debug-new'>Създадена е директорията <b>{$path}</b> {$caption}</li>";
                 }
@@ -505,30 +524,22 @@ class core_Os
                 $res .= "<li class='debug-info'>Съществуваща директория <b>{$path}</b> {$caption}</li>";
             }
             
-            if (!is_writable($path)) {
+            if (!$error && !@is_writable($path)) {
                 $res .= "<li class='debug-error'>Не може да се записва в директорията <b>{$path}</b> {$caption}</li>";
             }
         }
         
         return $res;
     }
-
-
+    
+    
     /**
-     * Създава директория, ако тя не съществува
+     * Създава директория, ако тя не съществува. Ако не успее, хвърля грешка
      */
-    public static function forceDir($path)
+    public static function requireDir($path, $permissions = 0744, $recursive = true)
     {
-        if (!is_dir($path)) {
-            
-            // Създаваме директория
-            if (!@mkdir($path, 0744, true)) {
-                
-                return false;
-            }
-        }
-
-        return true;
+        expect(self::forceDir($path, $permissions, $recursive), "Не може да се създаде директорията `{$path}`");
+        expect(is_writable($path), "Не може да се записва в директорията `{$path}`");
     }
     
     

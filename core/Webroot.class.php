@@ -126,9 +126,7 @@ class core_Webroot
      */
     private static function getPath($filename, $domain)
     {
-        if (!file_exists(WEBROOT_FILES_PATH)) {
-            mkdir(WEBROOT_FILES_PATH, 0777, true);
-        }
+        core_Os::requireDir(WEBROOT_FILES_PATH);
         
         expect(is_writable(WEBROOT_FILES_PATH));
         

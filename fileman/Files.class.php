@@ -657,7 +657,7 @@ class fileman_Files extends core_Master
         $tempPath = $dir . '/' . $newName;
         
         // Създаваме директорията
-        expect(mkdir($tempPath, 0777, true), 'Не може да се създаде директория.');
+        core_Os::requireDir($tempPath);
         
         return $tempPath;
     }
@@ -3013,27 +3013,5 @@ class fileman_Files extends core_Master
         }
         
         return $newArr;
-    }
-    
-    
-    public static function on_AfterSetupMvc($mvc, &$res)
-    {
-        // Пътя до временните файлове
-        $tempPath = static::getTempDir();
-        
-        // Ако не съществува
-        if (!is_dir($tempPath)) {
-            
-            // Ако не може да се създаде
-            if (!mkdir($tempPath, 0777, true)) {
-                $res .= '<li class="debug-error">Не може да се създаде директорията: "' . $tempPath . '"</li>';
-            } else {
-                $res .= '<li class="debug-new">Създадена е директорията: "' . $tempPath . '"</li>';
-            }
-        } else {
-            $res .= '<li>Директорията съществува: "' . $tempPath . '"</li>';
-        }
-        
-        return $res;
     }
 }

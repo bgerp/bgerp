@@ -152,6 +152,12 @@ class fileman_Setup extends core_ProtoSetup
     
     
     /**
+     * Пътища до папки, които трябва да бъдат създадени
+     */
+    protected $folders = array(FILEMAN_TEMP_PATH);
+    
+    
+    /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(

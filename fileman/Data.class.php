@@ -228,7 +228,7 @@ class fileman_Data extends core_Manager
             $dirName = dirname($path);
             
             if ($dirName && !is_dir($dirName)) {
-                if (!@mkdir($dirName, 0777, true)) {
+                if (!core_Os::forceDir($dirName)) {
                     self::logErr("Грешка при създаване на директория: '{$dirName}'");
                 }
             }
@@ -323,7 +323,7 @@ class fileman_Data extends core_Manager
             // Проверка за права в директорията
             $dir = pathinfo($path, PATHINFO_DIRNAME);
             if (!is_writable($dir)) {
-                if (!@mkdir($dir, 0777, true) || !is_writable($dir)) {
+                if (!core_Os::forceDir($dir)) {
                     self::logErr("Няма права за запис в директорията '{$dir}'", $rec->id);
                 }
             }
@@ -508,13 +508,7 @@ class fileman_Data extends core_Manager
      */
     public static function on_AfterSetupMVC($mvc, &$res)
     {
-        if (!is_dir(FILEMAN_UPLOADS_PATH)) {
-            if (!mkdir(FILEMAN_UPLOADS_PATH, 0777, true)) {
-                $res .= '<li class="debug-error">' . tr('Не може да се създаде директорията') . ' "' . FILEMAN_UPLOADS_PATH . '"</li>';
-            } else {
-                $res .= '<li class="debug-new">' . tr('Създадена е директорията') . ' "' . FILEMAN_UPLOADS_PATH . '"</li>';
-            }
-        }
+        $res .= core_Os::createDirectories(FILEMAN_UPLOADS_PATH);
         
         $rec = new stdClass();
         $rec->systemId = self::$processFilesSysId;

@@ -272,9 +272,7 @@ class core_Debug
         
         $errHtml .= core_Debug::getLog();
         
-        if (!file_exists(EF_TEMP_PATH) && !is_dir(EF_TEMP_PATH)) {
-            mkdir(EF_TEMP_PATH, 0777, true);
-        }
+        core_Os::requireDir(EF_TEMP_PATH);
         
         // Поставяме обвивка - html документ
         $page = core_Html::wrapMixedToHtml($errHtml, true);
@@ -876,9 +874,7 @@ class core_Debug
         
         // Ако е необходимо записваме дебъг информацията
         if (defined('EF_DEBUG_LOG_PATH')) {
-            if (!is_dir(EF_DEBUG_LOG_PATH)) {
-                @mkdir(EF_DEBUG_LOG_PATH, 0777, true);
-            }
+            core_Os::requireDir(EF_DEBUG_LOG_PATH);
             @file_put_contents(EF_DEBUG_LOG_PATH . "/{$title}.html", $debugPage);
         }
         
