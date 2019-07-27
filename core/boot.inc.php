@@ -116,20 +116,9 @@ try {
     if ($e instanceof core_exception_Db && ($link = $e->getDbLink())) {
         if (defined('EF_DB_NAME') && preg_match("/^\w{0,64}$/i", EF_DB_NAME)) {
             
-            // 1. Ако няма такава база, създаваме я и редирректваме към инсталация
-            if ($e->isNotExistsDB()) {
-                // Опитваме се да създадем базата и редиректваме към сетъп-а
-                try {
-                    mysqli_query($link, 'CREATE DATABASE ' . EF_DB_NAME);
-                } catch (Exception $e) {
-                    reportException($e);
-                }
-            }
-            
-            // Ако базата е абсолютно празна - ще се отиде направо към инициализирането
-            // Ако има поне един файл, няма да се отиде към инициализиране
+            // Ако базата липсва или е абсолютно празна - отиваме направо към инициализирането
             $db = new core_Db();
-            if ($db->getDBInfo('ROWS') == 0) {
+            if ($e->isNotExistsDB() || ($db->getDBInfo('ROWS') == 0)) {
                 redirect(array('Index', 'SetupKey' => setupKey()));
             }
             

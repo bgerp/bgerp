@@ -164,7 +164,7 @@ class core_Db
      *
      * @return resource
      */
-    public function connect()
+    public function connect($forceDb = false)
     {
         if (!($link = self::$links[$this->dbHost][$this->dbUser][$this->dbName])) {
             if (strpos($this->dbHost, ':')) {
@@ -185,9 +185,16 @@ class core_Db
             // с цел да не се появи случайно при някой забравен bp()
             unset($this->dbPass);
             
-            $sqlMode = "SQL_MODE = ''";
+            
+            if ($forceDb) {
+                $res = $link->query("SHOW DATABASES LIKE '{$this->dbName}'");
+                if ($res->num_rows == 0) {
+                    $res = $link->query("CREATE DATABASE `{$this->dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                }
+            }
             
             if (defined('EF_DB_SET_PARAMS') && (EF_DB_SET_PARAMS !== false)) {
+                $sqlMode = "SQL_MODE = ''";
                 $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient}, {$sqlMode};");
             }
             
@@ -793,8 +800,8 @@ class core_Db
         }
         
         if ($link->errno) {
-                
-                // Грешка в базата данни
+            
+            // Грешка в базата данни
             $dump = array('query' => $this->query, 'mysqlErrCode' => $link->errno, 'mysqlErrMsg' => $link->error, 'dbLink' => $link);
             throw new core_exception_Db("500 @Грешка при {$action}", 'DB Грешка', $dump);
         }
