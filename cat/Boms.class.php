@@ -460,6 +460,13 @@ class cat_Boms extends core_Master
             }
         }
         
+        if ($action == 'add' && isset($rec->originId)) {
+            $origin = doc_Containers::getDocument($rec->originId);
+            if($origin->isInstanceOf('planning_Tasks')){
+                $res = 'no_one';
+            }
+        }
+        
         if (($action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore') && isset($rec)) {
             if ($rec->type == 'production') {
                 if (!haveRole('techno,ceo', $userId)) {

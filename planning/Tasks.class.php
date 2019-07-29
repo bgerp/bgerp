@@ -1269,5 +1269,11 @@ class planning_Tasks extends core_Master
         if ($mvc->haveRightFor('single', $rec)) {
             $data->toolbar->addBtn('Работна карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/print_go.png,title=Печат на работна карта за производствената операция');
         }
+        
+        // Бутон за добавяне на документ за производство
+        if (planning_DirectProductionNote::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
+            $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
+            $data->toolbar->addBtn('Произвеждане', $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от операцията');
+        }
     }
 }

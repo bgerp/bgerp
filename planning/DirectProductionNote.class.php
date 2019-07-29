@@ -181,8 +181,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     public function description()
     {
         parent::setDocumentFields($this);
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,before=storeId');
-        $this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,mandatory,after=productId');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,before=storeId,removeAndRefreshForm=packagingId|quantityInPack|quantity');
+        $this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,after=productId');
         
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'mandatory,input=hidden,before=packQuantity');
         $this->FNC('packQuantity', 'double(Min=0,smartRound)', 'caption=Количество,input,mandatory,after=jobQuantity');
@@ -222,10 +222,17 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $form = &$data->form;
         $rec = $form->rec;
         
-        $originRec = doc_Containers::getDocument($form->rec->originId)->rec();
+        $originDoc = doc_Containers::getDocument($form->rec->originId);
+        $originRec = $originDoc->rec();
         $form->setDefault('storeId', $originRec->storeId);
         $form->setDefault('productId', $originRec->productId);
-        $form->setReadOnly('productId');
+        
+        if($originDoc->isInstanceOf('planning_Tasks')){
+            $taskProductionProducts = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
+            $form->setOptions('productId', $taskProductionProducts);
+        } else {
+            $form->setReadOnly('productId');
+        }
         
         $packs = cat_Products::getPacks($rec->productId);
         $form->setOptions('packagingId', $packs);
@@ -353,7 +360,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     {
         if ($action == 'add') {
             if (isset($rec)) {
-                
+               
                 // Трябва да има ориджин
                 if (empty($rec->originId)) {
                     $requiredRoles = 'no_one';
@@ -361,11 +368,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     
                     // Ориджина трябва да е задание за производство
                     $originDoc = doc_Containers::getDocument($rec->originId);
-                    
-                    if (!$originDoc->isInstanceOf('planning_Jobs')) {
+                   
+                    if (!$originDoc->isInstanceOf('planning_Jobs') && !$originDoc->isInstanceOf('planning_Tasks')) {
                         $requiredRoles = 'no_one';
                     } else {
-                        
+                      
                         // Което не е чернова или оттеглено
                         $state = $originDoc->fetchField('state');
                         if ($state == 'rejected' || $state == 'draft' || $state == 'closed') {
@@ -375,6 +382,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                             // Ако артикула от заданието не е производим не можем да добавяме документ
                             $productId = $originDoc->fetchField('productId');
                             $canManifacture = cat_Products::fetchField($productId, 'canManifacture');
+                            
                             if ($canManifacture != 'yes') {
                                 $requiredRoles = 'no_one';
                             }
@@ -491,12 +499,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     protected function getDefaultDetailsFromTasks($rec)
     {
         $details = array();
+        $origin = doc_Containers::getDocument($rec->originId);
         
-        // Намираме всички непроизводствени действия от задачи
+        // Ако е ПО се извличат вложените по тях
         $aQuery = planning_ProductionTaskDetails::getQuery();
-        $aQuery->EXT('taskState', 'planning_Tasks', 'externalName=state,externalKey=taskId');
-        $aQuery->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
-        $aQuery->where("#originId = {$rec->originId} AND #type != 'production' AND (#taskState = 'active' || #taskState = 'stopped' || #taskState = 'wakeup')");
+        if($origin->isInstanceOf('planning_Tasks')){
+            $aQuery->where("#taskId = {$origin->that} AND #type != 'production'");
+        } else {
+            
+            // Намираме всички непроизводствени действия от задачи
+            $aQuery->EXT('taskState', 'planning_Tasks', 'externalName=state,externalKey=taskId');
+            $aQuery->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
+            $aQuery->where("#originId = {$rec->originId} AND #type != 'production' AND (#taskState = 'active' || #taskState = 'stopped' || #taskState = 'wakeup')");
+        }
         $aQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
         $aQuery->groupBy('productId,type');
         
@@ -587,7 +602,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             return;
         }
         
-        // Ако могат да се генерират детайли от артикула да се
         $details = $mvc->getDefaultDetails($rec);
         
         if ($details !== false) {
@@ -624,8 +638,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         if ($rec->state == 'active' || $rec->state == 'rejected') {
             if (isset($rec->originId)) {
                 $origin = doc_Containers::getDocument($rec->originId);
-                
-                planning_Jobs::updateProducedQuantity($origin->that);
+                if($origin->isInstanceOf('planning_Jobs')){
+                    planning_Jobs::updateProducedQuantity($origin->that);
+                }
                 doc_DocumentCache::threadCacheInvalidation($rec->threadId);
             }
         }
@@ -865,7 +880,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         
         // или към нишка на продажба/артикул/задание
-        return $firstDoc->isInstanceOf('sales_Sales') || $firstDoc->isInstanceOf('cat_Products') || $firstDoc->isInstanceOf('planning_Jobs');
+        return $firstDoc->isInstanceOf('planning_Tasks') || $firstDoc->isInstanceOf('planning_Jobs');
     }
     
     
