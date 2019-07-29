@@ -1882,7 +1882,7 @@ class doc_Folders extends core_Master
         } catch (core_exception_Expect $e) {
             $fromEmailOptions = array('');
         }
-        $form->setOptions(defaultEmail, $fromEmailOptions);
+        $form->setOptions('defaultEmail', $fromEmailOptions);
         
         // Подготвяме опциите за избор на документ в папката
         $docSuggestionsArr = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
