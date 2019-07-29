@@ -15,4 +15,17 @@
  */
 class peripheral_DeviceIntf extends embed_DriverIntf
 {
+    
+    /**
+     * Проверява дали устройството с тези параметри, може да се използва
+     * 
+     * @param stdClass $rec
+     * @param array $params
+     * @return boolean
+     */
+    public static function checkDevice($rec, $params)
+    {
+        
+        return $this->class->checkDevice($allRecsArr, $params);
+    }
 }
