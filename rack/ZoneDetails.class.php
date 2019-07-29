@@ -130,9 +130,9 @@ class rack_ZoneDetails extends core_Detail
     {
         $row->productId = cat_Products::getShortHyperlink($rec->productId);
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-        $movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal($rec->movementQuantity);
+        $movementQuantityVerbal = core_Type::getByName('movementQuantity')->toVerbal($rec->movementQuantity);
         $documentQuantityVerbal = $mvc->getFieldType('documentQuantity')->toVerbal($rec->documentQuantity);
-        $moveStatusColor = ($rec->movementQuantity < $rec->documentQuantity) ? '#ff7a7a' : (($rec->movementQuantity == $rec->documentQuantity) ? '#ccc' : '#8484ff');
+        $moveStatusColor = (round($rec->movementQuantity, 4) < round($rec->documentQuantity, 4)) ? '#ff7a7a' : (($rec->movementQuantity == $rec->documentQuantity) ? '#ccc' : '#8484ff');
         
         $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
    
@@ -211,7 +211,7 @@ class rack_ZoneDetails extends core_Detail
         }
         $newRec->movementQuantity += $quantity;
         $newRec->movementQuantity = round($newRec->movementQuantity, 4);
-        
+       
         self::save($newRec);
     }
     
