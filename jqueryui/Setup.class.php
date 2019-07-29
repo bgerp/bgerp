@@ -4,7 +4,7 @@
 /**
  * Версията на JQueryUI, която се използва
  */
-defIfNot(JQUERYUI_VERSION, '1.12.1');
+defIfNot('JQUERYUI_VERSION', '1.12.1');
 
 
 /**
@@ -54,7 +54,7 @@ class jqueryui_Setup extends core_ProtoSetup
     public function getCommonJs()
     {
         $conf = core_Packs::getConfig('jqueryui');
-
+        
         return 'jqueryui/' . $conf->JQUERYUI_VERSION . '/jquery-ui.js';
     }
     

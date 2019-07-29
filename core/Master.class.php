@@ -353,9 +353,9 @@ class core_Master extends core_Manager
         $tpl->placeObject($data->row);
         
         // Поставяме детайлите
-        if (count($data->details) && $data->noDetails !== true) {
+        if (countR($data->details) && $data->noDetails !== true) {
             foreach ($data->details as $var => $class) {
-                $order = $data->{$var}->Order ? $data->{$var}->Order :  10 * (count($detailInline) + count($detailTabbed) + 1);
+                $order = $data->{$var}->Order ? $data->{$var}->Order :  10 * (countR($detailInline) + countR($detailTabbed) + 1);
                 
                 // Стойност -1 в подредбата има смисъл на отказ, детайла да се покаже в този матер
                 if ($order === -1) {
@@ -369,7 +369,7 @@ class core_Master extends core_Manager
                 }
             }
             
-            if (count($detailInline)) {
+            if (countR($detailInline)) {
                 asort($detailInline);
                 
                 foreach ($detailInline as $var => $order) {
@@ -390,7 +390,7 @@ class core_Master extends core_Manager
             }
             
             // Добавяме табове
-            if (count($detailTabbed)) {
+            if (countR($detailTabbed)) {
                 asort($detailTabbed);
                 $tabArray = array();
                 

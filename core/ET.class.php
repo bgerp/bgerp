@@ -508,14 +508,14 @@ class core_ET extends core_BaseClass
             }
             
             // Прехвърля в Master шаблона всички appendOnce хешове
-            if (count($content->once)) {
+            if (countR($content->once)) {
                 foreach ($content->once as $md5 => $true) {
                     $this->once[$md5] = true;
                 }
             }
             
             // Прехвърля в мастер шаблона всички плейсхолдери, които трябва да се заличават
-            if (count($content->removablePlaces)) {
+            if (countR($content->removablePlaces)) {
                 foreach ($content->removablePlaces as $place) {
                     $this->removablePlaces[$place] = $place;
                 }
@@ -534,7 +534,7 @@ class core_ET extends core_BaseClass
     public function importRemovableBlocks($content)
     {
         if (is_object($content) && (is_a($content, 'et') || is_a($content, 'core_Et'))) {
-            if (count($content->removableBlocks)) {
+            if (countR($content->removableBlocks)) {
                 foreach ($content->removableBlocks as $name => $md5) {
                     if (!$this->removableBlocks[$name]) {
                         $this->removableBlocks[$name] = $md5;

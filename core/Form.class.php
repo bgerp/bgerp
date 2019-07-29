@@ -226,7 +226,7 @@ class core_Form extends core_FieldSet
             $options = $field->options;
             
             // Ако във формата има опции, те отиват в типа
-            if (count($options)) {
+            if (countR($options)) {
                 $type->options = $options;
             }
             
@@ -563,7 +563,7 @@ class core_Form extends core_FieldSet
      */
     public function renderError_()
     {
-        if (count($this->errors)) {
+        if (countR($this->errors)) {
             $tpl = new ET("
                 <!--ET_BEGIN ERRORS_TITLE--><div class=\"formError\">\n" .
                 "<b>[#ERRORS_TITLE#]:</b><ul>[#ERROR_ROWS#]</ul>\n" .
@@ -824,7 +824,7 @@ class core_Form extends core_FieldSet
                     if ($field->focus) {
                         ht::setUniqId($attr);
                         $idForFocus = $attr['id'];
-                    } elseif ((!$field->type->params['isReadOnly']) && (count($field->type->options) != 1) && !$idFirstFocus &&
+                    } elseif ((!$field->type->params['isReadOnly']) && (countR($field->type->options) != 1) && !$idFirstFocus &&
                             (empty($value) || ($field->type instanceof type_Richtext) || ($field->type instanceof type_Key) || ($field->type instanceof type_Enum)) &&
                             !($field->type instanceof type_Date) &&
                             !($field->type instanceof type_DateTime)) {
@@ -834,7 +834,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Задължителните полета, които имат една опция - тя да е избрана по подразбиране
-                if (count($options) == 2 && $type->params['mandatory'] && empty($value) && $options[key($options)] === '') {
+                if (countR($options) == 2 && $type->params['mandatory'] && empty($value) && $options[key($options)] === '') {
                     list($o1, $o2) = array_keys($options);
                     if (!empty($o2)) {
                         $value = $o2;
@@ -844,7 +844,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Рендиране на select или input полето
-                if ((count($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
+                if ((countR($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                     
@@ -1000,7 +1000,7 @@ class core_Form extends core_FieldSet
                 $fUnit = tr($field->unit);
                 $fUnit = core_ET::escape($fUnit);
                 
-                if(isset($field->hint)){
+                if (isset($field->hint)) {
                     $caption = ht::createHint($caption, $field->hint, 'noicon');
                 }
                 
@@ -1427,7 +1427,7 @@ class core_Form extends core_FieldSet
      */
     public function gotErrors($field = null)
     {
-        if (count($this->errors)) {
+        if (countR($this->errors)) {
             if ($field) {
                 $fieldArr = arr::make($field);
                 

@@ -26,7 +26,6 @@ class core_App
         if (!strlen($boot) || strlen($boot) && strpos($vUrl, $boot) === 0) {
             $filename = strtolower(trim(substr($vUrl, strlen($boot)), '/\\'));
         }
-        
         if (preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{2,4}$/i', $filename)) {
             
             // Ако имаме заявка за статичен файл от коренната директория на уеб-сървъра
@@ -1124,8 +1123,7 @@ class core_App
         
         if (!is_array($repos)) {
             $repos = array();
-            
-            $repos += self::getReposByPathAndBranch(EF_APP_PATH, defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null);
+            $repos = self::getReposByPathAndBranch(EF_APP_PATH, defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null);
         }
         
         if (!$havePrivate && defined('EF_PRIVATE_PATH')) {
@@ -1157,7 +1155,13 @@ class core_App
         
         $res = array();
         foreach ($pathArr as $i => $line) {
-            list($p, $b) = explode('=', $line);
+            if (strpos($line, '=')) {
+                list($p, $b) = explode('=', $line);
+            } else {
+                $p = $line;
+                $b = null;
+            }
+            
             if (empty($b) && $cntBranches) {
                 $b = $branchArr[min($i, $cntBranches - 1)];
             }

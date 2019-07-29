@@ -1529,7 +1529,7 @@ class fileman_webdrv_Generic extends core_Manager
     {
         if ($type == 'auto') {
             $len = strlen($str);
-            if (($len == FILEMAN_HANDLER_LEN) && (strpos($str, '/') === false)) {
+            if (($len == fileman_Setup::get('HANDLER_LEN')) && (strpos($str, '/') === false)) {
                 $fileType = 'handler';
                 $fRec = fileman_Files::fetchByFh($str);
                 

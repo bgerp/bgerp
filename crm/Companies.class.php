@@ -1313,7 +1313,7 @@ class crm_Companies extends core_Master
             crm_Groups::updateGroupsCnt($mvc->className, 'companiesCnt');
         }
         
-        if (count($mvc->updatedRecs)) {
+        if (countR($mvc->updatedRecs)) {
             foreach ($mvc->updatedRecs as $id => $rec) {
                 $mvc->updateRoutingRules($rec);
             }
@@ -1818,7 +1818,7 @@ class crm_Companies extends core_Master
      * Манипулация на списъка с екстендерите
      *
      * @param core_Master $master
-     * @param array       $extenders 
+     * @param array       $extenders
      * @param stdClass    $rec       запис на crm_Companies
      */
     public static function on_AfterGetExtenders(core_Master $master, &$extenders, $rec)
@@ -2386,7 +2386,7 @@ class crm_Companies extends core_Master
             $msg = 'Невалиден ЕИК';
             
             // Ако не е валидно и с 10 символа, се проверява дали не е ЕГН
-            if(mb_strlen($uicNo) == 10){
+            if (mb_strlen($uicNo) == 10) {
                 $Egn = cls::get('bglocal_EgnType');
                 $res = $Egn->isValid($uicNo);
                 if (!isset($res['error'])) {

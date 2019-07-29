@@ -88,7 +88,7 @@ class doclog_Files extends core_Manager
     {
         $this->FLD(
             'fileHnd',
-            'varchar(' . strlen(FILEMAN_HANDLER_PTR) . ')',
+            'varchar(' . strlen(fileman_Setup::get('HANDLER_PTR')) . ')',
             array('notNull' => true, 'caption' => 'Манипулатор')
         );
         

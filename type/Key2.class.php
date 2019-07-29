@@ -289,7 +289,7 @@ class type_Key2 extends type_Int
     
     private function getHandler()
     {
-        $hnd = core_Crypt::encodeVar($this->params, EF_CRYPT_CODE . 'Key2');
+        $hnd = core_Crypt::encodeVar($this->params, core_Crypt::EF_CRYPT_CODE . 'Key2');
         
         return $hnd;
     }
@@ -303,7 +303,7 @@ class type_Key2 extends type_Int
         // Приключваме, ако няма заявка за търсене
         $hnd = Request::get('hnd');
         
-        $hnd = core_Crypt::decodeVar($hnd, EF_CRYPT_CODE . 'Key2');
+        $hnd = core_Crypt::decodeVar($hnd, core_Crypt::EF_CRYPT_CODE . 'Key2');
         if (!$hnd) {
             $res = array(
                 'error' => 'Липсва данни за елемента за избор'
@@ -390,7 +390,7 @@ class type_Key2 extends type_Int
                 $slashCnt = $rOrdStrSlashCntArr[$ord];
             }
             
-            $rStr .= str_repeat("\\", $slashCnt) . chr($ord) . '|';
+            $rStr .= str_repeat('\\', $slashCnt) . chr($ord) . '|';
         }
         
         if ($addEmpty) {

@@ -1560,7 +1560,7 @@ function setupKeyValid()
     $localIpArr = array('::1', '127.0.0.1');
     $isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
     $key = $_GET['SetupKey'];
-    if ($key == BGERP_SETUP_KEY && $isLocal) {
+    if ($key == setupKey() && $isLocal) {
 
         return true;
     }

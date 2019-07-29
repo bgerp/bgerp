@@ -78,7 +78,7 @@ class core_Cls
                 $className = EF_APP_CODE_NAME . '_' . $className;
             } elseif ($last > 0) {
                 // Капитализираме буквата след последната черта
-                if ($last < strlen($className)) {
+                if ($last + 1 < strlen($className)) {
                     $className{$last + 1} = strtoupper($className{$last + 1});
                 } else {
                     // Некоректно има на клас
@@ -366,20 +366,19 @@ class core_Cls
                 $intf = $pIntf;
             }
         }
-
+        
         // Добавяме интерфейсите на парент класовете
         $class = self::getClassName($classObj);
         while ($class = get_parent_class($class)) {
-            if(property_exists($class, 'interfaces')) {
+            if (property_exists($class, 'interfaces')) {
                 $reflectionClass = new ReflectionClass($class);
-                $properties = $reflectionClass->getDefaultProperties(); 
-                if(trim($properties['interfaces'])) {
+                $properties = $reflectionClass->getDefaultProperties();
+                if (trim($properties['interfaces'])) {
                     $classObj->interfaces += arr::make($properties['interfaces'], true);
                 }
             }
         }
-
-
+        
         return $classObj->interfaces;
     }
     

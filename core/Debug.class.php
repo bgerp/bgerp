@@ -1,6 +1,15 @@
 <?php
 
 
+include_once(__DIR__ . '/Os.class.php');
+include_once(__DIR__ . '/DateTime.class.php');
+include_once(__DIR__ . '/ProtoSetup.class.php');
+
+//include_once(__DIR__ . '/Setup.class.php');
+//include_once(__DIR__ . '/SystemLock.class.php');
+
+
+
 /**
  * Дали знака '@' преди функция да предизвиква подтискане на грешките в нея?
  */

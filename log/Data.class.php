@@ -526,31 +526,34 @@ class log_Data extends core_Manager
         
         if ($className) {
             if (cls::load($className, true)) {
-                try {
-                    $clsInst = @cls::get($className);
-                } catch (Exception $e) {
-                }
-                
-                if (method_exists($clsInst, 'getLinkForObject')) {
+                $reflectionClass = new ReflectionClass($className);
+                if ($reflectionClass->isInstantiable()) {
                     try {
-                        $link = $clsInst->getLinkForObject($objectId);
-                    } catch (ErrorException $e) {
-                        reportException($e);
-                    }
-                }
-                
-                if ($clsInst instanceof core_Detail) {
-                    $singleTitle = '';
-                    if (is_object($clsInst->Master)) {
-                        $singleTitle = $clsInst->Master->singleTitle;
-                        $singleTitle = mb_strtolower($singleTitle);
+                        $clsInst = @cls::get($className);
+                    } catch (Exception $e) {
                     }
                     
-                    if (!$singleTitle) {
-                        $singleTitle = 'детайл';
+                    if (is_object($clsInst) && method_exists($clsInst, 'getLinkForObject')) {
+                        try {
+                            $link = $clsInst->getLinkForObject($objectId);
+                        } catch (ErrorException $e) {
+                            reportException($e);
+                        }
                     }
                     
-                    $action .= ' ' . tr('на') . ' ' . tr($singleTitle);
+                    if (is_object($clsInst) && $clsInst instanceof core_Detail) {
+                        $singleTitle = '';
+                        if (is_object($clsInst->Master)) {
+                            $singleTitle = $clsInst->Master->singleTitle;
+                            $singleTitle = mb_strtolower($singleTitle);
+                        }
+                        
+                        if (!$singleTitle) {
+                            $singleTitle = 'детайл';
+                        }
+                        
+                        $action .= ' ' . tr('на') . ' ' . tr($singleTitle);
+                    }
                 }
             }
             
@@ -849,7 +852,7 @@ class log_Data extends core_Manager
         if ($deletedRecs) {
             $res .= "Изтрити <b>{$deletedRecs}</b> записа от логовете";
         }
-                
+        
         return $res;
     }
     

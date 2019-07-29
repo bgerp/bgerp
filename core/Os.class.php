@@ -312,7 +312,7 @@ class core_Os
      */
     public static function getPhpCmd()
     {
-        $paths = array(defined(EF_PHP_PATH) ? EF_PHP_PATH : false,
+        $paths = array(defined('EF_PHP_PATH') ? EF_PHP_PATH : false,
             defined('PHP_PATH') ? PHP_PATH : false,
             getenv('PHP_PATH'),
             defined('PHP_BINARY') ? PHP_BINARY : false);

@@ -55,7 +55,7 @@ class cond_type_Double extends cond_type_abstract_Proto
         if (isset($rec->round)) {
             $params['decimals'] = $rec->round;
         } else {
-            $params['smartRound'] = smartRound;
+            $params['smartRound'] = 'smartRound';
         }
         
         if (isset($rec->min)) {
