@@ -137,7 +137,7 @@ class rack_ZoneDetails extends core_Detail
         $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
    
         // Ако има повече нагласено от очакането добавя се бутон за връщане на количеството
-        $overQuantity = round($rec->movementQuantity - $rec->documentQuantity, 5);
+        $overQuantity = round($rec->movementQuantity - $rec->documentQuantity, 7);
         if($overQuantity > 0){
             $overQuantity *= -1;
             $ZoneType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
