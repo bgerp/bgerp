@@ -838,7 +838,7 @@ class fileman_webdrv_Generic extends core_Manager
         if (core_Locks::get($params['lockId'], 100, 0, false)) {
             
             // Инстанция на класа
-            $Script = cls::get(fconv_Script);
+            $Script = cls::get('fconv_Script');
             
             // Функцията, която ще се извика след приключване на обработката на файла
             $Script->callBack($params['callBack']);

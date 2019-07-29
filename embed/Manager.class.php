@@ -127,7 +127,7 @@ class embed_Manager extends core_Master
                 $driver->invoke('AfterAddFields', array($this, &$form));
                 
                 $refreshFields = implode('|', array_keys(static::getDriverFields($driver)));
-                if(count($refreshFields)){
+                if($refreshFields){
                     $remFields = $form->getFieldParam($this->driverClassField, 'removeAndRefreshForm') . '|' . $refreshFields;
                     $form->setField($this->driverClassField, "removeAndRefreshForm={$remFields}");
                 }

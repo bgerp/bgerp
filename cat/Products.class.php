@@ -1031,7 +1031,7 @@ class cat_Products extends embed_Manager
             
             // Добавяме свойствата от групите, ако има такива
             $groupFeatures = cat_Groups::getFeaturesArray($rec->groups);
-            if (count($groupFeatures)) {
+            if (countR($groupFeatures)) {
                 $result->features += $groupFeatures;
             }
             
