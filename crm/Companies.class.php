@@ -986,20 +986,6 @@ class crm_Companies extends core_Master
      */
     public static function getCompanyLogoHnd($fileName, $cRec = null)
     {
-        $baseColor = 'yellow';
-        $activeColor = 'green';
-        
-        $dRec = cms_Domains::getPublicDomain('form');
-        
-        if ($dRec) {
-            if ($dRec->baseColor) {
-                $baseColor = $dRec->baseColor;
-            }
-            if ($dRec->activeColor) {
-                $activeColor = $dRec->activeColor;
-            }
-        }
-        
         $tpl = getTplFromFile('bgerp/tpl/companyBlank.svg');
         if (!isset($cRec)) {
             $cRec = crm_Companies::fetchOwnCompany();
@@ -1086,10 +1072,7 @@ class crm_Companies extends core_Master
         } else {
             $tpl->removeBlock('email');
         }
-        
-        $tpl->append($baseColor, 'baseColor');
-        $tpl->append($activeColor, 'activeColor');
-        
+
         $content = $tpl->getContent();
         
         $pngHnd = '';
