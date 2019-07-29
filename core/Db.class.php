@@ -250,7 +250,7 @@ class core_Db
         
         if ($replication && defined('BGERP_SQL_LOG_PATH') && ($path = BGERP_SQL_LOG_PATH)) {
             if ($link->affected_rows > 0 || stripos($sqlQuery, 'truncate') !== false) {
-                $path .= '/' . date('Y-m-d_h') . '.sql';
+                $path .= '/' . date('Y-m-d_H') . '.sql';
                 file_put_contents($path, $sqlQuery . ";\n\r", FILE_APPEND);
             }
         }

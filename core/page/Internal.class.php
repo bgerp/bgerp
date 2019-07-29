@@ -42,9 +42,7 @@ class core_page_Internal extends core_page_Active
 		       select {padding-left: 0.2em !important;}
 		         ', 'STYLES');
         }
-        
-        // Добавяне на базовия JS
-        $this->push('js/overthrow-detect.js', 'JS');
+
         
         // Хедъри за контрол на кеша
         $this->push('Cache-Control: private, max-age=0', 'HTTP_HEADER');
