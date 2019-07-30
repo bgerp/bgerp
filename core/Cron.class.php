@@ -893,22 +893,12 @@ class core_Cron extends core_Manager
      */
     public function act_Watchdog()
     {
-        // затваряме връзката
-        header('Connection: close');
-        ignore_user_abort(true);
-        ob_start();
-        session_write_close();
-        header("Content-Length: 0\r\n");
-        header("Connection: close\r\n");
-        header("Content-Encoding: none\r\n");
-        
-        if (function_exists('fastcgi_finish_request')) {
-            fastcgi_finish_request();
-        } else {
-            @ob_end_flush();
-            @ob_flush();
-            flush();
+        if (session_id()) {
+            session_write_close();
         }
+        ignore_user_abort(true);
+        
+        core_App::flushAndClose(false);
         
         // Пробваме да вземем lock за този процес, за 65 секунди
         while (core_Locks::get('core_Cron::Watchdog', 80)) {
@@ -927,12 +917,11 @@ class core_Cron extends core_Manager
                 $okTrays++;
                 
                 if ($okTrays > 3) {
-                    
                     core_App::shutdown(false);
                 }
             } else {
                 $okTrays = 0;
-
+                
                 // Самостартираме крон
                 @fopen(toUrl(array('core_Cron', 'cron'), 'absolute-force'), 'r');
             }
@@ -941,7 +930,7 @@ class core_Cron extends core_Manager
             // Изчакваме още 2 секунди
             sleep(2);
         }
-
+        
         core_App::shutdown(false);
     }
 }
