@@ -169,9 +169,8 @@ class cat_products_PriceDetails extends core_Manager
             $data->updateCostRec = $uRec;
             if (is_object($uRec)) {
                 $uRow = price_Updates::recToVerbal($uRec);
-                
                 $arr = array('manual' => tr('Ръчно'), 'nextDay' => tr('Дневно'), 'nextWeek' => tr('Седмично'), 'nextMonth' => tr('Месечно'), 'now' => tr('Ежечасово'));
-                $tpl = new core_ET(tr('|*[#tools#]<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#] |с надценка|* <b>[#costAdd#]</b>'));
+                $tpl = new core_ET(tr('|*[#tools#]<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#]  <!--ET_BEGIN surcharge-->|с надценка|* <b>[#surcharge#]</b><!--ET_END surcharge-->'));
                 
                 $type = '';
                 foreach (array($uRow->costSource1, $uRow->costSource2, $uRow->costSource3) as $cost) {
@@ -180,10 +179,18 @@ class cat_products_PriceDetails extends core_Manager
                     }
                 }
                 
+                $type = rtrim($type, ', ');
                 $tpl->append($arr[$uRec->updateMode], 'updateMode');
-                $tpl->append($type, 'type');
-                $tpl->append($uRow->costAdd, 'costAdd');
                 $tpl->append($uRow->tools, 'tools');
+                $surcharge = $uRow->costAdd;
+                if(!empty($uRec->costAddAmount)){
+                    $surcharge .= ((!empty($surcharge)) ? tr('|* |и|* ') : '') . $uRow->costAddAmount . " BGN";
+                }
+                if(!empty($surcharge)){
+                    $tpl->append($surcharge, 'surcharge');
+                }
+                
+                $tpl->append($type, 'type');
                 $data->afterRow = $tpl;
             }
         }

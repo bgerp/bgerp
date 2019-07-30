@@ -564,7 +564,7 @@ class price_ProductCosts extends core_Manager
     public static function getPrice($productId, $priceType)
     {
         expect($productId);
-        expect(in_array($priceType, array('accCost', 'lastDelivery', 'activeDelivery', 'lastQuote', 'bom',)));
+        expect(in_array($priceType, array('accCost', 'lastDelivery', 'activeDelivery', 'lastQuote', 'bom', 'average')));
         $price = static::fetchField("#productId = {$productId} AND #type = '{$priceType}'", 'price');
         
         return $price;
