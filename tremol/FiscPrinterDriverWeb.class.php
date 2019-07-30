@@ -13,9 +13,9 @@
  *
  * @since     v 0.1
  */
-class tremol_FiscPrinterDriverWeb extends core_Mvc
+class tremol_FiscPrinterDriverWeb extends peripheral_DeviceDriver
 {
-    public $interfaces = 'peripheral_DeviceIntf, peripheral_FiscPrinterWeb';
+    public $interfaces = 'peripheral_FiscPrinterWeb';
     
     public $title = 'Уеб ФУ на Тремол';
     
@@ -32,6 +32,12 @@ class tremol_FiscPrinterDriverWeb extends core_Mvc
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     public $oldClassName = 'tremol_FiscPrinterDriver2';
+    
+    /**
+     * 
+     * @var string
+     */
+    public $loadList = 'peripheral_DeviceWebPlg';
     
     
     /**
@@ -635,7 +641,7 @@ class tremol_FiscPrinterDriverWeb extends core_Mvc
      *
      * @return float
      *
-     * @see peripheral_FiscPrinter
+     * @see peripheral_FiscPrinterIntf
      */
     public function getDisplayPrice($priceWithoutVat, $vat, $discountPercent)
     {

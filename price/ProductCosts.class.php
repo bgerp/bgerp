@@ -80,7 +80,7 @@ class price_ProductCosts extends core_Manager
     							 lastDelivery=Последна доставка (+разходи),
     							 activeDelivery=Текуща поръчка,
     							 lastQuote=Последна оферта,
-    							 bom=Последна рецепта,average=Средно доставна)', 'caption=Тип');
+    							 bom=Последна рецепта,average=Средно доставна за наличното)', 'caption=Тип');
         $this->FLD('price', 'double', 'caption=Ед. цена');
         $this->FLD('quantity', 'double', 'caption=К-во');
         $this->FLD('documentClassId', 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');

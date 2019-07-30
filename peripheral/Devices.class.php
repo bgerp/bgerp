@@ -81,7 +81,7 @@ class peripheral_Devices extends embed_Manager
     public $canSingle = 'admin, peripheral';
     
     
-    public $searchFields = 'name, brid, ip, driverClass';
+    public $searchFields = 'name, driverClass';
     
     
     /**
@@ -90,8 +90,6 @@ class peripheral_Devices extends embed_Manager
     public function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('brid', 'text(rows=2)', 'caption=Компютър->Браузър');
-        $this->FLD('ip', 'text(rows=2)', 'caption=Компютър->IP');
         $this->FLD('data', 'blob(compress,serialize)', 'input=none, single=none, column=none');
         
         $this->setDbIndex('name');
@@ -100,18 +98,17 @@ class peripheral_Devices extends embed_Manager
     
     
     /**
-     * Връща едно устройство към този BRID и/или IP
+     * Връща едно устройство
      *
      * @param string      $intfName
-     * @param null|string $brid
-     * @param null|string $ip
+     * @param array       $oParams
      * @param array       $checkFieldArr
      *
      * @return false|stdClass
      */
-    public static function getDevice($intfName, $brid = null, $ip = null, $checkFieldArr = array())
+    public static function getDevice($intfName, $oParams = array(), $checkFieldArr = array())
     {
-        $deviceArr = self::getDevices($intfName, $brid, $ip, $checkFieldArr, 1);
+        $deviceArr = self::getDevices($intfName, $oParams, $checkFieldArr, 1);
         
         $dRec = false;
         
@@ -124,21 +121,20 @@ class peripheral_Devices extends embed_Manager
     
     
     /**
-     * Връща всички устройства към този BRID и/или IP
+     * Връща всички устройства
      *
      * @param string      $intfName
-     * @param null|string $brid
-     * @param null|string $ip
      * @param array       $checkFieldArr
+     * @param array       $oParams
      * @param null|int    $limit
      *
      * @return array
      */
-    public static function getDevices($intfName, $brid = null, $ip = null, $checkFieldArr = array(), $limit = null)
+    public static function getDevices($intfName, $oParams = array(), $checkFieldArr = array(), $limit = null)
     {
         static $cArr = array();
         
-        $hash = md5($intfName . '|' . $brid . '|' . $ip);
+        $hash = md5($intfName . '|' . serialize($oParams));
         
         if (!isset($cArr[$hash])) {
             
@@ -160,11 +156,15 @@ class peripheral_Devices extends embed_Manager
             $query->orderBy('createdOn', 'DESC');
             
             $allRecs = $query->fetchAll();
+            
             foreach ($allRecs as $recId => $rec) {
+                if (!cls::load($rec->{$me->driverClassField})) continue;
+                $inst = cls::get($rec->{$me->driverClassField});
                 
-                if (!self::checkExist($brid, $rec->brid)) continue;
-                
-                if (!self::checkExist($ip, $rec->ip, '*')) continue;
+                if (!$inst->checkDevice($rec, $oParams)) {
+                    
+                    continue;
+                }
                 
                 $cArr[$hash][$recId] = $rec;
             }
@@ -202,14 +202,13 @@ class peripheral_Devices extends embed_Manager
      *
      * @param string      $intfName
      * @param string      $fName
-     * @param null|string $brid
-     * @param null|string $ip
+     * @param array       $oParams
      *
      * @return array
      */
-    public static function getDevicesArrByField($intfName, $fName, $brid = null, $ip = null)
+    public static function getDevicesArrByField($intfName, $fName, $oParams = array())
     {
-        $allDevicesArr = self::getDevices($intfName, $brid, $ip);
+        $allDevicesArr = self::getDevices($intfName, $oParams);
         
         $resArr = array();
         
@@ -266,148 +265,7 @@ class peripheral_Devices extends embed_Manager
     }
     
     
-    /**
-     * Помощна фунцкия за проверка дали пододана стойност я има в стинг
-     *
-     * @param string $val
-     * @param string $str
-     * @param string|null $matchStr
-     *
-     * @return boolean
-     */
-    private static function checkExist($val, $str, $matchStr = null)
-    {
-        $str = str_replace(array(',', ';'), ' ', $str);
-        
-        $val = trim($val);
-        $str = trim($str);
-        $exist = false;
-        if ($val) {
-            if ($str) {
-                $valArr = explode(' ', $str);
-                foreach ($valArr as $valStr) {
-                    $valStr = trim($valStr);
-                    if ($valStr == $val) {
-                        $exist = true;
-                        break;
-                    } else {
-                        
-                        // Ако има символ, за заместване на израз
-                        if (isset($matchStr) && (stripos($valStr, $matchStr) !== false)) {
-                            $pattern = preg_quote($valStr, '/');
-                            
-                            $pattern = str_replace(preg_quote($matchStr, '/'), '.*', $pattern);
-                            
-                            $pattern = "/^{$pattern}$/";
-                            if (preg_match($pattern, $val)) {
-                                $exist = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            } else {
-                $exist = true;
-            }
-        } else {
-            $exist = true;
-        }
-        
-        return $exist;
-    }
     
-    
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $data
-     */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        $time = dt::mysql2timestamp(dt::subtractSecs(3600));
-        $dQuery = log_Data::getQuery();
-        $dQuery->where("#type = 'login'");
-        $dQuery->where(array("#classCrc = '[#1#]'"), log_Classes::getClassCrc('core_Users'));
-        $dQuery->where(array("#time >= '[#1#]'", $time));
-        
-        $dQuery->EXT('bridStr', 'log_Browsers', 'externalName=brid,externalKey=brId');
-        $dQuery->EXT('ipStr', 'log_Ips', 'externalName=ip,externalKey=ipId');
-        $dQuery->EXT('roles', 'core_Users', 'externalName=roles,externalKey=objectId');
-        
-        $pu = core_Roles::fetchByName('powerUser');
-        
-        $dQuery->like("roles", type_Keylist::fromArray(array($pu => $pu)));
-        
-        $dQuery->orderBy('time', 'DESC');
-        
-        $bridAr = array();
-        $ipArr = array();
-        while ($dRec = $dQuery->fetch()) {
-            $nick = core_Users::getNick($dRec->objectId);
-            $names = core_Users::fetchField($dRec->objectId, 'names');
-            $names = core_Users::prepareUserNames($names);
-            
-            if (!$bridArr[$dRec->bridStr]) {
-                $template = "{$nick} <span class='autocomplete-name'>{$names} ({$dRec->bridStr})</span>";
-                $bridArr[$dRec->bridStr] = array('val' => $dRec->bridStr, 'template' => $template, 'search' => $dRec->bridStr . ' ' . $nick . ' ' . $names);
-            }
-            
-            if (!$ipArr[$dRec->ipStr]) {
-                $template = "{$nick} <span class='autocomplete-name'>{$names} ({$dRec->ipStr})</span>";
-                $ipArr[$dRec->ipStr] = array('val' => $dRec->ipStr, 'template' => $template, 'search' => $dRec->ipStr . ' ' . $nick . ' ' . $names);
-            }
-        }
-        
-        $brid = log_Browsers::getBrid();
-        $data->form->setSuggestions('brid', $bridArr);
-        
-        $ip = core_Users::getRealIpAddr();
-        $data->form->setSuggestions('ip', $ipArr);
-    }
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc  $mvc
-     * @param core_Form $form
-     */
-    protected static function on_AfterInputEditForm($mvc, &$form)
-    {
-        if ($form->isSubmitted()) {
-            if (!$form->rec->brid && !$form->rec->ip) {
-                $form->setError('brid, ip', 'Непопълнено задължително поле');
-            }
-        }
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
-     */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-        $row->ip = '';
-        $rec->ip = str_replace(array(',', ';'), ' ', $rec->ip);
-        $ipArr = explode(' ', $rec->ip);
-        foreach ($ipArr as $ip)  {
-            $row->ip .= $row->ip ? "<br>" : '';
-            $row->ip .= type_Ip::decorateIp($ip);
-        }
-        
-        $row->brid = '';
-        $rec->brid = str_replace(array(',', ';'), ' ', $rec->brid);
-        $bridArr = explode(' ', $rec->brid);
-        foreach ($bridArr as $brid)  {
-            $row->brid .= $row->brid ? "<br>" : '';
-            $row->brid .= " " . log_Browsers::getLink($brid);
-        }
-    }
     
     
     /**
@@ -423,11 +281,15 @@ class peripheral_Devices extends embed_Manager
     {
         $data->query->orderBy('modifiedOn', 'DESC');
         
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->showFields = 'search, ' . $mvc->driverClassField;
         
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        if ($data->listFilter->rec->{$mvc->driverClassField}) {
+            $data->query->where(array("#{$mvc->driverClassField} = '[#1#]'", $data->listFilter->rec->{$mvc->driverClassField}));
+        }
     }
     
     

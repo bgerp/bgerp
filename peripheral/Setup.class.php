@@ -52,6 +52,7 @@ class peripheral_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'peripheral_Devices',
+        'migrate::bridAndIp0719'
     );
     
     
@@ -61,4 +62,35 @@ class peripheral_Setup extends core_ProtoSetup
     public $plugins = array(
             array('Избор на терминал', 'peripheral_TerminalChoicePlg', 'core_Users', 'private'),
     );
+    
+    
+    /**
+     * Миграция за прехвърляне на brid и IP полетатата от устройствата
+     */
+    public static function bridAndIp0719()
+    {
+        $Devices = cls::get('peripheral_Devices');
+        
+        $Devices->db->connect();
+        
+        $bridField = str::phpToMysqlName('brid');
+        $ipField = str::phpToMysqlName('ip');
+        
+        if (!$Devices->db->isFieldExists($Devices->dbTableName, $bridField) && !$Devices->db->isFieldExists($Devices->dbTableName, $ipField)) {
+            
+            return ;
+        }
+        
+        $Devices->FLD('brid', 'text(rows=2)', 'caption=Компютър->Браузър');
+        $Devices->FLD('ip', 'text(rows=2)', 'caption=Компютър->IP');
+        
+        $query = $Devices->getQuery();
+        
+        $query->where('#brid IS NOT NULL');
+        $query->orWhere('#ip IS NOT NULL');
+        
+        while ($rec = $query->fetch()) {
+            $Devices->save($rec, 'brid, ip');
+        }
+    }
 }

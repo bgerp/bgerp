@@ -438,7 +438,7 @@ class cat_products_Packagings extends core_Detail
         }
         
         if (!empty($rec->eanCode)) {
-            if (barcode_Search::haveRightFor('list')) {
+            if (barcode_Search::haveRightFor('list') && !Mode::isReadOnly()) {
                 $row->eanCode = ht::createLink($row->eanCode, array('barcode_Search', 'search' => $rec->eanCode));
             }
         }
