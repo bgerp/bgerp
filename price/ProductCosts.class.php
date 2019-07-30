@@ -621,10 +621,12 @@ class price_ProductCosts extends core_Manager
                 $sum = 0;
                 foreach ($foundIn as $delData){
                     $quantity = $delData->quantity;
-                    if($neededQuantity < $delData->quantity){
-                        $quantity = $neededQuantity;
-                    }
+                    $quantityLast = $neededQuantity;
                     $neededQuantity -= $delData->quantity;
+                    if($neededQuantity < $delData->quantity){
+                        $quantity = $quantityLast;
+                    }
+                    
                     $sum += $quantity * $delData->price;
                     
                     if($neededQuantity <= 0) break;
