@@ -973,10 +973,10 @@ class core_Mvc extends core_FieldSet
         
         $checkFields = array();
         
-        if (count($fields)) {
+        if (countR($fields)) {
             $checkFields[] = $fields;
         } else {
-            if (count($this->dbIndexes)) {
+            if (countR($this->dbIndexes)) {
                 foreach ($this->dbIndexes as $indRec) {
                     if ($indRec->type == 'UNIQUE') {
                         $checkFields[] = arr::make($indRec->fields);
