@@ -604,7 +604,7 @@ class price_ProductCosts extends core_Manager
         $purQuery->in('productId', $productArr);
         $purQuery->where("#state != 'rejected'");
         $purQuery->show('quantity,price,productId');
-        $purQuery->orderBy('valior', "DESC");
+        $purQuery->orderBy('valior,id', "DESC");
         $all = $purQuery->fetchAll();
         
         // Нормализираме записите
