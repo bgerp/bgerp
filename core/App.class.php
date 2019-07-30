@@ -18,7 +18,7 @@ class core_App
      */
     protected static $timeSetTimeLimit;
     
-    
+
     public static function run()
     {
         $boot = trim(getBoot(), '/\\');
@@ -356,9 +356,8 @@ class core_App
             session_write_close();
         }
         
-        if (!isDebug() && $sendOutput) {
-            self::flushAndClose();
-        }
+        // Флъшваме и затваряме връзката, като евентулано показваме съдържанието в буфера
+        core_App::flushAndClose($sendOutput);
         
         // Генерираме събитието 'suthdown' във всички сингълтон обекти
         core_Cls::shutdown();
@@ -472,8 +471,16 @@ class core_App
     /**
      * Изпраща всичко буферирано към браузъра и затваря връзката
      */
-    public static function flushAndClose()
-    {
+    public static function flushAndClose($output = true)
+    { 
+        static $oneTimeFlag;
+
+        if($oneTimeFlag) {
+            return;
+        } else {
+            $oneTimeFlag = true;
+        }
+
         $content = ob_get_contents();         // Get the content of the output buffer
         
         while (ob_get_level() > 0) {
@@ -481,35 +488,37 @@ class core_App
         }
         
         if (!headers_sent()) {
-            $len = strlen($content);             // Get the length
-            header("Content-Length: ${len}");     // Close connection after $size characters
-            header('Cache-Control: private, max-age=0'); // HTTP 1.1.
-            //header('Pragma: no-cache'); // HTTP 1.0.
-            header('Expires: -1'); // Proxies.
+            if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output) {
+                $len = strlen($content); 
+                header("Content-Length: ${len}");
+            } else {
+                header("Content-Length: 0");
+            }
+            header('Cache-Control: private, max-age=0');
+            header('Expires: -1');
             header('Connection: close');
-            
+            header('X-Accel-Buffering: no');
+
             // Добавяме допълнителните хедъри
             $aHeadersArr = self::getAdditionalHeadersArr();
             foreach ($aHeadersArr as $hStr) {
                 header($hStr);
             }
         }
-        
-        // Логваме съдържанието
-        if ($content) {
-            Debug::log(mb_substr($content, 0, 255));
-        }
-        
-        if ($_SERVER['REQUEST_METHOD'] != 'HEAD') {
+                
+        if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output && $len) {
             echo $content; // Output content
+        } else {
+            header("Content-Encoding: none");
         }
         
         // Изпращаме съдържанието на изходния буфер
         if (function_exists('fastcgi_finish_request')) {
-            fastcgi_finish_request();
+            @fastcgi_finish_request();
         } else {
-            ob_end_flush();
-            flush();
+            @ob_end_flush();
+            @ob_flush();
+            @flush();
         }
     }
     
@@ -603,13 +612,11 @@ class core_App
         }
         
         // Забранява кеширането. Дали е необходимо тук?
-            header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
-            header('Pragma: no-cache'); // HTTP 1.0.
-            header('Expires: 0'); // Proxies.
+        header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
+        header('Expires: 0'); // Proxies.
             
-            header("Location: ${url}", true, 302);
-        
-        
+        header("Location: ${url}", true, 302);
+
         static::shutdown(false);
     }
     
