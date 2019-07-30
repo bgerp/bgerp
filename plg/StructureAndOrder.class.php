@@ -64,7 +64,7 @@ class plg_StructureAndOrder extends core_Plugin
         
         $options = self::getOptiopns($mvc, $rec);
         
-        if (count($options)) {
+        if (countR($options)) {
             $form->setField('saoPosition', 'input');
             $form->setField('saoRelative', 'input');
             
@@ -151,7 +151,7 @@ class plg_StructureAndOrder extends core_Plugin
             setIfNot($rec->saoPosition, 'next');
             
             // Ако нямаме никакви елементи правим дефолти
-            if (!count($items) || (!$rec->saoRelative && $rec->saoPosition != 'subLevel')) {
+            if (!countR($items) || (!$rec->saoRelative && $rec->saoPosition != 'subLevel')) {
                 $rec->saoParentId = null;
                 $rec->saoOrder = null;
                 $rec->saoLevel = 1;
