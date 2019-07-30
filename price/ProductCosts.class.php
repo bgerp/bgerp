@@ -614,36 +614,43 @@ class price_ProductCosts extends core_Manager
             $accObject = $accCosts[$productId];
             $foundIn = array_filter($all, function ($a) use ($productId){return $a->productId == $productId && $a->quantity >= 0;});
             
-            // Ако има к-ва в складовата наличност
+            $useFirstPurchase = true;
             $averageAmount = 0;
+            
+            // Ако има положителна наличност
             if(!empty($accObject->quantity)){
-                $neededQuantity = $accObject->quantity;
-                $sum = 0;
-                foreach ($foundIn as $delData){
-                    $quantity = $delData->quantity;
-                    $quantityLast = $neededQuantity;
-                    $neededQuantity -= $delData->quantity;
-                    if($neededQuantity < $delData->quantity){
-                        $quantity = $quantityLast;
+                if($accObject->quantity > 0){
+                    $useFirstPurchase = false;
+                    $availableQuantity = $accObject->quantity;
+                    $sum = 0;
+                    
+                    // За всяка покупка от последната към първата
+                    foreach ($foundIn as $delData){
+                        if($delData->quantity <= $availableQuantity){
+                            $quantity = $delData->quantity;
+                        } else {
+                            $quantity = $availableQuantity;
+                        }
+                        
+                        $availableQuantity -= $quantity;
+                        $sum += $quantity * $delData->price;
+                        
+                        if($availableQuantity <= 0) break;
                     }
                     
-                    $sum += $quantity * $delData->price;
-                    
-                    if($neededQuantity <= 0) break;
-                }
-               
-                $averageAmount = round($sum / $accObject->quantity, 4);
-                $averageAmount = core_Math::roundNumber($averageAmount);
-            } else {
-                if(count($foundIn)){
-                    $foundIn = $foundIn[key($foundIn)];
-                    $averageAmount = $foundIn->price;
+                    // Изчисляване на колко е средната
+                    $averageAmount = round($sum / $accObject->quantity, 4);
+                    $averageAmount = core_Math::roundNumber($averageAmount);
                 }
             }
             
-            $res[$productId] = (object) array('price' => $averageAmount,
-                                              'quantity' => $accObject->quantity,
-            );
+            // Ако има НЕположителна наличност, но има покупки, взима се цената от първата
+            if($useFirstPurchase === true && count($foundIn)){
+                $foundIn = $foundIn[key($foundIn)];
+                $averageAmount = $foundIn->price;
+            }
+            
+            $res[$productId] = (object) array('price' => $averageAmount, 'quantity' => $accObject->quantity);
         }
         
         return $res;
