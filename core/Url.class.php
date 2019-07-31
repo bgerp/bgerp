@@ -913,7 +913,7 @@ class core_Url
     /**
      * Стартира посоченото URL без да чака за резултат
      */
-    public function start($url)
+    public static function start($url)
     {
         $ch = curl_init();
  
