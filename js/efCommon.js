@@ -4854,9 +4854,9 @@ function getHitState(bodyId) {
         if (!bodyId) return 'firstTime';
         var bodyIds = sessionStorage.getItem('bodyIdHit');
 
-        if (typeof (bodyIds) !== 'undefined' && bodyIds !== 'undefined') {
+        if (typeof (bodyIds) !== 'undefined' && bodyIds) {
             bodyIds = JSON.parse(bodyIds);
-            if(typeof bodyIds[bodyId] !== 'undefined') {
+            if(bodyIds[bodyId]) {
                 this.state = bodyIds[bodyId];
                 return this.state;
             }
