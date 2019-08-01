@@ -181,7 +181,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     public function description()
     {
         parent::setDocumentFields($this);
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,before=storeId,removeAndRefreshForm=packagingId|quantityInPack|quantity');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,before=storeId,removeAndRefreshForm=packagingId|quantityInPack|quantity|packQuantity,silent');
         $this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,after=productId');
         
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'mandatory,input=hidden,before=packQuantity');
@@ -224,74 +224,68 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         
         $originDoc = doc_Containers::getDocument($form->rec->originId);
         $originRec = $originDoc->rec();
-        $form->setDefault('storeId', $originRec->storeId);
-        $form->setDefault('productId', $originRec->productId);
         
+        $storeId = $originRec->storeId;
         if($originDoc->isInstanceOf('planning_Tasks')){
-            $taskProductionProducts = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
-            $form->setOptions('productId', $taskProductionProducts);
+            $jobRec = doc_Containers::getDocument($originRec->originId)->fetch();
+            $storeId = $jobRec->storeId;
+            $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
         } else {
-            $form->setReadOnly('productId');
+            $productOptions = array($originRec->productId => cat_Products::getTitleById($originRec->productId, false));
         }
         
-        $packs = cat_Products::getPacks($rec->productId);
-        $form->setOptions('packagingId', $packs);
-        $form->setDefault('packagingId', $originRec->packagingId);
+        $form->setDefault('storeId', $storeId);
+        $form->setOptions('productId', $productOptions);
+        $form->setDefault('productId', key($productOptions));
         
-        // Ако артикула не е складируем, скриваме полето за мярка
-        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-        if ($canStore == 'no') {
-            $measureShort = cat_UoM::getShortName($rec->packagingId);
-            $form->setField('packQuantity', "unit={$measureShort}");
-        } else {
-            $form->setField('packagingId', 'input');
-        }
-        
-        $form->setDefault('jobQuantity', $originRec->quantity);
-        $quantityFromTasks = planning_Tasks::getProducedQuantityForJob($originRec->id);
-        $quantityToStore = $quantityFromTasks - $originRec->quantityProduced;
-        
-        if ($quantityToStore > 0) {
-            $form->setDefault('packQuantity', $quantityToStore / $originRec->quantityInPack);
-        }
-        
-        $bomRec = cat_Products::getLastActiveBom($originRec->productId, 'production');
-        if (!$bomRec) {
-            $bomRec = cat_Products::getLastActiveBom($originRec->productId, 'sales');
-        }
-        
-        if (isset($bomRec->expenses)) {
-            $form->setDefault('expenses', $bomRec->expenses);
-        }
-        
-        $productInfo = cat_Products::getProductInfo($form->rec->productId);
-        
-        if (!isset($productInfo->meta['canStore'])) {
+        if(isset($rec->productId)){
+            $packs = cat_Products::getPacks($rec->productId);
+            $form->setOptions('packagingId', $packs);
             
-            // Ако артикула е нескладируем и не е вложим и не е ДА, показваме полето за избор на разходно перо
-            if (!isset($productInfo->meta['canConvert']) && !isset($productInfo->meta['fixedAsset'])) {
-                $form->setField('expenseItemId', 'input');
+            // Ако артикула не е складируем, скриваме полето за мярка
+            $productRec = cat_Products::fetch($rec->productId, 'canStore,fixedAsset,canConvert');
+            if ($productRec->canStore == 'no') {
+                $measureShort = cat_UoM::getShortName($rec->packagingId);
+                $form->setField('packQuantity', "unit={$measureShort}");
+                
+                // Ако артикула е нескладируем и не е вложим и не е ДА, показваме полето за избор на разходно перо
+                if (!isset($productRec->canConvert) && !isset($productRec->fixedAsset)) {
+                    $form->setField('expenseItemId', 'input');
+                }
+                
+                // Ако заданието, към което е протокола е към продажба, избираме я по дефолт
+                if (empty($rec->id) && isset($originRec->saleId)) {
+                    $saleItem = acc_Items::fetchItem('sales_Sales', $originRec->saleId);
+                    $form->setDefault('expenseItemId', $saleItem->id);
+                }
+                
+                $form->setField('storeId', 'input=none');
+                $form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
+            } else {
+                $form->setField('packagingId', 'input');
             }
             
-            // Ако заданието, към което е протокола е към продажба, избираме я по дефолт
-            if (empty($form->rec->id) && isset($originRec->saleId)) {
-                $saleItem = acc_Items::fetchItem('sales_Sales', $originRec->saleId);
-                $form->setDefault('expenseItemId', $saleItem->id);
+            if($originDoc->isInstanceOf('planning_Jobs')){
+                $form->setDefault('jobQuantity', $originRec->quantity);
+                $quantityFromTasks = planning_Tasks::getProducedQuantityForJob($originRec->id);
+                $quantityToStore = $quantityFromTasks - $originRec->quantityProduced;
+                if ($quantityToStore > 0) {
+                    $form->setDefault('packQuantity', $quantityToStore / $originRec->quantityInPack);
+                }
+            } else {
+                $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
+                $form->setDefault('packagingId', $info->packagingId);
+                $form->setDefault('packQuantity', $info->totalQuantity);
             }
+            $form->setDefault('packagingId', $originRec->packagingId);
             
-            $form->setField('storeId', 'input=none');
-            $form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
-        }
-        
-        $nQuery = self::getQuery();
-        $nQuery->where("#originId = {$rec->originId} AND (#state = 'active' || #state = 'pending')");
-        $nQuery->where("#id != '{$rec->id}'");
-        $nQuery->orderBy('id', 'DESC');
-        $nQuery->limit(1);
-        
-        if ($lastRec = $nQuery->fetch()) {
-            $form->setDefault('storeId', $lastRec->storeId);
-            $form->setDefault('inputStoreId', $lastRec->inputStoreId);
+            $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production');
+            if (!$bomRec) {
+                $bomRec = cat_Products::getLastActiveBom($rec->productId, 'sales');
+            }
+            if (isset($bomRec->expenses)) {
+                $form->setDefault('expenses', $bomRec->expenses);
+            }
         }
         
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
