@@ -121,9 +121,11 @@ class eshop_Groups extends core_Master
         $this->FLD('name', 'varchar(64)', 'caption=Група, mandatory,width=100%');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание');
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Параметри,optionsFunc=cat_Params::getPublic');
+        $this->FLD('perPage', 'int(Min=0)', 'caption=Брой артикули на страница->Брой');
         $this->FLD('icon', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Малка');
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Голяма');
-        $this->FLD('productCnt', 'int', 'input=none');
+        $this->FLD('productCnt', 'int', 'input=none,single=none');
+        
     }
     
     
@@ -141,6 +143,8 @@ class eshop_Groups extends core_Master
         } else {
             $cond = "#source = {$classId} AND #state = 'active' AND #domainId = {$domainId}";
         }
+        
+        $opt = array();
         while ($rec = $cQuery->fetch($cond)) {
             $opt[$rec->id] = cms_Content::getVerbal($rec, 'menu');
         }
@@ -150,6 +154,7 @@ class eshop_Groups extends core_Master
         }
         
         $data->form->setOptions('menuId', $opt);
+        $data->form->setField('perPage', "placeholder=" . eshop_Setup::get('PRODUCTS_PER_PAGE'));
     }
     
     
@@ -204,7 +209,6 @@ class eshop_Groups extends core_Master
     {
         if (isset($fields['-list'])) {
             $row->name = $mvc->getHyperlink($rec, true);
-            
             $row->name = $mvc->saoGetTitle($rec, $row->name, '&nbsp;&nbsp;');
                         
             if (haveRole('powerUser') && $rec->state != 'closed') {
@@ -212,6 +216,8 @@ class eshop_Groups extends core_Master
                 $row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
             }
         }
+        
+        $row->perPage = !empty($rec->perPage) ? $row->perPage : ht::createHint(eshop_Setup::get('PRODUCTS_PER_PAGE'), 'Стойност по подразбиране');
     }
     
     
@@ -429,7 +435,7 @@ class eshop_Groups extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Подготовка на групата
      */
     public function renderAllGroups_($data)
     {
@@ -456,7 +462,7 @@ class eshop_Groups extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Рендиране на групата
      */
     public function renderGroup_($data)
     {

@@ -356,8 +356,10 @@ class core_App
             session_write_close();
         }
         
-        // Флъшваме и затваряме връзката, като евентулано показваме съдържанието в буфера
-        core_App::flushAndClose($sendOutput);
+        if ($sendOutput) {
+            // Флъшваме и затваряме връзката, като евентулано показваме съдържанието в буфера
+            core_App::flushAndClose($sendOutput);
+        }
         
         // Генерираме събитието 'suthdown' във всички сингълтон обекти
         core_Cls::shutdown();

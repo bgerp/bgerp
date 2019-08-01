@@ -67,7 +67,7 @@ class peripheral_FiscPrinterWeb extends peripheral_FiscPrinterIntf
      *
      * @return string
      */
-    public function getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $printAvailability, $text = '')
+    public function getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $printAvailability = false, $text = '')
     {
         return $this->class->getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $printAvailability, $text);
     }

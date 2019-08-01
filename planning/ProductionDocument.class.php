@@ -51,8 +51,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
             
             // Ако е протокол за бързо производство
         } elseif ($this instanceof planning_DirectProductionNote) {
-            $jobId = doc_Containers::getDocument($rec->originId)->that;
-            if ($handle = $this->hasNewerProductionDocument($this, $rec, $jobId)) {
+            if ($handle = $this->hasNewerProductionDocument($this, $rec)) {
                 $res = $handle;
             }
         }
@@ -72,7 +71,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
      *
      * @return string|FALSE - хендлъра на по-новия документ
      */
-    private function hasNewerProductionDocument(core_Mvc $mvc, $id, $jobId)
+    private function hasNewerProductionDocument(core_Mvc $mvc, $id)
     {
         $rec = $mvc->fetchRec($id);
         
@@ -82,8 +81,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
         $dQuery->where("#state = 'active' AND #containerCreatedOn > '{$rec->createdOn}'");
         
         // Имали такъв с по-нова дата към същото задание
-        $jobContainerId = planning_Jobs::fetchField($jobId, 'containerId');
-        $dQuery->where("#originId = {$jobContainerId}");
+        $dQuery->where("#originId = {$rec->originId}");
         if ($mvc instanceof planning_DirectProductionNote) {
             $dQuery->where("#id != {$rec->id}");
         }
@@ -99,24 +97,27 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
         
         $db = new core_Db();
         if ($db->tableExists('planning_production_note_details') && ($db->tableExists('planning_production_note'))) {
+            $origin = doc_Containers::getDocument($rec->originId);
             
-            // Проверяваме към протоколите за производство
-            $dQuery = planning_ProductionNoteDetails::getQuery();
-            $dQuery->EXT('state', 'planning_ProductionNotes', 'externalName=state,externalKey=noteId');
-            $dQuery->EXT('containerId', 'planning_ProductionNotes', 'externalName=containerId,externalKey=noteId');
-            $dQuery->where("#state = 'active'");
-            $dQuery->where("#jobId = {$jobId}");
-            if ($mvc instanceof planning_ProductionNotes) {
-                $dQuery->where("#id != {$rec->id}");
-            }
-            
-            // Ако протокола е по-нов и има детайл към същото задание
-            $dQuery->orderBy('id', 'DESC');
-            while ($dRec = $dQuery->fetch()) {
-                $cCreatedOn = doc_Containers::fetchField($dRec->containerId, 'createdOn');
-                if ($cCreatedOn > $rec->createdOn) {
-                    
-                    return planning_ProductionNotes::getHandle($dRec->noteId);
+            if($origin->isInstanceOf('planning_Jobs')){
+                // Проверяваме към протоколите за производство
+                $dQuery = planning_ProductionNoteDetails::getQuery();
+                $dQuery->EXT('state', 'planning_ProductionNotes', 'externalName=state,externalKey=noteId');
+                $dQuery->EXT('containerId', 'planning_ProductionNotes', 'externalName=containerId,externalKey=noteId');
+                $dQuery->where("#state = 'active'");
+                 $dQuery->where("#jobId = {$origin->that}");
+                if ($mvc instanceof planning_ProductionNotes) {
+                    $dQuery->where("#id != {$rec->id}");
+                }
+                
+                // Ако протокола е по-нов и има детайл към същото задание
+                $dQuery->orderBy('id', 'DESC');
+                while ($dRec = $dQuery->fetch()) {
+                    $cCreatedOn = doc_Containers::fetchField($dRec->containerId, 'createdOn');
+                    if ($cCreatedOn > $rec->createdOn) {
+                        
+                        return planning_ProductionNotes::getHandle($dRec->noteId);
+                    }
                 }
             }
         }

@@ -183,7 +183,7 @@ class store_InventoryNoteSummary extends doc_Detail
             return;
         }
         
-        $rec->delta = $rec->quantity - $rec->blQuantity;
+        $rec->delta = round($rec->quantity - $rec->blQuantity, 4);
     }
     
     
@@ -839,7 +839,7 @@ class store_InventoryNoteSummary extends doc_Detail
         $query->show('sumQuantity,quantity');
         
         $quantity = $query->fetch()->sumQuantity;
-        $rec->quantity = $quantity;
+        $rec->quantity = round($quantity, 4);
         
         cls::get('store_InventoryNoteSummary')->save($rec, 'quantity');
     }

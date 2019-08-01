@@ -241,19 +241,4 @@ class planning_ProductionNotes extends planning_ProductionDocument
             }
         }
     }
-    
-    
-    /**
-     * Изчиства записите, заопашени за запис
-     */
-    public static function on_Shutdown($mvc)
-    {
-        if (count($mvc->invalidateJobsCache)) {
-            foreach ($mvc->invalidateJobsCache as $jobId) {
-                
-                // Във заопашените задания обновяваме произведените артикули
-                planning_Jobs::updateProducedQuantity($jobId);
-            }
-        }
-    }
 }
