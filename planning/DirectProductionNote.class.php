@@ -226,9 +226,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $originRec = $originDoc->rec();
         
         $storeId = $originRec->storeId;
+        $saleId = $originRec->saleId;
         if($originDoc->isInstanceOf('planning_Tasks')){
             $jobRec = doc_Containers::getDocument($originRec->originId)->fetch();
             $storeId = $jobRec->storeId;
+            $saleId = $jobRec->saleId;
             $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
         } else {
             $productOptions = array($originRec->productId => cat_Products::getTitleById($originRec->productId, false));
@@ -259,8 +261,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     $form->setDefault('packQuantity', $info->totalQuantity);
                 }
             }
-            $form->setDefault('packagingId', $originRec->packagingId);
             
+            $form->setDefault('packagingId', $originRec->packagingId);
             if ($productRec->canStore == 'no') {
                 $measureShort = cat_UoM::getShortName($rec->packagingId);
                 $form->setField('packQuantity', "unit={$measureShort}");
@@ -271,8 +273,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
                 
                 // Ако заданието, към което е протокола е към продажба, избираме я по дефолт
-                if (empty($rec->id) && isset($originRec->saleId)) {
-                    $saleItem = acc_Items::fetchItem('sales_Sales', $originRec->saleId);
+                if (empty($rec->id) && isset($saleId)) {
+                    $saleItem = acc_Items::fetchItem('sales_Sales', $saleId);
                     $form->setDefault('expenseItemId', $saleItem->id);
                 }
                 
@@ -334,7 +336,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
             $row->debitAmount .= " <span class='cCode'>{$baseCurrencyCode}</span>, " . tr('без ДДС');
         }
-        
         if (isset($rec->expenseItemId)) {
             $row->expenseItemId = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
         }
@@ -459,7 +460,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $origin = doc_Containers::getDocument($rec->originId);
         $aQuery = planning_ProductionTaskProducts::getQuery();
         $aQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        $aQuery->where("#taskId = {$origin->that} AND #type != 'production' AND #canStore = 'yes' AND (#storeId IS NULL OR #storeId = {$rec->storeId}) AND #totalQuantity != 0");
+        $storeId = ($rec->inputStoreId) ? $rec->inputStoreId : $rec->storeId;
+        $aQuery->where("#taskId = {$origin->that} AND #type != 'production' AND #canStore = 'yes' AND (#storeId IS NULL OR #storeId = '{$storeId}') AND #totalQuantity != 0");
         
         // Събираме ги в масив
         while ($aRec = $aQuery->fetch()) {
