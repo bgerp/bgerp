@@ -255,7 +255,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             } else {
                 $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
                 $form->setDefault('packagingId', $info->packagingId);
-                $form->setDefault('packQuantity', $info->totalQuantity);
+                if ($quantityToStore > 0) {
+                    $form->setDefault('packQuantity', $info->totalQuantity);
+                }
             }
             $form->setDefault('packagingId', $originRec->packagingId);
             
