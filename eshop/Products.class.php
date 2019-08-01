@@ -509,7 +509,7 @@ class eshop_Products extends core_Master
             $commonParams = self::getCommonParams($pRec->id);
             $pRow->commonParams = (count($commonParams)) ? self::renderParams(self::getCommonParams($pRec->id)) : null;
         }
-        
+        bp($data);
         // URL за добавяне на продукт
         if (self::haveRightFor('add')) {
             $data->addUrl = array('eshop_Products', 'add', 'groupId' => $data->groupId, 'ret_url' => true);
