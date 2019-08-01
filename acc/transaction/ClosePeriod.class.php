@@ -741,7 +741,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                         'credit' => array('61102'), 'reason' => 'Отчитане на отнесени разходи от друга сделка');
                 }
                 
-                $amount602 += $dRec->blAmount;
+                $amount602 += abs($dRec->blAmount);
             }
             
             $total += abs($dRec->blAmount);
