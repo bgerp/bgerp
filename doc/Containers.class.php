@@ -1,5 +1,6 @@
 <?php
 
+defIfNot('BGERP_DOCUMENT_SLEEP_TIME', 0);
 
 /**
  * Клас 'doc_Containers' - Контейнери за документи

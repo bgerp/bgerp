@@ -48,7 +48,7 @@ class cond_RichTextPlg extends core_Plugin
                 $args = 'width=600,height=600,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
             }
             
-            Request::setProtected('groupName');
+            Request::setProtected('groupName, callback');
             
             // URL за добавяне на документи
             $url = toUrl(array('cond_Texts', 'Dialog', 'callback' => $callbackName, 'groupName' => $mvc->params['passage']));

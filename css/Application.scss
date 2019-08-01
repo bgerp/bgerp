@@ -2126,6 +2126,9 @@ td.rowtools-column {
 .large-field{
 	width: 50%;
 }
+.narrow .largeNarrowCell {
+	min-width: 300px;
+}
 
 .listAction table.listTable>tbody>tr>td, table.listTable.listAction>tbody>tr>td.wideColumn {
 	max-width: none !important;
@@ -6314,14 +6317,25 @@ body.narrow {
 		text-transform: uppercase;
 	}
 	.hideLink {
-		display: block;
-		margin-left: 10px;
+		display: inline-block;
 		font-size: 0.9em;
 		margin-bottom: 10px;
 		margin-top: -6px;
+		&:hover {
+			text-decoration: underline;
+		}
 		&.inlineLinks {
 			margin-left: 0;
 			display: inline-block;
+		}
+	}
+	.docToolbar {
+		margin-left: 10px;
+		span {
+			font-size: 0.9em;
+			margin: 0 5px;
+			display: inline-block;
+			color: #888;
 		}
 	}
 	span.linkWithIcon{
@@ -7198,6 +7212,11 @@ body.narrow {
 
 .narrow .elem-holder .endTooltip {
 	float: right;
+}
+
+.textHint {
+	display: inline-block;
+	border-bottom: 1px dashed;
 }
 
 .frontToolip {

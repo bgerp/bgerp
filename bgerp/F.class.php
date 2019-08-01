@@ -43,7 +43,7 @@ class bgerp_F extends core_Manager
     {
         cls::get('fileman_Files');
         
-        $this->FLD('fileHnd', 'varchar(' . strlen(FILEMAN_HANDLER_PTR) . ')', 'notNull, caption=Манипулатор, input=none');
+        $this->FLD('fileHnd', 'varchar(' . strlen(fileman_Setup::get('HANDLER_PTR')) . ')', 'notNull, caption=Манипулатор, input=none');
         $this->FLD('key', 'varchar(8)', 'notNull, caption=Ключ, input=none');
         $this->FLD('validity', 'time(suggestions=1 ден|1 седмица|1 месец|1 година)', 'notNull, caption=Валидност, mandatory');
     }

@@ -164,11 +164,18 @@ class type_Double extends core_Type
         
         // Закръгляме числото преди да го обърнем в нормален вид
         $value = round($value, $decimals);
+        
+        // ако е умно показване и стойноста е 0, да не се закръгля до 0.000
+        if ($this->params['smartRound'] && $value == 0) {
+            $decimals = 0;
+        }
+        
         $value = number_format($value, $decimals, $decPoint, $thousandsSep);
         
         if (!Mode::is('text', 'plain')) {
             $value = str_replace(' ', '&nbsp;', $value);
         }
+        
         return $value;
     }
     

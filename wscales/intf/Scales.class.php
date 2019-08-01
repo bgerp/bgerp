@@ -13,7 +13,7 @@
  *
  * @since     v 0.1
  */
-class wscales_intf_Scales
+class wscales_intf_Scales extends peripheral_DeviceIntf
 {
     
     /**

@@ -1,7 +1,7 @@
 <?php
 
 
-if ($_REQUEST['SetupKey'] == 'demo') {
+if (isset($_REQUEST['SetupKey']) && $_REQUEST['SetupKey'] == 'demo') {
     $setup = new setup_Controller();
     echo $setup->action();
     die;

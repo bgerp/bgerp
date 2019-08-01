@@ -87,7 +87,7 @@ class bgerp_Menu extends core_Manager
                 }
                 list($whole, $decimal) = explode('.', $rec->row);
                 $newRec->order = $thisMenu . '.' . $decimal;
-          
+                
                 $newRec->row = (int) $rec->row;
                 $newRec->menuTr = tr($rec->menu);
                 $newRec->subMenuTr = tr($rec->subMenu);
@@ -114,8 +114,8 @@ class bgerp_Menu extends core_Manager
         
         return $menuObj;
     }
-
-
+    
+    
     /**
      * Изчиства кеша за дадения потребител
      */
@@ -520,7 +520,7 @@ class bgerp_Menu extends core_Manager
     public function on_Shutdown()
     {
         // Ако имаме добавения по менюто
-        if (count($this->savedItems)) {
+        if (countR($this->savedItems)) {
             
             // Премахваме кеша на менюто за всички езици
             $lgArr = core_Lg::getLangs();

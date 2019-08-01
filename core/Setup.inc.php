@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Скрипт 'Setup.inc.php' -  Инсталиране на bgERP
  *
@@ -50,7 +49,7 @@ if (setupKeyValid() && !setupProcess()) {
     // halt("Процес на обновяване - опитайте по късно.");
 }
 
-
+ 
 // На коя стъпка се намираме в момента?
 $step = $_GET['step'] ? $_GET['step'] : 1;
 $texts['currentStep'] = $step;
@@ -644,7 +643,7 @@ if ($step == 3) {
         
     foreach ($folders as $path) {
         if (!is_dir($path)) {
-            if (!mkdir($path, 0777, true)) {
+            if (!mkdir($path, 0744, true)) {
                 $log[] = "err:Не може да се създаде директорията: <b>`{$path}`</b>";
             } else {
                 $log[] = "new:Създадена е директория: <b>`{$path}`</b>";
@@ -775,9 +774,9 @@ if ($step == 3) {
     // Проверка за връзка с MySQL сървъра
     $log[] = 'h:Проверка на сървъра на базата данни:';
     if (defined('EF_DB_USER') && defined('EF_DB_HOST') && defined('EF_DB_PASS') && defined('EF_DB_NAME')) {
-        $DB = new core_Db();
+        $DB = new core_Db(); 
         try {
-            $DB->connect(false);
+            $DB->connect(true);
             $log[] = 'inf:Успешна връзка със сървъра: <b>`' . EF_DB_HOST .' `</b>';
         } catch (core_Exception_Expect $e) {
             $log[] = 'err: ' . $e->getMessage();
@@ -790,9 +789,15 @@ if ($step == 3) {
     // Проверка за връзка с базата за LOG-те
     $log[] = 'h:Проверка на сървъра за LOG таблиците:';
     if (defined('LOG_DB_USER') && defined('LOG_DB_HOST') && defined('LOG_DB_PASS') && defined('LOG_DB_NAME')) {
-        $DB = new core_Db();
+        $DB =  cls::get(
+                'core_Db',
+                array('dbName' => LOG_DB_NAME,
+                    'dbUser' => LOG_DB_USER,
+                    'dbPass' => LOG_DB_PASS,
+                    'dbHost' => LOG_DB_HOST,
+                ));
         try {
-            $DB->connect(false);
+            $DB->connect(true);
             $log[] = 'inf:Успешна връзка с LOG сървъра: <b>`' . LOG_DB_HOST .' : '. LOG_DB_NAME . ' `</b>';
         } catch (core_Exception_Expect $e) {
             $log[] = 'err: ' . $e->getMessage();
@@ -1489,7 +1494,7 @@ function contentFlush($content)
 function setupLock()
 {
     if (!is_dir(EF_TEMP_PATH)) {
-        mkdir(EF_TEMP_PATH, 0777, true);
+        mkdir(EF_TEMP_PATH, 0744, true);
     }
 
     return touch(EF_TEMP_PATH . '/setupLock.tmp');
@@ -1533,7 +1538,7 @@ function setupKeyValid()
     $DB = new core_Db();
     
     try {
-        $DB->connect(false);
+        $DB->connect(true);
     } catch (core_exception_Expect $e) {
 
         return true;
@@ -1555,7 +1560,7 @@ function setupKeyValid()
     $localIpArr = array('::1', '127.0.0.1');
     $isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
     $key = $_GET['SetupKey'];
-    if ($key == BGERP_SETUP_KEY && $isLocal) {
+    if ($key == setupKey() && $isLocal) {
 
         return true;
     }

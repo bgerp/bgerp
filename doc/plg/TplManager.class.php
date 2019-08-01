@@ -343,7 +343,7 @@ class doc_plg_TplManager extends core_Plugin
             $toggleFields = doc_TplManager::fetchField($data->rec->template, 'toggleFields');
             
             // Ако има данни, за кои полета да се показват от мастъра
-            if (count($toggleFields) && $toggleFields['masterFld'] !== null) {
+            if (countR($toggleFields) && $toggleFields['masterFld'] !== null) {
                 
                 // Полетата които трябва да се показват
                 $fields = arr::make($toggleFields['masterFld']);

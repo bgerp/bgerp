@@ -225,6 +225,9 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
      */
     public function canSelectDriver(core_Manager $mvc, $masterId = null, $userId = null)
     {
+        //временно
+        return false;
+        
         if (isset($masterId)) {
             $masterRec = $mvc->Master->fetchRec($masterId);
             $foundRecs = self::getProductsFromTasks($masterRec->threadId, $masterRec->storeId, $mvc->taskActionLoad, 1);

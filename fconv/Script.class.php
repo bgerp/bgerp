@@ -267,7 +267,7 @@ class fconv_Script
     
     /**
      * Връща скриптва, който се добавя преди процесите, за спиране на обработката след определено време
-     * 
+     *
      * @return string
      */
     public static function getTimeLimitScript()
@@ -503,14 +503,14 @@ class fconv_Script
             $this->script = "#!/bin/bash \n" . $this->script;
         }
         
-        expect(mkdir($this->tempDir, 0777, true));
+        core_Os::requireDir($this->tempDir);
         
         $foldersArr = $this->getFolders();
         
         if (!empty($foldersArr)) {
             foreach ((array) $foldersArr as $placeHolder => $folderName) {
                 $nFolderPath = $this->tempDir . $folderName;
-                @mkdir($nFolderPath, 0777, true);
+                core_Os::requireDir($nFolderPath);
                 $this->script = str_replace("[#{$placeHolder}#]", escapeshellarg($nFolderPath), $this->script);
             }
         }

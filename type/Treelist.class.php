@@ -14,6 +14,8 @@
  *
  * @since     v 0.1
  * @link
+ * 
+ * @deprecated
  */
 class type_Treelist extends type_Keylist
 {
@@ -105,7 +107,7 @@ class type_Treelist extends type_Keylist
             arr::sortObjects($data, 'title', 'asc', 'stri');
             $items = array();
             self::addItems($items, $data, null, $openIds); 
- 
+            
             foreach($items as $i => $item) {               
                 $id = $eId . '_' . $i;
                 $n = "{$name}[$i]";
@@ -165,7 +167,7 @@ class type_Treelist extends type_Keylist
     private static function addItems(&$items, $data, $parentId, $openIds)
     {
         $hasOpen = false;
-        $haveItem = false;  
+        $haveItem = false;
         foreach($data as $id => $item) {
             if($item->parentId == $parentId) {
                 

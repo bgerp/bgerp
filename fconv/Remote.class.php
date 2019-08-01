@@ -132,10 +132,7 @@ class fconv_Remote extends core_Manager
         expect(URL::isValidUrl($url));
         
         $dir = dirname($fPath);
-        
-        if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
-        }
+        core_Os::requireDir($dir);
         
         expect(is_dir($dir) && is_writable($dir));
         
@@ -408,7 +405,8 @@ class fconv_Remote extends core_Manager
         foreach ($filesArr as $dir => $files) {
             $path = rtrim($scriptObj->tempDir, '/');
             $path .= $dir;
-            expect(mkdir($path, 0777, true));
+            
+            core_Os::requireDir($path);
             
             foreach ($files as $fName => $fUrl) {
                 $path = rtrim($path, '/');

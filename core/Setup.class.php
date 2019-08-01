@@ -4,7 +4,7 @@
 /**
  * Вербално заглавие на приложението
  */
-DEFINE('EF_APP_TITLE', 'Application Title');
+defIfNot('EF_APP_TITLE', 'Application Title');
 
 
 /**
@@ -450,6 +450,10 @@ class core_Setup extends core_ProtoSetup
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
         
+        // Регистрираме класовете, които не може да се регистрират автоматично
+        $html .= core_Classes::add('core_Classes');
+        $html .= core_Classes::add('core_Interfaces');
+
         $html .= core_Classes::add('core_page_Internal');
         $html .= core_Classes::add('core_page_InternalModern');
         

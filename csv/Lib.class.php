@@ -54,7 +54,9 @@ class csv_Lib
         $closeOnce = false;
         
         $pRowCnt = null;
-        
+
+        $recs = array();
+
         while (($data = fgetcsv($handle, $format['length'], $format['delimiter'], $format['enclosure'], $format['escape'])) !== false) {
             $cRowCnt = count($data);
             
@@ -113,9 +115,6 @@ class csv_Lib
                 
                 // Ако таблицата се попълва от нулата, само се добавят редове
                 if ($fromZero && $isLarge) {
-                    if (!isset($recs)) {
-                        $recs = array();
-                    }
                     $recs[] = $rec;
                     $res->created++;
                     if (count($recs) > 2000) {

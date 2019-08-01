@@ -549,7 +549,7 @@ class core_Query extends core_FieldSet
      */
     public function getOrderBy($useAlias = false)
     {
-        if (count($this->orderBy) > 0) {
+        if (countR($this->orderBy) > 0) {
             arr::sortObjects($this->orderBy, 'priority');
             
             foreach ($this->orderBy as $order) {
@@ -642,7 +642,7 @@ class core_Query extends core_FieldSet
      */
     public function buildQuery()
     {
-        if (count($this->unions)) {
+        if (countR($this->unions)) {
             $count = count($this->unions);
             
             foreach ($this->unions as $cond) {
@@ -1052,7 +1052,7 @@ class core_Query extends core_FieldSet
         // Добавяме използваните полета - изрази
         $this->show = arr::combine($this->show, $this->exprShow);
         
-        if (count($this->orderBy)) {
+        if (countR($this->orderBy)) {
             foreach ($this->orderBy as $ordRec) {
                 $fld = $this->fields[ltrim($ordRec->field, '#')];
                 if ($fld->kind == 'XPR' || $fld->kind == 'EXT') {

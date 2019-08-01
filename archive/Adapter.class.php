@@ -295,7 +295,7 @@ class archive_Adapter
         $this->dir = $dir . '/' . $newName;
         
         // Създаваме директорията
-        expect(mkdir($this->dir, 0777, true), 'Не може да се създаде директория.');
+        expect(core_Os::forceDir($this->dir), 'Не може да се създаде директория.');
         
         try {
             // Инициализираме директорията
@@ -304,29 +304,31 @@ class archive_Adapter
             throw new core_exception_Expect($e->getMessage());
         }
     }
-
-
+    
+    
     /**
      * Компресира файл
      */
     public static function compressFile($src, $dest, $pass = null, $options = '')
     {
-        if($pass) {
+        if ($pass) {
             $p = "-p{$pass} -mem=AES256 ";
             escapeshellarg($p);
         } else {
             $p = '';
         }
-
+        
         $src = escapeshellarg($src);
         $dest = escapeshellarg($dest);
-
+        
         $cmd = ARCHIVE_7Z_PATH . " a {$p}-tzip {$options} {$dest} {$src}";
-
+        
         exec($cmd, $output, $return);
         
-        if($return != 0) bp($output);
-
+        if ($return != 0) {
+            bp($output);
+        }
+        
         return $return;
     }
 }

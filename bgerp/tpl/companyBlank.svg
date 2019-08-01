@@ -12,30 +12,10 @@
   <g
      id="g4"
      transform="matrix(1.9984865,0,0,1.9951468,2.8378269,0.56027241)">
-    <defs
-       id="defs6">
-      <linearGradient
-         id="test"
-         x1="-0.34127879"
-         y1="-2.9301558"
-         x2="1280.1368"
-         y2="1277.5479"
-         gradientTransform="scale(2.9301557,0.34127879)"
-         gradientUnits="userSpaceOnUse">
-        <stop
-           offset="0%"
-           style="stop-color:[#baseColor#];stop-opacity:0.2"
-           id="stop9" />
-        <stop
-           offset="100%"
-           style="stop-color:[#activeColor#];stop-opacity:0.2"
-           id="stop11" />
-      </linearGradient>
-    </defs>
     <path
        d="m 0,0 3750,0 0,435 L 0,435 0,0 Z"
        id="path13"
-       style="fill:url(#test);stroke:#aaaaaa;stroke-width:0;stroke-dasharray:10000, 1;stroke-opacity:1" />
+       style="fill:#ddd;stroke:#aaaaaa;stroke-width:0;stroke-dasharray:10000, 1;stroke-opacity:1" />
     <text
        x="50"
        y="221.81577"

@@ -85,6 +85,7 @@ class cond_Texts extends core_Manager
         $this->FLD('access', 'enum(private=Персонален,public=Публичен)', 'caption=Достъп, mandatory');
         $this->FLD('lang', 'enum(bg,en)', 'caption=Език на пасажа');
         $this->FLD('group', 'keylist(mvc=cond_Groups,select=title)', 'caption=Група');
+        $this->FNC('Protected', 'varchar', 'input=hidden, silent');
     }
     
     
@@ -93,7 +94,7 @@ class cond_Texts extends core_Manager
      */
     public function act_Dialog()
     {
-        Request::setProtected('groupName');
+        Request::setProtected('groupName, callback');
         
         Mode::set('wrapper', 'page_Dialog');
         
@@ -207,7 +208,7 @@ class cond_Texts extends core_Manager
         $form->FLD('author', 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Автор, autoFilter');
         $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език на пасажа, placeholder=Всичко');
         
-        Request::setProtected('groupName');
+        Request::setProtected('groupName, callback');
         $group = Request::get('groupName');
         
         if (isset($group)) {

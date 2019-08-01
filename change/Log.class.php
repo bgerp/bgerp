@@ -526,7 +526,7 @@ class change_Log extends core_Manager
         }
         
         // Ако няма избрана версия и генерираме за последната
-        if (!count($dataArr) && $lastVer) {
+        if (!countR($dataArr) && $lastVer) {
             
             // Флаг, да маркираме последната
             $markLast = true;

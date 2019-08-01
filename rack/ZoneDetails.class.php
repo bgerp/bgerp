@@ -132,12 +132,12 @@ class rack_ZoneDetails extends core_Detail
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         $movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal($rec->movementQuantity);
         $documentQuantityVerbal = $mvc->getFieldType('documentQuantity')->toVerbal($rec->documentQuantity);
-        $moveStatusColor = ($rec->movementQuantity < $rec->documentQuantity) ? '#ff7a7a' : (($rec->movementQuantity == $rec->documentQuantity) ? '#ccc' : '#8484ff');
+        $moveStatusColor = (round($rec->movementQuantity, 4) < round($rec->documentQuantity, 4)) ? '#ff7a7a' : (($rec->movementQuantity == $rec->documentQuantity) ? '#ccc' : '#8484ff');
         
         $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
    
         // Ако има повече нагласено от очакането добавя се бутон за връщане на количеството
-        $overQuantity = round($rec->movementQuantity - $rec->documentQuantity, 5);
+        $overQuantity = round($rec->movementQuantity - $rec->documentQuantity, 7);
         if($overQuantity > 0){
             $overQuantity *= -1;
             $ZoneType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
@@ -211,7 +211,7 @@ class rack_ZoneDetails extends core_Detail
         }
         $newRec->movementQuantity += $quantity;
         $newRec->movementQuantity = round($newRec->movementQuantity, 4);
-        
+       
         self::save($newRec);
     }
     

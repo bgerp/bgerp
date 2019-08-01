@@ -13,7 +13,7 @@
  *
  * @since     v 0.1
  */
-abstract class peripheral_Terminal extends core_Mvc
+abstract class peripheral_Terminal extends peripheral_DeviceDriver
 {
     public $interfaces = 'peripheral_TerminalIntf';
     
@@ -24,6 +24,13 @@ abstract class peripheral_Terminal extends core_Mvc
     protected $clsName;
     
     protected $fieldArr;
+    
+    
+    /**
+     *
+     * @var string
+     */
+    public $loadList = 'peripheral_DeviceWebPlg';
     
     
     /**

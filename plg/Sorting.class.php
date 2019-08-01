@@ -50,9 +50,11 @@ class plg_Sorting extends core_Plugin
                         if (($kField = $type->params['select']) && ($kMvc = $type->params['mvc'])) {
                            
                            // Ще се филтрира само по-полета, които не са XPR и FNC
-                           $kFieldType = cls::get($type->params['mvc'])->getField($kField);
-                           if(in_array($kFieldType->kind, array('FNC', 'XPR'))) continue;
-                           $dbField = $f . '_' . 'sort';
+                            $kFieldType = cls::get($type->params['mvc'])->getField($kField);
+                            if (in_array($kFieldType->kind, array('FNC', 'XPR'))) {
+                                continue;
+                            }
+                            $dbField = $f . '_' . 'sort';
                         } else {
                             continue;
                         }
@@ -61,7 +63,9 @@ class plg_Sorting extends core_Plugin
                         if (($kField = $type->params['titleFld']) && ($kMvc = $type->params['mvc'])) {
                             // Ще се филтрира само по-полета, които не са XPR и FNC
                             $kFieldType = cls::get($type->params['mvc'])->getField($kField);
-                            if(in_array($kFieldType->kind, array('FNC', 'XPR'))) continue;
+                            if (in_array($kFieldType->kind, array('FNC', 'XPR'))) {
+                                continue;
+                            }
                             $dbField = $f . '_' . 'sort';
                         } else {
                             continue;
@@ -102,7 +106,7 @@ class plg_Sorting extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if (count($data->recs) && count($data->plg_Sorting->fields)) {
+        if (countR($data->recs) && countR($data->plg_Sorting->fields)) {
             
             // Ако сме в режим принтиране не правим нищо
             if (Mode::is('printing') || Mode::is('pdf') || Mode::is('text', 'xhtml')) {

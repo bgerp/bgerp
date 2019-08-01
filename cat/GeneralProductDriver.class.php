@@ -438,4 +438,22 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             return round($volume, 2);
         }
     }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    public static function on_AfterGetSearchKeywords(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, $rec)
+    {
+        // Добавяне на параметрите към ключовите думи
+        if(isset($rec->id)){
+            $params = $Driver->getParams(cat_Products::getClassId(), $rec->id, null, true);
+            if(is_array($params)){
+                foreach ($params as $paramId => $value){
+                    $paramName = cat_Params::getTitleById($paramId, false);
+                    $res .= ' ' . plg_Search::normalizeText($paramName) . ' ' . plg_Search::normalizeText($value);
+                }
+            }
+        }
+    }
 }

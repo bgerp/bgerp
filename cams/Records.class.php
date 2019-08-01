@@ -26,12 +26,6 @@ defIfNot('SBF_CAMS_MP4_PATH', EF_SBF_PATH . '/' . SBF_CAMS_MP4_DIR);
 
 
 /**
- * Колко е продължителността на конвертирането на един клип в секунди
- */
-defIfNot('CAMS_CLIP_TO_FLV_DURATION', round(cams_CLIP_DURATION / 30));
-
-
-/**
  * Клас 'cams_Records' -
  *
  *
@@ -154,7 +148,7 @@ class cams_Records extends core_Master
         
         // Ако директорията за конвертираните файловете не съществува,
         // записва в лога
-        if (!is_dir(SBF_CAMS_FLV_PATH) || !is_dir(SBF_CAMS_MP4_PATH)) {
+        if (!is_dir(SBF_CAMS_MP4_PATH)) {
             $this->logAlert('Директорията за конвертираните файлове не съществува - преинсталирайте пакета cams.');
         }
         
@@ -1005,23 +999,10 @@ class cams_Records extends core_Master
         $dirs = array(
             CAMS_VIDEOS_PATH => 'за съхраняване на записите',
             CAMS_IMAGES_PATH => 'за съхраняване на JPG',
-            SBF_CAMS_FLV_PATH => 'за FLV за плейване',
             SBF_CAMS_MP4_PATH => 'за MP4 за плейване',
         );
         
-        foreach ($dirs as $d => $caption) {
-            if (!is_dir($d)) {
-                if (@mkdir($d, 0777, true)) {
-                    $msg = "<li style='color:green;'> Директорията <b>{$d}</b> е създадена ({$caption})";
-                } else {
-                    $msg = "<li style='color:red;'> Директорията <b>{$d}</b> не може да бъде създадена ({$caption})";
-                }
-            } else {
-                $msg = "<li> Директорията <b>{$d}</b> съществува от преди ({$caption})";
-            }
-            
-            $res .= $msg;
-        }
+        $res .= core_Os::createDirectories($dirs);
         
         // Наглася Cron да стартира записването на камерите
         $rec = new stdClass();
@@ -1150,7 +1131,6 @@ class cams_Records extends core_Master
         $this->save($rec);
         
         // Ако е наближило 300 секунди от началото на процеса - излизаме иначе, продължаваме от начало
-        
         return true;
     }
     

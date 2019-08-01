@@ -87,7 +87,7 @@ class select2_Plugin extends core_Plugin
         $maxSuggestions = $invoker->getMaxSuggestions();
         
         // Ако няма да се показват всички възможност стойности, а ще се извличат по AJAX
-        if (self::$suggCnt > $maxSuggestions) {
+        if (!$invoker->params['parentId'] && (self::$suggCnt > $maxSuggestions)) {
             
             // Подготвяме опциите за кеширане
             self::setHandler($invoker, $value);
@@ -171,6 +171,44 @@ class select2_Plugin extends core_Plugin
         $options = new ET();
         $mustCloseGroup = false;
         
+        // Ако е дървовидна структура
+        $parentIdName = $invoker->params['parentId'];
+        
+        if ($parentIdName) {
+            // Подготовка на данните
+            $keys = '';
+            foreach($optArr as $id => $title) {
+                $keys .= ($keys ? ',' : '') . $id;
+            }
+            $mvc = &cls::get($invoker->params['mvc']);
+            $query = $mvc->getQuery();
+            $query->show($parentIdName);
+            while($rec = $query->fetch("#id IN ({$keys})")) {
+                if ($rec->{$parentIdName}) {
+                    $dataPup[$rec->id] = $rec->{$parentIdName};
+                    $dataL[$rec->id] = 2;
+                    
+                    $dataNonLeaf[$rec->{$parentIdName}] = $rec->{$parentIdName};
+                }
+            }
+            
+            // Определяме нивото в зависимост от parentId
+            foreach ($dataPup as $id => $pId) {
+                if ($dataL[$pId]) {
+                    $mCnt = 20;
+                    while (true) {
+                        if ($dataL[$pId]) {
+                            $dataL[$id]++;
+                            $pId = $dataPup[$pId];
+                            if (!--$mCnt) break;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
         // Преобразуваме опциите в селекти
         foreach ((array) $optArr as $key => $val) {
             $optionsAttrArr = array();
@@ -198,6 +236,20 @@ class select2_Plugin extends core_Plugin
             } else {
                 if (strstr($value, $newKey)) {
                     $optionsAttrArr['selected'] = 'selected';
+                }
+            }
+            
+            // Добавяме нужните класове
+            if ($parentIdName) {
+                if ($dataPup[$key]) {
+                    $optionsAttrArr['data-pup'] = $dataPup[$key];
+                    $optionsAttrArr['class'] = "l" . $dataL[$key];
+                } else {
+                    $optionsAttrArr['class'] = "l1";
+                }
+                
+                if ($dataNonLeaf[$key]) {
+                    $optionsAttrArr['class'] .= " non-leaf";
                 }
             }
             
@@ -244,14 +296,14 @@ class select2_Plugin extends core_Plugin
         
         $ajaxUrl = '';
         
-        if ($cnt > $maxSuggestions) {
+        if (!$invoker->params['parentId'] && $cnt > $maxSuggestions) {
             self::setHandler($invoker, $value);
             
             $ajaxUrl = toUrl(array($invoker, 'getOptions', 'hnd' => $invoker->handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1));
         }
         
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, $ajaxUrl);
+        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, $ajaxUrl, (boolean)$invoker->params['parentId']);
         
         return false;
     }

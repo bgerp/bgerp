@@ -64,7 +64,7 @@ class expert_Dataset extends core_BaseClass
         
         $id = substr(md5($name . $expr . $cond . $priority), 0, 8);
         
-        $rule = (object) array('name' => $name, 'expr' => $expr, 'cond' => $cond, 'state' => 'pending', 'order' => count($this->rules[$name]) + 1);
+        $rule = (object) array('name' => $name, 'expr' => $expr, 'cond' => $cond, 'state' => 'pending', 'order' => countR($this->rules[$name]) + 1);
         
         if ($priority) {
             $rule->priority = $priority;

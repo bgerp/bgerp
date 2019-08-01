@@ -13,7 +13,7 @@
  *
  * @since     v 0.1
  */
-class peripheral_FiscPrinter
+class peripheral_FiscPrinterIntf extends peripheral_DeviceIntf
 {
     /**
      * Инстанция на класа имплементиращ интерфейса

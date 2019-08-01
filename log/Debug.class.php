@@ -83,7 +83,7 @@ class log_Debug extends core_Manager
      */
     public static function getReportLink($debugFile, $btnName = 'Сигнал', $icon = 'img/16/debug_bug.png', $class = null)
     {
-        $btnName = tr($btnName);
+        $btnName = $btnName;
         
         $urlArr = array('log_Debug', 'report', 'debugFile' => $debugFile, 'ret_url' => true);
         

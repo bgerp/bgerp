@@ -87,19 +87,19 @@ class price_Updates extends core_Manager
     									lastDelivery=Последна доставка (+разходи),
     									activeDelivery=Текуща поръчка,
     									lastQuote=Последна оферта,
-    									bom=Последна рецепта)', 'caption=Източник 1,mandatory');
+    									bom=Последна рецепта,average=Средна доставна за наличното)', 'caption=Източник 1,mandatory');
         $this->FLD('costSource2', 'enum(,accCost=Складова,
     									lastDelivery=Последна доставка (+разходи),
     									activeDelivery=Текуща поръчка,
     									lastQuote=Последна оферта,
-    									bom=Последна рецепта)', 'caption=Източник 2');
+    									bom=Последна рецепта,average=Средна доставна за наличното)', 'caption=Източник 2');
         $this->FLD('costSource3', 'enum(,accCost=Складова,
     									lastDelivery=Последна доставка (+разходи),
     									activeDelivery=Текуща поръчка,
     									lastQuote=Последна оферта,
-    									bom=Последна рецепта)', 'caption=Източник 3');
+    									bom=Последна рецепта,average=Средна доставна за наличното)', 'caption=Източник 3');
         $this->FLD('costAdd', 'percent(Min=0,max=1)', 'caption=Добавка');
-        $this->FLD('costAddAmount', 'double(Min=0))', "caption=Добавка|* (|Сума|*),unit=|*BGN (|добавя се твърдо|*)");
+        $this->FLD('costAddAmount', 'double(Min=0,decimals=2)', "caption=Добавка|* (|Сума|*),unit=|*BGN (|добавя се твърдо|*)");
         $this->FLD('minChange', 'percent(min=0,max=1)', 'caption=Мин. промяна');
         
         $this->FLD('costValue', 'double', 'input=none,caption=Себестойност');
