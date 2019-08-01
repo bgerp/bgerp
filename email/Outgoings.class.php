@@ -206,8 +206,8 @@ class email_Outgoings extends core_Master
         $this->FLD('forward', 'enum(,no=Не, yes=Да)', 'caption=Препращане, input=hidden, allowEmpty');
         
         //Данни за адресата
-        $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%, silent,changable');
-        $this->FLD('emailCc', 'emails', 'caption=Адресат->Копие до,  width=100%,changable');
+        $this->FLD('email', 'emails(512)', 'caption=Адресат->Имейл, width=100%, silent,changable');
+        $this->FLD('emailCc', 'emails(512)', 'caption=Адресат->Копие до,  width=100%,changable');
         $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData,changable');
         $this->FLD('attn', 'varchar', 'caption=Адресат->Име,oldFieldName=attentionOf,class=contactData,changable');
         $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,oldFieldName=phone,class=contactData,changable');
