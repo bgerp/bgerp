@@ -50,6 +50,12 @@ defIfNot('ESHOP_CART_ACCESS_SALT', '');
 
 
 /**
+ * Брой артикули на страница
+ */
+defIfNot('ESHOP_PRODUCTS_PER_PAGE', '20');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -137,6 +143,7 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_SALE_DEFAULT_TPL_EN' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
         'ESHOP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни за количката->Поле'),
         'ESHOP_CART_ACCESS_SALT' => array('varchar', 'caption=Даване на достъп за присвояване на количка->Сол'),
+        'ESHOP_PRODUCTS_PER_PAGE' => array('int(Min=0)', 'caption=Брой артикули на страница в групата->Брой'),
     );
     
     

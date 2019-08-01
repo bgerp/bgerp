@@ -25,7 +25,6 @@ class currency_Wrapper extends plg_ProtoWrapper
         
         //$this->TAB('currency_CurrencyGroups', 'Групи валути', 'ceo,admin,cash,bank,currency');
         $this->TAB('currency_CurrencyRates', 'Валутни курсове', 'ceo,admin,cash,bank,currency');
-        $this->TAB('currency_FinIndexes', 'Индекси', 'ceo,admin,cash,bank,currency');
         
         $this->title = 'Валути « Финанси';
     }
