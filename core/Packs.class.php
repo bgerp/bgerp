@@ -1129,7 +1129,7 @@ class core_Packs extends core_Manager
         $form->toolbar->addSbBtn('Запис', 'default', 'ef_icon = img/16/disk.png, title=Съхраняване на настройките');
         
         // Добавяне на допълнителни системни действия
-        if (count($setup->systemActions)) {
+        if (countR($setup->systemActions)) {
             foreach ($setup->systemActions as $sysActArr) {
                 $form->toolbar->addBtn($sysActArr['title'], $sysActArr['url'], $sysActArr['params']);
             }
