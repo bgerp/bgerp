@@ -70,8 +70,7 @@ class currency_Setup extends core_ProtoSetup
         'currency_Currencies',
         
         //'currency_CurrencyGroups',
-        'currency_CurrencyRates',
-        'currency_FinIndexes'
+        'currency_CurrencyRates'
     );
     
     
