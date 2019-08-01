@@ -34,6 +34,13 @@ defIfNot('EF_USERS_PASS_MIN_LEN', 6);
 
 
 /**
+ * Колко дни потребител може да не активира първоначално достъпа си
+ * преди да бъде изтрит
+ */
+defIfNot('USERS_DRAFT_MAX_DAYS', 3);
+
+
+/**
  * Дали да се използва имейл адресът, вместо ник
  */
 defIfNot('EF_USSERS_EMAIL_AS_NICK', false);
@@ -70,6 +77,8 @@ defIfNot(
                 "\n|Поздрави|*," .
                 "\n[#senderName#]"
 );
+
+
 
 
 /**

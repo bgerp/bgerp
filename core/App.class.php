@@ -356,10 +356,8 @@ class core_App
             session_write_close();
         }
         
-        if ($sendOutput) {
-            // Флъшваме и затваряме връзката, като евентулано показваме съдържанието в буфера
-            core_App::flushAndClose($sendOutput);
-        }
+        // Флъшваме и затваряме връзката, като евентулано показваме съдържанието в буфера
+        core_App::flushAndClose($sendOutput);
         
         // Генерираме събитието 'suthdown' във всички сингълтон обекти
         core_Cls::shutdown();
@@ -474,7 +472,7 @@ class core_App
      * Изпраща всичко буферирано към браузъра и затваря връзката
      */
     public static function flushAndClose($output = true)
-    { 
+    {
         static $oneTimeFlag;
 
         if($oneTimeFlag) {
@@ -482,14 +480,18 @@ class core_App
         } else {
             $oneTimeFlag = true;
         }
-
-        $content = ob_get_contents();         // Get the content of the output buffer
         
-        while (ob_get_level() > 0) {
-            ob_end_clean();
+        if ($output) {
+            $content = ob_get_contents();         // Get the content of the output buffer
+            
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
         }
         
-        if (!headers_sent()) {
+        $isHeadersSent = headers_sent();
+        
+        if (!$isHeadersSent) {
             if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output) {
                 $len = strlen($content); 
                 header("Content-Length: ${len}");
@@ -511,18 +513,20 @@ class core_App
         if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output && $len) {
             echo $content; // Output content
         } else {
-            if (!headers_sent()) {
+            if (!$isHeadersSent) {
                 header("Content-Encoding: none");
             }
         }
         
-        // Изпращаме съдържанието на изходния буфер
-        if (function_exists('fastcgi_finish_request')) {
-            @fastcgi_finish_request();
-        } else {
-            @ob_end_flush();
-            @ob_flush();
-            @flush();
+        if ($output) {
+            // Изпращаме съдържанието на изходния буфер
+            if (function_exists('fastcgi_finish_request')) {
+                @fastcgi_finish_request();
+            } else {
+                @ob_end_flush();
+                @ob_flush();
+                @flush();
+            }
         }
     }
     
