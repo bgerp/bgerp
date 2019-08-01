@@ -97,24 +97,27 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
         
         $db = new core_Db();
         if ($db->tableExists('planning_production_note_details') && ($db->tableExists('planning_production_note'))) {
+            $origin = doc_Containers::getDocument($rec->originId);
             
-            // Проверяваме към протоколите за производство
-            $dQuery = planning_ProductionNoteDetails::getQuery();
-            $dQuery->EXT('state', 'planning_ProductionNotes', 'externalName=state,externalKey=noteId');
-            $dQuery->EXT('containerId', 'planning_ProductionNotes', 'externalName=containerId,externalKey=noteId');
-            $dQuery->where("#state = 'active'");
-           // $dQuery->where("#jobId = {$jobId}");
-            if ($mvc instanceof planning_ProductionNotes) {
-                $dQuery->where("#id != {$rec->id}");
-            }
-            
-            // Ако протокола е по-нов и има детайл към същото задание
-            $dQuery->orderBy('id', 'DESC');
-            while ($dRec = $dQuery->fetch()) {
-                $cCreatedOn = doc_Containers::fetchField($dRec->containerId, 'createdOn');
-                if ($cCreatedOn > $rec->createdOn) {
-                    
-                    return planning_ProductionNotes::getHandle($dRec->noteId);
+            if($origin->isInstanceOf('planning_Jobs')){
+                // Проверяваме към протоколите за производство
+                $dQuery = planning_ProductionNoteDetails::getQuery();
+                $dQuery->EXT('state', 'planning_ProductionNotes', 'externalName=state,externalKey=noteId');
+                $dQuery->EXT('containerId', 'planning_ProductionNotes', 'externalName=containerId,externalKey=noteId');
+                $dQuery->where("#state = 'active'");
+                 $dQuery->where("#jobId = {$origin->that}");
+                if ($mvc instanceof planning_ProductionNotes) {
+                    $dQuery->where("#id != {$rec->id}");
+                }
+                
+                // Ако протокола е по-нов и има детайл към същото задание
+                $dQuery->orderBy('id', 'DESC');
+                while ($dRec = $dQuery->fetch()) {
+                    $cCreatedOn = doc_Containers::fetchField($dRec->containerId, 'createdOn');
+                    if ($cCreatedOn > $rec->createdOn) {
+                        
+                        return planning_ProductionNotes::getHandle($dRec->noteId);
+                    }
                 }
             }
         }
