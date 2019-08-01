@@ -417,6 +417,12 @@ class eshop_Products extends core_Master
     {
         $pQuery = self::getQuery();
         $pQuery->where("#state = 'active' AND #groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups)");
+        $perPage = eshop_Groups::fetchField($data->groupId, 'perPage');
+        $perPage = !empty($perPage) ? $perPage : eshop_Setup::get('PRODUCTS_PER_PAGE');
+        
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $perPage));
+        $data->Pager->itemsCount = $pQuery->count();
+        $data->Pager->setLimit($pQuery);
         
         while ($pRec = $pQuery->fetch()) {
             $data->recs[] = $pRec;
@@ -570,6 +576,10 @@ class eshop_Products extends core_Master
                 
                 $layout->append($pTpl);
             }
+        }
+        
+        if($data->Pager){
+            $layout->append($data->Pager->getHtml());
         }
         
         if ($data->addUrl) {
