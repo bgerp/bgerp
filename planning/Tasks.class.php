@@ -174,7 +174,7 @@ class planning_Tasks extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,inputInTask,totalQuantity,plannedQuantity';
+    public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,producedQuantity,inputInTask,totalQuantity,plannedQuantity';
     
     
     /**
@@ -230,6 +230,7 @@ class planning_Tasks extends core_Master
         
         $this->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
         $this->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
+        $this->FLD('producedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Заскладено,input=none');
         
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
         $this->FNC('systemId', 'int', 'silent,input=hidden');
@@ -364,7 +365,7 @@ class planning_Tasks extends core_Master
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         
-        foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity') as $quantityFld) {
+        foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity', 'producedQuantity') as $quantityFld) {
             $row->{$quantityFld} = ($rec->{$quantityFld}) ? $row->{$quantityFld} : 0;
             $row->{$quantityFld} = ht::styleNumber($row->{$quantityFld}, $rec->{$quantityFld});
         }
@@ -432,6 +433,9 @@ class planning_Tasks extends core_Master
         if(empty($rec->packagingId)){
             $row->packagingId = "<span class='quiet'>N/A</span>";
         }
+        
+        $canStore = cat_products::fetchField($rec->productId, 'canStore');
+        $row->producedCaption = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
         
         return $row;
     }
@@ -587,7 +591,7 @@ class planning_Tasks extends core_Master
     public function updateMaster_($id)
     {
         $rec = $this->fetch($id);
-        $updateFields = 'totalQuantity,totalWeight,scrappedQuantity,progress,modifiedOn,modifiedBy';
+        $updateFields = 'totalQuantity,totalWeight,scrappedQuantity,producedQuantity,progress,modifiedOn,modifiedBy';
         
         // Колко е общото к-во досега
         $dQuery = planning_ProductionTaskDetails::getQuery();
@@ -597,9 +601,8 @@ class planning_Tasks extends core_Master
         $dQuery->XPR('sumScrappedQuantity', 'double', "SUM(#scrappedQuantity)");
         $dQuery->show('sumQuantity,sumWeight,sumScrappedQuantity');
         
-        $res = $dQuery->fetch();
-        
         // Преизчисляваме общото тегло
+        $res = $dQuery->fetch();
         $rec->totalWeight = $res->sumWeight;
         $rec->totalQuantity = $res->sumQuantity;
         $rec->scrappedQuantity = $res->sumScrappedQuantity;
@@ -611,6 +614,19 @@ class planning_Tasks extends core_Master
         }
         
         $rec->progress = max(array($rec->progress, 0));
+        
+        $noteQuery = planning_DirectProductionNote::getQuery();
+        $noteQuery->where("#productId = {$rec->productId} AND #state = 'active' AND #originId = {$rec->containerId}");
+        $noteQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+        $noteQuery->show('totalQuantity');
+        $producedQuantity = $noteQuery->fetch()->totalQuantity;
+       
+        // Обновяване на произведеното по заданието
+        if($producedQuantity != $rec->producedQuantity){
+            planning_Jobs::updateProducedQuantity($rec->originId);
+        }
+        
+        $rec->producedQuantity = $producedQuantity;
         
         return $this->save($rec, $updateFields);
     }
@@ -939,6 +955,7 @@ class planning_Tasks extends core_Master
             $row = planning_Tasks::recToVerbal($rec, $fields);
             $row->plannedQuantity .= " " . $row->measureId;
             $row->totalQuantity .= " " . $row->measureId;
+            $row->producedQuantity .= " " . $row->measureId;
             
             $subArr = array();
             if (!empty($row->fixedAssets)) {
@@ -988,7 +1005,7 @@ class planning_Tasks extends core_Master
         // Ако няма намерени записи, не се рендира нищо
         // Рендираме таблицата с намерените задачи
         $table = cls::get('core_TableView', array('mvc' => $this));
-        $fields = 'title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано,info=@info';
+        $fields = 'title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано,info=@info';
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         

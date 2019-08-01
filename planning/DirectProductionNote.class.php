@@ -257,7 +257,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             } else {
                 $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
                 $form->setDefault('packagingId', $info->packagingId);
-                if ($quantityToStore > 0) {
+                if ($info->totalQuantity > 0) {
                     $form->setDefault('packQuantity', $info->totalQuantity);
                 }
             }
@@ -580,13 +580,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     {
         // При активиране/оттегляне
         if ($rec->state == 'active' || $rec->state == 'rejected') {
-            if (isset($rec->originId)) {
-                $origin = doc_Containers::getDocument($rec->originId);
-                if($origin->isInstanceOf('planning_Jobs')){
-                    planning_Jobs::updateProducedQuantity($origin->that);
-                }
-                doc_DocumentCache::threadCacheInvalidation($rec->threadId);
+            $origin = doc_Containers::getDocument($rec->originId);
+            if($origin->isInstanceOf('planning_Tasks')){
+                $origin->updateMaster();
+            } else {
+                planning_Jobs::updateProducedQuantity($rec->originId);
             }
+            
+            doc_DocumentCache::threadCacheInvalidation($rec->threadId);
         }
     }
     
