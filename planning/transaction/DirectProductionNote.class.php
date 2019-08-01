@@ -336,7 +336,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         array('cat_Products', $productId),
                         'quantity' => 0),
                         'credit' => $array,
-                        'reason' => 'Себестойност на услугата');
+                        'reason' => 'Себестойност на услуга');
                         
                         $entries[] = $entry4;
                 }

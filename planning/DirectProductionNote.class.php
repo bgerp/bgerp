@@ -244,26 +244,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             
             // Ако артикула не е складируем, скриваме полето за мярка
             $productRec = cat_Products::fetch($rec->productId, 'canStore,fixedAsset,canConvert');
-            if ($productRec->canStore == 'no') {
-                $measureShort = cat_UoM::getShortName($rec->packagingId);
-                $form->setField('packQuantity', "unit={$measureShort}");
-                
-                // Ако артикула е нескладируем и не е вложим и не е ДА, показваме полето за избор на разходно перо
-                if (!isset($productRec->canConvert) && !isset($productRec->fixedAsset)) {
-                    $form->setField('expenseItemId', 'input');
-                }
-                
-                // Ако заданието, към което е протокола е към продажба, избираме я по дефолт
-                if (empty($rec->id) && isset($originRec->saleId)) {
-                    $saleItem = acc_Items::fetchItem('sales_Sales', $originRec->saleId);
-                    $form->setDefault('expenseItemId', $saleItem->id);
-                }
-                
-                $form->setField('storeId', 'input=none');
-                $form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
-            } else {
-                $form->setField('packagingId', 'input');
-            }
             
             if($originDoc->isInstanceOf('planning_Jobs')){
                 $form->setDefault('jobQuantity', $originRec->quantity);
@@ -278,6 +258,27 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $form->setDefault('packQuantity', $info->totalQuantity);
             }
             $form->setDefault('packagingId', $originRec->packagingId);
+            
+            if ($productRec->canStore == 'no') {
+                $measureShort = cat_UoM::getShortName($rec->packagingId);
+                $form->setField('packQuantity', "unit={$measureShort}");
+                
+                // Ако артикула е нескладируем и не е вложим и не е ДА, показваме полето за избор на разходно перо
+                if ($productRec->canConvert == 'no' && $productRec->fixedAsset == 'no') {
+                    $form->setField('expenseItemId', 'input');
+                }
+                
+                // Ако заданието, към което е протокола е към продажба, избираме я по дефолт
+                if (empty($rec->id) && isset($originRec->saleId)) {
+                    $saleItem = acc_Items::fetchItem('sales_Sales', $originRec->saleId);
+                    $form->setDefault('expenseItemId', $saleItem->id);
+                }
+                
+                $form->setField('storeId', 'input=none');
+                $form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
+            } else {
+                $form->setField('packagingId', 'input');
+            }
             
             $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production');
             if (!$bomRec) {
