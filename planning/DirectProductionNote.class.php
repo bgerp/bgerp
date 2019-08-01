@@ -244,12 +244,29 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             
             // Ако артикула не е складируем, скриваме полето за мярка
             $productRec = cat_Products::fetch($rec->productId, 'canStore,fixedAsset,canConvert');
+            
+            if($originDoc->isInstanceOf('planning_Jobs')){
+                $form->setDefault('jobQuantity', $originRec->quantity);
+                $quantityFromTasks = planning_Tasks::getProducedQuantityForJob($originRec->id);
+                $quantityToStore = $quantityFromTasks - $originRec->quantityProduced;
+                if ($quantityToStore > 0) {
+                    $form->setDefault('packQuantity', $quantityToStore / $originRec->quantityInPack);
+                }
+            } else {
+                $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
+                $form->setDefault('packagingId', $info->packagingId);
+                if ($quantityToStore > 0) {
+                    $form->setDefault('packQuantity', $info->totalQuantity);
+                }
+            }
+            $form->setDefault('packagingId', $originRec->packagingId);
+            
             if ($productRec->canStore == 'no') {
                 $measureShort = cat_UoM::getShortName($rec->packagingId);
                 $form->setField('packQuantity', "unit={$measureShort}");
                 
                 // Ако артикула е нескладируем и не е вложим и не е ДА, показваме полето за избор на разходно перо
-                if (!isset($productRec->canConvert) && !isset($productRec->fixedAsset)) {
+                if ($productRec->canConvert == 'no' && $productRec->fixedAsset == 'no') {
                     $form->setField('expenseItemId', 'input');
                 }
                 
@@ -264,20 +281,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             } else {
                 $form->setField('packagingId', 'input');
             }
-            
-            if($originDoc->isInstanceOf('planning_Jobs')){
-                $form->setDefault('jobQuantity', $originRec->quantity);
-                $quantityFromTasks = planning_Tasks::getProducedQuantityForJob($originRec->id);
-                $quantityToStore = $quantityFromTasks - $originRec->quantityProduced;
-                if ($quantityToStore > 0) {
-                    $form->setDefault('packQuantity', $quantityToStore / $originRec->quantityInPack);
-                }
-            } else {
-                $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
-                $form->setDefault('packagingId', $info->packagingId);
-                $form->setDefault('packQuantity', $info->totalQuantity);
-            }
-            $form->setDefault('packagingId', $originRec->packagingId);
             
             $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production');
             if (!$bomRec) {
