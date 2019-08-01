@@ -80,7 +80,7 @@ class email_SendOnTime extends core_Manager
         $this->FLD('sentOn', 'datetime(format=smartTime)', 'caption=Изпратено на');
         $this->FLD('state', 'enum(waiting=Чакащо,stopped=Спряно,closed=Приключено)', 'caption=Състояние, notNull');
         
-        $this->FNC('emailsTo', 'emails', 'caption=Изпращане->До');
+        $this->FNC('emailsTo', 'emails(1024)', 'caption=Изпращане->До');
         $this->FNC('emailsCc', 'emails', 'caption=Изпращане->Копие');
         $this->FNC('faxTo', 'drdata_PhoneType', 'caption=Изпращане->Факс');
         $this->FNC('boxFrom', 'key(mvc=email_Inboxes, select=email)', 'caption=Изпращане->От адрес,mandatory');
