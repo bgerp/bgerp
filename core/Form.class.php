@@ -880,11 +880,10 @@ class core_Form extends core_FieldSet
                 $fieldsLayout->prepend("<div class='staticFormView'>");
                 $fieldsLayout->append('</div>');
             } else {
-                $rand = 'focus' . rand(1, 10000000);
                 if ($idForFocus) {
-                    jquery_Jquery::run($fieldsLayout, "focusOnce('#{$idForFocus}', '{$rand}');", true);
+                    jquery_Jquery::run($fieldsLayout, "focusOnce('#{$idForFocus}');", true);
                 } elseif ($idFirstFocus) {
-                    jquery_Jquery::run($fieldsLayout, "focusOnce('#{$idFirstFocus}', '{$rand}');", true);
+                    jquery_Jquery::run($fieldsLayout, "focusOnce('#{$idFirstFocus}');", true);
                 }
             }
         }

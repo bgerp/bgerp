@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -43,7 +43,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, deals_plg_SetTermDate, plg_Sorting,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
     
     
     /**
@@ -149,7 +149,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'createdOn, valior,deadline,modifiedOn';
+    public $filterDateField = 'createdOn,valior,deadline,modifiedOn';
     
     
     /**
@@ -226,5 +226,70 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId, $rec->state);
         
         return $warning;
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в посочената нишка
+     *
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
+     */
+    public static function canAddToThread($threadId)
+    {
+        // Може да добавяме или към нишка в която има задание
+        if (planning_Jobs::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
+            
+            return true;
+        }
+        
+        // Може да добавяме или към нишка в която има задание
+        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
+            
+            return true;
+        }
+        
+        return false;
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    protected static function on_AfterCreate($mvc, $rec)
+    {
+        // ако има източник ПО, копират се вложените неща по нея
+        if(isset($rec->originId)){
+            $origin = doc_Containers::getDocument($rec->originId);
+            $dQuery = planning_ProductionTaskProducts::getQuery();
+            $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+            $dQuery->where("#taskId = {$origin->that} AND #totalQuantity != 0 AND #type = 'input' AND #canStore = 'yes' AND (#storeId = {$rec->storeId} OR #storeId IS NULL)");
+            while($dRec = $dQuery->fetch()){
+                $newRec = (object)array('noteId' => $rec->id, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'quantity' => $dRec->totalQuantity);
+                planning_ConsumptionNoteDetails::save($newRec);
+            }
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'add' && isset($rec)) {
+            if (isset($rec->originId)) {
+                $origin = doc_Containers::getDocument($rec->originId);
+                if(!$origin->isInstanceOf('planning_Tasks')){
+                    $requiredRoles = 'no_one';
+                } else {
+                    $state = $origin->fetchField('state');
+                    if (in_array($state, array('rejected', 'draft', 'closed'))) {
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+        }
     }
 }

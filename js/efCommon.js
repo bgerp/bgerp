@@ -4817,47 +4817,70 @@ Experta.prototype.log = function(txt) {
  * Записва id-то на body в сесията на браузъра
  */
 Experta.prototype.saveBodyId = function() {
-	// Ако не е дефиниран
+    // Ако не е дефиниран
     if (typeof sessionStorage == "undefined") return ;
 
     var bodyId = $('body').attr('id');
 
     if (!bodyId) return ;
 
-    var bodyIds = sessionStorage.getItem(this.bodyIdSessName);
+    var bodyIds = sessionStorage.getItem('bodyIdHit');
 
     if (bodyIds) {
-    	bodyIds =  $.parseJSON(bodyIds);
+        bodyIds =  JSON.parse(bodyIds);
     } else {
-    	bodyIds = new Array();
+        bodyIds = {};
     }
 
-    if ($.inArray(bodyId, bodyIds) == -1) {
-    	bodyIds.push(bodyId);
-    }
-
-    sessionStorage.setItem(this.bodyIdSessName, JSON.stringify(bodyIds));
+    bodyIds[bodyId] = 'ajaxRefresh';
+    sessionStorage.setItem('bodyIdHit', JSON.stringify(bodyIds));
 };
+
+
+/**
+ * Определя състоянието на страницата - дали е първо посещение, дали е след рефреш или след рефреш по ajax
+ *
+ * return firstTime, refresh, ajaxRefresh
+ */
+function getHitState(bodyId) {
+    var res;
+    if (typeof sessionStorage == "undefined") return 'firstTime';
+
+    if(typeof (this.state) === 'undefined') {
+        if(typeof (bodyId) === 'undefined') {
+            var bodyId = $('body').attr('id');
+        }
+
+        if (!bodyId) return 'firstTime';
+        var bodyIds = sessionStorage.getItem('bodyIdHit');
+
+        if (typeof (bodyIds) !== 'undefined' && bodyIds) {
+            bodyIds = JSON.parse(bodyIds);
+            if(bodyIds[bodyId]) {
+                this.state = bodyIds[bodyId];
+                return this.state;
+            }
+        } else {
+            bodyIds = {};
+        }
+        res = 'firstTime';
+        this.state = 'firstTime';
+        bodyIds[bodyId] = 'refresh';
+
+        sessionStorage.setItem('bodyIdHit',  JSON.stringify(bodyIds));
+    } else {
+        res = this.state;
+    }
+    return res;
+}
 
 
 /**
  * Проверява дали id-то на body се съдържа в сесията на браузъра
  */
 Experta.prototype.checkBodyId = function(bodyId) {
-	if (!bodyId || typeof bodyId == 'undefined') {
-		bodyId = $('body').attr('id');
-	}
 
-	var bodyIds = sessionStorage.getItem(this.bodyIdSessName);
-	
-	if (!bodyIds) return ;
-
-	bodyIds =  $.parseJSON(bodyIds);
-
-	if ($.inArray(bodyId, bodyIds) != -1) {
-
-		return true;
-    }
+    return  (getHitState() == 'ajaxRefresh') ;
 };
 
 
@@ -5448,19 +5471,14 @@ $.fn.isInViewport = function() {
 /**
  * Фокусира еднократно върху посоченото id пи зададения rand
  */
-function focusOnce(id, rand) {
-	
-    if ((typeof(Storage) !== "undefined") && (typeof(localStorage) !== "undefined")) {
-        if(localStorage.getItem(rand) !== null) {
-            return;
-        }
-        localStorage.setItem(rand, 1);
-    }
-    
-    if($(id).isInViewport && $(id).isInViewport()) {
+function focusOnce(id) {
+    getEO().checkBodyId();
+
+    if(this.state && this.state == 'firstTime' && $(id).isInViewport && $(id).isInViewport()) {
         $(id).focus();
     }
 }
+
 
 
 /**

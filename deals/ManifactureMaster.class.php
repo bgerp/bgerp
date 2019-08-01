@@ -206,6 +206,7 @@ abstract class deals_ManifactureMaster extends core_Master
             return true;
         }
         
+        
         return false;
     }
 }
