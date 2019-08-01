@@ -35,7 +35,7 @@ class fileman_FileSize extends type_Bigint
         
         $space = '&nbsp;';
         
-        if (Mode::is(text, 'plain')) {
+        if (Mode::is('text', 'plain')) {
             $space = ' ';
         }
         

@@ -375,23 +375,6 @@ class fileman_Get extends core_Manager
     
     
     /**
-     * Инсталация на MVC
-     */
-    public static function on_AfterSetupMVC($mvc, &$res)
-    {
-        if (!is_dir(EF_TEMP_PATH)) {
-            if (!mkdir(EF_TEMP_PATH, 0777, true)) {
-                $res .= '<li class="debug-error">' . tr('Не може да се създаде директорията') . ': "' . EF_TEMP_PATH . '</li>';
-            } else {
-                $res .= '<li class="debug-new">' . tr('Създадена е директорията') . ': "' . EF_TEMP_PATH . '"</li>';
-            }
-        }
-        
-        return $res;
-    }
-    
-    
-    /**
      * Изважда предполагаемото име на файл от хедъри-те,
      * които получава cUrl, с допустими редирект-и
      */

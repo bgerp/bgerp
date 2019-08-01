@@ -459,13 +459,18 @@ class doc_Search extends core_Manager
      */
     public function on_BeforeRenderListTable($mvc, &$res, $data)
     {
+        if(Mode::get('screenMode') == 'narrow') {
+            $data->listTableMvc->FLD('title', 'varchar', 'tdClass=largeNarrowCell');
+            $data->listTableMvc->FLD('author', 'varchar', 'tdClass=nowrap');
+        }
+
         if (!$mvc->isFiltered) {
             
             return false;
         }
     }
-    
-    
+
+
     /**
      * След подготовка на заглавието
      */

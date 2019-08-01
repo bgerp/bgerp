@@ -77,10 +77,10 @@ class type_UserList extends type_Keylist
         $this->profileInfo = array();
         $pQuery = crm_Profiles::getQuery();
         $pQuery->show('userId,stateDateFrom,stateDateTo');
-        while ($rec = $pQuery->fetch('#stateInfo IS NOT NULL')) { 
+        while ($rec = $pQuery->fetch('#stateInfo IS NOT NULL')) {
             $this->profileInfo[$rec->userId] = crm_Profiles::getAbsenceClass($rec->stateDateFrom, $rec->stateDateTo);
         }
- 
+        
         // Ако може да вижда всички екипи - показват се. Иначе вижда само своя екип
         if (!haveRole($this->params['rolesForAll'])) {
             $ownRoles = core_Users::getCurrent('roles');
@@ -124,7 +124,7 @@ class type_UserList extends type_Keylist
         $rolesArr = type_Keylist::toArray($roles);
         
         foreach ($teams as $t) {
-            if (count($ownRoles) && !$ownRoles[$t]) {
+            if (countR($ownRoles) && !$ownRoles[$t]) {
                 continue;
             }
             $group = new stdClass();
@@ -280,7 +280,7 @@ class type_UserList extends type_Keylist
             $valuesArr = explode($value{0}, trim($value, $value{0}));
             
             $nValArr = array();
-             
+            
             foreach ($valuesArr as $uId) {
                 $roles = core_Users::fetchField($uId, 'roles');
                 

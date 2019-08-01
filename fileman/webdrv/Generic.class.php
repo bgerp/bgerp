@@ -838,7 +838,7 @@ class fileman_webdrv_Generic extends core_Manager
         if (core_Locks::get($params['lockId'], 100, 0, false)) {
             
             // Инстанция на класа
-            $Script = cls::get(fconv_Script);
+            $Script = cls::get('fconv_Script');
             
             // Функцията, която ще се извика след приключване на обработката на файла
             $Script->callBack($params['callBack']);
@@ -1529,7 +1529,7 @@ class fileman_webdrv_Generic extends core_Manager
     {
         if ($type == 'auto') {
             $len = strlen($str);
-            if (($len == FILEMAN_HANDLER_LEN) && (strpos($str, '/') === false)) {
+            if (($len == fileman_Setup::get('HANDLER_LEN')) && (strpos($str, '/') === false)) {
                 $fileType = 'handler';
                 $fRec = fileman_Files::fetchByFh($str);
                 

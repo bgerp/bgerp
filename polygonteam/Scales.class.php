@@ -13,11 +13,17 @@
  *
  * @since     v 0.1
  */
-class polygonteam_Scales extends core_Mvc
+class polygonteam_Scales extends peripheral_DeviceDriver
 {
-    public $interfaces = 'peripheral_DeviceIntf, wscales_intf_Scales';
+    public $interfaces = 'wscales_intf_Scales';
     
     public $title = 'Везна на ПолигонТийм';
+    
+    
+    /**
+     *
+     */
+    public $loadList = 'peripheral_DeviceWebPlg';
     
     
     /**

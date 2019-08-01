@@ -97,7 +97,7 @@ class acc_ActiveShortBalance
      */
     private function calcBalance($recs, &$balance = array())
     {
-        if (count($recs)) {
+        if (countR($recs)) {
             $sysIds = array();
             
             // За всеки запис
@@ -200,7 +200,7 @@ class acc_ActiveShortBalance
         // Обръщаме сис ид-та на сметките в техните ид-та
         $accArr = arr::make($accs);
         
-        if (count($accArr)) {
+        if (countR($accArr)) {
             foreach ($accArr as &$acc) {
                 $acc = acc_Accounts::fetchField("#systemId = {$acc}");
             }
@@ -222,7 +222,7 @@ class acc_ActiveShortBalance
                     $accInfos[$bRec->accountId] = acc_Accounts::getAccountInfo($bRec->accountId);
                 }
                 
-                if (count($accInfos[$bRec->accountId]->groups)) {
+                if (countR($accInfos[$bRec->accountId]->groups)) {
                     
                     // Ако е за синтетична сметка, пропускаме го
                     if (empty($bRec->ent1Id) && empty($bRec->ent2Id) && empty($bRec->ent3Id)) {
@@ -231,7 +231,7 @@ class acc_ActiveShortBalance
                 }
                 
                 // Ако има подадени сметки и сметката на записа не е в масива пропускаме
-                if (count($accArr) && !in_array($bRec->accountId, $accArr)) {
+                if (countR($accArr) && !in_array($bRec->accountId, $accArr)) {
                     continue;
                 }
                 
@@ -272,7 +272,7 @@ class acc_ActiveShortBalance
         $this->calcBalance($jQuery->fetchAll(), $newBalance);
         
         // Изчислените крайни салда стават начални салда на показвания баланс
-        if (count($newBalance)) {
+        if (countR($newBalance)) {
             foreach ($newBalance as $index => &$r) {
                 $r['baseAmount'] = $r['blAmount'];
                 $r['baseQuantity'] = $r['blQuantity'];
@@ -318,13 +318,13 @@ class acc_ActiveShortBalance
     /**
      * Връща хронологията на движенията на посочената сметка
      *
-     * @param string $accSysId        - Ид на сметка
-     * @param datetime   $from            - от дата
-     * @param datetime   $to              - до дата
-     * @param int    $item1           - перо 1 / NULL ако няма
-     * @param int    $item2           - перо 2 / NULL ако няма
-     * @param int    $item3           - перо 3 / NULL ако няма
-     * @param bool   $groupByDocument - дали резултатите да са групирани по документ
+     * @param string   $accSysId        - Ид на сметка
+     * @param datetime $from            - от дата
+     * @param datetime $to              - до дата
+     * @param int      $item1           - перо 1 / NULL ако няма
+     * @param int      $item2           - перо 2 / NULL ако няма
+     * @param int      $item3           - перо 3 / NULL ако няма
+     * @param bool     $groupByDocument - дали резултатите да са групирани по документ
      *
      * @return mixed $res
      *               [history] - Масив с редовете на хронологията

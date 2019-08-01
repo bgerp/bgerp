@@ -20,7 +20,7 @@ class peripheral_TerminalChoicePlg extends core_Plugin
     {
         if ($_GET['ret_url']) return ;
         
-        $dArr = peripheral_Devices::getDevices('peripheral_TerminalIntf', log_Browsers::getBrid(), core_Users::getRealIpAddr());
+        $dArr = peripheral_Devices::getDevices('peripheral_TerminalIntf', array('brid' => log_Browsers::getBrid(), 'ip' => core_Users::getRealIpAddr()));
         
         if (empty($dArr)) return ;
         

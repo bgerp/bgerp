@@ -50,7 +50,7 @@ class doc_plg_TplManagerDetail extends core_Plugin
         $masterRec = $data->masterData->rec;
         $toggleFields = doc_TplManager::fetchField($masterRec->template, 'toggleFields');
         
-        if (count($toggleFields) && $toggleFields[$mvc->className] !== null) {
+        if (countR($toggleFields) && $toggleFields[$mvc->className] !== null) {
             
             // Полетата които трябва да се показват
             $fields = arr::make($toggleFields[$mvc->className]);

@@ -61,7 +61,7 @@ class webkittopdf_Converter extends core_Manager
         } while (is_dir($tempPath));
         
         //Създаваме рекурсивно папката
-        expect(mkdir($tempPath, 0777, true));
+        core_Os::requireDir($tempPath);
         
         //Пътя до html файла
         $htmlPath = $tempPath . '/' . $randId . '.html';

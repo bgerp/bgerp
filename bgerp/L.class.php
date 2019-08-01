@@ -228,7 +228,8 @@ class bgerp_L extends core_Manager
             // Инструкция към ботовете за да не индексират и не проследяват линковете
             // на тези по същество вътрешни, но достъпни без парола страници.
             $html->append("\n" . '<meta name="robots" content="noindex, nofollow">', 'HEAD');
-            
+
+            $html->append("<div class='docToolbar'>");
             // Ако има потребител с такъв имейл и не е логнат, показваме линк за логване
             if (($options['to'] || $options['cc']) && !haveRole('user')) {
                 $emailsStr = $options['to'];
@@ -242,7 +243,7 @@ class bgerp_L extends core_Manager
                         continue;
                     }
                     
-                    $html->append(ht::createLink(tr('Логнете се, за да видите нишката'), array('core_Users', 'login', 'ret_url' => true), null, array('class' => 'hideLink', 'ef_icon' => 'img/16/key.png')));
+                    $html->append(ht::createLink(tr('Логване'), array('core_Users', 'login', 'ret_url' => true), null, array('class' => 'hideLink', 'ef_icon' => 'img/16/key.png')). "<span>|</span>");
                     break;
                 }
                 
@@ -250,7 +251,7 @@ class bgerp_L extends core_Manager
                     // Ако има повече от един имейл в нишката
                     $tEmailArr = $this->getThreadEmails($cid, $mid, true);
                     if (count($tEmailArr) > 1) {
-                        $html->append(ht::createLink(tr('Вижте цялата нишка от имейли'), array($this, 'T', $cid, 'm' => $mid, '#' => $doc->getHandle()), null, array('class' => 'hideLink', 'ef_icon' => 'img/16/page_copy.png')));
+                        $html->append(ht::createLink(tr('Цялата нишка'), array($this, 'T', $cid, 'm' => $mid, '#' => $doc->getHandle()), null, array('class' => 'hideLink', 'ef_icon' => 'img/16/chat.png')) . "<span>|</span>");
                     }
                 }
             }
@@ -286,7 +287,6 @@ class bgerp_L extends core_Manager
                 }
                 
                 if (!empty($exportLinkArr)) {
-                    $html->append("<div class='hideLink'>" . tr('Свали като') . ': ');
                     
                     $isFirst = true;
                     foreach ($exportLinkArr as $link) {
@@ -295,18 +295,17 @@ class bgerp_L extends core_Manager
                         }
                         
                         if (!$isFirst) {
-                            $html->append(' | ');
+                            $html->append('<span>|</span>');
                         } else {
                             $isFirst = false;
                         }
                         
                         $html->append($link);
                     }
-                    
-                    $html->append('</div>');
                 }
             }
-            
+            $html->append("</div>");
+
             return $html;
         } catch (core_exception_Expect $ex) {
             // Опит за зареждане на несъществуващ документ или документ с невалиден MID.

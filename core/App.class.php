@@ -18,7 +18,7 @@ class core_App
      */
     protected static $timeSetTimeLimit;
     
-    
+
     public static function run()
     {
         $boot = trim(getBoot(), '/\\');
@@ -26,7 +26,6 @@ class core_App
         if (!strlen($boot) || strlen($boot) && strpos($vUrl, $boot) === 0) {
             $filename = strtolower(trim(substr($vUrl, strlen($boot)), '/\\'));
         }
-        
         if (preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{2,4}$/i', $filename)) {
             
             // Ако имаме заявка за статичен файл от коренната директория на уеб-сървъра
@@ -307,6 +306,10 @@ class core_App
         defIfNot('EF_TEMP_PATH', EF_TEMP_BASE_PATH . '/' . EF_APP_NAME);
         
         
+        // Подсигуряваме се, че временната директория съществува
+        core_Os::forceDir(EF_TEMP_PATH);
+        
+        
         /**
          * Директорията с качените и генерираните файлове
          */
@@ -316,7 +319,7 @@ class core_App
             } elseif (defined('EF_ROOT_PATH')) {
                 define('EF_UPLOADS_PATH', EF_ROOT_PATH . '/uploads/' . EF_APP_NAME);
             } else {
-                die('Not possible to determine constant `EF_UPLOADS_PATH`');
+                die('Not possible to determine `EF_UPLOADS_PATH`');
             }
         }
         
@@ -353,9 +356,8 @@ class core_App
             session_write_close();
         }
         
-        if (!isDebug() && $sendOutput) {
-            self::flushAndClose();
-        }
+        // Флъшваме и затваряме връзката, като евентулано показваме съдържанието в буфера
+        core_App::flushAndClose($sendOutput);
         
         // Генерираме събитието 'suthdown' във всички сингълтон обекти
         core_Cls::shutdown();
@@ -469,8 +471,16 @@ class core_App
     /**
      * Изпраща всичко буферирано към браузъра и затваря връзката
      */
-    public static function flushAndClose()
-    {
+    public static function flushAndClose($output = true)
+    { 
+        static $oneTimeFlag;
+
+        if($oneTimeFlag) {
+            return;
+        } else {
+            $oneTimeFlag = true;
+        }
+
         $content = ob_get_contents();         // Get the content of the output buffer
         
         while (ob_get_level() > 0) {
@@ -478,35 +488,37 @@ class core_App
         }
         
         if (!headers_sent()) {
-            $len = strlen($content);             // Get the length
-            header("Content-Length: ${len}");     // Close connection after $size characters
-            header('Cache-Control: private, max-age=0'); // HTTP 1.1.
-            //header('Pragma: no-cache'); // HTTP 1.0.
-            header('Expires: -1'); // Proxies.
+            if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output) {
+                $len = strlen($content); 
+                header("Content-Length: ${len}");
+            } else {
+                header("Content-Length: 0");
+            }
+            header('Cache-Control: private, max-age=0');
+            header('Expires: -1');
             header('Connection: close');
-            
+            header('X-Accel-Buffering: no');
+
             // Добавяме допълнителните хедъри
             $aHeadersArr = self::getAdditionalHeadersArr();
             foreach ($aHeadersArr as $hStr) {
                 header($hStr);
             }
         }
-        
-        // Логваме съдържанието
-        if ($content) {
-            Debug::log(mb_substr($content, 0, 255));
-        }
-        
-        if ($_SERVER['REQUEST_METHOD'] != 'HEAD') {
+                
+        if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output && $len) {
             echo $content; // Output content
+        } else {
+            header("Content-Encoding: none");
         }
         
         // Изпращаме съдържанието на изходния буфер
         if (function_exists('fastcgi_finish_request')) {
-            fastcgi_finish_request();
+            @fastcgi_finish_request();
         } else {
-            ob_end_flush();
-            flush();
+            @ob_end_flush();
+            @ob_flush();
+            @flush();
         }
     }
     
@@ -600,13 +612,11 @@ class core_App
         }
         
         // Забранява кеширането. Дали е необходимо тук?
-            header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
-            header('Pragma: no-cache'); // HTTP 1.0.
-            header('Expires: 0'); // Proxies.
+        header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
+        header('Expires: 0'); // Proxies.
             
-            header("Location: ${url}", true, 302);
-        
-        
+        header("Location: ${url}", true, 302);
+
         static::shutdown(false);
     }
     
@@ -1120,8 +1130,7 @@ class core_App
         
         if (!is_array($repos)) {
             $repos = array();
-            
-            $repos += self::getReposByPathAndBranch(EF_APP_PATH, defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null);
+            $repos = self::getReposByPathAndBranch(EF_APP_PATH, defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null);
         }
         
         if (!$havePrivate && defined('EF_PRIVATE_PATH')) {
@@ -1153,7 +1162,13 @@ class core_App
         
         $res = array();
         foreach ($pathArr as $i => $line) {
-            list($p, $b) = explode('=', $line);
+            if (strpos($line, '=')) {
+                list($p, $b) = explode('=', $line);
+            } else {
+                $p = $line;
+                $b = null;
+            }
+            
             if (empty($b) && $cntBranches) {
                 $b = $branchArr[min($i, $cntBranches - 1)];
             }

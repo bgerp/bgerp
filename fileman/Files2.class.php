@@ -554,7 +554,7 @@ class fileman_Files2 extends core_Master
         $tempPath = $dir . '/' . $newName;
         
         // Създаваме директорията
-        expect(mkdir($tempPath, 0777, true), 'Не може да се създаде директория.');
+        core_Os::requireDir($tempPath);
         
         return $tempPath;
     }
@@ -567,10 +567,6 @@ class fileman_Files2 extends core_Master
      */
     public static function getTempDir()
     {
-        // TODO
-//    	$conf = core_Packs::getConfig('fileman');
-//    	$tempPath = $conf->FILEMAN_TEMP_PATH;
-        
         // Пътя до директория с временните файлове
         $tempDir = FILEMAN_TEMP_PATH;
         
@@ -600,28 +596,6 @@ class fileman_Files2 extends core_Master
         $deleted = core_Os::deleteDir($dirName);
         
         return $deleted;
-    }
-    
-    
-    public static function on_AfterSetupMvc($mvc, &$res)
-    {
-        // Пътя до временните файлове
-        $tempPath = static::getTempDir();
-        
-        // Ако не съществува
-        if (!is_dir($tempPath)) {
-            
-            // Ако не може да се създаде
-            if (!mkdir($tempPath, 0777, true)) {
-                $res .= '<li class="debug-error">' . tr('Не може да се създаде директорията') . ': "' . $tempPath . '"</li>';
-            } else {
-                $res .= '<li class="debug-new">' . tr('Създадена е директорията') . ': "' . $tempPath . '"</li>';
-            }
-        } else {
-            $res .= '<li>' . tr('Директорията съществува') . ': "' . $tempPath . '"</li>';
-        }
-        
-        return $res;
     }
     
     
@@ -881,7 +855,7 @@ class fileman_Files2 extends core_Master
     /**
      * Връща линк към сингъла на файла
      *
-     * @param string     $fh       - Манипулатор на файла
+     * @param string      $fh       - Манипулатор на файла
      * @param bool        $absolute - Дали линка да е абсолютен
      * @param array       $attr     - Други параметри
      * @param string|NULL $name     - Името, което да се използва
@@ -950,7 +924,7 @@ class fileman_Files2 extends core_Master
      * Връща URL към сингъла на файла
      *
      * @param string $fh       - Манипулатор на файла
-     * @param bool    $absolute - Дали URL-то да е абсолютен
+     * @param bool   $absolute - Дали URL-то да е абсолютен
      *
      * @return string - URL към сингъла
      */

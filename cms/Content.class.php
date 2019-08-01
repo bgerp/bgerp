@@ -127,9 +127,13 @@ class cms_Content extends core_Manager
     /**
      * Записва в сесията текущия език на CMS изгледа
      */
-    public static function setLang($lang)
+    public static function setLang($lang, $force = null)
     {
-        core_Lg::set($lang, !haveRole('user'));
+        if (!isset($force)) {
+            $force = (boolean) !haveRole('user');
+        }
+        
+        core_Lg::set($lang, $force);
         cms_Domains::getPublicDomain(null, $lang);
         
         $langsArr = arr::make(core_Lg::getLangs());
@@ -149,7 +153,7 @@ class cms_Content extends core_Manager
         $lang = $langsArr[Request::get('lang')];
         
         if ($lang) {
-            self::setLang($lang);
+            self::setLang($lang, true);
             
             return new Redirect(array('cms_Content', 'Show', 'lg' => $lang));
         }

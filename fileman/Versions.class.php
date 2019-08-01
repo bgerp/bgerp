@@ -41,7 +41,7 @@ class fileman_Versions extends core_Manager
         
         // Файлов манипулатор - уникален 8 символен низ от малки лат. букви и цифри
         // Генериран случайно, поради което е труден за налучкване
-        $this->FLD('fileHnd', 'varchar(' . strlen(FILEMAN_HANDLER_PTR) . ')', array('notNull' => true, 'caption' => 'Манипулатор'));
+        $this->FLD('fileHnd', 'varchar(' . strlen(fileman_Setup::get('HANDLER_PTR')) . ')', array('notNull' => true, 'caption' => 'Манипулатор'));
         
         // Версия на данните на файла
         $this->FLD('dataId', 'key(mvc=fileman_Data, select=id)', array('caption' => 'Данни Id'));

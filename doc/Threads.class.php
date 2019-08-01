@@ -1152,7 +1152,7 @@ class doc_Threads extends core_Manager
         
         $exp->ASSUME('#dest', "'exFolder'");
         
-        if (count($selArr) > 1) {
+        if (countR($selArr) > 1) {
             $exp->question('#folderIdSelect,#dest', tr('Моля, посочете къде да бъдат преместени нишките') . ':', true, 'title=' . tr('Преместване на нишки от документи'));
         } else {
             if ($tRec->allDocCnt > 1) {

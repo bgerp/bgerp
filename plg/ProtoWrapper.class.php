@@ -137,7 +137,7 @@ class plg_ProtoWrapper extends core_Plugin
                     $act = strtolower($rec->url['Act']);
                 }
                 try {
-                    if ($act == 'list' || $act == 'default' || empty($act)) {
+                    if (($act == 'list' || $act == 'default' || empty($act)) && $rec->url['Ctr']) {
                         $tabCtr = cls::get($rec->url['Ctr']);
                         if ($tabCtr instanceof core_Manager) {
                             $rec->haveRight = $tabCtr->haveRightFor('list');

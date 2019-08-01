@@ -4,7 +4,7 @@
 /**
  * Версията на JQPlot, която се използва
  */
-defIfNot(JQPLOT_VERSION, '1.0.8r1250');
+defIfNot('JQPLOT_VERSION', '1.0.8r1250');
 
 
 /**

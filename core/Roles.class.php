@@ -146,7 +146,7 @@ class core_Roles extends core_Manager
      */
     public static function loadRoles()
     {
-        if (!count(self::$rolesArr)) {
+        if (!countR(self::$rolesArr)) {
             self::$rolesArr = core_Cache::get('core_Roles', 'allRoles', 1440, array('core_Roles'));
             
             if (!self::$rolesArr) {

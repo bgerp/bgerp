@@ -1,6 +1,28 @@
 <?php
 
 /**
+ * Колко дни потребител може да не активира първоначално достъпа си
+ * преди да бъде изтрит
+ */
+defIfNot('USERS_DRAFT_MAX_DAYS', 3);
+
+
+/**
+ * Ще има ли криптиращ протокол?
+ * NO - не
+ * OPTIONAL - да, където може използвай криптиране
+ * MANDATORY - да, използвай задължително
+ */
+defIfNot('EF_HTTPS', 'NO');
+
+
+/**
+ *  Порта на Apache, отговорен за криптиращия протокол
+ */
+defIfNot('EF_HTTPS_PORT', 443);
+
+
+/**
  * Скрипт 'boot'
  *
  * Изпълнява се при всеки хит веднага след index.php
@@ -48,6 +70,9 @@ require_once(EF_APP_PATH . '/core/Html.class.php');
 // Прихващаме грешките
 core_Debug::setErrorWaching();
 
+// Подсигуряваме $_GET['virtual_url']
+if(!$_GET['virtual_url']) $_GET['virtual_url'] = $_SERVER['REQUEST_URI'];
+
 try {
     $isDefinedFatalErrPath = defined('DEBUG_FATAL_ERRORS_PATH');
     
@@ -80,7 +105,7 @@ try {
     core_App::loadConfig();
     
     // Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
-    ob_clean();
+    if (ob_get_contents()) ob_clean();
 
 
     // PHP5.4 bugFix
@@ -116,20 +141,9 @@ try {
     if ($e instanceof core_exception_Db && ($link = $e->getDbLink())) {
         if (defined('EF_DB_NAME') && preg_match("/^\w{0,64}$/i", EF_DB_NAME)) {
             
-            // 1. Ако няма такава база, създаваме я и редирректваме към инсталация
-            if ($e->isNotExistsDB()) {
-                // Опитваме се да създадем базата и редиректваме към сетъп-а
-                try {
-                    mysqli_query($link, 'CREATE DATABASE ' . EF_DB_NAME);
-                } catch (Exception $e) {
-                    reportException($e);
-                }
-            }
-            
-            // Ако базата е абсолютно празна - ще се отиде направо към инициализирането
-            // Ако има поне един файл, няма да се отиде към инициализиране
+            // Ако базата липсва или е абсолютно празна - отиваме направо към инициализирането
             $db = new core_Db();
-            if ($db->getDBInfo('ROWS') == 0) {
+            if ($e->isNotExistsDB() || ($db->getDBInfo('ROWS') == 0)) {
                 redirect(array('Index', 'SetupKey' => setupKey()));
             }
             
@@ -771,4 +785,15 @@ function setupKey($efSalt = null, $i = 0)
     
     // Валидност средно 250 сек.
     return md5($key . round($i + time() / 10000));
+}
+
+
+/**
+ * Проверява дали аргумента е не-празен масив
+ */
+function countR($arr)
+{
+    expect(is_array($arr) || empty($arr), $arr);
+
+    return empty($arr) ? 0 : count($arr);
 }

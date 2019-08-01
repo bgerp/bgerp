@@ -112,7 +112,7 @@ class planning_ProductionTaskProducts extends core_Detail
         $this->FLD('totalQuantity', 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull');
         $this->FLD('indTime', 'time(noSmart,decimals=2)', 'caption=Норма');
         $this->FLD('limit', 'double(min=0)', 'caption=Макс. к-во,input=none');
-        $this->FLD('totalTime', 'time(noSmart)', 'caption=Норма->Общо,,input=none');
+        $this->FLD('totalTime', 'time(noSmart)', 'caption=Норма->Общо,input=none');
         
         $this->setDbUnique('taskId,productId');
         $this->setDbIndex('taskId,productId,type');

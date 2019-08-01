@@ -209,6 +209,8 @@ class sales_QuotationsDetails extends doc_Detail
     protected static function on_AfterPrepareListRecs($mvc, $data)
     {
         $recs = &$data->recs;
+        ksort($recs);
+        
         $masterRec = $data->masterData->rec;
         $notOptional = $optional = array();
         $total = new stdClass();
@@ -841,11 +843,11 @@ class sales_QuotationsDetails extends doc_Detail
         $vatRow = ($masterRec->chargeVat == 'yes') ? tr(', |с ДДС|*') : tr(', |без ДДС|*');
         $miscMandatory = $masterRec->currencyId . $vatRow;
         $miscOptional = $masterRec->currencyId . $vatRow;
-        if (count($data->discounts) && $data->hasDiscounts === true) {
+        if (countR($data->discounts) && $data->hasDiscounts === true) {
             $miscMandatory .= ', ' . tr('без извадени отстъпки');
         }
         
-        if (count($data->discountsOptional) && $data->hasDiscounts === true) {
+        if (countR($data->discountsOptional) && $data->hasDiscounts === true) {
             $miscOptional .= ', ' . tr('без извадени отстъпки');
         }
         

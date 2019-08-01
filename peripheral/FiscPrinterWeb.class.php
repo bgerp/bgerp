@@ -13,9 +13,8 @@
  *
  * @since     v 0.1
  */
-class peripheral_FiscPrinterWeb extends peripheral_FiscPrinter
+class peripheral_FiscPrinterWeb extends peripheral_FiscPrinterIntf
 {
-    
     /**
      * Връща JS функция, която да се изпълни и да отпечата бележката
      *

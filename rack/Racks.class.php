@@ -184,6 +184,8 @@ class rack_Racks extends core_Master
         
         if (!$rec->id) {
             $storeId = store_Stores::getCurrent();
+            $form->setDefault('storeId', $storeId);
+            
             $query = self::getQuery();
             $query->orderBy('#num', 'DESC');
             $lastRec = $query->fetch("#storeId = {$storeId}");
@@ -211,7 +213,6 @@ class rack_Racks extends core_Master
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
         $data->title = 'Стелажи в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
-        
         $data->query->orderBy('#num', 'ASC');
     }
     

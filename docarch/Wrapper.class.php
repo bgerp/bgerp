@@ -25,11 +25,11 @@ class docarch_Wrapper extends plg_ProtoWrapper
     public function description()
     {
        
-        $this->TAB('docarch_Archives', 'Архиви','docarch');
+        $this->TAB('docarch_Archives', 'Архиви','ceo,docarch');
         
-        $this->TAB('docarch_Volumes', 'Томове','docarch');
+        $this->TAB('docarch_Volumes', 'Томове','ceo,docarch');
 
-        $this->TAB('docarch_Movements', 'Движения','docarch');
+        $this->TAB('docarch_Movements', 'Движения','ceo,docarch');
         
         $this->title = 'Архивиране';
     }

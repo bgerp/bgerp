@@ -190,13 +190,13 @@ class core_TableView extends core_BaseClass
                     foreach ($colHeaders as $i => $name) {
                         $name = tr($name);
                         
-                        if (($i < (count($colHeaders) - 1)) || ($i == ($maxColHeaders - 1))) {
+                        if (($i < (countR($colHeaders) - 1)) || ($i == ($maxColHeaders - 1))) {
                             $rowspan = 1;
                         } else {
                             $rowspan = $maxColHeaders - $i;
                         }
                         
-                        $last = count($header[$i]) - 1;
+                        $last = countR($header[$i]) - 1;
                         
                         if ($header[$i][$last]->name == $name && $header[$i][$last]->rowspan == $rowspan) {
                             if (!$header[$i][$last]->colspan) {
@@ -339,7 +339,7 @@ class core_TableView extends core_BaseClass
                 }
                 
                 // Добавяме атрибутите на реда от таблицата, ако има такива
-                if (count($r['ROW_ATTR'])) {
+                if (countR($r['ROW_ATTR'])) {
                     $attrs = $attrs1 = '';
                     
                     

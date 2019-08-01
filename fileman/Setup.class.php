@@ -2,6 +2,18 @@
 
 
 /**
+ * Какъв е шаблона за манипулатора на файла?
+ */
+defIfNot('FILEMAN_HANDLER_PTR', '$*****');
+
+
+/**
+ * Каква да е дължината на манипулатора на файла?
+ */
+defIfNot('FILEMAN_HANDLER_LEN', strlen(FILEMAN_HANDLER_PTR));
+
+
+/**
  * Минималната големина на файла в байтове, за който ще се показва размера на файла след името му
  * в narrow режим. По подразбиране е 100KB
  */
@@ -149,6 +161,12 @@ class fileman_Setup extends core_ProtoSetup
      * Дали пакета е системен
      */
     public $isSystem = true;
+    
+    
+    /**
+     * Пътища до папки, които трябва да бъдат създадени
+     */
+    protected $folders = array(FILEMAN_TEMP_PATH);
     
     
     /**

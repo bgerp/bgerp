@@ -147,7 +147,7 @@ class blogm_Categories extends core_Manager
         
         // За всяка Категория, създаваме линк и го поставяме в списъка
         foreach ($cat as $id => $title) {
-            if ($data->selectedCategories[$id] || (!$id && !count($data->selectedCategories))) {
+            if ($data->selectedCategories[$id] || (!$id && !countR($data->selectedCategories))) {
                 $attr = array('class' => 'nav_item sel_page level2');
             } else {
                 $attr = array('class' => 'nav_item level2');

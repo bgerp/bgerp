@@ -71,7 +71,7 @@ class gen_Plugin extends core_Plugin
      */
     public static function on_Shutdown($mvc)
     {
-        if (count($mvc->updatedRecs)) {
+        if (countR($mvc->updatedRecs)) {
             // Обновяване на информацията за рожденните дни, за променените лица
             foreach ($mvc->updatedRecs as $id => $rec) {
                 self::updateDeathToCalendar($id);

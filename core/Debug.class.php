@@ -1,6 +1,15 @@
 <?php
 
 
+include_once(__DIR__ . '/Os.class.php');
+include_once(__DIR__ . '/DateTime.class.php');
+include_once(__DIR__ . '/ProtoSetup.class.php');
+
+//include_once(__DIR__ . '/Setup.class.php');
+//include_once(__DIR__ . '/SystemLock.class.php');
+
+
+
 /**
  * Дали знака '@' преди функция да предизвиква подтискане на грешките в нея?
  */
@@ -272,9 +281,7 @@ class core_Debug
         
         $errHtml .= core_Debug::getLog();
         
-        if (!file_exists(EF_TEMP_PATH) && !is_dir(EF_TEMP_PATH)) {
-            mkdir(EF_TEMP_PATH, 0777, true);
-        }
+        core_Os::requireDir(EF_TEMP_PATH);
         
         // Поставяме обвивка - html документ
         $page = core_Html::wrapMixedToHtml($errHtml, true);
@@ -661,19 +668,19 @@ class core_Debug
             if ($bName) {
                 $data['errTitle'] .= "<span class = 'errTitleLink'>";
                 
-                $canList = log_Debug::haveRightFor('list');
-                $canReport = log_Debug::haveRightFor('report');
+                $canList = true; //log_Debug::haveRightFor('list');
+                $canReport = true; //log_Debug::haveRightFor('report');
                 
                 if ($canList || $canReport) {
                     $data['errTitle'] .= ' - ';
                 }
                 
                 if ($canList) {
-                    $data['errTitle'] .= ht::createLink(tr('разглеждане'), array('log_Debug', 'default', 'debugFile' => $bName));
+                    $data['errTitle'] .= ht::createLink('разглеждане', array('log_Debug', 'default', 'debugFile' => $bName));
                     
                     $dUrl = log_Debug::getDownalodUrl($bName);
                     if ($dUrl) {
-                        $data['errTitle'] .= '|' . ht::createLink(tr('сваляне'), $dUrl);
+                        $data['errTitle'] .= '|' . ht::createLink('сваляне', $dUrl);
                     }
                 }
                 
@@ -876,9 +883,7 @@ class core_Debug
         
         // Ако е необходимо записваме дебъг информацията
         if (defined('EF_DEBUG_LOG_PATH')) {
-            if (!is_dir(EF_DEBUG_LOG_PATH)) {
-                @mkdir(EF_DEBUG_LOG_PATH, 0777, true);
-            }
+            core_Os::requireDir(EF_DEBUG_LOG_PATH);
             @file_put_contents(EF_DEBUG_LOG_PATH . "/{$title}.html", $debugPage);
         }
         
