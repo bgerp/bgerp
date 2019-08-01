@@ -509,7 +509,9 @@ class core_App
         if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output && $len) {
             echo $content; // Output content
         } else {
-            header("Content-Encoding: none");
+            if (!headers_sent()) {
+                header("Content-Encoding: none");
+            }
         }
         
         // Изпращаме съдържанието на изходния буфер
