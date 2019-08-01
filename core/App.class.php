@@ -489,7 +489,9 @@ class core_App
             }
         }
         
-        if (!headers_sent()) {
+        $isHeadersSent = headers_sent();
+        
+        if (!$isHeadersSent) {
             if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output) {
                 $len = strlen($content); 
                 header("Content-Length: ${len}");
@@ -511,7 +513,7 @@ class core_App
         if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output && $len) {
             echo $content; // Output content
         } else {
-            if (!headers_sent()) {
+            if (!$isHeadersSent) {
                 header("Content-Encoding: none");
             }
         }
