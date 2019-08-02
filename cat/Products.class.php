@@ -1436,6 +1436,11 @@ class cat_Products extends embed_Manager
             if(isset($params['isPublic'])){
                 $query->where("#isPublic = '{$params['isPublic']}'");
             }
+            
+            // Филтър по драйвер, ако има
+            if(isset($params['driverId'])){
+                $query->where("#innerClass = {$params['driverId']}");
+            }
         }
         
         $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
@@ -1472,12 +1477,6 @@ class cat_Products extends embed_Manager
         // Подготвяне на опциите
         $query->show('isPublic,folderId,meta,id,code,name,nameEn');
         
-        // Филтър по драйвер, ако има
-        if(isset($params['driverId'])){
-            $or = ($onlyIds) ? true : false;
-            $query->where("#innerClass = {$params['driverId']}", $or);
-        }
-       
         while ($rec = $query->fetch()) {
             $title = static::getRecTitle($rec, false);
             if ($rec->isPublic == 'yes') {
