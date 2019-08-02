@@ -5430,8 +5430,10 @@ div.location.public {
 .wide .eshop-product-images {
 	width:30%;
 	height:100%;
+	text-align: center;
 	img {
-		width:100%;
+		max-width: none;
+		width: auto;
 	}
 }
 

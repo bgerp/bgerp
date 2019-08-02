@@ -4799,9 +4799,11 @@ div.location.public {
 
 .wide .eshop-product-images {
   width: 30%;
-  height: 100%; }
+  height: 100%;
+  text-align: center; }
   .wide .eshop-product-images img {
-    width: 100%; }
+    max-width: none;
+    width: auto; }
 
 .narrow .eshop-product-images a {
   display: inline-block;
