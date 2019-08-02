@@ -190,7 +190,8 @@ class cat_BomDetails extends doc_Detail
         // Добавяме всички вложими артикули за избор
         $metas = ($rec->type == 'pop') ? 'canConvert,canStore' : 'canConvert';
         $groups = ($rec->type == 'pop') ? cat_Groups::getKeylistBySysIds('waste') : null;
-        $form->setFieldTypeParams('resourceId', array('hasProperties' => $metas, 'groups' => $groups));
+        $driverId = ($rec->type != 'stage') ? null : planning_interface_StageDriver::getClassId();
+        $form->setFieldTypeParams('resourceId', array('hasProperties' => $metas, 'groups' => $groups, 'driverId' => $driverId));
         
         $form->setDefault('type', 'input');
         $quantity = $data->masterRec->quantity;
@@ -670,7 +671,13 @@ class cat_BomDetails extends doc_Detail
         $data->toolbar->removeBtn('btnAdd');
         if ($mvc->haveRightFor('add', (object) array('bomId' => $data->masterId))) {
             $data->toolbar->addBtn('Влагане', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => true, 'type' => 'input'), null, 'title=Добавяне на артикул за влагане,ef_icon=img/16/package.png');
+        }
+        
+        if ($mvc->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'stage'))) {
             $data->toolbar->addBtn('Етап', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => true, 'type' => 'stage'), null, 'title=Добавяне на етап,ef_icon=img/16/wooden-box.png');
+        }
+        
+        if ($mvc->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'pop'))) {
             $data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => true, 'type' => 'pop'), null, 'title=Добавяне на отпадък,ef_icon=img/16/recycle.png');
         }
     }
@@ -736,6 +743,21 @@ class cat_BomDetails extends doc_Detail
         if ($action == 'replaceproduct' && isset($rec)) {
             if ($rec->type == 'stage') {
                 $requiredRoles = 'no_one';
+            }
+        }
+        
+        if ($action == 'add' && isset($rec->type)) {
+            if($rec->type == 'stage'){
+                $options = cat_Products::getProducts(null, null, null, 'canConvert', null, 1, false, null, null, null, planning_interface_StageDriver::getClassId());
+                if(!count($options)){
+                    $requiredRoles = 'no_one';
+                }
+            } elseif($rec->type == 'pop'){
+                $groups = ($rec->type == 'pop') ? cat_Groups::getKeylistBySysIds('waste') : null;
+                $options = cat_Products::getProducts(null, null, null, 'canConvert,canStore', null, 1, false, $groups);
+                if(!count($options)){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
