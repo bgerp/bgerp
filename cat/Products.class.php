@@ -1438,11 +1438,6 @@ class cat_Products extends embed_Manager
             }
         }
         
-        // Филтър по драйвер, ако има
-        if(isset($params['driverId'])){
-            $query->where("#innerClass = {$params['driverId']}");
-        }
-        
         $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
         $direction = ($reverseOrder === true) ? 'ASC' : 'DESC';
         $query->orderBy('isPublic', $direction);
@@ -1476,6 +1471,13 @@ class cat_Products extends embed_Manager
         
         // Подготвяне на опциите
         $query->show('isPublic,folderId,meta,id,code,name,nameEn');
+        
+        // Филтър по драйвер, ако има
+        if(isset($params['driverId'])){
+            $or = ($onlyIds) ? true : false;
+            $query->where("#innerClass = {$params['driverId']}", $or);
+        }
+       
         while ($rec = $query->fetch()) {
             $title = static::getRecTitle($rec, false);
             if ($rec->isPublic == 'yes') {
