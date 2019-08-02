@@ -460,8 +460,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $origin = doc_Containers::getDocument($rec->originId);
         $aQuery = planning_ProductionTaskProducts::getQuery();
         $aQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        $storeId = ($rec->inputStoreId) ? $rec->inputStoreId : $rec->storeId;
-        $aQuery->where("#taskId = {$origin->that} AND #type != 'production' AND #canStore = 'yes' AND (#storeId IS NULL OR #storeId = '{$storeId}') AND #totalQuantity != 0");
+        
+        $aQuery->where("#taskId = {$origin->that} AND #type != 'production' AND #canStore = 'yes' AND #totalQuantity != 0");
+        if(isset($rec->inputStoreId)){
+            $aQuery->where("#storeId IS NULL OR #storeId = '{$rec->inputStoreId}'");
+        }
         
         // Събираме ги в масив
         while ($aRec = $aQuery->fetch()) {
