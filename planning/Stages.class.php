@@ -95,12 +95,20 @@ class planning_Stages extends core_Extender
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-       
+        $rec = &$form->rec;
+        
         $resourceSuggestionsArr = doc_Folders::getSelectArr(array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'planning_Centers'));
         $form->setSuggestions("{$mvc->className}_folders", $resourceSuggestionsArr);
     
         $form->setDefault("{$mvc->className}_canStore", 'yes');
         $form->setDefault("{$mvc->className}_folders", keylist::addKey('', planning_Centers::getUndefinedFolderId()));
+    
+        if(isset($rec->id) && core_Packs::isInstalled('batch')){
+            if(batch_Defs::getBatchDef($rec->id)){
+                $form->setReadOnly("{$mvc->className}_canStore");
+                $form->setField("{$mvc->className}_canStore", 'hint=Артикулът е с партида|*!');
+            }
+        }
     }
     
     
