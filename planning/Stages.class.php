@@ -103,6 +103,7 @@ class planning_Stages extends core_Extender
         $form->setDefault("{$mvc->className}_canStore", 'yes');
         $form->setDefault("{$mvc->className}_folders", keylist::addKey('', planning_Centers::getUndefinedFolderId()));
     
+        $form->setField('meta', 'input=none');
         if(isset($rec->id) && core_Packs::isInstalled('batch')){
             if(batch_Defs::getBatchDef($rec->id)){
                 $form->setReadOnly("{$mvc->className}_canStore");
