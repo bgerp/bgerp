@@ -375,26 +375,28 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function getPaymentCode($rec, $paymentId)
     {
-        $pRec = cond_Payments::fetch($paymentId);
-        
-        if (!$pRec) {
+        // Ако не е подаден код на плащане се приема, че е брой
+        if(empty($paymentId)){
             
-            return ;
+            return self::DEFAULT_PAYMENT_MAP['Брой'];
         }
         
-        $code = $pRec->code;
+        $pRec = cond_Payments::fetch($paymentId);
+        if(!$pRec) {
+            
+            return;
+        }
         
-        if (isset($code)) {
-            $arrMap = array_flip(self::DEFAULT_PAYMENT_MAP);
-            if (isset($arrMap[$code])) {
+        $name = $pRec->title;
+        if (!empty($name)) {
+            if (array_key_exists($name, self::DEFAULT_PAYMENT_MAP)) {
                 
-                return $code;
+                return self::DEFAULT_PAYMENT_MAP[$name];
             }
         }
         
         foreach(array(9,10,11) as $v) {
             $r = 'paymentMap' . $v;
-            
             if ($pRec->currencyCode && $rec->{$r} == $pRec->currencyCode) {
                 
                 return $v;
