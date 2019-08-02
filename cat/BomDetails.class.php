@@ -753,8 +753,7 @@ class cat_BomDetails extends doc_Detail
                     $requiredRoles = 'no_one';
                 }
             } elseif($rec->type == 'pop'){
-                $groups = ($rec->type == 'pop') ? cat_Groups::getKeylistBySysIds('waste') : null;
-                $options = cat_Products::getProducts(null, null, null, 'canConvert,canStore', null, 1, false, $groups);
+                $options = cat_Products::getProducts(null, null, null, 'canConvert,canStore', null, 1, false, cat_Groups::getKeylistBySysIds('waste'));
                 if(!count($options)){
                     $requiredRoles = 'no_one';
                 }
