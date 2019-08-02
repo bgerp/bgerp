@@ -73,4 +73,13 @@ class batch_definitions_Job extends batch_definitions_Proto
         
         return parent::isValid($value, $quantity, $msg);
     }
+    
+    
+    /**
+     * Кой може да избере драйвера
+     */
+    public function canSelectDriver($userId = null)
+    {
+        return false;
+    }
 }
