@@ -1438,6 +1438,11 @@ class cat_Products extends embed_Manager
             }
         }
         
+        // Филтър по драйвер, ако има
+        if(isset($params['driverId'])){
+            $query->where("#innerClass = {$params['driverId']}");
+        }
+        
         $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
         $direction = ($reverseOrder === true) ? 'ASC' : 'DESC';
         $query->orderBy('isPublic', $direction);
