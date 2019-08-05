@@ -998,17 +998,9 @@ class cat_BomDetails extends doc_Detail
         $toBomRec = cat_Boms::fetch($toBomId);
         
         if ($toBomRec->type == 'production') {
-            $activeBom = cat_Products::getLastActiveBom($productId, 'production');
-            
-            if(!is_object($activeBom)){
-                $activeBom = cat_Products::getLastActiveBom($productId, 'instant');
-            }
+            $activeBom = cat_Products::getLastActiveBom($productId, 'production,instant,sales');
         } elseif($toBomRec->type == 'instant'){
-            $activeBom = cat_Products::getLastActiveBom($productId, 'instant');
-        }
-        
-        if (!$activeBom) {
-            $activeBom = cat_Products::getLastActiveBom($productId, 'sales');
+            $activeBom = cat_Products::getLastActiveBom($productId, 'instant,sales');
         }
         
         // Ако етапа има рецепта

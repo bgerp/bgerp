@@ -2711,10 +2711,7 @@ class cat_Products extends embed_Manager
         $res = array();
         
         // Намираме рецептата за артикула (ако има)
-        $bomId = static::getLastActiveBom($id, 'production')->id;
-        if (!$bomId) {
-            $bomId = static::getLastActiveBom($id, 'sales')->id;
-        }
+        $bomId = static::getLastActiveBom($id, 'production,sales')->id;
         
         if (isset($bomId)) {
             
@@ -3099,10 +3096,7 @@ class cat_Products extends embed_Manager
         if (!count($defaultTasks)) {
             
             // Намираме последната активна рецепта
-            $bomRec = self::getLastActiveBom($rec, 'production');
-            if (!$bomRec) {
-                $bomRec = self::getLastActiveBom($rec, 'sales');
-            }
+            $bomRec = self::getLastActiveBom($rec, 'production,sales');
             
             // Ако има опитваме се да намерим задачите за производството по нейните етапи
             if ($bomRec) {

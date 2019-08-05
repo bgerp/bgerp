@@ -284,10 +284,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $form->setField('packagingId', 'input');
             }
             
-            $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production');
-            if (!$bomRec) {
-                $bomRec = cat_Products::getLastActiveBom($rec->productId, 'sales');
-            }
+            $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,sales');
             if (isset($bomRec->expenses)) {
                 $form->setDefault('expenses', $bomRec->expenses);
             }
