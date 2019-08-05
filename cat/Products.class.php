@@ -2219,20 +2219,24 @@ class cat_Products extends embed_Manager
         
         // Прави опит да намери рецептата по зададения ред
         $inOrderArr = arr::make($inOrder, 'true');
-        foreach ($inOrderArr as $type){
-            $bRec = cat_Boms::fetch(array("#productId = '{$rec->id}' AND #state = 'active' AND #type = '[#1#]'", $type));
-            
-            if(is_object($bRec)){
-               
-                return $bRec;
+        if(count($inOrderArr)){
+            foreach ($inOrderArr as $type){
+                $bRec = cat_Boms::fetch(array("#productId = '{$rec->id}' AND #state = 'active' AND #type = '[#1#]'", $type));
+                
+                if(is_object($bRec)){
+                    
+                    return $bRec;
+                }
             }
+            
+            return false;
         }
         
         // Ако не е указан тип, се взима последната рецепта
         $query = cat_Boms::getQuery();
         $query->where("#productId = '{$rec->id}' AND #state = 'active'");
         $query->orderBy('id', ASC);
-       
+        
         return $query->fetch();
     }
     
