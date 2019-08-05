@@ -5641,6 +5641,9 @@ only screen and (max-width: 320px) {
   .external .docIncomings .document {
     background-color: #fdffe5; }
 
+.smallIcon {
+  display: inline !important; }
+
   .wide .external .docIncomings {
     width: 1002px; }
     .wide .external .docIncomings .document {
