@@ -46,7 +46,7 @@ class batch_definitions_Job extends batch_definitions_Proto
             
             if(isset($jobId)){
                 $jobProductId = planning_Jobs::fetchField($jobId, 'productId');
-                $res = "JOB{$jobId}/" . str::removeWhiteSpace(cat_Products::getTitleById($jobProductId, false), '_');
+                $res = "JOB{$jobId}/" . str::removeWhiteSpace(cat_Products::getTitleById($jobProductId, false), ' ');
             }
         }
         
