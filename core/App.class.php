@@ -18,7 +18,7 @@ class core_App
      */
     protected static $timeSetTimeLimit;
     
-
+    
     public static function run()
     {
         $boot = trim(getBoot(), '/\\');
@@ -26,6 +26,7 @@ class core_App
         if (!strlen($boot) || strlen($boot) && strpos($vUrl, $boot) === 0) {
             $filename = strtolower(trim(substr($vUrl, strlen($boot)), '/\\'));
         }
+        
         if (preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{2,4}$/i', $filename)) {
             
             // Ако имаме заявка за статичен файл от коренната директория на уеб-сървъра
@@ -474,12 +475,13 @@ class core_App
     public static function flushAndClose($output = true)
     {
         static $oneTimeFlag;
-
-        if($oneTimeFlag) {
+        
+        if ($oneTimeFlag) {
+            
             return;
-        } else {
-            $oneTimeFlag = true;
         }
+        $oneTimeFlag = true;
+        
         
         if ($output) {
             $content = ob_get_contents();         // Get the content of the output buffer
@@ -493,40 +495,38 @@ class core_App
         
         if (!$isHeadersSent) {
             if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output) {
-                $len = strlen($content); 
+                $len = strlen($content);
                 header("Content-Length: ${len}");
             } else {
-                header("Content-Length: 0");
+                header('Content-Length: 0');
             }
             header('Cache-Control: private, max-age=0');
             header('Expires: -1');
             header('Connection: close');
             header('X-Accel-Buffering: no');
-
+            
             // Добавяме допълнителните хедъри
             $aHeadersArr = self::getAdditionalHeadersArr();
             foreach ($aHeadersArr as $hStr) {
                 header($hStr);
             }
         }
-                
+        
         if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output && $len) {
             echo $content; // Output content
         } else {
             if (!$isHeadersSent) {
-                header("Content-Encoding: none");
+                header('Content-Encoding: none');
             }
         }
         
-        if ($output) {
-            // Изпращаме съдържанието на изходния буфер
-            if (function_exists('fastcgi_finish_request')) {
-                @fastcgi_finish_request();
-            } else {
-                @ob_end_flush();
-                @ob_flush();
-                @flush();
-            }
+        ob_end_flush();
+        ob_flush();
+        flush();
+        
+        // Изпращаме съдържанието на изходния буфер
+        if (function_exists('fastcgi_finish_request')) {
+            @fastcgi_finish_request();
         }
     }
     
@@ -622,9 +622,9 @@ class core_App
         // Забранява кеширането. Дали е необходимо тук?
         header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
         header('Expires: 0'); // Proxies.
-            
+        
         header("Location: ${url}", true, 302);
-
+        
         static::shutdown(false);
     }
     

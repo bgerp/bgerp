@@ -2203,7 +2203,7 @@ class fileman_Files extends core_Master
         $pathArr = static::getFirstContainerLinks($rec);
         
         // Ако има такъв документ
-        if (count($pathArr)) {
+        if (countR($pathArr)) {
             
             // Пътя до файла и документа
             $path = ' « ' . $pathArr['firstContainer']['content'] . ' « ' . $pathArr['folder']['content'];

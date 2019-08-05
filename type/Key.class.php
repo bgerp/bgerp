@@ -54,10 +54,6 @@ class type_Key extends type_Int
     public function init($params = array())
     {
         parent::init($params);
-        
-        if (Mode::is('keyStopAutocomplete')) {
-            $this->params['autocomplete'] = 'off';
-        }
     }
     
     
@@ -496,10 +492,9 @@ class type_Key extends type_Int
         if ($id) {
             
             return $title . " ({$id})";
-        } else {
-            
-            return $title;
         }
+        
+        return $title;
     }
     
     
@@ -631,6 +626,10 @@ class type_Key extends type_Int
             
             if (($optionsCnt > $maxSuggestions) && (!core_Packs::isInstalled('select2'))) {
                 $options = $this->prepareOptions($value);
+                
+                if (Mode::is('keyStopAutocomplete')) {
+                    $this->params['autocomplete'] = 'off';
+                }
                 
                 if ($this->params['autocomplete']) {
                     $attr['autocomplete'] = $this->params['autocomplete'];

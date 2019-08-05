@@ -221,7 +221,7 @@ class forum_Boards extends core_Master
         // Извличаме всички категории на дъските
         forum_Categories::prepareCategories($data);
         
-        if (count($data->categories)) {
+        if (countR($data->categories)) {
             
             // За всяка категория ние подготвяме списъка от дъски, които са част от нея
             foreach ($data->categories as $category) {
@@ -386,7 +386,7 @@ class forum_Boards extends core_Master
         $tpl = $data->ForumTheme->getIndexLayout();
         $boards = $data->ForumTheme->getBoardsLayout();
         
-        if (count($data->categories)) {
+        if (countR($data->categories)) {
             
             // Зареждаме шаблоните веднъж в паметта и после само ги клонирваме
             $categoryTpl = $tpl->getBlock('category');
@@ -420,7 +420,7 @@ class forum_Boards extends core_Master
             $tpl->append(ht::createBtn('Работилница', $data->listUrl, null, null, array('class' => 'forumbtn workshop')), 'TOOLBAR');
         }
         
-        if ($data->searchUrl && count($data->categories)) {
+        if ($data->searchUrl && countR($data->categories)) {
             $tpl->append(ht::createBtn('Търсене', $data->searchUrl, null, null, array('class' => 'forumbtn find')), 'TOOLBAR');
         }
         

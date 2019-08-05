@@ -97,7 +97,7 @@ class log_Debug extends core_Manager
             $args = 'width=450,height=600,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
         }
         
-        $attr = array('onClick' => "openWindow('{$url}', 'bgerp_tracer_report', '{$args}'); return false;", 'title' => 'Изпращане на сигнал към разработчиците на bgERP');
+        $attr = array('onClick' => "openWindow('{$url}', 'bgerp_tracer_report', '{$args}'); return false;", 'title' => 'Изпращане на сигнал към разработчиците на bgERP', 'translate' => 'no');
         
         if ($icon) {
             $attr['ef_icon'] = $icon;
@@ -342,7 +342,7 @@ class log_Debug extends core_Manager
                 $dUrl = $this->getDownalodUrl($debugFile);
                 
                 if ($dUrl) {
-                    $tpl->replace(ht::createLink(tr('Сваляне'), $dUrl, null, 'ef_icon=img/16/debug_download.png'), 'DOWNLOAD_FILE');
+                    $tpl->replace(ht::createLink('Сваляне', $dUrl, null, 'ef_icon=img/16/debug_download.png'), 'DOWNLOAD_FILE');
                 }
                 
                 $tpl->replace("<iframe class='debugIframe' style='width:100%; height: 100%;'  src='" . toUrl(array($this, 'ShowDebug', 'debugFile' => $debugFile)). "'>" . '</iframe>', 'ERR_FILE');
@@ -735,11 +735,11 @@ class log_Debug extends core_Manager
                 }
                 
                 if ($canList) {
-                    $data['errTitle'] .= ht::createLink(tr('разглеждане'), array('log_Debug', 'default', 'debugFile' => $bName));
+                    $data['errTitle'] .= ht::createLink('разглеждане', array('log_Debug', 'default', 'debugFile' => $bName));
                     
                     $dUrl = $this->getDownalodUrl($bName);
                     if ($dUrl) {
-                        $data['errTitle'] .= '|' . ht::createLink(tr('сваляне'), $dUrl);
+                        $data['errTitle'] .= '|' . ht::createLink('сваляне', $dUrl);
                     }
                 }
                 

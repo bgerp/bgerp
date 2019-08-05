@@ -21,7 +21,8 @@
 if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
     return;
 }
-
+      
+ 
 // Колко време е валидно заключването - в секунди
 DEFINE('SETUP_LOCK_PERIOD', 240);
 
@@ -49,7 +50,9 @@ if (setupKeyValid() && !setupProcess()) {
     // halt("Процес на обновяване - опитайте по късно.");
 }
 
- 
+header("Content-Encoding: none");
+header('X-Accel-Buffering: no');
+
 // На коя стъпка се намираме в момента?
 $step = $_GET['step'] ? $_GET['step'] : 1;
 $texts['currentStep'] = $step;
@@ -117,7 +120,7 @@ if (isset($_REQUEST['cancel'])) {
     header("location: {$appUri}");
 }
 
-ob_end_clean();
+ 
 header('Content-Type: text/html; charset=UTF-8');
 
 // Стилове
@@ -941,7 +944,7 @@ if ($step == 5) {
     function httpGet(theUrl)
     {
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( \"GET\", theUrl, false ); // false for synchronous request
+    xmlHttp.open( \"GET\", theUrl, true ); // false for synchronous request
     xmlHttp.send( null );
     }
     theUrl = '{$localRelativUrl}&step=start';
@@ -955,6 +958,13 @@ if ($step == 5) {
  * Setup на bgerp
  **********************************/
 if ($step == 'setup') {
+
+    // Освобождава манипулатора на сесията. Ако трябва да се правят
+    // записи в сесията, то те трябва да се направят преди shutdown()
+    if (session_id()) {
+        session_write_close();
+    }
+
     set_time_limit(1000);
 
     $calibrate = 1000;
@@ -962,12 +972,19 @@ if ($step == 'setup') {
     $totalTables = 365; //366
     $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables * $calibrate + $totalRecords;
-    // Пращаме стиловете
-    echo($texts['styles']);
-     
-    // Стартираме инициализацията
-    contentFlush("<h3 id='startHeader'>Стартиране на инициализацията ... </h3>");
     
+    
+    contentFlush("<html><head>");
+
+    
+    // Пращаме стиловете
+    contentFlush($texts['styles']);
+     
+
+    // Тялото на документа
+    contentFlush("</head><body>");
+
+
     // Пращаме javascript-a за smooth скрол-а
     contentFlush("<script>
     var mouseDown = 0;
@@ -990,6 +1007,9 @@ if ($step == 'setup') {
     var handle=setInterval('scroll()', 4);
     </script>
     ");
+
+    // Стартираме инициализацията
+    contentFlush("<h3 id='startHeader'>Стартиране на инициализацията ... </h3>");
     
     // Слагаме div за лог-а и шаблон за прогрес бар-а
     contentFlush("<div id='setupLog'></div>
@@ -1012,7 +1032,7 @@ if ($step == 'setup') {
         $percentsBase = round(($numRows + $calibrate * $numTables * (4 / 5)) / $total, 2) * 100;
         
         // Изчитаме лог-а
-        $setupLog = @file_get_contents(EF_SETUP_LOG_PATH);
+        $setupLog = file_get_contents(EF_SETUP_LOG_PATH);
 
         if (!empty($setupLog) && $percentsLog < 20) {
             $percentsLog += 2;
@@ -1033,7 +1053,7 @@ if ($step == 'setup') {
         // Изтриваме Log-a - ако има нещо в него
         if (!empty($setupLog)) {
             do {
-                $res = @file_put_contents(EF_SETUP_LOG_PATH, '', LOCK_EX);
+                $res = file_put_contents(EF_SETUP_LOG_PATH, '', LOCK_EX);
                 if ($res !== false) {
                     break;
                 }
@@ -1045,10 +1065,10 @@ if ($step == 'setup') {
         
         contentFlush("<script>
                         document.getElementById('setupLog').innerHTML += '" . $setupLog . "';
-                </script>");
+                </script>\n");
                 
         sleep(2);
-        Debug::log('Sleep 2 sec. in' . __CLASS__);
+        //Debug::log('Sleep 2 sec. in' . __CLASS__);
         
         $fTime2 = filemtime(EF_SETUP_LOG_PATH);
         if (($fTime2 - $fTime) > 0) {
@@ -1060,7 +1080,7 @@ if ($step == 'setup') {
         $cnt++;
         if (!($cnt % 100)) {
             // Ако инсталацията увисне
-            wp($cnt, $numTables, $numRows, $percentsBase, $setupLog, strlen($setupLog), $logModified, $fTime2, $fTime);
+           // wp($cnt, $numTables, $numRows, $percentsBase, $setupLog, strlen($setupLog), $logModified, $fTime2, $fTime);
         }
     } while (setupProcess() || !empty($setupLog) || $logModified);
     
@@ -1082,7 +1102,8 @@ if ($step == 'setup') {
     contentFlush("<h3 id='success'>Инициализирането завърши успешно!</h3>");
     
     $links = array();
-    
+
+    $haveNewVersion = false;
     $haveNewVersion = core_Updates::getNewVersionTag();
     if (!$haveNewVersion) {
         $currBranch = gitCurrentBranch(EF_APP_PATH, $log);
@@ -1111,7 +1132,14 @@ if ($step == 'setup') {
                         clearInterval(handle);
                         document.cookie = 'setup=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
                 </script>");
+
+    contentFlush("</body>");
+
     setupUnlock();
+
+    if(function_exists('fastcgi_finish_request')) {
+        fastcgi_finish_request();
+    }
 
     exit;
 }
@@ -1124,20 +1152,22 @@ if ($step == 'start') {
     
     // Следващият ред генерира notice,
     // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
-    @ob_end_clean();
     
-    header("Connection: close\r\n");
-    header("Content-Encoding: none\r\n");
-    ob_start();
-    $size = ob_get_length();
-    header("Content-Length: ${size}");
+    header("Connection: close");
+    header("Content-Encoding: none");
+    ob_implicit_flush();
     ob_end_flush();
     flush();
-    ob_end_clean();
+
+
+    if(function_exists('fastcgi_finish_request')) {
+        fastcgi_finish_request();
+    }
 
     global $setupFlag;
 
     $setupFlag = true;
+    
     // Създаваме празен Log файл
     file_put_contents(EF_SETUP_LOG_PATH, '');
     
@@ -1180,7 +1210,7 @@ if ($efSaltGenerated) {
 echo $layout;
 
 ob_flush();
-
+flush();
 
 die;
 
@@ -1466,22 +1496,9 @@ function gitRevertRepo($repoPath, &$log)
  */
 function contentFlush($content)
 {
-    static $started = 0;
-    
-    
-    ob_clean();
-    ob_start();
-    
-    if ($started == 0) {
-        echo str_repeat(' ', 1024), "\n";
-        echo('<!DOCTYPE html>');
-        $started++;
-    }
-    
     echo($content);
-
+    
     ob_flush();
-    ob_end_flush();
     flush();
 }
 
@@ -1713,4 +1730,8 @@ function gitSetTag($repoPath, &$log, $tag)
     }
 
     return false;
+}
+
+if(function_exists('fastcgi_finish_request')) {
+    fastcgi_finish_request();
 }

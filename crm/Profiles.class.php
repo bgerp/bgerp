@@ -969,7 +969,7 @@ class crm_Profiles extends core_Master
             }
             
             if (!isset($person->country)) {
-                $person->country = drdata_Countries::getIdByName("Bulgaria");
+                $person->country = drdata_Countries::getIdByName('Bulgaria');
             }
             $mustSave = true;
         }
@@ -1602,7 +1602,8 @@ class crm_Profiles extends core_Master
             
             // Флаг, който указва да не се вземат данните от настройките
             // Да не се инвоква функцията от плъгините
-            Mode::push('stopInvoke', true);
+            $savedStopInvoke = core_ObjectConfiguration::$stopInvoke;
+            core_ObjectConfiguration::$stopInvoke = true;
             
             $packConf = core_Packs::getConfig($rec->name);
             
@@ -1676,7 +1677,7 @@ class crm_Profiles extends core_Master
                 $form->__defaultRec->$field = $fieldVal;
             }
             
-            Mode::pop('stopInvoke');
+            core_ObjectConfiguration::$stopInvoke = $savedStopInvoke;
         }
     }
     

@@ -379,8 +379,15 @@ class core_ProtoSetup
             core_Users::sudo($userId);
         }
         
+        // Флаг, който указва да не се вземат данните от настройките
+        // Да не се инвоква функцията от плъгините
+        $savedStopInvoke = core_ObjectConfiguration::$stopInvoke;
+        core_ObjectConfiguration::$stopInvoke = true;
+        
         $conf = self::getConfig();
         $res = $conf->{$name};
+        
+        core_ObjectConfiguration::$stopInvoke = $savedStopInvoke;
         
         if ($userId > 0) {
             core_Users::exitSudo();

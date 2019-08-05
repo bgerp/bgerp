@@ -24,7 +24,7 @@ class core_Html
     {
         $attrStr = '';
         
-        if ($attributes['title'] && $translate) {
+        if ($attributes['title'] && $translate && ($attributes['translate'] != 'no')) {
             $attributes['title'] = tr($attributes['title']);
         }
         
@@ -1045,15 +1045,15 @@ class core_Html
         
         $hint = strip_tags(tr($hint));
         
-        if($type == 'noicon'){
+        if ($type == 'noicon') {
             $element = "<span class='textHint' title='[#hint#]' rel='tooltip'>[#body#]</span>";
         } else {
             $iconAttr = arr::make($iconAttr, true);
-            if(!array_key_exists('src', $iconAttr)){
+            if (!array_key_exists('src', $iconAttr)) {
                 $iconPath = ($type == 'notice') ? 'img/16/info-gray.png' : (($type == 'warning') ? 'img/16/dialog_warning.png' : (($type == 'error') ? 'img/16/dialog_error.png' : $type));
                 $iconAttr['src'] = $iconPath;
             }
-            $iconAttr['src'] = sbf($iconAttr['src'], ''); 
+            $iconAttr['src'] = sbf($iconAttr['src'], '');
             $iconHtml = ht::createElement('img', $iconAttr);
             
             if ($appendToEnd === true) {
