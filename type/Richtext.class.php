@@ -1408,9 +1408,9 @@ class type_Richtext extends type_Blob
 
 
             $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
-            $toolbarArr->add("<a class=rtbutton style='font-weight:bold;' title='" . tr('Подравняване на текста') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group6', event)\"><img src=" . sbf("img/{$size}/align-left.png") . " height='15' width='15' alt='Подравняване на текста'/></a>", 'TBL_GROUP2');
+            $toolbarArr->add("<a class=rtbutton style='font-weight:bold;' title='" . tr('Подравняване на текста') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group9', event)\"><img src=" . sbf("img/{$size}/align-left.png") . " height='15' width='15' alt='Подравняване на текста'/></a>", 'TBL_GROUP2');
             $emot6 = 'richtext-holder-group-after';
-            $toolbarArr->add("<span id='{$attr['id']}-group6' class='richtext-emoticons3 richtext-holder-group {$emot6}'>", 'TBL_GROUP2');
+            $toolbarArr->add("<span id='{$attr['id']}-group9' class='richtext-emoticons3 richtext-holder-group {$emot6}'>", 'TBL_GROUP2');
             $toolbarArr->add("<a class=rtbutton title='" . tr('Подравняване вляво') .  "' onclick=\"s('[aleft]', '[/aleft]', document.getElementById('{$formId}'))\"><img src=" . sbf("img/{$size}/align-left.png") . " height='15' width='15' alt='Подравняване вляво'/></a>", 'TBL_GROUP2');
             $toolbarArr->add("<a class=rtbutton title='" . tr('Подравняване в средата') .  "' onclick=\"s('[acenter]', '[/acenter]', document.getElementById('{$formId}'))\"><img src=" . sbf("img/{$size}/align-center.png") . " height='15' width='15' alt='Подравняване в cредата'/></a>", 'TBL_GROUP2');
             $toolbarArr->add("<a class=rtbutton title='" . tr('Подравняване вдясно') .  "' onclick=\"s('[aright]', '[/aright]', document.getElementById('{$formId}'))\"><img src=" . sbf("img/{$size}/align-right.png") . " height='15' width='15' alt='Подравняване вдясно'/></a>", 'TBL_GROUP2');
