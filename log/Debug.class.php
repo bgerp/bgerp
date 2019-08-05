@@ -211,9 +211,11 @@ class log_Debug extends core_Manager
         $tplList = new ET(tr('|*[#ListFilter#]<!--ET_BEGIN DEBUG_LINK--><div class="linksGroup">[#DEBUG_LINK#]</div><!--ET_END DEBUG_LINK-->'));
         $tplList->append($this->renderListFilter($data), 'ListFilter');
         
+        $data->listFilter->showFields = arr::make($data->listFilter->showFields);
+        
         if ($debugFile) {
             // Добавяме полето за търсене, което липсва за да не се рендира повторно
-            $data->listFilter->showFields = 'search, ' . $data->listFilter->showFields;
+            $data->listFilter->showFields = array('search' => 'search') + $data->listFilter->showFields;
         }
         
         $otherFilesFromSameHit = array();
@@ -231,7 +233,7 @@ class log_Debug extends core_Manager
         }
         
         $sArr = array();
-        $searchArr = arr::make($data->listFilter->showFields);
+        $searchArr = $data->listFilter->showFields;
         foreach ($searchArr as $fName) {
             $sArr[$fName] = $data->listFilter->rec->{$fName};
         }
