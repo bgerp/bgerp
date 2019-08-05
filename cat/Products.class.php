@@ -2203,13 +2203,13 @@ class cat_Products extends embed_Manager
      * Връща последната активна рецепта на артикула
      *
      * @param mixed  $id   - ид или запис
-     * @param string $type - вид работна/моментна/търговска
+     * @param string|array $inOrder - В какъв приоритет да се търсят рецептите
      *
      * @return mixed $res - записа на рецептата или FALSE ако няма
      */
-    public static function getLastActiveBom($id, $type = null)
+    public static function getLastActiveBom($id, $inOrder = null)
     {
-        $rec = self::fetchRec($id);
+        $rec = self::fetchRec($id, 'canManifacture');
         
         // Ако артикула не е производим не търсим рецепта
         if ($rec->canManifacture == 'no') {
@@ -2217,15 +2217,22 @@ class cat_Products extends embed_Manager
             return false;
         }
         
-        $cond = "#productId = '{$rec->id}' AND #state = 'active'";
-        
-        if (isset($type)) {
-            expect(in_array($type, array('sales', 'instant', 'production')));
-            $cond .= " AND #type = '{$type}'";
+        // Прави опит да намери рецептата по зададения ред
+        $inOrderArr = arr::make($inOrder, 'true');
+        foreach ($inOrderArr as $type){
+            $bRec = cat_Boms::fetch("#productId = '{$rec->id}' AND #state = 'active' AND #type = '{$type}'");
+            if(is_object($bRec)){
+               
+                return $bRec;
+            }
         }
         
-        // Какво е к-то от последната активна рецепта
-        return cat_Boms::fetch($cond);
+        // Ако не е указан тип, се взима последната рецепта
+        $query = cat_Boms::getQuery();
+        $query->where("#productId = '{$rec->id}' AND #state = 'active'");
+        $query->orderBy('id', ASC);
+       
+        return $query->fetch();
     }
     
     
