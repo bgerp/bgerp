@@ -747,7 +747,7 @@ abstract class deals_Helper
             $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*!";
             $class = 'doc-negative-quantiy';
             $makeLink = false;
-        } elseif ($futureQuantity < 0 && $freeQuantity > 0) {
+        } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
             $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
             $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
         } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
