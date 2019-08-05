@@ -1,120 +1,122 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <table style='width:100%;'>
-        <tbody>
-            <tr>
-                <td>
-                    <div class='scrolling-holder'>
-                        <div class='display-table'>
-                            <table class="innerTable border-table paddingCells">
-                                <tbody>
-                                    <tr><td class="cell custom-header-bg" style='width:35%;'><b>|Артикул|*</b></td>
-                                       <td class="cell centered" rowspan="2" style='width:30%;'>
-                                            <div class="document-title">|протокол за производство|*</div>
-                                            <small>( [#subTitle#] )</small>
-                                            <div style="padding-top:5px;">
-                                                № <span class="bigData">[#id#]</span> / 
-                                                <span class="bigData">[#valior#]</span>
-                                            </div>
-                                            <!--ET_BEGIN state-->
-                                            <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
-                                            <!--ET_END state-->
-                                        </td>
-                                         <td class="cell custom-header-bg" style='width:35%;'><b>|Информация|*</b></td>
-                                    </tr>
-                                    <tr>
-                                       <td>
-                                            <b style="margin:3px;display: inline-block;">[#addBatchBtn#] [#productId#]</b>
-                                       		<table class='no-border'>
-                                       			<!--ET_BEGIN expenseItemId-->
-                                       			<tr>
-                                       				<td class='quiet'>|Разход за|*:</td>
-                                       				<td>[#expenseItemId#]</td>
-                                       			</tr>
-                                       			<!--ET_END expenseItemId-->
-                                       			<tr>
-                                       				<td class='quiet'>|Мярка|*:</td>
-                                       				<td>[#packagingId#]</td>
-                                       			</tr>
-                                       			<tr>
-                                       				<td class='quiet'>|Количество|*:</td>
-                                       				<td>[#packQuantity#]</td>
-                                       			</tr>
-                                       		</table>
-                                       </td>
-                                        <td>
-                                            <table class='no-border'>
-                                                <!--ET_BEGIN storeId-->
-                                                <tr>
-                                                    <td class='quiet nowrap'>|В склад|*:</td>
-                                                    <td>[#storeId#]</td>
-                                                </tr>
-                                                <!--ET_END storeId-->
+<table style='width:100%;'>
+    <tbody>
+        <tr>
+            <td>
+                <div class='scrolling-holder'>
+                    <div class='display-table'>
+                        <table class="innerTable border-table paddingCells">
+                            <tbody>
+                                <tr>
+                                    <td class="cell centered" rowspan='4' style='width:30%;'>
+                                        <div class="document-title">|протокол за производство|*</div>
+                                        <div class='small'>( <i> [#subTitle#] </i> )</div>
+                                        <div style="padding-top:5px;">
+                                            № <span class="bigData">[#id#]</span> /
+                                            <span class="bigData">[#valior#]</span>
+                                        </div>
+                                        <!--ET_BEGIN state-->
+                                        <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
+                                        <!--ET_END state-->
+                                    </td>
+                                    <td class="cell custom-header-bg" style='width:35%;'><b>|Информация|*</b></td>
+                                </tr>
+                                <tr>
+                                    <td class="cell">
+                                        <table class='no-border'>
+                                            <tr>
+                                                <td colspan='2'>[#addBatchBtn#] [#productId#]</td>
+                                            </tr>
 
-                                                <!--ET_BEGIN inputStoreId-->
-                                                <tr>
-                                                    <td class='quiet nowrap'>|Влагане от|*:</td>
-                                                    <td>[#inputStoreId#]</td>
-                                                </tr>
-                                                <!--ET_END inputStoreId-->
-                                                <!--ET_BEGIN deadline-->
-                                                <tr>
-                                                    <td class='quiet nowrap'>|Срок до|*:</td>
-                                                    <td>[#deadline#]</td>
-                                                </tr>
-                                                <!--ET_END deadline-->
-                                                <!--ET_BEGIN debitAmount-->
-                                                <tr>
-                                                    <td class='quiet'>|Стойност|*:</td>
-                                                    <td>[#debitAmount#]</td>
-                                                </tr>
-                                                <!--ET_END debitAmount-->
-                                                <!--ET_BEGIN expenses-->
-                                                <tr>
-                                                    <td class='quiet nowrap'>|Реж. разходи|*:</td>
-                                                    <td>[#expenses#]</td>
-                                                </tr>
-                                                <!--ET_END expenses-->
-                                            </table>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <div class="lines"></div>
-                            <div class="details">
-                                [#planning_DirectProductNoteDetails#]
-                            </div>
-                            <div class="lines"></div>
-                            <table class="innerTable footer-notes paddingCells" style="width:100%">
-                                <tbody>
-                                    <tr>
-                                        <td class="topCell first vtop" style='width:50%;'>
-                                        	<!--ET_BEGIN note-->
-                                            [#note#]
-                                            <!--ET_END note-->
-                                        </td>
-                                        <td>
-                                            <table class='centered special-borders' style='width:100%;'>
-                                                <tr>
-                                                    <td class='centered border-right' style='width:50%;'>|Получил|*:</td>
-                                                    <td class='centered'>|Съставил|*:</td>
-                                                </tr>
-                                                <tr>
-                                                    <td class='border-right' style='height:40px;'></td>
-                                                    <td></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class='centered border-right'> <span class="sign_names nowrap">[#responsible#]</span></td>
-                                                    <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
-                                                </tr>
-                                            </table>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                            <!--ET_BEGIN expenseItemId-->
+                                            <tr>
+                                                <td class='quiet'>|Разход за|*:</td>
+                                                <td>[#expenseItemId#]</td>
+                                            </tr>
+                                            <!--ET_END expenseItemId-->
+                                            <tr>
+                                                <td class='quiet'>|Количество|*:</td>
+                                                <td>[#packQuantity#] [#packagingId#]</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="lines"></div>
+                        <div class="details">
+                            [#planning_DirectProductNoteDetails#]
                         </div>
+                        <div class="lines"></div>
+                        <table class="innerTable footer-notes paddingCells" style="width:100%">
+                            <tbody>
+                                <tr>
+                                    <td class="topCell first vtop" style='width:50%;'>
+                                        <table>
+                                            <!--ET_BEGIN storeId-->
+                                            <tr>
+                                                <td class='quiet nowrap aright'>|В склад|*:</td>
+                                                <td>[#storeId#]</td>
+                                            </tr>
+                                            <!--ET_END storeId-->
+
+                                            <!--ET_BEGIN inputStoreId-->
+                                            <tr>
+                                                <td class='quiet nowrap aright'>|Влагане от|*:</td>
+                                                <td>[#inputStoreId#]</td>
+                                            </tr>
+                                            <!--ET_END inputStoreId-->
+                                            <!--ET_BEGIN deadline-->
+                                            <tr>
+                                                <td class='quiet nowrap aright'>|Срок до|*:</td>
+                                                <td>[#deadline#]</td>
+                                            </tr>
+                                            <!--ET_END deadline-->
+                                            <!--ET_BEGIN debitAmount-->
+                                            <tr>
+                                                <td class='quiet aright'>|Стойност|*:</td>
+                                                <td>[#debitAmount#]</td>
+                                            </tr>
+                                            <!--ET_END debitAmount-->
+                                            <!--ET_BEGIN expenses-->
+                                            <tr>
+                                                <td class='quiet nowrap aright'>|Реж. разходи|*:</td>
+                                                <td>[#expenses#]</td>
+                                            </tr>
+                                            <!--ET_END expenses-->
+                                            <!--ET_BEGIN note-->
+                                            <tr>
+                                                <td colspan="2">[#note#]</td>
+                                            </tr>
+                                            <!--ET_END note-->
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table class='centered special-borders' style='width:100%;'>
+                                            <tr>
+                                                <td class='centered border-right' style='width:50%;'>|Получил|*:</td>
+                                                <td class='centered'>|Съставил|*:</td>
+                                            </tr>
+                                            <tr>
+                                                <td class='border-right' style='height:40px;'></td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td class='centered border-right'> <span class="sign_names nowrap">[#responsible#]</span></td>
+                                                <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+                </div>
+            </td>
+        </tr>
+    </tbody>
+</table>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

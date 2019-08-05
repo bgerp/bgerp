@@ -965,12 +965,23 @@ class planning_Tasks extends core_Master
                 $subArr[] = tr('Оператори:|* ') . $row->employees;
             }
             if (count($subArr)) {
-                $row->info = '<small>' . implode(' &nbsp; ', $subArr) . '</small>';
+                $row->info = '<div><small>' . implode(' &nbsp; ', $subArr) . '</small></div>';
+            }
+            
+            // Показване на протоколите за производство
+            $notes = array();
+            $nQuery = planning_DirectProductionNote::getQuery();
+            $nQuery->where("#originId = {$rec->containerId} AND #state != 'rejected'");
+            $nQuery->show('id');
+            while($nRec = $nQuery->fetch()){
+                $notes[] = planning_DirectProductionNote::getLink($nRec->id, 0);
+            }
+            if (count($notes)) {
+                $row->info .= "<div style='padding-bottom:7px'>" . implode(',', $notes) . "</div>";
             }
             
             $row->modified = $row->modifiedOn . ' ' . tr('от||by') . ' ' . $row->modifiedBy;
             $row->modified = "<div style='text-align:center'> {$row->modified} </div>";
-            
             $data->rows[$rec->id] = $row;
         }
     }

@@ -58,4 +58,20 @@ class planning_interface_StageDriver extends cat_GeneralProductDriver
     {
         unset($row->editMetaBtn);
     }
+    
+    
+    /**
+     * Връща дефолтната дефиниция за шаблон на партидна дефиниция
+     *
+     * @param mixed $id - ид или запис на артикул
+     *
+     * @return int - ид към batch_Templates
+     */
+    public function getDefaultBatchTemplate($id)
+    {
+        $templateId = batch_Templates::fetchField("#createdBy = '-1' AND #state = 'active' AND #driverClass =" . batch_definitions_Job::getClassId());
+    
+        return !empty($templateId) ? $templateId : null;
+    }
+    
 }

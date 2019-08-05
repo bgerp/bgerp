@@ -1436,6 +1436,11 @@ class cat_Products extends embed_Manager
             if(isset($params['isPublic'])){
                 $query->where("#isPublic = '{$params['isPublic']}'");
             }
+            
+            // Филтър по драйвер, ако има
+            if(isset($params['driverId'])){
+                $query->where("#innerClass = {$params['driverId']}");
+            }
         }
         
         $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
@@ -1471,6 +1476,7 @@ class cat_Products extends embed_Manager
         
         // Подготвяне на опциите
         $query->show('isPublic,folderId,meta,id,code,name,nameEn');
+        
         while ($rec = $query->fetch()) {
             $title = static::getRecTitle($rec, false);
             if ($rec->isPublic == 'yes') {
@@ -1570,15 +1576,15 @@ class cat_Products extends embed_Manager
      * @param bool     $orHasProperties  - Дали трябва да имат всички свойства от зададените или поне едно
      * @param mixed    $groups           - групи в които да участват
      * @param mixed    $notInGroups      - групи в които да не участват
-     * 
      * @param null|boolean $isPublic     - null за всички артикули, true за стандартните, false за нестандартните
+     * @param null|boolean $driverId     - null за всички артикули, true за тези с избрания драйвер
      *
      * @return array $products         - артикулите групирани по вида им стандартни/нестандартни
      */
-    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $notInGroups = null, $isPublic = null)
+    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $notInGroups = null, $isPublic = null, $driverId = null)
     {
         $Type = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)');
-        foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic') as $val){
+        foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic', 'driverId') as $val){
             if(isset(${"{$val}"})){
                 $Type->params[$val] = ${"{$val}"};
             }

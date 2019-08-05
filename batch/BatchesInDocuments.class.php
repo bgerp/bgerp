@@ -228,7 +228,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $batch = "<i style='color:red'>" . tr('Несъответствие') . '</i>';
                 $batch = ht::createHint($batch, 'К-то на разпределените партиди е повече от това на реда', 'error');
                 $quantity = '';
-                $block->append('border:1px dotted red;', 'BATCH_STYLE');
+                $block->append('color:red', 'BATCH_STYLE');
             }
             
             $block->append($batch, 'nobatch');
