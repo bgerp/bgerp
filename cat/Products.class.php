@@ -2220,7 +2220,8 @@ class cat_Products extends embed_Manager
         // Прави опит да намери рецептата по зададения ред
         $inOrderArr = arr::make($inOrder, 'true');
         foreach ($inOrderArr as $type){
-            $bRec = cat_Boms::fetch("#productId = '{$rec->id}' AND #state = 'active' AND #type = '{$type}'");
+            $bRec = cat_Boms::fetch(array("#productId = '{$rec->id}' AND #state = 'active' AND #type = '[#1#]'", $type));
+            
             if(is_object($bRec)){
                
                 return $bRec;
