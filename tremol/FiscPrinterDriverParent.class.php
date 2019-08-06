@@ -19,11 +19,11 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     
     public $title = 'ФУ на Тремол';
     
-    protected $canCashReceived = 'admin, peripheral';
+    public $canCashReceived = 'admin, peripheral';
     
-    protected $canCashPaidOut = 'admin, peripheral';
+    public $canCashPaidOut = 'admin, peripheral';
     
-    protected $canMakeReport = 'admin, peripheral';
+    public $canMakeReport = 'admin, peripheral';
     
     protected $rcpNumPattern = '/^[a-z0-9]{8}-[a-z0-9]{4}-[0-9]{7}$/i';
     
