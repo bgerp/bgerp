@@ -159,7 +159,6 @@ class cms_Domains extends core_Embedder
         
         // Заглавие
         $this->XPR('titleExt', 'varchar(70)', "CONCAT(#domain, ', ', #lang)");
-        $this->FLD('mandatoryAgreeText', 'richtext(rows=1)', 'caption=Задължителен текст за съгласие->Текст');
         
         // Singleton клас - източник на данните
         $this->FLD('theme', 'class(interface=cms_ThemeIntf, allowEmpty, select=title)', 'caption=Кожа,silent,mandatory,notFilter,refreshForm');
@@ -175,6 +174,9 @@ class cms_Domains extends core_Embedder
         
         $this->setDbUnique('domain,lang');
         
+        // Съгласие с ОУ
+        $this->FLD('mandatoryAgreeText', 'richtext(rows=1)', 'caption=Задължителен текст за съгласие->Текст,autohide');
+
         // SEO Заглавие
         $this->FLD('seoTitle', 'varchar(15)', 'caption=SEO->Title,autohide');
         
