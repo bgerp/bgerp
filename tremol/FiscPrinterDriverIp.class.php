@@ -131,6 +131,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             return false;
         }
         
+        setIfNot($params['IS_ELECTRONIC'], false);
+        
         // Задаваме параметрите за отваряне на ФБ
         setIfNot($params['OPER_NUM'], 1);
         setIfNot($params['OPER_PASS'], 0);
@@ -220,13 +222,16 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             
             expect($params['RCP_NUM'] && preg_match($this->rcpNumPattern, $params['RCP_NUM']));
             try {
-                $fp->OpenReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['PRINT_TYPE'], $params['RCP_NUM']);
+                if ($params['IS_ELECTRONIC']) {
+                    $fp->OpenElectronicReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['RCP_NUM']);
+                } else {
+                    $fp->OpenReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['PRINT_TYPE'], $params['RCP_NUM']);
+                }
             } catch (Exception $e) {
                 $this->handleException($e);
+                
                 return false;
             }
-            
-            
         } else {
             
             // Ако ще се прави сторно или кредитно известие
@@ -271,12 +276,17 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 }
                 
                 try {
-                    $fp->OpenStornoReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['PRINT_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_RCP_NUM'], $params['RELATED_TO_RCP_DATE_TIME'], $params['FM_NUM'], $params['RELATED_TO_URN']);
+                    if ($params['IS_ELECTRONIC']) {
+                        $fp->OpenElectronicStornoReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['STORNO_REASON'], $params['RELATED_TO_RCP_NUM'], $params['RELATED_TO_RCP_DATE_TIME'], $params['FM_NUM'], $params['RELATED_TO_URN']);
+                    } else {
+                        $fp->OpenStornoReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['PRINT_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_RCP_NUM'], $params['RELATED_TO_RCP_DATE_TIME'], $params['FM_NUM'], $params['RELATED_TO_URN']);
+                    }
                 } catch (Exception $e) {
                     $this->handleException($e);
+                    
                     return false;
                 }
-                
+            
             } else if ($params['IS_CREDIT_NOTE']) {
                 
                 if ($params['PRINT_TYPE_STR'] == 'postponed') {
@@ -305,9 +315,14 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 }
                 
                 try {
-                    $fp->OpenCreditNoteWithFreeCustomerData($params['OPER_NUM'], $params['OPER_PASS'], $params['PRINT_TYPE'], $params['RECIPIENT'], $params['BUYER'], $params['VAT_NUMBER'], $params['UIC'], $params['ADDRESS'], $params['UIC_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_INV_NUM'], $params['RELATED_TO_INV_DATE_TIME'], $params['RELATED_TO_RCP_NUM'], $params['FM_NUM'], $params['RELATED_TO_URN']);
+                    if ($params['IS_ELECTRONIC']) {
+                        $fp->OpenElectronicCreditNoteWithFreeCustomerData($params['OPER_NUM'], $params['OPER_PASS'], $params['RECIPIENT'], $params['BUYER'], $params['VAT_NUMBER'], $params['UIC'], $params['ADDRESS'], $params['UIC_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_INV_NUM'], $params['RELATED_TO_INV_DATE_TIME'], $params['RELATED_TO_RCP_NUM'], $params['FM_NUM'], $params['RELATED_TO_URN']);
+                    } else {
+                        $fp->OpenCreditNoteWithFreeCustomerData($params['OPER_NUM'], $params['OPER_PASS'], $params['PRINT_TYPE'], $params['RECIPIENT'], $params['BUYER'], $params['VAT_NUMBER'], $params['UIC'], $params['ADDRESS'], $params['UIC_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_INV_NUM'], $params['RELATED_TO_INV_DATE_TIME'], $params['RELATED_TO_RCP_NUM'], $params['FM_NUM'], $params['RELATED_TO_URN']);
+                    }
                 } catch (Exception $e) {
                     $this->handleException($e);
+                    
                     return false;
                 }
             }
@@ -353,6 +368,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 $fp->SellPLUwithSpecifiedVAT($pArr['PLU_NAME'], $pArr['VAT_CLASS'], $pArr['PRICE'], $pArr['QTY'], $pArr['DISC_ADD_P'], $pArr['DISC_ADD_V']);
             } catch (Exception $e) {
                 $this->handleException($e);
+                
                 return false;
             }
             
@@ -511,6 +527,84 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
     
     
     /**
+     * Записва бележката от съответното ФУ във файл и му връща манипулатора
+     *
+     * @param stdClass $pRec
+     * @param integer|null $receiptNum
+     *
+     * @return false|string
+     */
+    public function saveReceiptToFile($pRec, $receiptNum = null)
+    {
+        $fp = $this->connectToPrinter($pRec);
+        
+        if (!$fp) {
+            
+            return false;
+        }
+        
+        if (!isset($receiptNum)) {
+            $receiptNum = $fp->ReadLastReceiptNum();
+        }
+        
+        try {
+            $fp->ReadElectronicReceipt_QR_Data($receiptNum);
+            
+            $resArr = $fp->RawRead(0, "@");
+            
+            $str = implode(array_map("chr", $resArr));
+            
+            $str = i18n_Charset::convertToUtf8($str, "windows-1251");
+            
+            $strArr = explode("\n", $str);
+            
+            $receipt = '';
+            $cnt = count($strArr);
+            for($i = 0; $i < $cnt - 1; $i++) {
+                
+                $line = $strArr[$i];
+                $line = mb_substr($line, 4, count($line) - 3);
+                
+                // Предпоследният ред съдържа QR кода
+                // Последния ред е празен
+                if ($i == ($cnt - 2)) {
+                    $qr = $line;
+                } else {
+                    $receipt .= $line . "\n";
+                }
+            }
+            
+            // Разделяме бона на две, за да вмъкнем QR кода
+            $rBegin = $receipt;
+            $rEnd = '';
+            $matches = array();
+            if (preg_match('/[^\w]*ФИСКАЛЕН БОН/', $receipt, $matches, PREG_OFFSET_CAPTURE) && $matches[0][1]) {
+                
+                // Трябва да е substr, а не mb_substr
+                
+                $rBegin = substr($receipt, 0, $matches[0][1]);
+                $rEnd = substr($receipt, $matches[0][1]);
+            }
+            
+            $tpl = getTplFromFile('/tremol/tpl/ElectronicReceipt.shtml');
+            $tpl->replace($rBegin, 'REC_START');
+            $tpl->replace($rEnd, 'REC_END');
+            $tpl->replace(barcode_Qr::getUrl($line, true, 15), 'QR_URL');
+            
+            // Получения HTML файл го конвертираме към JPG
+            $fileName = 'ER_' . str_pad($receiptNum, 6, '0', STR_PAD_LEFT);
+            $fh = webkittopdf_Converter::convert($tpl->getContent(), $fileName . '.jpg', 'electronicReceipts', array(), true);
+            
+            return $fh;
+        } catch (Exception $e) {
+            $this->handleException($e);
+        }
+        
+        return false;
+    }
+    
+    
+    /**
      * След рендиране на единичния изглед
      *
      * @param tremol_FiscPrinterDriverWeb $Driver
@@ -553,7 +647,6 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 
                 if ($data->rec->footer == 'yes') {
                     self::progFooter($data->rec, self::formatText((string) $data->rec->footerText, $data->rec->footerPos, $maxTextLen));
-                    
                 }
             }
         }
@@ -624,7 +717,6 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         
         return $sn;
     }
-    
     
     
     /**
@@ -796,7 +888,6 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                                 redirect(array('fileman_Files', 'single', $fh));
                             }
                         }
-                        
                     } else {
                         if ($outType == 'pc') {
                             if ($isDetailed) {
@@ -840,7 +931,6 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
     }
     
     
-    
     /**
      * Прочита и фоматира данните от ФУ и създава файл
      * 
@@ -858,10 +948,12 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         
         $lines = explode("\n",$str);
         $res = "";
-        for($i= 0; $i < sizeof($lines); $i++) {
+        for($i= 0; $i < count($lines); $i++) {
             $line = $lines[$i];
-            $res.= substr($line, 4, sizeof($line) - 3)."\n";
+            $res.= mb_substr($line, 4, count($line) - 3) . "\n";
+        
         }
+        
         $res = i18n_Charset::convertToUtf8($res, "windows-1251");
         
         $fh = fileman::absorbStr($res, $bucket, $name);
@@ -882,6 +974,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             if($ex->isFpException()) {
                 $ste1 = $ex->getSte1();
                 $ste2 = $ex->getSte2();
+                
                 
                 /**
                  *   Possible reasons:
@@ -947,8 +1040,10 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             $msg = "Грешка! " . $ex->getMessage();
         }
         
-        wp($msg);
+        wp($msg, $ex);
         
-        status_Messages::newStatus('|*' . $msg, 'error');
+        if (haveRole('powerUser')) {
+            status_Messages::newStatus('|*' . $msg, 'error');
+        }
     }
 }
