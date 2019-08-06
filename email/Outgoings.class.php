@@ -2165,6 +2165,9 @@ class email_Outgoings extends core_Master
         // Телефон
         $footerData['tel'] = ($personRec->buzTel) ? ($personRec->buzTel) : $companyRec->tel;
         
+        // Мобилен
+        $footerData['mobile'] = $personRec->mobile;
+        
         // Факс
         $footerData['fax'] = ($personRec->buzFax) ? ($personRec->buzFax) : $companyRec->fax;
         

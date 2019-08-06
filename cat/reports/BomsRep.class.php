@@ -138,11 +138,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
             while ($rec = $query->fetch()) {
                 
                 // Намираме рецептата за артикула (ако има)
-                $bomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id;
-                
-                if (!$bomId) {
-                    $bomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id;
-                }
+                $bomId = cat_Products::getLastActiveBom($rec->productId, 'production,sales')->id;
                 
                 if (isset($bomId)) {
                     $queryDetail = cat_BomDetails::getQuery();

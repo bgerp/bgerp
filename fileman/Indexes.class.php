@@ -234,6 +234,7 @@ class fileman_Indexes extends core_Manager
         // Разширението на файла
         $ext = strtolower($ext);
         
+        
         // Ако тово разширение трябва да се игнорира
         $ignoreExtArr = arr::make(self::$ignoreExtArr, true);
         if ($ignoreExtArr[$ext]) {
@@ -254,21 +255,24 @@ class fileman_Indexes extends core_Manager
         
         // Масив с инстанциите на всички драйвери, които отговарят за съответното разширение
         $res = array();
-        
-        // Обхождаме масива с пътищата
-        foreach ($pathArr as $path) {
-            
-            // Към пътя добавяме разширението за да получим драйвера
-            $className = $path . '_' . $ext;
-            
-            // Ако има такъв клас
-            if (cls::load($className, true)) {
+
+        if($ext) {
+             
+            // Обхождаме масива с пътищата
+            foreach ($pathArr as $path) {
                 
-                // Записваме инстанцията му
-                $res[] = cls::get($className);
+                // Към пътя добавяме разширението за да получим драйвера
+                $className = $path . '_' . $ext;
+                
+                // Ако има такъв клас
+                if (cls::load($className, true)) {
+                    
+                    // Записваме инстанцията му
+                    $res[] = cls::get($className);
+                }
             }
         }
-        
+
         // Ако не може да се намери нито един драйвер
         if (count($res) == 0) {
             

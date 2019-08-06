@@ -248,12 +248,14 @@ abstract class batch_definitions_Proto extends core_BaseClass
      *
      * @param float  $quantity - к-во
      * @param int    $storeId  - склад
+     * @param string $mvc      - клас на обект, към който да се разпределят
+     * @param string $id       - ид на обект, към който да се разпределят
      * @param string $date     - дата
      *
      * @return array $batches  - от коя партида, какво количество да се изпише
      *               [име_на_партидата] => [к_во_за_изписване]
      */
-    public function allocateQuantityToBatches($quantity, $storeId, $date = null)
+    public function allocateQuantityToBatches($quantity, $storeId, $mvc, $id, $date = null)
     {
         $batches = array();
         if (!isset($storeId)) {
@@ -263,9 +265,25 @@ abstract class batch_definitions_Proto extends core_BaseClass
         $date = (isset($date)) ? $date : dt::today();
         
         $quantities = batch_Items::getBatchQuantitiesInStore($this->rec->productId, $storeId, $date);
+        $quantities = $this->filterBatches($quantities, $mvc, $id);
         $batches = batch_Items::allocateQuantity($quantities, $quantity);
         
         return $batches;
+    }
+    
+    
+    /**
+     * Разпределя количество към наличните партиди в даден склад към дадена дата
+     *
+     * @param array  $quantities - масив с наличните партиди и количества
+     * @param string $mvc        - клас на обект, към който да се разпределят
+     * @param string $id         - ид на обект, към който да се разпределят
+     *
+     * @return array $quantities - масив с филтрираните наличните партиди и количества
+     */
+    public function filterBatches($quantities, $mvc, $id)
+    {
+        return $quantities;
     }
     
     

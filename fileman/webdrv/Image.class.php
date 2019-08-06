@@ -173,7 +173,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
     public static function startConvertingToJpg($fRec, $params)
     {
         // Инстанция на класа
-        $Script = cls::get(fconv_Script);
+        $Script = cls::get('fconv_Script');
         
         // Вземаме името на файла без разширението
         $name = fileman_Files::getFileNameWithoutExt($fRec->fileHnd);

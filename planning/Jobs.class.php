@@ -793,6 +793,10 @@ class planning_Jobs extends core_Master
                 $row->sBomId = cat_Boms::getLink($sBomId, 0);
             }
             
+            if ($sBomId = cat_Products::getLastActiveBom($rec->productId, 'instant')->id) {
+                $row->iBomId = cat_Boms::getLink($sBomId, 0);
+            }
+            
             if ($pBomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id) {
                 $row->pBomId = cat_Boms::getLink($pBomId, 0);
             }

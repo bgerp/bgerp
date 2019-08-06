@@ -427,11 +427,14 @@ class rack_MovementGenerator extends core_Manager
                 $newRec->positionTo = $obj->pallet;
             }
             
+            $round = cat_UoM::fetchField($packagingId, 'round');
+            $round = (isset($round)) ? $round : 5;
+            
             expect(count($obj->zones), 'няма зони');
             $zoneArr = array('zone' => array(), 'quantity' => array());
             foreach ($obj->zones as $zoneId => $zoneQuantity) {
                 $zoneArr['zone'][] = $zoneId;
-                $zoneArr['quantity'][] = $zoneQuantity / $quantityInPack;
+                $zoneArr['quantity'][] = round($zoneQuantity / $quantityInPack, $round);
             }
             $TableType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
             $newRec->zones = $TableType->fromVerbal($zoneArr);

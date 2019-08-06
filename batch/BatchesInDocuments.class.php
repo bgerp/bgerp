@@ -228,7 +228,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $batch = "<i style='color:red'>" . tr('Несъответствие') . '</i>';
                 $batch = ht::createHint($batch, 'К-то на разпределените партиди е повече от това на реда', 'error');
                 $quantity = '';
-                $block->append('border:1px dotted red;', 'BATCH_STYLE');
+                $block->append('color:red', 'BATCH_STYLE');
             }
             
             $block->append($batch, 'nobatch');
@@ -526,7 +526,7 @@ class batch_BatchesInDocuments extends core_Manager
             if (!$form->gotErrors()) {
                 if ($form->cmd == 'auto') {
                     $old = (count($foundBatches)) ? $foundBatches : array();
-                    $saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $recInfo->date);
+                    $saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $Detail, $detailRecId, $recInfo->date);
                     $intersect = array_diff_key($old, $saveBatches);
                     $delete = (count($intersect)) ? array_keys($intersect) : array();
                 }

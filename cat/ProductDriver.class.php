@@ -446,10 +446,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         $productRec = cat_Products::fetchRec($productId, 'proto,id');
         
         if(isset($productRec->id)){
-            $bomRec = cat_Products::getLastActiveBom($productRec->id, 'sales');
-            if (empty($bomRec)) {
-                $bomRec = cat_Products::getLastActiveBom($productRec->id, 'production');
-            }
+            $bomRec = cat_Products::getLastActiveBom($productRec->id, 'sales,production');
         }
        
         if (empty($bomRec) && isset($productRec->proto)) {

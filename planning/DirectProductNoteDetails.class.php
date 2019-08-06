@@ -63,7 +63,15 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=За влагане,storeId';
+    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=За влагане,quantityFromBom=От рецептата,storeId';
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'quantityFromBom';
     
     
     /**
@@ -80,7 +88,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('noteId', 'key(mvc=planning_DirectProductionNote)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
         parent::setDetailFields($this);
-        $this->setField('quantity', 'caption=Количества->За влагане');
+        $this->setField('quantity', 'caption=Количества');
+        $this->FLD('quantityFromBom', 'double', 'caption=По рецепта');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
         
         $this->setDbIndex('productId');
@@ -279,10 +288,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             return;
         }
         
-        if ($data->masterData->rec->state == 'active') {
-            $data->listFields['packQuantity'] = 'Количество';
-        }
-        
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
             if (empty($rec->storeId)) {
@@ -293,6 +298,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 }
                 
                 deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $rec->storeId, $rec->quantity, $data->masterData->rec->state);
+            }
+            
+            if(!empty($rec->quantityFromBom)){
+                $rec->quantityFromBom /= $rec->quantityInPack;
+                $row->quantityFromBom = $mvc->getFieldType('quantityFromBom')->fromVerbal($rec->quantityFromBom);
             }
         }
     }

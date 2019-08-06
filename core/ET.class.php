@@ -779,7 +779,8 @@ class core_ET extends core_BaseClass
     {
         // Ако данните са обект - конвертираме ги до масив
         if (is_object($data)) {
-            $this->placeArray(get_object_vars($data), $holderBlock, $prefix);
+            
+            return $this->placeArray(get_object_vars($data), $holderBlock, $prefix);
         }
         
         if ($holderBlock) {

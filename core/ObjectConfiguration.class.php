@@ -29,6 +29,12 @@ class core_ObjectConfiguration extends core_BaseClass
     
     
     /**
+     * Флак, дали да се обработват събития
+     */
+    public static $stopInvoke = false;
+    
+    
+    /**
      * Конструктор
      */
     public function init($params = array())
@@ -58,7 +64,7 @@ class core_ObjectConfiguration extends core_BaseClass
      */
     public function __get($name)
     {
-        if (!Mode::get('stopInvoke')) {
+        if (!self::$stopInvoke) {
             $this->invoke('BeforeGetConfConst', array(&$value, $name));
         }
         
