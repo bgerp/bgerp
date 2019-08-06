@@ -4799,9 +4799,11 @@ div.location.public {
 
 .wide .eshop-product-images {
   width: 30%;
-  height: 100%; }
+  height: 100%;
+  text-align: center; }
   .wide .eshop-product-images img {
-    width: 100%; }
+    max-width: none;
+    width: auto; }
 
 .narrow .eshop-product-images a {
   display: inline-block;
@@ -5638,6 +5640,9 @@ only screen and (max-width: 320px) {
     background-color: #ddecfd; }
   .external .docIncomings .document {
     background-color: #fdffe5; }
+
+.smallIcon {
+  display: inline !important; }
 
   .wide .external .docIncomings {
     width: 1002px; }

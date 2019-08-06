@@ -284,10 +284,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $form->setField('packagingId', 'input');
             }
             
-            $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production');
-            if (!$bomRec) {
-                $bomRec = cat_Products::getLastActiveBom($rec->productId, 'sales');
-            }
+            $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,sales');
             if (isset($bomRec->expenses)) {
                 $form->setDefault('expenses', $bomRec->expenses);
             }
@@ -460,8 +457,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $origin = doc_Containers::getDocument($rec->originId);
         $aQuery = planning_ProductionTaskProducts::getQuery();
         $aQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        $storeId = ($rec->inputStoreId) ? $rec->inputStoreId : $rec->storeId;
-        $aQuery->where("#taskId = {$origin->that} AND #type != 'production' AND #canStore = 'yes' AND (#storeId IS NULL OR #storeId = '{$storeId}') AND #totalQuantity != 0");
+        
+        $aQuery->where("#taskId = {$origin->that} AND #type != 'production' AND #canStore = 'yes' AND #totalQuantity != 0");
+        if(isset($rec->inputStoreId)){
+            $aQuery->where("#storeId IS NULL OR #storeId = '{$rec->inputStoreId}'");
+        }
         
         // Събираме ги в масив
         while ($aRec = $aQuery->fetch()) {
@@ -528,6 +528,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             
             // Дефолтното к-вво ще е разликата между к-та за произведеното до сега и за произведеното в момента
             $dRec->quantity = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
+            $dRec->quantityFromBom = $dRec->quantity;
             
             $pInfo = cat_Products::getProductInfo($resource->productId);
             $dRec->measureId = $pInfo->productRec->measureId;
@@ -557,7 +558,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $dRec->noteId = $rec->id;
                 
                 // Склада за влагане се добавя само към складируемите артикули, които не са отпадъци
-                if (empty($rec->storeId) && isset($rec->inputStoreId)) {
+                if (empty($dRec->storeId) && isset($rec->inputStoreId)) {
                      if (cat_Products::fetchField($dRec->productId, 'canStore') == 'yes' && $dRec->type != 'pop') {
                          $dRec->storeId = $rec->inputStoreId;
                      }
@@ -649,7 +650,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         // Подготовка на формата
         $form->title = "Въвеждане на себестойност за|* <b style='color:#ffffcc;'>{$docTitle}</b>";
         $form->info = tr('Не може да се определи себестойността, защото няма посочени материали');
-        $form->FLD('debitPrice', 'double(Min=0)', 'caption=Ед. Себест-ст,mandatory');
+        $form->FLD('debitPrice', 'double(Min=0)', 'caption=Ед. себест-ст,mandatory');
         
         // Ако драйвера може да върне себестойност тя е избрана по дефолт
         $defPrice = self::getDefaultDebitPrice($rec);

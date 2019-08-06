@@ -149,17 +149,9 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             }
         }
         
-        // Добавяне на полета за поддържани валути и кодове на методите на плащане
-        $fieldset->FLD('suppertedCurrencies', 'keylist(mvc=currency_Currencies,select=code,where=#code !\\= \\\'BGN\\\')', 'caption=Настройки на апарата->Валути');
-        $fieldset->FLD('vatGroups', 'table(columns=groupId|code,captions=Група|Код)', 'caption=Настройки на апарата->ДДС групи');
-        $fieldset->setFieldTypeParams('vatGroups', array('groupId_opt' => array('' => '') + cls::get('acc_VatGroups')->makeArray4Select('title')));
-        
-        $fieldset->FLD('paymentMap', 'table(columns=paymentId|code,captions=Вид|Код)', 'caption=Настройки на апарата->Плащания');
-        $fieldset->setFieldTypeParams('paymentMap', array('paymentId_opt' => array('' => '') + array('-1' => 'Брой') + cls::get('cond_Payments')->makeArray4Select('title')));
-        
-        // Добавяне на поле за поддържаните основания за сторниране с техните кодове
-        $fieldset->FLD('reasonMap', 'table(columns=reason|code,captions=Основание|Код,batch_ro=readonly)', 'caption=Настройки на апарата->Сторно основания');
-        $fieldset->setFieldTypeParams('reasonMap', array('reason_opt' => array('' => '') + arr::make(array_keys(self::DEFAULT_STORNO_REASONS_MAP), true)));
+        $fieldset->FLD('paymentMap9', 'varchar', 'caption=Настройки на апарата за плащания->Позиция 9');
+        $fieldset->FLD('paymentMap10', 'varchar', 'caption=Настройки на апарата за плащания->Позиция 10');
+        $fieldset->FLD('paymentMap11', 'varchar', 'caption=Настройки на апарата за плащания->Позиция 11');
         
         $fieldset->FLD('header', 'enum(yes=Да,no=Не)', 'caption=Надпис хедър в касовата бележка->Добавяне, mandatory, notNull, removeAndRefreshForm');
         $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър в касовата бележка->Позиция, mandatory, notNull');
@@ -211,30 +203,6 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     
     
     /**
-     * Връща цената с ддс и приспадната отстъпка, подходяща за касовия апарат
-     *
-     * @param float      $priceWithoutVat
-     * @param float      $vat
-     * @param float|null $discountPercent
-     *
-     * @return float
-     *
-     * @see peripheral_FiscPrinterIntf
-     */
-    public function getDisplayPrice($priceWithoutVat, $vat, $discountPercent)
-    {
-        $displayPrice = $priceWithoutVat * (1 + $vat);
-        
-        if (!empty($discountPercent)) {
-            $discountedPrice = round($displayPrice * $discountPercent, 2);
-            $displayPrice = $displayPrice - $discountedPrice;
-        }
-        
-        return $displayPrice;
-    }
-    
-    
-    /**
      * Помощна фунцкия за подготвяне на текста за печат
      *
      * @param array|string $tArr
@@ -273,44 +241,20 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     {
         $form = &$data->form;
         
-        // Дефолти на начините на плащане
-        if(empty($form->rec->paymentMap)){
-            
-            // Задаване на дефолтните кодове на начините на плащане
-            $paymentOptions = array('paymentId' => array(), 'code' => array());
-            
-            foreach (self::DEFAULT_PAYMENT_MAP as $paymentName => $code){
-                $paymentId = ($paymentName == 'Брой') ? -1 : cond_Payments::fetchField("#title='{$paymentName}'");
-                if(!empty($paymentId)){
-                    $paymentOptions['paymentId'][] = $paymentId;
-                    $paymentOptions['code'][] = $code;
-                }
-            }
-            
-            $form->setDefault('paymentMap', $form->getFieldType('paymentMap')->fromVerbal($paymentOptions));
-        }
+        $pQuery = cond_Payments::getQuery();
+        $arrMap = array_flip(self::DEFAULT_PAYMENT_MAP);
+        $oMapArr = array('' => '');
         
-        // Дефолти на сторно основанията
-        if(empty($form->rec->reasonMap)){
-            $reasonOptions = array('reason' => array(), 'code' => array());
-            foreach (self::DEFAULT_STORNO_REASONS_MAP as $reason => $code){
-                $reasonOptions['reason'][] = $reason;
-                $reasonOptions['code'][] = $code;
-            }
+        while ($pRec = $pQuery->fetch()) {
+            if (isset($pRec->code) && isset($arrMap[$pRec->code])) continue;
             
-            $form->setDefault('reasonMap', $form->getFieldType('reasonMap')->fromVerbal($reasonOptions));
-        }
-        
-        // Задаване на дефолтните кодове на ДДС групите
-        if(empty($form->rec->vatGroups)){
-            $groupOptions = array('groupId' => array(), 'code' => array());
-            foreach (self::DEFAULT_VAT_GROUPS_MAP as $group => $code){
-                $groupOptions['groupId'][] = acc_VatGroups::getIdBySysId($group);
-                $groupOptions['code'][] = $code;
-            }
+            if (!$pRec->currencyCode) continue;
             
-            $form->setDefault('vatGroups', $form->getFieldType('vatGroups')->fromVerbal($groupOptions));
+            $oMapArr[$pRec->currencyCode] = $pRec->currencyCode;
         }
+        $form->setOptions('paymentMap9', $oMapArr);
+        $form->setOptions('paymentMap10', $oMapArr);
+        $form->setOptions('paymentMap11', $oMapArr);
         
         if (!$form->rec->id) {
             $form->setDefault('footerText', 'Отпечатано с bgERP');
@@ -395,13 +339,29 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function isCurrencySupported($rec, $currencyCode)
     {
-        if($currencyCode != 'BGN'){
-            $currencyId = currency_Currencies::getIdByCode($currencyCode);
+        if (!$currencyCode) {
             
-            return keylist::isIn($currencyId, $rec->suppertedCurrencies);
+            return false;
         }
         
-        return true;
+        if ($currencyCode == 'BGN') {
+            
+            return true;
+        }
+        
+        if ($currencyCode != 'BGN') {
+            
+            foreach(array(9,10,11) as $v) {
+                $r = 'paymentMap' . $v;
+                
+                if ($rec->{$r} == $currencyCode) {
+                    
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
     
     
@@ -410,16 +370,38 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      *
      * @param stdClass $rec
      * @param int $paymentId
+     * 
      * @return string|null
      */
     public function getPaymentCode($rec, $paymentId)
     {
-        $payments = type_Table::toArray($rec->paymentMap);
+        // Ако не е подаден код на плащане се приема, че е брой
+        if(empty($paymentId)){
+            
+            return self::DEFAULT_PAYMENT_MAP['Брой'];
+        }
         
-        $found = array_filter($payments, function($a) use ($paymentId) {return $a->paymentId == $paymentId;});
-        $found = $found[key($found)];
+        $pRec = cond_Payments::fetch($paymentId);
+        if(!$pRec) {
+            
+            return;
+        }
         
-        return is_object($found) ? $found->code : null;
+        $name = $pRec->title;
+        if (!empty($name)) {
+            if (array_key_exists($name, self::DEFAULT_PAYMENT_MAP)) {
+                
+                return self::DEFAULT_PAYMENT_MAP[$name];
+            }
+        }
+        
+        foreach(array(9,10,11) as $v) {
+            $r = 'paymentMap' . $v;
+            if ($pRec->currencyCode && $rec->{$r} == $pRec->currencyCode) {
+                
+                return $v;
+            }
+        }
     }
     
     
@@ -432,12 +414,8 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function getStornoReasonCode($rec, $reason)
     {
-        $payments = type_Table::toArray($rec->reasonMap);
         
-        $found = array_filter($payments, function($a) use ($reason) {return $a->reason == $reason;});
-        $found = $found[key($found)];
-        
-        return is_object($found) ? $found->code : null;
+        return self::DEFAULT_STORNO_REASONS_MAP[$reason];
     }
     
     
@@ -456,6 +434,30 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     
     
     /**
+     * Връща цената с ддс и приспадната отстъпка, подходяща за касовия апарат
+     *
+     * @param float      $priceWithoutVat
+     * @param float      $vat
+     * @param float|null $discountPercent
+     *
+     * @return float
+     *
+     * @see peripheral_FiscPrinterIntf
+     */
+    public function getDisplayPrice($priceWithoutVat, $vat, $discountPercent)
+    {
+        $displayPrice = $priceWithoutVat * (1 + $vat);
+        
+        if (!empty($discountPercent)) {
+            $discountedPrice = round($displayPrice * $discountPercent, 2);
+            $displayPrice = $displayPrice - $discountedPrice;
+        }
+        
+        return $displayPrice;
+    }
+    
+    
+    /**
      * Какъв е кода отговарящ на ДДС групата на артикула
      *
      * @param int $groupId  - ид на ДДС група
@@ -464,11 +466,14 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function getVatGroupCode($groupId, $rec)
     {
-        $payments = type_Table::toArray($rec->vatGroups);
-        $found = array_filter($payments, function($a) use ($groupId) {return $a->groupId == $groupId;});
-        $found = $found[key($found)];
+        $sysId = acc_VatGroups::fetchField($groupId, 'sysId');
         
-        return is_object($found) ? $found->code : null;
+        if (!isset($sysId)) {
+            
+            return ;
+        }
+        
+        return self::DEFAULT_VAT_GROUPS_MAP[$sysId];
     }
     
     

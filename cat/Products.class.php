@@ -1436,6 +1436,11 @@ class cat_Products extends embed_Manager
             if(isset($params['isPublic'])){
                 $query->where("#isPublic = '{$params['isPublic']}'");
             }
+            
+            // Филтър по драйвер, ако има
+            if(isset($params['driverId'])){
+                $query->where("#innerClass = {$params['driverId']}");
+            }
         }
         
         $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
@@ -1471,6 +1476,7 @@ class cat_Products extends embed_Manager
         
         // Подготвяне на опциите
         $query->show('isPublic,folderId,meta,id,code,name,nameEn');
+        
         while ($rec = $query->fetch()) {
             $title = static::getRecTitle($rec, false);
             if ($rec->isPublic == 'yes') {
@@ -1570,15 +1576,15 @@ class cat_Products extends embed_Manager
      * @param bool     $orHasProperties  - Дали трябва да имат всички свойства от зададените или поне едно
      * @param mixed    $groups           - групи в които да участват
      * @param mixed    $notInGroups      - групи в които да не участват
-     * 
      * @param null|boolean $isPublic     - null за всички артикули, true за стандартните, false за нестандартните
+     * @param null|boolean $driverId     - null за всички артикули, true за тези с избрания драйвер
      *
      * @return array $products         - артикулите групирани по вида им стандартни/нестандартни
      */
-    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $notInGroups = null, $isPublic = null)
+    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $notInGroups = null, $isPublic = null, $driverId = null)
     {
         $Type = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)');
-        foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic') as $val){
+        foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic', 'driverId') as $val){
             if(isset(${"{$val}"})){
                 $Type->params[$val] = ${"{$val}"};
             }
@@ -2197,13 +2203,13 @@ class cat_Products extends embed_Manager
      * Връща последната активна рецепта на артикула
      *
      * @param mixed  $id   - ид или запис
-     * @param string $type - вид работна/моментна/търговска
+     * @param string|array $inOrder - В какъв приоритет да се търсят рецептите
      *
      * @return mixed $res - записа на рецептата или FALSE ако няма
      */
-    public static function getLastActiveBom($id, $type = null)
+    public static function getLastActiveBom($id, $inOrder = null)
     {
-        $rec = self::fetchRec($id);
+        $rec = self::fetchRec($id, 'canManifacture');
         
         // Ако артикула не е производим не търсим рецепта
         if ($rec->canManifacture == 'no') {
@@ -2211,15 +2217,27 @@ class cat_Products extends embed_Manager
             return false;
         }
         
-        $cond = "#productId = '{$rec->id}' AND #state = 'active'";
-        
-        if (isset($type)) {
-            expect(in_array($type, array('sales', 'instant', 'production')));
-            $cond .= " AND #type = '{$type}'";
+        // Прави опит да намери рецептата по зададения ред
+        $inOrderArr = arr::make($inOrder, 'true');
+        if(count($inOrderArr)){
+            foreach ($inOrderArr as $type){
+                $bRec = cat_Boms::fetch(array("#productId = '{$rec->id}' AND #state = 'active' AND #type = '[#1#]'", $type));
+                
+                if(is_object($bRec)){
+                    
+                    return $bRec;
+                }
+            }
+            
+            return false;
         }
         
-        // Какво е к-то от последната активна рецепта
-        return cat_Boms::fetch($cond);
+        // Ако не е указан тип, се взима последната рецепта
+        $query = cat_Boms::getQuery();
+        $query->where("#productId = '{$rec->id}' AND #state = 'active'");
+        $query->orderBy('id', ASC);
+        
+        return $query->fetch();
     }
     
     
@@ -2698,10 +2716,7 @@ class cat_Products extends embed_Manager
         $res = array();
         
         // Намираме рецептата за артикула (ако има)
-        $bomId = static::getLastActiveBom($id, 'production')->id;
-        if (!$bomId) {
-            $bomId = static::getLastActiveBom($id, 'sales')->id;
-        }
+        $bomId = static::getLastActiveBom($id, 'production,sales')->id;
         
         if (isset($bomId)) {
             
@@ -3086,10 +3101,7 @@ class cat_Products extends embed_Manager
         if (!count($defaultTasks)) {
             
             // Намираме последната активна рецепта
-            $bomRec = self::getLastActiveBom($rec, 'production');
-            if (!$bomRec) {
-                $bomRec = self::getLastActiveBom($rec, 'sales');
-            }
+            $bomRec = self::getLastActiveBom($rec, 'production,sales');
             
             // Ако има опитваме се да намерим задачите за производството по нейните етапи
             if ($bomRec) {

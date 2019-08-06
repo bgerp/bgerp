@@ -639,7 +639,7 @@ class email_Mime extends core_BaseClass
             }
         } else {
             if ($headerIndex < 0) {
-                $headerIndex = count($headersArr[$name]) + $headerIndex;
+                $headerIndex = countR($headersArr[$name]) + $headerIndex;
             }
             
             expect(is_int($headerIndex));

@@ -112,7 +112,7 @@ class core_Mode
     /**
      * Връща стойността на променлива от обкръжението
      */
-    public static function get($name, $offset = 0)
+    public static function get($name, $offset = 0, $onlyInHit = false)
     {
         expect($offset <= 0);
         
@@ -130,8 +130,10 @@ class core_Mode
             return;
         }
         
-        // Инициализираме стойностите с данните от сесията
-        self::prepareMode();
+        if (!$onlyInHit) {
+            // Инициализираме стойностите с данните от сесията
+            self::prepareMode();
+        }
         
         $res = null;
         

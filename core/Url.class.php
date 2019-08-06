@@ -908,19 +908,19 @@ class core_Url
         
         return $body;
     }
-
-
+    
+    
     /**
      * Стартира посоченото URL без да чака за резултат
      */
     public static function start($url)
     {
         $ch = curl_init();
- 
+        
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 1);
- 
+        
         @curl_exec($ch);
         curl_close($ch);
     }
@@ -939,7 +939,7 @@ class core_Url
         }
         
         // Добавяме новите параметри в част `Query`
-        if (count($queryParams)) {
+        if (countR($queryParams)) {
             $params = array();
             if (!empty($purl['query'])) {
                 parse_str($purl['query'], $params);
