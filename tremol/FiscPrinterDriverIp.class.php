@@ -38,7 +38,9 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
      *
      * @param stdClass $pRec   - запис от peripheral_Devices
      * @param array    $params - масив с параметри необходими за отпечатване на ФБ
-     *
+     * 
+     * IS_ELECTRONIC - дали ще се разпечатва електронен бон
+     * 
      * // Параметри за отваряне на ФБ
      * OPER_NUM - номер на оператор - от 1 до 20
      * OPER_PASS - парола на оператора
