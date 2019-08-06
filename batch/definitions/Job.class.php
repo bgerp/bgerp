@@ -146,7 +146,7 @@ class batch_definitions_Job extends batch_definitions_Proto
      */
     public function getFeatures($value)
     {
-        list($jobId,) = explode($value, '/');
+        list($jobId,) = explode('/', $value);
         
         $res = array();
         $res[] = (object) array('name' => 'Партида', 'classId' => $this->getClassId(), 'value' => $value);
