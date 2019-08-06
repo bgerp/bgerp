@@ -40,18 +40,21 @@ class webkittopdf_Converter extends core_Manager
      * @param string $fileName   - Името на изходния pdf файл
      * @param string $bucketName - Името на кофата, където ще се записват данните
      * @param array  $jsArr      - Масив с JS и JQUERY_CODE
+     * @param boolean  $isImage
      *
      * @return string|NULL $fh - Файлов манипулатор на новосъздадения pdf файл
      */
-    public static function convert($html, $fileName, $bucketName, $jsArr = array())
+    public static function convert($html, $fileName, $bucketName, $jsArr = array(), $isImage = false)
     {
         // Вземаме конфигурационните данни
         $conf = core_Packs::getConfig('webkittopdf');
         
+        $bin = $isImage ? $conf->WEBKIT_TO_IMAGE_BIN : $conf->WEBKIT_TO_PDF_BIN;
+        
         if (!webkittopdf_Setup::isEnabled()) {
-            self::logAlert("Не е инсталирана програмата '{$conf->WEBKIT_TO_PDF_BIN}'");
+            self::logAlert("Не е инсталирана програмата '{$bin}'");
             
-            throw new core_exception_Expect("Не е инсталирана програмата '{$conf->WEBKIT_TO_PDF_BIN}'");
+            throw new core_exception_Expect("Не е инсталирана програмата '{$bin}'");
         }
         
         //Генерираме унукално име на папка
@@ -70,7 +73,7 @@ class webkittopdf_Converter extends core_Manager
         $wrapperTpl = cls::get('page_Print');
         
         // Ако е зададено да се използва JS
-        if ($conf->WEBKIT_TO_PDF_USE_JS == 'yes') {
+        if ($conf->WEBKIT_TO_PDF_USE_JS == 'yes' && !$isImage) {
             
             // Обхождаме масива с JS файловете
             foreach ((array) $jsArr['JS'] as $js) {
@@ -102,7 +105,7 @@ class webkittopdf_Converter extends core_Manager
                 // Добавяме към променливите за JS
                 $jsScript .= ' --no-stop-slow-scripts';
             }
-        } elseif ($conf->WEBKIT_TO_PDF_USE_JS == 'no') {
+        } elseif ($conf->WEBKIT_TO_PDF_USE_JS == 'no' && !$isImage) {
             
             // Ако е зададено да не се изпълнява
             $jsScript = '--disable-javascript';
@@ -144,7 +147,7 @@ class webkittopdf_Converter extends core_Manager
         //Ескейпваме всички променливи, които ще използваме
         $htmlPathEsc = escapeshellarg($htmlPath);
         $pdfPathEsc = escapeshellarg($pdfPath);
-        $binEsc = escapeshellarg($conf->WEBKIT_TO_PDF_BIN);
+        $binEsc = escapeshellarg($bin);
         
         // Скрипта за wkhtmltopdf
         $wk = $binEsc;
@@ -157,14 +160,14 @@ class webkittopdf_Converter extends core_Manager
         }
         
         // Ако е зададено да се използва медиа тип за принтиране
-        if ($conf->WEBKIT_TO_PDF_USE_PRINT_MEDIA_TYPE == 'yes') {
+        if (!$isImage && $conf->WEBKIT_TO_PDF_USE_PRINT_MEDIA_TYPE == 'yes') {
             
             // Добавяме в настройките
             $wk .= ' --print-media-type';
         }
         
         // Ако е зададено да се използва grayscale
-        if ($conf->WEBKIT_TO_PDF_USE_GRAYSCALE == 'yes') {
+        if (!$isImage && $conf->WEBKIT_TO_PDF_USE_GRAYSCALE == 'yes') {
             
             // Добавяме в настройките
             $wk .= ' --grayscale';
@@ -172,7 +175,7 @@ class webkittopdf_Converter extends core_Manager
         
         
         // Ако е зададен енкодинг за текущия файл
-        if ($conf->WEBKIT_TO_PDF_INPUT_ENCODING) {
+        if (!$isImage && $conf->WEBKIT_TO_PDF_INPUT_ENCODING) {
             
             // Добавяме в настройките
             $wk .= ' --encoding ' . escapeshellarg($conf->WEBKIT_TO_PDF_INPUT_ENCODING);
