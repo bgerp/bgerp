@@ -528,6 +528,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             
             // Дефолтното к-вво ще е разликата между к-та за произведеното до сега и за произведеното в момента
             $dRec->quantity = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
+            $dRec->quantityFromBom = $dRec->quantity;
             
             $pInfo = cat_Products::getProductInfo($resource->productId);
             $dRec->measureId = $pInfo->productRec->measureId;
