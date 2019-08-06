@@ -99,8 +99,6 @@ class planning_Stages extends core_Extender
         
         $resourceSuggestionsArr = doc_Folders::getSelectArr(array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'planning_Centers'));
         $form->setSuggestions("{$mvc->className}_folders", $resourceSuggestionsArr);
-    
-        $form->setDefault("{$mvc->className}_canStore", 'yes');
         $form->setDefault("{$mvc->className}_folders", keylist::addKey('', planning_Centers::getUndefinedFolderId()));
     
         $form->setField('meta', 'input=none');

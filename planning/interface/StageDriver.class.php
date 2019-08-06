@@ -29,7 +29,7 @@ class planning_interface_StageDriver extends cat_GeneralProductDriver
      *
      * @param string $defaultMetaData
      */
-    protected $defaultMetaData = 'canManifacture,canConvert,canSell,canStore';
+    protected $defaultMetaData = 'canManifacture,canConvert,canStore';
     
     
     /**
