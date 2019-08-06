@@ -19,11 +19,11 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     
     public $title = 'ФУ на Тремол';
     
-    public $canCashReceived = 'admin, peripheral';
+    public $canCashReceived = 'admin, peripheral, cashMaster, posMaster';
     
-    public $canCashPaidOut = 'admin, peripheral';
+    public $canCashPaidOut = 'admin, peripheral, cashMaster, posMaster';
     
-    public $canMakeReport = 'admin, peripheral';
+    public $canMakeReport = 'admin, peripheral, cashMaster, posMaster';
     
     protected $rcpNumPattern = '/^[a-z0-9]{8}-[a-z0-9]{4}-[0-9]{7}$/i';
     
@@ -414,7 +414,6 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function getStornoReasonCode($rec, $reason)
     {
-        
         return self::DEFAULT_STORNO_REASONS_MAP[$reason];
     }
     
@@ -678,7 +677,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
                         }
                     }
                 }
-            } 
+            }
         }
         
         $form->input();
