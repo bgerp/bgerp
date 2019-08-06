@@ -169,7 +169,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             
             $info = $mvc->getRowInfo($rec->id);
             if (count($info->operation)) {
-                $batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->operation['out'], $info->date);
+                $batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->operation['out'], $mvc, $rec->id, $info->date);
                 batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $batches);
             }
         }

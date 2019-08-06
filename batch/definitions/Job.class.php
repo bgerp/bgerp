@@ -96,4 +96,62 @@ class batch_definitions_Job extends batch_definitions_Proto
     {
         return false;
     }
+    
+    
+    /**
+     * Разпределя количество към наличните партиди в даден склад към дадена дата
+     *
+     * @param array  $quantities - масив с наличните партиди и количества
+     * @param string $mvc        - клас на обект, към който да се разпределят
+     * @param string $id         - ид на обект, към който да се разпределят
+     *
+     * @return array $quantities - масив с филтрираните наличните партиди и количества
+     */
+    public function filterBatches($quantities, $mvc, $id)
+    {
+        $Detail = cls::get($mvc);
+        if($Detail instanceof planning_DirectProductNoteDetails){
+            $originId = planning_DirectProductionNote::fetchField($Detail->fetchRec($id, 'noteId')->noteId, 'originId');
+            $origin = doc_Containers::getDocument($originId);
+            if($origin->isInstanceOf('planning_Tasks')){
+                $jobId = $origin->fetchField('originId');
+                $originJob = doc_Containers::getDocument($jobId);
+                $jobId = $originJob->that;
+            } else {
+                $jobId = $origin->that;
+            }
+            
+            $batchName = $this->getDefaultBatchName($jobId);
+            if(array_key_exists($batchName, $quantities)){
+                
+                return array($batchName => $quantities[$batchName]);
+            }
+            
+            return array();
+        }
+        
+        return $quantities;
+    }
+    
+    
+    /**
+     * Какви са свойствата на партидата
+     *
+     * @param string $value - номер на партидара
+     *
+     * @return array - свойства на партидата
+     *               o name    - заглавие
+     *               o classId - клас
+     *               o value   - стойност
+     */
+    public function getFeatures($value)
+    {
+        list($jobId,) = explode($value, '/');
+        
+        $res = array();
+        $res[] = (object) array('name' => 'Партида', 'classId' => $this->getClassId(), 'value' => $value);
+        $res[] = (object) array('name' => 'Задание', 'classId' => batch_definitions_Varchar::getClassId(), 'value' => $jobId);
+        
+        return $res;
+    }
 }
