@@ -428,7 +428,7 @@ class rack_MovementGenerator extends core_Manager
             }
             
             $round = cat_UoM::fetchField($packagingId, 'round');
-            $round = ($round) ? $round : 5;
+            $round = (isset($round)) ? $round : 5;
             
             expect(count($obj->zones), 'няма зони');
             $zoneArr = array('zone' => array(), 'quantity' => array());
