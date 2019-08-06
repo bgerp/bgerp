@@ -45,10 +45,24 @@ class batch_definitions_Job extends batch_definitions_Proto
             }
             
             if(isset($jobId)){
-                $jobProductId = planning_Jobs::fetchField($jobId, 'productId');
-                $res = "JOB{$jobId}/" . str::removeWhiteSpace(cat_Products::getTitleById($jobProductId, false), ' ');
+                $res = $this->getDefaultBatchName($jobId);
             }
         }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Дефолтното име на партидата за заданието
+     * 
+     * @param int $jobId
+     * @return string $res
+     */
+    private function getDefaultBatchName($jobId)
+    {
+        $jobProductId = planning_Jobs::fetchField($jobId, 'productId');
+        $res = "JOB{$jobId}/" . str::removeWhiteSpace(cat_Products::getTitleById($jobProductId, false), ' ');
         
         return $res;
     }
