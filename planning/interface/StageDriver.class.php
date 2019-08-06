@@ -74,4 +74,22 @@ class planning_interface_StageDriver extends cat_GeneralProductDriver
         return !empty($templateId) ? $templateId : null;
     }
     
+    
+    /**
+     * Връща цената за посочения продукт към посочения клиент на посочената дата
+     *
+     * @param mixed                                                                              $productId - ид на артикул
+     * @param int                                                                                $quantity  - к-во
+     * @param float                                                                              $minDelta  - минималната отстъпка
+     * @param float                                                                              $maxDelta  - максималната надценка
+     * @param datetime                                                                           $datetime  - дата
+     * @param float                                                                              $rate      - валутен курс
+     * @param string $chargeVat - начин на начисляване на ддс
+     *
+     * @return stdClass|float|NULL $price  - обект с цена и отстъпка, или само цена, или NULL ако няма
+     */
+    public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = null, $rate = 1, $chargeVat = 'no')
+    {
+        return 0;
+    }
 }
