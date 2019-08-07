@@ -6,8 +6,8 @@ function lastUsedActions()
 {
     $('.narrow.dialog-window .listRows').height($(window).height() - 173);
 
-    if (localStorage.getItem('disabledRowArr')) {
-        desabledRows =  localStorage.getItem('disabledRowArr').split(',');
+    if (sessionStorage.getItem('disabledRowArr')) {
+        desabledRows =  sessionStorage.getItem('disabledRowArr').split(',');
         $.each(desabledRows, function( index, value ) {
             $('#' + value).addClass('disabledRow');
             $('#' + value).find('a').removeAttr('onclick');
@@ -21,7 +21,8 @@ function lastUsedActions()
             $(row).addClass('disabledRow');
             desabledRows += $(row).attr('id') + ',';
             $(el).removeAttr('onclick');
-            localStorage.setItem('disabledRowArr', desabledRows);
+            sessionStorage.setItem('disabledRowArr', desabledRows);
         }
     });
+    
 }
