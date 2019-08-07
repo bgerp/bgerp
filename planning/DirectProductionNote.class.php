@@ -382,7 +382,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                             } else {
                                 if($originDoc->isInstanceOf('planning_Jobs')){
                                     if(planning_Tasks::fetch("#originId = {$originDoc->fetchField('containerId')} AND #productId = {$productId} AND #state != 'draft' && #state != 'rejected'")){
-                                        $requiredRoles = 'no_one';
+                                      
+                                      //@todo да се върне
+                                      //$requiredRoles = 'no_one';
                                     }
                                 }
                             }
