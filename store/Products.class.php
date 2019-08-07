@@ -514,9 +514,10 @@ class store_Products extends core_Detail
         core_App::setTimeLimit(200);
         $now = dt::now();
        
-        $docArr = array('store_ShipmentOrders' => array('storeFld' => 'storeId', 'Detail' => 'store_ShipmentOrderDetails'),
-            'planning_ConsumptionNotes' => array('storeFld' => 'storeId', 'Detail' => 'planning_ConsumptionNoteDetails'),
-            'store_ConsignmentProtocols' => array('storeFld' => 'storeId', 'Detail' => 'store_ConsignmentProtocolDetailsSend'),
+        $docArr = array('sales_Sales' => array('storeFld' => 'shipmentStoreId', 'Detail' => 'sales_SalesDetails'), 
+                        'store_ShipmentOrders' => array('storeFld' => 'storeId', 'Detail' => 'store_ShipmentOrderDetails'),
+                        'planning_ConsumptionNotes' => array('storeFld' => 'storeId', 'Detail' => 'planning_ConsumptionNoteDetails'),
+                        'store_ConsignmentProtocols' => array('storeFld' => 'storeId', 'Detail' => 'store_ConsignmentProtocolDetailsSend'),
         );
         
         $result = $queue = array();
@@ -528,6 +529,9 @@ class store_Products extends core_Detail
             $sQuery = $Doc->getQuery();
             $sQuery->where("#state = 'pending'");
             $sQuery->show("id,containerId,modifiedOn,{$storeField}");
+            if($Doc == 'sales_Sales'){
+                $sQuery->where("#{$storeField} IS NOT NULL");
+            }
             
             while ($sRec = $sQuery->fetch()) {
                 
@@ -719,7 +723,7 @@ class store_Products extends core_Detail
         
         // Намират се документите, запазили количества
         $docs = array();
-        foreach (array('store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore,toStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId') as $Detail => $stores) {
+        foreach (array('sales_SalesDetails' => 'shipmentStoreId', 'store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore,toStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId') as $Detail => $stores) {
             $stores = arr::make($stores, true);
             $Detail = cls::get($Detail);
             expect($Detail->productFld, $Detail);

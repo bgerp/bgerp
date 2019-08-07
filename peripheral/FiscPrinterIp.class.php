@@ -15,8 +15,6 @@
  */
 class peripheral_FiscPrinterIp extends peripheral_FiscPrinterIntf
 {
-    
-    
     /**
      * Отпечатва бележка с подадените параметри
      *
@@ -27,7 +25,6 @@ class peripheral_FiscPrinterIp extends peripheral_FiscPrinterIntf
      */
     public function printReceipt($pRec, $params)
     {
-        
         return $this->class->printReceipt($pRec, $params);
     }
     
@@ -41,7 +38,6 @@ class peripheral_FiscPrinterIp extends peripheral_FiscPrinterIntf
      */
     public function checkConnection($pRec)
     {
-        
         return $this->class->checkConnection($pRec);
     }
     
@@ -55,7 +51,6 @@ class peripheral_FiscPrinterIp extends peripheral_FiscPrinterIntf
      */
     public function printDuplicate($pRec)
     {
-        
         return $this->class->printDuplicate($pRec);
     }
     
@@ -74,7 +69,20 @@ class peripheral_FiscPrinterIp extends peripheral_FiscPrinterIntf
      */
     public function cashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $printAvailability = false, $text = '')
     {
-        
         return $this->class->cashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $printAvailability, $text);
+    }
+    
+    
+    /**
+     * Записва бележката от съответното ФУ във файл и му връща манипулатора
+     * 
+     * @param stdClass $pRec
+     * @param integer|null $receiptNum
+     * 
+     * @return false|string
+     */
+    public function saveReceiptToFile($pRec, $receiptNum = null)
+    {
+        return $this->class->saveReceiptToFile($pRec, $receiptNum);
     }
 }

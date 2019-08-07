@@ -2,9 +2,15 @@
 
 
 /**
- * Изпълнимия файл на програмата
+ * Изпълнимия файл на програмата за конвертиране към PDF
  */
 defIfNot('WEBKIT_TO_PDF_BIN', 'wkhtmltopdf');
+
+
+/**
+ * Изпълнимия файл на програмата за конвертиране към image
+ */
+defIfNot('WEBKIT_TO_IMAGE_BIN', 'wkhtmltoimage');
 
 
 /**
@@ -154,10 +160,17 @@ class webkittopdf_Setup extends core_ProtoSetup
     public function checkConfig()
     {
         // Ако не е инсталиране
-        if (!static::isEnabled()) {
+        if (!static::isEnabled('WEBKIT_TO_PDF_BIN')) {
             $conf = core_Packs::getConfig('webkittopdf');
             
             return '|*<li class="red">' . type_Varchar::escape($conf->WEBKIT_TO_PDF_BIN) . ' |не е инсталиран|*</li>';
+        }
+        
+        // Ако не е инсталиране
+        if (!static::isEnabled('WEBKIT_TO_IMAGE_BIN')) {
+            $conf = core_Packs::getConfig('webkittopdf');
+            
+            return '|*<li class="red">' . type_Varchar::escape($conf->WEBKIT_TO_IMAGE_BIN) . ' |не е инсталиран|*</li>';
         }
         
         // Версиите на пакета
@@ -180,11 +193,11 @@ class webkittopdf_Setup extends core_ProtoSetup
      *
      * @return bool|NULL
      */
-    public static function isEnabled()
+    public static function isEnabled($binName = 'WEBKIT_TO_PDF_BIN')
     {
         $conf = core_Packs::getConfig('webkittopdf');
         
-        $wkhtmltopdf = escapeshellcmd(self::get('WEBKIT_TO_PDF_BIN', true));
+        $wkhtmltopdf = escapeshellcmd(self::get($binName, true));
         
         // Опитваме се да стартираме програмата
         $res = @exec($wkhtmltopdf . ' --help', $output, $code);
@@ -206,7 +219,7 @@ class webkittopdf_Setup extends core_ProtoSetup
      *               ['version']
      *               ['subVersion']
      */
-    public static function getVersionAndSubVersion()
+    public static function getVersionAndSubVersion($binName = 'WEBKIT_TO_PDF_BIN')
     {
         $versionArr = array();
         
@@ -214,7 +227,7 @@ class webkittopdf_Setup extends core_ProtoSetup
         $confWebkit = core_Packs::getConfig('webkittopdf');
         
         // Опитваме се да вземем версията на webkit
-        @exec(escapeshellarg($confWebkit->WEBKIT_TO_PDF_BIN) . ' -V', $resArr, $erroCode);
+        @exec(escapeshellarg($confWebkit->{$binName}) . ' -V', $resArr, $erroCode);
         
         // От масива с резултата вземаме реда с версията
         foreach ((array) $resArr as $res) {

@@ -74,7 +74,7 @@ class cms_Domains extends core_Embedder
     /**
      * Кой може да избира текущ домейн
      */
-    public $canSelect = 'powerUser';
+    public $canSelect = 'ceo, admin, cms';
     
     
     /**
@@ -159,7 +159,6 @@ class cms_Domains extends core_Embedder
         
         // Заглавие
         $this->XPR('titleExt', 'varchar(70)', "CONCAT(#domain, ', ', #lang)");
-        $this->FLD('mandatoryAgreeText', 'richtext(rows=1)', 'caption=Задължителен текст за съгласие->Текст');
         
         // Singleton клас - източник на данните
         $this->FLD('theme', 'class(interface=cms_ThemeIntf, allowEmpty, select=title)', 'caption=Кожа,silent,mandatory,notFilter,refreshForm');
@@ -175,6 +174,9 @@ class cms_Domains extends core_Embedder
         
         $this->setDbUnique('domain,lang');
         
+        // Съгласие с ОУ
+        $this->FLD('mandatoryAgreeText', 'richtext(rows=1)', 'caption=Задължителен текст за съгласие->Текст,autohide');
+
         // SEO Заглавие
         $this->FLD('seoTitle', 'varchar(15)', 'caption=SEO->Title,autohide');
         
@@ -537,7 +539,6 @@ class cms_Domains extends core_Embedder
         }
         
         if ($action == 'select') {
-            $requiredRoles = 'ceo,admin,cms';
             if(isset($rec)) {
                 if(!keylist::isIn($userId, $rec->shared)) {
                     $requiredRoles = 'ceo,admin';
@@ -596,7 +597,7 @@ class cms_Domains extends core_Embedder
         if($rec->domain != 'localhost') {
             Mode::push('BGERP_CURRENT_DOMAIN', $rec->domain);
         }
-
+        
         // robots.txt
         $fiContent = $mvc->getRobotsTxt($rec);
         
@@ -641,16 +642,16 @@ class cms_Domains extends core_Embedder
         if($rec->favicon) {
             $iconContent = $fiContent = fileman_Files::getContent($rec->favicon);
             core_Webroot::register($fiContent, '', 'favicon.png', $id);
-
+        
         } elseif(!in_array('favicon.ico', $rec->toRemove)) {
             $iconContent = getFileContent('img/favicon.png');
             $fiContent = getFileContent('img/favicon.ico');
         }
-
+        
         if($iconContent) {
             core_Webroot::register($iconContent, '', 'favicon.png', $id);
         }
-
+        
         if($fiContent) {
             core_Webroot::register($fiContent, '', 'favicon.ico', $id);
             $rec->toRemove[$e->path] = $e->path;
@@ -659,36 +660,36 @@ class cms_Domains extends core_Embedder
         if(count($rec->toRemove)) {
             $mvc->save_($rec, 'toRemove');
         }
-
+        
         if($rec->domain != 'localhost') {
             Mode::pop('BGERP_CURRENT_DOMAIN');
         }
     }
-
-
+    
+    
     /**
      * Замества хост
      */
     public static function getReal($domain)
     {
         if($domain == 'localhost') {
-
+            
             $host = strtolower($_SERVER['SERVER_NAME']);
             
             if(self::fetch(array("#domain = '[#1#]'", $host))) {
-              
+                
                 if(defined('BGERP_ABSOLUTE_HTTP_HOST')) {
-                    $host = parse_url(BGERP_ABSOLUTE_HTTP_HOST, PHP_URL_HOST); 
+                    $host = parse_url(BGERP_ABSOLUTE_HTTP_HOST, PHP_URL_HOST);
                 } else {
                     $host = '';
                 }
             }
-
+            
             if($host && !preg_match("/^[0-9\\.]+$/", $host)) {
                 $domain = $host;
             }
         }
-
+        
         return $domain;
     }
     
