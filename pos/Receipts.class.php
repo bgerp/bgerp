@@ -91,7 +91,7 @@ class pos_Receipts extends core_Master
     /**
      * Кой може да ревъртва
      */
-    public $canRevert = 'debug';
+    public $canRevert = 'pos, ceo';
     
     
     /**
