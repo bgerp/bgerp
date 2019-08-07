@@ -457,4 +457,20 @@ class embed_Manager extends core_Master
         
         return $query;
     }
+    
+    
+    /**
+     * Дали записа е с посочения драйвер
+     *
+     * @param mixed $id       - ид или запис
+     * @param mixed $driver - драйвер за който се проверява
+     * @return boolean      - дали записа е с търсения драйвер
+     */
+    public static function haveDriver($id, $driver)
+    {
+        $Driver = static::getDriver($id);
+        $check = cls::get($driver);
+        
+        return $Driver instanceof $check;
+    }
 }

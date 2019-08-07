@@ -58,7 +58,7 @@ class tremol_Setup extends core_ProtoSetup
     /**
      * Необходими пакети
      */
-    public $depends = 'peripheral=0.1';
+    public $depends = 'peripheral=0.1, webkittopdf=0.1';
     
     
     /**
@@ -113,6 +113,8 @@ class tremol_Setup extends core_ProtoSetup
         
         // Добавяме драйвъра в core_Classes
         $html .= core_Classes::add('tremol_FiscPrinterDriver');
+        
+        $html .= fileman_Buckets::createBucket('electronicReceipts', 'Електронни фискални бонове', 'pdf,png,jpg,jpeg', '104857600', 'every_one', 'every_one');
         
         return $html;
     }
