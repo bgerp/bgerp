@@ -945,7 +945,7 @@ class planning_Tasks extends core_Master
         $query->where("#state != 'rejected'");
         $query->where("#originId = {$containerId}");
         $query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'waiting' THEN 5 ELSE 6 END)");
-        $query->orderBy('#orderByState=ASC');
+        $query->orderBy('#orderByState=ASC,#id=DESC');
         $fields = $this->selectFields();
         $fields['-list'] = $fields['-detail'] = true;
         
