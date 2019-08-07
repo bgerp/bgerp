@@ -61,7 +61,7 @@ class archive_Setup extends core_ProtoSetup
     /**
      *  Връща командата към изпълнимия файл на 7zip
      */
-    public function get_ARCHIVE_7Z_PATH()
+    public static function get_ARCHIVE_7Z_PATH()
     {
         if(defined('ARCHIVE_7Z_PATH') && ARCHIVE_7Z_PATH) {
             $cli = ARCHIVE_7Z_PATH;
@@ -78,11 +78,11 @@ class archive_Setup extends core_ProtoSetup
         } else {
             if(is_executable('/usr/local/bin/7z')) {
                 $cli = realpath('/usr/local/bin/7z');
-            } elseif(is_executable('7z')) {
+            } else {
                 $cli = '7z';
             }
         }
-
+        
         return $cli;
     }
 }
