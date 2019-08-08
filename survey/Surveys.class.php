@@ -340,4 +340,17 @@ class survey_Surveys extends core_Master
             $tpl->removeBlock('header');
         }
     }
+    
+    
+    
+    
+    /**
+     * След извличане на името на документа за показване в RichText-а
+     */
+    protected static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        $docName = tr($mvc->singleTitle) . ' ' . str::limitLen($rec->title, 32);
+    }
 }
