@@ -292,9 +292,9 @@ class survey_Surveys extends core_Master
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        $tpl->push('survey/tpl/css/styles.css', 'CSS');
-        $tpl->push(('survey/js/scripts.js'), 'JS');
-        jquery_Jquery::run($tpl, 'surveyActions();');
+        $tpl->push('survey/tpl/css/styles.css', 'CSS', true);
+        $tpl->push(('survey/js/scripts.js'), 'JS', true);
+        jquery_Jquery::run($tpl, 'surveyActions();', true);
     }
     
     
