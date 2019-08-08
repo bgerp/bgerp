@@ -13,9 +13,9 @@
         </div>
     </div>
     <!--ET_END NAVIGATION-->
-    <div style="padding: 0 2% 2% ">
+    <div style="padding: 4% 2% 2% ">
         [#TOP_CONTENT#]
-        [#PAGE_CONTENT#] 
+        [#PAGE_CONTENT#]
         <!--ET_BEGIN SOCIAL-->
         [#SOCIAL#]
         [#social_Sharings::getButtons#]
