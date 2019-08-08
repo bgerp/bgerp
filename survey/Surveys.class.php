@@ -342,8 +342,6 @@ class survey_Surveys extends core_Master
     }
     
     
-    
-    
     /**
      * След извличане на името на документа за показване в RichText-а
      */
@@ -352,5 +350,24 @@ class survey_Surveys extends core_Master
         $rec = $mvc->fetchRec($id);
         
         $docName = tr($mvc->singleTitle) . ' ' . str::limitLen($rec->title, 32);
+    }
+    
+    
+    /**
+     * Генерираме ключа за кеша
+     * Интерфейсен метод
+     *
+     * @param survey_Surveys          $mvc
+     * @param NULL|FALSE|string $res
+     * @param NULL|int          $id
+     * @param object            $cRec
+     *
+     * @see doc_DocumentIntf
+     */
+    public static function on_AfterGenerateCacheKey($mvc, &$res, $id, $cRec)
+    {
+        if ($res !== false) {
+            $res = md5($res . '|' . Request::get('summary'));
+        }
     }
 }
