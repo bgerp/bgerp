@@ -352,7 +352,11 @@ function logHitState($debugCode = '200', $state = array())
         // Ако възникне JSON грешка, записваме я и сериализираме данните
         if (!$data) {
             $data = json_last_error();
-            $data .= ' Serilize: ' . @serialize($state);
+            try {
+                $data .= ' Serilize: ' . @serialize($state);
+            } catch (Exception $e) {
+                $data .= ' MixedToString: ' . core_Type::mixedToString($f);
+            }
         }
         
         $cnt = 0;
