@@ -155,7 +155,7 @@ class survey_Options extends core_Manager
         if (($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec->alternativeId)) {
             $surveyState = survey_Surveys::fetchField(survey_Alternatives::fetchField($rec->alternativeId, 'surveyId'), 'state');
             if ($surveyState == 'active') {
-//                 $res = 'no_one';
+                $res = 'no_one';
             }
         }
     }
