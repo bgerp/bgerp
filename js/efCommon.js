@@ -5312,6 +5312,16 @@ function onBeforeUnload()
 
 
 /**
+ * Изчиства съдържанието на localStorage
+ */
+function clearLocalStorage(){
+    if (typeof localStorage !== 'undefined' && localStorage.length) {
+        localStorage.clear();
+    }
+}
+
+
+/**
  * Добавя текущото URL И титлата към url-то
  */
 function addParamsToBookmarkBtn(obj, parentUrl, localUrl)
