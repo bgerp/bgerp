@@ -349,7 +349,7 @@ class survey_Surveys extends core_Master
     {
         $rec = $mvc->fetchRec($id);
         
-        $docName = tr($mvc->singleTitle) . ' ' . str::limitLen($rec->title, 32);
+        $docName = tr($mvc->singleTitle) . ': "' . str::limitLen($rec->title, 64) . '"';
     }
     
     
