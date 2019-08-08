@@ -260,7 +260,10 @@ class survey_Surveys extends core_Master
         if ($summary && $data->rec->state == 'active') {
             unset($url['summary']);
             $data->toolbar->addBtn('Анкета', $url, 'ef_icon=img/16/text_list_bullets.png, title=Обратно към анкетата');
-            $data->toolbar->buttons['btnPrint']->url['summary'] = 'ok';
+            $printBtnName = 'btnPrint_' . get_called_class() . '_' . $data->rec->id;
+            if ($data->toolbar->buttons[$printBtnName]) {
+                $data->toolbar->buttons[$printBtnName]->url['summary'] = $summary;
+            }
         }
         
         if ($data->rec->state != 'draft' && survey_Votes::haveRightFor('read')) {
