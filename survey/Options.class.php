@@ -37,7 +37,13 @@ class survey_Options extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, survey_Wrapper, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools, plg_Created, survey_Wrapper, plg_SaveAndNew';
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата.
+     */
+    var $rowToolsField = 'tools';
     
     
     /**
