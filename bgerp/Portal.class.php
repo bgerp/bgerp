@@ -204,6 +204,7 @@ class bgerp_Portal extends core_Manager
         
         $tpl->push('js/PortalSearch.js', 'JS');
         jquery_Jquery::run($tpl, 'portalSearch();');
+        jquery_Jquery::run($tpl, 'clearLocalStorage();', true);
         
         bgerp_LastTouch::set('portal');
         

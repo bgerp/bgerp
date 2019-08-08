@@ -674,7 +674,7 @@ class cat_BomDetails extends doc_Detail
         }
         
         if ($mvc->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'stage'))) {
-            $data->toolbar->addBtn('Етап', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => true, 'type' => 'stage'), null, 'title=Добавяне на етап,ef_icon=img/16/wooden-box.png');
+            $data->toolbar->addBtn('Етап', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => true, 'type' => 'stage'), null, 'title=Добавяне на етап,ef_icon=img/16/paste_plain.png');
         }
         
         if ($mvc->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'pop'))) {

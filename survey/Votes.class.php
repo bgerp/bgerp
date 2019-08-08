@@ -208,19 +208,34 @@ class survey_Votes extends core_Manager
         $varchar = cls::get('type_Varchar');
         
         if ($type == 'id') {
-            
-            // ако е ид, намираме ника на потребителя
-            $nick = core_Users::fetchField($val, 'nick');
-            $userUid = $varchar->toVerbal($nick);
+            // Ако е ид, намираме ника на потребителя
+            if (core_Users::fetch($val)) {
+                $userUid = crm_Profiles::createLink($val);
+            }
         } elseif ($type == 'mid') {
             
-            // ако е mid
-            $userUid = $varchar->toVerbal("mid:{$val}");
-        } elseif ($type == 'ip') {
+            $logRec = doclog_Documents::fetchByMid($val);
             
-            // ако е Ип на потребител
-            $userUid = $varchar->toVerbal($val);
-            $userUid = ht::createLink("IP: {$userUid}", "http://bgwhois.com/?query={$val}", null, array('target' => '_blank'));
+            if ($logRec && $logRec->containerId) {
+                $doc = doc_Containers::getDocument($logRec->containerId);
+                if ($doc->haveRightFor('single')) {
+                    $userUid = $doc->getLinkToSingle();
+                }
+            } else {
+                // ако е mid
+                $userUid = $varchar->toVerbal("mid:{$val}");
+            }
+        } elseif ($type == 'ip') {
+            $userUid = type_Ip::decorateIp($val);
+        } elseif ($type == 'brid') {
+            // ако е mid
+            if ($val) {
+                $brid = log_Browsers::fetchField($val, 'brid');
+                
+                if ($brid) {
+                    $userUid = log_Browsers::getLink($brid);
+                }
+            }
         }
         
         return $userUid;
