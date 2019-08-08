@@ -520,13 +520,15 @@ class core_App
             }
         }
         
-        ob_end_flush();
-        ob_flush();
-        flush();
-        
-        // Изпращаме съдържанието на изходния буфер
-        if (function_exists('fastcgi_finish_request')) {
-            @fastcgi_finish_request();
+        if ($output) {
+            ob_end_flush();
+            ob_flush();
+            flush();
+            
+            // Изпращаме съдържанието на изходния буфер
+            if (function_exists('fastcgi_finish_request')) {
+                @fastcgi_finish_request();
+            }
         }
     }
     

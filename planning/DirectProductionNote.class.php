@@ -289,6 +289,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
             } else {
                 $form->setField('packagingId', 'input');
+                if(cat_Products::haveDriver($rec->productId, 'planning_interface_StageDriver')){
+                    $form->setField('inputStoreId', 'mandatory');
+                }
             }
             
             $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,sales');

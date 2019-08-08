@@ -595,7 +595,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             
             // Получения HTML файл го конвертираме към JPG
             $fileName = 'ER_' . str_pad($receiptNum, 6, '0', STR_PAD_LEFT);
-            $fh = webkittopdf_Converter::convert($tpl->getContent(), $fileName . '.jpg', 'electronicReceipts', array(), true);
+            $fh = webkittopdf_Converter::convert($tpl->getContent(), $fileName . '.jpg', 'electronicReceipts', array(), true, array('--disable-smart-width', '--width 400'));
             
             return $fh;
         } catch (Exception $e) {

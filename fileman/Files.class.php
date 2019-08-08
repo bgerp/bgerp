@@ -1689,7 +1689,7 @@ class fileman_Files extends core_Master
             $args = 'width=400,height=530,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
         }
         
-        return "localStorage.removeItem('disabledRowArr'); openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
+        return "sessionStorage.removeItem('disabledRowArr'); openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
     }
     
     
