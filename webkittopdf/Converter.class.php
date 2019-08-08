@@ -41,10 +41,11 @@ class webkittopdf_Converter extends core_Manager
      * @param string $bucketName - Името на кофата, където ще се записват данните
      * @param array  $jsArr      - Масив с JS и JQUERY_CODE
      * @param boolean  $isImage
+     * @param array  $oParamsArr
      *
      * @return string|NULL $fh - Файлов манипулатор на новосъздадения pdf файл
      */
-    public static function convert($html, $fileName, $bucketName, $jsArr = array(), $isImage = false)
+    public static function convert($html, $fileName, $bucketName, $jsArr = array(), $isImage = false, $oParamsArr = array())
     {
         // Вземаме конфигурационните данни
         $conf = core_Packs::getConfig('webkittopdf');
@@ -151,6 +152,10 @@ class webkittopdf_Converter extends core_Manager
         
         // Скрипта за wkhtmltopdf
         $wk = $binEsc;
+        
+        foreach ($oParamsArr as $pVal) {
+            $wk .= ' ' . $pVal;
+        }
         
         // Ако е вдигнат флага
         if ($useXServer) {
