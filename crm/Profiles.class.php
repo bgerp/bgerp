@@ -351,7 +351,7 @@ class crm_Profiles extends core_Master
             }
             
             // Ако има роля admin
-            if (haveRole('admin')) {
+            if (haveRole('admin') && core_Users::haveRightFor('edit', $data->rec->userId)) {
                 
                 // Иконата за редактиране
                 $img = '<img src=' . sbf('img/16/edit.png') . " width='16' height='16'>";
