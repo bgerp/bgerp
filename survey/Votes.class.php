@@ -145,11 +145,10 @@ class survey_Votes extends core_Manager
         $aRec = survey_Alternatives::fetch((int) $alternativeId);
         $sRec = survey_Surveys::fetch($aRec->surveyId);
         
-        
         $uid = '';
-        if ($mid = Request::get('m') && $sRec->userBy != 'browser') {
+        if (($mid = Request::get('m')) && ($sRec->userBy != 'browser')) {
             $uid = 'mid|' . $mid;
-        } elseif (core_Users::haveRole('user') && $sRec->userBy != 'browser') {
+        } elseif (core_Users::haveRole('user') && ($sRec->userBy != 'browser')) {
             $uid = 'id|' . core_Users::getCurrent();
         } elseif ($sRec->userBy == 'browser') {
             $uid = 'brid|' . log_Browsers::getBridId();
