@@ -19,6 +19,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
     
     public $title = 'IP ФУ на Тремол';
     
+    public static $viewException = 'admin, peripheral';
     
     /**
      * Може ли вградения обект да се избере
@@ -1034,7 +1035,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         
         wp($msg, $ex);
         
-        if (haveRole('debug')) {
+        if (haveRole(self::$viewException)) {
             status_Messages::newStatus('|*' . $msg, 'error');
         }
     }
