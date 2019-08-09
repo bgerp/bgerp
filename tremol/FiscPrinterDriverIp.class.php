@@ -1046,7 +1046,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         
         wp($msg, $ex);
         
-        if (haveRole('powerUser')) {
+        if (haveRole('debug')) {
             status_Messages::newStatus('|*' . $msg, 'error');
         }
     }
