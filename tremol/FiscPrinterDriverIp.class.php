@@ -36,6 +36,19 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
     
     
     /**
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        parent::addFields($fieldset);
+        
+        $fieldset->FLD('isElectronic', 'enum(no=Не, yes=Да)', 'caption=Настройки на ФУ->Електронна бележка, after=serialNumber');
+    }
+    
+    
+    /**
      * Връща JS функция за отпечатване на ФБ
      *
      * @param stdClass $pRec   - запис от peripheral_Devices
@@ -135,7 +148,9 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             return false;
         }
         
-        setIfNot($params['IS_ELECTRONIC'], false);
+        if (!isset($params['IS_ELECTRONIC'])) {
+            $params['IS_ELECTRONIC'] = $pRec->isElectronic == 'yes' ? true : false;
+        }
         
         // Задаваме параметрите за отваряне на ФБ
         setIfNot($params['OPER_NUM'], 1);
