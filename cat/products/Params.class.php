@@ -86,7 +86,7 @@ class cat_products_Params extends doc_Detail
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
-    public $fetchFieldsBeforeDelete = 'id, productId, paramId';
+    public $fetchFieldsBeforeDelete = 'id, classId, productId, paramId';
     
     
     /**
@@ -460,11 +460,33 @@ class cat_products_Params extends doc_Detail
     
     
     /**
+     * Извиква се преди запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode    Режим на записа: replace, ignore
+     */
+    protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        if(!isset($rec->id)){
+            $rec->_isCreated = true;
+        }
+    }
+    
+    
+    /**
      * След запис се обновяват свойствата на перата
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         $mvc->syncWithFeature($rec->paramId, $rec->productId);
+        
+        $paramName = cat_Params::getVerbal($rec->paramId, 'typeExt');
+        $logMsg = ($rec->_isCreated) ? 'Добавяне на параметър' : 'Редактиране на параметър';
+        cls::get($rec->classId)->logWrite($logMsg, $rec->productId);
+        cls::get($rec->classId)->logDebug("{$logMsg}: {$paramName}", $rec->productId);
     }
     
     
@@ -475,6 +497,10 @@ class cat_products_Params extends doc_Detail
     {
         foreach ($query->getDeletedRecs() as $rec) {
             $mvc->syncWithFeature($rec->paramId, $rec->productId);
+            
+            $paramName = cat_Params::getVerbal($rec->paramId, 'typeExt');
+            cls::get($rec->classId)->logWrite('Изтриване на параметър', $rec->productId);
+            cls::get($rec->classId)->logDebug("Изтриване на параметър: {$paramName}", $rec->productId);
         }
     }
     
