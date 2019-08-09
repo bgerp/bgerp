@@ -361,9 +361,6 @@ class crm_Profiles extends core_Master
                 
                 // Създаме линка
                 $data->User->row->editLink = ht::createLink($img, $url, false, 'title=Редактиране на потребителски данни');
-                
-                // Създаме линка
-                $data->User->row->editLink = ht::createLink($img, $url, false, 'title=Редактиране на потребителски данни');
             }
             
             if ($data->User->rec->state != 'active') {
