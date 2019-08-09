@@ -1000,42 +1000,30 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                  */
                 if ($ste1 == 0x30 && $ste2 == 0x32) {
                     $msg = "Грешка!  ste1 == 0x30 - Командата е ОК и ste2 == 0x32 - Командата е непозволена в текущото състояние на ФУ";
-                }
-                else if ($ste1 == 0x30 && $ste2 == 0x33) {
+                } else if ($ste1 == 0x30 && $ste2 == 0x33) {
                     $msg = "Грешка!  ste1 == 0x30 - Командата е ОК и ste2 == 0x33 - Направете Z отчет";
-                }
-                else if ($ste1 == 0x34 && $ste2 == 0x32) {
+                } else if ($ste1 == 0x34 && $ste2 == 0x32) {
                     $msg = "Грешка!  ste1 == 0x34 - Отворен фискален бон и ste2 == 0x32 - Командата е непозволена в текущото състояние на ФУ";
-                }
-                else if ($ste1 == 0x39 && $ste2 == 0x32) {
+                } else if ($ste1 == 0x39 && $ste2 == 0x32) {
                     $msg = "Грешка!  ste1 == 0x39 - Грешна парола и ste2 == 0x32 - Командата е непозволена";
-                }
-                else {
+                } else {
                     $msg = "Грешка! " . $ex->getMessage() . " ste1=" . $ste1 . ", ste2=" . $ste2;
                 }
-            }
-            else if($code == \Tremol\ServerErrorType::ServerDefsMismatch) {
+            } else if($code == \Tremol\ServerErrorType::ServerDefsMismatch) {
                 $msg = "Грешка!  Текущата версия на библиотеката и сървърните дефиниции се различават.";
-            }
-            else if ($code == \Tremol\ServerErrorType::ServMismatchBetweenDefinitionAndFPResult) {
+            } else if ($code == \Tremol\ServerErrorType::ServMismatchBetweenDefinitionAndFPResult) {
                 $msg = "Грешка!  Текущата версия на библиотеката и фърмуера на ФУ са несъвместими";
-            }
-            else if ($code == \Tremol\ServerErrorType::ServerAddressNotSet) {
+            } else if ($code == \Tremol\ServerErrorType::ServerAddressNotSet) {
                 $msg = "Грешка!  Не е зададен адрес на сървъра!";
-            }
-            else if ($code == \Tremol\ServerErrorType::ServerConnectionError) {
+            } else if ($code == \Tremol\ServerErrorType::ServerConnectionError) {
                 $msg = "Грешка!  Не може да се осъществи връзка със ZfpLab сървъра";
-            }
-            else if ($code == \Tremol\ServerErrorType::ServSockConnectionFailed) {
+            } else if ($code == \Tremol\ServerErrorType::ServSockConnectionFailed) {
                 $msg = "Грешка!  Сървъра не може да се свърже с ФУ";
-            }
-            else if ($code == \Tremol\ServerErrorType::ServTCPAuth) {
+            } else if ($code == \Tremol\ServerErrorType::ServTCPAuth) {
                 $msg = "Грешка!  Грешна TCP парола на устройството";
-            }
-            else if ($code == \Tremol\ServerErrorType::ServWaitOtherClientCmdProcessingTimeOut) {
+            } else if ($code == \Tremol\ServerErrorType::ServWaitOtherClientCmdProcessingTimeOut) {
                 $msg = "Грешка!  Обработката на другите клиенти на сървъра отнема много време";
-            }
-            else {
+            } else {
                 $msg = "Грешка! " . $ex->getMessage();
             }
         } else {
