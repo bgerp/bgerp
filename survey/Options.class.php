@@ -49,7 +49,7 @@ class survey_Options extends core_Manager
     /**
      * Кой може да пише
      */
-    public $canWrite = 'sales,ceo';
+    public $canWrite = 'survey,ceo';
     
     
     /**
