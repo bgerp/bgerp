@@ -92,4 +92,17 @@ class planning_interface_StageDriver extends cat_GeneralProductDriver
     {
         return 0;
     }
+    
+    
+    /**
+     * Подготвя групите, в които да бъде вкаран продукта
+     */
+    public static function on_BeforeSave($Driver, embed_Manager &$Embedder, &$id, &$rec, $fields = null)
+    {
+        if(empty($rec->id) && $Embedder instanceof cat_Products){
+            $groupId = cat_Groups::fetchField("#sysId = 'prefabrications'");
+            $rec->groupsInput = keylist::addKey($rec->groupsInput, $groupId);
+            $rec->groups = keylist::fromArray($Embedder->expandInput(type_Keylist::toArray($rec->groupsInput)));
+        }
+    }
 }

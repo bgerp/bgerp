@@ -78,7 +78,7 @@ class planning_Stages extends core_Extender
     {
         $this->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty,makeLinks)', 'caption=Използване в производството->Центрове на дейност, remember,mandatory,silent');
         $this->FLD('name', 'varchar', 'caption=Използване в производството->Наименование,placeholder=Ако не се попълни - името на артикула,tdClass=leftCol');
-        $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Използване в производството->Засклаждане,notNull,value=yes');
+        $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Използване в производството->Складируем,notNull,value=yes');
         $this->FLD('norm', 'time', 'caption=Използване в производството->Норма');
         $this->FLD('state', 'enum(draft=Чернова, active=Активен, rejected=Оттеглен, closed=Затворен)', 'caption=Състояние');
         

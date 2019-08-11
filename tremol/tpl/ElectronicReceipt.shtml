@@ -1,30 +1,24 @@
-<!DOCTYPE html>
-<html style="display: table; margin:auto; ">
-<head>
-    <!-- <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" > -->
-    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=0.9">
-    <style>
+<style>
+    body{
+        width: 380px;
+        overflow:hidden;
+    }
     #qrImg {
-        width: 200px;
-        height: 200px;
+        width: 90px;
+        height: 90px;
         margin: auto;
         display: block;
         -ms-interpolation-mode: nearest-neighbor;
-        image-rendering: -webkit-optimize-contrast; 
-        image-rendering: -webkit-crisp-edges; 
-        image-rendering: -moz-crisp-edges; 
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: -webkit-crisp-edges;
+        image-rendering: -moz-crisp-edges;
         image-rendering: -o-crisp-edges;
         image-rendering: crisp-edges;
         image-rendering: pixelated;
     }
-    </style>
-    <title>Електронна бележка</title>
-</head>
-<body style="overflow:auto;">
-    <div id="receiptPanel">
-        <pre id="recStartPre">[#REC_START#]</pre>
-        <img id="qrImg" src="[#QR_URL#]">
-        <pre id="recEndPre">[#REC_END#]</pre>
-    </div>
-</body>
-</html>
+</style>
+<div id="receiptPanel">
+    <pre id="recStartPre">[#REC_START#]</pre>
+    <img id="qrImg" src="[#QR_URL#]">
+    <pre id="recEndPre">[#REC_END#]</pre>
+</div>

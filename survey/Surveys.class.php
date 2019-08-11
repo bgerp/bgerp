@@ -260,7 +260,10 @@ class survey_Surveys extends core_Master
         if ($summary && $data->rec->state == 'active') {
             unset($url['summary']);
             $data->toolbar->addBtn('Анкета', $url, 'ef_icon=img/16/text_list_bullets.png, title=Обратно към анкетата');
-            $data->toolbar->buttons['btnPrint']->url['summary'] = 'ok';
+            $printBtnName = 'btnPrint_' . get_called_class() . '_' . $data->rec->id;
+            if ($data->toolbar->buttons[$printBtnName]) {
+                $data->toolbar->buttons[$printBtnName]->url['summary'] = $summary;
+            }
         }
         
         if ($data->rec->state != 'draft' && survey_Votes::haveRightFor('read')) {
@@ -292,9 +295,9 @@ class survey_Surveys extends core_Master
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        $tpl->push('survey/tpl/css/styles.css', 'CSS');
-        $tpl->push(('survey/js/scripts.js'), 'JS');
-        jquery_Jquery::run($tpl, 'surveyActions();');
+        $tpl->push('survey/tpl/css/styles.css', 'CSS', true);
+        $tpl->push(('survey/js/scripts.js'), 'JS', true);
+        jquery_Jquery::run($tpl, 'surveyActions();', true);
     }
     
     
@@ -335,6 +338,36 @@ class survey_Surveys extends core_Master
     {
         if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
             $tpl->removeBlock('header');
+        }
+    }
+    
+    
+    /**
+     * След извличане на името на документа за показване в RichText-а
+     */
+    protected static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        $docName = tr($mvc->singleTitle) . ': "' . str::limitLen($rec->title, 64) . '"';
+    }
+    
+    
+    /**
+     * Генерираме ключа за кеша
+     * Интерфейсен метод
+     *
+     * @param survey_Surveys          $mvc
+     * @param NULL|FALSE|string $res
+     * @param NULL|int          $id
+     * @param object            $cRec
+     *
+     * @see doc_DocumentIntf
+     */
+    public static function on_AfterGenerateCacheKey($mvc, &$res, $id, $cRec)
+    {
+        if ($res !== false) {
+            $res = md5($res . '|' . Request::get('summary'));
         }
     }
 }

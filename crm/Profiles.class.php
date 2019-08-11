@@ -351,16 +351,13 @@ class crm_Profiles extends core_Master
             }
             
             // Ако има роля admin
-            if (haveRole('admin')) {
+            if (haveRole('admin') && core_Users::haveRightFor('edit', $data->rec->userId)) {
                 
                 // Иконата за редактиране
                 $img = '<img src=' . sbf('img/16/edit.png') . " width='16' height='16'>";
                 
                 // URL за промяна
                 $url = array('core_Users', 'edit', $data->rec->userId, 'ret_url' => true);
-                
-                // Създаме линка
-                $data->User->row->editLink = ht::createLink($img, $url, false, 'title=Редактиране на потребителски данни');
                 
                 // Създаме линка
                 $data->User->row->editLink = ht::createLink($img, $url, false, 'title=Редактиране на потребителски данни');

@@ -19,6 +19,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
     
     public $title = 'IP ФУ на Тремол';
     
+    public static $viewException = 'admin, peripheral';
+    
     
     /**
      * Може ли вградения обект да се избере
@@ -30,6 +32,19 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
     public function canSelectDriver($userId = null)
     {
         return true;
+    }
+    
+    
+    /**
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        parent::addFields($fieldset);
+        
+        $fieldset->FLD('isElectronic', 'enum(no=Не, yes=Да)', 'caption=Настройки на ФУ->Електронна бележка, after=serialNumber');
     }
     
     
@@ -133,7 +148,9 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             return false;
         }
         
-        setIfNot($params['IS_ELECTRONIC'], false);
+        if (!isset($params['IS_ELECTRONIC'])) {
+            $params['IS_ELECTRONIC'] = $pRec->isElectronic == 'yes' ? true : false;
+        }
         
         // Задаваме параметрите за отваряне на ФБ
         setIfNot($params['OPER_NUM'], 1);
@@ -159,9 +176,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             
             try {
                 $fp->SetDateTime($params['DATE_TIME']);
-            } catch (Exception $e) {
-                $this->handleException($e);
-            }
+            } catch (\Tremol\SException $e) { }
         }
         
         // Проверяваме серийния номер
@@ -193,20 +208,16 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                             // Опитваме се да прекратим предишната бележка, ако има такава и да пуснем пак
                             $fp->CancelReceipt();
                             status_Messages::newStatus('|Прекратена предишна отворена бележка');
-                        } catch (Exception $e) {
+                        } catch (\Tremol\SException $e) {
                             try {
                                 // Няма друго какво да се направи и затово плащаме и отпечатваме бележката
                                 $fp->CashPayCloseReceipt();
                                 status_Messages::newStatus('|Отпечатана предишна отворена бележка');
-                            } catch (Exception $e) {
-                                $this->handleException($e);
-                            }
+                            } catch (\Tremol\SException $e) { }
                         }
                     }
                 }
-            } catch (Exception $e) {
-                $this->handleException($e);
-            }
+            } catch (\Tremol\SException $e) { }
         }
         
         // Отваря бележката
@@ -229,10 +240,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 } else {
                     $fp->OpenReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['PRINT_TYPE'], $params['RCP_NUM']);
                 }
-            } catch (Exception $e) {
-                $this->handleException($e);
-                
-                return false;
+            } catch (\Tremol\SException $e) {
+                $this->handleTremolException($e);
             }
         } else {
             
@@ -283,10 +292,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     } else {
                         $fp->OpenStornoReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['PRINT_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_RCP_NUM'], $params['RELATED_TO_RCP_DATE_TIME'], $params['FM_NUM'], $params['RELATED_TO_URN']);
                     }
-                } catch (Exception $e) {
-                    $this->handleException($e);
-                    
-                    return false;
+                } catch (\Tremol\SException $e) {
+                    $this->handleTremolException($e);
                 }
             
             } else if ($params['IS_CREDIT_NOTE']) {
@@ -322,10 +329,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     } else {
                         $fp->OpenCreditNoteWithFreeCustomerData($params['OPER_NUM'], $params['OPER_PASS'], $params['PRINT_TYPE'], $params['RECIPIENT'], $params['BUYER'], $params['VAT_NUMBER'], $params['UIC'], $params['ADDRESS'], $params['UIC_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_INV_NUM'], $params['RELATED_TO_INV_DATE_TIME'], $params['RELATED_TO_RCP_NUM'], $params['FM_NUM'], $params['RELATED_TO_URN']);
                     }
-                } catch (Exception $e) {
-                    $this->handleException($e);
-                    
-                    return false;
+                } catch (\Tremol\SException $e) {
+                    $this->handleTremolException($e);
                 }
             }
         }
@@ -338,9 +343,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             foreach ($tArr as $text) {
                 try {
                     $fp->PrintText($text);
-                } catch (Exception $e) {
-                    $this->handleException($e);
-                }
+                } catch (\Tremol\SException $e) { }
             }
         }
         
@@ -360,18 +363,14 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 foreach ($tArr as $text) {
                     try {
                         $fp->PrintText($text);
-                    } catch (Exception $e) {
-                        $this->handleException($e);
-                    }
+                    } catch (\Tremol\SException $e) { }
                 }
             }
             
             try {
                 $fp->SellPLUwithSpecifiedVAT($pArr['PLU_NAME'], $pArr['VAT_CLASS'], $pArr['PRICE'], $pArr['QTY'], $pArr['DISC_ADD_P'], $pArr['DISC_ADD_V']);
-            } catch (Exception $e) {
-                $this->handleException($e);
-                
-                return false;
+            } catch (\Tremol\SException $e) {
+                $this->handleTremolException($e);
             }
             
             if (isset($pArr['AFTER_PLU_TEXT'])) {
@@ -379,9 +378,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 foreach ($tArr as $text) {
                     try {
                         $fp->PrintText($text);
-                    } catch (Exception $e) {
-                        $this->handleException($e);
-                    }
+                    } catch (\Tremol\SException $e) { }
                 }
             }
         }
@@ -391,9 +388,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             foreach ($tArr as $text) {
                 try {
                     $fp->PrintText($text);
-                } catch (Exception $e) {
-                    $this->handleException($e);
-                }
+                } catch (\Tremol\SException $e) { }
             }
         }
         
@@ -413,9 +408,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 
                 try {
                     $fp->Payment($paymentArr['PAYMENT_TYPE'], $paymentArr['PAYMENT_CHANGE'], $paymentArr['PAYMENT_AMOUNT'], $paymentArr['PAYMENT_CHANGE_TYPE']);
-                } catch (Exception $e) {
-                    $this->handleException($e);
-                }
+                } catch (\Tremol\SException $e) { }
             }
         }
         
@@ -424,20 +417,18 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             
             try {
                 $fp->PayExactSum($paymentArr['PAY_EXACT_SUM_TYPE']);
-            } catch (Exception $e) {
-                $this->handleException($e);
-            }
+            } catch (\Tremol\SException $e) { }
         }
         
         try {
             $fp->CashPayCloseReceipt();
-        } catch (Exception $e) {
+        } catch (\Tremol\SException $e) {
             $res = true;
         }
         
         try {
             $res = $fp->ReadLastReceiptQRcodeData();
-        } catch (Exception $e) {
+        } catch (\Tremol\SException $e) {
             $res = true;
         }
         
@@ -484,8 +475,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 
                 return true;
             }
-        } catch (Exception $e) {
-            self::handleException($e);
+        } catch (\Tremol\SException $e) {
+            $this->handleTremolException($e);
         }
         
         return false;
@@ -520,8 +511,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 
                 return true;
             }
-        } catch (Exception $e) {
-            self::handleException($e);
+        } catch (\Tremol\SException $e) {
+            $this->handleTremolException($e);
         }
         
         return false;
@@ -595,11 +586,11 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             
             // Получения HTML файл го конвертираме към JPG
             $fileName = 'ER_' . str_pad($receiptNum, 6, '0', STR_PAD_LEFT);
-            $fh = webkittopdf_Converter::convert($tpl->getContent(), $fileName . '.jpg', 'electronicReceipts', array(), true);
+            $fh = webkittopdf_Converter::convert($tpl->getContent(), $fileName . '.jpg', 'electronicReceipts', array(), true, array('--disable-smart-width', '--width 400'));
             
             return $fh;
-        } catch (Exception $e) {
-            $this->handleException($e);
+        } catch (\Tremol\SException $e) {
+            $this->handleTremolException($e);
         }
         
         return false;
@@ -618,8 +609,13 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
     {
         if ($Embedder instanceof peripheral_Devices && $Embedder->haveRightFor('edit', $data->rec->id)) {
             
-            // Променя серийния номер на ФУ, ако не е коректно
-            $sn = $Driver->getSerialNumber($data->rec);
+            try {
+                // Променя серийния номер на ФУ, ако не е коректно
+                $sn = $Driver->getSerialNumber($data->rec);
+            } catch (Exception $e) {
+                $Driver->handleAndShowException($e);
+            }
+            
             if ($sn) {
                 if ($sn != $data->rec->serialNumber) {
                     $data->rec->serialNumber = $sn;
@@ -632,7 +628,11 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             
             // Настройваме хедърите и футърите на ФУ
             if (Request::get('update')) {
-                self::setDateTime($data->rec);
+                try {
+                    self::setDateTime($data->rec);
+                } catch (Exception $e) {
+                    $Driver->handleAndShowException($e);
+                }
                 
                 $maxTextLen = ($data->rec->fpType == 'fiscalPrinter') ? $Driver->fpLen : $Driver->crLen;
                 
@@ -643,12 +643,19 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                         $h = headerText . $i;
                         $pHeaderArr[$i] .= self::formatText((string) $data->rec->{$h}, $data->rec->headerPos, $maxTextLen);
                     }
-                    
-                    self::progHeader($data->rec, $pHeaderArr);
+                    try {
+                        self::progHeader($data->rec, $pHeaderArr);
+                    } catch (Exception $e) {
+                        $Driver->handleAndShowException($e);
+                    }
                 }
                 
                 if ($data->rec->footer == 'yes') {
-                    self::progFooter($data->rec, self::formatText((string) $data->rec->footerText, $data->rec->footerPos, $maxTextLen));
+                    try {
+                        self::progFooter($data->rec, self::formatText((string) $data->rec->footerText, $data->rec->footerPos, $maxTextLen));
+                    } catch (Exception $e) {
+                        $Driver->handleAndShowException($e);
+                    }
                 }
             }
         }
@@ -683,8 +690,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 } else {
                     $fp->ServerSetDeviceSerialSettings($rec->serialPort, $rec->serialSpeed, $keepPortOpen);
                 }
-            } catch (Exception $e) {
-                self::handleException($e);
+            } catch (\Tremol\SException $e) {
+                self::handleTremolException($e);
                 
                 $fp = false;
             }
@@ -713,8 +720,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             if ($fp) {
                 $sn = $fp->ReadSerialAndFiscalNums()->SerialNumber;
             }
-        } catch (Exception $e) {
-            self::handleException($e);
+        } catch (\Tremol\SException $e) {
+            self::handleTremolException($e);
         }
         
         return $sn;
@@ -739,8 +746,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             if ($fp) {
                 $fp->SetDateTime($date);
             }
-        } catch (Exception $e) {
-            self::handleException($e);
+        } catch (\Tremol\SException $e) {
+            self::handleTremolException($e);
         }
     }
     
@@ -761,8 +768,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     $fp->ProgHeader($hPos, $hStr);
                 }
             }
-        } catch (Exception $e) {
-            self::handleException($e);
+        } catch (\Tremol\SException $e) {
+            self::handleTremolException($e);
         }
     }
     
@@ -781,8 +788,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             if ($fp) {
                 $fp->ProgFooter($text);
             }
-        } catch (Exception $e) {
-            self::handleException($e);
+        } catch (\Tremol\SException $e) {
+            self::handleTremolException($e);
         }
     }
     
@@ -804,11 +811,13 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
      */
     protected function getResForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $retUrl = array(), $printAvailability = false, $text = '', $actTypeVerb = '', &$jsTpl = null)
     {
-        if ($this->cashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $printAvailability, $text)) {
+        try {
+            $this->cashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $printAvailability, $text);
             if ($retUrl) {
                 redirect($retUrl, false, "|Успешно {$actTypeVerb} във ФУ");
             }
-        } else {
+        } catch (Exception $e) {
+            $this->handleAndShowException($e);
             status_Messages::newStatus("|Грешка при {$actTypeVerb} във ФУ", 'error');
         }
     }
@@ -827,108 +836,120 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
     protected function getResForReport($pRec, $rec, $rVerb = '', &$jsTpl = null)
     {
         try {
-            $fp = $this->connectToPrinter($pRec);
-            
-            expect($fp);
-            
-            $zeroing = ($rec->zeroing == 'yes') ? Tremol\OptionZeroing::Zeroing : Tremol\OptionZeroing::Without_zeroing;
-            $isDetailed = ($rec->isDetailed == 'yes') ? true : false;
-            
-            if ($rec->report == 'day') {
-                if ($isDetailed) {
-                    $fp->PrintDetailedDailyReport($zeroing);
-                } else {
-                    $fp->PrintDailyReport($zeroing);
-                }
-            }
-            
-            if ($rec->report == 'operator') {
-                $fp->PrintOperatorReport($zeroing, (int) $rec->operNum);
-            }
-            
-            if (($rec->report == 'period') || ($rec->report == 'month') || ($rec->report == 'year') || ($rec->report == 'klen') || ($rec->report == 'csv')) {
-                $fromDate = dt::mysql2verbal($rec->fromDate, 'd-m-Y H:i:s');
-                $toDate = dt::mysql2verbal($rec->toDate . ' 23:59:59', 'd-m-Y H:i:s');
+            try {
+                $fp = $this->connectToPrinter($pRec);
                 
-                if (($rec->report == 'klen') || ($rec->report == 'csv')) {
-                    if ($rec->printType == 'save') {
-                        $outType = $rec->saveType;
-                    } else {
-                        $outType = $rec->printIn;
-                    }
-                    
-                    if (!$outType) {
-                        $outType = 'pc';
-                    }
-                    
-                    $outType = strtolower($outType);
-                    
-                    if ($rec->report == 'csv') {
-                        
-                        if ($outType == 'sd') {
-                            $outTypeStr = Tremol\OptionStorageReport::To_SD_card;
-                        } else if ($outType == 'usb') {
-                            $outTypeStr = Tremol\OptionStorageReport::To_USB_Flash_Drive;
-                        } else {
-                            $outTypeStr = Tremol\OptionStorageReport::To_PC;
-                        }
-                        if ($rec->csvFormat == 'no') {
-                            $csvFormatStr = Tremol\OptionCSVformat::No;
-                        } else {
-                            $csvFormatStr = Tremol\OptionCSVformat::Yes;
-                        }
-                        
-                        $fp->ReadEJByDateCustom($outTypeStr, $csvFormatStr, $rec->flagReceipts, $rec->flagReports, $fromDate, $toDate);
-                        
-                        if ($outType == 'pc') {
-                            
-                            $ext = ($rec->csvFormat == 'yes') ? 'csv' : 'txt';
-                            
-                            $fh = $this->saveRawDataToFile($fp, 'tremol_CSV_' . $rec->fromDate . '_' . $rec->toDate . '.' . $ext);
-                            
-                            if ($fh) {
-                                redirect(array('fileman_Files', 'single', $fh));
-                            }
-                        }
-                    } else {
-                        if ($outType == 'pc') {
-                            if ($isDetailed) {
-                                $detailType = Tremol\OptionReportFormat::Detailed_EJ;
-                            } else {
-                                $detailType = Tremol\OptionReportFormat::Brief_EJ;
-                            }
-                            
-                            $fp->ReadEJByDate($detailType, $fromDate, $toDate);
-                            
-                            $fh = $this->saveRawDataToFile($fp, 'tremol_CSV_' . $rec->fromDate . '_' . $rec->toDate . '.csv');
-                            
-                            if ($fh) {
-                                redirect(array('fileman_Files', 'single', $fh));
-                            }
-                        } else {
-                            if ($outType == 'sd') {
-                                $reportStorage = Tremol\OptionReportStorage::SD_card_storage;
-                            } elseif ($outType == 'usb') {
-                                $reportStorage = Tremol\OptionReportStorage::USB_storage;
-                            } else {
-                                $reportStorage = Tremol\OptionReportStorage::Printing;
-                            }
-                            
-                            $fp->PrintOrStoreEJByDate($reportStorage, $fromDate, $toDate);
-                        }
-                    }
-                } else {
+                expect($fp);
+                
+                $zeroing = ($rec->zeroing == 'yes') ? Tremol\OptionZeroing::Zeroing : Tremol\OptionZeroing::Without_zeroing;
+                $isDetailed = ($rec->isDetailed == 'yes') ? true : false;
+                
+                if ($rec->report == 'day') {
                     if ($isDetailed) {
-                        $fp->PrintDetailedFMReportByDate($fromDate, $toDate);
+                        $fp->PrintDetailedDailyReport($zeroing);
                     } else {
-                        $fp->PrintBriefFMReportByDate($fromDate, $toDate);
+                        $fp->PrintDailyReport($zeroing);
                     }
                 }
+                
+                if ($rec->report == 'operator') {
+                    $fp->PrintOperatorReport($zeroing, (int) $rec->operNum);
+                }
+                
+                if (($rec->report == 'period') || ($rec->report == 'month') || ($rec->report == 'year') || ($rec->report == 'klen') || ($rec->report == 'csv')) {
+                    $fromDate = dt::mysql2verbal($rec->fromDate, 'd-m-Y H:i:s');
+                    $toDate = dt::mysql2verbal($rec->toDate . ' 23:59:59', 'd-m-Y H:i:s');
+                    
+                    if (($rec->report == 'klen') || ($rec->report == 'csv')) {
+                        if ($rec->printType == 'save') {
+                            $outType = $rec->saveType;
+                        } else {
+                            $outType = $rec->printIn;
+                        }
+                        
+                        if (!$outType) {
+                            $outType = 'pc';
+                        }
+                        
+                        $outType = strtolower($outType);
+                        
+                        if ($rec->report == 'csv') {
+                            
+                            if ($outType == 'sd') {
+                                $outTypeStr = Tremol\OptionStorageReport::To_SD_card;
+                            } else if ($outType == 'usb') {
+                                $outTypeStr = Tremol\OptionStorageReport::To_USB_Flash_Drive;
+                            } else {
+                                $outTypeStr = Tremol\OptionStorageReport::To_PC;
+                            }
+                            if ($rec->csvFormat == 'no') {
+                                $csvFormatStr = Tremol\OptionCSVformat::No;
+                            } else {
+                                $csvFormatStr = Tremol\OptionCSVformat::Yes;
+                            }
+                            
+                            $fp->ReadEJByDateCustom($outTypeStr, $csvFormatStr, $rec->flagReceipts, $rec->flagReports, $fromDate, $toDate);
+                            
+                            if ($outType == 'pc') {
+                                
+                                $ext = ($rec->csvFormat == 'yes') ? 'csv' : 'txt';
+                                
+                                try {
+                                    $fh = $this->saveRawDataToFile($fp, 'tremol_CSV_' . $rec->fromDate . '_' . $rec->toDate . '.' . $ext);
+                                } catch (\Tremol\SException $e) {
+                                    $this->handleTremolException($e);
+                                }
+                                
+                                if ($fh) {
+                                    redirect(array('fileman_Files', 'single', $fh));
+                                }
+                            }
+                        } else {
+                            if ($outType == 'pc') {
+                                if ($isDetailed) {
+                                    $detailType = Tremol\OptionReportFormat::Detailed_EJ;
+                                } else {
+                                    $detailType = Tremol\OptionReportFormat::Brief_EJ;
+                                }
+                                
+                                $fp->ReadEJByDate($detailType, $fromDate, $toDate);
+                                
+                                try {
+                                    $fh = $this->saveRawDataToFile($fp, 'tremol_CSV_' . $rec->fromDate . '_' . $rec->toDate . '.csv');
+                                } catch (\Tremol\SException $e) {
+                                    $this->handleTremolException($e);
+                                }
+                                
+                                if ($fh) {
+                                    redirect(array('fileman_Files', 'single', $fh));
+                                }
+                            } else {
+                                if ($outType == 'sd') {
+                                    $reportStorage = Tremol\OptionReportStorage::SD_card_storage;
+                                } elseif ($outType == 'usb') {
+                                    $reportStorage = Tremol\OptionReportStorage::USB_storage;
+                                } else {
+                                    $reportStorage = Tremol\OptionReportStorage::Printing;
+                                }
+                                
+                                $fp->PrintOrStoreEJByDate($reportStorage, $fromDate, $toDate);
+                            }
+                        }
+                    } else {
+                        if ($isDetailed) {
+                            $fp->PrintDetailedFMReportByDate($fromDate, $toDate);
+                        } else {
+                            $fp->PrintBriefFMReportByDate($fromDate, $toDate);
+                        }
+                    }
+                }
+                
+                status_Messages::newStatus("|Успешно отпечатан {$rVerb} отчет");
+            } catch (\Tremol\SException $e) {
+                $this->handleTremolException($e);
             }
-            
-            status_Messages::newStatus("|Успешно отпечатан {$rVerb} отчет");
         } catch (Exception $e) {
-            self::handleException($e);
+            $this->handleAndShowException($e);
         }
     }
     
@@ -953,7 +974,6 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         for($i= 0; $i < count($lines); $i++) {
             $line = $lines[$i];
             $res.= mb_substr($line, 4, count($line) - 3) . "\n";
-        
         }
         
         $res = i18n_Charset::convertToUtf8($res, "windows-1251");
@@ -967,9 +987,9 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
     /**
      * Прихващане на грешки
      * 
-     * @param Exception $ex
+     * @param \Tremol\SException $ex
      */
-    protected static function handleException($ex)
+    protected static function handleTremolException($ex)
     {
         if($ex instanceof \Tremol\SException) {
             $code = $ex->getCode();
@@ -1000,51 +1020,52 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                  */
                 if ($ste1 == 0x30 && $ste2 == 0x32) {
                     $msg = "Грешка!  ste1 == 0x30 - Командата е ОК и ste2 == 0x32 - Командата е непозволена в текущото състояние на ФУ";
-                }
-                else if ($ste1 == 0x30 && $ste2 == 0x33) {
+                } else if ($ste1 == 0x30 && $ste2 == 0x33) {
                     $msg = "Грешка!  ste1 == 0x30 - Командата е ОК и ste2 == 0x33 - Направете Z отчет";
-                }
-                else if ($ste1 == 0x34 && $ste2 == 0x32) {
+                } else if ($ste1 == 0x34 && $ste2 == 0x32) {
                     $msg = "Грешка!  ste1 == 0x34 - Отворен фискален бон и ste2 == 0x32 - Командата е непозволена в текущото състояние на ФУ";
-                }
-                else if ($ste1 == 0x39 && $ste2 == 0x32) {
+                } else if ($ste1 == 0x39 && $ste2 == 0x32) {
                     $msg = "Грешка!  ste1 == 0x39 - Грешна парола и ste2 == 0x32 - Командата е непозволена";
-                }
-                else {
+                } else {
                     $msg = "Грешка! " . $ex->getMessage() . " ste1=" . $ste1 . ", ste2=" . $ste2;
                 }
-            }
-            else if($code == \Tremol\ServerErrorType::ServerDefsMismatch) {
+            } else if($code == \Tremol\ServerErrorType::ServerDefsMismatch) {
                 $msg = "Грешка!  Текущата версия на библиотеката и сървърните дефиниции се различават.";
-            }
-            else if ($code == \Tremol\ServerErrorType::ServMismatchBetweenDefinitionAndFPResult) {
+            } else if ($code == \Tremol\ServerErrorType::ServMismatchBetweenDefinitionAndFPResult) {
                 $msg = "Грешка!  Текущата версия на библиотеката и фърмуера на ФУ са несъвместими";
-            }
-            else if ($code == \Tremol\ServerErrorType::ServerAddressNotSet) {
+            } else if ($code == \Tremol\ServerErrorType::ServerAddressNotSet) {
                 $msg = "Грешка!  Не е зададен адрес на сървъра!";
-            }
-            else if ($code == \Tremol\ServerErrorType::ServerConnectionError) {
+            } else if ($code == \Tremol\ServerErrorType::ServerConnectionError) {
                 $msg = "Грешка!  Не може да се осъществи връзка със ZfpLab сървъра";
-            }
-            else if ($code == \Tremol\ServerErrorType::ServSockConnectionFailed) {
+            } else if ($code == \Tremol\ServerErrorType::ServSockConnectionFailed) {
                 $msg = "Грешка!  Сървъра не може да се свърже с ФУ";
-            }
-            else if ($code == \Tremol\ServerErrorType::ServTCPAuth) {
+            } else if ($code == \Tremol\ServerErrorType::ServTCPAuth) {
                 $msg = "Грешка!  Грешна TCP парола на устройството";
-            }
-            else if ($code == \Tremol\ServerErrorType::ServWaitOtherClientCmdProcessingTimeOut) {
+            } else if ($code == \Tremol\ServerErrorType::ServWaitOtherClientCmdProcessingTimeOut) {
                 $msg = "Грешка!  Обработката на другите клиенти на сървъра отнема много време";
-            }
-            else {
+            } else {
                 $msg = "Грешка! " . $ex->getMessage();
             }
-        } else {
-            $msg = "Грешка! " . $ex->getMessage();
+            
+            throw new core_exception_Expect($msg);
         }
+    }
+    
+    
+    /**
+     * Прихващане на грешки и показване на съобщение
+     *
+     * @param Exception $ex
+     */
+    public static function handleAndShowException($ex)
+    {
+        $msg = $ex->getMessage();
+        
+        self::logDebug($msg);
         
         wp($msg, $ex);
         
-        if (haveRole('powerUser')) {
+        if (haveRole(self::$viewException)) {
             status_Messages::newStatus('|*' . $msg, 'error');
         }
     }

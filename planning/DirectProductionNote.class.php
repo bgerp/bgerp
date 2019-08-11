@@ -233,6 +233,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $saleId = $jobRec->saleId;
             $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
         } else {
+            $jobRec = $originDoc->fetch();
             $productOptions = array($originRec->productId => cat_Products::getTitleById($originRec->productId, false));
         }
         
@@ -246,7 +247,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             
             // Ако артикула не е складируем, скриваме полето за мярка
             $productRec = cat_Products::fetch($rec->productId, 'canStore,fixedAsset,canConvert');
-            
+           
             if($originDoc->isInstanceOf('planning_Jobs')){
                 $form->setDefault('jobQuantity', $originRec->quantity);
                 $quantityFromTasks = planning_Tasks::getProducedQuantityForJob($originRec->id);
@@ -255,6 +256,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     $form->setDefault('packQuantity', $quantityToStore / $originRec->quantityInPack);
                 }
             } else {
+                
+                // Ако задачата е за крайния артикул записваме к-то му от заданието
+                if($rec->productId == $jobRec->productId){
+                    $form->setDefault('jobQuantity', $jobRec->quantity);
+                }
+                
                 $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
                 $form->setDefault('packagingId', $info->packagingId);
                 if ($info->totalQuantity > 0) {
@@ -282,6 +289,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
             } else {
                 $form->setField('packagingId', 'input');
+                if(cat_Products::haveDriver($rec->productId, 'planning_interface_StageDriver')){
+                    $form->setField('inputStoreId', 'mandatory');
+                }
             }
             
             $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,sales');
@@ -382,7 +392,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                             } else {
                                 if($originDoc->isInstanceOf('planning_Jobs')){
                                     if(planning_Tasks::fetch("#originId = {$originDoc->fetchField('containerId')} AND #productId = {$productId} AND #state != 'draft' && #state != 'rejected'")){
-                                        $requiredRoles = 'no_one';
+                                      
+                                      //@todo да се върне
+                                      //$requiredRoles = 'no_one';
                                     }
                                 }
                             }
@@ -628,7 +640,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      */
     private static function getDefaultDebitPrice($rec)
     {
-        return cat_Products::getPrimeCost($rec->productId, $rec->packagingId, $rec->jobQuantity, $rec->valior);
+        $quantity = !empty($rec->jobQuantity) ? $rec->jobQuantity : $rec->quantity;
+        
+        return cat_Products::getPrimeCost($rec->productId, $rec->packagingId, $quantity, $rec->valior);
     }
     
     
