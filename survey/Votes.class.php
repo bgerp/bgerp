@@ -145,7 +145,6 @@ class survey_Votes extends core_Manager
         $aRec = survey_Alternatives::fetch((int) $alternativeId);
         $sRec = survey_Surveys::fetch($aRec->surveyId);
         
-        
         $uid = '';
         if ($mid = Request::get('m') && $sRec->userBy != 'browser') {
             $uid = 'mid|' . $mid;
@@ -174,12 +173,19 @@ class survey_Votes extends core_Manager
     public static function countVotes($alternativeId, $id = null)
     {
         $query = static::getQuery();
+
         $query->where(array('#alternativeId = [#1#]', $alternativeId));
         if ($id) {
             $query->where(array('#rate = [#1#]', $id));
+            $res = $query->count();
+        } else {
+            $query->EXT('value', 'survey_Options', 'externalKey=rate');
+            $query->XPR('points', 'double', 'sum(#value)');
+            $rec = $query->fetch();
+            $res = is_object($rec) ? $rec->points : 0;
         }
         
-        return $query->count();
+        return $res;
     }
     
     

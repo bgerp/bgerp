@@ -121,10 +121,10 @@ class survey_Alternatives extends core_Detail
         $recs = &$res->recs;
         if ($res->masterData) {
             $masterRec = $res->masterData->rec;
-            if (count($recs) && !survey_Surveys::isClosed($masterRec->id)) {
+            if (countR($recs) && !survey_Surveys::isClosed($masterRec->id)) {
                 foreach ($recs as $id => $rec) {
                     $rows[$id]->answers = $mvc->options->prepareOptions($id, $rec->surveyId);
-                    if (!count($rows[$id]->answers) && $masterRec->state == 'active') {
+                    if (!countR($rows[$id]->answers) && $masterRec->state == 'active') {
                         unset($rows[$id]);
                     }
                 }
@@ -221,7 +221,7 @@ class survey_Alternatives extends core_Detail
         $queryAlt->where("#surveyId = {$rec->id}");
         while ($altRec = $queryAlt->fetch()) {
             $row = $this->prepareResults($altRec);
-            if (!count($row->answers)) {
+            if (!countR($row->answers)) {
                 continue;
             }
             $recs[$altRec->id] = $row;
