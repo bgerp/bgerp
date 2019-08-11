@@ -1536,9 +1536,7 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
 .formBottom {
   margin-bottom: 15px;
   padding: 5px;
-    /*
-   * 
-   */
+  margin: 10px -15px 0;
   background: #a1bef9;
   border: 1px solid #5c8ef4;
   text-align: center; }
