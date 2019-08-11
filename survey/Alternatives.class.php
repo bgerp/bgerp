@@ -124,7 +124,7 @@ class survey_Alternatives extends core_Detail
             if (countR($recs) && !survey_Surveys::isClosed($masterRec->id)) {
                 foreach ($recs as $id => $rec) {
                     $rows[$id]->answers = $mvc->options->prepareOptions($id, $rec->surveyId);
-                    if (!countR($rows[$id]->answers) && $masterRec->state == 'active') {
+                    if (!strlen($rows[$id]->answers) && $masterRec->state == 'active') {
                         unset($rows[$id]);
                     }
                 }
@@ -264,11 +264,11 @@ class survey_Alternatives extends core_Detail
             }
             $answers[] = $op;
         }
-        
+
         $res = new stdClass();
         
         $res->label = $rec->label;
-        $res->points = $this->options->countPoints($rec->id);
+        $res->points = survey_Votes::countPoints($rec->id);
         $res->points = $double->toVerbal($res->points);
         
         arr::sortObjects($answers, 'votes');

@@ -85,7 +85,8 @@ class survey_Votes extends core_Manager
         //Намираме на кой въпрос, кой отговор е избран
         expect($alternativeId = Request::get('alternativeId', 'int'));
         expect($rowId = Request::get('rowId'), 'int');
-        
+        expect(survey_Options::fetch($rowId)->alternativeId == $alternativeId);
+
         // Подготвяме записа
         $rec = new stdClass();
         $rec->alternativeId = $alternativeId;
@@ -177,16 +178,32 @@ class survey_Votes extends core_Manager
         $query->where(array('#alternativeId = [#1#]', $alternativeId));
         if ($id) {
             $query->where(array('#rate = [#1#]', $id));
-            $res = $query->count();
-        } else {
-            $query->EXT('value', 'survey_Options', 'externalKey=rate');
-            $query->XPR('points', 'double', 'sum(#value)');
-            $rec = $query->fetch();
-            $res = is_object($rec) ? $rec->points : 0;
-        }
+            
+        } 
+        
+        $res = $query->count();
         
         return $res;
     }
+
+
+    /**
+     * Преброява точките
+     */
+    public static function countPoints($alternativeId)
+    {
+        $query = static::getQuery();
+
+        $query->where("#alternativeId = {$alternativeId}");
+            
+        $query->EXT('value', 'survey_Options', 'externalKey=rate');
+        $query->XPR('points', 'double', 'sum(#value)');
+        $rec = $query->fetch();
+        $res = is_object($rec) ? $rec->points : 0;
+        
+        return $res;
+    }
+
     
     
     /**
