@@ -80,7 +80,8 @@ class acc_plg_ForceExpenceAllocation extends core_Plugin
                 
                 // Преразпределяне на разходите от документа, към артикулите от сделката
                 $document = doc_Containers::getDocument($costRec->containerId);
-                $intersected = array_intersect_key($selected, $copyArr);
+                $intersected = array_intersect_key($copyArr, $selected);
+                
                 $error = acc_ValueCorrections::allocateAmount($intersected, $costRec->quantity, $costRec->allocationBy);
                 if(empty($error)){
                     
