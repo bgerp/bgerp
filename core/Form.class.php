@@ -1000,7 +1000,8 @@ class core_Form extends core_FieldSet
                 $fUnit = core_ET::escape($fUnit);
                 
                 if (isset($field->hint)) {
-                    $caption = ht::createHint($caption, $field->hint, 'noicon');
+                    $icon = Mode::is('screenMode', 'narrow') ? 'notice' : 'noicon';
+                    $caption = ht::createHint($caption, $field->hint, $icon);
                 }
                 
                 if (Mode::is('screenMode', 'narrow')) {
