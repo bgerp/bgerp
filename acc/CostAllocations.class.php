@@ -298,14 +298,27 @@ class acc_CostAllocations extends core_Manager
                 }
                 
                 // Проверка на избраните артикули
-                if (isset($rec->allocationBy) && !in_array($rec->allocationBy, array('no', 'auto'))) {
-                    if (!count($form->allProducts)) {
-                        $form->setError('allocationBy', 'В избраната сделка няма експедирани/заскладени артикули');
-                    } else {
-                        $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
+                if (isset($rec->allocationBy)) {
+                    if(!in_array($rec->allocationBy, array('no', 'auto'))){
+                        if (!count($form->allProducts)) {
+                            $form->setError('allocationBy', 'В избраната сделка няма експедирани/заскладени артикули');
+                        }
+                    }
+                    
+                    if($rec->allocationBy != 'no'){
+                        if($rec->allocationBy == 'auto'){
+                            $errorField = 'allocateBy,chosenProducts';
+                            $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
+                            $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
+                            $rec->productsData = $origin->getCorrectableProducts();
+                        } else {
+                            $errorField = 'allocateBy';
+                            $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
+                        }
+                        
                         $copyArr = $rec->productsData;
                         if ($error = acc_ValueCorrections::allocateAmount($copyArr, $rec->quantity, $rec->allocationBy)) {
-                            $form->setError('allocateBy,chosenProducts', $error);
+                            $form->setError($errorField, $error);
                         }
                     }
                 }

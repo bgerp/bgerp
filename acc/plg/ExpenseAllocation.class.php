@@ -129,13 +129,16 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                     $form->setError($mvc->packQuantityFld, "Въведеното к-во е по-малко от к-то разпределеното по разходи|* <b>{$allocatedVerbal}</b> |{$uomName}|*");
                 }
             } else {
-                
-                // Проверка на избраните артикули
-                if (isset($rec->chosenProducts)) {
+                if($rec->allocationBy == 'auto'){
+                    $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
+                    $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
+                    $rec->productsData = $origin->getCorrectableProducts();
+                } elseif(isset($rec->chosenProducts)){
                     $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
-                    $copyArr = $rec->productsData;
-                    
-                    if ($error = acc_ValueCorrections::allocateAmount($copyArr, $rec->quantity, $rec->allocationBy)) {
+                }
+               
+                if($rec->allocationBy != 'no'){
+                    if ($error = acc_ValueCorrections::allocateAmount($rec->productsData, $rec->quantity, $rec->allocationBy)) {
                         $form->setError('allocateBy,chosenProducts', $error);
                     }
                 }
