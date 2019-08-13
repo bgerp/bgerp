@@ -37,7 +37,7 @@ class acc_CostAllocations extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_SaveAndNew, acc_Wrapper';
     
     
     /**
@@ -61,7 +61,7 @@ class acc_CostAllocations extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'admin,debug';
+    public $canList = 'debug';
     
     
     /**
@@ -74,6 +74,12 @@ class acc_CostAllocations extends core_Manager
      * Поддържани интерфейси
      */
     public $interfaces = 'hr_IndicatorsSourceIntf';
+    
+    
+    /**
+     * Кои полета да се показват в листовия изглед
+     */
+    public $listFields = 'id, containerId, productId, quantity, allocationBy, expenseItemId, productsData=Разпределено по';
     
     
     /**
@@ -376,8 +382,11 @@ class acc_CostAllocations extends core_Manager
         }
         
         if (isset($fields['-list'])) {
+            
             try {
-                $row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
+                $Document = doc_Containers::getDocument($rec->containerId);
+                $row->containerId = $Document->getLink(0);
+                $row->ROW_ATTR['class'] = "state-{$Document->fetchField('state')}";
             } catch (core_exception_Expect $e) {
                 $row->containerId = "<span class='red'>" . tr('Проблем с показването') . '</span>';
             }
@@ -879,5 +888,20 @@ class acc_CostAllocations extends core_Manager
         $eQuery->in('containerId', $containers);
         
         return $eQuery;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->query->orderBy('id', 'DESC');
     }
 }
