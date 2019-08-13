@@ -12,6 +12,8 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * 
+ * @deprecated
  */
 class hyphen_Setup extends core_ProtoSetup
 {
@@ -25,6 +27,12 @@ class hyphen_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Хифенация за пренасяне на дълги думи в текстови документи';
+    
+    
+    /**
+     * Дали се спира поддръжката на този пакет
+     */
+    public $deprecated = true;
     
     
     /**

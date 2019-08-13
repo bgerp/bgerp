@@ -221,7 +221,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $minLen = $maxLen - 5;
         
         foreach ($tArr as $tStr) {
-            $tStr = hyphen_Plugin::getHyphenWord($tStr, $minLen, $maxLen, '<wbr>');
+            $tStr = core_String::getHyphenWord($tStr, $minLen, $maxLen, '<wbr>');
             
             $resStrArr = array_merge($resStrArr, explode('<wbr>', $tStr));
         }
