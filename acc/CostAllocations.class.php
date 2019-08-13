@@ -86,7 +86,7 @@ class acc_CostAllocations extends core_Manager
         $this->FLD('productId', 'int', 'caption=Артикул,mandatory,silent,input=hidden,remember');
         $this->FLD('quantity', 'double(Min=0,smartRound)', 'caption=Количество,mandatory,smartCenter');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,showAll)', 'after=quantity,silent,mandatory,caption=Разход за,removeAndRefreshForm=allocationBy|productsData|chosenProducts');
-        $this->FLD('allocationBy', 'enum(no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)', 'caption=Разпределяне,input=none,silent,removeAndRefreshForm=productsData|chosenProducts');
+        $this->FLD('allocationBy', 'enum(auto=Автоматично (по стойност),no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)', 'caption=Разпределяне,input=none,silent,removeAndRefreshForm=productsData|chosenProducts');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'mandatory,caption=Ориджин,silent,input=hidden');
         $this->FLD('productsData', 'blob(serialize, compress)', 'input=none');
         
@@ -105,6 +105,7 @@ class acc_CostAllocations extends core_Manager
                 
                 // Реконтиране на документа
                 acc_Journal::reconto($rec->containerId);
+                $origin->getInstance()->logWrite('Ре-контиране на документа', $origin->that);
             }
         } catch (core_exception_Expect $e) {
             reportException($e);
@@ -228,7 +229,12 @@ class acc_CostAllocations extends core_Manager
             $itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
             if (cls::haveInterface('acc_AllowArticlesCostCorrectionDocsIntf', $itemClassId)) {
                 $form->setField('allocationBy', 'input');
-                $form->setDefault('allocationBy', 'no');
+                
+                if(in_array($itemClassId, array(sales_Sales::getClassId(), purchase_Purchases::getClassId()))){
+                    $form->setDefault('allocationBy', 'auto');
+                } else {
+                    $form->setDefault('allocationBy', 'no');
+                }
             }
         }
     }
@@ -248,7 +254,7 @@ class acc_CostAllocations extends core_Manager
             $itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
             
             if (cls::haveInterface('acc_AllowArticlesCostCorrectionDocsIntf', $itemClassId)) {
-                if (isset($rec->allocationBy) && $rec->allocationBy != 'no') {
+                if (isset($rec->allocationBy) && !in_array($rec->allocationBy, array('auto', 'no'))) {
                     $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
                     $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
                     acc_ValueCorrections::addProductsFromOriginToForm($form, $origin);
@@ -292,7 +298,7 @@ class acc_CostAllocations extends core_Manager
                 }
                 
                 // Проверка на избраните артикули
-                if (isset($rec->allocationBy) && $rec->allocationBy != 'no') {
+                if (isset($rec->allocationBy) && !in_array($rec->allocationBy, array('no', 'auto'))) {
                     if (!count($form->allProducts)) {
                         $form->setError('allocationBy', 'В избраната сделка няма експедирани/заскладени артикули');
                     } else {
