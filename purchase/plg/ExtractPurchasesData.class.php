@@ -60,8 +60,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $Master = doc_Containers::getDocument($clone->containerId);                                                       // На активния документ
         $docClassId = core_Classes::getId($Master);                                                                       // на активния документ( ДП, СР или ПП)
         $detailClassId = core_Classes::getId($Master->mainDetail);                                                        // на детайлите на активния документ( ДП при бърза продажба, СР - при засклаждане, ПП - при приемане)
-        $detailClassName = core_Classes::getName($detailClassId);                                                         // на детайлите на активния документ( ДП при бърза продажба, СР - при засклаждане, ПП - при приемане)
-        
+       
         
         $firstDocument = doc_Threads::getFirstDocument($clone->threadId);                                                 // на първия документ в нишката на активния документ
         $className = $firstDocument->className;                                                                           // на активния документ
@@ -70,8 +69,6 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $dealerId = $className::fetch($firstDocument->that)->dealerId;
         
         if (is_array($clone->details)) {
-            $detailRecIds = array();
-            
             
             foreach ($clone->details as $detail) {
                 $dRec = array();
