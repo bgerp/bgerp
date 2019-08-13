@@ -416,7 +416,9 @@ class eshop_Products extends core_Master
     public static function prepareGroupList($data)
     {
         $pQuery = self::getQuery();
-        $pQuery->where("#state = 'active' AND #groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups)");
+        $pQuery->where("#state = 'active' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups))");
+        $pQuery->XPR('cOrder', 'double', "IF(#groupId = {$data->groupId}, #saoOrder, 999999999)");
+        $pQuery->orderBy("cOrder,code");
         $perPage = eshop_Groups::fetchField($data->groupId, 'perPage');
         $perPage = !empty($perPage) ? $perPage : eshop_Setup::get('PRODUCTS_PER_PAGE');
         
