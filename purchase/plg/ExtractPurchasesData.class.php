@@ -124,10 +124,32 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     public static function on_AfterSaveJournalTransaction($mvc, $res, $rec)
     {
         
-        //bp($res,$rec,$mvc->className);
         
+        $detailClassName = $mvc->mainDetail;
+        $Detail = cls::get($detailClassName);
+        $masterKey = $Detail->masterKey;
         
-        self::getAllocatedCostsByProduct($rec->threadId);
+        $detQuery = $detailClassName::getQuery();
+        $detQuery->where("#{$masterKey} = $rec->id");
+        
+        $detRecArr = arr::extractValuesFromArray($detQuery->fetchAll(), 'id');
+        
+        $detClassId = core_Classes::getId($detailClassName);
+        
+        $costAlocQuery = acc_CostAllocations::getQuery();
+        $costAlocQuery->where("#detailClassId = {$detClassId}");
+        $costAlocQuery->in('detailRecId', $detRecArr);
+        
+        $exItems = arr::extractValuesFromArray($costAlocQuery->fetchAll(), 'expenseItemId');
+       
+        foreach ($exItems as $expense){
+            $exItem = acc_Items::fetch($expense);
+            $exItemDocClassName = core_Classes::getName($exItem->classId);
+            $threadId = $exItemDocClassName::fetch($exItem->objectId)->threadId;
+            
+           
+        self::getAllocatedCostsByProduct($threadId);
+        }
     }
     
     
@@ -137,10 +159,30 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
          $rec = $mvc->fetchRec($id);
-      //  bp($rec);
+         
+         $detailClassName = $mvc->mainDetail;
+         $Detail = cls::get($detailClassName);
+         $masterKey = $Detail->masterKey;
+         
+         $detQuery = $detailClassName::getQuery();
+         $detQuery->where("#{$masterKey} = $rec->id");
+         $detRecArr = arr::extractValuesFromArray($detQuery->fetchAll(), 'id');
+         $detClassId = core_Classes::getId($detailClassName);
+         
+         $costAlocQuery = acc_CostAllocations::getQuery();
+         $costAlocQuery->where("#detailClassId = {$detClassId}");
+         $costAlocQuery->in('detailRecId', $detRecArr);
+         
+         $exItems = arr::extractValuesFromArray($costAlocQuery->fetchAll(), 'expenseItemId');
+         
+         foreach ($exItems as $expense){
+             $exItem = acc_Items::fetch($expense);
+             $exItemDocClassName = core_Classes::getName($exItem->classId);
+             $threadId = $exItemDocClassName::fetch($exItem->objectId)->threadId;
+             
+             self::getAllocatedCostsByProduct($threadId);
+         }
         
-       
-       
     }
     
     
@@ -224,8 +266,8 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         foreach ($costsArr as$costKey => $cost) {
             foreach ($prods as $purKey => $prod) {
+                
                 if ($costKey == $prod->productId) {
-                    $arr[] = $prod->productId.' '.$purKey;
                     
                     $expenses = ($cost / $prodsAmount[$prod->productId]) * $prod->amount;
                     
