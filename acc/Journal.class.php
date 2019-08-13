@@ -389,7 +389,7 @@ class acc_Journal extends core_Master
             }
             
             // Нотифицираме документа че транзакцията му е записана
-            $mvc->invoke('AfterTransactionIsSaved', array($docRec));
+            $mvc->invoke('AfterSaveJournalTransaction', array($success, $docRec));
         }
         
         return $success;
