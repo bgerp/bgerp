@@ -83,6 +83,12 @@ class acc_CostAllocations extends core_Manager
     
     
     /**
+     * Работен кеш
+     */
+    public $recontoQueue = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -108,10 +114,7 @@ class acc_CostAllocations extends core_Manager
         try {
             $origin = doc_Containers::getDocument($rec->containerId);
             if ($origin->fetchField('state') == 'active') {
-                
-                // Реконтиране на документа
-                acc_Journal::reconto($rec->containerId);
-                $origin->getInstance()->logWrite('Ре-контиране на документа', $origin->that);
+                $mvc->recontoQueue[$rec->containerId] = $origin;
             }
         } catch (core_exception_Expect $e) {
             reportException($e);
@@ -127,9 +130,25 @@ class acc_CostAllocations extends core_Manager
         foreach ($query->getDeletedRecs() as $rec) {
             $origin = doc_Containers::getDocument($rec->containerId);
             if ($origin->fetchField('state') == 'active') {
+                $mvc->recontoQueue[$rec->containerId] = $origin;
+            }
+        }
+    }
+    
+    
+    /**
+     * Изчиства записите, заопашени за запис
+     */
+    public static function on_Shutdown($mvc)
+    {
+        // Ако има заопашени документи за реконтиране
+        if(count($mvc->recontoQueue)){
+            foreach ($mvc->recontoQueue as $cointainerId => $origin){
                 
-                // Реконтиране на документа
-                acc_Journal::reconto($rec->containerId);
+                // Реконтират се и се логват
+                acc_Journal::reconto($cointainerId);
+                $origin->getInstance()->logWrite('Ре-контиране на документа', $origin->that);
+                log_Data::flush();
             }
         }
     }
