@@ -3006,6 +3006,15 @@ a.lang {
         border: 1px solid #99c;
     }
 }
+
+.narrow .richtext {
+	-webkit-hyphens: auto;
+	-moz-hyphens: auto;
+	-ms-hyphens: auto;
+	hyphens: auto;
+	word-break: break-word;
+}
+
 @-moz-document url-prefix() {
 	a.lang{
 	   padding: 2px !important;
