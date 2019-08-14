@@ -102,6 +102,8 @@ class purchase_PurchasesData extends core_Manager
         $this->FLD('containerId', 'int', 'caption=Документ,mandatory');
         $this->FLD('folderId', 'int', 'caption=Папка,tdClass=leftCol');
         $this->FLD('threadId', 'int', 'caption=Нишка,tdClass=leftCol');
+        $this->FLD('isFromInventory', 'varchar', 'caption=Инвентаризация,tdClass=leftCol');
+        $this->FLD('canStore', 'varchar', 'caption=Складируем,tdClass=leftCol');
         
         $this->setDbIndex('productId,containerId');
         $this->setDbIndex('productId');

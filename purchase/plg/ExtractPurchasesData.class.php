@@ -25,6 +25,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
+        
         if ($rec->state == 'rejected') {
             $dRec = array();
             
@@ -52,6 +53,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
+        
         $clone = clone $rec;
         
         $clone->threadId = (isset($clone->threadId)) ? $clone->threadId : $mvc->fetchField($clone->id, 'threadId');
@@ -59,58 +61,69 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         $Master = doc_Containers::getDocument($clone->containerId);                                                       // На активния документ
         $docClassId = core_Classes::getId($Master);                                                                       // на активния документ( ДП, СР или ПП)
-        $detailClassId = core_Classes::getId($Master->mainDetail);                                                        // на детайлите на активния документ( ДП при бърза продажба, СР - при засклаждане, ПП - при приемане)
-       
+        $detailClassName = $Master->mainDetail;
+        if ($Master->className == 'store_InventoryNotes'){
+            $detailClassName = store_InventoryNoteDetails;
+        }
+        $Detail = cls::get($detailClassName);
+        $masterKey = $Detail->masterKey;
+        $detailClassId = core_Classes::getId($detailClassName);                                                        // на детайлите на активния документ( ДП при бърза продажба, СР - при засклаждане, ПП - при приемане)
+        
+        $detQuery = $detailClassName::getQuery();
+        $detQuery->where("#{$masterKey} = $clone->id ");
+        $details = $detQuery->fetchAll();
         
         $firstDocument = doc_Threads::getFirstDocument($clone->threadId);                                                 // на първия документ в нишката на активния документ
-        $className = $firstDocument->className;                                                                           // на активния документ
-        
+        $className = $firstDocument->className;   
         
         $dealerId = $className::fetch($firstDocument->that)->dealerId;
         
-        if (is_array($clone->details)) {
+        $isFromInventory = ($Master->className == 'store_InventoryNotes') ? 'yes' : 'no';
+        
+        foreach ($details as $detail) {
             
-            foreach ($clone->details as $detail) {
-                $dRec = array();
+            $dRec = array();
+            
+            $dRec = (object) array(
                 
-                $dRec = (object) array(
-                    
-                    'valior' => $clone->valior,
-                    'detailClassId' => $detailClassId,
-                    'detailRecId' => $detail->id,
-                    'state' => $clone->state,
-                    'contragentClassId' => $clone->contragentClassId,
-                    'contragentId' => $clone->contragentId,
-                    'dealerId' => $dealerId,
-                    'productId' => $detail->productId,
-                    'measureId' => $detail->measureId,
-                    'docId' => $clone->id,
-                    'docClassId' => $docClassId,
-                    'quantity' => $detail->quantity,
-                    'packagingId' => $detail->packagingId,
-                    'storeId' => $clone->storeId,
-                    'price' => $detail->price,
-                    'allocatedPrice' => '',
-                    'expenses' => '',
-                    'discount' => $detail->discount,
-                    'amount' => $detail->amount,
-                    'weight' => $detail->weight,
-                    'currencyId' => $clone->currencyId,
-                    'currencyRate' => $clone->currencyRate,
-                    'createdBy' => $detail->createdBy,
-                    'threadId' => $clone->threadId,
-                    'folderId' => $clone->folderId,
-                    'containerId' => $clone->containerId,);
+                'valior' => $clone->valior,
+                'detailClassId' => $detailClassId,
+                'detailRecId' => $detail->id,
+                'state' => $clone->state,
+                'contragentClassId' => $clone->contragentClassId,
+                'contragentId' => $clone->contragentId,
+                'dealerId' => $dealerId,
+                'productId' => $detail->productId,
+                'measureId' => $detail->measureId,
+                'docId' => $clone->id,
+                'docClassId' => $docClassId,
+                'quantity' => $detail->quantity,
+                'packagingId' => $detail->packagingId,
+                'storeId' => $clone->storeId,
+                'price' => $detail->price,
+                'expenses' => '',
+                'discount' => $detail->discount,
+                'amount' => $detail->amount,
+                'weight' => $detail->weight,
+                'currencyId' => $clone->currencyId,
+                'currencyRate' => $clone->currencyRate,
+                'createdBy' => $detail->createdBy,
+                'threadId' => $clone->threadId,
+                'folderId' => $clone->folderId,
+                'containerId' => $clone->containerId,
+                'isFromInventory' => $isFromInventory,
+                'canStore' => cat_Products::getProductInfo($detail->productId)->meta['canStore'],
                 
-                
-                $id = purchase_PurchasesData::fetchField("#detailClassId = {$dRec->detailClassId} AND #detailRecId = {$dRec->detailRecId}");
-                
-                if (!empty($id)) {
-                    $dRec->id = $id;
-                }
-                
-                purchase_PurchasesData::save($dRec);
+            );
+            
+            
+            $id = purchase_PurchasesData::fetchField("#detailClassId = {$dRec->detailClassId} AND #detailRecId = {$dRec->detailRecId}");
+            
+            if (!empty($id)) {
+                $dRec->id = $id;
             }
+            
+            purchase_PurchasesData::save($dRec);
         }
     }
     
@@ -121,7 +134,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     public static function on_AfterSaveJournalTransaction($mvc, $res, $rec)
     {
         
-        $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);//bp($threadsArr);
+        $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
         
         foreach ($threadsArr as $threadId){
           
@@ -138,7 +151,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     {
          $rec = $mvc->fetchRec($id);
          
-         $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);  //bp($threadsArr);
+         $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
          
          foreach ($threadsArr as $threadId){
              
@@ -150,7 +163,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     
     
     /**
-     * Ъпдейтва разпределените разходи по артикули 
+     * Ъпдейтва разпределените разходи по артикули в подадената нишка
      *  
      *
      * @param $threadId - нишката в която ще се ъпдетват разходите
@@ -216,6 +229,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             
             $costsArr = array();
             while ($cost = $costAlocQuery->fetch()) {
+                
                 foreach ($cost->productsData as $costProd) {
                     $costClassName = core_Classes::getName($cost->detailClassId);
                     $costProdAmount = $costClassName::fetch($cost->detailRecId)->amount;
@@ -230,7 +244,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             $prodsAmount[$prod->productId] += $prod->amount;
         }
         
-        foreach ($costsArr as$costKey => $cost) {
+        foreach ($costsArr as $costKey => $cost) {
             foreach ($prods as $purKey => $prod) {
                 
                 if ($costKey == $prod->productId) {
@@ -241,7 +255,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                         'id' => $purKey,
                         'expenses' => $expenses
                     );
-                    
+                
                     purchase_PurchasesData::save($purDataRec);
                 }
             }
