@@ -121,31 +121,12 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     public static function on_AfterSaveJournalTransaction($mvc, $res, $rec)
     {
         
+        $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);//bp($threadsArr);
         
-        $detailClassName = $mvc->mainDetail;
-        $Detail = cls::get($detailClassName);
-        $masterKey = $Detail->masterKey;
+        foreach ($threadsArr as $threadId){
+          
+            self::getAllocatedCostsByProduct($threadId);
         
-        $detQuery = $detailClassName::getQuery();
-        $detQuery->where("#{$masterKey} = $rec->id");
-        
-        $detRecArr = arr::extractValuesFromArray($detQuery->fetchAll(), 'id');
-        
-        $detClassId = core_Classes::getId($detailClassName);
-        
-        $costAlocQuery = acc_CostAllocations::getQuery();
-        $costAlocQuery->where("#detailClassId = {$detClassId}");
-        $costAlocQuery->in('detailRecId', $detRecArr);
-        
-        $exItems = arr::extractValuesFromArray($costAlocQuery->fetchAll(), 'expenseItemId');
-       
-        foreach ($exItems as $expense){
-            $exItem = acc_Items::fetch($expense);
-            $exItemDocClassName = core_Classes::getName($exItem->classId);
-            $threadId = $exItemDocClassName::fetch($exItem->objectId)->threadId;
-            
-           
-        self::getAllocatedCostsByProduct($threadId);
         }
     }
     
@@ -157,29 +138,14 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     {
          $rec = $mvc->fetchRec($id);
          
-         $detailClassName = $mvc->mainDetail;
-         $Detail = cls::get($detailClassName);
-         $masterKey = $Detail->masterKey;
+         $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);  //bp($threadsArr);
          
-         $detQuery = $detailClassName::getQuery();
-         $detQuery->where("#{$masterKey} = $rec->id");
-         $detRecArr = arr::extractValuesFromArray($detQuery->fetchAll(), 'id');
-         $detClassId = core_Classes::getId($detailClassName);
-         
-         $costAlocQuery = acc_CostAllocations::getQuery();
-         $costAlocQuery->where("#detailClassId = {$detClassId}");
-         $costAlocQuery->in('detailRecId', $detRecArr);
-         
-         $exItems = arr::extractValuesFromArray($costAlocQuery->fetchAll(), 'expenseItemId');
-         
-         foreach ($exItems as $expense){
-             $exItem = acc_Items::fetch($expense);
-             $exItemDocClassName = core_Classes::getName($exItem->classId);
-             $threadId = $exItemDocClassName::fetch($exItem->objectId)->threadId;
+         foreach ($threadsArr as $threadId){
              
              self::getAllocatedCostsByProduct($threadId);
+             
          }
-        
+         
     }
     
     
@@ -201,6 +167,8 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $firstDocClass = cls::get($firstDocument)->className;
         $firstDocClassId = core_Classes::getId($firstDocClass);
         
+        
+        // Дали нишката е покупка или продажба
         foreach ($classesForCheck as $clsChek) {
             if ($firstDocClass == $clsChek) {
                 $checkMarker = true;
@@ -213,6 +181,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         $exItem = $exQuery->fetchAll();
         
+        //Дали нишката е разходно перо
         if ($checkMarker === false) {
             if (empty($exItem)) {
                 
@@ -277,5 +246,45 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Връща ThreadId-тата на нишките в които има реконтирани записи при разпределяне на разходите
+     * 
+     * @return array $threadsArr  
+     */
+    public static function getTrhreadsForUpdate(core_Mvc $mvc, $rec)
+    {
+        $threadsArr = array();
+        
+        $detailClassName = $mvc->mainDetail;
+        $Detail = cls::get($detailClassName);
+        $masterKey = $Detail->masterKey;
+        
+        $detQuery = $detailClassName::getQuery();
+        $detQuery->where("#{$masterKey} = $rec->id");
+        
+        $detRecArr = arr::extractValuesFromArray($detQuery->fetchAll(), 'id');
+        
+        $detClassId = core_Classes::getId($detailClassName);
+        
+        $costAlocQuery = acc_CostAllocations::getQuery();
+        $costAlocQuery->where("#detailClassId = {$detClassId}");
+        $costAlocQuery->in('detailRecId', $detRecArr);
+        
+        $exItems = arr::extractValuesFromArray($costAlocQuery->fetchAll(), 'expenseItemId');
+        
+        foreach ($exItems as $expense){
+            $exItem = acc_Items::fetch($expense);
+            $exItemDocClassName = core_Classes::getName($exItem->classId);
+            $threadId = $exItemDocClassName::fetch($exItem->objectId)->threadId;
+            
+            
+            $threadsArr[$threadId] = $threadId;
+        }
+        
+        return $threadsArr;
+        
     }
 }
