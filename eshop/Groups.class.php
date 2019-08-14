@@ -410,7 +410,7 @@ class eshop_Groups extends core_Master
         self::setOrder($query, $data->menuId);
 
         if ($groupId) {
-            $query->where("#state = 'active' AND #saoParentId = {$groupId}");
+            $query->where("#state = 'active' AND #saoParentId = {$groupId} AND (#menuId = {$data->menuId} OR LOCATE('|{$data->menuId}|', #sharedMenus))");
         } else {
             $query->where("#state = 'active' AND (#menuId = {$data->menuId} OR LOCATE('|{$data->menuId}|', #sharedMenus)) AND #saoLevel <= 1");
         }
