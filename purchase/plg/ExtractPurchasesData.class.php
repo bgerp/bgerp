@@ -14,7 +14,6 @@
  */
 class purchase_plg_ExtractPurchasesData extends core_Plugin
 {
-    
     /**
      * Извиква се преди запис в модела
      *
@@ -26,11 +25,8 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        
-       
-        if ($rec->state == 'rejected'){
-            
-            $dRec=array();
+        if ($rec->state == 'rejected') {
+            $dRec = array();
             
             $docClassId = core_Classes::getId($mvc);
             
@@ -39,22 +35,18 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             
             $ids = arr::extractValuesFromArray($dQuery->fetchAll(), 'id');
             
-            foreach ($ids as $id){
-                
-                $dRec= (object) array(
+            foreach ($ids as $id) {
+                $dRec = (object) array(
                     
                     'id' => $id,
                     'state' => $rec->state);
-              
-                purchase_PurchasesData::save($dRec,'id,state');
                 
+                purchase_PurchasesData::save($dRec, 'id,state');
             }
-
         }
-        
     }
     
- 
+    
     /**
      * Функция, която се извиква след активирането на документа
      */
@@ -64,22 +56,24 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         $clone->threadId = (isset($clone->threadId)) ? $clone->threadId : $mvc->fetchField($clone->id, 'threadId');
         $clone->folderId = (isset($clone->folderId)) ? $clone->folderId : $mvc->fetchField($clone->id, 'folderId');
-         
-        $Master = doc_Containers::getDocument($clone->containerId);
-        $docClassId = core_Classes::getId($Master);
-        $detailClassId = core_Classes::getId($Master->mainDetail);
         
-        $firstDocument = doc_Threads::getFirstDocument($clone->threadId);
-        $className = $firstDocument->className;
+        $Master = doc_Containers::getDocument($clone->containerId);                                                       // На активния документ
+        $docClassId = core_Classes::getId($Master);                                                                       // на активния документ( ДП, СР или ПП)
+        $detailClassId = core_Classes::getId($Master->mainDetail);                                                        // на детайлите на активния документ( ДП при бърза продажба, СР - при засклаждане, ПП - при приемане)
+       
+        
+        $firstDocument = doc_Threads::getFirstDocument($clone->threadId);                                                 // на първия документ в нишката на активния документ
+        $className = $firstDocument->className;                                                                           // на активния документ
+        
         
         $dealerId = $className::fetch($firstDocument->that)->dealerId;
         
-        if(is_array($clone->details)){
+        if (is_array($clone->details)) {
+            
             foreach ($clone->details as $detail) {
+                $dRec = array();
                 
-                $dRec=array();
-                
-                $dRec= (object) array(
+                $dRec = (object) array(
                     
                     'valior' => $clone->valior,
                     'detailClassId' => $detailClassId,
@@ -89,14 +83,18 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     'contragentId' => $clone->contragentId,
                     'dealerId' => $dealerId,
                     'productId' => $detail->productId,
+                    'measureId' => $detail->measureId,
                     'docId' => $clone->id,
                     'docClassId' => $docClassId,
                     'quantity' => $detail->quantity,
                     'packagingId' => $detail->packagingId,
                     'storeId' => $clone->storeId,
                     'price' => $detail->price,
+                    'allocatedPrice' => '',
+                    'expenses' => '',
                     'discount' => $detail->discount,
                     'amount' => $detail->amount,
+                    'weight' => $detail->weight,
                     'currencyId' => $clone->currencyId,
                     'currencyRate' => $clone->currencyRate,
                     'createdBy' => $detail->createdBy,
@@ -110,36 +108,183 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 if (!empty($id)) {
                     $dRec->id = $id;
                 }
-                 
-                    purchase_PurchasesData::save($dRec);
-                }
-            } 
-            
+                
+                purchase_PurchasesData::save($dRec);
+            }
         }
-    
     }
     
-  
+    
+    /**
+     * След всеки запис в журнала
+     */
+    public static function on_AfterSaveJournalTransaction($mvc, $res, $rec)
+    {
+        
+        $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);//bp($threadsArr);
+        
+        foreach ($threadsArr as $threadId){
+          
+            self::getAllocatedCostsByProduct($threadId);
+        
+        }
+    }
     
     
+    /**
+     * При оттегляне на документ
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+         $rec = $mvc->fetchRec($id);
+         
+         $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);  //bp($threadsArr);
+         
+         foreach ($threadsArr as $threadId){
+             
+             self::getAllocatedCostsByProduct($threadId);
+             
+         }
+         
+    }
     
     
+    /**
+     * Ъпдейтва разпределените разходи по артикули 
+     *  
+     *
+     * @param $threadId - нишката в която ще се ъпдетват разходите
+     *
+     * @return array $res
+     */
+    public static function getAllocatedCostsByProduct($threadId)
+    {
+        $res = array();
+        $checkMarker = false;
+        $classesForCheck = array('sales_Sales','sales_Services','purchase_Purchases','purchase_Services');
+        
+        $firstDocument = doc_Threads::getFirstDocument($threadId);
+        $firstDocClass = cls::get($firstDocument)->className;
+        $firstDocClassId = core_Classes::getId($firstDocClass);
+        
+        
+        // Дали нишката е покупка или продажба
+        foreach ($classesForCheck as $clsChek) {
+            if ($firstDocClass == $clsChek) {
+                $checkMarker = true;
+                break;
+            }
+        }
+        
+        $exQuery = acc_Items::getQuery();
+        $exQuery->where("#classId ={$firstDocClassId} AND #objectId = {$firstDocument->that}");
+        
+        $exItem = $exQuery->fetchAll();
+        
+        //Дали нишката е разходно перо
+        if ($checkMarker === false) {
+            if (empty($exItem)) {
+                
+                return $res;
+            }
+        }
+        
+        $prodQuery = purchase_PurchasesData::getQuery();
+        $prodQuery->where("#threadId = ${threadId}");
+        
+        $prods = array();
+        while ($prodRec = $prodQuery->fetch()) {
+            $id = $prodRec->id;
+            
+            if (! array_key_exists($id, $prods)) {
+                $prods[$id] = (object) array(
+                    
+                    'productId' => $prodRec->productId,
+                    'measureId' => cat_Products::getproductInfo($prodRec->productId)->productRec->measureId,
+                    'amount' => $prodRec->amount,
+                    'weight' => $prodRec->weight,
+                    'quantity' => $prodRec->quantity,
+                
+                );
+            }
+        }
+        
+        foreach ($exItem as $expense) {
+            $costAlocQuery = acc_CostAllocations::getQuery();
+            $costAlocQuery->where("#expenseItemId = {$expense->id}");
+            $costAlocQuery->where('#productsData IS NOT NULL');
+            
+            $costsArr = array();
+            while ($cost = $costAlocQuery->fetch()) {
+                foreach ($cost->productsData as $costProd) {
+                    $costClassName = core_Classes::getName($cost->detailClassId);
+                    $costProdAmount = $costClassName::fetch($cost->detailRecId)->amount;
+                    
+                    $costsArr[$costProd->productId] += $costProdAmount * $costProd->allocated;
+                }
+            }
+        }
+        
+        $prodsAmount = array();
+        foreach ($prods as $purKey => $prod) {
+            $prodsAmount[$prod->productId] += $prod->amount;
+        }
+        
+        foreach ($costsArr as$costKey => $cost) {
+            foreach ($prods as $purKey => $prod) {
+                
+                if ($costKey == $prod->productId) {
+                    
+                    $expenses = ($cost / $prodsAmount[$prod->productId]) * $prod->amount;
+                    
+                    $purDataRec = (object) array(
+                        'id' => $purKey,
+                        'expenses' => $expenses
+                    );
+                    
+                    purchase_PurchasesData::save($purDataRec);
+                }
+            }
+        }
+    }
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    /**
+     * Връща ThreadId-тата на нишките в които има реконтирани записи при разпределяне на разходите
+     * 
+     * @return array $threadsArr  
+     */
+    public static function getTrhreadsForUpdate(core_Mvc $mvc, $rec)
+    {
+        $threadsArr = array();
+        
+        $detailClassName = $mvc->mainDetail;
+        $Detail = cls::get($detailClassName);
+        $masterKey = $Detail->masterKey;
+        
+        $detQuery = $detailClassName::getQuery();
+        $detQuery->where("#{$masterKey} = $rec->id");
+        
+        $detRecArr = arr::extractValuesFromArray($detQuery->fetchAll(), 'id');
+        
+        $detClassId = core_Classes::getId($detailClassName);
+        
+        $costAlocQuery = acc_CostAllocations::getQuery();
+        $costAlocQuery->where("#detailClassId = {$detClassId}");
+        $costAlocQuery->in('detailRecId', $detRecArr);
+        
+        $exItems = arr::extractValuesFromArray($costAlocQuery->fetchAll(), 'expenseItemId');
+        
+        foreach ($exItems as $expense){
+            $exItem = acc_Items::fetch($expense);
+            $exItemDocClassName = core_Classes::getName($exItem->classId);
+            $threadId = $exItemDocClassName::fetch($exItem->objectId)->threadId;
+            
+            
+            $threadsArr[$threadId] = $threadId;
+        }
+        
+        return $threadsArr;
+        
+    }
+}
