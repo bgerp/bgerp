@@ -61,7 +61,7 @@ class purchase_PurchasesData extends core_Manager
      /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId,valior=Вальор,productId,quantity,price,amount,expenses,dealerId,state,folderId';
+    public $listFields = 'containerId,valior=Вальор,productId,quantity,price,amount,expenses,state,folderId';
   
     
     /**
