@@ -76,18 +76,19 @@ class export_Pdf extends core_Mvc
         $cRec = $clsInst->fetchRec($objId);
         
         $opt = new stdClass();
-        $opt->rec = new stdClass();
+        $opt->rec = $cRec;
+        if (!$opt->rec) {
+            $opt->rec = new stdClass();
+        }
         
-        if ($cRec->__mid) {
-            $opt->rec->__mid = $cRec->__mid;
-        } else {
+        if (!$cRec->__mid) {
             $opt->rec->__mid = doclog_Documents::saveAction(
                             array(
-                                'action' => doclog_Documents::ACTION_PDF,
-                                'containerId' => $cRec->containerId,
-                                'threadId' => $cRec->threadId,
+                                    'action' => doclog_Documents::ACTION_PDF,
+                                    'containerId' => $cRec->containerId,
+                                    'threadId' => $cRec->threadId,
                             )
-                    );
+                            );
             
             // Флъшваме екшъна за да се запише в модела
             doclog_Documents::flushActions();
