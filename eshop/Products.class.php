@@ -418,7 +418,7 @@ class eshop_Products extends core_Master
         $pQuery = self::getQuery();
         $pQuery->where("#state = 'active' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups))");
         $pQuery->XPR('cOrder', 'double', "IF(#groupId = {$data->groupId}, #saoOrder, 999999999)");
-        $pQuery->orderBy("cOrder,code");
+        $pQuery->orderBy('cOrder,code');
         $perPage = eshop_Groups::fetchField($data->groupId, 'perPage');
         $perPage = !empty($perPage) ? $perPage : eshop_Setup::get('PRODUCTS_PER_PAGE');
         
@@ -510,8 +510,8 @@ class eshop_Products extends core_Master
                         $pRow->btn = $dRow->btn;
                     }
                 }
-            } elseif($count > 1){
-                $pRow->btn = ht::createBtn($settings->addToCartBtn . "...", self::getUrl($pRec->id), false, false, "title=Избор на артикул,class=productBtn,ef_icon=img/16/cart_go.png");
+            } elseif ($count > 1) {
+                $pRow->btn = ht::createBtn($settings->addToCartBtn . '...', self::getUrl($pRec->id), false, false, 'title=Избор на артикул,class=productBtn,ef_icon=img/16/cart_go.png');
             }
             
             $commonParams = self::getCommonParams($pRec->id);
@@ -567,7 +567,10 @@ class eshop_Products extends core_Master
                 if ($rec->editUrl) {
                     $row->editLink = ht::createLink($editImg, $rec->editUrl);
                 }
-                $url = self::getUrl($rec);
+                if ($data->groupId != $rec->groupId) {
+                    $rec->altGroupId = $data->groupId;
+                }
+                $url = self::getUrl($rec, $data->groupId);
                 
                 $row->name = ht::createLink($row->name, $url);
                 $row->image = ht::createLink($row->image, $url, false, 'class=eshopLink');
@@ -580,7 +583,7 @@ class eshop_Products extends core_Master
             }
         }
         
-        if($data->Pager){
+        if ($data->Pager) {
             $layout->append($data->Pager->getHtml());
         }
         
@@ -620,8 +623,14 @@ class eshop_Products extends core_Master
         $data->rec = self::fetch($data->productId);
         $data->groups = new stdClass();
         $data->groups->groupId = $data->rec->groupId;
+        if ($groupId = Request::get('groupId', 'int')) {
+            if (strpos($data->rec->sharedInGroups, "|{$groupId}|") !== false) {
+                $data->groups->groupId = $groupId;
+            }
+        }
         $data->groups->rec = eshop_Groups::fetch($data->groups->groupId);
-        cms_Content::setCurrent($data->groups->rec->menuId);
+        $data->groups->menuId = cms_Content::getMainMenuId($data->groups->rec->menuId, $data->groups->rec->sharedMenus);
+        cms_Content::setCurrent($data->groups->menuId);
         
         $this->prepareProduct($data);
         
@@ -720,9 +729,11 @@ class eshop_Products extends core_Master
         $groupLink = ht::createLink($group, eshop_Groups::getUrl($groupRec));
         $pgId = $groupRec->saoParentId;
         $used = array();
-
+        
         while ($pgId) {
-            if($used[$pgId]) break;
+            if ($used[$pgId]) {
+                break;
+            }
             $pGroupRec = eshop_Groups::fetch($pgId);
             $groupLink = ht::createLink(eshop_Groups::getVerbal($pGroupRec, 'name'), eshop_Groups::getUrl($pGroupRec)) . ' » ' . $groupLink;
             $pgId = $pGroupRec->saoParentId;
@@ -810,6 +821,10 @@ class eshop_Products extends core_Master
         $lg{0} = strtoupper($lg{0});
         
         $url = array('A', 'p', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : null);
+        
+        if ($rec->altGroupId) {
+            $url['groupId'] = $rec->altGroupId;
+        }
         
         return $url;
     }
