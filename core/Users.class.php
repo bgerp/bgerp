@@ -1693,6 +1693,8 @@ class core_Users extends core_Manager
     {
         $cu = core_Users::getCurrent();
         
+        core_LoginLog::add('logout', $cu);
+        
         $this->logout();
         
         $this->logLogin('logout', $cu, 180, $cu);

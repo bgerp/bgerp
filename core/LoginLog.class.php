@@ -97,6 +97,7 @@ class core_LoginLog extends core_Manager
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър');
         $this->FLD('status', 'enum( all=,
         							success=Успешно логване,
+        							logout=Изход,
 									first_login=Първо логване,
 									wrong_password=Грешна парола,
 									missing_password=Липсва парола,
