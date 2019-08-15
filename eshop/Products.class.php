@@ -462,14 +462,13 @@ class eshop_Products extends core_Master
                 $pRec->editUrl = array('eshop_Products', 'edit', $pRec->id, 'ret_url' => true);
             }
             
-            // Детайлите на артикула
-            $dQuery = eshop_ProductDetails::getQuery();
-            $dQuery->where("#eshopProductId = {$pRec->id}");
-            $count = $dQuery->count();
-            
-            // Ако има само един артикул
-            if ($count == 1) {
+            if($pRec->saleState == 'single'){
+                
+                // Детайлите на артикула
+                $dQuery = eshop_ProductDetails::getQuery();
+                $dQuery->where("#eshopProductId = {$pRec->id}");
                 $dRec = $dQuery->fetch();
+                
                 $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
                 $packagings = cat_Products::getProductInfo($dRec->productId)->packagings;
                 
@@ -511,8 +510,10 @@ class eshop_Products extends core_Master
                         $pRow->btn = $dRow->btn;
                     }
                 }
-            } elseif ($count > 1) {
+            } elseif($pRec->saleState == 'multi'){
                 $pRow->btn = ht::createBtn($settings->addToCartBtn . '...', self::getUrl($pRec->id), false, false, 'title=Избор на артикул,class=productBtn,ef_icon=img/16/cart_go.png');
+            } elseif($pRec->saleState == 'closed'){
+                $pRow->btn = "<span class='option-not-in-stock'>" . mb_strtoupper(('Спрян')) . '</span>';
             }
             
             $commonParams = self::getCommonParams($pRec->id);
@@ -743,6 +744,10 @@ class eshop_Products extends core_Master
         
         // Навигация до артикула
         $data->row->productPath = $menuLink . ' » ' . $groupLink;
+        
+        if($data->rec->saleState == 'closed'){
+            $data->row->STATE_EXTERNAL = "<span class='option-not-in-stock' style='font-size:0.9em !important'>" . tr('Този продукт вече не се предлага') . "</span>";
+        }
     }
     
     
