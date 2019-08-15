@@ -167,7 +167,7 @@
                      'taskId' => $tRec->taskId,
                      'detailId' => $tRec->id,
                      'indTime' => $iRec->indTime,
-                     'indPackagingId' => $irec->indPackagingId,
+                     'indPackagingId' => $iRec->indPackagingId,
                      'indTimeAllocation' => $iRec->indTimeAllocation,
                      
                      'employees' => $tRec->employees,
