@@ -1069,4 +1069,27 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             status_Messages::newStatus('|*' . $msg, 'error');
         }
     }
+    
+    
+    /**
+     * Екшън за печат на дубликат
+     */
+    public function act_PrintDuplicate()
+    {
+        peripheral_Devices::requireRightFor('printduplicate');
+        expect($id = Request::get('id', 'int'));
+        expect($pRec = peripheral_Devices::fetch($id));
+        $Driver = peripheral_Devices::getDriver($pRec);
+        
+        try{
+            if($Driver->printDuplicate($pRec)){
+                core_Statuses::newStatus('Дубликатът е отпечатан успешно', 'notice');
+            }
+        } catch(core_exception_Expect $e){
+            $this->logErr($e->getMessage(), $pRec->id);
+            core_Statuses::newStatus('Грешка при отпечатването на дубликат', 'error');
+        }
+        
+        return followRetUrl();
+    }
 }

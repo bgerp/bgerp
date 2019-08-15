@@ -724,6 +724,40 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         return $res;
     }
     
+
+    /**
+     * Екшън за печат на дубликат
+     */
+    public function act_PrintDuplicate()
+    {
+        peripheral_Devices::requireRightFor('printduplicate');
+        expect($id = Request::get('id', 'int'));
+        expect($pRec = peripheral_Devices::fetch($id));
+        $Driver = peripheral_Devices::getDriver($pRec);
+        
+        // Опит за отпечатване на дубликат на касовата бележка
+        $retUrl = toUrl(getRetUrl());
+        $js =  $Driver->getJsForDuplicate($pRec);
+        $js .= 'function fpOnDuplicateSuccess(res)
+                        {
+                            render_showToast({timeOut: 800, text: "test", isSticky: true, stayTime: 8000, type: "notice"});
+                            setInterval(function(){document.location = " ' . $retUrl . ' ";}, 7000);
+                        };
+                                
+                        function fpOnDuplicateErr(err) {
+                            render_showToast({timeOut: 800, text: err, isSticky: true, stayTime: 8000, type: "error"});
+                            setInterval(function(){document.location = " ' . $retUrl . ' ";}, 7000);
+                        }';
+        
+        $tpl = new core_ET("");
+        Mode::set('wrapper', 'page_Empty');
+        $tpl = new core_ET('');
+        $tpl->append('<body><div class="fullScreenBg" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: block;"><h3 style="color: #fff; font-size: 56px; text-align: center; position: absolute; top: 30%; width: 100%">Отпечатва се дубликат на фискален бон ...<br> Моля, изчакайте!</h3></div></body>');
+        $tpl->append($js, 'SCRIPTS');
+        
+        return $tpl;
+    }
+    
     
     /**
      * Помощна функция при вкарване/изкарване на средства от ФУ

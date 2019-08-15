@@ -97,9 +97,24 @@ class eshop_ProductDetails extends core_Detail
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=price_ListRules::getSellableProducts,titleFld=name)', 'caption=Артикул,silent,removeAndRefreshForm=packagings,mandatory');
         $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки/Мерки,mandatory');
         $this->FLD('title', 'varchar(nullIfEmpty)', 'caption=Заглавие');
-        $this->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
+        $this->FLD('state', 'enum(active=Активен,closed=Затворен,rejected=Оттеглен)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('eshopProductId,title');
+    }
+    
+    
+    /**
+     * Извиква се преди запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode    Режим на записа: replace, ignore
+     */
+    protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        $rec->state = cat_Products::fetchField($rec->productId, 'state');
     }
     
     
@@ -478,5 +493,39 @@ class eshop_ProductDetails extends core_Detail
         }
         
         return $options;
+    }
+    
+    
+    /**
+     * Обновява състоянието на детайлите на е-артикула с тези на Артикула
+     *
+     * @param int|stdClass|NULL $productId - ид или запис на артикул
+     *
+     * @return void
+     */
+    public static function syncStatesByProductId($productId = null)
+    {
+        $productId = is_object($productId) ? $productId->id : $productId;
+        
+        $productsWithDetails = array();
+        $dQuery = eshop_ProductDetails::getQuery();
+        if(isset($productId)){
+            $dQuery->where("#productId = {$productId}");
+        }
+        
+        while($dRec = $dQuery->fetch()){
+            $productsWithDetails[$dRec->eshopProductId] = $dRec->eshopProductId;
+            eshop_ProductDetails::save($dRec, 'state');
+        }
+        
+        // Ако се ъпдейтват всички, ще се ъпдейтнат и тези без детайли
+        if(empty($productId) && count($productsWithDetails)){
+            $Products = cls::get('eshop_Products');
+            $eQuery = $Products->getQuery();
+            $eQuery->notIn('id', $productsWithDetails);
+            while($eRec = $eQuery->fetch()){
+                $Products->updateMaster($eRec);
+            }
+        }
     }
 }

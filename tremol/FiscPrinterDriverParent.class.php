@@ -15,16 +15,46 @@
  */
 abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
 {
+    
+    /**
+     * Какви интерфейси включва
+     */
     public $interfaces = 'peripheral_FiscPrinterIntf';
     
+    
+    /**
+     * Заглавие на драйвера
+     */
     public $title = 'ФУ на Тремол';
     
+    
+    /**
+     * Кой може да променя наличностите
+     */
     public $canCashReceived = 'admin, peripheral, cashMaster, posMaster';
     
+    
+    /**
+     * Кой може да променя наличностите
+     */
     public $canCashPaidOut = 'admin, peripheral, cashMaster, posMaster';
     
+    
+    /**
+     * Дефолтни кодове на начините на плащане
+     */
     public $canMakeReport = 'admin, peripheral, cashMaster, posMaster';
     
+    
+    /**
+     * Дефолтни кодове на начините на плащане
+     */
+    public $canPrintDuplicate = 'admin, peripheral, cashMaster, posMaster';
+    
+    
+    /**
+     * Дефолтни кодове на начините на плащане
+     */
     protected $rcpNumPattern = '/^[a-z0-9]{8}-[a-z0-9]{4}-[0-9]{7}$/i';
     
     

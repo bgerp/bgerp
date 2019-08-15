@@ -358,8 +358,9 @@ class eshop_Groups extends core_Master
             return $this->act_ShowAll();
         }
         expect($groupRec = self::fetch($data->groupId));
-        $data->menuId = cms_Content::getMainMenuId($groupRec->menuId, $groupRec->sharedMenus);
-        
+        if(!($data->menuId = Request::get('cMenuId', 'int')) || ($groupRec->menuId != $data->menuId && strpos($groupRec->sharedMenus, "|{$data->menuId}|") === false)) {
+            $data->menuId = cms_Content::getMainMenuId($groupRec->menuId, $groupRec->sharedMenus);
+        }
         
         cms_Content::setCurrent($data->menuId);
         
@@ -406,14 +407,19 @@ class eshop_Groups extends core_Master
     public function prepareAllGroups($data, $groupId = null)
     {
         $query = self::getQuery();
-        
+        self::setOrder($query, $data->menuId);
+
         if ($groupId) {
-            $query->where("#state = 'active' AND #saoParentId = {$groupId}");
+            $query->where("#state = 'active' AND #saoParentId = {$groupId} AND (#menuId = {$data->menuId} OR LOCATE('|{$data->menuId}|', #sharedMenus))");
         } else {
-            $query->where("#state = 'active' AND #menuId = {$data->menuId} AND #saoLevel <= 1");
+            $query->where("#state = 'active' AND (#menuId = {$data->menuId} OR LOCATE('|{$data->menuId}|', #sharedMenus)) AND #saoLevel <= 1");
         }
         
         while ($rec = $query->fetch()) {
+            
+            if ($rec->menuId != $data->menuId) {
+                $rec->altMenuId = $data->menuId;
+            }
             $rec->url = self::getUrl($rec);
             $data->recs[] = $rec;
         }
