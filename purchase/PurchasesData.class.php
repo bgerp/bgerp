@@ -126,7 +126,10 @@ class purchase_PurchasesData extends core_Manager
     {
         $row->ROW_ATTR['class'] = "state-{$rec->state}";
         
-        $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        if ($rec->productId) {
+          $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        }
+        
         try {
             $row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
         } catch (core_exception_Expect $e) {

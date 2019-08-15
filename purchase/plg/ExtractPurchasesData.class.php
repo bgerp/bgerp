@@ -52,6 +52,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
+        
         $clone = clone $rec;
         
         $clone->threadId = (isset($clone->threadId)) ? $clone->threadId : $mvc->fetchField($clone->id, 'threadId');
@@ -86,8 +87,16 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         $isFromInventory = ($Master->className == 'store_InventoryNotes') ? 'yes' : 'no';
         
-        if (is_array($clone->details)) {
+        if ($clone->contoActions) {
+          $cond = (strrpos($clone->contoActions, 'ship') !== false);   ;
+        }else{
+            $cond = true;
+        }
+       
+        if ($cond) {
+            
             foreach ($details as $detail) {
+                
                 $quantity = ($Master->className == 'store_InventoryNotes') ?(round($detail->quantity - $detail->blQuantity, 4)) : $detail->quantity;
                 if ($quantity < 0) {
                     continue;
@@ -123,7 +132,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     'folderId' => $clone->folderId,
                     'containerId' => $clone->containerId,
                     'isFromInventory' => $isFromInventory,
-                    'canStore' => cat_Products::getProductInfo($detail->productId)->meta['canStore'],
+           //         'canStore' => cat_Products::getProductInfo($detail->productId)->meta['canStore'],
                 
                 );
                 
