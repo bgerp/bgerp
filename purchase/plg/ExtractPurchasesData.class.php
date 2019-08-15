@@ -224,11 +224,15 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         while ($prodRec = $prodQuery->fetch()) {
             $id = $prodRec->id;
             
+            if ($prodRec->productId) {
+                $measureId = cat_Products::getproductInfo($prodRec->productId)->productRec->measureId;
+            }
+            
             if (! array_key_exists($id, $prods)) {
                 $prods[$id] = (object) array(
                     
                     'productId' => $prodRec->productId,
-                    'measureId' => cat_Products::getproductInfo($prodRec->productId)->productRec->measureId,
+                    'measureId' => $measureId,
                     'amount' => $prodRec->amount,
                     'weight' => $prodRec->weight,
                     'quantity' => $prodRec->quantity,
