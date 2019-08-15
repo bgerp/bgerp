@@ -31,7 +31,7 @@ class eshop_Products extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,name,groupId=Група,state';
+    public $listFields = 'code,name,groupId=Група,saleState,state';
     
     
     /**
@@ -160,6 +160,7 @@ class eshop_Products extends core_Master
         $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
         $this->FLD('quantityCount', 'enum(,3=3 количества,2=2 количества,1=1 количество)', 'caption=Запитване->Количества,placeholder=Без количество');
+        $this->FLD('saleState', 'enum(single=Единичен,multi=Избор,closed=Стар артикул,empty=Без опции)', 'caption=Тип,input=none');
         
         $this->setDbIndex('groupId');
     }
@@ -1315,14 +1316,50 @@ class eshop_Products extends core_Master
      */
     public function updateMaster_($id)
     {
-        $rec = $this->fetch($id);
+        $rec = $this->fetchRec($id);
         if (empty($rec)) {
             
             return;
         }
         
+        $rec->saleState = self::getSaleState($rec->id);
+        
         // Обновяване на модела, за да се преизчислят ключовите думи
         $this->save($rec);
+    }
+    
+    
+    /**
+     * Какво е продажното състояние на артикула
+     *
+     * @param int $id на е-артоли;а
+     *
+     * @return string $saleState
+     */
+    public static function getSaleState($id)
+    {
+        // Всички детайли към опциите
+        $dQuery = eshop_ProductDetails::getQuery();
+        $dQuery->where("#eshopProductId = {$id}");
+        $dQuery->show('state');
+        $details = $dQuery->fetchAll();
+        
+        // Колко опции има и дали сред тях има затворени
+        $countNotClosed = $countClosed = 0;
+        $count = $dQuery->count();
+        array_walk($details, function ($a) use (&$countClosed, &$countNotClosed){if($a->state != 'active') {$countClosed++;} else {$countNotClosed++;}});
+        
+        if($count == 0){
+            $saleState = 'empty';
+        } elseif($count > 0 && $count == $countClosed){
+            $saleState = 'closed';
+        } elseif($countNotClosed == 1){
+            $saleState = 'single';
+        } else {
+            $saleState = 'multi';
+        }
+        
+        return $saleState;
     }
     
     
