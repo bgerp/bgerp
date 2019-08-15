@@ -97,10 +97,29 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             
             foreach ($details as $detail) {
                 
+                //Заприходено количество
                 $quantity = ($Master->className == 'store_InventoryNotes') ?(round($detail->quantity - $detail->blQuantity, 4)) : $detail->quantity;
-                if ($quantity < 0) {
-                    continue;
+               
+                //Артикул
+                $productId = $detail->productId;
+                
+                //Ако документа е мемориален ордер
+                if ($Master->className == 'acc_Articles') {
+                    
+                    if ($detail->debitAccId && (acc_Accounts::fetch("#num = 321")->id != $detail->debitAccId)) continue;
+                   
+                    //Артикул
+                    $productId = acc_Items::fetch("$detail->debitEnt2")->objectId;
+                    $measureId = acc_Items::fetch("$detail->debitEnt2")->uomId;
+                    
+                    //Заприходено количество
+                    $quantity =  $detail->debitQuantity;
+                    
+                
+                
                 }
+                
+                if ($quantity < 0) continue;
                 
                 $dRec = array();
                 
@@ -113,8 +132,8 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     'contragentClassId' => $clone->contragentClassId,
                     'contragentId' => $clone->contragentId,
                     'dealerId' => $dealerId,
-                    'productId' => $detail->productId,
-                    'measureId' => $detail->measureId,
+                    'productId' => $productId,
+                    'measureId' => $measureId,
                     'docId' => $clone->id,
                     'docClassId' => $docClassId,
                     'quantity' => $quantity,
@@ -132,7 +151,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     'folderId' => $clone->folderId,
                     'containerId' => $clone->containerId,
                     'isFromInventory' => $isFromInventory,
-           //         'canStore' => cat_Products::getProductInfo($detail->productId)->meta['canStore'],
+                    'canStore' => cat_Products::getProductInfo($productId)->meta['canStore'],
                 
                 );
                 
@@ -143,6 +162,8 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     $dRec->id = $id;
                 }
                 
+                $saveRecs[]=$dRec;
+               // purchase_PurchasesData::saveArray($saveRecs);
                 purchase_PurchasesData::save($dRec);
             }
         }
