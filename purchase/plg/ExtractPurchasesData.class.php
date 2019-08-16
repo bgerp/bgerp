@@ -85,8 +85,10 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         $dealerId = $className::fetch($firstDocument->that)->dealerId;
         
-        $isFromInventory = ($Master->className == 'store_InventoryNotes') ? 'yes' : 'no';
+        $isFromInventory = ($Master->className == 'store_InventoryNotes') ? 'true' : 'false';
         
+        
+        //Проверка за бърза прокупка или продажба
         if (!is_null($clone->contoActions)) {
           $cond = (strrpos($clone->contoActions, 'ship') !== false);   ;
         }else{
@@ -103,14 +105,36 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 //Артикул
                 $productId = $detail->productId;
                 
+                if ($productId) {
+                    $measureId = cat_Products::fetchField($productId, 'measureId');
+                }
+                
+                $price = $detail->price;
+                $currencyId = $clone->currencyId;
+                $currencyRate = $clone->currencyRate;
+                $amount = $detail->amount;
+                
+                //Склад
+                $storeId = $clone->storeId;
+                
+               
                 //Ако документа е мемориален ордер
                 if ($Master->className == 'acc_Articles') {
+                    
+                    $price = $detail->debitPrice;
+                    if($amount <= 0 || $price <= 0) continue;
                     
                     if ($detail->debitAccId && (acc_Accounts::fetch("#num = 321")->id != $detail->debitAccId)) continue;
                    
                     //Артикул
                     $productId = acc_Items::fetch("$detail->debitEnt2")->objectId;
                     $measureId = acc_Items::fetch("$detail->debitEnt2")->uomId;
+                    
+                    $currencyId = acc_Items::fetch("$detail->debitEnt3")->id;
+                    $currencyRate = $detail->creditPrice;
+                    
+                    //Склад
+                    $storeId = acc_Items::fetch("$detail->debitEnt1")->id;
                     
                     //Заприходено количество
                     $quantity =  $detail->debitQuantity;
@@ -138,14 +162,14 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     'docClassId' => $docClassId,
                     'quantity' => $quantity,
                     'packagingId' => $detail->packagingId,
-                    'storeId' => $clone->storeId,
-                    'price' => $detail->price,
+                    'storeId' => $storeId,
+                    'price' =>$price ,
                     'expenses' => '',
                     'discount' => $detail->discount,
-                    'amount' => $detail->amount,
+                    'amount' => $amount,
                     'weight' => $detail->weight,
-                    'currencyId' => $clone->currencyId,
-                    'currencyRate' => $clone->currencyRate,
+                    'currencyId' => $currencyId,
+                    'currencyRate' => $currencyRate,
                     'createdBy' => $detail->createdBy,
                     'threadId' => $clone->threadId,
                     'folderId' => $clone->folderId,
