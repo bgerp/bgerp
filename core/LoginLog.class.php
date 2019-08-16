@@ -676,4 +676,48 @@ class core_LoginLog extends core_Manager
             $data->listFields['timestamp'] = 'Време';
         }
     }
+    
+    
+    /**
+     * Проверява дали има успешно логване за зададените параметри
+     * 
+     * @param null|integer $userId
+     * @param number $cnt
+     * @param number $before
+     * @param null|string $ip
+     * @param boolean $brid
+     * 
+     * @return boolean
+     */
+    public static function checkSuccessLogin($userId = null, $cnt = 5, $before = 1209600, $ip = null, $brid = true)
+    {
+        if ($brid === true) {
+            $brid = log_Browsers::getBrid();
+        }
+        
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $maxCreatedOn = dt::subtractSecs($before);
+        
+        $query = static::getQuery();
+        $query->where(array("#createdOn > '[#1#]'", $maxCreatedOn));
+        $query->where(array("#userId = '[#1#]'", $userId));
+        if (isset($ip)) {
+            $query->where(array("#ip = '[#1#]'", $ip));
+            $query->orWhere(array("#brid = '[#1#]'", $brid));
+        } else {
+            $query->where(array("#brid = '[#1#]'", $brid));
+        }
+        
+        $query->where("#status = 'success'");
+        
+        if ($query->count() >= $cnt) {
+            
+            return true;
+        }
+        
+        return false;
+    }
 }
