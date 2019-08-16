@@ -372,28 +372,12 @@ class eshop_ProductDetails extends core_Detail
             if(eshop_Products::haveRightFor('single')){
                 $row->catalogPrice = ht::createHint($row->catalogPrice, 'Артикулът няма цена за продажба', 'error', false);
             }
-            
         }
         
         $row->orderPrice = $catalogPriceInfo->price;
         $row->orderCode = $fullCode;
         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
         
-        $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn', 'rel' => 'nofollow'));
-        if($rec->_listView !== true){
-            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-        }
-        $class = ($rec->_listView === true) ? 'group-row' : '';
-        
-        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-        if (isset($settings->storeId) && $canStore == 'yes') {
-            $quantity = store_Products::getQuantity($rec->productId, $settings->storeId, true);
-            if ($quantity < $rec->quantityInPack) {
-                $notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
-                $row->btn = "<span class='{$class} option-not-in-stock'>" . $notInStock . ' </span>';
-                $row->quantity = 1;
-            }
-        }
         
         if($showCartBtn === true){
             if (!empty($catalogPriceInfo->discount)) {
@@ -420,8 +404,23 @@ class eshop_ProductDetails extends core_Detail
                 
                 $row->catalogPrice .= '</div>';
             }
-        } else {
-            unset($row->btn);
+            
+            $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn', 'rel' => 'nofollow'));
+        }
+        
+        if($rec->_listView !== true){
+            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+        }
+        $class = ($rec->_listView === true) ? 'group-row' : '';
+        
+        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+        if (isset($settings->storeId) && $canStore == 'yes') {
+            $quantity = store_Products::getQuantity($rec->productId, $settings->storeId, true);
+            if ($quantity < $rec->quantityInPack) {
+                $notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
+                $row->btn = "<span class='{$class} option-not-in-stock'>" . $notInStock . ' </span>';
+                $row->quantity = 1;
+            }
         }
         
         return $row;
