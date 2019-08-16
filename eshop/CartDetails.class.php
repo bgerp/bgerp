@@ -237,7 +237,9 @@ class eshop_CartDetails extends core_Detail
         }
         
         if ($form->isSubmitted()) {
+            
             // Проверка на к-то
+            $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
                 $form->setError('packQuantity', $warning);
             }
