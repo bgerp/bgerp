@@ -47,7 +47,7 @@ class cal_Tasks extends embed_Manager
      * @see planning_plg_StateManager
      */
     public $notifyActionNamesArr = array('active' => 'Активиране',
-        'waiting' => 'Паузирана',
+        'waiting' => 'Паузиране',
         'closed' => 'Приключване',
         'wakeup' => 'Събуждане',
         'stopped' => 'Спиране',
