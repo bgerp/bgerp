@@ -458,9 +458,6 @@ class eshop_Products extends core_Master
             }
             
             $pRow->image = $img->createImg(array('class' => 'eshop-product-image'));
-            if (self::haveRightFor('edit', $pRec)) {
-                $pRec->editUrl = array('eshop_Products', 'edit', $pRec->id, 'ret_url' => true);
-            }
             
             if($pRec->saleState == 'single'){
                 
@@ -560,15 +557,20 @@ class eshop_Products extends core_Master
         $layout = new ET('');
         
         if (is_array($data->rows)) {
-            $editSbf = sbf('img/16/edit.png', '');
-            $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
+            
             foreach ($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
                 
                 $pTpl = getTplFromFile(Mode::is('screenMode', 'narrow') ? 'eshop/tpl/ProductListGroupNarrow.shtml' : 'eshop/tpl/ProductListGroup.shtml');
-                if ($rec->editUrl) {
-                    $row->editLink = ht::createLink($editImg, $rec->editUrl);
+                
+                if ($this->haveRightFor('single', $rec)) {
+                    $row->singleLink = ht::createLink('', array('eshop_Products', 'single', $rec->id, 'ret_url' => true), false, "ef_icon=img/16/wooden-box.png");
                 }
+                
+                if ($this->haveRightFor('edit', $rec)) {
+                    $row->editLink = ht::createLink('', array('eshop_Products', 'edit', $rec->id, 'ret_url' => true), false, "ef_icon=img/16/edit.png");
+                }
+                
                 if ($data->groupId != $rec->groupId) {
                     $rec->altGroupId = $data->groupId;
                 }
@@ -747,6 +749,8 @@ class eshop_Products extends core_Master
         
         if($data->rec->saleState == 'closed'){
             $data->row->STATE_EXTERNAL = "<span class='option-not-in-stock' style='font-size:0.9em !important'>" . tr('Този продукт вече не се предлага') . "</span>";
+        } elseif($data->rec->saleState == 'empty'){
+            $data->row->STATE_EXTERNAL = "<span class='option-not-in-stock' style='font-size:0.9em !important'>" . tr('Свържете се с нас') . "</span>";
         }
     }
     
