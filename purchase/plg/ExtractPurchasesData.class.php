@@ -269,6 +269,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
      
         $costAlocQuery = acc_CostAllocations::getQuery();
         $costAlocQuery->where("#expenseItemId = {$exItem->id}");
+        $costAlocQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
         $costAlocQuery->where('#productsData IS NOT NULL');
         
         $costsArr = array();
@@ -276,6 +277,12 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             foreach ($cost->productsData as $costProd) {
                 $costClassName = core_Classes::getName($cost->detailClassId);
                 $costProdAmount = $costClassName::fetch($cost->detailRecId)->amount;
+                
+                $stareArr = array('active','closed');
+                
+                if (!in_array($cost->state, $stareArr)){
+                    $costProdAmount =0;
+                }
                 
                 $costsArr[$costProd->productId] += $costProdAmount * $costProd->allocated;
             }
@@ -285,7 +292,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         foreach ($prods as $purKey => $prod) {
             $prodsAmount[$prod->productId] += $prod->amount;
         }
-        
+       
         foreach ($costsArr as $costKey => $cost) {
             foreach ($prods as $purKey => $prod) {
                 if ($costKey == $prod->productId) {
