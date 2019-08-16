@@ -622,10 +622,12 @@ class price_ProductCosts extends core_Manager
                 if($accObject->quantity > 0){
                     $useFirstPurchase = false;
                     $availableQuantity = $accObject->quantity;
-                    $sum = 0;
+                    $sum = $quantityByNow = 0;
+                    
                     
                     // За всяка покупка от последната към първата
                     foreach ($foundIn as $delData){
+                        $quantityByNow += $delData->quantity;
                         if($delData->quantity <= $availableQuantity){
                             $quantity = $delData->quantity;
                         } else {
@@ -639,17 +641,20 @@ class price_ProductCosts extends core_Manager
                     }
                     
                     // Изчисляване на колко е средната
-                    $averageAmount = round($sum / $accObject->quantity, 4);
+                    $delimeter = min($quantityByNow, $accObject->quantity);
+                    
+                    $averageAmount = round($sum / $delimeter, 4);
                     $averageAmount = core_Math::roundNumber($averageAmount);
                 }
             }
             
-            // Ако има НЕположителна наличност, но има покупки, взима се цената от първата
+            // Ако има НЕ положителна наличност, но има покупки, взима се цената от първата
             if($useFirstPurchase === true && count($foundIn)){
                 $foundIn = $foundIn[key($foundIn)];
                 $averageAmount = $foundIn->price;
             }
             
+            // Искаме средната цена да е Не нулева
             $res[$productId] = (object) array('price' => $averageAmount, 'quantity' => $accObject->quantity);
         }
         
