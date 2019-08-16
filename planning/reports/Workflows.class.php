@@ -195,7 +195,7 @@
                  $obj->weight += $tRec->weight;
              }
          }
-         
+        // bp($recs);
          
          //Разпределяне по работници, когато са повече от един
          foreach ($recs as $key => $val) {
@@ -239,7 +239,7 @@
                              'scrap' => $clone->scrap / $divisor,
                              
                              'labelMeasure' => $clone->labelMeasure,
-                             'labelQuantity' => 1 / $divisor,
+                             'labelQuantity' => $clone->labelQuantity / $divisor,
                              
                              'weight' => $clone->weight / $divisor,
                          
@@ -249,14 +249,14 @@
                          
                          $obj->quantity += $clone->quantity / $divisor;
                          $obj->scrap += $clone->scrap / $divisor;
-                         $obj->labelQuantity +=1 / $divisor;
+                         $obj->labelQuantity +=$clone->labelQuantity / $divisor;
                          $obj->weight += $clone->weight / $divisor;
                      }
                  }
                  unset($recs[$key]);
              }
          }
-         
+      //   bp($recs);
          arr::sortObjects($recs, 'taskId', 'asc');
          
          return $recs;
