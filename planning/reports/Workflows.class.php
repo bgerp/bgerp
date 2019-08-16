@@ -360,7 +360,7 @@
              $row->assetResources = '';
          }
          
-         $indTimeSumm = ($dRec->indTime * $dRec->quantity) / 60;
+         $indTimeSumm = ($dRec->indTime) / 60;
          
          $row->min = core_Type::getByName('double(decimals=2)')->toVerbal($indTimeSumm);
          

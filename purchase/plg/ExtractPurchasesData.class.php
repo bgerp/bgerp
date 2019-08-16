@@ -87,7 +87,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         $isFromInventory = ($Master->className == 'store_InventoryNotes') ? 'yes' : 'no';
         
-        if ($clone->contoActions) {
+        if (!is_null($clone->contoActions)) {
           $cond = (strrpos($clone->contoActions, 'ship') !== false);   ;
         }else{
             $cond = true;
@@ -163,22 +163,16 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 }
                 
                 $saveRecs[]=$dRec;
-               // purchase_PurchasesData::saveArray($saveRecs);
-                purchase_PurchasesData::save($dRec);
+                cls::get('purchase_PurchasesData')->saveArray($saveRecs);
+                
             }
-        }
-    }
-    
-    
-    /**
-     * След всеки запис в журнала
-     */
-    public static function on_AfterSaveJournalTransaction($mvc, $res, $rec)
-    {
-        $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
-        
-        foreach ($threadsArr as $threadId) {
-            self::getAllocatedCostsByProduct($threadId);
+            
+            $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
+            
+            foreach ($threadsArr as $threadId) {
+                self::getAllocatedCostsByProduct($threadId);
+            }
+            
         }
     }
     
@@ -192,6 +186,19 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
         
+        foreach ($threadsArr as $threadId) {
+            self::getAllocatedCostsByProduct($threadId);
+        }
+    }
+    
+    
+    /**
+     * След всеки запис в журнала
+     */
+    public static function on_AfterSaveJournalTransaction($mvc, $res, $rec)
+    {
+        $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
+       
         foreach ($threadsArr as $threadId) {
             self::getAllocatedCostsByProduct($threadId);
         }
@@ -225,14 +232,11 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             }
         }
         
-        $exQuery = acc_Items::getQuery();
-        $exQuery->where("#classId ={$firstDocClassId} AND #objectId = {$firstDocument->that}");
-        
-        $exItem = $exQuery->fetchAll();
+        $exItem = acc_Items::fetch("#classId ={$firstDocClassId} AND #objectId = {$firstDocument->that}");
         
         //Дали нишката е разходно перо
         if ($checkMarker === false) {
-            if (empty($exItem)) {
+            if (!($exItem)) {
                 
                 return $res;
             }
@@ -262,22 +266,21 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             }
         }
         
-        foreach ($exItem as $expense) {
-            $costAlocQuery = acc_CostAllocations::getQuery();
-            $costAlocQuery->where("#expenseItemId = {$expense->id}");
-            $costAlocQuery->where('#productsData IS NOT NULL');
-            
-            $costsArr = array();
-            while ($cost = $costAlocQuery->fetch()) {
-                foreach ($cost->productsData as $costProd) {
-                    $costClassName = core_Classes::getName($cost->detailClassId);
-                    $costProdAmount = $costClassName::fetch($cost->detailRecId)->amount;
-                    
-                    $costsArr[$costProd->productId] += $costProdAmount * $costProd->allocated;
-                }
+     
+        $costAlocQuery = acc_CostAllocations::getQuery();
+        $costAlocQuery->where("#expenseItemId = {$exItem->id}");
+        $costAlocQuery->where('#productsData IS NOT NULL');
+        
+        $costsArr = array();
+        while ($cost = $costAlocQuery->fetch()) {
+            foreach ($cost->productsData as $costProd) {
+                $costClassName = core_Classes::getName($cost->detailClassId);
+                $costProdAmount = $costClassName::fetch($cost->detailRecId)->amount;
+                
+                $costsArr[$costProd->productId] += $costProdAmount * $costProd->allocated;
             }
         }
-        
+    
         $prodsAmount = array();
         foreach ($prods as $purKey => $prod) {
             $prodsAmount[$prod->productId] += $prod->amount;
@@ -293,7 +296,8 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                         'expenses' => $expenses
                     );
                     
-                    purchase_PurchasesData::save($purDataRec);
+                    $saveRecs[]=$purDataRec;
+                    cls::get('purchase_PurchasesData')->saveArray($saveRecs,'id,expenses');
                 }
             }
         }
@@ -313,17 +317,18 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $Detail = cls::get($detailClassName);
         $masterKey = $Detail->masterKey;
         
+        
+        
         $detQuery = $detailClassName::getQuery();
         $detQuery->where("#{$masterKey} = {$rec->id}");
         
         $detRecArr = arr::extractValuesFromArray($detQuery->fetchAll(), 'id');
         
         $detClassId = core_Classes::getId($detailClassName);
-        
+       
         $costAlocQuery = acc_CostAllocations::getQuery();
         $costAlocQuery->where("#detailClassId = {$detClassId}");
         $costAlocQuery->in('detailRecId', $detRecArr);
-        
         $exItems = arr::extractValuesFromArray($costAlocQuery->fetchAll(), 'expenseItemId');
         
         foreach ($exItems as $expense) {
@@ -334,7 +339,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             
             $threadsArr[$threadId] = $threadId;
         }
-        
+     
         return $threadsArr;
     }
 }
