@@ -156,7 +156,6 @@
              
              $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
              
-             
              $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,packagingId,indTime,indPackagingId,indTimeAllocation');
              $pRec = cat_Products::fetch($tRec->productId, 'measureId,name');
              
@@ -167,8 +166,9 @@
                      'taskId' => $tRec->taskId,
                      'detailId' => $tRec->id,
                      'indTime' => $iRec->indTime,
-                     'indPackagingId' => $iRec->indPackagingId,
+                     'indPackagingId' => $irec->indPackagingId,
                      'indTimeAllocation' => $iRec->indTimeAllocation,
+                     'quantityInPack' => $iRec->quantityInPack,
                      
                      'employees' => $tRec->employees,
                      'assetResources' => $tRec->fixedAsset,
@@ -190,12 +190,12 @@
                  
                  $obj->quantity += $tRec->quantity;
                  $obj->scrap += $tRec->scrappedQuantity;
-                 ++$obj->labelQuantity;
+                 $obj->labelQuantity +=1;
                  
                  $obj->weight += $tRec->weight;
              }
          }
-         
+        // bp($recs);
          
          //Разпределяне по работници, когато са повече от един
          foreach ($recs as $key => $val) {
@@ -239,7 +239,7 @@
                              'scrap' => $clone->scrap / $divisor,
                              
                              'labelMeasure' => $clone->labelMeasure,
-                             'labelQuantity' => 1,
+                             'labelQuantity' => $clone->labelQuantity / $divisor,
                              
                              'weight' => $clone->weight / $divisor,
                          
@@ -249,14 +249,14 @@
                          
                          $obj->quantity += $clone->quantity / $divisor;
                          $obj->scrap += $clone->scrap / $divisor;
-                         ++$obj->labelQuantity;
+                         $obj->labelQuantity +=$clone->labelQuantity / $divisor;
                          $obj->weight += $clone->weight / $divisor;
                      }
                  }
                  unset($recs[$key]);
              }
          }
-         
+      //   bp($recs);
          arr::sortObjects($recs, 'taskId', 'asc');
          
          return $recs;
@@ -331,7 +331,6 @@
          
          $row = new stdClass();
          
-         
          $row->taskId = planning_Tasks::getHyperlink($dRec->taskId);
          $row->article = cat_Products::getHyperlink($dRec->productId);
          
@@ -359,8 +358,9 @@
          } else {
              $row->assetResources = '';
          }
+        
+         $indTimeSumm = ($dRec->indTime * $row->labelQuantity) / 60;
          
-         $indTimeSumm = ($dRec->indTime * $dRec->quantity) / 60;
          
          $row->min = core_Type::getByName('double(decimals=2)')->toVerbal($indTimeSumm);
          
