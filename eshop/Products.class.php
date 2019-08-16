@@ -160,7 +160,7 @@ class eshop_Products extends core_Master
         $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
         $this->FLD('quantityCount', 'enum(,3=3 количества,2=2 количества,1=1 количество)', 'caption=Запитване->Количества,placeholder=Без количество');
-        $this->FLD('saleState', 'enum(single=Единичен,multi=Избор,closed=Стар артикул,empty=Без опции)', 'caption=Тип,input=none');
+        $this->FLD('saleState', 'enum(single=Единичен,multi=Избор,closed=Стар артикул,empty=Без опции)', 'caption=Тип,input=none,notNull,value=empty');
         
         $this->setDbIndex('groupId');
     }
@@ -417,7 +417,7 @@ class eshop_Products extends core_Master
     public static function prepareGroupList($data)
     {
         $pQuery = self::getQuery();
-        $pQuery->where("#state = 'active' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups)) AND #saleState != 'empty'");
+        $pQuery->where("#state = 'active' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups))");
         $pQuery->XPR('cOrder', 'double', "IF(#groupId = {$data->groupId}, #saoOrder, 999999999)");
         $pQuery->orderBy('cOrder,code');
         $perPage = eshop_Groups::fetchField($data->groupId, 'perPage');
@@ -458,9 +458,6 @@ class eshop_Products extends core_Master
             }
             
             $pRow->image = $img->createImg(array('class' => 'eshop-product-image'));
-            if (self::haveRightFor('edit', $pRec)) {
-                $pRec->editUrl = array('eshop_Products', 'edit', $pRec->id, 'ret_url' => true);
-            }
             
             if($pRec->saleState == 'single'){
                 
@@ -560,15 +557,20 @@ class eshop_Products extends core_Master
         $layout = new ET('');
         
         if (is_array($data->rows)) {
-            $editSbf = sbf('img/16/edit.png', '');
-            $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
+            
             foreach ($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
                 
                 $pTpl = getTplFromFile(Mode::is('screenMode', 'narrow') ? 'eshop/tpl/ProductListGroupNarrow.shtml' : 'eshop/tpl/ProductListGroup.shtml');
-                if ($rec->editUrl) {
-                    $row->editLink = ht::createLink($editImg, $rec->editUrl);
+                
+                if ($this->haveRightFor('single', $rec)) {
+                    $row->singleLink = ht::createLink('', array('eshop_Products', 'single', $rec->id, 'ret_url' => true), false, "ef_icon=img/16/wooden-box.png");
                 }
+                
+                if ($this->haveRightFor('edit', $rec)) {
+                    $row->editLink = ht::createLink('', array('eshop_Products', 'edit', $rec->id, 'ret_url' => true), false, "ef_icon=img/16/edit.png");
+                }
+                
                 if ($data->groupId != $rec->groupId) {
                     $rec->altGroupId = $data->groupId;
                 }
@@ -747,6 +749,8 @@ class eshop_Products extends core_Master
         
         if($data->rec->saleState == 'closed'){
             $data->row->STATE_EXTERNAL = "<span class='option-not-in-stock' style='font-size:0.9em !important'>" . tr('Този продукт вече не се предлага') . "</span>";
+        } elseif($data->rec->saleState == 'empty'){
+            $data->row->STATE_EXTERNAL = "<span style='border-radius: 3px;padding: 4px;font-size: .8em;background-color: #e6e6e6;border: solid 1px #ff7070;display: inline-block;color: #c00;' '>" . tr('Свържете се с нас') . "</span>";
         }
     }
     
