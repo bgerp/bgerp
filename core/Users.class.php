@@ -1566,10 +1566,15 @@ class core_Users extends core_Manager
             return ;
         }
         
-        // Ако се е логнат от различно IP
-        if ($userRec->lastLoginIp && ($userRec->lastLoginIp != $currIp)) {
-            if (core_LoginLog::isTrustedUserLogin($currIp, $userRec->id)) {
-                $arr = core_LoginLog::getLastLoginFromOtherIp($currIp, $userRec->id);
+        if ($userRec->lastLoginTime) {
+            
+            // Проверява за подозрително логване, между двете логвания на потребителя
+            
+            // Ако се логва от достоверно у-во - където можем да се показва предупредителното съобщение
+            if (core_LoginLog::isTrustedUserLogin(null, $userRec->id)) {
+                
+                // Всички логвания от друго устройство
+                $arr = core_LoginLog::getLastLoginFromOtherDevice(null, $userRec->id);
                 
                 $TimeInst = cls::get('type_Time');
                 
@@ -1606,10 +1611,40 @@ class core_Users extends core_Manager
                 
                 // Последното успешно логване от друго IP
                 $successArr = (array) $arr['success'];
-                reset($successArr);
-                $lastSuccessLoginKey = key($successArr);
-                if ($lastSuccessLoginKey) {
-                    $loginRec = $successArr[$lastSuccessLoginKey];
+                
+                // Ако се е логнал от друг браузър или IP
+                $cOsName = log_Browsers::getUserAgentOsName();
+                $lastSuccessLoginAnotherDeviceKey = $lastSuccessLoginAnotherIpKey = null;
+                foreach ($successArr as $sKey => $lRec) {
+                    if (!isset($lastSuccessLoginAnotherDeviceKey)) {
+                        $bRec = log_Browsers::getRecFromBrid($lRec->brid);
+                        if (!$bRec || !$bRec->userAgent) {
+                            $lastSuccessLoginAnotherDeviceKey = $sKey;
+                            
+                            continue;
+                        }
+                        $osName = log_Browsers::getUserAgentOsName($bRec->userAgent);
+                        
+                        // Ако е от друго ОС
+                        if ($cOsName !=  $osName) {
+                            $lastSuccessLoginAnotherDeviceKey = $sKey;
+                            
+                            continue;
+                        }
+                    }
+                    
+                    // Ако едновременно brid и IP са различни
+                    if (!isset($lastSuccessLoginAnotherIpKey) && ($lRec->ip != $currIp)) {
+                        $lastSuccessLoginAnotherIpKey = $sKey;
+                    }
+                }
+                
+                if (isset($lastSuccessLoginAnotherDeviceKey) || isset($lastSuccessLoginAnotherIpKey)) {
+                    if ($lastSuccessLoginAnotherDeviceKey) {
+                        $loginRec = $successArr[$lastSuccessLoginAnotherDeviceKey];
+                    } else {
+                        $loginRec = $successArr[$lastSuccessLoginAnotherIpKey];
+                    }
                     
                     // Времето, когато се е логнал
                     $time = dt::secsBetween(dt::now(), $loginRec->createdOn);
@@ -1620,11 +1655,12 @@ class core_Users extends core_Manager
                     // Вербално време
                     $time = $TimeInst->toVerbal($time);
                     
-                    // Вербално IP
-                    $ip = $loginRec->ip;
-                    
                     // Добавяме съответното статус съобщение
-                    $text = "|Логване от|* {$ip} |преди|* {$time}";
+                    if ($lastSuccessLoginAnotherDeviceKey) {
+                        $text = "|Логване от друго устройство преди|* {$time}";
+                    } else {
+                        $text = "|Логване от|* {$loginRec->ip} |преди|* {$time}";
+                    }
                     
                     // Ако има УРЛ, текста да е линк към него
                     if ($url) {
