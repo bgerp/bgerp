@@ -377,7 +377,7 @@ class eshop_ProductDetails extends core_Detail
         $row->orderPrice = $catalogPriceInfo->price;
         $row->orderCode = $fullCode;
         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-        
+        $class = ($rec->_listView === true) ? 'group-row' : '';
         
         if($showCartBtn === true){
             if (!empty($catalogPriceInfo->discount)) {
@@ -411,7 +411,6 @@ class eshop_ProductDetails extends core_Detail
         if($rec->_listView !== true){
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         }
-        $class = ($rec->_listView === true) ? 'group-row' : '';
         
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
         if (isset($settings->storeId) && $canStore == 'yes') {
