@@ -329,7 +329,7 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     private static function getDeltaIndicators($indicatorRecs, $masters, &$personIds)
     {
-        $result = array();
+        $result = $personIds = array();
         if (!count($indicatorRecs)) {
             
             return $result;
@@ -459,7 +459,6 @@ class sales_PrimeCostByDocument extends core_Manager
         }
         
         // Връщане на индикаторите за делта на търговеца и инициатора
-        $personIds = array();
         $result1 = self::getDeltaIndicators($indicatorRecs, $masters, $personIds);
         if (count($result1)) {
             $result = array_merge($result1, $result);
@@ -471,63 +470,7 @@ class sales_PrimeCostByDocument extends core_Manager
             $result = array_merge($result2, $result);
         }
         
-        // Връщане на индикаторите за сумата на продадените артикули по групи
-        $result3 = self::getSaleExpenseIndicators($indicatorRecs, $masters, $personIds);
-        if (count($result3)) {
-            $result = array_merge($result3, $result);
-        }
-        
         // Връщане на всички индикатори
-        return $result;
-    }
-    
-    
-    /**
-     * Изчисляване на индикаторите за начислени разходи към продажби
-     * 
-     * @param array $indicatorRecs - филтрираните записи
-     * @param array $masters       - помощен масив
-     * @param array $personIds     - масив с ид-та на визитките на дилърите
-     *
-     * @return array $result       - @see hr_IndicatorsSourceIntf::getIndicatorValues($timeline)
-     */
-    public static function getSaleExpenseIndicators($indicatorRecs, $masters, &$personIds)
-    {
-        $result = array();
-        $indicatorId = hr_IndicatorNames::force('salesExpenses', __CLASS__, 5)->id;
-       
-        foreach ($indicatorRecs as $iRec){
-            if(empty($iRec->dealerId) || is_null($iRec->expenses)) continue;
-            
-            // Намиране на дилъра, инициатора и взимане на данните на мастъра на детайла
-            $Document = $masters[$iRec->containerId][0];
-            
-            // Намиране на визитката на потребителя
-            if (!isset($personIds[$iRec->dealerId])) {
-                $personIds[$iRec->dealerId] = crm_Profiles::fetchField("#userId = '{$iRec->dealerId}'", 'personId');
-            }
-            
-            // Ключа по който ще събираме е лицето, документа и вальора
-            $personFldValue = $personIds[$iRec->dealerId];
-            $key = "{$personFldValue}|{$Document->getClassId()}|{$Document->that}|{$iRec->valior}|{$indicatorId}";
-            
-            // Ако няма данни, добавят се
-            if (!array_key_exists($key, $result)) {
-                $result[$key] = (object) array('date' => $iRec->valior,
-                        'personId' => $personFldValue,
-                        'docId' => $Document->that,
-                        'docClass' => $Document->getClassId(),
-                        'indicatorId' => $indicatorId,
-                        'value' => $iRec->expenses,
-                        'isRejected' => ($masters[$iRec->containerId][1] == 'rejected'),);
-                } else {
-                    
-                    // Ако има вече се сумират
-                    $ref = &$result[$key];
-                    $ref->value += $iRec->expenses;
-                }
-        }
-        
         return $result;
     }
     
@@ -638,9 +581,6 @@ class sales_PrimeCostByDocument extends core_Manager
             $rec = hr_IndicatorNames::force('NoGroupSum', __CLASS__, 4);
             $result[$rec->id] = $rec->name;
         }
-        
-        $rec = hr_IndicatorNames::force('salesExpenses', __CLASS__, 5);
-        $result[$rec->id] = $rec->name;
         
         // Връщане на всички индикатори
         return $result;
