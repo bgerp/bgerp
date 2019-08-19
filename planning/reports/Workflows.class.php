@@ -195,8 +195,7 @@
                  $obj->weight += $tRec->weight;
              }
          }
-        // bp($recs);
-         
+        
          //Разпределяне по работници, когато са повече от един
          foreach ($recs as $key => $val) {
              if (count(keylist::toArray($val->employees)) > 1) {
@@ -256,7 +255,7 @@
                  unset($recs[$key]);
              }
          }
-      //   bp($recs);
+         
          arr::sortObjects($recs, 'taskId', 'asc');
          
          return $recs;
@@ -429,7 +428,7 @@
                     $fieldTpl->append('<b>' . $employeesVerb . '</b>', 'employees');
                 }
             }
-        
+            
         if (isset($data->rec->assetResources)) {
             $marker = 0;
             foreach (type_Keylist::toArray($data->rec->assetResources) as $asset) {
