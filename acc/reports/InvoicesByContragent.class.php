@@ -199,20 +199,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($rec->contragent || $rec->crmGroup) {
                 $contragentsArr = array();
                 $contragentsId = array();
-                
-//                 $invQuery->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
-//                 $invQuery->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
-                
-                if (!$rec->crmGroup && $rec->contragent) {
+                                if (!$rec->crmGroup && $rec->contragent) {
                     $contragentsArr = keylist::toArray($rec->contragent);
-                    
-//                     foreach ($contragentsArr as $val) {
-//                         $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
-//                         $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
-//                     }
-                    
-//                     $invQuery->in('coverId', $contragentCoversId);
-//                     $invQuery->in('coverClass', $contragentCoverClasses);
                     
                     $invQuery->in('folderId', $contragentsArr);
                 }
@@ -225,15 +213,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 
                 if ($rec->crmGroup && $rec->contragent) {
                     $contragentsArr = keylist::toArray($rec->contragent);
-                    
-                    
-//                     foreach ($contragentsArr as $val) {
-//                         $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
-//                         $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
-//                     }
-                    
-//                     $invQuery->in('coverId', $contragentCoversId);
-//                     $invQuery->in('coverClass', $contragentCoverClasses);
                     
                     $invQuery->in('folderId', $contragentsArr);
                     
