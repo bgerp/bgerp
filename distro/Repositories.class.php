@@ -656,10 +656,12 @@ class distro_Repositories extends core_Master
     {
         $path = escapeshellarg($path);
         
-        $res = 'crontab -l > cron.res' . ' && ';
-        $res .= 'echo "* * * * * ' . $path . '" >> cron.res' . ' && ';
-        $res .= 'crontab cron.res' . ' && ';
-        $res .= 'rm cron.res';
+        $cronResPath = '/tmp/' . str::getRand() . '_cron.res';
+        
+        $res = 'crontab -l > ' . $cronResPath . ' && ';
+        $res .= 'echo "* * * * * ' . $path . '" >> ' . $cronResPath . ' && ';
+        $res .= 'crontab ' . $cronResPath . ' && ';
+        $res .= 'rm ' . $cronResPath;
         
         return $res;
     }

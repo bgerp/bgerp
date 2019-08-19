@@ -200,19 +200,21 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $contragentsArr = array();
                 $contragentsId = array();
                 
-                $invQuery->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
-                $invQuery->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
+//                 $invQuery->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
+//                 $invQuery->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
                 
                 if (!$rec->crmGroup && $rec->contragent) {
                     $contragentsArr = keylist::toArray($rec->contragent);
                     
-                    foreach ($contragentsArr as $val) {
-                        $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
-                        $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
-                    }
+//                     foreach ($contragentsArr as $val) {
+//                         $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
+//                         $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
+//                     }
                     
-                    $invQuery->in('coverId', $contragentCoversId);
-                    $invQuery->in('coverClass', $contragentCoverClasses);
+//                     $invQuery->in('coverId', $contragentCoversId);
+//                     $invQuery->in('coverClass', $contragentCoverClasses);
+                    
+                    $invQuery->in('folderId', $contragentsArr);
                 }
                 
                 if ($rec->crmGroup && !$rec->contragent) {
@@ -225,13 +227,15 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     $contragentsArr = keylist::toArray($rec->contragent);
                     
                     
-                    foreach ($contragentsArr as $val) {
-                        $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
-                        $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
-                    }
+//                     foreach ($contragentsArr as $val) {
+//                         $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
+//                         $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
+//                     }
                     
-                    $invQuery->in('coverId', $contragentCoversId);
-                    $invQuery->in('coverClass', $contragentCoverClasses);
+//                     $invQuery->in('coverId', $contragentCoversId);
+//                     $invQuery->in('coverClass', $contragentCoverClasses);
+                    
+                    $invQuery->in('folderId', $contragentsArr);
                     
                     $foldersInGroups = self::getFoldersInGroups($rec);
                     
@@ -1008,7 +1012,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
             
             
-            $row->contragent = $dRec->contragent.' »  '."<span class= 'quiet'>".' Общо стойност: '.'</span>'.$dRec->totalInvoiceValue;
+            $row->contragent = $dRec->contragent.' »  '."<span class= 'quiet'>".' Общо стойност: '.'</span>'.core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue);
             if ($dRec->totalInvoiceOverPaid > 0.01) {
                 $row->contragent .= ' »  '."<span class= 'quiet'>" . 'Надплатено:' . '</span>'.$dRec->totalInvoiceOverPaid;
             }
