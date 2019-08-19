@@ -17,7 +17,7 @@
                         <!--ET_END createdDate-->
                         <!--ET_BEGIN recipient-->
                         <div>
-                            |До|*: [#recipient#]<!--ET_BEGIN firmCountry--> - [#firmCountry#]<!--ET_END firmCountry--><!--ET_BEGIN recipientEmail-->[#recipientEmail#]<!--ET_END recipientEmail-->
+                            |До|*: [#recipient#]<!--ET_BEGIN firmCountry--> - [#firmCountry#]<!--ET_END firmCountry--><!--ET_BEGIN recipientEmail--><b>[#recipientEmail#]</b><!--ET_END recipientEmail-->
                         </div>
                         <!--ET_END recipient-->
                         <!--ET_BEGIN attn-->
