@@ -4,21 +4,34 @@
             <div class='display-table'>
                 <div class='antetka'>
                     <div class="small fleft">
+                        <table class='top-table'>
                             <!--ET_BEGIN ExternalThreadViewFrom-->
-                                <div>|От|*: <b>[#ExternalThreadViewFrom#]</b></div>
+                            <tr>
+                                <td class='aright' style='vertical-align:top'>|От|*:</td>
+                                <td><b>[#ExternalThreadViewFrom#]</b></td>
+                            </tr>
                             <!--ET_END ExternalThreadViewFrom-->
-
                             <!--ET_BEGIN ExternalThreadViewTo-->
-                                <div>|До|*: <b>[#ExternalThreadViewTo#]</b></div>
+                            <tr>
+                                <td  class='aright'>|До|*:</td>
+                                <td><b>[#ExternalThreadViewTo#]</b></td>
+                            </tr>
                             <!--ET_END ExternalThreadViewTo-->
 
                             <!--ET_BEGIN ExternalThreadViewCc-->
-                                <div>|Кп|*: <b>[#ExternalThreadViewCc#]</b></div>
+                            <tr>
+                                <td  class='aright'>|Кп|*:</td>
+                                <td><b>[#ExternalThreadViewCc#]</b></td>
+                            </tr>
                             <!--ET_END ExternalThreadViewCc-->
 
                             <!--ET_BEGIN ExternalThreadViewDate-->
-                                <div>|На|*: <b>[#ExternalThreadViewDate#]</b></div>
+                            <tr>
+                                <td class='aright'>|На|*:</td>
+                                <td><b>[#ExternalThreadViewDate#]</b></td>
+                            </tr>
                             <!--ET_END ExternalThreadViewDate-->
+                        </table>
                     </div>
                     <div class="avatar fright" style="position: relative; top: 2px; right: 2px;">[#ExternalThreadViewAvatar#]</div>
                     <div class="clearfix21"></div>
