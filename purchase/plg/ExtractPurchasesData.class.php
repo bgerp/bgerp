@@ -240,57 +240,47 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     public static function getAllocatedCostsByProduct($threadId)
     {
         $res = array();
-        $checkMarker = false;
         $classesForCheck = array('sales_Sales','sales_Services','purchase_Purchases','purchase_Services');
         
         $firstDocument = doc_Threads::getFirstDocument($threadId);
         $firstDocClass = cls::get($firstDocument)->className;
         $firstDocClassId = core_Classes::getId($firstDocClass);
         
-        
-        // Дали нишката е покупка или продажба
-        foreach ($classesForCheck as $clsChek) {
-            if ($firstDocClass == $clsChek) {
-                $checkMarker = true;
-                break;
-            }
+        if(!in_array($firstDocClass, $classesForCheck)) {
+            
+            return $res;
         }
         
-        $exItem = acc_Items::fetch("#classId ={$firstDocClassId} AND #objectId = {$firstDocument->that}");
-        
-        //Дали нишката е разходно перо
-        if ($checkMarker === false) {
-            if (!($exItem)) {
-                
-                return $res;
-            }
+        $exItem = acc_Items::fetchItem($firstDocClassId, $firstDocument->that);
+        if(!$exItem){
+            
+            return $res;
         }
         
-        $prodQuery = purchase_PurchasesData::getQuery();
-        $prodQuery->where("#threadId = ${threadId}");
+        if($firstDocClass == 'sales_Sales'){
+            $prodQuery = sales_PrimeCostByDocument::getQuery();
+            $prodQuery->where("#sellCost IS NOT NULL");
+        } else {
+            $prodQuery = purchase_PurchasesData::getQuery();
+        }
+        $prodQuery->where("#threadId = {$threadId}");
         
         $prods = array();
         while ($prodRec = $prodQuery->fetch()) {
             $id = $prodRec->id;
-            
-            if ($prodRec->productId) {
-                $measureId = cat_Products::getproductInfo($prodRec->productId)->productRec->measureId;
-            }
+            $measureId = cat_Products::fetchField($prodRec->productId, 'measureId');
             
             if (! array_key_exists($id, $prods)) {
                 $prods[$id] = (object) array(
-                    
                     'productId' => $prodRec->productId,
                     'measureId' => $measureId,
-                    'amount' => $prodRec->amount,
+                    'amount' => (($firstDocClass == 'sales_Sales') ? $prodRec->sellCost : $prodRec->amount),
                     'weight' => $prodRec->weight,
                     'quantity' => $prodRec->quantity,
-                
                 );
             }
         }
         
-     
         $costAlocQuery = acc_CostAllocations::getQuery();
         $costAlocQuery->where("#expenseItemId = {$exItem->id}");
         $costAlocQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
@@ -301,11 +291,11 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             foreach ($cost->productsData as $costProd) {
                 $costClassName = core_Classes::getName($cost->detailClassId);
                 $costProdAmount = $costClassName::fetch($cost->detailRecId)->amount;
-                
+               
                 $stareArr = array('active','closed');
                 
                 if (!in_array($cost->state, $stareArr)){
-                    $costProdAmount =0;
+                    $costProdAmount = 0;
                 }
                 
                 $costsArr[$costProd->productId] += $costProdAmount * $costProd->allocated;
@@ -316,7 +306,8 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         foreach ($prods as $purKey => $prod) {
             $prodsAmount[$prod->productId] += $prod->amount;
         }
-       
+        
+        $saveRecs = array();
         foreach ($costsArr as $costKey => $cost) {
             foreach ($prods as $purKey => $prod) {
                 if ($costKey == $prod->productId) {
@@ -327,11 +318,17 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                         'expenses' => $expenses
                     );
                     
-                    $saveRecs[]=$purDataRec;
-                    cls::get('purchase_PurchasesData')->saveArray($saveRecs,'id,expenses');
+                    $saveRecs[] = $purDataRec;
                 }
             }
         }
+        
+        $className = 'purchase_PurchasesData';
+        if($firstDocClass == 'sales_Sales'){
+            $className = 'sales_PrimeCostByDocument';
+        }
+        
+        cls::get($className)->saveArray($saveRecs,'id,expenses');
     }
     
     
@@ -365,12 +362,11 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         foreach ($exItems as $expense) {
             $exItem = acc_Items::fetch($expense);
             $exItemDocClassName = core_Classes::getName($exItem->classId);
-            $threadId = $exItemDocClassName::fetch($exItem->objectId)->threadId;
-            
-            
-            $threadsArr[$threadId] = $threadId;
+            if($threadId = $exItemDocClassName::fetch($exItem->objectId)->threadId){
+                $threadsArr[$threadId] = $threadId;
+            }
         }
-     
+        
         return $threadsArr;
     }
 }
