@@ -740,7 +740,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         $js =  $Driver->getJsForDuplicate($pRec);
         $js .= 'function fpOnDuplicateSuccess(res)
                         {
-                            render_showToast({timeOut: 800, text: "test", isSticky: true, stayTime: 8000, type: "notice"});
+                            render_showToast({timeOut: 800, text: "Успешно отпечатване", isSticky: true, stayTime: 8000, type: "notice"});
                             setInterval(function(){document.location = " ' . $retUrl . ' ";}, 7000);
                         };
                                 
