@@ -35,7 +35,7 @@
                         <div>|Имейл|*: <b>[#email#]</b></div>
                         <!--ET_END email-->
                         <!--ET_BEGIN emailCc-->
-                        <div>|Копие|*: <b>[#emailCc#]</b></div>
+                        <div>|Кп|*: <b>[#emailCc#]</b></div>
                         <!--ET_END emailCc-->
                         <!--ET_BEGIN fax-->
                         <div>|Факс|*: [#fax#]</div>

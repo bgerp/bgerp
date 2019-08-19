@@ -17,11 +17,11 @@
                         <!--ET_END ExternalThreadViewTo-->
                         
                         <!--ET_BEGIN ExternalThreadViewCc-->
-                            <div>|Копие|*: <b>[#ExternalThreadViewCc#]</b></div>
+                            <div>|Кп|*: <b>[#ExternalThreadViewCc#]</b></div>
                         <!--ET_END ExternalThreadViewCc-->
                         
                         <!--ET_BEGIN ExternalThreadViewDate-->
-                            <div>|Дата|*: [#ExternalThreadViewDate#]</div>
+                            <div>|На|*: <b>[#ExternalThreadViewDate#]</b></div>
                         <!--ET_END ExternalThreadViewDate-->
                     </div>
                 </div>
