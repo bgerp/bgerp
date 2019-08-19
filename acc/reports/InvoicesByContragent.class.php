@@ -257,7 +257,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 // Когато е избрано ВСИЧКИ в полето плащане
                 if ($rec->unpaid == 'all'){
                     
-                    $invoiceValue =  $salesInvoice->dealValue + $salesInvoice->vatAmount;
+                    $invoiceValue =  ($salesInvoice->dealValue - $salesInvoice->discountAmount) + $salesInvoice->vatAmount;
                     $Invoice = doc_Containers::getDocument($salesInvoice->containerId);
                     
                     // масива с фактурите за показване
@@ -509,7 +509,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 // Когато е избрано ВСИЧКИ в полето плащане
                 if ($rec->unpaid == 'all'){
                     
-                    $invoiceValue =  $purchaseInvoices->dealValue + $purchaseInvoices->vatAmount;
+                    $invoiceValue =  ($purchaseInvoices->dealValue - $purchaseInvoices->discountAmount) + $purchaseInvoices->vatAmount;
                     $Invoice = doc_Containers::getDocument($purchaseInvoices->containerId);
                     
                     // масива с фактурите за показване
@@ -813,7 +813,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $fld->FLD('invoiceDate', 'varchar', 'caption=Дата');
             $fld->FLD('dueDate', 'varchar', 'caption=Краен срок');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-            $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
+            $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност[лв.]');
             
             if ($rec->unpaid == 'unpaid') {
                 $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->Сума,smartCenter');
@@ -998,7 +998,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         
         $row->currencyId = $dRec->currencyId;
         
-        $invoiceValue = $dRec->invoiceValue + $dRec->invoiceVat;
+        $invoiceValue = $dRec->invoiceValue;
         
         $row->invoiceValue = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue);
         
