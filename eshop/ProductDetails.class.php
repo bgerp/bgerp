@@ -222,7 +222,9 @@ class eshop_ProductDetails extends core_Detail
         
         // Ако има ценоразпис
         if (isset($listId)) {
-            if ($price = price_ListRules::getPrice($listId, $productId, $packagingId)) {
+            $price = price_ListRules::getPrice($listId, $productId, $packagingId);
+            
+            if (isset($price)) {
                 $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $productId, $packagingId, $quantityInPack);
                 
                 $price *= $quantityInPack;
@@ -363,8 +365,11 @@ class eshop_ProductDetails extends core_Detail
 
         $showCartBtn = true;
         $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
-        if(!empty($catalogPriceInfo->price)){
+        if(isset($catalogPriceInfo->price)){
             $row->catalogPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogPriceInfo->price);
+            if($catalogPriceInfo->price == 0){
+                $row->catalogPrice = "<span class='green'>" . tr('Безплатно') . "</span>";
+            }
             $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
         } else {
             $showCartBtn = false;
@@ -491,13 +496,13 @@ class eshop_ProductDetails extends core_Detail
         $query->EXT('groupId', 'eshop_Products', 'externalName=groupId,externalKey=eshopProductId');
         $query->where("#state = 'active'");
         $query->in('groupId', $groups);
-        $query->show('productId,state');
+        $query->show('productId,title,state');
         
         while ($rec = $query->fetch()) {
             
             // Трябва да имат цени по избраната политика
             if (self::getPublicDisplayPrice($rec->productId, $rec->packagingId)) {
-                $options[$rec->productId] = cat_Products::getTitleById($rec->productId, false);
+                $options[$rec->productId] = !empty($rec->title) ? $rec->title : cat_Products::getTitleById($rec->productId, false);
             }
         }
         

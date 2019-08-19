@@ -1436,20 +1436,25 @@ class core_Users extends core_Manager
             $userRec->lastHitUT = time();
             $userRec->maxIdleTime = 0;
         } else {
+            $lastLoginIp = self::getOwnIp($userRec->lastLoginIp);
+            $ownIp = self::getOwnIp($Users->getRealIpAddr());
             // Дали нямаме дублирано ползване?
-            if (self::getOwnIp($userRec->lastLoginIp) != self::getOwnIp($Users->getRealIpAddr()) &&
+            if (($lastLoginIp != $ownIp) &&
                 $userRec->lastLoginTime > $sessUserRec->loginTime &&
                 dt::mysql2timestamp($userRec->lastLoginTime) - dt::mysql2timestamp($sessUserRec->loginTime) < EF_USERS_MIN_TIME_WITHOUT_BLOCKING) {
                 
-                // Блокираме потребителя
-                $userRec->state = 'blocked';
-                $Users->save($userRec, 'state');
-                
-                $Users->sendActivationLetter($userRec, USERS_UNBLOCK_EMAIL, 'Отблокиране на потребител', 'unblock');
-                
-                $Users->logAlert('Блокиран потребител', $userRec->id);
-                
-                core_LoginLog::add('block', $userRec->id);
+                // Ако има логвания в съответния период, не блокира
+                if (!core_LoginLog::checkSuccessLogin($id, core_Setup::get('STOP_BLOCKING_LOGIN_COUNT'), core_Setup::get('STOP_BLOCKING_LOGIN_PERIOD'))) {
+                    // Блокираме потребителя
+                    $userRec->state = 'blocked';
+                    $Users->save($userRec, 'state');
+                    
+                    $Users->sendActivationLetter($userRec, USERS_UNBLOCK_EMAIL, 'Отблокиране на потребител', 'unblock');
+                    
+                    $Users->logAlert('Блокиран потребител', $userRec->id);
+                    
+                    core_LoginLog::add('block', $userRec->id);
+                }
             }
             
             $userRec->loginTime = $sessUserRec->loginTime;

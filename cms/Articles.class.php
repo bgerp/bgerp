@@ -568,7 +568,7 @@ class cms_Articles extends core_Master
                 $domainId = cms_Content::fetch($rec->menuId)->domainId;
                 if ($domainId && ($lg = cms_Domains::fetch($domainId)->lang)) {
                     $ctr = ucfirst($lg);
-                    if (cls::load($ctr)) {
+                    if (cls::load($ctr, true)) {
                         $url['Ctr'] = $ctr;
                         unset($url['Act']);
                     } else {

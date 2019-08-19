@@ -61,13 +61,13 @@ class eshop_plg_ProductSync extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if (eshop_Products::haveRightFor('linktoeshop', (object) array('productId' => $data->rec->id))) {
-            $data->toolbar->addBtn('E-маг', array('eshop_Products', 'linktoeshop', 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Свързване в Е-маг');
+            $data->toolbar->addBtn('E-маг', array('eshop_Products', 'linktoeshop', 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Свързване в Е-маг');
         }
         
         if ($domainId = cms_Domains::getCurrent('id', false)) {
             if ($eshopProductId = eshop_Products::getByProductId($data->rec->id, $domainId)) {
                 if (eshop_Products::haveRightFor('single', $eshopProductId)) {
-                    $data->toolbar->addBtn('E-артикул', array('eshop_Products', 'single', $eshopProductId, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Към е-артикула');
+                    $data->toolbar->addBtn('E-артикул', array('eshop_Products', 'single', $eshopProductId, 'ret_url' => true), 'ef_icon = img/16/domain_names_advanced.png,title=Към е-артикула');
                 }
             }
         }

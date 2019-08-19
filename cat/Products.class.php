@@ -1668,12 +1668,12 @@ class cat_Products extends embed_Manager
         
         // Ако няма цена от драйвера, се гледа политика 'Себестойност';
         $date = price_ListToCustomers::canonizeTime($date);
-        if (!isset($primeCost)) {
+        if ((is_object($primeCost) && !isset($primeCost->price)) || !isset($primeCost)) {
             $primeCost = price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
         }
         
         // Ако няма себестойност, но има прототип, гледа се неговата себестойност
-        if (!isset($primeCost)) {
+        if ((is_object($primeCost) && !isset($primeCost->price)) || !isset($primeCost)) {
             if ($proto = cat_Products::fetchField($productId, 'proto')) {
                 $primeCost = price_ListRules::getPrice($primeCostlistId, $proto, $packagingId, $date);
             }

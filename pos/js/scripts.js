@@ -410,6 +410,20 @@ function posActions() {
 		}, 3000);
 	});
 	
+	// Търсене на контрагенти след натискане на ENTER
+	$("input[name=input-search-contragent]").keypress(function(e) {
+		if(e.which == 13) {
+			var url = $(this).attr("data-url");
+			var receiptId = $("input[name=receiptId]").val();
+			var inpVal = $("input[name=input-search-contragent]").val();
+			
+			resObj = new Object();
+			resObj['url'] = url;
+			getEfae().process(resObj, {receiptId:receiptId,searchString:inpVal});
+			calculateWidth();
+	    }
+	});
+	
 	// Търсене на контрагенти
 	$(document.body).on('click', ".pos-search-contragent-btn", function(e){
 		var searchStr = $("input[name=input-search-contragent]").val();

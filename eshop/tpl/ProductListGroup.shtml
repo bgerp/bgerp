@@ -1,7 +1,7 @@
 <div class='eshop-product-list'>
-    <table>
+    <table style="width: 100%;">
         <tr>
-            <td class="vtop">
+            <td class="vtop" style="width: 130px;">
                 [#image#]
             </td>
             <td class="vtop">

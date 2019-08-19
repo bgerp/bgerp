@@ -641,9 +641,13 @@ class price_ProductCosts extends core_Manager
                     }
                     
                     // Изчисляване на колко е средната
-                    $delimeter = min($quantityByNow, $accObject->quantity);
+                    if($quantityByNow){
+                        $delimeter = min($quantityByNow, $accObject->quantity);
+                    } else {
+                        $delimeter = $accObject->quantity;
+                    }
                     
-                    $averageAmount = round($sum / $delimeter, 4);
+                    $averageAmount = @round($sum / $delimeter, 4);
                     $averageAmount = core_Math::roundNumber($averageAmount);
                 }
             }
