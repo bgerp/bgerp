@@ -6,7 +6,7 @@
         <div class='display-table'>
             <div class='antetka'>
                 <div class="small">
-                    <div style='width: 50%; display: inline-block; vertical-align: top; text-align: left;'>
+                    <div>
                         <table class='top-table'>
                             <!--ET_BEGIN ExternalThreadViewFrom-->
                             <tr>
