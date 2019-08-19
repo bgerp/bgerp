@@ -169,7 +169,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                 }
                 
                 // Ако няма последна покупна цена и не се обновява запис в текущата покупка
-                if (empty($policyInfo->price)) {
+                if (!isset($policyInfo->price)) {
                     $form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика (2)');
                 } else {
                     
