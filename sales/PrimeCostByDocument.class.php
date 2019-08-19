@@ -61,7 +61,7 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,dealerId,initiatorId,state,isPublic,folderId';
+    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,dealerId,initiatorId,state,isPublic,folderId,expenses';
     
     
     /**
@@ -98,6 +98,7 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->FLD('isPublic', 'enum(no=Частен,yes=Публичен)', 'caption=Публичен');
         $this->FLD('contragentId', 'int', 'caption=Контрагент,tdClass=leftCol');
         $this->FLD('contragentClassId', 'int', 'caption=Контрагент');
+        $this->FLD('expenses', 'double', 'caption=Разходи,mandatory');
         
         $this->setDbIndex('productId,containerId');
         $this->setDbIndex('productId');
