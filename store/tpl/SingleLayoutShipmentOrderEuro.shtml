@@ -49,6 +49,11 @@
                                 <td>[#deliveryTime#]</td>
                             </tr>
                             <!--ET_END deliveryTime-->
+                            <!--ET_BEGIN fromContainerId-->
+                  			<tr>
+                     			<td colspan='2'><span class='quiet'>|Към|* [#fromContainerName#]:</span> [#fromContainerId#]</td>
+                  			</tr>
+                  			<!--ET_END fromContainerId-->
                             <!--ET_BEGIN storeId-->
                             <tr>
                                 <td class='quiet nowrap aright'>|От склад|*:</td>
@@ -76,16 +81,39 @@
                                 <td>[#lineId#]</td>
                             </tr>
                             <!--ET_END lineId-->
-                        </table>
-                            <!--ET_BEGIN dimentions-->
-                        [#dimentions#]
-                        <hr>
-                          <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b></div>
-                        <!--ET_BEGIN dimentions-->
-                        <!--ET_BEGIN note-->
-                        <hr>
-                        [#note#]
-                        <!--ET_END note-->
+                           <!--ET_BEGIN lineNotes-->
+                           <tr>
+                               <td class='quiet nowrap'>|Забележки|*: </td>
+                               <td>[#lineNotes#]</td>
+                           </tr>
+                           <!--ET_END lineNotes-->
+                           <!--ET_BEGIN note-->
+                           <tr>
+                               <td colspan="2" >
+                                   <hr>
+                                   [#note#]
+                               </td>
+                           </tr>
+                           <!--ET_END note-->
+                           <tr>
+                               <td colspan="2" >
+                                   <hr>
+                               </td>
+                           </tr>
+                           <!--ET_END deliveryTable-->
+                           <tr>
+                               <td colspan="2" >
+                                   <div>
+                                       <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span> <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
+                                   </div>
+                               </td>
+                           </tr>
+                           <!--ET_BEGIN logisticInfo-->
+                           <tr>
+                               <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*:</span> [#logisticInfo#]</td>
+                           </tr>
+                           <!--ET_END logisticInfo-->
+                       </table>
                     </td>
                     <td class="topCell vtop">
                         <table class='no-border' style='margin-bottom: 20px;width:100%;' id='business-doc-summary-table'>
@@ -161,13 +189,14 @@
             </tbody>
         </table>
 
+        <!--ET_BEGIN store_DocumentPackagingDetail-->
         <div class='scrolling-holder' style="margin-top: 10px;">
-            <!--ET_BEGIN store_DocumentPackagingDetail-->
             <div class="details smallerText" >
+                <p style="margin: 10px 0 5px; font-weight:bold">Отговорно пазене</p>
                 [#store_DocumentPackagingDetail#]
             </div>
-            <!--ET_END store_DocumentPackagingDetail-->
         </div>
+        <!--ET_END store_DocumentPackagingDetail-->
         <!--ET_BEGIN PACKAGING_BTNS-->
         <div style='margin-top:10px'>[#PACKAGING_BTNS#]</div>
         <!--ET_END PACKAGING_BTNS-->

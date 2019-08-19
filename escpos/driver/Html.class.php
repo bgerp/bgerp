@@ -6,133 +6,132 @@
  *
  * @category  bgerp
  * @package   escprint
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class escpos_driver_Html extends core_BaseClass
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'HTML ESC/POS Принтер';
     
-
+    
     /**
      * Връща конанди за настройка на шрифта
      */
-    public function getFont($font, $bold, $underline) 
+    public function getFont($font, $bold, $underline)
     {
         $style = '';
-
-        if($font == 'F') {
+        
+        if ($font == 'F') {
             $style .= 'font-size:1.2em;';
         }
-
-        if($font == 'f') {
+        
+        if ($font == 'f') {
             $style .= 'font-size:0.8em;';
         }
-        if($bold) {
+        if ($bold) {
             $style .= 'font-weight:bold;';
         }
-        if($underline) {
+        if ($underline) {
             $style .= 'text-decoration:underline;';
         }
-
+        
         return "<span style='{$style}'>";
     }
-
-
+    
+    
     /**
      * Край на задаването на шрифта
      */
-    public function getFontEnd() 
+    public function getFontEnd()
     {
-        return "</span>";
+        return '</span>';
     }
-
-
+    
+    
     /**
      * Нова линия
      */
-    public function getNewLine() 
+    public function getNewLine()
     {
-        return "<br>";
+        return '<br>';
     }
-
-
+    
+    
     /**
      * Последователност за срязване на хартията
      */
-    public function getCutting() 
+    public function getCutting()
     {
     }
-
+    
+    
     /**
-     * Връща символа за интервал 
+     * Връща символа за интервал
      * Преместване на позицията с един символ, без да отпечатва нищо
      */
     public function getSpace()
     {
         return '&nbsp;';
     }
-
-
+    
+    
     /**
      * Връща максималния брой символи, според вида на шрифта
      */
-    public function getWidth($font = NULL)
+    public function getWidth($font = null)
     {
         $width = 32;
-
-        if($font == 'f') {
+        
+        if ($font == 'f') {
             $width = 48;
         }
-
-        if($font == 'F') {
+        
+        if ($font == 'F') {
             $width = 29;
         }
-
+        
         return $width;
     }
-
-
+    
+    
     /**
      * Общо конвертиране за изходния текст
      */
     public function encode($text)
     {
-        return "<div style='font-family:\"Courier New\", Courier, monospace;'>" . $text . "</div>";
+        return "<div style='font-family:\"Courier New\", Courier, monospace;'>" . $text . '</div>';
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param core_Et $tpl
-     * 
+     *
      * @return core_Et
      */
     public function placePrintData($tpl)
     {
-        
         return $tpl;
     }
     
     
     /**
      * Добавя необходимите настройки за преди текста за отпечатване
-     * 
+     *
      * @param string $res
-     * 
+     *
      * @return string
      */
     public function prepareTextSettings($res)
     {
-        
         return $res;
     }
 }

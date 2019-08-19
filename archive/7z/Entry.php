@@ -10,50 +10,49 @@
  * @version   0.1 alpha
  *
  */
-
 class Archive_7z_Entry
 {
     /**
      * @var string
      */
-    var $path;
+    public $path;
     /**
      * @var string
      */
-    var $size;
+    public $size;
     /**
      * @var string
      */
-    var $packedSize;
+    public $packedSize;
     /**
      * @var string
      */
-    var $modified;
+    public $modified;
     /**
      * @var string
      */
-    var $attributes;
+    public $attributes;
     /**
      * @var string
      */
-    var $crc;
+    public $crc;
     /**
      * @var string
      */
-    var $encrypted;
+    public $encrypted;
     /**
      * @var string
      */
-    var $method;
+    public $method;
     /**
      * @var string
      */
-    var $block;
+    public $block;
 
     /**
      * @var Archive_7z
      */
-    var $archive;
+    public $archive;
 
 
     /**

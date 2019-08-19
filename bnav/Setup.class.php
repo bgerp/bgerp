@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class bnav_Setup
  *
@@ -11,46 +10,51 @@
  *
  * @category  bgerp
  * @package   bnav
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bnav_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'bnav_bnavExport_ContragentsExport,bnav_bnavExport_ItemsExport,bnav_bnavExport_SalesInvoicesExport,bnav_bnavExport_PurchaseInvoicesExport';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Драйвър за импорт от \"Бизнес навигатор\"";
+    public $info = 'Драйвър за импорт от "Бизнес навигатор"';
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
-    { 
+    public function install()
+    {
         $html = parent::install();
-    	
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -60,26 +64,6 @@ class bnav_Setup extends core_ProtoSetup
         // Добавяме Импортиращия драйвър в core_Classes
         $html .= core_Classes::add('bnav_bnavImporter');
         $html .= cls::get('cat_Products')->setupMvc();
-        
-        return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    function deinstall()
-    {
-    	$html = parent::deinstall();
-         // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Инсталираме клавиатурата към password полета
-        if($delCnt = $Plugins->deinstallPlugin('bnav_Plugin')) {
-            $html .= "<li>Премахнати са {$delCnt} закачания на 'bnav_Plugin'";
-        } else {
-            $html .= "<li>Не са премахнати закачания на плъгина";
-        }
         
         return $html;
     }

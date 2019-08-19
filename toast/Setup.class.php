@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Версията на toast message
  */
@@ -11,42 +12,42 @@ defIfNot('TOAST_MESSAGE_VERSION', '0.3.0f');
  *
  * @category  vendors
  * @package   toast
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class toast_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Показване статус съобщенията в тост стил";
+    public $info = 'Показване статус съобщенията в тост стил';
     
-
+    
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
-        'TOAST_MESSAGE_VERSION' => array ('enum(0.3.0f)', 'caption=Версия на `ToastMessage`->Версия'),                
+    public $configDescription = array(
+        'TOAST_MESSAGE_VERSION' => array('enum(0.3.0f)', 'caption=Версия на `ToastMessage`->Версия'),
     );
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -55,8 +56,8 @@ class toast_Setup extends core_ProtoSetup
         
         return $html;
     }
-
-
+    
+    
     /**
      * Връща JS файлове, които са подходящи за компактиране
      */
@@ -78,4 +79,3 @@ class toast_Setup extends core_ProtoSetup
         return 'toast/' . $conf->TOAST_MESSAGE_VERSION . '/resources/css/jquery.toastmessage.css';
     }
 }
-

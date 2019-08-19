@@ -1,14 +1,17 @@
 <?php
 
+
 /**
  * Задължителен параметър за експорт на ф-ра
  */
 defIfNot('ACC_INVOICE_MANDATORY_EXPORT_PARAM', '');
 
+
 /**
  * Колко дена преди края на месеца да се направи следващия бъдещ период чакащ
  */
-defIfNot('ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING', '');
+defIfNot('ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING', '86400');
+
 
 /**
  * Стойност по подразбиране на актуалния ДДС (между 0 и 1)
@@ -16,51 +19,85 @@ defIfNot('ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING', '');
  */
 defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
 
+
 /**
  * Стойност по подразбиране на актуалния ДДС (между 0 и 1)
  * Използва се по време на инициализацията на системата, при създаването на първия период
  */
 defIfNot('BASE_CURRENCY_CODE', 'BGN');
 
+
 /**
  * Кои документи могат да са разходни пера
  */
 defIfNot('ACC_COST_OBJECT_DOCUMENTS', '');
+
 
 /**
  * Толеранс за допустимо разминаване на суми
  */
 defIfNot('ACC_MONEY_TOLERANCE', '0.05');
 
+
 /**
  * Колко реда да се показват в детайлния баланс
  */
 defIfNot('ACC_DETAILED_BALANCE_ROWS', 500);
+
 
 /**
  * Основание за неначисляване на ДДС за контрагент контрагент от държава в ЕС (без България)
  */
 defIfNot('ACC_VAT_REASON_IN_EU', 'чл.53 от ЗДДС – ВОД');
 
+
 /**
  * Основание за неначисляване на ДДС за контрагент извън ЕС
  */
 defIfNot('ACC_VAT_REASON_OUTSIDE_EU', 'чл.28 от ЗДДС – износ извън ЕС');
+
 
 /**
  * Роли за всички при филтриране
  */
 defIfNot('ACC_SUMMARY_ROLES_FOR_ALL', 'ceo,admin');
 
+
 /**
  * Роли за екипите при филтриране
  */
 defIfNot('ACC_SUMMARY_ROLES_FOR_TEAMS', 'ceo,admin,manager');
 
+
 /**
  * Ден от месеца за изчисляване на Счетоводна дата на входяща фактура
  */
 defIfNot('ACC_DATE_FOR_INVOICE_DATE', '10');
+
+
+/**
+ * Какво количество автоматично да се попълва в корекцията от закръгляния
+ */
+defIfNot('ACC_BALANCE_REPAIR_QUANITITY_BELLOW', '0,00999');
+
+
+/**
+ * Каква сума автоматично да се попълва в корекцията от закръгляния
+ */
+defIfNot('ACC_BALANCE_REPAIR_AMOUNT_BELLOW', '0,00999');
+
+
+/**
+ * Кои сметки автоматично да се попълвавт в корекцията от закръгляния
+ */
+defIfNot('ACC_BALANCE_REPAIR_ACCOUNTS', '');
+
+
+/**
+ * Да се използват ли дефолтите за корекцията от стойност
+ */
+defIfNot('ACC_BALANCE_REPAIR_NO_DEFAULTS', 'no');
+
 
 /**
  * class acc_Setup
@@ -71,43 +108,55 @@ defIfNot('ACC_DATE_FOR_INVOICE_DATE', '10');
  *
  * @category bgerp
  * @package acc
+ *
  * @author Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license GPL 3
+ *
  * @since v 0.1
  */
 class acc_Setup extends core_ProtoSetup
 {
-
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
-
+    public $version = '0.1';
+    
+    
     /**
      * Необходими пакети
      */
-    var $depends = 'currency=0.1';
-
+    public $depends = 'currency=0.1';
+    
+    
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'acc_Lists';
-
+    public $startCtr = 'acc_Lists';
+    
+    
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
-
+    public $startAct = 'default';
+    
+    
     /**
      * Описание на модула
      */
-    var $info = "Двустранно счетоводство: Настройки, Журнали";
-
+    public $info = 'Двустранно счетоводство: Настройки, Журнали';
+    
+    
+    /**
+     * Дефолтни сметки за добавяне към документа за корекция от грешки
+     */
+    protected static $accAccount = '321,323,401,411,61101,6911,6912,699,701,703,706,7911,7912';
+    
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
         'acc_Lists',
         'acc_Items',
         'acc_Periods',
@@ -129,24 +178,24 @@ class acc_Setup extends core_ProtoSetup
         'acc_ValueCorrections',
         'acc_FeatureTitles',
         'acc_CostAllocations',
-        'migrate::removeUnusedRole',
-        'migrate::recalcAllGlobalRole'
+        'migrate::updateFeatures'
     );
-
+    
+    
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
         'ACC_MONEY_TOLERANCE' => array(
-            "double(decimals=2)",
+            'double(decimals=2)',
             'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'
         ),
         'ACC_DETAILED_BALANCE_ROWS' => array(
-            "int",
+            'int',
             'caption=Редове в страница от детайлния баланс->Брой редове,unit=бр.'
         ),
         'ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING' => array(
-            "time(suggestions= 1 ден|2 дена|7 Дена)",
+            'time(suggestions= 1 ден|2 дена|7 Дена)',
             'caption=Колко дни преди края на месеца да се направи следващия бъдещ период чакащ->Дни'
         ),
         'ACC_VAT_REASON_OUTSIDE_EU' => array(
@@ -159,7 +208,7 @@ class acc_Setup extends core_ProtoSetup
         ),
         'ACC_COST_OBJECT_DOCUMENTS' => array(
             'keylist(mvc=core_Classes,select=name)',
-            "caption=Кои документи могат да бъдат разходни обекти->Документи,optionsFunc=acc_Setup::getDocumentOptions"
+            'caption=Кои документи могат да бъдат разходни обекти->Документи,optionsFunc=acc_Setup::getDocumentOptions'
         ),
         'ACC_SUMMARY_ROLES_FOR_TEAMS' => array(
             'varchar',
@@ -174,15 +223,32 @@ class acc_Setup extends core_ProtoSetup
             'caption=Ден от месеца за изчисляване на Счетоводна дата на входяща фактура->Ден'
         ),
         'ACC_INVOICE_MANDATORY_EXPORT_PARAM' => array(
-            "key(mvc=cat_Params,select=name,allowEmpty)",
+            'key(mvc=cat_Params,select=name,allowEmpty)',
             'caption=Артикул за експорт на данъчна фактура->Параметър'
+        ),
+        'ACC_BALANCE_REPAIR_NO_DEFAULTS' => array(
+            'enum(yes=Да,no=Не)',
+            'caption=Корекция на грешки от закръгляне->Празен документ'
+        ),
+        'ACC_BALANCE_REPAIR_ACCOUNTS' => array(
+            'acc_type_accounts',
+            'caption=Корекция на грешки от закръгляне->Сметки'
+        ),
+        'ACC_BALANCE_REPAIR_QUANITITY_BELLOW' => array(
+            'double',
+            'caption=Корекция на грешки от закръгляне->Количество под'
+        ),
+        'ACC_BALANCE_REPAIR_AMOUNT_BELLOW' => array(
+            'double',
+            'caption=Корекция на грешки от закръгляне->Сума под'
         )
     );
-
+    
+    
     /**
      * Роли за достъп до модула
      */
-    var $roles = array(
+    public $roles = array(
         array(
             'seePrice'
         ),
@@ -256,22 +322,26 @@ class acc_Setup extends core_ProtoSetup
             'acc, invoiceAllGlobal, storeAllGlobal, bankAllGlobal, cashAllGlobal, saleAllGlobal, purchaseAllGlobal, planningAllGlobal'
         ),
         array(
-            'rep_acc'
+            'repAll'
+        ),
+        array(
+            'repAllGlobal',
+            'repAll'
         )
-    )
-    ;
-
+    );
+    
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
+    public $menuItems = array(
         array(
             2.1,
             'Счетоводство',
             'Книги',
             'acc_Balances',
             'default',
-            "acc, ceo"
+            'acc, ceo'
         ),
         array(
             2.3,
@@ -279,20 +349,21 @@ class acc_Setup extends core_ProtoSetup
             'Настройки',
             'acc_Periods',
             'default',
-            "acc, ceo, admin"
+            'acc, ceo, admin'
         )
     );
-
+    
+    
     /**
      * Описание на системните действия
      */
-    var $systemActions = array(
+    public $systemActions = array(
         array(
             'title' => 'Реконтиране',
             'url' => array(
                 'acc_Journal',
                 'reconto',
-                'ret_url' => TRUE
+                'ret_url' => true
             ),
             'params' => array(
                 'title' => 'Реконтиране на документите',
@@ -300,27 +371,28 @@ class acc_Setup extends core_ProtoSetup
             )
         )
     );
-
+    
+    
     /**
      * Настройки за Cron
      */
-    var $cronSettings = array(
+    public $cronSettings = array(
         array(
-            'systemId' => "Delete Items",
-            'description' => "Изтриване на неизползвани затворени пера",
-            'controller' => "acc_Items",
-            'action' => "DeleteUnusedItems",
+            'systemId' => 'Delete Items',
+            'description' => 'Изтриване на неизползвани затворени пера',
+            'controller' => 'acc_Items',
+            'action' => 'DeleteUnusedItems',
             'period' => 1440,
             'offset' => 60,
             'timeLimit' => 100
         ),
         array(
-            'systemId' => "Create Periods",
-            'description' => "Създаване на нови счетоводни периоди",
-            'controller' => "acc_Periods",
-            'action' => "createFuturePeriods",
+            'systemId' => 'Create Periods',
+            'description' => 'Създаване на нови счетоводни периоди',
+            'controller' => 'acc_Periods',
+            'action' => 'createFuturePeriods',
             'period' => 1440,
-            'offset' => 60
+            'offset' => 1
         ),
         array(
             'systemId' => 'RecalcBalances',
@@ -331,49 +403,42 @@ class acc_Setup extends core_ProtoSetup
             'timeLimit' => 55
         ),
         array(
-            'systemId' => "SyncAccFeatures",
-            'description' => "Синхронизиране на счетоводните свойства",
-            'controller' => "acc_Features",
-            'action' => "SyncFeatures",
+            'systemId' => 'SyncAccFeatures',
+            'description' => 'Синхронизиране на счетоводните свойства',
+            'controller' => 'acc_Features',
+            'action' => 'SyncFeatures',
             'period' => 1440,
             'offset' => 60,
-            'timeLimit' => 600
+            'timeLimit' => 900
         ),
         array(
-            'systemId' => "CheckAccLimits",
-            'description' => "Проверка на счетоводните лимити",
-            'controller' => "acc_Limits",
-            'action' => "CheckAccLimits",
+            'systemId' => 'CheckAccLimits',
+            'description' => 'Проверка на счетоводните лимити',
+            'controller' => 'acc_Limits',
+            'action' => 'CheckAccLimits',
             'period' => 480,
             'offset' => 1,
             'timeLimit' => 60
         )
     );
-
+    
+    
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "acc_ReportDetails, acc_reports_BalanceImpl, acc_BalanceHistory, acc_reports_HistoryImpl, acc_reports_PeriodHistoryImpl,
+    public $defClasses = 'acc_ReportDetails, acc_reports_BalanceImpl, acc_BalanceHistory, acc_reports_HistoryImpl, acc_reports_PeriodHistoryImpl,
     					acc_reports_CorespondingImpl,acc_reports_SaleArticles,acc_reports_SaleContractors,acc_reports_OweProviders,
     					acc_reports_ProfitArticles,acc_reports_ProfitContractors,acc_reports_MovementContractors,acc_reports_TakingCustomers,
     					acc_reports_ManufacturedProducts,acc_reports_PurchasedProducts,acc_reports_BalancePeriodImpl, acc_reports_ProfitSales,
-                        acc_reports_MovementsBetweenAccounts,acc_reports_MovementArtRep,acc_reports_TotalRep,acc_reports_UnpaidInvoices";
-
-    /**
-     * Де-инсталиране на пакета
-     */
-    function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
-
+                        acc_reports_MovementsBetweenAccounts,acc_reports_MovementArtRep,acc_reports_TotalRep,acc_reports_UnpaidInvoices,
+                        acc_reports_UnactiveContableDocs,acc_reports_NegativeQuantities,acc_reports_InvoicesByContragent';
+    
+    
+    
     /**
      * Зареждане на данни
      */
-    function loadSetupData($itr = '')
+    public function loadSetupData($itr = '')
     {
         $res = parent::loadSetupData($itr);
         $docs = core_Packs::getConfigValue('acc', 'ACC_COST_OBJECT_DOCUMENTS');
@@ -384,13 +449,29 @@ class acc_Setup extends core_ProtoSetup
             $res .= "<li style='color:green'>Добавени са дефолт документи за разходни пера</li>";
         }
         
+        // Ако няма посочени от потребителя сметки за синхронизация
+        $repairAccountsDefault = core_Packs::getConfigValue('acc', 'ACC_BALANCE_REPAIR_ACCOUNTS');
+        if (strlen($repairAccountsDefault) === 0) {
+            $accArray = array();
+            $accAcounts = arr::make(static::$accAccount, true);
+            foreach ($accAcounts as $accSysId) {
+                $accId = acc_Accounts::getRecBySystemId($accSysId)->id;
+                $accArray[$accId] = $accSysId;
+            }
+            
+            // Записват се ид-та на дефолт сметките за синхронизация
+            core_Packs::setConfig('acc', array('ACC_BALANCE_REPAIR_ACCOUNTS' => keylist::fromArray($accArray)));
+            $res .= "<li style='color:green'>Дефолт счетодовни сметки за корекция от закръгляне<b>" . implode(',', $accArray) . '</b></li>';
+        }
+        
         return $res;
     }
-
+    
+    
     /**
      *
-     * @param core_Type $type            
-     * @param array $otherParams            
+     * @param core_Type $type
+     * @param array     $otherParams
      *
      * @return array
      */
@@ -398,11 +479,12 @@ class acc_Setup extends core_ProtoSetup
     {
         return core_Classes::getOptionsByInterface('acc_TransactionSourceIntf', 'title');
     }
-
+    
+    
     /**
      * Кои документи по дефолт да са разходни обекти
      */
-    function getCostObjectDocuments()
+    public function getCostObjectDocuments()
     {
         $docArr = array();
         foreach (array(
@@ -426,7 +508,8 @@ class acc_Setup extends core_ProtoSetup
             'ACC_COST_OBJECT_DOCUMENTS' => keylist::fromArray($docArr)
         ));
     }
-
+    
+    
     /**
      * Помощна функция връщаща всички класове, които са документи
      */
@@ -436,35 +519,53 @@ class acc_Setup extends core_ProtoSetup
         
         return $options;
     }
-
+    
+    
     /**
-     * Миграция за премахване на грешно изписана роля
+     * Миграция на свойствата
      */
-    public static function removeUnusedRole()
+    function updateFeatures()
     {
-        $rId = core_Roles::fetchByName('storeaAllGlobal');
-        if ($rId) {
-            core_Roles::removeRoles(array(
-                $rId
-            ));
-        }
-    }
-
-    /**
-     * Миграция за премахване на грешно изписана роля
-     */
-    public static function recalcAllGlobalRole()
-    {
-        $rId = core_Roles::fetchByName('allGlobal');
-        if ($rId) {
-            core_Roles::removeRoles(array(
-                $rId
-            ));
+        $FeatureTitles = cls::get('acc_FeatureTitles');
+        $FeatureTitles->setupMvc();
+        
+        $Features = cls::get('acc_Features');
+        $Features->setupMvc();
+        
+        if(!acc_Features::count()) return;
+        core_App::setTimeLimit(700);
+        
+        $titleToSave = array();
+        $tQuery = acc_FeatureTitles::getQuery();
+        $tQuery->where("LOCATE('||', #title)");
+        $tQuery->show('title');
+        while($tRec = $tQuery->fetch()){
+            $exploded = explode('||', $tRec->title);
+            if(count($exploded) == 2){
+                $tRec->title = $exploded[0];
+                $titleToSave[$tRec->id] = $tRec;
+            }
         }
         
-        core_Roles::rebuildRoles();
-        core_Users::rebuildRoles();
+        $valuesToSave = array();
+        $fQuery = acc_Features::getQuery();
+        $fQuery->where("LOCATE('||', #value)");
+        $fQuery->show('value');
         
-        core_Roles::addOnce('allGlobal');
+        while($fRec = $fQuery->fetch()){
+            $exploded = explode('||', $fRec->value);
+            if(count($exploded) == 2){
+                $fRec->value = $exploded[0];
+                $valuesToSave[$fRec->id] = $fRec;
+            }
+        }
+        
+        if(count($titleToSave)){
+            $FeatureTitles->saveArray($titleToSave, 'id,title');
+        }
+        
+        if(count($valuesToSave)){
+            $Features->saveArray($valuesToSave, 'id,value');
+        }
     }
 }

@@ -39,7 +39,7 @@
 <p>[#contragentName#]
 <p>[#contragentAddress#]
 <!--ET_BEGIN deliveryLocationId-->
-<p>До обект: [#deliveryLocationId#]
+<p>До локация: [#deliveryLocationId#]
 <!--ET_END deliveryLocationId-->
 <p><r32 ->
 <!--ET_BEGIN shipmentStoreId-->

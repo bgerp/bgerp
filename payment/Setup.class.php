@@ -1,21 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'payment_Setup' - Пакет за работа с електронни банкови извлечения
  *
  *
  * @category  bgerp
  * @package   payment
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class payment_Setup extends core_ProtoSetup
 {
-    
     /**
      * Версия на пакета
      */
@@ -37,12 +37,11 @@ class payment_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = "Обработка на платежни банкови документи";
-
-
+    public $info = 'Обработка на платежни банкови документи';
+    
+    
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "payment_ImportDriver";
- 
+    public $defClasses = 'payment_ImportDriver';
 }

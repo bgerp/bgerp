@@ -69,6 +69,11 @@
                      <td>[#deliveryTime#]</td>
                   </tr>
                   <!--ET_END deliveryTime-->
+                  <!--ET_BEGIN fromContainerId-->
+                  <tr>
+                     <td colspan='2'><span class='quiet'>|Към|* [#fromContainerName#]:</span> [#fromContainerId#]</td>
+                  </tr>
+                  <!--ET_END fromContainerId-->
                   <!--ET_BEGIN deliveryAddressBlock-->
                   [#deliveryAddressBlock#]
                   <tr>
@@ -84,6 +89,12 @@
                      <td>[#lineId#]</td>
                   </tr>
                   <!--ET_END lineId-->
+                  <!--ET_BEGIN lineNotes-->
+                  <tr>
+                     <td class='quiet nowrap'>|Забележки|*: </td>
+                     <td>[#lineNotes#]</td>
+                  </tr>
+                  <!--ET_END lineNotes-->
                   <!--ET_BEGIN note-->
                   <tr>
                      <td colspan="2" >
@@ -103,11 +114,13 @@
                         <div>
                          <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span> <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
                         </div>
-
-                        <div class='clearfix21'>
-                        <!--ET_BEGIN logisticInfo--><div style='margin-bottom:3px;margin-top:3px;'>|Логистични единици|*:&nbsp;[#logisticInfo#]</div><!--ET_END logisticInfo--> 
                      </td>
                   </tr>
+                  <!--ET_BEGIN logisticInfo-->
+                  <tr>
+                     <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*:</span> [#logisticInfo#]</td>
+                  </tr>
+                  <!--ET_END logisticInfo-->
                </table>
             </td>
             <td>
@@ -129,14 +142,14 @@
          </tr>
       </tbody>
    </table>
-
+   <!--ET_BEGIN store_DocumentPackagingDetail-->
    <div class='scrolling-holder' style="margin-top: 10px;">
-      <!--ET_BEGIN store_DocumentPackagingDetail-->
       <div class="details smallerText" >
+         <p style="margin: 10px 0 5px; font-weight:bold">Отговорно пазане</p>
          [#store_DocumentPackagingDetail#]
       </div>
-      <!--ET_END store_DocumentPackagingDetail-->
    </div>
+   <!--ET_END store_DocumentPackagingDetail-->
    <!--ET_BEGIN PACKAGING_BTNS-->
    <div style='margin-top:10px'>[#PACKAGING_BTNS#]</div>
    <!--ET_END PACKAGING_BTNS-->

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class Holders
  *
@@ -10,72 +9,73 @@
  *
  * @category  bgerp
  * @package   rfid
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class rfid_Holders extends core_Manager {
-    
-    
+class rfid_Holders extends core_Manager
+{
     /**
      * Заглавие
      */
-    var $title = 'Картодържател';
+    public $title = 'Картодържател';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,admin,rfid';
+    public $canRead = 'ceo,admin,rfid';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'ceo,admin,rfid';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,admin,rfid';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,admin,rfid';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,admin,rfid';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,admin,rfid';
+    public $canEdit = 'ceo,admin,rfid';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,admin,rfid';
+    public $canAdd = 'ceo,admin,rfid';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,admin,rfid';
+    public $canView = 'ceo,admin,rfid';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,admin,rfid';
+    public $canDelete = 'ceo,admin,rfid';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,rfid_Wrapper,plg_RowTools2';
+    public $loadList = 'plg_Created,rfid_Wrapper,plg_RowTools2';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('classId', 'class(interface=rfid_HolderIntf)', 'caption=Тип притежател');
         $this->FLD('objectId', 'int', 'caption=Притежател');

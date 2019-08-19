@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'i18n_Language' - Откриване на езика на текст
  *
@@ -10,36 +9,39 @@
  *
  * @category  vendors
  * @package   i18n
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class i18n_Language {
-    
+class i18n_Language
+{
     /**
      * Масив с най-често срещаните 3-буквени последователности в различните езици
      */
-    static $lgAnalyzer;
+    public static $lgAnalyzer;
     
-
+    
     /**
      * Определя езика в началото на даден текст
      */
-    static function detect($text, $prefLangArr = array())
+    public static function detect($text, $prefLangArr = array())
     {
         $res = self::getLgRates($text);
-
+        
         if (!count($res)) {
-
+            
             return ;
         }
         
-        foreach ((array)$prefLangArr as $lg => $ratio) {
-            
+        foreach ((array) $prefLangArr as $lg => $ratio) {
             $lg = strtolower($lg);
             
-            if (!$res[$lg]) continue;
+            if (!$res[$lg]) {
+                continue;
+            }
             
             $res[$lg] *= $ratio;
         }
@@ -48,28 +50,27 @@ class i18n_Language {
         
         return $maxs[0];
     }
-
-
+    
+    
     /**
      * Връща рейтингите на различните езици спрямо дадения текст
      */
-    static function getLgRates($text)
+    public static function getLgRates($text)
     {
         self::prepareLgAnalyzer();
         
         $rate = array();
-
+        
         // Премахваме .com
         $text = str_replace(array('.com', '.COM'), array(), $text);
         
         // Намираме масива от текста
         $arr = self::makeLgArray(mb_substr($text, 0, 1000));
         
-        foreach(self::$lgAnalyzer as $lg => $dict) {
-            
-            foreach($dict as $w => $f) {
-                if($arr[$w]) {
-                    $rate[$lg] +=   sqrt($f * $arr[$w]);
+        foreach (self::$lgAnalyzer as $lg => $dict) {
+            foreach ($dict as $w => $f) {
+                if ($arr[$w]) {
+                    $rate[$lg] += sqrt($f * $arr[$w]);
                 }
             }
         }
@@ -85,37 +86,37 @@ class i18n_Language {
     /**
      * Подготвя масив с 2-3-4 буквени под думи, които се срещат в текста
      */
-    static function makeLgArray($text)
+    public static function makeLgArray($text)
     {
         $pattern = '/[^\p{L}]+/u';
         
-        $text = preg_replace($pattern, " ", $text);
+        $text = preg_replace($pattern, ' ', $text);
         
         $text = mb_strtolower($text);
         
-        $textArr = explode(' ',  $text);
+        $textArr = explode(' ', $text);
         
-        foreach($textArr as $word) {
+        foreach ($textArr as $word) {
             $wordLen = mb_strlen($word);
             
             if ($wordLen >= 5) {
                 $count[mb_substr($word, 0, 3) . '*']++;
-                $count['*' . mb_substr($word, $wordLen-3)]++;
-            } elseif($wordLen > 1) {
+                $count['*' . mb_substr($word, $wordLen - 3)]++;
+            } elseif ($wordLen > 1) {
                 $count[$word]++;
             }
         }
         
         return $count;
     }
-
-
+    
+    
     /**
      * Подготвя анализатора за езици
      */
     private static function prepareLgAnalyzer()
     {
-        if(!self::$lgAnalyzer) {
+        if (!self::$lgAnalyzer) {
             self::$lgAnalyzer = unserialize(gzuncompress(base64_decode('
                 eJx9vdl2FEfWNnwvPswjawTcV5NVlarKqhzKOZRa+te7FhLG4AFjd7sb29jtVhs3pt0MEgiEhMRBSacg
                 XQMI8F38MewdsZ8Q/S3pZEfGuGN6ak8RfzT34Uf/X/3R7EcfdPof/Cn+aGbB0Oc++iA6uX6yfvzggz/1
@@ -473,18 +474,18 @@ class i18n_Language {
                 bKmhveQ4kpWSn+oalVFb1ZFm1/u5PwmLzv9hN9UppUXWJAHHuvAR6LF4cFojAtkL/SL3Hcg7kjNzeG26
                 AbZTo+AxvsK/G6QtelbguZ0uvl7MNquLnj93Ba0mzjLAmUd1pYlXge/xqFM0A/uoxL9fbK5a+QrisAb/
                 hEZEeV2wL1FvyKroRYzFP/3f//3/MCC8xA==')));
-
-            foreach(array('bg', 'ru', 'mk', 'sr') as $lg) {
-                foreach(self::$lgAnalyzer[$lg] as $word => $rate) {
+            
+            foreach (array('bg', 'ru', 'mk', 'sr') as $lg) {
+                foreach (self::$lgAnalyzer[$lg] as $word => $rate) {
                     $word = str::utf2ascii($word);
-                    if(strlen($word) > 4) {
-                        if($word{0} == '*') {
-                            $word = '*' . substr($word, strlen($word)-3, 3);
+                    if (strlen($word) > 4) {
+                        if ($word{0} == '*') {
+                            $word = '*' . substr($word, strlen($word) - 3, 3);
                         } else {
                             $word = substr($word, 0, 3) . '*';
                         }
                     }
-                    self::$lgAnalyzer[$lg][$word] = $rate/2;
+                    self::$lgAnalyzer[$lg][$word] = $rate / 2;
                 }
             }
         }

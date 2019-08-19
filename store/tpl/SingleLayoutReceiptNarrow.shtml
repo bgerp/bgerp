@@ -75,22 +75,34 @@
                      <td>[#lineId#]</td>
                   </tr>
                   <!--ET_END lineId-->
-                  <!--ET_BEGIN note-->
+                  <!--ET_BEGIN lineNotes-->
                   <tr>
-                     <td colspan=2>
-                        <hr>
-                        [#note#]
-                        <hr>
-                     </td>
-                     <!--ET_END note-->
+                     <td class='nowrap' colspan=2><span class="quiet">|Забележки|*:</span> [#lineNotes#]</td>
                   </tr>
+                  <!--ET_END lineNotes-->
                   <tr>
                      <td colspan="2">
                         <div>
+                           <hr>
                            |Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b> <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; |Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput-->
                         </div>
                      </td>
                   </tr>
+                  <!--ET_BEGIN logisticInfo-->
+                  <tr>
+                     <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*:</span> [#logisticInfo#]</td>
+
+                  </tr>
+                  <!--ET_END logisticInfo-->
+
+                  <!--ET_BEGIN note-->
+                  <tr>
+                     <td colspan="2" >
+                        <hr>
+                        [#note#]
+                     </td>
+                  </tr>
+                  <!--ET_END note-->
                </table>
                <hr>
                <!--ET_BEGIN responsible-->
@@ -103,13 +115,14 @@
          </tr>
       </tbody>
    </table>
+   <!--ET_BEGIN store_DocumentPackagingDetail-->
    <div class='scrolling-holder' style="margin-top: 10px;">
-      <!--ET_BEGIN store_DocumentPackagingDetail-->
       <div class="details smallerText" >
+         <p style="margin: 10px 0 5px; font-weight:bold">Отговорно пазене</p>
          [#store_DocumentPackagingDetail#]
       </div>
-      <!--ET_END store_DocumentPackagingDetail-->
    </div>
+   <!--ET_END store_DocumentPackagingDetail-->
    <!--ET_BEGIN PACKAGING_BTNS-->
    <div style='margin-top:10px'>[#PACKAGING_BTNS#]</div>
    <!--ET_END PACKAGING_BTNS-->

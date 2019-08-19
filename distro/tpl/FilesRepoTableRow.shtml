@@ -1,13 +1,13 @@
 <!--ET_BEGIN FileList-->
 [#FileList#]
 <tr class='nowrap'>
-    <td class='distro-tools centered'>[#tools#]</td>
+    <!--ET_BEGIN tools--><td class='distro-tools centered'>[#tools#]</td><!--ET_END tools-->
     <td>[#file#]</td>
     <td class='centered'>[#modified#]</td>
 </tr>
 <!--ET_END FileList-->
 <!--ET_BEGIN fileInfo-->
 <tr>
-    <td colspan='3'><i style='font-size:0.9em;'>[#fileInfo#]</i></td>
+    <td colspan='[#colspan#]'><i style='font-size:0.9em;'>[#fileInfo#]</i></td>
 </tr>
 <!--ET_END fileInfo-->

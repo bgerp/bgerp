@@ -1,0 +1,58 @@
+<div class='singleView'>
+   [#SingleToolbar#]<br>
+   <div class='sens2_Controllers'>
+      <h1>[#SingleTitle#]</h1>
+      <table class='listTable' style='border:none;'>
+         <!--ET_BEGIN id--> 
+         <tr>
+            <td>№</td>
+            <td>[#id#][#id_inline#]</td>
+            <td rowspan=9>[#picture#]</td>
+         </tr>
+         <!--ET_END id-->
+         <!--ET_BEGIN name--> 
+         <tr>
+            <td>Name</td>
+            <td>[#name#][#name_inline#]</td>
+         </tr>
+         <!--ET_END name-->
+         <!--ET_BEGIN driver--> 
+         <tr>
+            <td>Driver</td>
+            <td>[#driver#][#driver_inline#]</td>
+         </tr>
+         <!--ET_END driver--> 
+         <!--ET_BEGIN state--> 
+         <tr>
+            <td>State</td>
+            <td>[#state#][#state_inline#]</td>
+         </tr>
+         <!--ET_END state--> 
+         <!--ET_BEGIN modifiedOn-->
+         <tr>
+            <td colspan=2 style='padding-left:0px;padding-top:15px;font-weight:bold;border-left:none;border-right:none;'>Modify</td>
+         </tr>
+         <tr>
+            <td>On</td>
+            <td>[#modifiedOn#][#modifiedOn_inline#]</td>
+         </tr>
+         <!--ET_END modifiedOn-->
+         <!--ET_BEGIN createdOn-->
+         <tr>
+            <td colspan=2 style='padding-left:0px;padding-top:15px;font-weight:bold;border-left:none;border-right:none;'>Created</td>
+         </tr>
+         <tr>
+            <td>On</td>
+            <td>[#createdOn#][#createdOn_inline#]</td>
+         </tr>
+         <!--ET_END createdOn-->
+         <!--ET_BEGIN createdBy--> 
+         <tr>
+            <td>By</td>
+            <td>[#createdBy#][#createdBy_inline#]</td>
+         </tr>
+         <!--ET_END createdBy--> 
+      </table>
+      <!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS-->
+   </div>
+</div>

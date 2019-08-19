@@ -6,55 +6,50 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_AssignPlg extends core_Plugin
 {
-    
-    
     /**
      * Кой може да възлага
      */
-    var $canAssign = 'doc, admin, ceo';
+    public $canAssign = 'doc, admin, ceo';
     
     
     /**
      * Кой може да променя активирани записи
      */
-    var $canChangerec = 'doc, admin, ceo';
+    public $canChangerec = 'doc, admin, ceo';
     
     
-    /**
-     * 
-     */
-    var $loadList = 'change_Plugin';
+    public $loadList = 'change_Plugin';
     
     
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$mvc)
+    public function on_AfterDescription(&$mvc)
     {
         // Ако няма такова поле
-        if(!$mvc->fields['assign']) {
-            
+        if (!$mvc->fields['assign']) {
             // Добавяме в модела
-            $mvc->FLD('assign', 'keylist(mvc=core_Users, select=nick, where=#state !\\= \\\'rejected\\\', allowEmpty)', 'caption=Възложен на, changable, before=sharedUsers');
-            // TODO - да не се показват колабораторите
+            $mvc->FLD('assign', 'keylist(mvc=core_Users, select=nick)', 'caption=Възлагане на, changable, before=sharedUsers, optionsFunc=doc_AssignPlg::getUsersForAssign');
         }
         
         // Ако няма такова поле
-        if(!$mvc->fields['assignedOn']) {
+        if (!$mvc->fields['assignedOn']) {
             
             // Добавяме в модела
             $mvc->FLD('assignedOn', 'datetime(format=smartTime)', 'caption=Възложено->На,input=none');
         }
         
         // Ако няма такова поле
-        if(!$mvc->fields['assignedBy']) {
+        if (!$mvc->fields['assignedBy']) {
             
             // Добавяме в модела
             $mvc->FLD('assignedBy', 'user', 'caption=Възложено->От,input=none');
@@ -71,29 +66,32 @@ class doc_AssignPlg extends core_Plugin
         
         // Към възложените потребители, добавяме споделените в ричтекста
         if ($form->isSubmitted()) {
-            
             $assignedUsersArrAll = array();
             
-            foreach ((array)$mvc->fields as $name => $field) {
+            foreach ((array) $mvc->fields as $name => $field) {
                 if ($field->type instanceof type_Richtext) {
-                    
-                    if ($field->type->params['nickToLink'] == 'no') continue;
+                    if ($field->type->params['nickToLink'] == 'no') {
+                        continue;
+                    }
                     
                     $usersArr = rtac_Plugin::getNicksArr($rec->$name);
-                    if (empty($usersArr)) continue;
+                    if (empty($usersArr)) {
+                        continue;
+                    }
                     
                     $assignedUsersArrAll = array_merge($assignedUsersArrAll, $usersArr);
                 }
             }
             
             if (!empty($assignedUsersArrAll)) {
-                
-                foreach ((array)$assignedUsersArrAll as $nick) {
+                foreach ((array) $assignedUsersArrAll as $nick) {
                     $nick = strtolower($nick);
                     $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
                     
                     // Партнюрите да не са споделение
-                    if (core_Users::haveRole('partner', $id)) continue;
+                    if (core_Users::haveRole('partner', $id)) {
+                        continue;
+                    }
                     
                     $rec->assign = type_Keylist::addKey($rec->assign, $id);
                 }
@@ -104,18 +102,21 @@ class doc_AssignPlg extends core_Plugin
     
     /**
      * Прихваща извикването на AfterInputChanges в change_Plugin
-     * 
+     *
      * @param core_MVc $mvc
-     * @param object $oldRec - Стария запис
-     * @param object $newRec - Новия запис
+     * @param object   $oldRec - Стария запис
+     * @param object   $newRec - Новия запис
      */
-    function on_AfterInputChanges($mvc, $oldRec, $newRec)
+    public function on_AfterInputChanges($mvc, $oldRec, $newRec)
     {
         // Вземаме всички записи
-        $rec = $mvc->fetch($oldRec->id, '*', FALSE);
+        $rec = $mvc->fetch($oldRec->id, '*', false);
         
         // Ако няма промяне, връщаме
-        if (($oldRec->assign == $newRec->assign)) return ;
+        if (($oldRec->assign == $newRec->assign)) {
+            
+            return ;
+        }
         
         $cu = core_Users::getCurrent();
         
@@ -128,7 +129,6 @@ class doc_AssignPlg extends core_Plugin
         
         $removedUsersArr = array_diff($oldAssignedArr, $newAssignedArr);
         if (!empty($removedUsersArr)) {
-            
             unset($removedUsersArr[$cu]);
             
             foreach ($removedUsersArr as $oldAssigned) {
@@ -176,13 +176,16 @@ class doc_AssignPlg extends core_Plugin
     /**
      * Изпраща нотификация до възложения потребител
      */
-    static function on_AfterNotificateAssigned($mvc, $res, $iRec, $notifyUsersArr)
+    public static function on_AfterNotificateAssigned($mvc, $res, $iRec, $notifyUsersArr)
     {
         $cu = core_Users::getCurrent();
         
         unset($notifyUsersArr[$cu]);
         
-        if (empty($notifyUsersArr)) return ;
+        if (empty($notifyUsersArr)) {
+            
+            return ;
+        }
         
         // Вербалния ник на потребителя
         $nick = core_Users::getVerbal($cu, 'nick');
@@ -191,8 +194,8 @@ class doc_AssignPlg extends core_Plugin
         $docHnd = $mvc->getHandle($iRec->id);
         
         // Титлата на документа в долния регистър
-        $docSingleTitleLower = mb_strtolower($mvc->singleTitle); 
-
+        $docSingleTitleLower = mb_strtolower($mvc->singleTitle);
+        
         // Заглавието на сигнала във НЕвербален вид
         $title = str::limitLen($mvc->getDocumentRow($iRec->id)->recTitle, 90);
         
@@ -211,19 +214,19 @@ class doc_AssignPlg extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = NULL)
+    public static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = null)
     {
         if ($rec->assign) {
             if (!isset($rec->assignedOn) && !isset($rec->assignedBy)) {
-                $update = FALSE;
+                $update = false;
                 if ($rec->id) {
-                    $oRec = $mvc->fetch($rec->id, NULL, FALSE);
+                    $oRec = $mvc->fetch($rec->id, null, false);
                 } else {
-                    $update = TRUE;
+                    $update = true;
                 }
                 
                 if ($rec->assign != $oRec->assign) {
-                    $update = TRUE;
+                    $update = true;
                 }
                 
                 if ($update) {
@@ -235,10 +238,10 @@ class doc_AssignPlg extends core_Plugin
     }
     
     
-	/**
+    /**
      * Вербалните стойности на датата и възложителя
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if ($rec->assignedBy) {
             $row->assignedBy = crm_Profiles::createLink($rec->assignedBy);
@@ -251,9 +254,9 @@ class doc_AssignPlg extends core_Plugin
                 $row->assign .= crm_Profiles::createLink($aId);
             }
         }
-
+        
         if ($rec->assignedDate) {
-            $row->assignedDate = dt::mysql2verbal($rec->assignedDate, 'd-m-Y');    
+            $row->assignedDate = dt::mysql2verbal($rec->assignedDate, 'd-m-Y');
         }
     }
     
@@ -261,9 +264,9 @@ class doc_AssignPlg extends core_Plugin
     /**
      * Потребителя, на когото е възложена задачата
      */
-    function on_AfterGetShared($mvc, &$shared, $id)
+    public function on_AfterGetShared($mvc, &$shared, $id)
     {
-        $assignedRec = $mvc->fetch($id, 'assign', FALSE);
+        $assignedRec = $mvc->fetch($id, 'assign', false);
         
         $assignedUsersArr = array();
         if ($assignedRec->assign) {
@@ -280,7 +283,7 @@ class doc_AssignPlg extends core_Plugin
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Определяме правата за възлагане
         if ($action == 'assign') {
@@ -295,10 +298,7 @@ class doc_AssignPlg extends core_Plugin
     }
     
     
-    /**
-     * 
-     */
-    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         // Ако няма възложено на
         if (!$data->row->assign) {
@@ -314,12 +314,12 @@ class doc_AssignPlg extends core_Plugin
      * Преди записване на клонирания запис
      *
      * @param core_Mvc $mvc
-     * @param object $rec
-     * @param object $nRec
+     * @param object   $rec
+     * @param object   $nRec
      *
      * @see plg_Clone
      */
-    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    public function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {
         unset($nRec->assignedOn);
         unset($nRec->assignedBy);
@@ -327,61 +327,164 @@ class doc_AssignPlg extends core_Plugin
     
     
     /**
+     * Връща всички потребители, на които може да се възлага документа
+     *
+     * @param type_Keylist $type
+     * @param NULL|array   $options
+     */
+    public static function getUsersForAssign($type, $options)
+    {
+        $type = 'users';
+        $handle = 'assignUsers';
+        $keepMinute = 1000;
+        $depends = array('core_Users');
+        
+        $resArr = core_Cache::get($type, $handle, $keepMinute, $depends);
+        
+        if ($resArr === false) {
+            $uQuery = core_Users::getQuery();
+            
+            $uQuery->where("#state != 'rejected'");
+            
+            $powId = core_Roles::fetchByName('powerUser');
+            
+            if ($powId) {
+                $uQuery->like('roles', "|{$powId}|");
+            }
+            
+            $uQuery->orderBy('nick');
+            
+            // Текущия потребител да е най-отгоре
+            
+            $resArr = array();
+            while ($uRec = $uQuery->fetch()) {
+                $resArr[$uRec->id] = type_Nick::normalize($uRec->nick) . ' (' . core_Users::prepareUserNames($uRec->names) . ')';
+            }
+            
+            // Собственика на папката и споделените да са най-отгоре
+            if ($folderId = Request::get('folderId')) {
+                $fRec = doc_Folders::fetch($folderId);
+                
+                $interestedUsersArr = array();
+                
+                if ($fRec->shared) {
+                    $interestedUsersArr += type_Keylist::toArray($fRec->shared);
+                }
+                
+                $interestedUsersArr[$fRec->inCharge] = $fRec->inCharge;
+                
+                foreach ($interestedUsersArr as $uId) {
+                    $uNames = $resArr[$uId];
+                    if (isset($uNames)) {
+                        unset($resArr[$uId]);
+                        $resArr = array($uId => $uNames) + $resArr;
+                    }
+                }
+            }
+            
+            core_Cache::set($type, $handle, $resArr, $keepMinute, $depends);
+        }
+        
+        // Текущият потребител да е най-отгоре
+        if (!empty($resArr)) {
+            $cu = core_Users::getCurrent();
+            $cuNames = $resArr[$cu];
+            if (isset($cuNames)) {
+                unset($resArr[$cu]);
+                $resArr = array($cu => $cuNames) + $resArr;
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Подготовка на формата за добавяне/редактиране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        $rec = $data->form->rec;
-        
-        $folderId = $data->form->rec->folderId;
-        $threadId = $data->form->rec->threadId;
-        
-        $interestedUsersArr = array();
-        if (!$folderId && $threadId) {
-            $folderId = doc_Threads::fetchField($threadId, 'folderId');
+        if (!$data->form->rec->id) {
+            $defUsersArr = $mvc->getDefaultAssignUsers($data->form->rec);
+            
+            if ($defUsersArr) {
+                $data->form->setDefault('assign', $defUsersArr);
+            }
         }
+    }
+    
+    
+    /**
+     * Връща потребителите по подразбиране за споделяне
+     *
+     * @param core_Mvc    $mvc
+     * @param NULL|string $res
+     * @param stdClass    $rec
+     */
+    public static function on_AfterGetDefaultAssignUsers($mvc, &$res, $rec)
+    {
+        $folderId = $rec->folderId;
+        
+        if (!$folderId && $rec->threadId) {
+            $folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+        }
+        
+        $assignUsers = null;
         
         if ($folderId) {
-            $fRec = doc_Folders::fetch($folderId);
-            $interestedUsersArr[$fRec->inCharge] = $fRec->inCharge;
             
-            if ($fRec->shared) {
-                $interestedUsersArr += type_Keylist::toArray($fRec->shared);
-            }
-        }
-        
-        if ($rec->id && isset($rec->sharedUsers)) {
-            $interestedUsersArr += type_Keylist::toArray($rec->sharedUsers);
-        }
-        
-        // Ако се създава нов и в папката няма споделени потребители - да се показват всички
-        if ((!$rec->id && !$fRec->shared) || empty($interestedUsersArr)) {
-            $interestedUsersArr = core_Users::getByRole('powerUser');
-        }
-        
-        // Ако има възложени от предишния път - при редакция/промяна
-        if ($rec->assign) {
-            $interestedUsersArr += type_Keylist::toArray($rec->assign);
-        }
-        
-        // Текущия потребител да е в началото
-        if (!empty($interestedUsersArr)) {
+            // Използваме последните 3 създадени документа в тази папка
+            
             $cu = core_Users::getCurrent();
-            if ($interestedUsersArr[$cu]) {
-                unset($interestedUsersArr[$cu]);
-                $interestedUsersArr = array($cu => $cu) + $interestedUsersArr;
+            
+            $minLimit = 3;
+            
+            $mQuery = $mvc->getQuery();
+            $mQuery->where(array("#folderId = '[#1#]'", $folderId));
+            $mQuery->where(array("#createdBy = '[#1#]'", $cu));
+            
+            $mQuery->where("#state != 'rejected'");
+            $mQuery->where("#state != 'draft'");
+            
+            $mQuery->orderBy('#createdOn', 'DESC');
+            $mQuery->limit($minLimit);
+            
+            $mQuery->show('assign');
+            
+            if ($mQuery->count() >= $minLimit) {
+                while ($mRec = $mQuery->fetch()) {
+                    if (!$mRec->assign) {
+                        break;
+                    }
+                    
+                    // Уеднакяваме полето за възложени
+                    $assignArr = type_Keylist::toArray($mRec->assign);
+                    asort($assignArr);
+                    $aStr = type_Keylist::fromArray($assignArr);
+                    
+                    $aArr[$aStr]++;
+                }
+                
+                if (count($aArr) == 1) {
+                    $assignUsers = key($aArr);
+                }
+            }
+            
+            // Ако няма други споделени и ако е в папка на текущия потребител
+            if (!$assignUsers) {
+                $fIncharge = doc_Folders::fetchField($folderId, 'inCharge');
+                if ($fIncharge == $cu) {
+                    $assignUsers = '|' . $fIncharge . '|';
+                }
             }
         }
         
-        $suggArr = $data->form->fields['assign']->type->prepareSuggestions();
-        foreach ($interestedUsersArr as &$nick) {
-            if ($suggArr[$nick]) {
-                $nick = $suggArr[$nick];
-            } else {
-                unset($interestedUsersArr[$nick]);
-            }
+        if ($assignUsers) {
+            $res = type_Keylist::merge($res, $assignUsers);
         }
-        
-        $data->form->setSuggestions('assign', $interestedUsersArr);
     }
 }

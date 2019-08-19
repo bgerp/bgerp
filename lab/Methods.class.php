@@ -1,38 +1,38 @@
 <?php
 
 
-
 /**
  * Мениджър за методите в лабораторията
  *
  *
  * @category  bgerp
  * @package   lab
+ *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ *            Angel Trifonov angel.trifonoff@gmail.com
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class lab_Methods extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
-    public $title = "Методи за лабораторни тестове";
+    public $title = 'Методи за лабораторни тестове';
     
     
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = "Метод за лабораторен тест";
+    public $singleTitle = 'Метод за лабораторен тест';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State,
+    public $loadList = 'plg_Created, plg_State,
                              Params=lab_Parameters, plg_RowTools2, plg_Printing, 
                              lab_Wrapper, plg_Sorting, fileman_Files';
     
@@ -40,7 +40,7 @@ class lab_Methods extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,name,equipment,paramId,
+    public $listFields = 'id,name,abbreviatedName,equipment,paramId,
                              minVal,maxVal';
     
     
@@ -69,15 +69,15 @@ class lab_Methods extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'lab,ceo';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'lab,ceo';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'lab,ceo';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'lab,ceo';
     
     
     /**
@@ -91,12 +91,48 @@ class lab_Methods extends core_Master
      */
     public function description()
     {
-    	$this->FLD('paramId', 'key(mvc=lab_Parameters,select=name,allowEmpty,remember)', 'caption=Параметър,notSorting,mandatory');
-    	$this->FLD('name', 'varchar(255)', 'caption=Наименование');
+        $this->FLD(
+            'paramId',
+            'key(mvc=lab_Parameters,select=name,allowEmpty,remember)',
+            'caption=Параметър,notSorting,mandatory'
+        );
+        $this->FLD('name', 'varchar(255)', 'caption=Наименование');
+        $this->FLD('abbreviatedName', 'varchar(255)', 'caption=Съкращение');
+        $this->FLD('formula', 'text', 'caption=Формула');
         $this->FLD('equipment', 'varchar(255)', 'caption=Оборудване,notSorting');
         $this->FLD('description', 'richtext(bucket=Notes)', 'caption=Описание,notSorting');
         $this->FLD('minVal', 'double(decimals=2)', 'caption=Възможни стойности->Минимална,notSorting');
         $this->FLD('maxVal', 'double(decimals=2)', 'caption=Възможни стойности->Максимална,notSorting');
+    }
+    
+    
+    /**
+     * Проверка и валидиране на формата
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $form
+     */
+    public static function on_AfterInputEditForm($mvc, $form)
+    {
+        $rec = $form->rec;
+        
+        if ($form->isSubmitted()) {
+            if ($rec->formula) {
+                $contex = array();
+                
+                preg_match_all('/\$[_a-z][a-z0-9_]*/i', $rec->formula, $matches);
+                
+                foreach ($matches[0] as $v) {
+                    $contex += array(
+                        $v => 1
+                    );
+                }
+                
+                if ((str::prepareMathExpr($rec->formula, $contex)) === false) {
+                    $form->setError('formula', 'Некоректно въведена формула !');
+                }
+            }
+        }
     }
     
     
@@ -107,12 +143,19 @@ class lab_Methods extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->name = Ht::createLink($row->name, array($mvc, 'single', $rec->id));
+        $row->name = Ht::createLink(
+            $row->name,
+            array(
+                $mvc,
+                'single',
+                $rec->id
+            )
+        );
     }
-
-
+    
+    
     /**
      * Преди запис
      */

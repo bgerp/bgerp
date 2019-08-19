@@ -88,31 +88,50 @@
                             <td>[#deliveryTime#]</td>
                         </tr>
                         <!--ET_END deliveryTime-->
+                       <!--ET_BEGIN fromContainerId-->
+                       <tr>
+                           <td colspan='2'><span class='quiet'>To [#fromContainerName#]:</span> [#fromContainerId#]</td>
+                       </tr>
+                       <!--ET_END fromContainerId-->
                         <!--ET_BEGIN lineId-->
                         <tr>
                             <td class='nowrap quiet aright'>Transport: </td>
                             <td>[#lineId#]</td>
                         </tr>
                         <!--ET_END lineId-->
-                        <!--ET_BEGIN note-->
-                        <tr>
-                            <td colspan="2">
-                                <hr>
-                                [#note#]
-                            </td>
-                        </tr>
+                       <!--ET_BEGIN lineNotes-->
                        <tr>
-                           <td colspan="2"> <hr></td>
+                           <td class='quiet nowrap'>Remarks: </td>
+                           <td>[#lineNotes#]</td>
                        </tr>
-                        <!--ET_END note-->
-                    </table>
-                    <!--ET_END delivery_table-->
-                    <div class='clearfix21' style='margin-bottom: 5px;'>
-                        <span class='half-col'>Total weight:&nbsp;[#weight#]</span> <span class='half-col'>Total volume:&nbsp;[#volume#]</span>
-                    </div>
-                    <div class='clearfix21'>
-                    <!--ET_BEGIN logisticInfo--><div style='margin-bottom:3px;margin-top:3px;'>|Logistic units|*:&nbsp;[#logisticInfo#]</div><!--ET_END logisticInfo--> 
-
+                       <!--ET_END lineNotes-->
+                       <!--ET_BEGIN note-->
+                       <tr>
+                           <td colspan="2" >
+                               <hr>
+                               [#note#]
+                           </td>
+                       </tr>
+                       <!--ET_END note-->
+                       <tr>
+                           <td colspan="2" >
+                               <hr>
+                           </td>
+                       </tr>
+                       <!--ET_END deliveryTable-->
+                       <tr>
+                           <td colspan="2" >
+                               <div>
+                                   <span class='half-col'>Total weight:&nbsp;[#weight#]</span> <span class='half-col'>Total volume:&nbsp;[#volume#]</span>
+                               </div>
+                           </td>
+                       </tr>
+                       <!--ET_BEGIN logisticInfo-->
+                       <tr>
+                           <td colspan="2" ><hr><span class='quiet'>Logistic units:</span> [#logisticInfo#]</td>
+                       </tr>
+                       <!--ET_END logisticInfo-->
+                   </table>
                 </td>
                 <td>
 

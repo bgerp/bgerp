@@ -1,0 +1,39 @@
+function readScale() {
+    if ($("[name=[#_weight#]]").length && $("[name=[#_weight#]]").attr('type') != 'hidden') {
+        $('<input>', {type: 'hidden', name: '[#_liveWeight#]',}).appendTo("form");
+        
+        setInterval(function() {
+            $.ajax({
+                   async: true,
+                   type: "GET",
+                   url: '//[#user#]:[#pass#]@[#hostName#]/?RelayOutputs=2,3&DigitalInputs=3,4&CounterInputs=2,1&An%20alogInputs=4,5,6&ElectronicScales=1',
+                   crossDomain: true,
+           }).done(function(res) {
+                    xmlDoc = $.parseXML(res),
+                    unit = $(xmlDoc).find("Name:contains(ElectronicScale1)").siblings('Unit').text();
+                    
+                    cWeight = $(xmlDoc).find("Name:contains(ElectronicScale1)").siblings('Value').text();
+                    if(unit == 'g'){
+                        cWeight /= 1000;
+                    }
+                    
+                    $("[name='[#_weight#]']").attr("placeholder", cWeight);
+                    $("input[name=[#_liveWeight#]]").val(cWeight);
+                })
+            }, 1000);
+    }
+}
+
+function beforeSubmit() {
+    if ($("[name=[#_weight#]]").length && $("[name=[#_weight#]]").attr('type') != 'hidden') {
+        $(document.body).on('submit', "[#_formIdName#]", function(e) {
+            if (!$("input[name=[#_weight#]]").val().length) {
+                var inpVal = $("input[name=[#_liveWeight#]]").val();
+                $("input[name=[#_weight#]]").val(inpVal);
+            }
+        });
+    }
+}
+
+$(document).ready(function(){ readScale(); });
+$(document).ready(function(){ beforeSubmit() });

@@ -4,6 +4,18 @@
         <h2 style="line-height:30px" class=" [#STATE_CLASS#]">[#SingleTitle#]</h2>
         <!--ET_BEGIN type-->
         <div>|Вид|*: <b>[#type#]</b></div>
+        <!--ET_BEGIN onlinePaymentText-->
+        <div>|Текст при онлайн плащане|*: <b>[#onlinePaymentText#]</b></div>
+        <!--ET_END onlinePaymentText-->
+        <!--ET_BEGIN onlinePaymentDriver-->
+        <div>|Онлайн плащане|*: <b>[#onlinePaymentDriver#]</b></div>
+        <!--ET_END onlinePaymentDriver-->
+        <!--ET_BEGIN DRIVER_DATA-->
+        <fieldset class="detail-info">
+            [#DRIVER_DATA#]
+        </fieldset>
+        <!--ET_END DRIVER_DATA-->
+        
         <!--ET_END type-->
         <fieldset class="detail-info">
             <legend class="groupTitle">|Авансово плащане|*</legend>

@@ -17,7 +17,7 @@
         <li class='thread-header'>
             <table class="header-table" style='width:100%'>
                 <tr>
-                    <td style='min-width: 80px;width:15%;'>|Автoр|*</td>
+                    <td style='min-width: 80px;width:15%;'>|Автор|*</td>
                     <td>
                         |Съобщение|*
                     </td>

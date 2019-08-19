@@ -1,27 +1,26 @@
 <?php
 
 
-
 /**
  * Драйвер за IP камера Edimax
  *
  *
  * @category  bgerp
  * @package   cams
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class cams_driver_Edimax extends cams_driver_IpDevice {
-    
-    
+class cams_driver_Edimax extends cams_driver_IpDevice
+{
     /**
      * Инициализиране на обекта
      */
-    function init($params = array())
+    public function init($params = array())
     {
-        
         parent::init($params);
         
         setIfNot($this->width, 640);
@@ -29,7 +28,7 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
         
         setIfNot($this->user, 'root');
         setIfNot($this->password, 'root');
-                
+        
         setIfNot($this->rtspPort, 554);
         
         setIfNot($this->httpPort, 80);
@@ -39,10 +38,13 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
     /**
      * Подготвя формата за настройки на камерата
      */
-    function prepareSettingsForm($form)
+    public function prepareSettingsForm($form)
     {
-        $form->FNC('ip', 'ip',
-            'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory');
+        $form->FNC(
+            'ip',
+            'ip',
+            'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory'
+        );
         $form->FNC('codec', 'enum(mpeg4=MPEG-4)', 'caption=Кодек,hint=Кодек на RTSP стрийма,input');
         $form->FNC('width', 'int(min=320,max=1280)', 'caption=Ширина,hint=Хоризонтална резолюция,input');
         $form->FNC('height', 'int(min=240,max=1024)', 'caption=Височина,hint=Вертикална резолюция,input');
@@ -54,12 +56,12 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
         $form->FNC('rtspPort', 'int(min=1,max=65535)', 'caption=Порт->Rtsp,hint=Въведете порта за Mpeg4 потока,input');
         $form->FNC('httpPort', 'int(min=1,max=65535)', 'caption=Порт->Http,hint=Въведете порта за CGI заявките,input');
     }
-
+    
     
     /**
      * Подготвя формата за PTZ контрола
      */
-    function preparePtzForm($form)
+    public function preparePtzForm($form)
     {
         $form->FNC('rpan', 'enum(0,-45,-30,-15,-10,-5,-1,0.0,1,5,10,15,30,45)', 'caption=Pan');
         $form->FNC('tilt', 'enum(0,3,9,12,15,18,21,24,27,30,35,40,45,50,55,60,65,70,75,80,85,90)', 'caption=Tilt');
@@ -74,42 +76,58 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
     /**
      * Изпълнява отдалечените команди
      */
-    function applyPtzCommands($cmdArr)
+    public function applyPtzCommands($cmdArr)
     {
-    	return;
     }
-
-
+    
+    
     /**
      * Вземане на картинка от MotionJped
      */
-    function getImageFromMjpeg($url)
+    public function getImageFromMjpeg($url)
     {
-        $f = fopen($url, "r");
+        $f = fopen($url, 'r');
         
-        if(!$f) return FALSE;
+        if (!$f) {
+            
+            return false;
+        }
         
-        while ((substr_count(strtolower($r), "content-type") != 2) && strlen($r) < 200000) $r .= fread($f, 512);
+        while ((substr_count(strtolower($r), 'content-type') != 2) && strlen($r) < 200000) {
+            $r .= fread($f, 512);
+        }
         
-        if(!$r || (strlen($r) >= 200000)) return FALSE;
+        if (!$r || (strlen($r) >= 200000)) {
+            
+            return false;
+        }
         
         $boundary = "\r\n--";
         
         $soi = chr(0xff) . chr(0xd8);
         $soi = strpos($r, $soi);
         
-        if(!$soi) return FALSE;
+        if (!$soi) {
+            
+            return false;
+        }
         
         $end = strpos($r, $boundary, $soi) ;
         
-        if(!$end) return FALSE;
+        if (!$end) {
+            
+            return false;
+        }
         
-        $frame = substr("$r", $soi, $end - $soi);
+        $frame = substr("${r}", $soi, $end - $soi);
         
         $eoi = chr(0xff) . chr(0xd9);
         $eoi = strrpos($frame, $eoi);
         
-        if(!$eoi) return FALSE;
+        if (!$eoi) {
+            
+            return false;
+        }
         
         $frame = substr($frame, 0, $eoi + 2);
         

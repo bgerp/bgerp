@@ -1,19 +1,21 @@
 <?php
 
 
-
 /**
  * Указател към обект от зададен клас, евентуално приведен (cast) към зададен интерфейс.
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
- * 
+ *
  * @property string valiorFld
+ *
  * @method fetch(mixed $fields = '*', boolean $cache = TRUE)
  * @method fetchField(string $field = 'id', boolean $cache = TRUE)
  * @method core_Query getQuery()
@@ -33,8 +35,6 @@
  */
 class core_ObjectReference
 {
-    
-    
     /**
      * От кой клас е обекта, към който сочи указателя
      *
@@ -76,16 +76,16 @@ class core_ObjectReference
     /**
      * Конструктор
      *
-     * @param mixed $class име на клас, key(mvc=core_Classes) или инстанция на клас (т.е. обект)
-     * @param mixed $object
+     * @param mixed  $class     име на клас, key(mvc=core_Classes) или инстанция на клас (т.е. обект)
+     * @param mixed  $object
      * @param string $interface име на интерфейс
      */
-    function __construct($classId, $object, $interface = NULL)
+    public function __construct($classId, $object, $interface = null)
     {
         $this->className = cls::getClassName($classId);
         $this->that = $object;
         
-        if($interface) {
+        if ($interface) {
             $this->interface = $interface;
             $this->instance = cls::getInterface($interface, $classId);
         } else {
@@ -101,9 +101,9 @@ class core_ObjectReference
      * в плъгин.
      *
      * @param string $method
-     * @param array $args
+     * @param array  $args
      */
-    function __call($method, $args)
+    public function __call($method, $args)
     {
         array_unshift($args, $this->that);
         
@@ -125,12 +125,13 @@ class core_ObjectReference
     
     /**
      * Инстанция на класа на обекта, към който сочи този указател
-     * 
+     *
      * @return object
      */
     public function getInstance()
     {
         if (is_null($this->interface)) {
+            
             return $this->instance;
         }
         
@@ -140,9 +141,10 @@ class core_ObjectReference
     
     /**
      * Поддържа ли се зададения интерфейс от тази референция?
-     * 
+     *
      * @param string $interface
-     * @return boolean
+     *
+     * @return bool
      */
     public function haveInterface($interface)
     {
@@ -154,39 +156,42 @@ class core_ObjectReference
      * Дали референцията е инстанция на подадения клас
      *
      * @param string $className
-     * @return boolean
+     *
+     * @return bool
      */
     public function isInstanceOf($className)
     {
-    	if(!cls::load($className, TRUE)) return FALSE;
-    	$ReflectionClass = new ReflectionClass($className);
-    	
-    	if($ReflectionClass->isAbstract()){
-    		
-    		return is_subclass_of($this->getInstance(), $className);
-    	} else {
-    		$class = cls::get($className);
-    		 
-    		return ($this->getInstance() instanceof $class->className);
-    	}
+        if (!cls::load($className, true)) {
+            
+            return false;
+        }
+        $ReflectionClass = new ReflectionClass($className);
+        
+        if ($ReflectionClass->isAbstract()) {
+            
+            return is_subclass_of($this->getInstance(), $className);
+        }
+        $class = cls::get($className);
+        
+        return ($this->getInstance() instanceof $class->className);
     }
     
     
     /**
      * Предизвиква събитие в класа на тази референция
-     * 
+     *
      * @param string $event
-     * @param array $args
+     * @param array  $args
      */
     public function invoke($event, $args = array())
     {
-    	$this->instance->invoke($event, $args);
+        $this->instance->invoke($event, $args);
     }
     
     
     /**
      * Записа, към който е референция този обект
-     * 
+     *
      * @return stdClass
      */
     public function rec($field = null)
@@ -203,7 +208,7 @@ class core_ObjectReference
     
     /**
      * Първичния ключ на записа, към който е референция този обект
-     * 
+     *
      * @return int
      */
     public function id()
@@ -221,8 +226,8 @@ class core_ObjectReference
     /**
      * Пртоверка дали имаме право да изпълним дадено действие с обекта
      */
-    public function haveRightFor($action, $userId = NULL)
+    public function haveRightFor($action, $userId = null)
     {
-    	return $this->getInstance()->haveRightFor($action, $this->that, $userId);
+        return $this->getInstance()->haveRightFor($action, $this->that, $userId);
     }
 }

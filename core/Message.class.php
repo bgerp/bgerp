@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'core_Message' - визуализиране на съобщения
  *
@@ -11,20 +10,20 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Message extends core_BaseClass
 {
-    
-    
     /**
      * @todo Чака за документация...
      */
-    function act_View()
+    public function act_View()
     {
         try {
             
@@ -37,7 +36,7 @@ class core_Message extends core_BaseClass
             
             // Сетваме хедърите
             header("{$protocol} 404 Not Found");
-        
+            
             // Забранява кеширането
             header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
             header('Pragma: no-cache'); // HTTP 1.0.
@@ -50,15 +49,15 @@ class core_Message extends core_BaseClass
             
             // Създаване на липсващо съобщение
             if (!$msg) {
-            	$msg = new stdClass();
+                $msg = new stdClass();
                 if (Request::get('msg')) {
                     $msg->text = tr('Сгрешено или изтекло съобщение');
                 } else {
                     $msg->text = tr('Липсващо съобщение');
                 }
                 $msg->tpl = 'page_Error';
-                $msg->next = NULL;
-                $msg->cancel = NULL;
+                $msg->next = null;
+                $msg->cancel = null;
             }
             
             // Създаване на шаблона
@@ -70,11 +69,13 @@ class core_Message extends core_BaseClass
             if ($msg->cancel || $msg->next) {
                 $toolbar = cls::get('core_Toolbar');
                 
-                if ($msg->cancel)
-                $toolbar->addBtn('Отказ', $msg->cancel);
+                if ($msg->cancel) {
+                    $toolbar->addBtn('Отказ', $msg->cancel);
+                }
                 
-                if ($msg->next)
-                $toolbar->addBtn('Продължение', toUrl($msg->next));
+                if ($msg->next) {
+                    $toolbar->addBtn('Продължение', toUrl($msg->next));
+                }
                 $tpl->replace($toolbar->renderHtml(), 'TOOLBAR');
             }
             
@@ -83,11 +84,11 @@ class core_Message extends core_BaseClass
             }
             
             return $tpl;
-        } catch(ErrorException $e) {
-            $err = new core_exception_Expect("Грешка при рендиране на съобщение за грешка");
+        } catch (ErrorException $e) {
+            $err = new core_exception_Expect('Грешка при рендиране на съобщение за грешка');
             
-            $err->class  = 'core_Message';
-             
+            $err->class = 'core_Message';
+            
             throw $err;
         }
     }
@@ -96,7 +97,7 @@ class core_Message extends core_BaseClass
     /**
      * Създава съобщение и редиркетва към него
      */
-    static function redirect($text, $tpl = 'error', $cancel = '', $next = '')
+    public static function redirect($text, $tpl = 'error', $cancel = '', $next = '')
     {
         $errorUrl = static::getErrorUrl($text, $tpl, $cancel, $next);
         redirect($errorUrl);
@@ -108,18 +109,18 @@ class core_Message extends core_BaseClass
      */
     public static function getErrorUrl($text, $tpl = 'error', $cancel = '', $next = '')
     {
-    	// Създава съобщението
+        // Създава съобщението
         $msg = new stdClass();
         $msg->text = tr($text);
         $msg->tpl = $tpl;
         $msg->wrapper = Mode::get('wrapper');
         
-        if ($next){
-        	$msg->next = $next;
+        if ($next) {
+            $msg->next = $next;
         }
         
-        if ($cancel){
-        	$msg->cancel = $cancel;
+        if ($cancel) {
+            $msg->cancel = $cancel;
         }
         
         $Crypt = cls::get('core_Crypt');

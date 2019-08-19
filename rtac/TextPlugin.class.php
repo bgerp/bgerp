@@ -6,26 +6,26 @@
  *
  * @category  bgerp
  * @package   rtac
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class rtac_TextPlugin extends core_Plugin
 {
-    
-    
     /**
-     * 
+     *
      * Изпълнява се преди рендирането на input
-     * 
+     *
      * @param core_Mvc $invoker
-     * @param core_Et $tpl
-     * @param string $name
-     * @param string $value
-     * @param array $attr
+     * @param core_Et  $tpl
+     * @param string   $name
+     * @param string   $value
+     * @param array    $attr
      */
-    function on_BeforeRenderInput(&$mvc, &$ret, $name, $value, &$attr = array())
+    public function on_BeforeRenderInput(&$mvc, &$ret, $name, $value, &$attr = array())
     {
         // Задаваме уникално id
         ht::setUniqId($attr);
@@ -33,16 +33,16 @@ class rtac_TextPlugin extends core_Plugin
     
     
     /**
-     * 
+     *
      * Изпълнява се след рендирането на input
-     * 
+     *
      * @param core_Mvc $invoker
-     * @param core_Et $tpl
-     * @param string $name
-     * @param string $value
-     * @param array $attr
+     * @param core_Et  $tpl
+     * @param string   $name
+     * @param string   $value
+     * @param array    $attr
      */
-    function on_AfterRenderInput(&$mvc, &$tpl, $name, $value, $attr = array())
+    public function on_AfterRenderInput(&$mvc, &$tpl, $name, $value, $attr = array())
     {
         $conf = core_Packs::getConfig('rtac');
         
@@ -53,11 +53,11 @@ class rtac_TextPlugin extends core_Plugin
         $inst->loadPacks($tpl);
         
         // id на ричтекста
-        list ($id) = explode(' ', $attr['id']);
+        list($id) = explode(' ', $attr['id']);
         $id = trim($id);
         
         // Обект за данните
-        $tpl->appendOnce("var rtacObj = {};", 'SCRIPTS');
+        $tpl->appendOnce('var rtacObj = {};', 'SCRIPTS');
         
         // Ако не са зададени права в параметрите
         if (!($userRolesForTextComplete = $mvc->params['userRolesForTextComplete'])) {
@@ -69,9 +69,9 @@ class rtac_TextPlugin extends core_Plugin
             unset($suggestionsArr['']);
             if ($suggestionsArr) {
                 // Добавяме данните
-                $tpl->appendOnce("rtacObj.textCompleteObj = {};", 'SCRIPTS');
+                $tpl->appendOnce('rtacObj.textCompleteObj = {};', 'SCRIPTS');
                 
-                $tpl->appendOnce("rtacObj.textCompleteStrEnd = {};", 'SCRIPTS');
+                $tpl->appendOnce('rtacObj.textCompleteStrEnd = {};', 'SCRIPTS');
                 if (!isset($mvc->params['strAfterSuggestion'])) {
                     $strEnd = ' ';
                 } elseif ($mvc->params['strAfterSuggestion'] == 'strAfterSuggestion') {
@@ -80,15 +80,13 @@ class rtac_TextPlugin extends core_Plugin
                     $strEnd = $mvc->params['strAfterSuggestion'];
                 }
                 
-                $tpl->appendOnce("rtacObj.textCompleteStrEnd.{$id} = " . json_encode($strEnd) . ";", 'SCRIPTS');
+                $tpl->appendOnce("rtacObj.textCompleteStrEnd.{$id} = " . json_encode($strEnd) . ';', 'SCRIPTS');
                 
-                $tpl->appendOnce("rtacObj.textCompleteObj.{$id} = " . json_encode($suggestionsArr) . ";", 'SCRIPTS');
+                $tpl->appendOnce("rtacObj.textCompleteObj.{$id} = " . json_encode($suggestionsArr) . ';', 'SCRIPTS');
                 
                 // Стартираме скрипта
                 $inst->runAutocompleteText($tpl, $id);
             }
         }
-        
-        return ;
     }
 }

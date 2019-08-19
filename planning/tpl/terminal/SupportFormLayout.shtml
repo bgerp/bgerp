@@ -1,0 +1,11 @@
+<div class='formContent'>
+	<table class="simple">
+		<tr>
+			<td>[#asset#]</td>
+		</tr>
+		<tr>
+			<td>[#body#]</td>
+		</tr>
+	</table>
+</div>
+

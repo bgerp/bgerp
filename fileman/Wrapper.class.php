@@ -1,27 +1,26 @@
 <?php
 
 
-
 /**
  * Клас 'fileman_Wrapper' -
  *
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class fileman_Wrapper extends plg_ProtoWrapper
 {
-    
-    
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('fileman_Files', 'Файлове');
         $this->TAB('fileman_Log', 'Последни', 'debug');
@@ -33,6 +32,5 @@ class fileman_Wrapper extends plg_ProtoWrapper
         $this->TAB('fileman_Repositories', 'Хранилища', 'admin, debug');
         
         $this->title = 'Файлове';
-       
     }
 }

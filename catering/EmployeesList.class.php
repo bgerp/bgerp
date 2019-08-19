@@ -1,32 +1,31 @@
 <?php
 
 
-
 /**
  * Столуващи хора
  *
  *
  * @category  bgerp
  * @package   catering
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class catering_EmployeesList extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
-    public $title = "Столуващи хора";
+    public $title = 'Столуващи хора';
     
     
     /**
      * Заглавие в еднично число
      */
-    public $singleTitle = "Столуващ персонал";
+    public $singleTitle = 'Столуващ персонал';
     
     
     /**
@@ -79,7 +78,7 @@ class catering_EmployeesList extends core_Manager
         
         $this->setDbUnique('personId');
     }
-
+    
     
     /**
      * Сменяме заглавието
@@ -90,10 +89,10 @@ class catering_EmployeesList extends core_Manager
     {
         // Check current user roles
         if (!haveRole('admin,catering')) {
-            $data->title = "Столуващ";
+            $data->title = 'Столуващ';
         }
     }
-
+    
     
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -104,16 +103,17 @@ class catering_EmployeesList extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	// Ако имаме права да видим визитката
-    	if(crm_Persons::haveRightFor('single', $rec->personId)){
-    		$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
-    		$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
-    	}
-    	
-    	/*// Prepare tel, email
+        // Ако имаме права да видим визитката
+        if (crm_Persons::haveRightFor('single', $rec->personId)) {
+            $name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
+            $row->personId = ht::createLink($name, array('crm_Persons', 'single', 'id' => $rec->personId), null, 'ef_icon = img/16/vcard.png');
+        }
+        
+        /*// Prepare tel, email
         $row->tel = $mvc->CrmPersons->fetchField($rec->personId, 'tel');
         $row->email = "<a href='mailto:" . $mvc->CrmPersons->fetchField($rec->personId, 'email') . "'>" . $mvc->CrmPersons->fetchField($rec->personId, 'email') . "</a>";*/
     }
+    
     
     /**
      * Връща $personId от модела EmployeesList по потребител в системата
@@ -163,14 +163,14 @@ class catering_EmployeesList extends core_Manager
         /*
         $nomPersonal = $mvc->Nom->fetchField("#name = 'Персонал'", 'id');
         $nomCatering = $mvc->Nom->fetchField("#name = 'Кетъринг'", 'id');
-        
+
         $queryCrmPersons = $mvc->CrmPersons->getQuery();
         $where = "#type = 'person' AND #inLists LIKE '%|{$nomPersonal}|%' AND #inLists LIKE '%|{$nomCatering}|%'";
         */
         $queryCrmPersons = $mvc->CrmPersons->getQuery();
-        $where = "1=1";
+        $where = '1=1';
         
-        while($recCrmPersons = $queryCrmPersons->fetch($where)) {
+        while ($recCrmPersons = $queryCrmPersons->fetch($where)) {
             $selectOptCrmPersons[$recCrmPersons->id] = $recCrmPersons->name;
         }
         
@@ -192,7 +192,7 @@ class catering_EmployeesList extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input('search', 'silent');
         
-    	// Check current user roles
+        // Check current user roles
         if (!haveRole('ceo,catering')) {
             $personId = self::getPersonIdForCurrentUser();
             

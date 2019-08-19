@@ -1,31 +1,31 @@
 <?php
 
 
-
 /**
  * Прототип на драйвер за IP камера UIC
  *
  *
  * @category  bgerp
  * @package   cams
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class cams_driver_Mockup extends cams_driver_IpDevice {
-    
-    
+class cams_driver_Mockup extends cams_driver_IpDevice
+{
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'cams_DriverIntf';
+    public $interfaces = 'cams_DriverIntf';
     
     
     /**
      * Записва видео в указания файл с продължителност $duration
      */
-    function captureVideo($savePath, $duration)
+    public function captureVideo($savePath, $duration)
     {
         copy(dirname(__FILE__) . '/example.mp4', $savePath);
     }
@@ -34,9 +34,9 @@ class cams_driver_Mockup extends cams_driver_IpDevice {
     /**
      * Записва снимка от камерата в указания файл;
      */
-    function getPicture()
+    public function getPicture()
     {
-        if($this->running == 'yes') {
+        if ($this->running == 'yes') {
             $file = 'example' . rand(1, 3) . '.jpg';
         } else {
             $file = 'setup.jpg';
@@ -51,7 +51,7 @@ class cams_driver_Mockup extends cams_driver_IpDevice {
     /**
      * Конвертира указания файл (записан от този драйвер) към flv файл
      */
-    function convertToFlv($mp4Path, $flvPath)
+    public function convertToFlv($mp4Path, $flvPath)
     {
         copy(dirname(__FILE__) . '/example.flv', $flvPath);
     }
@@ -60,7 +60,7 @@ class cams_driver_Mockup extends cams_driver_IpDevice {
     /**
      * Нулиране състоянието на камерата
      */
-    function reset()
+    public function reset()
     {
         $a = 1;
     }
@@ -69,7 +69,7 @@ class cams_driver_Mockup extends cams_driver_IpDevice {
     /**
      * Начално установяване на драйвера с параметрите за конкретното устройство
      */
-    function init($params = array())
+    public function init($params = array())
     {
         parent::init($params);
         
@@ -81,7 +81,7 @@ class cams_driver_Mockup extends cams_driver_IpDevice {
     /**
      * Подготвя формата за PTZ контрола
      */
-    function preparePtzForm($form)
+    public function preparePtzForm($form)
     {
         $form->FNC('rpan', 'enum(0,-45,-30,-15,-10,-5,-1,0.0,1,5,10,15,30,45)', 'caption=Pan');
         $form->FNC('tilt', 'enum(0,3,9,12,15,18,21,24,27,30,35,40,45,50,55,60,65,70,75,80,85,90)', 'caption=Tilt');
@@ -96,7 +96,7 @@ class cams_driver_Mockup extends cams_driver_IpDevice {
     /**
      * Изпълнява отдалечените команди
      */
-    function applyPtzCommands($cmdArr)
+    public function applyPtzCommands($cmdArr)
     {
     }
     
@@ -104,7 +104,7 @@ class cams_driver_Mockup extends cams_driver_IpDevice {
     /**
      * Подготвя формата за настройки на камерата
      */
-    function prepareSettingsForm($form)
+    public function prepareSettingsForm($form)
     {
         $form->FNC('running', 'enum(yes=Активно,no=Спряно)', 'caption=Състояние,hint=Дали камерата да се наблюдава?,input');
     }
@@ -113,7 +113,7 @@ class cams_driver_Mockup extends cams_driver_IpDevice {
     /**
      * Проверява дали състоянието е активно
      */
-    function isActive()
+    public function isActive()
     {
         return $this->running == 'yes';
     }
@@ -122,7 +122,7 @@ class cams_driver_Mockup extends cams_driver_IpDevice {
     /**
      * Дали има отдалечено управление?
      */
-    function havePtzControl()
+    public function havePtzControl()
     {
         return $this->ptzControl == 'yes';
     }
@@ -131,8 +131,7 @@ class cams_driver_Mockup extends cams_driver_IpDevice {
     /**
      * Проверява дали данните във формата са въведени правилно
      */
-    function validateSettingsForm($form)
+    public function validateSettingsForm($form)
     {
-        return;
     }
 }

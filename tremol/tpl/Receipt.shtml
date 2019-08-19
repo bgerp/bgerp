@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<TremolFpServer Command="Receipt" Description="*** Описание в дневникa ***">
+<TremolFpServer Command="Receipt" Description="*** Описание в дневника ***">
 [#ITEMS#]
    <!--ET_BEGIN ITEM-->
        [#ITEM#]<Item Description="[#name#]" Price="[#price#]" Quantity="[#quantity#]" VatInfo="[#vatGroupId#]" UnitName="[#measure#]" <!--ET_BEGIN discountPercent-->Discount="[#discountPercent#]"<!--ET_END discountPercent--> />

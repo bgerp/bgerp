@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Колко цифри след запетаята да се показват
  */
@@ -20,20 +19,20 @@ defIfNot('EF_DEFAULT_UNIT', '°C');
  *
  * @category  vendors
  * @package   physics
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class physics_TemperatureType extends type_Double
 {
-    
-    
     /**
      * Инициализиране на типа
      */
-    function init($params = array())
+    public function init($params = array())
     {
         parent::init($params);
         setIfNot($this->params['decimals'], EF_TEMPERATURETYPE_DECIMALS);
@@ -44,7 +43,7 @@ class physics_TemperatureType extends type_Double
     /**
      * Преобразуване от Фаренхайт в Целзий
      */
-    function farToCels($far)
+    public function farToCels($far)
     {
         $cels = ($far - 32) / 1.8;
         
@@ -55,7 +54,7 @@ class physics_TemperatureType extends type_Double
     /**
      * Преобразуване от Целзий във Фаренхайт
      */
-    function celsToFar($cels)
+    public function celsToFar($cels)
     {
         $far = ($cels * 1.8) + 32;
         
@@ -66,7 +65,7 @@ class physics_TemperatureType extends type_Double
     /**
      * Преобразуване от Келвин в Целзий
      */
-    function kelvToCels($kelv)
+    public function kelvToCels($kelv)
     {
         $cels = $kelv - 273.15;
         
@@ -77,7 +76,7 @@ class physics_TemperatureType extends type_Double
     /**
      * Преобразуване от Целзий в Келвин
      */
-    function celsToKelv($cels)
+    public function celsToKelv($cels)
     {
         $kelv = $cels + 273.15;
         
@@ -88,7 +87,7 @@ class physics_TemperatureType extends type_Double
     /**
      * Преобразуване от Келвин във Фаренхайт
      */
-    function kelvToFar($kelv)
+    public function kelvToFar($kelv)
     {
         $far = ($kelv * 1.8) - 459.67;
         
@@ -99,7 +98,7 @@ class physics_TemperatureType extends type_Double
     /**
      * Преобразуване от Фаренхайт в Келвин
      */
-    function farToKelv($far)
+    public function farToKelv($far)
     {
         $kelv = ($far + 459.67) / 1.8;
         
@@ -110,7 +109,7 @@ class physics_TemperatureType extends type_Double
     /**
      * Преобразуване от Целзий в Целзий
      */
-    function celsToCels($cels)
+    public function celsToCels($cels)
     {
         return $cels;
     }
@@ -119,7 +118,7 @@ class physics_TemperatureType extends type_Double
     /**
      * Преобразуване от Фаренхайт във Фаренхайт
      */
-    function farToFar($far)
+    public function farToFar($far)
     {
         return $far;
     }
@@ -128,7 +127,7 @@ class physics_TemperatureType extends type_Double
     /**
      * Преобразуване от Келвин в Келвин
      */
-    function kelvToKelv($kelv)
+    public function kelvToKelv($kelv)
     {
         return $kelv;
     }
@@ -137,9 +136,12 @@ class physics_TemperatureType extends type_Double
     /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */
-    function toVerbal($value)
+    public function toVerbal($value)
     {
-        if(!isset($value)) return NULL;
+        if (!isset($value)) {
+            
+            return;
+        }
         
         return parent::toVerbal($value) . ' ' . $this->params['defaultUnit'];
     }
@@ -148,17 +150,17 @@ class physics_TemperatureType extends type_Double
     /**
      * Проверява единицата за въведената стойност
      */
-    function checkUnit($valueForCheck, $firstLetter = FALSE, $searchAgain = TRUE)
+    public function checkUnit($valueForCheck, $firstLetter = false, $searchAgain = true)
     {
-        if ((mb_stristr($valueForCheck, 'F') == TRUE) ||
-            (mb_stristr($valueForCheck, 'Ф') == TRUE)) {
+        if ((mb_stristr($valueForCheck, 'F') == true) ||
+            (mb_stristr($valueForCheck, 'Ф') == true)) {
             $str = 'far';
-        } elseif ((mb_stristr($valueForCheck, 'K') == TRUE) ||
-            (mb_stristr($valueForCheck, 'К')) == TRUE) {
+        } elseif ((mb_stristr($valueForCheck, 'K') == true) ||
+            (mb_stristr($valueForCheck, 'К')) == true) {
             $str = 'kelv';
-        } elseif ((mb_stristr($valueForCheck, 'C') == TRUE) ||
-            (mb_stristr($valueForCheck, 'С') == TRUE) ||
-            (mb_stristr($valueForCheck, 'Ц') == TRUE)) {
+        } elseif ((mb_stristr($valueForCheck, 'C') == true) ||
+            (mb_stristr($valueForCheck, 'С') == true) ||
+            (mb_stristr($valueForCheck, 'Ц') == true)) {
             $str = 'cels';
         } else {
             $str = 'cels';
@@ -167,7 +169,7 @@ class physics_TemperatureType extends type_Double
                 //Проверява дали е въведена стойност по подразбиране, за да я използва, ако няма добавена
                 if (isset($this->params['defaultUnit'])) {
                     if ($searchAgain) {
-                        $str = $this->checkUnit($this->params['defaultUnit'], $firstLetter, FALSE);
+                        $str = $this->checkUnit($this->params['defaultUnit'], $firstLetter, false);
                     }
                 }
             }
@@ -185,11 +187,11 @@ class physics_TemperatureType extends type_Double
     /**
      * Преобразуване от вербална стойност, към вътрешно представяне
      */
-    function fromVerbal($value)
+    public function fromVerbal($value)
     {
         $str = $this->checkUnit($value);
         $str .= 'To';
-        $str .= $this->checkUnit($this->params['defaultUnit'], TRUE);
+        $str .= $this->checkUnit($this->params['defaultUnit'], true);
         
         //Преобразува в невербална стойност
         $from = array('<dot>', '[dot]', '(dot)', '{dot}', ' dot ',
@@ -209,7 +211,7 @@ class physics_TemperatureType extends type_Double
         
         //Премахва всички стойности различни от: "числа-.,аритметични знаци"
         $pattern = '/[^0-9\-\.\,\/\*\+]/';
-        $value = preg_replace($pattern, '' , $value);
+        $value = preg_replace($pattern, '', $value);
         
         $value = parent::fromVerbal($value);
         
@@ -220,13 +222,14 @@ class physics_TemperatureType extends type_Double
     /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
-        if (!is_numeric($value)) $value = 0;
+        if (!is_numeric($value)) {
+            $value = 0;
+        }
         
         $value = parent::toVerbal($value) . ' ' . $this->params['defaultUnit'];
         
         return parent::renderInput_($name, $value, $attr);
     }
 }
-

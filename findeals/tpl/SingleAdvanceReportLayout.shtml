@@ -12,7 +12,7 @@
          <div class="state [#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
          <!--ET_END state-->
       </td>
-      <td class='custom-header-bg' style="width: 35%"><b>|Oрганизация|*</b></td>
+      <td class='custom-header-bg' style="width: 35%"><b>|Организация|*</b></td>
    </tr>
    <tr>
       <td>

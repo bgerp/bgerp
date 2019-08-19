@@ -6,34 +6,37 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Email extends fileman_webdrv_Generic
 {
+    /**
+     * Кой таб да е избран по подразбиране
+     *
+     * @Override
+     *
+     * @see fileman_webdrv_Generic::$defaultTab
+     */
+    public static $defaultTab = 'html';
     
     
     /**
-     * Кой таб да е избран по подразбиране
-     * @Override
-     * @see fileman_webdrv_Generic::$defaultTab
-     */
-    static $defaultTab = 'html';
-    
-    
-	/**
      * Връща всички табове, които ги има за съответния файл
-     * 
+     *
      * @param object $fRec - Записите за файла
-     * 
+     *
      * @return array
-     * 
+     *
      * @Override
+     *
      * @see fileman_webdrv_Generic::getTabs
      */
-    static function getTabs($fRec)
+    public static function getTabs($fRec)
     {
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
@@ -45,46 +48,46 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $source = static::getSource($fRec);
         
         $mime->parseAll($source);
-   
+        
         $mime->saveFiles();
-     
+        
         // Подгорвяме сорса за показване
         $sourceShow = static::prepareSource($source);
-
+        
         // Вземаме текстовата част
-        $textPart = static::getTextPart($mime, TRUE);
+        $textPart = static::getTextPart($mime, true);
         
         // Вземаме HTML частта
-        $htmlPartUrl = static::getHtmlPart($mime);
+        $htmlPartArr = static::getHtmlPart($mime);
         
         // Вземаме хедърите
         $headersStr = $mime->getHeadersVerbal();
-       
+        
         // Добавяме стилове
         $headersStr = "<div class='email-source-holder'><div class='email-source'>{$headersStr}</div><div>";
         
         // Вземаме линковете към файловете
         $filesStr = static::getFiles($mime);
-       
+        
         // Подготвяме табовете
         
         // Вземаме съдържанието на таба за HTML
-        $htmlPart = static::getHtmlTabTpl($htmlPartUrl);
+        $htmlPart = static::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path']);
         
         // Ако няма HTML част
-        if ($htmlPart !== FALSE) {
+        if ($htmlPart !== false) {
             
             // Таб за HTML част
-            $tabsArr['html'] = (object) 
-    			array(
-    				'title' => 'HTML',
-    				'html'  => $htmlPart,
-    				'order' => 3,
-    			); 
+            $tabsArr['html'] = (object)
+                array(
+                    'title' => 'HTML',
+                    'html' => $htmlPart,
+                    'order' => 3,
+                );
         } else {
             
             // Таба по подразбиране да е текстовия
-            $tabsArr['__defaultTab'] = 'text';
+            $tabsArr['__defaultTab']->name = 'text';
         }
         
         
@@ -92,54 +95,54 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         if (trim($textPart)) {
             
             // Таб за текстовата част
-            $tabsArr['text'] = (object) 
-    			array(
-    				'title' => 'Текст',
-    				'html'  => "<div class='webdrvTabBody' style='white-space:pre-line;'><div class='webdrvFieldset'><div class='legend'>" . tr("Текстовата част на имейла") . "</div>{$textPart}</div></div>",
-    				'order' => 4,
-    			);    
+            $tabsArr['text'] = (object)
+                array(
+                    'title' => 'Текст',
+                    'html' => "<div class='webdrvTabBody' style='white-space:pre-line;'><div class='legend'>" . tr('Текстовата част на имейла') . "</div><div class='webdrvFieldset'>{$textPart}</div></div>",
+                    'order' => 4,
+                );
         }
         
-	    // Ако има прикачени файлове
-	    if ($filesStr) {
-
-	        // Таб за преглед
-    		$tabsArr['files'] = (object) 
-    			array(
-    				'title'   => 'Файлове',
-    				'html'    => "<div class='webdrvTabBody' style='white-space:pre-line;'><div class='webdrvFieldset'><div class='legend'>" . tr("Прикачените файлове") . "</div>{$filesStr}</div></div>",
-    				'order' => 5,
-    			);
-	    }
-			
-		// Таб за хедърите
-		$tabsArr['headers'] = (object) 
-			array(
-				'title'   => 'Хедъри',
-				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr("Хедърите на имейла") . "</div>{$headersStr}</div></div>",
-				'order' => 8,
-			);
-			
+        // Ако има прикачени файлове
+        if ($filesStr) {
+            
+            // Таб за преглед
+            $tabsArr['files'] = (object)
+                array(
+                    'title' => 'Файлове',
+                    'html' => "<div class='webdrvTabBody' style='white-space:pre-line;'><div class='legend'>" . tr('Прикачените файлове') . "</div><div class='webdrvFieldset'>{$filesStr}</div></div>",
+                    'order' => 5,
+                );
+        }
+        
+        // Таб за хедърите
+        $tabsArr['headers'] = (object)
+            array(
+                'title' => 'Хедъри',
+                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Хедърите на имейла') . "</div><div class='webdrvFieldset'>{$headersStr}</div></div>",
+                'order' => 8,
+            );
+        
         // Таб за сорса
-        $tabsArr['source'] = (object) 
-			array(
-				'title'   => 'Сорс',
-				'html'    => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Изходен код на имейла") . "</div>{$sourceShow}</div></div>",
-				'order' => 9,
-			);
-			
+        $tabsArr['source'] = (object)
+            array(
+                'title' => 'Сорс',
+                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Изходен код на имейла') . "</div><div class='webdrvFieldset'>{$sourceShow}</div></div>",
+                'order' => 9,
+            );
+        
         return $tabsArr;
     }
     
     
     /**
      * Намира и връща соурса на файла
-     * 
+     *
      * @param fileman_Files $fRec - Обект с данните за съответния файл
-     * 
+     *
      * @return string - Сорса на EML файла
      */
-    static function getSource($fRec)
+    public static function getSource($fRec)
     {
         // Връщаме соурса на файла
         return fileman_Files::getContent($fRec->fileHnd);
@@ -148,18 +151,18 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     
     /**
      * Връща текстовата част от файла
-     * 
+     *
      * @param email_Mime $mime
-     * @param boolean $escape - Дали да се ескейпва текстовата част
-     * 
+     * @param bool       $escape - Дали да се ескейпва текстовата част
+     *
      * return string - Текстовата част
      */
-    static function getTextPart($mime, $escape=TRUE)
+    public static function getTextPart($mime, $escape = true)
     {
         // Текстовата част
         $textPart = $mime->justTextPart;
         
-        if(!$textPart && $mime->textPart) {
+        if (!$textPart && $mime->textPart) {
             Mode::push('text', 'plain');
             $rt = new type_Richtext();
             $textPart = $rt->toHtml($mime->textPart);
@@ -170,42 +173,45 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         if ($escape) {
             
             // Ескейпваме текстовата част
-            $textPart = core_Type::escape($textPart);    
+            $textPart = core_Type::escape($textPart);
         }
-
+        
         return $textPart;
     }
     
     
     /**
      * Връща HTML частта от файла
-     * 
+     *
      * @param email_Mime $mime
-     * 
-     * return string - HTML частта на файла
+     *
+     * @return array
      */
-    static function getHtmlPart($mime)
-    { 
+    public static function getHtmlPart($mime)
+    {
         $htmlFile = $mime->getHtmlFile();
         
         // Ако липсва HTML част
-        if (!$htmlFile) return ;
+        if (!$htmlFile) {
+            
+            return ;
+        }
         
         // Манипулатора на html файла
         $htmlFileHnd = fileman_Files::fetchField($htmlFile, 'fileHnd');
         
-        return fileman_Download::getDownloadUrl($htmlFileHnd);
+        return array('path' => fileman::extract($htmlFileHnd), 'url' => fileman_Download::getDownloadUrl($htmlFileHnd));
     }
     
     
     /**
      * Връща html стринг с прикачените файлове
-     * 
+     *
      * @param email_Mime $mime
-     * 
+     *
      * return string - html стринг с прикачените файлове
      */
-    static function getFiles($mime)
+    public static function getFiles($mime)
     {
         $filesKeyList = $mime->getFiles();
         $filesArr = keylist::toArray($filesKeyList);
@@ -216,7 +222,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         foreach ($filesArr as $keyD => $dummy) {
             $filesStr .= fileman_Files::getLinkById($keyD) . "\n";
         }
-
+        
         // Връщаме стринга
         return $filesStr;
     }
@@ -224,13 +230,13 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     
     /**
      * Връща информация за съответния файл и съответния тип
-     * 
+     *
      * @param fileHandler $fileHnd - Манипулатор на файла
-     * @param string $type - Типа на файла
-     * 
+     * @param string      $type    - Типа на файла
+     *
      * @return mixed $content - Десериализирания стринг
      */
-    static function getInfoContentByFh($fileHnd, $type)
+    public static function getInfoContentByFh($fileHnd, $type)
     {
         // Записите за съответния файл
         $fRec = fileman_Files::fetchByFh($fileHnd);
@@ -248,13 +254,13 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
             
             // Ако ни трябва текстовата част
             case 'text':
-                $content = static::getTextPart($mime, FALSE);
+                $content = static::getTextPart($mime, false);
             break;
             
             default:
                 
                 // Ако типа не съществува, връщаме FALSE
-                return FALSE;
+                return false;
         }
         
         return $content;
@@ -263,67 +269,47 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     
     /**
      * Подготвя сорса за показване
-     * 
+     *
      * @param string $source - Соурса, който искаме да го добавим
-     * 
+     *
      * @return type_Richtext $source - Преработения сорс
      */
-    static function prepareSource($source)
+    public static function prepareSource($source)
     {
 //        $source = i18n_Charset::convertToUtf8($source);
-
+        
         // Добавяме сорса в code елемент
         $source = str_replace(array('&', '<', '>'), array('&amp;', '&lt;', '&gt;'), $source);
         
         // Преобразуваме към вербална стойност
         $source = "<div class='email-source-holder'><div class='email-source'>{$source}</div></div>";
- 
+        
         return $source;
-    }
-
-    
-    /**
-     * Проверяваме дали има HTML част
-     * 
-     * @param $link - Линка към файла
-     * 
-     * @return boolean - Ако има съдържание връща TRUE
-     */
-    static function checkHtmlPart($link)
-    {
-        // Ако няма линк кода не се изплълнява
-        if (!$link) return ;
-        
-        // Вземаме съдържанието на линка
-        $content = file_get_contents($link);
-        
-        // Преобразуваме го в текс
-        $content = html2text_Converter::toRichText($content);
-        
-        // След тримване, ако има съдъжание връщаме TRUE
-        if (trim($content)) return TRUE;
     }
     
     
     /**
      * Проверяваме дали има текстова част
-	 * 
-	 * @param email_Mime $mime - Обект
-     * 
-     * @return boolean - Ако има съдържание връща TRUE
+     *
+     * @param email_Mime $mime - Обект
+     *
+     * @return bool - Ако има съдържание връща TRUE
      */
-    static function checkTextPart($mime)
+    public static function checkTextPart($mime)
     {
-        if (trim($mime->getJustTextPart())) return TRUE;
+        if (trim($mime->getJustTextPart())) {
+            
+            return true;
+        }
     }
     
     
-	/**
+    /**
      * Извлича текстовата част от файла
-     * 
-     * @param object $fRec - Записите за файла
+     *
+     * @param object|string $fRec - Записите за файла
      */
-    static function extractText($fRec)
+    public static function extractText($fRec)
     {
         // Параметри необходими за конвертирането
         $params = array(
@@ -342,37 +328,40 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $params['lockId'] = self::getLockId('text', $dId);
         
         // Проверявама дали няма извлечена информация или не е заключен
-        if (fileman_Indexes::isProcessStarted($params)) return ;
+        if (fileman_Indexes::isProcessStarted($params)) {
+            
+            return ;
+        }
         
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
-        	
+        if (core_Locks::get($params['lockId'], 100, 0, false)) {
+            
             // Вземаме текстовата част
             if (is_object($fRec)) {
                 $textPart = self::getInfoContentByFh($fRec->fileHnd, 'text');
             } else {
                 // Записите за съответния файл
-                $source = !@file_get_contents($fRec);
+                $source = @file_get_contents($fRec);
                 
                 // Инстанция на класа
                 $mime = cls::get('email_Mime');
                 
                 $mime->parseAll($source);
-                $textPart = static::getTextPart($mime, FALSE);
+                $textPart = static::getTextPart($mime, false);
             }
-        	
+            
             $textPart = mb_strcut($textPart, 0, 1000000);
             $textPart = i18n_Charset::convertToUtf8($textPart);
-        	
+            
             if ($params['fileHnd']) {
                 // Обновяваме данните за запис във fileman_Indexes
                 $params['content'] = $textPart;
                 fileman_Indexes::saveContent($params);
             }
-        	
+            
             // Отключваме процеса
             core_Locks::release($params['lockId']);
-        	
+            
             return $textPart;
         }
     }

@@ -7,10 +7,17 @@
                 <legend class="groupTitle">|Информация|*</legend>
                 <div class="groupList">
                     <table>
+                    	[#INFO_BLOCK#]
+                    	<!--ET_BEGIN CAPTION_VALUE-->
+                    	<tr>
+                            <td class='dt'>[#CAPTION#]:</td>
+                            <td>[#CAPTION_VALUE#]</td>
+                        </tr>
+                    	<!--ET_END CAPTION_VALUE-->
                         <!--ET_BEGIN creation-->
                         <tr>
                             [#creation#]
-                            <td  class='dt'>|Създаване:|*</td>
+                            <td  class='dt'>|Създаване|*:</td>
                             <td> <span class="part"><span class="gray-title"></span><b>[#createdBy#]</b></span><span class="part"><span class="gray-title">,</span> [#createdOn#]</span>
                             </td>
                         </tr>
@@ -21,6 +28,12 @@
                             <td>|Автоматично след|* [#CloseTime#]</td>
                         </tr>
                         <!--ET_END CloseTime-->
+                        <!--ET_BEGIN ShowDocumentsAsButtons-->
+                        <tr>
+                            <td class='dt'>|Бързи бутони в папката|*:</td>
+                            <td>[#ShowDocumentsAsButtons#]</td>
+                        </tr>
+                        <!--ET_END ShowDocumentsAsButtons-->
                     </table>
                 </div>
             </fieldset>

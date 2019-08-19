@@ -1,0 +1,54 @@
+
+<div class="terminalHeader">
+	<div class="centerContent">
+		<span class="fleft">
+			<span class="logo">[#LOGO#]</span>
+			<span id ='nameHolder' data-id = '[#id#]'>[#name#]</span>
+			<span class="title">[#centerId#] <!--ET_BEGIN fixedAssets-->&nbsp;»&nbsp;[#fixedAssets#]<!--ET_END fixedAssets--></span>
+		</span>
+		<div class="fright userInfo">
+			 <span id="dateHolder">[#date#]</span>
+			[#userId#]
+			<!--ET_BEGIN EXIT_TERMINAL--> [#EXIT_TERMINAL#]<!--ET_END EXIT_TERMINAL-->
+		</div>
+
+		<div class='searchHolder'>
+			[#scanBtn#][#SEARCH_FORM#]
+		</div>
+		<div class="clearfix21"></div>
+	</div>
+</div>
+<div class="centerContent">
+	<div class="tabs-holder">
+		<ul class="navigation">
+			<li class="[#activeAll#]" title='Списък производствени операции в центъра на дейност|*' id='task-list'>
+				<a href='#task-list-content' accesskey='o' data-url='[#taskListUrl#]' class='tab-link'>|Списък|*</a>
+			</li>
+			
+			<li class="[#activeSingle#]" title='|Прогрес на производствените операции|*' id='tab-progress'>
+				<a href='#task-progress-content' accesskey='p' data-url='[#taskProgressUrl#]' class='tab-link'>|Прогрес|*</a>
+			</li>
+			
+			<li class="[#activeTask#]" title='|Изглед на  производствената операция|*' id='tab-single-task'>
+				<a href='#task-single-content' accesskey='p' data-url='[#taskSingleUrl#]' class='tab-link'>|Операция|*</a>
+			</li>
+			
+			<li class="[#activeJob#]" title='|Задание към, което е операцията|*' id='tab-job'>
+				<a href='#task-job-content' accesskey='j' data-url='[#taskJobUrl#]' class='tab-link'>|Задание|*</a>
+			</li>
+			
+			<li class="[#activeSupport#]" title='|Поддръжка на оборудването в центъра на дейност|*' id='tab-support'>
+				<a href='#task-support-content' accesskey='j' data-url='[#taskSupportUrl#]' class='tab-link'>|Поддръжка|*</a>
+			</li>
+		</ul>
+			<div class='terminal-content'>
+				<div class='tabContent [#active_choose#]' id = 'task-progress-content'>[#TASK_PROGRESS#] </div>
+				<div class='tabContent [#active_choose#]' id = 'task-list-content'>[#TASK_LIST#]</div>
+				<div class='tabContent [#active_choose#]' id = 'task-single-content'>[#TASK_SINGLE#]</div>
+				<div class='tabContent [#active_choose#]' id = 'task-job-content'>[#TASK_JOB#]</div>
+				<div class='tabContent [#active_choose#]' id = 'task-support-content'>[#SUPPORT#]<div class='clearfix21'></div></div>
+			</div>
+	</div>
+	<div class="clearfix21"></div>
+</div>
+

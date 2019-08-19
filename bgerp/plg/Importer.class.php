@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Плъгин помагащ при импортирането на данни от външни формати
  *
@@ -21,14 +22,15 @@
  *
  * @category  bgerp
  * @package   plg
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_plg_Importer extends core_Plugin
 {
-    
     /**
      * Име на екшъна / командата за импортиране
      *
@@ -43,13 +45,15 @@ class bgerp_plg_Importer extends core_Plugin
      * Ефекта е все едно, че мениджъра-домакин е имплементирал екшъна act_Import
      *
      * @param core_Mvc $mvc
-     * @param core_ET $tpl
-     * @param string $action
-     * @return void|boolean
+     * @param core_ET  $tpl
+     * @param string   $action
+     *
+     * @return void|bool
      */
-    function on_BeforeAction($mvc, &$tpl, $action)
+    public function on_BeforeAction($mvc, &$tpl, $action)
     {
         if (strtolower($action) != static::$importVerb) {
+            
             return;
         }
         
@@ -70,7 +74,7 @@ class bgerp_plg_Importer extends core_Plugin
         expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
         
         // Дали имаме права за импорт?
-        $mvc->requireRightFor($data->cmd, NULL, NULL, $retUrl);
+        $mvc->requireRightFor($data->cmd, null, null, $retUrl);
         
         // Зареждаме формата
         $data->form->input();
@@ -96,12 +100,13 @@ class bgerp_plg_Importer extends core_Plugin
             // Редиректваме към предварително установения адрес
             $tpl = new Redirect($data->retUrl, '|' . $feedback);
             
-            return FALSE;
-        } else {
-            // Подготвяме адреса, към който трябва да редиректнем,
-            // при успешно записване на данните от формата
-            $mvc->prepareRetUrl($data);
+            return false;
         }
+        
+        // Подготвяме адреса, към който трябва да редиректнем,
+        // при успешно записване на данните от формата
+        $mvc->prepareRetUrl($data);
+        
         
         // Подготвяме лентата с инструменти на формата
         $mvc->prepareImportToolbar($data);
@@ -112,7 +117,7 @@ class bgerp_plg_Importer extends core_Plugin
         // Опаковаме изгледа
         $tpl = $mvc->renderWrapping($tpl);
         
-        return FALSE;
+        return false;
     }
     
     
@@ -122,12 +127,11 @@ class bgerp_plg_Importer extends core_Plugin
      * че мениджъра-домакин го е имплементирал.
      *
      * @param core_Mvc $mvc
-     * @param mixed $res
+     * @param mixed    $res
      * @param stdClass $data
      */
-    function on_AfterPrepareImportToolbar($mvc, &$res, $data)
+    public function on_AfterPrepareImportToolbar($mvc, &$res, $data)
     {
-    
     }
     
     
@@ -141,7 +145,7 @@ class bgerp_plg_Importer extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareImportForm($mvc, &$res, $data)
+    public function on_BeforePrepareImportForm($mvc, &$res, $data)
     {
         // Създаваме (ако няма) кофа за качените файлове за експорт
         fileman_Buckets::createBucket(
@@ -150,7 +154,7 @@ class bgerp_plg_Importer extends core_Plugin
             '',      // могат да се качват файлове със всякакви разширения
             '5M',    // макс. размер
             'admin', // само роля admin може да сваля такива файлове
-            NULL,    // всеки може да импортира (стига да има права според мениджъра домакин)
+            null,    // всеки може да импортира (стига да има права според мениджъра домакин)
             1        // колко време да "живеят" файловете, преди да бъдат автоматично изтрити?
             //
             // Изглежда разумно това число да е съобразено с потенциално най-продължителния
@@ -176,7 +180,7 @@ class bgerp_plg_Importer extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         // Ако няма права за съответния екшън, да не се добавя бутона
         if ($mvc->haveRightFor(static::$importVerb)) {

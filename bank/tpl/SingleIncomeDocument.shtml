@@ -61,14 +61,14 @@
                                     
                                     <!--ET_BEGIN fromContainerId-->
                                     <tr>
-                                        <td class="nowrap">|Към фактура|*: </td>
+                                        <td class="nowrap">|Към|* [#fromContainerName#]: </td>
                                         <td>[#fromContainerId#]</td>
                                     </tr>
                      				<!--ET_END fromContainerId-->
                      				
                                     <!--ET_BEGIN termDate-->
                                     <tr>
-                                        <td>|Очаквано на|*: </td>
+                                        <td class="nowrap">|Очаквано на|*: </td>
                                         <td>[#termDate#]</td>
                                     </tr>
                                     <!--ET_END termDate-->

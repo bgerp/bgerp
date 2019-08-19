@@ -5,7 +5,7 @@
                 <tr>
                     <td class="cell custom-header-bg" style='width:35%'><b>|Получател|*</b></td>
                     <td class="cell centered" style='width:30%' rowspan='2'>
-                        <div class="document-title">|приемателен протoкол|*</div>
+                        <div class="document-title">|приемателен протокол|*</div>
                         <!--ET_BEGIN operationSysId-->
                         <small>( [#operationSysId#] )</small>
                         <!--ET_END operationSysId-->

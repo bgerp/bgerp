@@ -7,26 +7,29 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class doc_type_SayTime extends type_Varchar {
+class doc_type_SayTime extends type_Varchar
+{
+    /**
+     * Параметър определящ максималната широчина на полето
+     */
+    public $maxFieldSize = 16;
     
-	/**
-	 * Параметър определящ максималната широчина на полето
-	 */
-	var $maxFieldSize = 16;
-	
-	
+    
     /**
      * Преобразуване на време от вербална стойност към представяне в минути
      *
      * @param string $timeStr
+     *
      * @return array $timeInMins
      */
-    function fromVerbal($timeStr)
+    public function fromVerbal($timeStr)
     {
         $timeStr = trim($timeStr);
         
@@ -40,9 +43,9 @@ class doc_type_SayTime extends type_Varchar {
         
         // Init
         $weekInt = 0;
-        $dayInt  = 0;
+        $dayInt = 0;
         $hourInt = 0;
-        $minInt  = 0;
+        $minInt = 0;
         
         // Седмица, седмици
         $weekPos = strpos($timeStr, 'седм');
@@ -50,10 +53,10 @@ class doc_type_SayTime extends type_Varchar {
         if ($weekPos) {
             $weekData = substr($timeStr, 0, $weekPos);
             
-            if (preg_match("/[0-9]+/", $weekData, $matches)) {
+            if (preg_match('/[0-9]+/', $weekData, $matches)) {
                 $weekInt = $matches[0];
             } else {
-                $weekParse = FALSE;
+                $weekParse = false;
             }
             
             // Cut $timeStr
@@ -65,7 +68,7 @@ class doc_type_SayTime extends type_Varchar {
             // Cut $timeStr
             $timeStr = substr($timeStr, $intervalPos + 1, strlen($timeStr) - $intervalPos - 1);
         } elseif ($weekPos === 0) {
-            $weekParse = FALSE;
+            $weekParse = false;
         }
         
         // ENDOF Седмица, седмици
@@ -76,10 +79,10 @@ class doc_type_SayTime extends type_Varchar {
         if ($dayPos) {
             $dayData = substr($timeStr, 0, $dayPos);
             
-            if (preg_match("/[0-9]+/", $dayData, $matches)) {
+            if (preg_match('/[0-9]+/', $dayData, $matches)) {
                 $dayInt = $matches[0];
             } else {
-                $dayParse = FALSE;
+                $dayParse = false;
             }
             
             // Cut $timeStr
@@ -91,17 +94,17 @@ class doc_type_SayTime extends type_Varchar {
             // Cut $timeStr
             $timeStr = substr($timeStr, $intervalPos + 1, strlen($timeStr) - $intervalPos - 1);
         } elseif ($dayPos === 0) {
-            $dayParse = FALSE;
+            $dayParse = false;
         } else {
             $dayPos = strpos($timeStr, 'дни');
             
             if ($dayPos) {
                 $dayData = substr($timeStr, 0, $dayPos);
                 
-                if (preg_match("/[0-9]+/", $dayData, $matches)) {
+                if (preg_match('/[0-9]+/', $dayData, $matches)) {
                     $dayInt = $matches[0];
                 } else {
-                    $dayParse = FALSE;
+                    $dayParse = false;
                 }
                 
                 // Cut $timeStr
@@ -113,7 +116,7 @@ class doc_type_SayTime extends type_Varchar {
                 // Cut $timeStr
                 $timeStr = substr($timeStr, $intervalPos + 1, strlen($timeStr) - $intervalPos - 1);
             } elseif ($dayPos === 0) {
-                $dayParse = FALSE;
+                $dayParse = false;
             }
         }
         
@@ -125,10 +128,10 @@ class doc_type_SayTime extends type_Varchar {
         if ($hourPos) {
             $hourData = substr($timeStr, 0, $hourPos);
             
-            if (preg_match("/[0-9]+/", $hourData, $matches)) {
+            if (preg_match('/[0-9]+/', $hourData, $matches)) {
                 $hourInt = $matches[0];
             } else {
-                $hourParse = FALSE;
+                $hourParse = false;
             }
             
             // Cut $timeStr
@@ -140,7 +143,7 @@ class doc_type_SayTime extends type_Varchar {
             // Cut $timeStr
             $timeStr = substr($timeStr, $intervalPos + 1, strlen($timeStr) - $intervalPos - 1);
         } elseif ($hourPos === 0) {
-            $hourParse = FALSE;
+            $hourParse = false;
         }
         
         // ENDOF Час, часа
@@ -151,34 +154,34 @@ class doc_type_SayTime extends type_Varchar {
         if ($minPos) {
             $minData = substr($timeStr, 0, $minPos);
             
-            if (preg_match("/[0-9]+/", $minData, $matches)) {
+            if (preg_match('/[0-9]+/', $minData, $matches)) {
                 $minInt = $matches[0];
             } else {
-                $minParse = FALSE;
+                $minParse = false;
             }
         } elseif ($minPos === 0) {
-            $minParse = FALSE;
+            $minParse = false;
         }
         
         // ENDOF Мин
         
         // Ако има зададена седмица/ден/час/минути, но не може да се определи int стойността
-        if ($weekPos === FALSE && $dayPos === FALSE && $hourPos === FALSE && $minPos === FALSE) {
-            $timeInMins['value'] = FALSE;
-        } elseif ($weekParse === FALSE || $dayParse  === FALSE || $hourParse === FALSE || $minParse  === FALSE) {
-            $timeInMins['value'] = FALSE;
+        if ($weekPos === false && $dayPos === false && $hourPos === false && $minPos === false) {
+            $timeInMins['value'] = false;
+        } elseif ($weekParse === false || $dayParse === false || $hourParse === false || $minParse === false) {
+            $timeInMins['value'] = false;
         } else {
             $timeInMins['value'] = $weekInt * 7 * 24 * 60 + $dayInt * 24 * 60 + $hourInt * 60 + $minInt;
         }
         
-        $timeInMins['week']      = $weekInt;
+        $timeInMins['week'] = $weekInt;
         $timeInMins['weekParse'] = $weekParse;
-        $timeInMins['day']       = $dayInt;
-        $timeInMins['dayParse']  = $dayParse;
-        $timeInMins['hour']      = $hourInt;
+        $timeInMins['day'] = $dayInt;
+        $timeInMins['dayParse'] = $dayParse;
+        $timeInMins['hour'] = $hourInt;
         $timeInMins['hourParse'] = $hourParse;
-        $timeInMins['min']       = $minInt;
-        $timeInMins['minParse']  = $minParse;
+        $timeInMins['min'] = $minInt;
+        $timeInMins['minParse'] = $minParse;
         
         return $timeInMins;
     }
@@ -188,17 +191,18 @@ class doc_type_SayTime extends type_Varchar {
      * на време от минути във вербална стойност
      *
      * @param int $timeMin
+     *
      * @return string $timeStr
      */
-    static function toVerbal($timeMin)
+    public static function toVerbal($timeMin)
     {
         if ($timeMin) {
             // седмица, седмици
             $weekInt = floor($timeMin / 10080);
             
             if ($weekInt > 5) {
-                $timeStr['value'] = FALSE;
-            } elseif ($weekInt > 1 && $weekInt <5) {
+                $timeStr['value'] = false;
+            } elseif ($weekInt > 1 && $weekInt < 5) {
                 $weekStr = $weekInt . ' седмици ';
             } elseif ($weekInt == 1) {
                 $weekStr = $weekInt . ' седмица ';
@@ -211,12 +215,12 @@ class doc_type_SayTime extends type_Varchar {
             $timeMin = $timeMin - ($weekInt * 10080);
             
             // ден, дни
-            $dayInt  = floor($timeMin / 1440);
+            $dayInt = floor($timeMin / 1440);
             
             if ($dayInt > 1) {
-                $dayStr = $dayInt . " дни ";
+                $dayStr = $dayInt . ' дни ';
             } elseif ($dayInt == 1) {
-                $dayStr = $dayInt . " ден ";
+                $dayStr = $dayInt . ' ден ';
             } elseif ($dayInt == 0) {
                 $dayStr = '';
             }
@@ -229,22 +233,22 @@ class doc_type_SayTime extends type_Varchar {
             $hourInt = floor($timeMin / 60);
             
             if ($hourInt > 1) {
-                $hourStr = $hourInt . " часа ";
+                $hourStr = $hourInt . ' часа ';
             } elseif ($hourInt == 1) {
-                $hourStr = $hourInt . " час ";
+                $hourStr = $hourInt . ' час ';
             } elseif ($hourInt == 0) {
                 $hourStr = '';
             }
             
             // ENDOF час, часа
             
-            $minInt  = $timeMin  - ($hourInt * 60);
+            $minInt = $timeMin - ($hourInt * 60);
             
             // минута, минути
             if ($minInt > 1) {
-                $minStr = $minInt . " минути ";
+                $minStr = $minInt . ' минути ';
             } elseif ($minInt == 1) {
-                $minStr = $minInt . " минута";
+                $minStr = $minInt . ' минута';
             } elseif ($minInt == 0) {
                 if (!$weekStr && !$dayStr && !$hourStr) {
                     $minStr = 'на момента';

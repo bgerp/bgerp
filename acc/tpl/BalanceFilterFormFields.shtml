@@ -45,5 +45,13 @@
             </td>
         </tr>
         <!--ET_END group3-->
+        <tr>
+            <td colspan=2>
+                <div class='captionSimple  '>|Подредба|*</div>
+                <div class='nowrap'>[#sortBy#]</div>
+                 
+            </td>
+         </tr>
+
     </table>
 </div>

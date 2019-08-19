@@ -1,12 +1,14 @@
 var currentMenuInfo = getCookie('menuInfo');
-
+var currentBookmarkInfo = getCookie('bookmarkInfo');
 
 function slidebars(){
 	initElements();
 	openSubmenus();
+	openBookmarkSubmenus();
 	changePinIcon();
 	userMenuActions();
 	sidebarAccordeonActions();
+	sidebarBookmarkActions();
 	setMaxWidth();
 }
 
@@ -142,6 +144,24 @@ function setMenuCookie(){
 	setCookie('menuInfo', menuState);
 }
 
+/**
+ * Записваме информацията за състоянието на букмарките в бисквитка
+ */
+function setBookmarkCookie(){
+	// ако е над 700пх, записваме кои подменюта са били отворени
+	if($(window).width() > 700) {
+		var openGroups = '';
+		$('.ul-group.open').each(function() {
+			if ($(this).attr('id') != 'undefined')
+				openGroups += $(this).attr('id') + ",";
+		});
+		bookmarkState = openGroups;
+	}
+
+	currentBookmarkInfo = bookmarkState;
+	setCookie('bookmarkInfo', bookmarkState);
+}
+
 
 /**
  * кои подменюта трябва да са отворени след зареждане
@@ -163,11 +183,30 @@ function openSubmenus() {
 			if(value) {
 				$("li[data-menuid='" + value + "']").addClass('open');
 			}
-        });
-        if(menuScroll){
-        	$('#nav-panel').scrollTop(menuScroll);
-        }
-    }
+		});
+		if(menuScroll){
+			$('#nav-panel').scrollTop(menuScroll);
+		}
+	}
+
+}
+
+/**
+ * кои подменюта на отметките трябва да са отворени след зареждане
+ */
+function openBookmarkSubmenus() {
+	if ($(window).width() < 700) return;
+
+	var bookmarkInfo = getCookie('bookmarkInfo');
+
+	if (bookmarkInfo!==null && bookmarkInfo.length > 1) {
+		bookmarkArray = bookmarkInfo.split(',');
+		$.each(bookmarkArray, function( index, value ) {
+			if(value) {
+				$('#' + value ).addClass('open');
+			}
+		});
+	}
 }
 
 
@@ -262,6 +301,19 @@ function sidebarAccordeonActions() {
             }
         );
 		setMenuCookie();
+	});
+}
+
+/**
+ * Действия на акордеона в меюто
+ */
+function sidebarBookmarkActions() {
+	$('.ul-group:not(.open) ul').css('display', 'none');
+
+	$(".ul-group .bookmark-group").click( function() {
+		$(this).parent().toggleClass('open');
+		$(this).parent().find('ul').slideToggle();
+		setBookmarkCookie();
 	});
 }
 

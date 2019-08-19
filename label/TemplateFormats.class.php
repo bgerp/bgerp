@@ -1,31 +1,27 @@
 <?php
 
 
-
 /**
  * Детайл на шаблоните за етикетите.
  * Съдържа типа на плейсхолдерите в шаблона
  *
  * @category  bgerp
  * @package   label
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class label_TemplateFormats extends core_Detail
 {
-    
-    
     /**
      * Заглавие на модела
      */
     public $title = 'Формати за параметрите';
     
     
-    /**
-     * 
-     */
     public $singleTitle = 'Формати';
     
     
@@ -65,15 +61,9 @@ class label_TemplateFormats extends core_Detail
     public $masterKey = 'templateId';
     
     
-    /**
-     * 
-     */
     public $listFields = 'type, placeHolder, formatParams';
     
     
-    /**
-     * 
-     */
     public $rowToolsField = 'type';
     
     
@@ -95,13 +85,13 @@ class label_TemplateFormats extends core_Detail
     public $currentTab = 'Шаблони';
     
     
-	/**
+    /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('templateId', 'key(mvc=label_Templates, select=title)', 'caption=Шаблон');
-        $this->FLD('placeHolder', 'varchar', 'caption=Плейсхолдер, title=Име на плейсхолдер, mandatory');
+        $this->FLD('placeHolder', 'varchar', 'caption=Плейсхолдер, title=Име на плейсхолдер, mandatory, refreshForm');
         $this->FLD('type', 'enum(' . self::$typeEnumOpt . ')', 'caption=Тип, silent, mandatory, remember');
         $this->FLD('formatParams', 'blob(serialize, compress)', 'caption=Параметри, title=Параметри за конвертиране на шаблона, input=none');
         
@@ -109,55 +99,54 @@ class label_TemplateFormats extends core_Detail
     }
     
     
-    
     /**
      * Добавяне на параметър към шаблон за етикети, или обновяване на съществуващ
-     * 
-     * @param int $templateId      - ид на шаблона
-     * @param varchar $placeholder - име на плейсхолдъра
-     * @param string $type         - тип на параметъра (caption, counter, image, html, barcode)
-     * @param array|NULL $params   - допълнителни параметри
+     *
+     * @param int        $templateId  - ид на шаблона
+     * @param string     $placeholder - име на плейсхолдъра
+     * @param string     $type        - тип на параметъра (caption, counter, image, html, barcode)
+     * @param array|NULL $params      - допълнителни параметри
+     *
      * @return int
      */
-    public static function addToTemplate($templateId, $placeholder, $type, $params = NULL)
+    public static function addToTemplate($templateId, $placeholder, $type, $params = null)
     {
-    	expect(label_Templates::fetchField($templateId), 'Несъществуващ шаблон');
-    	expect($placeholder, 'Липсва плейсхолдър');
-    	$types = arr::make(self::$typeEnumOpt);
-    	expect(array_key_exists($type, $types), "Невалиден тип '{$type}'");
-    	expect(is_null($params) || is_array($params));
-    	if($type == 'counter' || $type == 'barcode'){
-    		
-    		expect(in_array($params['Showing'], array('barcodeAndStr', 'string', 'barcode')), $params['Showing']);
-    		setIfNot($params['Rotation'], 'no');
-    		expect(in_array($params['Rotation'], array('yes', 'no')), $params['Rotation']);
-    		expect(array_key_exists($params['BarcodeType'], barcode_Generator::getAllowedBarcodeTypesArr()), $params['BarcodeType']);
-    		expect(type_Int::isInt($params['Width']), $params['Width']);
-    		expect(type_Int::isInt($params['Height']), $params['Height']);
-    		setIfNot($params['Ratio'], '1');
-    		expect(in_array($params['Ratio'], array('1', '2', '3', '4')), $params['Ratio']);
-    		
-    		if($type == 'counter'){
-    			expect(label_Counters::fetchField($params['CounterId']));
-    		}
-    	}
-    	
-    	$newRec = (object)array('templateId' => $templateId, 'placeHolder' => $placeholder, 'type' => $type, 'formatParams' => $params);
-    	
-    	$self = cls::get(get_called_class());
-    	if(!$self->isUnique($newRec, $fields, $exRec)){
+        expect(label_Templates::fetchField($templateId), 'Несъществуващ шаблон');
+        expect($placeholder, 'Липсва плейсхолдър');
+        $types = arr::make(self::$typeEnumOpt);
+        expect(array_key_exists($type, $types), "Невалиден тип '{$type}'");
+        expect(is_null($params) || is_array($params));
+        if ($type == 'counter' || $type == 'barcode') {
+            expect(in_array($params['Showing'], array('barcodeAndStr', 'string', 'barcode')), $params['Showing']);
+            setIfNot($params['Rotation'], 'no');
+            expect(in_array($params['Rotation'], array('yes', 'no')), $params['Rotation']);
+            expect(array_key_exists($params['BarcodeType'], barcode_Generator::getAllowedBarcodeTypesArr()), $params['BarcodeType']);
+            expect(type_Int::isInt($params['Width']), $params['Width']);
+            expect(type_Int::isInt($params['Height']), $params['Height']);
+            setIfNot($params['Ratio'], '1');
+            expect(in_array($params['Ratio'], array('1', '2', '3', '4')), $params['Ratio']);
+            
+            if ($type == 'counter') {
+                expect(label_Counters::fetchField($params['CounterId']));
+            }
+        }
+        
+        $newRec = (object) array('templateId' => $templateId, 'placeHolder' => $placeholder, 'type' => $type, 'formatParams' => $params);
+        
+        $self = cls::get(get_called_class());
+        if (!$self->isUnique($newRec, $fields, $exRec)) {
             $newRec->id = $exRec->id;
-    	}       
-    	
-    	return $self->save($newRec);
+        }
+        
+        return $self->save($newRec);
     }
     
     
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
-     * 
-     * @param unknown_type $mvc
-     * @param unknown_type $data
+     *
+     * @param label_TemplateFormats $mvc
+     * @param stdClass              $data
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
@@ -168,7 +157,7 @@ class label_TemplateFormats extends core_Detail
         $masterKey = $data->masterKey;
         
         // Ако има id към мастера
-        if($data->masterId) {
+        if ($data->masterId) {
             
             // Създаваме запис
             $rec = new stdClass();
@@ -182,59 +171,74 @@ class label_TemplateFormats extends core_Detail
             
             // URL за добавяне
             $captionUrl = $counterUrl = $imageUrl = $htmlUrl = $barcodeUrl = array(
-                    $mvc,
-                    'add',
-                    $masterKey => $data->masterId,
-                    'ret_url' => TRUE
-                );
+                $mvc,
+                'add',
+                $masterKey => $data->masterId,
+                'ret_url' => true
+            );
             
             // URL за добавяне на шаблон за надпис
             $captionUrl['type'] = 'caption';
             
             // Добавяме бутона
-            $data->toolbar->addBtn('Нов надпис', $captionUrl,
-                'id=btnAddCaption', 'ef_icon = img/16/text.png, title=Създаване на нов надпис'
+            $data->toolbar->addBtn(
+                'Нов надпис',
+                $captionUrl,
+                'id=btnAddCaption',
+                'ef_icon = img/16/text.png, title=Създаване на нов надпис'
             );
             
             // URL за добавяне на шаблон за брояч
             $counterUrl['type'] = 'counter';
             
             // Добавяме бутона
-            $data->toolbar->addBtn('Нов брояч', $counterUrl,
-                'id=btnAddCounter', 'ef_icon = img/16/counter-icon.png, title=Създаване на нов брояч'
+            $data->toolbar->addBtn(
+                'Нов брояч',
+                $counterUrl,
+                'id=btnAddCounter',
+                'ef_icon = img/16/counter-icon.png, title=Създаване на нов брояч'
             );
             
             // URL за добавяне  шаблон за изображение
             $imageUrl['type'] = 'image';
             
             // Добавяме бутона
-            $data->toolbar->addBtn('Нова картинка', $imageUrl,
-                'id=btnAddImage', 'ef_icon = img/16/image.png, title=Създаване на нова картинка'
+            $data->toolbar->addBtn(
+                'Нова картинка',
+                $imageUrl,
+                'id=btnAddImage',
+                'ef_icon = img/16/image.png, title=Създаване на нова картинка'
             );
             
             // URL за добавяне  шаблон за изображение
             $htmlUrl['type'] = 'html';
             
             // Добавяме бутона
-            $data->toolbar->addBtn('Нов HTML', $htmlUrl,
-                'id=btnAddHTML', 'ef_icon = img/16/html-icon.png, title=Създаване на нов HTML'
+            $data->toolbar->addBtn(
+                'Нов HTML',
+                $htmlUrl,
+                'id=btnAddHTML',
+                'ef_icon = img/16/html-icon.png, title=Създаване на нов HTML'
             );
             
             $barcodeUrl['type'] = 'barcode';
             
             // Добавяме бутона
-            $data->toolbar->addBtn('Нов баркод', $barcodeUrl,
-            		'id=btnAddBarcode', 'ef_icon = img/16/barcode-icon.png, title=Създаване на нов баркод'
+            $data->toolbar->addBtn(
+                'Нов баркод',
+                $barcodeUrl,
+                    'id=btnAddBarcode',
+                'ef_icon = img/16/barcode-icon.png, title=Създаване на нов баркод'
             );
         }
     }
     
     
-	/**
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
@@ -246,7 +250,7 @@ class label_TemplateFormats extends core_Detail
         }
         
         // Масив с типовете на полето
-        $typeArr = arr::make(self::$typeEnumOpt, TRUE);
+        $typeArr = arr::make(self::$typeEnumOpt, true);
         
         // Очакваме да има тип и типа да отговаря
         expect($type && $typeArr[$type]);
@@ -254,14 +258,11 @@ class label_TemplateFormats extends core_Detail
         // Задаваме да не може да се променя
         $data->form->setReadonly('type');
         
-        // Добавяме функционалните полета за съответния тип
-        static::addFieldsForType($data->form, $type);
-        
         // Вземаме данните от предишния запис
         $dataArr = $data->form->rec->formatParams;
         
         // Обхождаме масива
-        foreach ((array)$dataArr as $fieldName => $value) {
+        foreach ((array) $dataArr as $fieldName => $value) {
             
             // Добавяме данните от записите
             $data->form->rec->$fieldName = $value;
@@ -276,6 +277,9 @@ class label_TemplateFormats extends core_Detail
         // id на мастер
         $masterId = $data->form->rec->$masterKey;
         
+        // Добавяме функционалните полета за съответния тип
+        static::addFieldsForType($data->form, $type);
+        
         // Ако са сетнати
         if ($Master && $masterKey && $masterId) {
             
@@ -286,10 +290,38 @@ class label_TemplateFormats extends core_Detail
             $placesArr = $Master->getPlaceHolders($template);
             
             // Ключовете и стойностите да са равни
-            $placesArr = arr::make($placesArr, TRUE);
+            $placesArr = arr::make($placesArr, true);
+            
+            $mRec = $Master->fetch($masterId);
+            
+            if ($mRec->classId) {
+                $intfInst = cls::getInterface('label_SequenceIntf', $mRec->classId);
+                $labelDataArr = $intfInst->getLabelPlaceholders(null);
+                
+                foreach ($labelDataArr as $lName => $v) {
+                    $unset = false;
+                    if ($v->type == 'text') {
+                        if ($type != 'caption' && $type != 'barcode') {
+                            $unset = true;
+                        }
+                    }
+                    
+                    if ($v->type == 'picture') {
+                        if ($type != 'image') {
+                            $unset = true;
+                        }
+                    }
+                    
+                    if ($unset) {
+                        unset($placesArr[$lName]);
+                    } else {
+                        $placesArr[$lName] = $lName;
+                    }
+                }
+            }
             
             // Вземаме плейсхолдерите, за които има запис
-            $savedPlacesArr = (array)static::getAddededPlaceHolders($masterId);
+            $savedPlacesArr = (array) static::getAddededPlaceHolders($masterId);
             
             // Вземаме неизползваните
             $diffArr = array_diff($placesArr, $savedPlacesArr);
@@ -300,28 +332,37 @@ class label_TemplateFormats extends core_Detail
                 // Добавяме в масива
                 $diffArr[$data->form->rec->placeHolder] = $data->form->rec->placeHolder;
             }
-        
+            
             // Добавяме предложение за пътищата
             $data->form->appendSuggestions('placeHolder', $diffArr);
             
             // Ако има неизползван
-            if ($diffArr) {
-                
-                // Ако редактираме запис
-                if ($data->form->rec->id) {
-                    
-                    // По подразбиране да е избран първия
-                    $data->form->setDefault('placeHolder', $data->form->rec->placeHolder);
-                    
-                    // Ако плейсхолдера се съдържа в шаблона
-                    if ($Master->isPlaceExistInTemplate($masterId, $data->form->rec->placeHolder)) {
+            if ($diffArr && $data->form->cmd != 'refresh') {
+                $placeName = key($diffArr);
+                $data->form->setDefault('placeHolder', $placeName);
+            }
+            
+            if ($data->form->cmd == 'refresh') {
+                $placeName = Request::get('placeHolder');
+            }
+            
+            // Добавяме стойността по подразбиране
+            if ($placeName && ($v = $labelDataArr[$placeName])) {
+                if ($v->len) {
+                    if ($type == 'caption') {
+                        if ($data->form->cmd == 'refresh') {
+                            Request::push(array('MaxLength' => $v->len));
+                        }
                         
-                        // Да не може да се променя името на плейсхолдера
-                        $data->form->setReadOnly('placeHolder');
+                        $data->form->setDefault('MaxLength', $v->len);
+                    } else {
+                        if ($data->form->cmd == 'refresh') {
+                            Request::push(array('Width' => $v->len, 'Height' => $v->len));
+                        }
+                        
+                        $data->form->setDefault('Width', $v->len);
+                        $data->form->setDefault('Height', $v->len);
                     }
-                } else {
-                    // По подразбиране да е избран първия
-                    $data->form->setDefault('placeHolder', key($diffArr));
                 }
             }
         }
@@ -330,18 +371,19 @@ class label_TemplateFormats extends core_Detail
     
     /**
      * Връща масив с добаваните плейсхолдери за дадания шаблон
-     * 
-     * @param integer $templateId - id на шаблона
-     * 
+     *
+     * @param int $templateId - id на шаблона
+     *
      * @return array - Масив с добавените стойности
      */
-    static function getAddededPlaceHolders($templateId)
+    public static function getAddededPlaceHolders($templateId)
     {
         // Масива, който ще връщаме
         static $placesArr = array();
         
         // Ако не е сетнат
         if (!$placesArr[$templateId]) {
+            $placesArr[$templateId] = array();
             
             // Вземамем всички плейсхолдери за шаблона
             $query = static::getQuery();
@@ -361,9 +403,9 @@ class label_TemplateFormats extends core_Detail
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
+     *
      * @param label_TemplateFormats $mvc
-     * @param core_Form $form
+     * @param core_Form             $form
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
@@ -389,7 +431,7 @@ class label_TemplateFormats extends core_Detail
             $dataArr = array();
             
             // Обхождаме масива
-            foreach ((array)$fncForm->fields as $fieldName => $dummy) {
+            foreach ((array) $fncForm->fields as $fieldName => $dummy) {
                 
                 // Добавяме данните от формата
                 $dataArr[$fieldName] = $form->rec->$fieldName;
@@ -403,11 +445,11 @@ class label_TemplateFormats extends core_Detail
     
     /**
      * Добавя функционални полета към подадената форма, за съответния тип
-     * 
+     *
      * @param core_Form $form - Формата
-     * @param string $type - Типа 
+     * @param string    $type - Типа
      */
-    static function addFieldsForType(&$form, $type)
+    public static function addFieldsForType(&$form, $type)
     {
         // Очакваме да е инстанция на core_Form
         expect($form instanceof core_Form);
@@ -416,12 +458,14 @@ class label_TemplateFormats extends core_Detail
         switch ($type) {
             // Ако е плейсхолдер
             case 'caption':
+                
                 // Максимална дължина на символите
                 $form->FNC('MaxLength', 'int(min=1, max=500)', 'caption=Макс. символи, input=input');
             break;
             
             // Ако е брояч
             case 'counter':
+                
                 // Кой брояч да се използва
                 $form->FNC('CounterId', 'key(allowEmpty, mvc=label_Counters, select=name, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\')', 'caption=Брояч, input=input');
                 
@@ -454,6 +498,7 @@ class label_TemplateFormats extends core_Detail
             break;
             
             case 'image':
+                
                 // Широчина на изображението
                 $form->FNC('Width', 'int(min=1, max=5000)', 'caption=Широчина, input=input, unit=px, mandatory');
                 
@@ -465,31 +510,33 @@ class label_TemplateFormats extends core_Detail
             break;
             
             case 'html':
+                
                 // Максимална дължина на символите
                 $form->FNC('MaxLength', 'int(min=1, max=5000)', 'caption=Макс. символи, input=input');
             break;
             
             case 'barcode':
-            	// Вземаем всички баркодове, които можем да генерираме
-            	$barcodesArr = barcode_Generator::getAllowedBarcodeTypesArr();
-            	$barcodesArr = array('' => '') + $barcodesArr;
-            	
-            	// Вид показване на баркода
-            	$form->FNC('Showing', 'enum(barcodeAndStr=Баркод и стринг, string=Стринг, barcode=Баркод)', 'title=Показване на баркод, caption=Показване, input=input,mandatory');
-            	
-            	// Вид баркод
-            	$form->FNC('BarcodeType', cls::get(('type_Enum'), array('options' => $barcodesArr)), 'caption=Тип баркод, input=input,mandatory');
-            	$form->FNC('Ratio', 'enum(1=1,2=2,3=3,4=4)', 'caption=Съотношение, input=input,mandatory');
-            	$form->FNC('Width', 'int(min=1, max=5000)', 'caption=Широчина, input=input, unit=px,mandatory');
-            	$form->FNC('Height', 'int(min=1, max=5000)', 'caption=Височина, input=input, unit=px,mandatory');
-            	$form->FNC('Format', 'varchar', 'caption=Формат, input=input');
-            	$form->FNC('Rotation', 'enum(yes=Да, no=Не)', 'caption=Ротация, input=input, mandatory,mandatory');
-        	break;
+                
+                // Вземаем всички баркодове, които можем да генерираме
+                $barcodesArr = barcode_Generator::getAllowedBarcodeTypesArr();
+                $barcodesArr = array('' => '') + $barcodesArr;
+                
+                // Вид показване на баркода
+                $form->FNC('Showing', 'enum(barcodeAndStr=Баркод и стринг, string=Стринг, barcode=Баркод)', 'title=Показване на баркод, caption=Показване, input=input,mandatory');
+                
+                // Вид баркод
+                $form->FNC('BarcodeType', cls::get(('type_Enum'), array('options' => $barcodesArr)), 'caption=Тип баркод, input=input,mandatory');
+                $form->FNC('Ratio', 'enum(1=1,2=2,3=3,4=4)', 'caption=Съотношение, input=input,mandatory');
+                $form->FNC('Width', 'int(min=1, max=5000)', 'caption=Широчина, input=input, unit=px,mandatory');
+                $form->FNC('Height', 'int(min=1, max=5000)', 'caption=Височина, input=input, unit=px,mandatory');
+                $form->FNC('Format', 'varchar', 'caption=Формат, input=input');
+                $form->FNC('Rotation', 'enum(yes=Да, no=Не)', 'caption=Ротация, input=input, mandatory,mandatory');
+            break;
             
             default:
                 
                 // Очакваме валиден тип
-                expect(FALSE, $type);
+                expect(false, $type);
             break;
         }
     }
@@ -497,11 +544,11 @@ class label_TemplateFormats extends core_Detail
     
     /**
      * Добавя функционални полета към подадената форма, за всички детайли към мастер
-     * 
-     * @param core_Form $form - Формата
-     * @param integer $masterId - id на мастер 
+     *
+     * @param core_Form $form     - Формата
+     * @param int       $masterId - id на мастер
      */
-    static function addFieldForTemplate(&$form, $masterId)
+    public static function addFieldForTemplate(&$form, $masterId)
     {
         // Очакваме да е инстанция на core_Form
         expect($form instanceof core_Form);
@@ -526,7 +573,8 @@ class label_TemplateFormats extends core_Detail
             $placeHolderField = static::getPlaceholderFieldName($placeHolder);
             
             // Заглавието на полета
-            $caption = "Параметри->" . $placeHolder;
+            $caption = 'Параметри->' . $placeHolder;
+            
             // Ако е image
             if ($rec->type == 'image') {
                 
@@ -551,18 +599,28 @@ class label_TemplateFormats extends core_Detail
                 
                 // Ако е зададена максимална дължина
                 if (is_array($rec->formatParams) && ($maxLength = $rec->formatParams['MaxLength'])) {
-                
+                    
                     // Задаваме стрингов тип с максимална дължина
                     $type = "html({$maxLength})";
                 } else {
-                
+                    
                     // Типа без максимална дължина
                     $type = 'html';
                 }
                 
                 $form->FNC($placeHolderField, $type, "caption={$caption}, input=input, silent");
             } elseif ($rec->type == 'barcode') {
-                $form->FNC($placeHolderField, 'text(rows=2)', "caption={$caption}, input=input, silent");
+                $bType = 'text(rows=2)';
+                if (($rec->formatParams['BarcodeType'] == 'ean13') || ($rec->formatParams['BarcodeType'] == 'ean8')) {
+                    $bType = cls::get('gs1_TypeEan');
+                    
+                    if ($rec->formatParams['BarcodeType'] == 'ean13') {
+                        $bType->params['gln'] = true;
+                    }
+                    $bType->nullIfEmpty = false;
+                }
+                
+                $form->FNC($placeHolderField, $bType, "caption={$caption}, input=input, silent");
             }
         }
     }
@@ -570,14 +628,13 @@ class label_TemplateFormats extends core_Detail
     
     /**
      * Връщаме името на полето
-     * 
+     *
      * Това име ще се използва за име на FNC поле във формата.
      * Връща шаблона с първа главна бъква.
      * Това е с цел за да няма дублирано име на поле във формата.
      * Може да се дублира с FLD полетата.
-     * 
+     *
      * @param string $placeHolder - Името на плейсхолдера
-     * 
      * @param string - Новото име на плейсхолдера
      */
     public static function getPlaceholderFieldName($placeHolder)
@@ -588,16 +645,16 @@ class label_TemplateFormats extends core_Detail
     
     /**
      * Връща вербалното представаня на данните за плейсхолдера
-     * 
-     * @param integer $templateId - id на шаблона
-     * @param string $place - Името на плейсхолдера
-     * @param string $val - Вербалната стойност
-     * @param string $labelId - id на етикета
-     * @param boolean $updateTempData - Ако е FALSE, при вземане на данните да не се обновяват стойностите им в модела
-     * 
+     *
+     * @param int    $templateId     - id на шаблона
+     * @param string $place          - Името на плейсхолдера
+     * @param string $val            - Вербалната стойност
+     * @param string $printId        - id на етикета
+     * @param bool   $updateTempData - Ако е FALSE, при вземане на данните да не се обновяват стойностите им в модела
+     *
      * @return string - Вербалното представяне на стойността
      */
-    public static function getVerbalTemplate($templateId, $place, $val, $labelId = NULL, $updateTempData=TRUE)
+    public static function getVerbalTemplate($templateId, $place, $val, $printId = null, $updateTempData = true)
     {
         // Масив със записите
         static $recArr = array();
@@ -649,31 +706,29 @@ class label_TemplateFormats extends core_Detail
                 
                 // Ако има зададен стойност
                 if ($val) {
-                    
-                    $possibleRotation = ($rec->formatParams['Rotation'] == 'yes') ? 'left' : NULL;
+                    $possibleRotation = ($rec->formatParams['Rotation'] == 'yes') ? 'left' : null;
                     
                     // Вземаме умалено изборажение със зададените размер
-                    $thumb= new thumb_Img(array($val, $rec->formatParams['Width'], $rec->formatParams['Height'], 'fileman', 'possibleRotation' => $possibleRotation));
+                    $thumb = new thumb_Img(array($val, $rec->formatParams['Width'], $rec->formatParams['Height'], 'fileman', 'possibleRotation' => $possibleRotation));
                     
                     try {
                         // Добавяме вербалната стойност
                         $verbalValArr[$valStr] = $thumb->createImg($attr);
                     } catch (core_exception_Expect $e) {
-                        $verbalValArr[$valStr] = "<span style='color: #c00;'>" . tr("Грешка при показване на файл") . ': ' . $val . "</span>";
+                        $verbalValArr[$valStr] = "<span style='color: #c00;'>" . tr('Грешка при показване на файл') . ': ' . $val . '</span>';
                     }
                 }
             }
-        } elseif ($type == 'counter') {
+        } elseif (($type == 'counter') || ($type == 'barcode')) {
             
             // Вземаме формата
             $formatVal = $rec->formatParams['Format'];
             
             // Ако има шаблон за субституиране с брояч
             if (label_Counters::haveCounterPlace($formatVal)) {
-                
                 if ($rec->formatParams['CounterId']) {
                     // Заместваме брояча
-                    $formatVal = label_Counters::placeCounter($formatVal, $rec->formatParams['CounterId'], $labelId, $updateTempData);
+                    $formatVal = label_Counters::placeCounter($formatVal, $rec->formatParams['CounterId'], $printId, $updateTempData);
                 } else {
                     $formatVal = str_replace(label_Counters::$counterPlace, $val, $formatVal);
                 }
@@ -694,7 +749,6 @@ class label_TemplateFormats extends core_Detail
                 
                 // Нилираме стойностите
                 $attr = array();
-                $rotate = FALSE;
                 
                 // Ако е зададено да се показва само стринга без баркода
                 if ($rec->formatParams['Showing'] == 'string') {
@@ -707,24 +761,22 @@ class label_TemplateFormats extends core_Detail
                     } else {
                         
                         // div, без ротиране
-                        $div = "<div>";
+                        $div = '<div>';
                     }
                     
                     // Добавяме стойността
-                    $verbalValArr[$valStr] = $div . $formatVal . "</div>";
+                    $verbalValArr[$valStr] = $div . $formatVal . '</div>';
                 } else {
-                    
                     // Очакваме да има въведен баркод тип
                     expect($barcodeType, 'Трябва да се избере типа на баркода');
                     
-                    // Масив с размерите
-                    $size = array('width' => $rec->formatParams['Width'], 'height' => $rec->formatParams['Height']);
-                    
                     // Вземаме минималната височина и широчината
                     $minWidthAndHeight = barcode_Generator::getMinWidthAndHeight($barcodeType, $formatVal);
+                    $width = max($minWidthAndHeight['width'], $rec->formatParams['Width']);
+                    $height = max($minWidthAndHeight['height'], $rec->formatParams['Height']);
                     
-                    // Проверяваме размера след ротиране
-                    barcode_Generator::checkSizes($barcodeType, $size, $minWidthAndHeight);
+                    // Масив с размерите
+                    $sizeArr = array('width' => $width, 'height' => $height);
                     
                     // Ако е зададено да се ротира твърдо
                     if ($rec->formatParams['Rotation'] == 'yes') {
@@ -744,11 +796,11 @@ class label_TemplateFormats extends core_Detail
                     $attr['ratio'] = $rec->formatParams['Ratio'];
                     
                     // Вземаме вербалната стойност
-                    $verbalValArr[$valStr] = barcode_Generator::getLink($barcodeType, $formatVal, $size, $attr);
+                    $verbalValArr[$valStr] = barcode_Generator::getLink($barcodeType, $formatVal, $sizeArr, $attr);
                 }
             }
         } elseif ($type == 'html') {
-        
+            
             // Стринга, който ще се използва в масива за ключ
             $valStr = $val . '|' . $updateTempData;
             
@@ -761,34 +813,6 @@ class label_TemplateFormats extends core_Detail
                 // Добавяме в масива
                 $verbalValArr[$valStr] = $Html->toVerbal($val);
             }
-        } elseif ($type == 'barcode') {
-            
-            $valStr = $val . '|' . $updateTempData . '|' . serialize($rec->formatParams) . '|' . $rec->type;
-            
-            if (!$verbalValArr[$valStr]) {
-                $barcodeType = $rec->formatParams['BarcodeType'];
-                $minWidthAndHeight = barcode_Generator::getMinWidthAndHeight($barcodeType, $val);
-                $width = max($minWidthAndHeight['width'], $rec->formatParams['Width']);
-                $height = max($minWidthAndHeight['height'], $rec->formatParams['Height']);
-                
-                $size = array('width' => $width, 'height' => $height);
-                
-                $attr = array();
-                $attr['ratio'] = $rec->formatParams['Ratio'];
-                if ($rec->formatParams['Rotation'] == 'yes') {
-                    $attr['angle'] = 90;
-                }
-                
-                if ($rec->formatParams['Showing'] == 'barcodeAndStr') {
-                    $attr['addText'] = array();
-                }
-                
-                // Генериране на баркод от серийния номер, според зададените параметри
-                $Html = cls::get('type_Html');
-                $barcode = barcode_Generator::getLink($barcodeType, $val, $size, $attr)->getContent();
-                
-                $verbalValArr[$valStr] = $Html->toVerbal($barcode);
-            }
         }
         
         return $verbalValArr[$valStr];
@@ -796,11 +820,11 @@ class label_TemplateFormats extends core_Detail
     
     
     /**
-     * 
-     * 
-     * @param unknown_type $mvc
-     * @param unknown_type $row
-     * @param unknown_type $rec
+     *
+     *
+     * @param label_TemplateFormats $mvc
+     * @param stdClass              $row
+     * @param stdClass              $rec
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
@@ -808,7 +832,7 @@ class label_TemplateFormats extends core_Detail
         static $fieldsArr = array();
         
         // Ако не е сетнат за този шаблон
-        if(!$fieldsArr[$rec->type]) {
+        if (!$fieldsArr[$rec->type]) {
             
             // Форма за функционалните полета
             $fncForm = cls::get('core_Form');
@@ -824,7 +848,7 @@ class label_TemplateFormats extends core_Detail
         $row->formatParams = '';
         
         // Обхождаме масива с полетата
-        foreach((array)$fieldsArr[$rec->type] as $name => $field) {
+        foreach ((array) $fieldsArr[$rec->type] as $name => $field) {
             
             // Името на полето
             $fieldName = $field->caption;
@@ -842,7 +866,7 @@ class label_TemplateFormats extends core_Detail
             // Добавяме в полето
             $row->formatParams .= '<div>' . $fieldName . ': ' . $verbalVal . '</div>';
         }
-       
+        
         // Инстанция на мастера
         $Master = $mvc->Master;
         
@@ -862,12 +886,11 @@ class label_TemplateFormats extends core_Detail
             $placesArr = $Master->getPlaceHolders($template);
             
             // Ключовете и стойностите да са равни
-            $placesArr = arr::make($placesArr, TRUE);
+            $placesArr = arr::make($placesArr, true);
         }
         
         // Ако не се съдържа в шаблона
         if (!$placesArr[$rec->placeHolder]) {
-            
             $row->placeHolder = ht::createHint($row->placeHolder, 'Плейсхолдера липсва в шаблона', 'error');
             
             // Добавяме клас за грешка
@@ -878,9 +901,9 @@ class label_TemplateFormats extends core_Detail
     
     /**
      * Извиква се след SetUp-а на таблицата за модела
-     * 
-     * @param unknown_type $mvc
-     * @param unknown_type $res
+     *
+     * @param label_TemplateFormats $mvc
+     * @param string|NULL           $res
      */
     protected static function on_AfterSetupMvc($mvc, &$res)
     {
@@ -893,62 +916,9 @@ class label_TemplateFormats extends core_Detail
     
     
     /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-     * @param label_Labels $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
-     */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-        // Ако има запис
-        if ($rec) {
-            
-            // Ако ще изтривамеа
-            if ($action == 'delete') {
-                
-                // Вземаме мастера
-                $Master = $mvc->Master;
-                
-                // Вземамем ключа към мастер
-                $masterKey = $mvc->masterKey;
-                
-                // Ако има запис за мастер
-                if ($Master && $masterKey && $rec->$masterKey) {
-                    
-                    // Вземаме записа
-                    $masterRec = $Master->fetch($rec->$masterKey);
-                    
-                    // Ако е активиран мастер
-                    if ($masterRec->state == 'active') {
-                        
-                        // Ако плейсхолдера се съдържа в шаблона
-                        if ($Master->isPlaceExistInTemplate($rec->$masterKey, $rec->placeHolder)) {
-                            
-                            // Никой да не може да изтрие детайла
-                            $requiredRoles = 'no_one';
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Ако шаблона е създаден от системата никой, не може да променя параметрите му
-        if(($action == 'add' || $action == 'edit') && isset($rec)){
-        	$createdBy = label_Templates::fetchField($rec->templateId, 'createdBy');
-        	if($createdBy == core_Users::SYSTEM_USER){
-        		$requiredRoles = 'no_one';
-        	}
-        }
-    }
-    
-    
-    /**
      * Активира използваните броячи в шаблоните
-     * 
-     * @param integer $templateId - id на шаблона
+     *
+     * @param int $templateId - id на шаблона
      */
     public static function activateCounters($templateId)
     {
@@ -956,7 +926,7 @@ class label_TemplateFormats extends core_Detail
         $query = static::getQuery();
         $query->where("#templateId = '{$templateId}' AND #type = 'counter'");
         
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             
             // Активираме броячите
             label_Counters::activateCounter($rec->formatParams['CounterId']);

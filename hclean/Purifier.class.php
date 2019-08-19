@@ -19,15 +19,16 @@ defIfNot('PURIFIER_TEMP_PATH', EF_TEMP_PATH . '/purifer');
  *
  * @category  vendors
  * @package   hclean
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link      https://github.com/bgerp/vendors/issues/10
  */
 class hclean_Purifier
 {
-    
     /**
      * Изпълнява се при създаване на инстанция на класа.
      */
@@ -48,7 +49,7 @@ class hclean_Purifier
      *
      * @return $clear string - HTML файла, с inline CSS елементи
      */
-    static function clean($html, $charset = NULL, $css = NULL, $force = NULL)
+    public static function clean($html, $charset = null, $css = null, $force = null)
     {
         //Вкарва CSS, който се намира в html файла между CSS таговете, като inline елементи
         $html = csstoinline_ToInline::inlineCssFromHtml($html);
@@ -66,6 +67,7 @@ class hclean_Purifier
         //Настройваме purifier' а
         $config = HTMLPurifier_Config::createDefault();
         $config->set('Cache.SerializerPath', PURIFIER_TEMP_PATH);
+        
         // Винаги работик с конвертирани до UTF-8 текстове
         $config->set('Core.Encoding', 'UTF-8');
         
@@ -81,14 +83,14 @@ class hclean_Purifier
     /**
      * Създава директорията нужна за работа на системата
      */
-    static function mkdir()
+    public static function mkdir()
     {
-        if(!is_dir(PURIFIER_TEMP_PATH)) {
-            if(!mkdir(PURIFIER_TEMP_PATH, 0777, TRUE)) {
+        if (!is_dir(PURIFIER_TEMP_PATH)) {
+            if (!mkdir(PURIFIER_TEMP_PATH, 0777, true)) {
                 expect('Не може да се създаде директорията необходима за работа на HTML Purifier');
             }
         }
         
-        return "<li>Успешно създадохте директорията: " . PURIFIER_TEMP_PATH;
+        return '<li>Успешно създадохте директорията: ' . PURIFIER_TEMP_PATH;
     }
 }

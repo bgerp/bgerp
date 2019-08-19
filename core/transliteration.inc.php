@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $code['Йо'] = 'Jo';
 $code['Екс'] = 'Ex';
 $code['Бъ'] = 'BU';

@@ -5,7 +5,7 @@
 Банкиране|officer,bank|position
 Личен_състав|officer,hr|position
 Отговорник_склад|officer,store|position
-Плановик|officer,planning,budget|position
+Плановик|officer,planning|position
 Дилър|officer,cat,sales|position
 Логистик|officer,cat,purchase,trans|position
 Продуктов_мениджър|officer,cat,price|position

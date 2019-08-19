@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class Tags
  *
@@ -11,74 +10,74 @@
  *
  * @category  bgerp
  * @package   rfid
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class rfid_Tags extends Core_Manager {
-    
-    
+class rfid_Tags extends Core_Manager
+{
     /**
      * Заглавие
      */
-    var $title = 'Карти';
+    public $title = 'Карти';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,admin,rfid';
+    public $canRead = 'ceo,admin,rfid';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,admin,rfid';
+    public $canEdit = 'ceo,admin,rfid';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,admin,rfid';
+    public $canAdd = 'ceo,admin,rfid';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,admin,rfid';
+    public $canView = 'ceo,admin,rfid';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,admin,rfid';
+    public $canDelete = 'ceo,admin,rfid';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'ceo,admin,rfid';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,admin,rfid';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,admin,rfid';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,admin,rfid';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_RowTools2,rfid_Wrapper';
+    public $loadList = 'plg_Created,plg_RowTools2,rfid_Wrapper';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
-        
         $this->FLD('rfid55d', 'varchar(16)', 'caption=Rfid номер->WEG32 55d, oldFieldName=rfid_55d');
         $this->FLD('rfid10d', 'varchar(16)', 'caption=Rfid номер->1:1 10d, oldFieldName=rfid_10d');
         
@@ -90,7 +89,7 @@ class rfid_Tags extends Core_Manager {
     /**
      * Попълва непопълнения от 2-та номера преди да се запише в базата
      */
-    static function on_BeforeSave($mvc, &$id, $rec)
+    public static function on_BeforeSave($mvc, &$id, $rec)
     {
         if (!empty($rec->rfid55d)) {
             $rec->rfid10d = $mvc->convert55dTo10d($rec->rfid55d);
@@ -104,12 +103,13 @@ class rfid_Tags extends Core_Manager {
     
     /**
      * Конвертира тип показване 55d към 10d
+     *
      * @param string $num
      */
-    function convert55dTo10d($num)
+    public function convert55dTo10d($num)
     {
-        $numLast5d = sprintf("%04s", dechex(substr($num, -5)));
-        $numFirst5d = dechex(substr($num, 0, strlen($num)-5));
+        $numLast5d = sprintf('%04s', dechex(substr($num, -5)));
+        $numFirst5d = dechex(substr($num, 0, strlen($num) - 5));
         
         return hexdec($numFirst5d . $numLast5d);
     }
@@ -117,13 +117,14 @@ class rfid_Tags extends Core_Manager {
     
     /**
      * Конвертира тип показване 55d към 10d
+     *
      * @param int $num
      */
-    function convert10dTo55d($num)
+    public function convert10dTo55d($num)
     {
         $numHex = dechex($num);
-        $numLast5d = sprintf("%05d", hexdec(substr($numHex, -4)));
-        $numFirst5d = hexdec(substr($numHex, 0, strlen($numHex)-4));
+        $numLast5d = sprintf('%05d', hexdec(substr($numHex, -4)));
+        $numFirst5d = hexdec(substr($numHex, 0, strlen($numHex) - 4));
         
         return ($numFirst5d . $numLast5d);
     }

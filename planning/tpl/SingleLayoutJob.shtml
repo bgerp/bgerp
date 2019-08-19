@@ -92,6 +92,14 @@
                         <td>[#sBomId#]</td>
                     </tr>
                     <!--ET_END sBomId-->
+                    
+                    <!--ET_BEGIN iBomId-->
+                    <tr>
+                        <td class='quiet' style='text-align: left; white-space: nowrap;'>|Моментна рецепта|*:</td>
+                        <td>[#iBomId#]</td>
+                    </tr>
+                    <!--ET_END iBomId-->
+                    
                     <!--ET_BEGIN pBomId-->
                     <tr>
                         <td class='quiet' style='text-align: left;white-space: nowrap;'>|Работна рецепта|*:</td>
@@ -230,5 +238,7 @@
             <div style='margin-top:6px'>[#btnTasks#]</div>
         </div>
     </div>
+
     <!--ET_END Tasks-->
+</div>
     [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

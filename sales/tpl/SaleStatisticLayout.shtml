@@ -37,7 +37,7 @@
                   <span style='font-weight:normal'>|От склад|*</span>: [#shipmentStoreIdTop#]<br>
                   <!--ET_END shipmentStoreIdTop-->
                   <!--ET_BEGIN deliveryLocationIdTop-->
-                  <span style='font-weight:normal'>|До обект|*</span>: [#deliveryLocationIdTop#]<br>
+                  <span style='font-weight:normal'>|До локация|*</span>: [#deliveryLocationIdTop#]<br>
                   <!--ET_END deliveryLocationIdTop-->
                   <!--ET_BEGIN originId-->
                   <span style='font-weight:normal'>|Към|*</span>: [#originId#]<br>

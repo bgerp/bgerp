@@ -11,7 +11,7 @@
                         <span class="bigData">[#date#]</span>
                         </span>
                     <!--ET_BEGIN place-->
-                    <div>[#place#]</div>
+                    <div class="subtitle">[#place#]</div>
                     <!--ET_END place-->
                 </div>
                 <div>

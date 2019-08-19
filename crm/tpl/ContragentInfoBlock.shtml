@@ -1,8 +1,14 @@
 <!--ET_BEGIN customerSince-->
 <div class="richtext">
-|Клиент от|*: <i>[#customerSince#]</i>
+|Клиент от|*: <b>[#customerSince#]</b>
 </div>
 <!--ET_END customerSince-->
-<!--ET_BEGIN overdueSales-->
-<div class="richtext"><b class='red'>[#overdueSales#]</b></div>
-<!--ET_END overdueSales-->
+<!--ET_BEGIN totalDealsBlock-->
+[#totalDealsBlock#]
+<div class="richtext">|Общо продажби|*: [#totalDealsCount#] |за|* [#totalDealsAmount#]</div>
+<!--ET_END totalDealsBlock-->
+
+<!--ET_BEGIN overdueDealsBlock-->
+[#overdueDealsBlock#]
+<div class="richtext" style='background-color:red;color:white;padding:2px;'>|Просрочени|*: [#overdueDealsCount#] |за|* [#overdueDealsAmount#]</div>
+<!--ET_END overdueDealsBlock-->

@@ -9,7 +9,7 @@
         <!--ET_BEGIN repoRow-->
         <thead>
             <tr>
-                <th colspan="1">✍</th>
+                <!--ET_BEGIN Tools--><th colspan="1">✍</th>[#Tools#]<!--ET_END Tools-->
                 <th colspan="1">|Файл|*</th>
                 <th colspan="1">|Последно|*</th>
             </tr>

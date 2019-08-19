@@ -5,24 +5,24 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_Operations extends core_Manager
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'acc_ContoReasons';
     
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'acc_ContoReasons';
     
-	
     /**
      * Заглавие в множествено число
-     * 
+     *
      * @var string
      */
     public $title = 'Счетоводни операции';
@@ -30,7 +30,7 @@ class acc_Operations extends core_Manager
     
     /**
      * Плъгини за зареждане
-     * 
+     *
      * var string|array
      */
     public $loadList = 'acc_WrapperSettings';
@@ -46,7 +46,7 @@ class acc_Operations extends core_Manager
     
     /**
      * Кой има право да чете?
-     * 
+     *
      * @var string|array
      */
     public $canRead = 'debug';
@@ -54,7 +54,7 @@ class acc_Operations extends core_Manager
     
     /**
      * Кой има право да променя?
-     * 
+     *
      * @var string|array
      */
     public $canEdit = 'no_one';
@@ -62,7 +62,7 @@ class acc_Operations extends core_Manager
     
     /**
      * Кой има право да добавя?
-     * 
+     *
      * @var string|array
      */
     public $canAdd = 'no_one';
@@ -70,7 +70,7 @@ class acc_Operations extends core_Manager
     
     /**
      * Кой може да го изтрие?
-     * 
+     *
      * @var string|array
      */
     public $canDelete = 'no_one';
@@ -81,10 +81,10 @@ class acc_Operations extends core_Manager
      */
     public $listFields = 'id,title';
     
-
+    
     /**
      * Заглавие в единствено число
-     * 
+     *
      * @var string
      */
     public $singleTitle = 'Основания за счетоводна транзакция';
@@ -93,31 +93,32 @@ class acc_Operations extends core_Manager
     /**
      * Описание на модела на нишките от контейнери за документи
      */
-    function description()
+    public function description()
     {
-    	$this->FLD('title', 'varchar(255,ci)', 'caption=Основание,mandatory');
-    	
-    	$this->setDbUnique('title');
+        $this->FLD('title', 'varchar(255,ci)', 'caption=Основание,mandatory');
+        
+        $this->setDbUnique('title');
     }
     
     
     /**
      * Връща ид-то отговарящо на  основанието, ако няма такова се създава
-     * 
+     *
      * @param string $title - текст на основанието
+     *
      * @return int $id - ид на основанието
      */
     public static function getIdByTitle($title)
     {
-    	// Ако има запис с това име, връщаме му ид-то
-    	if($id = static::fetchField(array("#title = '[#1#]'", $title), 'id')){
-    		
-    		return $id;
-    	}
-    	
-    	$rec = (object)array('title' => $title);
-    	
-    	// Ако няма добавяме текста на основанието към модела
-    	return static::save($rec);
+        // Ако има запис с това име, връщаме му ид-то
+        if ($id = static::fetchField(array("#title = '[#1#]'", $title), 'id')) {
+            
+            return $id;
+        }
+        
+        $rec = (object) array('title' => $title);
+        
+        // Ако няма добавяме текста на основанието към модела
+        return static::save($rec);
     }
 }

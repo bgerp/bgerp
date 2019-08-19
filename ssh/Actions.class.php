@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на машини за отдалечен достъп
  *
  *
  * @category  bgerp
  * @package   ssh
+ *
  * @author    Dimitar Minekov <mitko@experta.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class ssh_Actions
 {
-    
-    
     private $host;
     
     private $port = 22;
@@ -33,9 +32,9 @@ class ssh_Actions
      */
     public function __construct($hostId)
     {
-		expect($conf = ssh_Hosts::fetchConfig($hostId));
-		
-    	$this->host = $conf['ip'];
+        expect($conf = ssh_Hosts::fetchConfig($hostId));
+        
+        $this->host = $conf['ip'];
         $this->port = $conf['port'];
         $this->user = $conf['user'];
         $this->pass = $conf['pass'];
@@ -46,17 +45,16 @@ class ssh_Actions
     
     /**
      * Връща кънекшън ресурс
-     * 
+     *
      * @return resource
      */
-    private function connect ()
+    private function connect()
     {
-        
         if ($this->connection) {
             
             return $this->connection;
         }
-
+        
         // Проверяваме дали е достъпен
         $timeoutInSeconds = 1;
         if (!($fp = @fsockopen($this->host, $this->port, $errCode, $errStr, $timeoutInSeconds))) {
@@ -66,8 +64,8 @@ class ssh_Actions
         
         // Проверяваме има ли ssh2 модул инсталиран
         if (!function_exists('ssh2_connect')) {
-            throw new core_exception_Expect("@Липсващ PHP модул: <b>`ssh2`</b>
-                инсталирайте от командна линия с: apt-get install libssh2-php");
+            throw new core_exception_Expect('@Липсващ PHP модул: <b>`ssh2`</b>
+                инсталирайте от командна линия с: apt-get install libssh2-php');
         }
         
         // Свързваме се по ssh
@@ -86,20 +84,20 @@ class ssh_Actions
      * Изпълнява команда на отдалечен хост
      *
      * @param string $command
-     * @param string $output [optionаl]
-     * @param string $errors [optionаl]
-     * @param string $callBackUrl [optionаl]
+     * @param string $output      [optional]
+     * @param string $errors      [optional]
+     * @param string $callBackUrl [optional]
      */
-    public function exec($command, &$output=NULL, &$errors=NULL, $callBackUrl=NULL)
+    public function exec($command, &$output = null, &$errors = null, $callBackUrl = null)
     {
-		// Ако имаме callBackUrl изпълняваме командата асинхронно
-		if ($callBackUrl) {
-		    $cmd = "( " . $command . " ; wget --spider -q --no-check-certificate '" . $callBackUrl . "' > /dev/null 2>/dev/null) > /dev/null 2>/dev/null &";
-		} else {
-		    // Изпълняваме го синхронно
-		    $cmd = $command;
-		}
-		
+        // Ако имаме callBackUrl изпълняваме командата асинхронно
+        if ($callBackUrl) {
+            $cmd = '( ' . $command . " ; wget --spider -q --no-check-certificate '" . $callBackUrl . "' > /dev/null 2>/dev/null) > /dev/null 2>/dev/null &";
+        } else {
+            // Изпълняваме го синхронно
+            $cmd = $command;
+        }
+        
         // Изпълняваме командата
         $stream = ssh2_exec($this->connection, $cmd);
         $errorStream = ssh2_fetch_stream($stream, SSH2_STREAM_STDERR);
@@ -114,7 +112,8 @@ class ssh_Actions
         fclose($stream);
         fclose($errorStream);
     }
-
+    
+    
     /**
      * Качва файл на отдалечен хост
      *
@@ -122,28 +121,29 @@ class ssh_Actions
      */
     public function put($localFileName)
     {
-        
         $remoteFileName = basename($localFileName);
         
         if (!ssh2_scp_send($this->connection, $localFileName, $remoteFileName)) {
-            throw new core_exception_Expect("@Грешка при качване на файл на отдалечен хост.");
+            throw new core_exception_Expect('@Грешка при качване на файл на отдалечен хост.');
         }
     }
+    
     
     /**
      * Връща съдържанието на файл от отдалечен хост
      *
      * @param string $remoteFileName - име на отдалечения файл
+     *
      * @return string $contents - съдържанието на отдалечения файл
      */
     public function getContents($remoteFileName)
     {
         if (!($localFileName = @tempnam(EF_TEMP_PATH, $remoteFileName))) {
-        	throw new core_exception_Expect("@Грешка при създаване на временен файл.");
+            throw new core_exception_Expect('@Грешка при създаване на временен файл.');
         }
         
         if (!@ssh2_scp_recv($this->connection, $remoteFileName, $localFileName)) {
-            throw new core_exception_Expect("@Грешка при сваляне на файл от отдалечен хост.");
+            throw new core_exception_Expect('@Грешка при сваляне на файл от отдалечен хост.');
         }
         $contents = @file_get_contents($localFileName);
         @unlink($localFileName);

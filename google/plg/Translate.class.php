@@ -17,7 +17,7 @@ function googleSectionalElementInit() {
 EOT;
     
     protected static $elementJsUrl = '//translate.google.com/translate_a/element.js?cb=googleSectionalElementInit&amp;ug=section&amp;hl=%s';
-
+    
     protected static $markupTpl = <<<EOT
 <div class="goog-trans-section">
     <div class="goog-trans-control"></div>
@@ -45,20 +45,19 @@ EOT;
 }
 
 EOT;
-
-    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
-    { 
-        if ($rec->lg != core_Lg::getCurrent() && 
+    
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
+    {
+        if ($rec->lg != core_Lg::getCurrent() &&
             !(Mode::is('text', 'xhtml') && !Mode::is('printing')) &&
-            !Mode::is('text', 'plain')  && 
+            !Mode::is('text', 'plain') &&
             $fields['-single'] && trim($row->textPart)
              ) {
-
             $row->textPart = new core_ET(
                 sprintf(static::$markupTpl, $row->textPart)
             );
             
-            if(!Request::get('ajax_mode')) {
+            if (!Request::get('ajax_mode')) {
                 $row->textPart->push(sprintf(static::$elementJsUrl, core_Lg::getCurrent()), 'JS');
                 $row->textPart->appendOnce(static::$initJs, 'SCRIPTS');
                 $row->textPart->appendOnce(static::$css, 'STYLES');

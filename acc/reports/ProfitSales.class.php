@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на отчети от Печалба по продажби
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка на баланса
@@ -9,44 +8,44 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
 {
-
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectSource = 'ceo, acc';
-
-
+    
+    
     /**
      * Заглавие
      */
     public $title = 'Счетоводство » Печалба по продажби';
-
+    
     
     /**
      * Дефолт сметка
      */
     public $baseAccountId = '700';
-
+    
     
     /**
      * Кореспондент сметка
      */
     public $corespondentAccountId = '123';
-
-
+    
+    
     /**
      * След подготовката на ембеднатата форма
      */
     public static function on_AfterAddEmbeddedFields($mvc, core_FieldSet &$form)
     {
-
         // Искаме да покажим оборотната ведомост за сметката на касите
         $baseAccId = acc_Accounts::getRecBySystemId($mvc->baseAccountId)->id;
         $form->setDefault('baseAccountId', $baseAccId);
@@ -65,10 +64,10 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
         $form->setHidden('compare');
         
         $form->setDefault('orderField', 'blAmount');
-        $form->setOptions('orderField', array('blAmount' => "Сума"));
+        $form->setOptions('orderField', array('blAmount' => 'Сума'));
         
-        $form->setField('from','refreshForm,silent');
-        $form->setField('to','refreshForm,silent');
+        $form->setField('from', 'refreshForm,silent');
+        $form->setField('to', 'refreshForm,silent');
     }
     
     
@@ -79,72 +78,65 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
      */
     public function checkEmbeddedForm(core_Form &$form)
     {
-    	// Размяна, ако периодите са объркани
-        if($form->isSubmitted()){
-            if($form->rec->to < $form->rec->from){
+        // Размяна, ако периодите са объркани
+        if ($form->isSubmitted()) {
+            if ($form->rec->to < $form->rec->from) {
                 $form->setError('to, from', 'Началната дата трябва да е по-малка от крайната');
             }
         }
     }
-
-
+    
+    
     /**
      * След подготовката на ембеднатата форма
      */
     public static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
     {
-        $form->setOptions('orderField', array('blAmount' => "Сума"));
+        $form->setOptions('orderField', array('blAmount' => 'Сума'));
         
-    	foreach (range(1, 3) as $i) {
-    	
-    		$form->setHidden("feat{$i}");
-    	
-    	}
-    	
-    	$salesPositionId = acc_Lists::fetchField("#systemId = 'deals'",'id');
-    	
-    	foreach(range(1, 3) as $i) {
-    		if ($form->rec->{"list{$i}"} == $salesPositionId) {
-
-    			$form->setDefault("feat{$i}", "*");
-    		}
-    	}
-    	
-    	// Поставяме удобни опции за избор на период
-    	$query = acc_Periods::getQuery();
-    	$query->where("#state = 'closed'");
-    	$query->orderBy("#end", "DESC");
-    	
-    	$yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), FALSE);
-    	$daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), FALSE);
-    	$optionsFrom = $optionsTo = array();
-    	$optionsFrom[dt::today()] = 'Днес';
-    	$optionsFrom[$yesterday] = 'Вчера';
-    	$optionsFrom[$daybefore] = 'Завчера';
-    	$optionsTo[dt::today()] = 'Днес';
-    	$optionsTo[$yesterday] = 'Вчера';
-    	$optionsTo[$daybefore] = 'Завчера';
-    	
-    	while ($op = $query->fetch()) {
-    		$optionsFrom[$op->start] = $op->title;
-    		$optionsTo[$op->end] = $op->title;
-    	}
-    	
-    	$form->setSuggestions('from', array('' => '') + $optionsFrom);
-    	$form->setSuggestions('to', array('' => '') + $optionsTo);
-
+        foreach (range(1, 3) as $i) {
+            $form->setHidden("feat{$i}");
+        }
+        
+        $salesPositionId = acc_Lists::fetchField("#systemId = 'deals'", 'id');
+        
+        foreach (range(1, 3) as $i) {
+            if ($form->rec->{"list{$i}"} == $salesPositionId) {
+                $form->setDefault("feat{$i}", '*');
+            }
+        }
+        
+        // Поставяме удобни опции за избор на период
+        $query = acc_Periods::getQuery();
+        $query->where("#state = 'closed'");
+        $query->orderBy('#end', 'DESC');
+        
+        $yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), false);
+        $daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), false);
+        $optionsFrom = $optionsTo = array();
+        $optionsFrom[dt::today()] = 'Днес';
+        $optionsFrom[$yesterday] = 'Вчера';
+        $optionsFrom[$daybefore] = 'Завчера';
+        $optionsTo[dt::today()] = 'Днес';
+        $optionsTo[$yesterday] = 'Вчера';
+        $optionsTo[$daybefore] = 'Завчера';
+        
+        while ($op = $query->fetch()) {
+            $optionsFrom[$op->start] = $op->title;
+            $optionsTo[$op->end] = $op->title;
+        }
+        
+        $form->setSuggestions('from', array('' => '') + $optionsFrom);
+        $form->setSuggestions('to', array('' => '') + $optionsTo);
     }
-
-
+    
+    
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
     public static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
-  
-      
-       
-		unset($data->listFields['debitQuantity']);
+        unset($data->listFields['debitQuantity']);
         unset($data->listFields['debitAmount']);
         unset($data->listFields['creditQuantity']);
         unset($data->listFields['creditAmount']);
@@ -155,10 +147,10 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
         unset($data->listFields['creditAmountCompare']);
         unset($data->listFields['blQuantityCompare']);
         
-        $data->listFields['blAmount'] = "Сума";
+        $data->listFields['blAmount'] = 'Сума';
     }
     
-
+    
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
      *
@@ -167,19 +159,19 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
     public function hidePriceFields()
     {
         $innerState = &$this->innerState;
-
+        
         unset($innerState->recs);
     }
-
-
+    
+    
     /**
      * Коя е най-ранната дата на която може да се активира документа
      */
     public function getEarlyActivation()
     {
         $today = dt::today();
-    	$activateOn = "{$this->innerForm->to} 13:59:59";
-
+        $activateOn = "{$this->innerForm->to} 13:59:59";
+        
         return $activateOn;
     }
     
@@ -189,29 +181,26 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
      */
     public function getReportTitle()
     {
-    
-    	$explodeTitle = explode(" » ", $this->title);
-    	 
-    	$title = tr("|{$explodeTitle[1]}|*");
-    
-    	return $title;
+        $explodeTitle = explode(' » ', $this->title);
+        
+        $title = tr("|{$explodeTitle[1]}|*");
+        
+        return $title;
     }
-
-
+    
+    
     /**
      * Ще се експортирват полетата, които се
      * показват в табличния изглед
      *
      * @return array
      */
-    public function getExportFields ()
+    public function getExportFields()
     {
-
-        $exportFields['item3']  = "Сделки";
-        $exportFields['blAmount']  = "Сума";
-        $exportFields['delta']  = "Дял";
-
+        $exportFields['item3'] = 'Сделки';
+        $exportFields['blAmount'] = 'Сума';
+        $exportFields['delta'] = 'Дял';
+        
         return $exportFields;
     }
-
 }

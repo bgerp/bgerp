@@ -1,10 +1,9 @@
-<table id = 'receipt-table'>
+<table id = 'receipt-table' class="[#REVERT_CLASS#]">
 	<tbody>
 		<tr id='receipt-header'>
 			<td colspan='3'>
-			
-				<div><span id='receipt-title'>|Касова бележка|* <span id='receipt-number'> &nbsp;<b>№[#id#]</b> [#rejectBtn#]</span></span></div> 
-				<div class='secondRow'>[#createdBy#] &#124; [#valior#] <span class='hiddenElem'>&#124; </span>[#LOGO#]<span class='newLine'>[#pointId#]</span>   </div>
+				<div><span id='receipt-title'>[#RECEIPT_CAPTION#]<span id='receipt-number'> &nbsp;<b>№[#id#]</b> [#rejectBtn#]</span></span><!--ET_BEGIN SUB_TITLE--><div class='terminal-receipt-subtitle'>[#SUB_TITLE#]</div><!--ET_END SUB_TITLE--></div> 
+				<div class='secondRow'>[#createdBy#]<!--ET_BEGIN EXIT_TERMINAL--> [#EXIT_TERMINAL#]<!--ET_END EXIT_TERMINAL--> &#124; [#valior#] <span class='hiddenElem'>&#124; </span>[#LOGO#]<span class='newLine'>[#pointId#]</span><!--ET_BEGIN revertId-->  &#124;<span class='terminal-revert-id newLine'>[#revertId#]</span>[#loadUrl#]<!--ET_END revertId--></div>
 			</td>
 		</tr>
 		<tr id='receipt-details-th'>
@@ -24,7 +23,7 @@
 						<td colspan='2' id = 'receipt-total-sum' class = 'receipt-info-right'>[#total#] [#currency#]</td>
 					</tr>
 					<tr>
-						<td>|Платено|*:</td>
+						<td>[#PAID_CAPTION#]:</td>
 						<td colspan='2' class = 'receipt-info-right'><b>[#paid#]</b> <small>[#currency#]</small></td>
 					</tr>
 					<tr>

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class drdata_Setup
  *
@@ -11,43 +10,43 @@
  *
  * @category  bgerp
  * @package   bglocal
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bglocal_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
-    var $version = '0.15';
+    public $version = '0.15';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'bglocal_Banks';
+    public $startCtr = 'bglocal_Banks';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Готови данни и типове от различни области";
+    public $info = 'Готови данни и типове от различни области';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
         
         'bglocal_Mvr',
         'bglocal_Banks',
@@ -57,28 +56,9 @@ class bglocal_Setup extends core_ProtoSetup
         'bglocal_DistrictCourts',
     );
     
-    /**
-     * Роли за достъп до модула
-     */
-    //var $roles = 'currency';
-    
     
     /**
-     * Връзки от менюто, сочещи към модула
+     * Дефинирани класове, които имат интерфейси
      */
-    /*var $menuItems = array(
-            array(2.2, 'Финанси', 'Валути', 'currency_Currencies', 'default', "currency, ceo"),
-        );*/
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
+    public $defClasses = 'bglocal_interface_FreeShipping';
 }
