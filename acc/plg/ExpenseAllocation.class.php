@@ -138,7 +138,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                 }
                
                 if($rec->allocationBy != 'no'){
-                    if ($error = acc_ValueCorrections::allocateAmount($rec->productsData, $rec->quantity, $rec->allocationBy)) {
+                    if ($error = acc_ValueCorrections::allocateAmount($rec->productsData, $rec->packQuantity, $rec->allocationBy)) {
                         $form->setError('allocateBy,chosenProducts', $error);
                     }
                 }
