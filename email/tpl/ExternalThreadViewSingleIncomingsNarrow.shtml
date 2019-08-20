@@ -5,19 +5,18 @@
             <div class="small">
                     <!--ET_BEGIN fromEml-->          
                     <div>
-                       |От|*: [#fromEml#]</td>
+                       |От|*: <b>[#fromEml#]</b>
                     </div>
                     <!--ET_END fromEml-->
                     <!--ET_BEGIN AllTo-->          
-                    <div>|До|*: [#AllTo#]</div>
+                    <div>|До|*: <b>[#AllTo#]</b></div>
                     <!--ET_END AllTo-->
                     <!--ET_BEGIN AllCc-->          
-                    <div>|Кп|*:[#AllCc#]</div>
+                    <div>|Кп|*:<b>[#AllCc#]</b></div>
                     <!--ET_END AllCc-->
                     <!--ET_BEGIN date-->          
-                    <div>|На|*: [#date#]</div>
+                    <div>|На|*: <b>[#date#]</b></div>
                     <!--ET_END date-->
-                </table>
             </div>
         </div>
         <!--ET_BEGIN files-->

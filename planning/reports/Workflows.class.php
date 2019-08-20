@@ -43,8 +43,8 @@
       */
      public function addFields(core_Fieldset &$fieldset)
      {
-         $fieldset->FLD('from', 'datetime', 'caption=От,after=title,single=none,mandatory');
-         $fieldset->FLD('to', 'datetime', 'caption=До,after=from,single=none,mandatory');
+         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
+         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
          
          $fieldset->FLD('centre', 'key(mvc=planning_Centers,title=name)', 'caption=Център,refreshForm,after=to,silent');
          $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,title=title)', 'caption=Машини,placeholder=Всички,after=centre,single=none');

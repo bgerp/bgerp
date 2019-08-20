@@ -199,20 +199,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($rec->contragent || $rec->crmGroup) {
                 $contragentsArr = array();
                 $contragentsId = array();
-                
-                $invQuery->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
-                $invQuery->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
-                
-                if (!$rec->crmGroup && $rec->contragent) {
+                                if (!$rec->crmGroup && $rec->contragent) {
                     $contragentsArr = keylist::toArray($rec->contragent);
                     
-                    foreach ($contragentsArr as $val) {
-                        $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
-                        $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
-                    }
-                    
-                    $invQuery->in('coverId', $contragentCoversId);
-                    $invQuery->in('coverClass', $contragentCoverClasses);
+                    $invQuery->in('folderId', $contragentsArr);
                 }
                 
                 if ($rec->crmGroup && !$rec->contragent) {
@@ -224,14 +214,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 if ($rec->crmGroup && $rec->contragent) {
                     $contragentsArr = keylist::toArray($rec->contragent);
                     
-                    
-                    foreach ($contragentsArr as $val) {
-                        $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
-                        $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
-                    }
-                    
-                    $invQuery->in('coverId', $contragentCoversId);
-                    $invQuery->in('coverClass', $contragentCoverClasses);
+                    $invQuery->in('folderId', $contragentsArr);
                     
                     $foldersInGroups = self::getFoldersInGroups($rec);
                     
@@ -274,7 +257,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 // Когато е избрано ВСИЧКИ в полето плащане
                 if ($rec->unpaid == 'all'){
                     
-                    $invoiceValue =  $salesInvoice->dealValue + $salesInvoice->vatAmount;
+                    $invoiceValue =  ($salesInvoice->dealValue - $salesInvoice->discountAmount) + $salesInvoice->vatAmount;
                     $Invoice = doc_Containers::getDocument($salesInvoice->containerId);
                     
                     // масива с фактурите за показване
@@ -475,43 +458,26 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($rec->contragent || $rec->crmGroup) {
                 $contragentsArr = array();
                 $contragentsId = array();
-                
-                $pQuery->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
-                $pQuery->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
-                
                 if (!$rec->crmGroup && $rec->contragent) {
                     $contragentsArr = keylist::toArray($rec->contragent);
                     
-                    foreach ($contragentsArr as $val) {
-                        $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
-                        $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
-                    }
-                    
-                    $pQuery->in('coverId', $contragentCoversId);
-                    $pQuery->in('coverClass', $contragentCoverClasses);
+                    $invQuery->in('folderId', $contragentsArr);
                 }
                 
                 if ($rec->crmGroup && !$rec->contragent) {
                     $foldersInGroups = self::getFoldersInGroups($rec);
                     
-                    $pQuery->in('folderId', $foldersInGroups);
+                    $invQuery->in('folderId', $foldersInGroups);
                 }
                 
                 if ($rec->crmGroup && $rec->contragent) {
                     $contragentsArr = keylist::toArray($rec->contragent);
                     
-                    
-                    foreach ($contragentsArr as $val) {
-                        $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
-                        $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
-                    }
-                    
-                    $pQuery->in('coverId', $contragentCoversId);
-                    $pQuery->in('coverClass', $contragentCoverClasses);
+                    $invQuery->in('folderId', $contragentsArr);
                     
                     $foldersInGroups = self::getFoldersInGroups($rec);
                     
-                    $pQuery->in('folderId', $foldersInGroups);
+                    $invQuery->in('folderId', $foldersInGroups);
                 }
             }
             
@@ -543,7 +509,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 // Когато е избрано ВСИЧКИ в полето плащане
                 if ($rec->unpaid == 'all'){
                     
-                    $invoiceValue =  $purchaseInvoices->dealValue + $purchaseInvoices->vatAmount;
+                    $invoiceValue =  ($purchaseInvoices->dealValue - $purchaseInvoices->discountAmount) + $purchaseInvoices->vatAmount;
                     $Invoice = doc_Containers::getDocument($purchaseInvoices->containerId);
                     
                     // масива с фактурите за показване
@@ -847,7 +813,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $fld->FLD('invoiceDate', 'varchar', 'caption=Дата');
             $fld->FLD('dueDate', 'varchar', 'caption=Краен срок');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-            $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
+            $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност[лв.]');
             
             if ($rec->unpaid == 'unpaid') {
                 $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->Сума,smartCenter');
@@ -1008,7 +974,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
             
             
-            $row->contragent = $dRec->contragent.' »  '."<span class= 'quiet'>".' Общо стойност: '.'</span>'.$dRec->totalInvoiceValue;
+            $row->contragent = $dRec->contragent.' »  '."<span class= 'quiet'>".' Общо стойност: '.'</span>'.core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue);
             if ($dRec->totalInvoiceOverPaid > 0.01) {
                 $row->contragent .= ' »  '."<span class= 'quiet'>" . 'Надплатено:' . '</span>'.$dRec->totalInvoiceOverPaid;
             }
@@ -1032,7 +998,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         
         $row->currencyId = $dRec->currencyId;
         
-        $invoiceValue = $dRec->invoiceValue + $dRec->invoiceVat;
+        $invoiceValue = $dRec->invoiceValue;
         
         $row->invoiceValue = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue);
         
