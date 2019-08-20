@@ -199,7 +199,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($rec->contragent || $rec->crmGroup) {
                 $contragentsArr = array();
                 $contragentsId = array();
-                                if (!$rec->crmGroup && $rec->contragent) {
+                
+                if (!$rec->crmGroup && $rec->contragent) {
                     $contragentsArr = keylist::toArray($rec->contragent);
                     
                     $invQuery->in('folderId', $contragentsArr);
@@ -386,18 +387,18 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     $totalInvoiceContragent[$iRec->contragentName] = (object) array(
                                         'totalInvoiceValue' => $paydocs->amount,                            //общо стойност на фактурите за контрагента
                                         'totalInvoicePayout' => $paydocs->payout,                           //плащания по фактурите за контрагента
-                                        'totalInvoiceNotPaid' => $salesInvoiceNotPaid,                      //стойност на НЕДОплатените суми по фактурите за контрагента
-                                        'totalInvoiceOverPaid' => $salesInvoiceOverPaid,                    //стойност на НАДплатените суми по фактурите за контрагента
-                                        'totalInvoiceOverDue' => $salesInvoiceOverDue,                      //стойност за плащане по просрочените фактури за контрагента
+                                        'totalInvoiceNotPaid' => $salesInvoiceNotPaid*$iRec->rate,                      //стойност на НЕДОплатените суми по фактурите за контрагента
+                                        'totalInvoiceOverPaid' => $salesInvoiceOverPaid*$iRec->rate,                    //стойност на НАДплатените суми по фактурите за контрагента
+                                        'totalInvoiceOverDue' => $salesInvoiceOverDue*$iRec->rate,                      //стойност за плащане по просрочените фактури за контрагента
                                     );
                                 } else {
                                     $obj = &$totalInvoiceContragent[$iRec->contragentName];
                                     
                                     $obj->totalInvoiceValue += $paydocs->amount;
                                     $obj->totalInvoicePayout += $paydocs->payout;
-                                    $obj->totalInvoiceNotPaid += $salesInvoiceNotPaid;
-                                    $obj->totalInvoiceOverPaid += $salesInvoiceOverPaid;
-                                    $obj->totalInvoiceOverDue += $salesInvoiceOverDue;
+                                    $obj->totalInvoiceNotPaid += $salesInvoiceNotPaid*$iRec->rate;
+                                    $obj->totalInvoiceOverPaid += $salesInvoiceOverPaid*$iRec->rate;
+                                    $obj->totalInvoiceOverDue += $salesInvoiceOverDue*$iRec->rate;
                                 }
                                 
                                 // масива с фактурите за показване
@@ -639,16 +640,16 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     $totalInvoiceContragent[$iRec->contragentName] = (object) array(
                                         'totalInvoiceValue' => $paydocs->amount, //общо стойност на фактурите за контрагента
                                         'totalInvoicePayout' => $paydocs->payout,//плащания по фактурите за контрагента
-                                        'totalInvoiceNotPaid' => $purchaseInvoiceNotPaid,//стойност за плащане по фактурите за контрагента
-                                        'totalInvoiceOverDue' => $purchaseInvoiceOverDue,//стойност за плащане по просрочените фактури за контрагента
+                                        'totalInvoiceNotPaid' => $purchaseInvoiceNotPaid*$iRec->rate,//стойност за плащане по фактурите за контрагента
+                                        'totalInvoiceOverDue' => $purchaseInvoiceOverDue*$iRec->rate,//стойност за плащане по просрочените фактури за контрагента
                                     ) ;
                                 } else {
                                     $obj = &$totalInvoiceContragent[$iRec->contragentName];
                                     
                                     $obj->totalInvoiceValue += $paydocs->amount;
                                     $obj->totalInvoicePayout += $paydocs->payout;
-                                    $obj->totalInvoiceNotPaid += $purchaseInvoiceNotPaid;
-                                    $obj->totalInvoiceOverDue += $purchaseInvoiceOverDue;
+                                    $obj->totalInvoiceNotPaid += $purchaseInvoiceNotPaid*$iRec->rate;
+                                    $obj->totalInvoiceOverDue += $purchaseInvoiceOverDue*$iRec->rate;
                                 }
                                 
                                 
@@ -786,7 +787,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $rec->totalInvoiceOverPaidAll += $v -> totalInvoiceOverPaid;
                 $rec->totalInvoiceOverDueAll += $v -> totalInvoiceOverDue;
             }
-        }
+       }
         
         return $recs;
     }
@@ -812,14 +813,22 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             
             $fld->FLD('invoiceDate', 'varchar', 'caption=Дата');
             $fld->FLD('dueDate', 'varchar', 'caption=Краен срок');
-            $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-            $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност[лв.]');
+           
+            
+            if ($rec->unpaid == 'all') {
+                 $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
+                $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност[лв.]');
+                
+            }
             
             if ($rec->unpaid == 'unpaid') {
+                $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
+                 $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
                 $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->Сума,smartCenter');
                 $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания,smartCenter');
                 $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Неплатено');
                 $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Надплатено');
+               
             }
         } else {
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,smartCenter');
@@ -997,18 +1006,18 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $row->dueDate = self::getDueDate($dRec, true, $rec);
         
         $row->currencyId = $dRec->currencyId;
+       // bp($dRec);
+        $invoiceValue = $rec->unpaid == 'all' ? $dRec->invoiceValue + $dRec->invoiceVAT  :$dRec->invoiceValue;
         
-        $invoiceValue = $dRec->invoiceValue;
-        
-        $row->invoiceValue = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue);
+        $row->invoiceValue = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue*$dRec->rate);
         
         if ($dRec->invoiceCurrentSumm > 0) {
-            $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm);
+            $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm*$dRec->rate);
         }
         
         if ($dRec->invoiceCurrentSumm < 0) {
             $invoiceOverSumm = - 1 * $dRec->invoiceCurrentSumm;
-            $row->invoiceOverSumm = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceOverSumm);
+            $row->invoiceOverSumm = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceOverSumm*$dRec->rate);
         }
         $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
         
@@ -1171,22 +1180,21 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     public static function getFoldersInGroups($rec)
     {
-        $fQuery = doc_Folders::getQuery();
+        $foldersInGroups = array();
+        foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
         
-        $classIds = array(core_Classes::getId('crm_Companies'),core_Classes::getId('crm_Persons'));
-        
-        $fQuery->in('coverClass', $classIds);
-        
-        while ($contr = $fQuery->fetch()) {
-            $className = core_Classes::getName($contr->coverClass);
+            $q = $clsName::getQuery();
             
-            $contrGroups = $className::fetchField($contr->coverId, 'groupList');
+            $q->LikeKeylist('groupList', $rec->crmGroup);
             
-            if (keylist::isIn(keylist::toArray($contrGroups), $rec->crmGroup)) {
-                $foldersInGroups[$contr->id] = $contr->id;
-            }
+            $q->where("#folderId IS NOT NULL");
+            
+            $q->show('folderId');
+            
+            $foldersInGroups = array_merge($foldersInGroups,arr::extractValuesFromArray($q->fetchAll(), 'folderId'));
+          
         }
-        
+   
         return $foldersInGroups;
     }
     

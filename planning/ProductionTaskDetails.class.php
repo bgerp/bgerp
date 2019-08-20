@@ -865,9 +865,11 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         $result = array();
         $query = self::getQuery();
-        $query->where("#modifiedOn >= '{$timeline}' AND #norm IS NOT NULL");
         $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
         $query->EXT('indPackagingId', 'planning_Tasks', 'externalName=indPackagingId,externalKey=taskId');
+        $query->EXT('taskModifiedOn', 'planning_Tasks', 'externalName=modifiedOn,externalKey=taskId');
+        $query->EXT('activatedOn', 'planning_Tasks', 'externalName=activatedOn,externalKey=taskId');
+        $query->where("#taskModifiedOn >= '{$timeline}' AND #norm IS NOT NULL");
         
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();
@@ -896,7 +898,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             // Колко е заработката за 1 човек
             $timePerson = ($rec->indTimeAllocation == 'individual') ? $quantity * $rec->norm : (($quantity * $rec->norm) / count($persons));
             
-            $date = dt::verbal2mysql($rec->createdOn, false);
+            $date = dt::verbal2mysql($rec->activatedOn, false);
             foreach ($persons as $personId) {
                 $key = "{$personId}|{$classId}|{$rec->taskId}|{$rec->state}|{$date}|{$indicatorId}";
                 if (!array_key_exists($key, $result)) {
