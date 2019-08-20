@@ -1185,7 +1185,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         
             $q = $clsName::getQuery();
             
-            $q->orLikeKeylist('groupList', $rec->crmGroup);
+            $q->LikeKeylist('groupList', $rec->crmGroup);
             
             $q->where("#folderId IS NOT NULL");
             
@@ -1196,7 +1196,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 array_push($foldersInGroups, $val);
             }
         }
-        
+    
         return $foldersInGroups;
     }
     
