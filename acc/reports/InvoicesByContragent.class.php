@@ -738,7 +738,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $totalInvoiceContragent = $totalInvoiceContragentAll;
                 
             }
-            
+            bp($totalInvoiceContragent,$totalInvoiceContragentAll);
             
             //Сумира фактурите по контрагент ако са в една валута
             foreach ($totalInvoiceContragent as $k => $v) {
@@ -786,7 +786,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $rec->totalInvoiceOverPaidAll += $v -> totalInvoiceOverPaid;
                 $rec->totalInvoiceOverDueAll += $v -> totalInvoiceOverDue;
             }
-        }
+       }
         
         return $recs;
     }
@@ -812,14 +812,22 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             
             $fld->FLD('invoiceDate', 'varchar', 'caption=Дата');
             $fld->FLD('dueDate', 'varchar', 'caption=Краен срок');
-            $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-            $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност[лв.]');
+           
+            
+            if ($rec->unpaid == 'all') {
+                 $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
+                $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност[лв.]');
+                
+            }
             
             if ($rec->unpaid == 'unpaid') {
+                $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
+                 $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
                 $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->Сума,smartCenter');
                 $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания,smartCenter');
                 $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Неплатено');
                 $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Надплатено');
+               
             }
         } else {
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,smartCenter');
