@@ -1191,12 +1191,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             
             $q->show('folderId');
             
-            foreach (arr::extractValuesFromArray($q->fetchAll(), 'folderId') as $val){
-           
-                array_push($foldersInGroups, $val);
-            }
+            $foldersInGroups = array_merge($foldersInGroups,arr::extractValuesFromArray($q->fetchAll(), 'folderId'));
+          
         }
-    
+   
         return $foldersInGroups;
     }
     
