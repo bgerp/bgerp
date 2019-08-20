@@ -1,5 +1,27 @@
+<!--ET_BEGIN KEYBOARDS-->
 <div class='keyboard-holder'>
-	<div id='keyboard-lat' class = 'keyboard'>
+	<div id='keyboard-num' class = 'keyboard'>
+		<div class='num-keyboard'>
+			<input class="buttonForm numPad" type="button" value="1"/>
+			<input class="buttonForm numPad" type="button" value="2"/>
+			<input class="buttonForm numPad" type="button" value="3"/>
+			<input class="keyboard-btn keyboard-change-btn" data-klang='keyboard-lat' type="button" value="EN" />
+			<br>
+			<input class="buttonForm numPad" type="button" value="4"/>
+			<input class="buttonForm numPad" type="button" value="5"/>
+			<input class="buttonForm numPad" type="button" value="6"/>
+			<br>
+			<input class="buttonForm numPad" type="button" value="7"/>
+			<input class="buttonForm numPad" type="button" value="8"/>
+			<input class="buttonForm numPad" type="button" value="9"/>
+			<br>
+			<input class="buttonForm numPad" type="button" value="."/>
+			<input class="buttonForm numPad" type="button" value="0"/>
+			<input class="buttonForm numBack" type="button" value="«"/>
+
+		</div>
+	</div>
+	<div id='keyboard-lat' class = 'keyboard' style="display:none;">
 		<div class='keyboard-row' style='padding-left:1.5em'>
 			<input class="keyboard-btn" type="button" value="1"/>
 			<input class="keyboard-btn" type="button" value="2"/>
@@ -115,7 +137,7 @@
 			<input class="keyboard-btn" type="button" value="9"/>
 			<input class="keyboard-btn" type="button" value="0"/>
 			<input class="keyboard-back-btn" type="button" value="«"/>
-			<input class="keyboard-btn keyboard-change-btn" data-klang='keyboard-lat' type="button" value="EN" />
+			<input class="keyboard-btn keyboard-change-btn" data-klang='keyboard-num' type="button" value="NUM" />
 		</div>
 		<div class='keyboard-row' style='padding-left:0'>
 			<input class="keyboard-btn" type="button" value="Я"/>
@@ -155,3 +177,4 @@
 		</div>
 	</div>
 </div>
+<!--ET_END KEYBOARDS-->

@@ -291,11 +291,6 @@
 	background:#ffffcd !important;
 }
 
-.num-keyboard{
-	float: left;
-	width: 24%;
-	min-width: 170px !important;
-}
 
 .numPad, .numBack{
 	width: 26% !important;
@@ -362,20 +357,18 @@
 .keyboard-row{
 	white-space: nowrap;
 }
-
+.keyboard-holder {
+	clear: both;
+}
 #select-input-pos{
 	width: 100%;
 }
 
-.payment-type, .close-btn, .tools-btn{
-	float: left;
-	width: 17%;
-	margin-top: 1px;
-	margin-left: 5%;
-	min-width: 95px;
-}
 .button {
 	color: #333 !important;
+}
+.tools-btn {
+	display: flex;
 }
 .colum-btn .button , .tools-btn .button,  #tools-form form[method="post"] input[type="submit"],.tools-btn input, #webScan, .contragent-btn .button, #tools-choose .button {
 	width: 100%;
@@ -617,18 +610,6 @@
 	}
 }
 
-.tools-btn{
-    margin-top: 1px;
-    float: left;
-    width: 25%;
-	min-width: 150px;
-    position: relative;
-    margin-top: -52px;
-}
-
-.narrow .tools-btn, .narrow .colum-btn{
-	margin-top: -48px;
-}
 .payment-type, .close-btn, .tools-btn{
 	margin-left: 0 ;
 }
