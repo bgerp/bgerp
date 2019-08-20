@@ -10,6 +10,7 @@
 
 .terminal-receipt-subtitle {
   padding-top: 2px;
+  font-size: 0.95em;
   padding-bottom: 5px; }
 
 .narrow .single-receipt-wrapper {
@@ -68,9 +69,13 @@
   font-size: 1.1em; }
 
 .portalLink {
-  float: right; }
+  float: right;
+  margin-right: 25px; }
   .portalLink img {
     max-height: 30px; }
+
+.logout {
+  float: right; }
 
 .wide .portalLink {
   margin-top: -20px; }
@@ -94,9 +99,6 @@
 #receipt-contragent {
   text-align: center;
   line-height: 26px; }
-
-#receipt-number {
-  font-style: italic; }
 
 #receipt-date {
   float: right;

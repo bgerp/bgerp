@@ -147,7 +147,7 @@ class pos_Receipts extends core_Master
      */
     public function description()
     {
-        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Дата,input=none');
+        $this->FLD('valior', 'date(format=d.m)', 'caption=Дата,input=none');
         $this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка на продажба');
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
         $this->FLD('contragentObjectId', 'int', 'input=none');
@@ -269,7 +269,7 @@ class pos_Receipts extends core_Master
             $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
         }
         
-        $row->RECEIPT_CAPTION = tr('Касова бележка');
+        $row->RECEIPT_CAPTION = tr('КБ');
         $row->PAID_CAPTION = tr('Платено');
         
         if (isset($rec->revertId)) {
@@ -277,7 +277,7 @@ class pos_Receipts extends core_Master
             $row->REVERT_CLASS = 'is-reverted';
             $row->revertId = pos_Receipts::getHyperlink($rec->revertId, true);
             if (isset($fields['-terminal'])) {
-                $row->RECEIPT_CAPTION = tr('Сторно бележка');
+                $row->RECEIPT_CAPTION = tr('СБ');
                 $row->loadUrl = ht::createLink('', array('pos_ReceiptDetails', 'load', 'receiptId' => $rec->id, 'from' => $rec->revertId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Зареждане на всички данни от бележката, class=load-btn');
             }
         }
