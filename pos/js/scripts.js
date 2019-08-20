@@ -542,3 +542,10 @@ function showFavouriteButtons(element, value){
 	}
 }
 
+// Рендира fancybox-а
+function render_fancybox()
+{
+	console.log('remd');
+	$('a.fancybox').fancybox();
+}
+
