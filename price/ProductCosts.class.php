@@ -627,6 +627,8 @@ class price_ProductCosts extends core_Manager
                     
                     // За всяка покупка от последната към първата
                     foreach ($foundIn as $delData){
+                        $expensesPerPcs = $delData->expenses / $delData->quantity;
+                        
                         $quantityByNow += $delData->quantity;
                         if($delData->quantity <= $availableQuantity){
                             $quantity = $delData->quantity;
@@ -635,7 +637,7 @@ class price_ProductCosts extends core_Manager
                         }
                         
                         $availableQuantity -= $quantity;
-                        $sum += $quantity * $delData->price;
+                        $sum += $quantity * ($delData->price + $expensesPerPcs);
                         
                         if($availableQuantity <= 0) break;
                     }
