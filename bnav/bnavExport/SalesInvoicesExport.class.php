@@ -191,16 +191,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     
                 );
             }
-            
-            
-            
-            
-            
-            
         }
-       
-         //   bp($recs);
-            
         
         return $recs;
     }
