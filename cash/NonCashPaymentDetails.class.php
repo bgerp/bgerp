@@ -157,11 +157,13 @@ class cash_NonCashPaymentDetails extends core_Manager
         
         // Взимане на методите за плащане към самия документ
         $query = self::getQuery();
-        $query->where("#documentId = {$documentId}");
-        while ($rec = $query->fetch()) {
-            $res['paymentId'][] = $rec->paymentId;
-            $res['amount'][] = $rec->amount;
-            $res['id'][] = $rec->id;
+        if(isset($documentId)){
+            $query->where("#documentId = {$documentId}");
+            while ($rec = $query->fetch()) {
+                $res['paymentId'][] = $rec->paymentId;
+                $res['amount'][] = $rec->amount;
+                $res['id'][] = $rec->id;
+            }
         }
         
         return $res;
