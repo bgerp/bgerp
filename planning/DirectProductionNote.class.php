@@ -317,6 +317,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
+            
+            // Проверка на к-то
+            $warning = null;
+            if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
+                $form->setError('packQuantity', $warning);
+            }
+            
             $productInfo = cat_Products::getProductInfo($form->rec->productId);
             if (!isset($productInfo->meta['canStore'])) {
                 $rec->storeId = null;
