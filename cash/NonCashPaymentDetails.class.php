@@ -151,24 +151,80 @@ class cash_NonCashPaymentDetails extends core_Manager
      *
      * @return array $res
      */
-    public static function getPaymentsArr($documentId, $documentClassId)
+    public static function getPaymentsTableArr($documentId, $documentClassId)
     {
         $res = array();
         
-        // Намиране на всички методи за плащане
-        $pQuery = cond_Payments::getQuery();
-        $pQuery->where("#state = 'active'");
-        while ($pRec = $pQuery->fetch()) {
-            $res["_payment{$pRec->id}"] = (object) array('paymentId' => $pRec->id, 'amount' => null, 'id' => null);
+        // Взимане на методите за плащане към самия документ
+        $query = self::getQuery();
+        $query->where("#documentId = {$documentId}");
+        while ($rec = $query->fetch()) {
+            $res['paymentId'][] = $rec->paymentId;
+            $res['amount'][] = $rec->amount;
+            $res['id'][] = $rec->id;
         }
         
-        // Взимане на методите за плащане към самия документ
-        if (isset($documentId)) {
-            $query = self::getQuery();
-            $query->where("#documentId = {$documentId}");
-            while ($rec = $query->fetch()) {
-                $res["_payment{$rec->paymentId}"] = (object) array('paymentId' => $rec->paymentId, 'amount' => $rec->amount, 'id' => $rec->id);
+        return $res;
+    }
+    
+    
+    /**
+     * Валидира таблицата с плащания
+     * 
+     * @param mixed $tableData
+     * @param core_Type $Type
+     * @return void|string|array
+     */
+    public static function validatePayments($tableData, $Type)
+    {
+        $tableData = (array) $tableData;
+        if (empty($tableData)) {
+            
+            return;
+        }
+        
+        $res = $payments = $error = $errorFields = array();
+        
+        foreach ($tableData['paymentId'] as $key => $paymentId) {
+            if (!empty($paymentId) && empty($tableData['amount'][$key])) {
+                $error[] = 'Липсва сума при избран метод';
+                $errorFields['amount'][$key] = 'Липсва сума при избран метод';
             }
+            
+            if (array_key_exists($paymentId, $payments)) {
+                $error[] = 'Повтарящ се метод';
+                $errorFields['zone'][$key] = 'Повтаряща се метод';
+            } else {
+                $payments[$paymentId] = $paymentId;
+            }
+        }
+        
+        foreach ($tableData['amount'] as $key => $quantity) {
+            if (!empty($quantity) && empty($tableData['paymentId'][$key])) {
+                $error[] = 'Зададено количество без зона';
+                $errorFields['amount'][$key] = 'Зададено количество без зона';
+            }
+            
+            if (empty($quantity)) {
+                $error[] = 'Количеството не може да е 0';
+                $errorFields['amount'][$key] = 'Количеството не може да е 0';
+            }
+            
+            $Double = core_Type::getByName('double');
+            $q2 = $Double->fromVerbal($quantity);
+            if (!$q2) {
+                $error[] = 'Невалидно количество';
+                $errorFields['amount'][$key] = 'Невалидно количество';
+            }
+        }
+        
+        if (count($error)) {
+            $error = implode('|*<li>|', $error);
+            $res['error'] = $error;
+        }
+        
+        if (count($errorFields)) {
+            $res['errorFields'] = $errorFields;
         }
         
         return $res;
