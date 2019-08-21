@@ -135,6 +135,8 @@ class cash_Pko extends cash_Document
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        if(empty($rec->payments) && empty($rec->exPayments)) return;
+        
         $payments = type_Table::toArray($rec->payments);
         
         // Обновяване на безналичните плащания ако има
@@ -143,9 +145,12 @@ class cash_Pko extends cash_Document
             $update[$obj->paymentId] = (object) array('documentId' => $rec->id, 'paymentId' => $obj->paymentId, 'amount' => $obj->amount);
             $paymentId = $obj->paymentId;
             $notDelete[$paymentId] = $paymentId;
-            $foundRec = array_filter($rec->exPayments, function ($a) use ($paymentId) { return $paymentId == $a->paymentId;});
-            if(is_object($foundRec)){
-                $update[$obj->paymentId]->id = $foundRec->id;
+            
+            if(is_array($rec->exPayments)){
+                $foundRec = array_filter($rec->exPayments, function ($a) use ($paymentId) { return $paymentId == $a->paymentId;});
+                if(is_object($foundRec)){
+                    $update[$obj->paymentId]->id = $foundRec->id;
+                }
             }
         }
         
@@ -155,10 +160,12 @@ class cash_Pko extends cash_Document
         }
         
         // Изтриване на старите записи
-        $delete = array_filter($rec->exPayments, function ($a) use ($notDelete) { return !array_key_exists($a->paymentId, $notDelete);});
-        if (count($delete)) {
-            foreach ($delete as $obj) {
-                cash_NonCashPaymentDetails::delete($obj->id);
+        if(is_array($rec->exPayments)){
+            $delete = array_filter($rec->exPayments, function ($a) use ($notDelete) { return !array_key_exists($a->paymentId, $notDelete);});
+            if (count($delete)) {
+                foreach ($delete as $obj) {
+                    cash_NonCashPaymentDetails::delete($obj->id);
+                }
             }
         }
     }
