@@ -41,6 +41,12 @@
 						      <div class='clearfix21'></div>
 						   </div>
 						<!--ET_END DRAFTS-->
+						<!--ET_BEGIN DRAFTS_WIDE-->
+						<div class='tab-content' id = 'tools-drafts'>
+							[#DRAFTS_WIDE#]
+							<div class='clearfix21'></div>
+						</div>
+						<!--ET_END DRAFTS_WIDE-->
 					</div>
 				<!--ET_END TOOLS-->
 				</div>
@@ -65,12 +71,7 @@
 	             </div>
 	             <!--ET_END SEARCH_DIV_WIDE-->
 	                    
-	             <!--ET_BEGIN DRAFTS_WIDE-->
-	                 <div class='tab-content' id = 'tools-drafts'>
-	                    [#DRAFTS_WIDE#]
-	                      <div class='clearfix21'></div>
-	                 </div>
-	             <!--ET_END DRAFTS_WIDE-->
+
 		</div>
 		<!--ET_END WIDE_RIGHT_PANEL-->
 	</div>

@@ -567,8 +567,8 @@ class pos_Receipts extends core_Master
                 // Добавяне на табовете показващи се в широк изглед отстрани
                 if (!Mode::is('screenMode', 'narrow')) {
                     $DraftsUrl = toUrl(array('pos_Receipts', 'showDrafts', $rec->id), 'absolute');
-                    $tab = new ET(tr("|*<li [#active#] title='|Търсене на артикул|*'><a href='#tools-search' accesskey='o'>|Търсене|*</a></li><li title='|Всички чернови бележки|*'><a href='#tools-drafts' data-url='{$DraftsUrl}' accesskey='p'>|Бележки|*</a></li>"));
-                    
+                    $tab = new ET(tr("|*<li title='|Всички чернови бележки|*'><a href='#tools-drafts' data-url='{$DraftsUrl}' accesskey='p'>|Бележки|*</a></li>"));
+
                     if ($selectedFavourites = $this->getSelectFavourites()) {
                         $tab->prepend(tr("|*<li class='active' title='|Избор на най-продавани артикули|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a></li>"));
                         $tpl->replace($selectedFavourites, 'CHOOSE_DIV_WIDE');
@@ -700,7 +700,7 @@ class pos_Receipts extends core_Master
         if (Mode::is('screenMode', 'narrow')) {
             $tab = tr("|*<li class='active' title='|Пулт|*'><a href='#tools-form' accesskey='z'>|Пулт|*</a></li>");
         } else {
-            $tab = tr("|*<li class='active' title='|Пулт|*'><a href='#tools-form' accesskey='z'>|Пулт|*</a></li><li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='x'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='c'>|Прехвърляне|*</a></li>");
+            $tab = tr("|*<li class='active' title='|Пулт|*'><a href='#tools-form' accesskey='z'>|Пулт|*</a></li><li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='x'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='c'>|Клиент|*</a></li><li><a href='#tools-drafts' title='|Всички чернови бележки|*' accesskey='p'>|Бележки|*</a></li>");
         }
         $tpl->append($this->renderToolsTab($id), 'TAB_TOOLS');
         
@@ -714,11 +714,8 @@ class pos_Receipts extends core_Master
             
             // Добавяне на таба с избор
             $tpl->append($this->renderChooseTab($id), 'SEARCH_DIV');
-            $tab .= tr("|*<li title='|Търсене на артикул|*'><a href='#tools-search' accesskey='o'>|Търсене|*</a></li>");
-            $tab .= tr("|*<li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='x'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='c'>|Прехвърляне|*</a></li><li><a href='#tools-drafts' title='|Всички чернови бележки|*' accesskey='p'>|Бележки|*</a></li>");
-            
-            // Добавяне на таба с черновите
-            $tpl->append($this->renderDraftsTab($id), 'DRAFTS');
+            $tab .= tr("|*<li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='x'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='c'>|Клиент|*</a></li>");
+
         }
         
         // Добавяне на таба за плащане
@@ -789,8 +786,8 @@ class pos_Receipts extends core_Master
             $htmlScan = "<input type='button' class='webScan {$disClass}' {$disabled} id='webScan' name='scan' onclick=\"document.location = 'http://zxing.appspot.com/scan?ret={$absUrl}?ean={CODE}'\" value='Scan' />";
             $block->append($htmlScan, 'FIRST_TOOLS_ROW');
         }
-        
-        $params = array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въвеждане', 'list' => 'suggestions');
+        $searchUrl = toUrl(array('pos_Receipts', 'getSearchResults'), 'local');
+        $params = array('name' => 'ean', 'type' => 'text','class'=> 'large-field', 'data-url' => $searchUrl , 'id' => 'select-input-pos',   'style' => 'text-align:right', 'title' => 'Въвеждане', 'list' => 'suggestions');
         if(Mode::is('screenMode', 'narrow')) {
             $params['readonly'] = 'readonly';
         }
@@ -841,9 +838,6 @@ class pos_Receipts extends core_Master
             $keyboardsTpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
             $block->replace($keyboardsTpl, 'KEYBOARDS');
         }
-        
-        $searchUrl = toUrl(array('pos_Receipts', 'getSearchResults'), 'local');
-        $inpFld = ht::createTextInput('select-input-pos', '', array('id' => 'select-input-pos', 'data-url' => $searchUrl, 'type' => 'text'));
         $block->replace($inpFld, 'INPUT_SEARCH');
         
         return $block;
@@ -1119,7 +1113,7 @@ class pos_Receipts extends core_Master
         $searchUrl2 = toUrl(array('pos_Receipts', 'searchContragents', 'type' => 'person'), 'local');
         $searchUrl3 = toUrl(array('pos_Receipts', 'searchContragents'), 'local');
         
-        $inpFld = ht::createElement('input', array('name' => 'input-search-contragent', 'id' => 'input-search-contragent', 'type' => 'text', 'data-url' => $searchUrl3, 'title' => 'Търси контрагент по ключова дума,номер или код'));
+        $inpFld = ht::createElement('input', array('name' => 'input-search-contragent', 'id' => 'input-search-contragent', 'class' => 'large-field', 'type' => 'text', 'data-url' => $searchUrl3, 'title' => 'Търси контрагент по ключова дума,номер или код'));
         
         $block->append($inpFld, 'TRANSFERS_BLOCK');
         
@@ -1147,7 +1141,8 @@ class pos_Receipts extends core_Master
         
         $value = round(abs($rec->total) - abs($rec->paid), 2);
         $value = ($value > 0) ? $value : null;
-        $block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;', 'value' => $value, 'title' => 'Въведете сума за плащане или номер на бележка за сторниране')) . '<br />', 'INPUT_PAYMENT');
+        $searchUrl = toUrl(array('pos_Receipts', 'getSearchResults'), 'local');
+        $block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text','class'=> 'large-field', 'data-url' => $searchUrl , 'id' => 'select-input-pos',  'value' => $value, 'title' => 'Въведете сума за плащане или номер на бележка за сторниране')) . '<br />', 'INPUT_PAYMENT');
         
         // Показваме всички активни методи за плащания
         $disClass = ($payUrl) ? '' : 'disabledBtn';

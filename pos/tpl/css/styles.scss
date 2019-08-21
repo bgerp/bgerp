@@ -293,7 +293,7 @@
 
 
 .numPad, .numBack{
-	width: 26% !important;
+	min-width: 42px;
 	height: 43px;
 	margin-bottom: 7px !important;
 	margin-right: 4px !important;
@@ -360,20 +360,17 @@
 .keyboard-holder {
 	clear: both;
 }
-#select-input-pos{
-	width: 100%;
-}
 
 .button {
 	color: #333 !important;
 }
-.tools-btn {
+.flex {
 	display: flex;
+	justify-content: space-between;
 }
-.colum-btn .button , .tools-btn .button,  #tools-form form[method="post"] input[type="submit"],.tools-btn input, #webScan, .contragent-btn .button, #tools-choose .button {
+.flex .button  {
 	width: 100%;
 	height: 41px;
-    margin-bottom: 10px !important;
     min-width: 95px;
     padding-left: 3px;
     padding-right: 3px;
@@ -597,12 +594,6 @@
 }
 
 .colum-btn{
-	margin-left: 0px;
-	margin-right: 20px;
-	float:left;
-	min-width: 150px;
-	width: 25%;
-	margin-top: -52px;
 	.button {
 		text-overflow: ellipsis;
 		padding-left: 5px;
@@ -627,25 +618,12 @@
 }
 
 
-.input-field{
-	float: left;
-	margin-left:4px;
-	margin-bottom: 10px;
-	width: 21.5%;
-    min-width: 158px !important;
-}
-
-.narrow .input-field{
-	width: 30%;
-	max-width: 130px !important;
-}
-
-.input-field input[type=text], #select-input-pos, #input-search-contragent{
+.large-field{
 	width: 100%;
-	height: 2.2em;
-	font-size: 1.2em;
+	height: 2.2em !important;
+	font-size: 1.2em !important;
 	border: 1px solid #aaa;
-	border-radius: 4px;
+	border-radius: 4px !important;
 	box-shadow: inset 0 0 10px rgba(0,0,0,0.25), 2px 2px 2px rgba(0,0,0,0.2);
 }
 
@@ -657,7 +635,7 @@
     margin: 0 0 10px;
 }
 
-.narrow .input-field input[type=text],  .narrow #input-search-contragent{
+.narrow .large-field{
     height:1.8em;
 }
 
@@ -667,11 +645,12 @@
 }
 
 .colum-btn .selectHolder {
-	display: block;
+	display: inline-flex;
+	margin-right: 15px;
 	select.button {
 		display: inline-block;
-		width: 78% !important;
-		padding-left: 10px !important;
+		min-width: 130px;
+		padding-right: 10px !important;
 		&.disabledBtn {
 			color: #999 !important;
 			background-color: #bbb !important;
@@ -961,7 +940,7 @@
 	margin-bottom: 10px;
 }
 .contragent-form input{
-	float: left;
+	display: flex;
 	&#input-search-contragent {
 	   width: auto;
 	   max-width: 60%;

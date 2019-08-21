@@ -1,14 +1,14 @@
 <!--ET_BEGIN TAB_TOOLS-->
-	<div class='input-field'>[#INPUT_FLD#]</div>
-	[#INPUT_DATA_LIST#]
+
 
 	<div class='clearfix21'></div>
 
-	<div class='tools-btn'>
+	<div class='tools-btn flex'>
 	[#FIRST_TOOLS_ROW#]
 	</div>
-[#INPUT_SEARCH#]
-[#KEYBOARDS#]
+    [#INPUT_FLD#]
+    [#INPUT_DATA_LIST#]
+    [#KEYBOARDS#]
 
 <div class='clearfix21'></div>
 
@@ -29,33 +29,13 @@
 <!--ET_END SEARCH_DIV-->
 
 <!--ET_BEGIN PAYMENTS_BLOCK-->
-<div class='input-field'>[#INPUT_PAYMENT#]</div>
+
+<div class='colum-btn flex'>
+    [#PAYMENT_TYPE#] [#CLOSE_BTNS#]
+</div>
+<div class='input-field '>[#INPUT_PAYMENT#]</div>
 <div class='clearfix21'></div>
-<div class='num-keyboard'>
-	<input class="buttonForm numPad" type="button" value="1"/>
-	<input class="buttonForm numPad" type="button" value="2"/>
-	<input class="buttonForm numPad" type="button" value="3"/>
-	<br />
-	<input class="buttonForm numPad" type="button" value="4"/>
-	<input class="buttonForm numPad" type="button" value="5"/>
-	<input class="buttonForm numPad" type="button" value="6"/>
-	<br />
-	<input class="buttonForm  numPad" type="button" value="7"/>
-	<input class="buttonForm  numPad" type="button" value="8"/>
-	<input class="buttonForm  numPad" type="button" value="9"/>
-	<br />
-	<input class="buttonForm  numPad" type="button" value="."/>
-	<input class="buttonForm numPad" type="button" value="0"/>
-	<input class="buttonForm numBack" type="button" value="«"/>
-</div>
-<div class='colum-btn-holder'>
-	<div class='colum-btn'>
-	[#PAYMENT_TYPE#]
-	</div>
-	<div class='colum-btn'>
-	[#CLOSE_BTNS#]
-	</div>
-</div>
+[#KEYBOARDS#]
 <div class='clearfix21'></div>
 <!--ET_END PAYMENTS_BLOCK-->
 
@@ -64,7 +44,7 @@
 <!--ET_END DRAFTS-->
 
 <!--ET_BEGIN TRANSFERS_BLOCK-->
-<div class='contragent-form'>[#TRANSFERS_BLOCK#]<span class='contragent-btn'>[#BTNS#]</span></div>
+<div class='contragent-form'>[#TRANSFERS_BLOCK#][#BTNS#]</div>
 
 <div id='result_contragents'>
 </div>
