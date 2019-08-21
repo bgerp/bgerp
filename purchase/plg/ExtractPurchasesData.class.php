@@ -48,11 +48,10 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     
     
     /**
-     * Функция, която се извиква след активирането на документа
+     * Добавя запис в модела за доставките
      */
-    public static function on_AfterActivation($mvc, &$rec)
+    public static function add($mvc, $rec)
     {
-        
         $clone = clone $rec;
         
         $clone->threadId = (isset($clone->threadId)) ? $clone->threadId : $mvc->fetchField($clone->id, 'threadId');
@@ -90,18 +89,18 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         //Проверка за бърза прокупка или продажба
         if (!is_null($clone->contoActions)) {
-          $cond = (strrpos($clone->contoActions, 'ship') !== false);   ;
+            $cond = (strrpos($clone->contoActions, 'ship') !== false);   ;
         }else{
             $cond = true;
         }
-       
+        
         if ($cond) {
             
             foreach ($details as $detail) {
                 
                 //Заприходено количество
                 $quantity = ($Master->className == 'store_InventoryNotes') ?(round($detail->quantity - $detail->blQuantity, 4)) : $detail->quantity;
-               
+                
                 //Артикул
                 $productId = $detail->productId;
                 
@@ -117,7 +116,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 //Склад
                 $storeId = $clone->storeId;
                 
-               
+                
                 //Ако документа е мемориален ордер
                 if ($Master->className == 'acc_Articles') {
                     
@@ -125,7 +124,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     if($amount <= 0 || $price <= 0) continue;
                     
                     if ($detail->debitAccId && (acc_Accounts::fetch("#num = 321")->id != $detail->debitAccId)) continue;
-                   
+                    
                     //Артикул
                     $productId = acc_Items::fetch("$detail->debitEnt2")->objectId;
                     $measureId = acc_Items::fetch("$detail->debitEnt2")->uomId;
@@ -138,9 +137,6 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     
                     //Заприходено количество
                     $quantity =  $detail->debitQuantity;
-                    
-                
-                
                 }
                 
                 if ($quantity < 0) continue;
@@ -176,9 +172,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     'containerId' => $clone->containerId,
                     'isFromInventory' => $isFromInventory,
                     'canStore' => cat_Products::getProductInfo($productId)->meta['canStore'],
-                
                 );
-                
                 
                 $id = purchase_PurchasesData::fetchField("#detailClassId = {$dRec->detailClassId} AND #detailRecId = {$dRec->detailRecId}");
                 
@@ -186,17 +180,8 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     $dRec->id = $id;
                 }
                 
-                $saveRecs[]=$dRec;
-                cls::get('purchase_PurchasesData')->saveArray($saveRecs);
-                
+                purchase_PurchasesData::save($dRec);
             }
-            
-            $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
-            
-            foreach ($threadsArr as $threadId) {
-                self::getAllocatedCostsByProduct($threadId);
-            }
-            
         }
     }
     
@@ -210,8 +195,10 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
         
-        foreach ($threadsArr as $threadId) {
-            self::getAllocatedCostsByProduct($threadId);
+        if(!is_array($mvc->allocateThreadsOnShutdown)){
+            $mvc->allocateThreadsOnShutdown = $threadsArr;
+        } else {
+            $mvc->allocateThreadsOnShutdown += $threadsArr;
         }
     }
     
@@ -221,10 +208,30 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
      */
     public static function on_AfterSaveJournalTransaction($mvc, $res, $rec)
     {
+        self::add($mvc, $rec);
+        
+        $mvc->logDebug('SaveJournalTransaction', $rec->id);
         $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
-       
-        foreach ($threadsArr as $threadId) {
-            self::getAllocatedCostsByProduct($threadId);
+        
+        if(!is_array($mvc->allocateThreadsOnShutdown)){
+            $mvc->allocateThreadsOnShutdown = $threadsArr;
+        } else {
+            $mvc->allocateThreadsOnShutdown += $threadsArr;
+        }
+    }
+    
+    
+    /**
+     * Обновява списъците със свойства на номенклатурите от които е имало засегнати пера
+     *
+     * @param acc_Items $mvc
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(is_array($mvc->allocateThreadsOnShutdown)){
+            foreach ($mvc->allocateThreadsOnShutdown as $threadId) {
+                self::getAllocatedCostsByProduct($threadId);
+            }
         }
     }
     
@@ -264,6 +271,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             $prodQuery = purchase_PurchasesData::getQuery();
         }
         $prodQuery->where("#threadId = {$threadId}");
+        $prodQuery->orderBy('id', 'DESC');
         
         $prods = array();
         while ($prodRec = $prodQuery->fetch()) {
@@ -345,11 +353,9 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $Detail = cls::get($detailClassName);
         $masterKey = $Detail->masterKey;
         
-        
-        
         $detQuery = $detailClassName::getQuery();
         $detQuery->where("#{$masterKey} = {$rec->id}");
-        
+        $detQuery->show('id');
         $detRecArr = arr::extractValuesFromArray($detQuery->fetchAll(), 'id');
         
         $detClassId = core_Classes::getId($detailClassName);
