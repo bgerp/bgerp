@@ -21,7 +21,7 @@ class type_Check extends type_Enum
      * Параметър по подразбиране
      */
     public function init($params = array())
-    {//bp($params);
+    {
         $yesCaption = isset($params['params']['label']) ? $params['params']['label'] : 'Да';
         $this->options = array('no' => 'Не е направен избор', 'yes' => $yesCaption);
         if (!empty($params['params']['errorIfNotChecked'])) {

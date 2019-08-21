@@ -317,6 +317,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
+            
+            // Проверка на к-то
+            $warning = null;
+            if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
+                $form->setError('packQuantity', $warning);
+            }
+            
             $productInfo = cat_Products::getProductInfo($form->rec->productId);
             if (!isset($productInfo->meta['canStore'])) {
                 $rec->storeId = null;
@@ -540,6 +547,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             
             // Дефолтното к-вво ще е разликата между к-та за произведеното до сега и за произведеното в момента
             $dRec->quantity = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
+            
+            // Подсигуряване, че количеството е опаковка е добре
+            $round = cat_UoM::fetchField($dRec->packagingId, 'round');
+            if(isset($round)){
+                $packQuantity = round($dRec->quantity * $dRec->quantityInPack, $round);
+                $dRec->quantity = $packQuantity / $dRec->quantityInPack;
+            }
+            
             $dRec->quantityFromBom = $dRec->quantity;
             
             $pInfo = cat_Products::getProductInfo($resource->productId);
