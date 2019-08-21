@@ -105,7 +105,7 @@ class cash_Pko extends cash_Document
         
         // Добавяне на таблица за избор на безналични плащания
         $rec->exPayments = cash_NonCashPaymentDetails::getPaymentsTableArr($rec->id, $mvc->getClassId());
-        $form->FLD('payments', "table(columns=paymentId|amount,captions=Плащане|Сума,validate=cash_NonCashPaymentDetails::validatePayments)", "caption=Безналично плащане->Избор,before=contragentName,autohide");
+        $form->FLD('payments', "table(columns=paymentId|amount,captions=Плащане|Сума,validate=cash_NonCashPaymentDetails::validatePayments)", "caption=Безналично плащане->Избор,before=contragentName");
         $form->setFieldTypeParams('payments', array('paymentId_opt' => array('' => '') + cls::get('cond_Payments')->makeArray4Select('title')));
         $form->setDefault('payments', $rec->exPayments);
         $rec->exPayments = type_Table::toArray($rec->exPayments);
