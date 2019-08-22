@@ -294,15 +294,20 @@ function posActions() {
 	$(document.body).on('click', ".keyboard-btn", function(e){
 		var currentAttrValue = $(this).val();
 		var isChangeBtn = $(this).attr('data-klang');
-		
+
 		// Ако е натиснат бутон за смяна на език, не правим нищо
 		if(isChangeBtn != undefined) {
 			return;
 		}
 		
 		var inpVal = $("#select-input-pos").val();
-		inpVal += currentAttrValue;
-		$(".large-field").val(inpVal);
+		if (currentAttrValue == "ENTER") {
+			$(".large-field").val("");
+		} else {
+			inpVal += currentAttrValue;
+			$(".large-field").val(inpVal);
+		}
+
 		
 		if(!((pageWidth > 800 && pageWidth < 1400) && isTouchDevice())){
 			$(".large-field").focus();
