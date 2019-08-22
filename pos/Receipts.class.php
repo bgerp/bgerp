@@ -785,7 +785,7 @@ class pos_Receipts extends core_Master
             $block->append($htmlScan, 'FIRST_TOOLS_ROW');
         }
         $searchUrl = toUrl(array('pos_Receipts', 'getSearchResults'), 'local');
-        $params = array('name' => 'ean', 'type' => 'text','class'=> 'large-field', 'data-url' => $searchUrl , 'id' => 'select-input-pos',   'style' => 'text-align:right', 'title' => 'Въвеждане', 'list' => 'suggestions');
+        $params = array('name' => 'ean', 'type' => 'text', 'class'=> 'large-field select-input-pos', 'data-url' => $searchUrl,   'style' => 'text-align:right', 'title' => 'Въвеждане', 'list' => 'suggestions');
         if(Mode::is('screenMode', 'narrow')) {
             $params['readonly'] = 'readonly';
         }
@@ -831,6 +831,12 @@ class pos_Receipts extends core_Master
      */
     public static function renderKeyboard()
     {
+        if(Mode::get('screenWidth') >= 1200){
+            $tpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
+        } else {
+            $tpl = new core_ET("");
+        }
+        
         $tpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
         
         return $tpl;
@@ -1135,7 +1141,7 @@ class pos_Receipts extends core_Master
         $value = round(abs($rec->total) - abs($rec->paid), 2);
         $value = ($value > 0) ? $value : null;
         $searchUrl = toUrl(array('pos_Receipts', 'getSearchResults'), 'local');
-        $block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text','class'=> 'large-field', 'data-url' => $searchUrl , 'id' => 'select-input-pos',  'value' => $value, 'title' => 'Въведете сума за плащане или номер на бележка за сторниране')) . '<br />', 'INPUT_PAYMENT');
+        $block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text','class'=> 'large-field select-input-pos', 'data-url' => $searchUrl,  'value' => $value, 'title' => 'Въведете сума за плащане или номер на бележка за сторниране')) . '<br />', 'INPUT_PAYMENT');
         
         // Показваме всички активни методи за плащания
         $disClass = ($payUrl) ? '' : 'disabledBtn';

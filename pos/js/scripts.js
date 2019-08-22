@@ -300,7 +300,7 @@ function posActions() {
 			return;
 		}
 		
-		var inpVal = $("#select-input-pos").val();
+		var inpVal = $(".select-input-pos").val();
 		if (currentAttrValue == "ENTER") {
 			$(".large-field").val("");
 		} else {
@@ -335,9 +335,10 @@ function posActions() {
 	
 	
 	// След въвеждане на стойност, прави заявка по Ajax
-	$("#select-input-pos").keyup(function() {
+	$(".select-input-pos").keyup(function() {
 		
-		var inpVal = $("#select-input-pos").val();
+		console.log('love');
+		var inpVal = $(this).val();
 		var receiptId = $("input[name=receiptId]").val();
 		
 		var url = $(this).attr("data-url");
