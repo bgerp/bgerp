@@ -635,7 +635,7 @@ class cat_BomDetails extends doc_Detail
         
         $title = cat_Products::getTitleById($rec->resourceId);
         $msg = "{$title} |вече е етап|*";
-        $this->Master->logRead('Разпъване на вложен артикул', $rec->bomId);
+        $this->Master->logWrite('Разпъване на вложен артикул', $rec->bomId);
         
         return new Redirect(array('cat_Boms', 'single', $rec->bomId), $msg);
     }
