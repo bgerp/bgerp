@@ -45,7 +45,9 @@ function posActions() {
 	$(document.body).on('click', "#tools-form .numPad", function(e){
 		var val = $(this).val();
 		
-		var inpVal = $("input[name=ean]").val();
+		var closestSearch = $(this).closest('tab-content').find('.select-input-pos');
+		console.log(closestSearch);
+		var inpVal = closestSearch.val();
 		if(val == '.'){
 			if(inpVal.length == 0){
 				inpVal = 0;
@@ -57,9 +59,9 @@ function posActions() {
 		}
 		
 		inpVal += val;
-		$("input[name=ean]").val(inpVal);
+		closestSearch.val(inpVal);
 		if($('body').hasClass('wide')){
-			$("input[name=ean]").focus();
+			closestSearch.focus();
 		}
 	});
 	
@@ -300,21 +302,23 @@ function posActions() {
 			return;
 		}
 		
-		var inpVal = $(".select-input-pos").val();
+		var closestSearch = $(this).closest('tab-content').find('.select-input-pos');
+		
+		var inpVal = closestSearch.val();
 		if (currentAttrValue == "ENTER") {
-			$(".large-field").val("");
+			closestSearch.val("");
 		} else {
 			inpVal += currentAttrValue;
-			$(".large-field").val(inpVal);
+			closestSearch.val(inpVal);
 		}
 
 		
 		if(!((pageWidth > 800 && pageWidth < 1400) && isTouchDevice())){
-			$(".large-field").focus();
+			closestSearch.focus();
 		}
 		// Задействаме евент 'keyup' в инпут полето
 		var e = jQuery.Event("keyup");
-		$(".large-field").trigger(e);
+		closestSearch.trigger(e);
 	}); 
 	
 	
