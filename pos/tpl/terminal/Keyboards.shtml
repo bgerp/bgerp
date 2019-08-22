@@ -1,5 +1,4 @@
 <!--ET_BEGIN KEYBOARDS-->
-<div class='keyboard-holder'>
 	<div id='keyboard-num' class = 'keyboard'>
 		<div class='num-keyboard'>
 			<input class="buttonForm numPad" type="button" value="1"/>
@@ -179,5 +178,4 @@
 			<input class="keyboard-btn keyboard-space-btn" type="button" value=" " />
 		</div>
 	</div>
-</div>
 <!--ET_END KEYBOARDS-->

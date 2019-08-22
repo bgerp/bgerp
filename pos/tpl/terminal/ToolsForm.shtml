@@ -9,7 +9,7 @@
     [#INPUT_FLD#]
     [#INPUT_DATA_LIST#]
     
-	<div id='pos-tools-keyboard'>[#KEYBOARDS#]</div>
+	<div  class='keyboard-holder' id='pos-tools-keyboard'>[#KEYBOARDS#]</div>
 	<div id='pos-search-result-table' class='pos-table'></div>
 
 
