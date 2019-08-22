@@ -348,6 +348,8 @@ class acc_Items extends core_Manager
             $listOptions += array('-1' => '[Без номенклатури]');
         }
         
+        $data->listFilter->setDefault('listId', $mvc->getCurrentListId());
+        
         $data->listFilter->setOptions('listId', array('' => '') + $listOptions);
         
         $data->listFilter->view = 'horizontal';
@@ -357,15 +359,9 @@ class acc_Items extends core_Manager
         // Показваме само това поле. Иначе и другите полета на модела ще се появят
         $data->listFilter->showFields = 'listId, search';
         $filter = $data->listFilter->input();
-        if (!$filter->listId) {
-            $filter->listId = $mvc->getCurrentListId();
-        }
         
-        expect($filter->listId);
         
-        if ($filter->listId == -1) {
-            $data->query->where("#lists IS NULL OR #lists = ''");
-        } else {
+        if ($filter->listId) {
             $data->query->where("#lists LIKE '%|{$filter->listId}|%'");
         }
         

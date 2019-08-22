@@ -2509,10 +2509,6 @@ class core_Users extends core_Manager
         if ($userFrom = Request::get('userFrom')) {
             list($team, $user) = explode('_', $userFrom);
             
-            // bp(self::fetch($user), self::fetch($team));
-            
-            // $teamMates = self::getTeammates($userFrom);
-            
             $team = core_Roles::fetchById($team);
             $rang = self::getRang($user);
             

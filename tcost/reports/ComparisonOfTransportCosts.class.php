@@ -171,7 +171,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $id = $key;
             list($saleIdItem, $threadIdItem, $salecontoActions) = explode('|', $val);
             
-            $hiddenTransportCost = sales_TransportValues::calcInDocument('sales_Sales', $saleIdItem);//if ($saleIdItem == 1312)bp($salecontoActions);
+            $hiddenTransportCost = sales_TransportValues::calcInDocument('sales_Sales', $saleIdItem);
             
             if (strpos($salecontoActions, 'ship') != false) {
                 $visibleTransportCost = self::getVisibleTransportCost($saleIdItem);

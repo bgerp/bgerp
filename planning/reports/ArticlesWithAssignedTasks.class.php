@@ -167,7 +167,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             
             // Връзки към задачи от задание
-            $resArrJobses = doc_Linked::getRecsForType('doc', $jobses->containerId, false);//bp($resArrJobses);
+            $resArrJobses = doc_Linked::getRecsForType('doc', $jobses->containerId, false);
             
             foreach ($resArrJobses as $d) {
                 $linkFrom = 'job';
@@ -311,7 +311,6 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             ));
         }
         
-        // bp($recs);
         return $recs;
     }
     

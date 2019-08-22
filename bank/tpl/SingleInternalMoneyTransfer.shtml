@@ -3,52 +3,46 @@
         <div style='margin-top:10px;'>
             <div class='fleft'>
                 <table class='default-table'>
-                    <!--ET_BEGIN createdBy-->
-                    <tr>
-                        <td class="quiet aright">|Създаден|*:</td>
-                        <td>|на|* <b>[#createdDate#] </b>|от|* <b>[#createdBy#]</b></td>
-                    </tr>
-                    <!--ET_END createdBy-->	
-                    <tr>
-                        <td class="quiet aright">|Вальор|*:</td>
-                        <td><b>[#valior#]</b></td>
-                    </tr>
-                    <tr>
-                        <td class="quiet aright">|Операция|*:</td>
+                <tr>
+                        <td class="quiet">|Операция|*:</td>
                         <td><b>[#operationSysId#]</b></td>
+                    </tr>
+                    <tr>
+                        <td class="quiet">|Вальор|*:</td>
+                        <td><b>[#valior#]</b></td>
                     </tr>
                     <!--ET_BEGIN creditCase-->
                     <tr>
-                        <td class="quiet aright">|От|*:</td>
+                        <td class="quiet">|От|*:</td>
                         <td>[#creditCase#]</td>
                     </tr>
                     <!--ET_END creditCase-->
-                    <!--ET_BEGIN [#paymentId#]-->
+                    <!--ET_BEGIN paymentId-->
                     <tr>
-                        <td class="quiet aright">|Инкасирано от|*:</td>
+                        <td class="quiet">|Инкасирано от|*:</td>
                         <td>[#paymentId#]</td>
                     </tr>
-                    <!--ET_END [#paymentId#]-->
+                    <!--ET_END paymentId-->
                     <!--ET_BEGIN creditBank-->
                     <tr>
-                        <td class="quiet aright">|От|*:</td>
+                        <td class="quiet">|От|*:</td>
                         <td>[#creditBank#]</td>
                     </tr>
                     <!--ET_END creditBank-->
                     <!--ET_BEGIN debitCase-->
                     <tr>
-                        <td class="quiet aright">|Към|*:</td>
+                        <td class="quiet">|Към|*:</td>
                         <td>[#debitCase#]</td>
                     </tr>
                     <!--ET_END debitCase-->
                     <!--ET_BEGIN debitBank-->
                     <tr>
-                        <td class="quiet aright">|Към|*:</td>
+                        <td class="quiet">|Към|*:</td>
                         <td>[#debitBank#]</td>
                     </tr>
                     <!--ET_END debitBank-->
                     <tr>
-                        <td class="quiet aright">|Основание|*:</td>
+                        <td class="quiet">|Основание|*:</td>
                         <td>[#reason#]</td>
                     </tr>
                 </table>
