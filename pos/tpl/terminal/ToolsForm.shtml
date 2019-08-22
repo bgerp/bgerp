@@ -3,7 +3,7 @@
 	<div class='tools-btn flex'>[#FIRST_TOOLS_ROW#]</div>
     [#INPUT_FLD#]
     [#INPUT_DATA_LIST#]
-	<div class='keyboard-holder' id='pos-tools-keyboard'>[#KEYBOARDS#]</div>
+	<div class='keyboard-holder'>[#KEYBOARDS#]</div>
 <div class='clearfix21'></div>
 
 <!--ET_END TAB_TOOLS-->
@@ -20,7 +20,7 @@
 </div>
 
 <div class='input-field '>[#INPUT_PAYMENT#]</div>
-[#KEYBOARDS#]
+<div class='keyboard-holder'>[#KEYBOARDS#]</div>
 <!--ET_END PAYMENTS_BLOCK-->
 
 <!--ET_BEGIN DRAFTS-->

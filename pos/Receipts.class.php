@@ -813,7 +813,7 @@ class pos_Receipts extends core_Master
         }
         
         $block->append(ht::createFnBtn('*', null, null, array('class' => 'buttonForm tools-sign', 'title' => 'Знак за умножение', 'value' => '*')), 'FIRST_TOOLS_ROW');
-        $block->append($this->renderKeyboard(), 'KEYBOARDS');
+        $block->append($this->renderKeyboard('tools'), 'KEYBOARDS');
         
         return $block;
     }
@@ -824,7 +824,7 @@ class pos_Receipts extends core_Master
      * 
      * @return core_ET $tpl
      */
-    public static function renderKeyboard()
+    public static function renderKeyboard($tab)
     {
         if(Mode::get('screenWidth') >= 1200){
             $tpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
@@ -833,6 +833,7 @@ class pos_Receipts extends core_Master
         }
         
         $tpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
+        $tpl->replace($tab, 'TAB');
         
         return $tpl;
     }
@@ -1167,7 +1168,7 @@ class pos_Receipts extends core_Master
             $block->append(ht::createFnBtn('Сторно', '', '', array('class' => 'actionBtn revertBtn', 'title' => 'Сторниране на бележка по зададен номер', 'data-url' => $revertUrl)), 'CLOSE_BTNS');
         }
         
-        $block->append($this->renderKeyboard(), 'KEYBOARDS');
+        $block->append($this->renderKeyboard('payment'), 'KEYBOARDS');
         
         return $block;
     }
