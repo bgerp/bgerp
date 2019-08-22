@@ -256,7 +256,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 
                 // Когато е избрано ВСИЧКИ в полето плащане
                 if ($rec->unpaid == 'all') {
-                    $invoiceValue = ($salesInvoice->dealValue - $salesInvoice->discountAmount) + $salesInvoice->vatAmount;
+                    $invoiceValue = ($salesInvoice->dealValue - $salesInvoice->discountAmount)/$salesInvoice->rate + $salesInvoice->vatAmount;
                     $Invoice = doc_Containers::getDocument($salesInvoice->containerId);
                     
                     // масива с фактурите за показване
@@ -282,14 +282,14 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     // Масив с данни за сумите от фактурите  обединени по контрагенти
                     if (! array_key_exists($salesInvoice->contragentName, $totalInvoiceContragentAll)) {
                         $totalInvoiceContragentAll[$salesInvoice->contragentName] = (object) array(
-                            'totalInvoiceValue' => $invoiceValue * $salesInvoice->rate, //общо стойност на фактурите за контрагента
-                            'totalInvoiceVAT' => $salesInvoice->vatAmount,//общо стойност на ДДС по фактурите за контрагента
+                            'totalInvoiceValue' => $invoiceValue,                                        //общо стойност на фактурите за контрагента
+                            'totalInvoiceVAT' => $salesInvoice->vatAmount,                               //общо стойност на ДДС по фактурите за контрагента
                         
                         );
                     } else {
                         $obj = &$totalInvoiceContragentAll[$salesInvoice->contragentName];
                         
-                        $obj->totalInvoiceValue += $invoiceValue * $salesInvoice->rate;
+                        $obj->totalInvoiceValue += $invoiceValue;
                         $obj->totalInvoiceVAT += $salesInvoice->vatAmount;
                     }
                     continue;
@@ -957,9 +957,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
             
             
-            $row->contragent = $dRec->contragent.' »  '."<span class= 'quiet'>".' Общо стойност: '.'</span>'.core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue).' лв.';
+            $row->contragent = $dRec->contragent.' »  '."<span class= 'quiet'>".' Общо стойност: '.'</span>'.core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue)* $dRec->rate.' лв.';
             if ($dRec->totalInvoiceOverPaid > 0.01) {
-                $row->contragent .= ' »  '."<span class= 'quiet'>" . 'Надплатено:' . '</span>'.$dRec->totalInvoiceOverPaid;
+                $row->contragent .= ' »  '."<span class= 'quiet'>" . 'Надплатено:' . '</span>'.$dRec->totalInvoiceOverPaid* $dRec->rate;
             }
         }
         
