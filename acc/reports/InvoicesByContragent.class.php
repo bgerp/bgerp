@@ -592,7 +592,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     if ((is_array($pInvoicePayments))) {
                         
                         // фактура от нишката и масив от платежни документи по тази фактура//
-                        foreach ($pInvoicePayments as $pInv => $paydocs) {
+                        foreach ($pInvoicePayments as $pInv => $paydocs) {//bp($paydocs,$fastPur);
                             
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
@@ -1007,7 +1007,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         
         $row->currencyId = $dRec->currencyId;
        // bp($dRec);
-        $invoiceValue = $rec->unpaid == 'all' ? $dRec->invoiceValue + $dRec->invoiceVAT  :$dRec->invoiceValue;
+        $invoiceValue = $rec->unpaid == 'all' ? $dRec->invoiceValue  :$dRec->invoiceValue;
         
         $row->invoiceValue = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue*$dRec->rate);
         
