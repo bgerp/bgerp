@@ -549,7 +549,7 @@ function showFavouriteButtons(element, value){
 
 // Рендира fancybox-а
 function render_fancybox()
-{console.log('fancybox');
+{
 	$('a.fancybox').fancybox();
 }
 

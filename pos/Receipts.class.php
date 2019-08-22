@@ -1512,18 +1512,19 @@ class pos_Receipts extends core_Master
         
         if (Request::get('ajax_mode')) {
             if(!empty($html)){
+                
+                // Ще реплесйнем и добавим таблицата с резултатите
                 $resObj = new stdClass();
-                $resObj->func = 'fancybox';
+                $resObj->func = 'html';
+                $resObj->arg = array('id' => 'pos-search-result-table', 'html' => $html, 'replace' => true);
                 
                 // Ще реплесйнем и добавим таблицата с резултатите
                 $resObj1 = new stdClass();
                 $resObj1->func = 'html';
-                $resObj1->arg = array('id' => 'pos-search-result-table', 'html' => $html, 'replace' => true);
+                $resObj1->arg = array('id' => 'pos-choose-buttons', 'html' => ' ', 'replace' => true);
                 
-                // Ще реплесйнем и добавим таблицата с резултатите
                 $resObj2 = new stdClass();
-                $resObj2->func = 'html';
-                $resObj2->arg = array('id' => 'pos-choose-buttons', 'html' => ' ', 'replace' => true);
+                $resObj2->func = 'fancybox';
                 
                 return array($resObj, $resObj1, $resObj2);
                 
