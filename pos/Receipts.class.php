@@ -789,7 +789,7 @@ class pos_Receipts extends core_Master
             $block->append($htmlScan, 'FIRST_TOOLS_ROW');
         }
         $searchUrl = toUrl(array('pos_Receipts', 'getSearchResults'), 'local');
-        $params = array('name' => 'ean', 'type' => 'text', 'class'=> 'large-field select-input-pos', 'data-url' => $searchUrl,   'style' => 'text-align:right', 'title' => 'Въвеждане', 'list' => 'suggestions');
+        $params = array('name' => 'ean', 'type' => 'text', 'class'=> 'large-field select-input-pos', 'data-url' => $searchUrl, 'title' => 'Въвеждане', 'list' => 'suggestions');
         if(Mode::is('screenMode', 'narrow')) {
             $params['readonly'] = 'readonly';
         }
