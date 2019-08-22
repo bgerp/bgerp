@@ -818,8 +818,6 @@ class pos_Receipts extends core_Master
         $block->append(ht::createFnBtn('*', null, null, array('class' => 'buttonForm tools-sign', 'title' => 'Знак за умножение', 'value' => '*')), 'FIRST_TOOLS_ROW');
         $block->append($this->renderKeyboard(), 'KEYBOARDS');
         
-        $block->append("<div id='pos-search-result-table' class='pos-table'> </div>");
-        
         return $block;
     }
     
@@ -1520,23 +1518,23 @@ class pos_Receipts extends core_Master
                 // Ще реплесйнем и добавим таблицата с резултатите
                 $resObj2 = new stdClass();
                 $resObj2->func = 'html';
-                $resObj2->arg = array('id' => 'pos-tools-keyboard', 'html' => ' ', 'replace' => true);
+                $resObj2->arg = array('id' => 'pos-choose-buttons', 'html' => ' ', 'replace' => true);
                 
                 return array($resObj, $resObj1, $resObj2);
                 
             } else {
                 
                 // Ще реплесйнем и добавим таблицата с резултатите
-                $resObj1 = new stdClass();
-                $resObj1->func = 'html';
-                $resObj1->arg = array('id' => 'pos-search-result-table', 'html' => ' ', 'replace' => true);
+                $resObj = new stdClass();
+                $resObj->func = 'html';
+                $resObj->arg = array('id' => 'pos-search-result-table', 'html' => ' ', 'replace' => true);
                 
                 // Ще реплесйнем и добавим таблицата с резултатите
-                $resObj2 = new stdClass();
-                $resObj2->func = 'html';
-                $resObj2->arg = array('id' => 'pos-tools-keyboard', 'html' => $this->renderKeyboard()->getContent(), 'replace' => true);
+                $resObj1 = new stdClass();
+                $resObj1->func = 'html';
+                $resObj1->arg = array('id' => 'pos-choose-buttons', 'html' => $this->getSelectFavourites()->getContent(), 'replace' => true);
                 
-                return array($resObj1, $resObj2);
+                return array($resObj, $resObj1);
             }
         }
         
