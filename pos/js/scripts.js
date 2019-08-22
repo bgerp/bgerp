@@ -45,9 +45,9 @@ function posActions() {
 	$(document.body).on('click', "#tools-form .numPad", function(e){
 		var val = $(this).val();
 		
-		var closestSearch = $(this).closest('tab-content').find('.select-input-pos');
-		console.log(closestSearch);
-		var inpVal = closestSearch.val();
+		var closestSearch = $(this).closest('.tab-content').find('.select-input-pos');
+
+		var inpVal = $(closestSearch).val();
 		if(val == '.'){
 			if(inpVal.length == 0){
 				inpVal = 0;
@@ -302,7 +302,7 @@ function posActions() {
 			return;
 		}
 		
-		var closestSearch = $(this).closest('tab-content').find('.select-input-pos');
+		var closestSearch = $(this).closest('.tab-content').find('.select-input-pos');
 		
 		var inpVal = closestSearch.val();
 		if (currentAttrValue == "ENTER") {
