@@ -697,22 +697,25 @@ class cat_BomDetails extends doc_Detail
         
         // Може ли записа да бъде разширен
         if (($action == 'expand' || $action == 'shrink') && isset($rec)) {
-            
-            // Артикула трябва да е производим и да има активна рецепта
-            $canManifacture = cat_Products::fetchField($rec->resourceId, 'canManifacture');
-            if ($canManifacture != 'yes') {
+            if(!cat_Products::haveDriver($rec->resourceId, 'planning_interface_StageDriver')){
                 $requiredRoles = 'no_one';
             } else {
-                $type = cat_Boms::fetchField($rec->bomId, 'type');
-                if ($type == 'production') {
-                    $aBom = cat_Products::getLastActiveBom($rec->resourceId, 'production');
-                }
-                if (!$aBom) {
-                    $aBom = cat_Products::getLastActiveBom($rec->resourceId, 'sales');
-                }
-                
-                if (!$aBom) {
+                // Артикула трябва да е производим и да има активна рецепта
+                $canManifacture = cat_Products::fetchField($rec->resourceId, 'canManifacture');
+                if ($canManifacture != 'yes') {
                     $requiredRoles = 'no_one';
+                } else {
+                    $type = cat_Boms::fetchField($rec->bomId, 'type');
+                    if ($type == 'production') {
+                        $aBom = cat_Products::getLastActiveBom($rec->resourceId, 'production');
+                    }
+                    if (!$aBom) {
+                        $aBom = cat_Products::getLastActiveBom($rec->resourceId, 'sales');
+                    }
+                    
+                    if (!$aBom) {
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
