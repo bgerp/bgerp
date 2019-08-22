@@ -567,7 +567,7 @@ class pos_Receipts extends core_Master
                 // Добавяне на табовете показващи се в широк изглед отстрани
                 if (!Mode::is('screenMode', 'narrow')) {
                     $DraftsUrl = toUrl(array('pos_Receipts', 'showDrafts', $rec->id), 'absolute');
-                    $tab = new ET(tr("|*<li title='|Всички чернови бележки|*'><a href='#tools-drafts' data-url='{$DraftsUrl}' accesskey='p'>|Бележки|*</a></li>"));
+                    $tab = new ET("");
 
                     if ($selectedFavourites = $this->getSelectFavourites()) {
                         $tab->prepend(tr("|*<li class='active' title='|Избор на най-продавани артикули|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a></li>"));
@@ -576,7 +576,6 @@ class pos_Receipts extends core_Master
                         $tab->replace("class='active'", 'active');
                     }
                     
-                    $tpl->append($this->renderChooseTab($id), 'SEARCH_DIV_WIDE');
                     $tpl->append($this->renderDraftsTab($id), 'DRAFTS_WIDE');
                     
                     $tpl->replace($tab, 'TABS_WIDE');
@@ -713,7 +712,6 @@ class pos_Receipts extends core_Master
             }
             
             // Добавяне на таба с избор
-            $tpl->append($this->renderChooseTab($id), 'SEARCH_DIV');
             $tab .= tr("|*<li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='x'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='c'>|Клиент|*</a></li>");
 
         }
@@ -818,29 +816,24 @@ class pos_Receipts extends core_Master
         }
         
         $block->append(ht::createFnBtn('*', null, null, array('class' => 'buttonForm tools-sign', 'title' => 'Знак за умножение', 'value' => '*')), 'FIRST_TOOLS_ROW');
+        $block->append($this->renderKeyboard(), 'KEYBOARDS');
+        
+        $block->append("<div id='pos-search-result-table' class='pos-table'> </div>");
         
         return $block;
     }
     
     
     /**
-     * Рендиране на таба за търсене на продукт
-     *
-     * @param int $id -ид на бележка
-     *
-     * @return core_ET $block - шаблон
+     * Рендира клавиатурата
+     * 
+     * @return core_ET $tpl
      */
-    public function renderChooseTab($id)
+    public static function renderKeyboard()
     {
-        expect($this->fetchRec($id));
-        $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('SEARCH_DIV');
-        if (!Mode::is('screenMode', 'narrow')) {
-            $keyboardsTpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
-            $block->replace($keyboardsTpl, 'KEYBOARDS');
-        }
-        $block->replace($inpFld, 'INPUT_SEARCH');
+        $tpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
         
-        return $block;
+        return $tpl;
     }
     
     
@@ -1490,35 +1483,55 @@ class pos_Receipts extends core_Master
     {
         $this->requireRightFor('terminal');
         
+        if (!$id = Request::get('receiptId')) {
+            
+            return array();
+        }
+        
+        if (!$rec = $this->fetch($id)) {
+            
+            return array();
+        }
+        
         if ($searchString = Request::get('searchString')) {
-            if (!$id = Request::get('receiptId')) {
-                
-                return array();
-            }
-            
-            if (!$rec = $this->fetch($id)) {
-                
-                return array();
-            }
-            
             $this->requireRightFor('terminal', $rec);
             $html = $this->getResultsTable($searchString, $rec);
         } else {
-            $html = ' ';
+            $html = '';
             $rec = null;
         }
         
         if (Request::get('ajax_mode')) {
-            
-            $resObj1 = new stdClass();
-            $resObj1->func = 'fancybox';
-            
-            // Ще реплесйнем и добавим таблицата с резултатите
-            $resObj = new stdClass();
-            $resObj->func = 'html';
-            $resObj->arg = array('id' => 'pos-search-result-table', 'html' => $html, 'replace' => true);
-            
-            return array($resObj, $resObj1);
+            if(!empty($html)){
+                $resObj = new stdClass();
+                $resObj->func = 'fancybox';
+                
+                // Ще реплесйнем и добавим таблицата с резултатите
+                $resObj1 = new stdClass();
+                $resObj1->func = 'html';
+                $resObj1->arg = array('id' => 'pos-search-result-table', 'html' => $html, 'replace' => true);
+                
+                // Ще реплесйнем и добавим таблицата с резултатите
+                $resObj2 = new stdClass();
+                $resObj2->func = 'html';
+                $resObj2->arg = array('id' => 'pos-tools-keyboard', 'html' => ' ', 'replace' => true);
+                
+                return array($resObj, $resObj1, $resObj2);
+                
+            } else {
+                
+                // Ще реплесйнем и добавим таблицата с резултатите
+                $resObj1 = new stdClass();
+                $resObj1->func = 'html';
+                $resObj1->arg = array('id' => 'pos-search-result-table', 'html' => ' ', 'replace' => true);
+                
+                // Ще реплесйнем и добавим таблицата с резултатите
+                $resObj2 = new stdClass();
+                $resObj2->func = 'html';
+                $resObj2->arg = array('id' => 'pos-tools-keyboard', 'html' => $this->renderKeyboard()->getContent(), 'replace' => true);
+                
+                return array($resObj1, $resObj2);
+            }
         }
         
         return new Redirect(array($this, 'terminal', $rec->id));

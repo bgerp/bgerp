@@ -8,7 +8,10 @@
 	</div>
     [#INPUT_FLD#]
     [#INPUT_DATA_LIST#]
-    [#KEYBOARDS#]
+    
+	<div id='pos-tools-keyboard'>[#KEYBOARDS#]</div>
+	<div id='pos-search-result-table' class='pos-table'></div>
+
 
 <div class='clearfix21'></div>
 
@@ -19,14 +22,6 @@
 
 <!--ET_END CHOOSE_DIV-->
 
-<!--ET_BEGIN SEARCH_DIV-->
-<div class='search-top-holder'>
-
-</div>
-<div id='pos-search-result-table' class='pos-table'>
-</div>
-
-<!--ET_END SEARCH_DIV-->
 
 <!--ET_BEGIN PAYMENTS_BLOCK-->
 
