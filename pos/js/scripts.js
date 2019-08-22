@@ -337,7 +337,6 @@ function posActions() {
 	// След въвеждане на стойност, прави заявка по Ajax
 	$(".select-input-pos").keyup(function() {
 		
-		console.log('love');
 		var inpVal = $(this).val();
 		var receiptId = $("input[name=receiptId]").val();
 		
@@ -550,7 +549,7 @@ function showFavouriteButtons(element, value){
 
 // Рендира fancybox-а
 function render_fancybox()
-{
+{console.log('fancybox');
 	$('a.fancybox').fancybox();
 }
 

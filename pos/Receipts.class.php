@@ -566,12 +566,14 @@ class pos_Receipts extends core_Master
                 
                 // Добавяне на табовете показващи се в широк изглед отстрани
                 if (!Mode::is('screenMode', 'narrow')) {
-                    $DraftsUrl = toUrl(array('pos_Receipts', 'showDrafts', $rec->id), 'absolute');
                     $tab = new ET("");
 
                     if ($selectedFavourites = $this->getSelectFavourites()) {
                         $tab->prepend(tr("|*<li class='active' title='|Избор на най-продавани артикули|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a></li>"));
-                        $tpl->replace($selectedFavourites, 'CHOOSE_DIV_WIDE');
+                        $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('CHOOSE_DIV');
+                        $block->append($selectedFavourites, 'CHOOSE_DIV');
+                        
+                        $tpl->replace($block, 'CHOOSE_DIV_WIDE');
                     } else {
                         $tab->replace("class='active'", 'active');
                     }
@@ -708,12 +710,15 @@ class pos_Receipts extends core_Master
             if ($selectedFavourites = $this->getSelectFavourites()) {
                 // Добавяне на таба с бързите бутони
                 $tab .= tr("|*<li title='|Избор на най-продавани артикули|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a>");
-                $tpl->append($selectedFavourites, 'CHOOSE_DIV');
+                
+                $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('CHOOSE_DIV');
+                $block->append($selectedFavourites, 'CHOOSE_DIV');
+                
+                $tpl->replace($block, 'CHOOSE_DIV');
             }
             
             // Добавяне на таба с избор
             $tab .= tr("|*<li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='x'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='c'>|Клиент|*</a></li>");
-
         }
         
         // Добавяне на таба за плащане
@@ -740,8 +745,7 @@ class pos_Receipts extends core_Master
             return false;
         }
         
-        $tpl = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('CHOOSE_DIV');
-        $tpl->append(pos_Favourites::renderPosProducts($products), 'CHOOSE_DIV');
+        $tpl = pos_Favourites::renderPosProducts($products);
         
         return $tpl;
     }
@@ -1164,12 +1168,13 @@ class pos_Receipts extends core_Master
             }
         }
         
-        
         // Добавяне на бутон за сторниране на бележка
         if ($this->haveRightFor('revert')) {
             $revertUrl = toUrl(array($this, 'revert'), 'local');
             $block->append(ht::createFnBtn('Сторно', '', '', array('class' => 'actionBtn revertBtn', 'title' => 'Сторниране на бележка по зададен номер', 'data-url' => $revertUrl)), 'CLOSE_BTNS');
         }
+        
+        $block->append($this->renderKeyboard(), 'KEYBOARDS');
         
         return $block;
     }
