@@ -1,5 +1,4 @@
 <!--ET_BEGIN KEYBOARDS-->
-<div class='keyboard-holder'>
 	<div id='keyboard-num' class = 'keyboard'>
 		<div class='num-keyboard'>
 			<input class="buttonForm numPad" type="button" value="1"/>
@@ -58,6 +57,7 @@
 			<input class="keyboard-btn" type="button" value="J"/>
 			<input class="keyboard-btn" type="button" value="K"/>
 			<input class="keyboard-btn" type="button" value="L"/>
+            <input class="keyboard-btn keyboard-space-btn" type="button" value="ENTER"/>
 		</div>
 		<div class='keyboard-row' style='padding-left:6em'>
 			<input class="keyboard-btn" type="button" value="Z"/>
@@ -109,6 +109,7 @@
 			<input class="keyboard-btn" type="button" value="В"/>
 			<input class="keyboard-btn" type="button" value="М"/>
 			<input class="keyboard-btn" type="button" value="Ч"/>
+            <input class="keyboard-btn keyboard-space-btn" type="button" value="ENTER"/>
 		</div>
 		<div class='keyboard-row' style='padding-left:3em'>
 			<input class="keyboard-btn" type="button" value="Ю"/>
@@ -164,6 +165,7 @@
 			<input class="keyboard-btn" type="button" value="Й"/>
 			<input class="keyboard-btn" type="button" value="К"/>
 			<input class="keyboard-btn" type="button" value="Л"/>
+            <input class="keyboard-btn keyboard-space-btn" type="button" value="ENTER"/>
 		</div>
 		<div class='keyboard-row' style='padding-left:6.4em'>
 			<input class="keyboard-btn" type="button" value="З"/>
@@ -176,5 +178,4 @@
 			<input class="keyboard-btn keyboard-space-btn" type="button" value=" " />
 		</div>
 	</div>
-</div>
 <!--ET_END KEYBOARDS-->
