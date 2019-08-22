@@ -627,6 +627,7 @@ class cat_BomDetails extends doc_Detail
         
         $bomRec = null;
         cat_BomDetails::addProductComponents($rec->resourceId, $rec->bomId, $rec->id, $bomRec);
+        
         if (isset($bomRec)) {
             $rec->coefficient = $bomRec->quantity;
         }
@@ -1004,6 +1005,8 @@ class cat_BomDetails extends doc_Detail
             $activeBom = cat_Products::getLastActiveBom($productId, 'production,instant,sales');
         } elseif($toBomRec->type == 'instant'){
             $activeBom = cat_Products::getLastActiveBom($productId, 'instant,sales');
+        } else {
+            $activeBom = cat_Products::getLastActiveBom($productId, 'sales');
         }
         
         // Ако етапа има рецепта
