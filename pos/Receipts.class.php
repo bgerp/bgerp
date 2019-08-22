@@ -1635,9 +1635,9 @@ class pos_Receipts extends core_Master
         $row->price = $Double->toVerbal($obj->price);
         $row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
         $row->stock = $Double->toVerbal($obj->stock);
-        
         $row->packagingId = ($obj->packagingId) ? cat_UoM::getTitleById($obj->packagingId) : cat_UoM::getTitleById($obj->measureId);
-        
+        $row->packagingId = str::getPlural($obj->stock, $row->packagingId, true);
+       
         $obj->receiptId = $data->rec->id;
         if ($this->pos_ReceiptDetails->haveRightFor('add', $obj)) {
             $addUrl = toUrl(array('pos_Receipts', 'addProduct', $data->rec->id), 'local');
@@ -1661,12 +1661,8 @@ class pos_Receipts extends core_Master
         $row->productId = ht::createElement('span', $attr, $row->productId, true);
         $row->productId = ht::createLinkRef($row->productId, array('cat_Products', 'single', $obj->productId), null, array('target' => '_blank', 'class' => 'singleProd'));
         
-        if ($obj->stock < 0) {
-            $row->stock = "<span style='color:red'>{$row->stock} <span class='pos-search-row-packagingid'>{$row->packagingId}</span></span>";
-        } else {
-            $row->stock = "<span style='color:green'>{$row->stock} <span class='pos-search-row-packagingid'>{$row->packagingId}</span></span>";
-        }
-        
+        $row->stock = ht::styleNumber($row->stock, $obj->stock, 'green');
+        $row->stock = "{$row->stock} <span class='pos-search-row-packagingid'>{$row->packagingId}</span>";
         $row->productId = "<span class='pos-search-row-productId'>{$row->productId}</span><span class='pos-search-row-stock'>{$row->stock}</span> ";
         
         $row->ROW_ATTR['class'] = 'search-product-row';
