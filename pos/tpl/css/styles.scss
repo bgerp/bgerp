@@ -805,7 +805,7 @@
     border-radius:3px;
     display:none;
 }
-.tabs-holder-content {
+.pos-tab-content {
 	border: 1px solid #ccc;
 	border-top: none;
 }
@@ -843,6 +843,8 @@
 
 .tools-wide-select-content{
 	min-width: 304px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
 }
 
 .pos-table{
