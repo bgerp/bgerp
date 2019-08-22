@@ -468,9 +468,9 @@ function calculateWidth(){
 	
 	//задаване на ширина на двете колони
 	if (maxColWidth > 700 && $('body').hasClass('wide')) {
-		$('#single-receipt').css('width', 600);
-		$('.tabs-holder-content').css('width', 600);
-		$('.tools-wide-select-content').css('width', winWidth - 670);
+		$('#single-receipt').css('width', 700);
+		$('.tabs-holder-content').css('width', 700);
+		$('.tools-wide-select-content').css('width', winWidth - 770);
 	} else {
 		$('#single-receipt').css('width', maxColWidth);
 		$('.tabs-holder-content').css('width', maxColWidth);

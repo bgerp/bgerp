@@ -44,7 +44,7 @@
 <!--ET_END DRAFTS-->
 
 <!--ET_BEGIN TRANSFERS_BLOCK-->
-<div class='contragent-form'>[#TRANSFERS_BLOCK#][#BTNS#]</div>
+<div class='flex'>[#TRANSFERS_BLOCK#][#BTNS#]</div>
 
 <div id='result_contragents'>
 </div>
