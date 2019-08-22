@@ -805,7 +805,7 @@
     border-radius:3px;
     display:none;
 }
-.tabs-holder-content {
+.pos-tab-content {
 	border: 1px solid #ccc;
 	border-top: none;
 }
@@ -843,6 +843,8 @@
 
 .tools-wide-select-content{
 	min-width: 304px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
 }
 
 .pos-table{
@@ -880,7 +882,10 @@
 .pos-photo-field{
     width: 64px;
 }
-
+.search-product-row td {
+	vertical-align: top !important;
+	padding: 10px !important;
+}
 .narrow .pos-product-field{
 	font-size: 0.9em;
 }
@@ -895,10 +900,17 @@
 }
 
 .pos-add-res-btn{
-	font-weight: bold;
 	color:#333;
+	font-size: 1.1em;
 }
-
+.pos-search-row-stock {
+	font-size: 1.1em;
+ }
+.pos-search-row-productId {
+	display: block;
+	min-height: 42px;
+	margin-bottom: 5px;
+}
 .pos-add-res-btn:hover{
 	cursor: pointer;
 	> * {
