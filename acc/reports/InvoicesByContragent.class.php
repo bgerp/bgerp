@@ -764,7 +764,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $rec->totalInvoiceOverPaidAll += $v -> totalInvoiceOverPaid;
             $rec->totalInvoiceOverDueAll += $v -> totalInvoiceOverDue;
         }
-        
+     //   bp($recs);
         return $recs;
     }
     
@@ -957,7 +957,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
             
             
-            $row->contragent = $dRec->contragent.' »  '."<span class= 'quiet'>".' Общо стойност: '.'</span>'.core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue)* $dRec->rate.' лв.';
+            $row->contragent = $dRec->contragent.' »  '."<span class= 'quiet'>".' Общо стойност: '.'</span>'.core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue* $dRec->rate).' лв.';
             if ($dRec->totalInvoiceOverPaid > 0.01) {
                 $row->contragent .= ' »  '."<span class= 'quiet'>" . 'Надплатено:' . '</span>'.$dRec->totalInvoiceOverPaid* $dRec->rate;
             }
