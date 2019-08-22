@@ -777,6 +777,10 @@
 .pos-photo-field {
   width: 64px; }
 
+.search-product-row td {
+  vertical-align: top !important;
+  padding: 10px !important; }
+
 .narrow .pos-product-field {
   font-size: 0.9em; }
 
@@ -789,8 +793,16 @@
   font-weight: bold; }
 
 .pos-add-res-btn {
-  font-weight: bold;
-  color: #333333; }
+  color: #333333;
+  font-size: 1.1em; }
+
+.pos-search-row-stock {
+  font-size: 1.1em; }
+
+.pos-search-row-productId {
+  display: block;
+  min-height: 42px;
+  margin-bottom: 5px; }
 
 .pos-add-res-btn:hover {
   cursor: pointer; }

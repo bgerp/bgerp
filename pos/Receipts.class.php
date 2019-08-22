@@ -1661,10 +1661,12 @@ class pos_Receipts extends core_Master
         $row->productId = ht::createLinkRef($row->productId, array('cat_Products', 'single', $obj->productId), null, array('target' => '_blank', 'class' => 'singleProd'));
         
         if ($obj->stock < 0) {
-            $row->stock = "<span style='color:red'>{$row->stock}</span>";
+            $row->stock = "<span style='color:red'>{$row->stock} <span class='pos-search-row-packagingid'>{$row->packagingId}</span></span>";
+        } else {
+            $row->stock = "<span style='color:green'>{$row->stock} <span class='pos-search-row-packagingid'>{$row->packagingId}</span></span>";
         }
         
-        $row->productId = "<span class='pos-search-row-productId'>{$row->productId}</span><span class='pos-search-row-packagingid'>{$row->packagingId}</span><span class='pos-search-row-stock'>{$row->stock}</span>";
+        $row->productId = "<span class='pos-search-row-productId'>{$row->productId}</span><span class='pos-search-row-stock'>{$row->stock}</span> ";
         
         $row->ROW_ATTR['class'] = 'search-product-row';
         if (!Mode::is('screenMode', 'narrow')) {
