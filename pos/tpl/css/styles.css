@@ -285,6 +285,9 @@
   margin: 2px !important;
   border-radius: 4px !important;
   font-size: 1.1em !important; }
+  .keyboard-btn.keyboard-space-btn,
+  .keyboard-back-btn.keyboard-space-btn {
+    min-width: 104px; }
 
 .keyboard-row {
   clear: both;
@@ -319,7 +322,8 @@
   display: flex;
   justify-content: space-between; }
 
-.flex .button {
+.flex .button,
+.contragent-form .buttonForm {
   width: 100%;
   height: 41px;
   min-width: 95px;
@@ -346,6 +350,10 @@
   text-shadow: 0 1px 0 #eeeeee;
   box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); }
 
+
+#input-search-contragent {
+  margin-right: 20px;
+  min-width: 300px; }
 
   .narrow .colum-btn .button,
   .narrow .tools-btn .button,

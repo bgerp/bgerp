@@ -19,7 +19,6 @@
 
 <!--ET_BEGIN CHOOSE_DIV-->
 [#CHOOSE_DIV#]
-
 <!--ET_END CHOOSE_DIV-->
 
 
@@ -29,9 +28,7 @@
     [#PAYMENT_TYPE#] [#CLOSE_BTNS#]
 </div>
 <div class='input-field '>[#INPUT_PAYMENT#]</div>
-<div class='clearfix21'></div>
 [#KEYBOARDS#]
-<div class='clearfix21'></div>
 <!--ET_END PAYMENTS_BLOCK-->
 
 <!--ET_BEGIN DRAFTS-->
@@ -41,6 +38,5 @@
 <!--ET_BEGIN TRANSFERS_BLOCK-->
 <div class='flex'>[#TRANSFERS_BLOCK#][#BTNS#]</div>
 
-<div id='result_contragents'>
-</div>
+<div id='result_contragents'></div>
 <!--ET_END TRANSFERS_BLOCK-->
