@@ -385,18 +385,18 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 $totalInvoiceContragent[$iRec->contragentName] = (object) array(
                                     'totalInvoiceValue' => $paydocs->amount,                            //общо стойност на фактурите за контрагента
                                     'totalInvoicePayout' => $paydocs->payout,                           //плащания по фактурите за контрагента
-                                    'totalInvoiceNotPaid' => $salesInvoiceNotPaid * $iRec->rate,                      //стойност на НЕДОплатените суми по фактурите за контрагента
-                                    'totalInvoiceOverPaid' => $salesInvoiceOverPaid * $iRec->rate,                    //стойност на НАДплатените суми по фактурите за контрагента
-                                    'totalInvoiceOverDue' => $salesInvoiceOverDue * $iRec->rate,                      //стойност за плащане по просрочените фактури за контрагента
+                                    'totalInvoiceNotPaid' => $salesInvoiceNotPaid,                      //стойност на НЕДОплатените суми по фактурите за контрагента
+                                    'totalInvoiceOverPaid' => $salesInvoiceOverPaid,                    //стойност на НАДплатените суми по фактурите за контрагента
+                                    'totalInvoiceOverDue' => $salesInvoiceOverDue,                      //стойност за плащане по просрочените фактури за контрагента
                                 );
                             } else {
                                 $obj = &$totalInvoiceContragent[$iRec->contragentName];
                                 
-                                $obj->totalInvoiceValue += $paydocs->amount * $iRec->rate;
-                                $obj->totalInvoicePayout += $paydocs->payout * $iRec->rate;
-                                $obj->totalInvoiceNotPaid += $salesInvoiceNotPaid * $iRec->rate;
-                                $obj->totalInvoiceOverPaid += $salesInvoiceOverPaid * $iRec->rate;
-                                $obj->totalInvoiceOverDue += $salesInvoiceOverDue * $iRec->rate;
+                                $obj->totalInvoiceValue += $paydocs->amount;
+                                $obj->totalInvoicePayout += $paydocs->payout;
+                                $obj->totalInvoiceNotPaid += $salesInvoiceNotPaid;
+                                $obj->totalInvoiceOverPaid += $salesInvoiceOverPaid;
+                                $obj->totalInvoiceOverDue += $salesInvoiceOverDue;
                             }
                             
                             // масива с фактурите за показване
@@ -836,7 +836,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     private static function getPaidAmount($dRec, $verbal = true)
     {
-        $paidAmount = $dRec->invoicePayout;
+        $paidAmount = $dRec->invoicePayout * $dRec->rate;
         
         return $paidAmount;
     }
