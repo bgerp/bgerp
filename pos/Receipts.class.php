@@ -566,21 +566,14 @@ class pos_Receipts extends core_Master
                 
                 // Добавяне на табовете показващи се в широк изглед отстрани
                 if (!Mode::is('screenMode', 'narrow')) {
-                    $tab = new ET("");
 
                     if ($selectedFavourites = $this->getSelectFavourites()) {
-                        $tab->prepend(tr("|*<li class='active' title='|Избор на най-продавани артикули|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a></li>"));
                         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('CHOOSE_DIV');
                         $block->append($selectedFavourites, 'CHOOSE_DIV');
-                        
                         $tpl->replace($block, 'CHOOSE_DIV_WIDE');
-                    } else {
-                        $tab->replace("class='active'", 'active');
                     }
                     
                     $tpl->append($this->renderDraftsTab($id), 'DRAFTS_WIDE');
-                    
-                    $tpl->replace($tab, 'TABS_WIDE');
                 }
             }
         }
@@ -1663,15 +1656,15 @@ class pos_Receipts extends core_Master
             }
         }
         
-        
         $attr = array('class' => 'pos-add-res-btn', 'data-url' => $addUrl, 'data-productId' => $obj->productId, 'title' => 'Добавете артикула към бележката');
         $row->productId = ht::createElement('span', $attr, $row->productId, true);
-        
         $row->productId = ht::createLinkRef($row->productId, array('cat_Products', 'single', $obj->productId), null, array('target' => '_blank', 'class' => 'singleProd'));
         
         if ($obj->stock < 0) {
             $row->stock = "<span style='color:red'>{$row->stock}</span>";
         }
+        
+        $row->productId = "<span class='pos-search-row-productId'>{$row->productId}</span><span class='pos-search-row-packagingid'>{$row->packagingId}</span><span class='pos-search-row-stock'>{$row->stock}</span>";
         
         $row->ROW_ATTR['class'] = 'search-product-row';
         if (!Mode::is('screenMode', 'narrow')) {
@@ -1702,7 +1695,7 @@ class pos_Receipts extends core_Master
         $fSet->FNC('stock', 'double', 'tdClass=pos-stock-field');
         
         $table = cls::get('core_TableView', array('mvc' => $fSet));
-        $fields = arr::make('photo=Снимка,productId=Продукт,packagingId=Опаковка,price=Цена,stock=Наличност');
+        $fields = arr::make('photo=Снимка,productId=Продукт,price=Цена');
         if (Mode::is('screenMode', 'narrow')) {
             unset($fields['photo']);
         }
