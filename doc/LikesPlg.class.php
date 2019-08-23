@@ -481,6 +481,7 @@ class doc_LikesPlg extends core_Plugin
                 jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'smartCenter');
                 jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'setThreadElemWidth');
                 jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'getContextMenuFromAjax');
+                jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'makeTooltipFromTitle');
             }
         }
     }
