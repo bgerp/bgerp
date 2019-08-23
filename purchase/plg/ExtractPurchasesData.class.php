@@ -209,8 +209,6 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         } else {
             $mvc->allocateThreadsOnShutdown += $threadsArr;
         }
-        
-        self::on_Shutdown($mvc);
     }
     
     
@@ -317,6 +315,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     $costProdAmount = 0;
                 }
                 
+                // Намираме колко е еденичната цена, и я умножаваме по преразпределеното количество
                 $costsArr[$costProd->productId] += ($costProdAmount / $cost->quantity) * $costProd->allocated;
             }
         }
