@@ -346,7 +346,7 @@
          
          if (isset($dRec->employees)) {
              foreach (keylist::toArray($dRec->employees) as $key => $val) {
-                 $pers = (core_Users::getNick(crm_Profiles::getUserByPerson($val)));
+                 $pers = (planning_Hr::getCodeLink(($val)));
                  
                  $row->employees .= $pers.'</br>';
              }
@@ -400,8 +400,8 @@
                     foreach (type_Keylist::toArray($data->rec->employees) as $empl) {
                         $marker++;
                         
-                        $employeesVerb .= (core_Users::getNick(crm_Profiles::getUserByPerson($empl)));
-                        
+                        $employeesVerb .= (planning_Hr::getCodeLink(($empl)));
+                      
                         if ((count(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
                             $employeesVerb .= ', ';
                         }
@@ -417,7 +417,7 @@
                     foreach (type_Keylist::toArray($data->rec->employees) as $empl) {
                         $marker++;
                         
-                        $employeesVerb .= (core_Users::getNick(crm_Profiles::getUserByPerson($empl)));
+                        $employeesVerb .= (planning_Hr::getCodeLink(($empl)));
                         
                         if ((count(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
                             $employeesVerb .= ', ';
@@ -487,6 +487,7 @@
          
          if (isset($dRec->employees)) {
              foreach (keylist::toArray($dRec->employees) as $key => $val) {
+                 
                  $pers = (core_Users::getNick(crm_Profiles::getUserByPerson($val)));
                  
                  $res->employees .= $pers.', ';
