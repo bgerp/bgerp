@@ -90,12 +90,6 @@
   margin-top: 7px;
   max-height: 24px; }
 
-.narrow .hiddenElem {
-  display: none; }
-
-.narrow .newLine {
-  display: block; }
-
 #receipt-contragent {
   text-align: center;
   line-height: 26px; }
@@ -355,20 +349,17 @@
   box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); }
 
 
+.narrow .flex .button {
+  min-width: 56px;
+  margin-bottom: 9px !important;
+  font-size: 0.8em !important; }
+
 #input-search-contragent {
   margin-right: 20px !important;
   min-width: 300px; }
 
-  .narrow .colum-btn .button,
-  .narrow .tools-btn .button,
-  .narrow #tools-form form[method="post"] input[type="submit"],
-  .narrow .tools-btn input,
-  .narrow .tools-btn .button.disabledBtn:hover,
-  .narrow .colum-btn .button.disabledBtn:hover,
-  .narrow #webScan,
-  .narrow .contragent-btn .button {
-    margin-bottom: 9px !important;
-    font-size: 0.8em !important; }
+.narrow #input-search-contragent {
+  display: block; }
 
 .contragent-btn {
   display: inline-block;

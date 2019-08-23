@@ -105,15 +105,6 @@
 	margin-top: 7px;
 	 max-height: 24px;
 }
-
-.narrow .hiddenElem {
-	display: none;
-}
-
-.narrow .newLine {
-	display:block;
-}
-
 #receipt-contragent {
 	text-align:center;
 	line-height: 26px;
@@ -401,18 +392,19 @@
 	text-shadow: 0 1px 0 #EEE;
 	box-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
+.narrow .flex .button {
+	min-width: 56px;
+	margin-bottom: 9px !important;
+	font-size: 0.8em !important;
+}
 #input-search-contragent {
 	margin-right: 20px !important;
 	min-width: 300px;
 }
-.narrow {
-    .colum-btn .button , .tools-btn .button,  #tools-form form[method="post"] input[type="submit"],.tools-btn input,
-    .tools-btn .button.disabledBtn:hover, .colum-btn .button.disabledBtn:hover, #webScan, .contragent-btn .button{
-        margin-bottom: 9px !important;
-        font-size: 0.8em !important;
-    }
-}
 
+.narrow #input-search-contragent {
+  display: block;
+}
 
 .contragent-btn {
 	display: inline-block;
