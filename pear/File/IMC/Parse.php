@@ -399,11 +399,13 @@ abstract class File_IMC_Parse
                 // colon not found, skip whole line
                 continue;
             }
-
+            
+            $left = strtoupper($left);
+            
             if (strtoupper($left) == "BEGIN") {
-
-                $block[$right][] = $this->_parseBlock($source);
-
+                
+                $block[strtoupper($right)][] = $this->_parseBlock($source);
+				
             } elseif (strtoupper($left) == "END") {
 
                 return $block;
@@ -419,7 +421,7 @@ abstract class File_IMC_Parse
                 $group   = $this->_getGroup($tmp);
                 $typedef = $this->_getTypeDef($tmp);
                 $params  = $this->_getParams($tmp);
-
+                
                 // if we are decoding quoted-printable, do so now.
                 // QUOTED-PRINTABLE is not allowed in version 3.0,
                 // but we don't check for versioning, so we do it
@@ -428,7 +430,7 @@ abstract class File_IMC_Parse
 
                 $params = $resp[0];
                 $right  = $resp[1];
-
+                
                 // now get the value-data from the line, based on
                 // the typedef
                 $func = '_parse' . strtoupper($typedef);
