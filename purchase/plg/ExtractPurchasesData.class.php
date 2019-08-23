@@ -29,7 +29,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             $dRec = array();
             
             $docClassId = core_Classes::getId($mvc);
-            
+
             $dQuery = purchase_PurchasesData::getQuery();
             $dQuery->where("#docClassId = {$docClassId} AND #docId = {$rec->id} ");
             
@@ -281,7 +281,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         } else {
             $prodQuery = purchase_PurchasesData::getQuery();
         }
-        $prodQuery->where("#threadId = {$threadId}");
+        $prodQuery->where("#threadId = {$threadId} AND #state != 'rejected'");
         $prodQuery->orderBy('id', 'DESC');
         
         $prods = array();
@@ -324,7 +324,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         foreach ($prods as $purKey => $prod) {
             $prodsAmount[$prod->productId] += $prod->amount;
         }
-        
+       
         $saveRecs = array();
         foreach ($costsArr as $costKey => $cost) {
             foreach ($prods as $purKey => $prod) {
