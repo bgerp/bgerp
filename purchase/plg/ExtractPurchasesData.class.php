@@ -57,6 +57,11 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $clone->threadId = (isset($clone->threadId)) ? $clone->threadId : $mvc->fetchField($clone->id, 'threadId');
         $clone->folderId = (isset($clone->folderId)) ? $clone->folderId : $mvc->fetchField($clone->id, 'folderId');
         
+        if ($clone->isReverse == 'yes') {
+            
+            return ;
+        }
+        
         $Master = doc_Containers::getDocument($clone->containerId);                                                       // На активния документ
         
         $docClassId = core_Classes::getId($Master);                                                                       // на активния документ( ДП, СР или ПП)
@@ -89,13 +94,12 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         //Проверка за бърза прокупка или продажба
         if (!is_null($clone->contoActions)) {
-            $cond = (strrpos($clone->contoActions, 'ship') !== false);   ;
-        }else{
+            $cond = (strrpos($clone->contoActions, 'ship') !== false);
+        } else {
             $cond = true;
         }
         
         if ($cond) {
-            
             foreach ($details as $detail) {
                 
                 //Заприходено количество
@@ -119,27 +123,32 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 
                 //Ако документа е мемориален ордер
                 if ($Master->className == 'acc_Articles') {
-                    
                     $price = $detail->debitPrice;
-                    if($amount <= 0 || $price <= 0) continue;
+                    if ($amount <= 0 || $price <= 0) {
+                        continue;
+                    }
                     
-                    if ($detail->debitAccId && (acc_Accounts::fetch("#num = 321")->id != $detail->debitAccId)) continue;
+                    if ($detail->debitAccId && (acc_Accounts::fetch('#num = 321')->id != $detail->debitAccId)) {
+                        continue;
+                    }
                     
                     //Артикул
-                    $productId = acc_Items::fetch("$detail->debitEnt2")->objectId;
-                    $measureId = acc_Items::fetch("$detail->debitEnt2")->uomId;
+                    $productId = acc_Items::fetch("{$detail->debitEnt2}")->objectId;
+                    $measureId = acc_Items::fetch("{$detail->debitEnt2}")->uomId;
                     
-                    $currencyId = acc_Items::fetch("$detail->debitEnt3")->id;
+                    $currencyId = acc_Items::fetch("{$detail->debitEnt3}")->id;
                     $currencyRate = $detail->creditPrice;
                     
                     //Склад
-                    $storeId = acc_Items::fetch("$detail->debitEnt1")->id;
+                    $storeId = acc_Items::fetch("{$detail->debitEnt1}")->id;
                     
                     //Заприходено количество
-                    $quantity =  $detail->debitQuantity;
+                    $quantity = $detail->debitQuantity;
                 }
                 
-                if ($quantity < 0) continue;
+                if ($quantity < 0) {
+                    continue;
+                }
                 
                 $dRec = array();
                 
@@ -159,7 +168,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     'quantity' => $quantity,
                     'packagingId' => $detail->packagingId,
                     'storeId' => $storeId,
-                    'price' =>$price ,
+                    'price' => $price,
                     'expenses' => '',
                     'discount' => $detail->discount,
                     'amount' => $amount,
@@ -195,7 +204,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
         
-        if(!is_array($mvc->allocateThreadsOnShutdown)){
+        if (!is_array($mvc->allocateThreadsOnShutdown)) {
             $mvc->allocateThreadsOnShutdown = $threadsArr;
         } else {
             $mvc->allocateThreadsOnShutdown += $threadsArr;
@@ -213,7 +222,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $mvc->logDebug('SaveJournalTransaction', $rec->id);
         $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
         
-        if(!is_array($mvc->allocateThreadsOnShutdown)){
+        if (!is_array($mvc->allocateThreadsOnShutdown)) {
             $mvc->allocateThreadsOnShutdown = $threadsArr;
         } else {
             $mvc->allocateThreadsOnShutdown += $threadsArr;
@@ -228,7 +237,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
      */
     public static function on_Shutdown($mvc)
     {
-        if(is_array($mvc->allocateThreadsOnShutdown)){
+        if (is_array($mvc->allocateThreadsOnShutdown)) {
             foreach ($mvc->allocateThreadsOnShutdown as $threadId) {
                 self::getAllocatedCostsByProduct($threadId);
             }
@@ -253,20 +262,20 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $firstDocClass = cls::get($firstDocument)->className;
         $firstDocClassId = core_Classes::getId($firstDocClass);
         
-        if(!in_array($firstDocClass, $classesForCheck)) {
+        if (!in_array($firstDocClass, $classesForCheck)) {
             
             return $res;
         }
         
         $exItem = acc_Items::fetchItem($firstDocClassId, $firstDocument->that);
-        if(!$exItem){
+        if (!$exItem) {
             
             return $res;
         }
         
-        if($firstDocClass == 'sales_Sales'){
+        if ($firstDocClass == 'sales_Sales') {
             $prodQuery = sales_PrimeCostByDocument::getQuery();
-            $prodQuery->where("#sellCost IS NOT NULL");
+            $prodQuery->where('#sellCost IS NOT NULL');
         } else {
             $prodQuery = purchase_PurchasesData::getQuery();
         }
@@ -299,17 +308,17 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             foreach ($cost->productsData as $costProd) {
                 $costClassName = core_Classes::getName($cost->detailClassId);
                 $costProdAmount = $costClassName::fetch($cost->detailRecId)->amount;
-               
+                
                 $stareArr = array('active','closed');
                 
-                if (!in_array($cost->state, $stareArr)){
+                if (!in_array($cost->state, $stareArr)) {
                     $costProdAmount = 0;
                 }
                 
                 $costsArr[$costProd->productId] += $costProdAmount * $costProd->allocated;
             }
         }
-    
+        
         $prodsAmount = array();
         foreach ($prods as $purKey => $prod) {
             $prodsAmount[$prod->productId] += $prod->amount;
@@ -332,11 +341,11 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         }
         
         $className = 'purchase_PurchasesData';
-        if($firstDocClass == 'sales_Sales'){
+        if ($firstDocClass == 'sales_Sales') {
             $className = 'sales_PrimeCostByDocument';
         }
         
-        cls::get($className)->saveArray($saveRecs,'id,expenses');
+        cls::get($className)->saveArray($saveRecs, 'id,expenses');
     }
     
     
@@ -359,7 +368,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $detRecArr = arr::extractValuesFromArray($detQuery->fetchAll(), 'id');
         
         $detClassId = core_Classes::getId($detailClassName);
-       
+        
         $costAlocQuery = acc_CostAllocations::getQuery();
         $costAlocQuery->where("#detailClassId = {$detClassId}");
         $costAlocQuery->in('detailRecId', $detRecArr);
@@ -368,7 +377,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         foreach ($exItems as $expense) {
             $exItem = acc_Items::fetch($expense);
             $exItemDocClassName = core_Classes::getName($exItem->classId);
-            if($threadId = $exItemDocClassName::fetch($exItem->objectId)->threadId){
+            if ($threadId = $exItemDocClassName::fetch($exItem->objectId)->threadId) {
                 $threadsArr[$threadId] = $threadId;
             }
         }
