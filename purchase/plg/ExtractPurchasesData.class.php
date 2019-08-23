@@ -209,6 +209,8 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         } else {
             $mvc->allocateThreadsOnShutdown += $threadsArr;
         }
+        
+        self::on_Shutdown($mvc);
     }
     
     
@@ -307,17 +309,15 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         $costsArr = array();
         while ($cost = $costAlocQuery->fetch()) {
+            $costClassName = core_Classes::getName($cost->detailClassId);
+            $costProdAmount = $costClassName::fetch($cost->detailRecId)->amount;
+            
             foreach ($cost->productsData as $costProd) {
-                $costClassName = core_Classes::getName($cost->detailClassId);
-                $costProdAmount = $costClassName::fetch($cost->detailRecId)->amount;
-                
-                $stareArr = array('active','closed');
-                
-                if (!in_array($cost->state, $stareArr)) {
+                if (!in_array($cost->state, array('active','closed'))) {
                     $costProdAmount = 0;
                 }
                 
-                $costsArr[$costProd->productId] += $costProdAmount * $costProd->allocated;
+                $costsArr[$costProd->productId] += ($costProdAmount / $cost->quantity) * $costProd->allocated;
             }
         }
         
