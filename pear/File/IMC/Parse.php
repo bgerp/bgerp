@@ -395,10 +395,12 @@ abstract class File_IMC_Parse
 				continue;
 			}
 			list($left,$right) = $lr;
-
+            
+			$left = strtoupper($left);
+			
 			if (strtoupper($left) == "BEGIN") {
 
-				$block[$right][] = $this->_parseBlock($source);
+			    $block[strtoupper($right)][] = $this->_parseBlock($source);
 
 			} elseif (strtoupper($left) == "END") {
 
