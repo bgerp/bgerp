@@ -1137,9 +1137,10 @@ class frame2_Reports extends embed_Manager
     {
         // Източника на етикета ще е драйвера
         if($Driver = static::getDriver($rec)){
-            
             return array('class' => $Driver, 'id' => $rec->id);
         }
+        
+        return array('class' => $this, 'id' => $rec->id);
     }
     
     
