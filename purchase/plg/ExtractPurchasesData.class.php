@@ -190,7 +190,24 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 }
                 
                 purchase_PurchasesData::save($dRec);
+                
+                self::setUpdateOnShutdown($mvc, $rec);
             }
+        }
+    }
+    
+    
+    /**
+     * Записване на кои нишки на се обновят на шътдаун
+     */
+    private static function setUpdateOnShutdown($mvc, $rec)
+    {
+        $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
+        
+        if (!is_array($mvc->allocateThreadsOnShutdown)) {
+            $mvc->allocateThreadsOnShutdown = $threadsArr;
+        } else {
+            $mvc->allocateThreadsOnShutdown += $threadsArr;
         }
     }
     
@@ -201,14 +218,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        
-        $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
-        
-        if (!is_array($mvc->allocateThreadsOnShutdown)) {
-            $mvc->allocateThreadsOnShutdown = $threadsArr;
-        } else {
-            $mvc->allocateThreadsOnShutdown += $threadsArr;
-        }
+        self::setUpdateOnShutdown($mvc, $rec);
     }
     
     
@@ -218,15 +228,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     public static function on_AfterSaveJournalTransaction($mvc, $res, $rec)
     {
         self::add($mvc, $rec);
-        
-        $mvc->logDebug('SaveJournalTransaction', $rec->id);
-        $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
-        
-        if (!is_array($mvc->allocateThreadsOnShutdown)) {
-            $mvc->allocateThreadsOnShutdown = $threadsArr;
-        } else {
-            $mvc->allocateThreadsOnShutdown += $threadsArr;
-        }
+        self::setUpdateOnShutdown($mvc, $rec);
     }
     
     
