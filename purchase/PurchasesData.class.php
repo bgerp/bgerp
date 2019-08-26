@@ -141,4 +141,40 @@ class purchase_PurchasesData extends core_Manager
         }
     }
     
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ или контейнер, silent');
+        $data->listFilter->showFields = 'documentId';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input(null, 'silent');
+        $data->listFilter->input();
+        $data->query->orderBy('valior', 'DESC');
+        
+        if ($rec = $data->listFilter->rec) {
+            if (!empty($rec->documentId)) {
+                
+                // Търсене и на последващите документи
+                if ($document = doc_Containers::getDocumentByHandle($rec->documentId)) {
+                    $in = array($document->fetchField('containerId'));
+                    if ($document->isInstanceOf('purchase_Purchases')) {
+                        $descendants = $document->getDescendants();
+                        $descendantArr = array_values(array_map(function ($obj) {
+                            
+                            return $obj->fetchField('containerId');
+                        }, $descendants));
+                            $in = array_merge($in, $descendantArr);
+                    }
+                    
+                    $data->query->in('containerId', $in);
+                } elseif(type_Int::isInt($rec->documentId)){
+                    $data->query->where("#containerId = {$rec->documentId}");
+                }
+            }
+        }
+    }
 }
