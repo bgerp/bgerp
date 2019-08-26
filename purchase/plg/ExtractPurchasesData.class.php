@@ -25,22 +25,18 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
+        if($mvc instanceof store_ShipmentOrders && $rec->isReverse != 'yes') return;
+        
         if ($rec->state == 'rejected') {
-            $dRec = array();
             
             $docClassId = core_Classes::getId($mvc);
-
             $dQuery = purchase_PurchasesData::getQuery();
             $dQuery->where("#docClassId = {$docClassId} AND #docId = {$rec->id} ");
             
             $ids = arr::extractValuesFromArray($dQuery->fetchAll(), 'id');
             
             foreach ($ids as $id) {
-                $dRec = (object) array(
-                    
-                    'id' => $id,
-                    'state' => $rec->state);
-                
+                $dRec = (object) array('id' => $id, 'state' => $rec->state);
                 purchase_PurchasesData::save($dRec, 'id,state');
             }
         }
@@ -56,11 +52,6 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         $clone->threadId = (isset($clone->threadId)) ? $clone->threadId : $mvc->fetchField($clone->id, 'threadId');
         $clone->folderId = (isset($clone->folderId)) ? $clone->folderId : $mvc->fetchField($clone->id, 'folderId');
-        
-        if ($clone->isReverse == 'yes') {
-            
-            return ;
-        }
         
         $Master = doc_Containers::getDocument($clone->containerId);                                                       // На активния документ
         
@@ -151,6 +142,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 }
                 
                 $dRec = array();
+                $sign = ($rec->isReverse == 'yes') ? -1 : 1;
                 
                 $dRec = (object) array(
                     
@@ -165,13 +157,13 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     'measureId' => $measureId,
                     'docId' => $clone->id,
                     'docClassId' => $docClassId,
-                    'quantity' => $quantity,
+                    'quantity' => $sign * $quantity,
                     'packagingId' => $detail->packagingId,
                     'storeId' => $storeId,
                     'price' => $price,
                     'expenses' => '',
                     'discount' => $detail->discount,
-                    'amount' => $amount,
+                    'amount' => $sign * $amount,
                     'weight' => $detail->weight,
                     'currencyId' => $currencyId,
                     'currencyRate' => $currencyRate,
@@ -218,6 +210,12 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
+        
+        if (($mvc instanceof store_Receipts && $rec->isReverse == 'yes') || ($mvc instanceof store_ShipmentOrders && $rec->isReverse != 'yes')) {
+            core_Statuses::newStatus('ret', 'warning');
+            return ;
+        }
+        
         self::setUpdateOnShutdown($mvc, $rec);
     }
     
@@ -227,6 +225,11 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
      */
     public static function on_AfterSaveJournalTransaction($mvc, $res, $rec)
     {
+        if (($mvc instanceof store_Receipts && $rec->isReverse == 'yes') || ($mvc instanceof store_ShipmentOrders && $rec->isReverse != 'yes')) {
+            
+            return ;
+        }
+        
         self::add($mvc, $rec);
         self::setUpdateOnShutdown($mvc, $rec);
     }
