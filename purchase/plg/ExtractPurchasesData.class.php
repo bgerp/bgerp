@@ -291,6 +291,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         while ($prodRec = $prodQuery->fetch()) {
             $id = $prodRec->id;
             $measureId = cat_Products::fetchField($prodRec->productId, 'measureId');
+            if($prodRec->quantity < 0) continue;
             
             if (! array_key_exists($id, $prods)) {
                 $prods[$id] = (object) array(

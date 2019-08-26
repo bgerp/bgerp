@@ -153,7 +153,7 @@ class purchase_PurchasesData extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input(null, 'silent');
         $data->listFilter->input();
-        $data->query->orderBy('valior', 'DESC');
+        $data->query->orderBy('id', 'DESC');
         
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->documentId)) {
