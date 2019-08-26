@@ -612,7 +612,7 @@ class price_ProductCosts extends core_Manager
             
             // Всички покупки на търсения артикул
             $accObject = $accCosts[$productId];
-            $foundIn = array_filter($all, function ($a) use ($productId){return $a->productId == $productId && $a->quantity >= 0;});
+            $foundIn = array_filter($all, function ($a) use ($productId){return $a->productId == $productId;});
             
             $useFirstPurchase = true;
             $averageAmount = 0;
