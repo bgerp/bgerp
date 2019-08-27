@@ -608,6 +608,29 @@ class log_Browsers extends core_Master
     
     
     /**
+     * 
+     * @param null|string $userAgent
+     * @param string $check
+     * 
+     * @return boolean
+     */
+    public static function checkUserAgent($check, $userAgent = null)
+    {
+        if (!$userAgent) {
+            // Вземаме ОС от HTTP_USER_AGENT
+            $userAgent = self::getUserAgent();
+        }
+        
+        if (mb_stripos($userAgent, $check) !== false) {
+            
+            return true;
+        }
+        
+        return false;
+    }
+    
+    
+    /**
      * Връща името на браузъра от HTTP_USER_AGENT
      *
      * @return string
