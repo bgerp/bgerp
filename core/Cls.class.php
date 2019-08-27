@@ -81,8 +81,8 @@ class core_Cls
                 if ($last + 1 < strlen($className)) {
                     $className{$last + 1} = strtoupper($className{$last + 1});
                 } else {
-                    // Некоректно има на клас
-                    error('@Некоректно има на клас', $className);
+                    // Некоректно име на клас
+                    error('@Некоректно име на клас', $className);
                 }
             }
             
