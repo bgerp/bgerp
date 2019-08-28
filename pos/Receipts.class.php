@@ -47,6 +47,12 @@ class pos_Receipts extends core_Master
     
     
     /**
+     * Главен детайл на модела
+     */
+    public $mainDetail = 'pos_ReceiptDetails';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, pos';
