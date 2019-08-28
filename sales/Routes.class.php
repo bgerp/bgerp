@@ -96,7 +96,7 @@ class sales_Routes extends core_Manager
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,mandatory,silent');
         $this->FLD('salesmanId', 'user(roles=sales|ceo,select=nick)', 'caption=Търговец,mandatory');
         $this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory');
-        $this->FLD('repeat', 'time(suggestions=|1 седмица|2 седмици|3 седмици|1 месец)', 'caption=Посещения->Период, hint=на какъв период да е повторението на маршрута');
+        $this->FLD('repeat', 'time(suggestions=|1 седмица|2 седмици|3 седмици|4 седмици|1 месец)', 'caption=Посещения->Период, hint=на какъв период да е повторението на маршрута');
         
         // Изчислимо поле за кога е следващото посещение
         $this->FLD('nextVisit', 'date(format=d.m.Y D)', 'caption=Посещения->Следващо,input=none');
