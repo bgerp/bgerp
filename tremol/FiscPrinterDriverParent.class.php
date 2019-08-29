@@ -15,7 +15,6 @@
  */
 abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
 {
-    
     /**
      * Какви интерфейси включва
      */
@@ -145,6 +144,17 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     
     
     /**
+     * Помощна функция за намиране на порта и скоростта на периферното устройство
+     * 
+     * @param stdClass $pRec
+     * @param null|core_Et $jsTpl
+     * 
+     * @return array
+     */
+    abstract protected function findDevicePort($pRec, &$jsTpl = null);
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -163,8 +173,8 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $fieldset->FLD('tcpPort', 'int', 'caption=Настройки за връзка с ФУ->Порт, mandatory');
         $fieldset->FLD('tcpPass', 'password', 'caption=Настройки за връзка с ФУ->Парола, mandatory');
         
-        $fieldset->FLD('serialPort', 'varchar', 'caption=Настройки за връзка с ФУ->Порт, mandatory');
-        $fieldset->FLD('serialSpeed', 'int', 'caption=Настройки за връзка с ФУ->Скорост, mandatory');
+        $fieldset->FLD('serialPort', 'varchar', 'caption=Настройки за връзка с ФУ->Порт, mandatory, class=serialPortInput');
+        $fieldset->FLD('serialSpeed', 'int', 'caption=Настройки за връзка с ФУ->Скорост, mandatory, class=serialSpeedInput');
         
         if ($fieldset instanceof core_Form) {
             $fieldset->input('type');
@@ -288,11 +298,42 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         
         if (!$form->rec->id) {
             $form->setDefault('footerText', 'Отпечатано с bgERP');
-            $form->setDefault('serialSpeed', 115200);
             $form->setDefault('serverIp', '127.0.0.1');
             $form->setDefault('serverTcpPort', 4444);
             $form->setDefault('tcpPort', 8000);
             $form->setDefault('tcpPass', 1234);
+        }
+        
+        // В серийния порт автоматично се опитва да открие скорост и порт
+        if ($form->rec->type == 'serial') {
+            $form->input('serialPort, serialSpeed', false);
+            if (!$form->rec->serialPort || !$form->rec->serialSpeed) {
+                $form->input('serverIp, serverTcpPort', false);
+                if ($form->rec->serverIp && $form->rec->serverTcpPort) {
+                    $form->input('driverVersion', false);
+                    $jsTpl = null;
+                    $dPortArr = $Driver->findDevicePort($form->rec, $jsTpl);
+                    if (!empty($dPortArr)) {
+                        if (isset($dPortArr['serialPort'])) {
+                            $form->setDefault('serialPort', $dPortArr['serialPort']);
+                        }
+                        
+                        if (isset($dPortArr['baudRate'])) {
+                            $form->setDefault('serialSpeed', $dPortArr['baudRate']);
+                        }
+                    }
+                    
+                    if ($jsTpl) {
+                        $form->layout = new ET($form->renderLayout());
+                        
+                        $form->layout->append($jsTpl, 'SCRIPTS');
+                    }
+                }
+            }
+        }
+        
+        if (!$form->rec->id) {
+            $form->setDefault('serialSpeed', 115200);
         }
     }
     

@@ -508,40 +508,77 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      * @param core_ET   $tpl
      * @param stdClass  $pRec
      * @param null|bool $serialKeepPortOpen
+     * @param boolean $setDeviceSettings
      */
-    protected function connectToPrinter($tpl, $pRec, $serialKeepPortOpen = null)
+    protected function connectToPrinter($tpl, $pRec, $serialKeepPortOpen = null, $setDeviceSettings = true)
     {
         // Задаваме настройките за връзка със сървъра
         $tpl->replace(json_encode($pRec->serverIp), 'SERVER_IP');
         $tpl->replace(json_encode($pRec->serverTcpPort), SERVER_TCP_PORT);
         
-        // Свързваме се с ФП
-        if ($pRec->type == 'tcp') {
-            $tpl->replace(json_encode($pRec->tcpIp), 'TCP_IP');
-            $tpl->replace($pRec->tcpPort, 'TCP_PORT');
-            $tpl->replace(json_encode($pRec->tcpPass), 'TCP_PASS');
-            
-            $tpl->replace('false', 'SERIAL_PORT');
-            $tpl->replace('false', 'SERIAL_BAUD_RATE');
-            $tpl->replace('false', 'SERIAL_KEEP_PORT_OPEN');
-        } elseif ($pRec->type == 'serial') {
-            $tpl->replace('false', 'TCP_IP');
-            $tpl->replace('false', 'TCP_PORT');
-            $tpl->replace('false', 'TCP_PASS');
-            $tpl->replace(json_encode($pRec->serialPort), 'SERIAL_PORT');
-            $tpl->replace($pRec->serialSpeed, 'SERIAL_BAUD_RATE');
-            
-            setIfNot($serialKeepPortOpen, 'true');
-            if ($serialKeepPortOpen) {
-                $serialKeepPortOpen = 'true';
+        if ($setDeviceSettings) {
+            // Свързваме се с ФП
+            if ($pRec->type == 'tcp') {
+                $tpl->replace(json_encode($pRec->tcpIp), 'TCP_IP');
+                $tpl->replace($pRec->tcpPort, 'TCP_PORT');
+                $tpl->replace(json_encode($pRec->tcpPass), 'TCP_PASS');
+                
+                $tpl->replace('false', 'SERIAL_PORT');
+                $tpl->replace('false', 'SERIAL_BAUD_RATE');
+                $tpl->replace('false', 'SERIAL_KEEP_PORT_OPEN');
+            } elseif ($pRec->type == 'serial') {
+                $tpl->replace('false', 'TCP_IP');
+                $tpl->replace('false', 'TCP_PORT');
+                $tpl->replace('false', 'TCP_PASS');
+                $tpl->replace(json_encode($pRec->serialPort), 'SERIAL_PORT');
+                $tpl->replace($pRec->serialSpeed, 'SERIAL_BAUD_RATE');
+                
+                setIfNot($serialKeepPortOpen, 'true');
+                if ($serialKeepPortOpen) {
+                    $serialKeepPortOpen = 'true';
+                } else {
+                    $serialKeepPortOpen = 'false';
+                }
+                
+                $tpl->replace($serialKeepPortOpen, 'SERIAL_KEEP_PORT_OPEN');
             } else {
-                $serialKeepPortOpen = 'false';
+                expect(false, $pRec);
             }
-            
-            $tpl->replace($serialKeepPortOpen, 'SERIAL_KEEP_PORT_OPEN');
-        } else {
-            expect(false, $pRec);
         }
+    }
+    
+    
+    /**
+     * Помощна функция за намиране на порта и скоростта на периферното устройство
+     *
+     * @param stdClass $pRec
+     * @param null|core_Et $jsTpl
+     *
+     * @return array
+     *
+     * {@inheritDoc}
+     * @see tremol_FiscPrinterDriverParent::findDevicePort()
+     */
+    protected function findDevicePort($pRec, &$jsTpl = null)
+    {
+        $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                                try {
+                                    fpServerSetSettings([#SERVER_IP#], [#SERVER_TCP_PORT#]);
+                                    var res = fpServerFindDevice(false);
+                                    if (res.serialPort && res.baudRate) {
+                                        $('.serialSpeedInput').val(res.baudRate);
+                                    }
+                                    
+                                    if (res.serialPort) {
+                                        $('.serialPortInput').val(res.serialPort);
+                                    }
+                                } catch(ex) { }
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]");
+        
+        $this->addTplFile($jsTpl, $pRec->driverVersion);
+        $this->connectToPrinter($jsTpl, $pRec, false, false);
+        
+        return array();
     }
     
     
@@ -724,7 +761,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         return $res;
     }
     
-
+    
     /**
      * Екшън за печат на дубликат
      */

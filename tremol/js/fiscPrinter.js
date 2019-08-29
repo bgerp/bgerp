@@ -18,6 +18,23 @@ function fpServerSetSettings(ip, port)
 
 
 /**
+ * Задава настройките на сървъра
+ * 
+ * @param useFound
+ */
+function fpServerFindDevice(useFound)
+{
+    try {
+        res = fp.ServerFindDevice(useFound);
+    } catch(ex) {
+        handleException(ex);
+    }
+    
+    return res;
+}
+
+
+/**
  * Задава настройките на устройствота
  * 
  * @param ip
