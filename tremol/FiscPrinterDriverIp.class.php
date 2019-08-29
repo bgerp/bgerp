@@ -735,7 +735,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     $resArr['serialPort'] = $fDev->SerialPort;
                 }
                 
-                if (strlen($fDev->BaudRate)) {
+                if (strlen($fDev->BaudRate) && $fDev->BaudRate && $fDev->SerialPort) {
                     $resArr['baudRate'] = $fDev->BaudRate;
                 }
             } catch (\Tremol\SException $e) {
