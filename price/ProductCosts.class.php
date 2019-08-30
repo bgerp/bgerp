@@ -603,7 +603,7 @@ class price_ProductCosts extends core_Manager
         $purQuery = purchase_PurchasesData::getQuery();
         $purQuery->in('productId', $productArr);
         $purQuery->where("#state != 'rejected'");
-        $purQuery->show('quantity,price,productId');
+        $purQuery->show('quantity,price,productId,expenses');
         $purQuery->orderBy('valior,id', "DESC");
         $all = $purQuery->fetchAll();
         
