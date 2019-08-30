@@ -57,7 +57,7 @@ try {
     // Ако е зададено за кои URL-та да не се записва в лога
     if ($isDefinedFatalErrPath) {
         if (!defined('DEBUG_FATAL_ERRORS_EXCLUDE')) {
-            define('DEBUG_FATAL_ERRORS_EXCLUDE', 'sw.js,favicon.ico,log_Browsers/js/*');
+            define('DEBUG_FATAL_ERRORS_EXCLUDE', 'sw.js,favicon.ico,log_Browsers/js/*,pwa_Plugin');
         }
         
         if (DEBUG_FATAL_ERRORS_EXCLUDE) {
