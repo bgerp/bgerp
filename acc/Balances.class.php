@@ -361,10 +361,14 @@ class acc_Balances extends core_Master
             
             // Преизчисляваме първия баланс, в който има промени още веднъж, за да подаде верни данни на следващите
             static $rc1;
-                        
+            
+            self::logDebug("After Calc: {$rec->lastCalculateChange}; rc1 = {$rc1}");
+            
             if (!$rc1 && $rec->lastCalculateChange != 'no') {
                 self::calc($rec);
                 $rc1 = true;
+                
+                self::logDebug("After Calc2: {$rec->lastCalculateChange}; rc1 = {$rc1}");
             }
             
             return true;
@@ -450,6 +454,7 @@ class acc_Balances extends core_Master
             do {
                 core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME);
                 self::forceCalc($rec);
+                self::logDebug("After forceCalc: {$rec->lastCalculateChange}; j = {$j}; rc = {$rc}");
             } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
             $rc = false;
         }
