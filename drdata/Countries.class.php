@@ -121,6 +121,8 @@ class drdata_Countries extends core_Manager
      */
     public static function isEu($countryId)
     {
+        if (!$countryId) return false;
+        
         expect($abbr = static::fetchField($countryId, 'letterCode2'));
         
         return in_array($abbr, static::$euCountries);
@@ -136,6 +138,8 @@ class drdata_Countries extends core_Manager
      */
     public static function isEUR($countryId)
     {
+        if (!$countryId) return false;
+        
         expect($abbr = static::fetchField($countryId, 'letterCode2'));
         
         return in_array($abbr, static::$eurCountries);
@@ -147,16 +151,18 @@ class drdata_Countries extends core_Manager
      */
     public static function getLang($countryId)
     {
-        $rec = self::fetch($countryId);
-        
-        cls::load('core_Lg');
-        
-        $langArr = arr::make(EF_LANGUAGES);
-        
-        foreach ($langArr as $lg => $name) {
-            if (strpos($rec->languages, $lg) !== false) {
-                
-                return $lg;
+        if ($countryId) {
+            $rec = self::fetch($countryId);
+            
+            cls::load('core_Lg');
+            
+            $langArr = arr::make(EF_LANGUAGES);
+            
+            foreach ($langArr as $lg => $name) {
+                if (strpos($rec->languages, $lg) !== false) {
+                    
+                    return $lg;
+                }
             }
         }
         

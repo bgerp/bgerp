@@ -1,28 +1,40 @@
-<!--ET_BEGIN ExternalThreadViewDate-->
+<!--ET_BEGIN ExternalThreadViewAvatar-->
     <div class="fleft avatar">[#ExternalThreadViewAvatar#]<span></span></div>
-<!--ET_END ExternalThreadViewDate-->
+<!--ET_END ExternalThreadViewAvatar-->
 <div class='document fright'>
     <div class='scrolling-holder'>
         <div class='display-table'>
             <div class='antetka'>
                 <div class="small">
-                    <div style='width: 50%; display: inline-block; vertical-align: top; text-align: left;'>
-                        
-                        <!--ET_BEGIN ExternalThreadViewFrom-->
-                            <div>|От|*: <b>[#ExternalThreadViewFrom#]</b></div>
-                        <!--ET_END ExternalThreadViewFrom-->
-                        
-                        <!--ET_BEGIN ExternalThreadViewTo-->
-                            <div>|До|*: <b>[#ExternalThreadViewTo#]</b></div>
-                        <!--ET_END ExternalThreadViewTo-->
-                        
-                        <!--ET_BEGIN ExternalThreadViewCc-->
-                            <div>|Копие|*: <b>[#ExternalThreadViewCc#]</b></div>
-                        <!--ET_END ExternalThreadViewCc-->
-                        
-                        <!--ET_BEGIN ExternalThreadViewDate-->
-                            <div>|Дата|*: [#ExternalThreadViewDate#]</div>
-                        <!--ET_END ExternalThreadViewDate-->
+                    <div>
+                        <table class='top-table'>
+                            <!--ET_BEGIN ExternalThreadViewFrom-->
+                            <tr>
+                                <td class='aright' style='vertical-align:top'>|От|*:</td>
+                                <td><b>[#ExternalThreadViewFrom#]</b></td>
+                            </tr>
+                            <!--ET_END ExternalThreadViewFrom-->
+                            <!--ET_BEGIN ExternalThreadViewTo-->
+                            <tr>
+                                <td  class='aright'>|До|*:</td>
+                                <td><b>[#ExternalThreadViewTo#]</b></td>
+                            </tr>
+                            <!--ET_END ExternalThreadViewTo-->
+
+                            <!--ET_BEGIN ExternalThreadViewCc-->
+                            <tr>
+                                <td  class='aright'>|Кп|*:</td>
+                                <td><b>[#ExternalThreadViewCc#]</b></td>
+                            </tr>
+                            <!--ET_END ExternalThreadViewCc-->
+
+                            <!--ET_BEGIN ExternalThreadViewDate-->
+                            <tr>
+                                <td class='aright'>|На|*:</td>
+                                <td><b>[#ExternalThreadViewDate#]</b></td>
+                            </tr>
+                            <!--ET_END ExternalThreadViewDate-->
+                        </table>
                     </div>
                 </div>
             </div>

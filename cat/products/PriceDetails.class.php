@@ -260,6 +260,10 @@ class cat_products_PriceDetails extends core_Manager
             $cQuery = price_ProductCosts::getQuery();
             $cQuery->where("#productId = {$data->masterId}");
             while ($cRec = $cQuery->fetch()) {
+                if($cRec->type == 'average' && empty($cRec->price)){
+                    continue;
+                }
+                
                 $cRow = price_ProductCosts::recToVerbal($cRec);
                 $cRow->price = "<b>{$cRow->price}</b> {$baseCurrencyCode}";
                 if (isset($cRow->document)) {

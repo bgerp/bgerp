@@ -339,10 +339,8 @@ class frame2_AllReports extends core_Master
                     $retUrl['originId'] = $form->rec->originId;
                 }
                 
-                
                 $urlArr['ret_url'] = $retUrl;
                 
-                //bp($urlArr,$retUrl);
                 return redirect($urlArr);
             }
         }

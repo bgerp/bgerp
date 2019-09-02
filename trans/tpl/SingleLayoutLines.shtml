@@ -27,6 +27,9 @@
 					<!--ET_BEGIN myCompany-->
 					<div style='margin-bottom: 5px;'><b>[#myCompany#]</b></div>
 					<!--ET_END myCompany-->
+					<!--ET_BEGIN caseId-->
+					<div style='margin-bottom: 5px;'>|Инкасиране в|*: [#caseId#]</div>
+					<!--ET_END caseId-->
 					<!--ET_BEGIN logistic-->
 					<div style='margin-bottom: 5px;'>|Логистик|*: [#logistic#]</div>
 					<!--ET_END logistic-->

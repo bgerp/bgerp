@@ -134,7 +134,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         
         
        
-        while ($planningRec = $planningQuery->fetch()){ 
+        while ($planningRec = $planningQuery->fetch()){
         
         $id = $planningRec->productId;
         
@@ -177,9 +177,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         
         }
        
-      //  bp($recs);
-        
-        
+    
         return $recs;
     }
     

@@ -1,7 +1,7 @@
 
-<!--ET_BEGIN ExternalThreadViewDate-->
+<!--ET_BEGIN ExternalThreadViewAvatar-->
 <div class="fright avatar"><span></span>[#ExternalThreadViewAvatar#]</div>
-<!--ET_END ExternalThreadViewDate-->
+<!--ET_END ExternalThreadViewAvatar-->
 
 <div class='document'>
     <div  class='clearfix21 antetka'>
@@ -11,25 +11,25 @@
                     <!--ET_BEGIN fromEml-->          
                     <tr>
                         <td  class='aright' style='vertical-align:top'>|От|*:</td>
-                        <td>[#fromEml#]</td>
+                        <td><b>[#fromEml#]</b></td>
                     </tr>
                     <!--ET_END fromEml-->
                     <!--ET_BEGIN AllTo-->          
                     <tr>
                         <td  class='aright'>|До|*:</td>
-                        <td>[#AllTo#]</td>
+                        <td><b>[#AllTo#]</b></td>
                     </tr>
                     <!--ET_END AllTo-->
                     <!--ET_BEGIN AllCc-->          
                     <tr>
                         <td  class='aright'>|Кп|*:</td>
-                        <td>[#AllCc#]</td>
+                        <td><b>[#AllCc#]</b></td>
                     </tr>
                     <!--ET_END AllCc-->
                     <!--ET_BEGIN date-->          
                     <tr>
                         <td class='aright'>|На|*:</td>
-                        <td>[#date#]</td>
+                        <td><b>[#date#]</b></td>
                     </tr>
                     <!--ET_END date-->
                 </table>

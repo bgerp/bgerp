@@ -42,17 +42,19 @@ class cash_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
         
         ($rec->debitCase) ? $debitArr = array('cash_Cases', $rec->debitCase) : $debitArr = array('bank_OwnAccounts', $rec->debitBank);
         
-        $creditArr = array($rec->creditAccId,
-            array('cash_Cases', $rec->creditCase),
-            array('currency_Currencies', $rec->currencyId),
-            'quantity' => $rec->amount);
-        
-        if ($rec->operationSysId == 'nonecash2bank') {
+        $creditArr = array($rec->creditAccId, array('cash_Cases', $rec->creditCase), array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount);
+
+        if ($rec->operationSysId == 'nonecash2bank' || $rec->operationSysId == 'nonecash2case') {
             $creditArr = array($rec->creditAccId,
                 array('cash_Cases', $rec->creditCase),
                 array('cond_Payments', $rec->paymentId),
                 'quantity' => $rec->amount);
             
+                if($rec->operationSysId == 'nonecash2case'){
+                    $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+                    $creditArr['quantity'] = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
+                }
+                
             $payment = cond_Payments::getTitleById($rec->paymentId);
             $reason = "Инкасирано от: '{$payment}'";
         } elseif ($rec->operationSysId == 'case2case') {

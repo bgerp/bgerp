@@ -2586,8 +2586,7 @@ span.sharing-history-title {
   background-color: white; }
 
 .headerImg {
-  float: left;
-  background-color: white; }
+  float: left; }
 
 .wide .headerImg {
   width: 100%;
@@ -5047,7 +5046,7 @@ only screen and (min-width: 1240px) {
   .background-holder {
     padding: 10px 0; }
 
-  .wide not('.user-profile') .listBlock .listRows > table.listTable {
+  .wide:not('.user-profile') .listBlock .listRows > table.listTable {
     min-width: 760px; } }
 
 @media handheld,

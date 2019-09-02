@@ -1433,6 +1433,19 @@ class cat_Products extends embed_Manager
                 $query->notLikeKeylist('groups', $params['notInGroups']);
             }
             
+            // Филтър само на артикули с рецепта, ако е зададен
+            if(isset($params['onlyWithBoms'])){
+                $bQuery = cat_Boms::getQuery();
+                $bQuery->where("#state = 'active'");
+                $bQuery->groupBy('productId');
+                $in = arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
+                if(count($in)){
+                    $query->in('id', $in);
+                } else {
+                    $query->where('1=2');
+                }
+            }
+            
             if(isset($params['isPublic'])){
                 $query->where("#isPublic = '{$params['isPublic']}'");
             }
@@ -1668,12 +1681,12 @@ class cat_Products extends embed_Manager
         
         // Ако няма цена от драйвера, се гледа политика 'Себестойност';
         $date = price_ListToCustomers::canonizeTime($date);
-        if (!isset($primeCost)) {
+        if ((is_object($primeCost) && !isset($primeCost->price)) || !isset($primeCost)) {
             $primeCost = price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
         }
         
         // Ако няма себестойност, но има прототип, гледа се неговата себестойност
-        if (!isset($primeCost)) {
+        if ((is_object($primeCost) && !isset($primeCost->price)) || !isset($primeCost)) {
             if ($proto = cat_Products::fetchField($productId, 'proto')) {
                 $primeCost = price_ListRules::getPrice($primeCostlistId, $proto, $packagingId, $date);
             }
@@ -2380,20 +2393,6 @@ class cat_Products extends embed_Manager
         
         if (sales_Sales::haveRightFor('createsaleforproduct', (object) array('folderId' => $data->rec->folderId, 'productId' => $data->rec->id))) {
             $data->toolbar->addBtn('Продажба', array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба');
-        }
-        
-        if (core_Packs::isInstalled('eshop')) {
-            if (eshop_Products::haveRightFor('linktoeshop', (object) array('productId' => $data->rec->id))) {
-                $data->toolbar->addBtn('E-маг', array('eshop_Products', 'linktoeshop', 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Свързване в Е-маг');
-            }
-            
-            if ($domainId = cms_Domains::getCurrent('id', false)) {
-                if ($eshopProductId = eshop_Products::getByProductId($data->rec->id, $domainId)) {
-                    if (eshop_Products::haveRightFor('single', $eshopProductId)) {
-                        $data->toolbar->addBtn('E-артикул', array('eshop_Products', 'single', $eshopProductId, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Към е-артикула');
-                    }
-                }
-            }
         }
     }
     

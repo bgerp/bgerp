@@ -63,7 +63,7 @@ class SassMixinNode extends SassNode
     $mixin = $pcontext->getMixin($this->name);
     $context = new SassContext($pcontext);
     $context->content = $this->children;
-    $argc = count($this->args);
+    $argc = strlen($this->args);
     $count = 0;
 
     $args = SassScriptFunction::extractArgs($this->args, false, $context);

@@ -343,7 +343,7 @@ class csv_Lib
             if (count($mandatory)) {
                 foreach ($mandatory as $part) {
                     if (strlen($rec->{$part}) == 0) {
-                        continue 2;
+                        continue ;
                     }
                 }
             }

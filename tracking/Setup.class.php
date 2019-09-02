@@ -74,6 +74,11 @@ class tracking_Setup extends core_ProtoSetup
      */
     public $version = '0.1';
     
+    /**
+     * Необходими пакети
+     */
+    public $depends = 'location=0.1';
+    
     
     /**
      * Мениджър - входна точка в пакета

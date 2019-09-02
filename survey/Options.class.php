@@ -159,18 +159,4 @@ class survey_Options extends core_Manager
             }
         }
     }
-    
-    
-    /**
-     * Преброява точките
-     */
-    public function countPoints($alternativeId)
-    {
-        $query = static::getQuery();
-        $query->where("#alternativeId = {$alternativeId}");
-        $query->XPR('totalRate', 'double', 'sum(#value)');
-        $query->show('totalRate');
-        
-        return $query->fetch()->totalRate;
-    }
 }

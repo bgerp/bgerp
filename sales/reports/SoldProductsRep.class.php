@@ -291,44 +291,29 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
         if ($rec->contragent || $rec->crmGroup) {
-            $contragentsArr = $contragentCoversId = $contragentCoverClasses = array();
-            
-            $query->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
-            $query->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
+            $contragentsArr = array();
+            $contragentsId = array();
             
             if (!$rec->crmGroup && $rec->contragent) {
                 $contragentsArr = keylist::toArray($rec->contragent);
                 
-                foreach ($contragentsArr as $val) {
-                    $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
-                    $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
-                }
-                
-                $query->in('coverId', $contragentCoversId);
-                $query->in('coverClass', $contragentCoverClasses);
+                $invQuery->in('folderId', $contragentsArr);
             }
             
             if ($rec->crmGroup && !$rec->contragent) {
                 $foldersInGroups = self::getFoldersInGroups($rec);
                 
-                $query->in('folderId', $foldersInGroups);
+                $invQuery->in('folderId', $foldersInGroups);
             }
             
             if ($rec->crmGroup && $rec->contragent) {
                 $contragentsArr = keylist::toArray($rec->contragent);
                 
-                
-                foreach ($contragentsArr as $val) {
-                    $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
-                    $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
-                }
-                
-                $query->in('coverId', $contragentCoversId);
-                $query->in('coverClass', $contragentCoverClasses);
+                $invQuery->in('folderId', $contragentsArr);
                 
                 $foldersInGroups = self::getFoldersInGroups($rec);
                 
-                $query->in('folderId', $foldersInGroups);
+                $invQuery->in('folderId', $foldersInGroups);
             }
         }
         
@@ -1215,34 +1200,30 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
     }
     
-    /*
-     * Връща folderId-тата на всички контрагенти,
-     * които имат регистрация в поне една от избраните групи
+     /**
+     * Връща папките на контрагентите от избраните групи
      *
-     * @param stdClass            $rec
+     * @param stdClass $rec
      *
      * @return array
      */
     public static function getFoldersInGroups($rec)
     {
         $foldersInGroups = array();
+        foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
         
-        $fQuery = doc_Folders::getQuery();
-        
-        $classIds = array(core_Classes::getId('crm_Companies'),core_Classes::getId('crm_Persons'));
-        
-        $fQuery->in('coverClass', $classIds);
-        
-        while ($contr = $fQuery->fetch()) {
-            $className = core_Classes::getName($contr->coverClass);
+            $q = $clsName::getQuery();
             
-            $contrGroups = $className::fetchField($contr->coverId, 'groupList');
+            $q->LikeKeylist('groupList', $rec->crmGroup);
             
-            if (keylist::isIn(keylist::toArray($contrGroups), $rec->crmGroup)) {
-                $foldersInGroups[$contr->id] = $contr->id;
-            }
+            $q->where("#folderId IS NOT NULL");
+            
+            $q->show('folderId');
+            
+            $foldersInGroups = array_merge($foldersInGroups,arr::extractValuesFromArray($q->fetchAll(), 'folderId'));
+          
         }
-        
+   
         return $foldersInGroups;
     }
 }

@@ -13,14 +13,16 @@ function () {
         return new Tremol.FP();
     }
     this.prototype = this;
-    var coreVersion = "1.0.0.4";
+    var coreVersion = "1.0.0.6";
     var ip = "localhost";
     var port = 4444;
     var url = "http://localhost:4444/";
     var w = false;
     var ok = false;
     //var psr = (typeof DOMParser !== 'undefined' ? new DOMParser() : new ActiveXObject("Microsoft.XMLDOM"));
+    /**@type {XMLHttpRequest} */
     var req = (typeof XMLHttpRequest !== 'undefined' ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP'));
+    
     try { req.withCredentials = false; } catch (ignored) { }
     req.overrideMimeType("text/xml; charset=UTF-8");
     
@@ -28,7 +30,7 @@ function () {
         try {
             req.open(verb, address, false);
             req.setRequestHeader("Content-Type", "text/plain");
-            try { req.setRequestHeader("Accept-Charset", "ISO-8859-1,utf-8;q=0.7,*;q=0.7"); } catch (ignored) { }
+            // try { req.setRequestHeader("Accept-Charset", "ISO-8859-1,utf-8;q=0.7,*;q=0.7"); } catch (ignored) { }
             req.send(data);
             if (req.status !== 200)
             {
@@ -237,7 +239,7 @@ function () {
                     {
                         x += '<Arg Name="' + arguments[a] + '" Value="' + arguments[a + 1].toBase64string() + '" />';
                     }
-                    else if (typeof arguments[a]  === "undefined" || typeof arguments[a + 1]  === "undefined")
+                    else if (typeof arguments[a]  === "undefined" || typeof arguments[a + 1]  === "undefined" || arguments[a]  ==  null || arguments[a + 1]  == null)
                     {
                         continue;
                     }
@@ -280,11 +282,16 @@ function () {
     this.ServerSetSettings = function (ipaddress, tcpport) {
         ip = ipaddress;
         port = tcpport;
-        url = "http://" + ip;
-        if(port && port > 0) {
+        url = ip;
+        if (url.indexOf("//") === -1 && url.indexOf("http") === -1 && url.indexOf("https") === -1) {
+            url = "//" + url;
+        }
+        if (port && port > 0) {
             url += (":" + port);
         }
-        url += "/";
+        if (url.charAt(url.length -1) !== "/") {
+            url += "/";
+        }
     };
 
     /**
@@ -336,13 +343,36 @@ function () {
         }
     };
 
+
+    /**
+     * Sets Device Bluetooth communication settings if ZFPLabServer is running on Android device.
+     * @throws {Error}
+     * @param {string} deviceFriendlyName Bluetooth Device friendly name (ZK900001)
+     */
+    this.ServerSetAndroidBluetoothDeviceSettings = function (deviceFriendlyName) {
+        w = true;
+        try {
+            if(!Tremol.FP.IsOnAndroid()) {
+                throw new Tremol.ServerError("This connection type is used only if ZFPLabServer is running on Android device", Tremol.ServerErrorType.ClientArgValueWrongFormat);
+            }
+            var response = sendReq("GET", url + "settings(com=" + deviceFriendlyName +",tcp=0)", null);
+            var df = response.getElementsByTagName("defVer");
+            if(this.prototype.timeStamp && df.length > 0) {
+                ok = (this.prototype.timeStamp === Number(df[0].firstChild.nodeValue));
+            }
+        }
+        finally {
+            w = false;
+        }
+    };
+
     /**
      * Sets Device serial port communication settings
      * This method is also used to set Bluetooth connection if ZFPLabServer is running on Android device.
      * @throws {Error}
-     * @param {string} serialPort The name of the serial port (example: COM1)
-     * @param {number} baudRate Baud rate (9600, 19200, 38400, 57600, 115200)
-     * @param {boolean} keepPortOpen Keeps serial port open
+     * @param {string} serialPort The name of the serial port (example: COM1).
+     * @param {number} baudRate Baud rate (9600, 19200, 38400, 57600, 115200).
+     * @param {boolean} keepPortOpen Keeps serial port open. For Bluetooth connection - not used.
      */
     this.ServerSetDeviceSerialSettings = function (serialPort, baudRate, keepPortOpen) {
         w = true;
@@ -564,7 +594,7 @@ Date.prototype.toStringWithFormat = function(format) {
     var m = this.getMinutes();
     var s = this.getSeconds();
     f = f.replace("dd", d.lpad(2));
-    f = f.replace("d", d);
+    f = f.replace("d", d);f
     f = f.replace("MM", M.lpad(2));
     f = f.replace("M", M);
     f = f.replace("yyyy", y.lpad(4));
@@ -671,8 +701,7 @@ Uint8Array.prototype.toBase64string = function () {
     for (var i = 0; i < arr.byteLength; i++) {
         binary += String.fromCharCode(arr[i]);
     }
-    var res = window.btoa( binary );
-    return res;
+    return window.btoa(binary);
 };
 
 Uint8Array.prototype.toUnicodeString = function() {
@@ -696,7 +725,7 @@ Uint8Array.prototype.toUnicodeString = function() {
 /**
 * @typedef {Object} Tremol.FP.DeviceSettings
 * @property {boolean} isWorkingOnTcp True if device is working on tcp
-* @property {string} serialPort Serial port (COM1)
+* @property {string} serialPort Serial port (example: COM1). If ZFPLabServer is running on Android device - Device friendly name (ZK999999)
 * @property {number} baudRate Baud rate (9600, 19200, 38400, 57600, 115200)
 * @property {boolean} keepPortOpen Keeps the port opened
 * @property {string} ipaddress IP address

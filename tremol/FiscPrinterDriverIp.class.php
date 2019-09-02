@@ -36,6 +36,19 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
     
     
     /**
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        parent::addFields($fieldset);
+        
+        $fieldset->FLD('isElectronic', 'enum(no=Не, yes=Да)', 'caption=Настройки на ФУ->Електронна бележка, after=serialNumber');
+    }
+    
+    
+    /**
      * Връща JS функция за отпечатване на ФБ
      *
      * @param stdClass $pRec   - запис от peripheral_Devices
@@ -135,7 +148,9 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             return false;
         }
         
-        setIfNot($params['IS_ELECTRONIC'], false);
+        if (!isset($params['IS_ELECTRONIC'])) {
+            $params['IS_ELECTRONIC'] = $pRec->isElectronic == 'yes' ? true : false;
+        }
         
         // Задаваме параметрите за отваряне на ФБ
         setIfNot($params['OPER_NUM'], 1);
@@ -652,15 +667,19 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
      * 
      * @param stdClass $rec
      * @param boolean $keepPortOpen
+     * @param boolean $setDeviceSettings
+     * 
      * @return false|\Tremol\FP
      */
-    protected static function connectToPrinter($rec, $keepPortOpen = false)
+    protected static function connectToPrinter($rec, $keepPortOpen = false, $setDeviceSettings = true)
     {
         static $fpArr = array();
         
         expect($rec);
         
-        $fp = $fpArr[$rec->id];
+        $key = md5($keepPortOpen . '|' . $setDeviceSettings . '|' . serialize($rec));
+        
+        $fp = $fpArr[$key];
         
         if (!isset($fp)) {
             try {
@@ -670,10 +689,12 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 
                 $fp->ServerSetSettings($rec->serverIp, $rec->serverTcpPort);
                 
-                if ($rec->tcpIp) {
-                    $fp->ServerSetDeviceTcpSettings($rec->tcpIp, $rec->tcpPort, $rec->tcpPass);
-                } else {
-                    $fp->ServerSetDeviceSerialSettings($rec->serialPort, $rec->serialSpeed, $keepPortOpen);
+                if ($setDeviceSettings) {
+                    if ($rec->tcpIp) {
+                        $fp->ServerSetDeviceTcpSettings($rec->tcpIp, $rec->tcpPort, $rec->tcpPass);
+                    } else {
+                        $fp->ServerSetDeviceSerialSettings($rec->serialPort, $rec->serialSpeed, $keepPortOpen);
+                    }
                 }
             } catch (\Tremol\SException $e) {
                 self::handleTremolException($e);
@@ -682,9 +703,47 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             }
         }
         
-        $fpArr[$rec->id] = $fp;
+        $fpArr[$key] = $fp;
         
         return $fp;
+    }
+    
+    
+    /**
+     * Помощна функция за намиране на порта и скоростта на периферното устройство
+     * 
+     * @param stdClass $pRec
+     * @param null|core_Et $jsTpl
+     * 
+     * @return array
+     * 
+     * {@inheritDoc}
+     * @see tremol_FiscPrinterDriverParent::findDevicePort()
+     */
+    protected function findDevicePort($pRec, &$jsTpl = null)
+    {
+        $resArr = array();
+        
+        $fp = $this->connectToPrinter($pRec, false, false);
+        
+        if ($fp) {
+            
+            try {
+                $fDev = $fp->ServerFindDevice(false);
+                
+                if (strlen($fDev->SerialPort)) {
+                    $resArr['serialPort'] = $fDev->SerialPort;
+                }
+                
+                if (strlen($fDev->BaudRate) && $fDev->BaudRate && $fDev->SerialPort) {
+                    $resArr['baudRate'] = $fDev->BaudRate;
+                }
+            } catch (\Tremol\SException $e) {
+                self::handleTremolException($e);
+            }
+        }
+        
+        return $resArr;
     }
     
     
@@ -1053,5 +1112,28 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         if (haveRole(self::$viewException)) {
             status_Messages::newStatus('|*' . $msg, 'error');
         }
+    }
+    
+    
+    /**
+     * Екшън за печат на дубликат
+     */
+    public function act_PrintDuplicate()
+    {
+        peripheral_Devices::requireRightFor('printduplicate');
+        expect($id = Request::get('id', 'int'));
+        expect($pRec = peripheral_Devices::fetch($id));
+        $Driver = peripheral_Devices::getDriver($pRec);
+        
+        try{
+            if($Driver->printDuplicate($pRec)){
+                core_Statuses::newStatus('Дубликатът е отпечатан успешно', 'notice');
+            }
+        } catch(core_exception_Expect $e){
+            $this->logErr($e->getMessage(), $pRec->id);
+            core_Statuses::newStatus('Грешка при отпечатването на дубликат', 'error');
+        }
+        
+        return followRetUrl();
     }
 }
