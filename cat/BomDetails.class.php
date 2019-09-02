@@ -190,8 +190,8 @@ class cat_BomDetails extends doc_Detail
         // Добавяме всички вложими артикули за избор
         $metas = ($rec->type == 'pop') ? 'canConvert,canStore' : 'canConvert';
         $groups = ($rec->type == 'pop') ? cat_Groups::getKeylistBySysIds('waste') : null;
-        $driverId = ($rec->type != 'stage') ? null : planning_interface_StageDriver::getClassId();
-        $form->setFieldTypeParams('resourceId', array('hasProperties' => $metas, 'groups' => $groups, 'driverId' => $driverId));
+        $onlyWithBoms = ($rec->type != 'stage') ? null : true;
+        $form->setFieldTypeParams('resourceId', array('hasProperties' => $metas, 'groups' => $groups, 'onlyWithBoms' => $onlyWithBoms));
         
         $form->setDefault('type', 'input');
         $quantity = $data->masterRec->quantity;
@@ -698,26 +698,23 @@ class cat_BomDetails extends doc_Detail
         
         // Може ли записа да бъде разширен
         if (($action == 'expand' || $action == 'shrink') && isset($rec)) {
-            if(!cat_Products::haveDriver($rec->resourceId, 'planning_interface_StageDriver')){
+            
+            // Артикула трябва да е производим и да има активна рецепта
+            $canManifacture = cat_Products::fetchField($rec->resourceId, 'canManifacture');
+            if ($canManifacture != 'yes') {
                 $requiredRoles = 'no_one';
             } else {
-                // Артикула трябва да е производим и да има активна рецепта
-                $canManifacture = cat_Products::fetchField($rec->resourceId, 'canManifacture');
-                if ($canManifacture != 'yes') {
-                    $requiredRoles = 'no_one';
-                } else {
-                    $type = cat_Boms::fetchField($rec->bomId, 'type');
-                    if ($type == 'production') {
-                        $aBom = cat_Products::getLastActiveBom($rec->resourceId, 'production');
-                    }
-                    if (!$aBom) {
-                        $aBom = cat_Products::getLastActiveBom($rec->resourceId, 'sales');
-                    }
-                    
-                    if (!$aBom) {
-                        $requiredRoles = 'no_one';
-                    }
+                $type = cat_Boms::fetchField($rec->bomId, 'type');
+                if ($type == 'production') {
+                    $aBom = cat_Products::getLastActiveBom($rec->resourceId, 'production');
                 }
+                if (!$aBom) {
+                    $aBom = cat_Products::getLastActiveBom($rec->resourceId, 'sales');
+                }
+               
+               if (!$aBom) {
+                    $requiredRoles = 'no_one';
+               }
             }
         }
         
