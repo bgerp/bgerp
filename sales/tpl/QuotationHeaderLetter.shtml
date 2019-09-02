@@ -8,6 +8,13 @@
             <p class='title-info'>
                 |Дата|*: &nbsp;<b>[#date#]</b>
             </p>
+            
+            <!--ET_BEGIN clonedFromId-->
+             <p class='title-info' style='font-size:0.8em'>
+                (cloned [#clonedFromId#])
+            </p>
+            <!--ET_END clonedFromId-->
+                        
             <!--ET_BEGIN reff-->
             <p class='title-info'>
                 |Ваш реф. №|*: &nbsp;<b><span id='reff'>[#reff#]</span></b>
