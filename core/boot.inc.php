@@ -52,9 +52,37 @@ if(!$_GET['virtual_url']) $_GET['virtual_url'] = $_SERVER['REQUEST_URI'];
 
 try {
     $isDefinedFatalErrPath = defined('DEBUG_FATAL_ERRORS_PATH');
+    $stopDebug = false;
+    
+    // Ако е зададено за кои URL-та да не се записва в лога
+    if ($isDefinedFatalErrPath) {
+        if (!defined('DEBUG_FATAL_ERRORS_EXCLUDE')) {
+            define('DEBUG_FATAL_ERRORS_EXCLUDE', 'sw.js,favicon.ico,log_Browsers/js/*,pwa_Plugin');
+        }
+        
+        if (DEBUG_FATAL_ERRORS_EXCLUDE) {
+            $errorsExlude = explode(',', DEBUG_FATAL_ERRORS_EXCLUDE);
+            $vUrlStr = trim($_GET['virtual_url']);
+            $vUrlStr = trim($vUrlStr, '/');
+            $vUrlStr = mb_strtolower($vUrlStr);
+            foreach ($errorsExlude as $eStr) {
+                $eStr = trim($eStr);
+                $eStr = trim($eStr, '/');
+                $eStr = mb_strtolower($eStr);
+                $eStr = preg_quote($eStr, '/');
+                $eStr = str_replace('\*', '.*', $eStr);
+                $eStrPattern = '/^' . $eStr . '$/i';
+                
+                if (preg_match($eStrPattern, $vUrlStr)) {
+                    $stopDebug = true;
+                    break;
+                }
+            }
+        }
+    }
     
     // Вземаме всички входни данни
-    if ($isDefinedFatalErrPath) {
+    if ($isDefinedFatalErrPath && !$stopDebug) {
         $data = @json_encode(array('GET' => $_GET, 'POST' => $_POST, 'SERVER' => $_SERVER));
         
         if (!$data) {
@@ -67,7 +95,7 @@ try {
     core_App::initSystem();
     
     // Дъмпване във файл на всички входни данни
-    if ($isDefinedFatalErrPath) {
+    if ($isDefinedFatalErrPath && !$stopDebug) {
         $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/000' . date('_H_i_s_') . rand(1000, 9999) . '.debug';
         
         if (!defined('DEBUG_FATAL_ERRORS_FILE') && @file_put_contents($pathName, $data)) {

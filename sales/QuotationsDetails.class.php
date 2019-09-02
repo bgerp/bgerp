@@ -1107,6 +1107,7 @@ class sales_QuotationsDetails extends doc_Detail
         if (isset($cRec)) {
             $rec->fee = $cRec->fee;
             $rec->deliveryTimeFromFee = $cRec->deliveryTime;
+            $rec->_transportExplained = $cRec->explain;
             $rec->syncFee = true;
         }
         

@@ -8,6 +8,9 @@
                         <div class='invoiceTitle' style='font-size:1.2em;margin-bottom:5px'><b>QUOTATION </b></div>
                         <div><b>№[#number#]</b></div>
                         <div style='margin-top:5px;'><b>[#date#]</b></div>
+                        <!--ET_BEGIN clonedFromId-->
+                        <div style='font-size:0.8em'>(cloned [#clonedFromId#])</div>
+                        <!--ET_END clonedFromId-->
                         <!--ET_BEGIN buzPlace-->
                         <div class='quiet-small'>Place</div>
                         <div><b>[#buzPlace#]</b></div>
