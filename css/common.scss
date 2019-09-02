@@ -794,7 +794,7 @@ a.button, input[type="button"], input[type="submit"], button {
     @include border-radius(3px);
     -webkit-appearance: none;	  
 }
-
+ 
 a.button {
 	box-sizing: border-box;
 }
@@ -1634,7 +1634,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover, table.listTable:not(.noHo
 .formBottom {
 	margin-bottom: 15px;
 	padding: 5px;
-	/margin: 10px -15px 0;
+	margin: 10px -15px 0;
 	background: #a1bef9;
 	border: 1px solid #5c8ef4;
 	text-align: center;
@@ -3006,6 +3006,15 @@ a.lang {
         border: 1px solid #99c;
     }
 }
+
+.narrow .richtext {
+	-webkit-hyphens: auto;
+	-moz-hyphens: auto;
+	-ms-hyphens: auto;
+	hyphens: auto;
+	word-break: break-word;
+}
+
 @-moz-document url-prefix() {
 	a.lang{
 	   padding: 2px !important;
@@ -3881,5 +3890,5 @@ td.leftColImportant {
 	}
 	.minus-icon {
 		background-image: url('../img/16/toggle2.png') !important;
-	}
+	} 
 }

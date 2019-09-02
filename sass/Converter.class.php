@@ -1,11 +1,7 @@
 <?php
 
 
-/**
- * Вкарваме файловете необходими за работа с програмата.
- */
-require_once 'phpsass/SassParser.php';
-
+use ScssPhp\ScssPhp\Compiler;
 
 /**
  * Конвертира sass файлове в css
@@ -32,8 +28,15 @@ class sass_Converter
      */
     public static function convert($file, $syntax = false, $style = 'nested')
     {
-        // Опциите
-        $options = array(
+        if(core_Composer::isInUse()) {
+            // Инстанция на класа
+            $parser = new Compiler();
+            
+            // Парсираме и връщаме резултата
+            $res = $parser->compile(file_get_contents($file));
+        } else {
+            // Опциите
+            $options = array(
             'style' => $style,
             'cache' => false,
             'syntax' => $syntax,
@@ -41,13 +44,19 @@ class sass_Converter
             'callbacks' => array(
                 'warn' => false,
                 'debug' => false,
-            ),
-        );
+                ),
+            );
+
+            // Вкарваме файловете необходими за работа с програмата.
+            require_once 'phpsass/SassParser.php';
+
+            // Инстанция на класа
+            $parser = new SassParser($options);
         
-        // Инстанция на класа
-        $parser = new SassParser($options);
-        
-        // Парсираме и връщаме резултата
-        return $parser->toCss($file);
+            // Парсираме и връщаме резултата
+            $res = $parser->toCss($file);
+        }
+
+        return $res;
     }
 }

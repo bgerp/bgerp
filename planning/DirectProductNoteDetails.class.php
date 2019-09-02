@@ -89,7 +89,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
         parent::setDetailFields($this);
         $this->setField('quantity', 'caption=Количества');
-        $this->FLD('quantityFromBom', 'double', 'caption=По рецепта');
+        $this->FLD('quantityFromBom', 'double', 'caption=По рецепта,input=none');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
         
         $this->setDbIndex('productId');
@@ -138,6 +138,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         
         if (isset($rec->productId)) {
             if ($form->isSubmitted()) {
+                
+                // Проверка на к-то
+                $warning = null;
+                if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
+                    $form->setError('packQuantity', $warning);
+                }
                 
                 // Ако добавяме отпадък, искаме да има себестойност
                 if ($rec->type == 'pop') {

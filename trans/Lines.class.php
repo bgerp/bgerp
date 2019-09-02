@@ -199,6 +199,7 @@ class trans_Lines extends core_Master
         $this->FLD('vehicle', 'varchar', 'caption=Превозвач->Превозно средство,oldFieldName=vehicleId');
         $this->FLD('forwarderId', 'key(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Превозвач->Транспортна фирма');
         $this->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty)', 'caption=Превозвач->МОЛ');
+        $this->FLD('caseId', 'key(mvc=cash_Cases,select=name)', 'caption=Превозвач->Инкасиране в');
         $this->FLD('description', 'richtext(bucket=Notes,rows=4)', 'caption=Допълнително->Бележки');
         $this->FLD('countReady', 'int', 'input=none,notNull,value=0');
         $this->FLD('countTotal', 'int', 'input=none,notNull,value=0');
@@ -323,6 +324,10 @@ class trans_Lines extends core_Master
             
             if (isset($rec->forwarderId)) {
                 $row->forwarderId = ht::createLink(crm_Companies::getVerbal($rec->forwarderId, 'name'), crm_Companies::getSingleUrlArray($rec->forwarderId));
+            }
+            
+            if(isset($rec->caseId)){
+                $row->caseId = cash_Cases::getHyperlink($rec->caseId, true);
             }
         }
         

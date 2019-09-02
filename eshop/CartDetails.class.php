@@ -167,7 +167,13 @@ class eshop_CartDetails extends core_Detail
         if (isset($rec->productId)) {
             $form->setField('packagingId', 'input');
             $form->setField('packQuantity', 'input');
+            
+            $eshopRec = eshop_ProductDetails::fetch("#productId = {$rec->productId}", 'packagings,eshopProductId');
             $packs = cat_Products::getPacks($rec->productId);
+            $form->setDefault('eshopProductId', $eshopRec->eshopProductId);
+            $packsSelected = keylist::toArray($eshopRec->packagings);
+            $packs = array_intersect_key($packs, $packsSelected);
+            
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             $form->setField('displayPrice', 'input');
@@ -231,17 +237,18 @@ class eshop_CartDetails extends core_Detail
         }
         
         if ($form->isSubmitted()) {
-            $rec->eshopProductId = eshop_ProductDetails::fetchField("#productId = {$rec->productId}", 'eshopProductId');
             
             // Проверка на к-то
+            $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
                 $form->setError('packQuantity', $warning);
             }
             
             // Проверка достигнато ли е максималното количество
+            $packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultQuantity;
             $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
-            if (isset($maxQuantity) && $maxQuantity < $rec->packQuantity) {
-                $form->setError('packQuantity', 'Количеството в момента не е налично в склада');
+            if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
+                $form->setError('packQuantity', 'В момента количеството не е налично в склада');
             }
             
             if (!$form->gotErrors()) {

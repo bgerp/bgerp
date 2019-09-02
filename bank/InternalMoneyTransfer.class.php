@@ -44,8 +44,8 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_Contable,
-         plg_Sorting, doc_DocumentPlg, plg_Printing, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg';
+    public $loadList = 'plg_RowTools2, bank_Wrapper,acc_plg_Contable, acc_plg_DocumentSummary,
+     	plg_Clone,doc_DocumentPlg, plg_Printing, deals_plg_SaveValiorOnActivation, plg_Search, bgerp_plg_Blank, doc_SharablePlg';
     
     
     /**
@@ -154,7 +154,7 @@ class bank_InternalMoneyTransfer extends core_Master
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory,summary=amount');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
-        $this->FLD('reason', 'varchar(255)', 'caption=Основание,input,mandatory');
+        $this->FLD('reason', 'richtext(rows=3)', 'caption=Основание,input,mandatory');
         $this->FLD('creditAccId', 'acc_type_Account()', 'caption=Кредит,input=none');
         $this->FLD('creditBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'caption=От->Банк. сметка');
         $this->FLD('debitAccId', 'acc_type_Account()', 'caption=Дебит,input=none');
@@ -165,7 +165,6 @@ class bank_InternalMoneyTransfer extends core_Master
             'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Контиран,stopped=Спряно, pending=Заявка)',
             'caption=Статус, input=none'
         );
-        $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
     }
     
     
@@ -284,7 +283,6 @@ class bank_InternalMoneyTransfer extends core_Master
         
         $form->setReadOnly('operationSysId');
         $today = dt::verbal2mysql();
-        $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
         $form->setReadOnly('creditBank', bank_OwnAccounts::getCurrent());
     }
@@ -391,8 +389,7 @@ class bank_InternalMoneyTransfer extends core_Master
             $row->currency = currency_Currencies::getCodeById($rec->currencyId);
             
             // Изчисляваме равностойността на сумата в основната валута
-            
-            if ($rec->rate != '1') {
+            if ($rec->rate != '1' && isset($rec->rate)) {
                 $double = cls::get('type_Double');
                 $double->params['decimals'] = 2;
                 $equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $row->currency);
@@ -403,11 +400,11 @@ class bank_InternalMoneyTransfer extends core_Master
             $row->creditBank = bank_OwnAccounts::getHyperLink($rec->creditBank, true);
             
             if ($rec->debitCase) {
-                $row->debitCase = cash_Cases::getHyperLink($rec->debitCase, true);
+                $row->creditBank .= " » " . cash_Cases::getHyperLink($rec->debitCase, true);
             }
             
             if ($rec->debitBank) {
-                $row->debitBank = bank_OwnAccounts::getHyperLink($rec->debitBank, true);
+                $row->creditBank .= " » " . bank_OwnAccounts::getHyperLink($rec->debitBank, true);
             }
         }
     }

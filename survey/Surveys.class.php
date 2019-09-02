@@ -185,7 +185,7 @@ class survey_Surveys extends core_Master
             }
             
             $txt = explode("\n", $rec->description);
-            if (count($txt) > 1) {
+            if (countR($txt) > 1) {
                 $row->description = $txt[0] . ' ...';
             }
         }

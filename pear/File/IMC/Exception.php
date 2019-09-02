@@ -51,7 +51,6 @@
  * @license  http://www.opensource.org/licenses/bsd-license.php The BSD License
  * @version  Release: @package_version@
  * @link     http://pear.php.net/package/File_IMC
- * @uses     PEAR_Exception
  */
 class File_IMC_Exception extends Exception
 {

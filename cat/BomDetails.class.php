@@ -190,8 +190,8 @@ class cat_BomDetails extends doc_Detail
         // Добавяме всички вложими артикули за избор
         $metas = ($rec->type == 'pop') ? 'canConvert,canStore' : 'canConvert';
         $groups = ($rec->type == 'pop') ? cat_Groups::getKeylistBySysIds('waste') : null;
-        $driverId = ($rec->type != 'stage') ? null : planning_interface_StageDriver::getClassId();
-        $form->setFieldTypeParams('resourceId', array('hasProperties' => $metas, 'groups' => $groups, 'driverId' => $driverId));
+        $onlyWithBoms = ($rec->type != 'stage') ? null : true;
+        $form->setFieldTypeParams('resourceId', array('hasProperties' => $metas, 'groups' => $groups, 'onlyWithBoms' => $onlyWithBoms));
         
         $form->setDefault('type', 'input');
         $quantity = $data->masterRec->quantity;
@@ -627,6 +627,7 @@ class cat_BomDetails extends doc_Detail
         
         $bomRec = null;
         cat_BomDetails::addProductComponents($rec->resourceId, $rec->bomId, $rec->id, $bomRec);
+        
         if (isset($bomRec)) {
             $rec->coefficient = $bomRec->quantity;
         }
@@ -634,7 +635,7 @@ class cat_BomDetails extends doc_Detail
         
         $title = cat_Products::getTitleById($rec->resourceId);
         $msg = "{$title} |вече е етап|*";
-        $this->Master->logRead('Разпъване на вложен артикул', $rec->bomId);
+        $this->Master->logWrite('Разпъване на вложен артикул', $rec->bomId);
         
         return new Redirect(array('cat_Boms', 'single', $rec->bomId), $msg);
     }
@@ -710,10 +711,10 @@ class cat_BomDetails extends doc_Detail
                 if (!$aBom) {
                     $aBom = cat_Products::getLastActiveBom($rec->resourceId, 'sales');
                 }
-                
-                if (!$aBom) {
+               
+               if (!$aBom) {
                     $requiredRoles = 'no_one';
-                }
+               }
             }
         }
         
@@ -1001,6 +1002,8 @@ class cat_BomDetails extends doc_Detail
             $activeBom = cat_Products::getLastActiveBom($productId, 'production,instant,sales');
         } elseif($toBomRec->type == 'instant'){
             $activeBom = cat_Products::getLastActiveBom($productId, 'instant,sales');
+        } else {
+            $activeBom = cat_Products::getLastActiveBom($productId, 'sales');
         }
         
         // Ако етапа има рецепта

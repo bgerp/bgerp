@@ -102,6 +102,11 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             return false;
         }
         
+		// Ако е копирано URL на преглед на pdf файл
+        if ($act == 'previewfile' && $ctr = 'fileman_files') {
+            $act = 'single';
+        }
+        
         // Сингъл
         if ($act == 'single' && isset($params['id'])) {
             

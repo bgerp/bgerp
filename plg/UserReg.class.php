@@ -376,7 +376,7 @@ class plg_UserReg extends core_Plugin
             
             $form = $mvc->getForm();
             
-            $form->FNC('captcha', 'captcha_Type', 'caption=Разпознаване,input,mandatory');
+            $form->FNC('captcha', 'captcha_Type', 'caption=Разпознаване,hint=Въведете числото от изображението,input,mandatory');
             
             $form->styles = array(
                 '.formInfo' => 'max-max-width:440px;padding:8px;border:solid 1px #999;background-color:#FFC;font-family:Times New Roman;font-size:0.9em;',

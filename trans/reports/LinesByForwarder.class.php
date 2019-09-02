@@ -148,7 +148,7 @@
          while ($tRec = $query->fetch()) {
              $arr[] = ($tRec);
          }
-         bp($arr);
+         
          $id = self::breakdownBy($tRec, $rec);
          
          $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));

@@ -470,7 +470,7 @@ class fileman_Log extends core_Manager
                 $fileNameVerb = str::limitLen($fileNameVerb, 30);
                 
                 // Хифенираме името на файла
-                $fileNameVerb = hyphen_Plugin::getHyphenWord($fileNameVerb);
+                $fileNameVerb = core_String::getHyphenWord($fileNameVerb);
                 
                 $id = 'last_' . $rec->id;
                 

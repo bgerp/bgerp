@@ -1,9 +1,4 @@
 <?php
-
-
-defIfNot('EF_VENDOR_PATH', rtrim(dirname(EF_APP_PATH), '/\\') . '/vendor');
-
-
 /**
  * Клас 'core_Composer' - Управление на външни пакети чрез Composer
  *
@@ -25,32 +20,64 @@ class core_Composer extends core_Mvc
      */
     public static $error;
     
-    
+
     /**
-     * Връща пътя към изпълнимия файл на Composer.
+     * Текущо инсталираните пакети
+     */
+    static $packs = array();
+    
+
+    /**
+     * Дали трябва да се използва Composer
+     */
+    public static function isInUse()
+    {
+        $res = false;
+        if(defined('EF_VENDOR_PATH')) {
+            $autoloaderPath = EF_VENDOR_PATH . '/autoload.php';
+            if(file_exists($autoloaderPath)) {
+                require_once($autoloaderPath);
+            }
+            $res = true;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Стартира команда на Composer
      * Ако Composer не е инсталиран - прави опит да го инсталира
      */
-    public static function getComposerPath()
+    public static function run($command)
     {
         static $path;
-        
+
+        $res = false;
+
+        if(!defined('EF_VENDOR_PATH')) {
+
+            self::$error = 'Error: Не е дефинирана константата `EF_VENDOR_PATH`';
+
+            return false;
+        }
+
         if (!$path) {
             $path = core_Cache::get('COMPOSER', 'PATH');
         }
         
-        if (!$path || !file_exists($path)) {
-            $phpCmd = core_Os::getPhpCmd();
+        $phpCmd = core_Os::getPhpCmd();
             
-            if (!$phpCmd) {
-                self::$error = 'Error: Невъзможно да се определи изпълнимият файл за извикване на PHP от командна линия';
+        if (!$phpCmd) {
+            self::$error = 'Error: Невъзможно да се определи изпълнимият файл за извикване на PHP от командна линия';
                 
-                return;
-            }
+            return false;
+        }
+
+        if (!$path || !file_exists($path)) {
             
             $composerCmd = dirname(EF_VENDOR_PATH) . '/composer.phar';
-            
-            $composerHome = self::getComposerHome();
-            
+                        
             if (!file_exists($composerCmd)) {
                 $sig = trim(file_get_contents('https://composer.github.io/installer.sig'));
                 
@@ -59,78 +86,149 @@ class core_Composer extends core_Mvc
                 file_put_contents($setupPath, file_get_contents('https://getcomposer.org/installer'));
                 
                 if ($sig == hash_file('sha384', $setupPath)) {
-                    $cmd = $composerHome . ' "' . $phpCmd . '" ' . $setupPath . ' --quiet --install-dir=' . dirname(EF_VENDOR_PATH);
+                    $cmd =  '"' . $phpCmd . '" ' . $setupPath . ' --quiet --install-dir=' . dirname(EF_VENDOR_PATH);
+                    putenv('COMPOSER_HOME=' . EF_VENDOR_PATH . '/.composer');
                     exec($cmd, $output, $returnvar);
                     if ($returnvar != 0) {
                         self::$error = "Грешка (${cmd}):" . implode('; ', $output);
+
+                        return false;
                     }
                 } else {
                     self::$error = 'Грешка: неточна SHA384 сигнатура';
+
+                    return false;
                 }
-            } else {
-                exec($composerHome . ' "' . $phpCmd . '" ' . $composerCmd . ' self-update --quiet', $output, $returnvar);
             }
-            
+
             if (file_exists($setupPath)) {
                 unlink($setupPath);
             }
             
             if (file_exists($composerCmd)) {
                 $path = $composerCmd;
-                
+                exec('"' . $phpCmd . '" ' . $composerCmd . ' self-update --quiet', $output, $returnvar);
                 core_Cache::set('COMPOSER', 'PATH', $path, 20);
             } else {
-                $path = false;
+                self::$error = "Composer не може да бъде инсталиран";
+
+                return false;
             }
         }
         
-        return $path;
+        if($path) {
+            // Изпълняваме командата
+            $dir = '--working-dir=' . dirname(EF_VENDOR_PATH);
+            
+            putenv('COMPOSER_HOME=' . EF_VENDOR_PATH . '/.composer');
+
+            $cmd = "{$phpCmd} {$path} {$dir} {$command}";
+ 
+            exec($cmd, $lines, $result);
+           
+            if ($result !== 0) {
+                self::$error = 'Error: ' . implode('; ', $lines);
+            } else {
+                $res = $lines;
+            }
+        }
+        
+        return $res;
     }
-    
+
     
     /**
      * Инсталира зададения пакет и версия
-     */
-    public static function install($pack, $version = '')
-    {
-        $phpCmd = core_Os::getPhpCmd();
-        if (!$phpCmd) {
-            
-            return 'Грешка: Невъзможно да се определи изпълнимият файл за извикване на PHP от командна линия';
-        }
-        
-        $composerPath = self::getComposerPath();
-        if (!$composerPath) {
-            
-            return self::$error;
-        }
-        
-        $dir = '--working-dir=' . dirname(EF_VENDOR_PATH);
-        
-        $composerHome = self::getComposerHome();
-        
-        $cmd = "{$composerHome} {$phpCmd} {$composerPath} {$dir} --apcu-autoloader require {$pack} {$version}";
-        
-        exec($cmd, $lines, $result);
-        
-        if ($result !== 0) {
-            
-            return "Грешка (${cmd}): " . implode('; ', $lines);
-        }
-    }
-    
-    
-    /**
-     * Връща местоположението на COMPOSER_HOME
      *
      * @return string
      */
-    protected static function getComposerHome()
+    public static function install($pack, $version = '')
     {
-        $composerHome = EF_VENDOR_PATH . '/.composer';
-        $composerHome = 'COMPOSER_HOME=' . escapeshellarg($composerHome);
+        if(self::isInstalled($pack, $version)) {
+
+            return "<li><strong>Composer require</strong>: пакета `{$pack} {$version}` е бил инсталиран от по-рано</li>";
+        }
+
+        $lines = self::run("--apcu-autoloader require {$pack} {$version}");
         
-        return $composerHome;
+        if ($lines === false) {
+            
+            return "<li class='debug-error'>" . self::$error . '</li>';
+        } else {
+            core_Cache::remove('COMPOSER', 'INSTALLED-PACKS');
+            self::$packs = null;
+
+            return "<li class='debug-new'><strong>Composer</strong>: инсталиран е `{$pack} {$version}`";
+        }
+    }
+
+
+    /**
+     * Премахва зададения пакет
+     *
+     * @return string
+     */
+    public static function remove($pack)
+    {
+        if(!self::isInstalled($pack)) {
+
+            return "<li><strong>Composer remove</strong>: пакета {$pack} не е бил инсталиран по-рано</li>";
+        }
+
+        $lines = self::run("--apcu-autoloader remove {$pack}");
+        
+        if ($lines === false) {
+            
+            return "<li class='debug-error'>" . self::$error . '</li>';
+        } else {
+            core_Cache::remove('COMPOSER', 'INSTALLED-PACKS');
+            self::$packs = null;
+
+            return "<li class='debug-new'><strong>Composer</strong>: премахнат е `{$pack}`";
+        }
+    }
+
+
+    /**
+     * Проверява дали даден пакет е инсталиран
+     */
+    public static function isInstalled($pack, $version = null)
+    {
+        if(!countR(self::$packs)) {
+            self::$packs =  core_Cache::get('COMPOSER', 'INSTALLED-PACKS');
+        }
+
+        if(!countR(self::$packs)) {
+            
+            $lines = self::run('show');
+            
+            if($lines === false) {
+
+                return false;
+            }
+
+            foreach($lines as $l) { 
+                $matches = array();
+                preg_match_all("/^([a-z0-9\.\/\_\-]+)[ ]+([v0-9\.]+)/", $l, $matches);
+ 
+                $p = $matches[1][0];
+                
+                $ver = $matches[2][0];
+                self::$packs[$p] = ltrim(trim($ver), 'v');
+            }
+ 
+            core_Cache::set('COMPOSER', 'INSTALLED-PACKS', self::$packs, 20);
+        }
+        
+        $res = false;
+        if(isset(self::$packs[$pack])) {
+            $res = true;
+            if(strlen($version) && !version_compare(trim(self::$packs[$pack]), ltrim($version, 'v'), '>=')) {
+                $res = false;
+            }
+        }
+
+        return $res;
     }
     
     
@@ -158,11 +256,9 @@ class core_Composer extends core_Mvc
             $pack = "{$pack}#{$version}";
         }
         
-        $composerHome = self::getComposerHome();
-        
         $wd = '--working-dir=' . EF_VENDOR_PATH;
         $cmd = "{$composerHome} \"{$phpCmd}\" \"${bowerphp}\" install {$pack} {$wd}";
-        
+        putenv('COMPOSER_HOME=' . EF_VENDOR_PATH . '/.composer');
         exec($cmd, $lines, $result);
         
         if ($result != 0) {

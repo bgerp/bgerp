@@ -1614,9 +1614,12 @@ class core_Mvc extends core_FieldSet
      */
     public static function logLogin($action, $objectId = null, $lifeDays = 180, $cu = null)
     {
-        if (core_Users::getCurrent() <= 0) {
+        $currUser = isset($cu) ? $cu : core_Users::getCurrent();
+        
+        if ($currUser <= 0) {
             self::logInfo($action, $objectId);
         }
+        
         $className = get_called_class();
         log_Data::add('login', $action, $className, $objectId, $lifeDays, $cu);
     }

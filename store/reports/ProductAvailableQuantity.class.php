@@ -99,7 +99,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     {
         if ($form->rec->limmits == 'yes') {
             if (is_string($form->rec->additional)) {
-                $details = json_decode($form->rec->additional);//bp($details,$form->rec->additional);
+                $details = json_decode($form->rec->additional);
             } else {
                 $details = $form->rec->additional;
             }
@@ -404,7 +404,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
         
         // Определяне на индикаторите за "свръх наличност" и "под минимум";
-        foreach ($recs as $productId => $prodRec) {//if ($prodRec->code == '15-14')bp($prodRec);
+        foreach ($recs as $productId => $prodRec) {
             $prodRec->conditionQuantity = '3|ok';
             $prodRec->conditionColor = 'green';
             if ($prodRec->maxQuantity == 0 && $prodRec->minQuantity == 0) {
