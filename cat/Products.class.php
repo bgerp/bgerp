@@ -1433,6 +1433,19 @@ class cat_Products extends embed_Manager
                 $query->notLikeKeylist('groups', $params['notInGroups']);
             }
             
+            // Филтър само на артикули с рецепта, ако е зададен
+            if(isset($params['onlyWithBoms'])){
+                $bQuery = cat_Boms::getQuery();
+                $bQuery->where("#state = 'active'");
+                $bQuery->groupBy('productId');
+                $in = arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
+                if(count($in)){
+                    $query->in('id', $in);
+                } else {
+                    $query->where('1=2');
+                }
+            }
+            
             if(isset($params['isPublic'])){
                 $query->where("#isPublic = '{$params['isPublic']}'");
             }
