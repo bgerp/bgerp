@@ -40,7 +40,7 @@ class email_UserInboxPlg extends core_Plugin
         }
         
         // При добавяне или при редакция на ник да се създава корпоративен имейл, ако има такъв акаунт
-        if (isset($rec->nick)) {
+        if (isset($rec->nick) && ($rec->state == 'active')) {
             if ($corpAccRec = email_Accounts::getCorporateAcc()) {
                 if (!$rec->id) {
                     if ($rec->state == 'active') {
