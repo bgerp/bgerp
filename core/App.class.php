@@ -530,7 +530,7 @@ class core_App
         if (function_exists('fastcgi_finish_request')) {
             @fastcgi_finish_request();
         }
-
+        
         flush();
     }
     
@@ -620,7 +620,7 @@ class core_App
             $resObj->func = 'redirect';
             $resObj->arg = array('url' => $url);
             
-            return self::outputJson(array($resObj), false);
+            return self::outputJson(array($resObj));
         }
         
         // Забранява кеширането. Дали е необходимо тук?
