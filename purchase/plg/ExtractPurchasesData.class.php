@@ -313,6 +313,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         while ($cost = $costAlocQuery->fetch()) {
             $costClassName = core_Classes::getName($cost->detailClassId);
             $costProdAmount = $costClassName::fetch($cost->detailRecId)->amount;
+            $costProdAmount = ($cost->quantity < 1) ? $costProdAmount : ($costProdAmount / $cost->quantity);
             
             foreach ($cost->productsData as $costProd) {
                 if (!in_array($cost->state, array('active','closed'))) {
@@ -320,7 +321,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 }
                 
                 // Намираме колко е еденичната цена, и я умножаваме по преразпределеното количество
-                $costsArr[$costProd->productId] += ($costProdAmount / $cost->quantity) * $costProd->allocated;
+                $costsArr[$costProd->productId] += $costProdAmount * $costProd->allocated;
             }
         }
         
