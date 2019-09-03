@@ -216,7 +216,7 @@ class price_ProductCosts extends core_Manager
         }
         
         $pQuery->in('productId', $productKeys);
-        $pQuery->orderBy('id', 'DESC');
+        $pQuery->orderBy('valior', 'DESC');
         
         // Връщаме намерените резултати
         return $pQuery->fetchAll();
