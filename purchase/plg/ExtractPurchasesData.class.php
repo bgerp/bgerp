@@ -192,7 +192,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     /**
      * Записване на кои нишки на се обновят на шътдаун
      */
-    private static function setUpdateOnShutdown($mvc, $rec)
+    public static function setUpdateOnShutdown($mvc, $rec)
     {
         $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
         
@@ -242,7 +242,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
      */
     public static function on_Shutdown($mvc)
     {
-        if (is_array($mvc->allocateThreadsOnShutdown)) {
+       if (is_array($mvc->allocateThreadsOnShutdown)) {
             foreach ($mvc->allocateThreadsOnShutdown as $threadId) {
                 self::getAllocatedCostsByProduct($threadId);
             }
@@ -287,7 +287,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $prodQuery->where("#threadId = {$threadId} AND #state != 'rejected'");
         $prodQuery->orderBy('id', 'DESC');
         
-        $prods = array();
+        $prods = $saveRecs = array();
         while ($prodRec = $prodQuery->fetch()) {
             $id = $prodRec->id;
             $measureId = cat_Products::fetchField($prodRec->productId, 'measureId');
@@ -301,6 +301,8 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     'weight' => $prodRec->weight,
                     'quantity' => $prodRec->quantity,
                 );
+                
+                $saveRecs[$id] = (object) array('id' => $id, 'expenses' => 0);
             }
         }
         
@@ -308,7 +310,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $costAlocQuery->where("#expenseItemId = {$exItem->id}");
         $costAlocQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
         $costAlocQuery->where('#productsData IS NOT NULL');
-        
+       
         $costsArr = array();
         while ($cost = $costAlocQuery->fetch()) {
             $costClassName = core_Classes::getName($cost->detailClassId);
@@ -330,18 +332,12 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             $prodsAmount[$prod->productId] += $prod->amount;
         }
        
-        $saveRecs = array();
         foreach ($costsArr as $costKey => $cost) {
             foreach ($prods as $purKey => $prod) {
                 if ($costKey == $prod->productId) {
                     $expenses = ($cost / $prodsAmount[$prod->productId]) * $prod->amount;
                     
-                    $purDataRec = (object) array(
-                        'id' => $purKey,
-                        'expenses' => $expenses
-                    );
-                    
-                    $saveRecs[] = $purDataRec;
+                    $saveRecs[$purKey]->expenses += $expenses;
                 }
             }
         }
@@ -380,6 +376,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $costAlocQuery->in('detailRecId', $detRecArr);
         $exItems = arr::extractValuesFromArray($costAlocQuery->fetchAll(), 'expenseItemId');
         
+        $threadsArr[$rec->threadId] = $rec->threadId;
         foreach ($exItems as $expense) {
             $exItem = acc_Items::fetch($expense);
             $exItemDocClassName = core_Classes::getName($exItem->classId);

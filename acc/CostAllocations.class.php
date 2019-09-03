@@ -67,7 +67,7 @@ class acc_CostAllocations extends core_Manager
     /**
      * Кои полета да се извличат при изтриване
      */
-    public $fetchFieldsBeforeDelete = 'containerId';
+    public $fetchFieldsBeforeDelete = 'containerId,expenseItemId';
     
     
     /**
@@ -133,6 +133,14 @@ class acc_CostAllocations extends core_Manager
             if ($origin->fetchField('state') == 'active') {
                 acc_Journal::reconto($rec->containerId);
                 $origin->getInstance()->logWrite('Ре-контиране на документа', $origin->that);
+                
+                // Ако изтритият разходен обект има кеш записи в таблицата за доставка да му се обновят
+                $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
+                $expenseReg = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
+                if($expenseReg->getInstance()->hasPlugin('purchase_plg_ExtractPurchasesData')){
+                    $Register = cls::get($itemRec->classId);
+                    purchase_plg_ExtractPurchasesData::setUpdateOnShutdown($Register, $expenseReg->fetch());
+                }
             }
         }
     }
