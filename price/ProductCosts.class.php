@@ -191,6 +191,7 @@ class price_ProductCosts extends core_Manager
     {
         $pQuery = purchase_PurchasesDetails::getQuery();
         $pQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
+        $pQuery->EXT('valior', 'purchase_Purchases', 'externalName=valior,externalKey=requestId');
         $pQuery->EXT('modifiedOn', 'purchase_Purchases', 'externalName=modifiedOn,externalKey=requestId');
         $pQuery->EXT('amountDelivered', 'purchase_Purchases', 'externalName=amountDelivered,externalKey=requestId');
         
@@ -216,7 +217,7 @@ class price_ProductCosts extends core_Manager
         }
         
         $pQuery->in('productId', $productKeys);
-        $pQuery->orderBy('valior', 'DESC');
+        $pQuery->orderBy('valior,id', 'DESC');
         
         // Връщаме намерените резултати
         return $pQuery->fetchAll();
