@@ -31,7 +31,7 @@ class eshop_Products extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,name,groupId=Група,state';
+    public $listFields = 'code,name,groupId=Група,saleState,state';
     
     
     /**
@@ -160,6 +160,7 @@ class eshop_Products extends core_Master
         $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
         $this->FLD('quantityCount', 'enum(,3=3 количества,2=2 количества,1=1 количество)', 'caption=Запитване->Количества,placeholder=Без количество');
+        $this->FLD('saleState', 'enum(single=Единичен,multi=Избор,closed=Стар артикул,empty=Без опции)', 'caption=Тип,input=none,notNull,value=empty');
         
         $this->setDbIndex('groupId');
     }
@@ -457,18 +458,14 @@ class eshop_Products extends core_Master
             }
             
             $pRow->image = $img->createImg(array('class' => 'eshop-product-image'));
-            if (self::haveRightFor('edit', $pRec)) {
-                $pRec->editUrl = array('eshop_Products', 'edit', $pRec->id, 'ret_url' => true);
-            }
             
-            // Детайлите на артикула
-            $dQuery = eshop_ProductDetails::getQuery();
-            $dQuery->where("#eshopProductId = {$pRec->id}");
-            $count = $dQuery->count();
-            
-            // Ако има само един артикул
-            if ($count == 1) {
+            if($pRec->saleState == 'single'){
+                
+                // Детайлите на артикула
+                $dQuery = eshop_ProductDetails::getQuery();
+                $dQuery->where("#eshopProductId = {$pRec->id}");
                 $dRec = $dQuery->fetch();
+                
                 $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
                 $packagings = cat_Products::getProductInfo($dRec->productId)->packagings;
                 
@@ -510,8 +507,10 @@ class eshop_Products extends core_Master
                         $pRow->btn = $dRow->btn;
                     }
                 }
-            } elseif ($count > 1) {
+            } elseif($pRec->saleState == 'multi'){
                 $pRow->btn = ht::createBtn($settings->addToCartBtn . '...', self::getUrl($pRec->id), false, false, 'title=Избор на артикул,class=productBtn,ef_icon=img/16/cart_go.png');
+            } elseif($pRec->saleState == 'closed'){
+                $pRow->btn = "<span class='option-not-in-stock'>" . mb_strtoupper(tr(('Спрян||Not available'))) . '</span>';
             }
             
             $commonParams = self::getCommonParams($pRec->id);
@@ -558,15 +557,20 @@ class eshop_Products extends core_Master
         $layout = new ET('');
         
         if (is_array($data->rows)) {
-            $editSbf = sbf('img/16/edit.png', '');
-            $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
+            
             foreach ($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
                 
                 $pTpl = getTplFromFile(Mode::is('screenMode', 'narrow') ? 'eshop/tpl/ProductListGroupNarrow.shtml' : 'eshop/tpl/ProductListGroup.shtml');
-                if ($rec->editUrl) {
-                    $row->editLink = ht::createLink($editImg, $rec->editUrl);
+                
+                if ($this->haveRightFor('single', $rec)) {
+                    $row->singleLink = ht::createLink('', array('eshop_Products', 'single', $rec->id, 'ret_url' => true), false, "ef_icon=img/16/wooden-box.png");
                 }
+                
+                if ($this->haveRightFor('edit', $rec)) {
+                    $row->editLink = ht::createLink('', array('eshop_Products', 'edit', $rec->id, 'ret_url' => true), false, "ef_icon=img/16/edit.png");
+                }
+                
                 if ($data->groupId != $rec->groupId) {
                     $rec->altGroupId = $data->groupId;
                 }
@@ -742,6 +746,12 @@ class eshop_Products extends core_Master
         
         // Навигация до артикула
         $data->row->productPath = $menuLink . ' » ' . $groupLink;
+        
+        if($data->rec->saleState == 'closed'){
+            $data->row->STATE_EXTERNAL = "<span class='option-not-in-stock' style='font-size:0.9em !important'>" . tr('Този продукт вече не се предлага') . "</span>";
+        } elseif($data->rec->saleState == 'empty'){
+            $data->row->STATE_EXTERNAL = "<span style='border-radius: 3px;padding: 4px;font-size: .8em;background-color: #e6e6e6;border: solid 1px #ff7070;display: inline-block;color: #c00;' '>" . tr('Свържете се с нас') . "</span>";
+        }
     }
     
     
@@ -1315,14 +1325,50 @@ class eshop_Products extends core_Master
      */
     public function updateMaster_($id)
     {
-        $rec = $this->fetch($id);
+        $rec = $this->fetchRec($id);
         if (empty($rec)) {
             
             return;
         }
         
+        $rec->saleState = self::getSaleState($rec->id);
+        
         // Обновяване на модела, за да се преизчислят ключовите думи
         $this->save($rec);
+    }
+    
+    
+    /**
+     * Какво е продажното състояние на артикула
+     *
+     * @param int $id на е-артоли;а
+     *
+     * @return string $saleState
+     */
+    public static function getSaleState($id)
+    {
+        // Всички детайли към опциите
+        $dQuery = eshop_ProductDetails::getQuery();
+        $dQuery->where("#eshopProductId = {$id}");
+        $dQuery->show('state');
+        $details = $dQuery->fetchAll();
+        
+        // Колко опции има и дали сред тях има затворени
+        $countNotClosed = $countClosed = 0;
+        $count = $dQuery->count();
+        array_walk($details, function ($a) use (&$countClosed, &$countNotClosed){if($a->state != 'active') {$countClosed++;} else {$countNotClosed++;}});
+        
+        if($count == 0){
+            $saleState = 'empty';
+        } elseif($count > 0 && $count == $countClosed){
+            $saleState = 'closed';
+        } elseif($countNotClosed == 1){
+            $saleState = 'single';
+        } else {
+            $saleState = 'multi';
+        }
+        
+        return $saleState;
     }
     
     

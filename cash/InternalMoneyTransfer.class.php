@@ -8,7 +8,7 @@
  * @package   bank
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -45,7 +45,7 @@ class cash_InternalMoneyTransfer extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, cash_Wrapper,acc_plg_Contable, acc_plg_DocumentSummary,
-     	plg_Sorting,plg_Clone,doc_DocumentPlg, plg_Printing, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, doc_SharablePlg';
+     	plg_Clone,doc_DocumentPlg, plg_Printing, deals_plg_SaveValiorOnActivation, plg_Search, bgerp_plg_Blank, doc_SharablePlg';
     
     
     /**
@@ -130,8 +130,9 @@ class cash_InternalMoneyTransfer extends core_Master
      * Позволени операции
      */
     public $allowedOperations = array('case2case' => array('debit' => '501', 'credit' => '501'),
-        'case2bank' => array('debit' => '503', 'credit' => '501'),
-        'nonecash2bank' => array('debit' => '503', 'credit' => '502'),
+                                      'case2bank' => array('debit' => '503', 'credit' => '501'),
+                                      'nonecash2bank' => array('debit' => '503', 'credit' => '502'),
+                                      'nonecash2case' => array('debit' => '501', 'credit' => '502'),
     );
     
     
@@ -154,11 +155,11 @@ class cash_InternalMoneyTransfer extends core_Master
      */
     public function description()
     {
-        $this->FLD('operationSysId', 'enum(case2case=Вътрешен касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасирани безналични плащания)', 'caption=Операция,mandatory,silent');
+        $this->FLD('operationSysId', 'enum(case2case=Вътрешен касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасиране на безналични плащания (Банка),nonecash2case=Инкасиране на безналични плащания (Каса))', 'caption=Операция,mandatory,silent');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory,summary=amount');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
-        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
-        $this->FLD('reason', 'varchar(255)', 'caption=Основание,input,mandatory');
+        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор');
+        $this->FLD('reason', 'richtext(rows=3)', 'caption=Основание,input,mandatory');
         $this->FLD('creditAccId', 'acc_type_Account()', 'caption=Кредит,input=none');
         $this->FLD('creditCase', 'key(mvc=cash_Cases, select=name)', 'caption=От->Каса');
         $this->FLD('paymentId', 'key(mvc=cond_Payments, select=title)', 'caption=От->Безналично плащане,input=none');
@@ -170,7 +171,6 @@ class cash_InternalMoneyTransfer extends core_Master
             'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Контиран,stopped=Спряно, pending=Заявка)',
             'caption=Статус, input=none'
         );
-        $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
     }
     
     
@@ -189,7 +189,7 @@ class cash_InternalMoneyTransfer extends core_Master
                 if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'debitBank')) {
                     $requiredRoles = 'no_one';
                 }
-            } elseif ($rec->operationSysId == 'case2case') {
+            } elseif ($rec->operationSysId == 'case2case' || $rec->operationSysId == 'nonecash2case') {
                 if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'debitCase')) {
                     $requiredRoles = 'no_one';
                 }
@@ -250,7 +250,7 @@ class cash_InternalMoneyTransfer extends core_Master
     {
         $form = cls::get('core_Form');
         $form->method = 'GET';
-        $form->FNC('operationSysId', 'enum(case2case=Вътрешен касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасирани безналични плащания)', 'input,caption=Операция');
+        $form->FNC('operationSysId', 'enum(case2case=Вътрешен касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасиране на безналични плащания (Банка),nonecash2case=Инкасиране на безналични плащания (Каса))', 'input,caption=Операция');
         $form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
         $form->title = 'Нов вътрешен касов трансфер';
         $form->toolbar->addSbBtn('Напред', '', 'ef_icon = img/16/move.png, title=Продължете напред');
@@ -285,6 +285,9 @@ class cash_InternalMoneyTransfer extends core_Master
         switch ($operationSysId) {
             case 'case2case':
                 $form->setField('debitCase', 'input');
+            case 'nonecash2case':
+                $form->setField('paymentId', 'input');
+                $form->setField('debitCase', 'input');
                 break;
             case 'case2bank':
                 $form->setField('debitBank', 'input');
@@ -300,7 +303,6 @@ class cash_InternalMoneyTransfer extends core_Master
         }
         $form->setReadOnly('operationSysId');
         $today = dt::verbal2mysql();
-        $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
         $form->setReadOnly('creditCase', cash_Cases::getCurrent());
     }
@@ -401,13 +403,12 @@ class cash_InternalMoneyTransfer extends core_Master
             }
             
             $row->creditCase = cash_Cases::getHyperLink($rec->creditCase, true);
-            
             if ($rec->debitCase) {
-                $row->debitCase = cash_Cases::getHyperLink($rec->debitCase, true);
+                $row->creditCase .= " » " . cash_Cases::getHyperLink($rec->debitCase, true);
             }
             
             if ($rec->debitBank) {
-                $row->debitBank = bank_OwnAccounts::getHyperLink($rec->debitBank, true);
+                $row->creditCase .= " » " . bank_OwnAccounts::getHyperLink($rec->debitBank, true);
             }
         }
     }

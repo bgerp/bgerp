@@ -669,8 +669,8 @@ class sales_TransportValues extends core_Manager
         
         // Имали вече начислен транспорт
         if ($cRec = self::get($map['masterMvc'], $masterRec->id, $rec->id)) {
-            $rec->fee = self::get($map['masterMvc'], $masterRec->id, $rec->id)->fee;
-            $rec->deliveryTimeFromFee = self::get($map['masterMvc'], $masterRec->id, $rec->id)->deliveryTime;
+            $rec->fee = $cRec->fee;
+            $rec->deliveryTimeFromFee = $cRec->deliveryTime;
         }
         
         if ($masterRec->deliveryAdress) {

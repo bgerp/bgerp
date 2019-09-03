@@ -9,7 +9,7 @@
  * @package   cash
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -103,13 +103,12 @@ class cash_Pko extends cash_Document
         $form = &$data->form;
         $rec = &$form->rec;
         
-        // Динамично добавяне на полета
-        $paymentArr = cash_NonCashPaymentDetails::getPaymentsArr($rec->id, $mvc->getClassId());
-        foreach ($paymentArr as $key => $obj) {
-            $caption = cond_Payments::getTitleById($obj->paymentId);
-            $form->FLD($key, 'double(Min=0)', "caption=Безналично плащане->{$caption},before=contragentName,autohide");
-            $form->setDefault($key, $obj->amount);
-        }
+        // Добавяне на таблица за избор на безналични плащания
+        $rec->exPayments = cash_NonCashPaymentDetails::getPaymentsTableArr($rec->id, $mvc->getClassId());
+        $form->FLD('payments', "table(columns=paymentId|amount,captions=Плащане|Сума,validate=cash_NonCashPaymentDetails::validatePayments)", "caption=Безналично плащане->Избор,before=contragentName");
+        $form->setFieldTypeParams('payments', array('paymentId_opt' => array('' => '') + cls::get('cond_Payments')->makeArray4Select('title')));
+        $form->setDefault('payments', $rec->exPayments);
+        $rec->exPayments = type_Table::toArray($rec->exPayments);
     }
     
     
@@ -121,19 +120,12 @@ class cash_Pko extends cash_Document
         $rec = &$form->rec;
         $rec->nonCashPayments = array();
         
-        $arr = (array) $rec;
         $nonCashSum = 0;
-        $keys = array();
-        foreach ($arr  as $key => $value) {
-            if (strpos($key, '_payment') !== false) {
-                $nonCashSum += $value;
-                $keys[] = $key;
-                $rec->nonCashPayments[$key] = $value;
-            }
-        }
+        $payments = type_Table::toArray($rec->payments);
+        array_walk($payments, function($a) use (&$nonCashSum){$nonCashSum += $a->amount;});
         
         if ($nonCashSum > $rec->amount) {
-            $form->setError(implode(',', $keys), 'Общата сума на безналичните методи за плащане е над тази от ордера');
+            $form->setError('payments', 'Общата сума на безналичните методи за плащане е над тази от ордера');
         }
     }
     
@@ -143,29 +135,36 @@ class cash_Pko extends cash_Document
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if (is_array($rec->nonCashPayments)) {
-            $update = $delete = array();
-            $paymentArr = cash_NonCashPaymentDetails::getPaymentsArr($rec->id, $mvc->getClassId());
+        if(empty($rec->payments) && empty($rec->exPayments)) return;
+        
+        $payments = type_Table::toArray($rec->payments);
+        
+        // Обновяване на безналичните плащания ако има
+        $update = $delete = $notDelete = array();
+        foreach ($payments as $obj) {
+            $update[$obj->paymentId] = (object) array('documentId' => $rec->id, 'paymentId' => $obj->paymentId, 'amount' => $obj->amount);
+            $paymentId = $obj->paymentId;
+            $notDelete[$paymentId] = $paymentId;
             
-            foreach ($rec->nonCashPayments as $key => $value) {
-                if (!empty($value)) {
-                    $update[$key] = (object) array('documentId' => $rec->id, 'paymentId' => $paymentArr[$key]->paymentId, 'amount' => $value, 'id' => $paymentArr[$key]->id);
-                } else {
-                    if (isset($paymentArr[$key]->id)) {
-                        $delete[] = $paymentArr[$key]->id;
-                    }
+            if(is_array($rec->exPayments)){
+                $foundRec = array_filter($rec->exPayments, function ($a) use ($paymentId) { return $paymentId == $a->paymentId;});
+                if(is_object($foundRec)){
+                    $update[$obj->paymentId]->id = $foundRec->id;
                 }
             }
-            
-            // Ъпдейт на нужните записи
-            if (count($update)) {
-                cls::get('cash_NonCashPaymentDetails')->saveArray_($update);
-            }
-            
-            // Изтриване на старите записи
+        }
+        
+        // Ъпдейт на нужните записи
+        if (count($update)) {
+            cls::get('cash_NonCashPaymentDetails')->saveArray_($update);
+        }
+        
+        // Изтриване на старите записи
+        if(is_array($rec->exPayments)){
+            $delete = array_filter($rec->exPayments, function ($a) use ($notDelete) { return !array_key_exists($a->paymentId, $notDelete);});
             if (count($delete)) {
-                foreach ($delete as $id) {
-                    cash_NonCashPaymentDetails::delete($id);
+                foreach ($delete as $obj) {
+                    cash_NonCashPaymentDetails::delete($obj->id);
                 }
             }
         }

@@ -34,11 +34,6 @@ class export_Doc extends core_Mvc
      */
     public function canUseExport($clsId, $objId)
     {
-        // @todo - remove
-        if (!haveRole('debug')) {
-            
-            return ;
-        }
         
         return export_Export::canUseExport($clsId, $objId);
     }
@@ -157,12 +152,6 @@ class export_Doc extends core_Mvc
      */
     public function getExternalExportLink($clsId, $objId, $mid)
     {
-        // @todo - remove
-        if (!isDebug()) {
-            
-            return ;
-        }
-        
         Request::setProtected(array('objId', 'clsId', 'mid', 'typeCls'));
         
         $link = ht::createLink('DOC', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => true), null, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/doc.png'));

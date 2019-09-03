@@ -883,7 +883,6 @@ en,Кофа,Bucket
 en,Кофи за файлове,File Buckets
 en,Кофи,Buckets
 en,Кош,Bin
-en,Кп,Cp
 en,Краен срок за п_0995,Deadline for payment
 en,Краен срок,Deadline
 en,Краен час,Due time
@@ -2836,6 +2835,7 @@ en,Липсват данните за фактуриране,Missing billing inf
 en,"Нямате избрани артикули","You haven't selected any items"
 en,изпращане на запитването,send the enquiry
 en,Безплатна,Free
+en,Безплатно,Free
 en,"Моля, завършете поръчката, като направите плащането от бутона","Place the order after you make a payment from"
 en,"Ако имате клиентска карта, може да я въведете от","If you have a client card, you may input it from"
 en,Невалиден номер на карта,The card number is not valid
@@ -2880,3 +2880,8 @@ en,Свързване на онлайн услуга,Connect an online service
 en,Свързване на онлайн услуги,Connect online services
 en,Краен срок за,Deadline for
 en,Възложено на,Assigned to
+en,Този продукт вече не се предлага,This item is no longer available
+en,Страна за доставка,Delivery country
+en,Пощенски код за доставка,Post code for delivery
+en,В момента количеството не е налично в склада,Quantity is currently unabailable
+en,Свържете се с нас,Contact us

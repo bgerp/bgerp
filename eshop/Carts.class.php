@@ -291,6 +291,12 @@ class eshop_Carts extends core_Master
             $skip = true;
         }
         
+        if (!eshop_ProductDetails::getPublicDisplayPrice($productId, $packagingId)) {
+            $msg = '|Артикулът няма цена|*';
+            $success = false;
+            $skip = true;
+        }
+        
         $success = false;
         if (!empty($eshopProductId) && !empty($productId) && !empty($packQuantity) && $skip !== true) {
             try {

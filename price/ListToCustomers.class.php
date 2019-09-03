@@ -410,7 +410,7 @@ class price_ListToCustomers extends core_Manager
             // Намираме цената по тази политика и намираме колко % е отстъпката/надценката
             $comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime);
             
-            if ($comparePrice && $rec->price) {
+            if ($comparePrice && isset($rec->price)) {
                 $disc = ($rec->price - $comparePrice) / $comparePrice;
                 $discount = round(-1 * $disc, 4);
                 

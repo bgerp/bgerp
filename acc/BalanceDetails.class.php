@@ -1187,8 +1187,6 @@ class acc_BalanceDetails extends core_Detail
                                     } else {
                                         $price = 0;
                                     }
-                                    
-                                    //bp($defCost, $rec);
                                 }
                             }
                         }

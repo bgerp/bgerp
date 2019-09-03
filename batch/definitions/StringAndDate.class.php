@@ -85,20 +85,35 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
     {
         $existingBatches = batch_BatchesInDocuments::getBatchByType($this->getClassId(), 'batch');
         $existingBatches = arr::extractValuesFromArray($existingBatches, 'batch');
-        $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
+        
+        // Кои са всички възможни разделители
+        $delimiterArr = array();
+        $allDelimeters = array('&#x20;', '&#44;', '&#47;', '&#45;', '.');
+        foreach ($allDelimeters as $str){
+            $del = html_entity_decode($str, ENT_COMPAT, 'UTF-8');
+            $delimiterArr[$str] = $del;
+        }
+        $delimiter = $delimiterArr[$this->rec->delimiter];
         
         $normalized = array();
         foreach ($existingBatches as $batch) {
-            list($batchNormalized, ) = explode($delimiter, $batch, 2);
-            $normalized[] = str_replace($this->rec->prefix, '', $batchNormalized);
+            
+            // Извличат се номерата с допустимите дължини
+            foreach ($delimiterArr as $currentDelimiter){
+                $exploded = explode($currentDelimiter, $batch, 2);
+                if(count($exploded) != 2) continue;
+                if(mb_strlen($exploded[0]) >= $this->rec->length) continue;
+                $norm = preg_replace("/[^0-9]/", "", $exploded[0]);
+                
+                $normalized[] = $norm;
+            }
         }
         rsort($normalized);
-        
         $max = $normalized[0];
+        
         $nextNumber = isset($max) ? str::increment($max) : str_pad(1, $this->rec->length, '0', STR_PAD_LEFT);
         $nextNumber = "{$this->rec->prefix}{$nextNumber}";
-        
-        if (!empty($this->rec->length) && strlen($nextNumber) > $this->rec->length) {
+        if (!empty($this->rec->length) && mb_strlen($nextNumber) > $this->rec->length) {
             
             return;
         }
