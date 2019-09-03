@@ -1611,8 +1611,7 @@ class pos_Receipts extends core_Master
         $Double->params['decimals'] = 2;
         $row = new stdClass();
         
-        $row->price = $Double->toVerbal($obj->price);
-        $row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
+        $row->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
         $row->stock = $Double->toVerbal($obj->stock);
         
         $row->packagingId = ($obj->packagingId) ? cat_UoM::getTitleById($obj->packagingId) : cat_UoM::getTitleById($obj->measureId);
