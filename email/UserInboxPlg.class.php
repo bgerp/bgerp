@@ -22,27 +22,59 @@ defIfNot('BGERP_ROLE_HEADQUARTER', 'Headquarter');
  */
 class email_UserInboxPlg extends core_Plugin
 {
+    
+    
+    /**
+     * Преди записване на данните
+     */
+    public function on_BeforeSave($mvc, $id, &$rec)
+    {
+        //Ако добавяме нов потребител
+        if (!$rec->id) {
+            if (!core_Users::fetch('1=1')) {
+                $rec->First = true;
+            }
+            
+            //Проверяваме дали имаме папка със същото име и дали някой е собственик
+            expect(core_Users::isContractor($rec) || !$this->checkFolderCharge($rec), 'Моля въведете друг Ник. Папката е заета от друг потребител.');
+        }
+        
+        // При добавяне или при редакция на ник да се създава корпоративен имейл, ако има такъв акаунт
+        if (isset($rec->nick)) {
+            if ($corpAccRec = email_Accounts::getCorporateAcc()) {
+                if (!$rec->id) {
+                    if ($rec->state == 'active') {
+                        $rec->CorporateAccId = $corpAccRec->id;
+                    }
+                } else {
+                    if ($oRec = $mvc->fetch($rec->id)) {
+                        if (($oRec->nick != $rec->nick) || ($oRec->state != 'active')) {
+                            $rec->CorporateAccId = $corpAccRec->id;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    
     /**
      * Извиква се след вкарване на запис в таблицата на модела users
      */
     public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
     {
-        //Ако се добавя или редактира потребител
-        //При вход в системата не се задейства
-        if ($rec->nick) {
-            
-            // На контрактори да не се създава корпоративен имейл
-            if ((!core_Users::isContractor($rec)) && ($corpAccRec = email_Accounts::getCorporateAcc())) {
-                
+        // Ако трябва да се създава корпоративна сметка
+        if (isset($rec->CorporateAccId)) {
+            // Ако има съответната роля за създаване на корпоративна сметка
+            if (haveRole(email_Setup::get('ROLE_FOR_CORPORATE_EMAIL'), $rec->id)) {
                 //Данни необходими за създаване на папка
                 $eRec = new stdClass();
                 
                 //Добавяме полето имейл, необходима за създаване на корица
                 $eRec->email = email_Inboxes::getUserEmail($rec->id);
-                $eRec->accountId = $corpAccRec->id;
+                $eRec->accountId = $rec->CorporateAccId;
                 $eRec->access = 'private';
-                $eRec->inCharge = $rec->id; // Отговорник на новата папка е новосъздадения
-                // потребител.
+                $eRec->inCharge = $rec->id; // Отговорник на новата папка е новосъздадения потребител.
                 
                 if ($eRec->email) {
                     email_Inboxes::forceCoverAndFolder($eRec);
@@ -51,7 +83,7 @@ class email_UserInboxPlg extends core_Plugin
         }
         
         // Това се прави в doc_Setup -> 107 - 117
-        if ($rec->first && $rec->id) {
+        if ($rec->First && $rec->id) {
             // На първия потребител даваме и ceo роля. Необходимо ли е?
             core_Users::addRole($rec->id, 'ceo');
             
@@ -110,23 +142,6 @@ class email_UserInboxPlg extends core_Plugin
             } else {
                 self::on_AfterCreate($mvc, $rec);
             }
-        }
-    }
-    
-    
-    /**
-     * Преди записване на данните
-     */
-    public function on_BeforeSave($mvc, $id, &$rec)
-    {
-        //Ако добавяме нов потребител
-        if (!$rec->id) {
-            if (!core_Users::fetch('1=1')) {
-                $rec->first = true;
-            }
-            
-            //Проверяваме дали имаме папка със същото име и дали някой е собственик
-            expect(core_Users::isContractor($rec) || !$this->checkFolderCharge($rec), 'Моля въведете друг Ник. Папката е заета от друг потребител.');
         }
     }
     
