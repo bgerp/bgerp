@@ -117,8 +117,24 @@ class acc_CostAllocations extends core_Manager
                 acc_Journal::reconto($rec->containerId);
                 $origin->getInstance()->logWrite('Ре-контиране на документа', $origin->that);
             }
+            
+            // Ако изтритият разходен обект има кеш записи в таблицата за доставка да му се обновят
+            if(isset($rec->_oldExpenceItemId) && $rec->expenseItemId != $rec->_oldExpenceItemId){
+                self::forceUpdateOnShutdown($rec->_oldExpenceItemId);
+            }
         } catch (core_exception_Expect $e) {
             reportException($e);
+        }
+    }
+    
+    private static function forceUpdateOnShutdown($expenseItemId)
+    {
+        // Ако изтритият разходен обект има кеш записи в таблицата за доставка да му се обновят
+        $itemRec = acc_Items::fetch($expenseItemId, 'classId,objectId');
+        $expenseReg = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
+        if($expenseReg->getInstance()->hasPlugin('purchase_plg_ExtractPurchasesData')){
+            $Register = cls::get($itemRec->classId);
+            purchase_plg_ExtractPurchasesData::setUpdateOnShutdown($Register, $expenseReg->fetch());
         }
     }
     
@@ -135,12 +151,7 @@ class acc_CostAllocations extends core_Manager
                 $origin->getInstance()->logWrite('Ре-контиране на документа', $origin->that);
                 
                 // Ако изтритият разходен обект има кеш записи в таблицата за доставка да му се обновят
-                $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
-                $expenseReg = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
-                if($expenseReg->getInstance()->hasPlugin('purchase_plg_ExtractPurchasesData')){
-                    $Register = cls::get($itemRec->classId);
-                    purchase_plg_ExtractPurchasesData::setUpdateOnShutdown($Register, $expenseReg->fetch());
-                }
+                self::forceUpdateOnShutdown($rec->expenseItemId);
             }
         }
     }
@@ -210,6 +221,7 @@ class acc_CostAllocations extends core_Manager
     {
         $form = &$data->form;
         $rec = $data->form->rec;
+        $rec->_oldExpenceItemId = $rec->expenseItemId;
         
         // Какво к-во се очаква да се разпредели
         $maxQuantity = cls::get($rec->detailClassId)->getMaxQuantity($rec->detailRecId);
