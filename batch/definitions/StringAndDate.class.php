@@ -56,7 +56,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         // Ако ще се генерира автоматична стойност
         if ($this->rec->autoValue == 'yes') {
             $time = cat_Products::getParams($this->rec->productId, 'expiryTime');
-            if (!isset($time)) {
+            if (empty($time)) {
                 $time = $this->rec->time;
             }
             
@@ -83,7 +83,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
      */
     private function getNextBatch($expiryDate)
     {
-        $existingBatches = batch_BatchesInDocuments::getBatchByType($this->getClassId(), 'batch');
+        $existingBatches = batch_BatchesInDocuments::getBatchByType($this->getClassId(), 'batch', $this->rec->id);
         $existingBatches = arr::extractValuesFromArray($existingBatches, 'batch');
         
         // Кои са всички възможни разделители
