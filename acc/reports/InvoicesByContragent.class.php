@@ -460,23 +460,23 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 if (!$rec->crmGroup && $rec->contragent) {
                     $contragentsArr = keylist::toArray($rec->contragent);
                     
-                    $invQuery->in('folderId', $contragentsArr);
+                    $pQuery->in('folderId', $contragentsArr);
                 }
                 
                 if ($rec->crmGroup && !$rec->contragent) {
                     $foldersInGroups = self::getFoldersInGroups($rec);
                     
-                    $invQuery->in('folderId', $foldersInGroups);
+                    $pQuery->in('folderId', $foldersInGroups);
                 }
                 
                 if ($rec->crmGroup && $rec->contragent) {
                     $contragentsArr = keylist::toArray($rec->contragent);
                     
-                    $invQuery->in('folderId', $contragentsArr);
+                    $pQuery->in('folderId', $contragentsArr);
                     
                     $foldersInGroups = self::getFoldersInGroups($rec);
                     
-                    $invQuery->in('folderId', $foldersInGroups);
+                    $pQuery->in('folderId', $foldersInGroups);
                 }
             }
             
