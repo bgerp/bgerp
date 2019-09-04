@@ -1117,8 +1117,10 @@ class sales_QuotationsDetails extends doc_Detail
         $isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
         if($isPublic == 'yes'){
             $masterRec = sales_Quotations::fetch($rec->quotationId);
-            $livePrice = self::calcLivePrice($rec, $masterRec);
-            if(empty($livePrice)){
+            
+            $clone = clone $rec;
+            self::calcLivePrice($clone, $masterRec);
+            if(empty($clone->price)){
                 $rec->price = $oldRec->price;
             }
         }
