@@ -72,7 +72,7 @@ class doc_plg_MultiPrint extends core_Plugin
         $originalTpl = clone($tpl);
         $tpl = new ET('');
         
-        $copiesNum = isset($mvc->copiesOnPrint) ? $mvc->copiesOnPrint : ((count($mvc->printParams)) ? count($mvc->printParams) : 2);
+        $copiesNum = isset($mvc->copiesOnPrint) ? $mvc->copiesOnPrint : ((countR($mvc->printParams)) ? countR($mvc->printParams) : 2);
         
         for ($i = 1; $i <= $copiesNum; $i++) {
             
@@ -80,7 +80,7 @@ class doc_plg_MultiPrint extends core_Plugin
             $clone = clone($originalTpl);
             
             // Добавяме зададените параметри в $mvc->printParams, най отгоре на документа
-            if (count($mvc->printParams) > 0) {
+            if (countR($mvc->printParams) > 0) {
                 $paramET = '';
                 foreach ($mvc->printParams[$i - 1] as $param) {
                     $paramET .= $param . ' &nbsp;&nbsp;&nbsp;';

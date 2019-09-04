@@ -482,7 +482,8 @@ class core_App
         }
         $oneTimeFlag = true;
         
-        
+        ignore_user_abort(true);
+
         if ($output) {
             $content = ob_get_contents();         // Get the content of the output buffer
             
@@ -523,13 +524,14 @@ class core_App
         if ($output) {
             ob_end_flush();
             ob_flush();
-            flush();
-            
-            // Изпращаме съдържанието на изходния буфер
-            if (function_exists('fastcgi_finish_request')) {
-                @fastcgi_finish_request();
-            }
         }
+        
+        // Изпращаме съдържанието на изходния буфер
+        if (function_exists('fastcgi_finish_request')) {
+            @fastcgi_finish_request();
+        }
+        
+        flush();
     }
     
     
@@ -618,7 +620,7 @@ class core_App
             $resObj->func = 'redirect';
             $resObj->arg = array('url' => $url);
             
-            return self::outputJson(array($resObj), false);
+            return self::outputJson(array($resObj));
         }
         
         // Забранява кеширането. Дали е необходимо тук?

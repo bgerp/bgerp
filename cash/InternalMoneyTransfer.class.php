@@ -285,6 +285,7 @@ class cash_InternalMoneyTransfer extends core_Master
         switch ($operationSysId) {
             case 'case2case':
                 $form->setField('debitCase', 'input');
+                break;
             case 'nonecash2case':
                 $form->setField('paymentId', 'input');
                 $form->setField('debitCase', 'input');

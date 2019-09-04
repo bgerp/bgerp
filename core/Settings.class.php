@@ -415,6 +415,13 @@ class core_Settings extends core_Manager
         // Извикваме интерфейсната функция
         $class->prepareSettingsForm($form);
         
+        $currCu = core_Users::getCurrent();
+        
+        $cuForAll = null;
+        if (haveRole($form->fields['_userOrRole']->type->params['rolesForAllSysTeam'])) {
+            $cuForAll = $currCu;
+        }
+        
         // Ако в някое поле е зададено, че това е опция за всички потребители и кой може да го променя
         $uSettingForAllArr = array();
         $sForAllFieldArr = $form->selectFields('#settingForAll');
@@ -425,6 +432,9 @@ class core_Settings extends core_Manager
             
             if (trim($fOpt->settingForAll) && ($fOpt->settingForAll != 'settingForAll')) {
                 $uSettingForAllArr[$fName] = type_Keylist::toArray($fOpt->settingForAll);
+                if ($cuForAll) {
+                    $uSettingForAllArr[$fName][$cuForAll] = $cuForAll;
+                }
             } else {
                 $uSettingForAllArr[$fName] = '*';
             }
@@ -475,8 +485,6 @@ class core_Settings extends core_Manager
                 Request::push($valsArr);
             }
         }
-        
-        $currCu = core_Users::getCurrent();
         
         // Стойностите да се инпутват с правата на избрания потребител
         $sudo = false;
