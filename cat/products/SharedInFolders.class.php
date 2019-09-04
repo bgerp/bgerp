@@ -245,7 +245,7 @@ class cat_products_SharedInFolders extends core_Manager
         $title = ($pRec->isPublic == 'yes') ? 'стандартен' : 'нестандартен';
         cls::get('cat_Products')->save_($pRec, 'isPublic');
         
-        return followRetUrl(array('cat_Products', 'single', $productId), " Артикулат вече е {$title}");
+        return followRetUrl(array('cat_Products', 'single', $productId), " Артикулът вече е {$title}");
     }
     
     

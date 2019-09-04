@@ -50,6 +50,8 @@ class bank_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
             'quantity' => $rec->amount));
         $entry = array($entry);
         
+        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+        
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(
             'reason' => $rec->reason,   // основанието за ордера
