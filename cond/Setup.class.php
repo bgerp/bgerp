@@ -63,7 +63,6 @@ class cond_Setup extends core_ProtoSetup
         'cond_Countries',
         'cond_TaxAndFees',
         'cond_Colors',
-        'migrate::closeOldPayments',
     );
     
     
@@ -106,18 +105,5 @@ class cond_Setup extends core_ProtoSetup
         $Bucket->createBucket('paramFiles', 'Прикачени файлови параметри', null, '1GB', 'user', 'user');
         
         return $html;
-    }
-    
-    
-    /**
-     * Затваряне на стари плащания
-     */
-    function closeOldPayments()
-    {
-        $paymentRec = cond_Payments::fetch("#title = 'Borica'");
-        if(is_object($paymentRec)){
-            $paymentRec->state = 'closed';
-            cond_Payments::save($paymentRec);
-        }
     }
 }

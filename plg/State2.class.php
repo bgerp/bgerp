@@ -55,8 +55,6 @@ class plg_State2 extends core_Plugin
             $this->activeState = 'active';
             $this->closedState = 'closed';
         }
-        
-        setIfNot($mvc->updateExistingStateOnImport, true);
     }
     
     
@@ -105,11 +103,6 @@ class plg_State2 extends core_Plugin
      */
     public function on_BeforeSave(&$invoker, &$id, &$rec, $fields = null)
     {
-        // Ако записа се импортира от csv и има вече такъв, и е указано да не му се променя състоянието, то си остава старото
-        if(Mode::is('importFromCsv') && isset($rec->id) && $invoker->updateExistingStateOnImport === false){
-            $rec->state = $invoker->fetchField($rec->id, 'state', false);
-        }
-        
         if (!$rec->state) {
             $this->getActiveAndClosedState($invoker);
             $rec->state = $this->activeState;

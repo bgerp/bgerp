@@ -113,6 +113,8 @@ class csv_Lib
                     continue ;
                 }
                 
+                Mode::push('importFromCsv', true);
+                
                 // Ако таблицата се попълва от нулата, само се добавят редове
                 if ($fromZero && $isLarge) {
                     $recs[] = $rec;
@@ -141,6 +143,7 @@ class csv_Lib
                 
                 // Ако нямаме запис с посочените уникални стойности, вкарваме новия
                 $mvc->save($rec);
+                Mode::pop('importFromCsv', true);
                 
                 // Генериране на събитие след импортиране на запис
                 $mvc->invoke('AfterImportRec', array(&$rec));
