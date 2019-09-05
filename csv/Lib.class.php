@@ -97,13 +97,13 @@ class csv_Lib
                 } else {
                     $rec = new stdClass();
                 }
-                
+               
                 foreach ($fields as $i => $f) {
                     $data[$i] = str_replace($format['escape'], '', $data[$i]);
                     
                     $rec->{$f} = $data[$i];
                 }
-                
+               
                 if ($closeOnce) {
                     $rec->state = 'closed';
                     $closeOnce = false;
@@ -112,6 +112,8 @@ class csv_Lib
                 if ($mvc->invoke('BeforeImportRec', array(&$rec, $data, $fields, $defaults)) === false) {
                     continue ;
                 }
+                
+                Mode::push('importFromCsv', true);
                 
                 // Ако таблицата се попълва от нулата, само се добавят редове
                 if ($fromZero && $isLarge) {
@@ -125,7 +127,7 @@ class csv_Lib
                 }
                 
                 $conflictFields = array();
-                
+               
                 if ($rec->id || !$mvc->isUnique($rec, $conflictFields, $exRec)) {
                     if (!$rec->id) {
                         $rec->id = $exRec->id;
@@ -141,6 +143,7 @@ class csv_Lib
                 
                 // Ако нямаме запис с посочените уникални стойности, вкарваме новия
                 $mvc->save($rec);
+                Mode::pop('importFromCsv', true);
                 
                 // Генериране на събитие след импортиране на запис
                 $mvc->invoke('AfterImportRec', array(&$rec));
