@@ -14,12 +14,6 @@
                         <td>[#creditCase#]</td>
                     </tr>
                     <!--ET_END creditCase-->
-                    <!--ET_BEGIN paymentId-->
-                    <tr>
-                        <td class="quiet">|Инкасирано от|*:</td>
-                        <td>[#paymentId#]</td>
-                    </tr>
-                    <!--ET_END paymentId-->
                     <!--ET_BEGIN creditBank-->
                     <tr>
                         <td class="quiet">|Движение|*:</td>
