@@ -32,28 +32,6 @@ class core_Webroot
         $path = self::getPath($filename, $domain);
         
         file_put_contents($path, $contents);
-        
-        if (strpos($headers, 'Pragma:') === false) {
-            $headers .= "\nPragma: public";
-        }
-        
-        if (strpos($headers, 'Cache-Control:') === false) {
-            $headers .= "\nCache-Control: max-age=10800";
-        }
-        
-        if (strpos($headers, 'Expires:') === false) {
-            $headers .= "\nExpires: " . gmdate('D, d M Y H:i:s \G\M\T', time() + 10800);
-        }
-        
-        if (strpos($headers, 'Content-Type:') === false) {
-            $headers .= "\nContent-Type: " . fileman_Mimes::getMimeByExt(fileman_Files::getExt($filename));
-        }
-        
-        if (strpos($headers, 'Content-Length:') === false) {
-            $headers .= "\nContent-Length: " . filesize($path);
-        }
-        
-        file_put_contents($path . '.headers', $headers);
     }
     
     
@@ -66,13 +44,7 @@ class core_Webroot
         $path = self::getPath($filename, $domain);
         
         if (file_exists($path)) {
-            unlink($path);
-        }
-        
-        $path = $path . '.headers';
-        
-        if (file_exists($path)) {
-            unlink($path);
+            @unlink($path);
         }
     }
     
@@ -101,14 +73,9 @@ class core_Webroot
         $path = self::getPath($filename, $domain);
         
         if (file_exists($path)) {
-            // Показваме хедърите
-            $headers = file_get_contents($path . '.headers');
-            $hArr = explode("\n", $headers);
-            foreach ($hArr as $h) {
-                if (strlen($h) > 0) {
-                    header($h);
-                }
-            }
+            header("Pragma: public");
+            header("Cache-Control: max-age=10800");
+            header("Content-Type: " . fileman_Mimes::getMimeByExt(fileman_Files::getExt($filename)));
             
             // Сервираме файла
             readfile($path);
