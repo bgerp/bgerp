@@ -245,8 +245,8 @@ class store_InventoryNotes extends core_Master
             $requiredRoles = 'no_one';
         }
         
-        if($action == 'fillreport' && isset($rec)){
-            if($rec->state != 'draft'){
+        if ($action == 'fillreport' && isset($rec)) {
+            if ($rec->state != 'draft') {
                 $requiredRoles = 'no_one';
             }
         }
@@ -381,7 +381,7 @@ class store_InventoryNotes extends core_Master
         if ($mvc->haveRightFor('fillreport', $rec)) {
             $url = array($mvc, 'fillreport', $rec->id, 'ret_url' => true);
             $data->toolbar->addBtn('Нулиране', $url, 'id=fillReport,ef_icon = img/16/cart_go.png,title=Нулиране на всички артикули без въведени количества,row=2');
-            $data->toolbar->setWarning('fillReport', "Наистина ли желаете всички артикули без въведени количества да сe нулират|*?");
+            $data->toolbar->setWarning('fillReport', 'Наистина ли желаете всички артикули без въведени количества да се нулират|*?');
         }
     }
     
@@ -584,6 +584,7 @@ class store_InventoryNotes extends core_Master
         $storeItemId = acc_Items::fetchItem('store_Stores', $rec->storeId)->id;
         $Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'cacheBalance' => false, 'item1' => $storeItemId, 'keepUnique' => true));
         $bRecs = $Balance->getBalance('321');
+        
         
         $productPositionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
         
@@ -908,9 +909,9 @@ class store_InventoryNotes extends core_Master
     /**
      * Метод за създаване на нов протокол за инвентаризация
      *
-     * @param int       $storeId     - склад
+     * @param int           $storeId     - склад
      * @param datetime|NULL $valior      - вальор
-     * @param bool      $loadCurrent - дали да се заредят всички артикули в склада
+     * @param bool          $loadCurrent - дали да се заредят всички артикули в склада
      *
      * @return int $id             - ид на протокола
      */
@@ -1018,13 +1019,13 @@ class store_InventoryNotes extends core_Master
         $summaryQuery = store_InventoryNoteSummary::getQuery();
         $summaryQuery->where("#noteId = {$rec->id} AND #quantity IS NULL");
         
-        while($summaryRec = $summaryQuery->fetch()){
-            $dRec = (object)array('noteId' => $id, 'productId' => $summaryRec->productId, 'quantityInPack' => 1);
+        while ($summaryRec = $summaryQuery->fetch()) {
+            $dRec = (object) array('noteId' => $id, 'productId' => $summaryRec->productId, 'quantityInPack' => 1);
             $dRec->packagingId = cat_Products::fetchField($summaryRec->productId, 'measureId');
             $dRec->quantity = 0;
             store_InventoryNoteDetails::save($dRec);
         }
-       
+        
         $this->logInAct('Нулиране на невъведените артикули', $id);
         
         followRetUrl('Всички артикули с невъведени количества са нулирани');

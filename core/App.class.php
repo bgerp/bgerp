@@ -482,7 +482,8 @@ class core_App
         }
         $oneTimeFlag = true;
         
-        
+        ignore_user_abort(true);
+
         if ($output) {
             $content = ob_get_contents();         // Get the content of the output buffer
             
@@ -491,19 +492,14 @@ class core_App
             }
         }
         
-        $isHeadersSent = headers_sent();
-        
-        if (!$isHeadersSent) {
+        if (!headers_sent()) {
             if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output) {
                 $len = strlen($content);
                 header("Content-Length: ${len}");
             } else {
                 header('Content-Length: 0');
             }
-            header('Cache-Control: private, max-age=0');
-            header('Expires: -1');
             header('Connection: close');
-            header('X-Accel-Buffering: no');
             
             // Добавяме допълнителните хедъри
             $aHeadersArr = self::getAdditionalHeadersArr();
@@ -515,7 +511,7 @@ class core_App
         if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output && $len) {
             echo $content; // Output content
         } else {
-            if (!$isHeadersSent) {
+            if (!headers_sent()) {
                 header('Content-Encoding: none');
             }
         }
@@ -523,13 +519,14 @@ class core_App
         if ($output) {
             ob_end_flush();
             ob_flush();
-            flush();
-            
-            // Изпращаме съдържанието на изходния буфер
-            if (function_exists('fastcgi_finish_request')) {
-                @fastcgi_finish_request();
-            }
         }
+        
+        // Изпращаме съдържанието на изходния буфер
+        if (function_exists('fastcgi_finish_request')) {
+            @fastcgi_finish_request();
+        }
+        
+        flush();
     }
     
     
@@ -618,7 +615,7 @@ class core_App
             $resObj->func = 'redirect';
             $resObj->arg = array('url' => $url);
             
-            return self::outputJson(array($resObj), false);
+            return self::outputJson(array($resObj));
         }
         
         // Забранява кеширането. Дали е необходимо тук?

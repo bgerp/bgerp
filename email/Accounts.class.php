@@ -469,6 +469,27 @@ class email_Accounts extends core_Master
     /**
      * Когато се създава акаунт, към него се съзадава и входяща пощенска кутия
      */
+    public function on_BeforeSave($mvc, &$id, $rec, $saveFileds = null)
+    {
+        // Вдигаме флаг, да се създаде корпоративен имейл на всички потребители с определена роля
+        // Ако се добавя активна корпоративна сметка или се сменя домейна
+        if (($rec->type == 'corporate') && ($rec->state == 'active')) {
+            if (!$rec->id) {
+                $rec->AddCorporateEmail = true;
+            } else {
+                $oCAcc = $mvc->getCorporateAcc();
+                list(, $domain) = explode('@', $rec->email);
+                if ($domain != $oCAcc->domain) {
+                    $rec->AddCorporateEmail = true;
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Когато се създава акаунт, към него се съзадава и входяща пощенска кутия
+     */
     public function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
     {
         if (email_Inboxes::fetch("#email = '{$rec->email}'")) {
@@ -500,6 +521,17 @@ class email_Accounts extends core_Master
         }
         
         email_Inboxes::forceCoverAndFolder($boxRec);
+        
+        if ($rec->AddCorporateEmail) {
+            $uArr = core_Users::getByRole(email_Setup::get('ROLE_FOR_CORPORATE_EMAIL'));
+            
+            foreach ($uArr as $uId) {
+                $uRec = core_Users::fetch($uId);
+                $uRec->CorporateAccId = $rec->id;
+                $uRec->_notModified = true;
+                core_Users::save($uRec, 'id');
+            }
+        }
     }
     
     

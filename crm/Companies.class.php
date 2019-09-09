@@ -201,7 +201,7 @@ class crm_Companies extends core_Master
      * Детайли, на модела
      */
     public $details = 'AccReports=acc_ReportDetails,CompanyExpandData=crm_Persons,ContragentLocations=crm_Locations,
-                    ContragentBankAccounts=bank_Accounts,CourtReg=crm_ext_CourtReg,CommerceDetails=crm_CommerceDetails';
+                    ContragentBankAccounts=bank_Accounts,CourtReg=crm_ext_CourtReg,CommerceDetails=crm_CommerceDetails,ContragentUnsortedFolders=doc_UnsortedFolders';
     
     
     /**

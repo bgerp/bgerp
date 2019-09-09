@@ -1102,13 +1102,12 @@ class sales_QuotationsDetails extends doc_Detail
      */
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
-        // Преди клониране клонира се и сумата на цената на транспорта
-        $cRec = sales_TransportValues::get($mvc->Master, $oldRec->quotationId, $oldRec->id);
-        if (isset($cRec)) {
-            $rec->fee = $cRec->fee;
-            $rec->deliveryTimeFromFee = $cRec->deliveryTime;
-            $rec->_transportExplained = $cRec->explain;
-            $rec->syncFee = true;
+        // Изчисляване на транспортните разходи
+        if (core_Packs::isInstalled('tcost')) {
+            $form = sales_QuotationsDetails::getForm();
+            $clone = clone sales_Quotations::fetch($rec->quotationId);
+            $clone->deliveryPlaceId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
+            sales_TransportValues::prepareFee($rec, $form, $clone, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
         }
         
         $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
@@ -1118,8 +1117,10 @@ class sales_QuotationsDetails extends doc_Detail
         $isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
         if($isPublic == 'yes'){
             $masterRec = sales_Quotations::fetch($rec->quotationId);
-            $livePrice = self::calcLivePrice($rec, $masterRec);
-            if(empty($livePrice)){
+            
+            $clone = clone $rec;
+            self::calcLivePrice($clone, $masterRec);
+            if(empty($clone->price)){
                 $rec->price = $oldRec->price;
             }
         }

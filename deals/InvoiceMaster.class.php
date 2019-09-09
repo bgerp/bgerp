@@ -73,6 +73,12 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * Поле за забележките
+     */
+    public $notesFld = 'additionalInfo';
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)

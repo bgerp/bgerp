@@ -977,7 +977,7 @@ class planning_Tasks extends core_Master
                 $notes[] = planning_DirectProductionNote::getLink($nRec->id, 0);
             }
             if (count($notes)) {
-                $row->info .= "<div style='padding-bottom:7px'>" . implode(',', $notes) . "</div>";
+                $row->info .= "<div style='padding-bottom:7px'>" . implode(' | ', $notes) . "</div>";
             }
             
             $row->modified = $row->modifiedOn . ' ' . tr('от||by') . ' ' . $row->modifiedBy;
