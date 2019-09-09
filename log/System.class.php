@@ -193,7 +193,13 @@ class log_System extends core_Manager
                 if ($mustUpdate) {
                     $oRec->lastSaved = dt::now();
                     
-                    return self::save($oRec, 'lastSaved');
+                    try {
+                        return self::save($oRec, 'lastSaved');
+                    } catch (Throwable $e) {
+                        reportException($e);
+						
+						return ;
+                    }
                 }
             }
         }
@@ -206,7 +212,11 @@ class log_System extends core_Manager
         $rec->lastSaved = dt::now();
         $rec->type = $type;
         
-        return self::save($rec);
+        try {
+            return self::save($rec);
+        } catch (Throwable $e) {
+            reportException($e);
+        }
     }
     
     
