@@ -356,7 +356,7 @@ class remote_Authorizations extends embed_Manager
         } else {
             $dayTime = 'working';
         }
-       
+        
         foreach ($ntfs as $userId => $nArr) {
             $lastSent['alert'] = bgerp_LastTouch::get('sent_alert', $userId);
             $lastSent['warning'] = bgerp_LastTouch::get('sent_warning', $userId);
@@ -384,7 +384,7 @@ class remote_Authorizations extends embed_Manager
                 if ($time < $sendIfOlderThan) {
                     $config = bgerp_Setup::get('BLOCK_' . strtoupper($priority), false, $userId);
                     if (in_array($dayTime, explode('|', $config))) {
-                        log_System::add('remote_Authorizations', "За нотификацията {$userId} {$time} {$priority} не е подходящо времето {$config}", null, 'info');
+                        //log_System::add('remote_Authorizations', "За нотификацията {$userId} {$time} {$priority} не е подходящо времето {$config}", null, 'info');
                         
                         continue;
                     }
