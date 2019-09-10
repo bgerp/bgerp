@@ -149,7 +149,7 @@ class captcha_Type extends core_Type
         $x = ($width - $textbox[4]) / 2;
         $y = ($height - $textbox[5]) / 2;
         
-        imagettftext($image, $font_size, rand(-4,4), $x, $y, $text_color, $font, $code) or halt('Error in imagettftext function');
+        imagettftext($image, $font_size, rand(-4, 4), $x, $y, $text_color, $font, $code) or halt('Error in imagettftext function');
         
         /* output captcha image to browser */
         header('Content-Type: image/jpeg');
@@ -185,7 +185,7 @@ class captcha_Type extends core_Type
             return $idStrip;
         }
         sleep(2);
-        Debug::log('Sleep 2 sec. in' . __CLASS__);
+        Debug::log('Sleep 2 sec. in ' . __CLASS__);
         
         return false;
     }
