@@ -97,6 +97,12 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
+     * Поле за забележките
+     */
+    public $notesFld = 'note';
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setDocFields(core_Master &$mvc)

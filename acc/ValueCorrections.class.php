@@ -446,7 +446,7 @@ class acc_ValueCorrections extends core_Master
      *                        o transportWeight - транспортно тегло на артикула
      *                        o transportVolume - транспортен обем на артикула
      * @param float $amount   - сумата за разпределяне
-     * @param value|quantity|volume|weight - режим на разпределяне
+     * @param auto|value|quantity|volume|weight - режим на разпределяне
      *
      * @return mixed
      */
@@ -454,6 +454,7 @@ class acc_ValueCorrections extends core_Master
     {
         $denominator = 0;
         $errorArr = array();
+        $allocateBy = ($allocateBy != 'auto') ? $allocateBy : 'value';
         
         // Първо обхождаме записите и изчисляване на знаменателя, чрез който ще изчислим коефициента
         switch ($allocateBy) {

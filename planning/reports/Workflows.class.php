@@ -360,7 +360,6 @@
         
          $indTimeSumm = ($dRec->indTime * $row->labelQuantity) / 60;
          
-         
          $row->min = core_Type::getByName('double(decimals=2)')->toVerbal($indTimeSumm);
          
          return $row;

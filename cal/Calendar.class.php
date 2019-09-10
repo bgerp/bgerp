@@ -638,7 +638,7 @@ class cal_Calendar extends core_Master
         
         if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
             $year = date('Y');
-            $month = date('n');
+            $month = date('m');
         }
         
         $monthOpt = self::prepareMonthOptions();
@@ -680,13 +680,7 @@ class cal_Calendar extends core_Master
         $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
         
         $Calendar = cls::get('cal_Calendar');
-        $Calendar->prepareListFields($state);
-        $Calendar->prepareListFilter($state);
         $Calendar->prepareListRecs($state);
-        $Calendar->prepareListRows($state);
-        
-        // Подготвяме лентата с инструменти
-        $Calendar->prepareListToolbar($state);
         
         if (is_array($state->recs)) {
             $data = array();

@@ -9,6 +9,12 @@
                 [#detailBlock#]
                 <div class="groupList">
                     <table>
+                    <!--ET_BEGIN contragentFolderId-->
+                        <tr>
+                            <td class='dt'>|Контрагент|*:</td>
+                            <td>[#contragentFolderId#]</td>
+                        </tr>
+                        <!--ET_END contragentFolderId-->
                         <!--ET_BEGIN description-->
                         <tr>
                             <td class='dt'>|Описание|*:</td>

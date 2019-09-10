@@ -106,7 +106,8 @@ class cash_Pko extends cash_Document
         // Добавяне на таблица за избор на безналични плащания
         $rec->exPayments = cash_NonCashPaymentDetails::getPaymentsTableArr($rec->id, $mvc->getClassId());
         $form->FLD('payments', "table(columns=paymentId|amount,captions=Плащане|Сума,validate=cash_NonCashPaymentDetails::validatePayments)", "caption=Безналично плащане->Избор,before=contragentName");
-        $form->setFieldTypeParams('payments', array('paymentId_opt' => array('' => '') + cls::get('cond_Payments')->makeArray4Select('title')));
+        
+        $form->setFieldTypeParams('payments', array('paymentId_opt' => array('' => '') + cls::get('cond_Payments')->makeArray4Select('title', '')));
         $form->setDefault('payments', $rec->exPayments);
         $rec->exPayments = type_Table::toArray($rec->exPayments);
     }
@@ -122,7 +123,10 @@ class cash_Pko extends cash_Document
         
         $nonCashSum = 0;
         $payments = type_Table::toArray($rec->payments);
-        array_walk($payments, function($a) use (&$nonCashSum){$nonCashSum += $a->amount;});
+        array_walk($payments, function($a) use (&$nonCashSum){
+            $amount = core_Type::getByName('double')->fromVerbal($a->amount);
+            $nonCashSum += $amount;
+        });
         
         if ($nonCashSum > $rec->amount) {
             $form->setError('payments', 'Общата сума на безналичните методи за плащане е над тази от ордера');
@@ -142,7 +146,8 @@ class cash_Pko extends cash_Document
         // Обновяване на безналичните плащания ако има
         $update = $delete = $notDelete = array();
         foreach ($payments as $obj) {
-            $update[$obj->paymentId] = (object) array('documentId' => $rec->id, 'paymentId' => $obj->paymentId, 'amount' => $obj->amount);
+            $amount = core_Type::getByName('double')->fromVerbal($obj->amount);
+            $update[$obj->paymentId] = (object) array('documentId' => $rec->id, 'paymentId' => $obj->paymentId, 'amount' => $amount);
             $paymentId = $obj->paymentId;
             $notDelete[$paymentId] = $paymentId;
             
