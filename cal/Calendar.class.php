@@ -638,7 +638,7 @@ class cal_Calendar extends core_Master
         
         if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
             $year = date('Y');
-            $month = date('n');
+            $month = date('m');
         }
         
         $monthOpt = self::prepareMonthOptions();
