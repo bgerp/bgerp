@@ -113,12 +113,14 @@ class type_Enum extends core_Type
         
         parent::setFieldWidth($attr, null, $arr);
         
-        if (!isset($arr[$value])) {
+        if (isset($value) && !isset($arr[$value]) && strlen($value)) {
             if (!isset($arr[''])) {
                 $arr = array('' => '') + $arr;
             }
+            if (isset($value)) {
+                $value = '';
+            }
             
-            $value = '';
         }
         
         $tpl = ht::createSmartSelect(
