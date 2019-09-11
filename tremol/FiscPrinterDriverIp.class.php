@@ -1091,6 +1091,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 $msg = "Грешка! " . $ex->getMessage();
             }
             
+            self::logDebug($msg);
+            
             throw new core_exception_Expect($msg);
         }
     }
