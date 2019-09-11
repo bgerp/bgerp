@@ -517,7 +517,7 @@ class cal_Calendar extends core_Master
             if($seeUserFlag){
                 $row->event = $row->event."</br>"."<span class = fright>".tr('Възложено на').': '.$users."</span>";
             }
-            
+        
         }
         
         return $row;
@@ -542,7 +542,7 @@ class cal_Calendar extends core_Master
         // Падваме годината и месеца
         $year  = str_pad($year, 2, '0', STR_PAD_LEFT);
         $month = str_pad($month, 2, '0', STR_PAD_LEFT);
- 
+        
         // Таймстамп на първия ден на месеца
         $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
         
@@ -638,7 +638,7 @@ class cal_Calendar extends core_Master
         
         if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
             $year = date('Y');
-            $month = date('n');
+            $month = date('m');
         }
         
         $monthOpt = self::prepareMonthOptions();
@@ -680,13 +680,7 @@ class cal_Calendar extends core_Master
         $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
         
         $Calendar = cls::get('cal_Calendar');
-        $Calendar->prepareListFields($state);
-        $Calendar->prepareListFilter($state);
         $Calendar->prepareListRecs($state);
-        $Calendar->prepareListRows($state);
-        
-        // Подготвяме лентата с инструменти
-        $Calendar->prepareListToolbar($state);
         
         if (is_array($state->recs)) {
             $data = array();
@@ -1103,7 +1097,7 @@ class cal_Calendar extends core_Master
      * Генерираме масива за годината
      */
     public static function generateYear()
-    {  
+    {
     	$fromFilter = $from = Request::get('from');
     	$fromFilter = explode(".", $fromFilter);
 	    
@@ -2195,10 +2189,10 @@ class cal_Calendar extends core_Master
 	    		}
 	    		
 	    		// Определяме класа на клетката, за да стане на зебра
-	    		if($h % 2 == 0 && $h !== 'allDay' && ($h != $nowTime || $h != $isToday)){
+	    		if($h !== 'allDay' && $h % 2 == 0 && ($h != $nowTime || $h != $isToday)){
 	    			$classTd = 'calDayN';
 	    			$classTr = 'calDayC';
-			    }elseif($h % 2 == 0 && $h !== 'allDay' && $isToday == FALSE && $h != $nowTime){
+			    }elseif($h !== 'allDay' && $h % 2 == 0 && $isToday == FALSE && $h != $nowTime){
 			    	$classTd = 'calDayN';
 			    	$classTr = 'calDayC';
 			    }elseif($h == $nowTime && $isToday && $h % 2 == 0){
@@ -2316,7 +2310,7 @@ class cal_Calendar extends core_Master
     		$cTpl = $tpl->getBlock("COMMENT_LI");
    			
    			// Определяме класа на клетката, за да стане на зебра
-    		if($h % 2 == 0 && $h !== 'allDay' && ($h != $nowTime || $h != $isToday)){
+    		if($h !== 'allDay' && $h % 2 == 0 && ($h != $nowTime || $h != $isToday)){
     			$classTd = 'calWeekN';
     			$classTr = 'calDayC';
 			    $classToday = 'calWeekN';

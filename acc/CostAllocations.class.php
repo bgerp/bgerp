@@ -37,7 +37,7 @@ class acc_CostAllocations extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_SaveAndNew, acc_Wrapper';
     
     
     /**
@@ -61,19 +61,31 @@ class acc_CostAllocations extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'admin,debug';
+    public $canList = 'debug';
     
     
     /**
      * Кои полета да се извличат при изтриване
      */
-    public $fetchFieldsBeforeDelete = 'containerId';
+    public $fetchFieldsBeforeDelete = 'containerId,expenseItemId';
     
     
     /**
      * Поддържани интерфейси
      */
     public $interfaces = 'hr_IndicatorsSourceIntf';
+    
+    
+    /**
+     * Кои полета да се показват в листовия изглед
+     */
+    public $listFields = 'id, containerId, productId, quantity, allocationBy, expenseItemId, productsData=Разпределено по';
+    
+    
+    /**
+     * Работен кеш
+     */
+    public $recontoQueue = array();
     
     
     /**
@@ -86,7 +98,7 @@ class acc_CostAllocations extends core_Manager
         $this->FLD('productId', 'int', 'caption=Артикул,mandatory,silent,input=hidden,remember');
         $this->FLD('quantity', 'double(Min=0,smartRound)', 'caption=Количество,mandatory,smartCenter');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,showAll)', 'after=quantity,silent,mandatory,caption=Разход за,removeAndRefreshForm=allocationBy|productsData|chosenProducts');
-        $this->FLD('allocationBy', 'enum(no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)', 'caption=Разпределяне,input=none,silent,removeAndRefreshForm=productsData|chosenProducts');
+        $this->FLD('allocationBy', 'enum(auto=Автоматично (по стойност),no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)', 'caption=Разпределяне,input=none,silent,removeAndRefreshForm=productsData|chosenProducts');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'mandatory,caption=Ориджин,silent,input=hidden');
         $this->FLD('productsData', 'blob(serialize, compress)', 'input=none');
         
@@ -102,12 +114,27 @@ class acc_CostAllocations extends core_Manager
         try {
             $origin = doc_Containers::getDocument($rec->containerId);
             if ($origin->fetchField('state') == 'active') {
-                
-                // Реконтиране на документа
                 acc_Journal::reconto($rec->containerId);
+                $origin->getInstance()->logWrite('Ре-контиране на документа', $origin->that);
+            }
+            
+            // Ако изтритият разходен обект има кеш записи в таблицата за доставка да му се обновят
+            if(isset($rec->_oldExpenceItemId) && $rec->expenseItemId != $rec->_oldExpenceItemId){
+                self::forceUpdateOnShutdown($rec->_oldExpenceItemId);
             }
         } catch (core_exception_Expect $e) {
             reportException($e);
+        }
+    }
+    
+    private static function forceUpdateOnShutdown($expenseItemId)
+    {
+        // Ако изтритият разходен обект има кеш записи в таблицата за доставка да му се обновят
+        $itemRec = acc_Items::fetch($expenseItemId, 'classId,objectId');
+        $expenseReg = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
+        if($expenseReg->getInstance()->hasPlugin('purchase_plg_ExtractPurchasesData')){
+            $Register = cls::get($itemRec->classId);
+            purchase_plg_ExtractPurchasesData::setUpdateOnShutdown($Register, $expenseReg->fetch());
         }
     }
     
@@ -120,9 +147,11 @@ class acc_CostAllocations extends core_Manager
         foreach ($query->getDeletedRecs() as $rec) {
             $origin = doc_Containers::getDocument($rec->containerId);
             if ($origin->fetchField('state') == 'active') {
-                
-                // Реконтиране на документа
                 acc_Journal::reconto($rec->containerId);
+                $origin->getInstance()->logWrite('Ре-контиране на документа', $origin->that);
+                
+                // Ако изтритият разходен обект има кеш записи в таблицата за доставка да му се обновят
+                self::forceUpdateOnShutdown($rec->expenseItemId);
             }
         }
     }
@@ -192,6 +221,7 @@ class acc_CostAllocations extends core_Manager
     {
         $form = &$data->form;
         $rec = $data->form->rec;
+        $rec->_oldExpenceItemId = $rec->expenseItemId;
         
         // Какво к-во се очаква да се разпредели
         $maxQuantity = cls::get($rec->detailClassId)->getMaxQuantity($rec->detailRecId);
@@ -228,7 +258,12 @@ class acc_CostAllocations extends core_Manager
             $itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
             if (cls::haveInterface('acc_AllowArticlesCostCorrectionDocsIntf', $itemClassId)) {
                 $form->setField('allocationBy', 'input');
-                $form->setDefault('allocationBy', 'no');
+                
+                if(in_array($itemClassId, array(sales_Sales::getClassId(), purchase_Purchases::getClassId()))){
+                    $form->setDefault('allocationBy', 'auto');
+                } else {
+                    $form->setDefault('allocationBy', 'no');
+                }
             }
         }
     }
@@ -248,7 +283,7 @@ class acc_CostAllocations extends core_Manager
             $itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
             
             if (cls::haveInterface('acc_AllowArticlesCostCorrectionDocsIntf', $itemClassId)) {
-                if (isset($rec->allocationBy) && $rec->allocationBy != 'no') {
+                if (isset($rec->allocationBy) && !in_array($rec->allocationBy, array('auto', 'no'))) {
                     $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
                     $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
                     acc_ValueCorrections::addProductsFromOriginToForm($form, $origin);
@@ -292,14 +327,27 @@ class acc_CostAllocations extends core_Manager
                 }
                 
                 // Проверка на избраните артикули
-                if (isset($rec->allocationBy) && $rec->allocationBy != 'no') {
-                    if (!count($form->allProducts)) {
-                        $form->setError('allocationBy', 'В избраната сделка няма експедирани/заскладени артикули');
-                    } else {
-                        $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
+                if (isset($rec->allocationBy)) {
+                    if(!in_array($rec->allocationBy, array('no', 'auto'))){
+                        if (!count($form->allProducts)) {
+                            $form->setError('allocationBy', 'В избраната сделка няма експедирани/заскладени артикули');
+                        }
+                    }
+                    
+                    if($rec->allocationBy != 'no'){
+                        if($rec->allocationBy == 'auto'){
+                            $errorField = 'allocateBy,chosenProducts';
+                            $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
+                            $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
+                            $rec->productsData = $origin->getCorrectableProducts();
+                        } else {
+                            $errorField = 'allocateBy';
+                            $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
+                        }
+                        
                         $copyArr = $rec->productsData;
                         if ($error = acc_ValueCorrections::allocateAmount($copyArr, $rec->quantity, $rec->allocationBy)) {
-                            $form->setError('allocateBy,chosenProducts', $error);
+                            $form->setError($errorField, $error);
                         }
                     }
                 }
@@ -357,8 +405,11 @@ class acc_CostAllocations extends core_Manager
         }
         
         if (isset($fields['-list'])) {
+            
             try {
-                $row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
+                $Document = doc_Containers::getDocument($rec->containerId);
+                $row->containerId = $Document->getLink(0);
+                $row->ROW_ATTR['class'] = "state-{$Document->fetchField('state')}";
             } catch (core_exception_Expect $e) {
                 $row->containerId = "<span class='red'>" . tr('Проблем с показването') . '</span>';
             }
@@ -860,5 +911,20 @@ class acc_CostAllocations extends core_Manager
         $eQuery->in('containerId', $containers);
         
         return $eQuery;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->query->orderBy('id', 'DESC');
     }
 }

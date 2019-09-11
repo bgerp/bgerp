@@ -79,8 +79,6 @@ defIfNot(
 );
 
 
-
-
 /**
  * Клас 'core_Users' - Мениджър за потребителите на системата
  *
@@ -158,12 +156,6 @@ class core_Users extends core_Manager
      * По кои полета да се прави пълнотекстово търсене
      */
     public $searchFields = 'nick,names,email';
-    
-    
-    /**
-     * Дали да се стартира крон-а в shutDown
-     */
-    public $runCron = false;
     
     
     /**
@@ -872,7 +864,6 @@ class core_Users extends core_Manager
     {
         if (self::count() == 1) {
             $mvc->invoke('AfterCreateFirstUser', array(&$html));
-            $mvc->runCron = true;
         }
     }
     
@@ -1438,6 +1429,7 @@ class core_Users extends core_Manager
         } else {
             $lastLoginIp = self::getOwnIp($userRec->lastLoginIp);
             $ownIp = self::getOwnIp($Users->getRealIpAddr());
+            
             // Дали нямаме дублирано ползване?
             if (($lastLoginIp != $ownIp) &&
                 $userRec->lastLoginTime > $sessUserRec->loginTime &&
@@ -1631,7 +1623,7 @@ class core_Users extends core_Manager
                         $osName = log_Browsers::getUserAgentOsName($bRec->userAgent);
                         
                         // Ако е от друго ОС
-                        if ($cOsName !=  $osName) {
+                        if ($cOsName != $osName) {
                             $lastSuccessLoginAnotherDeviceKey = $sKey;
                             
                             continue;
@@ -2460,23 +2452,6 @@ class core_Users extends core_Manager
         }
         
         return $nick;
-    }
-    
-    
-    /**
-     *
-     *
-     * @param core_Users $mvc
-     */
-    public function on_ShutDown($mvc)
-    {
-        if ($this->runCron) {
-            if (!@fopen(toUrl(array('core_Cron', 'cron'), 'absolute'), 'r')) {
-                self::logWarning('Не може да се пусне крон ръчно');
-            }
-            
-            $this->runCron = false;
-        }
     }
     
     

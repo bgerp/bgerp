@@ -793,7 +793,7 @@ class core_ET extends core_BaseClass
             $prefix .= '_';
         }
         
-        if (count($data)) {
+        if (countR($data)) {
             foreach ($data as $name => $object) {
                 if (is_array($object) || (is_object($object) && !($object instanceof core_ET))) {
                     $tpl->placeArray($object, null, $prefix . $name);

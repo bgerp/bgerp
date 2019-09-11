@@ -79,18 +79,21 @@ class cal_TaskConditions extends core_Detail
         // id на базовата задачата
         $this->FLD('baseId', 'key(mvc=cal_Tasks,select=title)', 'caption=Базова задача,input=hidden,silent,column=none');
         
-        // id на зависимата задачата
-        $this->FLD('dependId', 'key(mvc=cal_Tasks,select=title)', 'caption=Зависи от, mandatory');
+        
+        // Колко време е отнело изпълнението?
+        $this->FLD('distTime', 'time(suggestions=1 час|2 часа|3 часа|1 ден|2 дена|3 дена|1 седм.|2 седм.|3 седм.|1 месец)', 'caption=Период, placeholder=Веднага,input=none');
+        
         
         // Условие за активиране
         $this->FLD('activationCond', 'enum(onProgress=При прогрес, afterTime=След началото, beforeTime=Преди началото,
-        														   afterTimeEnd=След края, beforeTimeEnd=Преди края)', 'caption=Условия->Обстоятелство,silent, autoFilter');
+        														   afterTimeEnd=След края, beforeTimeEnd=Преди края)', 'caption=Обстоятелство,silent, autoFilter');
         
         // Каква част от задачата е изпълнена?
-        $this->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Условия->Прогрес,input=none,notNull');
+        $this->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес,input=none,notNull');
         
-        // Колко време е отнело изпълнението?
-        $this->FLD('distTime', 'time(suggestions=1 час|2 часа|3 часа|1 ден|2 дена|3 дена|1 седм.|2 седм.|3 седм.|1 месец)', 'caption=Условия->Отместване с, input=none');
+        // id на зависимата задачата
+        $this->FLD('dependId', 'key(mvc=cal_Tasks,select=title)', 'caption=На задача, mandatory');
+        
         
         $this->setDbIndex('baseId');
     }
@@ -160,6 +163,28 @@ class cal_TaskConditions extends core_Detail
             
             return redirect(array('cal_Tasks', 'single', $masterRec->id), false, '|Липсват задачи, от които да зависи задачата', 'warning');
         }
+    }
+    
+    
+    /**
+     * Помощна ф-я, която връща заглавие за формата при добавяне на детайл към клас
+     * Изнесена е статично за да може да се използва и от класове, които не наследяват core_Detail,
+     * Но реално се добавят като детайли към друг клас
+     *
+     * @param mixed    $master      - ид на класа на мастъра
+     * @param int      $masterId    - ид на мастъра
+     * @param string   $singleTitle - еденично заглавие
+     * @param int|NULL $recId       - ид на записа, ако има
+     * @param string   $preposition - предлог
+     * @param int|NULL $len         - максимална дължина на стринга
+     *
+     * @return string $title      - заглавието на формата на 'Детайла'
+     */
+    public static function getEditTitle($master, $masterId, $singleTitle, $recId, $preposition = null, $len = null)
+    {
+        $title = '|*' . cls::get($master)->getFormTitleLink($masterId) . ' |може да започне|*:';
+        
+        return $title;
     }
     
     

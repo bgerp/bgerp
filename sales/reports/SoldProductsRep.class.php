@@ -297,23 +297,23 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if (!$rec->crmGroup && $rec->contragent) {
                 $contragentsArr = keylist::toArray($rec->contragent);
                 
-                $invQuery->in('folderId', $contragentsArr);
+                $query->in('folderId', $contragentsArr);
             }
             
             if ($rec->crmGroup && !$rec->contragent) {
                 $foldersInGroups = self::getFoldersInGroups($rec);
                 
-                $invQuery->in('folderId', $foldersInGroups);
+                $query->in('folderId', $foldersInGroups);
             }
             
             if ($rec->crmGroup && $rec->contragent) {
                 $contragentsArr = keylist::toArray($rec->contragent);
                 
-                $invQuery->in('folderId', $contragentsArr);
+                $query->in('folderId', $contragentsArr);
                 
                 $foldersInGroups = self::getFoldersInGroups($rec);
                 
-                $invQuery->in('folderId', $foldersInGroups);
+                $query->in('folderId', $foldersInGroups);
             }
         }
         

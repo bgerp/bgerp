@@ -61,7 +61,7 @@ class purchase_PurchasesData extends core_Manager
      /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId,valior=Вальор,productId,quantity,price,amount,dealerId,state,folderId';
+    public $listFields = 'containerId,valior=Вальор,productId,quantity,price,amount,expenses,state,folderId';
   
     
     /**
@@ -88,6 +88,7 @@ class purchase_PurchasesData extends core_Manager
         $this->FLD('price', 'double', 'caption=Цена,mandatory');
         $this->FLD('discount', 'double', 'caption=Цени->Отстъпка,mandatory');
         $this->FLD('amount', 'double', 'caption=Стойност,mandatory');
+        $this->FLD('expenses', 'double', 'caption=Разходи,mandatory');
         
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута, input=none');
         $this->FLD('currencyRate', 'double', 'caption=Плащане->курс валута,mandatory');
@@ -101,6 +102,8 @@ class purchase_PurchasesData extends core_Manager
         $this->FLD('containerId', 'int', 'caption=Документ,mandatory');
         $this->FLD('folderId', 'int', 'caption=Папка,tdClass=leftCol');
         $this->FLD('threadId', 'int', 'caption=Нишка,tdClass=leftCol');
+        $this->FLD('isFromInventory', 'varchar', 'caption=Инвентаризация,tdClass=leftCol');
+        $this->FLD('canStore', 'varchar', 'caption=Складируем,tdClass=leftCol');
         
         $this->setDbIndex('productId,containerId');
         $this->setDbIndex('productId');
@@ -123,7 +126,10 @@ class purchase_PurchasesData extends core_Manager
     {
         $row->ROW_ATTR['class'] = "state-{$rec->state}";
         
-        $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        if ($rec->productId) {
+          $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        }
+        
         try {
             $row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
         } catch (core_exception_Expect $e) {
@@ -135,4 +141,40 @@ class purchase_PurchasesData extends core_Manager
         }
     }
     
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ или контейнер, silent');
+        $data->listFilter->showFields = 'documentId';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input(null, 'silent');
+        $data->listFilter->input();
+        $data->query->orderBy('id', 'DESC');
+        
+        if ($rec = $data->listFilter->rec) {
+            if (!empty($rec->documentId)) {
+                
+                // Търсене и на последващите документи
+                if ($document = doc_Containers::getDocumentByHandle($rec->documentId)) {
+                    $in = array($document->fetchField('containerId'));
+                    if ($document->isInstanceOf('purchase_Purchases')) {
+                        $descendants = $document->getDescendants();
+                        $descendantArr = array_values(array_map(function ($obj) {
+                            
+                            return $obj->fetchField('containerId');
+                        }, $descendants));
+                            $in = array_merge($in, $descendantArr);
+                    }
+                    
+                    $data->query->in('containerId', $in);
+                } elseif(type_Int::isInt($rec->documentId)){
+                    $data->query->where("#containerId = {$rec->documentId}");
+                }
+            }
+        }
+    }
 }

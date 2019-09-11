@@ -180,8 +180,8 @@ class expert_Dataset extends core_BaseClass
             
             return;
         }
-        
-        $trust = $maxTrust = max($rule->priority < 0 ? pow(3, $rule->priority / 20) : 0.1, 1 + ($rule->expr != '' && $rule->expr != '0' && $rule->expr != '""') - $rule->order / 100000 + $rule->priority);
+
+        $trust = $maxTrust = max($rule->priority < 0 ? pow(3, floatval($rule->priority) / 20) : 0.1, 1 + floatval($rule->expr != '' && $rule->expr != '0' && $rule->expr != '""') - $rule->order / 100000 + floatval($rule->priority));
         $div = 3;
         
         $vars = $rule->exprVars + $rule->condVars;

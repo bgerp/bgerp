@@ -9,7 +9,7 @@
  * @package   doc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -43,7 +43,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'name, description';
+    public $searchFields = 'name, description, contragentFolderId';
     
     
     /**
@@ -217,6 +217,7 @@ class doc_UnsortedFolders extends core_Master
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование,mandatory');
         $this->FLD('description', 'richtext(rows=3, passage=Общи,bucket=Notes)', 'caption=Описание');
+        $this->FLD('contragentFolderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент');
         $this->FLD('receiveEmail', 'enum(yes=Да, no=Не)', 'caption=Получаване на имейли->Избор');
         
         $this->setDbUnique('name');
@@ -276,8 +277,11 @@ class doc_UnsortedFolders extends core_Master
     public static function recToVerbal_($rec, &$fields = array())
     {
         $row = parent::recToVerbal_($rec, $fields);
-        
         $row->folder = 'Папка';
+        if(isset($rec->contragentFolderId)){
+            $Cover = doc_Folders::getCover($rec->contragentFolderId);
+            $row->contragentFolderId = $Cover->getHyperlink(true);
+        }
         
         return $row;
     }
@@ -819,5 +823,53 @@ class doc_UnsortedFolders extends core_Master
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Подготовка на клиентските проекти
+     *
+     * @param stdClass $data
+     * @return void
+     */
+    public function prepareContragentUnsortedFolders($data)
+    {
+        if(empty($data->masterData->rec->folderId)) return;
+        
+        $data->recs = $data->rows = array();
+        $query = self::getQuery();
+        $query->where("#contragentFolderId = {$data->masterData->rec->folderId}");
+        while($rec = $query->fetch()){
+            $data->recs[$rec->id] = doc_Folders::fetch($rec->folderId);
+            $data->rows[$rec->id] = doc_Folders::recToVerbal($data->recs[$rec->id]);
+            $data->rows[$rec->id]->created = $data->rows[$rec->id]->createdOn . " " . tr('от') . " " . $data->rows[$rec->id]->createdBy;
+        }
+    }
+    
+    
+    /**
+     * Рендиране на клиентските проекти
+     * 
+     * @param stdClass $data
+     * @return void|ET $tpl
+     */
+    public function renderContragentUnsortedFolders($data)
+    {
+        if(!count($data->recs)) return;
+        
+        $tpl = new ET("<fieldset class='detail-info'>
+                            <legend class='groupTitle'>" . tr('Проекти') . "</legend>
+                                <div class='groupList clearfix21'>
+                                 [#PROJECT_TABLE#]
+                            </div>
+                         </fieldset>");
+       
+        $table = cls::get('core_TableView', array('mvc' => cls::get('doc_Folders')));
+        $dTpl = $table->get($data->rows, 'title=Наименование,allThreadsCnt=Нишки,inCharge=Отговорник,created=Създаване');
+        $dTpl->append("style='width:100%'", 'TABLE_ATTR');
+        
+        $tpl->append($dTpl, 'PROJECT_TABLE');
+        
+        return $tpl;
     }
 }

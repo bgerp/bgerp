@@ -117,7 +117,7 @@ class cash_Cases extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '501';
+    public $balanceRefAccounts = '501,502';
     
     
     /**

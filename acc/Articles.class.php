@@ -38,7 +38,7 @@ class acc_Articles extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, plg_Clone, plg_Printing, doc_plg_HidePrices,doc_plg_Prototype,
-                     acc_Wrapper, plg_Sorting, acc_plg_Contable,
+                     acc_Wrapper, plg_Sorting, acc_plg_Contable,purchase_plg_ExtractPurchasesData,
                      doc_DocumentPlg, acc_plg_DocumentSummary, bgerp_plg_Blank, plg_Search, doc_plg_SelectFolder';
     
     
@@ -66,6 +66,11 @@ class acc_Articles extends core_Master
      * Детайла, на модела
      */
     public $details = 'acc_ArticleDetails';
+    
+    /**
+     * Главен детайл на модела
+     */
+    public $mainDetail = 'acc_ArticleDetails';
     
     
     /**
