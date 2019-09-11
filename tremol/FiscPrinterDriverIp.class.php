@@ -687,7 +687,15 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 
                 $fp = new \Tremol\FP();
                 
-                $fp->ServerSetSettings($rec->serverIp, $rec->serverTcpPort);
+                $serverIp = $rec->serverIp;
+                
+                $sArr = explode('://', $serverIp);
+                
+                if (count($sArr) == 2) {
+                    $serverIp = $sArr[1];
+                }
+                
+                $fp->ServerSetSettings($serverIp, $rec->serverTcpPort);
                 
                 if ($setDeviceSettings) {
                     if ($rec->tcpIp) {
@@ -1090,6 +1098,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             } else {
                 $msg = "Грешка! " . $ex->getMessage();
             }
+            
+            self::logDebug($msg);
             
             throw new core_exception_Expect($msg);
         }
