@@ -161,7 +161,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('serverIp', 'ip', 'caption=Настройки за връзка със ZFPLAB сървър->IP адрес, mandatory');
+        $fieldset->FLD('serverIp', 'url', 'caption=Настройки за връзка със ZFPLAB сървър->IP адрес, mandatory');
         $fieldset->FLD('serverTcpPort', 'int', 'caption=Настройки за връзка със ZFPLAB сървър->TCP порт, mandatory');
         
         $fieldset->FLD('driverVersion', 'enum(19.08.13,19.07.25,19.06.13)', 'caption=Настройки на ФУ->Версия, mandatory, notNull');
@@ -298,7 +298,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         
         if (!$form->rec->id) {
             $form->setDefault('footerText', 'Отпечатано с bgERP');
-            $form->setDefault('serverIp', '127.0.0.1');
+            $form->setDefault('serverIp', 'http://127.0.0.1');
             $form->setDefault('serverTcpPort', 4444);
             $form->setDefault('tcpPort', 8000);
             $form->setDefault('tcpPass', 1234);
