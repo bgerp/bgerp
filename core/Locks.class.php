@@ -235,7 +235,7 @@ class core_Locks extends core_Manager
         // Правим последователно няколко опита да заключим обекта, през интервал 1 сек
         while ($maxTrays > 0) {
             sleep(1);
-            Debug::log('Sleep 1 sec. in' . __CLASS__);
+            Debug::log('Sleep 1 sec. in ' . __CLASS__);
             
             if (static::get($objectId, $maxDuration, 0)) {
                 

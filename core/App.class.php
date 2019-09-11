@@ -492,19 +492,14 @@ class core_App
             }
         }
         
-        $isHeadersSent = headers_sent();
-        
-        if (!$isHeadersSent) {
+        if (!headers_sent()) {
             if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output) {
                 $len = strlen($content);
                 header("Content-Length: ${len}");
             } else {
                 header('Content-Length: 0');
             }
-            header('Cache-Control: private, max-age=0');
-            header('Expires: -1');
             header('Connection: close');
-            header('X-Accel-Buffering: no');
             
             // Добавяме допълнителните хедъри
             $aHeadersArr = self::getAdditionalHeadersArr();
@@ -516,7 +511,7 @@ class core_App
         if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output && $len) {
             echo $content; // Output content
         } else {
-            if (!$isHeadersSent) {
+            if (!headers_sent()) {
                 header('Content-Encoding: none');
             }
         }

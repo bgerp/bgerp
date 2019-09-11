@@ -55,6 +55,8 @@ class plg_State2 extends core_Plugin
             $this->activeState = 'active';
             $this->closedState = 'closed';
         }
+        
+        setIfNot($mvc->updateExistingStateOnImport, true);
     }
     
     
@@ -94,6 +96,28 @@ class plg_State2 extends core_Plugin
     {
         if (!$mvc->state2PreventOrderingByState) {
             $data->query->orderBy('#state');
+        }
+    }
+    
+    
+    /**
+     * Преди записване на в модела
+     *
+     * @param crm_Persons $mvc
+     * @param stdClass    $rec
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+        // Ако мениджъра иска да се запазят старите състояния на импортираните записи
+        if($mvc->updateExistingStateOnImport === false){
+            
+            // Ако записа е вече съществуващ взима се текущото състояние от базата
+            // взима се тук за да може като стигне on_BeforeSave да не подмени състоянието с активно
+            $conflictFields = array();
+            $exRec = null;
+            if(!$mvc->isUnique($rec, $conflictFields, $exRec)){
+                $rec->state = $mvc->fetchField($exRec->id, 'state', false);
+            }
         }
     }
     

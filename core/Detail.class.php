@@ -274,7 +274,7 @@ class core_Detail extends core_Manager
      */
     public function prepareEditTitle_($data)
     {
-        $data->form->title = self::getEditTitle($data->masterMvc, $data->masterId, $data->singleTitle, $data->form->rec->id, $this->formTitlePreposition);
+        $data->form->title = static::getEditTitle($data->masterMvc, $data->masterId, $data->singleTitle, $data->form->rec->id, $this->formTitlePreposition);
     }
     
     

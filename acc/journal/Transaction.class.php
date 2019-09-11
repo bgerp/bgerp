@@ -117,6 +117,10 @@ class acc_journal_Transaction
      */
     public function check()
     {
+        if(Mode::is('saveTransaction')){
+            acc_journal_Exception::expect($this->rec->valior, 'Няма вальор');
+        }
+        
         /* @var $entry acc_journal_Entry */
         if (count($this->entries)) {
             foreach ($this->entries as $entry) {

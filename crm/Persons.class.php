@@ -221,7 +221,7 @@ class crm_Persons extends core_Master
      * @var string|array
      */
     public $details = 'AccReports=acc_ReportDetails,ContragentLocations=crm_Locations,
-                    ContragentBankAccounts=bank_Accounts,PersonsDetails=crm_PersonsDetails,CommerceDetails=crm_CommerceDetails';
+                    ContragentBankAccounts=bank_Accounts,PersonsDetails=crm_PersonsDetails,CommerceDetails=crm_CommerceDetails,ContragentUnsortedFolders=doc_UnsortedFolders';
     
     
     /**

@@ -139,13 +139,13 @@ class core_Mvc extends core_FieldSet
      */
     public $doReplication = true;
     
-
+    
     /**
      * Дали класът да бъде добавен автоматично в регистъра на класове (core_Classes)
      */
     public $automaticRegisterClass = true;
-
-
+    
+    
     /**
      * Конструктора на таблицата. По подразбиране работи със singleton
      * адаптор за база данни на име "db". Разчита, че адапторът
@@ -214,7 +214,7 @@ class core_Mvc extends core_FieldSet
         core_Users::forceSystemUser();
         
         $res = $this->setupMVC();
-                
+        
         // Де-форсираме системния потребител
         core_Users::cancelSystemUser();
         
@@ -1333,12 +1333,12 @@ class core_Mvc extends core_FieldSet
         } else {
             $html .= "<li class='debug-info'>" . ('Без установяване на DB таблици, защото липсва модел') . '</li>';
         }
-
+        
         // Добавяме в списъка с интерфейсните класове
-        if($this->automaticRegisterClass) {
+        if ($this->automaticRegisterClass) {
             $html .= core_Classes::add($this);
         }
-
+        
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
         
@@ -1465,7 +1465,7 @@ class core_Mvc extends core_FieldSet
             return $idStrip;
         }
         sleep(2);
-        Debug::log('Sleep 2 sec. in' . __CLASS__);
+        Debug::log('Sleep 2 sec. in ' . __CLASS__);
         
         return false;
     }

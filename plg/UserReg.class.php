@@ -390,7 +390,7 @@ class plg_UserReg extends core_Plugin
                 
                 if (!$id) {
                     sleep(2);
-                    Debug::log('Sleep 2 sec. in' . __CLASS__);
+                    Debug::log('Sleep 2 sec. in ' . __CLASS__);
                     
                     $form->setError('email', 'Няма регистриран потребител с този имейл');
                 } else {
