@@ -166,6 +166,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         
         $fieldset->FLD('driverVersion', 'enum(19.08.13,19.07.25,19.06.13)', 'caption=Настройки на ФУ->Версия, mandatory, notNull');
         $fieldset->FLD('fpType', 'enum(cashRegister=Касов апарат, fiscalPrinter=Фискален принтер)', 'caption=Настройки на ФУ->Тип, mandatory, notNull');
+        $fieldset->FLD('operPass', 'password', 'caption=Настройки на ФУ->Парола, hint=Паролата по подразбиране на ФУ');
         $fieldset->FLD('serialNumber', 'varchar(8)', 'caption=Настройки на ФУ->Сериен номер');
         
         $fieldset->FLD('type', 'enum(tcp=TCP връзка, serial=Сериен порт)', 'caption=Настройки за връзка с ФУ->Връзка, mandatory, notNull, removeAndRefreshForm=tcpIp|tcpPort|tcpPass|serialPort|serialSpeed');
@@ -303,6 +304,8 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             $form->setDefault('tcpPort', 8000);
             $form->setDefault('tcpPass', 1234);
         }
+        
+        $form->setDefault('operPass', '0000');
         
         // В серийния порт автоматично се опитва да открие скорост и порт
         if ($form->rec->type == 'serial') {
@@ -548,6 +551,21 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     
     
     /**
+     * Връща паролата на оператора
+     * 
+     * @param integer $operNum
+     * @param stdClass $pRec
+     * 
+     * @return string
+     */
+    protected static function getOperPass($operNum, $pRec)
+    {
+        
+        return strlen($pRec->operPass) ? $pRec->operPass : '0000';
+    }
+    
+    
+    /**
      * Екшън за вкарване/изкараване на пари от касата
      *
      * @return core_ET
@@ -615,7 +633,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             Mode::setPermanent($randStr, $hash);
             
             $operator = 1;
-            $operPass = '0';
+            $operPass = $this->getOperPass($operator, $pRec);
             
             $amount = $rec->amount;
             if ($amount && $rec->type == 'paidOut') {
