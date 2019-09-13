@@ -79,7 +79,7 @@ class cat_UoM extends core_Manager
     /**
      * Полета за лист изгледа
      */
-    public $listFields = 'id,name,shortName=Съкращение,sysId=System Id,round=Точност,showContents,defQuantity,state';
+    public $listFields = 'id,name,shortName=Съкращение,baseUnitId,sysId=System Id,round=Точност,showContents,defQuantity,state';
     
     
     /**

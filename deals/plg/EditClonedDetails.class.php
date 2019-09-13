@@ -187,7 +187,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
         $Detail = cls::get($mvc->mainDetail);
         $detailClassId = $Detail->getClassId();
         
-        if (count($rec->details)) {
+        if (countR($rec->details)) {
             foreach ($rec->details as $det) {
                 if (!empty($det->baseQuantity)) {
                     $det->quantityInPack = $det->baseQuantity / $det->packQuantity;

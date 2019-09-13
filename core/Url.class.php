@@ -911,18 +911,45 @@ class core_Url
     
     
     /**
-     * Стартира посоченото URL без да чака за резултат
+     * Стартира посоченото URL без да чака за резултат, като връща евентуално хедърите
+     *
+     * @param string $url
+     *
+     * @return string
      */
-    public static function start($url)
+    public static function start($url, $timeout = 2)
     {
         $ch = curl_init();
         
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+        // Взема само хедърите
+        curl_setopt($ch, CURLOPT_NOBODY, true);
         
-        @curl_exec($ch);
+        // Връщане на трансфера като стринг
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        // Използване на хедърите
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        
+        // Задаваме URL-то
+        curl_setopt($ch, CURLOPT_URL, $url);
+        
+        // Да се използва нова връзка
+        curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+        
+        // Максимално време за чакане в секунди
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        
+        // Логваме заявката
+        log_System::add(get_called_class(), "URL({$url}) " . $res, 'debug', 1);
+        
+        // Изпълняваме заявката
+        $res = @curl_exec($ch);
+        
         curl_close($ch);
+        log_System::add(get_called_class(), "URL({$url}) " . json_encode($res), 'debug', 1);
+
+
+        return $headers;
     }
     
     

@@ -358,7 +358,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         // Извличаме тези, отнасящи се за експедиране
         $dInfo = acc_Balances::getBlAmounts($jRecs, $accs, 'credit');
         
-        if (!count($dInfo->recs)) {
+        if (!countR($dInfo->recs)) {
             
             return $res;
         }

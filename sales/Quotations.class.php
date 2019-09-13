@@ -1735,7 +1735,7 @@ class sales_Quotations extends core_Master
             return false;
         }
         
-        cls::get(sales_QuotationsDetails)->saveArray($saveRecs);
+        cls::get('sales_QuotationsDetails')->saveArray($saveRecs);
     }
     
     

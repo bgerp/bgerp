@@ -1279,7 +1279,7 @@ abstract class deals_Helper
         }
         
         $valueType = ($type == 'weight') ? 'cat_type_Weight(decimals=2)' : 'cat_type_Volume';
-        $value = round($value, 2);
+        $value = round($value, 3);
         
         // Вербализиране на теглото
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
