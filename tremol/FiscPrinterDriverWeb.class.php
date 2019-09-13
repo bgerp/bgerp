@@ -146,7 +146,10 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         
         // Задаваме параметрите за отваряне на ФБ
         setIfNot($params['OPER_NUM'], 1);
-        setIfNot($params['OPER_PASS'], 0);
+        if (!isset($params['OPER_PASS'])) {
+            $params['OPER_PASS'] = $this->getOperPass($params['OPER_NUM'], $pRec);
+        }
+        
         if ($params['IS_DETAILED']) {
             $params['IS_DETAILED'] = 'true';
         } else {

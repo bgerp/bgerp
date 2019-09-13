@@ -161,11 +161,12 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('serverIp', 'ip', 'caption=Настройки за връзка със ZFPLAB сървър->IP адрес, mandatory');
+        $fieldset->FLD('serverIp', 'url', 'caption=Настройки за връзка със ZFPLAB сървър->IP адрес, mandatory');
         $fieldset->FLD('serverTcpPort', 'int', 'caption=Настройки за връзка със ZFPLAB сървър->TCP порт, mandatory');
         
         $fieldset->FLD('driverVersion', 'enum(19.08.13,19.07.25,19.06.13)', 'caption=Настройки на ФУ->Версия, mandatory, notNull');
         $fieldset->FLD('fpType', 'enum(cashRegister=Касов апарат, fiscalPrinter=Фискален принтер)', 'caption=Настройки на ФУ->Тип, mandatory, notNull');
+        $fieldset->FLD('operPass', 'password', 'caption=Настройки на ФУ->Парола, hint=Паролата по подразбиране на ФУ');
         $fieldset->FLD('serialNumber', 'varchar(8)', 'caption=Настройки на ФУ->Сериен номер');
         
         $fieldset->FLD('type', 'enum(tcp=TCP връзка, serial=Сериен порт)', 'caption=Настройки за връзка с ФУ->Връзка, mandatory, notNull, removeAndRefreshForm=tcpIp|tcpPort|tcpPass|serialPort|serialSpeed');
@@ -298,11 +299,13 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         
         if (!$form->rec->id) {
             $form->setDefault('footerText', 'Отпечатано с bgERP');
-            $form->setDefault('serverIp', '127.0.0.1');
+            $form->setDefault('serverIp', 'http://127.0.0.1');
             $form->setDefault('serverTcpPort', 4444);
             $form->setDefault('tcpPort', 8000);
             $form->setDefault('tcpPass', 1234);
         }
+        
+        $form->setDefault('operPass', '0000');
         
         // В серийния порт автоматично се опитва да открие скорост и порт
         if ($form->rec->type == 'serial') {
@@ -548,6 +551,21 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     
     
     /**
+     * Връща паролата на оператора
+     * 
+     * @param integer $operNum
+     * @param stdClass $pRec
+     * 
+     * @return string
+     */
+    protected static function getOperPass($operNum, $pRec)
+    {
+        
+        return strlen($pRec->operPass) ? $pRec->operPass : '0000';
+    }
+    
+    
+    /**
      * Екшън за вкарване/изкараване на пари от касата
      *
      * @return core_ET
@@ -615,7 +633,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             Mode::setPermanent($randStr, $hash);
             
             $operator = 1;
-            $operPass = '0';
+            $operPass = $this->getOperPass($operator, $pRec);
             
             $amount = $rec->amount;
             if ($amount && $rec->type == 'paidOut') {
