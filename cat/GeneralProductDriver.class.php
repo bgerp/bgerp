@@ -435,7 +435,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         if ($volume) {
             $volume *= $quantity;
             
-            return round($volume, 2);
+            return round($volume/1000, 3);
         }
     }
     
