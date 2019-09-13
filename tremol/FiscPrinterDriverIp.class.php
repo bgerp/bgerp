@@ -154,7 +154,10 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         
         // Задаваме параметрите за отваряне на ФБ
         setIfNot($params['OPER_NUM'], 1);
-        setIfNot($params['OPER_PASS'], 0);
+        
+        if (!isset($params['OPER_PASS'])) {
+            $params['OPER_PASS'] = $this->getOperPass($params['OPER_NUM'], $pRec);
+        }
         
         $params['IS_DETAILED'] = (int) $params['IS_DETAILED'];
         $params['IS_PRINT_VAT'] = (int) $params['IS_PRINT_VAT'];
@@ -287,15 +290,10 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 }
                 
                 try {
-                    if ($params['IS_ELECTRONIC']) {
-                        $fp->OpenElectronicStornoReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['STORNO_REASON'], $params['RELATED_TO_RCP_NUM'], $params['RELATED_TO_RCP_DATE_TIME'], $params['FM_NUM'], $params['RELATED_TO_URN']);
-                    } else {
-                        $fp->OpenStornoReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['PRINT_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_RCP_NUM'], $params['RELATED_TO_RCP_DATE_TIME'], $params['FM_NUM'], $params['RELATED_TO_URN']);
-                    }
+                    $fp->OpenStornoReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['PRINT_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_RCP_NUM'], $params['RELATED_TO_RCP_DATE_TIME'], $params['FM_NUM'], $params['RELATED_TO_URN']);
                 } catch (\Tremol\SException $e) {
                     $this->handleTremolException($e);
                 }
-            
             } else if ($params['IS_CREDIT_NOTE']) {
                 
                 if ($params['PRINT_TYPE_STR'] == 'postponed') {
@@ -324,11 +322,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 }
                 
                 try {
-                    if ($params['IS_ELECTRONIC']) {
-                        $fp->OpenElectronicCreditNoteWithFreeCustomerData($params['OPER_NUM'], $params['OPER_PASS'], $params['RECIPIENT'], $params['BUYER'], $params['VAT_NUMBER'], $params['UIC'], $params['ADDRESS'], $params['UIC_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_INV_NUM'], $params['RELATED_TO_INV_DATE_TIME'], $params['RELATED_TO_RCP_NUM'], $params['FM_NUM'], $params['RELATED_TO_URN']);
-                    } else {
-                        $fp->OpenCreditNoteWithFreeCustomerData($params['OPER_NUM'], $params['OPER_PASS'], $params['PRINT_TYPE'], $params['RECIPIENT'], $params['BUYER'], $params['VAT_NUMBER'], $params['UIC'], $params['ADDRESS'], $params['UIC_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_INV_NUM'], $params['RELATED_TO_INV_DATE_TIME'], $params['RELATED_TO_RCP_NUM'], $params['FM_NUM'], $params['RELATED_TO_URN']);
-                    }
+                    $fp->OpenCreditNoteWithFreeCustomerData($params['OPER_NUM'], $params['OPER_PASS'], $params['PRINT_TYPE'], $params['RECIPIENT'], $params['BUYER'], $params['VAT_NUMBER'], $params['UIC'], $params['ADDRESS'], $params['UIC_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_INV_NUM'], $params['RELATED_TO_INV_DATE_TIME'], $params['RELATED_TO_RCP_NUM'], $params['FM_NUM'], $params['RELATED_TO_URN']);
                 } catch (\Tremol\SException $e) {
                     $this->handleTremolException($e);
                 }

@@ -1921,7 +1921,7 @@ class cat_Products extends embed_Manager
             // Връща се намереното тегло
             $volume = $brutoVolume * $quantity;
             
-            return round($volume, 2);
+            return round($volume, 3);
         }
     }
     
