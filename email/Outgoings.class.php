@@ -2543,10 +2543,8 @@ class email_Outgoings extends core_Master
             }
         }
         
-        if (Mode::isReadOnly()) {
-            if ($rec->activatedOn) {
-                $row->createdDate = dt::mysql2verbal($rec->activatedOn, 'd.m.Y');
-            }
+        if ($rec->activatedOn) {
+            $row->createdDate = dt::mysql2verbal($rec->activatedOn, 'd.m.Y');
         }
     }
     
