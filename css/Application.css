@@ -297,6 +297,7 @@ div.folder-cover {
       background: none !important;
       box-shadow: none; }
   div.folder-cover .groupTitle {
+    white-space: nowrap;
     color: #333333;
     font-weight: bold; }
   div.folder-cover .groupList {
