@@ -46,6 +46,13 @@ class core_Session
     
     
     /**
+     * Флаг - дали е спряна сесията
+     * @var boolean
+     */
+    public $pause;
+    
+    
+    /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
     public function _Singleton()
