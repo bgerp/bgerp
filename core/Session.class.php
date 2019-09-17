@@ -204,7 +204,7 @@ class core_Session
         $Session = cls::get('core_Session');
         
         $Session->_start();     // Стартираме сесия, ако не е вече стартирана.
-        $_SESSION[$this->_decorate($varName)] = null;
+        $_SESSION[$Session->_decorate($varName)] = null;
     }
     
     
