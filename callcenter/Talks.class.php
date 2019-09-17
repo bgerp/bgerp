@@ -2283,7 +2283,7 @@ class callcenter_Talks extends core_Master
         // Извикваме линка
         exec("wget -q --spider --no-check-certificate {$url}");
         
-//         sleep(rand(1, 10));
+        sleep(rand(1, 10));
         
         // Масив за линка
         $urlArr = array(
