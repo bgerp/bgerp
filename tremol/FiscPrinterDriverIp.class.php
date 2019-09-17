@@ -1094,8 +1094,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             }
             
             self::logDebug($msg);
-            
-            throw new core_exception_Expect($msg);
+           
+            throw new core_exception_Expect('Грешка при отпечатване на фискалния бон', 'Несъответствие', $msg);
         }
     }
     
