@@ -177,7 +177,7 @@ class acc_BalanceDetails extends core_Detail
             }
             
             // Сортиране на резултатите
-            if(is_array($by) && ($sortBy = $by['sortBy'])) {
+            if (is_array($by) && ($sortBy = $by['sortBy'])) {
                 arr::sortObjects($data->recs, $sortBy, 'desc');
             }
             
@@ -254,7 +254,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         // Сортираме записите според полето за сравнение
-        if($sort) {
+        if ($sort) {
             usort($recs, array(get_called_class(), 'sortRecs'));
         }
     }
@@ -934,14 +934,13 @@ class acc_BalanceDetails extends core_Detail
                     $newRec->blQuantity != $rec->blQuantity || $newRec->baseQuantity != $rec->baseQuantity ||
                     $newRec->debitQuantity != $rec->debitQuantity || $newRec->debitAmount != $rec->debitAmount ||
                     $newRec->creditQuantity != $rec->creditQuantity || $newRec->creditAmount != $rec->creditAmount) {
-                    
-                    if(isset($toSave[$key]->id)){
-                       $toDelete[$toSave[$key]->id] = $toSave[$key]->id;
+                    if (isset($toSave[$key]->id)) {
+                        $toDelete[$toSave[$key]->id] = $toSave[$key]->id;
                     }
                     
                     $toSave[$key]->id = $rec->id;
                 } else {
-                   unset($toSave[$key]);
+                    unset($toSave[$key]);
                 }
             } else {
                 $toDelete[$rec->id] = $rec->id;
@@ -952,12 +951,14 @@ class acc_BalanceDetails extends core_Detail
         
         // Записваме новите данни
         if (count($toSave)) {
+            $this->logInfo('Save balance details: ' . count($toSave));
             $this->saveArray($toSave);
             $res = true;
         }
         
         // Изтриваме старите записи, които не се срещат в новия
         if (count($toDelete)) {
+            $this->logInfo('Delete balance details: ' . count($toDelete));
             $idList = implode(',', $toDelete);
             $this->delete("#id IN ({$idList})");
             $res = true;

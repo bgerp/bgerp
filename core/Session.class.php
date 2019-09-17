@@ -38,10 +38,11 @@ class core_Session
     
     
     /**
-     * @var bool
-     * @access private
+     * ID на сесията
+     *
+     * @var string
      */
-//    var $_resumed;
+    protected $sid;
     
     
     /**
@@ -73,36 +74,17 @@ class core_Session
     {
         ini_set('session.gc_maxlifetime', 7200);
         
+        $this->sid = $_COOKIE[session_name()];
+
         session_name($name);
-        
-        //$this->_started = FALSE;
         
         $this->_start();
         
-        // Проверка за съществуваща сесия
-//        $sid = $this->getSid();
-
-//        $resumeSession = isset($sid) && preg_match("/^[0-9a-z]{5,}$/i", $sid);
-//
-//        $this->_resumed = FALSE;
-//
-//        if($resumeSession) {
-//            $this->_start();
-//            $this->_resumed = isset($_SESSION['session_is_valid']);
-//
-//            if(!$this->_resumed) {
-//                $this->destroy();
-//            }
-//        }
-//
-//        if(!$this->_resumed) {
         unset($_REQUEST[session_name()]);
         unset($_GET[session_name()]);
         unset($_POST[session_name()]);
         unset($_COOKIE[session_name()]);
         unset($GLOBALS[session_name()]);
-
-//        }
     }
     
     
@@ -217,8 +199,11 @@ class core_Session
      *
      * @param string $varName
      */
-    public function unsetVar($varName)
+    public static function unsetVar($varName)
     {
+        $Session = cls::get('core_Session');
+        
+        $Session->_start();     // Стартираме сесия, ако не е вече стартирана.
         $_SESSION[$this->_decorate($varName)] = null;
     }
     
@@ -228,18 +213,15 @@ class core_Session
      */
     public function destroy()
     {
-        if (is_a($this, 'core_Session')) {
-            $Session = $this;
-        } else {
+    }
+    
+    
+    public static function pause()
+    {
+        if (session_id()) {
+            session_write_close();
             $Session = cls::get('core_Session');
-        }
-        
-        if ($Session->_started) {
-            session_regenerate_id();
-            @session_unset();
-            @session_destroy();
-            unset($_SESSION);
-            unset($_COOKIE);
+            $Session->pause = true;
         }
     }
     
@@ -252,26 +234,30 @@ class core_Session
      */
     public function _start($forced = false)
     {
-        if (!$this->_started || $forced) {
-            @session_cache_limiter('nocache');
-            @session_set_cookie_params(0);
-            
-            ini_set('session.cookie_httponly', 1);
-            ini_set('session.use_only_cookies', 1);
-            
-            if (EF_HTTPS == 'MANDATORY') {
-                ini_set('session.cookie_secure', 1);
+        if (!$this->_started || $this->pause) {
+            if(!headers_sent()) {
+                @session_cache_limiter('nocache');
+                @session_set_cookie_params(0);
+                ini_set('session.cookie_httponly', 1);
+                ini_set('session.use_only_cookies', 1);
+                if (EF_HTTPS == 'MANDATORY') {
+                    ini_set('session.cookie_secure', 1);
+                }
             }
+            if($this->sid) {
+                session_id($this->sid);
+            }
+        }
 
-//             if (PHP_VERSION_ID >= 70300) {
-//                 ini_set('session.cookie_samesite', 'Lax');
-//             } else {
-//                 ini_set('session.cookie_path', '/; samesite=lax');
-//             }
-            
+        if (!$this->_started || $forced) {
             @session_start();
-            
             $this->_started = true;
+            $this->pause = false;
+        }
+        
+        if ($this->pause) {
+            @session_start();
+            $this->pause = false;
         }
     }
     
