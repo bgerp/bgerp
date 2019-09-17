@@ -305,8 +305,6 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             $form->setDefault('tcpPass', 1234);
         }
         
-        $form->setDefault('operPass', '0000');
-        
         // В серийния порт автоматично се опитва да открие скорост и порт
         if ($form->rec->type == 'serial') {
             $form->input('serialPort, serialSpeed', false);
