@@ -517,7 +517,7 @@ class store_Products extends core_Detail
         $docArr = array('sales_Sales' => array('storeFld' => 'shipmentStoreId', 'Detail' => 'sales_SalesDetails'), 
                         'store_ShipmentOrders' => array('storeFld' => 'storeId', 'Detail' => 'store_ShipmentOrderDetails'),
                         'planning_ConsumptionNotes' => array('storeFld' => 'storeId', 'Detail' => 'planning_ConsumptionNoteDetails'),
-                        'planning_DirectProductNoteDetails' => array('storeFld' => 'storeId', 'Detail' => 'planning_DirectProductNoteDetails'),
+                        'planning_DirectProductionNote' => array('storeFld' => 'storeId', 'Detail' => 'planning_DirectProductNoteDetails'),
                         'store_ConsignmentProtocols' => array('storeFld' => 'storeId', 'Detail' => 'store_ConsignmentProtocolDetailsSend'),
         );
         
