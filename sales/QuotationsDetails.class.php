@@ -665,7 +665,7 @@ class sales_QuotationsDetails extends doc_Detail
             $rec = $data->recs[$i];
             if ($rec->livePrice === true) {
                 $row->packPrice = "<span style='color:blue'>{$row->packPrice}</span>";
-                $row->packPrice = ht::createHint($row->packPrice, 'Цената е динамично изчислена. Ще бъде записана при активиране', 'notice', false, 'width=14px,height=14px');
+                $row->packPrice = ht::createHint($row->packPrice, 'Цената е динамично изчислена. Ще бъде записана при активиране', 'notice', false);
             }
             
             if (!isset($data->recs[$i]->price) && haveRole('seePrice,ceo')) {

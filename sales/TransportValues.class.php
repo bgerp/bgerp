@@ -444,7 +444,7 @@ class sales_TransportValues extends core_Manager
                 $hint .= "<br>" . $explain;
             }
             
-            return ht::createHint($amountRow, $hint, 'notice', false, 'width=14px,height=14px');
+            return ht::createHint($amountRow, $hint, 'notice', false);
         }
         
         return $amountRow;
