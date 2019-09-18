@@ -163,6 +163,27 @@ class peripheral_DeviceWebPlg extends core_Plugin
     
     
     /**
+    * Подготовка за рендиране на единичния изглед
+    *
+    * @param core_Mvc $Driver
+    * @param embed_Manager     $Embedder
+    * @param stdClass          $res
+    * @param stdClass          $data
+    */
+    public static function on_AfterPrepareSingle($Driver, embed_Manager $Embedder, &$res, &$data)
+    {
+        if (Request::get('update')) {
+            if ($data->rec->brid) {
+                $cBrid = log_Browsers::getBrid(true);
+                if ($cBrid && (stripos($data->rec->brid, $cBrid) === false)) {
+                    Request::push(array('update' => 0));
+                }
+            }
+        }
+    }
+    
+    
+    /**
      * Помощна фунцкия за проверка дали пододана стойност я има в стинг
      *
      * @param string $val
