@@ -194,8 +194,8 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $fieldset->FLD('paymentMap10', 'varchar', 'caption=Настройки на апарата за плащания->Позиция 10');
         $fieldset->FLD('paymentMap11', 'varchar', 'caption=Настройки на апарата за плащания->Позиция 11');
         
-        $fieldset->FLD('header', 'enum(yes=Да,no=Не)', 'caption=Надпис хедър в касовата бележка->Добавяне, mandatory, notNull, removeAndRefreshForm');
-        $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър в касовата бележка->Позиция, mandatory, notNull');
+        $fieldset->FLD('header', 'enum(yes=Да,no=Не)', 'caption=Надпис хедър в касовата бележка->Добавяне, notNull, removeAndRefreshForm');
+        $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър в касовата бележка->Позиция, notNull');
         $fieldset->FLD('headerText1', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 1');
         $fieldset->FLD('headerText2', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 2');
         $fieldset->FLD('headerText3', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 3');
@@ -203,30 +203,10 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $fieldset->FLD('headerText5', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 5');
         $fieldset->FLD('headerText6', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 6');
         $fieldset->FLD('headerText7', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 7');
-        if ($fieldset instanceof core_Form) {
-            $fieldset->input('header');
-            if ($fieldset->rec->header == 'no') {
-                $fieldset->setField('headerText1', 'input=none');
-                $fieldset->setField('headerText2', 'input=none');
-                $fieldset->setField('headerText3', 'input=none');
-                $fieldset->setField('headerText4', 'input=none');
-                $fieldset->setField('headerText5', 'input=none');
-                $fieldset->setField('headerText6', 'input=none');
-                $fieldset->setField('headerText7', 'input=none');
-                $fieldset->setField('headerPos', 'input=none');
-            }
-        }
         
-        $fieldset->FLD('footer', 'enum(yes=Да, no=Не)', 'caption=Надпис футър в касовата бележка->Добавяне, mandatory, notNull, removeAndRefreshForm');
-        $fieldset->FLD('footerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис футър в касовата бележка->Позиция, mandatory, notNull');
+        $fieldset->FLD('footer', 'enum(yes=Да, no=Не)', 'caption=Надпис футър в касовата бележка->Добавяне, notNull, removeAndRefreshForm');
+        $fieldset->FLD('footerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис футър в касовата бележка->Позиция, notNull');
         $fieldset->FLD('footerText', "varchar({$this->fpLen})", 'caption=Надпис футър в касовата бележка->Текст');
-        if ($fieldset instanceof core_Form) {
-            $fieldset->input('footer');
-            if ($fieldset->rec->footer == 'no') {
-                $fieldset->setField('footerText', 'input=none');
-                $fieldset->setField('footerPos', 'input=none');
-            }
-        }
     }
     
     
@@ -335,6 +315,25 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         
         if (!$form->rec->id) {
             $form->setDefault('serialSpeed', 115200);
+        }
+        
+        $form->setDefault('header', 'no');
+        $form->input('header');
+        if ($form->rec->header == 'no') {
+            $form->setField('headerText1', 'input=none');
+            $form->setField('headerText2', 'input=none');
+            $form->setField('headerText3', 'input=none');
+            $form->setField('headerText4', 'input=none');
+            $form->setField('headerText5', 'input=none');
+            $form->setField('headerText6', 'input=none');
+            $form->setField('headerText7', 'input=none');
+            $form->setField('headerPos', 'input=none');
+        }
+        
+        $form->input('footer');
+        if ($form->rec->footer == 'no') {
+            $form->setField('footerText', 'input=none');
+            $form->setField('footerPos', 'input=none');
         }
     }
     
