@@ -757,4 +757,30 @@ class sales_TransportValues extends core_Manager
             $rec->syncFee = true;
         }
     }
+    
+    
+    /**
+     * Рекалкулиране на изчисления транспорт на даден документ
+     * 
+     * @param mixed $detailClassId
+     * @param mixed $detailId
+     * @return void
+     */
+    public static function recalcTransport($detailClassId, $detailId)
+    {
+        $Detail = cls::get($detailClassId);
+        $detailRec = $Detail->fetchRec($detailId);
+        if(!is_object($detailRec)) return;
+        
+        $form = $Detail->getForm();
+        $clone = clone $Detail->Master->fetch($detailRec->{$Detail->masterKey});
+        
+        $map = array();
+        if($Detail instanceof sales_QuotationsDetails){
+            $clone->deliveryPlaceId = (!empty($clone->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$clone->contragentClassId}' AND #contragentId = '{$clone->contragentId}'", $clone->deliveryPlaceId), 'id') : null;
+            $map = array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId', 'countryId' => 'contragentCountryId');
+        }
+        sales_TransportValues::prepareFee($detailRec, $form, $clone, $map);
+        sales_TransportValues::sync($Detail->Master, $detailRec->{$Detail->masterKey}, $detailRec->id, $detailRec->fee, $detailRec->deliveryTimeFromFee, $detailRec->_transportExplained);
+    }
 }
