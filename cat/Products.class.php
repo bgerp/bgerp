@@ -588,6 +588,10 @@ class cat_Products extends embed_Manager
                     }
                 }
             }
+            
+            if(isset($rec->id)){
+                $rec->_isEditedFromForm = true;
+            }
         }
     }
     
@@ -1263,6 +1267,11 @@ class cat_Products extends embed_Manager
                 $rec->isPublic = 'yes';
                 $mvc->save_($rec, 'isPublic');
             }
+        }
+        
+        // Ако артикула е редактиран, преизчислява се транспорта
+        if($rec->_isEditedFromForm === true){
+            sales_TransportValues::recalcTransportByProductId($rec->id);
         }
     }
     
