@@ -812,7 +812,7 @@ class sales_TransportValues extends core_Manager
                 // Прави се опит за преизчисление на транспорта (ако трябва)
                 $isRecalced = self::recalcTransport($Detail, $detailRec);
                 if($isRecalced === true){
-                    $Detail->Master->logWrite('Рекалкулиране на сумата за транспорт  на артикул', $detailRec->{$Detail->masterKey});
+                    $Detail->Master->logWrite('Преизчисляване на сумата за транспорт  на артикул', $detailRec->{$Detail->masterKey});
                     doc_DocumentCache::cacheInvalidation($detailRec->containerId);
                 }
             }
