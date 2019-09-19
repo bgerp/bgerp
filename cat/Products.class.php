@@ -3172,6 +3172,9 @@ class cat_Products extends embed_Manager
         
         $this->setExpandInputField($form, $this->expandInputFieldName, $this->expandFieldName);
         
+        // TODO - временно решение, трябва да се премахне след #C28560
+        unset($form->fields[$this->expandInputFieldName]->type->params['pathDivider']);
+        
         $form->setDefault('groupsInput', $rec->groupsInput);
         $form->input();
         if ($form->isSubmitted()) {
