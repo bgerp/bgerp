@@ -257,6 +257,11 @@ class pos_Points extends core_Master
         $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         
         if ($fields['-single']) {
+            if($rec->state != 'rejected'){
+                $currentId = $mvc->getCurrent('id', false);
+                $row->STATE_CLASS = ($rec->id == $currentId) ? 'state-active' : 'state-closed';
+            }
+            
             $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
             if ($defaultContragent = self::defaultContragent($rec->id)) {
                 $row->contragent = crm_Persons::getHyperlink($defaultContragent, true);
