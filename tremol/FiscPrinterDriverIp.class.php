@@ -607,26 +607,25 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
     protected static function on_AfterRenderSingle($Driver, $Embedder, &$tpl, $data)
     {
         if ($Embedder instanceof peripheral_Devices && $Embedder->haveRightFor('edit', $data->rec->id)) {
-            
             try {
-                // Променя серийния номер на ФУ, ако не е коректно
                 $sn = $Driver->getSerialNumber($data->rec);
             } catch (Exception $e) {
                 $Driver->handleAndShowException($e);
             }
             
-            if ($sn) {
-                if ($sn != $data->rec->serialNumber) {
-                    $data->rec->serialNumber = $sn;
-                    
-                    $Embedder->save($data->rec, 'serialNumber');
-                    
-                    status_Messages::newStatus('|Променен сериен номер на|* ' . $sn);
-                }
-            }
-            
             // Настройваме хедърите и футърите на ФУ
             if (Request::get('update')) {
+                // Променя серийния номер на ФУ, ако не е коректно
+                if ($sn) {
+                    if ($sn != $data->rec->serialNumber) {
+                        $data->rec->serialNumber = $sn;
+                        
+                        $Embedder->save($data->rec, 'serialNumber');
+                        
+                        status_Messages::newStatus('|Променен сериен номер на|* ' . $sn);
+                    }
+                }
+                
                 try {
                     self::setDateTime($data->rec);
                 } catch (Exception $e) {

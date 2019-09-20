@@ -625,61 +625,68 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      */
     protected static function on_AfterRenderSingle($Driver, $Embedder, &$tpl, $data)
     {
-        if ($Embedder instanceof peripheral_Devices && $Embedder->haveRightFor('edit', $data->rec->id)) {
-            $setSerialUrl = toUrl(array($Driver, 'setSerialNumber', $data->rec->id), 'local');
-            $setSerialUrl = urlencode($setSerialUrl);
-            
-            $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+        $update = Request::get('update');
+        
+        if ($update !== 0) {
+            if ($Embedder instanceof peripheral_Devices && $Embedder->haveRightFor('edit', $data->rec->id)) {
+                $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
                                 try {
                                     [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                
+                                    var sn = fpSerialNumber();
                                     
-                                    try {
-                                        getEfae().process({url: '{$setSerialUrl}'}, {serial: fpSerialNumber()});
-                                    } catch(ex) {
-                                        render_showToast({timeOut: 800, text: '" . tr('Грешка при обновяване на серийния номер') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
-                                    }
-
                                     [#OTHER#]
                                 } catch(ex) {
                                     render_showToast({timeOut: 800, text: '" . tr('Грешка при свързване с принтера') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
                                 }
                             [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]");
-            
-            // След запис, обновяваме хедър и футъра
-            if (Request::get('update')) {
-                // Сверяваме времето
-                $now = json_encode(date('d-m-Y H:i:s'));
-                $updateTime = "try {
+                
+                // След запис, обновяваме хедър и футъра
+                if ($update) {
+                    $setSerialUrl = toUrl(array($Driver, 'setSerialNumber', $data->rec->id), 'local');
+                    $setSerialUrl = urlencode($setSerialUrl);
+                    
+                    $updateSn = "try {
+                                     getEfae().process({url: '{$setSerialUrl}'}, {serial: sn});
+                                 } catch(ex) {
+                                     render_showToast({timeOut: 800, text: '" . tr('Грешка при обновяване на серийния номер') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
+                                 }";
+                    
+                    $jsTpl->prepend($updateSn, 'OTHER');
+                    
+                    // Сверяваме времето
+                    $now = json_encode(date('d-m-Y H:i:s'));
+                    $updateTime = "try {
                                     fpSetDateTime({$now});
                                 } catch(ex) {
                                     render_showToast({timeOut: 800, text: '" . tr('Не може да се синхронизира времето') . ": ' + ex.message, isSticky: false, stayTime: 12000, type: 'warning'});
                                 }";
-                $jsTpl->prepend($updateTime, 'OTHER');
-                
-                // Нулираме другихте хедъри
-                $headersTextStr = '';
-                
-                $maxTextLen = ($data->rec->fpType == 'fiscalPrinter') ? $Driver->fpLen : $Driver->crLen;
-                
-                if ($data->rec->header == 'yes') {
-                    for ($i = 1; $i <= 7; $i++) {
-                        $h = headerText . $i;
-                        $ht = (string) $data->rec->{$h};
-                        $ht = self::formatText($ht, $data->rec->headerPos, $maxTextLen);
-                        $ht = json_encode($ht);
-                        $headersTextStr .= "fpProgramHeader({$ht}, {$i});";
+                    $jsTpl->prepend($updateTime, 'OTHER');
+                    
+                    // Нулираме другихте хедъри
+                    $headersTextStr = '';
+                    
+                    $maxTextLen = ($data->rec->fpType == 'fiscalPrinter') ? $Driver->fpLen : $Driver->crLen;
+                    
+                    if ($data->rec->header == 'yes') {
+                        for ($i = 1; $i <= 7; $i++) {
+                            $h = headerText . $i;
+                            $ht = (string) $data->rec->{$h};
+                            $ht = self::formatText($ht, $data->rec->headerPos, $maxTextLen);
+                            $ht = json_encode($ht);
+                            $headersTextStr .= "fpProgramHeader({$ht}, {$i});";
+                        }
                     }
-                }
-                $footerTextStr = '';
-                if ($data->rec->footer == 'yes') {
-                    $ft = (string) $data->rec->footerText;
-                    $ft = self::formatText($ft, $data->rec->footerPos, $maxTextLen);
-                    $ft = json_encode($ft);
-                    $footerTextStr = "fpProgramFooter({$ft});";
-                }
-                
-                if ($headersTextStr || $footerTextStr) {
-                    $headerText = "try {
+                    $footerTextStr = '';
+                    if ($data->rec->footer == 'yes') {
+                        $ft = (string) $data->rec->footerText;
+                        $ft = self::formatText($ft, $data->rec->footerPos, $maxTextLen);
+                        $ft = json_encode($ft);
+                        $footerTextStr = "fpProgramFooter({$ft});";
+                    }
+                    
+                    if ($headersTextStr || $footerTextStr) {
+                        $headerText = "try {
                                         {$headersTextStr}
                                     } catch(ex) {
                                         render_showToast({timeOut: 800, text: '" . tr('Грешка при програмиране на хедъра на устройството') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
@@ -690,16 +697,17 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                                     } catch(ex) {
                                         render_showToast({timeOut: 800, text: '" . tr('Грешка при програмиране на футъра на устройството') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
                                     }";
-                    $jsTpl->append($headerText, 'OTHER');
+                                        $jsTpl->append($headerText, 'OTHER');
+                    }
                 }
+                
+                $Driver->addTplFile($jsTpl, $data->rec->driverVersion);
+                $Driver->connectToPrinter($jsTpl, $data->rec, false);
+                
+                $jsTpl->removePlaces();
+                
+                jquery_Jquery::run($tpl, $jsTpl);
             }
-            
-            $Driver->addTplFile($jsTpl, $data->rec->driverVersion);
-            $Driver->connectToPrinter($jsTpl, $data->rec, false);
-            
-            $jsTpl->removePlaces();
-            
-            jquery_Jquery::run($tpl, $jsTpl);
         }
     }
     
