@@ -645,11 +645,20 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                 if ($update) {
                     $setSerialUrl = toUrl(array($Driver, 'setSerialNumber', $data->rec->id), 'local');
                     $setSerialUrl = urlencode($setSerialUrl);
-                    
                     $updateSn = "try {
                                      getEfae().process({url: '{$setSerialUrl}'}, {serial: sn});
                                  } catch(ex) {
                                      render_showToast({timeOut: 800, text: '" . tr('Грешка при обновяване на серийния номер') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
+                                 }";
+                    $jsTpl->prepend($updateSn, 'OTHER');
+                    
+                    $setOperPassUrl = toUrl(array($Driver, 'SetOperPass', $data->rec->id), 'local');
+                    $setOperPassUrl = urlencode($setOperPassUrl);
+                    $updateSn = "try {
+                                     var operPass = fpGetOperPass();
+                                     getEfae().process({url: '{$setOperPassUrl}'}, {operPass: operPass});
+                                 } catch(ex) {
+                                     render_showToast({timeOut: 800, text: '" . tr('Грешка при промяна на парола за връзка с ФУ') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
                                  }";
                     
                     $jsTpl->prepend($updateSn, 'OTHER');
@@ -715,7 +724,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
     /**
      * Екшън за промяна на серийния номер
      *
-     * @return array|string
+     * @return array
      */
     public function act_SetSerialNumber()
     {
@@ -756,6 +765,63 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                 $statusData['stayTime'] = 8000;
             } else {
                 $statusData['text'] = tr('Грешка при промяна на сериен номер');
+                $statusData['type'] = 'error';
+                $statusData['timeOut'] = 700;
+                $statusData['isSticky'] = 1;
+                $statusData['stayTime'] = 15000;
+            }
+            
+            $statusObj = new stdClass();
+            $statusObj->func = 'showToast';
+            $statusObj->arg = $statusData;
+            
+            $res[] = $statusObj;
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Екшън за промяна на паролата на оператора за връзка с ФУ
+     *
+     * @return array
+     */
+    public function act_SetOperPass()
+    {
+        expect(Request::get('ajax_mode'));
+        
+        peripheral_Devices::requireRightFor('single');
+        
+        $operPass = Request::get('operPass');
+        $id = Request::get('id', 'int');
+        
+        expect($id);
+        
+        $pRec = peripheral_Devices::fetch($id);
+        
+        expect($pRec);
+        
+        peripheral_Devices::requireRightFor('single', $id);
+        peripheral_Devices::requireRightFor('edit', $id);
+        
+        $res = array();
+        
+        if ($pRec->operPass != $operPass) {
+            $oldOperPass = $pRec->operPass;
+            $pRec->operPass = $operPass;
+            
+            $statusData = array();
+            
+            if (peripheral_Devices::save($pRec)) {
+                $statusData['text'] = tr('Променена парола за връзка с ФУ на') . " {$operPass}";
+                
+                $statusData['type'] = 'notice';
+                $statusData['timeOut'] = 700;
+                $statusData['isSticky'] = 0;
+                $statusData['stayTime'] = 8000;
+            } else {
+                $statusData['text'] = tr('Грешка при промяна на парола за връзка с ФУ');
                 $statusData['type'] = 'error';
                 $statusData['timeOut'] = 700;
                 $statusData['isSticky'] = 1;

@@ -475,6 +475,29 @@ function fpSerialNumber()
 
 
 /**
+ * Връща паролата от ФУ на потребителя
+ * 
+ * @param integer
+ * 
+ * @return string
+ */
+function fpGetOperPass(operator)
+{
+	if (!operator) {
+		operator = 1;
+	}
+	var res = '';
+    try {
+        var res = fp.ReadOperatorNamePassword(operator).Password;
+    } catch(ex) {
+        handleException(ex);
+    }
+    
+    return res;
+};
+
+
+/**
  * Отпечатване на дубликат
  */
 function fpPrintLastReceiptDuplicate()

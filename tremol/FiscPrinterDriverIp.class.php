@@ -626,6 +626,23 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     }
                 }
                 
+                // Добавяме паролата на оператора
+                try {
+                    $oPass = $Driver->getOperPassFromFU($data->rec);
+                } catch (Exception $e) {
+                    $Driver->handleAndShowException($e);
+                }
+                
+                if (isset($oPass)) {
+                    if ($oPass != $data->rec->operPass) {
+                        $data->rec->operPass = $oPass;
+                        
+                        $Embedder->save($data->rec, 'operPass');
+                        
+                        status_Messages::newStatus('|Променена парола за връзка с ФУ на|* ' . $oPass);
+                    }
+                }
+                
                 try {
                     self::setDateTime($data->rec);
                 } catch (Exception $e) {
@@ -775,6 +792,32 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         }
         
         return $sn;
+    }
+    
+    
+    /**
+     * Връща паролата на оператора от ФУ
+     *
+     * @param stdClass $rec
+     * @param integer $oper
+     *
+     * @return false|string
+     */
+    protected static function getOperPassFromFU($rec, $oper = 1)
+    {
+        $oPass = false;
+        
+        try {
+            $fp = self::connectToPrinter($rec);
+            
+            if ($fp) {
+                $oPass = $fp->ReadOperatorNamePassword($oper)->Password;
+            }
+        } catch (\Tremol\SException $e) {
+            self::handleTremolException($e);
+        }
+        
+        return $oPass;
     }
     
     
