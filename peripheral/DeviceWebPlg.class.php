@@ -173,10 +173,12 @@ class peripheral_DeviceWebPlg extends core_Plugin
     public static function on_AfterPrepareSingle($Driver, embed_Manager $Embedder, &$res, &$data)
     {
         if (Request::get('update')) {
-            if ($data->rec->brid) {
-                $cBrid = log_Browsers::getBrid(true);
-                if ($cBrid && (stripos($data->rec->brid, $cBrid) === false)) {
-                    Request::push(array('update' => 0));
+            if ((stripos($data->rec->serverIp, '127.0.0.1') !== false) || (stripos($data->rec->serverIp, 'localhost') !== false)) {
+                if (!$Driver->checkDevice($data->rec, array('brid' => log_Browsers::getBrid(true), 'ip' => core_Users::getRealIpAddr()))) {
+                    $cBrid = log_Browsers::getBrid(true);
+                    if ($cBrid && (stripos($data->rec->brid, $cBrid) === false)) {
+                        Request::push(array('update' => 0));
+                    }
                 }
             }
         }
