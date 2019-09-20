@@ -86,7 +86,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     
     
     /**
-     * Дефолтни кодове на начините на плащане
+     * Дефолтни кодове на начините на плащане (забити в настройките на апарата)
      */
     const DEFAULT_PAYMENT_MAP = array('Брой'       => 0,
                                       'Чек'        => 1,
@@ -190,9 +190,9 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             }
         }
         
-        $fieldset->FLD('paymentMap9', 'varchar', 'caption=Настройки на апарата за плащания->Позиция 9');
-        $fieldset->FLD('paymentMap10', 'varchar', 'caption=Настройки на апарата за плащания->Позиция 10');
-        $fieldset->FLD('paymentMap11', 'varchar', 'caption=Настройки на апарата за плащания->Позиция 11');
+        $fieldset->FLD('paymentMap9', 'key(mvc=cond_Payments,select=title)', 'caption=Настройки на апарата за плащания->Допълнително 1,unit=(Позиция 9)');
+        $fieldset->FLD('paymentMap10', 'key(mvc=cond_Payments,select=title)', 'caption=Настройки на апарата за плащания->Допълнително 2,unit=(Позиция 10)');
+        $fieldset->FLD('paymentMap11', 'key(mvc=cond_Payments,select=title)', 'caption=Настройки на апарата за плащания->Валута,unit=(Позиция 11)');
         
         $fieldset->FLD('header', 'enum(yes=Да,no=Не)', 'caption=Надпис хедър в касовата бележка->Добавяне, notNull, removeAndRefreshForm');
         $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър в касовата бележка->Позиция, notNull');
@@ -262,19 +262,25 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     {
         $form = &$data->form;
         
+        // Подготовка на допълнителните начини на плащане
         $pQuery = cond_Payments::getQuery();
+        $pQuery->where("#state = 'active'");
         $arrMap = array_flip(self::DEFAULT_PAYMENT_MAP);
-        $oMapArr = array('' => '');
+        $addMapArr = $oMapArr = array('' => '');
         
         while ($pRec = $pQuery->fetch()) {
-            if (isset($pRec->code) && isset($arrMap[$pRec->code])) continue;
-            
-            if (!$pRec->currencyCode) continue;
-            
-            $oMapArr[$pRec->currencyCode] = $pRec->currencyCode;
+            if(!empty($pRec->currencyCode) && $pRec->currencyCode != 'BGN'){
+                $oMapArr[$pRec->id] = $pRec->currencyCode;
+            } elseif(!in_array($pRec->title, $arrMap)) {
+                $addMapArr[$pRec->id] = $pRec->title;
+            }
         }
-        $form->setOptions('paymentMap9', $oMapArr);
-        $form->setOptions('paymentMap10', $oMapArr);
+        
+        // На позиция 9 и 10 може да се изберат, тези плащания които не са твърдо забити за драйвера
+        $form->setOptions('paymentMap9', $addMapArr);
+        $form->setOptions('paymentMap10', $addMapArr);
+        
+        // На позиция 11 се добавят валутните плащания, за избор. Един апарат може да работи само с 1 допълнителна валута
         $form->setOptions('paymentMap11', $oMapArr);
         
         if (!$form->rec->id) {
@@ -368,6 +374,8 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     
     
     /**
+        
+        
      *
      * @param tremol_FiscPrinterDriverParent $Driver
      * @param peripheral_Devices        $Embedder
@@ -410,25 +418,17 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function isCurrencySupported($rec, $currencyCode)
     {
-        if (!$currencyCode) {
-            
-            return false;
-        }
-        
         if ($currencyCode == 'BGN') {
             
             return true;
         }
         
-        if ($currencyCode != 'BGN') {
-            
-            foreach(array(9,10,11) as $v) {
-                $r = 'paymentMap' . $v;
+        // На 11 позиция се очаква да е избрана валутата
+        if(isset($rec->paymentMap11)){
+            $selectedCurrency = cond_Payments::fetchField($rec->paymentMap11, 'currencyCode');
+            if($selectedCurrency == $currencyCode) {
                 
-                if ($rec->{$r} == $currencyCode) {
-                    
-                    return true;
-                }
+                return true;
             }
         }
         
@@ -446,18 +446,20 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function getPaymentCode($rec, $paymentId)
     {
-        // Ако не е подаден код на плащане се приема, че е брой
+        // Ако не е подаден код на плащане се приема, че е 'Брой'
         if(empty($paymentId)){
             
             return self::DEFAULT_PAYMENT_MAP['Брой'];
         }
         
+        // Все пак трябва да има запис за плащането
         $pRec = cond_Payments::fetch($paymentId);
         if(!$pRec) {
             
             return;
         }
         
+        // Ако плащането е от дефолтните, връща се забития му код във ФУ
         $name = $pRec->title;
         if (!empty($name)) {
             if (array_key_exists($name, self::DEFAULT_PAYMENT_MAP)) {
@@ -466,9 +468,10 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             }
         }
         
-        foreach(array(9,10,11) as $v) {
-            $r = 'paymentMap' . $v;
-            if ($pRec->currencyCode && $rec->{$r} == $pRec->currencyCode) {
+        // Проверка на 9, 10, 11 позиция има ли избрани безналични методи за плащане (различни от задължителните)
+        // ако има връща съответния код
+        foreach(array(9, 10, 11) as $v) {
+            if($pRec->id == $rec->{"paymentMap{$v}"}) {
                 
                 return $v;
             }
