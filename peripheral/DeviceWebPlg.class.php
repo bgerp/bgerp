@@ -163,6 +163,26 @@ class peripheral_DeviceWebPlg extends core_Plugin
     
     
     /**
+    * Подготовка за рендиране на единичния изглед
+    *
+    * @param core_Mvc $Driver
+    * @param embed_Manager     $Embedder
+    * @param stdClass          $res
+    * @param stdClass          $data
+    */
+    public static function on_AfterPrepareSingle($Driver, embed_Manager $Embedder, &$res, &$data)
+    {
+        if (Request::get('update')) {
+            if ((stripos($data->rec->serverIp, '127.0.0.1') !== false) || (stripos($data->rec->serverIp, 'localhost') !== false)) {
+                if (!$Driver->checkDevice($data->rec, array('brid' => log_Browsers::getBrid(true), 'ip' => core_Users::getRealIpAddr()))) {
+                    Request::push(array('update' => 0));
+                }
+            }
+        }
+    }
+    
+    
+    /**
      * Помощна фунцкия за проверка дали пододана стойност я има в стинг
      *
      * @param string $val

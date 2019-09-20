@@ -946,7 +946,6 @@ class core_Url
         $res = @curl_exec($ch);
         
         curl_close($ch);
-        log_System::add(get_called_class(), "URL({$url}) " . json_encode($res), 'debug', 1);
 
 
         return $headers;

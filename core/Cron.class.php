@@ -275,6 +275,10 @@ class core_Cron extends core_Manager
      */
     public function act_Cron()
     {
+        if(!Request::get('forced')) {
+            core_App::flushAndClose(false);
+        }
+        
         $whitelist = array(
             '127.0.0.1',
             '::1'
@@ -286,8 +290,6 @@ class core_Cron extends core_Manager
         
         // Ако в момента се извършва инсталация - да не се изпълняват процесите
         core_SystemLock::stopIfBlocked();
-        
-        header('Cache-Control: no-cache, no-store');
         
         // Отключваме всички процеси, които са в състояние заключено, а от последното
         // им стартиране е изминало повече време от Време-лимита-а
@@ -319,6 +321,7 @@ class core_Cron extends core_Manager
         $mCnt = 5;
         
         while ($rec = $query->fetch("#state != 'stopped'")) {
+            set_time_limit(120);
             
             // Кога е бил последно стартиран този процес?
             $lastStarting = $rec->lastStart;
@@ -342,10 +345,8 @@ class core_Cron extends core_Manager
                 }
                 
                 $i++;
-                fopen(toUrl(array(
-                    'Act' => 'ProcessRun',
-                    'id' => str::addHash($rec->id)
-                ), 'absolute-force'), 'r');
+                $url = toUrl(array('Act' => 'ProcessRun','id' => str::addHash($rec->id)), 'absolute-force');
+                core_Url::start($url);
             }
         }
         
@@ -358,26 +359,17 @@ class core_Cron extends core_Manager
      */
     public function act_ProcessRun()
     {
-        // Форсираме системния потребител
-        core_Users::forceSystemUser();
+        $this->logInfo('Процес:::: ' . Request::get('id'));
         
         // Затваряме връзката създадена от httpTimer, ако извикването не е форсирано
         if (!($forced = Request::get('forced'))) {
-            header('Connection: close');
-            ob_start();
-            session_write_close();
-            header('Content-Length: 0');
-            
-            if (function_exists('fastcgi_finish_request')) {
-                fastcgi_finish_request();
-            } else {
-                @ob_end_flush();
-                flush();
-            }
+            core_App::flushAndClose(false);
         } else {
             header('Content-type: text/html; charset=utf-8');
         }
         
+        // Форсираме системния потребител
+        core_Users::forceSystemUser();
         
         // Декриптираме входния параметър. Чрез предаването на id-to на процеса, който
         // трябва да се стартира в защитен вид, ние се предпазваме от евентуална външна намеса
@@ -402,6 +394,7 @@ class core_Cron extends core_Manager
         if (!$rec) {
             $this->logThenStop('Липсва запис', $id, 'err');
         }
+        
         
         // Дали процесът не е заключен?
         if ($rec->state == 'locked' && !$forced) {
@@ -893,44 +886,44 @@ class core_Cron extends core_Manager
      */
     public function act_Watchdog()
     {
-        if (session_id()) {
-            session_write_close();
-        }
-        ignore_user_abort(true);
-        
+        set_time_limit(90);
         core_App::flushAndClose(false);
         
         // Пробваме да вземем lock за този процес, за 65 секунди
         while (core_Locks::get('core_Cron::Watchdog', 80)) {
             set_time_limit(120);
             
-            // Изчакваме да стане 5-тата секунда от минутата
+            // Изчакваме да стане 10-тата секунда от минутата
             $rest = (70 - (time() % 60)) % 60;
             if ($rest > 0) {
+                $this->logInfo('Спи ' . $rest . ' сек.');
                 sleep($rest);
+                $this->logInfo('Събуждане');
             }
             
-            // Ако има пуснати процеси, преди по-малко или равно на 5 секунди,
+            // Ако има пуснати процеси, преди по-малко или равно на 10 секунди,
             // излизаме, защото някой друг се грижи
             $lastStartBefore = time() - dt::mysql2timestamp(self::getLastStartTime());
             if ($lastStartBefore <= 10) {
                 $okTrays++;
-                
+                $this->logInfo('Пропускаме, защото има скорошни пускания');
                 if ($okTrays > 3) {
+                    $this->logInfo('3 пропускания - свършваме');
                     core_App::shutdown(false);
                 }
             } else {
                 $okTrays = 0;
                 
                 // Самостартираме крон
-                @fopen(toUrl(array('core_Cron', 'cron'), 'absolute-force'), 'r');
+                $url = toUrl(array('core_Cron', 'cron'), 'absolute-force');
+                core_Url::start($url);
             }
-            
             
             // Изчакваме още 2 секунди
             sleep(2);
         }
         
+        $this->logInfo('Излиза, защото не може да вземе лок');
         core_App::shutdown(false);
     }
 }

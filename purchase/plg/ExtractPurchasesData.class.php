@@ -212,7 +212,6 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $rec = $mvc->fetchRec($id);
         
         if (($mvc instanceof store_Receipts && $rec->isReverse == 'yes') || ($mvc instanceof store_ShipmentOrders && $rec->isReverse != 'yes')) {
-            core_Statuses::newStatus('ret', 'warning');
             return ;
         }
         
