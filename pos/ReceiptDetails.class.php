@@ -718,7 +718,6 @@ class pos_ReceiptDetails extends core_Detail
         $query->where("#action LIKE '%sale%' || #action LIKE '%payment%'");
         
         while ($rec = $query->fetch()) {
-            $arr = array();
             $obj = new stdClass();
             if ($rec->productId) {
                 $obj->action = 'sale';
