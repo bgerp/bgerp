@@ -351,12 +351,6 @@ class core_App
      */
     public static function shutdown($sendOutput = true)
     {
-        // Освобождава манипулатора на сесията. Ако трябва да се правят
-        // записи в сесията, то те трябва да се направят преди shutdown()
-        if (session_id()) {
-            session_write_close();
-        }
-        
         // Флъшваме и затваряме връзката, като евентулано показваме съдържанието в буфера
         core_App::flushAndClose($sendOutput);
         
@@ -483,23 +477,44 @@ class core_App
         $oneTimeFlag = true;
         
         ignore_user_abort(true);
-
+        
+        // Освобождава манипулатора на сесията. Ако трябва да се правят
+        // записи в сесията, то те трябва да се направят преди shutdown()
+        core_Session::pause();
+        
         if ($output) {
             $content = ob_get_contents();         // Get the content of the output buffer
-            
+            if (strlen($content) == 0) {
+                $output = false;
+            }
             while (ob_get_level() > 0) {
                 ob_end_clean();
             }
         }
         
         if (!headers_sent()) {
+            header('Connection: close');
             if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output) {
+                $supportsGzip = strpos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip' ) !== false;
+                if ( $supportsGzip && strlen($content) > 1000) {
+                    $content = gzencode($content);
+                    header('Content-Encoding: gzip');
+                }
                 $len = strlen($content);
                 header("Content-Length: ${len}");
+
             } else {
-                header('Content-Length: 0');
+                if ($_SERVER['REQUEST_METHOD'] != 'HEAD') {
+                    header('Content-Length: 2');
+                    header("Content-Encoding: none");
+                    $content = 'OK';
+                    $len = 2;
+                    $output = true;
+                } else {
+                    header('Content-Length: 0');
+                }
             }
-            header('Connection: close');
+            
             
             // Добавяме допълнителните хедъри
             $aHeadersArr = self::getAdditionalHeadersArr();
@@ -508,7 +523,7 @@ class core_App
             }
         }
         
-        if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output && $len) {
+        if (($_SERVER['REQUEST_METHOD'] != 'HEAD') && $output && $len) {
             echo $content; // Output content
         } else {
             if (!headers_sent()) {

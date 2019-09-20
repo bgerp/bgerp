@@ -92,7 +92,7 @@ class gdocs_Plugin extends core_Plugin
             
             $lastKeyName = $isForm ? 'viewform' : 'preview';
             
-            if (($lastKey == 4) && (
+            if ((($lastKey == 4) || ($lastKey == 5)) && (
                     ($urlPathArr[$lastKey] == 'preview') ||
                     ($urlPathArr[$lastKey] == 'edit') ||
                     ($urlPathArr[$lastKey] == 'view') ||

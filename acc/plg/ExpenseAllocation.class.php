@@ -128,7 +128,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                     $uomName = cat_UoM::getShortName(key(cat_Products::getPacks($rec->productId)));
                     $form->setError($mvc->packQuantityFld, "Въведеното к-во е по-малко от к-то разпределеното по разходи|* <b>{$allocatedVerbal}</b> |{$uomName}|*");
                 }
-            } elseif(isset($rec->expenseItemId)) {
+            } elseif(isset($rec->expenseItemId) && isset($rec->allocationBy)) {
                 if($rec->allocationBy == 'auto'){
                     $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
                     $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);

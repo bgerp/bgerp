@@ -404,12 +404,6 @@ class pos_ReceiptDetails extends core_Detail
             $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receipt->valior);
         }
         
-        // Отбелязваме, че на това плащане ще има ресто
-        $paid = $receipt->paid + $paidAmount;
-        if (abs($paid) > abs($receipt->total)) {
-            $rec->value = 'change';
-        }
-        
         // Запис на плащането
         if ($this->save($rec)) {
             core_Statuses::newStatus('|Плащането е направено успешно|*!');
@@ -724,7 +718,6 @@ class pos_ReceiptDetails extends core_Detail
         $query->where("#action LIKE '%sale%' || #action LIKE '%payment%'");
         
         while ($rec = $query->fetch()) {
-            $arr = array();
             $obj = new stdClass();
             if ($rec->productId) {
                 $obj->action = 'sale';
@@ -739,14 +732,15 @@ class pos_ReceiptDetails extends core_Detail
                 if (!$rec->amount) {
                     continue;
                 }
-                if ($rec->value == 'change') {
-                    $rec->amount -= $masterRec->change;
-                }
-                
+               
                 $obj->action = 'payment';
                 list(, $obj->value) = explode('|', $rec->action);
                 $obj->pack = null;
                 $obj->caseId = $caseId;
+                
+                if($obj->value == -1){
+                    $rec->amount -= $masterRec->change;
+                }
             }
             $obj->contragentClassId = $rec->contragentClsId;
             $obj->contragentId = $rec->contragentId;
