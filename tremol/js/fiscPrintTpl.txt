@@ -144,9 +144,6 @@ function printFiscalReceipt(onSuccess, onError) {
                     res = fpReadLastReceiptQRcodeData();
                 } catch(ex) {
                     console.log('Грешка при прочитане на данните за последния ФБ: ' + ex.message);
-                }
-                
-                if (!res) {
                     try {
                         setTimeout(function(){ res = fpReadLastReceiptQRcodeData(); }, 1000);
                     } catch(ex) {
