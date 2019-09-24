@@ -584,8 +584,6 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         
         expect($pRec);
         
-        peripheral_Devices::requireRightFor('single', $pRec);
-        
         $form = cls::get('core_Form');
         
         $enumStr = '';
@@ -695,8 +693,6 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $pRec = peripheral_Devices::fetch($pId);
         
         expect($pRec);
-        
-        peripheral_Devices::requireRightFor('single', $pRec);
         
         $form = cls::get('core_Form');
         
