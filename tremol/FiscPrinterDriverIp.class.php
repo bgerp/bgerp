@@ -423,6 +423,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         try {
             $res = $fp->ReadLastReceiptQRcodeData();
             if (!$res) {
+                sleep(1);
                 $res = $fp->ReadLastReceiptQRcodeData();
             }
         } catch (\Tremol\SException $e) {
