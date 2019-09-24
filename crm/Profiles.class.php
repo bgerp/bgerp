@@ -706,7 +706,7 @@ class crm_Profiles extends core_Master
         }
         
         // Кои полета да се показват
-        $form->showFields = (($form->fields['nick']) ? 'nick' : 'email') . ',passEx,passNew,passRe,pinCode';
+        $form->showFields = (($form->fields['nick']) ? 'nick' : 'email') . ',passEx,passNew,passRe';
         
         // Получаваме изгледа на формата
         $tpl = $form->renderHtml();
@@ -754,7 +754,7 @@ class crm_Profiles extends core_Master
         $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', 'caption=Нова парола (пак),input,width=15em', array('hint' => $passReHint));
         
         $pinCodeHint = 'Промяна на ПИН код';
-        $form->FNC('pinCode', 'password(allowEmpty,autocomplete=off)', "caption=ПИН код,input,hint={$pinCodeHint},width=15em");
+        $form->FNC('pinCode', 'password(allowEmpty,autocomplete=off)', "caption=ПИН код,input=hidden,hint={$pinCodeHint},width=15em");
         
         // Подготвяме лентата с инструменти на формата
         $form->toolbar->addSbBtn('Запис', 'change_password', 'ef_icon = img/16/disk.png');
