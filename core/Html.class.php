@@ -24,7 +24,7 @@ class core_Html
     {
         $attrStr = '';
         
-        if ($attributes['title'] && $translate) {
+        if ($attributes['title'] && $translate && ($attributes['translate'] != 'no')) {
             $attributes['title'] = tr($attributes['title']);
         }
         
@@ -1025,14 +1025,14 @@ class core_Html
      *
      * @param mixed  $body        - тяло
      * @param string $hint        - текст на хинта
-     * @param string $icon        - име на иконката
+     * @param string $type        - тип на хинта
      * @param bool   $appendToEnd - дали хинта да се добави в края на стринга
      * @param array  $iconAttr    - атрибути на иконката
      * @param array  $elementArr  - атрибути на елемента
      *
      * @return core_ET $elementTpl  - шаблон с хинта
      */
-    public static function createHint($body, $hint, $icon = 'notice', $appendToEnd = true, $iconAttr = array(), $elementArr = array())
+    public static function createHint($body, $hint, $type = 'notice', $appendToEnd = true, $iconAttr = array(), $elementArr = array())
     {
         if (empty($hint)) {
             
@@ -1045,16 +1045,22 @@ class core_Html
         
         $hint = strip_tags(tr($hint));
         
-        $iconPath = ($icon == 'notice') ? 'img/16/info-gray.png' : (($icon == 'warning') ? 'img/16/dialog_warning.png' : (($icon == 'error') ? 'img/16/dialog_error.png' : $icon));
-        expect(is_string($iconPath), $iconPath);
-        
-        $iconAttr = arr::make($iconAttr, true) + array('src' => sbf($iconPath, ''));
-        $iconHtml = ht::createElement('img', $iconAttr);
-        
-        if ($appendToEnd === true) {
-            $element = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
+        if ($type == 'noicon') {
+            $element = "<span class='textHint' title='[#hint#]' rel='tooltip'>[#body#]</span>";
         } else {
-            $element = "<span class='frontToolip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+            $iconAttr = arr::make($iconAttr, true);
+            if (!array_key_exists('src', $iconAttr)) {
+                $iconPath = ($type == 'notice') ? 'img/16/info-gray.png' : (($type == 'warning') ? 'img/16/dialog_warning.png' : (($type == 'error') ? 'img/16/dialog_error.png' : $type));
+                $iconAttr['src'] = $iconPath;
+            }
+            $iconAttr['src'] = sbf($iconAttr['src'], '');
+            $iconHtml = ht::createElement('img', $iconAttr);
+            
+            if ($appendToEnd === true) {
+                $element = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
+            } else {
+                $element = "<span class='frontToolip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+            }
         }
         
         $elementTpl = new core_ET($element);
@@ -1442,15 +1448,15 @@ class core_Html
     /**
      * Стилизира числото според стойноста му:
      * 		ако е отрицателно го оцветява в червено
-     * 		ако е положително не го променя
+     * 		ако е положително не го променя (освен ако не е зададен конкретен цвят)
      * 		ако е 0, го засивява
      *
      * @param mixed $verbal
      * @param float $notVerbal
-     *
+     * @param string|null $colorIfPositive - с какъв цвят да е оцветено, ако е положително
      * @return mixed $verbal
      */
-    public static function styleNumber($verbal, $notVerbal)
+    public static function styleNumber($verbal, $notVerbal, $colorIfPositive = null)
     {
         if ($notVerbal == 0) {
             if ($verbal instanceof core_ET) {
@@ -1461,6 +1467,8 @@ class core_Html
             }
             
             return $verbal;
+        } elseif($notVerbal > 0 && isset($colorIfPositive)){
+            $verbal = "<span style='color:{$colorIfPositive}'>{$verbal}</span>";
         }
         
         return self::styleIfNegative($verbal, $notVerbal);

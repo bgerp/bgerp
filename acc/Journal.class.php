@@ -375,7 +375,8 @@ class acc_Journal extends core_Master
             Mode::pop('saveTransaction');
         } catch (acc_journal_Exception $ex) {
             $tr = $docClass->getTransaction($docRec->id);
-            error($ex->getMessage(), $tr);
+            reportException($ex);
+            error($ex->getMessage(), $tr, $ex->getMessage());
         }
         
         $transaction->rec->docType = $mvc->getClassId();
@@ -389,7 +390,7 @@ class acc_Journal extends core_Master
             }
             
             // Нотифицираме документа че транзакцията му е записана
-            $mvc->invoke('AfterTransactionIsSaved', array($docRec));
+            $mvc->invoke('AfterSaveJournalTransaction', array($success, $docRec));
         }
         
         return $success;
@@ -916,10 +917,6 @@ class acc_Journal extends core_Master
         // Записване на новата транзакция на документа
         $success = acc_Journal::saveTransaction($origin->getClassId(), $origin->that, false);
         expect($success, $success);
-        
-        // Нотифициране на потребителя
-        $msg = "Реконтиране на|* #{$origin->getHandle()}";
-        core_Statuses::newStatus($msg);
         
         // Инвалидиране на кеш
         doc_DocumentCache::cacheInvalidation($containerId);

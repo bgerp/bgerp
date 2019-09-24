@@ -29,7 +29,7 @@ class core_Manager extends core_Mvc
      */
     public $interfaces = 'core_ManagerIntf';
     
-
+    
     /**
      * Заглавие на мениджъра
      */
@@ -828,6 +828,12 @@ class core_Manager extends core_Mvc
      */
     public function renderListFilter_($data)
     {
+        if (!isset($data->listFilter)) {
+            
+            return;
+        }
+        
+        $data->listFilter->showFields = isset($data->listFilter->showFields) ? arr::make($data->listFilter->showFields, true) : array();
         if (count($data->listFilter->showFields)) {
             $tpl = new ET("<div class='listFilter'>[#1#]</div>", $data->listFilter->renderHtml(null, $data->listFilter->rec));
             core_Form::preventDoubleSubmission($tpl, $data->listFilter);
@@ -866,7 +872,7 @@ class core_Manager extends core_Mvc
         $data->listFields = arr::make($data->listFields, true);
         
         // Ако има колони за филтриране, филтрираме ги
-        if (count($data->hideListFieldsIfEmpty)) {
+        if (countR($data->hideListFieldsIfEmpty)) {
             $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $data->hideListFieldsIfEmpty);
         }
         

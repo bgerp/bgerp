@@ -125,6 +125,12 @@ class embed_Manager extends core_Master
                 $driver = cls::get($rec->{$this->driverClassField}, array('Embedder' => $this));
                 $driver->addFields($form);
                 $driver->invoke('AfterAddFields', array($this, &$form));
+                
+                $refreshFields = implode('|', array_keys(static::getDriverFields($driver)));
+                if($refreshFields){
+                    $remFields = $form->getFieldParam($this->driverClassField, 'removeAndRefreshForm') . '|' . $refreshFields;
+                    $form->setField($this->driverClassField, "removeAndRefreshForm={$remFields}");
+                }
             }
             
             $form->input(null, 'silent');
@@ -450,5 +456,28 @@ class embed_Manager extends core_Master
         $query->where("#{$query->mvc->driverClassField} = ${classId}");
         
         return $query;
+    }
+    
+    
+    /**
+     * Дали записа е с посочения драйвер
+     *
+     * @param mixed $id       - ид или запис
+     * @param mixed $driver - драйвер за който се проверява
+     * @param boolean $isInstanceOf - инстанция на драйвера, или да е конкретния драйвер
+     * 
+     * @return boolean      - дали записа е с търсения драйвер
+     */
+    public static function haveDriver($id, $driver, $isInstanceOf = false)
+    {
+        $Driver = static::getDriver($id);
+        $check = cls::get($driver);
+        
+        if($isInstanceOf === true){
+            
+            return $Driver instanceof $check;
+        }
+        
+        return $Driver->getClassId() == $check->getClassId();
     }
 }

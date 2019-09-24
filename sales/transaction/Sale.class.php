@@ -89,6 +89,12 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
             
             if ($actions['ship']) {
+                
+                $entriesProduction = self::getProductionEntries($rec, $this->class);
+                if (count($entriesProduction)) {
+                    $entries = array_merge($entries, $entriesProduction);
+                }
+                
                 // Продажбата играе роля и на експедиционно нареждане.
                 // Контирането е същото като при ЕН
                 
@@ -352,7 +358,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         // Извличаме тези, отнасящи се за експедиране
         $dInfo = acc_Balances::getBlAmounts($jRecs, $accs, 'credit');
         
-        if (!count($dInfo->recs)) {
+        if (!countR($dInfo->recs)) {
             
             return $res;
         }
@@ -469,5 +475,47 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
     public static function getAmountToInvoice($jRecs)
     {
         return -1 * acc_Balances::getBlAmounts($jRecs, '4530')->amount;
+    }
+    
+    
+    /**
+     * Връща записите за моментното производство на артикулите, ако има такива
+     *
+     * @param stdClass $rec
+     * @return array $entries
+     */
+    public static function getProductionEntries($rec, $class, $storeField = 'shipmentStoreId')
+    {
+        $entries = array();
+        if(is_array($rec->details)){
+            foreach ($rec->details as $dRec){
+                
+                // Всички производими артикули
+                $canManifacture = cat_Products::fetchField($dRec->productId, 'canManifacture');
+                if($canManifacture != 'yes') continue;
+                
+                // Ако имат моментна рецепта
+                $instantBomRec = cat_Products::getLastActiveBom($dRec->productId, 'instant');
+                if(!is_object($instantBomRec)) continue;
+                
+                // И тя има ресурси, произвежда се по нея
+                $bomInfo = cat_Boms::getResourceInfo($instantBomRec, $dRec->quantity, $rec->valior);
+                if(is_array($bomInfo['resources'])){
+                    foreach ($bomInfo['resources'] as &$resRec){
+                        $resRec->quantity = $resRec->propQuantity;
+                        $resRec->storeId = $rec->{$storeField};
+                    }
+                   
+                    // Извличане на записите за производството
+                    $prodArr = planning_transaction_DirectProductionNote::getProductionEntries($dRec->productId, $dRec->quantity, $rec->{$storeField}, null, $class, $rec->id, null, $rec->valior, $bomInfo['expenses'], $bomInfo['resources']);
+                    
+                    if(count($prodArr)){
+                        $entries = array_merge($entries, $prodArr);
+                    }
+                }
+            }
+        }
+        
+        return $entries;
     }
 }

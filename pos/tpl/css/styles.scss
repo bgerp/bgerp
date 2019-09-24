@@ -374,7 +374,7 @@
 	margin-left: 5%;
 	min-width: 95px;
 }
-.button {
+.single-receipt-wrapper .button {
 	color: #333 !important;
 }
 .colum-btn .button , .tools-btn .button,  #tools-form form[method="post"] input[type="submit"],.tools-btn input, #webScan, .contragent-btn .button, #tools-choose .button {
@@ -607,15 +607,21 @@
 	margin-left: 0px;
 	margin-right: 20px;
 	float:left;
-	min-width: 130px;
+	min-width: 150px;
 	width: 25%;
 	margin-top: -52px;
+	.button {
+		text-overflow: ellipsis;
+		padding-left: 5px;
+		padding-right: 17px;
+	}
 }
 
 .tools-btn{
     margin-top: 1px;
     float: left;
     width: 25%;
+	min-width: 150px;
     position: relative;
     margin-top: -52px;
 }

@@ -2200,7 +2200,7 @@ function refreshForm(form, removeFields) {
 		form.submit(); return;
 	}
 
-	// form.submit(); return;
+//	form.submit(); return;
 	
 	$.ajax({
 		type: frm.attr('method'),
@@ -4817,47 +4817,70 @@ Experta.prototype.log = function(txt) {
  * Записва id-то на body в сесията на браузъра
  */
 Experta.prototype.saveBodyId = function() {
-	// Ако не е дефиниран
+    // Ако не е дефиниран
     if (typeof sessionStorage == "undefined") return ;
 
     var bodyId = $('body').attr('id');
 
     if (!bodyId) return ;
 
-    var bodyIds = sessionStorage.getItem(this.bodyIdSessName);
+    var bodyIds = sessionStorage.getItem('bodyIdHit');
 
     if (bodyIds) {
-    	bodyIds =  $.parseJSON(bodyIds);
+        bodyIds =  JSON.parse(bodyIds);
     } else {
-    	bodyIds = new Array();
+        bodyIds = {};
     }
 
-    if ($.inArray(bodyId, bodyIds) == -1) {
-    	bodyIds.push(bodyId);
-    }
-
-    sessionStorage.setItem(this.bodyIdSessName, JSON.stringify(bodyIds));
+    bodyIds[bodyId] = 'ajaxRefresh';
+    sessionStorage.setItem('bodyIdHit', JSON.stringify(bodyIds));
 };
+
+
+/**
+ * Определя състоянието на страницата - дали е първо посещение, дали е след рефреш или след рефреш по ajax
+ *
+ * return firstTime, refresh, ajaxRefresh
+ */
+function getHitState(bodyId) {
+    var res;
+    if (typeof sessionStorage == "undefined") return 'firstTime';
+
+    if(typeof (this.state) === 'undefined') {
+        if(typeof (bodyId) === 'undefined') {
+            var bodyId = $('body').attr('id');
+        }
+
+        if (!bodyId) return 'firstTime';
+        var bodyIds = sessionStorage.getItem('bodyIdHit');
+
+        if (typeof (bodyIds) !== 'undefined' && bodyIds) {
+            bodyIds = JSON.parse(bodyIds);
+            if(bodyIds[bodyId]) {
+                this.state = bodyIds[bodyId];
+                return this.state;
+            }
+        } else {
+            bodyIds = {};
+        }
+        res = 'firstTime';
+        this.state = 'firstTime';
+        bodyIds[bodyId] = 'refresh';
+
+        sessionStorage.setItem('bodyIdHit',  JSON.stringify(bodyIds));
+    } else {
+        res = this.state;
+    }
+    return res;
+}
 
 
 /**
  * Проверява дали id-то на body се съдържа в сесията на браузъра
  */
 Experta.prototype.checkBodyId = function(bodyId) {
-	if (!bodyId || typeof bodyId == 'undefined') {
-		bodyId = $('body').attr('id');
-	}
 
-	var bodyIds = sessionStorage.getItem(this.bodyIdSessName);
-	
-	if (!bodyIds) return ;
-
-	bodyIds =  $.parseJSON(bodyIds);
-
-	if ($.inArray(bodyId, bodyIds) != -1) {
-
-		return true;
-    }
+    return  (getHitState() == 'ajaxRefresh') ;
 };
 
 
@@ -5289,6 +5312,16 @@ function onBeforeUnload()
 
 
 /**
+ * Изчиства съдържанието на localStorage
+ */
+function clearLocalStorage(){
+    if (typeof localStorage !== 'undefined' && localStorage.length) {
+        localStorage.clear();
+    }
+}
+
+
+/**
  * Добавя текущото URL И титлата към url-то
  */
 function addParamsToBookmarkBtn(obj, parentUrl, localUrl)
@@ -5341,19 +5374,24 @@ function setFilemanPreviewSize()
  */
 function calcFilemanSize(){
     if (!$('.wide .webdrvFieldset').length) return;
-    var width = $(window).outerWidth() - $('.sidemenu-open').length * $('.sidemenu-open').width() - 4*parseInt($('#packWrapper').css('padding-left'));
+
+    var currentHeight = $('.webdrvFieldset').height();
+    var sidemenuWidth = $('.sidemenu-open').length  ? $('.sidemenu-open').length * ($('.sidemenu-open').width() + 10) : 0;
+    var width = $(window).outerWidth() - sidemenuWidth - 60  ;
     var offset = $('.webdrvFieldset').offset();
     var height = $(window).outerHeight() - parseInt(offset.top, 10) - 45;
 
-    $('.webdrvFieldset').css('width', width);
-    $('.webdrvFieldset').css('height', height);
-    $('.webdrvFieldset').css('overflow-y', 'auto');
-
-    $('.webdrvIframe').css('min-height', height - 5);
-
-    $("#imgIframe").load(function() {
-        $("#imgIframe").contents().find("#imgBg").css("height", height - 15);
-    });
+    if (currentHeight < height) {
+        $('.webdrvFieldset').css('height', height);
+        $('.webdrvFieldset').css('overflow-y', 'auto');
+        $('.webdrvIframe').css('min-height', height - 5);
+        $("#imgIframe").on('load', function() {
+            $("#imgIframe").contents().find("#imgBg").css("height", height - 15);
+        });
+    }
+    if ( $('.webdrvFieldset').width() < width) {
+        $('.webdrvFieldset').css('width', width);
+    }
 }
 
 
@@ -5448,19 +5486,14 @@ $.fn.isInViewport = function() {
 /**
  * Фокусира еднократно върху посоченото id пи зададения rand
  */
-function focusOnce(id, rand) {
-	
-    if ((typeof(Storage) !== "undefined") && (typeof(localStorage) !== "undefined")) {
-        if(localStorage.getItem(rand) !== null) {
-            return;
-        }
-        localStorage.setItem(rand, 1);
-    }
-    
-    if($(id).isInViewport && $(id).isInViewport()) {
+function focusOnce(id) {
+    getEO().checkBodyId();
+
+    if(this.state && this.state == 'firstTime' && $(id).isInViewport && $(id).isInViewport()) {
         $(id).focus();
     }
 }
+
 
 
 /**

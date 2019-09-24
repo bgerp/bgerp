@@ -85,7 +85,8 @@ class survey_Votes extends core_Manager
         //Намираме на кой въпрос, кой отговор е избран
         expect($alternativeId = Request::get('alternativeId', 'int'));
         expect($rowId = Request::get('rowId'), 'int');
-        
+        expect(survey_Options::fetch($rowId)->alternativeId == $alternativeId);
+
         // Подготвяме записа
         $rec = new stdClass();
         $rec->alternativeId = $alternativeId;
@@ -145,11 +146,10 @@ class survey_Votes extends core_Manager
         $aRec = survey_Alternatives::fetch((int) $alternativeId);
         $sRec = survey_Surveys::fetch($aRec->surveyId);
         
-        
         $uid = '';
-        if ($mid = Request::get('m') && $sRec->userBy != 'browser') {
+        if (($mid = Request::get('m')) && ($sRec->userBy != 'browser')) {
             $uid = 'mid|' . $mid;
-        } elseif (core_Users::haveRole('user') && $sRec->userBy != 'browser') {
+        } elseif (core_Users::haveRole('user') && ($sRec->userBy != 'browser')) {
             $uid = 'id|' . core_Users::getCurrent();
         } elseif ($sRec->userBy == 'browser') {
             $uid = 'brid|' . log_Browsers::getBridId();
@@ -174,13 +174,36 @@ class survey_Votes extends core_Manager
     public static function countVotes($alternativeId, $id = null)
     {
         $query = static::getQuery();
+
         $query->where(array('#alternativeId = [#1#]', $alternativeId));
         if ($id) {
             $query->where(array('#rate = [#1#]', $id));
-        }
+            
+        } 
         
-        return $query->count();
+        $res = $query->count();
+        
+        return $res;
     }
+
+
+    /**
+     * Преброява точките
+     */
+    public static function countPoints($alternativeId)
+    {
+        $query = static::getQuery();
+
+        $query->where("#alternativeId = {$alternativeId}");
+            
+        $query->EXT('value', 'survey_Options', 'externalKey=rate');
+        $query->XPR('points', 'double', 'sum(#value)');
+        $rec = $query->fetch();
+        $res = is_object($rec) ? $rec->points : 0;
+        
+        return $res;
+    }
+
     
     
     /**
@@ -208,19 +231,34 @@ class survey_Votes extends core_Manager
         $varchar = cls::get('type_Varchar');
         
         if ($type == 'id') {
-            
-            // ако е ид, намираме ника на потребителя
-            $nick = core_Users::fetchField($val, 'nick');
-            $userUid = $varchar->toVerbal($nick);
+            // Ако е ид, намираме ника на потребителя
+            if (core_Users::fetch($val)) {
+                $userUid = crm_Profiles::createLink($val);
+            }
         } elseif ($type == 'mid') {
             
-            // ако е mid
-            $userUid = $varchar->toVerbal("mid:{$val}");
-        } elseif ($type == 'ip') {
+            $logRec = doclog_Documents::fetchByMid($val);
             
-            // ако е Ип на потребител
-            $userUid = $varchar->toVerbal($val);
-            $userUid = ht::createLink("IP: {$userUid}", "http://bgwhois.com/?query={$val}", null, array('target' => '_blank'));
+            if ($logRec && $logRec->containerId) {
+                $doc = doc_Containers::getDocument($logRec->containerId);
+                if ($doc->haveRightFor('single')) {
+                    $userUid = $doc->getLinkToSingle();
+                }
+            } else {
+                // ако е mid
+                $userUid = $varchar->toVerbal("mid:{$val}");
+            }
+        } elseif ($type == 'ip') {
+            $userUid = type_Ip::decorateIp($val);
+        } elseif ($type == 'brid') {
+            // ако е mid
+            if ($val) {
+                $brid = log_Browsers::fetchField($val, 'brid');
+                
+                if ($brid) {
+                    $userUid = log_Browsers::getLink($brid);
+                }
+            }
         }
         
         return $userUid;

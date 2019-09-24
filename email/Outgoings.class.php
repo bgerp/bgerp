@@ -206,8 +206,8 @@ class email_Outgoings extends core_Master
         $this->FLD('forward', 'enum(,no=Не, yes=Да)', 'caption=Препращане, input=hidden, allowEmpty');
         
         //Данни за адресата
-        $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%, silent,changable');
-        $this->FLD('emailCc', 'emails', 'caption=Адресат->Копие до,  width=100%,changable');
+        $this->FLD('email', 'emails(1024)', 'caption=Адресат->Имейл, width=100%, silent,changable');
+        $this->FLD('emailCc', 'emails(1024)', 'caption=Адресат->Копие до,  width=100%,changable');
         $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData,changable');
         $this->FLD('attn', 'varchar', 'caption=Адресат->Име,oldFieldName=attentionOf,class=contactData,changable');
         $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,oldFieldName=phone,class=contactData,changable');
@@ -747,8 +747,8 @@ class email_Outgoings extends core_Master
                                     ascii=Латиница|* (ASCII))', 'caption=Знаци, formOrder=4');
         $form->FLD('attachments', 'keylist(mvc=fileman_files, select=name)', 'caption=Файлове,columns=4,input=none');
         $form->FLD('documents', 'keylist(mvc=fileman_files, select=name)', 'caption=Документи,columns=4,input=none');
-        $form->FNC('emailsTo', 'emails', 'input,caption=До,mandatory,class=long-input,formOrder=2', array('attr' => array('data-role' => 'list')));
-        $form->FNC('emailsCc', 'emails', 'input,caption=Копие до,class=long-input,formOrder=3', array('attr' => array('data-role' => 'list')));
+        $form->FNC('emailsTo', 'emails(1024)', 'input,caption=До,mandatory,class=long-input,formOrder=2', array('attr' => array('data-role' => 'list')));
+        $form->FNC('emailsCc', 'emails(1024)', 'input,caption=Копие до,class=long-input,formOrder=3', array('attr' => array('data-role' => 'list')));
         $form->FNC('waiting', 'time(suggestions=1 ден|3 дни|1 седмица|2 седмици, allowEmpty)', 'caption=Известяване при липса на отговор->След,hint=Време за известряване при липса на отговор след изпращане,input,formOrder=8');
         $form->FNC('delay', 'datetime', 'caption=Отложено изпращане->Изпращане на,hint=Време за отлагане на изпращането,input,formOrder=9,autohide');
         
@@ -2166,6 +2166,9 @@ class email_Outgoings extends core_Master
         // Телефон
         $footerData['tel'] = ($personRec->buzTel) ? ($personRec->buzTel) : $companyRec->tel;
         
+        // Мобилен
+        $footerData['mobile'] = $personRec->mobile;
+        
         // Факс
         $footerData['fax'] = ($personRec->buzFax) ? ($personRec->buzFax) : $companyRec->fax;
         
@@ -2539,6 +2542,10 @@ class email_Outgoings extends core_Master
                     $row->IpErrorString = email_Incomings::addErrToEmailStr($row->IpErrorString, '', 'error');
                 }
             }
+        }
+        
+        if ($rec->activatedOn) {
+            $row->createdDate = dt::mysql2verbal($rec->activatedOn, 'd.m.Y');
         }
     }
     

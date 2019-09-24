@@ -267,7 +267,7 @@ class fconv_Script
     
     /**
      * Връща скриптва, който се добавя преди процесите, за спиране на обработката след определено време
-     * 
+     *
      * @return string
      */
     public static function getTimeLimitScript()
@@ -448,6 +448,9 @@ class fconv_Script
      */
     public function run($asynch = true, $time = 2, $timeoutCallback = '')
     {
+        // Кеш за липсващи програми
+        static $missing = array();
+
         // Ако е зададена програма, може да се пусне скрипта отдалечено, на друг сървър
         // и да се чака резултат от там
         if (!$this->stopRemote) {
@@ -485,6 +488,7 @@ class fconv_Script
         }
         if (!empty($checkProgramsArr)) {
             foreach ($checkProgramsArr as $program) {
+                if($missing[$program]) return false;
                 if (isset($this->programs[$program])) {
                     $path = $this->programs[$program];
                 } else {
@@ -493,7 +497,7 @@ class fconv_Script
                 
                 if (!(is_executable($path) || exec("{$which} {$path}"))) {
                     log_System::add('fconv_Remote', 'Липсва програма: ' . $path, $rRec->id, 'warning');
-                    
+                    $missing[$program] = true;
                     return false;
                 }
             }
@@ -503,14 +507,14 @@ class fconv_Script
             $this->script = "#!/bin/bash \n" . $this->script;
         }
         
-        expect(mkdir($this->tempDir, 0777, true));
+        core_Os::requireDir($this->tempDir);
         
         $foldersArr = $this->getFolders();
         
         if (!empty($foldersArr)) {
             foreach ((array) $foldersArr as $placeHolder => $folderName) {
                 $nFolderPath = $this->tempDir . $folderName;
-                @mkdir($nFolderPath, 0777, true);
+                core_Os::requireDir($nFolderPath);
                 $this->script = str_replace("[#{$placeHolder}#]", escapeshellarg($nFolderPath), $this->script);
             }
         }

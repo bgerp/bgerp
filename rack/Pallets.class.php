@@ -906,7 +906,7 @@ class rack_Pallets extends core_Manager
                 $addPalletUrl['batch'] = $batch;
             }
             
-            return  ht::createLink('', $addPalletUrl, false, 'ef_icon=img/16/pallet1.png,title=Палетиране на артикул');
+            return  ht::createLink('', $addPalletUrl, false, 'ef_icon=img/16/pallet1.png,class=smallIcon,title=Палетиране на артикул');
         }
         
         return false;

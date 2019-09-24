@@ -107,29 +107,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
      */
     private function getEntries($rec, &$total)
     {
-        $entries = array();
-        $pInfo = cat_Products::getProductInfo($rec->productId);
-        $canStore = isset($pInfo->meta['canStore']) ? true : false;
-        
-        if ($canStore === true) {
-            $array = array('321', array('store_Stores', $rec->storeId),
-                array('cat_Products', $rec->productId));
-        } else {
-            if (isset($pInfo->meta['fixedAsset'])) {
-                $expenseItem = array('cat_Products', $rec->productId);
-            } elseif (isset($rec->expenseItemId)) {
-                $expenseItem = $rec->expenseItemId;
-            } else {
-                if (acc_Items::isItemInList($this->class, $rec->id, 'costObjects')) {
-                    $expenseItem = array('planning_DirectProductionNote', $rec->id);
-                } else {
-                    $expenseItem = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
-                }
-            }
-            
-            $array = array('60201', $expenseItem, array('cat_Products', $rec->productId));
-        }
-        
         $dRecs = array();
         if (isset($rec->id)) {
             $dQuery = planning_DirectProductNoteDetails::getQuery();
@@ -138,27 +115,76 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $dRecs = $dQuery->fetchAll();
         }
         
-        if (is_array($dRecs)) {
-            if (!count($dRecs)) {
-                $rec->debitAmount = ($rec->debitAmount) ? $rec->debitAmount : 0;
+        $entries = self::getProductionEntries($rec->productId, $rec->quantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $dRecs);
+        
+        return $entries;
+    }
+    
+    
+    /**
+     * Връща транзакцията за производството на артикул
+     * 
+     * @param int $productId
+     * @param double $quantity
+     * @param int $storeId
+     * @param double|null $debitAmount
+     * @param mixed $classId
+     * @param int $documentId
+     * @param int $expenseItemId
+     * @param datetime $valior
+     * @param double|null $expenses
+     * @param array $details
+     * 
+     * @return array $entries
+     */
+    public static function getProductionEntries($productId, $quantity, $storeId, $debitAmount, $classId, $documentId, $expenseItemId, $valior, $expenses, $details)
+    {
+        $entries = $array = array();
+        $prodRec = cat_Products::fetch($productId, 'fixedAsset,canStore');
+        
+        if ($prodRec->canStore == 'yes') {
+            $array = array('321', array('store_Stores', $storeId),
+                array('cat_Products', $productId));
+        } else {
+            if ($prodRec->fixedAsset == 'yes') {
+                $expenseItem = array('cat_Products', $productId);
+            } elseif (isset($expenseItemId)) {
+                $expenseItem = $expenseItemId;
+            } else {
+                if (acc_Items::isItemInList($classId, $documentId, 'costObjects')) {
+                    $expenseItem = array('planning_DirectProductionNote', $documentId);
+                } else {
+                    $expenseItem = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+                }
+            }
+            
+            $array = array('60201', $expenseItem, array('cat_Products', $productId));
+        }
+        
+        if (is_array($details)) {
+            if (!count($details)) {
+                $debitAmount = ($debitAmount) ? $debitAmount : 0;
                 
-                $amount = $rec->debitAmount;
-                $costAmount = $rec->debitAmount;
-                $array['quantity'] = $rec->quantity;
+                $amount = $debitAmount;
+                $costAmount = $debitAmount;
+                $array['quantity'] = $quantity;
                 
                 $entry = array('amount' => $amount,
                     'debit' => $array,
                     'credit' => array('61102'), 'reason' => 'Бездетайлно произвеждане');
                 
                 $entries[] = $entry;
+                
             } else {
-                foreach ($dRecs as $dRec) {
+                
+                foreach ($details as $dRec) {
                     
                     // Влагаме артикула, само ако е складируем, ако не е
                     // се предполага ,че вече е вложен в незавършеното производство
                     if ($dRec->type == 'input') {
-                        $productInfo = cat_Products::getProductInfo($dRec->productId);
-                        if (isset($productInfo->meta['canStore'])) {
+                        $canStore = cat_Products::fetchField($dRec->productId, 'canStore');
+                        
+                        if ($canStore == 'yes') {
                             if (empty($dRec->storeId)) {
                                 continue;
                             }
@@ -166,46 +192,45 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                             $entry = array('debit' => array('61101',
                                 array('cat_Products', $dRec->productId),
                                 'quantity' => $dRec->quantity),
-                            'credit' => array('321',
-                                array('store_Stores', $dRec->storeId),
-                                array('cat_Products', $dRec->productId),
-                                'quantity' => $dRec->quantity),
-                            'reason' => 'Влагане на материал в производството');
+                                'credit' => array('321',
+                                    array('store_Stores', $dRec->storeId),
+                                    array('cat_Products', $dRec->productId),
+                                    'quantity' => $dRec->quantity),
+                                'reason' => 'Влагане на материал в производството');
                         } else {
                             $item = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
                             $entry = array('debit' => array('61101',
                                 array('cat_Products', $dRec->productId),
                                 'quantity' => $dRec->quantity),
-                            'credit' => array('60201',
-                                $item,
-                                array('cat_Products', $dRec->productId),
-                                'quantity' => $dRec->quantity),
-                            'reason' => 'Влагане на нескладируема услуга или консуматив в производството');
+                                'credit' => array('60201',
+                                    $item,
+                                    array('cat_Products', $dRec->productId),
+                                    'quantity' => $dRec->quantity),
+                                'reason' => 'Влагане на нескладируема услуга или консуматив в производството');
                         }
                         
                         $entries[] = $entry;
                     }
                 }
                 
-                arr::sortObjects($dRecs, 'type');
+                arr::sortObjects($details, 'type');
                 
                 $costAmount = $index = 0;
-                foreach ($dRecs as $dRec1) {
+                foreach ($details as $dRec1) {
                     $sign = ($dRec1->type == 'input') ? 1 : -1;
+                    $canStore = cat_Products::fetchField($dRec1->productId, 'canStore');
                     
                     if ($dRec1->type == 'input') {
-                        $productInfo = cat_Products::getProductInfo($dRec1->productId);
-                        
                         // Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
-                        if (isset($productInfo->meta['canStore'])) {
-                            $primeCost = cat_Products::getWacAmountInStore($dRec1->quantity, $dRec1->productId, $rec->valior);
+                        if ($canStore == 'yes') {
+                            $primeCost = cat_Products::getWacAmountInStore($dRec1->quantity, $dRec1->productId, $valior);
                         } else {
-                            $primeCost = planning_ObjectResources::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $rec->valior);
+                            $primeCost = planning_ObjectResources::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $valior);
                         }
                         
                         $sign = 1;
                     } else {
-                        $primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $dRec1->productId, null, $rec->valior);
+                        $primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $dRec1->productId, null, $valior);
                         $primeCost *= $dRec1->quantity;
                         $sign = -1;
                     }
@@ -217,11 +242,11 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     $pAmount = $sign * $primeCost;
                     $costAmount += $pAmount;
                     
-                    $quantity = ($index == 0) ? $rec->quantity : 0;
+                    $quantity = ($index == 0) ? $quantity : 0;
                     
                     // Ако е материал го изписваме към произведения продукт
                     if ($dRec1->type == 'input') {
-                        $reason = ($index == 0) ? 'Засклаждане на произведен артикул' : ((!isset($productInfo->meta['canStore']) ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
+                        $reason = ($index == 0) ? 'Засклаждане на произведен артикул' : (($canStore != 'yes' ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
                         
                         $array['quantity'] = $quantity;
                         $entry['debit'] = $array;
@@ -254,8 +279,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $selfAmount = $costAmount;
             
             // Ако има режийни разходи, разпределяме ги
-            if (isset($rec->expenses)) {
-                $costAmount = $costAmount * $rec->expenses;
+            if (isset($expenses)) {
+                $costAmount = $costAmount * $expenses;
                 $costAmount = round($costAmount, 2);
                 
                 // Ако себестойността е неположителна, режийните са винаги 0
@@ -274,12 +299,12 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 $entries[] = $costArray;
             }
             
-            if ($Driver = cat_Products::getDriver($rec->productId)) {
-                $driverCost = $Driver->getPrice($rec->productId, $rec->quantity, 0, 0, $rec->valior);
+            if ($Driver = cat_Products::getDriver($productId)) {
+                $driverCost = $Driver->getPrice($productId, $quantity, 0, 0, $valior);
                 $driverCost = is_object($driverCost) ? $driverCost->price : $driverCost;
                 
                 if (isset($driverCost)) {
-                    $driverAmount = $driverCost * $rec->quantity;
+                    $driverAmount = $driverCost * $quantity;
                     $diff = round($driverAmount - $selfAmount, 2);
                     
                     if ($diff > 0) {
@@ -295,7 +320,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 }
             }
             
-            
             // Разпределяне към продажба ако разходния обект е продажба
             if (isset($expenseItem)) {
                 if (is_array($expenseItem)) {
@@ -309,12 +333,12 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     $entry4 = array('debit' => array('703',
                         array($saleRec->contragentClassId, $saleRec->contragentId),
                         array($eItem->classId, $eItem->objectId),
-                        array('cat_Products', $rec->productId),
+                        array('cat_Products', $productId),
                         'quantity' => 0),
-                    'credit' => $array,
-                    'reason' => 'Себестойност на услугата');
-                    
-                    $entries[] = $entry4;
+                        'credit' => $array,
+                        'reason' => 'Себестойност на услуга');
+                        
+                        $entries[] = $entry4;
                 }
             }
         }

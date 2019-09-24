@@ -29,7 +29,7 @@ class planning_interface_StageDriver extends cat_GeneralProductDriver
      *
      * @param string $defaultMetaData
      */
-    protected $defaultMetaData = 'canManifacture,canConvert,canSell,canStore';
+    protected $defaultMetaData = 'canManifacture,canConvert,canStore';
     
     
     /**
@@ -57,5 +57,52 @@ class planning_interface_StageDriver extends cat_GeneralProductDriver
     protected function on_AfterRecToVerbal(cat_ProductDriver $Driver, $mvc, $row, $rec)
     {
         unset($row->editMetaBtn);
+    }
+    
+    
+    /**
+     * Връща дефолтната дефиниция за шаблон на партидна дефиниция
+     *
+     * @param mixed $id - ид или запис на артикул
+     *
+     * @return int - ид към batch_Templates
+     */
+    public function getDefaultBatchTemplate($id)
+    {
+        $templateId = batch_Templates::fetchField("#createdBy = '-1' AND #state = 'active' AND #driverClass =" . batch_definitions_Job::getClassId());
+    
+        return !empty($templateId) ? $templateId : null;
+    }
+    
+    
+    /**
+     * Връща цената за посочения продукт към посочения клиент на посочената дата
+     *
+     * @param mixed                                                                              $productId - ид на артикул
+     * @param int                                                                                $quantity  - к-во
+     * @param float                                                                              $minDelta  - минималната отстъпка
+     * @param float                                                                              $maxDelta  - максималната надценка
+     * @param datetime                                                                           $datetime  - дата
+     * @param float                                                                              $rate      - валутен курс
+     * @param string $chargeVat - начин на начисляване на ддс
+     *
+     * @return stdClass|float|NULL $price  - обект с цена и отстъпка, или само цена, или NULL ако няма
+     */
+    public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = null, $rate = 1, $chargeVat = 'no')
+    {
+        return 0;
+    }
+    
+    
+    /**
+     * Подготвя групите, в които да бъде вкаран продукта
+     */
+    public static function on_BeforeSave($Driver, embed_Manager &$Embedder, &$id, &$rec, $fields = null)
+    {
+        if(empty($rec->id) && $Embedder instanceof cat_Products){
+            $groupId = cat_Groups::fetchField("#sysId = 'prefabrications'");
+            $rec->groupsInput = keylist::addKey($rec->groupsInput, $groupId);
+            $rec->groups = keylist::fromArray($Embedder->expandInput(type_Keylist::toArray($rec->groupsInput)));
+        }
     }
 }

@@ -78,7 +78,7 @@ class tnef_Decode extends core_Manager
     public function description()
     {
         cls::get('fileman_Files');
-        $this->FLD('fileHnd', 'varchar(' . strlen(FILEMAN_HANDLER_PTR) . ')', 'caption=Файл->Източник');
+        $this->FLD('fileHnd', 'varchar(' . strlen(fileman_Setup::get('HANDLER_PTR')) . ')', 'caption=Файл->Източник');
         $this->FLD('extractedFilesHnd', 'varchar', 'caption=Файл->Резултати');
         $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Данни');
         

@@ -559,12 +559,12 @@ defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
  # defIfNot('SBF_CAMS_FLV_DIR', "_cams/flv");
 
 
-// Път до директория, където ще се записват flv файловете
- # defIfNot('SBF_CAMS_FLV_PATH', EF_SBF_PATH.'/'.SBF_CAMS_FLV_DIR);
+// Директория за mp4 файловете
+# defIfNot('SBF_CAMS_MP4_DIR', '_cams/mp4');
 
 
-// Колко е продължителността на конвертирането на един клип в секунди
- # defIfNot('CAMS_CLIP_TO_FLV_DURATION', round(cams_CLIP_DURATION/30));
+// Път до директория, където ще се записват конвертираните MP4 файлове
+# defIfNot('SBF_CAMS_MP4_PATH', EF_SBF_PATH . '/' . SBF_CAMS_MP4_DIR);
 
 
 /*****************************************************************************

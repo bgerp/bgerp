@@ -1,6 +1,6 @@
 var Tremol = Tremol || { };
 Tremol.FP = Tremol.FP || function () { };
-Tremol.FP.prototype.timeStamp = 1905071026;
+Tremol.FP.prototype.timeStamp = 1907251601;
 /**
  * @typedef {Object} DailyAvailableAmountsRes
  * @property {number} AmountPayment0 Up to 13 symbols for the accumulated amount by payment type 0
@@ -63,6 +63,14 @@ Tremol.FP.prototype.ReadDecimalPoint = function () {
 };
 
 /**
+ * Starts session for reading electronic receipt by number with Base64 encoded BMP QR code.
+ * @param {number} RcpNum 6 symbols with format ######
+ */
+Tremol.FP.prototype.ReadElectronicReceipt_QR_BMP = function (RcpNum) {
+	return this.do('ReadElectronicReceipt_QR_BMP', 'RcpNum', RcpNum);
+};
+
+/**
  * Programs the number of POS, printing of logo, cash drawer opening, cutting permission, external display management mode, article report type, enable or disable currency in receipt, EJ font type and working operators counter.
  * @param {number} POSNum 4 symbols for number of POS in format ####
  * @param {Tremol.Enums.OptionPrintLogo} OptionPrintLogo 1 symbol of value: 
@@ -96,10 +104,10 @@ Tremol.FP.prototype.ProgParameters = function (POSNum, OptionPrintLogo, OptionAu
 
 /**
  * @typedef {Object} SentRcpInfoStatusRes
- * @property {string} LastSentRcpNum Up to 6 symbols for the last sent receipt number to NRA server
+ * @property {number} LastSentRcpNum Up to 6 symbols for the last sent receipt number to NRA server
  * @property {Date} LastSentRcpDateTime 16 symbols for the date and time of the last sent receipt to NRA 
 server in format DD-MM-YYYY HH:MM
- * @property {string} FirstUnsentRcpNum Up to 6 symbols for the first unsent receipt number to NRA server
+ * @property {number} FirstUnsentRcpNum Up to 6 symbols for the first unsent receipt number to NRA server
  * @property {Date} FirstUnsentRcpDateTime 16 symbols for the date and time of the first unsent receipt to
  * @property {string} NRA_ErrorMessage Up to 100 symbols for error message from NRA server, if exist
  */
@@ -1011,6 +1019,15 @@ Tremol.FP.prototype.SellFractQtyPLUwithSpecifiedVAT = function (NamePLU, OptionV
 };
 
 /**
+ * Starts session for reading electronic receipt by number with specified ASCII symbol for QR code block.
+ * @param {number} RcpNum 6 symbols with format ######
+ * @param {string} QRSymbol 1 symbol for QR code drawing image
+ */
+Tremol.FP.prototype.ReadElectronicReceipt_QR_ASCII = function (RcpNum, QRSymbol) {
+	return this.do('ReadElectronicReceipt_QR_ASCII', 'RcpNum', RcpNum, 'QRSymbol', QRSymbol);
+};
+
+/**
  * @typedef {Object} DailyPObyOperatorRes
  * @property {number} OperNum Symbols from 1 to 20 corresponding to operator's number
  * @property {number} AmountPO_Payment0 Up to 13 symbols for the PO by type of payment 0
@@ -1076,15 +1093,6 @@ Tremol.FP.prototype.ProgHeaderUICprefix = function (HeaderUICprefix) {
  */
 Tremol.FP.prototype.ProgPLUprice = function (PLUNum, Price, OptionPrice) {
 	return this.do('ProgPLUprice', 'PLUNum', PLUNum, 'Price', Price, 'OptionPrice', OptionPrice);
-};
-
-/**
- * Provides information about the QR code data in specified number issued receipt.
- * @param {number} RcpNum 6 symbols with format ######
- * @return {string}
- */
-Tremol.FP.prototype.ReadReceiptNumQRcodeData = function (RcpNum) {
-	return this.do('ReadReceiptNumQRcodeData', 'RcpNum', RcpNum);
 };
 
 /**
@@ -1241,6 +1249,15 @@ Tremol.FP.prototype.CloseReceipt = function () {
 };
 
 /**
+ * Provides information about the QR code data in specified number issued receipt.
+ * @param {number} RcpNum 6 symbols with format ######
+ * @return {string}
+ */
+Tremol.FP.prototype.ReadSpecifiedReceiptQRcodeData = function (RcpNum) {
+	return this.do('ReadSpecifiedReceiptQRcodeData', 'RcpNum', RcpNum);
+};
+
+/**
  * Registers the sell (for correction use minus sign in the price field)  of article with specified department, name, price, quantity and/or discount/addition on  the transaction.
  * @param {string} NamePLU 36 symbols for name of sale. 34 symbols are printed on 
 paper. Symbol 0x7C '|' is new line separator.
@@ -1297,7 +1314,7 @@ Tremol.FP.prototype.OpenCreditNoteWithFreeCustomerData = function (OperNum, Oper
 };
 
 /**
- * Prints barcode from type stated by CodeType and CodeLen and with data stated in CodeData field.
+ * Prints barcode from type stated by CodeType and CodeLen and with data stated in CodeData field. Command works only for fiscal printer devices. ECR does not support this command.
  * @param {Tremol.Enums.OptionCodeType} OptionCodeType 1 symbol with possible values: 
  - '0' - UPC A 
  - '1' - UPC E 
@@ -1451,6 +1468,14 @@ Tremol.FP.prototype.EraseAllPLUs = function (Password) {
  */
 Tremol.FP.prototype.ConfirmFiscalization = function (Password) {
 	return this.do('ConfirmFiscalization', 'Password', Password);
+};
+
+/**
+ * Starts session for reading electronic receipt by number with its QR code data in the end.
+ * @param {number} RcpNum 6 symbols with format ######
+ */
+Tremol.FP.prototype.ReadElectronicReceipt_QR_Data = function (RcpNum) {
+	return this.do('ReadElectronicReceipt_QR_Data', 'RcpNum', RcpNum);
 };
 
 /**
@@ -2330,14 +2355,6 @@ NRA format: XXXХХХХХ-ZZZZ-YYYYYYY where:
  */
 Tremol.FP.prototype.OpenInvoiceWithFreeCustomerData = function (OperNum, OperPass, OptionInvoicePrintType, Recipient, Buyer, VATNumber, UIC, Address, OptionUICType, UniqueReceiptNumber) {
 	return this.do('OpenInvoiceWithFreeCustomerData', 'OperNum', OperNum, 'OperPass', OperPass, 'OptionInvoicePrintType', OptionInvoicePrintType, 'Recipient', Recipient, 'Buyer', Buyer, 'VATNumber', VATNumber, 'UIC', UIC, 'Address', Address, 'OptionUICType', OptionUICType, 'UniqueReceiptNumber', UniqueReceiptNumber);
-};
-
-/**
- * Starts session for read specified number electronic receipt data from EJ with its QR data.
- * @param {number} RcpNum 6 symbols with format ######
- */
-Tremol.FP.prototype.ReadElectronicReceiptNumDataFromEJ = function (RcpNum) {
-	return this.do('ReadElectronicReceiptNumDataFromEJ', 'RcpNum', RcpNum);
 };
 
 /**

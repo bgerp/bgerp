@@ -56,7 +56,11 @@ class plg_ExpandInput extends core_Plugin
                 $caption .= ',mandatory';
             }
             
-            $fieldset->FLD($inputFieldName, "treelist(mvc={$pMvc}, select={$select}, parentId={$mvc->expandParentFieldName})", $caption);
+            if (BGERP_GIT_BRANCH == 'dev') {
+                $fieldset->FLD($inputFieldName, "keylist(mvc={$pMvc}, select={$select}, parentId={$mvc->expandParentFieldName})", $caption);
+            } else {
+                $fieldset->FLD($inputFieldName, "treelist(mvc={$pMvc}, select={$select}, parentId={$mvc->expandParentFieldName})", $caption);
+            }
 
             $fieldset->setFieldTypeParams($inputFieldName, $expandField->type->params);
 

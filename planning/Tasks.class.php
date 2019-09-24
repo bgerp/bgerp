@@ -174,7 +174,7 @@ class planning_Tasks extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,inputInTask,totalQuantity,plannedQuantity';
+    public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,producedQuantity,inputInTask,totalQuantity,plannedQuantity';
     
     
     /**
@@ -230,6 +230,7 @@ class planning_Tasks extends core_Master
         
         $this->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
         $this->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
+        $this->FLD('producedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Заскладено,input=none');
         
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
         $this->FNC('systemId', 'int', 'silent,input=hidden');
@@ -364,7 +365,7 @@ class planning_Tasks extends core_Master
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         
-        foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity') as $quantityFld) {
+        foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity', 'producedQuantity') as $quantityFld) {
             $row->{$quantityFld} = ($rec->{$quantityFld}) ? $row->{$quantityFld} : 0;
             $row->{$quantityFld} = ht::styleNumber($row->{$quantityFld}, $rec->{$quantityFld});
         }
@@ -432,6 +433,9 @@ class planning_Tasks extends core_Master
         if(empty($rec->packagingId)){
             $row->packagingId = "<span class='quiet'>N/A</span>";
         }
+        
+        $canStore = cat_products::fetchField($rec->productId, 'canStore');
+        $row->producedCaption = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
         
         return $row;
     }
@@ -587,7 +591,7 @@ class planning_Tasks extends core_Master
     public function updateMaster_($id)
     {
         $rec = $this->fetch($id);
-        $updateFields = 'totalQuantity,totalWeight,scrappedQuantity,progress,modifiedOn,modifiedBy';
+        $updateFields = 'totalQuantity,totalWeight,scrappedQuantity,producedQuantity,progress,modifiedOn,modifiedBy';
         
         // Колко е общото к-во досега
         $dQuery = planning_ProductionTaskDetails::getQuery();
@@ -597,9 +601,8 @@ class planning_Tasks extends core_Master
         $dQuery->XPR('sumScrappedQuantity', 'double', "SUM(#scrappedQuantity)");
         $dQuery->show('sumQuantity,sumWeight,sumScrappedQuantity');
         
-        $res = $dQuery->fetch();
-        
         // Преизчисляваме общото тегло
+        $res = $dQuery->fetch();
         $rec->totalWeight = $res->sumWeight;
         $rec->totalQuantity = $res->sumQuantity;
         $rec->scrappedQuantity = $res->sumScrappedQuantity;
@@ -611,6 +614,19 @@ class planning_Tasks extends core_Master
         }
         
         $rec->progress = max(array($rec->progress, 0));
+        
+        $noteQuery = planning_DirectProductionNote::getQuery();
+        $noteQuery->where("#productId = {$rec->productId} AND #state = 'active' AND #originId = {$rec->containerId}");
+        $noteQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+        $noteQuery->show('totalQuantity');
+        $producedQuantity = $noteQuery->fetch()->totalQuantity;
+       
+        // Обновяване на произведеното по заданието
+        if($producedQuantity != $rec->producedQuantity){
+            planning_Jobs::updateProducedQuantity($rec->originId);
+        }
+        
+        $rec->producedQuantity = $producedQuantity;
         
         return $this->save($rec, $updateFields);
     }
@@ -929,7 +945,7 @@ class planning_Tasks extends core_Master
         $query->where("#state != 'rejected'");
         $query->where("#originId = {$containerId}");
         $query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'waiting' THEN 5 ELSE 6 END)");
-        $query->orderBy('#orderByState=ASC');
+        $query->orderBy('#orderByState=ASC,#id=DESC');
         $fields = $this->selectFields();
         $fields['-list'] = $fields['-detail'] = true;
         
@@ -939,6 +955,7 @@ class planning_Tasks extends core_Master
             $row = planning_Tasks::recToVerbal($rec, $fields);
             $row->plannedQuantity .= " " . $row->measureId;
             $row->totalQuantity .= " " . $row->measureId;
+            $row->producedQuantity .= " " . $row->measureId;
             
             $subArr = array();
             if (!empty($row->fixedAssets)) {
@@ -948,12 +965,23 @@ class planning_Tasks extends core_Master
                 $subArr[] = tr('Оператори:|* ') . $row->employees;
             }
             if (count($subArr)) {
-                $row->info = '<small>' . implode(' &nbsp; ', $subArr) . '</small>';
+                $row->info = '<div><small>' . implode(' &nbsp; ', $subArr) . '</small></div>';
+            }
+            
+            // Показване на протоколите за производство
+            $notes = array();
+            $nQuery = planning_DirectProductionNote::getQuery();
+            $nQuery->where("#originId = {$rec->containerId} AND #state != 'rejected'");
+            $nQuery->show('id');
+            while($nRec = $nQuery->fetch()){
+                $notes[] = planning_DirectProductionNote::getLink($nRec->id, 0);
+            }
+            if (count($notes)) {
+                $row->info .= "<div style='padding-bottom:7px'>" . implode(' | ', $notes) . "</div>";
             }
             
             $row->modified = $row->modifiedOn . ' ' . tr('от||by') . ' ' . $row->modifiedBy;
             $row->modified = "<div style='text-align:center'> {$row->modified} </div>";
-            
             $data->rows[$rec->id] = $row;
         }
     }
@@ -988,7 +1016,7 @@ class planning_Tasks extends core_Master
         // Ако няма намерени записи, не се рендира нищо
         // Рендираме таблицата с намерените задачи
         $table = cls::get('core_TableView', array('mvc' => $this));
-        $fields = 'title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано,info=@info';
+        $fields = 'title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано,info=@info';
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         
@@ -1268,6 +1296,18 @@ class planning_Tasks extends core_Master
         
         if ($mvc->haveRightFor('single', $rec)) {
             $data->toolbar->addBtn('Работна карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/print_go.png,title=Печат на работна карта за производствената операция');
+        }
+        
+        // Бутон за добавяне на документ за производство
+        if (planning_DirectProductionNote::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
+            $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
+            $data->toolbar->addBtn('Произвеждане', $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от операцията');
+        }
+        
+        // Бутон за добавяне на документ за производство
+        if (planning_ConsumptionNotes::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
+            $pUrl = array('planning_ConsumptionNotes', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
+            $data->toolbar->addBtn('Влагане', $pUrl, 'ef_icon = img/16/produce_in.png,title=Създаване на протокол за влагане от операцията');
         }
     }
 }

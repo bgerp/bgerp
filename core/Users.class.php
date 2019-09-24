@@ -34,6 +34,13 @@ defIfNot('EF_USERS_PASS_MIN_LEN', 6);
 
 
 /**
+ * Колко дни потребител може да не активира първоначално достъпа си
+ * преди да бъде изтрит
+ */
+defIfNot('USERS_DRAFT_MAX_DAYS', 3);
+
+
+/**
  * Дали да се използва имейл адресът, вместо ник
  */
 defIfNot('EF_USSERS_EMAIL_AS_NICK', false);
@@ -70,28 +77,6 @@ defIfNot(
                 "\n|Поздрави|*," .
                 "\n[#senderName#]"
 );
-
-
-/**
- * Колко дни потребител може да не активира първоначално достъпа си
- * преди да бъде изтрит
- */
-defIfNot('USERS_DRAFT_MAX_DAYS', 3);
-
-
-/**
- * Ще има ли криптиращ протокол?
- * NO - не
- * OPTIONAL - да, където може използвай криптиране
- * MANDATORY - да, използвай задължително
- */
-defIfNot('EF_HTTPS', 'NO');
-
-
-/**
- *  Порта на Apache, отговорен за криптиращия протокол
- */
-defIfNot('EF_HTTPS_PORT', 443);
 
 
 /**
@@ -171,12 +156,6 @@ class core_Users extends core_Manager
      * По кои полета да се прави пълнотекстово търсене
      */
     public $searchFields = 'nick,names,email';
-    
-    
-    /**
-     * Дали да се стартира крон-а в shutDown
-     */
-    public $runCron = false;
     
     
     /**
@@ -885,7 +864,6 @@ class core_Users extends core_Manager
     {
         if (self::count() == 1) {
             $mvc->invoke('AfterCreateFirstUser', array(&$html));
-            $mvc->runCron = true;
         }
     }
     
@@ -1449,20 +1427,26 @@ class core_Users extends core_Manager
             $userRec->lastHitUT = time();
             $userRec->maxIdleTime = 0;
         } else {
+            $lastLoginIp = self::getOwnIp($userRec->lastLoginIp);
+            $ownIp = self::getOwnIp($Users->getRealIpAddr());
+            
             // Дали нямаме дублирано ползване?
-            if (self::getOwnIp($userRec->lastLoginIp) != self::getOwnIp($Users->getRealIpAddr()) &&
+            if (($lastLoginIp != $ownIp) &&
                 $userRec->lastLoginTime > $sessUserRec->loginTime &&
                 dt::mysql2timestamp($userRec->lastLoginTime) - dt::mysql2timestamp($sessUserRec->loginTime) < EF_USERS_MIN_TIME_WITHOUT_BLOCKING) {
                 
-                // Блокираме потребителя
-                $userRec->state = 'blocked';
-                $Users->save($userRec, 'state');
-                
-                $Users->sendActivationLetter($userRec, USERS_UNBLOCK_EMAIL, 'Отблокиране на потребител', 'unblock');
-                
-                $Users->logAlert('Блокиран потребител', $userRec->id);
-                
-                core_LoginLog::add('block', $userRec->id);
+                // Ако има логвания в съответния период, не блокира
+                if (!core_LoginLog::checkSuccessLogin($id, core_Setup::get('STOP_BLOCKING_LOGIN_COUNT'), core_Setup::get('STOP_BLOCKING_LOGIN_PERIOD'))) {
+                    // Блокираме потребителя
+                    $userRec->state = 'blocked';
+                    $Users->save($userRec, 'state');
+                    
+                    $Users->sendActivationLetter($userRec, USERS_UNBLOCK_EMAIL, 'Отблокиране на потребител', 'unblock');
+                    
+                    $Users->logAlert('Блокиран потребител', $userRec->id);
+                    
+                    core_LoginLog::add('block', $userRec->id);
+                }
             }
             
             $userRec->loginTime = $sessUserRec->loginTime;
@@ -1579,10 +1563,15 @@ class core_Users extends core_Manager
             return ;
         }
         
-        // Ако се е логнат от различно IP
-        if ($userRec->lastLoginIp && ($userRec->lastLoginIp != $currIp)) {
-            if (core_LoginLog::isTrustedUserLogin($currIp, $userRec->id)) {
-                $arr = core_LoginLog::getLastLoginFromOtherIp($currIp, $userRec->id);
+        if ($userRec->lastLoginTime) {
+            
+            // Проверява за подозрително логване, между двете логвания на потребителя
+            
+            // Ако се логва от достоверно у-во - където можем да се показва предупредителното съобщение
+            if (core_LoginLog::isTrustedUserLogin(null, $userRec->id)) {
+                
+                // Всички логвания от друго устройство
+                $arr = core_LoginLog::getLastLoginFromOtherDevice(null, $userRec->id);
                 
                 $TimeInst = cls::get('type_Time');
                 
@@ -1619,10 +1608,40 @@ class core_Users extends core_Manager
                 
                 // Последното успешно логване от друго IP
                 $successArr = (array) $arr['success'];
-                reset($successArr);
-                $lastSuccessLoginKey = key($successArr);
-                if ($lastSuccessLoginKey) {
-                    $loginRec = $successArr[$lastSuccessLoginKey];
+                
+                // Ако се е логнал от друг браузър или IP
+                $cOsName = log_Browsers::getUserAgentOsName();
+                $lastSuccessLoginAnotherDeviceKey = $lastSuccessLoginAnotherIpKey = null;
+                foreach ($successArr as $sKey => $lRec) {
+                    if (!isset($lastSuccessLoginAnotherDeviceKey)) {
+                        $bRec = log_Browsers::getRecFromBrid($lRec->brid);
+                        if (!$bRec || !$bRec->userAgent) {
+                            $lastSuccessLoginAnotherDeviceKey = $sKey;
+                            
+                            continue;
+                        }
+                        $osName = log_Browsers::getUserAgentOsName($bRec->userAgent);
+                        
+                        // Ако е от друго ОС
+                        if ($cOsName != $osName) {
+                            $lastSuccessLoginAnotherDeviceKey = $sKey;
+                            
+                            continue;
+                        }
+                    }
+                    
+                    // Ако едновременно brid и IP са различни
+                    if (!isset($lastSuccessLoginAnotherIpKey) && ($lRec->ip != $currIp)) {
+                        $lastSuccessLoginAnotherIpKey = $sKey;
+                    }
+                }
+                
+                if (isset($lastSuccessLoginAnotherDeviceKey) || isset($lastSuccessLoginAnotherIpKey)) {
+                    if ($lastSuccessLoginAnotherDeviceKey) {
+                        $loginRec = $successArr[$lastSuccessLoginAnotherDeviceKey];
+                    } else {
+                        $loginRec = $successArr[$lastSuccessLoginAnotherIpKey];
+                    }
                     
                     // Времето, когато се е логнал
                     $time = dt::secsBetween(dt::now(), $loginRec->createdOn);
@@ -1633,11 +1652,12 @@ class core_Users extends core_Manager
                     // Вербално време
                     $time = $TimeInst->toVerbal($time);
                     
-                    // Вербално IP
-                    $ip = $loginRec->ip;
-                    
                     // Добавяме съответното статус съобщение
-                    $text = "|Логване от|* {$ip} |преди|* {$time}";
+                    if ($lastSuccessLoginAnotherDeviceKey) {
+                        $text = "|Логване от друго устройство преди|* {$time}";
+                    } else {
+                        $text = "|Логване от|* {$loginRec->ip} |преди|* {$time}";
+                    }
                     
                     // Ако има УРЛ, текста да е линк към него
                     if ($url) {
@@ -1705,6 +1725,8 @@ class core_Users extends core_Manager
     public function act_Logout()
     {
         $cu = core_Users::getCurrent();
+        
+        core_LoginLog::add('logout', $cu);
         
         $this->logout();
         
@@ -2434,23 +2456,6 @@ class core_Users extends core_Manager
     
     
     /**
-     *
-     *
-     * @param core_Users $mvc
-     */
-    public function on_ShutDown($mvc)
-    {
-        if ($this->runCron) {
-            if (!@fopen(toUrl(array('core_Cron', 'cron'), 'absolute'), 'r')) {
-                self::logWarning('Не може да се пусне крон ръчно');
-            }
-            
-            $this->runCron = false;
-        }
-    }
-    
-    
-    /**
      * Филтрира опциите за избор на потребител при миграцията
      */
     public static function filterUserForMigrateFolders($type)
@@ -2478,10 +2483,6 @@ class core_Users extends core_Manager
         
         if ($userFrom = Request::get('userFrom')) {
             list($team, $user) = explode('_', $userFrom);
-            
-            // bp(self::fetch($user), self::fetch($team));
-            
-            // $teamMates = self::getTeammates($userFrom);
             
             $team = core_Roles::fetchById($team);
             $rang = self::getRang($user);

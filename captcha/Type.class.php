@@ -16,7 +16,7 @@ defIfNot('CAPTCHA_LENGTH', 4);
 /**
  * Колко да са високи символите?
  */
-defIfNot('CAPTCHA_HEIGHT', 28);
+defIfNot('CAPTCHA_HEIGHT', 24);
 
 
 /**
@@ -117,20 +117,21 @@ class captcha_Type extends core_Type
      */
     public function act_Img()
     {
+        expect($id = Request::get('id', 'int'));
+        expect($code = core_Cache::get(CAPTCHA_CACHE_TYPE, $id));
+        
         $width = CAPTCHA_WIDTH;
         $height = CAPTCHA_HEIGHT;
         
         $font = dirname(__FILE__) . '/fonts/arial.ttf';
         
-        $code = core_Cache::get(CAPTCHA_CACHE_TYPE, Request::get('id', 'int'));
-        
         /* font size will be 75% of the image height */
-        $font_size = $height * 0.75;
+        $font_size = $height * 0.70;
         $image = @imagecreate($width, $height) or halt('Cannot initialize new GD image stream');
         
         /* set the colours */
         $background_color = imagecolorallocate($image, 255, 255, 255);
-        $text_color = imagecolorallocate($image, 20, 40, 100);
+        $text_color = imagecolorallocate($image, 40, 60, 100);
         $noise_color = imagecolorallocate($image, 100, 120, 180);
         
         /* generate random dots in background */
@@ -148,7 +149,7 @@ class captcha_Type extends core_Type
         $x = ($width - $textbox[4]) / 2;
         $y = ($height - $textbox[5]) / 2;
         
-        imagettftext($image, $font_size, 0, $x, $y, $text_color, $font, $code) or halt('Error in imagettftext function');
+        imagettftext($image, $font_size, rand(-4, 4), $x, $y, $text_color, $font, $code) or halt('Error in imagettftext function');
         
         /* output captcha image to browser */
         header('Content-Type: image/jpeg');
@@ -184,7 +185,7 @@ class captcha_Type extends core_Type
             return $idStrip;
         }
         sleep(2);
-        Debug::log('Sleep 2 sec. in' . __CLASS__);
+        Debug::log('Sleep 2 sec. in ' . __CLASS__);
         
         return false;
     }

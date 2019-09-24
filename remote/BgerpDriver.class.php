@@ -361,7 +361,7 @@ class remote_BgerpDriver extends core_Mvc
                 if (is_array($nCnt)) {
                     $priority = $nCnt['priority'];
                     $nCnt = $nCnt['cnt'];
-                    if(isset($nCnt['msg'])) {
+                    if (isset($nCnt['msg'])) {
                         $nMsg = $nCnt['msg'];
                     }
                 } else {
@@ -386,10 +386,10 @@ class remote_BgerpDriver extends core_Mvc
                     $url = str_replace(array('http://', 'https://'), array('', ''), $rec->url);
                     $message = "|Имате|* {$nCnt} |в|* {$url}";
                     
-                    if($nMsg) {
+                    if ($nMsg) {
                         $message .= ' : ' . $nMsg;
                     }
-
+                    
                     // Добавя, ако няма нофификация
                     bgerp_Notifications::add($message, $nUrl, $userId, $priority, null, true);
                 } else {
@@ -445,7 +445,7 @@ class remote_BgerpDriver extends core_Mvc
         if ($me->cronUpdate) {
             core_App::flushAndClose();
             sleep(5);
-            Debug::log('Sleep 5 sec. in' . __CLASS__);
+            Debug::log('Sleep 5 sec. in ' . __CLASS__);
             
             $me->cron_UpdateRemoteNotification();
         }
@@ -550,8 +550,8 @@ class remote_BgerpDriver extends core_Mvc
         }
         
         $params['_token'] = self::getToken();
-        $encodedParams =  core_Crypt::encodeVar($params, $key, 'json');
-       
+        $encodedParams = core_Crypt::encodeVar($params, $key, 'json');
+        
         return $encodedParams;
     }
     
@@ -573,16 +573,16 @@ class remote_BgerpDriver extends core_Mvc
         }
         $encodedParams = str_replace(' ', '+', $encodedParams);
         $params = core_Crypt::decodeVar($encodedParams, $key, 'json');
-      
+        
         if (!is_array($params)) {
             
             return false;
         }
-      
+        
         $expiryDate = self::getTokenExpiry($params['_token']);
         
         if (!$expiryDate) {
-             
+            
             return false;
         }
         
@@ -602,7 +602,7 @@ class remote_BgerpDriver extends core_Mvc
         $auth = self::prepareAuth($auth);
         
         $params = array('Ctr' => $ctr, 'Act' => $act, 'args' => $args);
-     
+        
         $encodedParams = urlencode(self::encode($auth, $params, 'question'));
         
         $url = $auth->url;
@@ -621,12 +621,12 @@ class remote_BgerpDriver extends core_Mvc
         $url = self::prepareQuestionUrl($auth, $ctr, $act, $args);
         
         ini_set('default_socket_timeout', 5);
- 
+        
         $res = @file_get_contents($url);
         
         if ($res) {
             $params = self::decode($auth, $res, 'answer');
-           
+            
             return $params['result'];
         }
         
@@ -647,7 +647,7 @@ class remote_BgerpDriver extends core_Mvc
         $auth = self::prepareAuth($authId);
         
         $params = self::decode($auth, $encodedParams, 'question');
-
+        
         expect($ctr = $params['Ctr']);
         expect($act = $params['Act']);
         

@@ -63,13 +63,15 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=Количества->За влагане, quantityFromBom=Количества->Рецепта, quantityFromTasks=Количества->Задачи,storeId';
+    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=За влагане,quantityFromBom=От рецептата,storeId';
     
     
     /**
-     * Полета, които ще се скриват ако са празни
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
      */
-    public $hideListFieldsIfEmpty = 'quantityFromBom,quantityFromTasks,storeId';
+    public $hideListFieldsIfEmpty = 'quantityFromBom';
     
     
     /**
@@ -85,12 +87,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $this->FLD('noteId', 'key(mvc=planning_DirectProductionNote)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
-        
         parent::setDetailFields($this);
-        
-        $this->FLD('quantityFromBom', 'double(Min=0)', 'caption=Количества->Рецепта,input=none,tdClass=quiet');
-        $this->FLD('quantityFromTasks', 'double(Min=0)', 'caption=Количества->Задачи,input=none,tdClass=quiet');
-        $this->setField('quantity', 'caption=Количества->За влагане');
+        $this->setField('quantity', 'caption=Количества');
+        $this->FLD('quantityFromBom', 'double', 'caption=По рецепта,input=none');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
         
         $this->setDbIndex('productId');
@@ -140,6 +139,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         if (isset($rec->productId)) {
             if ($form->isSubmitted()) {
                 
+                // Проверка на к-то
+                $warning = null;
+                if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
+                    $form->setError('packQuantity', $warning);
+                }
+                
                 // Ако добавяме отпадък, искаме да има себестойност
                 if ($rec->type == 'pop') {
                     $selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
@@ -168,16 +173,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'row-removed';
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
-            }
-            
-            if (isset($rec->quantityFromBom)) {
-                $rec->quantityFromBom = $rec->quantityFromBom / $rec->quantityInPack;
-                $row->quantityFromBom = $mvc->getFieldType('quantityFromBom')->toVerbal($rec->quantityFromBom);
-            }
-            
-            if (isset($rec->quantityFromTasks)) {
-                $rec->quantityFromTasks = $rec->quantityFromTasks / $rec->quantityInPack;
-                $row->quantityFromTasks = $mvc->getFieldType('quantityFromTasks')->toVerbal($rec->quantityFromTasks);
             }
             
             if ($rec->type == 'pop') {
@@ -299,28 +294,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             return;
         }
         
-        if ($data->masterData->rec->state == 'active') {
-            unset($data->listFields['quantityFromBom']);
-            unset($data->listFields['quantityFromTasks']);
-            $data->listFields['packQuantity'] = 'Количество';
-        }
-        
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
-            
-            $difference = 0;
-            $minQuantity = min($rec->quantityFromBom, $rec->quantityFromTasks);
-            
-            if (!empty($minQuantity)) {
-                $difference = round(abs($rec->quantityFromBom - $rec->quantityFromTasks) / $minQuantity * 100);
-            }
-            
-            if ($difference >= 20) {
-                if ($data->masterData->rec->state != 'active') {
-                    $row->packQuantity = ht::createHint($row->packQuantity, 'Има голяма разлика между количеството по рецепта и по задачи', 'warning', false);
-                }
-            }
-            
             if (empty($rec->storeId)) {
                 $row->storeId = "<span class='quiet'>"  . tr('Незавършено производство') . '</span>';
             } else {
@@ -329,6 +304,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 }
                 
                 deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $rec->storeId, $rec->quantity, $data->masterData->rec->state);
+            }
+            
+            if(!empty($rec->quantityFromBom)){
+                $rec->quantityFromBom /= $rec->quantityInPack;
+                $row->quantityFromBom = $mvc->getFieldType('quantityFromBom')->fromVerbal($rec->quantityFromBom);
             }
         }
     }

@@ -4,35 +4,27 @@
         <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
             <tr>
                 <td class = 'sum-th'>
-                    |Планирано|* ([#measureId#])
+                    <b>|Планирано|* ([#measureId#])</b>
                 </td>
                 <td class = 'sum-th'>
-                    |Остатък|* ([#measureId#])
+                   <b>[#quantityFromTasksCaption#] ([#measureId2#])</b>
                 </td>
-                <!--ET_BEGIN quantityFromTasksCaption-->
                 <td class = 'sum-th'>
-                    [#quantityFromTasksCaption#] ([#measureId2#])
+                    <b>[#captionProduced#] ([#measureId#])</b>
                 </td>
-                <!--ET_END quantityFromTasksCaption-->
                 <td class = 'sum-th'>
-                    [#captionProduced#] ([#measureId#])
+                    |Очаквано още|* ([#measureId#])
                 </td>
-                <!--ET_BEGIN captionNotStored-->
                 <td class = 'sum-th'>
                     [#captionNotStored#] ([#measureId2#])
                 </td>
-                <!--ET_END captionNotStored-->
             </tr>
             <tr>
                 <td class = 'nowrap'>[#packQuantity#]</td>
-                <td class = 'nowrap'>[#quantityToProduce#]</td>
-                <!--ET_BEGIN quantityFromTasks-->
                 <td class = 'nowrap'>[#quantityFromTasks#] </td>
-                <!--ET_END quantityFromTasks-->
                 <td class = 'nowrap'>[#quantityProduced#]</td>
-                <!--ET_BEGIN quantityNotStored-->
+                <td class = 'nowrap'>[#quantityToProduce#]</td>
                 <td class = 'nowrap'>[#quantityNotStored#]</td>
-                <!--ET_END quantityNotStored-->
             </tr>
         </table>
     </div>
@@ -92,6 +84,14 @@
                         <td>[#sBomId#]</td>
                     </tr>
                     <!--ET_END sBomId-->
+                    
+                    <!--ET_BEGIN iBomId-->
+                    <tr>
+                        <td class='quiet' style='text-align: left; white-space: nowrap;'>|Моментна рецепта|*:</td>
+                        <td>[#iBomId#]</td>
+                    </tr>
+                    <!--ET_END iBomId-->
+                    
                     <!--ET_BEGIN pBomId-->
                     <tr>
                         <td class='quiet' style='text-align: left;white-space: nowrap;'>|Работна рецепта|*:</td>

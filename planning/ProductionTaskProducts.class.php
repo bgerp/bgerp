@@ -112,7 +112,7 @@ class planning_ProductionTaskProducts extends core_Detail
         $this->FLD('totalQuantity', 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull');
         $this->FLD('indTime', 'time(noSmart,decimals=2)', 'caption=Норма');
         $this->FLD('limit', 'double(min=0)', 'caption=Макс. к-во,input=none');
-        $this->FLD('totalTime', 'time(noSmart)', 'caption=Норма->Общо,,input=none');
+        $this->FLD('totalTime', 'time(noSmart)', 'caption=Норма->Общо,input=none');
         
         $this->setDbUnique('taskId,productId');
         $this->setDbIndex('taskId,productId,type');
@@ -329,6 +329,10 @@ class planning_ProductionTaskProducts extends core_Detail
         $usedProducts = $options = array();
         expect(in_array($type, array('input', 'waste', 'production')));
         
+        if ($type == 'production') {
+            $options[$taskRec->productId] = cat_Products::getTitleById($taskRec->productId, false);
+        }
+        
         $query = self::getQuery();
         $query->where("#taskId = {$taskId}");
         $query->where("#type = '{$type}'");
@@ -364,10 +368,6 @@ class planning_ProductionTaskProducts extends core_Detail
                 if (count($norms)) {
                     $options += $norms;
                 }
-            }
-        } elseif ($type == 'production') {
-            if (!array_key_exists($taskRec->productId, $options)) {
-                $options[$taskRec->productId] = cat_Products::getTitleById($taskRec->productId, false);
             }
         }
         

@@ -52,11 +52,12 @@ class bgerp_plg_Blank extends core_Plugin
     
     /**
      * Връща QR кода на бланката на документа
-     * 
-     * @param int $cid
+     *
+     * @param int         $cid
      * @param string|null $mid
-     * @param int $width
-     * @param int $height
+     * @param int         $width
+     * @param int         $height
+     *
      * @return core_ET
      */
     public static function getQrCode($cid, $mid = null, $width = 87, $height = 87)
@@ -141,14 +142,14 @@ class bgerp_plg_Blank extends core_Plugin
         
         // Вземам бланката в зависимост от езика
         $companyLogo = core_Packs::getConfigValue($conf, 'BGERP_COMPANY_LOGO');
-        
         $filemanInst = cls::get('fileman_Files');
         
         $sourceType = 'path';
-        
+
         // Проверяваме дали е манипулатор на файл
-        if ($companyLogo && (strlen($companyLogo) == FILEMAN_HANDLER_LEN) && ($filemanInst->fetchByFh($companyLogo))) {
-            $sourceType = 'fileman';
+        if ($companyLogo && (strlen($companyLogo) == fileman_Setup::get('HANDLER_LEN')) && ($filemanInst->fetchByFh($companyLogo))) {
+            $sourceType = 'fileman';        
+
         } else {
             
             // Ако не е зададено логото

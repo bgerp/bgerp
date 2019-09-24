@@ -228,7 +228,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $batch = "<i style='color:red'>" . tr('Несъответствие') . '</i>';
                 $batch = ht::createHint($batch, 'К-то на разпределените партиди е повече от това на реда', 'error');
                 $quantity = '';
-                $block->append('border:1px dotted red;', 'BATCH_STYLE');
+                $block->append('color:red', 'BATCH_STYLE');
             }
             
             $block->append($batch, 'nobatch');
@@ -526,7 +526,7 @@ class batch_BatchesInDocuments extends core_Manager
             if (!$form->gotErrors()) {
                 if ($form->cmd == 'auto') {
                     $old = (count($foundBatches)) ? $foundBatches : array();
-                    $saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $recInfo->date);
+                    $saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $Detail, $detailRecId, $recInfo->date);
                     $intersect = array_diff_key($old, $saveBatches);
                     $delete = (count($intersect)) ? array_keys($intersect) : array();
                 }
@@ -788,18 +788,22 @@ class batch_BatchesInDocuments extends core_Manager
     
     
     /**
-     * Връща използваните партиди филтрирани по клас
+     * Връща използваните партиди филтрирани по клас и вид
      *
      * @param mixed $class
      * @param array $fields
+     * @param int|null $templateId
      *
      * @return array
      */
-    public static function getBatchByType($class, $fields = array())
+    public static function getBatchByType($class, $fields = array(), $templateId = null)
     {
         $Class = cls::get($class);
         $tQuery = batch_Templates::getQuery();
         $tQuery->where('#driverClass = ' . $Class->getClassId());
+        if(isset($templateId)){
+            $tQuery->where("#id = '{$templateId}'");
+        }
         $tQuery->show('id');
         $templates = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
         if (!count($templates)) {

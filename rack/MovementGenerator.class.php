@@ -431,8 +431,9 @@ class rack_MovementGenerator extends core_Manager
             $zoneArr = array('zone' => array(), 'quantity' => array());
             foreach ($obj->zones as $zoneId => $zoneQuantity) {
                 $zoneArr['zone'][] = $zoneId;
-                $zoneArr['quantity'][] = $zoneQuantity / $quantityInPack;
+                $zoneArr['quantity'][] = round($zoneQuantity / $quantityInPack, 5);
             }
+            
             $TableType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
             $newRec->zones = $TableType->fromVerbal($zoneArr);
             

@@ -90,7 +90,13 @@ class cat_products_Packagings extends core_Detail
      */
     public $fieldsNotToClone = 'eanCode';
     
-    
+
+    /**
+     * По подразбиране колко резултата да показва на страница
+     */
+    public $listItemsPerPage = 200;
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -438,15 +444,17 @@ class cat_products_Packagings extends core_Detail
         }
         
         if (!empty($rec->eanCode)) {
-            if (barcode_Search::haveRightFor('list')) {
+            if (barcode_Search::haveRightFor('list') && !Mode::isReadOnly()) {
                 $row->eanCode = ht::createLink($row->eanCode, array('barcode_Search', 'search' => $rec->eanCode));
             }
         }
         
-        if ($netWeight = cat_Products::convertToUom($rec->productId, 'kg')) {
-            $netWeight = core_Type::getByName('cat_type_Weight')->toVerbal($netWeight * $rec->quantity);
-            $row->weight = "<span class='quiet'>" . tr('Нето') . ': </span>' . $netWeight . '<br>';
-        }
+        try {
+            if ($netWeight = cat_Products::convertToUom($rec->productId, 'kg')) {
+                $netWeight = core_Type::getByName('cat_type_Weight')->toVerbal($netWeight * $rec->quantity);
+                $row->weight = "<span class='quiet'>" . tr('Нето') . ': </span>' . $netWeight . '<br>';
+            }
+        } catch (ErrorException $e) {}
         
         if (!empty($rec->tareWeight)) {
             $row->weight .= "<span class='quiet'>" . tr('Тара') . ': </span>' .  $row->tareWeight;

@@ -50,9 +50,9 @@ class replace_Dictionary extends core_Manager
      */
     public function description()
     {
-        $this->FLD('from', 'richtext(rows=3,bucket=Notes)', 'caption=Текст->Оригинал');
-        $this->FLD('to', 'richtext(rows=3,bucket=Notes)', 'caption=Текст->Заместване');
-        $this->FLD('groupId', 'key(mvc=replace_Groups,select=name)', 'caption=Групи');
+        $this->FLD('from', 'richtext(rows=3,bucket=Notes)', 'caption=Текст->Оригинал, mandatory');
+        $this->FLD('to', 'richtext(rows=3,bucket=Notes)', 'caption=Текст->Заместване, mandatory');
+        $this->FLD('groupId', 'key(mvc=replace_Groups,select=name)', 'caption=Групи, mandatory');
     }
     
     

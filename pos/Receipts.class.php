@@ -47,6 +47,12 @@ class pos_Receipts extends core_Master
     
     
     /**
+     * Главен детайл на модела
+     */
+    public $mainDetail = 'pos_ReceiptDetails';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, pos';
@@ -91,7 +97,7 @@ class pos_Receipts extends core_Master
     /**
      * Кой може да ревъртва
      */
-    public $canRevert = 'debug';
+    public $canRevert = 'pos, ceo';
     
     
     /**
@@ -616,6 +622,11 @@ class pos_Receipts extends core_Master
         $conf = core_Packs::getConfig('pos');
         $ThemeClass = cls::get($conf->POS_PRODUCTS_DEFAULT_THEME);
         $tpl->push($ThemeClass->getStyleFile(), 'CSS');
+        
+        $conf = core_Packs::getConfig('fancybox');
+        $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.css', 'CSS');
+        $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.js', 'JS');
+        jquery_Jquery::run($tpl, "$('a.fancybox').fancybox();", true);
     }
     
     
@@ -1509,12 +1520,16 @@ class pos_Receipts extends core_Master
         }
         
         if (Request::get('ajax_mode')) {
+            
+            $resObj1 = new stdClass();
+            $resObj1->func = 'fancybox';
+            
             // Ще реплесйнем и добавим таблицата с резултатите
             $resObj = new stdClass();
             $resObj->func = 'html';
             $resObj->arg = array('id' => 'pos-search-result-table', 'html' => $html, 'replace' => true);
             
-            return array($resObj);
+            return array($resObj, $resObj1);
         }
         
         return new Redirect(array($this, 'terminal', $rec->id));
@@ -1611,8 +1626,7 @@ class pos_Receipts extends core_Master
         $Double->params['decimals'] = 2;
         $row = new stdClass();
         
-        $row->price = $Double->toVerbal($obj->price);
-        $row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
+        $row->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
         $row->stock = $Double->toVerbal($obj->stock);
         
         $row->packagingId = ($obj->packagingId) ? cat_UoM::getTitleById($obj->packagingId) : cat_UoM::getTitleById($obj->measureId);
@@ -1636,21 +1650,27 @@ class pos_Receipts extends core_Master
             }
         }
         
+        
+        $attr = array('class' => 'pos-add-res-btn', 'data-url' => $addUrl, 'data-productId' => $obj->productId, 'title' => 'Добавете артикула към бележката');
+        $row->productId = ht::createElement('span', $attr, $row->productId, true);
+        
         $row->productId = ht::createLinkRef($row->productId, array('cat_Products', 'single', $obj->productId), null, array('target' => '_blank', 'class' => 'singleProd'));
         
         if ($obj->stock < 0) {
             $row->stock = "<span style='color:red'>{$row->stock}</span>";
         }
         
-        $row->ROW_ATTR['class'] = 'search-product-row pos-add-res-btn';
-        $row->ROW_ATTR['data-url'] = $addUrl;
-        $row->ROW_ATTR['data-productId'] = $obj->productId;
-        $row->ROW_ATTR['title'] = tr('Добавете артикула към бележката');
-        
+        $row->ROW_ATTR['class'] = 'search-product-row';
         if (!Mode::is('screenMode', 'narrow')) {
-            $thumb = ($obj->photo) ? new thumb_Img($obj->photo, 64, 64) : new thumb_Img(getFullPath('pos/img/default-image.jpg'), 64, 64, 'path');
-            $arr = array();
-            $row->photo = $thumb->createImg($arr);
+            if(!empty($obj->photo)){
+                $Fancybox = cls::get('fancybox_Fancybox');
+                $preview = $Fancybox->getImage($obj->photo, array('64', '64'), array('550', '550'));
+                $row->photo = $preview;
+            } else {
+                $thumb = new thumb_Img(getFullPath('pos/img/default-image.jpg'), 64, 64, 'path');
+                $arr = array();
+                $row->photo = $thumb->createImg($arr);
+            }
         }
         
         return $row;

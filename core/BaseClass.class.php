@@ -30,14 +30,6 @@ class core_BaseClass
     
     
     /**
-     * Масив с имена на методи, позволени за извикване дори при липса на имплементация
-     *
-     * @var array
-     */
-    public $invocableMethods = array();
-    
-    
-    /**
      * Списък от заредените инстанции на плъгини
      *
      * @var array
@@ -216,7 +208,7 @@ class core_BaseClass
         }
         
         // Използваме кеша за извикаване на обработвачите
-        if (count($this->_listenerCache[$method])) {
+        if (countR($this->_listenerCache[$method])) {
             $args1 = array(&$this);
             $cntArgs = count($args);
             for ($i = 0; $i < $cntArgs; $i++) {

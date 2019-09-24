@@ -10,13 +10,15 @@ defIfNot('EF_ALL_PATH', EF_ROOT_PATH . '/all');
 /**
  * Лиценз на пакета
  */
-define(LICENSE, 3);
+define('LICENSE', 3);
 
 
 /**
  * Версията на пакета
  */
-define(VERSION, 0.1);
+define('VERSION', 0.1);
+
+defIfNot('PHP_PATH', core_Os::getPhpCmd());
 
 
 /**

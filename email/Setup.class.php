@@ -2,6 +2,12 @@
 
 
 /**
+ * Роля, която трябва да имат потребителите за да им се създаде корпоративен имейл
+ */
+defIfNot('EMAIL_ROLE_FOR_CORPORATE_EMAIL', 'powerUser');
+
+
+/**
  * Максимално време за еднократно фетчване на писма
  */
 defIfNot('EMAIL_MAX_FETCHING_TIME', 30);

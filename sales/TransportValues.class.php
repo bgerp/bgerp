@@ -444,7 +444,7 @@ class sales_TransportValues extends core_Manager
                 $hint .= "<br>" . $explain;
             }
             
-            return ht::createHint($amountRow, $hint, 'notice', false, 'width=14px,height=14px');
+            return ht::createHint($amountRow, $hint, 'notice', false);
         }
         
         return $amountRow;
@@ -669,8 +669,8 @@ class sales_TransportValues extends core_Manager
         
         // Имали вече начислен транспорт
         if ($cRec = self::get($map['masterMvc'], $masterRec->id, $rec->id)) {
-            $rec->fee = self::get($map['masterMvc'], $masterRec->id, $rec->id)->fee;
-            $rec->deliveryTimeFromFee = self::get($map['masterMvc'], $masterRec->id, $rec->id)->deliveryTime;
+            $rec->fee = $cRec->fee;
+            $rec->deliveryTimeFromFee = $cRec->deliveryTime;
         }
         
         if ($masterRec->deliveryAdress) {
@@ -688,6 +688,8 @@ class sales_TransportValues extends core_Manager
         // Ако драйвера не иска да се начислява цената да не се начислява
         if (isset($rec->{$map['productId']})) {
             $Driver = cat_Products::getDriver($rec->{$map['productId']});
+            if(!is_object($Driver)) return;
+            
             if (!$Driver->canCalcTransportFee($rec->{$map['productId']})) {
                 
                 return;
@@ -755,6 +757,65 @@ class sales_TransportValues extends core_Manager
         // Ако има сума ще се синхронизира
         if (isset($rec->fee)) {
             $rec->syncFee = true;
+        }
+    }
+    
+    
+    /**
+     * Рекалкулиране на изчисления транспорт на даден документ
+     * 
+     * @param mixed $detailClassId
+     * @param mixed $detailId
+     * @return boolean - рекалкулиран ли е транспорта или не
+     */
+    public static function recalcTransport($detailClassId, $detailId)
+    {
+        $Detail = cls::get($detailClassId);
+        $detailRec = $Detail->fetchRec($detailId);
+        if(!is_object($detailRec)) return false;
+        
+        $form = $Detail->getForm();
+        $clone = clone $Detail->Master->fetch($detailRec->{$Detail->masterKey});
+        
+        $map = array();
+        if($Detail instanceof sales_QuotationsDetails){
+            $clone->deliveryPlaceId = (!empty($clone->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$clone->contragentClassId}' AND #contragentId = '{$clone->contragentId}'", $clone->deliveryPlaceId), 'id') : null;
+            $map = array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId', 'countryId' => 'contragentCountryId');
+        }
+        
+        sales_TransportValues::prepareFee($detailRec, $form, $clone, $map);
+        sales_TransportValues::sync($Detail->Master, $detailRec->{$Detail->masterKey}, $detailRec->id, $detailRec->fee, $detailRec->deliveryTimeFromFee, $detailRec->_transportExplained);
+    
+        return isset($detailRec->fee);
+    }
+    
+    
+    /**
+     * Преизчисляване на сумата на транспорта в черновите оферти/продажби, в които участва подадения артикул
+     * 
+     * @param int $productId
+     * @return void
+     */
+    public static function recalcTransportByProductId($productId)
+    {
+        foreach (array('sales_QuotationsDetails', 'sales_SalesDetails') as $Detail){
+            $Detail = cls::get($Detail);
+            
+            // Намират се всички документи с транспорт на чернова
+            $quoteQuery = $Detail->getQuery();
+            $quoteQuery->EXT('state', $Detail->Master, "externalName=state,externalKey={$Detail->masterKey}");
+            $quoteQuery->EXT('containerId', $Detail->Master, "externalName=containerId,externalKey={$Detail->masterKey}");
+            $quoteQuery->where("#state = 'draft' AND #productId = '{$productId}'");
+            
+            while($detailRec = $quoteQuery->fetch()){
+                
+                // Прави се опит за преизчисление на транспорта (ако трябва)
+                $isRecalced = self::recalcTransport($Detail, $detailRec);
+                if($isRecalced === true){
+                    $Detail->Master->logWrite('Преизчисляване на сумата за транспорт  на артикул', $detailRec->{$Detail->masterKey});
+                    doc_DocumentCache::cacheInvalidation($detailRec->containerId);
+                }
+            }
         }
     }
 }

@@ -325,6 +325,9 @@ class change_Log extends core_Manager
         // Очакваме да имаме права до сингъла или до треда
         expect($class->haveRightFor('single', $docId) || doc_Threads::haveRightFor('single', $cRec->threadId));
         
+        // Инвалидираме кеша на контейнера
+        doc_DocumentCache::cacheInvalidation($cRec->containerId, core_Users::getCurrent());
+        
         // Масив с всички избрани версии за съответния документ
         $dataArr = static::getSelectedVersionsArr($classId, $docId);
         
@@ -526,7 +529,7 @@ class change_Log extends core_Manager
         }
         
         // Ако няма избрана версия и генерираме за последната
-        if (!count($dataArr) && $lastVer) {
+        if (!countR($dataArr) && $lastVer) {
             
             // Флаг, да маркираме последната
             $markLast = true;

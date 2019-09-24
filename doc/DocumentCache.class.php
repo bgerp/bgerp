@@ -223,14 +223,22 @@ class doc_DocumentCache extends core_Master
      * Инвалидира кеша на посочения документ
      *
      * @param int $containerId - ид на контейнер на документ
+     * @param int|null $userId
      *
      * @return int - броя на изтритите записи
      */
-    public static function cacheInvalidation($containerId)
+    public static function cacheInvalidation($containerId, $userId = null)
     {
         expect($containerId);
         
-        return self::delete("#containerId = '{$containerId}'");
+        if (isset($userId)) {
+            $del = self::delete("#containerId = '{$containerId}' AND #userId = '{$userId}'");
+        } else {
+            $del = self::delete("#containerId = '{$containerId}'");
+        }
+        
+        
+        return $del;
     }
     
     

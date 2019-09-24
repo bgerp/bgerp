@@ -1079,7 +1079,6 @@ class core_String
     
     
     /**
-     *
      * Хифинира текст, така че да няма много дължи, не-пренодими думи
      *
      * @param string $text
@@ -1106,7 +1105,7 @@ class core_String
      */
     private static function hyphenWord($matches, $minLen = 8, $maxLen = 32)
     {
-        return hyphen_Plugin::getHyphenWord($matches[0], $minLen, $maxLen);
+        return self::getHyphenWord($matches[0], $minLen, $maxLen);
     }
     
     
@@ -1254,5 +1253,136 @@ class core_String
         } else {
             $list .= ($list ? ',' : '') . $field;
         }
+    }
+    
+    
+    /**
+     * Хифенира стринговете
+     *
+     * @param string $string
+     * @param int    $minLen
+     * @param int    $maxLen
+     * @param string $hyphenStr
+     *
+     * @return string
+     */
+    public static function getHyphenWord($string, $minLen = 12, $maxLen = 28, $hyphenStr = '<wbr>')
+    {
+        // Брояча за сивмовилите
+        $i = 0;
+        
+        // За циклене по стринга
+        $p = 0;
+        
+        // Резултатния стринг
+        $resStr = '';
+        
+        // Текущия символ в итерацията
+        $currChar = '';
+        
+        // Предишния символ
+        $prevChar = '';
+        
+        // Дължината на стринга
+        $len = strlen($string);
+        
+        // Срещане на ентити
+        $entity = 0;
+        
+        // Обхождаме всички символи
+        while ('' != ($char = self::nextChar($string, $p))) {
+            
+            // Вземаме предишния символ
+            $prevChar = $currChar;
+            
+            // Вземаме текущия символ
+            $currChar = $char;
+            
+            // Флаг, дали да се добавя знак за хифенация
+            $addHyphen = false;
+            
+            // Увеличаваме брояча
+            $i++;
+            
+            // Ако предишния символ е начало на ентити
+            if (($prevChar == '&') || ($entity)) {
+                
+                // Увеличаваме му брояча
+                $entity++;
+            }
+            
+            // Ако предишния символ е край на entity
+            if ($prevChar == ';') {
+                
+                // Нулираме му брояча
+                $entity = 0;
+                
+                // Вдигаме влага за добавяне на хифенация
+                $addHyphen = true;
+            }
+            
+            // Ако брояча е под първия минимум или сме в края или сме вътре в ентити
+            if (($i <= $minLen) || ($p == $len) || ($entity && $entity < 10)) {
+                
+                // Добавяме символа
+                $resStr .= $currChar;
+                
+                continue;
+            }
+            
+            // Нулираме брояча за ентити
+            $entity = 0;
+            
+            // Ако текущия символ е начало на ентити
+            if ($currChar == '&') {
+                
+                // Вдигаме влага за добавяне на хифенация
+                $addHyphen = true;
+            }
+            
+            // Ако сегашния символ е съгласна, а предишния не е съгласна
+            if (self::isConsonent($currChar) && !self::isConsonent($prevChar)) {
+                
+                // Вдигаме влага за добавяне на хифенация
+                $addHyphen = true;
+            }
+            
+            // Ако предишния символ не е съгласна и не е гласна - не е буква
+            // Текущия символ трябва също да е буква
+            if ((!self::isConsonent($prevChar)) && (!self::isVowel($prevChar))
+                            && ((self::isConsonent($char)) || (self::isVowel($char)))) {
+                                
+                                // Вдигаме влага за добавяне на хифенация
+                                $addHyphen = true;
+                            }
+                            
+                            // Ако флага все още не е вдигнат
+                            if (!$addHyphen) {
+                                
+                                // Ако брояча е над втория допустим праг, задължително вдигаме флага
+                                if ($i > $maxLen) {
+                                    
+                                    // Вдигаме влага за добавяне на хифенация
+                                    $addHyphen = true;
+                                }
+                            }
+                            
+                            // Ако флага е вдигнат
+                            if ($addHyphen) {
+                                //                $resStr .= "&#173;" . $char; // Знак за softHyphne
+                                $resStr .= $hyphenStr . $char;
+                                
+                                // Нулираме брояча
+                                $i = 0;
+                            } else {
+                                
+                                // Добавяме символа
+                                $resStr .= $currChar;
+                            }
+                            
+                            continue;
+        }
+        
+        return $resStr;
     }
 }

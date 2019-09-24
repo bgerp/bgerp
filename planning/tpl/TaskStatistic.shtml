@@ -12,6 +12,10 @@
                  |Бракувано|*, [#measureId#]
              </td>
              <td class = 'sum-th'>
+                 [#producedCaption#], [#measureId#]
+             </td>
+             
+             <td class = 'sum-th'>
                  |Информация|*
              </td>
           </tr>
@@ -19,9 +23,11 @@
               <td class = 'nowrap'>[#plannedQuantity#]</td>
               <td class = 'nowrap'>[#totalQuantity#] </td>
               <td class = 'nowrap'>[#scrappedQuantity#]</td>
+              <td class = 'nowrap'>[#producedQuantity#]</td>
+              
               <td rowspan = '2' class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left'>
-                  <span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
                   <span style='font-weight:normal'>|Артикул|*</span>: [#productId#] [#toggleBtn#]<br>
+                  <span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
                   <!--ET_BEGIN inputInTask-->
                   <span style='font-weight:normal'>|Влагане в|*</span>: [#inputInTask#]<br>
                   <!--ET_END inputInTask-->
@@ -37,7 +43,7 @@
                   <!--ET_END employees-->
     			</td>
            </tr>
-           <tr><td colspan='3'>[#progressBar#] [#progress#]</td></tr>
+           <tr><td colspan='4'>[#progressBar#] [#progress#]</td></tr>
        </table>
     </div>
 </div>

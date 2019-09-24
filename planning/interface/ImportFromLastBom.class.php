@@ -124,12 +124,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             return false;
         }
         $productId = $firstDoc->fetchField('productId');
-        $bomId = cat_Products::getLastActiveBom($productId, 'production');
-        $bomId = (!empty($bomId)) ? $bomId : cat_Products::getLastActiveBom($productId, 'sales');
-        
-        // И по артикула има рецепта
-        $bomId = cat_Products::getLastActiveBom($productId, 'production');
-        $bomId = (!empty($bomId)) ? $bomId : cat_Products::getLastActiveBom($productId, 'sales');
+        $bomId = cat_Products::getLastActiveBom($productId, 'production,sales');
         
         // Ако има рецепта, проверява се има ли редове в нея
         if (!empty($bomId)) {

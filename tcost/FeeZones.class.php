@@ -201,6 +201,10 @@ class tcost_FeeZones extends core_Master
                     $multiplier = $zoneRec->volume2quantity;
                 }
             }
+
+            if($volume * 33 < $weight) {
+                $multiplier *= 1000;
+            }
             
             $volumicWeight = max($weight, $volume * $multiplier);
         }

@@ -588,6 +588,10 @@ class cat_Products extends embed_Manager
                     }
                 }
             }
+            
+            if(isset($rec->id)){
+                $rec->_isEditedFromForm = true;
+            }
         }
     }
     
@@ -1031,7 +1035,7 @@ class cat_Products extends embed_Manager
             
             // Добавяме свойствата от групите, ако има такива
             $groupFeatures = cat_Groups::getFeaturesArray($rec->groups);
-            if (count($groupFeatures)) {
+            if (countR($groupFeatures)) {
                 $result->features += $groupFeatures;
             }
             
@@ -1264,6 +1268,11 @@ class cat_Products extends embed_Manager
                 $mvc->save_($rec, 'isPublic');
             }
         }
+        
+        // Ако артикула е редактиран, преизчислява се транспорта
+        if($rec->_isEditedFromForm === true){
+            sales_TransportValues::recalcTransportByProductId($rec->id);
+        }
     }
     
     
@@ -1433,8 +1442,26 @@ class cat_Products extends embed_Manager
                 $query->notLikeKeylist('groups', $params['notInGroups']);
             }
             
+            // Филтър само на артикули с рецепта, ако е зададен
+            if(isset($params['onlyWithBoms'])){
+                $bQuery = cat_Boms::getQuery();
+                $bQuery->where("#state = 'active'");
+                $bQuery->groupBy('productId');
+                $in = arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
+                if(count($in)){
+                    $query->in('id', $in);
+                } else {
+                    $query->where('1=2');
+                }
+            }
+            
             if(isset($params['isPublic'])){
                 $query->where("#isPublic = '{$params['isPublic']}'");
+            }
+            
+            // Филтър по драйвер, ако има
+            if(isset($params['driverId'])){
+                $query->where("#innerClass = {$params['driverId']}");
             }
         }
         
@@ -1471,6 +1498,7 @@ class cat_Products extends embed_Manager
         
         // Подготвяне на опциите
         $query->show('isPublic,folderId,meta,id,code,name,nameEn');
+        
         while ($rec = $query->fetch()) {
             $title = static::getRecTitle($rec, false);
             if ($rec->isPublic == 'yes') {
@@ -1570,15 +1598,15 @@ class cat_Products extends embed_Manager
      * @param bool     $orHasProperties  - Дали трябва да имат всички свойства от зададените или поне едно
      * @param mixed    $groups           - групи в които да участват
      * @param mixed    $notInGroups      - групи в които да не участват
-     * 
      * @param null|boolean $isPublic     - null за всички артикули, true за стандартните, false за нестандартните
+     * @param null|boolean $driverId     - null за всички артикули, true за тези с избрания драйвер
      *
      * @return array $products         - артикулите групирани по вида им стандартни/нестандартни
      */
-    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $notInGroups = null, $isPublic = null)
+    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $notInGroups = null, $isPublic = null, $driverId = null)
     {
         $Type = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)');
-        foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic') as $val){
+        foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic', 'driverId') as $val){
             if(isset(${"{$val}"})){
                 $Type->params[$val] = ${"{$val}"};
             }
@@ -1662,12 +1690,12 @@ class cat_Products extends embed_Manager
         
         // Ако няма цена от драйвера, се гледа политика 'Себестойност';
         $date = price_ListToCustomers::canonizeTime($date);
-        if (!$primeCost) {
+        if ((is_object($primeCost) && !isset($primeCost->price)) || !isset($primeCost)) {
             $primeCost = price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
         }
         
         // Ако няма себестойност, но има прототип, гледа се неговата себестойност
-        if (!$primeCost) {
+        if ((is_object($primeCost) && !isset($primeCost->price)) || !isset($primeCost)) {
             if ($proto = cat_Products::fetchField($productId, 'proto')) {
                 $primeCost = price_ListRules::getPrice($primeCostlistId, $proto, $packagingId, $date);
             }
@@ -1902,7 +1930,7 @@ class cat_Products extends embed_Manager
             // Връща се намереното тегло
             $volume = $brutoVolume * $quantity;
             
-            return round($volume, 2);
+            return round($volume, 3);
         }
     }
     
@@ -2197,13 +2225,13 @@ class cat_Products extends embed_Manager
      * Връща последната активна рецепта на артикула
      *
      * @param mixed  $id   - ид или запис
-     * @param string $type - вид работна или търговска
+     * @param string|array $inOrder - В какъв приоритет да се търсят рецептите
      *
      * @return mixed $res - записа на рецептата или FALSE ако няма
      */
-    public static function getLastActiveBom($id, $type = null)
+    public static function getLastActiveBom($id, $inOrder = null)
     {
-        $rec = self::fetchRec($id);
+        $rec = self::fetchRec($id, 'canManifacture');
         
         // Ако артикула не е производим не търсим рецепта
         if ($rec->canManifacture == 'no') {
@@ -2211,15 +2239,27 @@ class cat_Products extends embed_Manager
             return false;
         }
         
-        $cond = "#productId = '{$rec->id}' AND #state = 'active'";
-        
-        if (isset($type)) {
-            expect(in_array($type, array('sales', 'production')));
-            $cond .= " AND #type = '{$type}'";
+        // Прави опит да намери рецептата по зададения ред
+        $inOrderArr = arr::make($inOrder, 'true');
+        if(count($inOrderArr)){
+            foreach ($inOrderArr as $type){
+                $bRec = cat_Boms::fetch(array("#productId = '{$rec->id}' AND #state = 'active' AND #type = '[#1#]'", $type));
+                
+                if(is_object($bRec)){
+                    
+                    return $bRec;
+                }
+            }
+            
+            return false;
         }
         
-        // Какво е к-то от последната активна рецепта
-        return cat_Boms::fetch($cond);
+        // Ако не е указан тип, се взима последната рецепта
+        $query = cat_Boms::getQuery();
+        $query->where("#productId = '{$rec->id}' AND #state = 'active'");
+        $query->orderBy('id', ASC);
+        
+        return $query->fetch();
     }
     
     
@@ -2362,20 +2402,6 @@ class cat_Products extends embed_Manager
         
         if (sales_Sales::haveRightFor('createsaleforproduct', (object) array('folderId' => $data->rec->folderId, 'productId' => $data->rec->id))) {
             $data->toolbar->addBtn('Продажба', array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба');
-        }
-        
-        if (core_Packs::isInstalled('eshop')) {
-            if (eshop_Products::haveRightFor('linktoeshop', (object) array('productId' => $data->rec->id))) {
-                $data->toolbar->addBtn('E-маг', array('eshop_Products', 'linktoeshop', 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Свързване в Е-маг');
-            }
-            
-            if ($domainId = cms_Domains::getCurrent('id', false)) {
-                if ($eshopProductId = eshop_Products::getByProductId($data->rec->id, $domainId)) {
-                    if (eshop_Products::haveRightFor('single', $eshopProductId)) {
-                        $data->toolbar->addBtn('E-артикул', array('eshop_Products', 'single', $eshopProductId, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Към е-артикула');
-                    }
-                }
-            }
         }
     }
     
@@ -2698,10 +2724,7 @@ class cat_Products extends embed_Manager
         $res = array();
         
         // Намираме рецептата за артикула (ако има)
-        $bomId = static::getLastActiveBom($id, 'production')->id;
-        if (!$bomId) {
-            $bomId = static::getLastActiveBom($id, 'sales')->id;
-        }
+        $bomId = static::getLastActiveBom($id, 'production,sales')->id;
         
         if (isset($bomId)) {
             
@@ -3086,10 +3109,7 @@ class cat_Products extends embed_Manager
         if (!count($defaultTasks)) {
             
             // Намираме последната активна рецепта
-            $bomRec = self::getLastActiveBom($rec, 'production');
-            if (!$bomRec) {
-                $bomRec = self::getLastActiveBom($rec, 'sales');
-            }
+            $bomRec = self::getLastActiveBom($rec, 'production,sales');
             
             // Ако има опитваме се да намерим задачите за производството по нейните етапи
             if ($bomRec) {
@@ -3160,6 +3180,9 @@ class cat_Products extends embed_Manager
         $form->title = 'Промяна на групите на|* <b>' . cat_Products::getHyperlink($id, true) . '</b>';
         
         $this->setExpandInputField($form, $this->expandInputFieldName, $this->expandFieldName);
+        
+        // TODO - временно решение, трябва да се премахне след #C28560
+        unset($form->fields[$this->expandInputFieldName]->type->params['pathDivider']);
         
         $form->setDefault('groupsInput', $rec->groupsInput);
         $form->input();
@@ -3851,6 +3874,29 @@ class cat_Products extends embed_Manager
         
         if (!empty($hint)) {
             $name = ht::createHint($name, $hint);
+        }
+    }
+    
+    
+    /**
+     * Обновява modified стойностите
+     *
+     * @param core_Master $mvc
+     * @param bool|NULL   $res
+     * @param int         $id
+     */
+    protected static function on_AfterTouchRec($mvc, &$res, $id)
+    {
+        if($rec = $mvc->fetchRec($id)){
+            $keywords = $mvc->getSearchKeywords($rec);
+            if($rec->searchKeywords != $keywords){
+                $rec->searchKeywords = $keywords;
+                $mvc->save_($rec, 'searchKeywords');
+                $cRec = (object)array('id' => $rec->containerId, 'searchKeywords' => $rec->searchKeywords);
+                
+                $containersInst = cls::get('doc_Containers');
+                $containersInst->save_($cRec, 'searchKeywords');
+            }
         }
     }
 }

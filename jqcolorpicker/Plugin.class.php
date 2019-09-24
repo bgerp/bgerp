@@ -33,7 +33,7 @@ class jqcolorpicker_Plugin extends core_Plugin
     {
         $options = $invoker->options;
         
-        if (!count($options)) {
+        if (!countR($options)) {
             $options = $this->getDefaultOpt();
         }
         

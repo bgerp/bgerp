@@ -53,9 +53,9 @@ class cond_Payments extends core_Manager
     
     
     /**
-     * Кой може да променя състоянието на валутата
+     * Кой може да променя състоянието
      */
-    public $canChangestate = 'no_one';
+    public $canChangestate = 'ceo,admin';
     
     
     /**
@@ -80,6 +80,14 @@ class cond_Payments extends core_Manager
      * В коя номенклатура да се добави при активиране
      */
     public $addToListOnActivation = 'nonCash';
+    
+    
+    /**
+     * Дали при обновяване от импорт на същестуващ запис да се запази предишното състояние или не
+     * 
+     * @see plg_State2
+     */
+    public $updateExistingStateOnImport = false;
     
     
     /**
@@ -116,13 +124,14 @@ class cond_Payments extends core_Manager
     public function loadSetupData()
     {
         $file = 'cond/csv/Pospayments.csv';
-        $fields = array(0 => 'title', 1 => 'state', 2 => 'change', 3 => 'code', 4 => 'currencyCode');
+        $fields = array(0 => 'title', 1 => 'change', 2 => 'code', 3 => 'currencyCode');
         
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
         $res = $cntObj->html;
         
         return $res;
     }
+    
     
     
     /**

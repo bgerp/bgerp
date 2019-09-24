@@ -307,6 +307,10 @@ class core_App
         defIfNot('EF_TEMP_PATH', EF_TEMP_BASE_PATH . '/' . EF_APP_NAME);
         
         
+        // Подсигуряваме се, че временната директория съществува
+        core_Os::forceDir(EF_TEMP_PATH);
+        
+        
         /**
          * Директорията с качените и генерираните файлове
          */
@@ -316,7 +320,7 @@ class core_App
             } elseif (defined('EF_ROOT_PATH')) {
                 define('EF_UPLOADS_PATH', EF_ROOT_PATH . '/uploads/' . EF_APP_NAME);
             } else {
-                die('Not possible to determine constant `EF_UPLOADS_PATH`');
+                die('Not possible to determine `EF_UPLOADS_PATH`');
             }
         }
         
@@ -347,15 +351,8 @@ class core_App
      */
     public static function shutdown($sendOutput = true)
     {
-        // Освобождава манипулатора на сесията. Ако трябва да се правят
-        // записи в сесията, то те трябва да се направят преди shutdown()
-        if (session_id()) {
-            session_write_close();
-        }
-        
-        if (!isDebug() && $sendOutput) {
-            self::flushAndClose();
-        }
+        // Флъшваме и затваряме връзката, като евентулано показваме съдържанието в буфера
+        core_App::flushAndClose($sendOutput);
         
         // Генерираме събитието 'suthdown' във всички сингълтон обекти
         core_Cls::shutdown();
@@ -469,21 +466,55 @@ class core_App
     /**
      * Изпраща всичко буферирано към браузъра и затваря връзката
      */
-    public static function flushAndClose()
+    public static function flushAndClose($output = true)
     {
-        $content = ob_get_contents();         // Get the content of the output buffer
+        static $oneTimeFlag;
         
-        while (ob_get_level() > 0) {
-            ob_end_clean();
+        if ($oneTimeFlag) {
+            
+            return;
+        }
+        $oneTimeFlag = true;
+        
+        ignore_user_abort(true);
+        
+        // Освобождава манипулатора на сесията. Ако трябва да се правят
+        // записи в сесията, то те трябва да се направят преди shutdown()
+        core_Session::pause();
+        
+        if ($output) {
+            $content = ob_get_contents();         // Get the content of the output buffer
+            if (strlen($content) == 0) {
+                $output = false;
+            }
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
         }
         
         if (!headers_sent()) {
-            $len = strlen($content);             // Get the length
-            header("Content-Length: ${len}");     // Close connection after $size characters
-            header('Cache-Control: private, max-age=0'); // HTTP 1.1.
-            //header('Pragma: no-cache'); // HTTP 1.0.
-            header('Expires: -1'); // Proxies.
             header('Connection: close');
+            if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output) {
+                $supportsGzip = strpos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip' ) !== false;
+                if ( $supportsGzip && strlen($content) > 1000) {
+                    $content = gzencode($content);
+                    header('Content-Encoding: gzip');
+                }
+                $len = strlen($content);
+                header("Content-Length: ${len}");
+
+            } else {
+                if ($_SERVER['REQUEST_METHOD'] != 'HEAD') {
+                    header('Content-Length: 2');
+                    header("Content-Encoding: none");
+                    $content = 'OK';
+                    $len = 2;
+                    $output = true;
+                } else {
+                    header('Content-Length: 0');
+                }
+            }
+            
             
             // Добавяме допълнителните хедъри
             $aHeadersArr = self::getAdditionalHeadersArr();
@@ -492,22 +523,25 @@ class core_App
             }
         }
         
-        // Логваме съдържанието
-        if ($content) {
-            Debug::log(mb_substr($content, 0, 255));
+        if (($_SERVER['REQUEST_METHOD'] != 'HEAD') && $output && $len) {
+            echo $content; // Output content
+        } else {
+            if (!headers_sent()) {
+                header('Content-Encoding: none');
+            }
         }
         
-        if ($_SERVER['REQUEST_METHOD'] != 'HEAD') {
-            echo $content; // Output content
+        if ($output) {
+            ob_end_flush();
+            ob_flush();
         }
         
         // Изпращаме съдържанието на изходния буфер
         if (function_exists('fastcgi_finish_request')) {
-            fastcgi_finish_request();
-        } else {
-            ob_end_flush();
-            flush();
+            @fastcgi_finish_request();
         }
+        
+        flush();
     }
     
     
@@ -596,16 +630,14 @@ class core_App
             $resObj->func = 'redirect';
             $resObj->arg = array('url' => $url);
             
-            return self::outputJson(array($resObj), false);
+            return self::outputJson(array($resObj));
         }
         
         // Забранява кеширането. Дали е необходимо тук?
-            header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
-            header('Pragma: no-cache'); // HTTP 1.0.
-            header('Expires: 0'); // Proxies.
-            
-            header("Location: ${url}", true, 302);
+        header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
+        header('Expires: 0'); // Proxies.
         
+        header("Location: ${url}", true, 302);
         
         static::shutdown(false);
     }
@@ -1120,8 +1152,7 @@ class core_App
         
         if (!is_array($repos)) {
             $repos = array();
-            
-            $repos += self::getReposByPathAndBranch(EF_APP_PATH, defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null);
+            $repos = self::getReposByPathAndBranch(EF_APP_PATH, defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null);
         }
         
         if (!$havePrivate && defined('EF_PRIVATE_PATH')) {
@@ -1153,7 +1184,13 @@ class core_App
         
         $res = array();
         foreach ($pathArr as $i => $line) {
-            list($p, $b) = explode('=', $line);
+            if (strpos($line, '=')) {
+                list($p, $b) = explode('=', $line);
+            } else {
+                $p = $line;
+                $b = null;
+            }
+            
             if (empty($b) && $cntBranches) {
                 $b = $branchArr[min($i, $cntBranches - 1)];
             }

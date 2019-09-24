@@ -13,9 +13,8 @@
  *
  * @since     v 0.1
  */
-class peripheral_FiscPrinterWeb extends peripheral_FiscPrinter
+class peripheral_FiscPrinterWeb extends peripheral_FiscPrinterIntf
 {
-    
     /**
      * Връща JS функция, която да се изпълни и да отпечата бележката
      *
@@ -68,7 +67,7 @@ class peripheral_FiscPrinterWeb extends peripheral_FiscPrinter
      *
      * @return string
      */
-    public function getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $printAvailability, $text = '')
+    public function getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $printAvailability = false, $text = '')
     {
         return $this->class->getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $printAvailability, $text);
     }

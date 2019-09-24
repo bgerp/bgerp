@@ -185,7 +185,6 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                     $doc['endDate'] = $sickdays->toDate;
                  
                     $docPeriod = self::getPeriod($rec, $doc);
-                   //   bp($docPeriod,$doc, $rec->firstDayOfPeriod,$rec->to);
                     $numberOfSickdays = $docPeriod['workingDays'];
                     
                     if (!array_key_exists($sickdays->productId, $pRecs)) {

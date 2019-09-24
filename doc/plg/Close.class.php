@@ -128,6 +128,8 @@ class doc_plg_Close extends core_Plugin
             $rec->state = $state;
             
             $mvc->save($rec);
+            $mvc->invoke('AfterChangeState', array(&$rec, $state));
+            
             if (cls::haveInterface('doc_DocumentIntf', $mvc)) {
                 doc_Prototypes::sync($rec->containerId);
             }

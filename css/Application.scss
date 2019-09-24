@@ -321,7 +321,7 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus {
 div.folder-cover {
 	background-image: url('../img/cover-bg.png');
 	display: inline-block;
-	max-width: 720px;
+	max-width: 800px;
 	min-width: 540px;
 	margin-top: 10px;
 	line-height: 1.2em;
@@ -344,6 +344,7 @@ div.folder-cover {
         }
 	}
 	.groupTitle {
+		white-space: nowrap;
 		color: #333;
 		font-weight: bold;
 	}
@@ -2125,6 +2126,9 @@ td.rowtools-column {
 
 .large-field{
 	width: 50%;
+}
+.narrow .largeNarrowCell {
+	min-width: 300px;
 }
 
 .listAction table.listTable>tbody>tr>td, table.listTable.listAction>tbody>tr>td.wideColumn {
@@ -5426,8 +5430,10 @@ div.location.public {
 .wide .eshop-product-images {
 	width:30%;
 	height:100%;
+	text-align: center;
 	img {
-		width:100%;
+		max-width: none;
+		width: auto;
 	}
 }
 
@@ -5718,7 +5724,7 @@ body.narrow {
 	.background-holder {
 	    padding: 10px 0;
 	}
-	.wide not('.user-profile') .listBlock .listRows > table.listTable{
+	.wide:not('.user-profile') .listBlock .listRows > table.listTable {
 		min-width:760px;
 	}
 }
@@ -5768,7 +5774,6 @@ body.narrow {
 	.document {
 		min-width: 40em;
 	}
-	.
 }
 
 @media handheld , only screen and (max-width: 1024px) {
@@ -6313,14 +6318,25 @@ body.narrow {
 		text-transform: uppercase;
 	}
 	.hideLink {
-		display: block;
-		margin-left: 10px;
+		display: inline-block;
 		font-size: 0.9em;
 		margin-bottom: 10px;
 		margin-top: -6px;
+		&:hover {
+			text-decoration: underline;
+		}
 		&.inlineLinks {
 			margin-left: 0;
 			display: inline-block;
+		}
+	}
+	.docToolbar {
+		margin-left: 10px;
+		span {
+			font-size: 0.9em;
+			margin: 0 5px;
+			display: inline-block;
+			color: #888;
 		}
 	}
 	span.linkWithIcon{
@@ -6333,6 +6349,10 @@ body.narrow {
 		background-color: #fdffe5;
 	}
 
+}
+
+.smallIcon {
+	display: inline !important;
 }
 .wide .external {
 	.docIncomings {
@@ -6416,6 +6436,7 @@ body.narrow {
 .labelBreak {
 	page-break-after: auto;
 	page-break-inside: avoid;
+	margin-bottom: 10mm;
 }
 /*стилове за принтиране*/
 @media print{
@@ -7197,6 +7218,11 @@ body.narrow {
 
 .narrow .elem-holder .endTooltip {
 	float: right;
+}
+
+.textHint {
+	display: inline-block;
+	border-bottom: 1px dashed;
 }
 
 .frontToolip {

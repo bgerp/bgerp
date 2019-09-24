@@ -1,54 +1,27 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
         <div style='margin-top:10px;'>
+        	<h2 style='color:green'>[#operationSysId#]</h2>
             <div class='fleft'>
                 <table class='default-table'>
-                    <!--ET_BEGIN createdBy-->
                     <tr>
-                        <td class="quiet aright">|Създаден|*:</td>
-                        <td>|на|* <b>[#createdDate#] </b>|от|* <b>[#createdBy#]</b></td>
-                    </tr>
-                    <!--ET_END createdBy-->	
-                    <tr>
-                        <td class="quiet aright">|Вальор|*:</td>
+                        <td class="quiet">|Вальор|*:</td>
                         <td><b>[#valior#]</b></td>
-                    </tr>
-                    <tr>
-                        <td class="quiet aright">|Операция|*:</td>
-                        <td><b>[#operationSysId#]</b></td>
                     </tr>
                     <!--ET_BEGIN creditCase-->
                     <tr>
-                        <td class="quiet aright">|От|*:</td>
+                        <td class="quiet">|Движение|*:</td>
                         <td>[#creditCase#]</td>
                     </tr>
                     <!--ET_END creditCase-->
-                    <!--ET_BEGIN [#paymentId#]-->
-                    <tr>
-                        <td class="quiet aright">|Инкасирано от|*:</td>
-                        <td>[#paymentId#]</td>
-                    </tr>
-                    <!--ET_END [#paymentId#]-->
                     <!--ET_BEGIN creditBank-->
                     <tr>
-                        <td class="quiet aright">|От|*:</td>
+                        <td class="quiet">|Движение|*:</td>
                         <td>[#creditBank#]</td>
                     </tr>
                     <!--ET_END creditBank-->
-                    <!--ET_BEGIN debitCase-->
                     <tr>
-                        <td class="quiet aright">|Към|*:</td>
-                        <td>[#debitCase#]</td>
-                    </tr>
-                    <!--ET_END debitCase-->
-                    <!--ET_BEGIN debitBank-->
-                    <tr>
-                        <td class="quiet aright">|Към|*:</td>
-                        <td>[#debitBank#]</td>
-                    </tr>
-                    <!--ET_END debitBank-->
-                    <tr>
-                        <td class="quiet aright">|Основание|*:</td>
+                        <td class="quiet">|Основание|*:</td>
                         <td>[#reason#]</td>
                     </tr>
                 </table>
@@ -60,18 +33,14 @@
                         <td class="quiet aright">|Сума|*:</td>
                         <td><span class="cCode">[#currency#]</span> 
                             <b><span style='color:darkgreen'>[#amount#]</span></b>
+                             <!--ET_BEGIN equals-->
+                             » 
+                            <span class="cCode">[#baseCurrency#]</span>
+                            <b><span style='color:darkgreen'>[#equals#]</span></b>
+                            <!--ET_END equals-->
                         </td>
                     </tr>
                     <!--ET_END amount-->
-                    <!--ET_BEGIN equals-->
-                    <tr>
-                        <td class='quiet'>|Равностойност|*:</td>
-                        <td>
-                            <span class="cCode">[#baseCurrency#]</span>
-                            <b><span style='color:darkgreen'>[#equals#]</span></b>
-                        </td>
-                    </tr>
-                    <!--ET_END equals-->
                 </table>
             </div>
         </div>

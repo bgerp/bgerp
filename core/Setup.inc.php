@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Скрипт 'Setup.inc.php' -  Инсталиране на bgERP
  *
@@ -22,7 +21,8 @@
 if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
     return;
 }
-
+      
+ 
 // Колко време е валидно заключването - в секунди
 DEFINE('SETUP_LOCK_PERIOD', 240);
 
@@ -48,8 +48,10 @@ if (setupKeyValid() && !setupProcess()) {
     
     return;
     // halt("Процес на обновяване - опитайте по късно.");
-}
+} 
 
+header("Content-Encoding: none");
+header('X-Accel-Buffering: no');
 
 // На коя стъпка се намираме в момента?
 $step = $_GET['step'] ? $_GET['step'] : 1;
@@ -117,8 +119,7 @@ if (isset($_REQUEST['cancel'])) {
 
     header("location: {$appUri}");
 }
-
-ob_end_clean();
+ 
 header('Content-Type: text/html; charset=UTF-8');
 
 // Стилове
@@ -628,6 +629,7 @@ if ($step == 2) {
 
 // Ако се намираме на стъпка 3: Проверки
 if ($step == 3) {
+
     $log = array();
 
     // Ако има по-нова версия, към която да се мигрира базата данни - правим чекаут на нейния таг
@@ -644,7 +646,7 @@ if ($step == 3) {
         
     foreach ($folders as $path) {
         if (!is_dir($path)) {
-            if (!mkdir($path, 0777, true)) {
+            if (!mkdir($path, 0744, true)) {
                 $log[] = "err:Не може да се създаде директорията: <b>`{$path}`</b>";
             } else {
                 $log[] = "new:Създадена е директория: <b>`{$path}`</b>";
@@ -775,9 +777,9 @@ if ($step == 3) {
     // Проверка за връзка с MySQL сървъра
     $log[] = 'h:Проверка на сървъра на базата данни:';
     if (defined('EF_DB_USER') && defined('EF_DB_HOST') && defined('EF_DB_PASS') && defined('EF_DB_NAME')) {
-        $DB = new core_Db();
+        $DB = new core_Db(); 
         try {
-            $DB->connect(false);
+            $DB->connect(true);
             $log[] = 'inf:Успешна връзка със сървъра: <b>`' . EF_DB_HOST .' `</b>';
         } catch (core_Exception_Expect $e) {
             $log[] = 'err: ' . $e->getMessage();
@@ -790,9 +792,15 @@ if ($step == 3) {
     // Проверка за връзка с базата за LOG-те
     $log[] = 'h:Проверка на сървъра за LOG таблиците:';
     if (defined('LOG_DB_USER') && defined('LOG_DB_HOST') && defined('LOG_DB_PASS') && defined('LOG_DB_NAME')) {
-        $DB = new core_Db();
+        $DB =  cls::get(
+                'core_Db',
+                array('dbName' => LOG_DB_NAME,
+                    'dbUser' => LOG_DB_USER,
+                    'dbPass' => LOG_DB_PASS,
+                    'dbHost' => LOG_DB_HOST,
+                ));
         try {
-            $DB->connect(false);
+            $DB->connect(true);
             $log[] = 'inf:Успешна връзка с LOG сървъра: <b>`' . LOG_DB_HOST .' : '. LOG_DB_NAME . ' `</b>';
         } catch (core_Exception_Expect $e) {
             $log[] = 'err: ' . $e->getMessage();
@@ -936,7 +944,7 @@ if ($step == 5) {
     function httpGet(theUrl)
     {
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( \"GET\", theUrl, false ); // false for synchronous request
+    xmlHttp.open( \"GET\", theUrl, true ); // false for synchronous request
     xmlHttp.send( null );
     }
     theUrl = '{$localRelativUrl}&step=start';
@@ -950,6 +958,12 @@ if ($step == 5) {
  * Setup на bgerp
  **********************************/
 if ($step == 'setup') {
+
+    // Освобождава манипулатора на сесията. Ако трябва да се правят
+    // записи в сесията, то те трябва да се направят преди shutdown()
+   // core_Session::pause();
+
+
     set_time_limit(1000);
 
     $calibrate = 1000;
@@ -957,12 +971,19 @@ if ($step == 'setup') {
     $totalTables = 365; //366
     $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables * $calibrate + $totalRecords;
-    // Пращаме стиловете
-    echo($texts['styles']);
-     
-    // Стартираме инициализацията
-    contentFlush("<h3 id='startHeader'>Стартиране на инициализацията ... </h3>");
     
+    
+    contentFlush("<html><head>");
+
+    
+    // Пращаме стиловете
+    contentFlush($texts['styles']);
+     
+
+    // Тялото на документа
+    contentFlush("</head><body>");
+
+
     // Пращаме javascript-a за smooth скрол-а
     contentFlush("<script>
     var mouseDown = 0;
@@ -985,6 +1006,9 @@ if ($step == 'setup') {
     var handle=setInterval('scroll()', 4);
     </script>
     ");
+
+    // Стартираме инициализацията
+    contentFlush("<h3 id='startHeader'>Стартиране на инициализацията ... </h3>");
     
     // Слагаме div за лог-а и шаблон за прогрес бар-а
     contentFlush("<div id='setupLog'></div>
@@ -1007,7 +1031,7 @@ if ($step == 'setup') {
         $percentsBase = round(($numRows + $calibrate * $numTables * (4 / 5)) / $total, 2) * 100;
         
         // Изчитаме лог-а
-        $setupLog = @file_get_contents(EF_SETUP_LOG_PATH);
+        $setupLog = file_get_contents(EF_SETUP_LOG_PATH);
 
         if (!empty($setupLog) && $percentsLog < 20) {
             $percentsLog += 2;
@@ -1028,7 +1052,7 @@ if ($step == 'setup') {
         // Изтриваме Log-a - ако има нещо в него
         if (!empty($setupLog)) {
             do {
-                $res = @file_put_contents(EF_SETUP_LOG_PATH, '', LOCK_EX);
+                $res = file_put_contents(EF_SETUP_LOG_PATH, '', LOCK_EX);
                 if ($res !== false) {
                     break;
                 }
@@ -1040,10 +1064,10 @@ if ($step == 'setup') {
         
         contentFlush("<script>
                         document.getElementById('setupLog').innerHTML += '" . $setupLog . "';
-                </script>");
+                </script>\n");
                 
         sleep(2);
-        Debug::log('Sleep 2 sec. in' . __CLASS__);
+        //Debug::log('Sleep 2 sec. in' . __CLASS__);
         
         $fTime2 = filemtime(EF_SETUP_LOG_PATH);
         if (($fTime2 - $fTime) > 0) {
@@ -1055,7 +1079,7 @@ if ($step == 'setup') {
         $cnt++;
         if (!($cnt % 100)) {
             // Ако инсталацията увисне
-            wp($cnt, $numTables, $numRows, $percentsBase, $setupLog, strlen($setupLog), $logModified, $fTime2, $fTime);
+           // wp($cnt, $numTables, $numRows, $percentsBase, $setupLog, strlen($setupLog), $logModified, $fTime2, $fTime);
         }
     } while (setupProcess() || !empty($setupLog) || $logModified);
     
@@ -1072,12 +1096,13 @@ if ($step == 'setup') {
         
     
     sleep(1);
-    Debug::log('Sleep 1 sec. in' . __CLASS__);
+    Debug::log('Sleep 1 sec. in ' . __CLASS__);
 
     contentFlush("<h3 id='success'>Инициализирането завърши успешно!</h3>");
     
     $links = array();
     
+    $haveNewVersion = false;
     $haveNewVersion = core_Updates::getNewVersionTag();
     if (!$haveNewVersion) {
         $currBranch = gitCurrentBranch(EF_APP_PATH, $log);
@@ -1085,12 +1110,12 @@ if ($step == 'setup') {
             $haveNewVersion = true;
         }
     }
-    
+
     if ($haveNewVersion) {
         $links[] = "inf|{$selfUrl}&amp;step=3|Има по-нова версия. Обновете я »|_parent";
-    }
-    
-    $links[] = "new|{$appUri}|Стартиране bgERP »|_parent";
+    }    
+    $links[] = "new|{$appUri}|Стартиране на bgERP »|_parent";
+  
     
     $l = linksToHtml($links);
     $l = preg_replace(array("/\r?\n/", "/\//"), array('\\n', "\/"), addslashes($l));
@@ -1100,13 +1125,23 @@ if ($step == 'setup') {
                 </script>");
     // Спираме и smooth скрол-а и чистим setup cookie
     sleep(1);
-    Debug::log('Sleep 1 sec. in' . __CLASS__);
+    Debug::log('Sleep 1 sec. in ' . __CLASS__);
 
     contentFlush("<script>
                         clearInterval(handle);
                         document.cookie = 'setup=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
                 </script>");
+
+    
+ 
+
+    contentFlush("</body>");
+
     setupUnlock();
+
+    if(function_exists('fastcgi_finish_request')) {
+        fastcgi_finish_request();
+    }
 
     exit;
 }
@@ -1119,20 +1154,22 @@ if ($step == 'start') {
     
     // Следващият ред генерира notice,
     // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
-    @ob_end_clean();
     
-    header("Connection: close\r\n");
-    header("Content-Encoding: none\r\n");
-    ob_start();
-    $size = ob_get_length();
-    header("Content-Length: ${size}");
+    header("Connection: close");
+    header("Content-Encoding: none");
+    ob_implicit_flush();
     ob_end_flush();
     flush();
-    ob_end_clean();
+
+
+    if(function_exists('fastcgi_finish_request')) {
+        fastcgi_finish_request();
+    }
 
     global $setupFlag;
 
     $setupFlag = true;
+    
     // Създаваме празен Log файл
     file_put_contents(EF_SETUP_LOG_PATH, '');
     
@@ -1175,7 +1212,7 @@ if ($efSaltGenerated) {
 echo $layout;
 
 ob_flush();
-
+flush();
 
 die;
 
@@ -1205,11 +1242,14 @@ function logToHtml($log, &$stat)
  */
 function linksToHtml($links)
 {
+    $html .= "\n<ul class='msg stats'>";
+
     foreach ($links as $l) {
         list($class, $url, $text, $target, $info) = array_pad(explode('|', $l, 5), 5, '');
-        $html .= "\n<ul class='msg stats'><li>" .
-            "\n<a href='{$url}' class='{$class}' target='{$target}'>{$text}</a>\n{$info}</li></ul><br>";
+        $html .= "\n<li>" .  "\n<a href='{$url}' class='{$class}' target='{$target}'>{$text}</a>\n{$info}</li>";
     }
+
+    $html .= "</ul><br>";
 
     return $html;
 }
@@ -1251,9 +1291,10 @@ function gitCurrentBranch($repoPath, &$log)
     $command = " --git-dir=\"{$repoPath}/.git\" rev-parse --abbrev-ref HEAD 2>&1";
 
     $repoName = basename($repoPath);
-
+ 
     // Първият ред съдържа резултата
     if (gitExec($command, $res)) {
+
         return trim($res[0]);
     }
     
@@ -1461,22 +1502,9 @@ function gitRevertRepo($repoPath, &$log)
  */
 function contentFlush($content)
 {
-    static $started = 0;
-    
-    
-    ob_clean();
-    ob_start();
-    
-    if ($started == 0) {
-        echo str_repeat(' ', 1024), "\n";
-        echo('<!DOCTYPE html>');
-        $started++;
-    }
-    
     echo($content);
-
+    
     ob_flush();
-    ob_end_flush();
     flush();
 }
 
@@ -1489,7 +1517,7 @@ function contentFlush($content)
 function setupLock()
 {
     if (!is_dir(EF_TEMP_PATH)) {
-        mkdir(EF_TEMP_PATH, 0777, true);
+        mkdir(EF_TEMP_PATH, 0744, true);
     }
 
     return touch(EF_TEMP_PATH . '/setupLock.tmp');
@@ -1533,7 +1561,7 @@ function setupKeyValid()
     $DB = new core_Db();
     
     try {
-        $DB->connect(false);
+        $DB->connect(true);
     } catch (core_exception_Expect $e) {
 
         return true;
@@ -1555,7 +1583,7 @@ function setupKeyValid()
     $localIpArr = array('::1', '127.0.0.1');
     $isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
     $key = $_GET['SetupKey'];
-    if ($key == BGERP_SETUP_KEY && $isLocal) {
+    if ($key == setupKey() && $isLocal) {
 
         return true;
     }
@@ -1708,4 +1736,8 @@ function gitSetTag($repoPath, &$log, $tag)
     }
 
     return false;
+}
+
+if(function_exists('fastcgi_finish_request')) {
+    fastcgi_finish_request();
 }

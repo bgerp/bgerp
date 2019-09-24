@@ -747,7 +747,7 @@ abstract class deals_Helper
             $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*!";
             $class = 'doc-negative-quantiy';
             $makeLink = false;
-        } elseif ($futureQuantity < 0 && $freeQuantity > 0) {
+        } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
             $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
             $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
         } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
@@ -1279,7 +1279,7 @@ abstract class deals_Helper
         }
         
         $valueType = ($type == 'weight') ? 'cat_type_Weight(decimals=2)' : 'cat_type_Volume';
-        $value = round($value, 2);
+        $value = round($value, 3);
         
         // Вербализиране на теглото
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
@@ -1696,7 +1696,7 @@ abstract class deals_Helper
     {
         $coverId = doc_Folders::fetchCoverId($folderId);
         $Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
-        if (cls::haveInterface(crm_ContragentAccRegIntf, $Class)) {
+        if (cls::haveInterface('crm_ContragentAccRegIntf', $Class)) {
             
             return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
         }

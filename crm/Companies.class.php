@@ -201,7 +201,7 @@ class crm_Companies extends core_Master
      * Детайли, на модела
      */
     public $details = 'AccReports=acc_ReportDetails,CompanyExpandData=crm_Persons,ContragentLocations=crm_Locations,
-                    ContragentBankAccounts=bank_Accounts,CourtReg=crm_ext_CourtReg,CommerceDetails=crm_CommerceDetails';
+                    ContragentBankAccounts=bank_Accounts,CourtReg=crm_ext_CourtReg,CommerceDetails=crm_CommerceDetails,ContragentUnsortedFolders=doc_UnsortedFolders';
     
     
     /**
@@ -986,20 +986,6 @@ class crm_Companies extends core_Master
      */
     public static function getCompanyLogoHnd($fileName, $cRec = null)
     {
-        $baseColor = 'yellow';
-        $activeColor = 'green';
-        
-        $dRec = cms_Domains::getPublicDomain('form');
-        
-        if ($dRec) {
-            if ($dRec->baseColor) {
-                $baseColor = $dRec->baseColor;
-            }
-            if ($dRec->activeColor) {
-                $activeColor = $dRec->activeColor;
-            }
-        }
-        
         $tpl = getTplFromFile('bgerp/tpl/companyBlank.svg');
         if (!isset($cRec)) {
             $cRec = crm_Companies::fetchOwnCompany();
@@ -1086,10 +1072,7 @@ class crm_Companies extends core_Master
         } else {
             $tpl->removeBlock('email');
         }
-        
-        $tpl->append($baseColor, 'baseColor');
-        $tpl->append($activeColor, 'activeColor');
-        
+
         $content = $tpl->getContent();
         
         $pngHnd = '';
@@ -1313,7 +1296,7 @@ class crm_Companies extends core_Master
             crm_Groups::updateGroupsCnt($mvc->className, 'companiesCnt');
         }
         
-        if (count($mvc->updatedRecs)) {
+        if (countR($mvc->updatedRecs)) {
             foreach ($mvc->updatedRecs as $id => $rec) {
                 $mvc->updateRoutingRules($rec);
             }
@@ -1818,7 +1801,7 @@ class crm_Companies extends core_Master
      * Манипулация на списъка с екстендерите
      *
      * @param core_Master $master
-     * @param array       $extenders 
+     * @param array       $extenders
      * @param stdClass    $rec       запис на crm_Companies
      */
     public static function on_AfterGetExtenders(core_Master $master, &$extenders, $rec)
@@ -2386,7 +2369,7 @@ class crm_Companies extends core_Master
             $msg = 'Невалиден ЕИК';
             
             // Ако не е валидно и с 10 символа, се проверява дали не е ЕГН
-            if(mb_strlen($uicNo) == 10){
+            if (mb_strlen($uicNo) == 10) {
                 $Egn = cls::get('bglocal_EgnType');
                 $res = $Egn->isValid($uicNo);
                 if (!isset($res['error'])) {

@@ -57,7 +57,7 @@ class label_Setup extends core_ProtoSetup
         'label_CounterItems',
         'label_Prints',
         'migrate::removeEmptyCounterItems',
-        'migrate::removeOldPlugin'
+        'migrate::removeOldPlugin1'
     );
     
     
@@ -114,9 +114,10 @@ class label_Setup extends core_ProtoSetup
     /**
      * Махане на излишен плъгин
      */
-    public function removeOldPlugin()
+    public function removeOldPlugin1()
     {
         $Plugins = cls::get('core_Plugins');
         $Plugins->deinstallPlugin('label_plg_Print', 'planning_Tasks');
+        $Plugins->deinstallPlugin('label_plg_Print', 'planning_Jobs');
     }
 }

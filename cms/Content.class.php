@@ -127,9 +127,13 @@ class cms_Content extends core_Manager
     /**
      * Записва в сесията текущия език на CMS изгледа
      */
-    public static function setLang($lang)
+    public static function setLang($lang, $force = null)
     {
-        core_Lg::set($lang, !haveRole('user'));
+        if (!isset($force)) {
+            $force = (boolean) !haveRole('user');
+        }
+        
+        core_Lg::set($lang, $force);
         cms_Domains::getPublicDomain(null, $lang);
         
         $langsArr = arr::make(core_Lg::getLangs());
@@ -149,7 +153,7 @@ class cms_Content extends core_Manager
         $lang = $langsArr[Request::get('lang')];
         
         if ($lang) {
-            self::setLang($lang);
+            self::setLang($lang, true);
             
             return new Redirect(array('cms_Content', 'Show', 'lg' => $lang));
         }
@@ -181,6 +185,29 @@ class cms_Content extends core_Manager
         }
         
         Mode::set('wrapper', 'cms_page_External');
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Връща или първото id от menuId + $sharedMenusIds, което е от текущия домейн, или $menuId
+     */
+    public static function getMainMenuId($menuId, $sharedMenuIds)
+    {
+        if (empty($sharedMenuIds)) {
+            $res = $menuId;
+        } else {
+            $domainId = cms_Domains::getPublicDomain('id');
+            $ids = str_replace('|', ',', trim($sharedMenuIds, '|'));
+            if (self::fetch("#id = {$menuId} && #domainId = {$domainId}")) {
+                $res = $menuId;
+            } elseif ($rec = self::fetch("#id IN ({$ids}) && #domainId = {$domainId}")) {
+                $res = $rec->id;
+            } else {
+                $res = $menuId;
+            }
+        }
         
         return $res;
     }
@@ -252,11 +279,11 @@ class cms_Content extends core_Manager
                 $tpl->append(ht::createLink($rec->menu, $url, null, $attr));
             }
         }
-
+        
         // Поставяне на иконка за Вход
         if ($loginLink == false) {
             $dRec = cms_Domains::getPublicDomain('form');
-
+            
             if (haveRole('user')) {
                 $filePath = 'img/32/inside';
                 $title = 'Меню||Menu';
@@ -264,20 +291,20 @@ class cms_Content extends core_Manager
                 $filePath = 'img/32/login';
                 $title = 'Вход||Log in';
             }
-
+            
             if ((isset($dRec->baseColor) && phpcolor_Adapter::checkColor($dRec->baseColor) && Request::get('Ctr') != 'core_Users') ||
                 (isset($dRec->activeColor) && phpcolor_Adapter::checkColor($dRec->activeColor) && Request::get('Ctr') == 'core_Users')) {
                 $filePath .= 'Dark';
             } else {
                 $filePath .= 'Light';
             }
-
+            
             if (Mode::is('screenMode', 'narrow')) {
                 $filePath .= 'M';
             }
-
+            
             $filePath .= '.png';
-
+            
             $tpl->append(ht::createLink(
                 ht::createImg(array('path' => $filePath, 'alt' => 'login')),
                 array('Portal', 'Show'),
@@ -295,7 +322,7 @@ class cms_Content extends core_Manager
             $lang = self::getLang();
             
             foreach ($usedLangsArr as $lg) {
-                $attr = array('title' => drdata_Languages::fetchField("#code = '{$lg}'", 'nativeName'), 'id' => 'set-lang-' . $lg, 'class' => "langIcon");
+                $attr = array('title' => drdata_Languages::fetchField("#code = '{$lg}'", 'nativeName'), 'id' => 'set-lang-' . $lg, 'class' => 'langIcon');
                 
                 if ($lg == $lang) {
                     continue;
@@ -323,7 +350,6 @@ class cms_Content extends core_Manager
             $tpl->append(ht::createLink(ht::createElement('img', array('src' => sbf('img/24/globe.png', ''))), array($this, 'selectLang'), null, $attr));
         }
         
-
         return $tpl;
     }
     
@@ -464,7 +490,7 @@ class cms_Content extends core_Manager
         
         self::setLang($lg);
         
-        if($externalPage) {
+        if ($externalPage) {
             Mode::set('wrapper', 'cms_page_External');
         }
     }
@@ -669,12 +695,12 @@ class cms_Content extends core_Manager
         if (!$rec->seoThumb && $suggestions['seoDescription']) {
             $rec->seoThumb = cms_Content::getSeoThumb($suggestions['seoDescription']);
         }
-  
+        
         Mode::set('SOC_TITLE', $rec->seoTitle);
         Mode::set('SOC_SUMMARY', $rec->seoDescription);
     }
-
-
+    
+    
     /**
      * Добавя параметрите за SEO оптимизация
      */
@@ -695,7 +721,6 @@ class cms_Content extends core_Manager
         if ($rec->seoKeywords) {
             $content->replace($rec->seoKeywords, 'META_KEYWORDS');
         }
-        
     }
     
     

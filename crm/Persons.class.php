@@ -221,7 +221,7 @@ class crm_Persons extends core_Master
      * @var string|array
      */
     public $details = 'AccReports=acc_ReportDetails,ContragentLocations=crm_Locations,
-                    ContragentBankAccounts=bank_Accounts,PersonsDetails=crm_PersonsDetails,CommerceDetails=crm_CommerceDetails';
+                    ContragentBankAccounts=bank_Accounts,PersonsDetails=crm_PersonsDetails,CommerceDetails=crm_CommerceDetails,ContragentUnsortedFolders=doc_UnsortedFolders';
     
     
     /**
@@ -868,7 +868,7 @@ class crm_Persons extends core_Master
             crm_Groups::updateGroupsCnt($mvc->className, 'personsCnt');
         }
         
-        if (count($mvc->updatedRecs)) {
+        if (countR($mvc->updatedRecs)) {
             // Обновяване на информацията за рожденните дни, за променените лица
             foreach ($mvc->updatedRecs as $id => $rec) {
                 static::updateBirthdaysToCalendar($id);
@@ -1124,7 +1124,7 @@ class crm_Persons extends core_Master
         if ($data->companiesCnt) {
             $tpl->replace($data->companiesCnt, 'CNT');
         }
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             $i = 0;
             foreach ($data->rows as $id => $row) {
                 $tpl->append("<div style='margin-bottom:10px'>", 'persons');
@@ -1458,7 +1458,7 @@ class crm_Persons extends core_Master
         }
         
         // Добавяме и имейлите от локациите
-        $clsId = core_Classes::getId(crm_Companies);
+        $clsId = core_Classes::getId('crm_Companies');
         $locationEmails = crm_Locations::getEmails($clsId, $companyId);
         
         if ($locationEmails) {
@@ -2936,8 +2936,8 @@ class crm_Persons extends core_Master
     /**
      * Лицата от група 'Служители'
      *
-     * @param bool $withAccess - да се филтрира ли по права за редакция или не
-     * @param bool|false $hrCode  - null за всички, bool за дали да са с кодове като човешки ресурси или не 
+     * @param bool       $withAccess - да се филтрира ли по права за редакция или не
+     * @param bool|false $hrCode     - null за всички, bool за дали да са с кодове като човешки ресурси или не
      *
      * @return array $options        - опции
      */
@@ -2950,7 +2950,7 @@ class crm_Persons extends core_Master
         $query->like('groupList', "|{$emplGroupId}|");
         
         // Ако е указано, само тези които нямат кодове в производствените ресурси
-        if(!is_null($hrCodes)){
+        if (!is_null($hrCodes)) {
             $hrQuery = planning_Hr::getQuery();
             $hrQuery->show('personId');
             $hrIds = arr::extractValuesFromArray($hrQuery->fetchAll(), 'personId');

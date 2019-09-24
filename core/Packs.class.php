@@ -885,7 +885,7 @@ class core_Packs extends core_Manager
         
         //$SetupKey = md5(BGERP_SETUP_KEY . round(time()/10));
         
-        return new Redirect(array('core_Packs', 'systemUpdate', SetupKey => $SetupKey, 'step' => 2, 'bgerp' => 1));
+        return new Redirect(array('core_Packs', 'systemUpdate', 'SetupKey' => $SetupKey, 'step' => 2, 'bgerp' => 1));
     }
     
     
@@ -1129,7 +1129,7 @@ class core_Packs extends core_Manager
         $form->toolbar->addSbBtn('Запис', 'default', 'ef_icon = img/16/disk.png, title=Съхраняване на настройките');
         
         // Добавяне на допълнителни системни действия
-        if (count($setup->systemActions)) {
+        if (countR($setup->systemActions)) {
             foreach ($setup->systemActions as $sysActArr) {
                 $form->toolbar->addBtn($sysActArr['title'], $sysActArr['url'], $sysActArr['params']);
             }

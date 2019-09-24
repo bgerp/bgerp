@@ -911,6 +911,48 @@ class core_Url
     
     
     /**
+     * Стартира посоченото URL без да чака за резултат, като връща евентуално хедърите
+     *
+     * @param string $url
+     *
+     * @return string
+     */
+    public static function start($url, $timeout = 2)
+    {
+        $ch = curl_init();
+        
+        // Взема само хедърите
+        curl_setopt($ch, CURLOPT_NOBODY, true);
+        
+        // Връщане на трансфера като стринг
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        // Използване на хедърите
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        
+        // Задаваме URL-то
+        curl_setopt($ch, CURLOPT_URL, $url);
+        
+        // Да се използва нова връзка
+        curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+        
+        // Максимално време за чакане в секунди
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        
+        // Логваме заявката
+        log_System::add(get_called_class(), "URL({$url}) " . $res, 'debug', 1);
+        
+        // Изпълняваме заявката
+        $res = @curl_exec($ch);
+        
+        curl_close($ch);
+
+
+        return $headers;
+    }
+    
+    
+    /**
      * Добавя параметър в стринг представящ URL
      */
     public static function change($url, $queryParams = array(), $domain = '')
@@ -923,7 +965,7 @@ class core_Url
         }
         
         // Добавяме новите параметри в част `Query`
-        if (count($queryParams)) {
+        if (countR($queryParams)) {
             $params = array();
             if (!empty($purl['query'])) {
                 parse_str($purl['query'], $params);

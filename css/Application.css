@@ -276,7 +276,7 @@ a.menuItem:focus {
 div.folder-cover {
   background-image: url('../img/cover-bg.png');
   display: inline-block;
-  max-width: 720px;
+  max-width: 800px;
   min-width: 540px;
   margin-top: 10px;
   line-height: 1.2em;
@@ -297,6 +297,7 @@ div.folder-cover {
       background: none !important;
       box-shadow: none; }
   div.folder-cover .groupTitle {
+    white-space: nowrap;
     color: #333333;
     font-weight: bold; }
   div.folder-cover .groupList {
@@ -1830,6 +1831,9 @@ td.rowtools-column {
 
 .large-field {
   width: 50%; }
+
+.narrow .largeNarrowCell {
+  min-width: 300px; }
 
 .listAction table.listTable>tbody>tr>td,
 table.listTable.listAction>tbody>tr>td.wideColumn {
@@ -4795,9 +4799,11 @@ div.location.public {
 
 .wide .eshop-product-images {
   width: 30%;
-  height: 100%; }
+  height: 100%;
+  text-align: center; }
   .wide .eshop-product-images img {
-    width: 100%; }
+    max-width: none;
+    width: auto; }
 
 .narrow .eshop-product-images a {
   display: inline-block;
@@ -5041,7 +5047,7 @@ only screen and (min-width: 1240px) {
   .background-holder {
     padding: 10px 0; }
 
-  .wide not('.user-profile') .listBlock .listRows > table.listTable {
+  .wide:not('.user-profile') .listBlock .listRows > table.listTable {
     min-width: 760px; } }
 
 @media handheld,
@@ -5612,20 +5618,31 @@ only screen and (max-width: 320px) {
     font-size: 1.1em;
     text-transform: uppercase; }
   .external .hideLink {
-    display: block;
-    margin-left: 10px;
+    display: inline-block;
     font-size: 0.9em;
     margin-bottom: 10px;
     margin-top: -6px; }
+    .external .hideLink:hover {
+      text-decoration: underline; }
     .external .hideLink.inlineLinks {
       margin-left: 0;
       display: inline-block; }
+  .external .docToolbar {
+    margin-left: 10px; }
+    .external .docToolbar span {
+      font-size: 0.9em;
+      margin: 0 5px;
+      display: inline-block;
+      color: #888888; }
   .external span.linkWithIcon {
     padding-left: 23px !important; }
   .external .docOutgoings .document {
     background-color: #ddecfd; }
   .external .docIncomings .document {
     background-color: #fdffe5; }
+
+.smallIcon {
+  display: inline !important; }
 
   .wide .external .docIncomings {
     width: 1002px; }
@@ -5686,7 +5703,8 @@ only screen and (max-width: 320px) {
 
 .labelBreak {
   page-break-after: auto;
-  page-break-inside: avoid; }
+  page-break-inside: avoid;
+  margin-bottom: 10mm; }
 
 /*
  * стилове за принтиране
@@ -6370,6 +6388,10 @@ only screen and (max-width: 320px) {
 
 .narrow .elem-holder .endTooltip {
   float: right; }
+
+.textHint {
+  display: inline-block;
+  border-bottom: 1px dashed; }
 
 .frontToolip {
   display: inline-block; }

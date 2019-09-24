@@ -47,7 +47,6 @@ class thumb_M extends core_Mvc
             self::addTypeHeader($ext);
             header('Content-Length: ' . filesize($file));
             readfile($file);
-            flush();
             
             shutdown();
         } else {

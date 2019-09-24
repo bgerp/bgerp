@@ -202,7 +202,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             setIfNot($itemsPerPage, $rec->listItemsPerPage, $this->listItemsPerPage);
             $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $itemsPerPage));
             $data->Pager->setPageVar('frame2_Reports', $rec->id);
-            $data->Pager->itemsCount = count($data->recs);
+            $data->Pager->itemsCount = countR($data->recs);
         }
         
         // Вербализиране само на нужните записи

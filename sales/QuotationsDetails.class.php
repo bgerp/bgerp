@@ -665,7 +665,7 @@ class sales_QuotationsDetails extends doc_Detail
             $rec = $data->recs[$i];
             if ($rec->livePrice === true) {
                 $row->packPrice = "<span style='color:blue'>{$row->packPrice}</span>";
-                $row->packPrice = ht::createHint($row->packPrice, 'Цената е динамично изчислена. Ще бъде записана при активиране', 'notice', false, 'width=14px,height=14px');
+                $row->packPrice = ht::createHint($row->packPrice, 'Цената е динамично изчислена. Ще бъде записана при активиране', 'notice', false);
             }
             
             if (!isset($data->recs[$i]->price) && haveRole('seePrice,ceo')) {
@@ -843,11 +843,11 @@ class sales_QuotationsDetails extends doc_Detail
         $vatRow = ($masterRec->chargeVat == 'yes') ? tr(', |с ДДС|*') : tr(', |без ДДС|*');
         $miscMandatory = $masterRec->currencyId . $vatRow;
         $miscOptional = $masterRec->currencyId . $vatRow;
-        if (count($data->discounts) && $data->hasDiscounts === true) {
+        if (countR($data->discounts) && $data->hasDiscounts === true) {
             $miscMandatory .= ', ' . tr('без извадени отстъпки');
         }
         
-        if (count($data->discountsOptional) && $data->hasDiscounts === true) {
+        if (countR($data->discountsOptional) && $data->hasDiscounts === true) {
             $miscOptional .= ', ' . tr('без извадени отстъпки');
         }
         
@@ -1102,12 +1102,12 @@ class sales_QuotationsDetails extends doc_Detail
      */
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
-        // Преди клониране клонира се и сумата на цената на транспорта
-        $cRec = sales_TransportValues::get($mvc->Master, $oldRec->quotationId, $oldRec->id);
-        if (isset($cRec)) {
-            $rec->fee = $cRec->fee;
-            $rec->deliveryTimeFromFee = $cRec->deliveryTime;
-            $rec->syncFee = true;
+        // Изчисляване на транспортните разходи
+        if (core_Packs::isInstalled('tcost')) {
+            $form = sales_QuotationsDetails::getForm();
+            $clone = clone sales_Quotations::fetch($rec->quotationId);
+            $clone->deliveryPlaceId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
+            sales_TransportValues::prepareFee($rec, $form, $clone, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
         }
         
         $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
@@ -1117,8 +1117,10 @@ class sales_QuotationsDetails extends doc_Detail
         $isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
         if($isPublic == 'yes'){
             $masterRec = sales_Quotations::fetch($rec->quotationId);
-            $livePrice = self::calcLivePrice($rec, $masterRec);
-            if(empty($livePrice)){
+            
+            $clone = clone $rec;
+            self::calcLivePrice($clone, $masterRec);
+            if(empty($clone->price)){
                 $rec->price = $oldRec->price;
             }
         }

@@ -141,6 +141,12 @@ class core_Mvc extends core_FieldSet
     
     
     /**
+     * Дали класът да бъде добавен автоматично в регистъра на класове (core_Classes)
+     */
+    public $automaticRegisterClass = true;
+    
+    
+    /**
      * Конструктора на таблицата. По подразбиране работи със singleton
      * адаптор за база данни на име "db". Разчита, че адапторът
      * е вече свързан към базата.
@@ -208,7 +214,7 @@ class core_Mvc extends core_FieldSet
         core_Users::forceSystemUser();
         
         $res = $this->setupMVC();
-                
+        
         // Де-форсираме системния потребител
         core_Users::cancelSystemUser();
         
@@ -967,10 +973,10 @@ class core_Mvc extends core_FieldSet
         
         $checkFields = array();
         
-        if (count($fields)) {
+        if (countR($fields)) {
             $checkFields[] = $fields;
         } else {
-            if (count($this->dbIndexes)) {
+            if (countR($this->dbIndexes)) {
                 foreach ($this->dbIndexes as $indRec) {
                     if ($indRec->type == 'UNIQUE') {
                         $checkFields[] = arr::make($indRec->fields);
@@ -1327,10 +1333,12 @@ class core_Mvc extends core_FieldSet
         } else {
             $html .= "<li class='debug-info'>" . ('Без установяване на DB таблици, защото липсва модел') . '</li>';
         }
-
+        
         // Добавяме в списъка с интерфейсните класове
-        $html .= core_Classes::add($this);
-
+        if ($this->automaticRegisterClass) {
+            $html .= core_Classes::add($this);
+        }
+        
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
         
@@ -1457,7 +1465,7 @@ class core_Mvc extends core_FieldSet
             return $idStrip;
         }
         sleep(2);
-        Debug::log('Sleep 2 sec. in' . __CLASS__);
+        Debug::log('Sleep 2 sec. in ' . __CLASS__);
         
         return false;
     }
@@ -1606,9 +1614,12 @@ class core_Mvc extends core_FieldSet
      */
     public static function logLogin($action, $objectId = null, $lifeDays = 180, $cu = null)
     {
-        if (core_Users::getCurrent() <= 0) {
+        $currUser = isset($cu) ? $cu : core_Users::getCurrent();
+        
+        if ($currUser <= 0) {
             self::logInfo($action, $objectId);
         }
+        
         $className = get_called_class();
         log_Data::add('login', $action, $className, $objectId, $lifeDays, $cu);
     }

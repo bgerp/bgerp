@@ -655,6 +655,7 @@ class thumb_Img
                 imagedestroy($newGdRes);
             } else {
                 if ($asString = $this->getAsString()) {
+                    core_Os::forceDir(dirname($path)); 
                     file_put_contents($path, $asString);
                 }
             }

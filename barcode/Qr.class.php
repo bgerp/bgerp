@@ -23,29 +23,48 @@ defIfNot('BARCODE_SALT', md5(EF_SALT . '_BARCODE'));
 class barcode_Qr extends core_Manager
 {
     /**
+     * Връща URL за показване на QR кода
+     * 
+     * @param string $text
+     * @param boolean $isAbsolute
+     * @param number $pixelPerPoint
+     * @param number $outerFrame
+     * @return string
+     */
+    public static function getUrl($text, $isAbsolute = false, $pixelPerPoint = 3, $outerFrame = 0)
+    {
+        $protect = self::getProtectSalt($text, $pixelPerPoint, $outerFrame);
+        
+        return toUrl(array(get_called_class(), 'Generate', 'text' => $text, 'pixelPerPoint' => $pixelPerPoint, 'outerFrame' => $outerFrame, 'protect' => $protect), $isAbsolute);
+    }
+    
+    
+    /**
      * Екшън за генериране на QR изображения
      */
     public function act_Generate()
     {
-        //Текстова част
+        // Текстова част
         $text = Request::get('text');
         
-        //Пиксли на изображението
+        // Пиксели на изображението
         $pixelPerPoint = Request::get('pixelPerPoint');
         
-        //Широчината на рамката на изображението
+        // Широчината на рамката на изображението
         $outerFrame = Request::get('outerFrame');
         
-        //Променливата за проверка дали кода е генериран от системата
+        // Променливата за проверка дали кода е генериран от системата
         $protect = Request::get('protect');
         
-        //Генерираме код с параемтите
+        // Генерираме код с параемтите
         $salt = self::getProtectSalt($text, $pixelPerPoint, $outerFrame);
         
-        //Ако двата кода си съвпадат, тогава генерираме QR изображението
+        // Ако двата кода си съвпадат, тогава генерираме QR изображението
         if ($salt == $protect) {
             self::getImg($text, $pixelPerPoint, $outerFrame);
         }
+        
+        shutdown();
     }
     
     

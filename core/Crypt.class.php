@@ -4,7 +4,7 @@
 /**
  * Ключа с който ще се криптира, ако не бъде зададен експлицитно
  */
-defIfNot(EF_CRYPT_CODE, EF_SALT . 'EF_CRYPT_CODE');
+defIfNot('EF_CRYPT_CODE', EF_SALT . 'EF_CRYPT_CODE');
 
 
 /**
@@ -23,6 +23,9 @@ defIfNot(EF_CRYPT_CODE, EF_SALT . 'EF_CRYPT_CODE');
  */
 class core_Crypt extends core_BaseClass
 {
+    const EF_CRYPT_CODE = EF_CRYPT_CODE;
+    
+    
     /**
      * Кодиране чрез размяна
      */

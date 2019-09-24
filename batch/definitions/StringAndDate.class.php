@@ -56,7 +56,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         // Ако ще се генерира автоматична стойност
         if ($this->rec->autoValue == 'yes') {
             $time = cat_Products::getParams($this->rec->productId, 'expiryTime');
-            if (!isset($time)) {
+            if (empty($time)) {
                 $time = $this->rec->time;
             }
             
@@ -83,22 +83,24 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
      */
     private function getNextBatch($expiryDate)
     {
-        $existingBatches = batch_BatchesInDocuments::getBatchByType($this->getClassId(), 'batch');
+        $existingBatches = batch_BatchesInDocuments::getBatchByType($this->getClassId(), 'batch', $this->rec->id);
         $existingBatches = arr::extractValuesFromArray($existingBatches, 'batch');
         $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
         
         $normalized = array();
         foreach ($existingBatches as $batch) {
-            list($batchNormalized, ) = explode($delimiter, $batch, 2);
-            $normalized[] = str_replace($this->rec->prefix, '', $batchNormalized);
+            $exploded = explode($delimiter, $batch);
+            if(count($exploded) == 2){
+                $normalized[] = str_replace($this->rec->prefix, '', $exploded[0]);
+            }
         }
-        rsort($normalized);
         
+        rsort($normalized);
         $max = $normalized[0];
+       
         $nextNumber = isset($max) ? str::increment($max) : str_pad(1, $this->rec->length, '0', STR_PAD_LEFT);
         $nextNumber = "{$this->rec->prefix}{$nextNumber}";
-        
-        if (!empty($this->rec->length) && strlen($nextNumber) > $this->rec->length) {
+        if (!empty($this->rec->length) && mb_strlen($nextNumber) > $this->rec->length) {
             
             return;
         }

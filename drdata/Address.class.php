@@ -661,7 +661,7 @@ class drdata_Address extends core_MVC
                         $nameCnt += $strlen > 6 ? 0.6 : 0.4;
                     }
                     $sss[] = $w;
-                    if (preg_match('/(zdravey|zdraveyte|dear|hi|uvazhaemi|hello|regards)$/', $w)) {
+                    if (preg_match('/(zdravey|zdraveyte|dear|hi|uvazhaemi|hello|regards|managing partner)$/', $w)) {
                         --$nameCnt;
                         --$companyCnt;
                     }

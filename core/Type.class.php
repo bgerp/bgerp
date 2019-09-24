@@ -177,7 +177,7 @@ class core_Type extends core_BaseClass
         $res->type = strtoupper($this->dbFieldType);
         
         // Ключовете на опциите на типа, са опциите в MySQL
-        if (count($this->options)) {
+        if (countR($this->options)) {
             foreach ($this->options as $key => $val) {
                 $res->options[] = $key;
             }
@@ -343,7 +343,7 @@ class core_Type extends core_BaseClass
         $this->setFieldWidth($attr);
         
         setIfNot($attr['type'], 'text');
-        if (count($this->suggestions)) {
+        if (countR($this->suggestions)) {
             $tpl = ht::createCombo($name, $value, $attr, $this->suggestions);
         } else {
             $tpl = ht::createTextInput($name, $value, $attr);

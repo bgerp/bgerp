@@ -206,12 +206,8 @@ class fileman_Download extends core_Manager
         // Задаваме името на файла за сваляне - същото, каквото файла има в момента
         $rec->fileName = $name;
         
-        // Ако няма директория
-        if (!is_dir(EF_DOWNLOAD_DIR . '/' . $rec->prefix)) {
-            
-            // Създаваме я
-            mkdir(EF_DOWNLOAD_DIR . '/' . $rec->prefix, 0777, true);
-        }
+        // Проверяваме или създаваме директорията
+        core_Os::requireDir(EF_DOWNLOAD_DIR . '/' . $rec->prefix);
         
         // Генерираме пътя до файла (hard link) който ще се сваля
         $downloadPath = EF_DOWNLOAD_DIR . '/' . $rec->prefix . '/' . $rec->fileName;
@@ -241,6 +237,12 @@ class fileman_Download extends core_Manager
      */
     public function act_Download()
     {
+        // Ако файла се сваля от vt - за да не се подават вирусни файлове
+        if (log_Browsers::checkUserAgent('virustotalcloud')) {
+            
+            return new Redirect(array('Index'));
+        }
+        
         // Манипулатора на файла
         $fh = Request::get('fh');
         
@@ -412,15 +414,7 @@ class fileman_Download extends core_Manager
      */
     public static function on_AfterSetupMVC($mvc, &$res)
     {
-        if (!is_dir(EF_DOWNLOAD_DIR)) {
-            if (!mkdir(EF_DOWNLOAD_DIR, 0777, true)) {
-                $res .= '<li class="debug-error">' . tr('Не може да се създаде директорията') .
-                ' "' . EF_DOWNLOAD_DIR . '</li>';
-            } else {
-                $res .= '<li class="debug-new">' . tr('Създадена е директорията') . ' "' .
-                EF_DOWNLOAD_DIR . '"</li>';
-            }
-        }
+        $res .= core_Os::createDirectories(EF_DOWNLOAD_DIR);
         
         if (CORE_OVERWRITE_HTAACCESS) {
             $filesToCopy = array(

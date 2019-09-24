@@ -151,7 +151,7 @@ class cms_DefaultTheme extends core_ProtoInner
         if (phpcolor_Adapter::checkColor($activeColor, 'dark')) {
             $fontColor = phpcolor_Adapter::changeColor($activeColor, 'darken', 25);
             $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 30);
-            if (color_Colors::compareColorLightness('#' + $activeColor, '#666') == -1) {
+            if (color_Colors::compareColorLightness('#' . $activeColor, '#666') == -1) {
                 $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#fff !important; text-shadow: 2px 2px 2px #000}";
             }
         } else {

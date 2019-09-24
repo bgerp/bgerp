@@ -13,19 +13,11 @@
  *
  * @since     v 0.1
  */
-class tremol_FiscPrinterDriverWeb extends core_Mvc
+class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
 {
-    public $interfaces = 'peripheral_DeviceIntf, peripheral_FiscPrinterWeb';
+    public $interfaces = 'peripheral_FiscPrinterWeb';
     
     public $title = 'Уеб ФУ на Тремол';
-    
-    protected $canCashReceived = 'admin, peripheral';
-    
-    protected $canCashPaidOut = 'admin, peripheral';
-    
-    protected $canMakeReport = 'admin, peripheral';
-    
-    protected $rcpNumPattern = '/^[a-z0-9]{8}-[a-z0-9]{4}-[0-9]{7}$/i';
     
     
     /**
@@ -35,145 +27,10 @@ class tremol_FiscPrinterDriverWeb extends core_Mvc
     
     
     /**
-     * Максимална дължина за касовите апарати
-     * @var integer
+     * 
+     * @var string
      */
-    protected $crLen = 32;
-    
-    
-    /**
-     * Максимална дължина за фискалните принтери
-     * @var integer
-     */
-    protected $fpLen = 48;
-    
-    
-    /**
-     * Максимална дължина за фискалните принтери - за име на артикул
-     * @var integer
-     */
-    protected $fpPluNameLen = 34;
-    
-    
-    /**
-     * "Маргин" при печатане на текст - по един # в началото и в края
-     * @var integer
-     */
-    protected $mLen = 2;
-    
-    
-    /**
-     * Дефолтни кодове на начините на плащане
-     */
-    const DEFAULT_PAYMENT_MAP = array('Брой'       => 0,
-                                      'Чек'        => 1,
-                                      'Талон'      => 2,
-                                      'В.Талон'    => 3,
-                                      'Амбалаж'    => 4,
-                                      'Обслужване' => 5,
-                                      'Повреди'    => 6,
-                                      'Карта'      => 7,
-                                      'Банка'      => 8);
-    
-    
-    /**
-     * Дефолтни кодове на начините на плащане
-     */
-    const DEFAULT_STORNO_REASONS_MAP = array('Операторска грешка' => 0,
-                                             'Връщане/Рекламация' => 1,
-                                             'Данъчно облекчение' => 2,);
-    
-    
-    /**
-     * Дефолтни кодове за ДДС групите
-     */
-    const DEFAULT_VAT_GROUPS_MAP = array('A' => 0,
-                                         'B' => 1,
-                                         'V' => 2,
-                                         'G' => 3,);
-    
-    
-    /**
-     * Добавя полетата на драйвера към Fieldset
-     *
-     * @param core_Fieldset $fieldset
-     */
-    public function addFields(core_Fieldset &$fieldset)
-    {
-        $fieldset->FLD('serverIp', 'ip', 'caption=Настройки за връзка със ZFPLAB сървър->IP адрес, mandatory');
-        $fieldset->FLD('serverTcpPort', 'int', 'caption=Настройки за връзка със ZFPLAB сървър->TCP порт, mandatory');
-        
-        $fieldset->FLD('driverVersion', 'enum(19.06.13,19.05.17,19.03.22,19.02.20)', 'caption=Настройки на ФУ->Версия, mandatory, notNull');
-        $fieldset->FLD('fpType', 'enum(cashRegister=Касов апарат, fiscalPrinter=Фискален принтер)', 'caption=Настройки на ФУ->Тип, mandatory, notNull');
-        $fieldset->FLD('serialNumber', 'varchar(8)', 'caption=Настройки на ФУ->Сериен номер');
-        
-        $fieldset->FLD('type', 'enum(tcp=TCP връзка, serial=Сериен порт)', 'caption=Настройки за връзка с ФУ->Връзка, mandatory, notNull, removeAndRefreshForm=tcpIp|tcpPort|tcpPass|serialPort|serialSpeed');
-        $fieldset->FLD('tcpIp', 'ip', 'caption=Настройки за връзка с ФУ->IP адрес, mandatory');
-        $fieldset->FLD('tcpPort', 'int', 'caption=Настройки за връзка с ФУ->Порт, mandatory');
-        $fieldset->FLD('tcpPass', 'password', 'caption=Настройки за връзка с ФУ->Парола, mandatory');
-        
-        $fieldset->FLD('serialPort', 'varchar', 'caption=Настройки за връзка с ФУ->Порт, mandatory');
-        $fieldset->FLD('serialSpeed', 'int', 'caption=Настройки за връзка с ФУ->Скорост, mandatory');
-        
-        if ($fieldset instanceof core_Form) {
-            $fieldset->input('type');
-            
-            if ($fieldset->rec->type != 'serial') {
-                $fieldset->setField('serialPort', 'input=none');
-                $fieldset->setField('serialSpeed', 'input=none');
-            } else {
-                $fieldset->setField('tcpIp', 'input=none');
-                $fieldset->setField('tcpPort', 'input=none');
-                $fieldset->setField('tcpPass', 'input=none');
-            }
-        }
-        
-        // Добавяне на полета за поддържани валути и кодове на методите на плащане
-        $fieldset->FLD('suppertedCurrencies', 'keylist(mvc=currency_Currencies,select=code,where=#code !\\= \\\'BGN\\\')', 'caption=Настройки на апарата->Валути');
-        $fieldset->FLD('vatGroups', 'table(columns=groupId|code,captions=Група|Код)', 'caption=Настройки на апарата->ДДС групи');
-        $fieldset->setFieldTypeParams('vatGroups', array('groupId_opt' => array('' => '') + cls::get('acc_VatGroups')->makeArray4Select('title')));
-        
-        $fieldset->FLD('paymentMap', 'table(columns=paymentId|code,captions=Вид|Код)', 'caption=Настройки на апарата->Плащания');
-        $fieldset->setFieldTypeParams('paymentMap', array('paymentId_opt' => array('' => '') + array('-1' => 'Брой') + cls::get('cond_Payments')->makeArray4Select('title')));
-        
-        // Добавяне на поле за поддържаните основания за сторниране с техните кодове
-        $fieldset->FLD('reasonMap', 'table(columns=reason|code,captions=Основание|Код,batch_ro=readonly)', 'caption=Настройки на апарата->Сторно основания');
-        $fieldset->setFieldTypeParams('reasonMap', array('reason_opt' => array('' => '') + arr::make(array_keys(self::DEFAULT_STORNO_REASONS_MAP), true)));
-        
-        $fieldset->FLD('header', 'enum(yes=Да,no=Не)', 'caption=Надпис хедър в касовата бележка->Добавяне, mandatory, notNull, removeAndRefreshForm');
-        $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър в касовата бележка->Позиция, mandatory, notNull');
-        $fieldset->FLD('headerText1', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 1');
-        $fieldset->FLD('headerText2', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 2');
-        $fieldset->FLD('headerText3', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 3');
-        $fieldset->FLD('headerText4', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 4');
-        $fieldset->FLD('headerText5', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 5');
-        $fieldset->FLD('headerText6', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 6');
-        $fieldset->FLD('headerText7', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 7');
-        if ($fieldset instanceof core_Form) {
-            $fieldset->input('header');
-            if ($fieldset->rec->header == 'no') {
-                $fieldset->setField('headerText1', 'input=none');
-                $fieldset->setField('headerText2', 'input=none');
-                $fieldset->setField('headerText3', 'input=none');
-                $fieldset->setField('headerText4', 'input=none');
-                $fieldset->setField('headerText5', 'input=none');
-                $fieldset->setField('headerText6', 'input=none');
-                $fieldset->setField('headerText7', 'input=none');
-                $fieldset->setField('headerPos', 'input=none');
-            }
-        }
-        
-        $fieldset->FLD('footer', 'enum(yes=Да, no=Не)', 'caption=Надпис футър в касовата бележка->Добавяне, mandatory, notNull, removeAndRefreshForm');
-        $fieldset->FLD('footerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис футър в касовата бележка->Позиция, mandatory, notNull');
-        $fieldset->FLD('footerText', "varchar({$this->fpLen})", 'caption=Надпис футър в касовата бележка->Текст');
-        if ($fieldset instanceof core_Form) {
-            $fieldset->input('footer');
-            if ($fieldset->rec->footer == 'no') {
-                $fieldset->setField('footerText', 'input=none');
-                $fieldset->setField('footerPos', 'input=none');
-            }
-        }
-    }
+    public $loadList = 'peripheral_DeviceWebPlg';
     
     
     /**
@@ -289,7 +146,10 @@ class tremol_FiscPrinterDriverWeb extends core_Mvc
         
         // Задаваме параметрите за отваряне на ФБ
         setIfNot($params['OPER_NUM'], 1);
-        setIfNot($params['OPER_PASS'], 0);
+        if (!isset($params['OPER_PASS'])) {
+            $params['OPER_PASS'] = $this->getOperPass($params['OPER_NUM'], $pRec);
+        }
+        
         if ($params['IS_DETAILED']) {
             $params['IS_DETAILED'] = 'true';
         } else {
@@ -627,30 +487,6 @@ class tremol_FiscPrinterDriverWeb extends core_Mvc
     
     
     /**
-     * Връща цената с ддс и приспадната отстъпка, подходяща за касовия апарат
-     *
-     * @param float      $priceWithoutVat
-     * @param float      $vat
-     * @param float|null $discountPercent
-     *
-     * @return float
-     *
-     * @see peripheral_FiscPrinter
-     */
-    public function getDisplayPrice($priceWithoutVat, $vat, $discountPercent)
-    {
-        $displayPrice = $priceWithoutVat * (1 + $vat);
-        
-        if (!empty($discountPercent)) {
-            $discountedPrice = round($displayPrice * $discountPercent, 2);
-            $displayPrice = $displayPrice - $discountedPrice;
-        }
-        
-        return $displayPrice;
-    }
-    
-    
-    /**
      * Помощна функция за добавяне на необходимите JS файлове
      *
      * @param core_ET $tpl
@@ -675,40 +511,77 @@ class tremol_FiscPrinterDriverWeb extends core_Mvc
      * @param core_ET   $tpl
      * @param stdClass  $pRec
      * @param null|bool $serialKeepPortOpen
+     * @param boolean $setDeviceSettings
      */
-    protected function connectToPrinter($tpl, $pRec, $serialKeepPortOpen = null)
+    protected function connectToPrinter($tpl, $pRec, $serialKeepPortOpen = null, $setDeviceSettings = true)
     {
         // Задаваме настройките за връзка със сървъра
         $tpl->replace(json_encode($pRec->serverIp), 'SERVER_IP');
         $tpl->replace(json_encode($pRec->serverTcpPort), SERVER_TCP_PORT);
         
-        // Свързваме се с ФП
-        if ($pRec->type == 'tcp') {
-            $tpl->replace(json_encode($pRec->tcpIp), 'TCP_IP');
-            $tpl->replace($pRec->tcpPort, 'TCP_PORT');
-            $tpl->replace(json_encode($pRec->tcpPass), 'TCP_PASS');
-            
-            $tpl->replace('false', 'SERIAL_PORT');
-            $tpl->replace('false', 'SERIAL_BAUD_RATE');
-            $tpl->replace('false', 'SERIAL_KEEP_PORT_OPEN');
-        } elseif ($pRec->type == 'serial') {
-            $tpl->replace('false', 'TCP_IP');
-            $tpl->replace('false', 'TCP_PORT');
-            $tpl->replace('false', 'TCP_PASS');
-            $tpl->replace(json_encode($pRec->serialPort), 'SERIAL_PORT');
-            $tpl->replace($pRec->serialSpeed, 'SERIAL_BAUD_RATE');
-            
-            setIfNot($serialKeepPortOpen, 'true');
-            if ($serialKeepPortOpen) {
-                $serialKeepPortOpen = 'true';
+        if ($setDeviceSettings) {
+            // Свързваме се с ФП
+            if ($pRec->type == 'tcp') {
+                $tpl->replace(json_encode($pRec->tcpIp), 'TCP_IP');
+                $tpl->replace($pRec->tcpPort, 'TCP_PORT');
+                $tpl->replace(json_encode($pRec->tcpPass), 'TCP_PASS');
+                
+                $tpl->replace('false', 'SERIAL_PORT');
+                $tpl->replace('false', 'SERIAL_BAUD_RATE');
+                $tpl->replace('false', 'SERIAL_KEEP_PORT_OPEN');
+            } elseif ($pRec->type == 'serial') {
+                $tpl->replace('false', 'TCP_IP');
+                $tpl->replace('false', 'TCP_PORT');
+                $tpl->replace('false', 'TCP_PASS');
+                $tpl->replace(json_encode($pRec->serialPort), 'SERIAL_PORT');
+                $tpl->replace($pRec->serialSpeed, 'SERIAL_BAUD_RATE');
+                
+                setIfNot($serialKeepPortOpen, 'true');
+                if ($serialKeepPortOpen) {
+                    $serialKeepPortOpen = 'true';
+                } else {
+                    $serialKeepPortOpen = 'false';
+                }
+                
+                $tpl->replace($serialKeepPortOpen, 'SERIAL_KEEP_PORT_OPEN');
             } else {
-                $serialKeepPortOpen = 'false';
+                expect(false, $pRec);
             }
-            
-            $tpl->replace($serialKeepPortOpen, 'SERIAL_KEEP_PORT_OPEN');
-        } else {
-            expect(false, $pRec);
         }
+    }
+    
+    
+    /**
+     * Помощна функция за намиране на порта и скоростта на периферното устройство
+     *
+     * @param stdClass $pRec
+     * @param null|core_Et $jsTpl
+     *
+     * @return array
+     *
+     * {@inheritDoc}
+     * @see tremol_FiscPrinterDriverParent::findDevicePort()
+     */
+    protected function findDevicePort($pRec, &$jsTpl = null)
+    {
+        $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                                try {
+                                    fpServerSetSettings([#SERVER_IP#], [#SERVER_TCP_PORT#]);
+                                    var res = fpServerFindDevice(false);
+                                    if (res.serialPort && res.baudRate) {
+                                        $('.serialSpeedInput').val(res.baudRate);
+                                    }
+                                    
+                                    if (res.serialPort) {
+                                        $('.serialPortInput').val(res.serialPort);
+                                    }
+                                } catch(ex) { }
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]");
+        
+        $this->addTplFile($jsTpl, $pRec->driverVersion);
+        $this->connectToPrinter($jsTpl, $pRec, false, false);
+        
+        return array();
     }
     
     
@@ -723,18 +596,7 @@ class tremol_FiscPrinterDriverWeb extends core_Mvc
      */
     protected function replaceTextArr($tArr, &$jTpl, $placeName, $removeBlock = false, $maxLen = 30)
     {
-        $resStrArr = array();
-        if (!is_array($tArr)) {
-            $tArr = array($tArr);
-        }
-        
-        $minLen = $maxLen - 5;
-        
-        foreach ($tArr as $tStr) {
-            $tStr = hyphen_Plugin::getHyphenWord($tStr, $minLen, $maxLen, '<wbr>');
-            
-            $resStrArr = array_merge($resStrArr, explode('<wbr>', $tStr));
-        }
+        $resStrArr = $this->parseTextToArr($tArr, $maxLen);
         
         if (!empty($resStrArr)) {
             foreach ($resStrArr as $str) {
@@ -750,68 +612,6 @@ class tremol_FiscPrinterDriverWeb extends core_Mvc
                 unset($jTpl->blocks[$placeName]);
             }
         }
-    }
-    
-    
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param tremol_FiscPrinterDriverWeb $Driver
-     * @param peripheral_Devices          $Embedder
-     * @param stdClass                    $data
-     */
-    protected static function on_AfterPrepareEditForm($Driver, $Embedder, &$data)
-    {
-        $form = &$data->form;
-        
-        if (!isset($form->rec->id)) {
-            $form->setDefault('footerText', 'Отпечатано с bgERP');
-        }
-        
-        // Дефолти на начините на плащане
-        if(empty($form->rec->paymentMap)){
-            
-            // Задаване на дефолтните кодове на начините на плащане
-            $paymentOptions = array('paymentId' => array(), 'code' => array());
-            foreach (self::DEFAULT_PAYMENT_MAP as $paymentName => $code){
-                $paymentId = ($paymentName == 'Брой') ? -1 : cond_Payments::fetchField("#title='{$paymentName}'");
-                if(!empty($paymentId)){
-                    $paymentOptions['paymentId'][] = $paymentId;
-                    $paymentOptions['code'][] = $code;
-                }
-            }
-            
-            $form->setDefault('paymentMap', $form->getFieldType('paymentMap')->fromVerbal($paymentOptions));
-        }
-        
-        // Дефолти на сторно основанията
-        if(empty($form->rec->reasonMap)){
-            $reasonOptions = array('reason' => array(), 'code' => array());
-            foreach (self::DEFAULT_STORNO_REASONS_MAP as $reason => $code){
-                $reasonOptions['reason'][] = $reason;
-                $reasonOptions['code'][] = $code;
-            }
-            
-            $form->setDefault('reasonMap', $form->getFieldType('reasonMap')->fromVerbal($reasonOptions));
-        }
-        
-        // Задаване на дефолтните кодове на ДДС групите
-        if(empty($form->rec->vatGroups)){
-            $groupOptions = array('groupId' => array(), 'code' => array());
-            foreach (self::DEFAULT_VAT_GROUPS_MAP as $group => $code){
-                $groupOptions['groupId'][] = acc_VatGroups::getIdBySysId($group);
-                $groupOptions['code'][] = $code;
-            }
-            
-            $form->setDefault('vatGroups', $form->getFieldType('vatGroups')->fromVerbal($groupOptions));
-        }
-        
-        $form->setDefault('serialSpeed', 115200);
-        $form->setDefault('serverIp', '127.0.0.1');
-        $form->setDefault('serverTcpPort', 4444);
-        $form->setDefault('tcpPort', 8000);
-        $form->setDefault('tcpPass', 1234);
-        $form->setDefault('footerText', 'Отпечатано с bgERP');
     }
     
     
@@ -905,35 +705,6 @@ class tremol_FiscPrinterDriverWeb extends core_Mvc
     
     
     /**
-     * Помощна функция за позициониране на текст - добавя интервали в началото
-     *
-     * @param string $text
-     * @param string $pos
-     * @param int    $maxLen
-     *
-     * @return string
-     */
-    protected static function formatText($text, $pos, $maxLen = 32)
-    {
-        $text = trim($text);
-        
-        if ($pos == 'right') {
-            $l = mb_strlen($text);
-            if ($maxLen > $l) {
-                $text = str_repeat(' ', $maxLen - $l) . $text;
-            }
-        } elseif ($pos == 'center') {
-            $l = mb_strlen($text);
-            if ($maxLen > $l) {
-                $text = str_repeat(' ', (int) (($maxLen - $l) / 2)) . $text;
-            }
-        }
-        
-        return $text;
-    }
-    
-    
-    /**
      * Екшън за промяна на серийния номер
      *
      * @return array|string
@@ -995,212 +766,135 @@ class tremol_FiscPrinterDriverWeb extends core_Mvc
     
     
     /**
-     *
-     * @param tremol_FiscPrinterDriverWeb $Driver
-     * @param peripheral_Devices        $Embedder
-     * @param object                    $data
+     * Екшън за печат на дубликат
      */
-    public static function on_AfterPrepareRetUrl($Driver, $Embedder, &$data)
+    public function act_PrintDuplicate()
     {
-        if ($data->form->cmd == 'save') {
-            $data->retUrl = array($Embedder, 'single', $data->form->rec->id, 'update' => true);
-        }
+        peripheral_Devices::requireRightFor('printduplicate');
+        expect($id = Request::get('id', 'int'));
+        expect($pRec = peripheral_Devices::fetch($id));
+        $Driver = peripheral_Devices::getDriver($pRec);
+        
+        // Опит за отпечатване на дубликат на касовата бележка
+        $retUrl = toUrl(getRetUrl());
+        $js =  $Driver->getJsForDuplicate($pRec);
+        $js .= 'function fpOnDuplicateSuccess(res)
+                        {
+                            render_showToast({timeOut: 800, text: "Успешно отпечатване", isSticky: true, stayTime: 8000, type: "notice"});
+                            setInterval(function(){document.location = " ' . $retUrl . ' ";}, 7000);
+                        };
+                                
+                        function fpOnDuplicateErr(err) {
+                            render_showToast({timeOut: 800, text: err, isSticky: true, stayTime: 8000, type: "error"});
+                            setInterval(function(){document.location = " ' . $retUrl . ' ";}, 7000);
+                        }';
+        
+        $tpl = new core_ET("");
+        Mode::set('wrapper', 'page_Empty');
+        $tpl = new core_ET('');
+        $tpl->append('<body><div class="fullScreenBg" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: block;"><h3 style="color: #fff; font-size: 56px; text-align: center; position: absolute; top: 30%; width: 100%">Отпечатва се дубликат на фискален бон ...<br> Моля, изчакайте!</h3></div></body>');
+        $tpl->append($js, 'SCRIPTS');
+        
+        return $tpl;
     }
     
     
     /**
-     * След подготовка на тулбара на единичен изглед
+     * Помощна функция при вкарване/изкарване на средства от ФУ
      *
-     * @param tremol_FiscPrinterDriverWeb $Driver
-     * @param peripheral_Devices        $mvc
-     * @param object                    $res
-     * @param object                    $data
+     * @param stdClass $pRec
+     * @param integer $operator
+     * @param integer $operPass
+     * @param double $amount
+     * @param array $retUrl
+     * @param boolean $printAvailability
+     * @param string $text
+     * @param string $actTypeVerb
+     * @param null|core_Et $jsTpl
+     *
+     * @see tremol_FiscPrinterDriverParent::getResForCashReceivedOrPaidOut()
      */
-    public static function on_AfterPrepareSingleToolbar($Driver, $mvc, &$res, $data)
+    protected function getResForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $retUrl = array(), $printAvailability = false, $text = '', $actTypeVerb = '', &$jsTpl = null)
     {
-        if (haveRole($Driver->canMakeReport)) {
-            $data->toolbar->addBtn('Отчети', array($Driver, 'Reports', 'pId' => $data->rec->id, 'ret_url' => true, 'rand' => str::getRand()), 'ef_icon = img/16/report.png, title=Отпечатване на отчети, row=2');
-        }
+        $jsFunc = $this->getJsForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $printAvailability, $text);
         
-        if (haveRole($Driver->canCashReceived) || haveRole($Driver->canCashPaidOut)) {
-            $data->toolbar->addBtn('Средства', array($Driver, 'CashReceivedOrPaidOut', 'pId' => $data->rec->id, 'ret_url' => true, 'rand' => str::getRand()), 'ef_icon = img/16/money.png, title=Вкарване или изкарване на пари от касата, row=1');
-        }
+        $retUrlDecoded = toUrl($retUrl);
+        
+        $jsTpl = new ET("function fpOnCashReceivedOrPaidOut() {render_redirect({url: '{$retUrlDecoded}'}); };
+                             function fpOnCashReceivedOrPaidOutErr(message) { $('.fullScreenBg').fadeOut(); render_showToast({timeOut: 800, text: '" . tr('Грешка при') . ' ' . tr($actTypeVerb) . ' ' . tr('във ФУ') . ": ' + message, isSticky: true, stayTime: 8000, type: 'error'});}");
+        
+        $jsTpl->prepend('$(\'body\').append(\'<div class="fullScreenBg" style="position: fixed; top: 0; z-index: 10; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"></div>\'); $(".fullScreenBg").fadeIn();');
+        
+        $jsTpl->append($jsFunc);
     }
     
     
     /**
-     * Екшън за отпечатване/записване на отчети
+     * Помощна фунцкция при отпечаване на отчет
      *
-     * @return core_ET
+     * @param stdClass $pRec
+     * @param stdClass $rec
+     * @param string $rVerb
+     * @param null|core_Et $jsTpl
+     *
+     * @see tremol_FiscPrinterDriverParent::getResForReport()
      */
-    public function act_Reports()
+    protected function getResForReport($pRec, $rec, $rVerb = '', &$jsTpl = null)
     {
-        expect(haveRole($this->canMakeReport));
+        $fnc = '';
         
-        $submitTitle = 'Отпечатване';
-        $closeBtnName = 'Отказ';
+        $isDetailed = 'false';
+        if ($rec->isDetailed == 'yes') {
+            $isDetailed = 'true';
+        }
         
-        $pId = Request::get('pId', 'int');
+        $isZeroing = 'false';
+        if ($rec->zeroing == 'yes') {
+            $isZeroing = 'true';
+        }
         
-        $pRec = peripheral_Devices::fetch($pId);
+        if ($rec->report == 'day') {
+            $fnc = "fpDayReport({$isZeroing},{$isDetailed})";
+        }
         
-        expect($pRec);
+        if ($rec->report == 'operator') {
+            $operator = (int) $rec->operNum;
+            $fnc = "fpOperatorReport({$isZeroing}, {$operator})";
+        }
         
-        peripheral_Devices::requireRightFor('single', $pRec);
-        
-        $form = cls::get('core_Form');
-        
-        $form->FLD('report', 'enum(day=Дневен,operator=Операторски (дневен),period=Период,month=Месечен,year=Годишен,klen=КЛЕН,csv=CSV)', 'caption=Отчет->Вид, mandatory, removeAndRefreshForm=zeroing,isDetailed,operNum,fromDate,toDate,flagReports,flagReceipts,csvFormat,printIn,saveType,printType');
-        
-        $form->input('report');
-        
-        $form->FLD('zeroing', 'enum(no=Не, yes=Да)', 'caption=Отчет->Нулиране, mandatory');
-        $form->FLD('isDetailed', 'enum(no=Не, yes=Да)', 'caption=Отчет->Детайлен, mandatory');
-        
-        if ($form->rec->report == 'operator') {
-            $form->FLD('operNum', 'int(min=0, max=20)', 'caption=Отчет->Оператор, mandatory');
-            $form->setField('isDetailed', 'input=none');
-            $form->setDefault('operNum', 1);
-        } elseif (($form->rec->report == 'period') || ($form->rec->report == 'month') || ($form->rec->report == 'year') || ($form->rec->report == 'klen') || ($form->rec->report == 'csv')) {
-            $form->FLD('fromDate', 'date', 'caption=Дата->От, mandatory');
-            $form->FLD('toDate', 'date', 'caption=Дата->До, mandatory');
+        if (($rec->report == 'period') || ($rec->report == 'month') || ($rec->report == 'year') || ($rec->report == 'klen') || ($rec->report == 'csv')) {
+            $fromDate = json_encode(dt::mysql2verbal($rec->fromDate, 'd-m-Y H:i:s'));
+            $toDate = json_encode(dt::mysql2verbal($rec->toDate . ' 23:59:59', 'd-m-Y H:i:s'));
+            $fnc = "fpPeriodReport({$fromDate}, {$toDate}, {$isDetailed})";
             
-            if ($form->rec->report == 'period') {
-                $form->setDefault('fromDate', date('d-m-Y', strtotime('this week')));
-                $form->setDefault('toDate', dt::now(false));
-            } elseif ($form->rec->report == 'month') {
-                if (date('d') <= 20) {
-                    $form->setDefault('fromDate', date('d-m-Y', strtotime('first day of previous month')));
-                    $form->setDefault('toDate', date('d-m-Y', strtotime('last day of previous month')));
+            if (($rec->report == 'klen') || ($rec->report == 'csv')) {
+                if ($rec->printType == 'save') {
+                    $outType = $rec->saveType;
                 } else {
-                    $form->setDefault('fromDate', date('d-m-Y', strtotime('first day of this month')));
-                    $form->setDefault('toDate', dt::now(false));
-                }
-            } elseif (($form->rec->report == 'year') || ($form->rec->report == 'klen') || ($form->rec->report == 'csv')) {
-                $y = date('Y');
-                if ((date('n') <= 11) && (($form->rec->report != 'klen') && ($form->rec->report != 'csv'))) {
-                    $y--;
-                    $form->setDefault('fromDate', date('d-m-Y', strtotime(date('01-01-' . $y))));
-                    $form->setDefault('toDate', date('d-m-Y', strtotime(date('31-12-' . $y))));
-                } else {
-                    $form->setDefault('fromDate', date('d-m-Y', strtotime(date('01-01-' . $y))));
-                    $form->setDefault('toDate', dt::now(false));
-                }
-            } elseif (($form->rec->report == 'klen') || ($form->rec->report == 'csv')) {
-                $form->FLD('printType', 'enum(print=Отпечатване, save=Запис)', 'caption=Действие, mandatory, removeAndRefreshForm=saveType');
-                
-                $form->input('printType');
-                
-                if ($form->rec->printType == 'save') {
-                    $form->FLD('saveType', 'enum(sd=SD карта, usb=USB)', 'caption=Запис в, mandatory');
-                    
-                    $submitTitle = 'Запис';
-                } else {
-                    $form->FLD('printIn', 'enum(PC=Компютър, FP=Фискално устройство)', 'caption=Отпечатване в, mandatory');
+                    $outType = $rec->printIn;
                 }
                 
-                $form->setField('zeroing', 'input=none');
+                if (!$outType) {
+                    $outType = 'pc';
+                }
                 
-                if ($form->rec->report == 'csv') {
-                    $form->setField('isDetailed', 'input=none');
-                    $form->FLD('csvFormat', 'enum(yes=Да, no=Не)', 'caption=CSV формат, mandatory');
-                    
-                    $form->FLD('flagReceipts', 'int(min=0, max=7)', 'caption=Флаг->ФБ, mandatory');
-                    $form->FLD('flagReports', 'int(min=0, max=7)', 'caption=Флаг->Отчет, mandatory');
-                    
-                    $form->setDefault('flagReceipts', 1);
-                    $form->setDefault('flagReports', 1);
-                    
-                    if ($form->rec->printType != 'save') {
-                        $form->setOptions('printIn', array('PC' => 'Компютър'));
-                    }
+                $outType = strtolower($outType);
+                $outType = json_encode($outType);
+                
+                if ($rec->report == 'csv') {
+                    $csvFormat = json_encode($rec->csvFormat);
+                    $fnc = "fpOutputCSV({$outType}, {$fromDate}, {$toDate}, {$csvFormat}, {$rec->flagReceipts}, {$rec->flagReports})";
+                } else {
+                    $fnc = "fpOutputKLEN({$outType}, {$fromDate}, {$toDate}, {$isDetailed})";
                 }
             }
         }
         
-        $form->input();
+        expect($fnc);
         
-        $rec = $form->rec;
+        $fnc .= ';';
         
-        $jsTpl = null;
-        
-        if ($form->isSubmitted()) {
-            if ($rec->zeroing == 'yes') {
-                $form->setWarning('report, zeroing', 'Отчетът ще бъде нулиран');
-            }
-        }
-        
-        $rand = Request::get('rand');
-        
-        $hash = md5(serialize($rec));
-        
-        $randStr = 'tremol_reports_' . $rand;
-        
-        // Защита от случайно повторно отпечатване
-        if (($rVal = Mode::get($randStr)) && ($rVal == $hash)) {
-            $form->setWarning('report', 'Този отчет вече е отпечатан');
-        }
-        
-        if ($form->isSubmitted()) {
-            Mode::setPermanent($randStr, $hash);
-            
-            $rVerb = $form->getFieldType('report')->toVerbal($rec->report);
-            $rVerb = mb_strtolower($rVerb);
-            
-            $fnc = '';
-            
-            $isDetailed = 'false';
-            if ($rec->isDetailed == 'yes') {
-                $isDetailed = 'true';
-            }
-            
-            $isZeroing = 'false';
-            if ($rec->zeroing == 'yes') {
-                $isZeroing = 'true';
-            }
-            
-            if ($rec->report == 'day') {
-                $fnc = "fpDayReport({$isZeroing},{$isDetailed})";
-            }
-            
-            if ($rec->report == 'operator') {
-                $operator = (int) $rec->operNum;
-                $fnc = "fpOperatorReport({$isZeroing}, {$operator})";
-            }
-            
-            if (($rec->report == 'period') || ($rec->report == 'month') || ($rec->report == 'year') || ($rec->report == 'klen') || ($rec->report == 'csv')) {
-                $fromDate = json_encode(dt::mysql2verbal($rec->fromDate, 'd-m-Y H:i:s'));
-                $toDate = json_encode(dt::mysql2verbal($rec->toDate . ' 23:59:59', 'd-m-Y H:i:s'));
-                $fnc = "fpPeriodReport({$fromDate}, {$toDate}, {$isDetailed})";
-                
-                if (($rec->report == 'klen') || ($rec->report == 'csv')) {
-                    if ($rec->printType == 'save') {
-                        $outType = $rec->saveType;
-                    } else {
-                        $outType = $rec->printIn;
-                    }
-                    
-                    if (!$outType) {
-                        $outType = 'pc';
-                    }
-                    
-                    $outType = strtolower($outType);
-                    $outType = json_encode($outType);
-                    
-                    if ($rec->report == 'csv') {
-                        $csfFormat = json_encode($rec->csvFormat);
-                        $fnc = "fpOutputCSV({$outType}, {$fromDate}, {$toDate}, {$csfFormat}, {$rec->flagReceipts}, {$rec->flagReports})";
-                    } else {
-                        $fnc = "fpOutputKLEN({$outType}, {$fromDate}, {$toDate}, {$isDetailed})";
-                    }
-                }
-            }
-            
-            expect($fnc);
-            
-            $fnc .= ';';
-            
-            $jsTpl = new ET("function fpPrintReport() {
+        $jsTpl = new ET("function fpPrintReport() {
                                 $('.fullScreenBg').fadeIn();
                                 [#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
                                 try {
@@ -1215,242 +909,10 @@ class tremol_FiscPrinterDriverWeb extends core_Mvc
                             }
                                                     
                             fpPrintReport();");
-            
-            $jsTpl->prepend('$(\'body\').append(\'<div class="fullScreenBg" style="position: fixed; top: 0; z-index: 10; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"></div>\');');
-            
-            $this->addTplFile($jsTpl, $pRec->driverVersion);
-            $this->connectToPrinter($jsTpl, $pRec, false);
-            
-            $closeBtnName = 'Назад';
-        } else {
-            $form->toolbar->addSbBtn($submitTitle, 'save', 'ef_icon = img/16/print_go.png');
-        }
         
-        $form->title = 'Генериране на отчет в ФУ|* ' . peripheral_Devices::getLinkToSingle($pRec->id, 'name');
+        $jsTpl->prepend('$(\'body\').append(\'<div class="fullScreenBg" style="position: fixed; top: 0; z-index: 10; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"></div>\');');
         
-        $retUrl = getRetUrl();
-        if (empty($retUrl)) {
-            $retUrl = array('peripheral_Devices', 'single', $pId);
-        }
-        
-        $form->toolbar->addBtn($closeBtnName, $retUrl, 'ef_icon = img/16/close-red.png');
-        
-        $html = $form->renderHtml();
-        
-        if ($jsTpl) {
-            $html->appendOnce($jsTpl, 'SCRIPTS');
-        }
-        
-        $tpl = cls::get('peripheral_Devices')->renderWrapping($html);
-        
-        core_Form::preventDoubleSubmission($tpl, $form);
-        
-        return $tpl;
-    }
-    
-    
-    /**
-     * Екшън за вкарване/изкараване на пари от касата
-     *
-     * @return core_ET
-     */
-    public function act_CashReceivedOrPaidOut()
-    {
-        $cancelBtn = 'Отказ';
-        $canReceived = haveRole($this->canCashReceived);
-        $canCashPaidOut = haveRole($this->canCashPaidOut);
-        expect($canReceived || $canCashPaidOut);
-        
-        $pId = Request::get('pId', 'int');
-        
-        $pRec = peripheral_Devices::fetch($pId);
-        
-        expect($pRec);
-        
-        peripheral_Devices::requireRightFor('single', $pRec);
-        
-        $form = cls::get('core_Form');
-        
-        $enumStr = '';
-        if ($canReceived) {
-            $enumStr .= 'received=Захранване';
-        }
-        
-        if ($canCashPaidOut) {
-            $enumStr .= $enumStr ? ',' : '';
-            $enumStr .= 'paidOut=Изплащане';
-        }
-        
-        $form->FLD('type', "enum({$enumStr})", 'caption=Действие, mandatory, removeAndRefreshForm');
-        
-        $len = ($pRec->fpType == 'fiscalPrinter') ? $this->fpLen : $this->crLen;
-        
-        $len -= $this->mLen;
-        
-        $form->FLD('amount', 'double(min=0)', 'caption=Сума, mandatory');
-        $form->FLD('text', "varchar({$len})", 'caption=Текст');
-        $form->FLD('printAvailability', 'enum(yes=Да,no=Не)', 'caption=Отпечатване на->Наличност');
-        
-        $form->input();
-        
-        $rec = $form->rec;
-        
-        $jsTpl = null;
-        
-        $rand = Request::get('rand');
-        
-        $hash = md5(serialize($rec));
-        
-        $randStr = 'tremol_cashRAndP_' . $rand;
-        
-        // Защита от случайно повторно отпечатване
-        if (($rVal = Mode::get($randStr)) && ($rVal == $hash)) {
-            $form->setWarning('report', 'Това действие вече е извършено');
-        }
-        
-        $retUrl = getRetUrl();
-        if (empty($retUrl)) {
-            $retUrl = array('peripheral_Devices', 'single', $pId);
-        }
-        
-        if ($form->isSubmitted()) {
-            Mode::setPermanent($randStr, $hash);
-            
-            $operator = 1;
-            $operPass = '0';
-            
-            $amount = $rec->amount;
-            if ($amount && $rec->type == 'paidOut') {
-                $amount *= -1;
-            }
-            
-            $printAvailability = $form->rec->printAvailability == 'yes' ? true : false;
-            
-            $jsFunc = $this->getJsForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $printAvailability, $rec->text);
-            
-            $actTypeVerb = $form->fields['type']->type->toVerbal($rec->type);
-            $actTypeVerb = tr(mb_strtolower($actTypeVerb));
-            
-            $retUrlDecoded = toUrl($retUrl);
-            
-            $jsTpl = new ET("function fpOnCashReceivedOrPaidOut() {render_redirect({url: '{$retUrlDecoded}'}); };
-                             function fpOnCashReceivedOrPaidOutErr(message) { $('.fullScreenBg').fadeOut(); render_showToast({timeOut: 800, text: '" . tr('Грешка при') . ' ' . tr($actTypeVerb) . ' ' . tr('във ФУ') . ": ' + message, isSticky: true, stayTime: 8000, type: 'error'});}");
-            
-            $jsTpl->prepend('$(\'body\').append(\'<div class="fullScreenBg" style="position: fixed; top: 0; z-index: 10; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"></div>\'); $(".fullScreenBg").fadeIn();');
-            
-            $jsTpl->append($jsFunc);
-            $cancelBtn = 'Назад';
-        }
-        
-        $submitTitle = 'Захранване';
-        $submitIcon = 'img/16/money_add.png';
-        if ($rec->type == 'paidOut') {
-            $submitTitle = 'Изплащане';
-            $submitIcon = 'img/16/money_delete.png';
-        }
-        
-        $form->toolbar->addSbBtn($submitTitle, 'save', "ef_icon = {$submitIcon}");
-        
-        $form->title = 'Вкарване или изкарване на пари от касата|* ' . peripheral_Devices::getLinkToSingle($pRec->id, 'name');
-        
-        $form->toolbar->addBtn($cancelBtn, $retUrl, 'ef_icon = img/16/close-red.png');
-        
-        $html = $form->renderHtml();
-        
-        if ($jsTpl) {
-            $html->appendOnce($jsTpl, 'SCRIPTS');
-        }
-        
-        $tpl = cls::get('peripheral_Devices')->renderWrapping($html);
-        
-        core_Form::preventDoubleSubmission($tpl, $form);
-        
-        return $tpl;
-    }
-    
-    
-    /**
-     * Дали във ФУ има е нагласена подадената валута
-     * 
-     * @param stdClass $rec
-     * @param string $currencyCode
-     * @return boolean
-     */
-    public function isCurrencySupported($rec, $currencyCode)
-    {
-        if($currencyCode != 'BGN'){
-            $currencyId = currency_Currencies::getIdByCode($currencyCode);
-            
-            return keylist::isIn($currencyId, $rec->suppertedCurrencies);
-        }
-        
-        return true;
-    }
-    
-    
-    /**
-     * Какъв е кода на плащането в настройките на апарата
-     *
-     * @param stdClass $rec
-     * @param int $paymentId
-     * @return string|null
-     */
-    public function getPaymentCode($rec, $paymentId)
-    {
-        $payments = type_Table::toArray($rec->paymentMap);
-        
-        $found = array_filter($payments, function($a) use ($paymentId) {return $a->paymentId == $paymentId;});
-        $found = $found[key($found)];
-        
-        return is_object($found) ? $found->code : null;
-    }
-    
-    
-    /**
-     * Какъв е кода на основанието за сторниране
-     *
-     * @param stdClass $rec - запис
-     * @param string $reason   - основание
-     * @return string|null  - намерения код или null, ако няма
-     */
-    public function getStornoReasonCode($rec, $reason)
-    {
-        $payments = type_Table::toArray($rec->reasonMap);
-        
-        $found = array_filter($payments, function($a) use ($reason) {return $a->reason == $reason;});
-        $found = $found[key($found)];
-        
-        return is_object($found) ? $found->code : null;
-    }
-    
-    
-    /**
-     * Какви са разрешените основания за сторниране
-     *
-     * @param stdClass $rec - запис
-     * @return array  - $res
-     */
-    public function getStornoReasons($rec)
-    {
-        $res = arr::make(array_keys(self::DEFAULT_STORNO_REASONS_MAP), true);
-        
-        return $res;
-    }
-    
-    
-    /**
-     * Какъв е кода отговарящ на ДДС групата на артикула
-     *
-     * @param int $groupId  - ид на ДДС група
-     * @param stdClass $rec - запис
-     * @return string|null  - намерения код или null, ако няма
-     */
-    public function getVatGroupCode($groupId, $rec)
-    {
-        $payments = type_Table::toArray($rec->vatGroups);
-        $found = array_filter($payments, function($a) use ($groupId) {return $a->groupId == $groupId;});
-        $found = $found[key($found)];
-        
-        return is_object($found) ? $found->code : null;
+        $this->addTplFile($jsTpl, $pRec->driverVersion);
+        $this->connectToPrinter($jsTpl, $pRec, false);
     }
 }

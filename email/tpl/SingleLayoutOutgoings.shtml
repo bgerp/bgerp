@@ -15,27 +15,27 @@
                                     <!--ET_BEGIN handle-->          
                                     <tr>
                                         <td class='aright'>|Реф.|*:</td>
-                                        <td>[#handle#]</td>
+                                        <td><b>[#handle#]</b></td>
                                     </tr>
                                     <!--ET_END handle-->
                                     <!--ET_BEGIN createdDate-->          
                                     <tr>
                                         <td class='aright'>|Дата|*:</td>
-                                        <td>[#createdDate#]</td>
+                                        <td><b>[#createdDate#]</b></td>
                                     </tr>
                                     <!--ET_END createdDate-->
                                     <!--ET_BEGIN recipient-->          
                                     <tr>
                                         <td class='aright'>|До|*:</td>
                                         <td>
-                                            [#recipient#]<!--ET_BEGIN firmCountry--> - [#firmCountry#]<!--ET_END firmCountry--><!--ET_BEGIN recipientEmail-->[#recipientEmail#]<!--ET_END recipientEmail-->
+                                            <b>[#recipient#]</b><!--ET_BEGIN firmCountry--> <b>- [#firmCountry#]</b><!--ET_END firmCountry--><!--ET_BEGIN recipientEmail--><b>[#recipientEmail#]</b><!--ET_END recipientEmail-->
                                         </td>
                                     </tr>
                                     <!--ET_END recipient-->
                                     <!--ET_BEGIN attn-->          
                                     <tr>
                                         <td class='aright'>|Към|*:</td>
-                                        <td>[#attn#]</td>
+                                        <td><b>[#attn#]</b></td>
                                     </tr>
                                     <!--ET_END attn-->
                                     <!--ET_BEGIN emailLeft-->          
@@ -46,8 +46,8 @@
                                     <!--ET_END emailLeft-->
                                     <!--ET_BEGIN emailCcLeft-->          
                                     <tr>
-                                        <td class='aright'>|Копие|*:</td>
-                                        <td>[#emailCcLeft#]</td>
+                                        <td class='aright'>|Кп|*:</td>
+                                        <td><b>[#emailCcLeft#]</b></td>
                                     </tr>
                                     <!--ET_END emailCcLeft-->
                                 </table>
@@ -70,7 +70,7 @@
                                     <!--ET_BEGIN fax-->          
                                     <tr>
                                         <td class='aright'>|Факс|*:</td>
-                                        <td>[#fax#]</td>
+                                        <td><b>[#fax#]</b></td>
                                     </tr>
                                     <!--ET_END fax-->
                                 </table>

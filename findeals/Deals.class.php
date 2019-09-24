@@ -686,9 +686,12 @@ class findeals_Deals extends deals_DealBase
         $row->ROW_ATTR['class'] = 'state-active';
         
         try {
-            $DocType = cls::get($jRec->docType);
-            $row->docId = $DocType->getLink($jRec->docId, 0);
-            $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($DocType->fetchField($jRec->docId, 'folderId')))->title;
+            $DocType = new core_ObjectReference($jRec->docType, $jRec->docId);
+           
+            $row->docId = $DocType->getLink(0);
+            $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($DocType->fetchField('folderId')))->title;
+            $row->activatedBy = crm_Profiles::createLink($DocType->fetchField('activatedBy'));
+            $row->activatedOn = $DocType->getVerbal('activatedOn');
         } catch (core_exception_Expect $e) {
             $row->docId = "<span style='color:red'>" . tr('Проблем при показването') . '</span>';
         }
@@ -725,7 +728,7 @@ class findeals_Deals extends deals_DealBase
         $fieldSet->FLD('creditA', 'double');
         $table = cls::get('core_TableView', array('mvc' => $fieldSet, 'class' => 'styled-table'));
         $table->tableClass = 'listTable';
-        $fields = "valior=Вальор,docId=Документ,folderId=Папка,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит";
+        $fields = "valior=Вальор,docId=Документ,folderId=Папка,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит,activatedBy=Активирано->От,activatedOn=Активирано->На";
         
         $tpl->append($table->get($data->history, $fields), 'HISTORY');
         

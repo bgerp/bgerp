@@ -97,6 +97,7 @@ class core_LoginLog extends core_Manager
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър');
         $this->FLD('status', 'enum( all=,
         							success=Успешно логване,
+        							logout=Изход,
 									first_login=Първо логване,
 									wrong_password=Грешна парола,
 									missing_password=Липсва парола,
@@ -357,7 +358,7 @@ class core_LoginLog extends core_Manager
      *
      * @return bool
      */
-    public static function isTrustedUserLogin($ip, $userId = null)
+    public static function isTrustedUserLogin($ip = null, $userId = null)
     {
         // Ако не е подаден потребител
         if (!$userId) {
@@ -376,11 +377,20 @@ class core_LoginLog extends core_Manager
         $maxCreatedOn = dt::subtractSecs($daysLimit);
         
         // Дали има първо логване в зададения период
-        $rec = static::fetch(array("#createdOn > '{$maxCreatedOn}' AND
+        if ($ip) {
+            $rec = static::fetch(array("#createdOn > '{$maxCreatedOn}' AND
         							(#ip = '[#1#]' OR #brid = '[#2#]') AND
         							#userId = '[#3#]' AND
-        							#status = 'first_login' 
+        							#status = 'first_login'
         							", $ip, $brid, $userId));
+        } else {
+            $rec = static::fetch(array("#createdOn > '{$maxCreatedOn}' AND
+        							#brid = '[#1#]' AND
+        							#userId = '[#2#]' AND
+        							#status = 'first_login'
+        							", $brid, $userId));
+        }
+        
         if ($rec) {
             
             return false;
@@ -405,14 +415,15 @@ class core_LoginLog extends core_Manager
      * Връща масив с логваниято от съответния потребител, след последното му логване
      * от съответното IP/brid
      *
-     * @param IP  $ip
-     * @param int $userId
+     * @param string|null  $currIp
+     * @param int|null $userId
+     * @param string|null  $ip
      *
      * @return array
      *               ['success']
      *               ['first_login']
      */
-    public static function getLastLoginFromOtherIp($ip, $userId = null)
+    public static function getLastLoginFromOtherDevice($currIp=null, $userId = null, $ip = null)
     {
         // Ако не е подаден потребител
         if (!$userId) {
@@ -435,8 +446,12 @@ class core_LoginLog extends core_Manager
         // Последното логване с това IP/браузър от този потребител
         $query = static::getQuery();
         $query->where("#createdOn > '{$maxCreatedOn}'");
-        $query->where(array("#ip = '[#1#]'", $ip));
-        $query->orWhere(array("#brid = '[#1#]'", $brid));
+        if ($currIp) {
+            $query->where(array("#ip = '[#1#]'", $currIp));
+            $query->orWhere(array("#brid = '[#1#]'", $brid));
+        } else {
+            $query->where(array("#brid = '[#1#]'", $brid));
+        }
         $query->where(array("#userId = '[#1#]'", $userId));
         $query->where("#status = 'success'");
         $query->orderBy('createdOn', 'DESC');
@@ -455,7 +470,10 @@ class core_LoginLog extends core_Manager
         // След съответното време
         $sQuery = static::getQuery();
         $sQuery->where("#createdOn > '{$lastCreatedOn}'");
-        $sQuery->where(array("#ip != '[#1#]'", $ip));
+        if (isset($ip)) {
+            $sQuery->where(array("#ip != '[#1#]'", $ip));
+        }
+        
         $sQuery->where(array("#brid != '[#1#]'", $brid));
         $sQuery->where(array("#userId = '[#1#]'", $userId));
         $sQuery->where("#status = 'success'");
@@ -468,7 +486,7 @@ class core_LoginLog extends core_Manager
                 continue;
             }
             
-            if ($ip == $sRec->ip) {
+            if (isset($ip) && ($ip == $sRec->ip)) {
                 continue;
             }
             
@@ -657,5 +675,49 @@ class core_LoginLog extends core_Manager
         if (haveRole('debug')) {
             $data->listFields['timestamp'] = 'Време';
         }
+    }
+    
+    
+    /**
+     * Проверява дали има успешно логване за зададените параметри
+     * 
+     * @param null|integer $userId
+     * @param number $cnt
+     * @param number $before
+     * @param null|string $ip
+     * @param boolean $brid
+     * 
+     * @return boolean
+     */
+    public static function checkSuccessLogin($userId = null, $cnt = 5, $before = 1209600, $ip = null, $brid = true)
+    {
+        if ($brid === true) {
+            $brid = log_Browsers::getBrid();
+        }
+        
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $maxCreatedOn = dt::subtractSecs($before);
+        
+        $query = static::getQuery();
+        $query->where(array("#createdOn > '[#1#]'", $maxCreatedOn));
+        $query->where(array("#userId = '[#1#]'", $userId));
+        if (isset($ip)) {
+            $query->where(array("#ip = '[#1#]'", $ip));
+            $query->orWhere(array("#brid = '[#1#]'", $brid));
+        } else {
+            $query->where(array("#brid = '[#1#]'", $brid));
+        }
+        
+        $query->where("#status = 'success'");
+        
+        if ($query->count() >= $cnt) {
+            
+            return true;
+        }
+        
+        return false;
     }
 }

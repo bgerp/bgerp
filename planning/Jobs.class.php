@@ -712,10 +712,11 @@ class planning_Jobs extends core_Master
         $rec->quantityProduced /= $rec->quantityInPack;
         $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
         
-        $rec->quantityNotStored = $rec->packQuantity - $rec->quantityProduced;
+        $rec->quantityNotStored = $rec->quantityFromTasks - $rec->quantityProduced;
         $row->quantityNotStored = $Double->toVerbal($rec->quantityNotStored);
         
-        $rec->quantityToProduce = $rec->packQuantity - $rec->quantityProduced;
+        $rec->quantityToProduce = $rec->packQuantity - $rec->quantityFromTasks;
+        
         $row->quantityToProduce = $Double->toVerbal($rec->quantityToProduce);
         
         foreach (array('quantityNotStored', 'quantityToProduce') as $fld) {
@@ -793,6 +794,10 @@ class planning_Jobs extends core_Master
                 $row->sBomId = cat_Boms::getLink($sBomId, 0);
             }
             
+            if ($sBomId = cat_Products::getLastActiveBom($rec->productId, 'instant')->id) {
+                $row->iBomId = cat_Boms::getLink($sBomId, 0);
+            }
+            
             if ($pBomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id) {
                 $row->pBomId = cat_Boms::getLink($pBomId, 0);
             }
@@ -819,13 +824,8 @@ class planning_Jobs extends core_Master
                 $row->batches = implode(', ', $batchArr);
             }
             
-            if (!$rec->quantityFromTasks) {
-                unset($row->quantityFromTasks, $row->quantityNotStored);
-                unset($row->captionNotStored);
-            } else {
-                $row->measureId2 = $row->measureId;
-                $row->quantityFromTasksCaption = tr('Произведено');
-            }
+            $row->measureId2 = $row->measureId;
+            $row->quantityFromTasksCaption = tr('Произведено');
             
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
@@ -1058,23 +1058,28 @@ class planning_Jobs extends core_Master
     /**
      * Преизчисляваме какво количество е произведено по заданието
      *
-     * @param int $id - ид на запис
+     * @param int $containerId - ид на запис
      *
      * @return void
      */
-    public static function updateProducedQuantity($id)
+    public static function updateProducedQuantity($containerId)
     {
-        $rec = static::fetchRec($id);
-        $producedQuantity = 0;
+        $rec = static::fetch("#containerId = {$containerId}");
+        
+        // Всички задачи за производството на артикула от заданието
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#originId = {$rec->containerId} AND #state != 'draft' AND #state != 'rejected'");
+        $tQuery->show('containerId');
+        $containerIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'containerId');
+        $containerIds[$rec->containerId] = $rec->containerId;
         
         // Взимаме к-та на произведените артикули по заданието в протокола за производство
         $directProdQuery = planning_DirectProductionNote::getQuery();
-        $directProdQuery->where("#originId = {$rec->containerId}");
-        $directProdQuery->where("#state = 'active'");
+        $directProdQuery->in("originId", $containerIds);
+        $directProdQuery->where("#state = 'active' AND #productId = {$rec->productId}");
         $directProdQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
         $directProdQuery->show('totalQuantity');
-        
-        $producedQuantity += $directProdQuery->fetch()->totalQuantity;
+        $producedQuantity = $directProdQuery->fetch()->totalQuantity;
         
         // Обновяваме произведеното к-то по заданието
         $rec->quantityProduced = $producedQuantity;

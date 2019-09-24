@@ -8,3 +8,4 @@
 Символи/цифри,batch_definitions_Component,active,"delimiter=&#47;,numberLetters=2"
 Номер/Срок на годност,batch_definitions_StringAndDate,active,"delimiter=&#47;,format=m.Y,length=10,autoValue=yes"
 Цифри(255),batch_definitions_Digits,active,"length=255,autoValue=yes"
+Задание за производство,batch_definitions_Job,active

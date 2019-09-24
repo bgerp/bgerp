@@ -2,18 +2,6 @@
 
 
 /**
- * Какъв е шаблона за манипулатора на файла?
- */
-defIfNot('FILEMAN_HANDLER_PTR', '$*****');
-
-
-/**
- * Каква да е дължината на манипулатора на файла?
- */
-defIfNot('FILEMAN_HANDLER_LEN', strlen(FILEMAN_HANDLER_PTR));
-
-
-/**
  * Клас 'fileman_Files' -
  *
  *
@@ -94,7 +82,7 @@ class fileman_Files extends core_Master
         // Генериран случайно, поради което е труден за налучкване
         $this->FLD(
             'fileHnd',
-            'varchar(' . strlen(FILEMAN_HANDLER_PTR) . ')',
+            'varchar(' . strlen(fileman_Setup::get('HANDLER_PTR')) . ')',
             array('notNull' => true, 'caption' => 'Манипулатор')
         );
         
@@ -657,7 +645,7 @@ class fileman_Files extends core_Master
         $tempPath = $dir . '/' . $newName;
         
         // Създаваме директорията
-        expect(mkdir($tempPath, 0777, true), 'Не може да се създаде директория.');
+        core_Os::requireDir($tempPath);
         
         return $tempPath;
     }
@@ -962,7 +950,7 @@ class fileman_Files extends core_Master
      */
     public static function isFileHnd($str)
     {
-        $ptr = '/^[a-z][a-z0-9]{' . (FILEMAN_HANDLER_LEN - 1) . '}$/i';
+        $ptr = '/^[a-z][a-z0-9]{' . (fileman_Setup::get('HANDLER_LEN') - 1) . '}$/i';
         
         return preg_match($ptr, $str);
     }
@@ -1408,7 +1396,7 @@ class fileman_Files extends core_Master
         //Проверяваме дали сме открили записа
         if (!$fRec) {
             sleep(2);
-            Debug::log('Sleep 2 sec. in' . __CLASS__);
+            Debug::log('Sleep 2 sec. in ' . __CLASS__);
             
             return false;
         }
@@ -1701,7 +1689,7 @@ class fileman_Files extends core_Master
             $args = 'width=400,height=530,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
         }
         
-        return "localStorage.removeItem('disabledRowArr'); openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
+        return "sessionStorage.removeItem('disabledRowArr'); openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
     }
     
     
@@ -1734,7 +1722,7 @@ class fileman_Files extends core_Master
         // Това е хак, за някои случаи когато има манипулатори, които са защитени допълнителни (в стари системи)
         // Ако манипулатора на файла е по дълъг манипулатора по подразбиране
         $idLen = mb_strlen($id);
-        if ($idLen > FILEMAN_HANDLER_LEN && (($idLen - EF_ID_CHECKSUM_LEN) == FILEMAN_HANDLER_LEN)) {
+        if ($idLen > fileman_Setup::get('HANDLER_LEN') && (($idLen - EF_ID_CHECKSUM_LEN) == fileman_Setup::get('HANDLER_LEN'))) {
             
             // Променлива, в която държим старото състояние
             $old = $this->protectId;
@@ -1755,7 +1743,7 @@ class fileman_Files extends core_Master
         // Ако няма запис
         if (!$rec) {
             sleep(2);
-            Debug::log('Sleep 2 sec. in' . __CLASS__);
+            Debug::log('Sleep 2 sec. in ' . __CLASS__);
             
             return false;
         }
@@ -2084,7 +2072,7 @@ class fileman_Files extends core_Master
                     error('@Unable to generate random file handler', $rec);
                 }
                 
-                $rec->fileHnd = str::getRand(FILEMAN_HANDLER_PTR);
+                $rec->fileHnd = str::getRand(fileman_Setup::get('HANDLER_PTR'));
             } while ($mvc->fetch("#fileHnd = '{$rec->fileHnd}'"));
         } elseif (!$rec->id && $rec->fileHnd) {
             $existingRec = $mvc->fetch(array("#fileHnd = '[#1#]'", $rec->fileHnd));
@@ -2215,7 +2203,7 @@ class fileman_Files extends core_Master
         $pathArr = static::getFirstContainerLinks($rec);
         
         // Ако има такъв документ
-        if (count($pathArr)) {
+        if (countR($pathArr)) {
             
             // Пътя до файла и документа
             $path = ' « ' . $pathArr['firstContainer']['content'] . ' « ' . $pathArr['folder']['content'];
@@ -3013,27 +3001,5 @@ class fileman_Files extends core_Master
         }
         
         return $newArr;
-    }
-    
-    
-    public static function on_AfterSetupMvc($mvc, &$res)
-    {
-        // Пътя до временните файлове
-        $tempPath = static::getTempDir();
-        
-        // Ако не съществува
-        if (!is_dir($tempPath)) {
-            
-            // Ако не може да се създаде
-            if (!mkdir($tempPath, 0777, true)) {
-                $res .= '<li class="debug-error">Не може да се създаде директорията: "' . $tempPath . '"</li>';
-            } else {
-                $res .= '<li class="debug-new">Създадена е директорията: "' . $tempPath . '"</li>';
-            }
-        } else {
-            $res .= '<li>Директорията съществува: "' . $tempPath . '"</li>';
-        }
-        
-        return $res;
     }
 }

@@ -535,6 +535,15 @@ class sales_Quotations extends core_Master
         }
         
         if ($fields['-single']) {
+            
+            // Линк към от коя оферта е клонирано
+            if(isset($rec->clonedFromId)){
+                $row->clonedFromId = "#" . self::getHandle($rec->clonedFromId);
+                if(!Mode::isReadOnly()){
+                    $row->clonedFromId = ht::createLink($row->clonedFromId, self::getSingleUrlArray($rec->clonedFromId));
+                }
+            }
+            
             if (isset($rec->validFor)) {
                 
                 // До коя дата е валидна
@@ -1726,7 +1735,7 @@ class sales_Quotations extends core_Master
             return false;
         }
         
-        cls::get(sales_QuotationsDetails)->saveArray($saveRecs);
+        cls::get('sales_QuotationsDetails')->saveArray($saveRecs);
     }
     
     

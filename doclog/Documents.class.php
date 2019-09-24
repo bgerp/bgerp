@@ -2227,9 +2227,9 @@ class doclog_Documents extends core_Manager
                 }
             }
             
-            $data[$rec->containerId]->summary[$open] += count($rec->data->{$open});
+            $data[$rec->containerId]->summary[$open] += countR($rec->data->{$open});
             $data[$rec->containerId]->summary[$download] += static::getCountOfDownloads($rec->data->{$download});
-            $data[$rec->containerId]->summary[$forward] += count($rec->data->{$forward});
+            $data[$rec->containerId]->summary[$forward] += countR($rec->data->{$forward});
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
         
@@ -2446,10 +2446,10 @@ class doclog_Documents extends core_Manager
         
         $html = static::renderSummary($data);
         
-        try{
+        try {
             $doc = doc_Containers::getDocument($containerId);
             $doc->invoke('renderOtherSummary', array(&$html, $containerId, $threadId));
-        } catch(core_exception_Expect $e){
+        } catch (core_exception_Expect $e) {
             $html = tr("|*<span class='red'>|Грешка|*</span>");
         }
         

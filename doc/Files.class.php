@@ -66,7 +66,7 @@ class doc_Files extends core_Manager
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'caption=Нишка,notNull,value=0');
         $this->FLD(
             'fileHnd',
-            'varchar(' . strlen(FILEMAN_HANDLER_PTR) . ')',
+            'varchar(' . strlen(fileman_Setup::get('HANDLER_PTR')) . ')',
             array('notNull' => true, 'caption' => 'Манипулатор')
         );
         $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Данни');

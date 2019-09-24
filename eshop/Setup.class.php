@@ -50,6 +50,12 @@ defIfNot('ESHOP_CART_ACCESS_SALT', '');
 
 
 /**
+ * Брой артикули на страница
+ */
+defIfNot('ESHOP_PRODUCTS_PER_PAGE', '20');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -108,6 +114,7 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_Carts',
         'eshop_CartDetails',
         'migrate::updateContactData',
+        'migrate::updateProductStates2'
     );
     
     
@@ -137,6 +144,7 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_SALE_DEFAULT_TPL_EN' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
         'ESHOP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни за количката->Поле'),
         'ESHOP_CART_ACCESS_SALT' => array('varchar', 'caption=Даване на достъп за присвояване на количка->Сол'),
+        'ESHOP_PRODUCTS_PER_PAGE' => array('int(Min=0)', 'caption=Брой артикули на страница в групата->Брой'),
     );
     
     
@@ -176,6 +184,7 @@ class eshop_Setup extends core_ProtoSetup
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Разширяване на външната част за онлайн магазина', 'eshop_plg_External', 'cms_page_External', 'private');
         $html .= $Plugins->installPlugin('Разширяване на потребителите свързана с външната част', 'eshop_plg_Users', 'core_Users', 'private');
+        $html .= $Plugins->installPlugin('Разширяване на артикулите вързани с онлайн магазина', 'eshop_plg_ProductSync', 'cat_Products', 'private');
         
         return $html;
     }
@@ -222,5 +231,15 @@ class eshop_Setup extends core_ProtoSetup
         if (!empty($value) && $exValue != $value && in_array($value, array('company', 'person', 'both'))) {
             core_Packs::setConfig('eshop', array('ESHOP_MANDATORY_CONTACT_FIELDS' => $value));
         }
+    }
+    
+    
+    /**
+     * Миграция на уеб константа
+     */
+    public function updateProductStates2()
+    {
+        core_App::setTimeLimit(500);
+        eshop_ProductDetails::syncStatesByProductId();
     }
 }

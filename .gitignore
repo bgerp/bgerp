@@ -9,3 +9,4 @@ syntax: regexp
 /.idea
 /composer.lock
 /composer.phar
+/myself/

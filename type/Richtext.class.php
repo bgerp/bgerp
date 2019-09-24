@@ -64,7 +64,7 @@ class type_Richtext extends type_Blob
     /**
      * Шаблон за намиране на цитати в текст
      */
-    const QUOTE_PATTERN = "#\[bQuote(=([^\]]+)|)\]((?:[^[]|\[(?!/?bQuote(=([^\]]+)|)\])|(?R))+)\[\/bQuote\]#misu";
+    const QUOTE_PATTERN = "#\[bQuote(=([^\]]+)|)\]((?:[^[]|\[(?!/?bQuote(=([^\]]+)|)\])|(?R))*)\[\/bQuote\]#misu";
     
     
     /**
@@ -324,10 +324,10 @@ class type_Richtext extends type_Blob
         $html = $this->replaceTags($html);
         
         // Обработваме елементите [color=????]
-        $html = preg_replace_callback("/\[color(=([^\]]*)|)\]\s*/si", array($this, '_catchColor'), $html);
+        $html = preg_replace_callback("/\[color(=([^\]]*)|)\]/si", array($this, '_catchColor'), $html);
         
         // Обработваме елементите [bg=????]
-        $html = preg_replace_callback("/\[bg(=([^\]]*)|)\]\s*/si", array($this, '_catchBg'), $html);
+        $html = preg_replace_callback("/\[bg(=([^\]]*)|)\]/si", array($this, '_catchBg'), $html);
         
         // Поставяме емотиконите на местата с елемента [em=????]
         $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
@@ -620,12 +620,12 @@ class type_Richtext extends type_Blob
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         $from = array("\r\n", "\n\r", "\r", "\n", "\t", $nbspUtf8, '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]',
             
-            '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]', '[s]', '[/s]', '[small]', '[/small]');
+            '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]', '[s]', '[/s]', '[small]', '[/small]', '[aleft]', '[/aleft]', '[acenter]', '[/acenter]', '[aright]', '[/aright]', '[ajustify]', '[/ajustify]');
         
         $textMode = Mode::get('text');
         
         if ($textMode != 'plain') {
-            $to = array("\n", "\n", "\n", "<br>\n", '<nbsp><nbsp><nbsp><nbsp>', '<nbsp>', '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-message richtext-info">', '</div>', '<div class="richtext-message richtext-tip">', '</div>', '<div class="richtext-message richtext-success">', '</div>', '<div class="richtext-message richtext-warning">', '</div>', '<div class="richtext-message richtext-question">', '</div>', '<div class="richtext-message richtext-error">', '</div>', '<div class="richtext-message richtext-text">', '</div>', '<span class="strike-text">', '</span>', '<small>', '</small>');
+            $to = array("\n", "\n", "\n", "<br>\n", '<nbsp><nbsp><nbsp><nbsp>', '<nbsp>', '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-message richtext-info">', '</div>', '<div class="richtext-message richtext-tip">', '</div>', '<div class="richtext-message richtext-success">', '</div>', '<div class="richtext-message richtext-warning">', '</div>', '<div class="richtext-message richtext-question">', '</div>', '<div class="richtext-message richtext-error">', '</div>', '<div class="richtext-message richtext-text">', '</div>', '<span class="strike-text">', '</span>', '<small>', '</small>', '<div style="text-align: left">', '</div>', '<div style="text-align: center">', '</div>','<div style="text-align: right">', '</div>','<div style="text-align: justify">', '</div>', );
         
         // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } elseif (Mode::is('ClearFormat')) {
@@ -1405,6 +1405,19 @@ class type_Richtext extends type_Blob
             $toolbarArr->add("<a class=rtbutton style='font-weight:bold;' title='" . tr('Черен фон') .  "' onclick=\"s('[bg=black][color=white]', '[/color][/bg]', document.getElementById('{$formId}'))\"><span style='background: black; color: white'>A</span></a>", 'TBL_GROUP2');
             $toolbarArr->add('</span>', 'TBL_GROUP2');
             $toolbarArr->add('</span>', 'TBL_GROUP2');
+
+
+            $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
+            $toolbarArr->add("<a class=rtbutton style='font-weight:bold;' title='" . tr('Подравняване на текста') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group9', event)\"><img src=" . sbf("img/{$size}/align-left.png") . " height='15' width='15' alt='Подравняване на текста'/></a>", 'TBL_GROUP2');
+            $emot6 = 'richtext-holder-group-after';
+            $toolbarArr->add("<span id='{$attr['id']}-group9' class='richtext-emoticons3 richtext-holder-group {$emot6}'>", 'TBL_GROUP2');
+            $toolbarArr->add("<a class=rtbutton title='" . tr('Подравняване вляво') .  "' onclick=\"s('[aleft]', '[/aleft]', document.getElementById('{$formId}'))\"><img src=" . sbf("img/{$size}/align-left.png") . " height='15' width='15' alt='Подравняване вляво'/></a>", 'TBL_GROUP2');
+            $toolbarArr->add("<a class=rtbutton title='" . tr('Подравняване в средата') .  "' onclick=\"s('[acenter]', '[/acenter]', document.getElementById('{$formId}'))\"><img src=" . sbf("img/{$size}/align-center.png") . " height='15' width='15' alt='Подравняване в cредата'/></a>", 'TBL_GROUP2');
+            $toolbarArr->add("<a class=rtbutton title='" . tr('Подравняване вдясно') .  "' onclick=\"s('[aright]', '[/aright]', document.getElementById('{$formId}'))\"><img src=" . sbf("img/{$size}/align-right.png") . " height='15' width='15' alt='Подравняване вдясно'/></a>", 'TBL_GROUP2');
+            $toolbarArr->add("<a class=rtbutton title='" . tr('Двустранно подравняване') .  "' onclick=\"s('[ajustify]', '[/ajustify]', document.getElementById('{$formId}'))\"><img src=" . sbf("img/{$size}/align-justify.png") . " height='15' width='15' alt='Друстранно подравняване'/></a>", 'TBL_GROUP2');
+            $toolbarArr->add('</span>', 'TBL_GROUP2');
+            $toolbarArr->add('</span>', 'TBL_GROUP2');
+
             
             $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
             $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Заглавия') . "' onclick=\"toggleRichtextGroups('{$attr['id']}-group4', event)\"><b>H</b></a>", 'TBL_GROUP2');

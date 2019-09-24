@@ -18,6 +18,23 @@ function fpServerSetSettings(ip, port)
 
 
 /**
+ * Задава настройките на сървъра
+ * 
+ * @param useFound
+ */
+function fpServerFindDevice(useFound)
+{
+    try {
+        res = fp.ServerFindDevice(useFound);
+    } catch(ex) {
+        handleException(ex);
+    }
+    
+    return res;
+}
+
+
+/**
  * Задава настройките на устройствота
  * 
  * @param ip
@@ -647,11 +664,11 @@ function fpOutputKLEN(outType, startDate, endDate, isDetailed)
     		var reportStorage = Tremol.Enums.OptionReportStorage.Printing;
     		
     		if (outType == 'sd') {
-    			reportStorage = Tremol.Enums.OptionReportStorage.USB_storage;
+    			reportStorage = Tremol.Enums.OptionReportStorage.SD_card_storage;
     		}
     		
     		if (outType == 'usb') {
-    			reportStorage = Tremol.Enums.OptionReportStorage.SD_card_storage;
+    			reportStorage = Tremol.Enums.OptionReportStorage.USB_storage;
     		}
 			
     		fp.PrintOrStoreEJByDate(reportStorage, startDate, endDate);

@@ -21,18 +21,24 @@ class Archive_7z
      * @const string
      */
     const OVERWRITE_MODE_A = '-aoa';
+    
+    
     /**
      * Skip extracting of existing files
      *
      * @const string
      */
     const OVERWRITE_MODE_S = '-aos';
+    
+    
     /**
      * aUto rename extracting file (for example, name.txt will be renamed to name_1.txt)
      *
      * @const string
      */
     const OVERWRITE_MODE_U = '-aou';
+    
+    
     /**
      * auto rename existing file (for example, name.txt will be renamed to name_1.txt)
      *
@@ -40,37 +46,30 @@ class Archive_7z
      */
     const OVERWRITE_MODE_T = '-aot';
 
-    /**
-     * @var string
-     */
-    protected $cliNix = '/usr/local/bin/7z';
-    
-    
-    /**
-     * @var string
-     */
-    protected $cliWin = 'C:/Progra~1/7-Zip/7z.exe'; // %ProgramFiles%\7-Zip\7z.exe
-
 
     /**
      * @var string
      */
     private $cli;
 
+
     /**
      * @var string
      */
     private $filename;
+
 
     /**
      * @var string
      */
     private $password;
 
+
     /**
      * @var string
      */
     private $outputDirectory = './';
+
 
     /**
      * @var string
@@ -89,19 +88,7 @@ class Archive_7z
      */
     public function __construct($filename)
     {
-        if(substr(PHP_OS, 0, 3) === 'WIN') {
-            if(defined('ARCHIVE_7Z_PATH') && ARCHIVE_7Z_PATH != '7z') {
-                $cli = ARCHIVE_7Z_PATH;
-            } else {
-                $cli = $this->cliWin;
-            }
-        } else {
-            if(defined('ARCHIVE_7Z_PATH')) {
-                $cli = ARCHIVE_7Z_PATH;
-            } else {
-                $cli = $this->cliNix;
-            }
-        }
+        $cli = archive_Setup::get_ARCHIVE_7Z_PATH();
 
         $this->setFilename($filename)->setCli($cli);
     }
@@ -118,7 +105,9 @@ class Archive_7z
         if($path == '7z') {
            $this->cli = $path;
         } else {
-            $this->cli = str_replace('\\', '/', realpath($path));
+            $path = str_replace('\\', '/', trim($path, '"'));
+
+            $this->cli = $path;
         
             if (!$this->cli || (is_executable($this->cli) === false)) {
 
@@ -349,7 +338,7 @@ class Archive_7z
     public function getEntries()
     {
         $cmd = $this->getCmdPrefix() . ' l ' . escapeshellarg($this->filename) . ' -slt ' . $this->getCmdPostfix();
-
+ 
         exec($cmd, $out, $rv);
 
         if ($rv !== 0) {

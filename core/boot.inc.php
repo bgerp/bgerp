@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Скрипт 'boot'
  *
@@ -48,11 +47,42 @@ require_once(EF_APP_PATH . '/core/Html.class.php');
 // Прихващаме грешките
 core_Debug::setErrorWaching();
 
+// Подсигуряваме $_GET['virtual_url']
+if(!$_GET['virtual_url']) $_GET['virtual_url'] = $_SERVER['REQUEST_URI'];
+
 try {
     $isDefinedFatalErrPath = defined('DEBUG_FATAL_ERRORS_PATH');
+    $stopDebug = false;
+    
+    // Ако е зададено за кои URL-та да не се записва в лога
+    if ($isDefinedFatalErrPath) {
+        if (!defined('DEBUG_FATAL_ERRORS_EXCLUDE')) {
+            define('DEBUG_FATAL_ERRORS_EXCLUDE', 'sw.js,favicon.ico,log_Browsers/js/*,pwa_Plugin');
+        }
+        
+        if (DEBUG_FATAL_ERRORS_EXCLUDE) {
+            $errorsExlude = explode(',', DEBUG_FATAL_ERRORS_EXCLUDE);
+            $vUrlStr = trim($_GET['virtual_url']);
+            $vUrlStr = trim($vUrlStr, '/');
+            $vUrlStr = mb_strtolower($vUrlStr);
+            foreach ($errorsExlude as $eStr) {
+                $eStr = trim($eStr);
+                $eStr = trim($eStr, '/');
+                $eStr = mb_strtolower($eStr);
+                $eStr = preg_quote($eStr, '/');
+                $eStr = str_replace('\*', '.*', $eStr);
+                $eStrPattern = '/^' . $eStr . '$/i';
+                
+                if (preg_match($eStrPattern, $vUrlStr)) {
+                    $stopDebug = true;
+                    break;
+                }
+            }
+        }
+    }
     
     // Вземаме всички входни данни
-    if ($isDefinedFatalErrPath) {
+    if ($isDefinedFatalErrPath && !$stopDebug) {
         $data = @json_encode(array('GET' => $_GET, 'POST' => $_POST, 'SERVER' => $_SERVER));
         
         if (!$data) {
@@ -65,7 +95,7 @@ try {
     core_App::initSystem();
     
     // Дъмпване във файл на всички входни данни
-    if ($isDefinedFatalErrPath) {
+    if ($isDefinedFatalErrPath && !$stopDebug) {
         $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/000' . date('_H_i_s_') . rand(1000, 9999) . '.debug';
         
         if (!defined('DEBUG_FATAL_ERRORS_FILE') && @file_put_contents($pathName, $data)) {
@@ -76,11 +106,22 @@ try {
     // Параметрите от виртуалното URL за зареждат в $_GET
     core_App::processUrl();
     
+
     // Зарежда конфигурационните константи
     core_App::loadConfig();
-    
+
+
+    /**
+     * Ще има ли криптиращ протокол?
+     * NO - не
+     * OPTIONAL - да, където може използвай криптиране
+     * MANDATORY - да, използвай задължително
+     */
+    defIfNot('EF_HTTPS', 'NO');
+
+
     // Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
-    ob_clean();
+    if (ob_get_contents()) ob_clean();
 
 
     // PHP5.4 bugFix
@@ -116,20 +157,9 @@ try {
     if ($e instanceof core_exception_Db && ($link = $e->getDbLink())) {
         if (defined('EF_DB_NAME') && preg_match("/^\w{0,64}$/i", EF_DB_NAME)) {
             
-            // 1. Ако няма такава база, създаваме я и редирректваме към инсталация
-            if ($e->isNotExistsDB()) {
-                // Опитваме се да създадем базата и редиректваме към сетъп-а
-                try {
-                    mysqli_query($link, 'CREATE DATABASE ' . EF_DB_NAME);
-                } catch (Exception $e) {
-                    reportException($e);
-                }
-            }
-            
-            // Ако базата е абсолютно празна - ще се отиде направо към инициализирането
-            // Ако има поне един файл, няма да се отиде към инициализиране
+            // Ако базата липсва или е абсолютно празна - отиваме направо към инициализирането
             $db = new core_Db();
-            if ($db->getDBInfo('ROWS') == 0) {
+            if ($e->isNotExistsDB() || ($db->getDBInfo('ROWS') == 0)) {
                 redirect(array('Index', 'SetupKey' => setupKey()));
             }
             
@@ -350,7 +380,11 @@ function logHitState($debugCode = '200', $state = array())
         // Ако възникне JSON грешка, записваме я и сериализираме данните
         if (!$data) {
             $data = json_last_error();
-            $data .= ' Serilize: ' . @serialize($state);
+            try {
+                $data .= ' Serilize: ' . @serialize($state);
+            } catch (Exception $e) {
+                $data .= ' MixedToString: ' . core_Type::mixedToString($f);
+            }
         }
         
         $cnt = 0;
@@ -771,4 +805,15 @@ function setupKey($efSalt = null, $i = 0)
     
     // Валидност средно 250 сек.
     return md5($key . round($i + time() / 10000));
+}
+
+
+/**
+ * Проверява дали аргумента е не-празен масив
+ */
+function countR($arr)
+{
+    expect(is_array($arr) || empty($arr), $arr);
+
+    return empty($arr) ? 0 : count($arr);
 }

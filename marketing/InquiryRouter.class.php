@@ -55,9 +55,10 @@ class marketing_InquiryRouter extends core_Manager
      * Рутиране в папка на лице
      *
      * 1. Рутиране по личен имейл на лице от визитника
-     * 2. Рутиране по ЕГН или ДДС №, на лице от визитника
-     * 3. Рутиране по БРИД
-     * 4. Ако нито едно от горните не сработва, създаваме нова папка и визитка на лице.
+     * 2. Рутиране по  ДДС № или ЕГН, на лице от визитника
+     * 3. Рутиране по личен телефон на лице от визитника
+     * 4. Рутиране по БРИД
+     * 5. Ако нито едно от горните не сработва, създаваме нова папка и визитка на лице.
      * 
      * @param string $company
      * @param string $personNames
@@ -83,7 +84,7 @@ class marketing_InquiryRouter extends core_Manager
         $folderId = marketing_Router::routeByPersonEmail($email, $inCharge);
         if ($folderId) {
             $explained = 'Рутиране на лице по личен имейл';
-            
+           
             return $folderId;
         }
         
@@ -95,6 +96,15 @@ class marketing_InquiryRouter extends core_Manager
                     
                     return $folderId;
                 }
+            }
+        }
+        
+        if(!empty($tel)){
+            $folderId = marketing_Router::routeByPersonTel($tel, true);
+            if ($folderId) {
+                $explained = "Рутиране на лице по мобилен телефон";
+               
+                return $folderId;
             }
         }
         

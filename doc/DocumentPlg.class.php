@@ -137,6 +137,7 @@ class doc_DocumentPlg extends core_Plugin
         setIfNot($mvc->pendingQueue, array());
         setIfNot($mvc->canPending, 'no_one');
         setIfNot($mvc->requireDetailForPending, true);
+        setIfNot($mvc->mustUpdateUsed, false);
         
         $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
@@ -748,6 +749,17 @@ class doc_DocumentPlg extends core_Plugin
         // Задаваме стойностите на полетата за последно модифициране
         $rec->modifiedBy = Users::getCurrent() ? Users::getCurrent() : 0;
         $rec->modifiedOn = dt::verbal2Mysql();
+        
+        if (!Mode::is('MassImporting') && (($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected') || $rec->state != 'draft')) {
+            if ($rec->id) {
+                $oRec = $mvc->fetch($rec->id);
+                if ($rec->state !== $oRec->state) {
+                    $mvc->mustUpdateUsed = true;
+                }
+            } else {
+                $mvc->mustUpdateUsed = true;
+            }
+        }
     }
     
     
@@ -795,7 +807,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа
-        if (!Mode::is('MassImporting') && (($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected') || $rec->state != 'draft')) {
+        if ($mvc->mustUpdateUsed) {
             $usedDocuments = $mvc->getUsedDocs($rec->id);
             foreach ((array) $usedDocuments as $usedCid) {
                 $msg = '';

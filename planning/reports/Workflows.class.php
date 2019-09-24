@@ -43,8 +43,8 @@
       */
      public function addFields(core_Fieldset &$fieldset)
      {
-         $fieldset->FLD('from', 'datetime', 'caption=От,after=title,single=none,mandatory');
-         $fieldset->FLD('to', 'datetime', 'caption=До,after=from,single=none,mandatory');
+         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
+         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
          
          $fieldset->FLD('centre', 'key(mvc=planning_Centers,title=name)', 'caption=Център,refreshForm,after=to,silent');
          $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,title=title)', 'caption=Машини,placeholder=Всички,after=centre,single=none');
@@ -156,7 +156,6 @@
              
              $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
              
-             
              $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,packagingId,indTime,indPackagingId,indTimeAllocation');
              $pRec = cat_Products::fetch($tRec->productId, 'measureId,name');
              
@@ -169,6 +168,7 @@
                      'indTime' => $iRec->indTime,
                      'indPackagingId' => $irec->indPackagingId,
                      'indTimeAllocation' => $iRec->indTimeAllocation,
+                     'quantityInPack' => $iRec->quantityInPack,
                      
                      'employees' => $tRec->employees,
                      'assetResources' => $tRec->fixedAsset,
@@ -190,13 +190,12 @@
                  
                  $obj->quantity += $tRec->quantity;
                  $obj->scrap += $tRec->scrappedQuantity;
-                 ++$obj->labelQuantity;
+                 $obj->labelQuantity +=1;
                  
                  $obj->weight += $tRec->weight;
              }
          }
-         
-         
+        
          //Разпределяне по работници, когато са повече от един
          foreach ($recs as $key => $val) {
              if (count(keylist::toArray($val->employees)) > 1) {
@@ -239,7 +238,7 @@
                              'scrap' => $clone->scrap / $divisor,
                              
                              'labelMeasure' => $clone->labelMeasure,
-                             'labelQuantity' => 1,
+                             'labelQuantity' => $clone->labelQuantity / $divisor,
                              
                              'weight' => $clone->weight / $divisor,
                          
@@ -249,7 +248,7 @@
                          
                          $obj->quantity += $clone->quantity / $divisor;
                          $obj->scrap += $clone->scrap / $divisor;
-                         ++$obj->labelQuantity;
+                         $obj->labelQuantity +=$clone->labelQuantity / $divisor;
                          $obj->weight += $clone->weight / $divisor;
                      }
                  }
@@ -331,7 +330,6 @@
          
          $row = new stdClass();
          
-         
          $row->taskId = planning_Tasks::getHyperlink($dRec->taskId);
          $row->article = cat_Products::getHyperlink($dRec->productId);
          
@@ -348,7 +346,7 @@
          
          if (isset($dRec->employees)) {
              foreach (keylist::toArray($dRec->employees) as $key => $val) {
-                 $pers = (core_Users::getNick(crm_Profiles::getUserByPerson($val)));
+                 $pers = (planning_Hr::getCodeLink(($val)));
                  
                  $row->employees .= $pers.'</br>';
              }
@@ -359,8 +357,8 @@
          } else {
              $row->assetResources = '';
          }
-         
-         $indTimeSumm = ($dRec->indTime * $dRec->quantity) / 60;
+        
+         $indTimeSumm = ($dRec->indTime * $row->labelQuantity) / 60;
          
          $row->min = core_Type::getByName('double(decimals=2)')->toVerbal($indTimeSumm);
          
@@ -402,8 +400,8 @@
                     foreach (type_Keylist::toArray($data->rec->employees) as $empl) {
                         $marker++;
                         
-                        $employeesVerb .= (core_Users::getNick(crm_Profiles::getUserByPerson($empl)));
-                        
+                        $employeesVerb .= (planning_Hr::getCodeLink(($empl)));
+                      
                         if ((count(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
                             $employeesVerb .= ', ';
                         }
@@ -419,7 +417,7 @@
                     foreach (type_Keylist::toArray($data->rec->employees) as $empl) {
                         $marker++;
                         
-                        $employeesVerb .= (core_Users::getNick(crm_Profiles::getUserByPerson($empl)));
+                        $employeesVerb .= (planning_Hr::getCodeLink(($empl)));
                         
                         if ((count(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
                             $employeesVerb .= ', ';
@@ -429,7 +427,7 @@
                     $fieldTpl->append('<b>' . $employeesVerb . '</b>', 'employees');
                 }
             }
-        
+            
         if (isset($data->rec->assetResources)) {
             $marker = 0;
             foreach (type_Keylist::toArray($data->rec->assetResources) as $asset) {
@@ -489,6 +487,7 @@
          
          if (isset($dRec->employees)) {
              foreach (keylist::toArray($dRec->employees) as $key => $val) {
+                 
                  $pers = (core_Users::getNick(crm_Profiles::getUserByPerson($val)));
                  
                  $res->employees .= $pers.', ';

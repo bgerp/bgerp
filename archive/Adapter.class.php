@@ -10,7 +10,7 @@ defIfNot('ARCHIVE_TEMP_PATH', EF_TEMP_PATH . '/archive');
 /**
  * Пътя до 7z пакета
  */
-defIfNot('ARCHIVE_7Z_PATH', substr(PHP_OS, 0, 3) === 'WIN' ? '"%ProgramFiles%\7-Zip\7z.exe"' : '7z');
+# defIfNot('ARCHIVE_7Z_PATH',  '7z');
 
 
 /**
@@ -27,12 +27,6 @@ defIfNot('ARCHIVE_7Z_PATH', substr(PHP_OS, 0, 3) === 'WIN' ? '"%ProgramFiles%\7-
  */
 class archive_Adapter
 {
-    /**
-     * Инстанция на класа
-     */
-    protected $inst;
-    
-    
     /**
      * Пътя до временния файл на архива
      */
@@ -62,12 +56,9 @@ class archive_Adapter
             $this->path = $fArr['path'];
         }
         
-        try {
-            // Инстанция на архива
-            $this->inst = new Archive_7z($this->path);
-        } catch (Archive_7z_Exception $e) {
-            throw new core_exception_Expect($e->getMessage());
-        }
+        
+        // Инстанция на архива
+        $this->inst = new Archive_7z($this->path);
     }
     
     
@@ -295,7 +286,7 @@ class archive_Adapter
         $this->dir = $dir . '/' . $newName;
         
         // Създаваме директорията
-        expect(mkdir($this->dir, 0777, true), 'Не може да се създаде директория.');
+        expect(core_Os::forceDir($this->dir), 'Не може да се създаде директория.');
         
         try {
             // Инициализираме директорията
@@ -304,29 +295,31 @@ class archive_Adapter
             throw new core_exception_Expect($e->getMessage());
         }
     }
-
-
+    
+    
     /**
      * Компресира файл
      */
     public static function compressFile($src, $dest, $pass = null, $options = '')
     {
-        if($pass) {
+        if ($pass) {
             $p = "-p{$pass} -mem=AES256 ";
             escapeshellarg($p);
         } else {
             $p = '';
         }
-
+        
         $src = escapeshellarg($src);
         $dest = escapeshellarg($dest);
-
-        $cmd = ARCHIVE_7Z_PATH . " a {$p}-tzip {$options} {$dest} {$src}";
-
+        
+        $cmd = archive_Setup::get_ARCHIVE_7Z_PATH() . " a {$p}-tzip {$options} {$dest} {$src}";
+        
         exec($cmd, $output, $return);
         
-        if($return != 0) bp($output);
-
+        if ($return != 0) {
+            bp($output);
+        }
+        
         return $return;
     }
 }

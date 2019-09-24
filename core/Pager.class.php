@@ -251,7 +251,7 @@ class core_Pager extends core_BaseClass
             $ids[] = $rec->id;
         }
         
-        $idCnt = count($ids);
+        $idCnt = countR($ids);
         
         if ($useCache) {
             $resCnt = null;

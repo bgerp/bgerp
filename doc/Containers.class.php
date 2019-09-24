@@ -1,5 +1,6 @@
 <?php
 
+defIfNot('BGERP_DOCUMENT_SLEEP_TIME', 0);
 
 /**
  * Клас 'doc_Containers' - Контейнери за документи
@@ -484,6 +485,7 @@ class doc_Containers extends core_Manager
         
         jquery_Jquery::run($tpl, 'setThreadElemWidth();');
         jquery_Jquery::runAfterAjax($tpl, 'setThreadElemWidth');
+        jquery_Jquery::runAfterAjax($tpl, 'makeTooltipFromTitle');
         
         // Ако е избран някой документ, го отваряме временно - да не скрит
         if ($docId = Request::get('docId')) {

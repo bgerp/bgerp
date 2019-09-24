@@ -15,6 +15,11 @@
             <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]
 			<div class="clearfix21"></div>
 		</div>
+		
+		<!--ET_BEGIN STATE_EXTERNAL-->
+		[#STATE_EXTERNAL#]
+		<!--ET_END STATE_EXTERNAL-->
+		
 		<div style="padding: 10px 0;">
 		[#info#]
 		</div>
