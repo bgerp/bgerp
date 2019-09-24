@@ -1,4 +1,5 @@
-$(document).ready(function(){
+function prepareDashboard(data){
+
 
     $('#navbarCollapse a').on('click', function (e) {
         e.preventDefault();
@@ -24,11 +25,15 @@ $(document).ready(function(){
 
     }
     var date = today.getDate() + " " + month;
-$('.currentDate').html(date);
-    console.log(date);
+    $('.currentDate').html(date);
+
     var min = today.getMinutes() > 10 ? today.getMinutes() : '0' + today.getMinutes();
     var time = today.getHours() + "<span>:</span>" + min;
-$('#currentTime').append(time);
+    $('#currentTime').append(time);
+
+    var weatherStat = "Температурите ще са в интервала от " + parseInt(data.low) + " до " + parseInt(data.high) + "°C.";
+    $('.weatherStat').html(weatherStat);
+
     $('#navbarCollapse a:first').tab('show');
     var toggle;
     setInterval(function() {
@@ -41,16 +46,39 @@ $('#currentTime').append(time);
     });
     var icons = new Skycons({"color": "#489fc0"});
 
-    icons.set("clear-day", Skycons.CLEAR_DAY);
-    icons.set("clear-night", Skycons.CLEAR_NIGHT);
-    icons.set("partly-cloudy-day", Skycons.PARTLY_CLOUDY_DAY);
-    icons.set("partly-cloudy-night", Skycons.PARTLY_CLOUDY_NIGHT);
-    icons.set("cloudy", Skycons.CLOUDY);
-    icons.set("rain", Skycons.RAIN);
-    icons.set("sleet", Skycons.SLEET);
-    icons.set("snow", Skycons.SNOW);
-    icons.set("wind", Skycons.WIND);
-    icons.set("fog", Skycons.FOG);
+    $('.weather-icon').attr('id', data.icon);
+    switch (data.icon) {
+        case "rain":
+            icons.set("rain", Skycons.RAIN);
+            break;
+        case "cloudy":
+            icons.set("cloudy", Skycons.CLOUDY);
+            break;
+        case "sleet":
+            icons.set("sleet", Skycons.SLEET);
+            break;
+        case "snow":
+            icons.set("snow", Skycons.SNOW);
+            break;
+        case "wind":
+            icons.set("wind", Skycons.WIND);
+            break;
+        case "fog":
+            icons.set("fog", Skycons.FOG);
+            break;
+        case "clear-day":
+            icons.set("clear-day", Skycons.CLEAR_DAY);
+            break;
+        case "clear-night":
+            icons.set("clear-night", Skycons.CLEAR_NIGHT);
+            break;
+        case "partly-cloudy-day":
+            icons.set("partly-cloudy-day", Skycons.PARTLY_CLOUDY_DAY);
+            break;
+        case "partly-cloudy-night":
+            icons.set("partly-cloudy-night", Skycons.PARTLY_CLOUDY_NIGHT);
+            break;
+    }
 
     icons.play();
 
@@ -147,7 +175,7 @@ $('#currentTime').append(time);
     });
 
 
-});
+}
 
 function sendData() {
     var vent = $("#currentVentPercent").text();

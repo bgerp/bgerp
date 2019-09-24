@@ -430,10 +430,10 @@
                             <canvas id="snow" width="120" height="120" ></canvas>
                             <canvas id="fog" width="64" height="64"></canvas>
 
--->                         <canvas id="rain" width="120" height="120" style="display: block;position:relative; left: 50%; margin: 30px auto 30px -70px;"></canvas>
+-->                         <canvas class='weather-icon' width="120" height="120" style="display: block;position:relative; left: 50%; margin: 30px auto 30px -70px;"></canvas>
 
                         </figure>
-                        <p>Времето ще е предимно слънчево. Температурите ще са в интервала от 16 до 29°C. </p>
+                        <p class="weatherStat"> </p>
                         <p>
                             Изгрев: 05:39 ч. <br>
                             Залез: 20:52 ч.

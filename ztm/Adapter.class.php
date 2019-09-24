@@ -37,6 +37,17 @@ class ztm_Adapter extends core_Mvc
         $tpl->push('ztm/js/rangeslider.js', 'JS');
         $tpl->push('ztm/js/custom.js', 'JS');
 
+
+        $now = dt::now(false);
+        $forRec = darksky_Forecasts::getForecast($now);
+        if ($forRec) {
+            $iconUrl = 'https://darksky.net/images/weather-icons/' . $forRec->icon . '.png';
+
+            $data = json_encode($forRec);
+            jquery_Jquery::run($tpl, "prepareDashboard({$data})");
+
+        }
+
         return $tpl;
     }
 }
