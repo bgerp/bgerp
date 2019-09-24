@@ -193,6 +193,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $fieldset->FLD('paymentMap9', 'key(mvc=cond_Payments,select=title)', 'caption=Настройки на апарата за плащания->Допълнително 1,unit=(Позиция 9)');
         $fieldset->FLD('paymentMap10', 'key(mvc=cond_Payments,select=title)', 'caption=Настройки на апарата за плащания->Допълнително 2,unit=(Позиция 10)');
         $fieldset->FLD('paymentMap11', 'key(mvc=cond_Payments,select=title)', 'caption=Настройки на апарата за плащания->Валута,unit=(Позиция 11)');
+        $fieldset->FLD('startNumber', 'varchar(7)', 'caption=Настройки на апарата за плащания->Начален номер');
         
         $fieldset->FLD('header', 'enum(yes=Да,no=Не)', 'caption=Надпис хедър в касовата бележка->Добавяне, notNull, removeAndRefreshForm');
         $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър в касовата бележка->Позиция, notNull');
