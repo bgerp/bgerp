@@ -31,7 +31,7 @@ class pos_Favourites extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, pack=Мярка/Опаковка, pointId, catId=Категория, createdOn, createdBy, state';
+    public $listFields = 'productId, pack=Мярка/Опаковка, title, pointId, catId=Категория, createdOn, createdBy, state';
     
     
     /**
@@ -84,10 +84,12 @@ class pos_Favourites extends core_Manager
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canSell,maxSuggestions=100,forceAjax)', 'class=w100,caption=Продукт, mandatory, silent,refreshForm');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Опаковка,mandatory');
         $this->FLD('catId', 'keylist(mvc=pos_FavouritesCategories, select=name)', 'caption=Категория, mandatory');
+        $this->FLD('title', 'varchar(32)', 'caption=Заглавие');
         $this->FLD('pointId', 'keylist(mvc=pos_Points, select=name, makeLinks)', 'caption=Точка на продажба');
         $this->FLD('image', 'fileman_FileType(bucket=pos_ProductsImages)', 'caption=Картинка');
         
         $this->setDbUnique('productId, packagingId');
+        $this->setDbUnique('title');
     }
     
     
@@ -141,6 +143,7 @@ class pos_Favourites extends core_Manager
             $query->where('#pointId IS NULL');
             $query->orWhere("#pointId LIKE '%{$posRec->id}%'");
             $query->where("#state = 'active'");
+            
             while ($rec = $query->fetch()) {
                 $obj = $this->prepareProductObject($rec);
                 $obj->name = tr($varchar->toVerbal($obj->name));
@@ -203,6 +206,7 @@ class pos_Favourites extends core_Manager
         
         $arr = array();
         $arr['name'] = $productRec->name;
+        $arr['title'] = $rec->title;
         $arr['catId'] = $rec->catId;
         $obj = new stdClass();
         $obj->quantity = (isset($info->packagings[$rec->packagingId])) ? $info->packagings[$rec->packagingId]->quantity : 1;
@@ -282,10 +286,10 @@ class pos_Favourites extends core_Manager
         
         foreach ($products as $row) {
             $row->url = toUrl(array('pos_Receipts', 'addProduct'), 'local');
+            $row->name = ($row->title) ? $row->title : $row->name;
             if ($row->image) {
                 $img = new thumb_Img(array($row->image, 80, 80, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
                 $imageURL = $img->getUrl('forced');
-                
                 $row->image = ht::createElement('img', array('src' => $imageURL, 'width' => '90px', 'height' => '90px'));
             }
             

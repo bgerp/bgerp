@@ -735,7 +735,7 @@ class core_Users extends core_Manager
         $form->setField('rolesInput', 'input=none');
         
         if ($form->rec->id) {
-            $form->setField('pinCode', 'input=input');
+//             $form->setField('pinCode', 'input=input');
         }
     }
     
