@@ -591,6 +591,15 @@ class cat_Products extends embed_Manager
             
             if(isset($rec->id)){
                 $rec->_isEditedFromForm = true;
+               
+                // Предупреждение ако артикула е на чернова
+                $sQuery = sales_SalesDetails::getQuery();
+                $sQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
+                $sQuery->where("#productId = {$rec->id} AND #state = 'draft'");
+                $sQuery->show('id');
+                if($sQuery->fetch()){
+                    $form->setWarning('name', '|Артикулът участва в продажба на чернова|*. |Наистина ли желаете да редактирате артикула|*?');
+                }
             }
         }
     }
