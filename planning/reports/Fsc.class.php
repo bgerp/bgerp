@@ -118,17 +118,15 @@ class planning_reports_Fsc extends frame2_driver_TableData
         $recs = array();
         
         $jobsQuery = planning_Jobs::getQuery();
-       
+           
         $jobsQuery->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
-        $jobsQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
-        $jobsQuery->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
-        
-        
+    
         $jobsQuery->where("#state = 'closed'");
+        $jobsQuery->where("#timeClosed IS NOT NULL");
         
         //Филтриране на периода
         $jobsQuery->where(array(
-            "#modifiedOn >= '[#1#]' AND #modifiedOn <= '[#2#]'",
+            "#timeClosed >= '[#1#]' AND #timeClosed <= '[#2#]'",
             $rec->from .' 00:00:00' ,$rec->to . ' 23:59:59'));
         
         
@@ -136,11 +134,18 @@ class planning_reports_Fsc extends frame2_driver_TableData
         
         $threadsIdForCheck = array();
         while ($jobRec = $jobsQuery->fetch()){
+            
+            $singleProductWeight = cat_Products::getParams($jobRec->productId, 'weight');
+            
+            //////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////
+            // ЗАЩО НЯМА ТЕГЛО НА АРТИКУЛА
+            
+            $singleProductWeight = $singleProductWeight ? $singleProductWeight : 1;
         
-        //Масив от нишки в които може да има протоколи за производство към това задание    
+        //Масив от нишки в които може да има протоколи за производство към това задание   $threadsIdForCheck
         $threadsIdForCheck[] = $jobRec->threadId;
         
-       
         $taskQuery = planning_Tasks::getQuery();
         
         $taskQuery->where("#originId = $jobRec->containerId");
@@ -150,46 +155,45 @@ class planning_reports_Fsc extends frame2_driver_TableData
                 $threadsIdForCheck[] = $taskRec->threadId;
             }
           
-          
+           
             foreach ($threadsIdForCheck as $threadId){
+                $totalProductWeight = $prodQuantity = null;
+                
+                $productionQuery = planning_DirectProductionNote::getQuery();
+                $productionQuery -> where("#threadId = $threadId");
+                $productionQuery->show('quantity');
+                
+                //Произведено количество по всички протоколи за производство от това задание($jobsQuery)/този артикул
+                $prodQuantity =  array_sum(arr::extractValuesFromArray($productionQuery->fetchAll(), 'quantity'));
+                
+                
+                //Теортично изчислено тегло на произведеното количество от този артикул по това задание за производство
+                //по протоколите за производство в тази нишка
+                $totalProductWeight = $singleProductWeight * $prodQuantity;
+                
             
-            
-            $id = $jobRec->productId;
+                $id = $jobRec->id;
             
             //Мярка на артикула
             $measureArtId = cat_Products::getProductInfo($jobRec->productId)->productRec->measureId;
-            
-            //Произведено количество
-            $quantity = $jobRec->quantity;
-            
-            //Код на артикула
-            $artCode =!is_null($jobRec->code) ? $jobRec->code : "Art{$jobRec->productId}";
-            
-            //Склад на заприхождаване
-            $storeId = $jobRec->storeId;
-            
-            
             
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object) array(
                     
-                    'code' => $artCode,                                   //Код на артикула
+                    'job'=> $id,                                          // id на заданието за производство
                     'productId' => $jobRec->productId,                    //Id на артикула
                     'measure' => $measureArtId,                           //Мярка
-                    'name' => $nameArt,                                   //Име
-                    'storeId' => $storeId,                                //Склад на заприхождаване
-                    
-                    'quantity' => $quantity,                              //Текущ период - количество
-                    
-                    'group' => $jobRec->groupMat,                         // В кои групи е включен артикула
-                    
+                    'singleProductWeight' => $singleProductWeight,        //Единично тегло на артикула
+                    'totalProductWeight' => $totalProductWeight,          // Теоретично тегло на произведеното количество артикули
+                    'quantity' => $prodQuantity,                          //Произведено количество
                     
                 );
             } else {
                 $obj = &$recs[$id];
                 
-                $obj->quantity += $quantity;
+                $obj->quantity += $prodQuantity;
+                $obj->totalProductWeight += $totalProductWeight;
                 
             }
             
@@ -215,12 +219,12 @@ class planning_reports_Fsc extends frame2_driver_TableData
         
         if ($export === false) {
             
-            $fld->FLD('code', 'varchar', 'caption=Код');
+            $fld->FLD('job', 'varchar', 'caption=Задание за производство');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('storeId', 'key(mvc=strore_Stores,select=name)', 'caption=Склад,tdClass=centered');
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Произведено');
-            
+            $fld->FLD('singleProductWeight', 'double(smartRound,decimals=2)', 'caption=Ед. тегло,tdClass=centered');
+            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество');
+            $fld->FLD('totalProductWeight', 'double(smartRound,decimals=2)', 'caption=Тегло,tdClass=centered');
             
             
         } else {
@@ -235,7 +239,9 @@ class planning_reports_Fsc extends frame2_driver_TableData
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
      * @param stdClass $rec
-     *                       - записа
+     *                       - записаif (isset($dRec->quantity)) {
+            $row->quantity = $Double->toVerbal($dRec->quantity);
+        }
      * @param stdClass $dRec
      *                       - чистия запис
      *
@@ -250,8 +256,8 @@ class planning_reports_Fsc extends frame2_driver_TableData
         $row = new stdClass();
         
         
-        if (isset($dRec->code)) {
-            $row->code = $dRec->code;
+        if (isset($dRec->job)) {
+            $row->job = planning_Jobs::getHyperlink($dRec->job);
         }
         if (isset($dRec->productId)) {
             $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
@@ -260,12 +266,16 @@ class planning_reports_Fsc extends frame2_driver_TableData
             $row->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
         }
         
-        if (isset($dRec->storeId)) {
-            $row->storeId = store_Stores::getLinkToSingle_($dRec->storeId, 'name');
+        if (isset($dRec->singleProductWeight)) {
+            $row->singleProductWeight = $Double->toVerbal($dRec->singleProductWeight);
         }
         
         if (isset($dRec->quantity)) {
             $row->quantity = $Double->toVerbal($dRec->quantity);
+        }
+        
+        if (isset($dRec->totalProductWeight)) {
+            $row->totalProductWeight = $Double->toVerbal($dRec->totalProductWeight);
         }
         
         
