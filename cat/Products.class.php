@@ -1831,7 +1831,7 @@ class cat_Products extends embed_Manager
         if ($Driver = static::getDriver($productId)) {
             $rec = self::fetchRec($productId);
             $weight = $Driver->getTransportWeight($rec, $quantity);
-            if (!empty($weight)) {
+            if (!empty($weight) && !is_nan($weight)) {
                 
                 return $weight;
             }
@@ -1915,7 +1915,7 @@ class cat_Products extends embed_Manager
         if ($Driver = static::getDriver($productId)) {
             $rec = self::fetchRec($productId);
             $volume = $Driver->getTransportVolume($rec, $quantity);
-            if (!empty($volume)) {
+            if (!empty($volume) && !is_nan($volume)) {
                 
                 return $volume;
             }
