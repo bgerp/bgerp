@@ -1172,6 +1172,8 @@ class cal_Tasks extends embed_Manager
         }
         $orderType = cls::get('type_Enum');
         
+        $options = array('' => '') + $options;
+        
         $orderType->options = $options;
         
         $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent', array('removeAndRefreshForm' => 'from|to|selectedUsers|Chart|View|stateTask'));
@@ -1192,7 +1194,7 @@ class cal_Tasks extends embed_Manager
         
         // по критерий "Всички"
         if (!$data->listFilter->rec->order) {
-            $data->listFilter->rec->order = 'all';
+            $data->listFilter->rec->order = '';
         }
         
         // филтъра по дата е -1/+1 месец от днещната дата
