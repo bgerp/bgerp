@@ -73,7 +73,7 @@ class rack_Movements extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,createdOn,createdBy,modifiedOn,modifiedBy,documents';
+    public $listFields = 'productId,movement=Движение,startBtn=Започни,stopBtn=Приключи,workerId=Изпълнител,createdOn,createdBy,modifiedOn,modifiedBy,documents';
     
     
     /**
@@ -645,31 +645,30 @@ class rack_Movements extends core_Manager
                 $row->_rowTools->setWarning("start{$rec->id}", 'Сигурни ли сте, че искате да започнете движение от друг потребител');
             }
             
+            $img = ht::createImg(array('src' => sbf('img/16/control_play.png', '')));
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $startUrl = toUrl($startUrl, 'local');
-                $state .= ht::createFnBtn('Започни', null, null, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
+                $row->startBtn = ht::createLink($img, false, false, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението'));
             } else {
-                $state .= ht::createBtn('Започни', $startUrl, false, false, 'ef_icon=img/16/control_play.png,title=Започване на движението');
+                $row->startBtn = ht::createLink($img, $startUrl, false, 'title=Започване на движението');
             }
         }
         
         if ($mvc->haveRightFor('done', $rec)) {
+            $stopUrl = array($mvc, 'done', $rec->id, 'ret_url' => true);
             $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
             
+            $img = ht::createImg(array('src' => sbf('img/16/gray-close.png', '')));
             if($fields['-inline'] && !isset($fields['-inline-single'])){
-                $startUrl = toUrl(array($mvc, 'done', $rec->id, 'ret_url' => true), 'local');
-                $state .= ht::createFnBtn('Приключи', null, null, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Приключване на движението', 'ef_icon' => 'img/16/gray-close.png'));
+                $stopUrl = toUrl($stopUrl, 'local');
+                $row->stopBtn = ht::createLink($img, false, false, array('class' => 'toggle-movement', 'data-url' => $stopUrl, 'title' => 'Приключване на движението'));
             } else {
-                $state .= ht::createBtn('Приключи', array($mvc, 'done', $rec->id, 'ret_url' => true), false, false, 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
+                $row->stopBtn = ht::createLink($img, $stopUrl, false, 'title=Приключване на движението');
             }
         }
         
         if ($mvc->haveRightFor('reject', $rec)) {
             $row->_rowTools->addLink('Отказване', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), 'warning=Наистина ли искате да откажете движението|*?,ef_icon=img/16/reject.png,title=Отказване на движението');
-        }
-        
-        if (!empty($state)) {
-            $row->workerId = "{$state} {$row->workerId}";
         }
         
         if (!empty($rec->note)) {
@@ -1334,6 +1333,8 @@ class rack_Movements extends core_Manager
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $data->listTableMvc->FLD('movement', 'varchar', 'tdClass=movement-description');
+        $data->listTableMvc->FLD('startBtn', 'varchar', 'tdClass=centered');
+        $data->listTableMvc->FLD('stopBtn', 'varchar', 'tdClass=centered');
         if (Mode::is('screenMode', 'narrow') && array_key_exists('productId', $data->listFields)) {
             $data->listTableMvc->tableRowTpl = "[#ADD_ROWS#][#ROW#]\n";
             $data->listFields['productId'] = '@Артикул';
