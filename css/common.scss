@@ -810,6 +810,10 @@ a.button.fright, input[type="button"].fright, input[type="submit"].fright, butto
 	margin: 1px 0 0 0.5em;
 }
 
+.toggle-movement {
+	cursor: pointer;
+}
+
 form[method=post] .toogleHolder {
 	float: right;
 	display: inline-block;
