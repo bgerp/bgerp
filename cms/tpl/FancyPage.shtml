@@ -7,7 +7,7 @@
 <!--ET_END cookies-->
 <div class="externalPage">
 [#TOP_PAGE#]
-        <div>
+        <header>
             [#HEADER_IMG#]
             [#PAGE_HEADER#]
             <div class="centerContent">
@@ -16,7 +16,7 @@
             <!--ET_END CORE_APP_NAME-->
             </div>
             [#BOTTOM_HEADER#]
-        </div>
+        </header>
         <div id="cmsMenu" class='menuRow'>
             <div class="centerContent">
             [#CMS_MENU#]
