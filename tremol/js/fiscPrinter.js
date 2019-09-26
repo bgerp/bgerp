@@ -515,8 +515,10 @@ function fpGetDefPayments()
         		try {
         			val = paymRes[key];
             		if (key == 'ExchangeRate') {
-            			exRate = val;
+            			exRate = val.trim();
             		} else {
+            			key = key.trim();
+            			val = val.trim();
             			defPaymArr[val] = key.replace('NamePayment', '');
             		}
         		} catch(ex) { }
@@ -534,13 +536,14 @@ function fpGetDefPayments()
                     } else {
                     	codePaymVal = Number(paymRes[codePayment]);
                     }
-                    
-                    defPaymArr[paymRes[namePayment]] = codePaymVal;
+                    var paymResStr = paymRes[namePayment];
+                    paymResStr = paymResStr.trim();
+                    defPaymArr[paymResStr] = codePaymVal;
         		} catch(ex) { }
     		}
         	
         	try {
-    			exRate = paymRes['ExRate'];
+    			exRate = paymRes['ExRate'].trim();
     		} catch(ex) { }
         }
     } catch(ex) {

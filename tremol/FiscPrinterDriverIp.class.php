@@ -859,11 +859,11 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 for($i=0;$i<=11;$i++) {
                     try {
                         $namePayment = "NamePayment{$i}";
-                        $dPaymArr[$paymRes->{$namePayment}] = $i;
+                        $dPaymArr[trim($paymRes->{$namePayment})] = $i;
                     } catch (Exception $e) { }
                 }
                 try {
-                    $exchangeRate = $paymRes->ExchangeRate;
+                    $exchangeRate = trim($paymRes->ExchangeRate);
                 } catch (Exception $e) {
                     $exchangeRate = null;
                 }
@@ -882,7 +882,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                         } else {
                             $codePaymVal = (double) $paymRes->{$codePayment};
                         }
-                        $dPaymArr[$paymRes->{$namePayment}] = $codePaymVal;
+                        $dPaymArr[trim($paymRes->{$namePayment})] = trim($codePaymVal);
                     } catch (Exception $e) { }
                 }
                 
