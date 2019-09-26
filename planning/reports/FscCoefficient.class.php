@@ -139,7 +139,7 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
             //////////////////////////////////////////////////////
             // ЗАЩО НЯМА ТЕГЛО НА АРТИКУЛА
             
-            $singleProductWeight = $singleProductWeight ? $singleProductWeight : 1;
+            $singleProductWeight = $singleProductWeight ? $singleProductWeight : 'n.a.';
             
             //Масив от нишки в които може да има протоколи за производство към това задание   $threadsIdForCheck
             $threadsIdForCheck[] = $jobRec->threadId;
@@ -251,7 +251,7 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
                         'koef' => '',                                         //Коефициент на трансформация
                         'sumQuantyti' => '',                                  //Общо тегло на продукцията за периода
                         'sumConsumWeight' => '',                              //Общо тегло на вложеното за периода
-                        
+                    
                     );
                 } else {
                     $obj = &$recs[$id];
@@ -263,17 +263,14 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
             }
         }
         $sumQuantyti = $sumConsumWeight = 0;
-        foreach ($recs as $key => $val){
-            
+        foreach ($recs as $key => $val) {
             $sumQuantyti += $val->totalProductWeight;
             $sumConsumWeight += $val->consumWeight;
-            $val->koef = $val->consumWeight ?($val->totalProductWeight/1000)/$val->consumWeight : 'n.a.';
-            
+            $val->koef = $val->consumWeight ?($val->totalProductWeight / 1000) / $val->consumWeight : 'n.a.';
         }
         
-        $rec->sumQuantyti = $sumQuantyti/1000;
+        $rec->sumQuantyti = $sumQuantyti / 1000;
         $rec->sumConsumWeight = $sumConsumWeight;
-        
         
         return $recs;
     }
@@ -341,9 +338,12 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
         }
         
         if (isset($dRec->singleProductWeight)) {
-            $row->singleProductWeight = $Double->toVerbal($dRec->singleProductWeight);
+            if (is_numeric($dRec->singleProductWeight)) {
+                $row->singleProductWeight = $Double->toVerbal($dRec->singleProductWeight);
+            } else {
+                $row->singleProductWeight = core_Type::getByName('varchar')->toVerbal($dRec->singleProductWeight);
+            }
         }
-        
         if (isset($dRec->quantity)) {
             $row->quantity = $Double->toVerbal($dRec->quantity);
         }
@@ -396,14 +396,10 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->sumQuantyti)) {
-            
-            
             $fieldTpl->append('<b>'. core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->sumQuantyti) .'</b>', 'sumQuantyti');
         }
         
         if (isset($data->rec->sumConsumWeight)) {
-            
-            
             $fieldTpl->append('<b>'. core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->sumConsumWeight) .'</b>', 'sumConsumWeight');
         }
         
