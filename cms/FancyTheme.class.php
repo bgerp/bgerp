@@ -85,7 +85,7 @@ class cms_FancyTheme extends core_ProtoInner
         }
         
         if ($this->innerForm->headerColor) {
-            $css .= "\n    #all #cmsTop {background-color:{$this->innerForm->headerColor} !important;}";
+            $css .= "\n    header {background-color:{$this->innerForm->headerColor} !important;}";
         }
         
         if ($this->innerForm->baseColor) {
@@ -229,7 +229,7 @@ class cms_FancyTheme extends core_ProtoInner
                     }
                 }
                 
-                if (count($imgs) >= 1) {
+                if (count($imgs) > 1) {
                     $conf = core_Packs::getConfig('core');
                     
                     $banner = '';

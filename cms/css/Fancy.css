@@ -5,6 +5,7 @@ body{
 html {
     height: 99.9%;
 }
+
 .externalPage {
     position: relative;
     min-height: 100%;
@@ -54,7 +55,7 @@ html {
 }
 
 header {
-    min-height: auto;
+    min-height: 150px;
     position: relative;
 }
 
@@ -64,6 +65,13 @@ header {
 }
 .wide #maincontent {
     min-height: auto;
+}
+.fourcol, #cmsMenu a, .formTable{
+    margin-left: 0 !important;
+}
+
+.wide .app-name {
+    left: 0 !important;
 }
 @media handheld, only screen and (max-width: 600px) {
     .wide .app-name {
