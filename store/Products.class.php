@@ -518,6 +518,7 @@ class store_Products extends core_Detail
                         'store_ShipmentOrders' => array('storeFld' => 'storeId', 'Detail' => 'store_ShipmentOrderDetails'),
                         'planning_ConsumptionNotes' => array('storeFld' => 'storeId', 'Detail' => 'planning_ConsumptionNoteDetails'),
                         'store_ConsignmentProtocols' => array('storeFld' => 'storeId', 'Detail' => 'store_ConsignmentProtocolDetailsSend'),
+                        'planning_DirectProductionNote' => array('storeFld' => 'storeId', 'Detail' => 'planning_DirectProductNoteDetails'), 
         );
         
         $result = $queue = array();
@@ -558,6 +559,10 @@ class store_Products extends core_Detail
                     $shQuery->where("#{$Detail->masterKey} = {$sRec->id}");
                     $shQuery->show("{$Detail->productFieldName},{$suMFld},{$Detail->masterKey},sum,quantityInPack");
                     $shQuery->groupBy($Detail->productFieldName);
+                    
+                    if($Detail instanceof planning_DirectProductNoteDetails){
+                        $shQuery->where("#{$storeField} IS NOT NULL");
+                    }
                     
                     while ($sd = $shQuery->fetch()) {
                         $storeId = $sRec->{$storeField};
@@ -723,7 +728,7 @@ class store_Products extends core_Detail
         
         // Намират се документите, запазили количества
         $docs = array();
-        foreach (array('sales_SalesDetails' => 'shipmentStoreId', 'store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore,toStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId') as $Detail => $stores) {
+        foreach (array('sales_SalesDetails' => 'shipmentStoreId', 'store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore,toStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId', 'planning_DirectProductNoteDetails' => 'storeId') as $Detail => $stores) {
             $stores = arr::make($stores, true);
             $Detail = cls::get($Detail);
             expect($Detail->productFld, $Detail);
@@ -732,7 +737,11 @@ class store_Products extends core_Detail
                 $Master = $Detail->Master;
                 $dQuery = $Detail->getQuery();
                 $dQuery->EXT('containerId', $Master->className, "externalName=containerId,externalKey={$Detail->masterKey}");
-                $dQuery->EXT('storeId', $Master->className, "externalName={$storeField},externalKey={$Detail->masterKey}");
+                
+                if(!($Detail instanceof planning_DirectProductNoteDetails)){
+                    $dQuery->EXT('storeId', $Master->className, "externalName={$storeField},externalKey={$Detail->masterKey}");
+                }
+                
                 $dQuery->EXT('state', $Master->className, "externalName=state,externalKey={$Detail->masterKey}");
                 $dQuery->where("#state = 'pending'");
                 $dQuery->where("#{$Detail->productFld} = {$rec->productId}");
