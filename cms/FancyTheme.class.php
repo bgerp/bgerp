@@ -221,6 +221,7 @@ class cms_FancyTheme extends core_ProtoInner
                 $img = new thumb_Img(array($this->innerForm->colabImg, 1000, 150, 'fileman', 'isAbsolute' => true,'mode' => 'large-no-change'));
                 $imageURL = $img->getUrl('forced');
             } else {
+                
                 for ($i = 1; $i <= 5; $i++) {
                     $imgName = 'wImg' . $i;
                     if ($this->innerForm->{$imgName}) {
@@ -228,7 +229,7 @@ class cms_FancyTheme extends core_ProtoInner
                     }
                 }
                 
-                if (count($imgs) > 1) {
+                if (count($imgs) >= 1) {
                     $conf = core_Packs::getConfig('core');
                     
                     $banner = '';
