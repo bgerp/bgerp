@@ -643,6 +643,8 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                 
                 // След запис, обновяваме хедър и футъра
                 if ($update) {
+                    
+                    // Вземаме серийния номер от ФУ
                     $setSerialUrl = toUrl(array($Driver, 'setSerialNumber', $data->rec->id), 'local');
                     $setSerialUrl = urlencode($setSerialUrl);
                     $updateSn = "try {
@@ -652,6 +654,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                                  }";
                     $jsTpl->prepend($updateSn, 'OTHER');
                     
+                    // Вземаме паролата от ФУ
                     $setOperPassUrl = toUrl(array($Driver, 'SetOperPass', $data->rec->id), 'local');
                     $setOperPassUrl = urlencode($setOperPassUrl);
                     $updateSn = "try {
@@ -659,6 +662,19 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                                      getEfae().process({url: '{$setOperPassUrl}'}, {operPass: operPass});
                                  } catch(ex) {
                                      render_showToast({timeOut: 800, text: '" . tr('Грешка при промяна на парола за връзка с ФУ') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
+                                 }";
+                    
+                    $jsTpl->prepend($updateSn, 'OTHER');
+                    
+                    // Вземаме начините на плащане от ФУ
+                    $setDefaultPaymenst = toUrl(array($Driver, 'SetDefPayments', $data->rec->id), 'local');
+                    $setDefaultPaymenst = urlencode($setDefaultPaymenst);
+                    $updateSn = "try {
+                                     var defPaym = fpGetDefPayments();
+                                     defPaym = JSON.stringify(defPaym);
+                                     getEfae().process({url: '{$setDefaultPaymenst}'}, {defPaym: defPaym});
+                                 } catch(ex) {
+                                     render_showToast({timeOut: 800, text: '" . tr('Грешка при добавяне на плащания') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
                                  }";
                     
                     $jsTpl->prepend($updateSn, 'OTHER');
@@ -807,35 +823,51 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         
         $res = array();
         
-        if ($pRec->operPass != $operPass) {
-            $oldOperPass = $pRec->operPass;
-            $pRec->operPass = $operPass;
+        if ($pRec->otherData['operPass'] != $operPass) {
+            $pRec->otherData['operPass'] = $operPass;
             
-            $statusData = array();
-            
-            if (peripheral_Devices::save($pRec)) {
-                $statusData['text'] = tr('Променена парола за връзка с ФУ на') . " {$operPass}";
-                
-                $statusData['type'] = 'notice';
-                $statusData['timeOut'] = 700;
-                $statusData['isSticky'] = 0;
-                $statusData['stayTime'] = 8000;
-            } else {
-                $statusData['text'] = tr('Грешка при промяна на парола за връзка с ФУ');
-                $statusData['type'] = 'error';
-                $statusData['timeOut'] = 700;
-                $statusData['isSticky'] = 1;
-                $statusData['stayTime'] = 15000;
-            }
-            
-            $statusObj = new stdClass();
-            $statusObj->func = 'showToast';
-            $statusObj->arg = $statusData;
-            
-            $res[] = $statusObj;
+            peripheral_Devices::save($pRec, 'otherData');
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Екшън за добавяне на плащания по подразбиране
+     *
+     * @return array
+     */
+    public function act_SetDefPayments()
+    {
+        expect(Request::get('ajax_mode'));
+        
+        peripheral_Devices::requireRightFor('single');
+        
+        $operPass = Request::get('operPass');
+        $id = Request::get('id', 'int');
+        
+        expect($id);
+        
+        $pRec = peripheral_Devices::fetch($id);
+        
+        expect($pRec);
+        
+        peripheral_Devices::requireRightFor('single', $id);
+        peripheral_Devices::requireRightFor('edit', $id);
+        
+        $defPaym = Request::get('defPaym');
+        
+        $dPaymArr = json_decode($defPaym, true);
+        
+        if ($dPaymArr['defPaymArr']) {
+            $pRec->otherData['defPaymArr'] = $dPaymArr['defPaymArr'];
+            $pRec->otherData['exRate'] = $dPaymArr['exRate'];
+            
+            peripheral_Devices::save($pRec, 'otherData');
+        }
+        
+        return array();
     }
     
     
@@ -910,10 +942,11 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      * @param stdClass $rec
      * @param string $rVerb
      * @param null|core_Et $jsTpl
+     * @param array $retUrl
      *
      * @see tremol_FiscPrinterDriverParent::getResForReport()
      */
-    protected function getResForReport($pRec, $rec, $rVerb = '', &$jsTpl = null)
+    protected function getResForReport($pRec, $rec, $rVerb = '', &$jsTpl = null, $retUrl = array())
     {
         $fnc = '';
         
@@ -968,13 +1001,20 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         
         $fnc .= ';';
         
+        if (!empty($retUrl)) {
+            $toUrul = toUrl($retUrl);
+            $location = "document.location = '{$toUrul}';";
+        } else {
+            $location = '';
+        }
+        
         $jsTpl = new ET("function fpPrintReport() {
                                 $('.fullScreenBg').fadeIn();
                                 [#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
                                 try {
                                     [#/tremol/js/FiscPrinterTplConnect.txt#]
                                     {$fnc}
-                                    render_showToast({timeOut: 800, text: '" . tr("Успешно отпечатан {$rVerb} отчет") . "', isSticky: false, stayTime: 8000, type: 'notice'});
+                                    {$location}
                                 } catch(ex) {
                                     render_showToast({timeOut: 800, text: '" . tr("Грешка при отпечатване на {$rVerb} отчет") . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'error'});
                                 }
