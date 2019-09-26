@@ -71,7 +71,16 @@ class label_Prints extends core_Master
     public $canDelete = 'no_one';
     
     
+    /**
+     * Кой може да оттегля?
+     */
     public $canReject = 'seeLabel, label, admin, ceo';
+    
+    
+    /**
+     * Кой може да възстановява
+     */
+    public $canRestore = 'seeLabel, label, admin, ceo';
     
     
     /**
