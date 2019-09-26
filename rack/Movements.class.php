@@ -645,12 +645,11 @@ class rack_Movements extends core_Manager
                 $row->_rowTools->setWarning("start{$rec->id}", 'Сигурни ли сте, че искате да започнете движение от друг потребител');
             }
             
-            $img = ht::createImg(array('src' => sbf('img/16/control_play.png', '')));
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $startUrl = toUrl($startUrl, 'local');
-                $row->startBtn = ht::createLink($img, false, false, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението'));
+                $row->startBtn = ht::createFnBtn('Започване', '', null, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
             } else {
-                $row->startBtn = ht::createLink($img, $startUrl, false, 'title=Започване на движението');
+                $row->startBtn = ht::createBtn('Започване', $startUrl, false, false, 'title=Започване на движението,ef_icon=img/16/control_play.png');
             }
         }
         
@@ -658,12 +657,11 @@ class rack_Movements extends core_Manager
             $stopUrl = array($mvc, 'done', $rec->id, 'ret_url' => true);
             $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
             
-            $img = ht::createImg(array('src' => sbf('img/16/gray-close.png', '')));
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $stopUrl = toUrl($stopUrl, 'local');
-                $row->stopBtn = ht::createLink($img, false, false, array('class' => 'toggle-movement', 'data-url' => $stopUrl, 'title' => 'Приключване на движението'));
+                $row->stopBtn = ht::createFnBtn('Приключване', '', null, array('class' => 'toggle-movement', 'data-url' => $stopUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
             } else {
-                $row->stopBtn = ht::createLink($img, $stopUrl, false, 'title=Приключване на движението');
+                $row->stopBtn = ht::createBtn('Приключване', $stopUrl, false, false, 'title=Приключване на движението,ef_icon=img/16/gray-close.png');
             }
         }
         
