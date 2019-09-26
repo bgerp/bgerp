@@ -887,7 +887,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 }
                 
                 try {
-                    $exchangeRate = $paymRes->ExRate;
+                    $exchangeRate = trim($paymRes->ExRate);
                 } catch (Exception $e) {
                     $exchangeRate = null;
                 }
