@@ -253,8 +253,11 @@ class cms_FancyTheme extends core_ProtoInner
                     $banner = new ET($banner);
                     $fadeTransition = $this->innerForm->fadeTransition ? $this->innerForm->fadeTransition : 1500;
                     $fadeDelay = $this->innerForm->fadeDelay ? $this->innerForm->fadeDelay : 5000;
-                    $banner->append('.fadein { position:relative; display:block; max-height:100%; max-width:100%} .fadein img {position:relative; left:0; top:0;}', 'STYLES');
-                    jquery_Jquery::run($banner, "fadeImages({$fadeTransition}, {$fadeDelay});", true);
+                    
+                    if(count($imgs) > 1){
+                        $banner->append('.fadein { position:relative; display:block; max-height:100%; max-width:100%} .fadein img {position:relative; left:0; top:0;}', 'STYLES');
+                        jquery_Jquery::run($banner, "fadeImages({$fadeTransition}, {$fadeDelay});", true);
+                    }
                     
                     $this->haveOwnHeaderImages = true;
                     
