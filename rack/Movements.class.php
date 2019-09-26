@@ -625,7 +625,13 @@ class rack_Movements extends core_Manager
         $data->form->title = $title;
     }
     
-    
+    function act_test()
+    {
+        $res = null;
+        $resArr = explode('*', $res);
+        
+        bp($resArr);
+    }
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -649,7 +655,8 @@ class rack_Movements extends core_Manager
                 $startUrl = toUrl($startUrl, 'local');
                 $row->startBtn = ht::createFnBtn('Започване', '', null, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
             } else {
-                $row->startBtn = ht::createBtn('Започване', $startUrl, false, false, 'title=Започване на движението,ef_icon=img/16/control_play.png');
+                $img = ht::createImg(array('src' => sbf('img/16/control_play.png', '')));
+                $row->startBtn = ht::createLink($img, $startUrl, false, 'title=Започване на движението');
             }
         }
         
@@ -661,7 +668,8 @@ class rack_Movements extends core_Manager
                 $stopUrl = toUrl($stopUrl, 'local');
                 $row->stopBtn = ht::createFnBtn('Приключване', '', null, array('class' => 'toggle-movement', 'data-url' => $stopUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
             } else {
-                $row->stopBtn = ht::createBtn('Приключване', $stopUrl, false, false, 'title=Приключване на движението,ef_icon=img/16/gray-close.png');
+                $img = ht::createImg(array('src' => sbf('img/16/gray-close.png', '')));
+                $row->stopBtn = ht::createLink($img, $stopUrl, false, 'title=Приключване на движението');
             }
         }
         
