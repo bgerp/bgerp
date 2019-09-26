@@ -176,6 +176,19 @@ class label_Templates extends core_Master
             // Добавяме бутон за нов етикет
             $data->toolbar->addBtn('Нов етикет', array('label_Prints', 'add', 'templateId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/price_tag_label.png, title=Създаване на нов етикет');
         }
+        
+        // Ако имаме права за листване на етикети
+        if (label_Prints::haveRightFor('list')) {
+            
+            $pQuery = label_Prints::getQuery();
+            $pQuery->where(array("#templateId = '[#1#]'", $data->rec->id));
+            $pQuery->show('id');
+            $cnt = $pQuery->count();
+            
+            if ($cnt) {
+                $data->toolbar->addBtn("Отпечатвания|* ({$cnt})", array('label_Prints', 'list', 'templateId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/view.png, title=Показване на всички етикети от този шаблон');
+            }
+        }
     }
     
     
