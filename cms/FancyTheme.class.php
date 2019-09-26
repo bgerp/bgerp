@@ -235,7 +235,7 @@ class cms_FancyTheme extends core_ProtoInner
                     $banner = '';
                     
                     if ($this->innerForm->interframeImage) {
-                        $img = new thumb_Img(array($this->innerForm->interframeImage, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+                        $img = new thumb_Img(array($this->innerForm->interframeImage, 2000, 300, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                         $imageURL = $img->getUrl('forced');
                         $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 2000, 'height' => 300, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => 'position:absolute'));
                         $banner .= $hImage;
@@ -278,7 +278,7 @@ class cms_FancyTheme extends core_ProtoInner
             
             if ($img) {
                 if (!Mode::is('screenMode', 'narrow')) {
-                    $img = new thumb_Img(array($img, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+                    $img = new thumb_Img(array($img, 2000, 300, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 } else {
                     $img = new thumb_Img(array($img, 360, 104, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 }
