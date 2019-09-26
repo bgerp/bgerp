@@ -176,9 +176,6 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             }
         }
         
-        $fieldset->FLD('paymentMap9', 'key(mvc=cond_Payments,select=title)', 'caption=Настройки на апарата за плащания->Допълнително 1,unit=(Позиция 9)');
-        $fieldset->FLD('paymentMap10', 'key(mvc=cond_Payments,select=title)', 'caption=Настройки на апарата за плащания->Допълнително 2,unit=(Позиция 10)');
-        $fieldset->FLD('paymentMap11', 'key(mvc=cond_Payments,select=title)', 'caption=Настройки на апарата за плащания->Валута,unit=(Позиция 11)');
         $fieldset->FLD('startNumber', 'varchar(7)', 'caption=Настройки на апарата за плащания->Начален номер');
         
         $fieldset->FLD('header', 'enum(yes=Да,no=Не)', 'caption=Надпис хедър в касовата бележка->Добавяне, notNull, removeAndRefreshForm');
@@ -391,10 +388,8 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             return true;
         }
         
-        // На 11 позиция се очаква да е избрана валутата
-        if(isset($rec->paymentMap11)){
-            $selectedCurrency = cond_Payments::fetchField($rec->paymentMap11, 'currencyCode');
-            if($selectedCurrency == $currencyCode) {
+        if ($rec->otherData['defPaymArr']) {
+            if ($rec->otherData['defPaymArr'][$currencyCode] == 11) {
                 
                 return true;
             }
