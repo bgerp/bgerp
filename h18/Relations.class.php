@@ -43,8 +43,11 @@ class h18_Relations extends core_Manager
             'core_users',
         );
         $res = '';
+        $t = array();
+        $t = $tables;
         foreach ($tables as $table) {
             $cls = core_Cls::get($table);
+            $res .= "<br>";
         // bp($cls->fields);
             foreach($cls->fields as $field) {
                 $className = get_class($field->type);
@@ -52,12 +55,16 @@ class h18_Relations extends core_Manager
                 switch ($className) {
                     case 'type_Key':
                         //bp($field->type->params['mvc'], $field->type->params['select']);
-                        $res .= $table . '_' . $field->name . '->' . $field->type->params['mvc'] . '_' . (empty($field->type->params['select'])?'id':$field->type->params['select']) . "<br>";
+                        //$res .= "\"" . $table . '_' . $field->name . "\"" . '->' . "\"" . $field->type->params['mvc'] . '_' . (empty($field->type->params['select'])?'id':$field->type->params['select']) . "\"" . "<br>";
+                        $res .= "<b>" . $table . '_' . $field->name . "</b>" . ' е връзка към ' . "<b>" . $field->type->params['mvc'] . '_' . 'id' . "</b>" . "<br>";
+                        $t[] = $field->type->params['mvc'];
                         break;
                     case 'type_KeyList':
                         break;
                     case 'type_CustomKey':
                        // bp($field->type->params['mvc'], $field->type->params['key'], $field->type->params['select']);
+                        $res .= "<b>" . $table . '_' . $field->name . "</b>" . ' е връзка към ' . "<b>" . $field->type->params['mvc'] . '_' . $field->type->params['key'] ."</b>" .  "<br>";
+                        $t[] = $field->type->params['mvc'];
                         break;
                 }
             }
