@@ -212,7 +212,9 @@ class cms_DefaultTheme extends core_ProtoInner
         if ($css) {
             $tpl->append($css, 'STYLES');
         }
-        
+
+        // добавяме css-a за структурата
+        $tpl->push('cms/css/Wide.css', 'CSS');
         // Добавяме дефолт темата за цветове
         $tpl->push('css/default-theme.css', 'CSS');
     }

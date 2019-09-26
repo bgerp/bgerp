@@ -59,7 +59,6 @@ class cms_FancyTheme extends core_ProtoInner
         // Фон на менюто
         $form->FLD('baseColor', 'color_Type', 'caption=Цветове за темата->Базов цвят');
         $form->FLD('activeColor', 'color_Type', 'caption=Цветове за темата->Активен цвят');
-        $form->FLD('bgColor', 'color_Type', 'caption=Цветове за темата->Фон на страницата');
     }
     
     
@@ -139,15 +138,7 @@ class cms_FancyTheme extends core_ProtoInner
                 $activeColor = '333';
             }
         }
-        
-        
-        if ($this->innerForm->bgColor) {
-            $background = ltrim($this->innerForm->bgColor, '#');
-        } else {
-            $background = phpcolor_Adapter::changeColor($baseColor, 'lighten', 30);
-            $background = phpcolor_Adapter::changeColor($background, 'mix', 1, '#fff');
-        }
-        
+
         // изчисления за фон и рамка на линковете
         if (phpcolor_Adapter::checkColor($activeColor, 'dark')) {
             $fontColor = phpcolor_Adapter::changeColor($activeColor, 'darken', 25);
@@ -181,9 +172,7 @@ class cms_FancyTheme extends core_ProtoInner
         if ($tempBalance < 200 && phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 20) != '#ffffff') {
             $bgcolorActive = phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 20);
         }
-        
-        $css .= "\n    .background-holder, body {background-color:#{$background} !important;}";
-        
+
         $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover, .cookies .agree {background-color:#{$activeColor};}";
         
         $css .= "\n    .selected-external-tab  {border-top: 3px solid #{$activeColor} !important;}";
@@ -191,7 +180,7 @@ class cms_FancyTheme extends core_ProtoInner
         // стилове за меню и футър
         $css .= "\n    #cmsMenu {background-color:#{$baseColor};}";
         $css .= "\n    .cookies {background-color:#{$baseColor};}";
-        $css .= "\n    #cmsBottom {background-color:#{$baseColor}; border-top:1px solid #{$bordercolor} !important;border-bottom:1px solid #{$bordercolor} !important;}";
+        $css .= "\n    #cmsBottom {background-color:#{$baseColor}; border-top:1px solid #{$bordercolor} !important;}";
         $css .= "\n    #cmsMenu {border-top:1px solid #{$bordercolor} !important; border-bottom:1px solid #{$bordercolor} !important;}";
         
         // цветове на формите в зависимост от основния цвят
@@ -213,7 +202,9 @@ class cms_FancyTheme extends core_ProtoInner
         if ($css) {
             $tpl->append($css, 'STYLES');
         }
-        
+
+        // добавяме css-a за структурата
+        $tpl->push('cms/css/Fancy.css', 'CSS');
         // Добавяме дефолт темата за цветове
         $tpl->push('css/default-theme.css', 'CSS');
     }
@@ -245,16 +236,15 @@ class cms_FancyTheme extends core_ProtoInner
                     if ($this->innerForm->interframeImage) {
                         $img = new thumb_Img(array($this->innerForm->interframeImage, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                         $imageURL = $img->getUrl('forced');
-                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => 'position:absolute'));
+                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 2000, 'height' => 300, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => 'position:absolute'));
                         $banner .= $hImage;
                     }
-                    
                     $banner .= '<div class="fadein">';
                     $style = '';
                     foreach ($imgs as $iHash) {
                         $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                         $imageURL = $img->getUrl('forced');
-                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
+                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 2000, 'height' => 300, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
                         $banner .= "\n{$hImage}";
                         $style = 'display:none;';
                     }
@@ -296,52 +286,10 @@ class cms_FancyTheme extends core_ProtoInner
             }
         }
         
-        // Да покаже дефолт картинките, ако няма зададени
-        if (!$imageURL) {
-            $imageURL = sbf($this->getDefaultHeaderImagePath(), '');
-        }
+
         
         $conf = core_Packs::getConfig('core');
-        $hImage = ht::createElement('img', array('src' => $imageURL, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg'));
         
         return $hImage;
-    }
-    
-    
-    /**
-     * Връща пътя до картинката за главата на публичната страница
-     */
-    private function getDefaultHeaderImagePath()
-    {
-        if (!Mode::is('screenMode', 'wide')) {
-            $screen = '-narrow';
-        } else {
-            $screen = '';
-        }
-        
-        $lg = '-' . cms_Content::getLang();
-        
-        $path = "cms/img/header{$screen}{$lg}.jpg";
-        
-        if (!getFullPath($path)) {
-            $path = "cms/img/header{$screen}.jpg";
-            if (!getFullPath($path)) {
-                $path = 'cms/img/header.jpg';
-                if (!getFullPath($path)) {
-                    if (Mode::is('screenMode', 'wide')) {
-                        $path = 'cms/img/bgERP.jpg';
-                    } else {
-                        $path = 'cms/img/bgERP-small.jpg';
-                    }
-                }
-            }
-        }
-        
-        // Дали си носим картинките по друг начин?
-        if (defined('EF_PRIVATE_PATH') && file_exists(EF_PRIVATE_PATH . '/' . $path)) {
-            $this->haveOwnHeaderImages = true;
-        }
-        
-        return $path;
     }
 }
