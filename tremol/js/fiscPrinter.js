@@ -543,7 +543,7 @@ function fpGetDefPayments()
     		}
         	
         	try {
-    			exRate = paymRes['ExRate'].trim();
+    			exRate = paymRes['ExRate'];
     		} catch(ex) { }
         }
     } catch(ex) {
