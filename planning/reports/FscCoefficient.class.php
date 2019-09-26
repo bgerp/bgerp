@@ -135,10 +135,6 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
             
             $singleProductWeight = cat_Products::getParams($jobRec->productId, 'weight');
             
-            //////////////////////////////////////////////////////
-            //////////////////////////////////////////////////////
-            // ЗАЩО НЯМА ТЕГЛО НА АРТИКУЛА
-            
             $singleProductWeight = $singleProductWeight ? $singleProductWeight : 'n.a.';
             
             //Масив от нишки в които може да има протоколи за производство към това задание   $threadsIdForCheck
@@ -186,6 +182,7 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
                     $grousFscIdsArr[$val] = $val;
                 }
                 
+                if (empty($grousFscIdsArr))return $recs;
                 $grousFscIdsKeylist = keylist::fromArray($grousFscIdsArr);
                 
                 
@@ -349,7 +346,7 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
         }
         
         if (isset($dRec->totalProductWeight)) {
-            $row->totalProductWeight = $Double->toVerbal($dRec->totalProductWeight);
+            $row->totalProductWeight = $Double->toVerbal($dRec->totalProductWeight/1000);
         }
         
         if (isset($dRec->consumWeight)) {
