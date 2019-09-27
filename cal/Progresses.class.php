@@ -115,11 +115,10 @@ class cal_Progresses extends core_Mvc
      */
     public static function on_AfterSave($Driver, $mvc, &$id, $rec, $saveFileds = null)
     {
-        $touchRec = false;
         if ($rec->originId) {
             $tDoc = doc_Containers::getDocument($rec->originId);
-            if ($tDoc->instance instanceof cal_Tasks) {
-                $touchRec = true;
+            if ($tDoc->isInstanceOf('cal_Tasks')) {
+                $tDoc->touchRec();
             }
         }
         
@@ -128,9 +127,18 @@ class cal_Progresses extends core_Mvc
             $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
             $Driver->updateTaskProgress($rec, $lGoodProgress);
         }
-        
+    }
+    
+    
+    /**
+     * Обновява отработеното време, ако коментара е към задача
+     * @param stdClass $rec
+     */
+    private function updateTaskWorkingTime($rec)
+    {
         // Променяме общото отработено време на задачата
         if ($rec->state != 'draft' && $rec->originId && $rec->workingTime) {
+            $tDoc = doc_Containers::getDocument($rec->originId);
             if ($tDoc->instance instanceof cal_Tasks) {
                 $tRec = $tDoc->fetch();
                 
@@ -163,10 +171,6 @@ class cal_Progresses extends core_Mvc
                 
                 $tDoc->instance->save($tRec, 'workingTime');
             }
-        }
-        
-        if ($touchRec) {
-            $tDoc->touchRec();
         }
     }
     
@@ -214,10 +218,12 @@ class cal_Progresses extends core_Mvc
         
         if ($rec->originId) {
             $tDoc = doc_Containers::getDocument($rec->originId);
-            if ($tDoc->instance instanceof cal_Tasks) {
+            if ($tDoc->isInstanceOf('cal_Tasks')) {
                 $tDoc->touchRec();
             }
         }
+
+        $Driver->updateTaskWorkingTime($rec);
     }
     
     
@@ -235,9 +241,10 @@ class cal_Progresses extends core_Mvc
         
         if ($rec->originId) {
             $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
-            
             $Driver->updateTaskProgress($rec, $lGoodProgress);
         }
+        
+        $Driver->updateTaskWorkingTime($rec);
     }
     
     
@@ -255,9 +262,10 @@ class cal_Progresses extends core_Mvc
         
         if ($rec->originId) {
             $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
-            
             $Driver->updateTaskProgress($rec, $lGoodProgress);
         }
+        
+        $Driver->updateTaskWorkingTime($rec);
     }
     
     
@@ -277,7 +285,6 @@ class cal_Progresses extends core_Mvc
             if ($tDoc->instance instanceof cal_Tasks && isset($progress)) {
                 $tRec = $tDoc->fetch();
                 $oldProgress = $tRec->progress;
-                $oldState = $tRec->state;
                 
                 // Ако има промяна в прогреса
                 if ($oldProgress != $progress) {
