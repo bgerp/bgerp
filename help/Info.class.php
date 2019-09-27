@@ -135,8 +135,12 @@ class help_Info extends core_Master
         
         if ($row->menu) {
             if (cls::load($rec->class, true)) {
-                $mvc = cls::get($rec->class);
-                if ($mvc->haveRightfor('list')) {
+                try {
+                    $mvc = cls::get($rec->class);
+                } catch (Throwable $e) {
+                    reportException($e);
+                }
+                if ($mvc && $mvc->haveRightfor('list')) {
                     $row->menu = ht::createLink($row->menu, array($rec->class), null, 'class=button');
                 } else {
                     $row->menu = ht::createLink($row->menu, null, null, 'class=button btn-disabled');

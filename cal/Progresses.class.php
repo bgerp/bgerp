@@ -8,14 +8,17 @@
  * @package   cal
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 class cal_Progresses extends core_Mvc
 {
-    public $interfaces = 'doc_ExpandCommentsIntf';
+    /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'doc_ExpandCommentsIntf,hr_IndicatorsSourceIntf';
     
     
     public $title = 'Прогрес';
@@ -417,5 +420,91 @@ class cal_Progresses extends core_Mvc
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Интерфейсен метод на hr_IndicatorsSourceIntf
+     *
+     * @return array $result
+     */
+    public static function getIndicatorNames()
+    {
+        $result = array();
+        
+        // Показател за делта на търговеца
+        $rec = hr_IndicatorNames::force('Отработено_време_по_задачи', __CLASS__, 1);
+        $result[$rec->id] = $rec->name;
+        
+        return $result;
+    }
+    
+    
+    /**
+     * Метод за вземане на резултатност на хората. За определена дата се изчислява
+     * успеваемостта на човека спрямо ресурса, които е изпозлвал
+     *
+     * @param datetime $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     *
+     * @return array $result  - масив с обекти
+     *
+     * 			o date        - дата на стайноста
+     * 		    o personId    - ид на лицето
+     *          o docId       - ид на документа
+     *          o docClass    - клас ид на документа
+     *          o indicatorId - ид на индикатора
+     *          o value       - стойноста на индикатора
+     *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
+     */
+    public static function getIndicatorValues($timeline)
+    {
+        $iRec = hr_IndicatorNames::force('Отработено_време_по_задачи', __CLASS__, 1);
+        $taskClassId = cal_Tasks::getClassId();
+        $self = cls::get(get_called_class());
+        $result = $persons = array();
+        
+        // Намиране на всички Коментари - Прогрес към модифицирани задачи след $timeline
+        $commentQuery = doc_Comments::getQuery();
+        $commentQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=originId');
+        $commentQuery->EXT('docId', 'doc_Containers', 'externalName=docId,externalKey=originId');
+        $commentQuery->EXT('taskState', 'doc_Containers', 'externalName=state,externalKey=originId');
+        $commentQuery->EXT('taskModifiedOn', 'doc_Containers', 'externalName=modifiedOn,externalKey=originId');
+        $commentQuery->where("#driverClass = {$self->getClassId()} AND #originId IS NOT NULL");
+        $commentQuery->where("#docClass = {$taskClassId} AND (#state = 'active' OR (#state = 'rejected' AND #brState = 'active'))");
+        $commentQuery->where("#taskModifiedOn >= '{$timeline}'");
+        $commentQuery->show('driverRec,state,brState,createdBy,activatedOn,docId,taskState,taskModifiedOn');
+        
+        // За всяка от тях
+        while($cRec = $commentQuery->fetch()){
+            
+            // Ако има отбелязано отработено време
+            $value = $cRec->driverRec['workingTime'];
+            if(empty($value)) continue;
+            
+            if(!array_key_exists($cRec->createdBy, $persons)){
+                $persons[$cRec->createdBy] = crm_Profiles::fetchField("#userId = {$cRec->createdBy}", 'personId');
+            }
+            
+            // Сумира се колко е отработил конкретния потребител
+            $date = dt::verbal2mysql($cRec->activatedOn, false);
+            $key = "{$persons[$cRec->createdBy]}|{$taskClassId}|{$cRec->docId}|{$cRec->taskState}|{$date}|{$iRec->id}";
+            if (!array_key_exists($key, $result)) {
+                $result[$key] = (object) array('date' => $date,
+                    'personId' => $persons[$cRec->createdBy],
+                    'docId' => $cRec->docId,
+                    'docClass' => $taskClassId,
+                    'indicatorId' => $iRec->id,
+                    'value' => 0,
+                    'isRejected' => ($cRec->taskState == 'rejected'));
+            }
+            
+            $sign = ($cRec->state == 'rejected') ? -1 : 1;
+            $result[$key]->value += $sign * $value;
+            if($result[$key]->value < 0){
+                $result[$key]->value = 0;
+            }
+        }
+        
+        return $result;
     }
 }

@@ -52,6 +52,11 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         }
         
         if (isset($rec->id)) {
+            $entriesProduction = $this->getProductionEntries($rec, $productsArr);
+            if (count($entriesProduction)) {
+                $entries = array_merge($entries, $entriesProduction);
+            }
+            
             // Генериране на записите
             $entries = array_merge($entries, $this->getTakingPart($rec, $productsArr, $totalVat, $posRec));
             
@@ -299,6 +304,43 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                 );
                 
                 $this->totalAmount += currency_Currencies::round($payment1->amount);
+            }
+        }
+        
+        return $entries;
+    }
+    
+    
+    private function getProductionEntries($rec, $productsArr)
+    {
+        $entries = array();
+        
+        foreach ($productsArr as $dRec){
+            
+            // Всички производими артикули
+            $canManifacture = cat_Products::fetchField($dRec->value, 'canManifacture');
+            if($canManifacture != 'yes') continue;
+            
+            // Ако имат моментна рецепта
+            $instantBomRec = cat_Products::getLastActiveBom($dRec->value, 'instant');
+            
+            if(!is_object($instantBomRec)) continue;
+            $quantity = $dRec->quantity * $dRec->quantityInPack;
+            
+                // И тя има ресурси, произвежда се по нея
+            $bomInfo = cat_Boms::getResourceInfo($instantBomRec, $quantity, $rec->createdOn);
+            if(is_array($bomInfo['resources'])){
+                foreach ($bomInfo['resources'] as &$resRec){
+                    $resRec->quantity = $resRec->propQuantity;
+                    $resRec->storeId = $dRec->storeId;
+                }
+                
+                // Извличане на записите за производството
+                $prodArr = planning_transaction_DirectProductionNote::getProductionEntries($dRec->value, $quantity,  $dRec->storeId, null, pos_Reports::getClassId(), $rec->id, null, $rec->createdOn, $bomInfo['expenses'], $bomInfo['resources']);
+                foreach ($prodArr as $pRec){
+                    $this->totalAmount += $pRec['amount'];
+                    $entries[] = $pRec;
+                }
             }
         }
         

@@ -250,6 +250,8 @@ class core_Sbf extends core_Mvc
                 self::saveFile_($toSave, $name);
             }
         }
+        
+        core_App::shutdown(false);
     }
 }
 

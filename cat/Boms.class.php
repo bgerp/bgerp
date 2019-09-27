@@ -1397,14 +1397,15 @@ class cat_Boms extends core_Master
      */
     protected static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
-        $data->listFilter->showFields .= ',type';
-        $data->listFilter->setOptions('type', array('all' => 'Всички', 'sales' => 'Търговски', 'instant' => 'Моментни', 'production' => 'Работни'));
-        $data->listFilter->setDefault('type', 'all');
+        $data->listFilter->setField('type', 'input=none');
+        $data->listFilter->FLD('typeF', 'enum(all=Всички,sales=Търговски,instant=Моментни,production=Работни)','caption=Вид,silent');
+        $data->listFilter->setDefault('typeF', 'all');
+        $data->listFilter->showFields .= ',typeF';
         
         $data->listFilter->input();
         if ($filter = $data->listFilter->rec) {
-            if ($filter->type != 'all') {
-                $data->query->where("#type = '{$filter->type}'");
+            if ($filter->typeF != 'all') {
+                $data->query->where("#type = '{$filter->typeF}'");
             }
         }
     }

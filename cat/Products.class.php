@@ -588,6 +588,19 @@ class cat_Products extends embed_Manager
                     }
                 }
             }
+            
+            if(isset($rec->id)){
+                $rec->_isEditedFromForm = true;
+               
+                // Предупреждение ако артикула е на чернова
+                $sQuery = sales_SalesDetails::getQuery();
+                $sQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
+                $sQuery->where("#productId = {$rec->id} AND #state = 'draft'");
+                $sQuery->show('id');
+                if($sQuery->fetch()){
+                    $form->setWarning('name', '|Артикулът участва в продажба на чернова|*. |Наистина ли желаете да редактирате артикула|*?');
+                }
+            }
         }
     }
     
@@ -1264,6 +1277,11 @@ class cat_Products extends embed_Manager
                 $mvc->save_($rec, 'isPublic');
             }
         }
+        
+        // Ако артикула е редактиран, преизчислява се транспорта
+        if($rec->_isEditedFromForm === true){
+            sales_TransportValues::recalcTransportByProductId($rec->id);
+        }
     }
     
     
@@ -1813,7 +1831,7 @@ class cat_Products extends embed_Manager
         if ($Driver = static::getDriver($productId)) {
             $rec = self::fetchRec($productId);
             $weight = $Driver->getTransportWeight($rec, $quantity);
-            if (!empty($weight)) {
+            if (!empty($weight) && !is_nan($weight)) {
                 
                 return $weight;
             }
@@ -1897,7 +1915,7 @@ class cat_Products extends embed_Manager
         if ($Driver = static::getDriver($productId)) {
             $rec = self::fetchRec($productId);
             $volume = $Driver->getTransportVolume($rec, $quantity);
-            if (!empty($volume)) {
+            if (!empty($volume) && !is_nan($volume)) {
                 
                 return $volume;
             }
@@ -3171,6 +3189,9 @@ class cat_Products extends embed_Manager
         $form->title = 'Промяна на групите на|* <b>' . cat_Products::getHyperlink($id, true) . '</b>';
         
         $this->setExpandInputField($form, $this->expandInputFieldName, $this->expandFieldName);
+        
+        // TODO - временно решение, трябва да се премахне след #C28560
+        unset($form->fields[$this->expandInputFieldName]->type->params['pathDivider']);
         
         $form->setDefault('groupsInput', $rec->groupsInput);
         $form->input();

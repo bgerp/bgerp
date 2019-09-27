@@ -30,19 +30,19 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     /**
      * Кой може да променя наличностите
      */
-    public $canCashReceived = 'admin, peripheral, cashMaster, posMaster';
+    public $canCashReceived = 'admin, peripheral, cash, posMaster';
     
     
     /**
      * Кой може да променя наличностите
      */
-    public $canCashPaidOut = 'admin, peripheral, cashMaster, posMaster';
+    public $canCashPaidOut = 'admin, peripheral, cash, posMaster';
     
     
     /**
      * Дефолтни кодове на начините на плащане
      */
-    public $canMakeReport = 'admin, peripheral, cashMaster, posMaster';
+    public $canMakeReport = 'admin, peripheral, cash, posMaster';
     
     
     /**
@@ -88,20 +88,6 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     /**
      * Дефолтни кодове на начините на плащане
      */
-    const DEFAULT_PAYMENT_MAP = array('Брой'       => 0,
-                                      'Чек'        => 1,
-                                      'Талон'      => 2,
-                                      'В.Талон'    => 3,
-                                      'Амбалаж'    => 4,
-                                      'Обслужване' => 5,
-                                      'Повреди'    => 6,
-                                      'Карта'      => 7,
-                                      'Банка'      => 8);
-    
-    
-    /**
-     * Дефолтни кодове на начините на плащане
-     */
     const DEFAULT_STORNO_REASONS_MAP = array('Операторска грешка' => 0,
                                              'Връщане/Рекламация' => 1,
                                              'Данъчно облекчение' => 2,);
@@ -139,8 +125,9 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      * @param stdClass $rec
      * @param string $rVerb
      * @param null|core_Et $jsTpl
+     * @param array $retUrl
      */
-    abstract protected function getResForReport($pRec, $rec, $rVerb = '', &$jsTpl = null);
+    abstract protected function getResForReport($pRec, $rec, $rVerb = '', &$jsTpl = null, $retUrl = array());
     
     
     /**
@@ -162,11 +149,10 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('serverIp', 'url', 'caption=Настройки за връзка със ZFPLAB сървър->IP адрес, mandatory');
-        $fieldset->FLD('serverTcpPort', 'int', 'caption=Настройки за връзка със ZFPLAB сървър->TCP порт, mandatory');
+        $fieldset->FLD('serverTcpPort', 'int(Min=0, max=65535)', 'caption=Настройки за връзка със ZFPLAB сървър->TCP порт, mandatory');
         
         $fieldset->FLD('driverVersion', 'enum(19.08.13,19.07.25,19.06.13)', 'caption=Настройки на ФУ->Версия, mandatory, notNull');
         $fieldset->FLD('fpType', 'enum(cashRegister=Касов апарат, fiscalPrinter=Фискален принтер)', 'caption=Настройки на ФУ->Тип, mandatory, notNull');
-        $fieldset->FLD('operPass', 'password', 'caption=Настройки на ФУ->Парола, hint=Паролата по подразбиране на ФУ');
         $fieldset->FLD('serialNumber', 'varchar(8)', 'caption=Настройки на ФУ->Сериен номер');
         
         $fieldset->FLD('type', 'enum(tcp=TCP връзка, serial=Сериен порт)', 'caption=Настройки за връзка с ФУ->Връзка, mandatory, notNull, removeAndRefreshForm=tcpIp|tcpPort|tcpPass|serialPort|serialSpeed');
@@ -190,12 +176,10 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             }
         }
         
-        $fieldset->FLD('paymentMap9', 'varchar', 'caption=Настройки на апарата за плащания->Позиция 9');
-        $fieldset->FLD('paymentMap10', 'varchar', 'caption=Настройки на апарата за плащания->Позиция 10');
-        $fieldset->FLD('paymentMap11', 'varchar', 'caption=Настройки на апарата за плащания->Позиция 11');
+        $fieldset->FLD('startNumber', 'varchar(7)', 'caption=Настройки на апарата за плащания->Начален номер');
         
-        $fieldset->FLD('header', 'enum(yes=Да,no=Не)', 'caption=Надпис хедър в касовата бележка->Добавяне, mandatory, notNull, removeAndRefreshForm');
-        $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър в касовата бележка->Позиция, mandatory, notNull');
+        $fieldset->FLD('header', 'enum(yes=Да,no=Не)', 'caption=Надпис хедър в касовата бележка->Добавяне, notNull, removeAndRefreshForm');
+        $fieldset->FLD('headerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис хедър в касовата бележка->Позиция, notNull');
         $fieldset->FLD('headerText1', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 1');
         $fieldset->FLD('headerText2', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 2');
         $fieldset->FLD('headerText3', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 3');
@@ -203,30 +187,12 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $fieldset->FLD('headerText5', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 5');
         $fieldset->FLD('headerText6', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 6');
         $fieldset->FLD('headerText7', "varchar({$this->fpLen})", 'caption=Надпис хедър в касовата бележка->Текст 7');
-        if ($fieldset instanceof core_Form) {
-            $fieldset->input('header');
-            if ($fieldset->rec->header == 'no') {
-                $fieldset->setField('headerText1', 'input=none');
-                $fieldset->setField('headerText2', 'input=none');
-                $fieldset->setField('headerText3', 'input=none');
-                $fieldset->setField('headerText4', 'input=none');
-                $fieldset->setField('headerText5', 'input=none');
-                $fieldset->setField('headerText6', 'input=none');
-                $fieldset->setField('headerText7', 'input=none');
-                $fieldset->setField('headerPos', 'input=none');
-            }
-        }
         
-        $fieldset->FLD('footer', 'enum(yes=Да, no=Не)', 'caption=Надпис футър в касовата бележка->Добавяне, mandatory, notNull, removeAndRefreshForm');
-        $fieldset->FLD('footerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис футър в касовата бележка->Позиция, mandatory, notNull');
+        $fieldset->FLD('footer', 'enum(yes=Да, no=Не)', 'caption=Надпис футър в касовата бележка->Добавяне, notNull, removeAndRefreshForm');
+        $fieldset->FLD('footerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис футър в касовата бележка->Позиция, notNull');
         $fieldset->FLD('footerText', "varchar({$this->fpLen})", 'caption=Надпис футър в касовата бележка->Текст');
-        if ($fieldset instanceof core_Form) {
-            $fieldset->input('footer');
-            if ($fieldset->rec->footer == 'no') {
-                $fieldset->setField('footerText', 'input=none');
-                $fieldset->setField('footerPos', 'input=none');
-            }
-        }
+        
+        $fieldset->FLD('otherData', "blob(serialize,compress)", 'caption=Опции,input=none');
     }
     
     
@@ -282,21 +248,6 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     {
         $form = &$data->form;
         
-        $pQuery = cond_Payments::getQuery();
-        $arrMap = array_flip(self::DEFAULT_PAYMENT_MAP);
-        $oMapArr = array('' => '');
-        
-        while ($pRec = $pQuery->fetch()) {
-            if (isset($pRec->code) && isset($arrMap[$pRec->code])) continue;
-            
-            if (!$pRec->currencyCode) continue;
-            
-            $oMapArr[$pRec->currencyCode] = $pRec->currencyCode;
-        }
-        $form->setOptions('paymentMap9', $oMapArr);
-        $form->setOptions('paymentMap10', $oMapArr);
-        $form->setOptions('paymentMap11', $oMapArr);
-        
         if (!$form->rec->id) {
             $form->setDefault('footerText', 'Отпечатано с bgERP');
             $form->setDefault('serverIp', 'http://127.0.0.1');
@@ -336,6 +287,25 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         if (!$form->rec->id) {
             $form->setDefault('serialSpeed', 115200);
         }
+        
+        $form->setDefault('header', 'no');
+        $form->input('header');
+        if ($form->rec->header == 'no') {
+            $form->setField('headerText1', 'input=none');
+            $form->setField('headerText2', 'input=none');
+            $form->setField('headerText3', 'input=none');
+            $form->setField('headerText4', 'input=none');
+            $form->setField('headerText5', 'input=none');
+            $form->setField('headerText6', 'input=none');
+            $form->setField('headerText7', 'input=none');
+            $form->setField('headerPos', 'input=none');
+        }
+        
+        $form->input('footer');
+        if ($form->rec->footer == 'no') {
+            $form->setField('footerText', 'input=none');
+            $form->setField('footerPos', 'input=none');
+        }
     }
     
     
@@ -369,6 +339,8 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     
     
     /**
+        
+        
      *
      * @param tremol_FiscPrinterDriverParent $Driver
      * @param peripheral_Devices        $Embedder
@@ -411,25 +383,15 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function isCurrencySupported($rec, $currencyCode)
     {
-        if (!$currencyCode) {
-            
-            return false;
-        }
-        
         if ($currencyCode == 'BGN') {
             
             return true;
         }
         
-        if ($currencyCode != 'BGN') {
-            
-            foreach(array(9,10,11) as $v) {
-                $r = 'paymentMap' . $v;
+        if ($rec->otherData['defPaymArr']) {
+            if ($rec->otherData['defPaymArr'][$currencyCode] == 11) {
                 
-                if ($rec->{$r} == $currencyCode) {
-                    
-                    return true;
-                }
+                return true;
             }
         }
         
@@ -447,31 +409,26 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function getPaymentCode($rec, $paymentId)
     {
-        // Ако не е подаден код на плащане се приема, че е брой
-        if(empty($paymentId)){
+        // Ако не е подаден код на плащане се приема, че е 'Брой'
+        if (empty($paymentId)){
             
-            return self::DEFAULT_PAYMENT_MAP['Брой'];
+            return 0;
         }
         
+        // Все пак трябва да има запис за плащането
         $pRec = cond_Payments::fetch($paymentId);
-        if(!$pRec) {
+        if (!$pRec) {
             
             return;
         }
         
+        $defPaymentMap = $rec->otherData['defPaymArr'];
+        
         $name = $pRec->title;
         if (!empty($name)) {
-            if (array_key_exists($name, self::DEFAULT_PAYMENT_MAP)) {
+            if (array_key_exists($name, $defPaymentMap)) {
                 
-                return self::DEFAULT_PAYMENT_MAP[$name];
-            }
-        }
-        
-        foreach(array(9,10,11) as $v) {
-            $r = 'paymentMap' . $v;
-            if ($pRec->currencyCode && $rec->{$r} == $pRec->currencyCode) {
-                
-                return $v;
+                return $defPaymentMap[$name];
             }
         }
     }
@@ -559,7 +516,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     protected static function getOperPass($operNum, $pRec)
     {
         
-        return strlen($pRec->operPass) ? $pRec->operPass : '0000';
+        return strlen($pRec->otherData['operPass']) ? $pRec->otherData['operPass'] : '0000';
     }
     
     
@@ -580,8 +537,6 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $pRec = peripheral_Devices::fetch($pId);
         
         expect($pRec);
-        
-        peripheral_Devices::requireRightFor('single', $pRec);
         
         $form = cls::get('core_Form');
         
@@ -693,8 +648,6 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         
         expect($pRec);
         
-        peripheral_Devices::requireRightFor('single', $pRec);
-        
         $form = cls::get('core_Form');
         
         $form->FLD('report', 'enum(day=Дневен,operator=Операторски (дневен),period=Период,month=Месечен,year=Годишен,klen=КЛЕН,csv=CSV)', 'caption=Отчет->Вид, mandatory, removeAndRefreshForm=zeroing,isDetailed,operNum,fromDate,toDate,flagReports,flagReceipts,csvFormat,printIn,saveType,printType');
@@ -798,7 +751,14 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             
             $jsTpl = null;
             
-            $this->getResForReport($pRec, $rec, $rVerb, $jsTpl);
+            $retUrl = getRetUrl();
+            if (empty($retUrl)) {
+                $retUrl = array('peripheral_Devices', 'single', $pId);
+            } else {
+                unset($retUrl['update']);
+            }
+            
+            $this->getResForReport($pRec, $rec, $rVerb, $jsTpl, $retUrl);
             
             $closeBtnName = 'Назад';
         } else {

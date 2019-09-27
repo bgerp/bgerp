@@ -519,5 +519,7 @@ class cat_products_Params extends doc_Detail
         if (cat_Params::fetchField("#id = '{$paramId}'", 'isFeature') == 'yes') {
             acc_Features::syncFeatures(cat_Products::getClassId(), $productId);
         }
+        
+        sales_TransportValues::recalcTransportByProductId($productId);
     }
 }

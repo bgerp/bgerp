@@ -1166,6 +1166,13 @@ class callcenter_Talks extends core_Master
                             
                             // Името да сочи към сингъла
                             $user = ht::createLink($name, array($extClass, 'single', $data->contragentId));
+                            
+                            if ($extClass instanceof crm_Persons) {
+                                $pRec = $extClass->fetch($data->contragentId);
+                                if ($pRec->buzCompanyId && crm_Companies::haveRightFor('single', $pRec->buzCompanyId, $userId)) {
+                                    $user .= ' |*(' . ht::createLink(crm_Companies::getVerbal($pRec->buzCompanyId, 'name'), array('crm_Companies', 'single', $pRec->buzCompanyId)) . ')';
+                                }
+                            }
                         }
                     }
                     
