@@ -63,10 +63,17 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
         //Период
         $fieldset->FLD('from', 'date', 'caption=Период->От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=Период->До,after=from,single=none,mandatory');
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи артикули,after=to,single=none,mandatory');
         
-        $fieldset->FNC('sumQuantyti', 'double(smartRound,decimals=2)', 'caption=Общо тегло производство,after=to,single=none,input=hiden');
+        
+        
+        $fieldset->FNC('sumProductWeight', 'double(smartRound,decimals=2)', 'caption=Общо тегло производство,after=to,single=none,input=hiden');
         $fieldset->FNC('sumConsumWeight', 'double(smartRound,decimals=2)', 'caption=Общо тегло вложено,after=sumQuantyti,single=none,input=hiden');
-        $fieldset->FNC('koefOfTransform', 'double(smartRound,decimals=2)', 'caption=Коефициент на трансформация,after=sumConsumWeight,single=none,input=hiden');
+        $fieldset->FNC('coefOfTransform', 'double(smartRound,decimals=2)', 'caption=Коефициент на трансформация,after=sumConsumWeight,single=none,input=hiden');
+    
+        $fieldset->FLD('see', 'enum(all=Всички, checked=Филтрирани)', 'notNull,caption=Покажи задания,maxRadio=2,after=groups,single=none');
+        
+    
     }
     
     
@@ -101,6 +108,8 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+        
+        $form->setDefault('see', 'all');
     }
     
     
@@ -117,9 +126,6 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
         $recs = array();
         
         $jobsQuery = planning_Jobs::getQuery();
-        
-        $jobsQuery->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
-        
         $jobsQuery->where("#state = 'closed'");
         $jobsQuery->where('#timeClosed IS NOT NULL');
         
@@ -135,7 +141,7 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
             
             $singleProductWeight = cat_Products::getParams($jobRec->productId, 'weight');
             
-            $singleProductWeight = $singleProductWeight ? $singleProductWeight : 'n.a.';
+            $singleProductWeight = $singleProductWeight ? $singleProductWeight/1000 : 'n.a.';
             
             //Масив от нишки в които може да има протоколи за производство към това задание   $threadsIdForCheck
             $threadsIdForCheck[] = $jobRec->threadId;
@@ -169,21 +175,8 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
                 $measureArtId = cat_Products::getProductInfo($jobRec->productId)->productRec->measureId;
                 
                 
-                //ВЛОЖЕНИ МАТЕРИАЛИ ОТ ГРУПА "Хартия FSC MIX Credit" и "Хартия, FSC Recycled 100%"
-                $grousFsc = array('Хартия FSC MIX Credit','Хартия, FSC Recycled 100%');
-                
-                //Общо тегло на вложените суровини от тези две групи
-                
-                
-                foreach ($grousFsc as $groupFsc) {
-                    
-                    // Масив с id-та на групите материали за проверка
-                    $val = cat_Groups::getQuery()->fetch("#name = '{$groupFsc}'")->id;
-                    $grousFscIdsArr[$val] = $val;
-                }
-                
-                if (empty($grousFscIdsArr))return $recs;
-                $grousFscIdsKeylist = keylist::fromArray($grousFscIdsArr);
+                //ВЛОЖЕНИ МАТЕРИАЛИ ОТ ИЗБРАНИТЕ ГРУПИ 
+                $grousFscIdsKeylist = $rec->groups;
                 
                 
                 //Вложени количества по ПРОТОКОЛИ ЗА ВЛАГАНЕ
@@ -207,7 +200,7 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
                 
                 while ($consumRec = $directProdQuery->fetch()) {
                     $productinNotesDetailQuery = planning_DirectProductNoteDetails::getQuery();
-                    $arr[] = $productinNotes;
+                    
                     $productinNotesDetailQuery->in('noteId', $productinNotes);
                     
                     $productinNotesDetailQuery->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
@@ -232,6 +225,8 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
                     $consumWeight -= array_sum(arr::extractValuesFromArray($retDetailQuery->fetchAll(), 'quantity'));
                 }
                 
+                if($rec->see == 'checked' && !$consumWeight)continue;
+                
                 $id = $jobRec->id;
                 
                 // Запис в масива
@@ -245,10 +240,8 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
                         'totalProductWeight' => $totalProductWeight,          // Теоретично тегло на произведеното количество артикули
                         'quantity' => $prodQuantity,                          //Произведено количество
                         'consumWeight' => $consumWeight,                      //Вложено количество от тези групи количество
-                        'koef' => '',                                         //Коефициент на трансформация
-                        'sumQuantyti' => '',                                  //Общо тегло на продукцията за периода
-                        'sumConsumWeight' => '',                              //Общо тегло на вложеното за периода
-                    
+                        'coef' => '',                                         //Коефициент на трансформация
+                        
                     );
                 } else {
                     $obj = &$recs[$id];
@@ -259,14 +252,15 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
                 }
             }
         }
-        $sumQuantyti = $sumConsumWeight = 0;
+        
+        $sumProductWeight = $sumConsumWeight = 0;
         foreach ($recs as $key => $val) {
-            $sumQuantyti += $val->totalProductWeight;
+            $sumProductWeight += $val->totalProductWeight;
             $sumConsumWeight += $val->consumWeight;
-            $val->koef = $val->consumWeight ?($val->totalProductWeight / 1000) / $val->consumWeight : 'n.a.';
+            $val->coef = $val->consumWeight ?($val->totalProductWeight) / $val->consumWeight : 'n.a.';
         }
         
-        $rec->sumQuantyti = $sumQuantyti / 1000;
+        $rec->sumProductWeight = $sumProductWeight;
         $rec->sumConsumWeight = $sumConsumWeight;
         
         return $recs;
@@ -297,7 +291,7 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
             
             $fld->FLD('consumWeight', 'double(smartRound,decimals=2)', 'caption=Вложено,tdClass=centered');
             
-            $fld->FLD('koef', 'double(smartRound,decimals=2)', 'caption=Коефициент,tdClass=centered');
+            $fld->FLD('coef', 'double(smartRound,decimals=2)', 'caption=Коефициент,tdClass=centered');
         }
         
         return $fld;
@@ -323,6 +317,14 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
         
         $row = new stdClass();
         
+        if (isset($dRec->coef)) {
+            if (is_numeric($dRec->coef)) {
+                $row->coef = $Double->toVerbal($dRec->coef);
+            } else {
+                $row->coef = core_Type::getByName('varchar')->toVerbal($dRec->coef);
+              
+            }
+        }
         
         if (isset($dRec->job)) {
             $row->job = planning_Jobs::getHyperlink($dRec->job);
@@ -346,16 +348,14 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
         }
         
         if (isset($dRec->totalProductWeight)) {
-            $row->totalProductWeight = $Double->toVerbal($dRec->totalProductWeight/1000);
+            $row->totalProductWeight = $Double->toVerbal($dRec->totalProductWeight);
         }
         
         if (isset($dRec->consumWeight)) {
             $row->consumWeight = $Double->toVerbal($dRec->consumWeight);
         }
         
-        if (isset($dRec->koef)) {
-            $row->koef = $Double->toVerbal($dRec->koef);
-        }
+        
         
         return $row;
     }
@@ -387,21 +387,43 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-        		                <small><div><!--ET_BEGIN sumQuantyti-->|Общо тегло на произведените артикули|*: [#sumQuantyti#]<!--ET_END sumQuantyti--></div></small>
+                                <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
+                                <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>   		               
+                                <small><div><!--ET_BEGIN groups-->|Групи продукти|*: [#groups#]<!--ET_END groups--></div></small>                              
+                                <small><div><!--ET_BEGIN sumProductWeight-->|Общо тегло на произведените артикули|*: [#sumProductWeight#]<!--ET_END sumProductWeight--></div></small>
                                 <small><div><!--ET_BEGIN sumConsumWeight-->|Общо тегло на вложените артикули|*: [#sumConsumWeight#]<!--ET_END sumConsumWeight--></div></small>
-                                <small><div><!--ET_BEGIN koefOfTransform-->|Коефициент на трансформация|*: [#koefOfTransform#]<!--ET_END koefOfTransform--></div></small>
+                                <small><div><!--ET_BEGIN coefOfTransform-->|Коефициент на трансформация|*: [#coefOfTransform#]<!--ET_END coefOfTransform--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
+        if (isset($data->rec->from)) {
+            $fieldTpl->append('<b>' . $data->rec->from . '</b>', 'from');
+        }
         
-        if (isset($data->rec->sumQuantyti)) {
-            $fieldTpl->append('<b>'. core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->sumQuantyti) .'</b>', 'sumQuantyti');
+        if (isset($data->rec->to)) {
+            $fieldTpl->append('<b>' . $data->rec->to . '</b>', 'to');
+        }
+        
+        if ((isset($data->rec->groups))) {
+            foreach (type_Keylist::toArray($data->rec->groups) as $group) {
+                $groupVerb .= (cat_Groups::getTitleById($group) . ', ');
+            }
+            
+            $fieldTpl->append('<b>' . trim($groupVerb, ',  ') . '</b>', 'groups');
+        } 
+        
+        if (isset($data->rec->sumProductWeight)) {
+            $fieldTpl->append('<b>'. core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->sumProductWeight) .'</b>', 'sumProductWeight');
         }
         
         if (isset($data->rec->sumConsumWeight)) {
             $fieldTpl->append('<b>'. core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->sumConsumWeight) .'</b>', 'sumConsumWeight');
         }
         
-        
-        $fieldTpl->append('<b>'. core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->sumQuantyti / $data->rec->sumConsumWeight) .'</b>', 'koefOfTransform');
+        if($data->rec->sumConsumWeight){
+            $fieldTpl->append('<b>'. core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->sumProductWeight / $data->rec->sumConsumWeight) .'</b>', 'coefOfTransform');
+        }else{
+            $fieldTpl->append('<b>'. 'n.a.' .'</b>', 'coefOfTransform');
+            
+        }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
