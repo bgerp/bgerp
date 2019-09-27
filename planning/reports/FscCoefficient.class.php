@@ -395,11 +395,11 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN coefOfTransform-->|Коефициент на трансформация|*: [#coefOfTransform#]<!--ET_END coefOfTransform--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         if (isset($data->rec->from)) {
-            $fieldTpl->append('<b>' . $data->rec->from . '</b>', 'from');
+            $fieldTpl->append('<b>' .$Date->toVerbal($data->rec->from) . '</b>', 'from');
         }
         
         if (isset($data->rec->to)) {
-            $fieldTpl->append('<b>' . $data->rec->to . '</b>', 'to');
+            $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
         }
         
         if ((isset($data->rec->groups))) {
