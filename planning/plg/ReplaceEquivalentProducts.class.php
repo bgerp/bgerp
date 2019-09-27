@@ -78,12 +78,14 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
                 
                 // Обновяваме записа
                 $nRec = $form->rec;
+                $nFields = array();
                 if ($mvc->isUnique($nRec, $nFields)) {
                     $nRec->autoAllocate = true;
                     $mvc->save($nRec);
                     
                     return followRetUrl();
                 }
+                
                 $form->setError($nFields, 'Вече съществува запис със същите данни');
             }
             
@@ -106,7 +108,7 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    protected static function on_AfterPrepareListRows($mvc, &$data)
+    public static function on_AfterPrepareListRows($mvc, &$data)
     {
         $rows = &$data->rows;
         if (!count($rows)) {
@@ -123,7 +125,7 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
                 if ($mvc->hasPlugin('plg_RowTools2')) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $row->_rowTools->addLink('Заместване', $url, array('ef_icon' => 'img/16/arrow_refresh.png', 'title' => 'Избор на заместващ материал'));
-                    $row->{$mvc->replaceProductFieldName} = ht::createHint($row->{$mvc->replaceProductFieldName}, 'Артикулът може да бъде заместен');
+                    $row->{$mvc->replaceProductFieldName} = ht::createHint($row->{$mvc->replaceProductFieldName}, 'Артикулът може да бъде заместен с подобен');
                 } elseif ($mvc->hasPlugin('plg_RowTools')) {
                     if (!is_object($row->{$mvc->rowToolsField})) {
                         $row->{$mvc->rowToolsField} = new core_ET('[#TOOLS#]');
