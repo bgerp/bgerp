@@ -389,7 +389,7 @@ class planning_reports_FscCoefficient extends frame2_driver_TableData
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                 <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>   		               
-                                <small><div><!--ET_BEGIN groups-->|Групи продукти|*: [#groups#]<!--ET_END groups--></div></small>                              
+                                <small><div><!--ET_BEGIN groups-->|Групи материали|*: [#groups#]<!--ET_END groups--></div></small>                              
                                 <small><div><!--ET_BEGIN sumProductWeight-->|Общо тегло на произведените артикули|*: [#sumProductWeight#]<!--ET_END sumProductWeight--></div></small>
                                 <small><div><!--ET_BEGIN sumConsumWeight-->|Общо тегло на вложените артикули|*: [#sumConsumWeight#]<!--ET_END sumConsumWeight--></div></small>
                                 <small><div><!--ET_BEGIN coefOfTransform-->|Коефициент на трансформация|*: [#coefOfTransform#]<!--ET_END coefOfTransform--></div></small>
