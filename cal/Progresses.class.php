@@ -479,14 +479,6 @@ class cal_Progresses extends core_Mvc
         $commentQuery->where("#driverClass = {$self->getClassId()} AND #originId IS NOT NULL");
         $commentQuery->where("#docClass = {$taskClassId} AND (#state = 'active' OR (#state = 'rejected' AND #brState = 'active'))");
         $commentQuery->where("#taskModifiedOn >= '{$timeline}'");
-        
-        //$allComments = $commentQuery->fetchAll();
-        //$tasks = arr::extractValuesFromArray($arr, $field)
-        
-       // bp($commentQuery->fetchAll());
-        
-        
-        
         $commentQuery->show('driverRec,state,brState,createdBy,activatedOn,docId,taskState,taskModifiedOn');
         
         // За всяка от тях
