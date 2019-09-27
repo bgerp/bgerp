@@ -479,6 +479,14 @@ class cal_Progresses extends core_Mvc
         $commentQuery->where("#driverClass = {$self->getClassId()} AND #originId IS NOT NULL");
         $commentQuery->where("#docClass = {$taskClassId} AND (#state = 'active' OR (#state = 'rejected' AND #brState = 'active'))");
         $commentQuery->where("#taskModifiedOn >= '{$timeline}'");
+        
+        //$allComments = $commentQuery->fetchAll();
+        //$tasks = arr::extractValuesFromArray($arr, $field)
+        
+       // bp($commentQuery->fetchAll());
+        
+        
+        
         $commentQuery->show('driverRec,state,brState,createdBy,activatedOn,docId,taskState,taskModifiedOn');
         
         // За всяка от тях
@@ -505,10 +513,8 @@ class cal_Progresses extends core_Mvc
                     'isRejected' => ($cRec->taskState == 'rejected'));
             }
             
-            $sign = ($cRec->state == 'rejected') ? -1 : 1;
-            $result[$key]->value += $sign * $value;
-            if($result[$key]->value < 0){
-                $result[$key]->value = 0;
+            if($cRec->state == 'active'){
+                $result[$key]->value += $value;
             }
         }
         
