@@ -201,7 +201,7 @@ class cms_DefaultTheme extends core_ProtoInner
         $css .= "\n    .additionalFooter {background-color:#{$background} !important;}";
         
         // Цвятове за линковете и h2 заглавията
-        $css .= "\n    #cmsNavigation .nav_item a { color: #{$fontColor};}";
+        $css .= "\n    .nav_item a { color: #{$fontColor};}";
         $css .= "\n    .cookies a { color: #{$bgcolorActive} !important;}";
         
         $css .= "\n    #all #maincontent .richtext a:visited, #all #maincontent .articles-menu a:visited, #all #maincontent .blogm-categories a:visited{ color: #{$visitedFontColor};}";
