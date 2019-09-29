@@ -304,7 +304,7 @@ class cms_Articles extends core_Master
         }
 
         if($prevLink || $nextLink) {
-            $content->append("<table style='margin-top:10px;margin-bottom:7px;' width=100%><tr><td align=left>{$prevLink}</td><td> </td><td align=right>{$nextLink}</td></tr></table>");
+            $content->append("<table class='prevNextNav' cellpadding=5><tr><td align=left'>{$prevLink}</td><td> </td><td align=right>{$nextLink}</td></tr></table>");
         }
 
 
