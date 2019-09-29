@@ -495,12 +495,16 @@ class blogm_Articles extends core_Master
         if($rec->categories) {
 
             $query = self::getQuery();
+            
+            $query->orderBy("#publishedOn");
 
-            $query->likeKeylist('categories', keylist::fromArray($rec->categories));
+            $query->likeKeylist('categories', $rec->categories);
+
             $selected = false;
             $prev = $next = null;
+            $now = dt::now();
 
-            while($r = $query->fetch("#state = 'active'")) {  
+            while($r = $query->fetch("#state = 'active' AND #publishedOn <= '{$now}'")) {  
                 if($r->id == $rec->id) {
                     $flagSelected = true;
                 } elseif(strlen($r->body)) {
@@ -516,10 +520,10 @@ class blogm_Articles extends core_Master
             // Линкове за следваща/предишна статия
             $prevLink = $nextLink = '';
             if($prev) {
-                $prevLink = ht::createLink('« ' . $prev->title, self::getUrl($prev));
+                $prevLink = ht::createLink('«&nbsp;' . $prev->title, self::getUrl($prev));
             }
             if($next) {
-                $nextLink = ht::createLink($next->title . ' »', self::getUrl($next));
+                $nextLink = ht::createLink($next->title . '&nbsp;»', self::getUrl($next));
             }
  
             if($prevLink || $nextLink) {

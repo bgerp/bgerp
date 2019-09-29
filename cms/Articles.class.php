@@ -297,10 +297,10 @@ class cms_Articles extends core_Master
         // Линкове за следваща/предишна статия
         $prevLink = $nextLink = '';
         if($navData->prev) {
-            $prevLink = ht::createLink('« ' . $navData->prev->title, $navData->prev->url);
+            $prevLink = ht::createLink('«&nbsp;' . $navData->prev->title, $navData->prev->url);
         }
         if($navData->next) {
-            $nextLink = ht::createLink($navData->next->title . ' »', $navData->next->url);
+            $nextLink = ht::createLink($navData->next->title . '&nbsp;»', $navData->next->url);
         }
 
         if($prevLink || $nextLink) {
