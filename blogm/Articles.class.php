@@ -504,7 +504,7 @@ class blogm_Articles extends core_Master
             $prev = $next = null;
             $now = dt::now();
 
-            while($r = $query->fetch("#state = 'active' AND #publishedOn <= '{$now}'")) {  
+            while($r = $query->fetch("#state = 'active' AND IF(#publishedOn IS NULL OR #publishedOn = '', #createdOn, #publishedOn)  <= '{$now}'")) {  
                 if($r->id == $rec->id) {
                     $flagSelected = true;
                 } elseif(strlen($r->body)) {
