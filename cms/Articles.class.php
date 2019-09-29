@@ -297,14 +297,14 @@ class cms_Articles extends core_Master
         // Линкове за следваща/предишна статия
         $prevLink = $nextLink = '';
         if($navData->prev) {
-            $prevLink = ht::createLink('«' . $navData->prev->title, $navData->prev->url);
+            $prevLink = ht::createLink('« ' . $navData->prev->title, $navData->prev->url);
         }
         if($navData->next) {
-            $nextLink = ht::createLink($navData->next->title . '»', $navData->next->url);
+            $nextLink = ht::createLink($navData->next->title . ' »', $navData->next->url);
         }
 
         if($prevLink || $nextLink) {
-            $content->append("<table class='prevNextNav' cellpadding=5><tr><td align=left'>{$prevLink}</td><td> </td><td align=right>{$nextLink}</td></tr></table>");
+            $content->append("<div class='prevNextNav'><div style='float:left;margin-right:5px;'>{$prevLink}</div><div style='float:right;margin-left:5px;'>{$nextLink}</div></div>");
         }
 
 
@@ -425,11 +425,11 @@ class cms_Articles extends core_Master
 
             if($l->selected) {
                 $flagSelected = true;
-            } else {
-                if(!$flagSelected && $l->url) {
+            } elseif($l->url) {
+                if(!$flagSelected) {
                     $navData->prev = $l;
                 }
-                if($flagSelected && $l->url && !$navData->next) {
+                if($flagSelected && !$navData->next) {
                     $navData->next = $l;
                 }
             }
