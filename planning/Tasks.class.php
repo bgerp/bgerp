@@ -795,8 +795,9 @@ class planning_Tasks extends core_Master
         $tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
         
         if (isset($rec->systemId, $tasks[$rec->systemId])) {
-            foreach (array('plannedQuantity', 'productId', 'quantityInPack', 'packagingId') as $fld) {
-                $form->setDefault($fld, $tasks[$rec->systemId]->{$fld});
+            $fields = array_keys($form->selectFields("#input != 'none' AND #input != 'hidden'"));
+            foreach ($fields as $fieldName) {
+                $form->setDefault($fieldName, $tasks[$rec->systemId]->{$fieldName});
             }
             $form->setReadOnly('productId');
         }
