@@ -90,8 +90,8 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
             }
             
             // Бутони и заглавие на формата
-            $name = cat_Products::getTitleById($rec->{$mvc->replaceProductFieldName});
-            $form->title = "Подмяна на |* <b>{$name}</b> |с друг взаимозаменям артикул|*";
+            $name = cat_Products::getHyperlink($rec->{$mvc->replaceProductFieldName}, true);
+            $form->title = "Подмяна на |* <b>{$name}</b> |с друг в|* <b>" . $mvc->Master->getHyperlink($form->rec->{$mvc->masterKey}, true) . "</b>";
             $form->toolbar->addSbBtn('Подмяна', 'replaceproduct', 'ef_icon = img/16/star_2.png, title=Подмяна');
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
             
@@ -125,7 +125,7 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
                 if ($mvc->hasPlugin('plg_RowTools2')) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $row->_rowTools->addLink('Заместване', $url, array('ef_icon' => 'img/16/arrow_refresh.png', 'title' => 'Избор на заместващ материал'));
-                    $row->{$mvc->replaceProductFieldName} = ht::createHint($row->{$mvc->replaceProductFieldName}, 'Артикулът може да бъде заместен с подобен');
+                    $row->{$mvc->replaceProductFieldName} = ht::createHint($row->{$mvc->replaceProductFieldName}, 'Артикулът може да бъде заместен с подобен', 'notice', false);
                 } elseif ($mvc->hasPlugin('plg_RowTools')) {
                     if (!is_object($row->{$mvc->rowToolsField})) {
                         $row->{$mvc->rowToolsField} = new core_ET('[#TOOLS#]');
