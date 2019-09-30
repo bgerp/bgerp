@@ -417,20 +417,7 @@
                     <!--    <h6 style='margin: 10px 0 0;'>(Св. Валентин, Трифон Зарезан)</h6> -->
                     <div class="x_content" style="display: block; margin-top: 15px;">
                         <figure class="icons">
-                            <!--
-
-                            <canvas id="clear-night" width="64" height="64"></canvas>
-                            <canvas id="partly-cloudy-day" width="64" height="64"></canvas>
-                            <canvas id="partly-cloudy-night" width="64" height="64"></canvas>
-
-                            <canvas id="rain" width="64" height="64"></canvas>
-                            <canvas id="sleet" width="64" height="64"></canvas>
-                            <canvas id="cloudy" width="120" height="120" ></canvas>
-                            <canvas id="wind" width="64" height="64"></canvas>
-                            <canvas id="snow" width="120" height="120" ></canvas>
-                            <canvas id="fog" width="64" height="64"></canvas>
-
--->                         <canvas class='weather-icon' width="120" height="120" style="display: block;position:relative; left: 50%; margin: 30px auto 30px -70px;"></canvas>
+                            <canvas class='weather-icon'  width="120" height="120" style="display: block;position:relative; left: 50%; margin: 30px auto 30px -70px;"></canvas>
 
                         </figure>
                         <p class="weatherStat"> </p>

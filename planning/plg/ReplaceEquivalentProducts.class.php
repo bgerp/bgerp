@@ -2,12 +2,13 @@
 
 
 /**
+ * Плъгин подменящ заместващите артикули
  *
  * @category  bgerp
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -77,18 +78,20 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
                 
                 // Обновяваме записа
                 $nRec = $form->rec;
+                $nFields = array();
                 if ($mvc->isUnique($nRec, $nFields)) {
                     $nRec->autoAllocate = true;
                     $mvc->save($nRec);
                     
                     return followRetUrl();
                 }
+                
                 $form->setError($nFields, 'Вече съществува запис със същите данни');
             }
             
             // Бутони и заглавие на формата
-            $name = cat_Products::getTitleById($rec->{$mvc->replaceProductFieldName});
-            $form->title = "Подмяна на |* <b>{$name}</b> |с друг взаимозаменям артикул|*";
+            $name = cat_Products::getHyperlink($rec->{$mvc->replaceProductFieldName}, true);
+            $form->title = "Подмяна на |* <b>{$name}</b> |с друг в|* <b>" . $mvc->Master->getHyperlink($form->rec->{$mvc->masterKey}, true) . "</b>";
             $form->toolbar->addSbBtn('Подмяна', 'replaceproduct', 'ef_icon = img/16/star_2.png, title=Подмяна');
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
             
@@ -105,7 +108,7 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    protected static function on_AfterPrepareListRows($mvc, &$data)
+    public static function on_AfterPrepareListRows($mvc, &$data)
     {
         $rows = &$data->rows;
         if (!count($rows)) {
@@ -121,14 +124,14 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
                 $url = array($mvc, 'replaceproduct', $rec->id, 'ret_url' => true);
                 if ($mvc->hasPlugin('plg_RowTools2')) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
-                    $row->_rowTools->addLink('Заместване', $url, array('ef_icon' => 'img/16/dropdown.gif', 'title' => 'Избор на заместващ материал'));
-                    $row->{$mvc->replaceProductFieldName} = ht::createHint($row->{$mvc->replaceProductFieldName}, 'Артикулът може да бъде заместен');
+                    $row->_rowTools->addLink('Заместване', $url, array('ef_icon' => 'img/16/arrow_refresh.png', 'title' => 'Избор на заместващ материал'));
+                    $row->{$mvc->replaceProductFieldName} = ht::createHint($row->{$mvc->replaceProductFieldName}, 'Артикулът може да бъде заместен с подобен', 'notice', false);
                 } elseif ($mvc->hasPlugin('plg_RowTools')) {
                     if (!is_object($row->{$mvc->rowToolsField})) {
                         $row->{$mvc->rowToolsField} = new core_ET('[#TOOLS#]');
                     }
                     
-                    $btn = ht::createLink('', $url, false, 'ef_icon=img/16/dropdown.gif,title=Избор на заместващ материал');
+                    $btn = ht::createLink('', $url, false, 'ef_icon=img/16/arrow_refresh.png,title=Избор на заместващ материал');
                     $row->{$mvc->rowToolsField}->append($btn, 'TOOLS');
                 }
             }

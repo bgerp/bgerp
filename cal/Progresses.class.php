@@ -505,10 +505,8 @@ class cal_Progresses extends core_Mvc
                     'isRejected' => ($cRec->taskState == 'rejected'));
             }
             
-            $sign = ($cRec->state == 'rejected') ? -1 : 1;
-            $result[$key]->value += $sign * $value;
-            if($result[$key]->value < 0){
-                $result[$key]->value = 0;
+            if($cRec->state == 'active'){
+                $result[$key]->value += $value;
             }
         }
         

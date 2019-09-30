@@ -90,6 +90,8 @@ class type_Keylist extends core_Type
                         if ((!Mode::is('text', 'xhtml')) && (!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
                             if ($this->params['makeLinks'] === 'short') {
                                 $name = ht::createLinkRef($name, array($mvc, 'Single', $v), false, $attr);
+                            } elseif($this->params['makeLinks'] === 'hyperlink' && ($mvc instanceof core_Master)) {
+                                $name = $mvc->getHyperlink($v);
                             } else {
                                 $name = ht::createLink($name, array($mvc, 'Single', $v), false, $attr);
                             }

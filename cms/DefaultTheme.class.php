@@ -208,7 +208,9 @@ class cms_DefaultTheme extends core_ProtoInner
         $css .= "\n    #cmsNavigation .sel_page a, #cmsNavigation a:hover, .cookies .agree {background-color: #{$bgcolorActive} !important; border: 1px solid #{$linkBorder} !important; color: #{$fontColor}}";
         $css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a,.additionalFooter .footer-links, .additionalFooter .footer-links a{color: #{$fontColor} !important;}";
         $css .= "\n    h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px;border:none !important}";
-        
+        $css .= "\n    .prevNextNav {border:dotted 1px #ccc; background-color:#eee; margin-top:10px;margin-bottom:7px; width:100%; display:table;}";
+        $css .= "\n    .prevNextNav div {margin:5px;}";
+
         if ($css) {
             $tpl->append($css, 'STYLES');
         }

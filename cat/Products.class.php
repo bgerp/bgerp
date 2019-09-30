@@ -589,7 +589,7 @@ class cat_Products extends embed_Manager
                 }
             }
             
-            if(isset($rec->id)){
+            if(isset($rec->id) && $form->_cloneForm !== true){
                 $rec->_isEditedFromForm = true;
                
                 // Предупреждение ако артикула е на чернова

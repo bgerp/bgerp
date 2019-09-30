@@ -187,7 +187,7 @@ class blogm_Comments extends core_Detail
      */
     public static function renderComments_($data, $layout)
     {
-        if (count($data->commentsRows)) {
+        if (countR($data->commentsRows)) {
             foreach ($data->commentsRows as $row) {
                 $commentTpl = $data->ThemeClass->getCommentsLayout();
                 $commentTpl->placeObject($row);

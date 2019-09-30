@@ -39,14 +39,13 @@ class ztm_Adapter extends core_Mvc
 
 
         $now = dt::now(false);
-        $forRec = darksky_Forecasts::getForecast($now);
-        if ($forRec) {
-            $iconUrl = 'https://darksky.net/images/weather-icons/' . $forRec->icon . '.png';
-
-            $data = json_encode($forRec);
-            jquery_Jquery::run($tpl, "prepareDashboard({$data})");
-
+        if(core_Packs::isInstalled('darksky') && darksky_Setup::get('API_KEY') && darksky_Setup::get('LOCATION')) {
+            $data = darksky_Forecasts::getForecast($now);
+        } else {
+            $data = "";
         }
+        $data = json_encode($data);
+        jquery_Jquery::run($tpl, "prepareDashboard({$data})");
 
         return $tpl;
     }

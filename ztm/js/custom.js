@@ -31,7 +31,7 @@ function prepareDashboard(data){
     var time = today.getHours() + "<span>:</span>" + min;
     $('#currentTime').append(time);
 
-    var weatherStat = "Температурите ще са в интервала от " + parseInt(data.low) + " до " + parseInt(data.high) + "°C.";
+    var weatherStat = data.low ? "Температурите ще са в интервала от " + parseInt(data.low) + " до " + parseInt(data.high) + "°C." : "Няма информация за текущата прогноза.";
     $('.weatherStat').html(weatherStat);
 
     $('#navbarCollapse a:first').tab('show');
