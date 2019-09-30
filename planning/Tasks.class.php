@@ -628,6 +628,12 @@ class planning_Tasks extends core_Master
         
         $rec->producedQuantity = $producedQuantity;
         
+        // Ако няма зададено начало, тогава се записва времето на първо добавения запис
+        if(empty($rec->timeStart) && !isset($rec->timeDuration, $rec->timeEnd) && planning_ProductionTaskDetails::count("#taskId = {$rec->id}")){
+            $rec->timeStart = dt::now();
+            $updateFields .= ',timeStart';
+        }
+        
         return $this->save($rec, $updateFields);
     }
     
@@ -1308,6 +1314,19 @@ class planning_Tasks extends core_Master
         if (planning_ConsumptionNotes::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
             $pUrl = array('planning_ConsumptionNotes', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
             $data->toolbar->addBtn('Влагане', $pUrl, 'ef_icon = img/16/produce_in.png,title=Създаване на протокол за влагане от операцията');
+        }
+    }
+    
+    
+    /**
+     * След промяна на състоянието
+     */
+    protected static function on_AfterChangeState($mvc, &$rec, $action)
+    {
+        // При затваряне се попълва очаквания край, ако не може да се изчисли
+        if($action == 'closed' && empty($rec->timeEnd) && !isset($rec->timeStart, $rec->timeDuration)){
+            $rec->timeEnd =  dt::now();
+            $mvc->save_($rec, 'timeEnd');
         }
     }
 }
