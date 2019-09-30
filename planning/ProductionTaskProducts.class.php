@@ -44,13 +44,19 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, plg_SaveAndNew, plg_Modified, plg_Created, planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, planning_plg_ReplaceEquivalentProducts, plg_SaveAndNew, plg_Modified, plg_Created, planning_Wrapper';
     
     
     /**
      * Кой има право да променя?
      */
     public $canEdit = 'taskPlanning, ceo';
+    
+    
+    /**
+     * Кой има право да променя взаимно заменяемите артикули?
+     */
+    public $canReplaceproduct = 'taskPlanning, ceo';
     
     
     /**
@@ -178,7 +184,10 @@ class planning_ProductionTaskProducts extends core_Detail
             
             if(isset($rec->id)){
                 $form->setReadOnly('productId');
-                $form->setReadOnly('packagingId');
+                if($data->action != 'replaceproduct'){
+                    $form->setReadOnly('packagingId');
+                }
+                
                 if (!haveRole('ceo,planningMaster')) {
                     $form->setReadOnly('indTime');
                 }
@@ -278,6 +287,12 @@ class planning_ProductionTaskProducts extends core_Detail
         
         if (($action == 'delete') && isset($rec->taskId)) {
             if (planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #productId = {$rec->productId}")) {
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        if($action == 'replaceproduct' && isset($rec)){
+            if($rec->type == 'production' || planning_ProductionTaskDetails::fetch("#taskId = {$rec->taskId} AND #productId = {$rec->productId}")){
                 $requiredRoles = 'no_one';
             }
         }
