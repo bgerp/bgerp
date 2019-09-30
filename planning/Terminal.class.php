@@ -773,7 +773,7 @@ class planning_Terminal extends peripheral_Terminal
         
         Mode::setPermanent('currentPlanningPoint', $id);
         Mode::set('wrapper', 'page_Empty');
-        $verbalAsset = strip_tags(core_Type::getByName('keylist(mvc=planning_AssetResources,select=code)')->toVerbal($rec->fixedAssets));
+        $verbalAsset = strip_tags(core_Type::getByName('keylist(mvc=planning_AssetResources,makeLinks=hyperlink)')->toVerbal($rec->fixedAssets));
         
         $tpl = getTplFromFile('planning/tpl/terminal/Point.shtml');
         $tpl->replace($rec->name, 'name');
