@@ -68,7 +68,7 @@ class doc_FolderResources extends core_Manager
         // Подготовка на данните за оборудването
         if (isset($resourceTypes['assets'])) {
             $data->aData = clone $data;
-            $data->aData->itemsPerPage = $this->listAssetsPerPage;
+            $data->aData->itemsPerPage = 5;$this->listAssetsPerPage;
             $data->aData->listTableMvc = clone cls::get('planning_AssetResources');
             $this->prepareResourceData($data->aData, 'planning_AssetResources');
         }
@@ -110,8 +110,7 @@ class doc_FolderResources extends core_Manager
         if ($DetailName == 'planning_Hr') {
             $query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
         }
-        
-        $query->orderBy('state');
+        $query->orderBy('id=DESC,state=ASC');
         
         // Подготовка на пейджъра
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $data->itemsPerPage));
@@ -132,7 +131,7 @@ class doc_FolderResources extends core_Manager
         }
         
         // Подготовка на полетата за показване
-        $listFields = ($DetailName == 'planning_Hr') ? 'code=Код,personId=Оператор,users=Потребители,created=Създаване' : 'name=Оборудване,code=Код,users=Потребители,created=Създаване';
+        $listFields = ($DetailName == 'planning_Hr') ? 'code=Код,personId=Оператор,users=Потребители,created=Създаване' : 'code=Код,name=Оборудване,users=Потребители,created=Създаване';
         $data->listFields = arr::make($listFields, true);
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields);
         
