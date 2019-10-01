@@ -710,7 +710,7 @@ class planning_Tasks extends core_Master
             
             // Ако е по източник
             if (isset($rec->systemId)) {
-                $tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
+                $tasks = cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity);
                 if (isset($tasks[$rec->systemId])) {
                     $def = $tasks[$rec->systemId];
                     
@@ -792,7 +792,7 @@ class planning_Tasks extends core_Master
         }
        
         $form->setOptions('productId', $options);
-        $tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
+        $tasks = cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity);
         
         if (isset($rec->systemId, $tasks[$rec->systemId])) {
             $fields = array_keys($form->selectFields("#input != 'none' AND #input != 'hidden'"));

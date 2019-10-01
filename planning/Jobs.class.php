@@ -1155,7 +1155,7 @@ class planning_Jobs extends core_Master
             if ($actionArr[0] == 'sys') {
                 
                 // Създаване на шаблонна операция
-                $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec->productId, $jobRec->quantity);
+                $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
                 $draft = $defaultTasks[$actionArr[1]];
                 $url = array('planning_Tasks', 'add', 'folderId' => $folderId, 'originId' => $jobRec->containerId, 'title' => $draft->title, 'ret_url' => true, 'systemId' => $actionArr[1]);
                 redirect($url);
@@ -1205,7 +1205,7 @@ class planning_Jobs extends core_Master
         $options = array();
         
         // Има ли дефолтни задачи от артикула
-        $defaultTasks = cat_Products::getDefaultProductionTasks($rec->productId, $rec->quantity);
+        $defaultTasks = cat_Products::getDefaultProductionTasks($rec, $rec->quantity);
         if (count($defaultTasks)) {
             foreach ($defaultTasks as $k => $defRec) {
                 $options["sys|{$k}"] = $defRec->title;

@@ -334,9 +334,9 @@ abstract class cat_ProductDriver extends core_BaseClass
     
     
     /**
-     * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
+     * Връща информация за какви дефолт задачи за производство могат да се създават към заданието на артикула
      *
-     * @param mixed $id       - ид или запис на артикул
+     * @param mixed $jobRec   - ид или запис на задание
      * @param float $quantity - к-во за произвеждане
      *
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
@@ -376,7 +376,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      *                  o quantityInPack - к-во в 1 опаковка
      *                  o packQuantity   - общо количество от опаковката
      */
-    public function getDefaultProductionTasks($id, $quantity = 1)
+    public function getDefaultProductionTasks($jobRec, $quantity = 1)
     {
         return array();
     }

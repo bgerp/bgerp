@@ -113,37 +113,51 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     
     
     /**
-     * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
+     * Връща информация за какви дефолт задачи за производство могат да се създават към заданието на артикула
      *
-     * @param mixed $id       - ид или запис на артикул
+     * @param mixed $jobRec   - ид или запис на задание
      * @param float $quantity - к-во за произвеждане
      *
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
-     *               o title           - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
-     *               o plannedQuantity - планирано к-во в основна опаковка
-     *               o productId       - ид на артикул
-     *               o packagingId     - ид на опаковка
-     *               o quantityInPack  - к-во в 1 опаковка
-     *               o products        - масив от масиви с продуктите за влагане/произвеждане/отпадане
-     *               - array input           - материали за влагане
-     *               o productId      - ид на материал
-     *               o packagingId    - ид на опаковка
-     *               o quantityInPack - к-во в 1 опаковка
-     *               o packQuantity   - общо количество от опаковката
-     *               - array production      - артикули за произвеждане
-     *               o productId      - ид на заготовка
-     *               o packagingId    - ид на опаковка
-     *               o quantityInPack - к-во в 1 опаковка
-     *               o packQuantity   - общо количество от опаковката
-     *               - array waste           - отпадъци
-     *               o productId      - ид на отпадък
-     *               o packagingId    - ид на опаковка
-     *               o quantityInPack - к-во в 1 опаковка
-     *               o packQuantity   - общо количество от опаковката
+     *               o title                          - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
+     *               o plannedQuantity                - планирано к-во в основна опаковка
+     *               o productId                      - ид на артикул
+     *               o packagingId                    - ид на опаковка
+     *               o quantityInPack                 - к-во в 1 опаковка
+     *               o products                       - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     *               o timeStart                      - начало
+     *               o timeDuration                   - продължителност
+     *               o timeEnd                        - край
+     *               o fixedAssets                    - списък (кейлист) от оборудвания
+     *               o employees                      - списък (кейлист) от служители
+     *               o storeId                        - склад
+     *               o indTime                        - норма
+     *               o indPackagingId                 - опаковка/мярка за норма
+     *               o indTimeAllocation              - начин на отчитане на нормата
+     *               o showadditionalUom              - какъв е режима за изчисляване на теглото
+     *               o weightDeviationNotice          - какво да е отклонението на теглото за внимание
+     *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
+     *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
+     *               
+     *               - array input        - масив отматериали за влагане
+     *                  o productId      - ид на материал
+     *                  o packagingId    - ид на опаковка
+     *                  o quantityInPack - к-во в 1 опаковка
+     *                  o packQuantity   - общо количество от опаковката
+     *               - array production   - масив от производими артикули
+     *                  o productId      - ид на заготовка
+     *                  o packagingId    - ид на опаковка
+     *                  o quantityInPack - к-во в 1 опаковка
+     *                  o packQuantity   - общо количество от опаковката
+     *               - array waste        - масив от отпадъци
+     *                  o productId      - ид на отпадък
+     *                  o packagingId    - ид на опаковка
+     *                  o quantityInPack - к-во в 1 опаковка
+     *                  o packQuantity   - общо количество от опаковката
      */
-    public function getDefaultProductionTasks($id, $quantity = 1)
+    public function getDefaultProductionTasks($jobRec, $quantity = 1)
     {
-        return $this->class->getDefaultProductionTasks($id, $quantity);
+        return $this->class->getDefaultProductionTasks($jobRec, $quantity);
     }
     
     

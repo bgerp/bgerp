@@ -3072,7 +3072,7 @@ class cat_Products extends embed_Manager
     /**
      * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
-     * @param mixed $id       - ид или запис на артикул
+     * @param mixed $jobRec   - ид или запис на задание
      * @param float $quantity - к-во за произвеждане
      *
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
@@ -3112,10 +3112,11 @@ class cat_Products extends embed_Manager
      *                  o quantityInPack - к-во в 1 опаковка
      *                  o packQuantity   - общо количество от опаковката
      */
-    public static function getDefaultProductionTasks($id, $quantity = 1)
+    public static function getDefaultProductionTasks($jobRec, $quantity = 1)
     {
         $defaultTasks = array();
-        expect($rec = self::fetch($id));
+        expect($jobRec = planning_Jobs::fetchRec($jobRec));
+        $rec = self::fetch($jobRec->productId);
         
         if ($rec->canManifacture != 'yes') {
             
@@ -3125,7 +3126,7 @@ class cat_Products extends embed_Manager
         // Питаме драйвера какви дефолтни задачи да се генерират
         $ProductDriver = cat_Products::getDriver($rec);
         if (!empty($ProductDriver)) {
-            $defaultTasks = $ProductDriver->getDefaultProductionTasks($id, $quantity);
+            $defaultTasks = $ProductDriver->getDefaultProductionTasks($jobRec, $quantity);
         }
         
         // Ако няма дефолтни задачи
