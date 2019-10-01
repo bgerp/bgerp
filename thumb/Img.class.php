@@ -638,6 +638,7 @@ class thumb_Img
             }
             
             if ($newGdRes) {
+                core_Os::forceDir(dirname($path)); 
                 switch ($this->getThumbFormat()) {
                     case 'jpg':
                         imagejpeg($newGdRes, $path, $this->quality);

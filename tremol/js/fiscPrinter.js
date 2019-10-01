@@ -498,6 +498,90 @@ function fpGetOperPass(operator)
 
 
 /**
+ * Връща паролата от ФУ на потребителя
+ * 
+ * @return array
+ */
+function fpGetDefPayments()
+{
+    try {
+    	var defPaymArr = {};
+    	var exRate = 0;
+    	
+        if (fpIsNew()) {
+        	var paymRes = fp.ReadPayments();
+        	var i = 0;
+        	for (var key in paymRes) {
+        		try {
+        			val = paymRes[key];
+            		if (key == 'ExchangeRate') {
+            			exRate = val.trim();
+            		} else {
+            			key = key.trim();
+            			val = val.trim();
+            			defPaymArr[val] = key.replace('NamePayment', '');
+            		}
+        		} catch(ex) { }
+        	}
+        } else {
+        	var paymRes = fp.ReadPayments_Old();
+        	for (i = 0; i <= 4; i++) {
+        		var namePayment = "NamePaym" + i;
+                var codePayment = "CodePaym" + i;
+        		try {
+        			if (i == 0) {
+                    	codePaymVal = 0;
+                    } else if (i == 4) {
+                    	codePaymVal = 11;
+                    } else {
+                    	codePaymVal = Number(paymRes[codePayment]);
+                    }
+                    var paymResStr = paymRes[namePayment];
+                    paymResStr = paymResStr.trim();
+                    defPaymArr[paymResStr] = codePaymVal;
+        		} catch(ex) { }
+    		}
+        	
+        	try {
+    			exRate = paymRes['ExRate'];
+    		} catch(ex) { }
+        }
+    } catch(ex) {
+        handleException(ex);
+    }
+    
+    res = {defPaymArr: defPaymArr};
+    
+    if (exRate) {
+    	res.exRate = exRate;
+    }
+    
+    return res;
+};
+
+
+/**
+ * Проверява дали принтера е нов или е обновена версия на стар
+ * 
+ * @return boolean
+ */
+function fpIsNew()
+{
+	var model = fp.ReadVersion().Model;
+	
+	if (!model) return true;
+	
+	var len = model.length;
+	
+	if (!len) return true;
+	
+	if (model.slice(-2) != 'V2') return true;
+	
+	return false;
+}
+
+
+/**
  * Отпечатване на дубликат
  */
 function fpPrintLastReceiptDuplicate()

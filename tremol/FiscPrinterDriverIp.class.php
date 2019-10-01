@@ -638,13 +638,24 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 }
                 
                 if (isset($oPass)) {
-                    if ($oPass != $data->rec->operPass) {
-                        $data->rec->operPass = $oPass;
+                    if ($oPass != $data->rec->otherData['operPass']) {
+                        $data->rec->otherData['operPass'] = $oPass;
                         
-                        $Embedder->save($data->rec, 'operPass');
-                        
-                        status_Messages::newStatus('|Променена парола за връзка с ФУ на|* ' . $oPass);
+                        $Embedder->save($data->rec, 'otherData');
                     }
+                }
+                
+                try {
+                    $dPaymArr = $Driver->getDefaultPaymentsFromFU($data->rec);
+                } catch (Exception $e) {
+                    $Driver->handleAndShowException($e);
+                }
+                
+                if ($dPaymArr['defPaymArr']) {
+                    $data->rec->otherData['defPaymArr'] = $dPaymArr['defPaymArr'];
+                    $data->rec->otherData['exRate'] = $dPaymArr['exRate'];
+                    
+                    $Embedder->save($data->rec, 'otherData');
                 }
                 
                 try {
@@ -826,6 +837,93 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
     
     
     /**
+     * Връща зададените начини на плащания във ФУ
+     *
+     * @param stdClass $rec
+     *
+     * @return false|string
+     */
+    protected static function getDefaultPaymentsFromFU($rec)
+    {
+        $resArr = array();
+        
+        try {
+            $fp = self::connectToPrinter($rec);
+            
+            $isNew = self::isNewVersion($fp);
+            
+            $dPaymArr = array();
+            
+            if ($isNew) {
+                $paymRes = $fp->ReadPayments();
+                for($i=0;$i<=11;$i++) {
+                    try {
+                        $namePayment = "NamePayment{$i}";
+                        $dPaymArr[trim($paymRes->{$namePayment})] = $i;
+                    } catch (Exception $e) { }
+                }
+                try {
+                    $exchangeRate = trim($paymRes->ExchangeRate);
+                } catch (Exception $e) {
+                    $exchangeRate = null;
+                }
+            } else {
+                $paymRes = $fp->ReadPayments_Old();
+                
+                for($i=0;$i<=4;$i++) {
+                    try {
+                        $namePayment = "NamePaym{$i}";
+                        $codePayment = "CodePaym{$i}";
+                        
+                        if ($i === 0) {
+                            $codePaymVal = 0;
+                        } elseif ($i === 4) {
+                            $codePaymVal = 11;
+                        } else {
+                            $codePaymVal = (double) $paymRes->{$codePayment};
+                        }
+                        $dPaymArr[trim($paymRes->{$namePayment})] = trim($codePaymVal);
+                    } catch (Exception $e) { }
+                }
+                
+                try {
+                    $exchangeRate = trim($paymRes->ExRate);
+                } catch (Exception $e) {
+                    $exchangeRate = null;
+                }
+            }
+            
+            $resArr['defPaymArr'] = $dPaymArr;
+            $resArr['exRate'] = $exchangeRate;
+        } catch (\Tremol\SException $e) {
+            self::handleTremolException($e);
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Проверява дали ФУ е нова версия
+     *
+     * @param \Tremol\FP $fp
+     * 
+     * @return boolean
+     */
+    protected static function isNewVersion($fp)
+    {
+        $model = $fp->ReadVersion()->Model;
+        
+        if (strpos($model, "V2") == (strlen($model) - 2)) {
+            
+            return false;
+        }
+        
+        return true;
+    }
+    
+    
+    /**
      * Задава време на ФУ
      * 
      * @param stdClass $rec
@@ -927,10 +1025,11 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
      * @param stdClass $rec
      * @param string $rVerb
      * @param null|core_Et $jsTpl
+     * @param array $retUrl
      * 
      * @see tremol_FiscPrinterDriverParent::getResForReport()
      */
-    protected function getResForReport($pRec, $rec, $rVerb = '', &$jsTpl = null)
+    protected function getResForReport($pRec, $rec, $rVerb = '', &$jsTpl = null, $retUrl = array())
     {
         try {
             try {
@@ -1041,7 +1140,12 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     }
                 }
                 
-                status_Messages::newStatus("|Успешно отпечатан {$rVerb} отчет");
+                $msg = "|Успешно отпечатан {$rVerb} отчет";
+                if (!empty($retUrl)) {
+                    
+                    return redirect($retUrl, false, $msg);
+                }
+                status_Messages::newStatus($msg);
             } catch (\Tremol\SException $e) {
                 $this->handleTremolException($e);
             }

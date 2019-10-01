@@ -190,6 +190,12 @@ class planning_ProductionTaskDetails extends doc_Detail
         $productOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
         $form->setOptions('productId', array('' => '') + $productOptions);
         
+        if($masterRec->labelType == 'scan' || $rec->type == 'input'){
+            $form->setField('serial', 'mandatory');
+        } elseif($masterRec->labelType == 'print' || $rec->type == 'waste'){
+            $form->setField('serial', 'input=none');
+        }
+        
         if ($rec->type == 'production') {
             $form->setDefault('productId', $masterRec->productId);
             
@@ -294,7 +300,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
                 
                 if (!empty($rec->serial)) {
-                    $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->taskId);
+                    $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->taskId, $rec->type);
+                    
                     $rec->serialType = $serialInfo['type'];
                     if (isset($serialInfo['error'])) {
                         $form->setError('serial', $serialInfo['error']);
@@ -381,20 +388,23 @@ class planning_ProductionTaskDetails extends doc_Detail
      *
      * @return array $res
      */
-    private static function fetchSerialInfo($serial, $productId, $taskId)
+    private static function fetchSerialInfo($serial, $productId, $taskId, $type = null)
     {
         if (!$Driver = cat_Products::getDriver($productId)) {
             
             return;
         }
-        $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
         
+        $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
         $canonizedSerial = $Driver->canonizeSerial($productId, $serial);
         $exRec = self::fetch(array("#serial = '[#1#]'", $canonizedSerial));
         
         if (!empty($exRec)) {
             $res['type'] = 'existing';
             $res['productId'] = $exRec->productId;
+            if($type == 'production' && $exRec->type == 'production' && $taskId != $exRec->taskId){
+                $res['error'] = 'Серийния номер е произведен по друга операция|*: <b>' . planning_Tasks::getHyperlink($exRec->taskId, true) . '</b>';
+            }
         } else {
             if ($pRec = $Driver->getRecBySerial($serial)) {
                 $res['type'] = 'existing';

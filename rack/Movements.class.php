@@ -625,13 +625,7 @@ class rack_Movements extends core_Manager
         $data->form->title = $title;
     }
     
-    function act_test()
-    {
-        $res = null;
-        $resArr = explode('*', $res);
-        
-        bp($resArr);
-    }
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      *

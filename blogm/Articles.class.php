@@ -469,6 +469,9 @@ class blogm_Articles extends core_Master
     {
         // Поставяме данните от реда
         $layout->placeObject($data->row);
+
+        $layout->append($this->getPrevNextLink($data->rec), 'prevNextLinks');
+
         $layout = blogm_Comments::renderComments($data, $layout);
         
         // Рендираме тулбара за споделяне
@@ -479,6 +482,56 @@ class blogm_Articles extends core_Master
         $layout->replace($this->renderNavigation($data), 'NAVIGATION');
         
         return $layout;
+    }
+
+
+    /**
+     * Връща линкове за предишен и/или следващ постинг от същите категории
+     */
+    public function getPrevNextLink($rec)
+    {   
+        $res = '';
+
+        if($rec->categories) {
+
+            $query = self::getQuery();
+            
+            $query->orderBy("#publishedOn");
+
+            $query->likeKeylist('categories', $rec->categories);
+
+            $selected = false;
+            $prev = $next = null;
+            $now = dt::now();
+
+            while($r = $query->fetch("#state = 'active' AND IF(#publishedOn IS NULL OR #publishedOn = '', #createdOn, #publishedOn)  <= '{$now}'")) {  
+                if($r->id == $rec->id) {
+                    $flagSelected = true;
+                } elseif(strlen($r->body)) {
+                    if(!$flagSelected) {
+                        $prev = $r;
+                    }
+                    if($flagSelected && !$next) {
+                        $next = $r;
+                    }
+                }
+            }
+          
+            // Линкове за следваща/предишна статия
+            $prevLink = $nextLink = '';
+            if($prev) {
+                $prevLink = ht::createLink('«&nbsp;' . $prev->title, self::getUrl($prev));
+            }
+            if($next) {
+                $nextLink = ht::createLink($next->title . '&nbsp;»', self::getUrl($next));
+            }
+ 
+            if($prevLink || $nextLink) {
+                $res = "<div class='prevNextNav'><div style='float:left;margin-right:5px;'>{$prevLink}</div><div style='float:right;margin-left:5px;'>{$nextLink}</div></div>";
+            }
+        }
+        
+        return $res;
     }
     
     

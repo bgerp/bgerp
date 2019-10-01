@@ -101,6 +101,8 @@ class cash_NonCashPaymentDetails extends core_Manager
             $data->rows[] = $row;
         }
         
+        $data->masterMvc->invoke('AfterPrepareNonCashPayments', array(&$data));
+        
         return $data;
     }
     
