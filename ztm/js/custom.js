@@ -34,6 +34,8 @@ function prepareDashboard(data){
     var weatherStat = data.low ? "Температурите ще са в интервала от " + parseInt(data.low) + " до " + parseInt(data.high) + "°C." : "Няма информация за текущата прогноза.";
     $('.weatherStat').html(weatherStat);
 
+
+
     $('#navbarCollapse a:first').tab('show');
     var toggle;
     setInterval(function() {
@@ -105,7 +107,8 @@ function prepareDashboard(data){
     function valueOutput(element) {
         var value = element.value;
         var output = element.parentNode.getElementsByTagName('output')[0] || element.parentNode.parentNode.getElementsByTagName('output')[0];
-        output[textContent] = value;
+        var val  = ($(element).attr('step') < 1 ) ? parseFloat(value).toFixed(1) : value;
+        output[textContent] = val;
     }
 
     $document.on('input', 'input[type="range"], ' + selector, function(e) {
@@ -173,7 +176,9 @@ function prepareDashboard(data){
             valueOutput(this.$element[0]);
         }
     });
-
+    var p = parseInt($('#temperature').val()).toFixed(1);
+  //  console.log(p);
+   // $('#temperature').val() ;
 
 }
 
