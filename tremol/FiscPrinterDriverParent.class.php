@@ -423,6 +423,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         }
         
         $defPaymentMap = $rec->otherData['defPaymArr'];
+        $defPaymentMap = is_array($rec->otherData['defPaymArr']) ? $rec->otherData['defPaymArr'] : array();
         
         $name = $pRec->title;
         if (!empty($name)) {
