@@ -68,7 +68,7 @@ class doc_FolderResources extends core_Manager
         // Подготовка на данните за оборудването
         if (isset($resourceTypes['assets'])) {
             $data->aData = clone $data;
-            $data->aData->itemsPerPage = 5;$this->listAssetsPerPage;
+            $data->aData->itemsPerPage = $this->listAssetsPerPage;
             $data->aData->listTableMvc = clone cls::get('planning_AssetResources');
             $this->prepareResourceData($data->aData, 'planning_AssetResources');
         }
