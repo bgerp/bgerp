@@ -107,11 +107,11 @@ class doc_FolderResources extends core_Manager
             $query->where('1=2');
         }
         
-        $query->orderBy('id=DESC');
         if ($DetailName == 'planning_Hr') {
             $query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
-            $query->orderBy('id=DESC,state=ASC');
-        } 
+            $query->EXT('name', 'crm_Persons', 'externalName=name,externalKey=personId');
+        }
+        $query->orderBy('name=ASC,state=ASC');
         
         // Подготовка на пейджъра
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $data->itemsPerPage));
