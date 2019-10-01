@@ -853,9 +853,15 @@ class core_App
             foreach ($arr as $key => $value) {
                 if (is_array($value)) {
                     foreach ($value as $k => $v) {
+                        if (is_array($v)) {
+                            wp($v);
+                        }
                         $url .= ($url ? '/' : '') . "{$key},{$k}/" . urlencode($v);
                     }
                 } else {
+                    if (is_array($value)) {
+                        wp($value);
+                    }
                     $url .= ($url ? '/' : '') . "{$key}/" . urlencode($value);
                 }
             }

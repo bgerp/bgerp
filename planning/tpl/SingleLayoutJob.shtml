@@ -119,7 +119,7 @@
                     <!--ET_BEGIN HISTORY_ROW-->
                     [#HISTORY_ROW#]
                     <div class='[#stateclass#]' style='font-size: 0.85em'>
-                        <div>[#date#] : [#user#] -> [#action#]</div>
+                        <div>[#date#] : [#user#] » [#action#]</div>
                         <!--ET_BEGIN hint-->
                         <div class='history-reason'>[#reason#]</div>
                         <!--ET_END hint-->

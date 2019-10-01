@@ -71,7 +71,16 @@ class label_Prints extends core_Master
     public $canDelete = 'no_one';
     
     
+    /**
+     * Кой може да оттегля?
+     */
     public $canReject = 'seeLabel, label, admin, ceo';
+    
+    
+    /**
+     * Кой може да възстановява
+     */
+    public $canRestore = 'seeLabel, label, admin, ceo';
     
     
     /**
@@ -743,7 +752,7 @@ class label_Prints extends core_Master
         
         $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin, rolesForTeams=label|ceo|admin)', 'caption=От, refreshForm');
         
-        $data->listFilter->showFields = 'author, search';
+        $data->listFilter->showFields = 'author, search, templateId';
         
         $data->listFilter->view = 'horizontal';
         
@@ -774,6 +783,10 @@ class label_Prints extends core_Master
                 
                 $data->query->orWhereArr('createdBy', $usersArr);
                 $data->query->orWhereArr('modifiedBy', $usersArr, true);
+            }
+            
+            if ($filter->templateId) {
+                $data->query->where(array("#templateId = '[#1#]'", $filter->templateId));
             }
         }
     }

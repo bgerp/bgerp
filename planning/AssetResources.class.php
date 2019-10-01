@@ -119,7 +119,7 @@ class planning_AssetResources extends core_Master
      *
      * @var string
      */
-    public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code-->';
+    public $recTitleTpl = '[[#code#]] [#name#]';
     
     
     /**

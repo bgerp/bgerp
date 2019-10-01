@@ -1763,16 +1763,16 @@ class email_Outgoings extends core_Master
                     $ccEmails .= $contragentData->ccEmail;
                     
                     $toParser = new email_Rfc822Addr();
-                    $parseToEmail = array();
+                    $parseCCEmail = array();
                     
                     $ccEmails = trim($ccEmails);
                     
                     if ($ccEmails) {
-                        $toParser->ParseAddressList($ccEmails, $parseToEmail);
+                        $toParser->ParseAddressList($ccEmails, $parseCCEmail);
                     }
                     
                     $ccEmailsArr = array();
-                    foreach ((array) $parseToEmail as $eml) {
+                    foreach ((array) $parseCCEmail as $eml) {
                         if (!trim($eml['address'])) {
                             continue;
                         }
@@ -1786,6 +1786,45 @@ class email_Outgoings extends core_Master
                     if (count($ccEmailsArr) <= $autoFillCnt) {
                         $rec->emailCc = type_Emails::fromArray($ccEmailsArr);
                         $removeFromGroup = array_merge($removeFromGroup, $ccEmailsArr);
+                    }
+                }
+            }
+            
+            // Автоматично попълване на To имейлите
+            if ($contragentData->toEmail) {
+                $autoFillCnt = email_Setup::get('AUTO_FILL_EMAILS_FROM_TO');
+                
+                if ($autoFillCnt) {
+                    
+                    $toParser = new email_Rfc822Addr();
+                    $parseToEmail = array();
+                    
+                    $toEmails = trim($contragentData->toEmail);
+                    
+                    if ($toEmails) {
+                        $toParser->ParseAddressList($ccEmails, $parseToEmail);
+                    }
+                    
+                    $toEmailsArr = array();
+                    foreach ((array) $parseToEmail as $eml) {
+                        if (!trim($eml['address'])) {
+                            continue;
+                        }
+                        
+                        $toEmailsArr[$eml['address']] = $eml['address'];
+                    }
+                    
+                    $toEmailsArr = email_Inboxes::removeOurEmails($toEmailsArr);
+                    
+                    // Ако имейлите в To са над лимита, не ги добавяме автоматично в полето
+                    if (count($toEmailsArr) <= $autoFillCnt) {
+                        if (count($recEmailsArr)) {
+                            $recEmailsArr += $toEmailsArr;
+                        } else {
+                            $recEmailsArr = $toEmailsArr;
+                        }
+                        
+                        $removeFromGroup = array_merge($removeFromGroup, $toEmailsArr);
                     }
                 }
             }
@@ -1889,6 +1928,12 @@ class email_Outgoings extends core_Master
                 if ($oContragentData->ccEmail) {
                     $contragentData->ccEmail .= ($contragentData->ccEmail) ? ', ': '';
                     $contragentData->ccEmail .= $oContragentData->ccEmail;
+                }
+                
+                // Имейлите от полето До
+                if ($oContragentData->toEmail) {
+                    $contragentData->toEmail .= ($contragentData->toEmail) ? ', ': '';
+                    $contragentData->toEmail .= $oContragentData->toEmail;
                 }
                 
                 if ($oContragentData->groupEmails) {

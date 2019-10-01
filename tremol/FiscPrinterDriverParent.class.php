@@ -86,20 +86,6 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     
     
     /**
-     * Дефолтни кодове на начините на плащане (забити в настройките на апарата)
-     */
-    const DEFAULT_PAYMENT_MAP = array('Брой'       => 0,
-                                      'Чек'        => 1,
-                                      'Талон'      => 2,
-                                      'В.Талон'    => 3,
-                                      'Амбалаж'    => 4,
-                                      'Обслужване' => 5,
-                                      'Повреди'    => 6,
-                                      'Карта'      => 7,
-                                      'Банка'      => 8);
-    
-    
-    /**
      * Дефолтни кодове на начините на плащане
      */
     const DEFAULT_STORNO_REASONS_MAP = array('Операторска грешка' => 0,
@@ -139,8 +125,9 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      * @param stdClass $rec
      * @param string $rVerb
      * @param null|core_Et $jsTpl
+     * @param array $retUrl
      */
-    abstract protected function getResForReport($pRec, $rec, $rVerb = '', &$jsTpl = null);
+    abstract protected function getResForReport($pRec, $rec, $rVerb = '', &$jsTpl = null, $retUrl = array());
     
     
     /**
@@ -162,11 +149,10 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('serverIp', 'url', 'caption=Настройки за връзка със ZFPLAB сървър->IP адрес, mandatory');
-        $fieldset->FLD('serverTcpPort', 'int', 'caption=Настройки за връзка със ZFPLAB сървър->TCP порт, mandatory');
+        $fieldset->FLD('serverTcpPort', 'int(Min=0, max=65535)', 'caption=Настройки за връзка със ZFPLAB сървър->TCP порт, mandatory');
         
         $fieldset->FLD('driverVersion', 'enum(19.08.13,19.07.25,19.06.13)', 'caption=Настройки на ФУ->Версия, mandatory, notNull');
         $fieldset->FLD('fpType', 'enum(cashRegister=Касов апарат, fiscalPrinter=Фискален принтер)', 'caption=Настройки на ФУ->Тип, mandatory, notNull');
-        $fieldset->FLD('operPass', 'password', 'caption=Настройки на ФУ->Парола, hint=Паролата по подразбиране на ФУ');
         $fieldset->FLD('serialNumber', 'varchar(8)', 'caption=Настройки на ФУ->Сериен номер');
         
         $fieldset->FLD('type', 'enum(tcp=TCP връзка, serial=Сериен порт)', 'caption=Настройки за връзка с ФУ->Връзка, mandatory, notNull, removeAndRefreshForm=tcpIp|tcpPort|tcpPass|serialPort|serialSpeed');
@@ -190,9 +176,6 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             }
         }
         
-        $fieldset->FLD('paymentMap9', 'key(mvc=cond_Payments,select=title)', 'caption=Настройки на апарата за плащания->Допълнително 1,unit=(Позиция 9)');
-        $fieldset->FLD('paymentMap10', 'key(mvc=cond_Payments,select=title)', 'caption=Настройки на апарата за плащания->Допълнително 2,unit=(Позиция 10)');
-        $fieldset->FLD('paymentMap11', 'key(mvc=cond_Payments,select=title)', 'caption=Настройки на апарата за плащания->Валута,unit=(Позиция 11)');
         $fieldset->FLD('startNumber', 'varchar(7)', 'caption=Настройки на апарата за плащания->Начален номер');
         
         $fieldset->FLD('header', 'enum(yes=Да,no=Не)', 'caption=Надпис хедър в касовата бележка->Добавяне, notNull, removeAndRefreshForm');
@@ -208,6 +191,8 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $fieldset->FLD('footer', 'enum(yes=Да, no=Не)', 'caption=Надпис футър в касовата бележка->Добавяне, notNull, removeAndRefreshForm');
         $fieldset->FLD('footerPos', 'enum(center=Центрирано,left=Ляво,right=Дясно)', 'caption=Надпис футър в касовата бележка->Позиция, notNull');
         $fieldset->FLD('footerText', "varchar({$this->fpLen})", 'caption=Надпис футър в касовата бележка->Текст');
+        
+        $fieldset->FLD('otherData', "blob(serialize,compress)", 'caption=Опции,input=none');
     }
     
     
@@ -262,27 +247,6 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     protected static function on_AfterPrepareEditForm($Driver, $Embedder, &$data)
     {
         $form = &$data->form;
-        
-        // Подготовка на допълнителните начини на плащане
-        $pQuery = cond_Payments::getQuery();
-        $pQuery->where("#state = 'active'");
-        $arrMap = array_flip(self::DEFAULT_PAYMENT_MAP);
-        $addMapArr = $oMapArr = array('' => '');
-        
-        while ($pRec = $pQuery->fetch()) {
-            if(!empty($pRec->currencyCode) && $pRec->currencyCode != 'BGN'){
-                $oMapArr[$pRec->id] = $pRec->currencyCode;
-            } elseif(!in_array($pRec->title, $arrMap)) {
-                $addMapArr[$pRec->id] = $pRec->title;
-            }
-        }
-        
-        // На позиция 9 и 10 може да се изберат, тези плащания които не са твърдо забити за драйвера
-        $form->setOptions('paymentMap9', $addMapArr);
-        $form->setOptions('paymentMap10', $addMapArr);
-        
-        // На позиция 11 се добавят валутните плащания, за избор. Един апарат може да работи само с 1 допълнителна валута
-        $form->setOptions('paymentMap11', $oMapArr);
         
         if (!$form->rec->id) {
             $form->setDefault('footerText', 'Отпечатано с bgERP');
@@ -424,10 +388,8 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             return true;
         }
         
-        // На 11 позиция се очаква да е избрана валутата
-        if(isset($rec->paymentMap11)){
-            $selectedCurrency = cond_Payments::fetchField($rec->paymentMap11, 'currencyCode');
-            if($selectedCurrency == $currencyCode) {
+        if ($rec->otherData['defPaymArr']) {
+            if ($rec->otherData['defPaymArr'][$currencyCode] == 11) {
                 
                 return true;
             }
@@ -448,33 +410,26 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     public function getPaymentCode($rec, $paymentId)
     {
         // Ако не е подаден код на плащане се приема, че е 'Брой'
-        if(empty($paymentId)){
+        if (empty($paymentId)){
             
-            return self::DEFAULT_PAYMENT_MAP['Брой'];
+            return 0;
         }
         
         // Все пак трябва да има запис за плащането
         $pRec = cond_Payments::fetch($paymentId);
-        if(!$pRec) {
+        if (!$pRec) {
             
             return;
         }
         
-        // Ако плащането е от дефолтните, връща се забития му код във ФУ
+        $defPaymentMap = $rec->otherData['defPaymArr'];
+        $defPaymentMap = is_array($rec->otherData['defPaymArr']) ? $rec->otherData['defPaymArr'] : array();
+        
         $name = $pRec->title;
         if (!empty($name)) {
-            if (array_key_exists($name, self::DEFAULT_PAYMENT_MAP)) {
+            if (array_key_exists($name, $defPaymentMap)) {
                 
-                return self::DEFAULT_PAYMENT_MAP[$name];
-            }
-        }
-        
-        // Проверка на 9, 10, 11 позиция има ли избрани безналични методи за плащане (различни от задължителните)
-        // ако има връща съответния код
-        foreach(array(9, 10, 11) as $v) {
-            if($pRec->id == $rec->{"paymentMap{$v}"}) {
-                
-                return $v;
+                return $defPaymentMap[$name];
             }
         }
     }
@@ -562,7 +517,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     protected static function getOperPass($operNum, $pRec)
     {
         
-        return strlen($pRec->operPass) ? $pRec->operPass : '0000';
+        return strlen($pRec->otherData['operPass']) ? $pRec->otherData['operPass'] : '0000';
     }
     
     
@@ -797,7 +752,14 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             
             $jsTpl = null;
             
-            $this->getResForReport($pRec, $rec, $rVerb, $jsTpl);
+            $retUrl = getRetUrl();
+            if (empty($retUrl)) {
+                $retUrl = array('peripheral_Devices', 'single', $pId);
+            } else {
+                unset($retUrl['update']);
+            }
+            
+            $this->getResForReport($pRec, $rec, $rVerb, $jsTpl, $retUrl);
             
             $closeBtnName = 'Назад';
         } else {

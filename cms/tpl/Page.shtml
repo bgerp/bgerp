@@ -7,7 +7,7 @@
 <!--ET_END cookies-->
 [#TOP_PAGE#]
 <div class='background-holder'>
-    <div class='clearfix21' id='all'>
+    <div class='clearfix21 externalPage' id='all'>
         <div id="cmsTop" [#TOP_CLASS#]>
             [#HEADER_IMG#]
             [#PAGE_HEADER#]

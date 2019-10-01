@@ -84,7 +84,7 @@ class bgerp_Bookmark extends core_Manager
     
     public static $curRec;
     
-    const CACHE_KEY = 'BookmarksPerUserLinks';
+    const CACHE_KEY = 'BookmarksPerUserLinks4';
     
     
     /**
@@ -107,16 +107,20 @@ class bgerp_Bookmark extends core_Manager
      */
     public static function renderBookmarks()
     {
+        $cookie = $_COOKIE['bookmarkInfo'];
+
         $screen = Mode::is('screenMode', 'narrow') ? 'm' : 'd';
         
         $userId = core_Users::getCurrent();
         
-        $dataCacheLinks = core_Cache::get($userId . '|' . self::CACHE_KEY, $screen);
+        $dataLinks = core_Cache::get($userId . '|' . self::CACHE_KEY, $screen);
         
-        if (!$dataCacheLinks) {
-            $dataCacheLinks = bgerp_Bookmark::getLinks($cookie);
-            core_Cache::set($userId . '|' . self::CACHE_KEY, $screen, $dataCacheLinks, 2000);
+        if (!$dataLinks && !is_array($dataLinks)) {
+            $dataLinks = bgerp_Bookmark::prepareLinks();
+            core_Cache::set($userId . '|' . self::CACHE_KEY, $screen, $dataLinks, 2000);
         }
+
+        $htmlLinks = self::renderLinks($dataLinks, $cookie); 
         
         $tpl = new ET("<div class='sideBarTitle'>[#BOOKMARK_TITLE#][#BOOKMARK_BTN#]</div><div class='bookmark-links'>[#BOOKMARK_LINKS#]</div>");
 
@@ -124,7 +128,7 @@ class bgerp_Bookmark extends core_Manager
         $btn = bgerp_Bookmark::getBtn();
         
         $tpl->append($title, 'BOOKMARK_TITLE');
-        $tpl->append($dataCacheLinks, 'BOOKMARK_LINKS');
+        $tpl->append($htmlLinks, 'BOOKMARK_LINKS');
         $tpl->append($btn, 'BOOKMARK_BTN');
         $tpl->cookie = $cookie . $screen;
         
@@ -208,7 +212,7 @@ class bgerp_Bookmark extends core_Manager
      *
      * @return string
      */
-    public static function getLinks($cookie = null, $limit = null, $userId = null)
+    public static function prepareLinks($limit = null, $userId = null)
     {
         if (!$userId) {
             $userId = core_Users::getCurrent();
@@ -230,9 +234,32 @@ class bgerp_Bookmark extends core_Manager
             $query->limit((int) $limit);
         }
         
-        $localUrl = str_replace(array('/default', '//'), array('', '/'), toUrl(getCurrentUrl(), 'local'));
         
+        $res = array();
+
+        while ($rec = $query->fetch()) {
+            $rec->title = self::getVerbal($rec, 'title');
+            $attr = array();
+            if ($rec->color) {
+                $attr['style'] = 'color:' . $rec->color;
+            }
+            $rec->linkHtml =  self::getLinkFromUrl($rec->url, $rec->title, $attr);
+            $res[] = $rec;
+        }
+        
+        return $res;
+    }
+
+
+    /**
+     * Рендира предварително подготвен масив
+     */
+    public static function renderLinks($links, $cookie = null)
+    {
+        $localUrl = str_replace(array('/default', '//'), array('', '/'), toUrl(getCurrentUrl(), 'local'));
+
         $opened = array();
+
         if ($cookie) {
             $cArr = explode(',', trim($cookie, ','));
             foreach ($cArr as $b) {
@@ -242,9 +269,11 @@ class bgerp_Bookmark extends core_Manager
         }
         
         $res = '<ul>';
-        while ($rec = $query->fetch()) {
-            $title = self::getVerbal($rec, 'title');
-            
+
+        foreach($links as $rec) {
+
+            $title = $rec->title;
+
             $attr = array();
             
             if ($rec->color) {
@@ -270,9 +299,8 @@ class bgerp_Bookmark extends core_Manager
                         "\n<ul class='subBookmark' {$display}>";
                 $openGroup = $rec->id;
             } else {
-                $link = self::getLinkFromUrl($rec->url, $title, $attr);
+                $link = $rec->linkHtml;
                 $rec->url = str_replace('/default', '', $rec->url);
-                
                 if (stripos(str_replace('//', '/', $rec->url), $localUrl) !== false) {
                     $attr['class'] = 'active';
                     $attr['style'] .= ';background-color:#503A66';
