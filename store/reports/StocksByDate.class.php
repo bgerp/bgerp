@@ -2,17 +2,17 @@
 
 
 /**
- * Мениджър на отчети относно: Движение на стоки за период
+ * Мениджър на отчети относно: Складови наличности
  *
- * @category  bgplus
- * @package   n18
+ * @category  bgerp
+ * @package   store
  *
  * @author    Angel Trifonov <angel.trifonoff@gmail.com>
  * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     НАП » Движение на стоки за период
+ * @title     Склад » Складови наличности
  */
 class store_reports_StocksByDate extends frame2_driver_TableData
 {
@@ -29,8 +29,7 @@ class store_reports_StocksByDate extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none');
-        $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none');
+        $fieldset->FLD('date', 'date', 'caption=Към дата,after=title,single=none');
     }
     
     
@@ -80,8 +79,8 @@ class store_reports_StocksByDate extends frame2_driver_TableData
     {
         $recs = array();
         
-        bp();
-        $Balance = new acc_ActiveShortBalance(array('from' => $rec->from, 'to' => $rec->to, 'accs' => '321', 'cacheBalance' => false, 'keepUnique' => true));
+        
+        $Balance = new acc_ActiveShortBalance(array('from' => null, 'to' => $rec->date, 'accs' => '321', 'cacheBalance' => false, 'keepUnique' => true));
         $bRecs = $Balance->getBalance('321');
         
         foreach ($bRecs as $item) {
@@ -91,7 +90,7 @@ class store_reports_StocksByDate extends frame2_driver_TableData
             
             //Код на продукта
             list($productCode) = explode(' ', $iRec->num);
-            
+            bp($productCode,$iRec,cat_Products::fetch(90),core_Classes::fetch(14));
             //Име на продукта
             $productName = $iRec->title;
             
