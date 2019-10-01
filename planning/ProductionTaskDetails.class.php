@@ -190,6 +190,12 @@ class planning_ProductionTaskDetails extends doc_Detail
         $productOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
         $form->setOptions('productId', array('' => '') + $productOptions);
         
+        if($masterRec->labelType == 'scan'){
+            $form->setField('serial', 'mandatory');
+        } elseif($masterRec->labelType == 'print'){
+            $form->setField('serial', 'input=none');
+        }
+        
         if ($rec->type == 'production') {
             $form->setDefault('productId', $masterRec->productId);
             
