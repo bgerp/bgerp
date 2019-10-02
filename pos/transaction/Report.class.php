@@ -70,7 +70,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         
         $transaction = (object) array(
             'reason' => 'Отчет за POS продажба №' . $rec->id,
-            'valior' => $rec->createdOn,
+            'valior' => dt::verbal2mysql($rec->createdOn, false),
             'totalAmount' => $this->totalAmount,
             'entries' => $entries,
         );
