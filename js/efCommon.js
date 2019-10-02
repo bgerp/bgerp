@@ -1645,7 +1645,7 @@ function getCalculatedElementWidth() {
     // разстояние около формата
 	var outsideWidth = 42;
     var menuSize = 0;
-	if($('#all').length) {
+	if($('.externalPage').length) {
 		outsideWidth = 30;
 		if($('#login-form input').length) {
 			outsideWidth = parseInt($('#login-form input').offset().left * 2  + 2);
@@ -1745,8 +1745,8 @@ function setFormElementsWidth() {
         $('.formTable .hiddenFormRow select.w100').css('width', "100%");
         $('.formTable .hiddenFormRow select.w25').css('width', "25%");
 
-        var tempWidth = $('#all .formTable input.w100').last().width() > 200 ? $('#all .formTable input.w100').last().width() : 400;
-        $('#all .formTable textarea').css('min-width', tempWidth);
+        var tempWidth = $('.externalPage .formTable input.w100').last().width() > 200 ? $('.externalPage .formTable input.w100').last().width() : 400;
+        $('.externalPage .formTable textarea').css('min-width', tempWidth);
 
     	 $('.formTable label').each(function() {
     		 if($(this).parent().is('td')){
