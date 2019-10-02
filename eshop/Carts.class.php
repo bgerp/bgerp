@@ -1859,6 +1859,18 @@ class eshop_Carts extends core_Master
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             
+            // Проверка на имената
+            $namesArr = explode(' ', str::removeWhiteSpace($rec->personNames, ' '));
+            if(count($namesArr) < 2){
+                $form->setError('personNames', 'Трябва да са въведени поне две имена');
+            }
+            if($rec->makeInvoice == 'person'){
+                $namesArr = explode(' ', str::removeWhiteSpace($rec->invoiceNames, ' '));
+                if(count($namesArr) < 2){
+                    $form->setError('invoiceNames', 'Трябва да са въведени поне две имена');
+                }
+            }
+            
             if($rec->makeInvoice != 'none' && empty($rec->invoiceVatNo) && empty($rec->invoiceUicNo)){
                 $form->setError('invoiceVatNo,invoiceUicNo', 'Поне едно от полетата трябва да бъде въведено');
             }
