@@ -43,7 +43,7 @@ class cond_Payments extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, currencyCode, code, change, state, createdOn,createdBy';
+    public $listFields = 'id, title, currencyCode, code, change, state, synonym, createdOn,createdBy';
     
     
     /**
@@ -99,8 +99,29 @@ class cond_Payments extends core_Manager
         $this->FLD('code', 'int(Min=0)', 'caption=Код,mandatory,tdClass=centerCol');
         $this->FLD('change', 'enum(yes=Да,no=Не)', 'caption=Ресто?,value=no,tdClass=centerCol');
         $this->FLD('currencyCode', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Валута,smartCenter');
+        $this->FLD('synonym', 'varchar(120)', 'caption=Имена във ФУ');
         
         $this->setDbUnique('title');
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = $form->rec;
+        if($form->isSubmitted()){
+            if(!empty($rec->synonym)){
+                $arr = explode('|', $rec->synonym);
+                
+                array_walk($arr, function(&$a){$a = plg_Search::normalizeText($a);});
+                $rec->synonym = (count($arr) == 1) ? "|" . $arr[0] . "|" : implode('|', $arr);
+            }
+        }
     }
     
     
@@ -124,7 +145,7 @@ class cond_Payments extends core_Manager
     public function loadSetupData()
     {
         $file = 'cond/csv/Pospayments.csv';
-        $fields = array(0 => 'title', 1 => 'change', 2 => 'code', 3 => 'currencyCode');
+        $fields = array(0 => 'title', 1 => 'change', 2 => 'code', 3 => 'currencyCode', '4' => 'synonym');
         
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
         $res = $cntObj->html;

@@ -1,10 +1,9 @@
-Чек,no,1,
-Талон,no,2,
-В.Талон,no,3,
-Амбалаж,no,4,
-Обслужване,no,5,
-Повреди,no,6,
-Карта,no,7,
-Банка,no,8,
-EUR,no,9,EUR
-USD,no,10,USD
+Чек,no,1,,"|chek|4ek|"
+Талон,no,2,,"|talon|"
+В.Талон,no,3,,"|v talon|v tal|"
+Амбалаж,no,4,,"|ambalaj|"
+Обслужване,no,5,,"|v talon|v tal|"
+Повреди,no,6,,"|obslujvane|"
+Карта,no,7,,"|obslujvane|"
+Банка,no,8,,"|karta|"
+EUR,no,9,EUR,"|eur|evro|"
