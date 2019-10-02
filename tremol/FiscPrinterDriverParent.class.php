@@ -388,11 +388,12 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             return true;
         }
         
-        if ($rec->otherData['defPaymArr']) {
-            if ($rec->otherData['defPaymArr'][$currencyCode] == 11) {
-                
-                return true;
-            }
+        $normalizedPaymentNames = $this->getNormalizedPaymentNames($rec);
+        $currencyCode = plg_Search::normalizeText($currencyCode);
+        
+        if ($normalizedPaymentNames[$currencyCode] == 11) {
+            
+            return true;
         }
         
         return false;
@@ -422,16 +423,40 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             return;
         }
         
-        $defPaymentMap = $rec->otherData['defPaymArr'];
-        $defPaymentMap = is_array($rec->otherData['defPaymArr']) ? $rec->otherData['defPaymArr'] : array();
+        $normalizedPaymentNames = $this->getNormalizedPaymentNames($rec);
         
-        $name = $pRec->title;
-        if (!empty($name)) {
-            if (array_key_exists($name, $defPaymentMap)) {
-                
-                return $defPaymentMap[$name];
+        // Мачване на синонима на начина на плащане с нормализираните имена от касовия апарат
+        $normalizedNames = $pRec->synonym;
+        if (!empty($normalizedNames)) {
+            $normalizedNames = keylist::toArray($normalizedNames);
+            foreach ($normalizedNames as $paymentNormalizedName){
+                if(array_key_exists($paymentNormalizedName, $normalizedPaymentNames)){
+                    
+                    return $normalizedPaymentNames[$paymentNormalizedName];
+                }
             }
         }
+    }
+    
+    
+    /**
+     * Нормализиране на имената на методите на плащане
+     * 
+     * @param stdClass $rec
+     * @return array $paymentNames
+     */
+    private function getNormalizedPaymentNames($rec)
+    {
+        // Нормализиране на имената на заредените плащания
+        $defPaymentMap = $rec->otherData['defPaymArr'];
+        $defPaymentMap = is_array($rec->otherData['defPaymArr']) ? $rec->otherData['defPaymArr'] : array();
+        $paymentNames = array();
+        foreach ($defPaymentMap as $name => $code){
+            $nameNorm = plg_Search::normalizeText($name);
+            $paymentNames[$nameNorm] = $code;
+        }
+        
+        return $paymentNames;
     }
     
     
