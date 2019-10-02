@@ -1,5 +1,41 @@
 <div class="container">
     <div class="row">
+        <div class="col-md-4 col-sm-12 col-xs-12 sidebar">
+            <div class="x_panel tile right-panel">
+                <div class="x_title">
+                    <h1><div id="currentTime"></div><div class="roomNum">123</div></h1>
+                    <div class="clearfix"></div>
+                    <h2 class="currentDate">27 октомври, четв.</h2>
+                    <div class="clearfix"></div>
+                    <div></div>
+                </div>
+                <div class='scroll-vertical'>
+                    <!--    <h6 style='margin: 10px 0 0;'>(Св. Валентин, Трифон Зарезан)</h6> -->
+                    <div class="x_content" style="display: block; margin-top: 15px;">
+                        <figure class="icons">
+                            <canvas class='weather-icon'  width="120" height="120" style="display: block;position:relative; left: 50%; margin: 30px auto 30px -70px;"></canvas>
+
+                        </figure>
+                        <p class="weatherStat"> </p>
+                        <p>
+                            Изгрев: 05:39 ч. <br>
+                            Залез: 20:52 ч.
+                        </p>
+                    </div>
+                    <i class="fa fa-gear optionsBtn" data-toggle="modal" data-target="#toolsModal"></i>
+                </div>
+                <!--
+                <div class="onoffswitch doorSwitch">
+                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myDoorswitch" checked>
+                    <label class="onoffswitch-label" for="myDoorswitch">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+                </div>
+                -->
+            </div>
+
+        </div>
         <div class="col-md-8 col-sm-12 col-xs-12">
             <div class="tab-content">
                 <div class="tab-pane active" id="state" role="tabpanel" aria-labelledby="state-tab">
@@ -7,12 +43,12 @@
                         <div class="col-md-6 col-sm-6 col-xs-12">
                             <div class="x_panel tile">
                                 <div class="x_title">
-                                    <h2>Температура</h2>
+                                    <h2>Температура <span id="currentTemp" class="text-danger">26</span></h2>
                                     <div class="clearfix"></div>
                                 </div>
                                 <div class="x_content" style="display: block;">
-                                    <input type="range" min="20" max="30" data-min="23" data-max="27" data-rangeslider>
-                                    <div class="output"><output></output><span>°C</span></div>
+                                    <input type="range" min="23" max="28" data-min="24" data-max="27" data-rangeslider value="24.5" step="0.5">
+                                    <div class="output"><output id="temperature"></output><span>°C</span></div>
                                 </div>
                             </div>
                         </div>
@@ -24,7 +60,7 @@
                                     <div class="clearfix"></div>
                                 </div>
                                 <div class="x_content" style="display: block;">
-                                    <input type="range" min="0" max="100" data-min="20" data-max="80"  step="10" data-rangeslider>
+                                    <input type="range" min="0" max="100" data-interval="20" step="5" data-rangeslider>
                                     <div class="output"><output></output><span>%</span></div>
 
                                 </div>
@@ -39,7 +75,7 @@
                                     <div class="clearfix"></div>
                                 </div>
                                 <div class="x_content" style="display: block;">
-                                    <input type="range" min="0" max="100" data-min="10" data-max="90"  step="10" data-rangeslider>
+                                    <input type="range" min="0" max="100" data-interval="20" step="5" data-rangeslider>
                                     <div class="output"><output></output><span>%</span></div>
                                 </div>
                             </div>
@@ -51,169 +87,15 @@
                                     <div class="clearfix"></div>
                                 </div>
                                 <div class="x_content" style="display: block;">
-                                    <input type="range" min="0" max="40" data-min="5" data-max="35"  step="1" data-rangeslider>
-                                    <div class="output"><output></output><span>°</span></div>
+                                    <input type="range" min="0" max="100" data-interval="20" step="5" data-rangeslider>
+                                    <div class="output"><output></output><span>%</span></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="tab-pane " id="settings" role="tabpanel" aria-labelledby="settings-tab">
-                    <div id="accordion" role="tablist" class="accordion">
-                        <div>
-                            <div class="card-header" role="tab" id="headingOne">
-                                <h5 class="mb-0" style="position: relative;">
 
-                                    <a data-toggle="collapse" href="#collapseOne" role="button" aria-expanded="true" aria-controls="collapseOne">
-                                        Температура
-                                    </a>
-                                    <div class="onoffswitch tempSwitch">
-                                        <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" checked>
-                                        <label class="onoffswitch-label" for="myonoffswitch">
-                                            <span class="onoffswitch-inner"></span>
-                                            <span class="onoffswitch-switch"></span>
-                                        </label>
-                                    </div>
-                                </h5>
-                            </div>
-
-                            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne" data-parent="#accordion">
-                                <div class="card-body changeOptions">
-
-                                    <div class="row">
-                                        <div class="col-md-4 col-sm-4 col-xs-12">
-                                            <label >
-                                                Работен ден
-                                            </label>
-                                        </div>
-                                        <div class="col-md-2 col-sm-2 col-xs-2 text-center">
-                                            <span class="minus" data-step="1"><i class="fa fa-minus"></i></span>
-                                        </div>
-                                        <div class="col-md-2 col-sm-4 col-xs-8 text-center">
-                                            <span class="changeVal">24</span>
-                                        </div>
-                                        <div class="col-md-2 col-sm-2 col-xs-2 text-center">
-                                            <span class="plus" data-step="1"><i class="fa fa-plus"></i></span>
-                                        </div>
-                                    </div>
-
-                                    <div class="row" style="margin-top: 10px;">
-                                        <div class="col-md-4 col-sm-4 col-xs-12">
-                                            <label >
-                                                Почивен ден
-                                            </label>
-                                        </div>
-
-                                        <div class="col-md-2 col-sm-2 col-xs-2 text-center">
-                                            <span class="minus" data-step="1"><i class="fa fa-minus"></i></span>
-                                        </div>
-                                        <div class="col-md-2 col-sm-4 col-xs-8 text-center">
-                                            <span class="changeVal">10</span>
-                                        </div>
-                                        <div class="col-md-2 col-sm-2 col-xs-2 text-center">
-                                            <span class="plus" data-step="1"><i class="fa fa-plus"></i></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="card-header" role="tab" id="headingTwo">
-                                <h5 class="mb-0">
-                                    <a class="collapsed" data-toggle="collapse" href="#collapseTwo" role="button" aria-expanded="false" aria-controls="collapseTwo">
-                                        Вентилация
-                                    </a>
-                                </h5>
-                            </div>
-                            <div id="collapseTwo" class="collapse" role="tabpanel" aria-labelledby="headingTwo" data-parent="#accordion">
-                                <div class="card-body changeOptions">
-
-                                    <div class="row">
-                                        <div class="col-md-4 col-sm-4 col-xs-12">
-                                            <label >
-                                                Работен ден
-                                            </label>
-                                        </div>
-                                        <div class="col-md-2 col-sm-2 col-xs-2 text-center">
-                                            <span class="minus" data-step="10"><i class="fa fa-minus"></i></span>
-                                        </div>
-                                        <div class="col-md-2 col-sm-4 col-xs-8 text-center">
-                                            <span class="changeVal">50</span>
-                                        </div>
-                                        <div class="col-md-2 col-sm-2 col-xs-2 text-center">
-                                            <span class="plus" data-step="10"><i class="fa fa-plus"></i></span>
-                                        </div>
-                                    </div>
-
-                                    <div class="row" style="margin-top: 10px;">
-                                        <div class="col-md-4 col-sm-4 col-xs-12">
-                                            <label >
-                                                Почивен ден
-                                            </label>
-                                        </div>
-
-                                        <div class="col-md-2 col-sm-2 col-xs-2 text-center">
-                                            <span class="minus" data-step="10"><i class="fa fa-minus"></i></span>
-                                        </div>
-                                        <div class="col-md-2 col-sm-4 col-xs-8 text-center">
-                                            <span class="changeVal">10</span>
-                                        </div>
-                                        <div class="col-md-2 col-sm-2 col-xs-2 text-center">
-                                            <span class="plus" data-step="10"><i class="fa fa-plus"></i></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="card-header" role="tab" id="headingThree">
-                                <h5 class="mb-0">
-                                    <a class="collapsed" data-toggle="collapse" href="#collapseThree" role="button" aria-expanded="false" aria-controls="collapseThree">
-                                        Осветление
-                                    </a>
-                                </h5>
-                            </div>
-                            <div id="collapseThree" class="collapse" role="tabpanel" aria-labelledby="headingThree" data-parent="#accordion">
-                                <div class="card-body changeOptions">
-
-                                    <div class="row">
-                                        <div class="col-md-4 col-sm-4 col-xs-12">
-                                            <label >
-                                                Работен ден
-                                            </label>
-                                        </div>
-                                        <div class="col-md-2 col-sm-2 col-xs-2 text-center">
-                                            <span class="minus" data-step="20"><i class="fa fa-minus"></i></span>
-                                        </div>
-                                        <div class="col-md-2 col-sm-4 col-xs-8 text-center">
-                                            <span class="changeVal">200</span>
-                                        </div>
-                                        <div class="col-md-2 col-sm-2 col-xs-2 text-center">
-                                            <span class="plus" data-step="20"><i class="fa fa-plus"></i></span>
-                                        </div>
-                                    </div>
-
-                                    <div class="row" style="margin-top: 10px;">
-                                        <div class="col-md-4 col-sm-4 col-xs-12">
-                                            <label >
-                                                Почивен ден
-                                            </label>
-                                        </div>
-
-                                        <div class="col-md-2 col-sm-2 col-xs-2 text-center">
-                                            <span class="minus" data-step="20"><i class="fa fa-minus"></i></span>
-                                        </div>
-                                        <div class="col-md-2 col-sm-4 col-xs-8 text-center">
-                                            <span class="changeVal">20</span>
-                                        </div>
-                                        <div class="col-md-2 col-sm-2 col-xs-2 text-center">
-                                            <span class="plus" data-step="20"><i class="fa fa-plus"></i></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
 
                 </div>
@@ -406,40 +288,177 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4 col-sm-12 col-xs-12 sidebar">
-            <div class="x_panel tile right-panel">
-                <div class="x_title">
-                    <h1 id="currentTime"></h1>
-                    <h2 class="currentDate">27 октомври, четв.</h2>
+    </div>
+</div>
+
+
+<div class="modal" tabindex="-1" role="dialog" id="toolsModal">
+    <div class="modal-dialog " role="document">
+        <div class="modal-content x_panel">
+            <div class="modal-header">
+                    <h2>Настойки</h2>
                     <div class="clearfix"></div>
-                </div>
-                <div class='scroll-vertical'>
-                    <!--    <h6 style='margin: 10px 0 0;'>(Св. Валентин, Трифон Зарезан)</h6> -->
-                    <div class="x_content" style="display: block; margin-top: 15px;">
-                        <figure class="icons">
-                            <canvas class='weather-icon'  width="120" height="120" style="display: block;position:relative; left: 50%; margin: 30px auto 30px -70px;"></canvas>
+                <button type="button" class="close text-white-50" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="accordion" role="tablist" class="accordion">
+                    <div>
+                        <div class="card-header" role="tab" id="headingOne">
+                            <h5 class="mb-0" style="position: relative;">
 
-                        </figure>
-                        <p class="weatherStat"> </p>
-                        <p>
-                            Изгрев: 05:39 ч. <br>
-                            Залез: 20:52 ч.
-                        </p>
+                                <a data-toggle="collapse" href="#collapseOne" role="button" aria-expanded="true" aria-controls="collapseOne">
+                                    Температура
+                                </a>
+                                <div class="onoffswitch tempSwitch">
+                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" checked>
+                                    <label class="onoffswitch-label" for="myonoffswitch">
+                                        <span class="onoffswitch-inner"></span>
+                                        <span class="onoffswitch-switch"></span>
+                                    </label>
+                                </div>
+                            </h5>
+                        </div>
 
+                        <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne" data-parent="#accordion">
+                            <div class="card-body changeOptions">
 
+                                <div class="row">
+                                    <div class="col-md-4 col-sm-4 col-xs-12">
+                                        <label >
+                                            Работен ден
+                                        </label>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                        <span class="minus" data-step="1"><i class="fa fa-minus"></i></span>
+                                    </div>
+                                    <div class="col-md-2 col-sm-4 col-xs-8 text-center">
+                                        <span class="changeVal">24</span>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                        <span class="plus" data-step="1"><i class="fa fa-plus"></i></span>
+                                    </div>
+                                </div>
+
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-md-4 col-sm-4 col-xs-12">
+                                        <label >
+                                            Почивен ден
+                                        </label>
+                                    </div>
+
+                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                        <span class="minus" data-step="1"><i class="fa fa-minus"></i></span>
+                                    </div>
+                                    <div class="col-md-2 col-sm-4 col-xs-8 text-center">
+                                        <span class="changeVal">10</span>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                        <span class="plus" data-step="1"><i class="fa fa-plus"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="onoffswitch doorSwitch">
-                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myDoorswitch" checked>
-                    <label class="onoffswitch-label" for="myDoorswitch">
-                        <span class="onoffswitch-inner"></span>
-                        <span class="onoffswitch-switch"></span>
-                    </label>
+                    <div>
+                        <div class="card-header" role="tab" id="headingTwo">
+                            <h5 class="mb-0">
+                                <a class="collapsed" data-toggle="collapse" href="#collapseTwo" role="button" aria-expanded="false" aria-controls="collapseTwo">
+                                    Вентилация
+                                </a>
+                            </h5>
+                        </div>
+                        <div id="collapseTwo" class="collapse" role="tabpanel" aria-labelledby="headingTwo" data-parent="#accordion">
+                            <div class="card-body changeOptions">
+
+                                <div class="row">
+                                    <div class="col-md-4 col-sm-4 col-xs-12">
+                                        <label >
+                                            Работен ден
+                                        </label>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                        <span class="minus" data-step="10"><i class="fa fa-minus"></i></span>
+                                    </div>
+                                    <div class="col-md-2 col-sm-4 col-xs-8 text-center">
+                                        <span class="changeVal">50</span>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                        <span class="plus" data-step="10"><i class="fa fa-plus"></i></span>
+                                    </div>
+                                </div>
+
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-md-4 col-sm-4 col-xs-12">
+                                        <label >
+                                            Почивен ден
+                                        </label>
+                                    </div>
+
+                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                        <span class="minus" data-step="10"><i class="fa fa-minus"></i></span>
+                                    </div>
+                                    <div class="col-md-2 col-sm-4 col-xs-8 text-center">
+                                        <span class="changeVal">10</span>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                        <span class="plus" data-step="10"><i class="fa fa-plus"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="card-header" role="tab" id="headingThree">
+                            <h5 class="mb-0">
+                                <a class="collapsed" data-toggle="collapse" href="#collapseThree" role="button" aria-expanded="false" aria-controls="collapseThree">
+                                    Осветление
+                                </a>
+                            </h5>
+                        </div>
+                        <div id="collapseThree" class="collapse" role="tabpanel" aria-labelledby="headingThree" data-parent="#accordion">
+                            <div class="card-body changeOptions">
+
+                                <div class="row">
+                                    <div class="col-md-4 col-sm-4 col-xs-12">
+                                        <label >
+                                            Работен ден
+                                        </label>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                        <span class="minus" data-step="20"><i class="fa fa-minus"></i></span>
+                                    </div>
+                                    <div class="col-md-2 col-sm-4 col-xs-8 text-center">
+                                        <span class="changeVal">200</span>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                        <span class="plus" data-step="20"><i class="fa fa-plus"></i></span>
+                                    </div>
+                                </div>
+
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-md-4 col-sm-4 col-xs-12">
+                                        <label >
+                                            Почивен ден
+                                        </label>
+                                    </div>
+
+                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                        <span class="minus" data-step="20"><i class="fa fa-minus"></i></span>
+                                    </div>
+                                    <div class="col-md-2 col-sm-4 col-xs-8 text-center">
+                                        <span class="changeVal">20</span>
+                                    </div>
+                                    <div class="col-md-2 col-sm-2 col-xs-2 text-center">
+                                        <span class="plus" data-step="20"><i class="fa fa-plus"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-
-

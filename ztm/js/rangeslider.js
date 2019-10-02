@@ -231,6 +231,7 @@
 
 	this.minValue           =   this.$element.data('min');
 	this.maxValue           =  this.$element.data('max');
+        this.interval           =   this.$element.data('interval');
 
         // Plugin should only be used as a polyfill
         if (this.polyfill) {
@@ -389,10 +390,19 @@
         newPos = this.getPositionFromValue(value);
 
         // Update ui
-	if(this.value <= this.minValue) {this.$element.parent().find('.rangeslider__fill').addClass('blue-fill')};
-	if(this.value > this.minValue) {this.$element.parent().find('.rangeslider__fill').removeClass('blue-fill')};
-	if(this.value >= this.maxValue) {this.$element.parent().find('.rangeslider__fill').addClass('red-fill')};
-	if(this.value < this.maxValue) {this.$element.parent().find('.rangeslider__fill').removeClass('red-fill')};
+        // data min  и max
+        if(this.value <= this.minValue) {this.$element.parent().find('.rangeslider__fill').addClass('blue-fill')};
+        if(this.value > this.minValue) {this.$element.parent().find('.rangeslider__fill').removeClass('blue-fill')};
+        if(this.value >= this.maxValue) {this.$element.parent().find('.rangeslider__fill').addClass('red-fill')};
+        if(this.value < this.maxValue) {this.$element.parent().find('.rangeslider__fill').removeClass('red-fill')};
+
+
+        // data interval
+        if(this.value < this.min + this.interval) {this.$element.parent().find('.rangeslider__fill').addClass('red-fill').removeClass('green-fill')};
+        if(this.value > this.max - this.interval) {this.$element.parent().find('.rangeslider__fill').addClass('red-fill').removeClass('green-fill')};
+        if(this.value == this.min + this.interval) {this.$element.parent().find('.rangeslider__fill').removeClass('red-fill green-fill')};
+        if(this.value == this.max - this.interval) {this.$element.parent().find('.rangeslider__fill').removeClass('red-fill green-fill')};
+        if(this.value > this.min + this.interval && this.value < this.max - this.interval) {this.$element.parent().find('.rangeslider__fill').addClass('green-fill').removeClass('red-fill')};
 
         this.$fill[0].style[this.DIMENSION] = (newPos + this.grabPos) + 'px';
         this.$handle[0].style[this.DIRECTION_STYLE] = newPos + 'px';
@@ -405,6 +415,8 @@
         if (triggerSlide && this.onSlide && typeof this.onSlide === 'function') {
             this.onSlide(newPos, value);
         }
+
+
     };
 
     // Returns element position relative to the parent

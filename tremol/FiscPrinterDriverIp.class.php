@@ -875,14 +875,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                         $namePayment = "NamePaym{$i}";
                         $codePayment = "CodePaym{$i}";
                         
-                        if ($i === 0) {
-                            $codePaymVal = 0;
-                        } elseif ($i === 4) {
-                            $codePaymVal = 11;
-                        } else {
-                            $codePaymVal = (double) $paymRes->{$codePayment};
-                        }
-                        $dPaymArr[trim($paymRes->{$namePayment})] = trim($codePaymVal);
+                        $dPaymArr[trim($paymRes->{$namePayment})] = $i;
                     } catch (Exception $e) { }
                 }
                 

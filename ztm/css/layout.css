@@ -54,8 +54,10 @@ body {
 }
 .x_title h2 {
     margin: 5px 0 6px;
-    float: left;
     display: block;
+}
+.sidebar {
+    order: 1;
 }
 .overflow_hidden, .sidebar-widget, .site_title, .tile, .weather-days .col-sm-2, .x_title h2, table.tile_info td p {
     overflow: hidden;
@@ -78,8 +80,9 @@ table.tile_info td p {
     margin-top: 17px;
 }
 .output span {
-    font-size: 90%;
-    vertical-align: top;
+    font-size: 60%;
+    position: relative;
+    top: -15px;
 
 }
 h2 {
@@ -191,6 +194,11 @@ figure {
 }
 .fa-sort-desc.arrow-bottom {
     top: 62px;
+}
+.optionsBtn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
 }
 .table-dark {
     background: #2a3039;
@@ -480,8 +488,34 @@ input:checked + .sliderToggle:before {
     cursor: pointer;
 
 }
+#currentTime {
+    float: left;;
+}
 
-
+#currentTemp {
+    display: block;
+    float: right;
+    font-size: 0.7em;
+    position: relative;
+    top: 5px;
+}
+.roomNum {
+    float: right;
+    font-size: 0.5em;
+    margin-top: 10px;
+    background: rgba(0,0,0,0.2);
+    padding: 3px 5px;
+    border: 1px solid rgba(0,0,0,.25)
+}
+.modal-header {
+    padding: 5px;
+    border: none;
+    border-bottom: 1px solid rgba(190,197,207,.2);
+}
+.modal .close span {
+    filter: invert(100%);
+    -webkit-filter: invert(100%);
+}
 @media (min-width: 1200px ) and (max-width: 1600px){
     .container {
         max-width: 98% !important;
@@ -659,7 +693,20 @@ input:checked + .sliderToggle:before {
     .tile {
         margin-bottom: 25px;
     }
+    .container {
+        padding-top: 15px;
+    }
     .tab-pane.active {
         min-height: 0;
+    }
+    .sidebar {
+        order: initial;
+    }
+    .marginFix {
+        margin-top: 0 !important;
+    }
+    .right-panel.right-panel {
+        height: auto !important;
+        min-height: auto !important;
     }
 }

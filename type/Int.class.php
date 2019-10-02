@@ -221,6 +221,13 @@ class type_Int extends core_Type
         
         $val = trim($val);
         
+        // Ако стойността започва с 0, не се приема за инт
+        $firstLetter = mb_substr($val, 0, 1);
+        if($firstLetter === '0'){
+            
+            return false;
+        }
+        
         if ($unsigned) {
             $pattern = '/^\d+$/';
         } else {
