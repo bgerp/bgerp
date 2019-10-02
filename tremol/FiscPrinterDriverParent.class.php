@@ -452,7 +452,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $defPaymentMap = is_array($rec->otherData['defPaymArr']) ? $rec->otherData['defPaymArr'] : array();
         $paymentNames = array();
         foreach ($defPaymentMap as $name => $code){
-            $nameNorm = plg_Search::normalizeText($name);
+            $nameNorm = trim(plg_Search::normalizeText($name));
             $paymentNames[$nameNorm] = $code;
         }
         
