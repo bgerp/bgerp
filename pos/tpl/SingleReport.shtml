@@ -31,7 +31,7 @@
 								[#ROW#]
 						     	<span style='font-weight:normal'>[#receiptBy#]: [#receiptTotal#] <span class='cCode'>[#baseCurrency#]</span></span>
 						     <!--ET_END ROW-->
-						     <div style='font-weight:normal'><hr></div><div style='font-weight:normal'>[#receiptIds#]</div>
+						     <div style='font-weight:normal'><hr></div><div style='font-weight:normal;font-size: 0.9em;'>[#receiptIds#]</div>
                         </td>
                     </tr>
                 </table>
