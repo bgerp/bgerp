@@ -192,7 +192,6 @@ class bglocal_Address extends core_MVC
         'v tyrnovo' => 'В. Търново',
         'tarnovo' => 'В. Търново',
         'tyrnovo' => 'В. Търново',
-        'valencia' => 'Валенсия',
         'varna' => 'Варна',
         'veliki preslav' => 'Велики преслав',
         'veliko tarnovo' => 'В. Търново',
