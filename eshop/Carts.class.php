@@ -1859,15 +1859,17 @@ class eshop_Carts extends core_Master
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             
-            // Проверка на имената
+            // Проверка на имената да са поне две с поне 2 букви
             $namesArr = explode(' ', str::removeWhiteSpace($rec->personNames, ' '));
-            if(count($namesArr) < 2){
-                $form->setError('personNames', 'Трябва да са въведени поне две имена');
+            if(count($namesArr) < 2 || !arr::checkMinLength($namesArr, 2)){
+                $form->setError('personNames', 'Трябва да са въведени поне две имена с поне две букви');
             }
+            
+            // Проверка на имената на лицето на фактурата, ако тя е за лице да са поне две с поне 2 букви
             if($rec->makeInvoice == 'person'){
                 $namesArr = explode(' ', str::removeWhiteSpace($rec->invoiceNames, ' '));
-                if(count($namesArr) < 2){
-                    $form->setError('invoiceNames', 'Трябва да са въведени поне две имена');
+                if(count($namesArr) < 2 || !arr::checkMinLength($namesArr, 2)){
+                    $form->setError('invoiceNames', 'Трябва да са въведени поне две имена с поне две букви');
                 }
             }
             
