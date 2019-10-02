@@ -794,8 +794,6 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $data->query->like('serial', $filter->serial);
             }
         }
-        
-        bp($data->query->where, $data->query->fetchAll());
     }
     
     
