@@ -1385,4 +1385,18 @@ class core_String
         
         return $resStr;
     }
+    
+    
+    /**
+     * Дали стринга съдържа само цифри
+     * 
+     * @param string $value
+     * @return boolean
+     */
+    function containOnlyDigits($value)
+    {
+        $pattern = '/^\d+$/';
+        
+        return preg_match($pattern, $value);
+    }
 }
