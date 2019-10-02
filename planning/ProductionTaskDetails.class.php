@@ -128,6 +128,14 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     
     /**
+     * Каква да е максималната дължина на стринга за пълнотекстово търсене
+     * 
+     * @see plg_Search
+     */
+    public $maxSearchKeywordLen = 13;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -786,6 +794,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $data->query->like('serial', $filter->serial);
             }
         }
+        
+        bp($data->query->where, $data->query->fetchAll());
     }
     
     
