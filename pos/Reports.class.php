@@ -298,7 +298,7 @@ class pos_Reports extends core_Master
         }
         
         if(count($data->row->receiptIds)){
-            $data->row->receiptIds = implode('<br>', $data->row->receiptIds);
+            $data->row->receiptIds = implode(' <span class="quiet small" style="display: inline-block;margin: 0 5px;"> | </span> ', $data->row->receiptIds);
         }
         
         /*
