@@ -1393,7 +1393,7 @@ class core_String
      * @param string $value
      * @return boolean
      */
-    function containOnlyDigits($value)
+    public static function containOnlyDigits($value)
     {
         $pattern = '/^\d+$/';
         
