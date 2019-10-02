@@ -307,6 +307,7 @@ class core_Debug
             }
             $result .= "\n<tr style='background-color:{$bgk}'>";
             foreach ($row as $cell) {
+                $cell = str_replace(array("'" . EF_DB_PASS . "'", '"' . EF_DB_PASS . '"'), array("'******'", '"******"'), $cell);
                 $result .= '<td>' . $cell . '</td>';
             }
             $result .= '</tr>';

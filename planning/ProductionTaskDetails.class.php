@@ -128,6 +128,14 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     
     /**
+     * Каква да е максималната дължина на стринга за пълнотекстово търсене
+     * 
+     * @see plg_Search
+     */
+    public $maxSearchKeywordLen = 13;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -180,9 +188,12 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $value = planning_AssetResources::getTitleById($key, false);
             }
             
-            $arr = ((Mode::is('terminalProgressForm')) ? array(' ' => ' ') : array('' => '')) + $arr;
-            $form->setOptions('fixedAsset', $arr);
-            $form->setField('fixedAsset', 'input');
+            $assetOptions = ((Mode::is('terminalProgressForm')) ? array(' ' => ' ') : array('' => '')) + $arr;
+            $form->setOptions('fixedAsset', $assetOptions);
+            $form->setField('fixedAsset', 'input,mandatory');
+            if(count($arr) == 1 && !Mode::is('terminalProgressForm')){
+                $form->setReadOnly('fixedAsset', key($arr));
+            }
         } else {
             $form->setField('fixedAsset', 'input=none');
         }
@@ -247,8 +258,18 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         // Връща избрани оператори от операцията, или ако няма всички от центъра
         $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
+       
         if (count($employees)) {
             $form->setSuggestions('employees', $employees);
+            
+            if(!empty($masterRec->employees)){
+                $form->setField('employees', 'mandatory');
+            }
+            if(count($employees) == 1){
+                if(!Mode::is('terminalProgressForm')){
+                    $form->setDefault('employees', keylist::addKey('', key($employees)));
+                }
+            }
         } else {
             $form->setField('employees', 'input=none');
         }
@@ -1014,6 +1035,17 @@ class planning_ProductionTaskDetails extends doc_Detail
             expect($params['weight'] = core_Type::getByName('double')->fromVerbal($params['weight']), 'Невалидно число');
             expect($params['weight'] > 0, 'Теглото трябва да е положително');
             $rec->weight = $params['weight'];
+        }
+        
+        if(!empty($taskRec->fixedAssets)){
+            $taskAssets = keylist::toArray($taskRec->fixedAssets);
+            if(count($taskAssets) && empty($rec->fixedAsset)){
+                expect(!empty($rec->fixedAsset), 'Задължително трябва да е избрано оборудване');
+            }
+        }
+        
+        if(!empty($taskRec->employees) && empty($rec->employees)){
+            expect(!empty($rec->employees), 'Задължително трябва да са избрани служители');
         }
         
         if($taskRec->showadditionalUom == 'mandatory' && $rec->type == 'production' && $rec->productId == $taskRec->productId){

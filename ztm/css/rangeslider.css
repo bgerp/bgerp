@@ -41,6 +41,9 @@
 .blue-fill {
   background: #489fc0 !important;
 }
+.green-fill {
+  background: #6cc049 !important;
+}
 .rangeslider--horizontal .rangeslider__fill {
   top: 0;
   height: 100%;
