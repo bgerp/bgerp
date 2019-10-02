@@ -114,7 +114,6 @@ class bglocal_Address extends core_MVC
         'lukovit' => 'Луковит',
         'lyaskovets' => 'Лясковец',
         'madan' => 'Мадан',
-        'madrid' => 'Мадрид',
         'mezdra' => 'Мездра',
         'montana' => 'Монтана',
         'n zagora' => 'Нова загора',
