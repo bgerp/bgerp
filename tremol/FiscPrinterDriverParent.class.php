@@ -683,10 +683,12 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $form->FLD('zeroing', 'enum(no=Не, yes=Да)', 'caption=Отчет->Нулиране, mandatory');
         $form->FLD('isDetailed', 'enum(no=Не, yes=Да)', 'caption=Отчет->Детайлен, mandatory');
         
+        $form->setDefault('zeroing', 'yes');
+        
         if ($form->rec->report == 'operator') {
             $form->FLD('operNum', 'int(min=0, max=20)', 'caption=Отчет->Оператор, mandatory');
             $form->setField('isDetailed', 'input=none');
-            $form->setDefault('operNum', 1);
+            $form->setDefault('operNum', 0);
         } elseif (($form->rec->report == 'period') || ($form->rec->report == 'month') || ($form->rec->report == 'year') || ($form->rec->report == 'klen') || ($form->rec->report == 'csv')) {
             $form->FLD('fromDate', 'date', 'caption=Дата->От, mandatory');
             $form->FLD('toDate', 'date', 'caption=Дата->До, mandatory');
