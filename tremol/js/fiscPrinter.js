@@ -529,16 +529,9 @@ function fpGetDefPayments()
         		var namePayment = "NamePaym" + i;
                 var codePayment = "CodePaym" + i;
         		try {
-        			if (i == 0) {
-                    	codePaymVal = 0;
-                    } else if (i == 4) {
-                    	codePaymVal = 11;
-                    } else {
-                    	codePaymVal = Number(paymRes[codePayment]);
-                    }
                     var paymResStr = paymRes[namePayment];
                     paymResStr = paymResStr.trim();
-                    defPaymArr[paymResStr] = codePaymVal;
+                    defPaymArr[paymResStr] = i;
         		} catch(ex) { }
     		}
         	
