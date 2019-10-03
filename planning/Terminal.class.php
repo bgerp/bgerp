@@ -568,7 +568,14 @@ class planning_Terminal extends peripheral_Terminal
         $idleTime = Request::get('idleTime', 'int');
         $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
         
-        $res = array_merge($objectArr, (array) $statusData);
+        // Скриване на грешките
+        $objectArr1 = array();
+        $resObj = new stdClass();
+        $resObj->func = 'clearStatuses';
+        $resObj->arg = array('type' => 'error');
+        $objectArr1[] = $resObj;
+        
+        $res = array_merge($objectArr, (array) $statusData, $objectArr1);
         
         return $res;
     }
@@ -599,11 +606,18 @@ class planning_Terminal extends peripheral_Terminal
             $resObj->arg = array('tabId' => self::TAB_DATA[$name]['tab-id']);
             $objectArr[] = $resObj;
             
+            // Скриване на грешките
+            $objectArr1 = array();
+            $resObj = new stdClass();
+            $resObj->func = 'clearStatuses';
+            $resObj->arg = array('type' => 'error');
+            $objectArr1[] = $resObj;
+            
             // Показваме веднага и чакащите статуси
             $hitTime = Request::get('hitTime', 'int');
             $idleTime = Request::get('idleTime', 'int');
             $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
-            $res = array_merge($objectArr, (array) $statusData);
+            $res = array_merge($objectArr, (array) $statusData, $objectArr1);
             
             return $res;
         }
