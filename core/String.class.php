@@ -1391,7 +1391,7 @@ class core_String
      * Дали стринга съдържа само цифри
      * 
      * @param string $value
-     * @return boolean
+     * @return int|false
      */
     public static function containOnlyDigits($value)
     {
