@@ -557,11 +557,12 @@ class batch_Items extends core_Master
      * @param datetime|NULL $date      - към дата, ако е празно текущата
      * @param int|NULL      $limit     - лимит на резултатите
      * @param array         $except    - кой документ да се игнорира
+     * @param boolean       $onlyActiveBatches - дали да са само текущо активните партиди
      *
      * @return array $res - масив с партидите и к-та
      *               ['batch'] => ['quantity']
      */
-    public static function getBatchQuantitiesInStore($productId, $storeId, $date = null, $limit = null, $except = array())
+    public static function getBatchQuantitiesInStore($productId, $storeId, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false)
     {
         $date = (isset($date)) ? $date : dt::today();
         $res = array();
@@ -620,7 +621,7 @@ class batch_Items extends core_Master
         $bQuery->where("#date <= '{$date}'");
         $bQuery->show('batch');
         while ($bRec = $bQuery->fetch()) {
-            if (!array_key_exists($bRec->batch, $res)) {
+            if (!array_key_exists($bRec->batch, $res) && $onlyActiveBatches === false) {
                 $res[$bRec->batch] = 0;
             }
         }

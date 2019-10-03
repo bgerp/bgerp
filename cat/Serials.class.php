@@ -202,7 +202,7 @@ class cat_Serials extends core_Manager
      */
     public static function check($serial, &$error)
     {
-        if (!type_Int::isInt($serial)) {
+        if (!str::containOnlyDigits($serial)) {
             $error = 'Номера трябва да съдържа само цифри';
             
             return false;

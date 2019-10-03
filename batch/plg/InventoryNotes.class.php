@@ -58,7 +58,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             $valior = dt::addDays(-1, $masterRec->valior);
             $valior = dt::verbal2mysql($valior, false);
             
-            $quantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $masterRec->storeId, $valior);
+            $quantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $masterRec->storeId, $valior, null, array(), true);
             $selected = $Def->makeArray($rec->batch);
             if (!empty($rec->batch) && !array_key_exists($rec->batch, $quantities)) {
                 foreach ($selected as $k => $b) {

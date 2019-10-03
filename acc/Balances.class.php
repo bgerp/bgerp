@@ -189,6 +189,9 @@ class acc_Balances extends core_Master
                     $row->periodId = ht::createLink($row->periodId, array($mvc, 'single', $rec->id), null, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост|* {$row->periodId}");
                 }
             }
+        } else {
+            $periodState = acc_Periods::fetchField($rec->periodId, 'state');
+            $row->ROW_ATTR['class'] = "state-{$periodState}";
         }
         
         // Добавяме връзка към последния алтерниращ документ

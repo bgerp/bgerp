@@ -21,9 +21,12 @@ body {
     color: rgba(255,255,255, 1) !important;
     background-color: none;
 }
-
+.row {
+    padding-bottom: 30px;
+}
 .x_panel {
     width: 100%;
+    height: 100%;
     padding: 10px 17px;
     display: inline-block;
     background: #2a3039;
@@ -33,11 +36,9 @@ body {
     column-break-inside: avoid;
     opacity: 1;
     transition: all .2s ease;
-}
-.right-panel.right-panel {
-    height: 530px;
     position: relative;
 }
+
 .clearfix:after {
     content: " ";
     display: block;
@@ -56,8 +57,8 @@ body {
     margin: 5px 0 6px;
     display: block;
 }
-.sidebar {
-    order: 1;
+.first-panel {
+    order: initial;
 }
 .overflow_hidden, .sidebar-widget, .site_title, .tile, .weather-days .col-sm-2, .x_title h2, table.tile_info td p {
     overflow: hidden;
@@ -102,11 +103,12 @@ h2 {
     font-size: 14px;
 }
 h1 {
-    font-size: 3em;
+    font-size: 4.5em;
+    padding-top: 20px;
 }
-h1 span {
-    position: relative;
-    top: -2px;
+.currentDate {
+    padding-top: 10px;
+    text-align: center;
 }
 .link i {
     color: #C5C7CB;
@@ -197,7 +199,7 @@ figure {
 }
 .optionsBtn {
     position: absolute;
-    bottom: 20px;
+    top: 20px;
     right: 20px;
 }
 .table-dark {
@@ -488,23 +490,19 @@ input:checked + .sliderToggle:before {
     cursor: pointer;
 
 }
-#currentTime {
-    float: left;;
-}
-
 #currentTemp {
     display: block;
     float: right;
-    font-size: 0.7em;
-    position: relative;
-    top: 5px;
+}
+#currentTime {
+    text-align: center;
 }
 .roomNum {
-    float: right;
-    font-size: 0.5em;
+    float: left;
     margin-top: 10px;
     background: rgba(0,0,0,0.2);
     padding: 3px 5px;
+    font-size: 1.1em;
     border: 1px solid rgba(0,0,0,.25)
 }
 .modal-header {
@@ -527,9 +525,6 @@ input:checked + .sliderToggle:before {
     .count_bottom{
         margin-top: 16px;
     }
-    .x_panel.right-panel {
-        height: 610px
-    }
     .scroll-vertical {
         max-height:480px;
     }
@@ -547,9 +542,6 @@ input:checked + .sliderToggle:before {
     }
 	.nav-item {
 		padding: 0px 30px;
-	}
-	.right-panel {
-		min-height:1050px;
 	}
 	.col-md-6 {
 		max-width: 100% !important;
@@ -609,20 +601,12 @@ input:checked + .sliderToggle:before {
         margin-top: 30px;
         font-size: 4em;
     }
-    .right-panel.right-panel {
-        height: 730px;
-        min-height: auto;
-    }
     p {
         font-size: 22px;
     }
 }
 
 @media (min-width: 800px ) and (max-height: 1280px) and (orientation : portrait){
-    .right-panel.right-panel {
-        height: 94.5vh;
-        min-height: auto;
-    }
     .x_content {
         padding: 0;
     }
@@ -633,7 +617,7 @@ input:checked + .sliderToggle:before {
 @media (max-width: 800px ) and (max-height: 1208px) {
     .container {
         height: 98vh !important;
-    }.scroll-vertical
+    }
     .x_content {
         padding: 5px 0;
     }
@@ -643,9 +627,6 @@ input:checked + .sliderToggle:before {
     .output {
         margin-top: 7px;
         font-size: 3.8em;
-    }
-    .right-panel.right-panel {
-        height: 1135px !important;
     }
     p {
         font-size: 22px;
@@ -674,9 +655,6 @@ input:checked + .sliderToggle:before {
     .x_panel {
         height: 306px;
     }
-    .right-panel.right-panel {
-        height: 646px !important;
-    }
     p {
         font-size: 24px;
     }
@@ -690,6 +668,12 @@ input:checked + .sliderToggle:before {
 }
 
 @media (max-width: 576px) {
+    .x_panel {
+        height: auto;
+    }
+    .row {
+        padding-bottom: 0;
+    }
     .tile {
         margin-bottom: 25px;
     }
@@ -699,14 +683,10 @@ input:checked + .sliderToggle:before {
     .tab-pane.active {
         min-height: 0;
     }
-    .sidebar {
-        order: initial;
+    .first-panel {
+        order: -1;
     }
     .marginFix {
         margin-top: 0 !important;
-    }
-    .right-panel.right-panel {
-        height: auto !important;
-        min-height: auto !important;
     }
 }

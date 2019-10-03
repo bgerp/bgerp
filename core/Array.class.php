@@ -704,7 +704,7 @@ class core_Array
      * @param array $arr - масив
      * @param int $checkLength - минимална дължина за проверка
      * @param null|string $field - поле, което ще се проверява. При null приема че масива е от скалари
-     * @return NULL|boolean $res - дали търсените елементи от масива имат минимална дължина
+     * @return boolean $res - дали търсените елементи от масива имат минимална дължина
      */
     public static function checkMinLength($arr, $checkLength, $field = null)
     {
@@ -720,6 +720,6 @@ class core_Array
             }
         });
         
-        return (count($arr)) ? $res : null;
+        return (count($arr)) ? $res : false;
     }
 }
