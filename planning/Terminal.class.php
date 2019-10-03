@@ -142,7 +142,7 @@ class planning_Terminal extends peripheral_Terminal
         $tpl = new core_ET(tr("|*<h3 class='title'>|Сигнал за повреда|*</h3><div class='formHolder'>[#FORM#]</div>"));
         $form = cls::get('core_Form');
         $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name,select2MinItems=100)', 'class=w100,placeholder=Оборудване,caption=Оборудване,mandatory');
-        $form->FLD('body', 'richtext(rows=4)', 'caption=Описание на проблема,mandatory,placeholder=Описание на проблема');
+        $form->FLD('body', 'richtext(rows=4,bucket=calTasks)', 'caption=Описание на проблема,mandatory,placeholder=Описание на проблема');
         
         $options = planning_AssetResources::getByFolderId(planning_Centers::fetchField($rec->centerId, 'folderId'));
         $form->setOptions('asset', array('' => '') + $options);
