@@ -714,15 +714,6 @@ class marketing_Bulletins extends core_Master
         header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
         header('Cache-Control: public, max-age=31536000');
         
-        // Поддържа ли се gzip компресиране на съдържанието?
-        $isGzipSupported = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));
-        
-        if ($isGzipSupported) {
-            // Компресираме в движение и подаваме правилния хедър
-            $js = gzencode($js);
-            header('Content-Encoding: gzip');
-        }
-        
         // Отпечатваме съдържанието и го изпращаме към браузъра
         header('Content-Length: ' . strlen($js));
         
@@ -757,16 +748,7 @@ class marketing_Bulletins extends core_Master
         header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
         header('Cache-Control: public, max-age=31536000');
         
-        // Поддържа ли се gzip компресиране на съдържанието?
-        $isGzipSupported = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));
-        
         $css = $bRec->data['css'];
-        
-        if ($isGzipSupported) {
-            // Компресираме в движение и подаваме правилния хедър
-            $css = gzencode($css);
-            header('Content-Encoding: gzip');
-        }
         
         // Отпечатваме съдържанието и го изпращаме към браузъра
         header('Content-Length: ' . strlen($css));

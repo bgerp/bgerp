@@ -201,12 +201,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         $productOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
         $form->setOptions('productId', array('' => '') + $productOptions);
         
-        if($masterRec->labelType == 'scan' || $rec->type == 'input'){
-            $form->setField('serial', 'mandatory');
-        } elseif($masterRec->labelType == 'print' || $rec->type == 'waste'){
-            $form->setField('serial', 'input=none');
-        }
-        
         if ($rec->type == 'production') {
             $form->setDefault('productId', $masterRec->productId);
             
@@ -231,6 +225,12 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         // Ако е избран артикул
         if (isset($rec->productId)) {
+            if($masterRec->labelType == 'scan' || $rec->type == 'input'){
+                $form->setField('serial', 'mandatory');
+            } elseif($masterRec->labelType == 'print' || $rec->type == 'waste'){
+                $form->setField('serial', 'input=none');
+            }
+            
             $pRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
             if ($pRec->canStore != 'yes' && $rec->productId == $masterRec->productId) {
                 if ($rest = $masterRec->plannedQuantity - $masterRec->totalQuantity) {
@@ -1054,7 +1054,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         $canStore = cat_Products::fetchField($productId, 'canStore');
         if(!empty($params['serial'])){
-            expect(type_Int::isInt($params['serial']), 'Серийния номер може да е само от цифри');
+            expect(str::containOnlyDigits($params['serial']), 'Серийния номер може да е само от цифри');
             $params['serial'] = plg_Search::normalizeText($params['serial']);
             $params['serial'] = str::removeWhiteSpace($params['serial']);
             if ($Driver = cat_Products::getDriver($productId)) {
@@ -1063,6 +1063,10 @@ class planning_ProductionTaskDetails extends doc_Detail
             $serialInfo = self::fetchSerialInfo($params['serial'], $productId, $taskId);
             $rec->serial = $params['serial'];
             $rec->serialType = $serialInfo['type'];
+        }
+        
+        if($taskRec->labelType == 'scan' || $rec->type == 'input'){
+            expect($params['serial'], 'Трябва да е сканиран сериен номер|*!');
         }
         
         if($rec->type == 'input' && $canStore != 'yes') {

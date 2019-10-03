@@ -469,6 +469,10 @@ class planning_Terminal extends peripheral_Terminal
             list($type, $productId) = explode('|', $form->rec->action);
             $form->rec->productId = $productId;
             $form->rec->type = $type;
+            
+            if($taskRec->labelType == 'print' || $form->rec->type == 'waste'){
+                $form->setField('serial', 'input=none');
+            }
         }
         
         $data = (object) array('form' => $form, 'masterRec' => planning_Tasks::fetch($currentTaskId), 'action' => 'add');
