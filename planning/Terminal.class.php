@@ -393,7 +393,7 @@ class planning_Terminal extends peripheral_Terminal
         
         // Бутон за търсене
         $searchUrl = toUrl(array($this, 'search', $rec->id), 'local');
-        $searchBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/search.png', 'id' => 'searchBtn',  'data-url' => $searchUrl, 'class' => 'formBtn search',  'title' => 'Търсене'));
+        $searchBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/search-white.png', 'id' => 'searchBtn',  'data-url' => $searchUrl, 'class' => 'formBtn search',  'title' => 'Търсене'));
         $tpl->append($searchBtn, 'searchBtn');
         
         // Бутон за сканиране
@@ -803,7 +803,7 @@ class planning_Terminal extends peripheral_Terminal
         $tpl->replace($verbalAsset, 'fixedAssets');
         $tpl->replace(dt::mysql2verbal(dt::now(), 'd/m/y'), 'date');
         $tpl->replace(strip_tags(crm_Profiles::createLink()), 'userId');
-        $img = ht::createImg(array('path' => 'img/16/logout.png'));
+        $img = ht::createImg(array('path' => 'img/16/logout-white.png'));
         
         $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => array('core_Users', 'login')), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
         
