@@ -129,6 +129,8 @@
          
          $query = planning_ProductionTaskDetails::getQuery();
          
+         $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
+         
          $query->where("#state != 'rejected' ");
          
          // Ако е посочена начална дата на период
@@ -165,20 +167,31 @@
              
              $labelQuantity = 1;
              $employees = $tRec->employees;
+             
              $counter = ($rec->typeOfReport == 'short') ? keylist::toArray($tRec->employees):array($id => $id);
              
+             if ($rec->employees && $rec->typeOfReport == 'short') {
+                 $counter = array_intersect($counter, keylist::toArray($rec->employees));
+             }
+             
              foreach ($counter as $val) {
+                 $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
+                 $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,packagingId,indTime,indPackagingId,indTimeAllocation');
+                 
                  if ($rec->typeOfReport == 'short') {
                      $divisor = count(keylist::toArray($tRec->employees));
                      
                      $id = $val;
                      
                      $labelQuantity = 1 / $divisor;
+                     
+                     $timeAlocation = ($tRec->indTimeAllocation == 'common') ? 1 / $divisor : 1;
+                     $indTimeSum = $timeAlocation * $iRec->indTime;
+                     
                      $employees = $val;
                  }
-                 $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
                  
-                 $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,packagingId,indTime,indPackagingId,indTimeAllocation');
+                 
                  $pRec = cat_Products::fetch($tRec->productId, 'measureId,name');
                  
                  
@@ -189,6 +202,7 @@
                          'taskId' => $tRec->taskId,
                          'detailId' => $tRec->id,
                          'indTime' => $iRec->indTime,
+                         'indTimeSum' => $indTimeSum,
                          'indPackagingId' => $irec->indPackagingId,
                          'indTimeAllocation' => $iRec->indTimeAllocation,
                          'quantityInPack' => $iRec->quantityInPack,
@@ -214,6 +228,7 @@
                      $obj->quantity += $tRec->quantity;
                      $obj->scrap += $tRec->scrappedQuantity;
                      $obj->labelQuantity += $labelQuantity;
+                     $obj->indTimeSum += $indTimeSum;
                      
                      $obj->weight += $tRec->weight;
                  }
@@ -286,6 +301,7 @@
              arr::sortObjects($recs, 'taskId', 'asc');
          }
          
+         // bp($recs);
          return $recs;
      }
      
@@ -325,6 +341,7 @@
              }
              if ($rec->typeOfReport == 'short') {
                  $fld->FLD('employees', 'varchar', 'caption=Служител');
+                 $fld->FLD('indTimeSum', 'varchar', 'caption=Време');
              }
              $fld->FLD('labelMeasure', 'varchar', 'caption=Етикет->мярка,tdClass=centered');
              $fld->FLD('labelQuantity', 'varchar', 'caption=Етикет->кол,tdClass=centered');
@@ -361,7 +378,8 @@
          $isPlain = Mode::is('text', 'plain');
          $Int = cls::get('type_Int');
          $Date = cls::get('type_Date');
-         
+         $Time = cls::get('type_Time');
+         $Double = core_Type::getByName('double(decimals=2)');
          $row = new stdClass();
          
          $row->taskId = planning_Tasks::getHyperlink($dRec->taskId);
@@ -373,7 +391,7 @@
          $row->labelMeasure = isset($dRec->labelMeasure)? cat_UoM::getShortName($dRec->labelMeasure) :'';
          
          
-         $row->labelQuantity = $Int->toVerbal($dRec->labelQuantity);
+         $row->labelQuantity = $Double->toVerbal($dRec->labelQuantity);
          
          $row->scrap = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->scrap);
          $row->weight = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->weight);
@@ -381,6 +399,7 @@
          
          if ($rec->typeOfReport == 'short' && isset($dRec->employees)) {
              $row->employees = crm_Persons::getTitleById(($dRec->employees)).' - '.planning_Hr::getCodeLink($dRec->employees);
+             $row->indTimeSum = $Time->toVerbal($dRec->indTimeSum);
          } else {
              if (isset($dRec->employees)) {
                  foreach (keylist::toArray($dRec->employees) as $key => $val) {
