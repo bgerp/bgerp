@@ -167,10 +167,13 @@
              
              $labelQuantity = 1;
              $employees = $tRec->employees;
+             
              $counter = ($rec->typeOfReport == 'short') ? keylist::toArray($tRec->employees):array($id => $id);
-             if ($rec->employees) {
+             
+             if ($rec->employees && $rec->typeOfReport == 'short') {
                  $counter = array_intersect($counter, keylist::toArray($rec->employees));
              }
+             
              foreach ($counter as $val) {
                  $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
                  $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,packagingId,indTime,indPackagingId,indTimeAllocation');
