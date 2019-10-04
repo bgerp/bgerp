@@ -115,6 +115,21 @@ class escpos_driver_Ddp250 extends core_BaseClass
     
     
     /**
+     * Отпечатване на QR код
+     *
+     * @param string $text
+     * @param integer $q
+     *
+     * @return string
+     */
+    public function getQr($text, $q=6)
+    {
+        
+        return $text;
+    }
+    
+    
+    /**
      *
      *
      * @param core_Et $tpl
