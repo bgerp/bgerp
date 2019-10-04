@@ -108,6 +108,7 @@ h1 {
 }
 .currentDate {
     padding-top: 10px;
+    text-align: center;
 }
 .link i {
     color: #C5C7CB;
@@ -198,7 +199,7 @@ figure {
 }
 .optionsBtn {
     position: absolute;
-    bottom: 20px;
+    top: 20px;
     right: 20px;
 }
 .table-dark {
@@ -497,10 +498,11 @@ input:checked + .sliderToggle:before {
     text-align: center;
 }
 .roomNum {
-    float: right;
+    float: left;
     margin-top: 10px;
     background: rgba(0,0,0,0.2);
     padding: 3px 5px;
+    font-size: 1.1em;
     border: 1px solid rgba(0,0,0,.25)
 }
 .modal-header {
