@@ -101,6 +101,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         setIfNot($mvc->filterCurrencyField, 'currencyId');
         setIfNot($mvc->filterFieldUsers, 'createdBy');
         setIfNot($mvc->termDateFld, null);
+        setIfNot($mvc->showNullDateFields, false);
         
         $mvc->filterRolesForTeam .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_TEAMS');
         $mvc->filterRolesForTeam = trim($mvc->filterRolesForTeam, ',');
@@ -324,7 +325,11 @@ class acc_plg_DocumentSummary extends core_Plugin
                     $where .= " OR ((#{$toField} >= '[#1#]' AND #{$toField} <= '[#2#] 23:59:59'))";
                     $nullCond = " OR (#{$fromField} IS NULL AND #{$toField} IS NULL)";
                 }
-                $where .= $nullCond;
+                
+                // NULL записите се показват само ако изрично се изисква
+                if($mvc->showNullDateFields === true){
+                    $where .= $nullCond;
+                }
 
                 $data->query->where(array($where, $dateRange[0], $dateRange[1]));
             }

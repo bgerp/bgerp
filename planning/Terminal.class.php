@@ -141,8 +141,8 @@ class planning_Terminal extends peripheral_Terminal
         $rec = planning_Points::fetchRec($id);
         $tpl = new core_ET(tr("|*<h3 class='title'>|Сигнал за повреда|*</h3><div class='formHolder'>[#FORM#]</div>"));
         $form = cls::get('core_Form');
-        $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name,select2MinItems=100)', 'class=w100,placeholder=Оборудване,mandatory');
-        $form->FLD('body', 'richtext(rows=4)', 'caption=Описание на проблема,mandatory,placeholder=Описание на проблема');
+        $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name,select2MinItems=100)', 'class=w100,placeholder=Оборудване,caption=Оборудване,mandatory');
+        $form->FLD('body', 'richtext(rows=4,bucket=calTasks)', 'caption=Описание на проблема,mandatory,placeholder=Описание на проблема');
         
         $options = planning_AssetResources::getByFolderId(planning_Centers::fetchField($rec->centerId, 'folderId'));
         $form->setOptions('asset', array('' => '') + $options);
@@ -393,7 +393,7 @@ class planning_Terminal extends peripheral_Terminal
         
         // Бутон за търсене
         $searchUrl = toUrl(array($this, 'search', $rec->id), 'local');
-        $searchBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/search.png', 'id' => 'searchBtn',  'data-url' => $searchUrl, 'class' => 'formBtn search',  'title' => 'Търсене'));
+        $searchBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/search-white.png', 'id' => 'searchBtn',  'data-url' => $searchUrl, 'class' => 'formBtn search',  'title' => 'Търсене'));
         $tpl->append($searchBtn, 'searchBtn');
         
         // Бутон за сканиране
@@ -568,7 +568,14 @@ class planning_Terminal extends peripheral_Terminal
         $idleTime = Request::get('idleTime', 'int');
         $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
         
-        $res = array_merge($objectArr, (array) $statusData);
+        // Скриване на грешките
+        $objectArr1 = array();
+        $resObj = new stdClass();
+        $resObj->func = 'clearStatuses';
+        $resObj->arg = array('type' => 'error');
+        $objectArr1[] = $resObj;
+        
+        $res = array_merge($objectArr, (array) $statusData, $objectArr1);
         
         return $res;
     }
@@ -599,11 +606,18 @@ class planning_Terminal extends peripheral_Terminal
             $resObj->arg = array('tabId' => self::TAB_DATA[$name]['tab-id']);
             $objectArr[] = $resObj;
             
+            // Скриване на грешките
+            $objectArr1 = array();
+            $resObj = new stdClass();
+            $resObj->func = 'clearStatuses';
+            $resObj->arg = array('type' => 'error');
+            $objectArr1[] = $resObj;
+            
             // Показваме веднага и чакащите статуси
             $hitTime = Request::get('hitTime', 'int');
             $idleTime = Request::get('idleTime', 'int');
             $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
-            $res = array_merge($objectArr, (array) $statusData);
+            $res = array_merge($objectArr, (array) $statusData, $objectArr1);
             
             return $res;
         }
@@ -789,7 +803,7 @@ class planning_Terminal extends peripheral_Terminal
         $tpl->replace($verbalAsset, 'fixedAssets');
         $tpl->replace(dt::mysql2verbal(dt::now(), 'd/m/y'), 'date');
         $tpl->replace(strip_tags(crm_Profiles::createLink()), 'userId');
-        $img = ht::createImg(array('path' => 'img/16/logout.png'));
+        $img = ht::createImg(array('path' => 'img/16/logout-white.png'));
         
         $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => array('core_Users', 'login')), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
         

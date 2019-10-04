@@ -196,6 +196,14 @@ class planning_Tasks extends core_Master
     
     
     /**
+     * Да се показват ли във филтъра по дата и NULL записите
+     * 
+     * @see acc_plg_DocumentSummary
+     */
+    public $showNullDateFields = true;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
