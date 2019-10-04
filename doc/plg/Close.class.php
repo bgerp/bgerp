@@ -119,7 +119,7 @@ class doc_plg_Close extends core_Plugin
         expect($rec = $mvc->fetch($id));
         $mvc->requireRightFor('close', $rec);
         
-        $state = ($rec->state == 'closed') ? (($rec->brState) ? $rec->brState : $rec->exState) : 'closed';
+        $state = ($rec->state == 'closed') ? (($rec->brState) ? $rec->brState : (($rec->exState) ? $rec->exState : 'active')) : 'closed';
         $action = ($state == 'closed') ? 'Приключване' : 'Откриване';
         
         if ($mvc->invoke('BeforeChangeState', array(&$rec, $state))) {
