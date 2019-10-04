@@ -189,10 +189,14 @@
                      
                      $employees = $val;
                  }
-                 
-                 $timeAlocation = ($tRec->indTimeAllocation == 'common') ? 1 / $divisor : 1;
-                 $indTimeSum = $timeAlocation * $iRec->indTime;
-                 
+                 if ($divisor){
+                     $timeAlocation = ($tRec->indTimeAllocation == 'common') ? 1 / $divisor : 1;
+                     $indTimeSum = $timeAlocation * $iRec->indTime;
+                 }else{
+                     
+                     $indTimeSum = 0;
+                     
+                 }
                  $pRec = cat_Products::fetch($tRec->productId, 'measureId,name');
                  
                  // Запис в масива
@@ -259,8 +263,12 @@
                              $id = $val->taskId.'|'.$val->productId.'|'.'|'.$v.'|'.'|'.$val->assetResources;
                          }
                          
-                         $timeAlocation = ($clone->indTimeAllocation == 'common') ? 1 / $divisor : 1;
-                         $indTimeSum = $timeAlocation * $clone->indTime;
+                         if ($divisor){
+                             $timeAlocation = ($clone->indTimeAllocation == 'common') ? 1 / $divisor : 1;
+                             $indTimeSum = $timeAlocation * $clone->indTime;
+                         }else{
+                             $indTimeSum = 0;
+                         }
                          
                          $clone = clone $val;
                          
