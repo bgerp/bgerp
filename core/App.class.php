@@ -856,13 +856,13 @@ class core_App
                         if (is_array($v)) {
                             wp($v);
                         }
-                        $url .= ($url ? '/' : '') . "{$key},{$k}/" . urlencode($v);
+                        $url .= ($url ? '/' : '') . "{$key},{$k}/" . @urlencode($v);
                     }
                 } else {
                     if (is_array($value)) {
                         wp($value);
                     }
-                    $url .= ($url ? '/' : '') . "{$key}/" . urlencode($value);
+                    $url .= ($url ? '/' : '') . "{$key}/" . @urlencode($value);
                 }
             }
         } else {

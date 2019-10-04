@@ -1519,8 +1519,12 @@ class doc_DocumentPlg extends core_Plugin
         doc_Threads::setModification($rec->threadId);
         
         doc_Files::recalcFiles($rec->containerId);
-        
         bgerp_Notifications::hideNotificationsForSingle($mvc->className, $rec->id);
+        
+        // Ако е оттеглен контиран документ, се бият нотификации
+        if($rec->brState == 'active' && cls::haveInterface('acc_TransactionSourceIntf', $mvc)){
+            acc_plg_Contable::notifyUsersForReject($mvc, $rec);
+        }
     }
     
     
