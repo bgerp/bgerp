@@ -505,8 +505,10 @@ class fconv_Script
         
         if (!stristr(PHP_OS, 'WIN')) {
             $this->script = "#!/bin/bash \n" . $this->script;
+        } elseif(!$asynch) {
+            $this->script = 'start /wait ' . $this->script;
         }
-        
+ 
         core_Os::requireDir($this->tempDir);
         
         $foldersArr = $this->getFolders();
@@ -562,7 +564,7 @@ class fconv_Script
         }
         
         log_System::add('fconv_Script', 'Стартиран скрипт: ' . $this->script);
-        
+
         pclose(popen($shell, 'r'));
     }
     
@@ -639,7 +641,7 @@ class fconv_Script
     {
         if (stristr(PHP_OS, 'WIN')) {
             
-            return '.bin';
+            return '.bat';
         }
         
         return '.sh';
