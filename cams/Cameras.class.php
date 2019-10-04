@@ -294,9 +294,11 @@ class cams_Cameras extends core_Master
         } else {
             $params = arr::make($rec->params, true);
         }
-        
-        $params = $driver->getParamsFromCam($params);
+        $params = $driver->getParamsFromCam($params); // ако има такава ф-ст връща object. Иначе каквото сме му подали
 
+        if (!is_object($params)) {
+            $params = new stdClass();
+        }
         $params->width = (!empty($params->width))?($params->width):($driver->getWidth());
         $params->height = (!empty($params->height))?($params->height):($driver->getHeight());
         $params->FPS = (!empty($params->FPS))?($params->FPS):($driver->getFPS());
