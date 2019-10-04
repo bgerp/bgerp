@@ -177,23 +177,23 @@
              foreach ($counter as $val) {
                  $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
                  $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,packagingId,indTime,indPackagingId,indTimeAllocation');
-                 
+                  $divisor = count(keylist::toArray($tRec->employees));
                  if ($rec->typeOfReport == 'short') {
-                     $divisor = count(keylist::toArray($tRec->employees));
+                    
                      
                      $id = $val;
                      
                      $labelQuantity = 1 / $divisor;
                      
-                     $timeAlocation = ($tRec->indTimeAllocation == 'common') ? 1 / $divisor : 1;
-                     $indTimeSum = $timeAlocation * $iRec->indTime;
+                     
                      
                      $employees = $val;
                  }
                  
+                 $timeAlocation = ($tRec->indTimeAllocation == 'common') ? 1 / $divisor : 1;
+                 $indTimeSum = $timeAlocation * $iRec->indTime;
                  
                  $pRec = cat_Products::fetch($tRec->productId, 'measureId,name');
-                 
                  
                  // Запис в масива
                  if (!array_key_exists($id, $recs)) {
@@ -259,6 +259,9 @@
                              $id = $val->taskId.'|'.$val->productId.'|'.'|'.$v.'|'.'|'.$val->assetResources;
                          }
                          
+                         $timeAlocation = ($clone->indTimeAllocation == 'common') ? 1 / $divisor : 1;
+                         $indTimeSum = $timeAlocation * $clone->indTime;
+                         
                          $clone = clone $val;
                          
                          if (!array_key_exists($id, $recs)) {
@@ -266,9 +269,11 @@
                                  
                                  'taskId' => $clone->taskId,
                                  'detailId' => $clone->detailId,
-                                 'indTime' => $iRec->indTime,
-                                 'indPackagingId' => $irec->indPackagingId,
-                                 'indTimeAllocation' => $iRec->indTimeAllocation,
+                                 'indTime' => $clone->indTime,
+                                 'indPackagingId' => $clone->indPackagingId,
+                                 'indTimeAllocation' => $clone->indTimeAllocation,
+                                 
+                                 'indTimeSum' => $indTimeSum,
                                  
                                  'employees' => '|'.$v.'|',
                                  'assetResources' => $clone->assetResources,
@@ -292,6 +297,7 @@
                              $obj->scrap += $clone->scrap / $divisor;
                              $obj->labelQuantity += $clone->labelQuantity / $divisor;
                              $obj->weight += $clone->weight / $divisor;
+                             $obj->indTimeSum += $indTimeSum;
                          }
                      }
                      unset($recs[$key]);
@@ -301,7 +307,7 @@
              arr::sortObjects($recs, 'taskId', 'asc');
          }
          
-         // bp($recs);
+        
          return $recs;
      }
      
@@ -414,11 +420,11 @@
          } else {
              $row->assetResources = '';
          }
+
+         $indTimeSumm = ($dRec->indTime * $row->labelQuantity);
          
-         $indTimeSumm = ($dRec->indTime * $row->labelQuantity) / 60;
-         
-         $row->min = core_Type::getByName('double(decimals=2)')->toVerbal($indTimeSumm);
-         
+         //$row->min = $Time->toVerbal($indTimeSumm);
+         $row->min =$Time->toVerbal($dRec->indTimeSum);
          return $row;
      }
      
