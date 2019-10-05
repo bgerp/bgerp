@@ -111,6 +111,20 @@ class escpos_driver_Html extends core_BaseClass
     
     
     /**
+     * Отпечатване на QR код
+     *
+     * @param string $text
+     * @param integer $q
+     *
+     * @return string
+     */
+    public function getQr($text, $q=6)
+    {
+        return ht::createImg(array('src' => barcode_Qr::getUrl($text, true, $q)));
+    }
+    
+    
+    /**
      *
      *
      * @param core_Et $tpl

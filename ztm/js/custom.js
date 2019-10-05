@@ -27,7 +27,7 @@ function prepareDashboard(data){
     var date = today.getDate() + " " + month;
     $('.currentDate').html(date);
 
-    var min = today.getMinutes() > 10 ? today.getMinutes() : '0' + today.getMinutes();
+    var min = today.getMinutes() >= 10 ? today.getMinutes() : '0' + today.getMinutes();
     var time = today.getHours() + "<span>:</span>" + min;
     $('#currentTime').append(time);
 
