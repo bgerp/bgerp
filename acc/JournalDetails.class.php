@@ -181,10 +181,11 @@ class acc_JournalDetails extends core_Detail
      * @param mixed      $items2    - списък с пера, от които поне един може да е на втора позиция
      * @param mixed      $items3    - списък с пера, от които поне един може да е на трета позиция
      * @param bool       $strict    - ако перата са NULL да се търсят записи в журнала със стойност NULL, иначе приема, че не трябва да се търсят пера
+     * @param array      $documents - от кои документи дошъл записа
      *
      * @return void
      */
-    public static function filterQuery(core_Query &$query, $from, $to, $accs = null, $itemsAll = null, $items1 = null, $items2 = null, $items3 = null, $strict = false)
+    public static function filterQuery(core_Query &$query, $from, $to, $accs = null, $itemsAll = null, $items1 = null, $items2 = null, $items3 = null, $strict = false, $documents = null)
     {
         expect($query->mvc instanceof acc_JournalDetails);
         
@@ -195,6 +196,16 @@ class acc_JournalDetails extends core_Detail
         $query->EXT('reason', 'acc_Journal', 'externalKey=journalId');
         $query->EXT('jid', 'acc_Journal', 'externalName=id');
         $query->where("#state = 'active'");
+        
+        // Филтър по документ при нужда
+        $documents = arr::make($documents, true);
+        if(count($documents)){
+            $docTypes = array();
+            foreach ($documents as $doc){
+                $docTypes[] = cls::get($doc)->getClassId();
+            }
+            $query->in('docType', $docTypes);
+        }
         
         // Ако имаме зададена начална или крайна дата филтрираме по тях
         if (isset($from) || isset($to)) {
