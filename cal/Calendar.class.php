@@ -550,7 +550,7 @@ class cal_Calendar extends core_Master
         $lastDay = date('t', $firstDayTms);
         
         // Днес
-        $today = date('d-m-Y');
+        $today = date('j-m-Y');
         
         for($i = 1; $i <= $lastDay; $i++) {
             $t = mktime(0, 0, 0, $month, $i, $year);

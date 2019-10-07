@@ -118,6 +118,32 @@ class escpos_driver_TD2120 extends core_BaseClass
     
     
     /**
+     * Отпечатване на QR код
+     * 
+     * @param string $text
+     * @param integer $q
+     * 
+     * @return string
+     */
+    public function getQr($text, $q=6)
+    {
+        expect((($q <= 11) && ($q >= 0)), $q);
+        
+        $eCorr = 0;
+        
+        if ($q >= 9) {
+            $eCorr = 4;
+        } elseif ($q >= 6) {
+            $eCorr = 3;
+        }
+        
+        $res = chr(27) . chr(105) . chr(81) . chr($q) . chr(0x02) . chr(0x00) . chr(0x00) . chr(0x00) . chr(0x00) . chr($eCorr) . chr(0x00) . $text . "\\\\\\";
+        
+        return $res;
+    }
+    
+    
+    /**
      *
      *
      * @param core_Et $tpl
