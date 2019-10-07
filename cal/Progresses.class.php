@@ -126,6 +126,7 @@ class cal_Progresses extends core_Mvc
         if ($rec->__isBeingChanged) {
             $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
             $Driver->updateTaskProgress($rec, $lGoodProgress);
+            $Driver->updateTaskWorkingTime($rec);
         }
     }
     

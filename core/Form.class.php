@@ -1512,17 +1512,20 @@ class core_Form extends core_FieldSet
                 if ($mode == 'single' && !isset($row->{$name})) {
                     continue;
                 }
-                
-                if ($fieldset->fields[$name]->autohide == 'any') {
-                    continue;
-                }
-                if ($fieldset->fields[$name]->autohide == 'autohide' || $fieldset->fields[$name]->autohide == $mode) {
-                    if (!$rec->{$name} || ($rec->{$name} == 'no') || ($rec->{$name} == 'none')) {
+
+                // Затваряме секцията, само, ако в нея няма грешки или предупреждения
+                if(!isset($fieldset->errors[$name])) {
+                    if ($fieldset->fields[$name]->autohide == 'any') {
                         continue;
                     }
-                    $type = $fieldset->fields[$name]->type;
-                    if (isset($type->options) && is_array($type->options) && key($type->options) == $rec->{$name}) {
-                        continue;
+                    if ($fieldset->fields[$name]->autohide == 'autohide' || $fieldset->fields[$name]->autohide == $mode) {
+                        if (!$rec->{$name} || ($rec->{$name} == 'no') || ($rec->{$name} == 'none')) {
+                            continue;
+                        }
+                        $type = $fieldset->fields[$name]->type;
+                        if (isset($type->options) && is_array($type->options) && key($type->options) == $rec->{$name}) {
+                            continue;
+                        }
                     }
                 }
                 
