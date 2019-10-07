@@ -1802,7 +1802,7 @@ class email_Outgoings extends core_Master
                     $toEmails = trim($contragentData->toEmail);
                     
                     if ($toEmails) {
-                        $toParser->ParseAddressList($ccEmails, $parseToEmail);
+                        $toParser->ParseAddressList($toEmails, $parseToEmail);
                     }
                     
                     $toEmailsArr = array();
