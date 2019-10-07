@@ -252,10 +252,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $threadsId = array();
             
             // Синхронизира таймлимита с броя записи //
-            
             $maxTimeLimit = $invQuery->count() * 5;
             $maxTimeLimit = max(array($maxTimeLimit, 300));
-            
+            if ($maxTimeLimit > 300) {
+                core_App::setTimeLimit($timeLimit);
+            }
             while ($salesInvoice = $invQuery->fetch()) {
                 
                 
@@ -509,6 +510,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             // Синхронизира таймлимита с броя записи //
             $maxTimeLimit = $pQuery->count() * 5;
             $maxTimeLimit = max(array($maxTimeLimit, 300));
+            if ($maxTimeLimit > 300) {
+                core_App::setTimeLimit($timeLimit);
+            }
             
             // Фактури ПОКУПКИ
             while ($purchaseInvoices = $pQuery->fetch()) {
