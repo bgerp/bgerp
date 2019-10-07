@@ -198,8 +198,6 @@ class core_Users extends core_Manager
             $this->FLD('nick', 'nick(64, ci)', 'caption=Ник,notNull,mandatory,width=100%');
         }
         
-        $this->FLD('pinCode', 'password', 'caption=ПИН код, input=hidden');
-        
         $this->FLD(
             'state',
             'enum(active=Активен,draft=Непотвърден,blocked=Блокиран,closed=Затворен,rejected=Заличен)',
@@ -733,10 +731,6 @@ class core_Users extends core_Manager
         }
         
         $form->setField('rolesInput', 'input=none');
-        
-        if ($form->rec->id) {
-//             $form->setField('pinCode', 'input=input');
-        }
     }
     
     
@@ -1221,11 +1215,6 @@ class core_Users extends core_Manager
             if ($mvc->addNewUser) {
                 core_LoginLog::add('new_user', core_Users::getCurrent());
             }
-        }
-        
-        // Автоматично попълва на ПИН код на новите потребители
-        if (!$rec->pinCode && !$rec->id) {
-            $rec->pinCode = str::getRand('######');
         }
     }
     

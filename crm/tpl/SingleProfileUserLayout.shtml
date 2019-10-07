@@ -22,12 +22,6 @@
                 <td>[#password#]</td>
             </tr>
             <!--ET_END password-->
-            <!--ET_BEGIN pinCode-->
-            <tr>
-                <td class='dt'>|ПИН код|*</td>
-                <td>[#pinCode#]</td>
-            </tr>
-            <!--ET_END pinCode-->
             <!--ET_BEGIN createdOn-->
             <tr>
                 <td class='dt'>|Създаден|*</td>
