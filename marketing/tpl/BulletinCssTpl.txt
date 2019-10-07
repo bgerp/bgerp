@@ -267,7 +267,6 @@ body {
 }
 @media handheld, only screen and (orientation:landscape) {
     .txt {
-        background-color: red !important;
         font-size: 0.8em !important;
         line-height: 0.8em !important;
     }
@@ -277,8 +276,8 @@ body {
     .logImg {
         max-height: 50px;
     }
-    .push_button {
-        margin-top: 0 !important;
+    .bulletinReg .push_button {
+        margin-bottom: 10px !important;
         padding: .1em .2em;
         font-size: 0.8em !important;
     }
