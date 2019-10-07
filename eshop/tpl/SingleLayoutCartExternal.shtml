@@ -39,6 +39,9 @@
       <!--ET_BEGIN INFO_BLOCK-->
       [#INFO_BLOCK#]
       <div class="order-info" id='cart-view-order-info'>
+         <!--ET_BEGIN CART_TOOLBAR_TOP_RIGHT-->
+         <div class = 'cart-view-buttons-right' style="margin-bottom: 10px;">[#CART_TOOLBAR_TOP_RIGHT#]</div>
+         <!--ET_END CART_TOOLBAR_TOP_RIGHT-->
       <!--ET_BEGIN activeFolderId-->
             <div style="padding-bottom: 5px;">|Активна папка|*: [#activeFolderId#]</div>
             <!--ET_END activeFolderId-->
