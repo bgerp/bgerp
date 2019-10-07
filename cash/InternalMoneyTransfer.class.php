@@ -234,6 +234,7 @@ class cash_InternalMoneyTransfer extends core_Master
         
         $form = static::prepareReasonForm();
         $form->input();
+        $form->input(null, true);
         $form = $form->renderHtml();
         $tpl = $mvc->renderWrapping($form);
         
@@ -250,9 +251,17 @@ class cash_InternalMoneyTransfer extends core_Master
         $form->method = 'GET';
         $form->FNC('operationSysId', 'enum(case2case=Вътрешен касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасиране на безналични плащания (Банка),nonecash2case=Инкасиране на безналични плащания (Каса),noncash2noncash=Вътрешна касова обмяна на безналични плащания)', 'input,caption=Операция');
         $form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
+        $form->FNC('linkedHashKey', 'varchar', 'caption=Линк хеш, silent, input=hidden');
+        $form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
         $form->title = 'Нов вътрешен касов трансфер';
         $form->toolbar->addSbBtn('Напред', '', 'ef_icon = img/16/move.png, title=Продължете напред');
-        $form->toolbar->addBtn('Отказ', toUrl(array('cash_InternalMoneyTransfer', 'list')), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = toUrl(array('cash_InternalMoneyTransfer', 'list'));
+        }
+        
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         $folderId = cash_Cases::forceCoverAndFolder(cash_Cases::getCurrent());
         $folderRec = doc_Folders::fetch($folderId);

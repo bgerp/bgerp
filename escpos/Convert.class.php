@@ -164,6 +164,15 @@ class escpos_Convert extends core_Manager
                                 $l .= $fontPad . $pad . $fontTxt .  $driver->encode($text) . $fontEnd;
                                 $lLen = $r + $textLen;
                                 break;
+                            
+                            // QR код
+                            case 'q':
+                                // Добавя QR код
+                                $l .= $driver->getQr($text, $col);
+                                
+                                break;
+                                
+                                
                             default:
                                 expect(false, 'Непозната команда', $cmd, $el);
                         
@@ -315,10 +324,20 @@ class escpos_Convert extends core_Manager
         '<p b>3.<l3 b>Минерална вода' .
         '<p><l4>2.00<l12>х 0.80<r32>= 1.60' .
         '<p><r32 =>' .
-        '<p><r29 F b>Общо: 34.23 лв.';
+        '<p><r29 F b>Общо: 34.23 лв.' .
+        '<p><q10>Фактура №123/28.02.17';
         
+        $driver = null;
         if (Request::get('p')) {
-            $res = self::process($test, 'escpos_driver_Ddp250');
+            $driver = 'escpos_driver_Ddp250';
+        } elseif (Request::get('t')) {
+            $driver = 'escpos_driver_TD2120';
+        } elseif (Request::get('x')) {
+            $driver = 'escpos_driver_P300';
+        }
+        
+        if (isset($driver)) {
+            $res = self::process($test, $driver);
             echo $res;
             shutdown();
         }
