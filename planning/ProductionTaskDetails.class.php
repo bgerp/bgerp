@@ -225,9 +225,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         // Ако е избран артикул
         if (isset($rec->productId)) {
-            if($masterRec->labelType == 'print' || $rec->type == 'waste'){
+            $labelType = (($rec->type == 'production') ? $masterRec->labelType : (($rec->type == 'input') ? 'scan' : 'print'));
+            
+            if($labelType == 'print'){
                 $form->setField('serial', 'input=none');
-            } elseif($masterRec->labelType == 'scan' || $rec->type == 'input'){
+            } elseif($labelType == 'scan'){
                 $form->setField('serial', 'mandatory');
             }
             
