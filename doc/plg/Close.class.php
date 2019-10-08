@@ -42,10 +42,12 @@ class doc_plg_Close extends core_Plugin
                 $activeMsg = 'Сигурни ли сте, че искате да откриете тази папка и да може да се добавят документи в нея|*?';
                 $closeMsg = 'Сигурни ли сте, че искате да закриете тази папка и да не може да се добавят документи в нея|*?';
                 $closeBtn = 'Закриване||Close';
+                $titleCloseBtn = "Закриване на|* |{$singleTitle}|*";
             } else {
                 $activeMsg = 'Сигурни ли сте, че искате да откриете тази нишка и да може да се добавят документи в нея|*?';
                 $closeMsg = 'Сигурни ли сте, че искате да закриете тази нишка и да не може да се добавят документи в нея|*?';
                 $closeBtn = 'Затваряне||Close';
+                $titleCloseBtn = "Затваряне на|* |{$singleTitle}|*";
             }
             
             if ($data->rec->state == 'closed') {
@@ -53,7 +55,7 @@ class doc_plg_Close extends core_Plugin
                 $data->toolbar->setWarning('btnActivate', $activeMsg);
             } elseif (in_array($data->rec->state, array('active', 'pending', 'template', 'draft'))){
                 $closeBtnRow = isset($mvc->closeBtnRow) ? $mvc->closeBtnRow : 2;
-                $data->toolbar->addBtn($closeBtn, array($mvc, 'changeState', $data->rec->id, 'ret_url' => true), "order=39,id=btnClose,row={$closeBtnRow},ef_icon = img/16/gray-close.png,title=Закриване на {$singleTitle}");
+                $data->toolbar->addBtn($closeBtn, array($mvc, 'changeState', $data->rec->id, 'ret_url' => true), "order=39,id=btnClose,row={$closeBtnRow},ef_icon = img/16/gray-close.png,title={$titleCloseBtn}");
                 $data->toolbar->setWarning('btnClose', $closeMsg);
             }
         }
