@@ -141,7 +141,8 @@ class cat_Setup extends core_ProtoSetup
         'cat_Listings',
         'cat_ListingDetails',
         'cat_PackParams',
-        'migrate::updateIntName'
+        'migrate::updateIntName',
+        'migrate::updateBrState'
     );
     
     
@@ -273,6 +274,29 @@ class cat_Setup extends core_ProtoSetup
         
         if (count($toSave)) {
             $Products->saveArray($toSave, 'id,name,nameEn');
+        }
+    }
+    
+    
+    /**
+     * Обновяване на предишното състояние на грешно създадените артикули
+     */
+    public function updateBrState()
+    {
+        $Products = cls::get('cat_Products');
+        $Products->setupMvc();
+        
+        $toSave = array();
+        $pQuery = $Products->getQuery();
+        $pQuery->where("#state = 'closed' AND #brState = 'closed'");
+        $pQuery->show('brState');
+        while($pRec = $pQuery->fetch()){
+            $pRec->brState = 'active';
+            $toSave[] = $pRec;
+        }
+        
+        if(count($toSave)){
+            $Products->saveArray($toSave, 'id,brState');
         }
     }
 }
