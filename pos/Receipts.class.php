@@ -1376,13 +1376,6 @@ class pos_Receipts extends core_Master
             return $this->pos_ReceiptDetails->returnError($receiptId);
         }
         
-        $error = '';
-        if (!self::checkQuantity($rec, $error)) {
-            core_Statuses::newStatus($error, 'error');
-            
-            return $this->pos_ReceiptDetails->returnError($receiptId);
-        }
-        
         $revertId = pos_Receipts::fetchField($receiptId, 'revertId');
         if (!empty($revertId)) {
             $rec->quantity *= -1;
@@ -1405,6 +1398,13 @@ class pos_Receipts extends core_Master
             $rec->quantity = $newQuantity;
             $rec->amount += $sameProduct->amount;
             $rec->id = $sameProduct->id;
+        }
+        
+        $error = '';
+        if (!self::checkQuantity($rec, $error)) {
+            core_Statuses::newStatus($error, 'error');
+            
+            return $this->pos_ReceiptDetails->returnError($receiptId);
         }
         
         if (!empty($revertId) && abs($originProductRec->quantity) < abs($rec->quantity)) {
@@ -1457,7 +1457,7 @@ class pos_Receipts extends core_Master
         $quantityInStock -= $rec->quantity * $quantityInPack;
         
         if ($quantityInStock < 0) {
-            $error = 'Артикулът не е в наличност';
+            $error = 'Желаното количество не е налично';
             
             return false;
         }
