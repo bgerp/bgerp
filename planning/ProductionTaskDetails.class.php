@@ -225,10 +225,10 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         // Ако е избран артикул
         if (isset($rec->productId)) {
-            if($masterRec->labelType == 'scan' || $rec->type == 'input'){
-                $form->setField('serial', 'mandatory');
-            } elseif($masterRec->labelType == 'print' || $rec->type == 'waste'){
+            if($masterRec->labelType == 'print' || $rec->type == 'waste'){
                 $form->setField('serial', 'input=none');
+            } elseif($masterRec->labelType == 'scan' || $rec->type == 'input'){
+                $form->setField('serial', 'mandatory');
             }
             
             $pRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
