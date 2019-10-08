@@ -179,12 +179,17 @@ abstract class deals_DealBase extends core_Master
             }
         }
         
-        // Ако има документи в нишката на договора, не може да се затваря
+        // Ако някой от документите в нишката има контировка, сделката не мжое да се затваря
         if ($action == 'close' && isset($rec)) {
-            $docCountInThread = doc_Threads::fetch($rec->threadId)->allDocCnt;
+            $cQuery = doc_Containers::getQuery();
+            $cQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");
+            $cQuery->show('docClass,docId');
             
-            // Ако има повече от 1 документ в нишката или има контировка документа, не може да се затваря
-            if ($docCountInThread != 1 || acc_Journal::fetchByDoc($mvc, $rec->id)) {
+            $where = '';
+            while($cRec = $cQuery->fetch()){
+                $where .= (empty($where) ? '' : ' OR ') . "(#docType = {$cRec->docClass} AND #docId = {$cRec->docId})";
+            }
+            if(!empty($where) && acc_Journal::fetch($where, 'id')){
                 $res = 'no_one';
             }
         }
