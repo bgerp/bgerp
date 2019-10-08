@@ -715,7 +715,7 @@ class planning_Jobs extends core_Master
         $rec->quantityNotStored = $rec->quantityFromTasks - $rec->quantityProduced;
         $row->quantityNotStored = $Double->toVerbal($rec->quantityNotStored);
         
-        $rec->quantityToProduce = $rec->packQuantity - $rec->quantityFromTasks;
+        $rec->quantityToProduce = $rec->packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $rec->quantityProduced);
         
         $row->quantityToProduce = $Double->toVerbal($rec->quantityToProduce);
         
@@ -824,8 +824,14 @@ class planning_Jobs extends core_Master
                 $row->batches = implode(', ', $batchArr);
             }
             
-            $row->measureId2 = $row->measureId;
-            $row->quantityFromTasksCaption = tr('Произведено');
+            if(!empty($rec->quantityFromTasks)){
+                $row->measureId2 = $row->measureId;
+                $row->quantityFromTasksCaption = tr('Произведено');
+            } else {
+                unset($row->quantityFromTasks);
+                unset($row->captionNotStored);
+                unset($row->quantityNotStored);
+            }
             
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
