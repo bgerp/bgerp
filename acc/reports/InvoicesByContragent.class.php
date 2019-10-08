@@ -255,7 +255,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $maxTimeLimit = $invQuery->count() * 5;
             $maxTimeLimit = max(array($maxTimeLimit, 300));
             if ($maxTimeLimit > 300) {
-                core_App::setTimeLimit($timeLimit);
+                core_App::setTimeLimit($maxTimeLimit);
             }
             while ($salesInvoice = $invQuery->fetch()) {
                 
@@ -511,7 +511,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $maxTimeLimit = $pQuery->count() * 5;
             $maxTimeLimit = max(array($maxTimeLimit, 300));
             if ($maxTimeLimit > 300) {
-                core_App::setTimeLimit($timeLimit);
+                core_App::setTimeLimit($maxTimeLimit);
             }
             
             // Фактури ПОКУПКИ
