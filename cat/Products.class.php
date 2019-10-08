@@ -2610,10 +2610,12 @@ class cat_Products extends embed_Manager
             $pRec = cat_Products::fetch($objectIds[$itemId], 'id,state,brState');
             $pRec->brState = $pRec->state;
             $pRec->state = 'closed';
+            $pRec->modifiedOn = $now;
+            $pRec->modifiedBy = core_Users::SYSTEM_USER;
             $toSave[] = $pRec;
         }
         
-        $this->saveArray($toSave, 'id,state,brState');
+        $this->saveArray($toSave, 'id,state,brState,modifiedOn,modifiedBy');
         foreach ($toSave as $sd2) {
             $this->logWrite('Автоматично затваряне', $sd2);
         }
