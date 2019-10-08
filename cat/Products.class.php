@@ -2601,12 +2601,13 @@ class cat_Products extends embed_Manager
         
         $toSave = array();
         foreach ($productItems as $itemId) {
-            $pRec = cat_Products::fetch($objectIds[$itemId], 'id,state');
+            $pRec = cat_Products::fetch($objectIds[$itemId], 'id,state,brState');
+            $pRec->brState = $pRec->state;
             $pRec->state = 'closed';
             $toSave[] = $pRec;
         }
         
-        $this->saveArray($toSave, 'id,state');
+        $this->saveArray($toSave, 'id,state,brState');
         $this->closeItems = (is_array($this->closeItems)) ? $this->closeItems : array();
         $this->closeItems += $toSave;
         
