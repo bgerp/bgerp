@@ -169,9 +169,9 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                     continue;
                 }
                 
-                $storeQuantity = $prodArr[$prodId];
+                $storeQuantity = $quantity;
                 
-                $totalDebitQuantity = $quantity;
+                $totalCreditQuantity = $journalProdArr[$prodId];
                 
                 
                 // Запис в масива
@@ -181,7 +181,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                         
                         'productId' => $prodId,                               //Id на артикула
                         'storeQuantity' => $storeQuantity,                    //Складова наличност
-                        'totalDebitQuantity' => $totalDebitQuantity,          //Дебит обороти
+                        'totalCreditQuantity' => $totalCreditQuantity,        //Кредит обороти
                         'reversibility' => $reversibility                     //Обръщаемост
                     
                     );
@@ -209,7 +209,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
         $fld->FLD('storeQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Наличност');
-        $fld->FLD('totalDebitQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Обороти');
+        $fld->FLD('totalCreditQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Обороти');
         
         $fld->FLD('reversibility', 'percent', 'smartCenter,caption=Обръщаемост');
         
@@ -253,8 +253,8 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $row->storeQuantity = $Double->toVerbal($dRec->storeQuantity);
         }
         
-        if (isset($dRec->totalDebitQuantity)) {
-            $row->totalDebitQuantity = $Double->toVerbal($dRec->totalDebitQuantity);
+        if (isset($dRec->totalCreditQuantity)) {
+            $row->totalCreditQuantity = $Double->toVerbal($dRec->totalCreditQuantity);
         }
         
         if (isset($dRec->reversibility)) {
