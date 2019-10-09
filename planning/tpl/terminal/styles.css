@@ -126,7 +126,7 @@ task-selectedbody {
   .narrow .qrBtn {
     background-image: url("../../../img/24/qr.png") !important; }
   .narrow .search {
-    background-image: url("../../../img/24/search.png") !important; }
+    background-image: url("../../../img/24/search-white.png") !important; }
 
 .terminalHeader {
   padding: 15px;
@@ -460,7 +460,7 @@ only screen and (max-width:740px) {
     .terminalHeader .qrBtn {
       background-image: url("../../../img/24/qr.png") !important; }
     .terminalHeader .search {
-      background-image: url("../../../img/24/search.png") !important; }
+      background-image: url("../../../img/24/search-white.png") !important; }
 
   .searchHolder {
     position: relative;

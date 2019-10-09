@@ -68,7 +68,7 @@ class trans_Vehicles extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,number,state,createdOn,createdBy';
+    public $listFields = 'name,number,type,state,createdOn,createdBy';
     
     
     /**
@@ -104,7 +104,7 @@ class trans_Vehicles extends core_Master
         $this->FLD('number', 'varchar(32)', 'caption=Рег. номер,mandatory');
         $this->FLD('load', 'double', 'caption=Товароносимост');
         $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Описание');
-        $this->FLD('type', 'enum(truck=Камион,minibus=Минибус,pickup=Пикап)', 'caption=Вид');
+        $this->FLD('type', 'enum(truck=Камион,minibus=Минибус,pickup=Пикап,car=Лек автомобил,other=Друг)', 'caption=Вид');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         
         $this->setdbUnique('name');

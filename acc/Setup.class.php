@@ -400,7 +400,7 @@ class acc_Setup extends core_ProtoSetup
             'controller' => 'acc_Balances',
             'action' => 'Recalc',
             'period' => 1,
-            'timeLimit' => 55
+            'timeLimit' => 255
         ),
         array(
             'systemId' => 'SyncAccFeatures',
