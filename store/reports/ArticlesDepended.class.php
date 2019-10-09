@@ -60,7 +60,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        //Период
+        
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title,single=none');
         $fieldset->FLD('period', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година)', 'caption=Период, after=storeId,mandatory,single=none');
         $fieldset->FLD('minCost', 'double', 'caption=Мин. наличност, after=period,single=none');
@@ -161,7 +161,8 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         
         foreach ($prodArr as $prodId => $quantity) {
             if (in_array($prodId, array_keys($journalProdArr))) {
-                $reversibility = $quantity / $journalProdArr[$prodId];
+              //  $reversibility = $quantity / $journalProdArr[$prodId];
+                $reversibility = $journalProdArr[$prodId] / $quantity ;
                 
                 if ($reversibility > $rec->reversibility) {
                     continue;
