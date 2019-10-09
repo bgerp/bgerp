@@ -177,7 +177,6 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                 if (!array_key_exists($id, $recs)) {
                     $recs[$id] = (object) array(
                         
-                        'code' => $artCode,                                   //Код на артикула
                         'productId' => $prodId,                               //Id на артикула
                         'storeQuantity' => $storeQuantity,                    //Складова наличност
                         'totalDebitQuantity' => $totalDebitQuantity,          //Дебит обороти
@@ -257,7 +256,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
         
         if (isset($dRec->reversibility)) {
-            $row->reversibility = core_Type::getByName('percent')->toVerbal($dRec->reversibility);
+            $row->reversibility = core_Type::getByName('percent(smartRound,decimals=2)')->toVerbal($dRec->reversibility);
         }
         
         return $row;
@@ -313,11 +312,11 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
         
         if ((isset($data->rec->minCost))) {
-            $fieldTpl->append('<b>'. $Double->toVerbal($data->rec->minCost) .'</b>', 'minCost');
+            $fieldTpl->append('<b>'. core_Type::getByName('double(smartRound,decimals=2)')->toVerbal($data->rec->minCost) .'</b>', 'minCost');
         }
         
         if ((isset($data->rec->reversibility))) {
-            $fieldTpl->append('<b>'. core_Type::getByName('percent')->toVerbal($data->rec->reversibility) .'</b>', 'reversibility');
+            $fieldTpl->append('<b>'. core_Type::getByName('percent(smartRound,decimals=2)')->toVerbal($data->rec->reversibility) .'</b>', 'reversibility');
         }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
