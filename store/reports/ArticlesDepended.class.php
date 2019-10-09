@@ -141,7 +141,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $rec->to = dt::today();
         $query = acc_JournalDetails::getQuery();
         acc_JournalDetails::filterQuery($query, $startDate, dt::now(), '321', null, null, null, null, null, $documents = $docTypeIdArr);
-      //  $query->show('creditItem1,creditItem2,creditQuantity');
+        $query->show('creditItem1,creditItem2,creditQuantity');
         
         while ($jRec = $query->fetch()) {
             if ($jRec->creditItem2) {
@@ -152,8 +152,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                 if ($rec->storeId && ($storeId != $rec->storeId)) {
                     continue;
                 }
-                bp($jRec);
-                
+             
                 //Обороти дебит на артикулите от журнала, за които записите са от посочените класове
                 $journalProdArr[$productId] += $jRec->creditQuantity;
             }
