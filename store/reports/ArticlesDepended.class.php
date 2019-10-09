@@ -121,6 +121,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $pQuery->where("#storeId = {$rec->storeId}");
         }
         
+        $prodArr = array();
         while ($pRec = $pQuery->fetch()) {
             
             //Себестойност на артикула
@@ -143,6 +144,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         acc_JournalDetails::filterQuery($query, $startDate, dt::now(), '321', null, null, null, null, null, $documents = $docTypeIdArr);
         $query->show('creditItem1,creditItem2,creditQuantity');
         
+        $journalProdArr = array();
         while ($jRec = $query->fetch()) {
             if ($jRec->creditItem2) {
                 $productId = acc_Items::fetch($jRec->creditItem2)->objectId;
@@ -152,8 +154,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                 if ($rec->storeId && ($storeId != $rec->storeId)) {
                     continue;
                 }
-                
-                
+              
                 //Обороти дебит на артикулите от журнала, за които записите са от посочените класове
                 $journalProdArr[$productId] += $jRec->creditQuantity;
             }
@@ -168,9 +169,9 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                     continue;
                 }
                 
-                $storeQuantity = $journalProdArr[$prodId];
+                $storeQuantity = $quantity;
                 
-                $totalDebitQuantity = $quantity;
+                $totalCreditQuantity = $journalProdArr[$prodId];
                 
                 
                 // Запис в масива
@@ -180,7 +181,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                         
                         'productId' => $prodId,                               //Id на артикула
                         'storeQuantity' => $storeQuantity,                    //Складова наличност
-                        'totalDebitQuantity' => $totalDebitQuantity,          //Дебит обороти
+                        'totalCreditQuantity' => $totalCreditQuantity,        //Кредит обороти
                         'reversibility' => $reversibility                     //Обръщаемост
                     
                     );
@@ -208,7 +209,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
         $fld->FLD('storeQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Наличност');
-        $fld->FLD('totalDebitQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Обороти');
+        $fld->FLD('totalCreditQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Обороти');
         
         $fld->FLD('reversibility', 'percent', 'smartCenter,caption=Обръщаемост');
         
@@ -252,8 +253,8 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $row->storeQuantity = $Double->toVerbal($dRec->storeQuantity);
         }
         
-        if (isset($dRec->totalDebitQuantity)) {
-            $row->totalDebitQuantity = $Double->toVerbal($dRec->totalDebitQuantity);
+        if (isset($dRec->totalCreditQuantity)) {
+            $row->totalCreditQuantity = $Double->toVerbal($dRec->totalCreditQuantity);
         }
         
         if (isset($dRec->reversibility)) {
