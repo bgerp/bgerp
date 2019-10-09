@@ -491,7 +491,7 @@ abstract class deals_DealMaster extends deals_DealBase
                         $data->query->where("#paymentState = 'overdue'");
                         break;
                     case 'delivered':
-                        $data->query->where('#deliveredRound = #dealRound');
+                        $data->query->where('#deliveredRound >= #dealRound');
                         $data->query->where("#state = 'active' OR #state = 'closed'");
                         break;
                     case 'undelivered':
