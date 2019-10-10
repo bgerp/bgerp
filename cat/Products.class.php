@@ -598,7 +598,7 @@ class cat_Products extends embed_Manager
                 $sQuery->where("#productId = {$rec->id} AND #state = 'draft'");
                 $sQuery->show('id');
                 if($sQuery->fetch()){
-                    $form->setWarning('name', '|Артикулът участва в продажба на чернова|*. |Наистина ли желаете да редактирате артикула|*?');
+                    $form->setWarning('name', '|Артикулът участва в продажба на чернова|*. |За да се преизчисли цената в нея, трябва да се редактира артикула, да се изтрие цената и да се презапише|*. |Наистина ли желаете да редактирате артикула|*?');
                 }
             }
         }
@@ -2473,16 +2473,21 @@ class cat_Products extends embed_Manager
         $iStQuery->where("#createdOn <= '{$before}' AND #pState = 'active'");
         $iStQuery->show('objectId');
         while ($iStRec = $iStQuery->fetch()) {
-            $pRec1 = cat_Products::fetch($iStRec->objectId, 'id,state');
+            $pRec1 = cat_Products::fetch($iStRec->objectId, 'id,state,brState');
+            $pRec1->brState = $pRec1->state;
             $pRec1->state = 'closed';
             $pRec1->modifiedOn = $now;
             $pRec1->modifiedBy = core_Users::SYSTEM_USER;
             $stProductsToClose[$iStRec->objectId] = $pRec1;
         }
-        $this->closeItems = $stProductsToClose;
         
-        $this->saveArray($stProductsToClose, 'id,state,modifiedBy,modifiedOn');
-        log_System::add('cat_Products', 'ST close items:' . count($stProductsToClose));
+        $this->closeItems = $stProductsToClose;
+        $this->saveArray($stProductsToClose, 'id,state,brState,modifiedBy,modifiedOn');
+        
+        foreach ($stProductsToClose as $sd1) {
+            $this->logWrite('Автоматично затваряне', $sd1);
+        }
+        log_System::add('cat_Products', 'ST close items:' . count($stProductsToClose), null, 'info', 17);
         
         // Намираме всички нестандартни артикули
         $before1 = dt::addMonths(-5);
@@ -2501,19 +2506,20 @@ class cat_Products extends embed_Manager
         $diff = array_diff($products1, $iTems);
         $saveDiff = array();
         foreach ($diff as $p1) {
-            $pr1 = cat_Products::fetch($p1, 'id,state');
+            $pr1 = cat_Products::fetch($p1, 'id,state,brState');
+            $pr1->brState = $pr1->state;
             $pr1->state = 'closed';
             $pr1->modifiedOn = $now;
             $pr1->modifiedBy = core_Users::SYSTEM_USER;
             $saveDiff[$p1] = $pr1;
         }
         
-        $this->saveArray($saveDiff, 'id,state,modifiedOn,modifiedBy');
+        $this->saveArray($saveDiff, 'id,state,brState,modifiedOn,modifiedBy');
         foreach ($saveDiff as $sd) {
-            $this->logWrite('Приключване', $sd);
+            $this->logWrite('Автоматично затваряне', $sd);
         }
         
-        log_System::add('cat_Products', 'Products Without Items Closed:' . count($diff));
+        log_System::add('cat_Products', 'Products Without Items Closed:' . count($diff), null, 'info', 17);
         
         $productQuery = cat_Products::getQuery();
         $productQuery->where("#isPublic != 'yes'");
@@ -2552,7 +2558,7 @@ class cat_Products extends embed_Manager
             
             return;
         }
-        log_System::add('cat_Products', 'Item products count:' . count($productItems));
+        log_System::add('cat_Products', 'Item products count:' . count($productItems), null, 'info', 17);
         
         // Оставяме само записите където участват перата на частните артикули на произволно място
         $bQuery = acc_BalanceDetails::getQuery();
@@ -2568,8 +2574,8 @@ class cat_Products extends embed_Manager
         $bQuery->show('ent1Id,ent2Id,ent3Id');
         $bQuery->groupBy('ent1Id,ent2Id,ent3Id');
         
-        log_System::add('cat_Products', 'Details in:' . implode(',', $balances));
-        log_System::add('cat_Products', 'Balance Recs:' . $bQuery->count());
+        log_System::add('cat_Products', 'Details in:' . implode(',', $balances), null, 'info', 17);
+        log_System::add('cat_Products', 'Balance Recs:' . $bQuery->count(), null, 'info', 17);
         
         $itemsInBalanceBefore = array();
         while ($bRec = $bQuery->fetch()) {
@@ -2591,7 +2597,7 @@ class cat_Products extends embed_Manager
             }
         }
         
-        log_System::add('cat_Products', 'Items to Close count:' . count($productItems));
+        log_System::add('cat_Products', 'Items to Close count:' . count($productItems), null, 'info', 17);
         
         // Ако не са останали пера за затваряне
         if (!count($productItems)) {
@@ -2601,16 +2607,23 @@ class cat_Products extends embed_Manager
         
         $toSave = array();
         foreach ($productItems as $itemId) {
-            $pRec = cat_Products::fetch($objectIds[$itemId], 'id,state');
+            $pRec = cat_Products::fetch($objectIds[$itemId], 'id,state,brState');
+            $pRec->brState = $pRec->state;
             $pRec->state = 'closed';
+            $pRec->modifiedOn = $now;
+            $pRec->modifiedBy = core_Users::SYSTEM_USER;
             $toSave[] = $pRec;
         }
         
-        $this->saveArray($toSave, 'id,state');
+        $this->saveArray($toSave, 'id,state,brState,modifiedOn,modifiedBy');
+        foreach ($toSave as $sd2) {
+            $this->logWrite('Автоматично затваряне', $sd2);
+        }
+        
         $this->closeItems = (is_array($this->closeItems)) ? $this->closeItems : array();
         $this->closeItems += $toSave;
         
-        log_System::add('cat_Products', 'END close items:' . count($toSave));
+        log_System::add('cat_Products', 'END close items:' . count($toSave), null, 'info', 17);
     }
     
     
