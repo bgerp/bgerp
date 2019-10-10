@@ -440,7 +440,8 @@ class core_Master extends core_Manager
                         }
                     }
                 }
-                
+                $tabBottom->htmlId = 'Bottom';
+
                 // Проверяваме имали избран детайл от долния таб
                 $selectedBottom = $tabBottom->getSelected();
                 

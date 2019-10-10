@@ -101,6 +101,8 @@ class core_Tabs extends core_BaseClass
             $selectedTab = key($this->tabs);
         }
         
+        $isAjax = defined('EF_AJAX_TAB') && Request::get('ajax_mode1') && !empty($this->htmlId) && $this->htmlId == Request::get('htmlId');
+
         foreach ($this->tabs as $tab => $url) {
             if ($tab == $selectedTab) {
                 $selectedUrl = $url;
@@ -115,8 +117,21 @@ class core_Tabs extends core_BaseClass
             
             if ($url) {
                 $url = ht::escapeAttr($url);
-                $head .= "<div onclick=\"openUrl('{$url}', event)\" style='cursor:pointer;' class='tab {$selected}'>";
-                $head .= "<a onclick=\"return openUrl('{$url}', event);\" href='{$url}' class='tab-title {$tabClass}'>{$title}</a>";
+                if($this->htmlId && defined('EF_AJAX_TAB')) {
+                    list($url, $hash) = explode('#', $url);
+                    if(strpos($url, '?') === false) {
+                        $url .= '?';
+                    } else {
+                        $url .= '&amp;';
+                    }
+                    $url .= 'ajax_mode1=1&amp;htmlId=' . $this->htmlId;
+                    
+                    $head .= "<div onclick=\"updateTab('{$this->htmlId}', '{$url}'); return false;\" style='cursor:pointer;' class='tab {$selected}'>";
+                    $head .= "<a onclick=\"return; updateTab('{$this->htmlId}', '{$url}');  preventDefault(); return false;\"  class='tab-title {$tabClass}'>{$title}</a>";
+                } else {
+                    $head .= "<div onclick=\"openUrl('{$url}', event)\" style='cursor:pointer;' class='tab {$selected}'>";
+                    $head .= "<a onclick=\"return openUrl('{$url}', event);\" href='{$url}' class='tab-title {$tabClass}'>{$title}</a>";
+                }
                 if ($selected) {
                     $head .= $hintBtn;
                 }
@@ -127,20 +142,35 @@ class core_Tabs extends core_BaseClass
             
             $head .= "</div>\n";
         }
-        
+        if ($this->htmlId) {
+            $idAttr = " id=\"head-{$this->htmlId}\"";
+        }
+ 
         $html = "<div class='tab-control {$this->htmlClass}'>\n";
+ 
         $html .= "<div class='tab-row'><div class='row-holder'>\n";
-        $html .= "[#1#]\n";
-        $html .= "</div></div>\n";
+        $html .= "<div {$idAttr}>[#1#]</div>\n";
+        $html .= "</div>\n";
+        $html .= "</div>\n";
+     
         
         if ($this->htmlId) {
             $idAttr = " id=\"{$this->htmlId}\"";
         }
         $html .= "<div class=\"tab-page clearfix21\"{$idAttr}>{$hint}[#2#]</div>\n";
         $html .= "</div>\n";
+
+         
+        if ($isAjax) {
+            $res = new stdClass();
+            $res->head = $head;
+            $res->body = $hint . $body;
+
+            core_App::outputJson($res);
+        }
         
         $tabsTpl = new ET($html, $head, $body);
-        
+
         return $tabsTpl;
     }
     

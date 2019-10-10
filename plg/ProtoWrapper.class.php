@@ -184,7 +184,7 @@ class plg_ProtoWrapper extends core_Plugin
             // Добавяме към подчинения таб, ако има нужда
             if ($subName) {
                 if (!$subTabs[$mainName]) {
-                    $subTabs[$mainName] = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+                    $subTabs[$mainName] = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'htmlId' => 'wrapper2'));
                 }
                 if ($rec->haveRight) {
                     $subTabs[$mainName]->TAB($subName, $subName, $rec->url);
