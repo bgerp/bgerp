@@ -165,7 +165,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         foreach ($prodArr as $prodId => $quantity) {
             if (in_array($prodId, array_keys($journalProdArr))) {
               //  $reversibility = $quantity / $journalProdArr[$prodId];
-                $reversibility = $journalProdArr[$prodId] / $quantity ;
+                $reversibility =$quantity ? $journalProdArr[$prodId] / $quantity :0 ;
                 
                 if ($reversibility > $rec->reversibility) {
                     continue;
