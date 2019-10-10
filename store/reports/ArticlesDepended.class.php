@@ -126,10 +126,10 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, $pRec->quantity, null);
             
             $minCost = $rec->minCost ? $rec->minCost : 0;
-            
-            if ($pRec->quantity * $selfPrice > $minCost) {
+            $pQuantity = store_Products::getQuantity($pRec->productId,$rec->storeId);
+            if ($pQuantity * $selfPrice > $minCost) {
                
-                $pQuantity = store_Products::getQuantity($pRec->productId,$rec->storeId);
+                
                 
                 //Наличност на артикула
                 $prodArr[$pRec->productId] = $pQuantity;
