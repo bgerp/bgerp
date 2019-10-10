@@ -435,7 +435,7 @@ class drdata_Vats extends core_Manager
     public static function isBulstat($inBULSTAT)
     {
         for ($i = 0 ; $i <= strlen($inBULSTAT); $i++) {
-            $c = substr($inBULSTAT, $i, 1);
+            $c = (int) substr($inBULSTAT, $i, 1);
             
             if ($c >= '0' && $c <= '9') {
                 $BULSTAT .= $c;

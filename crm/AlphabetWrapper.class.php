@@ -33,7 +33,7 @@ class crm_AlphabetWrapper extends core_Plugin
             return;
         }
         
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'maxTabsNarrow' => 1000));
+        $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'maxTabsNarrow' => 1000, 'htmlId' => 'alphabet'));
         
         $alpha = Request::get('alpha');
         
@@ -54,9 +54,9 @@ class crm_AlphabetWrapper extends core_Plugin
             $tabs->headerBreak = 13;
         }
         
-        $tpl = $tabs->renderHtml('', $selected);
+        $tpl = $tabs->renderHtml($content, $selected);
         
-        $tpl->append($content);
+        //$tpl->append($content);
         
         //$tpl->prepend('<br>');
     }
