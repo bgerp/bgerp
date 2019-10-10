@@ -116,13 +116,11 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $pQuery->where("#state != 'rejected'");
         $pQuery->where('#quantity > 0');
         
-        //Филтър по склад
-        if ($rec->storeId) {
-            $pQuery->where("#storeId = {$rec->storeId}");
-        }
+        
         
         $prodArr = array();
-        while ($pRec = $pQuery->fetch()) {
+        while ($pRec = $pQuery->fetch()) {if ($pRec->productId == 24)
+            $pQuantity = 0;
             
             //Себестойност на артикула
             $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, $pRec->quantity, null);
@@ -130,9 +128,11 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $minCost = $rec->minCost ? $rec->minCost : 0;
             
             if ($pRec->quantity * $selfPrice > $minCost) {
+               
+                $pQuantity = store_Products::getQuantity($pRec->productId,$rec->storeId);
                 
                 //Наличност на артикула
-                $prodArr[$pRec->productId] = +$pRec->quantity;
+                $prodArr[$pRec->productId] = $pQuantity;
             }
         }
         foreach (array('sales_Sales','store_ShipmentOrders','planning_DirectProductionNote','planning_ConsumptionNotes') as $val) {
