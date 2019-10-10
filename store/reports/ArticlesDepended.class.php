@@ -127,10 +127,12 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             //Себестойност на артикула
             $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, $pRec->quantity, null);
             
-            if ($pRec->quantity * $selfPrice > $rec->minCost) {
+            $minCost = $rec->minCost ? $rec->minCost : 0;
+            
+            if ($pRec->quantity * $selfPrice > $minCost) {
                 
                 //Наличност на артикула
-                $prodArr[$pRec->productId] = $pRec->quantity;
+                $prodArr[$pRec->productId] = +$pRec->quantity;
             }
         }
         foreach (array('sales_Sales','store_ShipmentOrders','planning_DirectProductionNote','planning_ConsumptionNotes') as $val) {
