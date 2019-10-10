@@ -1217,7 +1217,7 @@ class crm_Persons extends core_Master
      */
     public static function renderNamedays($data)
     {
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return '';
         }
