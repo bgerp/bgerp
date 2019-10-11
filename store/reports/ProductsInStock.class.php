@@ -68,7 +68,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=selfPrices,single=none');
         $fieldset->FLD('products', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Филтри->Артикули,placeholder=Всички,after=group,single=none,class=w100');
-        $fieldset->FLD('availability', 'enum(all=Всички, available=Налични,negative=Отрицателни)', 'notNull,caption=Филтри->Наличност,maxRadio=3,columns=3,after=products,single=none');
+        $fieldset->FLD('availability', 'enum(Всички=Всички, Налични=Налични,Отрицателни=Отрицателни)', 'notNull,caption=Филтри->Наличност,maxRadio=3,columns=3,after=products,single=none');
         
     }
     
@@ -101,7 +101,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $rec = $form->rec;
         
         $form->setDefault('selfPrices', 'balance');
-        $form->setDefault('availability', 'all');
+        $form->setDefault('availability', 'Всички');
     }
     
     
@@ -167,8 +167,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             //Количество в края на периода
             $blQuantity = $item->blQuantity;
             
-            if(($rec->availability == 'available') && $blQuantity < 0)continue;
-            if($rec->availability == 'negative' && $blQuantity >= 0)continue;
+            if(($rec->availability == 'Налични') && $blQuantity < 0)continue;
+            if($rec->availability == 'Отрицателни' && $blQuantity >= 0)continue;
             
             //Стойност в края на периода
             $blAmount = $item->blAmount;
@@ -248,8 +248,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
         
-        $fld->FLD('selfPrice', 'double(smartRound,decimals=2)', 'caption=Себестойност');
         $fld->FLD('quantyti', 'double(smartRound,decimals=2)', 'caption=Количество');
+        $fld->FLD('selfPrice', 'double(smartRound,decimals=2)', 'caption=Себестойност');
         $fld->FLD('amount', 'double(smartRound,decimals=2)', 'caption=Стойност');
         
        
