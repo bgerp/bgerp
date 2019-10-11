@@ -2675,4 +2675,22 @@ class core_Users extends core_Manager
         
         return $compare;
     }
+    
+    
+    /**
+     * Проверява имената дали са валидни - поне две думи с поне по две букви
+     *
+     * @param string $names
+     * 
+     * @return boolean
+     */
+    public static function checkNames($names)
+    {
+        if (preg_match("/^[\p{L}']{2,16}[\s\-][\s\p{L}\'\-]+[\p{L}]$/u", $names)) {
+            
+            return true;
+        }
+        
+        return false;
+    }
 }
