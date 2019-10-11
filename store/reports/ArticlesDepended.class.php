@@ -61,11 +61,14 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         
-        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title,single=none');
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=title,single=none');
         $fieldset->FLD('period', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година)', 'caption=Период, after=storeId,mandatory,single=none');
         $fieldset->FLD('minCost', 'double', 'caption=Мин. наличност, after=period,single=none');
         $fieldset->FLD('reversibility', 'percent(suggestions=1%|5% |10%|20%)', 'caption=Обръщаемост, after=minCost,mandatory,single=none');
         
+        //Подредба на резултатите
+        $fieldset->FLD('orderBy', 'enum(name=Артикул, reversibility=Обръщаемост)', 'caption=Подреждане по,maxRadio=2,columns=2,after=reversibility');
+       
         $fieldset->FNC('from', 'date', 'caption=Период->От,after=title,single=none,input = hiden');
         $fieldset->FNC('to', 'date', 'caption=Период->До,after=from,single=none,input = hiden');
     }
@@ -97,6 +100,8 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+        
+        $form->setDefault('orderBy', 'name');
     }
     
     
@@ -116,8 +121,6 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $pQuery->where("#state != 'rejected'");
         $pQuery->where('#quantity > 0');
         
-        
-        
         $prodArr = array();
         while ($pRec = $pQuery->fetch()) {if ($pRec->productId == 24)
             $pQuantity = 0;
@@ -129,8 +132,6 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $pQuantity = store_Products::getQuantity($pRec->productId,$rec->storeId);
             if ($pQuantity * $selfPrice > $minCost) {
                
-                
-                
                 //Наличност на артикула
                 $prodArr[$pRec->productId] = $pQuantity;
             }
@@ -182,6 +183,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                     $recs[$id] = (object) array(
                         
                         'productId' => $prodId,                               //Id на артикула
+                        'name' => cat_Products::getTitleById($prodId),        //Име на артикула
                         'storeQuantity' => $storeQuantity,                    //Складова наличност
                         'totalCreditQuantity' => $totalCreditQuantity,        //Кредит обороти
                         'reversibility' => $reversibility                     //Обръщаемост
@@ -190,6 +192,16 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                 }
             }
         }
+        
+        //Подредба на резултатите
+        if (!is_null($recs)) {
+            $typeOrder = ($rec->orderBy == 'name') ? 'stri' : 'native';
+            
+            $orderBy = $rec->orderBy;
+            
+            arr::sortObjects($recs, $orderBy, 'ASC', $typeOrder);
+        }
+        
         
         return $recs;
     }
