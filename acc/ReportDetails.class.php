@@ -355,7 +355,7 @@ class acc_ReportDetails extends core_Manager
                 }
                 
                 // Ако има зададени лимити за тази сметка, показваме и тях
-                if (count($arr['limits'])) {
+                if (countR($arr['limits'])) {
                     $unset1 = $unset2 = $unset3 = true;
                     foreach ($arr['limits'] as $lRec) {
                         $lRec->_rowTools = $lRec->_rowTools->renderHtml();
