@@ -297,6 +297,13 @@ class acc_Balances extends core_Master
         
         $now = dt::now();
         
+        // Ако датата е 
+        $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
+        if($alternateWindow) {
+            $windowStart = dt::addSecs(-$alternateWindow);
+            if($windowStart > $date) return;
+        }
+
         $query = self::getQuery();
         $query->where("#toDate >= '{$date}'");
         
