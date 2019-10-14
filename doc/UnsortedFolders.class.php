@@ -855,7 +855,7 @@ class doc_UnsortedFolders extends core_Master
      */
     public function renderContragentUnsortedFolders($data)
     {
-        if(!count($data->recs)) return;
+        if(!countr($data->recs)) return;
         
         $tpl = new ET("<fieldset class='detail-info'>
                             <legend class='groupTitle'>" . tr('Проекти') . "</legend>
