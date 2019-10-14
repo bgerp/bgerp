@@ -341,7 +341,7 @@ class batch_Items extends core_Master
     
     
     /**
-     * Чръща всички складируеми артикули с дефинирани видове партидност
+     * Връща всички складируеми артикули с дефинирани видове партидност
      *
      * @return array $storable - масив с артикули
      */
@@ -356,7 +356,7 @@ class batch_Items extends core_Master
             $dQuery->show('productId');
             while ($dRec = $dQuery->fetch()) {
                 $pRec = cat_Products::fetch($dRec->productId, 'name,isPublic,code,nameEn');
-                if($rec) {
+                if($pRec) {
                     $storable[$dRec->productId] = cat_Products::getRecTitle($pRec, false);
                 }
             }
