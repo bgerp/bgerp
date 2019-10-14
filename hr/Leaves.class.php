@@ -694,7 +694,6 @@ class hr_Leaves extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $DateTime = new stdClass();
         $DateTime = cls::get('core_DateTime');
         
         if (isset($rec->activatedOn)) {
