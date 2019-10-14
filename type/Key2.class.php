@@ -367,7 +367,7 @@ class type_Key2 extends type_Int
     {
         $key = 'sqlBeginQuery' . '_' . $addEmpty;
         
-        $rStr = core_Cache::get(key2, $key);
+        $rStr = core_Cache::get('key2', $key);
         
         if ($rStr) {
             

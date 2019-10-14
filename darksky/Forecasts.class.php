@@ -103,7 +103,7 @@ class darksky_Forecasts extends core_Manager
         
         $locations[darksky_Setup::get('LOCATION')] = darksky_Setup::get('LOCATION');
         
-        $userLoc = core_Settings::fetchPersonalConfig('DARKSKY_LOCATION', 'crm_Profiles');
+        $userLoc = core_Settings::fetchPersonalConfig('DARKSKY_LOCATION', 'crm_Profiles', 'all');
         
         shuffle($userLoc);
         

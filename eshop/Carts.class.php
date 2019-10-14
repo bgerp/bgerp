@@ -1861,13 +1861,13 @@ class eshop_Carts extends core_Master
             $rec = $form->rec;
             
             // Проверка на имената да са поне две с поне 2 букви
-            if(!self::checkNames($rec->personNames)){
+            if(!core_Users::checkNames($rec->personNames)){
                 $form->setError('personNames', 'Трябва да са въведени поне две имена с поне две букви');
             }
             
             // Проверка на имената на лицето на фактурата, ако тя е за лице да са поне две с поне 2 букви
             if($rec->makeInvoice == 'person'){
-                if(!self::checkNames($rec->invoiceNames)){
+                if(!core_Users::checkNames($rec->invoiceNames)){
                     $form->setError('invoiceNames', 'Трябва да са въведени поне две имена с поне две букви');
                 }
             }
@@ -2445,28 +2445,5 @@ class eshop_Carts extends core_Master
         Request::removeProtected('accessToken');
         
         return $url;
-    }
-    
-    
-    /**
-     * Проверява имената дали са валидни (поне две думи само с буктив)
-     *
-     * @param int $id
-     * @return string $url
-     */
-    private static function checkNames($names)
-    {
-        $namesArr = explode(' ', str::removeWhiteSpace($names, ' '));
-        
-        $res = true;
-        array_walk($namesArr, function ($a) use (&$res){
-            if(mb_strlen($a) < 2) {
-                $res = false;
-            } elseif(!preg_match('/^[a-zA-ZА-Яа-я]+$/u', $a)){
-                $res = false;
-            }
-        });
-        
-        return $res;
     }
 }

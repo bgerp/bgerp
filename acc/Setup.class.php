@@ -100,6 +100,12 @@ defIfNot('ACC_BALANCE_REPAIR_NO_DEFAULTS', 'no');
 
 
 /**
+ * Колко назад във времето ще се инвалидират балансите
+ */
+defIfNot('ACC_ALTERNATE_WINDOW', '');
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -241,7 +247,11 @@ class acc_Setup extends core_ProtoSetup
         'ACC_BALANCE_REPAIR_AMOUNT_BELLOW' => array(
             'double',
             'caption=Корекция на грешки от закръгляне->Сума под'
-        )
+        ),
+        'ACC_ALTERNATE_WINDOW' => array(
+            'time(suggestions=3 месец|4 месеца|5 месеца|6 месеца|7 месеца|8 месеца|9 месеца|10 месеца|11 месеца|12 месеца)',
+            'caption=Колко назад могат да бъдат променяни счетоводни документи->Време,placeholder=Винаги'
+        ),
     );
     
     

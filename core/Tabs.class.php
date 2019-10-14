@@ -91,18 +91,24 @@ class core_Tabs extends core_BaseClass
         if (!$selectedTab) {
             $selectedTab = Request::get('selectedTab');
         }
-        
+    
         if (!$selectedTab) {
             $selectedTab = $this->getSelected();
         }
+
+      
         
         //  ,
         if (!$selectedTab) {
             $selectedTab = key($this->tabs);
         }
-        
-        $isAjax = defined('EF_AJAX_TAB') && Request::get('ajax_mode1') && !empty($this->htmlId) && $this->htmlId == Request::get('htmlId');
 
+        if(!$storedTab && $this->tabGroup) {
+            core_Settings::setValues('TABS::' . $this->tabGroup, array('DEFAULT_TABS' => $selectedTab));
+
+        }
+        
+        $isAjax = defined('EF_AJAX_TAB') && Request::get('ajax_mode1') && !empty($this->htmlId) && $this->htmlId == Request::get('htmlId'); 
         foreach ($this->tabs as $tab => $url) {
             if ($tab == $selectedTab) {
                 $selectedUrl = $url;
@@ -204,7 +210,17 @@ class core_Tabs extends core_BaseClass
      */
     public function getFirstTab()
     {
-        return key($this->tabs);
+        // Ако има запазена информация, кой е таба по подразбиране за този потребител, вадим него
+        if($this->tabGroup) { 
+            $storedTab = core_Settings::fetchPersonalConfig('DEFAULT_TABS', 'TABS::' . $this->tabGroup);
+            $selectedTab = array_pop($storedTab);
+        }
+
+        if(!$selectedTab) {
+            $selectedTab = key($this->tabs);
+        }
+
+        return $selectedTab;
     }
     
     
