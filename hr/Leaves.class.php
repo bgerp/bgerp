@@ -694,7 +694,8 @@ class hr_Leaves extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $DateTime = cls::get(core_DateTime);
+        $DateTime = new stdClass();
+        $DateTime = cls::get('core_DateTime');
         
         if (isset($rec->activatedOn)) {
             $row->activatedOn = dt::mysql2verbal($rec->activatedOn, 'd.m.Y');
