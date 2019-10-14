@@ -137,9 +137,9 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         while ($planningRec = $planningQuery->fetch()){
         
         $id = $planningRec->productId;
-        
+     
         //Мярка на артикула
-        $measureArtId = cat_Products::getProductInfo($planningRec->productId)->productRec->measureId;
+        $measureArtId = cat_Products::fetchField($planningRec->productId, 'measureId');
         
         //Произведено количество
         $quantity = $planningRec->quantity;
