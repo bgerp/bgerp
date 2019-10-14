@@ -64,10 +64,10 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=title,single=none');
         $fieldset->FLD('period', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година)', 'caption=Период, after=storeId,mandatory,single=none');
         $fieldset->FLD('minCost', 'double', 'caption=Мин. наличност, after=period,single=none');
-        $fieldset->FLD('reversibility', 'percent(suggestions=1%|5% |10%|20%)', 'caption=Обръщаемост, after=minCost,mandatory,single=none');
+        $fieldset->FLD('reversibility', 'percent(suggestions=1%|5% |10%|20%)', 'caption=Обращаемост, after=minCost,mandatory,single=none');
         
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(name=Артикул, reversibility=Обръщаемост)', 'caption=Подреждане по,maxRadio=2,columns=2,after=reversibility');
+        $fieldset->FLD('orderBy', 'enum(name=Артикул, reversibility=Обращаемост)', 'caption=Подреждане по,maxRadio=2,columns=2,after=reversibility');
        
         $fieldset->FNC('from', 'date', 'caption=Период->От,after=title,single=none,input = hiden');
         $fieldset->FNC('to', 'date', 'caption=Период->До,after=from,single=none,input = hiden');
@@ -223,9 +223,9 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
         $fld->FLD('storeQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Наличност');
-        $fld->FLD('totalCreditQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Обороти');
+        $fld->FLD('totalCreditQuantity', 'double(smartRound,decimals=2)', 'caption=Обороти');
         
-        $fld->FLD('reversibility', 'percent', 'smartCenter,caption=Обръщаемост');
+        $fld->FLD('reversibility', 'percent', 'caption=Обращаемост');
         
         return $fld;
     }
