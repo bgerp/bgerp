@@ -69,7 +69,9 @@ header {
 .fourcol, #cmsMenu a, .formTable{
     margin-left: 0 !important;
 }
-
+#login-form {
+    padding-left: 0 !important;
+}
 .wide .app-name {
     left: 0 !important;
 }
