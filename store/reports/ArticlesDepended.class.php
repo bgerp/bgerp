@@ -85,6 +85,11 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
+            
+            if ($form->rec->minCost < 0) {
+                $form->setError('minCost', 'Наличността трябва да е положително число.');
+            }
+            
         }
     }
     
