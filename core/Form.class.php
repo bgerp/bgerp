@@ -1147,6 +1147,28 @@ class core_Form extends core_FieldSet
     {
         $this->formAttr['method'] = $this->getMethod();
         $this->formAttr['action'] = $this->action ? toUrl($this->action) : '';
+
+        if(!$this->action && Request::get('ajax_mode1') && defined('EF_AJAX_TAB')) {
+            $fields = $this->selectFields("#silent == 'silent'");
+         
+            $sf = array();
+            foreach ($fields as $name => $field) {
+                $sf[$name] = $this->rec->{$name};
+            }
+            
+            $getArr = Request::getParams('_GET');
+            unset($getArr['virtual_url']);
+            unset($getArr['App']);
+            unset($getArr['Ctr']);
+            unset($getArr['Act']);
+            
+            if (!empty($getArr)) {
+                $sf += $getArr;
+            }
+        
+            $this->formAttr['action']  = toUrl($sf);
+        }
+
         
         foreach ($this->formAttr as $attr => $content) {
             if ($content === true) {

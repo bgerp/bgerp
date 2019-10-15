@@ -260,7 +260,7 @@ class cal_Tasks extends embed_Manager
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'timeStart,timeDuration,timeEnd,expectationTimeEnd, expectationTimeStart, expectationTimeDuration,timeClosed';
+    public $fieldsNotToClone = 'timeStart,timeDuration,timeEnd,expectationTimeEnd, expectationTimeStart, expectationTimeDuration,timeClosed,progress';
     
     
     public $canPending = 'powerUser';
@@ -546,11 +546,7 @@ class cal_Tasks extends embed_Manager
         // Подготвяме полетата за показване
         $data->listFields = 'groupDate,title,progress';
         
-        if (Mode::is('listTasks', 'by')) {
-            $data->query->where("#createdBy = ${userId}");
-        } else {
-            $data->query->like('assign', "|{$userId}|");
-        }
+        $data->query->like('assign', "|{$userId}|");
         
         // Вадим 3 работни дни
         $now = dt::now();
@@ -1849,21 +1845,6 @@ class cal_Tasks extends embed_Manager
                 }
             }
         }
-    }
-    
-    
-    /**
-     * Сменя задачите в сесията между 'поставените към', на 'поставените от' и обратно
-     */
-    public function act_SwitchByTo()
-    {
-        if (Mode::is('listTasks', 'by')) {
-            Mode::setPermanent('listTasks', 'to');
-        } else {
-            Mode::setPermanent('listTasks', 'by');
-        }
-        
-        return new Redirect(array('Portal', 'Show', '#' => Mode::is('screenMode', 'narrow') ? 'taskPortal' : null));
     }
     
     
@@ -3335,5 +3316,78 @@ class cal_Tasks extends embed_Manager
         $rec = $this->fetchRec($id);
         
         return tr('За') . ': ' . $rec->title;
+    }
+    
+    
+    /**
+     * Клониране на задачите от една папка в друга, с транслиране на времената
+     * 
+     * @param int $fromFolderId
+     * @param int $toFolderId
+     * @param string $newStartDate
+     * @param string $cloneInState
+     */
+    public static function cloneFromFolder($fromFolderId, $toFolderId, $newStartDate = null, $cloneInState = 'draft')
+    {
+        $Tasks = cls::get(get_called_class());
+        expect($fromFolderId != $toFolderId);
+        $tQuery = doc_Threads::getQuery();
+        $tQuery->where("#folderId = {$fromFolderId} AND #firstDocClass =" . $Tasks->getClassId());
+        $tQuery->show('firstContainerId');
+        $containers = arr::extractValuesFromArray($tQuery->fetchAll(), 'firstContainerId');
+        
+        $taskQuery = cal_Tasks::getQuery();
+        $taskQuery->in("containerId", $containers);
+        $taskQuery->where("#state != 'closed' AND #state != 'rejected'");
+        $tasks = $taskQuery->fetchAll();
+        
+        $minDate = null;
+        array_walk($tasks, function ($a) use (&$minDate){
+            $startTime = !empty($a->timeStart) ? $a->timeStart : (isset($a->timeDuration, $a->timeEnd) ? dt::addSecs(-1 * $a->timeDuration, $a->timeEnd) : null);
+            if(!empty($startTime)){
+                if(empty($minDate)){
+                    $minDate = $startTime;
+                } else {
+                    if($startTime < $minDate){
+                        $minDate = $startTime;
+                    }
+                }
+            }
+        });
+        
+        $dateDiff = dt::secsBetween($newStartDate, $minDate);
+        
+        foreach ($tasks as $taskRec){
+            $cloneTask = clone $taskRec;
+            plg_Clone::unsetFieldsNotToClone($Tasks, $cloneTask, $taskRec);
+            unset($cloneTask->id, $cloneTask->folderId, $cloneTask->threadId, $cloneTask->containerId, $cloneTask->createdOn, $cloneTask->createdBy, $cloneTask->modifiedOn, $cloneTask->modifiedBy);
+            $cloneTask->folderId = $toFolderId;
+            $cloneTask->state = $cloneInState;
+            
+            if($cloneInState == 'active'){
+                $sharedUsersArr = keylist::toArray($cloneTask->sharedUsers);
+                if ($cloneTask->assign) {
+                    $sharedUsersArr += type_Keylist::toArray($cloneTask->assign);
+                }
+                
+                if(empty($sharedUsersArr)){
+                    $cloneTask->state = 'pending';
+                }
+            }
+            
+            $startTime = isset($taskRec->timeStart) ? $taskRec->timeStart : (isset($taskRec->timeDuration, $taskRec->timeEnd) ? dt::addSecs(-1 * $taskRec->timeDuration, $taskRec->timeEnd) : null);
+            $druration = isset($taskRec->timeDuration) ? $taskRec->timeDuration : (isset($taskRec->timeStart, $taskRec->timeEnd) ? (strtotime($taskRec->timeEnd) - strtotime($taskRec->timeStart)) : null);
+            
+            if(!empty($startTime)){
+                $cloneTask->timeStart = dt::addSecs($dateDiff, $startTime);
+                if(isset($druration)){
+                    $cloneTask->timeEnd = dt::addSecs($druration, $cloneTask->timeStart);
+                }
+            }
+            
+            $Tasks->route($cloneTask);
+            $Tasks->save($cloneTask);
+            $Tasks->logWrite("Създаване при клониране на проект", $cloneTask->id);
+        }
     }
 }

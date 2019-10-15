@@ -320,7 +320,7 @@ class bank_Accounts extends core_Master
         
         $tpl->append(tr('Банкови сметки'), 'title');
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             foreach ($data->rows as $id => $row) {
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $rec = $data->recs[$id];

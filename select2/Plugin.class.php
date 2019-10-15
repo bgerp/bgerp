@@ -183,6 +183,9 @@ class select2_Plugin extends core_Plugin
             $mvc = &cls::get($invoker->params['mvc']);
             $query = $mvc->getQuery();
             $query->show($parentIdName);
+            
+            $dataPup = array();
+            $dataL = array();
             while($rec = $query->fetch("#id IN ({$keys})")) {
                 if ($rec->{$parentIdName}) {
                     $dataPup[$rec->id] = $rec->{$parentIdName};

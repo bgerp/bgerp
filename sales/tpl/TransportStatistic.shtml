@@ -1,16 +1,18 @@
-<div class='sale-summary'>
-	<table class='paddingCells' style='margin-bottom:10px;width:100%;margin-top:10px'>
-       <tr>
-         <td class='sum-th'>|Очакван транспорт|*, [#transportCurrencyId#] |без ДДС|*</td>
-         <td class='sum-th'>|Скрит транспорт|*, [#transportCurrencyId#] |без ДДС|*</td>
-         <td class='sum-th'>|Явен транспорт|*, [#transportCurrencyId#] |без ДДС|*</td>
-         <td class='sum-th'>|Остатък|*, [#transportCurrencyId#] |без ДДС|*</td>
-      </tr>
-      <tr>
-      	<td>[#expectedTransportCost#]</td>
-        <td>[#hiddenTransportCost#]</td>
-        <td>[#visibleTransportCost#]</td>
-        <td>[#leftTransportCost#] [#btnTransport#]</td>
-      </tr>
-    </table>
+<div class="scrolling-holder">
+        <div class='sale-summary'>
+            <table class='paddingCells' style='margin-bottom:10px;width:100%;margin-top:10px'>
+               <tr>
+                 <td class='sum-th'>|Очакван транспорт|*, [#transportCurrencyId#] |без ДДС|*</td>
+                 <td class='sum-th'>|Скрит транспорт|*, [#transportCurrencyId#] |без ДДС|*</td>
+                 <td class='sum-th'>|Явен транспорт|*, [#transportCurrencyId#] |без ДДС|*</td>
+                 <td class='sum-th'>|Остатък|*, [#transportCurrencyId#] |без ДДС|*</td>
+              </tr>
+              <tr>
+                <td>[#expectedTransportCost#]</td>
+                <td>[#hiddenTransportCost#]</td>
+                <td>[#visibleTransportCost#]</td>
+                <td>[#leftTransportCost#] [#btnTransport#]</td>
+              </tr>
+            </table>
+        </div>
 </div>

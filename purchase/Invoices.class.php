@@ -388,8 +388,10 @@ class purchase_Invoices extends deals_InvoiceMaster
                 $rec->number = null;
             }
             
-            if (!$mvc->isNumberFree($rec)) {
-                $form->setError("{$fld},number", 'Има вече входяща фактура с този номер, за този контрагент');
+            $foundInvoiceId = null;
+            if (!$mvc->isNumberFree($rec, $foundInvoiceId)) {
+                $foundInvoiceId = purchase_Invoices::getLink($foundInvoiceId, 0);
+                $form->setError("{$fld},number", "Има вече входяща фактура с този номер, за този контрагент|*: <b>{$foundInvoiceId}</b>");
             }
         }
     }
@@ -428,10 +430,11 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Проверява дали номера е свободен
      *
      * @param stdClass $rec
+     * @param string|null $foundInvoiceId
      *
      * @return bool
      */
-    private function isNumberFree($rec)
+    private function isNumberFree($rec, &$foundInvoiceId = null)
     {
         $rec = $this->fetchRec($rec);
         
@@ -443,7 +446,8 @@ class purchase_Invoices extends deals_InvoiceMaster
         // Проверяваме дали за този контрагент има друга фактура със същия номер, която не е оттеглена
         foreach (array('contragentVatNo', 'uicNo') as $fld) {
             if (!empty($rec->{$fld})) {
-                if ($this->fetchField("#{$fld}='{$rec->{$fld}}' AND #number='{$rec->number}' AND #id != '{$rec->id}' AND #state != 'rejected'")) {
+                if ($invRec = $this->fetchField("#{$fld}='{$rec->{$fld}}' AND #number='{$rec->number}' AND #id != '{$rec->id}' AND #state != 'rejected'")) {
+                    $foundInvoiceId = $invRec;
                     
                     return false;
                 }

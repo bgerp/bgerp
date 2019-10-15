@@ -343,7 +343,7 @@
                  $fld->FLD('quantity', 'double', 'caption=Произведено->Кол');
                  $fld->FLD('scrap', 'double', 'caption=Брак');
                  $fld->FLD('weight', 'double', 'caption=Тегло');
-                 $fld->FLD('min', 'varchar', 'caption=Минути');
+                 $fld->FLD('min', 'double(smartRound,decimals=2)', 'caption=Минути');
                  if ($rec->resultsOn != 'arts') {
                      if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
                          $fld->FLD('employees', 'varchar', 'caption=Служител');
@@ -355,7 +355,7 @@
              }
              if ($rec->typeOfReport == 'short') {
                  $fld->FLD('employees', 'varchar', 'caption=Служител');
-                 $fld->FLD('indTimeSum', 'varchar', 'caption=Време');
+                 $fld->FLD('indTimeSum','double(smartRound,decimals=2)', 'caption=Време->min,tdClass=centered');
              }
              $fld->FLD('labelMeasure', 'varchar', 'caption=Етикет->мярка,tdClass=centered');
              $fld->FLD('labelQuantity', 'varchar', 'caption=Етикет->кол,tdClass=centered');
@@ -393,7 +393,8 @@
          $Int = cls::get('type_Int');
          $Date = cls::get('type_Date');
          $Time = cls::get('type_Time');
-         $Double = core_Type::getByName('double(decimals=2)');
+         $Double = cls::get('type_Double');
+         $Double->params['decimals'] = 2;
          $row = new stdClass();
          
          $row->taskId = planning_Tasks::getHyperlink($dRec->taskId);
@@ -413,7 +414,7 @@
          
          if ($rec->typeOfReport == 'short' && isset($dRec->employees)) {
              $row->employees = crm_Persons::getTitleById(($dRec->employees)).' - '.planning_Hr::getCodeLink($dRec->employees);
-             $row->indTimeSum = $Time->toVerbal($dRec->indTimeSum);
+             $row->indTimeSum = $Double->toVerbal($dRec->indTimeSum/60);
          } else {
              if (isset($dRec->employees)) {
                  foreach (keylist::toArray($dRec->employees) as $key => $val) {
@@ -432,7 +433,7 @@
          $indTimeSumm = ($dRec->indTime * $row->labelQuantity);
          
          //$row->min = $Time->toVerbal($indTimeSumm);
-         $row->min =$Time->toVerbal($dRec->indTimeSum);
+         $row->min =$Double->toVerbal($dRec->indTimeSum/60);
          return $row;
      }
      
