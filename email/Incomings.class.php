@@ -1317,7 +1317,7 @@ class email_Incomings extends core_Master
                 if (array_search($emailArr['address'], $otherAllEmailToArr) !== false) {
                     $emailsArr[$key]['isExternal'] = true;
                 } else {
-                    $trimEmail = strtolower($emailArr['address']);
+                    $trimEmail = trim($emailArr['address']);
                     $trimEmail = strtolower($trimEmail);
                     
                     // Ако няма такъв корпоративен имейл
