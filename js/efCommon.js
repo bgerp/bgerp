@@ -2224,6 +2224,21 @@ function refreshForm(form, removeFields) {
 
 
 /**
+ * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
+ */
+function updateTab(bodyId, url) {
+ 
+	
+	$.get(url, function(data) {
+                    var head = $('#head-' + bodyId);
+		            head.html(data.head);
+                    var body = $('#' + bodyId);
+		            body.html(data.body);
+                });
+}
+
+
+/**
  * Изчиства съдържанието на няколко Select2 елемента с посочения клас - cssClass,
  * Като запазва стойността на текущия елемант, посочен в select2
  */

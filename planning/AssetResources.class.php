@@ -382,11 +382,10 @@ class planning_AssetResources extends core_Master
                         $pQuery->where("#state != 'rejected'");
                         $pQuery->orderBy('state', 'ASC');
                         $pQuery->orderBy('modifiedOn', 'DESC');
-                        
                         $pQuery->limit($limitForDocs);
                         
                         while ($pRec = $pQuery->fetch()) {
-                            $jobs .= "<div class='state-{$pRec->state}'>" . planning_Tasks::getLinkToSingle($pRec->id) . '</div>';
+                            $jobs .= "<div class='state-{$pRec->state}'>" . planning_Tasks::getHyperlink($pRec->id, true) . '</div>';
                         }
                     }
                     

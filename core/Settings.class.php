@@ -634,7 +634,7 @@ class core_Settings extends core_Manager
         $userOrRole = self::prepareUserOrRole($userOrRole);
         
         list(, $objectId) = explode('::', $key);
-        
+         
         // Ограничаваме дължината на ключа
         $key = self::prepareKey($key);
         
@@ -670,7 +670,7 @@ class core_Settings extends core_Manager
         }
         
         $nRec->data = $valArr;
-        
+         
         // Записваме новите данни
         self::save($nRec);
     }
@@ -737,14 +737,24 @@ class core_Settings extends core_Manager
      *
      * @return array
      */
-    public static function fetchPersonalConfig($constName, $key)
+    public static function fetchPersonalConfig($constName, $key, $userOrRole = null)
     {
         $res = array();
+        $key = self::prepareKey($key); 
         $query = self::getQuery();
         $query->where(array("#key = '[#1#]'", $key));
         
+       
         $query->orderBy('userOrRole', 'DESC');
         
+        if($userOrRole === null) {
+            $userOrRole = core_Users::getCurrent();
+        }
+
+        if(is_int($userOrRole)) {
+            $query->where("#userOrRole = {$userOrRole}");
+        }
+
         while ($rec = $query->fetch()) {
             if (isset($rec->data[$constName])) {
                 $res[$rec->userOrRole] = $rec->data[$constName];

@@ -445,7 +445,7 @@ class drdata_Vats extends core_Manager
         switch (strlen($BULSTAT)) {
             case 9:
                 for ($i = 0; $i < 8; $i++) {
-                    $c = $c + ((int) substr($BULSTAT, $i, 1)) * ($i + 1);
+                    $c = (int) $c + ((int) substr($BULSTAT, $i, 1)) * ($i + 1);
                 }
                 $c = $c % 11;
                 
