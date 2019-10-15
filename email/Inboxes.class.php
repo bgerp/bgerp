@@ -417,7 +417,7 @@ class email_Inboxes extends core_Master
             
             while ($rec = $query->fetch()) {
                 if (($accId == 0) || ($accId == $rec->accountId)) {
-                    $email = strtolower($rec->email);
+                    $email = strtolower(trim($rec->email));
                     self::$allBoxes[$key][$email] = $rec->accountId;
                 }
             }
