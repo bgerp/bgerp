@@ -67,7 +67,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $fieldset->FLD('reversibility', 'percent(suggestions=1%|5% |10%|20%)', 'caption=Обращаемост, after=minCost,mandatory,single=none');
         
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(name=Артикул, reversibility=Обращаемост,storeAmount=Стойност,storeQuantity=Количество)', 'caption=Подреждане по,after=reversibility');
+        $fieldset->FLD('orderBy', 'enum(name=Артикул, reversibility=Обращаемост,storeAmount=Стойност,storeQuantity=Количество,code=Код)', 'caption=Подреждане по,after=reversibility');
        
         $fieldset->FNC('from', 'date', 'caption=Период->От,after=title,single=none,input = hiden');
         $fieldset->FNC('to', 'date', 'caption=Период->До,after=from,single=none,input = hiden');
@@ -126,6 +126,8 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $pQuery->where("#state != 'rejected'");
         $pQuery->where('#quantity > 0');
         
+        $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+        
         $prodArr = array();
         while ($pRec = $pQuery->fetch()) {
             $pQuantity = 0;
@@ -136,6 +138,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $minCost = $rec->minCost ? $rec->minCost : 0;
             $pQuantity = store_Products::getQuantity($pRec->productId,$rec->storeId);
             $amount = $pQuantity * $selfPrice;
+            $code = $pRec->code ? $pRec->code : 'Art'.$id;
             
             if ($amount  > $minCost) {
                
@@ -145,6 +148,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                     'productId' => $pRec->productId,                //Id на артикула
                     'pQuantity' => $pQuantity,                      //Складова наличност: количество
                     'amount' => $amount,                            //Складова наличност: стойност
+                    'code' => $code,                                //код на артикула
                     
                 );
             }
@@ -197,8 +201,9 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                 if (!array_key_exists($id, $recs)) {
                     $recs[$id] = (object) array(
                         
-                        'productId' => $id,                               //Id на артикула
-                        'name' => cat_Products::getTitleById($id),        //Име на артикула
+                        'productId' => $id,                                 //Id на артикула
+                        'code' => $prod->code,                              //код на артикула
+                        'name' => cat_Products::getTitleById($id),          //Име на артикула
                         'storeQuantity' => $storeQuantity,                  //Складова наличност: количество
                         'storeAmount' => $storeAmount,                      //Складова наличност: стойност
                         'totalCreditQuantity' => $totalCreditQuantity,      //Кредит обороти
@@ -211,7 +216,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         
         //Подредба на резултатите
         if (!is_null($recs)) {
-            $typeOrder = ($rec->orderBy == 'name') ? 'stri' : 'native';
+            $typeOrder = ($rec->orderBy == 'name' || $rec->orderBy == 'code') ? 'stri' : 'native';
             
             $orderBy = $rec->orderBy;
             
@@ -235,7 +240,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-        
+        $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Наличност->Мярка,tdClass=centered');
         $fld->FLD('storeQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Наличност->Количество');
         $fld->FLD('storeAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Наличност->Стойност');
