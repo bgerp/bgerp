@@ -651,7 +651,7 @@ class rack_Racks extends core_Master
      */
     protected static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
-        $rec = $mvc->fetch($id);
+        $rec = $mvc->fetchRec($id);
         
         if ($rec) {
             $rec->total = $rec->columns * (ord($rec->rows) - ord('A') + 1);

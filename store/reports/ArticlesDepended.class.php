@@ -63,11 +63,11 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=title,single=none');
         $fieldset->FLD('period', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година)', 'caption=Период, after=storeId,mandatory,single=none');
-        $fieldset->FLD('minCost', 'double', 'caption=Мин. наличност, after=period,single=none');
+        $fieldset->FLD('minCost', 'double', 'caption=Мин. наличност, after=period,single=none, unit= лв.');
         $fieldset->FLD('reversibility', 'percent(suggestions=1%|5% |10%|20%)', 'caption=Обращаемост, after=minCost,mandatory,single=none');
         
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(name=Артикул, reversibility=Обращаемост)', 'caption=Подреждане по,maxRadio=2,columns=2,after=reversibility');
+        $fieldset->FLD('orderBy', 'enum(name=Артикул, reversibility=Обращаемост,storeAmount=Стойност,storeQuantity=Количество,code=Код)', 'caption=Подреждане по,after=reversibility');
        
         $fieldset->FNC('from', 'date', 'caption=Период->От,after=title,single=none,input = hiden');
         $fieldset->FNC('to', 'date', 'caption=Период->До,after=from,single=none,input = hiden');
@@ -85,6 +85,11 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
+            
+            if ($form->rec->minCost < 0) {
+                $form->setError('minCost', 'Наличността трябва да е положително число.');
+            }
+            
         }
     }
     
@@ -121,8 +126,10 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $pQuery->where("#state != 'rejected'");
         $pQuery->where('#quantity > 0');
         
+        $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+        
         $prodArr = array();
-        while ($pRec = $pQuery->fetch()) {if ($pRec->productId == 24)
+        while ($pRec = $pQuery->fetch()) {
             $pQuantity = 0;
             
             //Себестойност на артикула
@@ -130,10 +137,20 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             
             $minCost = $rec->minCost ? $rec->minCost : 0;
             $pQuantity = store_Products::getQuantity($pRec->productId,$rec->storeId);
-            if ($pQuantity * $selfPrice > $minCost) {
+            $amount = $pQuantity * $selfPrice;
+            $code = $pRec->code ? $pRec->code : 'Art'.$id;
+            
+            if ($amount  > $minCost) {
                
                 //Наличност на артикула
-                $prodArr[$pRec->productId] = $pQuantity;
+                $prodArr[$pRec->productId] =(object) array(
+                    
+                    'productId' => $pRec->productId,                //Id на артикула
+                    'pQuantity' => $pQuantity,                      //Складова наличност: количество
+                    'amount' => $amount,                            //Складова наличност: стойност
+                    'code' => $code,                                //код на артикула
+                    
+                );
             }
         }
         foreach (array('sales_Sales','store_ShipmentOrders','planning_DirectProductionNote','planning_ConsumptionNotes') as $val) {
@@ -163,30 +180,34 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             }
         }
         
-        foreach ($prodArr as $prodId => $quantity) {
-            if (in_array($prodId, array_keys($journalProdArr))) {
-              //  $reversibility = $quantity / $journalProdArr[$prodId];
-                $reversibility =$quantity ? $journalProdArr[$prodId] / $quantity :0 ;
+        foreach ($prodArr as $prod) {
+        
+            $id = $prod->productId;
+        
+            if (in_array($id, array_keys($journalProdArr))) {
+              
+                $reversibility =$prod->pQuantity ? $journalProdArr[$id] / $prod->pQuantity :0 ;
                 
                 if ($reversibility > $rec->reversibility) {
                     continue;
                 }
-                
-                $storeQuantity = $quantity;
-                
-                $totalCreditQuantity = $journalProdArr[$prodId];
+              
+                $storeQuantity = $prod->pQuantity;
+                $storeAmount = $prod->amount;
+                $totalCreditQuantity = $journalProdArr[$id];
                 
                 
                 // Запис в масива
-                $id = $prodId;
                 if (!array_key_exists($id, $recs)) {
                     $recs[$id] = (object) array(
                         
-                        'productId' => $prodId,                               //Id на артикула
-                        'name' => cat_Products::getTitleById($prodId),        //Име на артикула
-                        'storeQuantity' => $storeQuantity,                    //Складова наличност
-                        'totalCreditQuantity' => $totalCreditQuantity,        //Кредит обороти
-                        'reversibility' => $reversibility                     //Обръщаемост
+                        'productId' => $id,                                 //Id на артикула
+                        'code' => $prod->code,                              //код на артикула
+                        'name' => cat_Products::getTitleById($id),          //Име на артикула
+                        'storeQuantity' => $storeQuantity,                  //Складова наличност: количество
+                        'storeAmount' => $storeAmount,                      //Складова наличност: стойност
+                        'totalCreditQuantity' => $totalCreditQuantity,      //Кредит обороти
+                        'reversibility' => $reversibility                   //Обръщаемост
                     
                     );
                 }
@@ -195,13 +216,12 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         
         //Подредба на резултатите
         if (!is_null($recs)) {
-            $typeOrder = ($rec->orderBy == 'name') ? 'stri' : 'native';
+            $typeOrder = ($rec->orderBy == 'name' || $rec->orderBy == 'code') ? 'stri' : 'native';
             
             $orderBy = $rec->orderBy;
             
             arr::sortObjects($recs, $orderBy, 'ASC', $typeOrder);
         }
-        
         
         return $recs;
     }
@@ -220,9 +240,10 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-        
-        $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-        $fld->FLD('storeQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Наличност');
+        $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
+        $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Наличност->Мярка,tdClass=centered');
+        $fld->FLD('storeQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Наличност->Количество');
+        $fld->FLD('storeAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Наличност->Стойност');
         $fld->FLD('totalCreditQuantity', 'double(smartRound,decimals=2)', 'caption=Обороти');
         
         $fld->FLD('reversibility', 'percent', 'caption=Обращаемост');
@@ -267,6 +288,10 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $row->storeQuantity = $Double->toVerbal($dRec->storeQuantity);
         }
         
+        if (isset($dRec->storeAmount)) {
+            $row->storeAmount = $Double->toVerbal($dRec->storeAmount);
+        }
+        
         if (isset($dRec->totalCreditQuantity)) {
             $row->totalCreditQuantity = $Double->toVerbal($dRec->totalCreditQuantity);
         }
@@ -305,14 +330,14 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-        
+        $currency = 'лв.';
         
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                 <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN storeId-->|Склад|*: [#storeId#]<!--ET_END storeId--></div></small>
-                                <small><div><!--ET_BEGIN minCost-->|Мин. наличност|*: [#minCost#]<!--ET_END minCost--></div></small>
+                                <small><div><!--ET_BEGIN minCost-->|Мин. наличност|*: [#minCost#] $currency<!--ET_END minCost--></div></small>
                                 <small><div><!--ET_BEGIN reversibility-->|Мин. обращаемост|*: [#reversibility#]<!--ET_END reversibility--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         if (isset($data->rec->from)) {
