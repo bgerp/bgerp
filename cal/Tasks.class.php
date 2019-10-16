@@ -546,7 +546,11 @@ class cal_Tasks extends embed_Manager
         // Подготвяме полетата за показване
         $data->listFields = 'groupDate,title,progress';
         
-        $data->query->like('assign', "|{$userId}|");
+        if (Mode::is('listTasks', 'by')) {
+            $data->query->where("#createdBy = ${userId}");
+        } else {
+            $data->query->like('assign', "|{$userId}|");
+        }
         
         // Вадим 3 работни дни
         $now = dt::now();
@@ -654,6 +658,21 @@ class cal_Tasks extends embed_Manager
         $tpl->append(self::renderListPager($data), 'PortalPagerBottom');
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Сменя задачите в сесията между 'поставените към', на 'поставените от' и обратно
+     */
+    public function act_SwitchByTo()
+    {
+        if (Mode::is('listTasks', 'by')) {
+            Mode::setPermanent('listTasks', 'to');
+        } else {
+            Mode::setPermanent('listTasks', 'by');
+        }
+        
+        return new Redirect(array('Portal', 'Show', '#' => Mode::is('screenMode', 'narrow') ? 'taskPortal' : null));
     }
     
     
