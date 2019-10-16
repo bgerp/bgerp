@@ -289,7 +289,7 @@ body {
         margin-bottom: 15px;
     }
     .push_button {
-        margin: 0px auto !important;
+        margin: 0px auto 10px !important;
     }
     .logImgLeft {
         max-height: 100px;
