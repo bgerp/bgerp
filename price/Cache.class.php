@@ -183,11 +183,7 @@ class price_Cache extends core_Manager
         
         $list = '';
         while ($plRec = $plQuery->fetch("#parent = {$priceListId}")) {
-            $list .= ($list ? ',' : '') . $plRec->id;
-        }
-
-        if($list) {
-            self::callback_InvalidatePriceList($list);
+            self::callback_InvalidatePriceList($plRec->id);
         }
     }
     

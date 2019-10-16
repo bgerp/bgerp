@@ -103,7 +103,7 @@ class core_Tabs extends core_BaseClass
             $selectedTab = key($this->tabs);
         }
 
-        if(!$storedTab && $this->tabGroup) {
+        if(!$selectedTab && $this->tabGroup) {
             core_Settings::setValues('TABS::' . $this->tabGroup, array('DEFAULT_TABS' => $selectedTab));
 
         }

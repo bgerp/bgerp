@@ -215,8 +215,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         }
         
         foreach ($recs as $key => $val){
-            //if($key != 5) continue;
-            
+          
             //Себестойност на артикула
             if ($rec->selfPrice == 'manager'){
                 $val->selfPrice = cat_Products::getPrimeCost($key, null, $val->blQuantity, $rec->date);
@@ -228,6 +227,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
            
         }
       
+        arr::sortObjects($recs, 'productName', 'ASC', 'stri');
+        
         return $recs;
     }
     
