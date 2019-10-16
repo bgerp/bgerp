@@ -107,8 +107,9 @@ class core_Tabs extends core_BaseClass
             core_Settings::setValues('TABS::' . $this->tabGroup, array('DEFAULT_TABS' => $selectedTab));
 
         }
-        
-        $isAjax = defined('EF_AJAX_TAB') && Request::get('ajax_mode1') && !empty($this->htmlId) && $this->htmlId == Request::get('htmlId'); 
+        $headers = getallheaders();
+
+        $isAjax = defined('EF_AJAX_TAB') && $headers['Ajax-Mode'] && !empty($this->htmlId) && $this->htmlId == $headers['Html-Part-Id']; 
         foreach ($this->tabs as $tab => $url) {
             if ($tab == $selectedTab) {
                 $selectedUrl = $url;
@@ -120,18 +121,10 @@ class core_Tabs extends core_BaseClass
             $title = tr($this->captions[$tab]);
             
             $tabClass = $this->classes[$tab];
-            
+        
             if ($url) {
                 $url = ht::escapeAttr($url);
                 if($this->htmlId && defined('EF_AJAX_TAB')) {
-                    list($url, $hash) = explode('#', $url);
-                    if(strpos($url, '?') === false) {
-                        $url .= '?';
-                    } else {
-                        $url .= '&amp;';
-                    }
-                    $url .= 'ajax_mode1=1&amp;htmlId=' . $this->htmlId;
-                    
                     $head .= "<div onclick=\"updateTab('{$this->htmlId}', '{$url}'); return false;\" style='cursor:pointer;' class='tab {$selected}'>";
                     $head .= "<a onclick=\"return; updateTab('{$this->htmlId}', '{$url}');  preventDefault(); return false;\"  class='tab-title {$tabClass}'>{$title}</a>";
                 } else {
@@ -170,6 +163,20 @@ class core_Tabs extends core_BaseClass
         if ($isAjax) {
             $res = new stdClass();
             $res->head = $head;
+
+            $body = new ET("[#1#]<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n[#ON_LOAD#]</script><!--ET_END JQRUN-->" .
+            "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->", $body);
+            $res->css = array_keys(array_flip($body->getArray('CSS')));
+            foreach ($res->css as $key => $file) {
+                $res->css[$key] = sbf($file, '');
+            }
+
+            $res->js = array_keys(array_flip($body->getArray('JS')));
+        
+            foreach ($res->js as $key => $file) {
+                $res->js[$key] = sbf($file, '');
+            }
+
             $res->body = $hint . $body;
 
             core_App::outputJson($res);
