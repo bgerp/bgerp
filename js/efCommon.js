@@ -2227,14 +2227,48 @@ function refreshForm(form, removeFields) {
  * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
  */
 function updateTab(bodyId, url) {
- 
-	
-	$.get(url, function(data) {
-                    var head = $('#head-' + bodyId);
-		            head.html(data.head);
-                    var body = $('#' + bodyId);
-		            body.html(data.body);
-                });
+
+    $.ajax({
+        url: url,
+        headers: {
+            'Ajax-Mode':'yes',
+            'Html-Part-Id':bodyId
+        },
+        method: 'GET',
+        cache: false,
+        dataType: 'json',
+        success: function(data) {
+                        for (cssFile of data.css) {
+                            console.log("start: " + cssFile);
+                            console.log($("link[href*='" + cssFile + "']"));
+                            if($("link[href*='" + cssFile + "']").length == 0) {
+                                console.log("load: " + cssFile);
+                                $('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', cssFile) );
+                            }
+                        }
+                        for (jsFile of data.js) {
+                            console.log("start: " + jsFile);
+                            console.log($("script[src*='" + jsFile + "']"));
+                            if($("script[src*='" + jsFile + "']").length == 0) {
+                                console.log("load: " + jsFile);
+                                jQuery.ajax({
+                                                type: "GET",
+                                                url: jsFile,
+                                                async: false,
+                                                dataType: "script",
+                                                cache: true
+                                        });
+                            }
+                        }
+                        var head = $('#head-' + bodyId);
+                        head.html(data.head);
+                        var body = $('#' + bodyId);
+                        body.html(data.body);
+                        // Пушваме ново URL
+                        history.pushState(null, null, url);
+                }
+        }
+   );
 }
 
 

@@ -815,15 +815,30 @@ class purchase_Invoices extends deals_InvoiceMaster
             
             if ($pRec->threadId) {
                 
+                $canStore = false;
+                
+                $dQuery = purchase_PurchasesDetails::getQuery();
+                $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+                $dQuery->where(array("#requestId = '[#1#]'", $pRec->id));
+                $dQuery->where("#canStore = 'yes'");
+                $dQuery->limit(1);
+                $dQuery->show('id');
+                if ($dQuery->fetch()) {
+                    $canStore = true;
+                }
+                
                 // Ако няма създадена складова разписка - да е избрано във формата
                 $rClsId = store_Receipts::getClassId();
                 $sClsId = purchase_Services::getClassId();
                 if (!doc_Containers::fetch(array("#threadId = [#1#] AND #state != 'rejected' AND #docClass = '[#2#]'", $pRec->threadId, $rClsId))) {
-                    $aSet['store'] = 'store';
+                    
+                    if ($canStore) {
+                        $aSet['store'] = 'store';
+                    }
                 }
                 
                 // Ако няма създаден приемателен протокол - да е избрано във формата
-                if (!doc_Containers::fetch(array("#threadId = [#1#] AND #state != 'rejected' AND #docClass = '[#2#]'", $pRec->threadId, $sClsId))) {
+                if (!$canStore && !doc_Containers::fetch(array("#threadId = [#1#] AND #state != 'rejected' AND #docClass = '[#2#]'", $pRec->threadId, $sClsId))) {
                     $aSet['service'] = 'service';
                 }
             }

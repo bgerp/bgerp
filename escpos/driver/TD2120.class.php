@@ -113,6 +113,9 @@ class escpos_driver_TD2120 extends core_BaseClass
      */
     public function encode($text)
     {
+        // Кирилицата я конвертираме към латиница, защото този принтер не поддържа първото
+        $text = str::utf2ascii($text);
+        
         return $text;
     }
     

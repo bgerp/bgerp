@@ -95,12 +95,19 @@ class bgerp_Portal extends core_Manager
             ");
         }
         
-        $taskTitle = tr('Задачи към');
+        // Задачи
+        if (Mode::is('listTasks', 'by')) {
+            $taskTitle = tr('Задачи от');
+            $switchTitle = tr('Задачи към') . ' ' . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
+        } else {
+            $taskTitle = tr('Задачи към');
+            $switchTitle = tr('Задачи от') . ' ' . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
+        }
         
         $taskTitle = str_replace(' ', '&nbsp;', $taskTitle);
         
         $tasksTpl = new ET('<div class="clearfix21 portal" style="background-color:#fffff0;margin-bottom:25px;">
-            <div class="legend" style="background-color:#ffd;">' . $taskTitle . '&nbsp;' . crm_Profiles::createLink() . '&nbsp;[#TASKS_FROM_ME#]&nbsp;[#ADD_BTN#]&nbsp;[#REM_BTN#]</div>
+            <div class="legend" style="background-color:#ffd;">' . $taskTitle . '&nbsp;' . crm_Profiles::createLink() . '&nbsp;[#SWITCH_BTN#]&nbsp;[#ADD_BTN#]&nbsp;[#REM_BTN#]</div>
             [#TASKS#]
             </div>');
         
@@ -109,16 +116,10 @@ class bgerp_Portal extends core_Manager
         $addBtn = ht::createLink(' ', $addUrl, null, array('ef_icon' => 'img/16/task-add.png', 'class' => 'addTask', 'title' => 'Добавяне на нова Задача'));
         $tasksTpl->append($addBtn, 'ADD_BTN');
         
-        if (cal_Tasks::haveRightFor('list')) {
-            // Бутон за смяна от <-> към
-            $addUrl = array('cal_Tasks', 'list');
-            $addUrl[cls::get('cal_Tasks')->driverClassField] = cal_TaskType::getClassId();
-            $addUrl['stateTask'] = 'actPend';
-            $addUrl['order'] = 'startEnd';
-            
-            $addBtn = ht::createLink(' ', $addUrl, null, array('ef_icon' => 'img/16/arrow_switch.png', 'class' => 'addTask', 'title' => 'Задачи от мен'));
-            $tasksTpl->append($addBtn, 'TASKS_FROM_ME');
-        }
+        // Бутон за смяна от <-> към
+        $addUrl = array('cal_Tasks', 'SwitchByTo');
+        $addBtn = ht::createLink(' ', $addUrl, null, array('ef_icon' => 'img/16/arrow_switch.png', 'class' => 'addTask', 'title' => '|*' . $switchTitle, 'id' => 'switchTasks'));
+        $tasksTpl->append($addBtn, 'SWITCH_BTN');
         
         // Бутон за смяна от <-> към
         $addUrl = array('cal_Reminders', 'add', 'ret_url' => true);
