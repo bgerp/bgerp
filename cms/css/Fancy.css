@@ -73,6 +73,10 @@ header {
 #login-form {
     padding-left: 0 !important;
 }
+.loginIcon, .searchContent {
+    margin-right: 0 !important;
+}
+
 .wide .app-name {
     left: 0 !important;
 }
