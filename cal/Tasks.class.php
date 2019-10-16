@@ -547,9 +547,9 @@ class cal_Tasks extends embed_Manager
         $data->listFields = 'groupDate,title,progress';
         
         if (Mode::is('listTasks', 'by')) {
-            $data->query->where("#createdBy = ${userId}");
+            $data->query->where(array("#createdBy = '[#1#]'", $userId));
         } else {
-            $data->query->like('assign', "|{$userId}|");
+            $data->query->likeKeylist('assign', $userId);
         }
         
         // Вадим 3 работни дни
