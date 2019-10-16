@@ -132,6 +132,12 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     
     
     /**
+     * Полета, които се експортват
+     */
+    public $exportToMaster = 'quantity, productId=code|name';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
