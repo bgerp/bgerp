@@ -3601,7 +3601,16 @@ class cat_Products extends embed_Manager
                 
                 if ($dInst->exportToMaster) {
                     $exportToMasterArr = arr::make($dInst->exportToMaster, true);
-                    $allFFieldsArr += $exportToMasterArr;
+                    
+                    foreach ($exportToMasterArr as $eName => $eFields) {
+                        if ($eName == $eFields) {
+                            $exportToMasterArr[$eName] = $eName;
+                        } else {
+                            $exportToMasterArr[$eName] = explode('|', $eFields);
+                        }
+                    }
+                    
+                    $allFFieldsArr = array_merge($allFFieldsArr, $exportToMasterArr);
                 }
                 
                 foreach ($allFFieldsArr as $k => $vArr) {
