@@ -556,7 +556,7 @@ class email_Mime extends core_BaseClass
             if (substr($h, 0, 1) != "\t" && substr($h, 0, 1) != ' ') {
                 $pos = strpos($h, ':');
                 $index = strtolower(substr($h, 0, $pos));
-                $headersArr[$index][] = trim(substr($h, $pos - strlen($h) + 1));
+                $headersArr[$index][] = trim(substr($h, $pos + 1));
             } else {
                 $current = count($headersArr[$index]) - 1;
                 $headersArr[$index][$current] .= "\n" . $h;
@@ -691,68 +691,30 @@ class email_Mime extends core_BaseClass
      * Декодира хедърната част част
      */
     public static function decodeHeader($val, $charset = null)
-    {
+    { 
         // Ако стойността на хедъра е 7-битова, той може да е кодиран
         if (i18n_Charset::is7Bit($val) || (strpos($val, '=?') !== false)) {
             $imapDecodeArr = @imap_mime_header_decode($val);
-            
+             
             $decoded = '';
             
-            if ($imapDecodeArr && count($imapDecodeArr) > 0) {
-                foreach ($imapDecodeArr as $id => $value) {
-                    
-                    // Нулираме флага
-                    $flagAcumText = 0;
-                    
-                    // Ако е сетнат и не е default
-                    if ($imapDecodeArr[$id]->charset && $imapDecodeArr[$id]->charset != 'default') {
-                        
-                        // Масив с чарсета и вероятността
-                        $charsetArr = array($value->charset => 50);
-                    }
-                    
-                    // Ако е сетнат следващич чарсет
-                    if ($imapDecodeArr[$id + 1]->charset) {
-                        
-                        // Ако следващия е еднакъв с текущия
-                        if ($imapDecodeArr[$id + 1]->charset == $value->charset) {
-                            
-                            // Вдигама флага
-                            $flagAcumText = true;
-                        } else {
-                            if ($imapDecodeArr[$id + 1]->charset == 'default') {
-                                $flagAcumText = true;
-                                
-                                // TRUE
-                            }
-                        }
-                    }
-                    
-                    // Ако има предишен чарсет
-                    if ($imapDecodeArr[$id - 1]->charset) {
-                        
-                        // Ако текущия е default и ако следващия и предишния са еднакви
-                        if ($imapDecodeArr[$id]->charset == 'default' && $imapDecodeArr[$id - 1]->charset == $imapDecodeArr[$id + 1]->charset) {
-                            
-                            // Вдигаме флага
-                            $flagAcumText = true;
-                        }
-                    }
-                    
-                    // Ако флага е вдигнат
-                    if ($flagAcumText) {
-                        
-                        // Добавяме към текста
-                        $acumText .= $value->text;
-                    } else {
-                        
-                        // Декодираме текст
-                        $decoded .= i18n_Charset::convertToUtf8($acumText . $value->text, $charsetArr);
-                        $acumText = '';
+            if (is_array($imapDecodeArr) && count($imapDecodeArr) > 0) {
+                foreach ($imapDecodeArr as $id => $header) {
+                    if(isset($imapDecodeArr[$id-1]) && $imapDecodeArr[$id-1]->charset == $header->charset) {
+                        $imapDecodeArr[$id-1]->text .= $header->text;
+                        unset($imapDecodeArr[$id]);
                     }
                 }
+                foreach ($imapDecodeArr as $id => $header) {
+                    if(isset($header->charset) && $header->charset != '' && $header->charset != 'default') {
+                        $decoded .= iconv($header->charset, 'utf-8', $header->text);
+                    } else {
+                        $decoded .= i18n_Charset::convertToUtf8($header->text, $charset);
+                    }
+                }
+
             } else {
-                $decoded = $val;
+                $decoded = i18n_Charset::convertToUtf8($val, $charset);
             }
         } else {
             $decoded = i18n_Charset::convertToUtf8($val, $charset);
