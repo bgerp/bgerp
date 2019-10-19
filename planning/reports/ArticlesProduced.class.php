@@ -69,6 +69,8 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Подреждане по,after=groupBy');
+        
+        $fieldset->FNC('montsArr', 'varchar', 'caption=Месеци по,after=orderBy,input=hiden,single=none');
     }
     
     
@@ -131,15 +133,22 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $planningQuery->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
         
         
-        $planningQuery->where("#state != 'rejected'");
+        $planningQuery->where("#state = 'active'");
         
         //Филтриране на периода
         $planningQuery->where(array(
             "#valior >= '[#1#]' AND #valior <= '[#2#]'",
             $rec->from .' 00:00:00',$rec->to . ' 23:59:59'));
         
+        $montArr = array();
         while ($planningRec = $planningQuery->fetch()) {
+            
             $month = substr($planningRec->valior, 0, 7);
+            if (!in_array($month, $montArr)){
+                
+                array_push($montArr, $month);
+            }
+            
             $id = $planningRec->productId;
            
             //Задание за производство към което е протокола за производство
@@ -187,9 +196,9 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                     'storeId' => $storeId,                                           //Склад на заприхождаване
                     'department' => $departmentId,                                   //Център на дейност
                     'quantity' => $quantity,                                         //Текущ период - количество
-                    'monthQuantity' => $monthQuantityArr,
+                    'monthQuantity' => $monthQuantityArr[$planningRec->productId],
                     'group' => $planningRec->groupMat,                               // В кои групи е включен артикула
-                    'month' => $month,                                               // месец на производство
+                    'month' => '',                                               // месец на производство
                 
                 
                 );
@@ -197,10 +206,11 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                 $obj = &$recs[$id];
                 
                 $obj->quantity += $quantity;
-                $obj->monthQuantity = $monthQuantityArr;
+                $obj->monthQuantity = $monthQuantityArr[$planningRec->productId];
             }
         }
         
+        $rec->montsArr = $montArr;
         //Подредба на резултатите
         if (!is_null($recs)) {
             $typeOrder = ($rec->orderBy == 'name' || $rec->orderBy == 'code') ? 'stri' : 'native';
@@ -209,7 +219,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             
             arr::sortObjects($recs, $orderBy, 'ASC', $typeOrder);
         }
-        
+       
         return $recs;
     }
     
@@ -236,9 +246,9 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             $fld->FLD('department', 'key(mvc=planning_Centers,select=name)', 'caption=Център на дейност');
             $fld->FLD('storeId', 'key(mvc=strore_Stores,select=name)', 'caption=Склад,tdClass=centered');
         } else {
-            $monthArr = arr::extractValuesFromArray($rec->data->recs, 'month');
+        $monthArr = $rec->montsArr;
             sort($monthArr);
-            
+           
             foreach ($monthArr as $val) {
                 $year = substr($val, 0, 4);
                 $month = substr($val, -2);
@@ -306,13 +316,12 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         if (isset($dRec->quantity)) {
             $row->quantity = $Double->toVerbal($dRec->quantity);
         }
+        
         if ($rec->groupBy == 'month') {
             foreach ($dRec->monthQuantity as $key => $val) {
-                if ($dRec->productId == $key) {
-                    foreach ($val as $k => $v) {
-                        $row->$k = $Double->toVerbal($v);
-                    }
-                }
+                
+                    $row->$key = $Double->toVerbal($val);
+              
             }
         }
         
