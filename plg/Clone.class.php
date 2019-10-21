@@ -451,8 +451,12 @@ class plg_Clone extends core_Plugin
      */
     public static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
     {
-        if (!$res) {
-            $res = arr::make($mvc->fieldsNotToClone, true);
+        $fieldsNotToClone = arr::make($mvc->fieldsNotToClone, true);
+        
+        if (!is_array($res)) {
+            $res = $fieldsNotToClone;
+        } else {
+            $res += $fieldsNotToClone;
         }
     }
 }
