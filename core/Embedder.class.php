@@ -41,7 +41,13 @@ class core_Embedder extends core_Master
      */
     public $innerStateField;
     
+
+    /**
+     * Възможна ли е смяната на вече избран драйвер?
+     */
+    public $allowDriverChange = false;
     
+
     /**
      * Кеш на инстанцираните вградени класове
      */
@@ -165,7 +171,9 @@ class core_Embedder extends core_Master
         
         // Ако има запис, не може да се сменя източника и попълваме данните на формата с тези, които са записани
         if ($id = $rec->id) {
-            $form->setReadOnly($mvc->innerClassField);
+            if(!$mvc->allowDriverChange) {
+                $form->setReadOnly($mvc->innerClassField);
+            }
             
             $filter = (is_object($rec->{$mvc->innerFormField})) ? clone $rec->{$mvc->innerFormField} : $rec->{$mvc->innerFormField};
             
@@ -195,10 +203,12 @@ class core_Embedder extends core_Master
                 $mvc->invoke('AfterPrepareEmbeddedForm', array($form));
                 
                 // Намираме всички полета за показване, и ги маркираме за изтриване след смяна на драйвер
-                $fieldsAfter = arr::make(array_keys($form->selectFields()), true);
-                $removeFields = array_diff_assoc($fieldsAfter, $fieldsBefore);
-                $removeFields = implode('|', array_keys($removeFields));
-                $form->setField($mvc->innerClassField, "removeAndRefreshForm={$removeFields}");
+                if(!$mvc->allowDriverChange) {
+                    $fieldsAfter = arr::make(array_keys($form->selectFields()), true);
+                    $removeFields = array_diff_assoc($fieldsAfter, $fieldsBefore);
+                    $removeFields = implode('|', array_keys($removeFields));
+                    $form->setField($mvc->innerClassField, "removeAndRefreshForm={$removeFields}");
+                }
             } else {
                 $form->info = tr("|*<b style='color:red'>|Има проблем при зареждането на драйвера|*</b>");
             }

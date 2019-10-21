@@ -124,6 +124,15 @@ class cat_Boms extends core_Master
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,cat,sales';
+        
+
+    /**
+
+     * Кой може да затваря?
+
+     */
+
+    public $canClose = 'cat,ceo,sales';
     
     
     /**
