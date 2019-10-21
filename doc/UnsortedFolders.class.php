@@ -19,7 +19,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools2,plg_Search, plg_Modified, plg_Sorting';
+    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,plg_Clone,doc_FolderPlg,plg_RowTools2,plg_Search, plg_Modified, plg_Sorting';
     
     
     /**
@@ -211,6 +211,14 @@ class doc_UnsortedFolders extends core_Master
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'folderId';
+    
+    
+    /**
      * Описание на полетата на модела
      */
     public function description()
@@ -221,6 +229,39 @@ class doc_UnsortedFolders extends core_Master
         $this->FLD('receiveEmail', 'enum(yes=Да, no=Не)', 'caption=Получаване на имейли->Избор');
         
         $this->setDbUnique('name');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        
+        if($data->action == 'clone'){
+            $form->FNC('newStartDate', 'datetime', 'mandatory,caption=Клониране на задачи->Ново начало,input,before=taskCloneState');
+            $form->FNC('taskCloneState', 'enum(draft=Чернова,active=Активно)', 'mandatory,caption=Клониране на задачи->Състояние,input,before=receiveEmail,unit=след клониране');
+        
+            $form->setDefault('newStartDate', dt::now());
+            
+        }
+    }
+    
+    
+    /**
+     * След клониране на записа
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec  - клонирания запис
+     * @param stdClass $nRec - новия запис
+     */
+    protected static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+        //bp($rec, $nRec);
     }
     
     
