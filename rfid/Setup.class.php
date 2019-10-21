@@ -50,6 +50,7 @@ class rfid_Setup extends core_ProtoSetup
         'rfid_Readers',
         'rfid_Assignments',
         'rfid_Tags',
+        'rfid_Events'
     );
     
     /**
