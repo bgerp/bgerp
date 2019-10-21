@@ -109,6 +109,12 @@ class plg_Clone extends core_Plugin
             
             // Ако няма проблем при записа
             if ($mvc->save($nRec)) {
+               
+                // Ако обекта е корица и в река по някаква причина няма папка да се извлече от базата
+                // @todo да се разбере защо след клониране се губи folderId-то в река
+                if($mvc->hasPlugin('doc_FolderPlg') && empty($nRec->folderId)){
+                    $nRec->folderId = $mvc->fetchField($nRec->id, 'folderId');
+                }
                 
                 // Инвокваме фунцкцията, ако някой иска да променя нещо
                 $mvc->invoke('AfterSaveCloneRec', array($rec, &$nRec));
