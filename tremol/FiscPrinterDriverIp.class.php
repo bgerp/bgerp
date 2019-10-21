@@ -1271,7 +1271,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
      */
     public function act_PrintDuplicate()
     {
-        peripheral_Devices::requireRightFor('printduplicate');
+        requireRole($this->canPrintDuplicate);
         expect($id = Request::get('id', 'int'));
         expect($pRec = peripheral_Devices::fetch($id));
         $Driver = peripheral_Devices::getDriver($pRec);
