@@ -86,19 +86,12 @@ class store_iface_ShipmentLabelImpl
         $rec = $this->class->fetchRec($id);
         
         $count = 0;
-        $transUnits = is_array($rec->transUnits) ? $rec->transUnits : array();
+        $transUnits = is_array($rec->transUnitsInput) ? $rec->transUnitsInput : (is_array($rec->transUnits) ? $rec->transUnits : array());
         array_walk($transUnits, function ($e) use (&$count) {
             $count += $e;
         });
         $count = max(1, $count);
-        
-        if (isset($count)) {
-            $count = ceil($count);
-            if ($count % 2 == 1) {
-                $count++;
-            }
-        }
-        
+              
         return $count;
     }
     

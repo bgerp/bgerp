@@ -138,7 +138,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $minCost = $rec->minCost ? $rec->minCost : 0;
             $pQuantity = store_Products::getQuantity($pRec->productId,$rec->storeId);
             $amount = $pQuantity * $selfPrice;
-            $code = $pRec->code ? $pRec->code : 'Art'.$id;
+            $code = $pRec->code ? $pRec->code : 'Art' . $pRec->productId;
             
             if ($amount  > $minCost) {
                

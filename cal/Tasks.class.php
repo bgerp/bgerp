@@ -3353,7 +3353,10 @@ class cal_Tasks extends embed_Manager
         $tQuery = doc_Threads::getQuery();
         $tQuery->where("#folderId = {$fromFolderId} AND #firstDocClass =" . $Tasks->getClassId());
         $tQuery->show('firstContainerId');
+        
+        // Ако няма задачи в папката, няма какво да се клонира
         $containers = arr::extractValuesFromArray($tQuery->fetchAll(), 'firstContainerId');
+        if(!count($containers)) return;
         
         $taskQuery = cal_Tasks::getQuery();
         $taskQuery->in("containerId", $containers);

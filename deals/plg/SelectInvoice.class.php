@@ -171,4 +171,22 @@ class deals_plg_SelectInvoice extends core_Plugin
             }
         }
     }
+    
+    
+    /**
+     * След взимане на полетата, които да не се клонират
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
+    {
+        $additionalFields = array('fromContainerId' => 'fromContainerId');
+        if (!is_array($res)) {
+            $res = $additionalFields;
+        } else {
+            $res += $additionalFields;
+        }
+    }
 }

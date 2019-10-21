@@ -235,8 +235,8 @@ function changePinIcon(){
 function userMenuActions() {
 	$('body').on('click', function(e){
     	if($(e.target).is('.menu-options') || $(e.target).is('.menu-options > img') ) {
-			var selText = getSelText();
-			if (selText) {
+			var selText = getSelText().toString().trim();
+			if (selText && !$('.search-input-modern').val() && selText.length < 20) {
 				$('.search-input-modern').val(selText);
 			}
             var element = $(e.target).parent().find('.menu-holder');

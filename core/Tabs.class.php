@@ -108,7 +108,9 @@ class core_Tabs extends core_BaseClass
 
         }
         $headers = getallheaders();
-
+        
+        $head = '';
+        
         $isAjax = defined('EF_AJAX_TAB') && $headers['Ajax-Mode'] && !empty($this->htmlId) && $this->htmlId == $headers['Html-Part-Id']; 
         foreach ($this->tabs as $tab => $url) {
             if ($tab == $selectedTab) {

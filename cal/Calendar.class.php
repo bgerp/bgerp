@@ -888,6 +888,8 @@ class cal_Calendar extends core_Master
         
         $dAbs = abs($direction);
         
+        $maxCnt = 0;
+        
         do {
             $date = dt::addDays($dPos, $date);
             
