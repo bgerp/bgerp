@@ -261,7 +261,7 @@ class doc_UnsortedFolders extends core_Master
      */
     protected static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
     {
-        //bp($rec, $nRec);
+        cal_Tasks::cloneFromFolder($rec->folderId, $nRec->folderId, $nRec->newStartDate, $nRec->taskCloneState);
     }
     
     
@@ -274,21 +274,13 @@ class doc_UnsortedFolders extends core_Master
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
         $cu = core_Users::getCurrent();
-        
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,autoFilter');
-        
-        // Задаваме стойността по подразбиране
-        //$data->listFilter->setDefault('selectedUsers', $cu);
-        
         $data->listFilter->view = 'horizontal';
-        
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        // Показваме само това поле. Иначе и другите полета
-        // на модела ще се появят
+        // Показваме само това поле. Иначе и другите полета на модела ще се появят
         $data->listFilter->showFields = 'search,selectedUsers';
-        
-        $rec = $data->listFilter->input('selectedUsers,search', 'silent');
+        $data->listFilter->input('selectedUsers,search', 'silent');
         
         if (!$data->listFilter->rec->selectedUsers) {
             $data->listFilter->rec->selectedUsers = '|' . $cu . '|';
