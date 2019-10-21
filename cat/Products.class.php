@@ -2266,7 +2266,7 @@ class cat_Products extends embed_Manager
         // Ако не е указан тип, се взима последната рецепта
         $query = cat_Boms::getQuery();
         $query->where("#productId = '{$rec->id}' AND #state = 'active'");
-        $query->orderBy('id', ASC);
+        $query->orderBy('id', 'ASC');
         
         return $query->fetch();
     }

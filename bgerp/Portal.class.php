@@ -54,11 +54,13 @@ class bgerp_Portal extends core_Manager
         // Ако е инсталиран пакета за партньори
         // И текущия потребител е контрактор, но не е powerUser
         if (core_Users::haveRole('partner')) {
-            $folderId = colab_FolderToPartners::getLastSharedContragentFolder();
-            
-            if ($folderId) {
+            if ((core_Packs::isInstalled('colab'))) {
+                $folderId = colab_FolderToPartners::getLastSharedContragentFolder();
                 
-                return new Redirect(array('colab_Threads', 'list', 'folderId' => $folderId));
+                if ($folderId) {
+                    
+                    return new Redirect(array('colab_Threads', 'list', 'folderId' => $folderId));
+                }
             }
             
             // Редирект към профила на партньора
