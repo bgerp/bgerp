@@ -142,7 +142,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             
             if ($amount  > $minCost) {
                
-                //Наличност на артикула
+                //Налични артикули на склад
                 $prodArr[$pRec->productId] =(object) array(
                     
                     'productId' => $pRec->productId,                //Id на артикула
@@ -184,33 +184,30 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         
             $id = $prod->productId;
         
-            if (in_array($id, array_keys($journalProdArr))) {
-              
-                $reversibility =$prod->pQuantity ? $journalProdArr[$id] / $prod->pQuantity :0 ;
-                
-                if ($reversibility > $rec->reversibility) {
-                    continue;
-                }
-              
-                $storeQuantity = $prod->pQuantity;
-                $storeAmount = $prod->amount;
-                $totalCreditQuantity = $journalProdArr[$id];
-                
-                
-                // Запис в масива
-                if (!array_key_exists($id, $recs)) {
-                    $recs[$id] = (object) array(
-                        
-                        'productId' => $id,                                 //Id на артикула
-                        'code' => $prod->code,                              //код на артикула
-                        'name' => cat_Products::getTitleById($id),          //Име на артикула
-                        'storeQuantity' => $storeQuantity,                  //Складова наличност: количество
-                        'storeAmount' => $storeAmount,                      //Складова наличност: стойност
-                        'totalCreditQuantity' => $totalCreditQuantity,      //Кредит обороти
-                        'reversibility' => $reversibility                   //Обръщаемост
+            $reversibility =$prod->pQuantity ? $journalProdArr[$prod->productId] / $prod->pQuantity :0 ;
+            
+            if ($reversibility > $rec->reversibility) {
+                continue;
+            }
+          
+            $storeQuantity = $prod->pQuantity;
+            $storeAmount = $prod->amount;
+            $totalCreditQuantity = $journalProdArr[$prod->productId];
+            
+            
+            // Запис в масива
+            if (!array_key_exists($id, $recs)) {
+                $recs[$id] = (object) array(
                     
-                    );
-                }
+                    'productId' => $prod->productId,                            //Id на артикула
+                    'code' => $prod->code,                                      //код на артикула
+                    'name' => cat_Products::getTitleById($prod->productId),     //Име на артикула
+                    'storeQuantity' => $storeQuantity,                          //Складова наличност: количество
+                    'storeAmount' => $storeAmount,                              //Складова наличност: стойност
+                    'totalCreditQuantity' => $totalCreditQuantity,              //Кредит обороти
+                    'reversibility' => $reversibility                           //Обръщаемост
+                
+                );
             }
         }
         
@@ -218,9 +215,11 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         if (!is_null($recs)) {
             $typeOrder = ($rec->orderBy == 'name' || $rec->orderBy == 'code') ? 'stri' : 'native';
             
+            $order = in_array($rec->orderBy, array('reversibility','name','code')) ? 'ASC' : 'DESC';
+            
             $orderBy = $rec->orderBy;
             
-            arr::sortObjects($recs, $orderBy, 'ASC', $typeOrder);
+            arr::sortObjects($recs, $orderBy, $order, $typeOrder);
         }
         
         return $recs;
