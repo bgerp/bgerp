@@ -122,10 +122,58 @@ header img {
     width: 100%;
     height: auto;
 }
-
+.foorterAdd {
+    top: -2px !important;
+}
+.narrow header {
+    min-height: 90px;
+}
+.narrow .narrowCenter {
+    width: 1200px;
+    margin: 0 auto;
+}
+.wide .socialBtns {
+    top: -6px;
+}
+.cms-row {
+    padding-bottom: 20px;
+}
+.soc-following {
+    padding: 7px 7px 7px 2px;
+}
 @media handheld, only screen and (max-width: 1200px) {
-    .centerContent {
+    .narrow .externalPage #maincontent {
+        min-height: 410px;
+    }
+    .centerContent, .narrow .narrowCenter {
         width: 100%;
         margin: 0;
+    }
+    .narrow .externalPage #maincontent {
+        padding: 0px 3px 3px;
+    }
+    .narrow .cms-row {
+        padding-top: 15px;
+    }
+    #cmsMenu {
+        box-sizing: border-box;
+        padding-left: 2%;
+        padding-right: 2%;
+        font-size: 0.9em;
+    }
+    #cmsBottom {
+        box-sizing: border-box;
+        padding-left: 1%;
+        padding-right: 1%;
+    }
+    .foorterAdd {
+        top: -5px !important;
+        position: relative;
+    }
+    .soc-following {
+        padding-top: 2px;
+    }
+    .narrow .externalPage .vertical .formTable {
+        padding: 10px;
     }
 }

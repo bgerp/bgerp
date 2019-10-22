@@ -8,7 +8,7 @@
 <div class="externalPage">
 [#TOP_PAGE#]
         <header>
-            [#HEADER_IMG#]
+            <div class="narrowCenter">[#HEADER_IMG#]</div>
             [#PAGE_HEADER#]
             <div class="centerContent">
             <!--ET_BEGIN CORE_APP_NAME-->
@@ -45,9 +45,9 @@
                 [#social_Followers::getButtons#]
             </div>
             [#cms_Content::getFooter#]
-            <!--ET_BEGIN FOOTER_CENTER_WIDE-->
+
             <div class='footer-links'>[#FOOTER_CENTER_WIDE#]</div>
-            <!--ET_END FOOTER_CENTER_WIDE-->
+
             </div>
         </div>
         <!--ET_BEGIN FOOTER_CENTER_NARROW-->
