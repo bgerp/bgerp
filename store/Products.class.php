@@ -631,7 +631,7 @@ class store_Products extends core_Detail
                 
                 $deliveryTime = (!empty($sRec->deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $sRec->deliveryTime) : $tRec->deliveryTime;
                 while ($sd = $sdQuery->fetch()) {
-                    if(!(empty($deliveryTime) || $deliveryTime > $now)){
+                    if(!empty($deliveryTime) && $deliveryTime >= $now){
                         $key = "{$sRec->storeId}|{$sd->productId}";
                         $reserved[$key] = array('sId' => $sRec->storeId, 'pId' => $sd->productId, 'reserved' => null, 'expected' => $sd->sum);
                     }
