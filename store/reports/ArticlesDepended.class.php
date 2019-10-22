@@ -128,12 +128,18 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         
         $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         
-        $prodArr = array();
+        $prodArr = $notSelfPrice =  array();
+        
         while ($pRec = $pQuery->fetch()) {
             $pQuantity = 0;
             
             //Себестойност на артикула
             $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, $pRec->quantity, null);
+            
+            if (!$selfPrice){
+                
+                array_push($notSelfPrice, $pRec->productId);
+            }
             
             $minCost = $rec->minCost ? $rec->minCost : 0;
             $pQuantity = store_Products::getQuantity($pRec->productId,$rec->storeId);
@@ -222,6 +228,8 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             arr::sortObjects($recs, $orderBy, $order, $typeOrder);
         }
         
+       $recs['self']=(object)array('info'=>true,'array'=>$notSelfPrice);
+       
         return $recs;
     }
     
@@ -268,6 +276,15 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         
         $row = new stdClass();
         
+        if ($dRec->info){
+            $row->productId ="<b>".'Артикули без себестойност:'."</b></br></br>";
+            foreach ($dRec->array as $val){
+                $row->productId .= cat_Products::getLinkToSingle_($val, 'name')."</br>";
+            }
+            
+            return $row;
+            
+        }
         
         if (isset($dRec->code)) {
             $row->code = $dRec->code;
@@ -298,6 +315,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         if (isset($dRec->reversibility)) {
             $row->reversibility = core_Type::getByName('percent(smartRound,decimals=2)')->toVerbal($dRec->reversibility);
         }
+        
         
         return $row;
     }
