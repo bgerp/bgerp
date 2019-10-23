@@ -939,15 +939,7 @@ class core_Manager extends core_Mvc
         $action{0} = strtoupper($action{0});
         $action = 'can' . $action;
         
-        if ((($action == 'canAdd') || ($action == 'canDelete') || ($action == 'canEdit') || ($action == 'canWrite'))) {
-            if (haveRole('onlyRead', $userId)) {
-                
-                return 'no_one';
-            }
-        }
-        
         if (isset($this->{$action})) {
-            
             $requiredRoles = $this->{$action};
         } else {
             switch ($action) {
