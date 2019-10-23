@@ -2266,7 +2266,7 @@ class cat_Products extends embed_Manager
         // Ако не е указан тип, се взима последната рецепта
         $query = cat_Boms::getQuery();
         $query->where("#productId = '{$rec->id}' AND #state = 'active'");
-        $query->orderBy('id', ASC);
+        $query->orderBy('id', 'ASC');
         
         return $query->fetch();
     }
@@ -3673,7 +3673,7 @@ class cat_Products extends embed_Manager
                         
                         if (!$csvFields->fields[$k]) {
                             if ($dInst->fields[$k]->type instanceof type_Double) {
-                                $csvFields->FLD($k, 'varchar', "caption={$vInst->fields[$k]->caption}");
+                                $csvFields->FLD($k, 'varchar', "caption={$dInst->fields[$k]->caption}");
                             } else {
                                 $csvFields->fields[$k] = $dInst->fields[$k];
                             }

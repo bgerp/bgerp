@@ -510,6 +510,7 @@ class store_Products extends core_Detail
      */
     public function cron_CalcReservedQuantity()
     {
+        //@todo трябва цялото да се рефакторира
         core_Debug::$isLogging = false;
         core_App::setTimeLimit(200);
         $now = dt::now();
@@ -611,6 +612,39 @@ class store_Products extends core_Detail
             }
         }
        
+        // Всички СР
+        $srQuery = store_Receipts::getQuery();
+        $srQuery->where("#state = 'pending'");
+        $srQuery->show("id,containerId,modifiedOn,storeId,deliveryTime");
+        
+        while ($sRec = $srQuery->fetch()) {
+            $reserved = core_Permanent::get("reserved_{$sRec->containerId}", $sRec->modifiedOn);
+            
+            // Ако няма кеширани к-ва
+            if (!isset($reserved)) {
+                $reserved = array();
+                $sdQuery = store_ReceiptDetails::getQuery();
+                $sdQuery->XPR('sum', 'double', "SUM(#quantity)");
+                $sdQuery->where("#receiptId = {$sRec->id}");
+                $sdQuery->show('productId,quantity,receiptId,sum');
+                $sdQuery->groupBy('productId');
+                
+                $deliveryTime = (!empty($sRec->deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $sRec->deliveryTime) : $tRec->deliveryTime;
+                while ($sd = $sdQuery->fetch()) {
+                    if(!empty($deliveryTime) && $deliveryTime >= $now){
+                        $key = "{$sRec->storeId}|{$sd->productId}";
+                        $reserved[$key] = array('sId' => $sRec->storeId, 'pId' => $sd->productId, 'reserved' => null, 'expected' => $sd->sum);
+                    }
+                }
+                
+                core_Permanent::set("reserved_{$sRec->containerId}", $reserved, 4320);
+            }
+            
+            if(is_array($reserved) && count($reserved)){
+                $queue[] = $reserved;
+            }
+        }
+        
         // Добавят се и запазените от бележки в POS-а
         if(core_Packs::isInstalled('pos')){
             $receiptQuery = pos_Receipts::getQuery();
