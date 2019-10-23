@@ -625,9 +625,9 @@ class price_ProductCosts extends core_Manager
                     $availableQuantity = $accObject->quantity;
                     $sum = $quantityByNow = 0;
                     
-                    
                     // За всяка покупка от последната към първата
                     foreach ($foundIn as $delData){
+                        $delData->quantity = round($delData->quantity, 6);
                         $expensesPerPcs = (!empty($delData->quantity)) ? ($delData->expenses / $delData->quantity) : 0;
                         
                         $quantityByNow += $delData->quantity;
