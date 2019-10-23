@@ -319,12 +319,12 @@ class csv_Lib
         }
         
         setIfNot($csvDelimiter, $params['delimiter'], $delimiter);
-        setIfNot($decPoint, $params['decPoint'], html_entity_decode(csv_Setup::get('DEC_POINT'), ENT_COMPAT | ENT_HTML401, 'UTF-8'), html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', true), ENT_COMPAT | ENT_HTML401, 'UTF-8'));
-        setIfNot($dateFormat, $params['dateFormat'], csv_Setup::get('DATE_MASK'), core_Setup::get('EF_DATE_FORMAT', true));
-        setIfNot($datetimeFormat, $params['datetimeFormat'], csv_Setup::get('DATE_TIME_MASK'), 'd.m.y H:i');
-        setIfNot($thousandsSep, $params['thousandsSep'], '');
+        setIfNot($decPoint, html_entity_decode(csv_Setup::get('DEC_POINT'), ENT_COMPAT | ENT_HTML401, 'UTF-8'), html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', true), ENT_COMPAT | ENT_HTML401, 'UTF-8'));
+        setIfNot($dateFormat, csv_Setup::get('DATE_MASK'), core_Setup::get('EF_DATE_FORMAT', true));
+        setIfNot($datetimeFormat, csv_Setup::get('DATE_TIME_MASK'), 'd.m.y H:i');
+        setIfNot($thousandsSep, '');
         setIfNot($enclosure, $params['enclosure'], '"');
-        setIfNot($decimals, $params['decimals'], 2);
+        setIfNot($decimals, 2);
         
         // Вземаме колоните, ако са зададени
         if ($params['columns'] != 'none') {
@@ -364,18 +364,49 @@ class csv_Lib
                 } elseif ($type instanceof type_Set) {
                     $value = $type->toVerbal($rec->{$name});
                 } elseif ($type instanceof type_Double) {
-                    $type->params['decPoint'] = $decPoint;
-                    $type->params['thousandsSep'] = $thousandsSep;
-                    $type->params['decimals'] = $decimals;
+                    if (isset($params['decPoint'])) {
+                        $type->params['decPoint'] = $params['decPoint'];
+                    } else {
+                        setIfNot($type->params['decPoint'], $decPoint);
+                    }
+                    
+                    if (isset($params['thousandsSep'])) {
+                        $type->params['thousandsSep'] = $params['thousandsSep'];
+                    } else {
+                        setIfNot($type->params['thousandsSep'], $thousandsSep);
+                    }
+                    
+                    if (isset($params['decimals'])) {
+                        $type->params['decimals'] = $params['decimals'];
+                    } else {
+                        setIfNot($type->params['decimals'], $decimals);
+                    }
+                    
                     $value = $type->toVerbal($rec->{$name});
                 } elseif ($type instanceof type_Datetime) {
                     if ($rec->{$name}) {
-                        $value = dt::mysql2verbal($rec->{$name}, $datetimeFormat);
+                        if (isset($params['datetimeFormat'])) {
+                            $datetimeFormatF = $params['datetimeFormat'];
+                        } elseif (isset($type->params['format'])) {
+                            $datetimeFormatF = $type->params['format'];
+                        } else {
+                            $datetimeFormatF = $datetimeFormat;
+                        }
+                        
+                        $value = dt::mysql2verbal($rec->{$name}, $datetimeFormatF);
                         $value = strip_tags($value);
                     }
                 } elseif ($type instanceof type_Date) {
                     if ($rec->{$name}) {
-                        $value = dt::mysql2verbal($rec->{$name}, $dateFormat);
+                        if (isset($params['dateFormat'])) {
+                            $dateFormatF = $params['dateFormat'];
+                        } elseif (isset($type->params['format'])) {
+                            $dateFormatF = $type->params['format'];
+                        } else {
+                            $dateFormatF = $dateFormat;
+                        }
+                        
+                        $value = dt::mysql2verbal($rec->{$name}, $dateFormatF);
                         $value = strip_tags($value);
                     }
                 } elseif ($type instanceof type_Richtext && !empty($params['text'])) {
