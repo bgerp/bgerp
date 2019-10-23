@@ -1325,6 +1325,7 @@ class sales_Quotations extends core_Master
             
             if (!array_key_exists($index, $products)) {
                 $title = cat_Products::getTitleById($dRec->productId);
+                $title = str_replace(',', ' ', $title);
                 if (isset($dRec->packagingId)) {
                     $title .= ' / ' . cat_UoM::getShortName($dRec->packagingId);
                 }
