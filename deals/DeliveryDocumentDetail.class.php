@@ -225,6 +225,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     {
         if (count($data->rows)) {
             foreach ($data->rows as $i => &$row) {
+                if($row instanceof core_ET) continue;
+                
                 $rec = &$data->recs[$i];
                 if (empty($rec->quantity) && !Mode::isReadOnly()) {
                     $row->ROW_ATTR['style'] = ' background-color:#f1f1f1;color:#777';
