@@ -296,7 +296,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         
         $res->full = $dRec->invoice->type.','.
                      $dRec->invoice->number.','.
-                     $dRec->invoice->date.','.
+                     $Date->toVerbal($dRec->invoice->date).','.
                      $dRec->invoice->contragentCode.','.
                      $dRec->invoice->accItem.','.
                      $dRec->invoice->currencyId.','.

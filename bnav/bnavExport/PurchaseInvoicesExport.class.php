@@ -269,7 +269,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
         
         $res->full = $dRec->invoice->type.','.
                      $dRec->invoice->number.','.
-                     $dRec->invoice->date.','.
+                     $row->date = $Date->toVerbal($dRec->invoice->date).','.
                      $dRec->invoice->contragentCode.','.
                      $dRec->invoice->accItem.','.
                      $dRec->invoice->currencyId.','.
