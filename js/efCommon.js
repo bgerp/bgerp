@@ -2238,7 +2238,7 @@ function updateTab(bodyId, url) {
         cache: false,
         dataType: 'json',
         success: function(data) {
-                        for (cssFile of data.css) {
+                        for (cssFile in data.css) {
                             console.log("start: " + cssFile);
                             console.log($("link[href*='" + cssFile + "']"));
                             if($("link[href*='" + cssFile + "']").length == 0) {
@@ -2246,7 +2246,7 @@ function updateTab(bodyId, url) {
                                 $('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', cssFile) );
                             }
                         }
-                        for (jsFile of data.js) {
+                        for (jsFile in data.js) {
                             console.log("start: " + jsFile);
                             console.log($("script[src*='" + jsFile + "']"));
                             if($("script[src*='" + jsFile + "']").length == 0) {
