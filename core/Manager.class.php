@@ -650,7 +650,7 @@ class core_Manager extends core_Mvc
         $data->form->input(null, 'silent');
         
         // Ако имаме
-        if ($data->form->rec->id && $data->form->cmd != 'refresh') {
+        if ($data->form->rec->id) {
             
             // Очакваме, че има такъв запис
             expect($rec = $this->fetch($data->form->rec->id));
@@ -939,7 +939,15 @@ class core_Manager extends core_Mvc
         $action{0} = strtoupper($action{0});
         $action = 'can' . $action;
         
+        if ((($action == 'canAdd') || ($action == 'canDelete') || ($action == 'canEdit') || ($action == 'canWrite'))) {
+            if (haveRole('onlyRead', $userId)) {
+                
+                return 'no_one';
+            }
+        }
+        
         if (isset($this->{$action})) {
+            
             $requiredRoles = $this->{$action};
         } else {
             switch ($action) {
