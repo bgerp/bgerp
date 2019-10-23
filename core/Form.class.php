@@ -1461,7 +1461,13 @@ class core_Form extends core_FieldSet
         $field = $this->fields[$name];
         
         if (!isset($value)) {
-            $value = empty($this->rec->{$name}) ? '' : $this->rec->{$name};
+//             if (!isset($this->rec->{$name})) {
+            if (!property_exists($this->rec, $name)) {
+                $value = Request::get($name);
+            } else {
+                $value = $this->rec->{$name};
+            }
+            $value = empty($value) ? '' : $value;
         }
         
         unset($field->type->params['allowEmpty']);
