@@ -11,7 +11,7 @@
             
             <!--ET_BEGIN clonedFromId-->
              <p class='title-info' style='font-size:0.8em'>
-                (cloned [#clonedFromId#])
+                (|клонирано от|* [#clonedFromId#])
             </p>
             <!--ET_END clonedFromId-->
                         

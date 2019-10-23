@@ -676,9 +676,9 @@ class sales_QuotationsDetails extends doc_Detail
             $pId = $data->recs[$i]->productId;
             $optional = $data->recs[$i]->optional;
             
-            // Сездава се специален индекс на записа productId|optional, така
+            // Създава се специален индекс на записа productId|optional, така
             // резултатите са разделени по продукти и дали са опционални или не
-            $pId = $pId . "|{$optional}";
+            $pId = $pId . "|{$optional}|" . md5($rec->notes);
             
             $newRows[$pId][] = $row;
         }
