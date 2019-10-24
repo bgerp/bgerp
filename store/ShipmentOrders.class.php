@@ -562,4 +562,28 @@ class store_ShipmentOrders extends store_DocumentMaster
             $data->listFields = 'deliveryTime,valior, title=Документ, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId';
         }
     }
+    
+    
+    /**
+     * След извличане на името на документа за показване в RichText-а
+     */
+    protected static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
+    {
+        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
+        if(isset($indicator)){
+            $docName .= $indicator;
+        }
+    }
+    
+    
+    /**
+     * Връща линк към документа
+     */
+    protected function on_AfterGetLink($mvc, &$link, $id, $maxLength = false, $attr = array())
+    {
+        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
+        if(isset($indicator)){
+            $link .= $indicator;
+        }
+    }
 }

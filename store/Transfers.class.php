@@ -613,4 +613,28 @@ class store_Transfers extends core_Master
             $data->listFields = 'deliveryTime,valior, title=Документ, folderId , weight, volume,lineId';
         }
     }
+    
+    
+    /**
+     * След извличане на името на документа за показване в RichText-а
+     */
+    protected static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
+    {
+        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
+        if(isset($indicator)){
+            $docName .= $indicator;
+        }
+    }
+    
+    
+    /**
+     * Връща линк към документа
+     */
+    protected function on_AfterGetLink($mvc, &$link, $id, $maxLength = false, $attr = array())
+    {
+        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
+        if(isset($indicator)){
+            $link .= $indicator;
+        }
+    }
 }

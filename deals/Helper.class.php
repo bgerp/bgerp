@@ -1854,4 +1854,42 @@ abstract class deals_Helper
         
         return array('notActive' => $errorNotActive, 'metasError' => $errorMetas);
     }
+    
+    
+    /**
+     * Допълнителен индикатор на складовите документи на заявка
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @return string|NULL
+     */
+    public static function getShipmentDocumentPendingIndicator($mvc, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        expect($mvc instanceof store_ShipmentOrders || $mvc instanceof store_Transfers);
+        
+        // Ако документа е на заявка
+        if($rec->state == 'pending'){
+            $transInfo = cls::get($mvc->mainDetail)->getTransportInfo($rec);
+            
+            // Колко е общото тегло
+            $weightVerbal = !empty($transInfo->weight) ? core_Type::getByName('cat_type_Weight')->toVerbal($transInfo->weight) : 'N/A';
+            $string = "<span style='vertical-align:top;font-size:0.7em;border:solid 1px white; background-color:black; color:white; padding:1px;'>{$weightVerbal}</span>";
+            
+            // Колко е готовността от склада
+            $readinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($rec->storeReadiness);
+            $string .= "<span style='vertical-align:top;font-size:0.7em;border:solid 1px white; background-color:blue; color:white; padding:1px;'>{$readinessVerbal}</span>";
+            
+            // Ако има зони, колко % е готово от зоната
+            $zoneReadiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
+            if(isset($zoneReadiness)){
+                $zoneReadinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($zoneReadiness);
+                $string .= "<span style='vertical-align:top;font-size:0.7em;border:solid 1px white; background-color:red; color:white; padding:1px;'>{$zoneReadinessVerbal}</span>";
+            }
+            
+            return $string;
+        }
+        
+        return null;
+    }
 }
