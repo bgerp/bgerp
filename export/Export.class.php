@@ -152,7 +152,13 @@ class export_Export extends core_Mvc
         }
         $suggestions = rtrim($suggestions, ',');
         
-        $form->FNC('type', "enum({$suggestions})", 'maxRadio=10, caption=Вид, input, mandatory');
+        $form->FNC('type', "enum({$suggestions})", 'maxRadio=10, caption=Вид, input, mandatory,silent,removeAndRefreshForm');
+        $form->input(null, 'silent');
+        
+        if($type = $form->rec->type){
+            //$intfCls = cls::getInterface('export_ExportTypeIntf', $type);
+            
+        }
         
         $form->input();
         

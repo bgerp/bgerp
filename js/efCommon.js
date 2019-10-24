@@ -2158,7 +2158,8 @@ function getType (val) {
  * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
  */
 function refreshForm(form, removeFields) {
-
+	if(typeof form === 'undefined') return;
+	
 	// Добавяме команда за рефрешване на формата
 	addCmdRefresh(form);
 

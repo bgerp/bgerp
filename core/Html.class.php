@@ -486,6 +486,9 @@ class core_Html
                     }
                     
                     $radioAttr['class'] .= ' radiobutton';
+                    if(isset($attr['onchange'])){
+                        $radioAttr['onclick'] = $attr['onchange'];
+                    }
                     
                     $input->append($indent);
                     
