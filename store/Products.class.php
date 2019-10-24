@@ -832,4 +832,64 @@ class store_Products extends core_Detail
         
         return $tpl;
     }
+    
+    
+    /**
+     * Изчисляване на готовноста на складовите документи на заявка 
+     */
+    public function cron_UpdateShipmentDocumentReadiness()
+    {
+        // За всички ЕН и МСТ
+        foreach (array('store_ShipmentOrders' => 'store_ShipmentOrderDetails', 'store_Transfers' => 'store_TransfersDetails') as $Master => $Detail){
+            $Master = cls::get($Master);
+            $Detail = cls::get($Detail);
+            $storeField = ($Master instanceof store_ShipmentOrders) ? 'storeId' : 'fromStore';
+            
+            // Тези които са на заявка
+            $query = $Master->getQuery();
+            $query->where("#state = 'pending'");
+            $query->show("id,storeReadiness,{$storeField}");
+            
+            $toSave = array();
+            while($rec = $query->fetch()){
+                $products = array();
+                
+                // Сумира се какво е общото к-во за експедиране
+                $dQuery = $Detail->getQuery();
+                $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+                $dQuery->show("{$Detail->productFld},quantity");
+                $dRecs = $dQuery->fetchAll();
+                array_walk($dRecs, function($a) use (&$products, $Detail){
+                    $products[$a->{$Detail->productFld}] += $a->quantity;
+                });
+                
+                $neededQuantity = round(array_sum($products), 4);
+                
+                // Колко е налично в склада
+                $storeQuery = store_Products::getQuery();
+                $storeQuery->where("#storeId = {$rec->{$storeField}}");
+                $storeQuery->in('productId', array_keys($products));
+                $storeQuery->XPR('sum', 'double', 'SUM(#quantity)');
+                $storeQuery->show('sum');
+                $inStore = $storeQuery->fetch()->sum;
+                $inStore = !empty($inStore) ? $inStore : 0;
+                $inStore = round($inStore, 4);
+                
+                // Изчисляване на % готовност на склада
+                if($inStore >= $neededQuantity){
+                    $rec->storeReadiness = 1;
+                } elseif($inStore <= 0) {
+                    $rec->storeReadiness = 0;
+                } else {
+                    $rec->storeReadiness = round(($inStore / $neededQuantity), 2);
+                }
+                
+                $toSave[] = $rec;
+                
+                if(count($toSave)){
+                    $Master->saveArray($toSave, 'id,storeReadiness');
+                }
+            }
+        }
+    }
 }

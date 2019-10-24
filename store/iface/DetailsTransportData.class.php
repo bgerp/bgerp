@@ -44,7 +44,7 @@ class store_iface_DetailsTransportData
      * @return stdClass $res
      *                  - weight    - теглото на реда
      *                  - volume    - теглото на реда
-     *                  - transUnits - транспортнтие еденици
+     *                  - transUnits - транспортните еденици
      */
     public function getTransportInfo($masterId, $force = false)
     {

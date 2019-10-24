@@ -218,6 +218,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $this->FLD('pCode', 'varchar', 'caption=Адрес за доставка->П. код, changable, class=contactData');
         $this->FLD('place', 'varchar', 'caption=Адрес за доставка->Град/с, changable, class=contactData');
         $this->FLD('address', 'varchar', 'caption=Адрес за доставка->Адрес, changable, class=contactData');
+        $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->setField('deliveryTime', 'caption=Натоварване');
     }
     
@@ -559,6 +560,38 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
         if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $data->listFields = 'deliveryTime,valior, title=Документ, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId';
+        }
+    }
+    
+    
+    /**
+     * След извличане на името на документа за показване в RichText-а
+     */
+    protected static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
+    {
+        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
+        if(isset($indicator)){
+            if($docName instanceof core_ET){
+                $docName->append($indicator);
+            } else {
+                $docName .= $indicator;
+            }
+        }
+    }
+    
+    
+    /**
+     * Връща линк към документа
+     */
+    protected function on_AfterGetLink($mvc, &$link, $id, $maxLength = false, $attr = array())
+    {
+        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
+        if(isset($indicator)){
+            if($link instanceof core_ET){
+                $link->append($indicator);
+            } else {
+                $link .= $indicator;
+            }
         }
     }
 }
