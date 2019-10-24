@@ -394,6 +394,10 @@ class store_ShipmentOrders extends store_DocumentMaster
             'content' => 'store/tpl/SingleLayoutShipmentOrderEuro.shtml', 'lang' => 'bg',
             'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
         
+        $tplArr[] = array('name' => 'Packing list за митница',
+            'content' => 'store/tpl/SingleLayoutPackagingListGrouped.shtml', 'lang' => 'en',
+            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+        
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
