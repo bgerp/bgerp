@@ -20,7 +20,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
     /**
      * Константа за празен тарифен номер
      */
-    const EMPT_TARIFF_NUMBER = ' ';
+    const EMPTY_TARIFF_NUMBER = ' ';
     
     
     /**
@@ -57,7 +57,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $rec = $data->recs[$id];
             
             $tariffNumber = cat_Products::getParams($rec->productId, 'customsTariffNumber', true);
-            $tariffNumber = !empty($tariffNumber) ? $tariffNumber : self::EMPT_TARIFF_NUMBER;
+            $tariffNumber = !empty($tariffNumber) ? $tariffNumber : self::EMPTY_TARIFF_NUMBER;
             $rec->tariffNumber = $tariffNumber;
             $row->tariffNumber = $tariffNumber;
         }
@@ -83,7 +83,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         $tarriffCodes = array();
         foreach ($data->recs as $rec1) {
             if(!array_key_exists($rec1->tariffNumber, $tarriffCodes)){
-                $rec1->tariffNumber = ($rec1->tariffNumber == self::EMPT_TARIFF_NUMBER) ? tr('Без тарифен код') : "CTN " . $rec1->tariffNumber;
+                $rec1->tariffNumber = ($rec1->tariffNumber == self::EMPTY_TARIFF_NUMBER) ? tr('Без тарифен код') : "CTN " . $rec1->tariffNumber;
                 $tarriffCodes[$rec1->tariffNumber] = (object)array('code' => $rec1->tariffNumber, 'weight' => null, 'transUnits' => array(), 'withoutWeightProducts' => array());
             }
             
