@@ -156,8 +156,8 @@ class export_Export extends core_Mvc
         $form->input(null, 'silent');
         
         if($type = $form->rec->type){
-            //$intfCls = cls::getInterface('export_ExportTypeIntf', $type);
-            
+            $intfCls = cls::getInterface('export_ExportTypeIntf', $type);
+            //$intfCls->addParamFields($form, $classId, $docId);
         }
         
         $form->input();

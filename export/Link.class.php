@@ -107,4 +107,19 @@ class export_Link extends core_Mvc
     public function getExternalExportLink($clsId, $objId, $mid)
     {
     }
+    
+    
+    /**
+     * Добавя параметри към експорта на формата
+     *
+     * @param core_Form    $form
+     * @param int          $clsId
+     * @param int|stdClass $objId
+     *
+     * @return NULL|string
+     */
+    public function addParamFields($form, $clsId, $objId)
+    {
+        
+    }
 }
