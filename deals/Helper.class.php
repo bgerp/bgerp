@@ -1874,20 +1874,20 @@ abstract class deals_Helper
             
             // Колко е общото тегло
             $weightVerbal = !empty($transInfo->weight) ? core_Type::getByName('cat_type_Weight')->toVerbal($transInfo->weight) : 'N/A';
-            $string = "<span style='vertical-align:top;font-size:0.7em;border:solid 1px white; background-color:black; color:white; padding:1px;'>{$weightVerbal}</span>";
+            $string = "<span class='enTag weightTag'>{$weightVerbal}</span>";
             
             // Колко е готовността от склада
             $readinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($rec->storeReadiness);
-            $string .= "<span style='vertical-align:top;font-size:0.7em;border:solid 1px white; background-color:blue; color:white; padding:1px;'>{$readinessVerbal}</span>";
+            $string .= "<span class='enTag percent'>{$readinessVerbal}</span>";
             
             // Ако има зони, колко % е готово от зоната
             $zoneReadiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
             if(isset($zoneReadiness)){
                 $zoneReadinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($zoneReadiness);
-                $string .= "<span style='vertical-align:top;font-size:0.7em;border:solid 1px white; background-color:red; color:white; padding:1px;'>{$zoneReadinessVerbal}</span>";
+                $string .= "<span class='enTag zone'>{$zoneReadinessVerbal}</span>";
             }
             
-            return $string;
+            return "<span class='tags'>" . $string . "</span>";
         }
         
         return null;
