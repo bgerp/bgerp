@@ -132,6 +132,15 @@ class store_Setup extends core_ProtoSetup
             'offset' => 0,
             'timeLimit' => 100
         ),
+        array(
+            'systemId' => 'Update Shipment Document Readiness',
+            'description' => 'Обновяване на готовността на складовите документи на заявка',
+            'controller' => 'store_Products',
+            'action' => 'UpdateShipmentDocumentReadiness',
+            'period' => 3,
+            'offset' => 0,
+            'timeLimit' => 100
+        ),
     );
     
     
