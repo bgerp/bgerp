@@ -118,6 +118,49 @@ class doc_ThreadUsers extends core_Manager
     
     
     /**
+     * Синхронизира подадените потребители със записите в модела
+     * 
+     * @param integer $containerId
+     * @param array $usersArr
+     * @param integer|null $containerId
+     * @param string $relation
+     */
+    public static function syncContainerRelations($containerId, $usersArr, $threadId = null, $relation = 'shared')
+    {
+        $sArr = array();
+        
+        if (!$containerId) return ;
+        
+        $query = self::getQuery();
+        $query->where(array("#containerId = [#1#] AND #relation = '[#2#]'", $containerId, $relation));
+        
+        $dQuery = clone $query;
+        
+        $query->show('userId');
+        while ($rec = $query->fetch()) {
+            $sArr[$rec->userId] = $rec->userId;
+        }
+        
+        // Ако има за изтриване
+        $delArr = array_diff($sArr, $usersArr);
+        if (!empty($delArr)) {
+            $dQuery->in('userId', $delArr);
+            $dQuery->delete();
+        }
+        
+        // Ако има за добавяне
+        $addArr = array_diff($usersArr, $sArr);
+        if (!empty($addArr)) {
+            if (!isset($threadId)) {
+                $threadId = doc_Containers::fetchField($containerId, 'threadId');
+            }
+            
+            self::addShared($threadId, $containerId, $addArr);
+        }
+    }
+    
+    
+    /**
      * Връща всички потребители, за които посочената нишка е споделена
      */
     public static function getShared($threadId, $relation = 'shared')

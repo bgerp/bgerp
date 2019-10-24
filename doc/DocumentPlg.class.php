@@ -843,6 +843,18 @@ class doc_DocumentPlg extends core_Plugin
             } catch (core_exception_Expect $e) {
             }
         }
+        
+        if ($mvc->canEditActivated) {
+            if ($rec->state == 'draft' || $rec->state == 'rejected') {
+                $sharedArr = array();
+            } else {
+                $sharedArr = $mvc->getShared($rec->id);
+                $sharedArr = type_Keylist::toArray($sharedArr);
+                $sharedArr = arr::make($sharedArr, true);
+            }
+            
+            doc_ThreadUsers::syncContainerRelations($rec->containerId, $sharedArr, $rec->threadId);
+        }
     }
     
     
