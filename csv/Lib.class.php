@@ -278,6 +278,8 @@ class csv_Lib
     {
         $params = arr::make($params, true);
         
+        setIfNot($newLine, $params['newLineDelimiter'], "\n");
+        
         $mandatory = array();
         if ($params['mandatory']) {
             $mandatory = explode('|', $params['mandatory']);
@@ -428,7 +430,7 @@ class csv_Lib
                 $rCsvArr[] = $value;
             }
             
-            $csv .= ($csv) ? "\n" : '';
+            $csv .= ($csv) ? $newLine : '';
             
             $csv .= self::getCsvLine($rCsvArr, $csvDelimiter, $enclosure);
         }
