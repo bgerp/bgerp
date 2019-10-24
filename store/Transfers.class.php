@@ -234,6 +234,7 @@ class store_Transfers extends core_Master
         // Доставка
         $this->FLD('deliveryTime', 'datetime', 'caption=Натоварване');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
+        $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         
         // Допълнително
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
