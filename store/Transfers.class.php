@@ -622,7 +622,11 @@ class store_Transfers extends core_Master
     {
         $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
         if(isset($indicator)){
-            $docName .= $indicator;
+            if($docName instanceof core_ET){
+                $docName->append($indicator);
+            } else {
+                $docName .= $indicator;
+            }
         }
     }
     
@@ -634,7 +638,11 @@ class store_Transfers extends core_Master
     {
         $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
         if(isset($indicator)){
-            $link .= $indicator;
+            if($link instanceof core_ET){
+                $link->append($indicator);
+            } else {
+                $link .= $indicator;
+            }
         }
     }
 }
