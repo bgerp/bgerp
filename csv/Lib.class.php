@@ -357,6 +357,9 @@ class csv_Lib
                     $type = new stdClass();
                 }
                 
+                // Зануляване на стойноста преди всяка итерация
+                $value = null;
+                
                 Mode::push('text', 'plain');
                 Mode::push('text-export', 'csv');
                 if (($type instanceof type_Key) || ($type instanceof type_Key2)) {
