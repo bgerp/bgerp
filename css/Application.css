@@ -2029,10 +2029,7 @@ pre.document {
   font-size: 0.7em;
   border: solid 1px white;
   color: white;
-  padding: 1px;
-  display: inline-block;
-  user-select: none;
-  text-align: center; }
+  padding: 1px; }
   .enTag.weightTag {
     background-color: black; }
   .enTag.percent {
@@ -2043,9 +2040,11 @@ pre.document {
 .tags {
   margin-left: 2px; }
 
-.richtext-quote .tags {
+.maxwidth .tags,
+.document-handler .tags,
+.rowBlock .tags {
   position: relative;
-  top: 3px; }
+  top: 2px; }
 
 .document .listTable .acc-article-entries {
   font-size: 0.8em;

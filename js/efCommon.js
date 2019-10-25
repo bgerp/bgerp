@@ -2592,9 +2592,6 @@ function openAjaxMenu(el) {
  * При копиране на текст, маха интервалите от вербалната форма на дробните числа
  */
 function editCopiedTextBeforePaste() {
-    $('.enTag').on('click', function(e){
-        e.preventDefault();
-    });
 	$('.listTable').bind('copy', function(event, data) {
 		var body_element = document.getElementsByTagName('body')[0];
 		var selection = window.getSelection();
