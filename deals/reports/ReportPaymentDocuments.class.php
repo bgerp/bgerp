@@ -349,7 +349,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         if (isset($dRec->amountDeal)) {
             $row->amountDeal = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal);
             $row->amountDeal = ht::createHint($row->amountDeal, "${hint}", 'notice');
-            $row->payDate = ($dRec->payDate) ? $Date->toVerbal($dRec->payDate) : 'не посочен';
+            $row->payDate = ($dRec->payDate) ? $Date->toVerbal($dRec->payDate) : tr('|*<span class="quiet">|не е посочен|*</span>');
         }
         
         if (isset($dRec->currencyId)) {
