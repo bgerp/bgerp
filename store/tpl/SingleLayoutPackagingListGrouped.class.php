@@ -112,7 +112,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 $weight = ht::createHint($weight, "Следните артикули нямат транспортно тегло|*: {$imploded}", 'warning');
             }
             
-            $code = ($tariffNumber != self::EMPTY_TARIFF_NUMBER) ? "HS Code / Customs Tariff Number {$tariffObject->code}" : tr('Без тарифен код');
+            $code = ($tariffNumber != self::EMPTY_TARIFF_NUMBER) ? "HS Code / CTN {$tariffObject->code}" : tr('Без тарифен код');
             
             
             $transUnits = trans_Helper::displayTransUnits($tariffObject->transUnits);
