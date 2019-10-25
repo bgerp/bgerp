@@ -2045,7 +2045,7 @@ function appendQuote(id, line) {
         	if (text.length) {
         	
 	        	var textSplit = text.split("\n");
-	        	
+
 	        	// Вземаме манипулатора на документа
 	            selHandle = sessionStorage.getItem('selHandle');
 	        	
@@ -2086,6 +2086,7 @@ function appendQuote(id, line) {
 	        	newText.push(lastVal + "[/bQuote]");
 	        	
 	        	quoteText = newText.join("\n");
+
 	        }
         }
 	}
@@ -2591,6 +2592,9 @@ function openAjaxMenu(el) {
  * При копиране на текст, маха интервалите от вербалната форма на дробните числа
  */
 function editCopiedTextBeforePaste() {
+    $('.enTag').on('click', function(e){
+        e.preventDefault();
+    });
 	$('.listTable').bind('copy', function(event, data) {
 		var body_element = document.getElementsByTagName('body')[0];
 		var selection = window.getSelection();

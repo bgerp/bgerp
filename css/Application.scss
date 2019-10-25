@@ -2371,6 +2371,9 @@ pre.document {
 	border:solid 1px white;
 	color:white;
 	padding:1px;
+	display:inline-block;
+	user-select: none;
+	text-align: center;
 	&.weightTag {
 		background-color:black;
 	}
@@ -2386,9 +2389,9 @@ pre.document {
 	margin-left: 2px;
 }
 
-.maxwidth .tags, .document-handler .tags, .rowBlock .tags {
+.richtext-quote .tags {
 	position: relative;
-	top: 2px;
+	top: 3px;
 }
 
 .document .listTable .acc-article-entries {
