@@ -85,6 +85,10 @@ class frame2_CsvExport extends core_Mvc
             }
         }
         
+        $params = (array)$form->rec;
+        $params['newLineDelimiter'] = ($params['newLineDelimiter'] == 1) ? "\n" : (($params['newLineDelimiter'] == 2) ? "\r\n" : "\r");
+        unset($params['type']);
+        
         // Подготовка на данните
         $lang = null;
         $csvRecs = $fields = array();
@@ -102,7 +106,7 @@ class frame2_CsvExport extends core_Mvc
         if (count($csvRecs)) {
             
             // Създаване на csv-то
-            $csv = csv_Lib::createCsv($csvRecs, $fields);
+            $csv = csv_Lib::createCsv($csvRecs, $fields, null, $params);
             $csv .= "\n";
             
             if(isset($lang)){
@@ -126,6 +130,11 @@ class frame2_CsvExport extends core_Mvc
             $Frame->logWrite('Експорт на CSV', $objId);
         } else {
             $form->info .= "<div class='formNotice'>" . tr('Няма данни за експорт|*.') . '</div>';
+        }
+        
+        $fields = array_keys($form->selectFields("#name != 'type'"));
+        foreach ($fields as $fld){
+            $form->setField($fld, 'input=none');
         }
         
         return $fileHnd;
@@ -161,7 +170,41 @@ class frame2_CsvExport extends core_Mvc
      */
     public function addParamFields($form, $clsId, $objId)
     {
-        $form->FLD('aaaaa', 'varchar', 'caption=LOVE,mandatory');
+        $title = $this->getExportTitle($clsId, $objId);
         
+        $form->FLD("columns", 'enum(yes=Да,none=Не)', "caption=Настройки на {$title} за експорт->Имена на колони,autohide=any");
+        $form->setDefault("columns", 'yes');
+        
+        $form->FNC('decPoint', 'varchar(1,size=3)', "nput,caption=Настройки на {$title} за експорт->Десетичен знак,autohide=any");
+        $form->FNC('dateFormat', 'enum(,d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', "input,caption=Настройки на {$title} за експорт->Формат за дата,autohide=any");
+        $form->FNC('datetimeFormat', 'enum(,d.m.y H:i=|*22.11.1999 00:00, d.m.y H:i:s=|*22.11.1999 00:00:00)', "input,caption=Настройки на {$title} за експорт->Формат за дата и час,autohide=any");
+        $form->FNC('delimiter', 'varchar(1,size=3)', "input,caption=Настройки на {$title} за експорт->Разделител,autohide=any");
+        $form->FNC('enclosure', 'varchar(1,size=3)', "input,caption=Настройки на {$title} за експорт->Ограждане,autohide");
+        $form->FNC('newLineDelimiter', 'varchar(1,size=3)', "input,caption=Настройки на {$title} за експорт->Нов ред,autohide");
+        
+        $dateFormat = null;
+        setIfNot($dateFormat, csv_Setup::get('DATE_MASK'), core_Setup::get('EF_DATE_FORMAT', true));
+        $form->setDefault('dateFormat', $dateFormat);
+        
+        $datetimeFormat = null;
+        setIfNot($datetimeFormat, csv_Setup::get('DATE_TIME_MASK'), 'd.m.y H:i');
+        $form->setDefault('datetimeFormat', $datetimeFormat);
+        
+        $form->setOptions('newLineDelimiter', array('1' => '\n', '2' => '\r\n', '3' => '\r'));
+        $form->setOptions('delimiter', array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
+        $form->setOptions('enclosure', array('"' => '"', '\'' => '\''));
+        $form->setOptions('decPoint', array('.' => '.', ',' => ','));
+        $form->setDefault('enclosure', '"');
+        $form->setDefault('newLineDelimiter', 1);
+        
+        $decimalSign = '.';
+        setIfNot($decimalSign, html_entity_decode(csv_Setup::get('DEC_POINT'), ENT_COMPAT | ENT_HTML401, 'UTF-8'), html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', true), ENT_COMPAT | ENT_HTML401, 'UTF-8'));
+        $form->setDefault('decPoint', $decimalSign);
+        
+        $delimiter = str_replace(array('&comma;', 'semicolon', 'colon', '&vert;', '&Tab;', 'comma', 'vertical'), array(',', ';', ':', '|', "\t", ',', '|'), csv_Setup::get('DELIMITER'));
+        if (strlen($delimiter) > 1) {
+            $delimiter = html_entity_decode($delimiter, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+        }
+        $form->setDefault('delimiter', $delimiter);
     }
 }
