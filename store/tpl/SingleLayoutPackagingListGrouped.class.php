@@ -53,11 +53,12 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         }
         
         // Извлича се тарифния номер на артикулите
+        $length = store_Setup::get('TARIFF_NUMBER_LENGTH');
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
             
             $tariffNumber = cat_Products::getParams($rec->productId, 'customsTariffNumber', true);
-            $tariffNumber = !empty($tariffNumber) ? $tariffNumber : self::EMPTY_TARIFF_NUMBER;
+            $tariffNumber = !empty($tariffNumber) ? substr($tariffNumber, 0, $length) : self::EMPTY_TARIFF_NUMBER;
             $rec->tariffNumber = $tariffNumber;
             $row->tariffNumber = $tariffNumber;
         }
@@ -83,7 +84,6 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         $tarriffCodes = array();
         foreach ($data->recs as $rec1) {
             if(!array_key_exists($rec1->tariffNumber, $tarriffCodes)){
-                $rec1->tariffNumber = ($rec1->tariffNumber == self::EMPTY_TARIFF_NUMBER) ? tr('Без тарифен код') : "CTN " . $rec1->tariffNumber;
                 $tarriffCodes[$rec1->tariffNumber] = (object)array('code' => $rec1->tariffNumber, 'weight' => null, 'transUnits' => array(), 'withoutWeightProducts' => array());
             }
             
@@ -102,6 +102,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         
         $rows = array();
         
+        
+        
         // За всяко поле за групиране
         foreach ($tarriffCodes as $tariffNumber => $tariffObject) {
             
@@ -112,8 +114,11 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 $weight = ht::createHint($weight, "Следните артикули нямат транспортно тегло|*: {$imploded}", 'warning');
             }
             
+            $code = ($tariffNumber != self::EMPTY_TARIFF_NUMBER) ? "HS Code / Customs Tariff Number {$tariffObject->code}" : tr('Без тарифен код');
+            
+            
             $transUnits = trans_Helper::displayTransUnits($tariffObject->transUnits);
-            $groupVerbal = tr("|*<b>{$tariffObject->code}</b>, |Бруто|*: {$weight}, {$transUnits}");
+            $groupVerbal = tr("|*<b>{$code}</b>, |Бруто|*: {$weight}, {$transUnits}");
             core_Lg::pop('bg');
             
             // Създаваме по един ред с името му, разпънат в цялата таблица
