@@ -928,6 +928,8 @@ class doc_DocumentPlg extends core_Plugin
                     
                     $docRow = $mvc->getDocumentRow($rec->id);
                     $docTitle = $docRow->recTitle ? $docRow->recTitle : $docRow->title;
+                    $docTitle = strip_tags(html_entity_decode($docTitle));
+                    
                     $folderTitle = doc_Folders::getTitleById($rec->folderId, false);
                     
                     $message = "{$currUserNick} |създаде заявка за|* \"|{$docTitle}|*\" |в папка|* \"{$folderTitle}\"";
