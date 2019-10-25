@@ -175,7 +175,7 @@ class frame2_CsvExport extends core_Mvc
         $form->FLD("columns", 'enum(yes=Да,none=Не)', "caption=Настройки на {$title} за експорт->Имена на колони,autohide=any");
         $form->setDefault("columns", 'yes');
         
-        $form->FNC('decPoint', 'varchar(1,size=3)', "nput,caption=Настройки на {$title} за експорт->Десетичен знак,autohide=any");
+        $form->FNC('decPoint', 'varchar(1,size=3)', "input,caption=Настройки на {$title} за експорт->Десетичен знак,autohide=any");
         $form->FNC('dateFormat', 'enum(,d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', "input,caption=Настройки на {$title} за експорт->Формат за дата,autohide=any");
         $form->FNC('datetimeFormat', 'enum(,d.m.y H:i=|*22.11.1999 00:00, d.m.y H:i:s=|*22.11.1999 00:00:00)', "input,caption=Настройки на {$title} за експорт->Формат за дата и час,autohide=any");
         $form->FNC('delimiter', 'varchar(1,size=3)', "input,caption=Настройки на {$title} за експорт->Разделител,autohide=any");
