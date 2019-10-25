@@ -107,7 +107,7 @@ class frame2_CsvExport extends core_Mvc
             
             // Създаване на csv-то
             $csv = csv_Lib::createCsv($csvRecs, $fields, null, $params);
-            $csv .= "\n";
+            $csv .= $params['newLineDelimiter'];
             
             if(isset($lang)){
                 core_Lg::pop();
