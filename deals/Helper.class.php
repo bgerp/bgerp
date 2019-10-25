@@ -1874,23 +1874,24 @@ abstract class deals_Helper
             
             // Колко е общото тегло
             $weightVerbal = !empty($transInfo->weight) ? core_Type::getByName('cat_type_Weight')->toVerbal($transInfo->weight) : 'N/A';
-            $weightVerbalLength = mb_strlen($weightVerbal) - 1;
-            $string = "<input type='text' value= {$weightVerbal} class='enTag weightTag' size= {$weightVerbalLength} disabled='disabled'/>";
-            
+            $string = "<span class='enTag weightTag'></span>";
+            $style = ".enTag.weightTag:after{content: '$weightVerbal'} ";
+
             // Колко е готовността от склада
             $readinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($rec->storeReadiness);
-            $readinessVerbalLength = mb_strlen($readinessVerbal) - 1;
-            $string .= "<input type='text' value= {$readinessVerbal} class='enTag percent' size='{$readinessVerbalLength}' disabled='disabled'/>";
+            $string .= "<span class='enTag percent'></span>";
+            $style .= ".enTag.percent:after{content: '$readinessVerbal'} ";
             
             // Ако има зони, колко % е готово от зоната
             $zoneReadiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
             if(isset($zoneReadiness)){
                 $zoneReadinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($zoneReadiness);
-                $zoneReadinessVerbalLength = mb_strlen($zoneReadinessVerbal) - 1;
-                $string .= "<input type='text' value= {$zoneReadinessVerbal} class='enTag zone' size='$zoneReadinessVerbalLength' disabled='disabled'/>";
+                $string .= "<span class='enTag zone'></span>";
+                $style .= ".enTag.zone:after{content: '$zoneReadinessVerbal'} ";
             }
-            
-            return "<span class='tags'>" . $string . "</span>";
+
+            $string = "<style>" . $style . "</style><span class='tags'>" . $string . "</span>";
+            return $string;
         }
         
         return null;
