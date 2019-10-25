@@ -1341,8 +1341,10 @@ class sales_Quotations extends core_Master
             }
             
             if ($dRec->quantity) {
+                core_Mode::push('text', 'plain');
                 $packQuantity = core_Type::getByName('double(smartRound)')->toVerbal($dRec->packQuantity);
                 $packPrice = core_Type::getByName('double(smartRound)')->toVerbal($dRec->packPrice);
+                
                 $val = "{$packQuantity} / {$packPrice} " . $rec->currencyId;
                 foreach (array('discount', 'tolerance', 'term') as $fld){
                     if(!empty($dRec->{$fld})){
@@ -1350,6 +1352,7 @@ class sales_Quotations extends core_Master
                         $val .= " / " . $Type->toVerbal($dRec->{$fld});
                     }
                 }
+                core_Mode::pop('text');
                 
                 $products[$index]->options[$dRec->id] = $val;
             }
