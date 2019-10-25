@@ -1875,19 +1875,19 @@ abstract class deals_Helper
             // Колко е общото тегло
             $weightVerbal = !empty($transInfo->weight) ? core_Type::getByName('cat_type_Weight')->toVerbal($transInfo->weight) : 'N/A';
             $weightVerbalLength = mb_strlen($weightVerbal) - 1;
-            $string = "<input type='text' value= {$weightVerbal} class='enTag weightTag' size= {$weightVerbalLength}/>";
+            $string = "<input type='text' value= '{$weightVerbal}' class='enTag weightTag' size= {$weightVerbalLength}/>";
             
             // Колко е готовността от склада
             $readinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($rec->storeReadiness);
             $readinessVerbalLength = mb_strlen($readinessVerbal) - 1;
-            $string .= "<input type='text' value= {$readinessVerbal} class='enTag percent' size='{$readinessVerbalLength}'/>";
+            $string .= "<input type='text' value= '{$readinessVerbal}' class='enTag percent' size='{$readinessVerbalLength}'/>";
             
             // Ако има зони, колко % е готово от зоната
             $zoneReadiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
             if(isset($zoneReadiness)){
                 $zoneReadinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($zoneReadiness);
                 $zoneReadinessVerbalLength = mb_strlen($zoneReadinessVerbal) - 1;
-                $string .= "<input type='text' value= {$zoneReadinessVerbal} class='enTag zone' size='$zoneReadinessVerbalLength'/>";
+                $string .= "<input type='text' value= '{$zoneReadinessVerbal}' class='enTag zone' size='$zoneReadinessVerbalLength'/>";
             }
             
             return "<span class='tags'>" . $string . "</span>";
