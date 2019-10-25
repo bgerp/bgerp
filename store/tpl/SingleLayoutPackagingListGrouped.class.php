@@ -98,11 +98,9 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
             $tarriffCodes[$rec1->tariffNumber]->weight += $weight;
         }
+        
         ksort($tarriffCodes, SORT_STRING);
-        
         $rows = array();
-        
-        
         
         // За всяко поле за групиране
         foreach ($tarriffCodes as $tariffNumber => $tariffObject) {
