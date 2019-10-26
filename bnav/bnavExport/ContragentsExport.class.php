@@ -295,15 +295,14 @@
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        $res->full = $dRec->code.','.
-                     $dRec->name.','.
-                     $dRec->mol.','.
-                     $dRec->vatId.','.
-                     $dRec->eic.','.
-                     $dRec->country.','.
-                     $dRec->place.','.
-                     $dRec->address
-                     ;
+        $res->code = $dRec->code;
+        $res->name = $dRec->name;
+        $res->mol = $dRec->mol;
+        $res->vatId = $dRec->vatId;
+        $res->eic = $dRec->eic;
+        $res->country = $dRec->country;
+        $res->place = $dRec->place;
+        $res->address = $dRec->address;
         
     }
     

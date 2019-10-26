@@ -763,9 +763,9 @@ class core_Form extends core_FieldSet
                 } else {
                     if ($field->removeAndRefreshForm) {
                         $rFields = str_replace('|', "', '", trim($field->removeAndRefreshForm, '|'));
-                        $attr['onchange'] .= "refreshForm(this.form, ['{$rFields}']);";
+                        $attr['onchange'] .= "refreshForm($(this).closest('form').get(0), ['{$rFields}']);";
                     } elseif ($field->refreshForm) {
-                        $attr['onchange'] .= 'refreshForm(this.form);';
+                        $attr['onchange'] .= "refreshForm($(this).closest('form').get(0));";
                     }
                 }
                 
@@ -1461,7 +1461,13 @@ class core_Form extends core_FieldSet
         $field = $this->fields[$name];
         
         if (!isset($value)) {
-            $value = empty($this->rec->{$name}) ? '' : $this->rec->{$name};
+//             if (!isset($this->rec->{$name})) {
+            if (!property_exists($this->rec, $name)) {
+                $value = Request::get($name);
+            } else {
+                $value = $this->rec->{$name};
+            }
+            $value = empty($value) ? '' : $value;
         }
         
         unset($field->type->params['allowEmpty']);

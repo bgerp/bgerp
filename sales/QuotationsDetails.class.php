@@ -522,18 +522,11 @@ class sales_QuotationsDetails extends doc_Detail
             deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
             
             if (!$form->gotErrors()) {
+                
                 if (Request::get('Act') != 'CreateProduct') {
                     if ($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")) {
                         if ($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id) {
                             $form->setError('productId', 'Не може да добавите продукта като задължителен, защото фигурира вече като опционален!');
-                            
-                            return;
-                        }
-                    }
-                    
-                    if ($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")) {
-                        if ($sameProduct->id != $rec->id || $form->cmd == 'save_new_row') {
-                            $form->setError('packQuantity', 'Избраният продукт вече фигурира с това количество');
                             
                             return;
                         }
@@ -576,6 +569,10 @@ class sales_QuotationsDetails extends doc_Detail
             }
             
             if (!$form->gotErrors()) {
+                if(deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes)){
+                    $form->setError('productId,packagingId,packPrice,discount,notes', 'Има въведен ред със същите данни');
+                }
+                
                 if (isset($masterRec->deliveryPlaceId)) {
                     if ($locationId = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}' AND #contragentCls = {$masterRec->contragentClassId} AND #contragentId = {$masterRec->contragentId}", 'id')) {
                         $masterRec->deliveryPlaceId = $locationId;
@@ -676,9 +673,9 @@ class sales_QuotationsDetails extends doc_Detail
             $pId = $data->recs[$i]->productId;
             $optional = $data->recs[$i]->optional;
             
-            // Сездава се специален индекс на записа productId|optional, така
+            // Създава се специален индекс на записа productId|optional, така
             // резултатите са разделени по продукти и дали са опционални или не
-            $pId = $pId . "|{$optional}";
+            $pId = $pId . "|{$optional}|" . md5($rec->notes);
             
             $newRows[$pId][] = $row;
         }

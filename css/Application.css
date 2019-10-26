@@ -2024,6 +2024,28 @@ pre.document {
   clear: both;
   float: none; }
 
+.enTag {
+  vertical-align: top;
+  font-size: 0.7em;
+  border: solid 1px white;
+  color: white;
+  padding: 1px; }
+  .enTag.weightTag {
+    background-color: black; }
+  .enTag.percent {
+    background-color: blue; }
+  .enTag.zone {
+    background-color: red; }
+
+.tags {
+  margin-left: 2px; }
+
+.maxwidth .tags,
+.document-handler .tags,
+.rowBlock .tags {
+  position: relative;
+  top: 2px; }
+
 .document .listTable .acc-article-entries {
   font-size: 0.8em;
   list-style: none;

@@ -697,12 +697,14 @@ class marketing_Bulletins extends core_Master
         $bid = Request::get('id');
         
         if (!($id = self::checkHashId($bid))) {
+            echo ' ';
             shutdown();
         }
         
         $bRec = self::fetch((int) $id);
         
         if (!$bRec || ($bRec->state != 'active')) {
+            echo ' ';
             shutdown();
         }
         
@@ -733,12 +735,14 @@ class marketing_Bulletins extends core_Master
         $bid = Request::get('id');
         
         if (!($id = self::checkHashId($bid))) {
+            echo ' ';
             shutdown();
         }
         
         $bRec = self::fetch((int) $id);
         
         if (!$bRec || ($bRec->state != 'active')) {
+            echo ' ';
             shutdown();
         }
         
@@ -769,12 +773,14 @@ class marketing_Bulletins extends core_Master
         $bid = Request::get('id');
         
         if (!($id = self::checkHashId($bid))) {
+            echo ' ';
             shutdown();
         }
         
         $bRec = self::fetch((int) $id);
         
         if (!$bRec || ($bRec->state != 'active')) {
+            echo ' ';
             shutdown();
         }
         
@@ -805,12 +811,15 @@ class marketing_Bulletins extends core_Master
             
             self::setCookieToNo($id);
             
+            echo ' ';
             shutdown();
         }
         
         $cookieName = self::getCookieName($id);
         if ($_COOKIE[$cookieName] == 'no') {
             vislog_History::add('Не показана форма за бюлетина (nlst=no)');
+            
+            echo ' ';
             shutdown();
         }
         
@@ -894,6 +903,7 @@ class marketing_Bulletins extends core_Master
         $bid = Request::get('id');
         
         if (!($id = self::checkHashId($bid))) {
+            echo ' ';
             shutdown();
         }
         

@@ -2,7 +2,7 @@
 /**
  * Стандартна тема за външната част
  *
- * @title     Разчупена CMS тема
+ * @title     Широка CMS тема
  *
  * @category  bgerp
  * @package   cms
@@ -66,7 +66,7 @@ class cms_FancyTheme extends core_ProtoInner
     {
         // Добавяме заглавната картика
         $tpl->replace($this->getHeaderImg(), 'HEADER_IMG');
-        
+
         // Добавяме заглавния текст
         $title = $this->innerForm->title;
         if (!$this->haveOwnHeaderImages && !$title) {
@@ -291,11 +291,12 @@ class cms_FancyTheme extends core_ProtoInner
                 $this->haveOwnHeaderImages = true;
             }
         }
-        
 
-        
+
+
         $conf = core_Packs::getConfig('core');
-        
+        $hImage = ht::createElement('img', array('src' => $imageURL, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg'));
+
         return $hImage;
     }
 }

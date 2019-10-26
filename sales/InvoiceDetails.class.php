@@ -73,6 +73,12 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     
     
     /**
+     * Полета, които се експортват
+     */
+    public $exportToMaster = 'quantity, productId=code|name';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
