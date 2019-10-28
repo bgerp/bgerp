@@ -2081,9 +2081,9 @@ a.tOld {
 	right: 2px;
 	transform: rotate(10deg);
 	margin-top: 10px;
-}
 
-.narrow .approved {
+
+.narrow .approved, .no-transform {
 	transform: rotate(0deg);
 	top: 0;
 }
