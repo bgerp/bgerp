@@ -554,10 +554,6 @@ class sales_QuotationsDetails extends doc_Detail
                     $price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
                     $rec->price = $price;
                 }
-                
-                if ($form->cmd == 'save_new_row') {
-                    unset($rec->id);
-                }
             }
             
             // При редакция, ако е променена опаковката слагаме преудпреждение
@@ -581,6 +577,12 @@ class sales_QuotationsDetails extends doc_Detail
                 
                 if ($rec->productId) {
                     sales_TransportValues::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId', 'countryId' => 'contragentCountryId'));
+                }
+            }
+            
+            if (!$form->gotErrors()) {
+                if ($form->cmd == 'save_new_row') {
+                    unset($rec->id);
                 }
             }
         }
