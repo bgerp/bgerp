@@ -275,12 +275,10 @@
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        $measure = cat_UoM::getShortName($dRec->measureId);
-        $res->full = $dRec->code.','.
-                     $dRec->name.','.
-                     $dRec->dim.','.
-                     $measure
-                     ;
+        $row->code = $dRec->code;
+        $row->name = $dRec->name;
+        $row->dim = $dRec->dim;
+        $row->measureId = cat_UoM::getShortName($dRec->measureId);
         
     }
     

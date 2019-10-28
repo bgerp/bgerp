@@ -131,4 +131,23 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     {
         return new core_ET('');
     }
+    
+    
+    /**
+     * Добавя промени по изгледа на количката във външната част
+     *
+     * @param stdClass $termRec
+     * @param stdClass $cartRec
+     * @param stdClass $cartRow
+     * @param core_ET $tpl
+     *
+     * @return boolean
+     */
+    public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
+    {
+        $block = new core_ET(tr("|*<div>|Безплатна доставка на територията на България|*</div>"));
+        $tpl->append($block, 'CART_FOOTER');
+        
+        return true;
+    }
 }

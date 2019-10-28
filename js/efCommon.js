@@ -2045,7 +2045,7 @@ function appendQuote(id, line) {
         	if (text.length) {
         	
 	        	var textSplit = text.split("\n");
-	        	
+
 	        	// Вземаме манипулатора на документа
 	            selHandle = sessionStorage.getItem('selHandle');
 	        	
@@ -2086,6 +2086,7 @@ function appendQuote(id, line) {
 	        	newText.push(lastVal + "[/bQuote]");
 	        	
 	        	quoteText = newText.join("\n");
+
 	        }
         }
 	}
@@ -2158,7 +2159,7 @@ function getType (val) {
  * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
  */
 function refreshForm(form, removeFields) {
-
+	
 	// Добавяме команда за рефрешване на формата
 	addCmdRefresh(form);
 
@@ -2238,7 +2239,7 @@ function updateTab(bodyId, url) {
         cache: false,
         dataType: 'json',
         success: function(data) {
-                        for (cssFile of data.css) {
+                        for (cssFile in data.css) {
                             console.log("start: " + cssFile);
                             console.log($("link[href*='" + cssFile + "']"));
                             if($("link[href*='" + cssFile + "']").length == 0) {
@@ -2246,7 +2247,7 @@ function updateTab(bodyId, url) {
                                 $('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', cssFile) );
                             }
                         }
-                        for (jsFile of data.js) {
+                        for (jsFile in data.js) {
                             console.log("start: " + jsFile);
                             console.log($("script[src*='" + jsFile + "']"));
                             if($("script[src*='" + jsFile + "']").length == 0) {

@@ -152,7 +152,14 @@ class export_Export extends core_Mvc
         }
         $suggestions = rtrim($suggestions, ',');
         
-        $form->FNC('type', "enum({$suggestions})", 'maxRadio=10, caption=Вид, input, mandatory');
+        $form->FNC('type', "enum({$suggestions})", 'maxRadio=10, caption=Вид, input, mandatory,silent,removeAndRefreshForm');
+        $form->input(null, 'silent');
+        
+        // Ако е избран драйвер, той може да добавя полета за параметри на формата
+        if($type = $form->rec->type){
+            $intfCls = cls::getInterface('export_ExportTypeIntf', $type);
+            $intfCls->addParamFields($form, $classId, $docId);
+        }
         
         $form->input();
         
