@@ -2371,6 +2371,7 @@ pre.document {
 	border:solid 1px white;
 	color:white;
 	padding:1px;
+	white-space: nowrap;
 	&.weightTag {
 		background-color:black;
 	}
