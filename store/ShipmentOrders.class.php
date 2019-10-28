@@ -318,6 +318,8 @@ class store_ShipmentOrders extends store_DocumentMaster
             
             if($rec->state != 'pending'){
                 unset($row->storeReadiness);
+            } else {
+                $row->storeReadiness = isset($row->storeReadiness) ? $row->storeReadiness : "<span class='quiet'>N/A</span>";
             }
             
             if(Mode::isReadOnly()){

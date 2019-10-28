@@ -1882,7 +1882,7 @@ abstract class deals_Helper
             $style = "#weight{$rec->containerId}:after{content: '$weightVerbal'} ";
 
             // Колко е готовността от склада
-            $readinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($rec->storeReadiness);
+            $readinessVerbal = (isset($rec->storeReadiness)) ? core_Type::getByName('percent(smartRound)')->toVerbal($rec->storeReadiness) : 'N/A';
             $string .= "<span id='percent{$rec->containerId}' class='enTag percent' title='Наличност в склада'></span>";
             $style .= "#percent{$rec->containerId}:after{content: '$readinessVerbal'} ";
             
