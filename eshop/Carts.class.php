@@ -1522,6 +1522,8 @@ class eshop_Carts extends core_Master
         $data->productRecs = $data->productRows = array();
         $dQuery = eshop_CartDetails::getQuery();
         $dQuery->where("#cartId = {$data->rec->id}");
+        $dQuery->orderBy('id', 'ASC');
+        
         while ($dRec = $dQuery->fetch()) {
             $data->recs[$dRec->id] = $dRec;
             $row = eshop_CartDetails::recToVerbal($dRec, $fields);
