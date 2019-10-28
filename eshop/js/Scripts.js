@@ -117,7 +117,7 @@ function eshopActions() {
 		$(this).removeClass('inputError');
 		var packQuantity = $(this).val();
 		
-		var max = $(this).attr("data-maxquantity");
+		var max = parseFloat($(this).attr("data-maxquantity"));
 		
 		var aboveMax = max && parseFloat(packQuantity) > parseFloat(max);
 		
@@ -157,26 +157,24 @@ function eshopActions() {
 	// Бутоните за +/- да променят количеството
 	$(document.body).on('click tap', ".btnUp, .btnDown",  function(){
 		var input = $(this).siblings('.option-quantity-input');
-		
-		var max = input.attr("data-maxquantity");
-		
+
+		var max = parseFloat(input.attr("data-maxquantity"));
 		var val = parseFloat($(input).val());
 		var step = $(this).hasClass('btnUp') ? 1 : -1;
 		var valNew = parseFloat(val) + parseFloat(step);
         var update = $(input).hasClass('autoUpdate');
-		
+
 		if (valNew > 0 && (!max || step == -1 || (max && val + step <= max))) {
-			
-			val = valNew.toString();
-			valNew.toFixed(2);
-			
 			$(input).val(valNew);
             if(update) {
 			    $(input).css( "color", "green");
                 $("#cart-view-table").css("cursor", "progress");
             }
 			changeInputWidth();
-			if(max > 0 && val >= max) return;
+			if(max > 0 && valNew >= max)  {
+				$(this).addClass('quiet');
+				return;
+			}
 		}
         
         if(update) {
