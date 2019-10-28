@@ -319,10 +319,18 @@ class eshop_Carts extends core_Master
                 
                 $settings = cms_Domains::getSettings();
                 $addText = new core_ET($settings->addProductText);
+                
+                $cartName = self::getCartDisplayName();
+                $cartName = ht::createLink($cartName, array('eshop_Carts', 'view', $cartId), false, "class=eshop-card-add-item-status");
+                
+                $addText->append($cartName, 'cartName');
                 $addText->append($packagingName, 'packagingId');
                 $addText->append($productName, 'productName');
                 $addText->append($packQuantity, 'packQuantity');
-
+                
+                //bp($rec);
+                $addText->append($packQuantity, 'packQuantity');
+                
                 $msg = $addText->getContent();
                 $success = true;
                 
