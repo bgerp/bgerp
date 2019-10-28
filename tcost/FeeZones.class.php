@@ -413,4 +413,20 @@ class tcost_FeeZones extends core_Master
         
         return $tpl;
     }
+    
+    
+    /**
+     * Добавя промени по изгледа на количката във външната част
+     *
+     * @param stdClass $termRec
+     * @param stdClass $cartRec
+     * @param stdClass $cartRow
+     * @param core_ET $tpl
+     *
+     * @return boolean
+     */
+    public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
+    {
+        return false;
+    }
 }

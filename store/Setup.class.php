@@ -8,6 +8,12 @@ defIfNot('STORE_ACC_ACCOUNTS', '');
 
 
 /**
+ * Групиране на тарифните номера по част от него
+ */
+defIfNot('STORE_TARIFF_NUMBER_LENGTH', '8');
+
+
+/**
  * class store_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -108,6 +114,7 @@ class store_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'STORE_ACC_ACCOUNTS' => array('acc_type_Accounts(regInterfaces=store_AccRegIntf|cat_ProductAccRegIntf)', 'caption=Складова синхронизация със счетоводството->Сметки'),
+        'STORE_TARIFF_NUMBER_LENGTH' => array('int', 'caption=Групиране на тарифните номера по част от него->Първите,unit=цифри'),
     );
     
     
@@ -129,6 +136,15 @@ class store_Setup extends core_ProtoSetup
             'controller' => 'store_Products',
             'action' => 'CalcReservedQuantity',
             'period' => 1,
+            'offset' => 0,
+            'timeLimit' => 100
+        ),
+        array(
+            'systemId' => 'Update Shipment Document Readiness',
+            'description' => 'Обновяване на готовността на складовите документи на заявка',
+            'controller' => 'store_Products',
+            'action' => 'UpdateShipmentDocumentReadiness',
+            'period' => 3,
             'offset' => 0,
             'timeLimit' => 100
         ),

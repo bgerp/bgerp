@@ -1854,4 +1854,46 @@ abstract class deals_Helper
         
         return array('notActive' => $errorNotActive, 'metasError' => $errorMetas);
     }
+    
+    
+    /**
+     * Допълнителен индикатор на складовите документи на заявка
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @return string|NULL
+     */
+    public static function getShipmentDocumentPendingIndicator($mvc, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        expect($mvc instanceof store_ShipmentOrders || $mvc instanceof store_Transfers);
+        
+        // Ако документа е на заявка
+        if($rec->state == 'pending'){
+            $transInfo = cls::get($mvc->mainDetail)->getTransportInfo($rec);
+            
+            // Колко е общото тегло
+            $weightVerbal = !empty($transInfo->weight) ? core_Type::getByName('cat_type_Weight')->toVerbal($transInfo->weight) : 'N/A';
+            $string = "<span class='enTag weightTag' title='Общо тегло на документа'></span>";
+            $style = ".enTag.weightTag:after{content: '$weightVerbal'} ";
+
+            // Колко е готовността от склада
+            $readinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($rec->storeReadiness);
+            $string .= "<span class='enTag percent' title='Наличност в склада'></span>";
+            $style .= ".enTag.percent:after{content: '$readinessVerbal'} ";
+            
+            // Ако има зони, колко % е готово от зоната
+            $zoneReadiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
+            if(isset($zoneReadiness)){
+                $zoneReadinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($zoneReadiness);
+                $string .= "<span class='enTag zone' title='Колко е нагласено в зоната'></span>";
+                $style .= ".enTag.zone:after{content: '$zoneReadinessVerbal'} ";
+            }
+
+            $string = "<style>" . $style . "</style><span class='tags'>" . $string . "</span>";
+            return $string;
+        }
+        
+        return null;
+    }
 }

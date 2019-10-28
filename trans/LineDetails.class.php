@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,collection=Инкасиране,status,notes=@,documentHtml=@';
+    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,collection=Инкасиране,status,notes=@,address=@,documentHtml=@';
     
     
     /**
@@ -233,8 +233,8 @@ class trans_LineDetails extends doc_Detail
         }
         
         if (!empty($transportInfo['address'])) {
-            $address = core_Type::getByName('varchar')->toVerbal($transportInfo['address']);
-            $row->storeId .= "<br><span class='line-detail-address'>{$address}</span>";
+            $row->address = core_Type::getByName('varchar')->toVerbal($transportInfo['address']);
+            $row->address = "<span class='line-detail-address'>{$row->address}</span>";
         }
         
         if (!empty($transportInfo['weight'])) {

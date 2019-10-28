@@ -413,13 +413,14 @@ class sales_Proformas extends deals_InvoiceMaster
             $amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount;
             $amount /= $rec->rate;
             $amount = round($amount, 2);
+            $originId = isset($rec->originId) ? $rec->originId : doc_Threads::getFirstContainerId($rec->threadId);
             
             if (cash_Pko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
-                $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $rec->originId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер към проформата');
+                $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $originId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер към проформата');
             }
             
             if (bank_IncomeDocuments::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
-                $data->toolbar->addBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $rec->originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ към проформата');
+                $data->toolbar->addBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ към проформата');
             }
         }
     }

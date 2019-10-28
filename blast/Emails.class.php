@@ -2114,7 +2114,11 @@ class blast_Emails extends core_Master
                 }
                 
                 if (!isset($nextStartDay)) {
-                    $nextStartDay = 7 + min($sendingArr);
+                    if (!empty($sendingArr)) {
+                        $nextStartDay = 7 + min($sendingArr);
+                    } else {
+                        $nextStartDay = $dayOfWeek;
+                    }
                 }
             }
             
