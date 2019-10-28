@@ -49,8 +49,9 @@ class rack_plg_Shipments extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($zoneId = rack_Zones::fetch("#containerId = {$rec->containerId}")){
-            $row->zoneId = rack_Zones::getHyperlink($zoneId);
+        if ($zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId}")){
+            $row->zoneId = rack_Zones::getHyperlink($zoneRec);
+            $row->zoneReadiness = rack_Zones::getVerbal($zoneRec, 'readiness');
         }
     }
     
