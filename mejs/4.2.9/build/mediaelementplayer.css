@@ -107,7 +107,7 @@ Reference: http://blog.rrwd.nl/2015/04/04/the-screen-reader-text-class-why-and-h
 }
 
 .mejs__poster {
-    background-position: 50% 50%;
+    background-position: 50% 50% !important;
     background-repeat: no-repeat;
     background-size: cover;
     left: 0;
@@ -153,13 +153,13 @@ Reference: http://blog.rrwd.nl/2015/04/04/the-screen-reader-text-class-why-and-h
 
 .mejs__overlay-button {
     background: url('mejs-controls.svg') no-repeat;
-    background-position: 0 -39px;
+    background-position: 0 -39px !important;
     height: 80px;
     width: 80px;
 }
 
 .mejs__overlay:hover > .mejs__overlay-button {
-    background-position: -80px -39px;
+    background-position: -80px -39px !important;
 }
 
 .mejs__overlay-loading {
@@ -228,7 +228,7 @@ Reference: http://blog.rrwd.nl/2015/04/04/the-screen-reader-text-class-why-and-h
 
 .mejs__button > button {
     background: transparent url('mejs-controls.svg');
-    border: 0;
+    border: 0 !important;
     cursor: pointer;
     display: block;
     font-size: 0;
@@ -240,6 +240,7 @@ Reference: http://blog.rrwd.nl/2015/04/04/the-screen-reader-text-class-why-and-h
     position: absolute;
     text-decoration: none;
     width: 20px;
+    box-shadow: none;
 }
 
 /* :focus for accessibility */
@@ -275,15 +276,15 @@ Reference: http://blog.rrwd.nl/2015/04/04/the-screen-reader-text-class-why-and-h
 
 /* Start: Play/Pause/Stop */
 .mejs__play > button {
-    background-position: 0 0;
+    background-position: 0 0 !important;
 }
 
 .mejs__pause > button {
-    background-position: -20px 0;
+    background-position: -20px 0 !important;
 }
 
 .mejs__replay > button {
-    background-position: -160px 0;
+    background-position: -160px 0 !important;
 }
 
 /* End: Play/Pause/Stop */
@@ -334,19 +335,19 @@ Reference: http://blog.rrwd.nl/2015/04/04/the-screen-reader-text-class-why-and-h
 
 @-webkit-keyframes buffering-stripes {
     from {
-        background-position: 0 0;
+        background-position: 0 0 !important;
     }
     to {
-        background-position: 30px 0;
+        background-position: 30px 0 !important;
     }
 }
 
 @keyframes buffering-stripes {
     from {
-        background-position: 0 0;
+        background-position: 0 0 !important;
     }
     to {
-        background-position: 30px 0;
+        background-position: 30px 0 !important;
     }
 }
 
@@ -494,22 +495,22 @@ Reference: http://blog.rrwd.nl/2015/04/04/the-screen-reader-text-class-why-and-h
 
 /* Start: Fullscreen */
 .mejs__fullscreen-button > button {
-    background-position: -80px 0;
+    background-position: -80px 0 !important;
 }
 
 .mejs__unfullscreen > button {
-    background-position: -100px 0;
+    background-position: -100px 0 !important;
 }
 
 /* End: Fullscreen */
 
 /* Start: Mute/Volume */
 .mejs__mute > button {
-    background-position: -60px 0;
+    background-position: -60px 0 !important;
 }
 
 .mejs__unmute > button {
-    background-position: -40px 0;
+    background-position: -40px 0 !important;
 }
 
 .mejs__volume-button {
@@ -618,11 +619,11 @@ Reference: http://blog.rrwd.nl/2015/04/04/the-screen-reader-text-class-why-and-h
 }
 
 .mejs__captions-button > button {
-    background-position: -140px 0;
+    background-position: -140px 0 !important;
 }
 
 .mejs__chapters-button > button {
-    background-position: -180px 0;
+    background-position: -180px 0 !important;
 }
 
 .mejs__captions-button > .mejs__captions-selector,
