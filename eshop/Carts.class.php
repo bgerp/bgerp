@@ -328,9 +328,6 @@ class eshop_Carts extends core_Master
                 $addText->append($productName, 'productName');
                 $addText->append($packQuantity, 'packQuantity');
                 
-                //bp($rec);
-                $addText->append($packQuantity, 'packQuantity');
-                
                 $msg = $addText->getContent();
                 $success = true;
                 
