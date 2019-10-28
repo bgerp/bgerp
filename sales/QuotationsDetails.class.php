@@ -569,8 +569,8 @@ class sales_QuotationsDetails extends doc_Detail
             }
             
             if (!$form->gotErrors()) {
-                if(deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes)){
-                    $form->setError('productId,packagingId,packPrice,discount,notes', 'Има въведен ред със същите данни');
+                if(deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
+                    $form->setError('productId,packagingId,packPrice,discount,notes,packQuantity', 'Има въведен ред със същите данни');
                 }
                 
                 if (isset($masterRec->deliveryPlaceId)) {

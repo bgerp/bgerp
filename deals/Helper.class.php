@@ -563,7 +563,7 @@ abstract class deals_Helper
      *
      * @return FALSE|stdClass
      */
-    public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = null, $term = null, $batch = null, $expenseItemId = null, $notes = null)
+    public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = null, $term = null, $batch = null, $expenseItemId = null, $notes = null, $quantity = null)
     {
         $cond = "#{$mvc->masterKey} = ${masterId}";
         $vars = array('productId' => $productId, 'packagingId' => $packagingId, 'price' => $price, 'discount' => $discount);
@@ -597,6 +597,10 @@ abstract class deals_Helper
             } else {
                 $cond .= ' AND #expenseItemId IS NULL';
             }
+        }
+        
+        if(isset($quantity)){
+            $cond .= " AND #quantity = '{$quantity}'";
         }
         
         // Ако има забележки
