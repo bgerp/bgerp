@@ -12,9 +12,7 @@
          <div class="textInfo">
             <div>[#VAT_STATUS#]</div>
 
-            <!--ET_BEGIN freeDelivery-->
-            <div>|Безплатна доставка за поръчки над|* <b>[#freeDelivery#]</b> [#freeDeliveryCurrencyId#].</div>
-            <!--ET_END freeDelivery-->
+            [#CART_FOOTER#]
             
             <!--ET_BEGIN deliveryZero-->
             <div>|Безплатна доставка, съгласно "Общите условия"|* [#deliveryZero#]</div>

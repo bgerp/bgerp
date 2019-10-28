@@ -329,4 +329,34 @@ class cond_DeliveryTerms extends core_Master
             $res = 'no_one';
         }
     }
+    
+    
+    /**
+     * Модификация на изгледа на количката в е-шоп
+     *
+     * @param int $id
+     * @param stdClass $cartRec
+     * @param stdClass $cartRow
+     * @param core_ET $tpl
+     *
+     * @return void
+     */
+    public static function addToCartView($id, $cartRec, $cartRow, &$tpl)
+    {
+        $rec = self::fetchRec($id);
+        
+        $addedFromCalculator = false;
+        $Calculator = self::getTransportCalculator($rec);
+        if($Calculator){
+            $addedFromCalculator = $Calculator->addToCartView($rec, $cartRec, $cartRow, $tpl);
+        }
+        
+        if($addedFromCalculator !== true){
+            $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>|Печелите безплатна доставка, защото поръчката ви надвишава|* <b>[#freeDelivery#]</b> [#freeDeliveryCurrencyId#].</div><!--ET_END freeDelivery-->"));
+            $block->append($cartRow->freeDelivery, 'freeDelivery');
+            $block->append($cartRow->freeDeliveryCurrencyId, 'freeDeliveryCurrencyId');
+            
+            $tpl->append($block, 'CART_FOOTER');
+        }
+    }
 }

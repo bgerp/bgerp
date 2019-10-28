@@ -119,9 +119,9 @@ function eshopActions() {
 		
 		var max = $(this).attr("data-maxquantity");
 		
-		$aboveMax = max && parseFloat(packQuantity) > parseFloat(max);
+		var aboveMax = max && parseFloat(packQuantity) > parseFloat(max);
 		
-		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1 || $aboveMax)){
+		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1 || aboveMax)){
 			$(this).addClass('inputError');
 		} else {
 			$(this).removeClass('inputError');

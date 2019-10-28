@@ -315,6 +315,12 @@ class store_ShipmentOrders extends store_DocumentMaster
                 $row->inlineContragentAddress = $row->inlineDeliveryAddress;
             }
             $row->toCompany = $logisticData['toCompany'];
+            
+            if($rec->state == 'pending'){
+                
+                
+                //bp($row);
+            }
         }
         
         core_Lg::pop();

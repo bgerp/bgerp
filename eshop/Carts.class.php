@@ -1378,7 +1378,6 @@ class eshop_Carts extends core_Master
         }
         
         $row->amount = $Double->toVerbal($amountWithoutDelivery);
-        
         $row->amountCurrencyId = $row->currencyId;
         
         if($settings->chargeVat != 'yes'){
@@ -1389,6 +1388,14 @@ class eshop_Carts extends core_Master
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
         unset($row->invoiceVatNo);
         $tpl->placeObject($row);
+        
+        if(isset($rec->paymentId)){
+            cond_PaymentMethods::addToCartView($rec->paymentId, $rec, $row, $tpl);
+        }
+        
+        if(isset($rec->termId)){
+            cond_DeliveryTerms::addToCartView($rec->termId, $rec, $row, $tpl);
+        }
         
         return $tpl;
     }
