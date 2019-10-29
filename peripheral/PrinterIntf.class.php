@@ -19,16 +19,4 @@ class peripheral_PrinterIntf extends peripheral_DeviceIntf
      * Инстанция на класа имплементиращ интерфейса
      */
     public $class;
-    
-    
-    /**
-     * Отпечатва подадени текст
-     * 
-     * @param stdClass $rec
-     * @param string $text
-     */
-    public function getJS($rec, $text)
-    {
-        return $this->class->getJS($rec, $text);
-    }
 }
