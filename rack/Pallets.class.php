@@ -67,7 +67,7 @@ class rack_Pallets extends core_Manager
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'closedOn';
+    public $hideListFieldsIfEmpty = 'closedOn,batch';
     
     
     /**
@@ -612,8 +612,6 @@ class rack_Pallets extends core_Manager
                         }
                         $row->batch = ht::createLink($row->batch, $link);
                     }
-                } else {
-                    $row->batch = "<span class='quiet'>" . tr('Няма') . "</span>";
                 }
             }
         }
