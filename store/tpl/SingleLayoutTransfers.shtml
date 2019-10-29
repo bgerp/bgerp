@@ -14,12 +14,12 @@
             <!--ET_END state-->
             
             <!--ET_BEGIN storeReadiness-->
-               <div class="pending-document-block"><span class='pending-document-block-caption'>|Налично в склад|*</span>: <span class='pending-document-block-instock'>[#storeReadiness#]</span></div>
-               <!--ET_END storeReadiness-->
-               
-               <!--ET_BEGIN zoneReadiness-->
-               <div class="pending-document-block"><span class='pending-document-block-caption'>|В зона|* [#zoneId#]</span>: <span class='pending-document-block-readiness'>[#zoneReadiness#]</span></div>
-               <!--ET_END zoneReadiness-->
+            <div class="document-block"><span class='block-caption'>|Налично в склад|*</span>: <span class='block-instock'>[#storeReadiness#]</span></div>
+            <!--ET_END storeReadiness-->
+
+            <!--ET_BEGIN zoneReadiness-->
+            <div class="document-block"><span class='block-caption'>|В зона|* [#zoneId#]</span>: <span class='block-readiness'>[#zoneReadiness#]</span></div>
+            <!--ET_END zoneReadiness-->
          </td>
          <td class="cell custom-header-bg vtop" style='width:33%;'><b>|До склад|*</b></td>
       </tr>
