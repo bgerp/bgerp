@@ -206,7 +206,7 @@ class rack_Pallets extends core_Manager
                 continue;
             }
             
-            list($n, $r, ) = explode('-', $pos);
+            list($n, $r, ) = rack_PositionType::toArray($pos);
             
             if($r == 'A') {
                 $inFirstRow++;
@@ -341,7 +341,20 @@ class rack_Pallets extends core_Manager
         core_Cache::remove('UsedRacksPossitions', $rec->storeId);
     }
     
-    
+
+    /**
+     * Ако има указана позиция, използва я, като заявка за търсене
+     */
+    public function prepareListFilter_($data)
+    {
+        if($pos = Request::get('pos')) {
+            Request::push(array('search' => $pos));
+        }
+
+        return parent::prepareListFilter_($data);
+    }
+
+
     /**
      * Добавя филтър към перата
      *
@@ -439,7 +452,7 @@ class rack_Pallets extends core_Manager
         expect(rack_Racks::isPlaceUsable($position, $productId, $storeId, $batch, $error), $error);
         $rec = (object) array('productId' => $productId, 'storeId' => $storeId, 'label' => $label, 'position' => $position, 'quantity' => $quantity, 'state' => 'active', 'batch' => $batch);
         
-        list($num, , ) = explode('-', $rec->position);
+        list($num, , ) = rack_PositionType::toArray($rec->position);
         $rRec = rack_Racks::getByNum($num);
         $rec->rackId = $rRec->id;
         
@@ -527,7 +540,7 @@ class rack_Pallets extends core_Manager
                 continue;
             }
             
-            list($n, $r, $c) = explode('-', $rec->position);
+            list($n, $r, $c) = rack_PositionType::toArray($rec->position);
             if ($r > $row || $c > $col) {
                 $error = 'Има използвани палети извън тези размери';
                 
@@ -542,7 +555,7 @@ class rack_Pallets extends core_Manager
                 continue;
             }
             
-            list(, $r, $c) = explode('-', $mRec->positionTo);
+            list(, $r, $c) = rack_PositionType::toArray($mRec->positionTo);
             if ($r > $row || $c > $col) {
                 $error = 'Има насочени движения извън тези размери';
                 
@@ -600,7 +613,7 @@ class rack_Pallets extends core_Manager
                         $row->batch = ht::createLink($row->batch, $link);
                     }
                 } else {
-                    $row->batch = "<span class='quiet'>" . tr('Без партида') . "</span>";
+                    $row->batch = "<span class='quiet'>" . tr('Няма') . "</span>";
                 }
             }
         }
@@ -642,6 +655,10 @@ class rack_Pallets extends core_Manager
             while ($rec = $query->fetch("#storeId = {$storeId} AND #state != 'closed'")) {
                 if ($rec->position) {
                     $res[$rec->position] = (object)array('productId' => $rec->productId, 'batch' => $rec->batch);
+                    if(ord(substr($rec->position, -1)) > ord('9')) {
+                        list($n, $r, $c) = rack_PositionType::toArray($rec->position);
+                        $res["{$n}-{$r}-{$c}*"][] = (object)array('productId' => $rec->productId, 'batch' => $rec->batch);
+                    }
                 }
             }
             core_Cache::set('UsedRacksPossitions', $storeId, $res, 1440);
