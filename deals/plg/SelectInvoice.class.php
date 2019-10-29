@@ -58,7 +58,7 @@ class deals_plg_SelectInvoice extends core_Plugin
             } else {
                 $row->fromContainerId = ht::createLink("#{$Document->getHandle()}", $Document->getSingleUrlArray());
             }
-            $row->fromContainerName = mb_strtolower(tr($Document->singleTitle));
+            $row->fromContainerName = " " . mb_strtolower(tr($Document->singleTitle));
         }
         
         if (!Mode::isReadOnly() && !isset($fields['-list'])) {
