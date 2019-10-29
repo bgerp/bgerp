@@ -2382,6 +2382,21 @@ pre.document {
 		background-color:red;
 	}
 }
+.document-block {
+	font-size: 0.9em;
+	.block-instock {
+		background-color: blue;
+		border:solid 1px white;
+		color:white;
+		font-size: 0.9em;
+	}
+	.block-readiness {
+		background-color:red;
+		border:solid 1px white;
+		color:white;
+		font-size: 0.9em;
+	}
+}
 
 .tags {
 	margin-left: 2px;

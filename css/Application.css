@@ -2039,6 +2039,19 @@ pre.document {
   .enTag.zone {
     background-color: red; }
 
+.document-block {
+  font-size: 0.9em; }
+  .document-block .block-instock {
+    background-color: blue;
+    border: solid 1px white;
+    color: white;
+    font-size: 0.9em; }
+  .document-block .block-readiness {
+    background-color: red;
+    border: solid 1px white;
+    color: white;
+    font-size: 0.9em; }
+
 .tags {
   margin-left: 2px; }
 
