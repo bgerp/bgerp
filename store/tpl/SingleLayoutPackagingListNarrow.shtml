@@ -74,7 +74,7 @@
                         <!--ET_END deliveryTime-->
                        <!--ET_BEGIN fromContainerId-->
                        <tr>
-                           <td colspan='2'><span class='quiet'>To [#fromContainerName#]:</span> [#fromContainerId#]</td>
+                           <td class='quiet aright'>To[#fromContainerName#]:</td><td>[#fromContainerId#]</td>
                        </tr>
                        <!--ET_END fromContainerId-->
                        <!--ET_BEGIN deliveryAddressBlock-->
@@ -94,7 +94,7 @@
                         <!--ET_END lineId-->
                        <!--ET_BEGIN lineNotes-->
                        <tr>
-                           <td colspan=2><hr><span class="quiet">Remarks:</span> [#lineNotes#]</td>
+                           <td class="quiet aright">Remarks:</td><td>[#lineNotes#]</td>
                        </tr>
                        <!--ET_END lineNotes-->
                        <!--ET_BEGIN note-->

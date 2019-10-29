@@ -316,10 +316,14 @@ class store_ShipmentOrders extends store_DocumentMaster
             }
             $row->toCompany = $logisticData['toCompany'];
             
-            if($rec->state == 'pending'){
-                
-                
-                //bp($row);
+            if($rec->state != 'pending'){
+                unset($row->storeReadiness);
+            } else {
+                $row->storeReadiness = isset($row->storeReadiness) ? $row->storeReadiness : "<b class='quiet'>N/A</b>";
+            }
+            
+            if(Mode::isReadOnly()){
+                unset($row->storeReadiness, $row->zoneReadiness);
             }
         }
         
@@ -591,10 +595,14 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     protected function on_AfterGetLink($mvc, &$link, $id, $maxLength = false, $attr = array())
     {
+        
         $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
+        
         if(isset($indicator)){
             if($link instanceof core_ET){
                 $link->append($indicator);
+                $link->removeBlocks();
+                $link->removePlaces();
             } else {
                 $link .= $indicator;
             }

@@ -2077,13 +2077,13 @@ a.tOld {
 
 .wide .approved {
 	position: absolute;
-	top:7px;
+	top: 7px;
 	right: 2px;
 	transform: rotate(10deg);
 	margin-top: 10px;
 }
 
-.narrow .approved {
+.narrow .approved, .no-transform {
 	transform: rotate(0deg);
 	top: 0;
 }
@@ -2371,6 +2371,7 @@ pre.document {
 	border:solid 1px white;
 	color:white;
 	padding:1px;
+	white-space: nowrap;
 	&.weightTag {
 		background-color:black;
 	}

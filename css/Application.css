@@ -1797,7 +1797,8 @@ a.tOld {
   transform: rotate(10deg);
   margin-top: 10px; }
 
-.narrow .approved {
+.narrow .approved,
+.no-transform {
   transform: rotate(0deg);
   top: 0; }
 
@@ -2029,7 +2030,8 @@ pre.document {
   font-size: 0.7em;
   border: solid 1px white;
   color: white;
-  padding: 1px; }
+  padding: 1px;
+  white-space: nowrap; }
   .enTag.weightTag {
     background-color: black; }
   .enTag.percent {

@@ -554,13 +554,9 @@ class sales_QuotationsDetails extends doc_Detail
                     $price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
                     $rec->price = $price;
                 }
-                
-                if ($form->cmd == 'save_new_row') {
-                    unset($rec->id);
-                }
             }
             
-            // При редакция, ако е променена опаковката слагаме преудпреждение
+            // При редакция, ако е променена опаковката слагаме предупреждение
             if ($rec->id) {
                 $oldRec = $mvc->fetch($rec->id);
                 if ($oldRec && $rec->packagingId != $oldRec->packagingId && !empty($rec->packPrice) && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)) {
@@ -568,9 +564,13 @@ class sales_QuotationsDetails extends doc_Detail
                 }
             }
             
+            if ($form->cmd == 'save_new_row') {
+                unset($rec->id);
+            }
+            
             if (!$form->gotErrors()) {
-                if(deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes)){
-                    $form->setError('productId,packagingId,packPrice,discount,notes', 'Има въведен ред със същите данни');
+                if(deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
+                    $form->setError('productId,packagingId,packPrice,discount,notes,packQuantity', 'Има въведен ред със същите данни');
                 }
                 
                 if (isset($masterRec->deliveryPlaceId)) {

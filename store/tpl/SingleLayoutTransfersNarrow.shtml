@@ -14,6 +14,14 @@
                   <span class="bigData">[#valior#]</span>
                   </span>
                </div>
+               
+               <!--ET_BEGIN storeReadiness-->
+               <div class="pending-document-block"><span class='pending-document-block-caption'>|Налично в склад|*</span>: <span class='pending-document-block-instock'>[#storeReadiness#]</span></div>
+               <!--ET_END storeReadiness-->
+               
+               <!--ET_BEGIN zoneReadiness-->
+               <div class="pending-document-block"><span class='pending-document-block-caption'>|В зона|* [#zoneId#]</span>: <span class='pending-document-block-readiness'>[#zoneReadiness#]</span></div>
+               <!--ET_END zoneReadiness-->
             </td>
          </tr>
          <tr>
