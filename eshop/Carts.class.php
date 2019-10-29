@@ -172,7 +172,7 @@ class eshop_Carts extends core_Master
         $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Начин,removeAndRefreshForm=deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|deliveryData,silent,mandatory');
         $this->FLD('deliveryCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,hint=Страна за доставка');
         $this->FLD('deliveryPCode', 'varchar(16)', 'caption=Доставка->П. код,hint=Пощенски код за доставка');
-        $this->FLD('deliveryPlace', 'varchar(64)', 'caption=Доставка->Място,hint=Населено място: град или село и община');
+        $this->FLD('deliveryPlace', 'varchar(64)', 'caption=Доставка->Град,hint=Населено място: град или село и община');
         $this->FLD('deliveryAddress', 'varchar(255)', 'caption=Доставка->Адрес,hint=Вашият адрес');
         $this->FLD('deliveryData', 'blob(serialize, compress)', 'input=none');
         $this->FLD('instruction', 'richtext(rows=2)', 'caption=Доставка->Инструкции');
@@ -319,10 +319,15 @@ class eshop_Carts extends core_Master
                 
                 $settings = cms_Domains::getSettings();
                 $addText = new core_ET($settings->addProductText);
+                
+                $cartName = self::getCartDisplayName();
+                $cartName = ht::createLink($cartName, array('eshop_Carts', 'view', $cartId), false, "class=eshop-card-add-item-status");
+                
+                $addText->append($cartName, 'cartName');
                 $addText->append($packagingName, 'packagingId');
                 $addText->append($productName, 'productName');
                 $addText->append($packQuantity, 'packQuantity');
-
+                
                 $msg = $addText->getContent();
                 $success = true;
                 
@@ -1514,6 +1519,8 @@ class eshop_Carts extends core_Master
         $data->productRecs = $data->productRows = array();
         $dQuery = eshop_CartDetails::getQuery();
         $dQuery->where("#cartId = {$data->rec->id}");
+        $dQuery->orderBy('id', 'ASC');
+        
         while ($dRec = $dQuery->fetch()) {
             $data->recs[$dRec->id] = $dRec;
             $row = eshop_CartDetails::recToVerbal($dRec, $fields);

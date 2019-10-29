@@ -2100,6 +2100,7 @@ en,Факс,Fax
 en,Факсове,Faxes
 en,Фактура за про_288aa,Sale invoice
 en,Фактура,Invoice
+en,фактура,invoice
 en,Фактури за про_aec89,Sales Invoice
 en,Фактури,Invoices
 en,Фактурирани,Invoiced
@@ -2794,7 +2795,7 @@ en,Модел,Model
 en,Въведете IP адреса на устройството,Please input IP address of device
 en,До два месеца след фактуриране,Until 2 months after invoicing
 en,Направете поръчка,Place order
-en,Печелите безплатна доставка, защото поръчката ви надвишава,You win free shipping, because your order is above
+en,"Печелите безплатна доставка, защото поръчката ви надвишава","You win free shipping, because your order is above"
 en,"Безплатна доставка, съгласно ""Общите условия""","Free shipping under the ""Terms of Service"""
 en,Невалиден VAT номер,Invalid VAT ID
 en,Игнорирай предупреждението,Ignore the warning

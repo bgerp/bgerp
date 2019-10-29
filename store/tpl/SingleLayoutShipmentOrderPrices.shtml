@@ -69,7 +69,7 @@
                   <!--ET_END deliveryTime-->
                   <!--ET_BEGIN fromContainerId-->
                   <tr>
-                     <td colspan='2'><span class='quiet'>|Към|* [#fromContainerName#]:</span> [#fromContainerId#]</td>
+                     <td class='quiet aright'>|Към|*[#fromContainerName#]:</td><td>[#fromContainerId#]</td>
                   </tr>
                   <!--ET_END fromContainerId-->
                   <!--ET_BEGIN deliveryAddressBlock-->
@@ -89,7 +89,7 @@
                   <!--ET_END lineId-->
                   <!--ET_BEGIN lineNotes-->
                   <tr>
-                     <td class='quiet nowrap'>|Забележки|*: </td>
+                     <td class='quiet nowrap aright'>|Забележки|*: </td>
                      <td>[#lineNotes#]</td>
                   </tr>
                   <!--ET_END lineNotes-->

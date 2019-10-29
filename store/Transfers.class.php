@@ -205,7 +205,7 @@ class store_Transfers extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,weight,volume,weightInput,volumeInput,deliveryTime,palletCount';
+    public $fieldsNotToClone = 'valior,weight,volume,weightInput,volumeInput,deliveryTime,palletCount,storeReadiness';
     
     
     /**
@@ -316,6 +316,16 @@ class store_Transfers extends core_Master
                 $row->createdOn = $mvc->getVerbal($rec, 'createdOn');
                 $row->title .= "<span class='fright'>" . $row->createdOn . " " . tr('от') . " " .   $row->createdBy . "</span>";
             }
+        }
+        
+        if($rec->state != 'pending'){
+            unset($row->storeReadiness);
+        } else {
+            $row->storeReadiness = isset($rec->storeReadiness) ? $row->storeReadiness : "<b class='quiet'>N/A</b>";
+        }
+        
+        if(Mode::isReadOnly()){
+            unset($row->storeReadiness, $row->zoneReadiness);
         }
     }
     

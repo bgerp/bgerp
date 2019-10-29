@@ -563,7 +563,7 @@ abstract class deals_Helper
      *
      * @return FALSE|stdClass
      */
-    public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = null, $term = null, $batch = null, $expenseItemId = null, $notes = null)
+    public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = null, $term = null, $batch = null, $expenseItemId = null, $notes = null, $quantity = null)
     {
         $cond = "#{$mvc->masterKey} = ${masterId}";
         $vars = array('productId' => $productId, 'packagingId' => $packagingId, 'price' => $price, 'discount' => $discount);
@@ -597,6 +597,10 @@ abstract class deals_Helper
             } else {
                 $cond .= ' AND #expenseItemId IS NULL';
             }
+        }
+        
+        if(isset($quantity)){
+            $cond .= " AND #quantity = '{$quantity}'";
         }
         
         // Ако има забележки
@@ -1874,20 +1878,20 @@ abstract class deals_Helper
             
             // Колко е общото тегло
             $weightVerbal = !empty($transInfo->weight) ? core_Type::getByName('cat_type_Weight')->toVerbal($transInfo->weight) : 'N/A';
-            $string = "<span class='enTag weightTag' title='Общо тегло на документа'></span>";
-            $style = ".enTag.weightTag:after{content: '$weightVerbal'} ";
+            $string = "<span id='weight{$rec->containerId}' class='enTag weightTag' title='Общо тегло на документа'></span>";
+            $style = "#weight{$rec->containerId}:after{content: '$weightVerbal'} ";
 
             // Колко е готовността от склада
-            $readinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($rec->storeReadiness);
-            $string .= "<span class='enTag percent' title='Наличност в склада'></span>";
-            $style .= ".enTag.percent:after{content: '$readinessVerbal'} ";
+            $readinessVerbal = (isset($rec->storeReadiness)) ? core_Type::getByName('percent(smartRound)')->toVerbal($rec->storeReadiness) : 'N/A';
+            $string .= "<span id='percent{$rec->containerId}' class='enTag percent' title='Наличност в склада'></span>";
+            $style .= "#percent{$rec->containerId}:after{content: '$readinessVerbal'} ";
             
             // Ако има зони, колко % е готово от зоната
             $zoneReadiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
             if(isset($zoneReadiness)){
                 $zoneReadinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($zoneReadiness);
-                $string .= "<span class='enTag zone' title='Колко е нагласено в зоната'></span>";
-                $style .= ".enTag.zone:after{content: '$zoneReadinessVerbal'} ";
+                $string .= "<span id='zone{$rec->containerId}' class='enTag zone' title='Колко е нагласено в зоната'></span>";
+                $style .= "#zone{$rec->containerId}.zone:after{content: '$zoneReadinessVerbal'} ";
             }
 
             $string = "<style>" . $style . "</style><span class='tags'>" . $string . "</span>";
