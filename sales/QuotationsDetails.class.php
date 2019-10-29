@@ -556,12 +556,16 @@ class sales_QuotationsDetails extends doc_Detail
                 }
             }
             
-            // При редакция, ако е променена опаковката слагаме преудпреждение
+            // При редакция, ако е променена опаковката слагаме предупреждение
             if ($rec->id) {
                 $oldRec = $mvc->fetch($rec->id);
                 if ($oldRec && $rec->packagingId != $oldRec->packagingId && !empty($rec->packPrice) && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)) {
                     $form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената|*.<br />|Сигурни ли сте, че зададената цена отговаря на  новата опаковка|*?');
                 }
+            }
+            
+            if ($form->cmd == 'save_new_row') {
+                unset($rec->id);
             }
             
             if (!$form->gotErrors()) {
@@ -577,12 +581,6 @@ class sales_QuotationsDetails extends doc_Detail
                 
                 if ($rec->productId) {
                     sales_TransportValues::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId', 'countryId' => 'contragentCountryId'));
-                }
-            }
-            
-            if (!$form->gotErrors()) {
-                if ($form->cmd == 'save_new_row') {
-                    unset($rec->id);
                 }
             }
         }
