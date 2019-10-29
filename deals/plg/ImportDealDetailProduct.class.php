@@ -44,6 +44,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         if ($action == 'import') {
             $mvc->requireRightFor('import');
             expect($masterId = Request::get($mvc->masterKey, 'int'));
+            $masterRec = $mvc->Master->fetch($masterId);
             $mvc->requireRightFor('import', (object) array($mvc->masterKey => $masterId));
             
             $mvc->requireRightFor('import');
@@ -55,9 +56,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             // Подготвяме формата
             $form->FLD($mvc->masterKey, "key(mvc={$mvc->Master->className})", 'input=hidden,silent');
             $form->input(null, 'silent');
-            $form->title = 'Импортиране на артикули към|*' . ' <b>' . $mvc->Master->getRecTitle($form->rec->{$mvc->masterKey}) . '</b>';
+            $form->title = 'Импортиране на артикули към|*' . ' <b>' . $mvc->Master->getRecTitle($masterRec) . '</b>';
             $form->FLD('folderId', 'int', 'input=hidden');
-            $form->setDefault('folderId', $mvc->Master->fetchField($form->rec->{$mvc->masterKey}, 'folderId'));
+            $form->setDefault('folderId', $masterRec->folderId);
             
             self::prepareForm($form);
             
