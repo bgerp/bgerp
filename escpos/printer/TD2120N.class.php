@@ -15,7 +15,7 @@
  */
 class escpos_printer_TD2120N extends peripheral_DeviceDriver
 {
-    public $interfaces = 'peripheral_PrinterIntf';
+    public $interfaces = 'escpos_PrinterIntf';
     
     public $title = 'Принтер Brother TD2120N';
     
