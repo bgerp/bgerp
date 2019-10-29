@@ -60,15 +60,18 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=title,single=none');
-        $fieldset->FLD('period', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година)', 'caption=Период, after=storeId,mandatory,single=none');
+        $fieldset->FLD('period', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година)', 'caption=Период, after=storeId,mandatory,single=none,removeAndRefreshForm');
         $fieldset->FLD('minCost', 'double', 'caption=Мин. наличност, after=period,single=none, unit= лв.');
         $fieldset->FLD('reversibility', 'percent(suggestions=1%|5% |10%|20%)', 'caption=Обращаемост, after=minCost,mandatory,single=none');
         
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(name=Артикул, reversibility=Обращаемост,storeAmount=Стойност,storeQuantity=Количество,code=Код)', 'caption=Подреждане по,after=reversibility');
        
+        $fieldset->FLD('soonPeriod', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година)', 'caption=Последни доставки/производства->Период, after=orderBy,mandatory,single=none');
+        $fieldset->FLD('soonQuantity', 'percent(suggestions=10%|20% |30%|50%)', 'caption=Последни доставки/производства->Количество,unit=от наличното, after=soonPeriod,single=none');
+        
+        
         $fieldset->FNC('from', 'date', 'caption=Период->От,after=title,single=none,input = hiden');
         $fieldset->FNC('to', 'date', 'caption=Период->До,after=from,single=none,input = hiden');
     }
@@ -85,11 +88,9 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
-            
             if ($form->rec->minCost < 0) {
                 $form->setError('minCost', 'Наличността трябва да е положително число.');
             }
-            
         }
     }
     
@@ -103,10 +104,25 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
+       
         $form = $data->form;
         $rec = $form->rec;
         
+        $Time = cls::get('type_Time');
+       
         $form->setDefault('orderBy', 'name');
+        $form->setDefault('period', '6 месеца');
+        $form->setDefault('minCost', 1000);
+        $form->setDefault('reversibility', 0.1);
+        
+        $form->input('soonPeriod');
+       
+        $periodSec = ($Time->fromVerbal($rec->period));
+        $shortPeriod = $Time->toVerbal($periodSec/2);
+        
+        $form->setDefault('soonQuantity', 0.5);
+       
+        $form->setDefault('soonPeriod', "{$shortPeriod}");
     }
     
     
@@ -128,7 +144,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         
         $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         
-        $prodArr = $notSelfPrice =  array();
+        $prodArr = $notSelfPrice = array();
         
         while ($pRec = $pQuery->fetch()) {
             $pQuantity = 0;
@@ -136,29 +152,30 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             //Себестойност на артикула
             $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, $pRec->quantity, null);
             
-            if (!$selfPrice){
-                
+            if (!$selfPrice) {
                 array_push($notSelfPrice, $pRec->productId);
+                continue;
             }
-            
             $minCost = $rec->minCost ? $rec->minCost : 0;
-            $pQuantity = store_Products::getQuantity($pRec->productId,$rec->storeId);
+            $pQuantity = store_Products::getQuantity($pRec->productId, $rec->storeId);
             $amount = $pQuantity * $selfPrice;
             $code = $pRec->code ? $pRec->code : 'Art' . $pRec->productId;
             
-            if ($amount  > $minCost) {
-               
+            if ($amount > $minCost) {
+                
                 //Налични артикули на склад
-                $prodArr[$pRec->productId] =(object) array(
+                $prodArr[$pRec->productId] = (object) array(
                     
                     'productId' => $pRec->productId,                //Id на артикула
+                    'selfPrice' => $selfPrice,                      //себестойност на артикула
                     'pQuantity' => $pQuantity,                      //Складова наличност: количество
                     'amount' => $amount,                            //Складова наличност: стойност
                     'code' => $code,                                //код на артикула
-                    
+                
                 );
             }
         }
+        
         foreach (array('sales_Sales','store_ShipmentOrders','planning_DirectProductionNote','planning_ConsumptionNotes') as $val) {
             $docTypeIdArr[] = (core_Classes::getId($val));
         }
@@ -180,27 +197,32 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                 if ($rec->storeId && ($storeId != $rec->storeId)) {
                     continue;
                 }
-              
+                
                 //Обороти дебит на артикулите от журнала, за които записите са от посочените класове
                 $journalProdArr[$productId] += $jRec->creditQuantity;
             }
         }
         
+        //Артикули произведени или доставени скоро
+        $soonDeliveredProds = self::getSoonDeliveredProds($rec, $prodArr);
+           
         foreach ($prodArr as $prod) {
-        
             $id = $prod->productId;
-        
-            $reversibility =$prod->pQuantity ? $journalProdArr[$prod->productId] / $prod->pQuantity :0 ;
             
+            if (is_null($journalProdArr[$prod->productId]) && in_array($prod->productId, $soonDeliveredProds)) {
+                continue;
+            }
+            
+            $reversibility = $prod->pQuantity ? $journalProdArr[$prod->productId] / $prod->pQuantity :0 ;
+        
             if ($reversibility > $rec->reversibility) {
                 continue;
             }
-          
+            
             $storeQuantity = $prod->pQuantity;
             $storeAmount = $prod->amount;
             $totalCreditQuantity = $journalProdArr[$prod->productId];
-            
-            
+           
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object) array(
@@ -228,8 +250,8 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             arr::sortObjects($recs, $orderBy, $order, $typeOrder);
         }
         
-       $recs['self']=(object)array('info'=>true,'array'=>$notSelfPrice);
-       
+        $recs['self'] = (object) array('info' => true,'array' => $notSelfPrice);
+        
         return $recs;
     }
     
@@ -276,14 +298,13 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         
         $row = new stdClass();
         
-        if ($dRec->info){
-            $row->productId ="<b>".'Артикули без себестойност:'."</b></br></br>";
-            foreach ($dRec->array as $val){
-                $row->productId .= cat_Products::getLinkToSingle_($val, 'name')."</br>";
+        if ($dRec->info) {
+            $row->productId = '<b>'.'Артикули без себестойност:'.'</b></br></br>';
+            foreach ($dRec->array as $val) {
+                $row->productId .= cat_Products::getLinkToSingle_($val, 'name').'</br>';
             }
             
             return $row;
-            
         }
         
         if (isset($dRec->code)) {
@@ -315,7 +336,6 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         if (isset($dRec->reversibility)) {
             $row->reversibility = core_Type::getByName('percent(smartRound,decimals=2)')->toVerbal($dRec->reversibility);
         }
-        
         
         return $row;
     }
@@ -354,7 +374,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN storeId-->|Склад|*: [#storeId#]<!--ET_END storeId--></div></small>
-                                <small><div><!--ET_BEGIN minCost-->|Мин. наличност|*: [#minCost#] $currency<!--ET_END minCost--></div></small>
+                                <small><div><!--ET_BEGIN minCost-->|Мин. наличност|*: [#minCost#] ${currency}<!--ET_END minCost--></div></small>
                                 <small><div><!--ET_BEGIN reversibility-->|Мин. обращаемост|*: [#reversibility#]<!--ET_END reversibility--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         if (isset($data->rec->from)) {
@@ -391,5 +411,79 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+    }
+    
+    
+    /**
+     * Кои артикули са произвеждани или доставени през периода soonPeriod в количество повече от soonQuantity
+     *
+     *
+     * @param $prodArr - артикули на склад
+     *
+     * @return array 
+     */
+    private static function getSoonDeliveredProds($rec, $prodArr)
+    {
+        $query = purchase_PurchasesData::getQuery();
+        
+        $from = dt::addSecs(-($rec->soonPeriod), dt::now());
+        $query->where(array("#valior>= '[#1#]' AND #valior <= '[#2#]'",$from,dt::now()));
+        $query->where("#isFromInventory = 'no'");
+        
+        $extractProdArr = arr::extractValuesFromArray($prodArr, 'productId');
+        $query->in('productId', $extractProdArr);
+        
+        foreach (array('purchase_PurchasesDetails','store_ReceiptDetails','acc_ArticleDetails') as $val) {
+            $detClassesId[] = core_Classes::getId($val);
+        }
+        
+        $query->in('detailClassId', $detClassesId);
+        
+        
+        while ($prod = $query->fetch()) {
+            if (doc_Threads::getFirstDocument($prod->threadId)->className == 'purchase_Purchases') {
+                
+                //Артикули които имат доставка през част от периода на стойност заложената част от скл. наличност
+                $deliveredProdInPeriod[$prod->productId] += $prod->quantity * $prodArr[$prod->productId]->selfPrice;
+            }
+        }
+        if (is_array($deliveredProdInPeriod)){
+            foreach ($deliveredProdInPeriod as $key => $val) {
+            if ($val > $rec->minCost*$rec->soonQuantity) {
+                    unset($deliveredProdInPeriod[$key]) ;
+                }
+            }
+        }
+        $query = purchase_PurchasesData::getQuery();
+        
+        
+        //Произведени артикули
+        $planningQuery = planning_DirectProductionNote::getQuery();
+        
+        $planningQuery->where("#state = 'active'");
+        
+        $planningQuery->where(array("#valior>= '[#1#]' AND #valior <= '[#2#]'",$from,dt::now()));
+        
+        $planningQuery->in('productId', $extractProdArr);
+        
+        while ($planningProd = $planningQuery->fetch()) {
+            $planningProdsInPeriod[$planningProd->productId] += $planningProd->quantity * $prodArr[$planningProd->productId]->selfPrice;
+        }
+        
+        $soonDeliveredProds = array();
+        foreach ($planningProdsInPeriod as $key => $val) {
+            $soonDeliveredProds[$key] = $val;
+            if (is_array($deliveredProdInPeriod)){
+                foreach ($deliveredProdInPeriod as $key1 => $val1) {
+                    if ($key == $key1) {
+                        $soonDeliveredProds[$key] += $val1;
+                    } else {
+                        $soonDeliveredProds[$key1] = $val1;
+                    }
+                }
+            }
+        }
+        
+        return $soonDeliveredProds;
     }
 }
