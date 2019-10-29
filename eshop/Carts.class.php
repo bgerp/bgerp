@@ -547,7 +547,7 @@ class eshop_Carts extends core_Master
             $count = core_Type::getByName('int')->toVerbal($cartRec->productCount);
             $url = array('eshop_Carts', 'view', $cartId);
             $str = ($count == 1) ? 'артикул' : 'артикула';
-            $hint = "|*{$count} |{$str} за|* {$amount} " . $settings->currencyId;
+            $hint = "|Поръчайте|* {$count} |{$str} за|* {$amount} " . $settings->currencyId;
             
             if ($count) {
                 $tpl->append(new core_ET("<span class='count'>[#count#]</span>"));
@@ -569,7 +569,7 @@ class eshop_Carts extends core_Master
         $tpl->replace($count, 'count');
         
         $currentTab = Mode::get('currentExternalTab');
-        $selectedClass = ($currentTab == 'eshop_Carts') ? 'class=selected-external-tab' : ' ';
+        $selectedClass = ($currentTab == 'eshop_Carts') ? 'class=selected-external-tab cardLink' : ' ';
         $tpl = ht::createLink($tpl, $url, false, "title={$hint}, ef_icon=img/16/cart-black.png,{$selectedClass},rel=nofollow");
         
         $tpl->removeBlocks();

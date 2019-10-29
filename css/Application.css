@@ -2960,6 +2960,9 @@ span.sharing-history-title {
   max-width: 100%;
   margin: 5px 0 10px; }
 
+#cart-external-status .cardLink {
+  font-weight: bold; }
+
 #cart-external-status .count {
   border: 1px solid #526b00;
   background-color: #698900;
@@ -2973,10 +2976,23 @@ span.sharing-history-title {
   display: inline-block;
   position: relative;
   margin-left: 2px;
-  top: -6px; }
+  top: -6px;
+  animation: blink 1s linear infinite; }
   #cart-external-status .count a {
     padding-top: 5px; }
 
+@keyframes blink {
+    0% {
+    opacity: 0; }
+
+
+    50% {
+    opacity: 0.5; }
+
+
+    100% {
+    opacity: 1; }
+ }
 .eshop-product>table {
   width: 100%; }
 
