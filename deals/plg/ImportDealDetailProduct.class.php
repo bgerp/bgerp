@@ -56,7 +56,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             // Подготвяме формата
             $form->FLD($mvc->masterKey, "key(mvc={$mvc->Master->className})", 'input=hidden,silent');
             $form->input(null, 'silent');
-            $form->title = 'Импортиране на артикули към|*' . ' <b>' . $mvc->Master->getRecTitle($masterRec) . '</b>';
+            $form->title = 'Импортиране на артикули към|*' . ' <b>' . $mvc->Master->getFormTitleLink($masterRec) . '</b>';
             $form->FLD('folderId', 'int', 'input=hidden');
             $form->setDefault('folderId', $masterRec->folderId);
             
