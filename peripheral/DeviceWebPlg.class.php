@@ -16,8 +16,6 @@
  */
 class peripheral_DeviceWebPlg extends core_Plugin
 {
-    
-    
     /**
      * След полетата за добавяне
      *
@@ -47,35 +45,35 @@ class peripheral_DeviceWebPlg extends core_Plugin
         $dQuery->where("#type = 'login'");
         $dQuery->where(array("#classCrc = '[#1#]'"), log_Classes::getClassCrc('core_Users'));
         $dQuery->where(array("#time >= '[#1#]'", $time));
-
+        
         $dQuery->EXT('bridStr', 'log_Browsers', 'externalName=brid,externalKey=brId');
         $dQuery->EXT('ipStr', 'log_Ips', 'externalName=ip,externalKey=ipId');
         $dQuery->EXT('roles', 'core_Users', 'externalName=roles,externalKey=objectId');
-
+        
         $pu = core_Roles::fetchByName('powerUser');
-
+        
         $dQuery->like("roles", type_Keylist::fromArray(array($pu => $pu)));
-
+        
         $dQuery->orderBy('time', 'DESC');
-
+        
         $bridAr = array();
         $ipArr = array();
         while ($dRec = $dQuery->fetch()) {
             $nick = core_Users::getNick($dRec->objectId);
             $names = core_Users::fetchField($dRec->objectId, 'names');
             $names = core_Users::prepareUserNames($names);
-
+            
             if (!$bridArr[$dRec->bridStr]) {
                 $template = "{$nick} <span class='autocomplete-name'>{$names} ({$dRec->bridStr})</span>";
                 $bridArr[$dRec->bridStr] = array('val' => $dRec->bridStr, 'template' => $template, 'search' => $dRec->bridStr . ' ' . $nick . ' ' . $names);
             }
-
+            
             if (!$ipArr[$dRec->ipStr]) {
                 $template = "{$nick} <span class='autocomplete-name'>{$names} ({$dRec->ipStr})</span>";
                 $ipArr[$dRec->ipStr] = array('val' => $dRec->ipStr, 'template' => $template, 'search' => $dRec->ipStr . ' ' . $nick . ' ' . $names);
             }
         }
-
+        
         $brid = log_Browsers::getBrid();
         $data->form->setSuggestions('brid', $bridArr);
         
@@ -150,9 +148,15 @@ class peripheral_DeviceWebPlg extends core_Plugin
      */
     public static function on_AfterCheckDevice($Driver, &$res, $rec, $params)
     {
-        if ($res === false) return ;
+        if ($res === false) {
+            
+            return ;
+        }
         
         $me = cls::get(get_called_class());
+        
+        setIfNot($params['brid'], log_Browsers::getBrid());
+        setIfNot($params['ip'], core_Users::getRealIpAddr());
         
         if (!$me->checkExist($params['brid'], $rec->brid) || !$me->checkExist($params['ip'], $rec->ip, '*')) {
             $res = false;
