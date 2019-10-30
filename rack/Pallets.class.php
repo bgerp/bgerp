@@ -340,19 +340,6 @@ class rack_Pallets extends core_Manager
         self::recalc($rec->productId, $rec->storeId);
         core_Cache::remove('UsedRacksPossitions', $rec->storeId);
     }
-    
-
-    /**
-     * Ако има указана позиция, използва я, като заявка за търсене
-     */
-    public function prepareListFilter_($data)
-    {
-        if($pos = Request::get('pos')) {
-            Request::push(array('search' => $pos));
-        }
-
-        return parent::prepareListFilter_($data);
-    }
 
 
     /**
