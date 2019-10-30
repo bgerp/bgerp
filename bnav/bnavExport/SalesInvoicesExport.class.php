@@ -98,7 +98,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         $sQuery = sales_Invoices::getQuery();
         
         
-        $sQuery->where("#state != 'rejected' ");
+        $sQuery->where("#state != 'draft' ");
         
         // Ако е посочена начална дата на период
         if ($rec->from) {
@@ -124,6 +124,9 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             //Масив с фактури от продажбите
             $id = $sRec->id;
             
+            //Състояние
+            $state = $sRec->state;
+            
             //Код на контрагента, така както е експортиран в БН. В случая folderId  на контрагента
             $contragentClassName = core_Classes::getName($sRec->contragentClassId);
             $contragentCode = $contragentClassName::fetch($sRec->contragentId)->folderId;
@@ -143,6 +146,37 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             //Банкова сметка
             $bankAccount = $sRec->accountId;
             
+            if ($sRec->type != 'invoice'){
+               
+                $detRecs = sales_InvoiceDetails::getQuery()->fetchAll("#invoiceId = $sRec->id");//if ($sRec->number == 406)bp($sRec,$detRecs);
+               
+                $mvc = cls::get('sales_InvoiceDetails'); //if ($sRec->number == 406)bp($detRecs,$mvc->Master->getInvoiceDetailedInfo($sRec->originId));
+                sales_InvoiceDetails::modifyDcDetails($detRecs, $sRec, $mvc);
+                if ($sRec->number == 406) bp($detRecs);
+               
+                if (!$detRecs && !array_key_exists($id, $recs)) {
+                    $recs[$id] = (object) array(
+                        
+                        'type' => $sRec->type,
+                        'number' => $sRec->number,
+                        'date' => $sRec->date,
+                        'contragentVatNo' => $contragentVatNo,
+                        'contragentNo' => $contragentNo,
+                        'contragentName' => $contragentName,
+                        'paymentType' => $paymentType,
+                        'accountId' => $bankAccount,
+                        'accItem' => '',
+                        'currencyId' => $sRec->currencyId,
+                        'rate' => $sRec->rate,
+                        'dealValue' => $sRec->dealValue,
+                        'state' => $state,
+                        
+                    );
+                }
+                
+                
+            }
+            
             // Запис в масива
             if (!array_key_exists($id, $invoices)) {
                 $invoices[$id] = (object) array(
@@ -159,6 +193,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'currencyId' => $sRec->currencyId,
                     'rate' => $sRec->rate,
                     'dealValue' => $sRec->dealValue,
+                    'state' => $state,
                 
                 );
             }
@@ -177,15 +212,17 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $erpCode = $pRec->code ? $pRec->code : 'Art'.$pRec->id;
             $prodCode = $pRec->bnavCode ? $pRec->bnavCode : $erpCode;
             $measure = cat_UoM::getShortName($pRec->measureId);
-            
+            $detAmount = $dRec->amount;
             
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object) array(
                     'invoice' => $invoices[$dRec->invoiceId],
+                    'number' => $invoices[$dRec->invoiceId]->number,
                     'prodCode' => $prodCode,
                     'quantity' => $dRec->quantity,
                     'price' => $dRec->price,
+                    'detAmount' => $detAmount,
                     'vatAmount' => '',
                     'measure' => $measure,
                     'vat' => cat_Products::getVat($pRec->id)*100,
@@ -195,6 +232,8 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             }
         }
         
+        arr::sortObjects($recs, 'number', 'ASC');
+     //  bp($recs);
         return $recs;
     }
     
@@ -218,15 +257,18 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $fld->FLD('type', 'varchar', 'caption=Тип на документа');
             $fld->FLD('number', 'varchar', 'caption=Номер на документа,tdClass=centered');
             $fld->FLD('date', 'date', 'caption=Дата');
+            $fld->FLD('state', 'varchar', 'caption=Статус');
             $fld->FLD('contragentName', 'varchar', 'caption=Доставчик->Име');
             $fld->FLD('contragentVatNo', 'varchar', 'caption=Доставчик->VAT Код');
             $fld->FLD('contragentNo', 'varchar', 'caption=Доставчик->Нац. Код');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
             $fld->FLD('rate', 'double', 'caption=Курс на валутата');
             $fld->FLD('dealValue', 'double', 'caption=Обща стойност->без ДДС');
+            $fld->FLD('accItem', 'int', 'caption=Сч. с-ка');
             $fld->FLD('prodCode', 'varchar', 'caption=Код на стоката');
             $fld->FLD('quantity', 'double', 'caption=Количество');
             $fld->FLD('price', 'double', 'caption=Ед цена');
+            $fld->FLD('detAmount', 'double', 'caption=Ст. на реда');
             $fld->FLD('measure', 'varchar', 'caption=Мерна единица,tdClass=centered');
             $fld->FLD('vat', 'double', 'caption=% ДДС');
             $fld->FLD('paymentType', 'varchar', 'caption=Плащане');
@@ -235,15 +277,18 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $fld->FLD('type', 'varchar', 'caption=Док Тип');
             $fld->FLD('number', 'varchar', 'caption=Номер,tdClass=centered');
             $fld->FLD('date', 'date', 'caption=Дата');
+            $fld->FLD('state', 'varchar', 'caption=Статус');
             $fld->FLD('contragentName', 'varchar', 'caption=Име');
             $fld->FLD('contragentVatNo', 'varchar', 'caption=VAT');
             $fld->FLD('contragentNo', 'varchar', 'caption=Код');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
             $fld->FLD('rate', 'double', 'caption=Курс');
             $fld->FLD('dealValue', 'double', 'caption=без ДДС');
+            $fld->FLD('accItem', 'int', 'caption=Сч. с-ка');
             $fld->FLD('prodCode', 'varchar', 'caption=Код прод.');
             $fld->FLD('quantity', 'double', 'caption=Кол');
             $fld->FLD('price', 'double', 'caption=Цена');
+            $fld->FLD('detAmount', 'double', 'caption=Ст. на реда');
             $fld->FLD('measure', 'varchar', 'caption=Мерна ед.,tdClass=centered');
             $fld->FLD('vat', 'double', 'caption=ДДС ставка');
             $fld->FLD('paymentType', 'varchar', 'caption=Плащане');
@@ -270,12 +315,13 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
         $Double = core_Type::getByName('double(decimals=2)');
-        
+        //bp($dRec);
         $row = new stdClass();
-        
+        if ($dRec->invoice){
         $row->type = $dRec->invoice->type;
         $row->number = $dRec->invoice->number;
         $row->date = $Date->toVerbal($dRec->invoice->date);
+        $row->state = $dRec->invoice->state;
         $row->contragentName = $dRec->invoice->contragentName;
         $row->contragentVatNo = $dRec->invoice->contragentVatNo;
         $row->contragentNo = $dRec->invoice->contragentNo;
@@ -286,10 +332,32 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         $row->prodCode = $dRec->prodCode;
         $row->quantity = core_Type::getByName('double(decimals=3)')->toVerbal($dRec->quantity);
         $row->price = core_Type::getByName('double(decimals=6)')->toVerbal($dRec->price);
+        $row->detAmount = $Double->toVerbal($dRec->detAmount);
         $row->measure = $dRec->measure;
         $row->vat = $dRec->vat;
         $row->paymentType = $dRec->invoice->paymentType;
         $row->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
+        }else{
+            $row->type = $dRec->type;
+            $row->number = $dRec->number;
+            $row->date = $Date->toVerbal($dRec->date);
+            $row->state = $dRec->state;
+            $row->contragentName = $dRec->contragentName;
+            $row->contragentVatNo = $dRec->contragentVatNo;
+            $row->contragentNo = $dRec->contragentNo;
+            $row->accItem = $dRec->accItem;
+            $row->currencyId = $dRec->currencyId;
+            $row->rate = core_Type::getByName('double(decimals=4)')->toVerbal($dRec->rate);
+            $row->dealValue = $Double->toVerbal($dRec->dealValue);
+            $row->prodCode = $dRec->prodCode;
+            $row->quantity = core_Type::getByName('double(decimals=3)')->toVerbal($dRec->quantity);
+            $row->price = core_Type::getByName('double(decimals=6)')->toVerbal($dRec->price);
+            $row->detAmount = $Double->toVerbal($dRec->detAmount);
+            $row->measure = $dRec->measure;
+            $row->vat = $dRec->vat;
+            $row->paymentType = $dRec->paymentType;
+            $row->bankAccount = bank_Accounts::getTitleById($dRec->accountId);
+        }
         
         return $row;
     }
@@ -315,6 +383,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         $res->type = $dRec->invoice->type;
         $res->number = $dRec->invoice->number;
         $res->date = $Date->toVerbal($dRec->invoice->date);
+        $row->state = $dRec->invoice->state;
         $res->contragentName = $dRec->invoice->contragentName;
         $res->contragentVatNo = $dRec->invoice->contragentVatNo;
         $res->contragentNo = $dRec->invoice->contragentNo;
@@ -325,6 +394,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         $res->prodCode = $dRec->prodCode;
         $res->quantity = core_Type::getByName('double(decimals=3)')->toVerbal($dRec->quantity);
         $res->price = core_Type::getByName('double(decimals=6)')->toVerbal($dRec->price);
+        $res->detAmount = $Double->toVerbal($dRec->detAmount);
         $res->measure = $dRec->measure;
         $res->vat = $dRec->vat;
         $res->paymentType = $dRec->paymentType;
