@@ -429,4 +429,21 @@ class tcost_FeeZones extends core_Master
     {
         return false;
     }
+    
+    
+    /**
+     * При упдейт на количката в е-магазина, какво да се  изпълнява
+     *
+     * @param stdClass $cartRec
+     *
+     * @return void
+     */
+    public function onUpdateCartMaster(&$cartRec)
+    {
+        $settings = cms_Domains::getSettings();
+        $freeDelivery = currency_CurrencyRates::convertAmount($settings->freeDelivery, null, $settings->currencyId);
+        if(!empty($settings->freeDelivery) && round($cartRec->total, 2) >= round($freeDelivery, 2)){
+            $cartRec->freeDelivery = 'yes';
+        }
+    }
 }

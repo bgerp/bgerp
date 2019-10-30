@@ -472,20 +472,20 @@ class eshop_Carts extends core_Master
         
         // Ако има цена за доставка добавя се и тя
         if ($count) {
-            if ($delivery = eshop_CartDetails::getDeliveryInfo($rec)) {
+            $TransCalc = null;
+            if ($delivery = eshop_CartDetails::getDeliveryInfo($rec, $TransCalc)) {
+                if(is_object($TransCalc)){
+                    $TransCalc->onUpdateCartMaster($rec);
+                }
                 
                 if ($delivery['amount'] >= 0) {
                     $rec->deliveryTime = $delivery['deliveryTime'];
-                    $settings = cms_Domains::getSettings();
-                    
                     $rec->deliveryNoVat = $delivery['amount'];
-                    $freeDelivery = currency_CurrencyRates::convertAmount($settings->freeDelivery, null, $settings->currencyId);
-                    $deliveryNoVat = $rec->deliveryNoVat;
                     
                     // Ако има сума за безплатна доставка и доставката е над нея, тя не се начислява
-                    if (!empty($settings->freeDelivery) && round($rec->total, 2) >= round($freeDelivery, 2)){
+                    $deliveryNoVat = $rec->deliveryNoVat;
+                    if ($rec->freeDelivery == 'yes'){
                         $delivery = $deliveryNoVat = 0;
-                        $rec->freeDelivery = 'yes';
                     }
                     
                     $transportId = cat_Products::fetchField("#code = 'transport'", 'id');

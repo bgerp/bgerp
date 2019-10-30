@@ -150,4 +150,17 @@ class bglocal_interface_FreeShipping extends core_BaseClass
         
         return true;
     }
+    
+    
+    /**
+     * При упдейт на количката в е-магазина, какво да се  изпълнява
+     *
+     * @param stdClass $cartRec
+     *
+     * @return void
+     */
+    public function onUpdateCartMaster(&$cartRec)
+    {
+        $cartRec->freeDelivery = 'yes';
+    }
 }

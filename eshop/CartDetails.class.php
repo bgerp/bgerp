@@ -575,10 +575,11 @@ class eshop_CartDetails extends core_Detail
      * Колко ще е доставката от въведените данни
      *
      * @param stdClass $masterRec
+     * @param mixed $TransCalc
      *
      * @return NULL|array
      */
-    public static function getDeliveryInfo($masterRec)
+    public static function getDeliveryInfo($masterRec, &$TransCalc)
     {
         $masterRec = eshop_Carts::fetchRec($masterRec);
         $query = self::getQuery();
