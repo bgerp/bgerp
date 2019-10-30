@@ -604,6 +604,13 @@ class eshop_Carts extends core_Master
         Mode::set('currentExternalTab', 'eshop_Carts');
         
         $saleRec = self::forceSale($rec);
+        if(empty($saleRec)){
+            $this->logErr('Проблем при генериране на онлайн продажба', $rec->id);
+            $errorMs = 'Опитайте пак! Имаше проблем при завършването на поръчката! Ако проблема продължава, свържете се с нас.';
+            
+            return new Redirect(array('eshop_Carts', 'view', $rec->id), $errorMs, 'error');
+        }
+        
         
         // Ако е партньор и има достъп до нишката, директно се редиректва към нея
         $colabUrl = null;
@@ -710,16 +717,16 @@ class eshop_Carts extends core_Master
      * Форсира продажба към количката
      * 
      * @param mixed $id
-     * @param boolean brutoForce
+     * @param boolean $force
      * @param boolean $sendEmailIfNecessary
      * 
      * @return stdClass $saleRec
      */
-    public static function forceSale($id, $brutoForce = false, $sendEmailIfNecessary = true)
+    public static function forceSale($id, $force = false, $sendEmailIfNecessary = true)
     {
         $rec = static::fetchRec($id);
         
-        if($brutoForce === false){
+        if($force === false){
             if(isset($rec->saleId)) return sales_Sales::fetch($rec->saleId);
         }
         
@@ -779,6 +786,7 @@ class eshop_Carts extends core_Master
             'currencyId' => $settings->currencyId,
             'shipmentStoreId' => $settings->storeId,
             'deliveryLocationId' => $rec->locationId,
+            'onlineSale' => true,
         );
         
         $folderIncharge = doc_Folders::fetchField($folderId, 'inCharge');
@@ -790,6 +798,11 @@ class eshop_Carts extends core_Master
         
         // Създаване на продажба по количката
         $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
+        if(empty($saleId)){
+            
+            return false;
+        }
+        
         sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId, 360, $cu);
         if(!empty($routerExplanation)){
             sales_Sales::logDebug($routerExplanation, $saleId, 7);
