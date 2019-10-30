@@ -606,7 +606,7 @@ class eshop_Carts extends core_Master
         $saleRec = self::forceSale($rec);
         if(empty($saleRec)){
             $this->logErr('Проблем при генериране на онлайн продажба', $rec->id);
-            $errorMs = 'Опитайте пак! Имаше проблем при завършването на поръчката! Ако проблема продължава, свържете се с нас.';
+            $errorMs = 'Опитайте пак! Имаше проблем при завършването на поръчката! Ако проблемът продължава, свържете се с нас.';
             
             return new Redirect(array('eshop_Carts', 'view', $rec->id), $errorMs, 'error');
         }
