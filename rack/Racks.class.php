@@ -435,7 +435,7 @@ class rack_Racks extends core_Master
                         $attrA['style'] = "color:#{$color};background-color: {$bgColor};";
                     }
                     
-                    $title = ht::createLink($pos, array('rack_Pallets', 'list', 'pos' => "{$rec->num}-{$pos}"), null, $attrA);
+                    $title = ht::createLink($pos, array('rack_Pallets', 'list', 'search' => "{$rec->num}-{$pos}"), null, $attrA);
                 }
 
                 // Ако е заето с нещо
@@ -452,7 +452,7 @@ class rack_Racks extends core_Master
                     
                     $attrA['style'] = "color:#{$color};background-color:#{$bgColor};";
                     
-                    $title = ht::createLink($pos, array('rack_Pallets', 'list', 'pos' => "{$rec->num}-{$pos}"), null, $attrA);
+                    $title = ht::createLink($pos, array('rack_Pallets', 'list', 'search' => "{$rec->num}-{$pos}"), null, $attrA);
                 }
                 
                 // Ако е неизползваемо
