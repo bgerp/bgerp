@@ -181,11 +181,9 @@ class frame2_CsvExport extends core_Mvc
         $form->FNC('datetimeFormat', 'enum(,d.m.y H:i=|*22.11.1999 00:00, d.m.y H:i:s=|*22.11.1999 00:00:00)', "input,caption=|{$title}|* - |настройки|*->Формат за дата и час,autohide=any");
         $form->FNC('delimiter', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Разделител,autohide=any");
         $form->FNC('enclosure', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Ограждане,autohide");
+        $form->FNC('encoding', 'enum(utf-8=Уникод|* (UTF-8),cp1251=Windows Cyrillic|* (CP1251))', "caption=|{$title}|* - |разширени настройки|*->Кодиране,input,autohide=any");
         $form->FNC('extension', 'enum(csv=.csv,txt=.txt)', "input,caption=|{$title}|* - |разширени настройки|*->Файлово разширение,autohide=any");
         $form->FNC('newLineDelimiter', 'varchar(1,size=3)', "input,caption=|{$title}|* - |разширени настройки|*->Нов ред,autohide=any");
-        $form->FNC('encoding', 'enum(utf-8=Уникод|* (UTF-8),
-                                    cp1251=Windows Cyrillic|* (CP1251),
-                                    koi8-r=Rus Cyrillic|* (KOI8-R))', "caption=|{$title}|* - |разширени настройки|*->Кодиране,input,autohide=any");
         
         $dateFormat = null;
         setIfNot($dateFormat, csv_Setup::get('DATE_MASK'), core_Setup::get('EF_DATE_FORMAT', true));
