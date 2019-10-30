@@ -315,7 +315,7 @@ class eshop_Carts extends core_Master
                 }
                 
                 $packQuantity = core_Type::getByName('double(smartRound)')->toVerbal($exRec->packQuantity);
-                $productName = cat_Products::getVerbal($productId, 'name');
+                $productName = eshop_ProductDetails::getPublicProductName($eshopProductId, $productId);
                 
                 $settings = cms_Domains::getSettings();
                 $addText = new core_ET($settings->addProductText);
