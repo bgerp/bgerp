@@ -427,7 +427,23 @@ class tcost_FeeZones extends core_Master
      */
     public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
     {
-        return false;
+        $settings = cms_Domains::getSettings();
+        if(isset($settings->freeDelivery)){
+            if($settings->freeDelivery != 0){
+                $cartRow->freeDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($settings->freeDelivery);
+                $cartRow->freeDeliveryCurrencyId = $settings->currencyId;
+            } else {
+                $cartRow->deliveryZero = ' ';
+            }
+            
+            $string = ($cartRec->freeDelivery != 'yes') ? 'Безплатна доставка при поръчка над' : 'Печелите безплатна доставка, защото поръчката ви надвишава';
+            $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>|{$string}|* <b>[#freeDelivery#]</b> [#freeDeliveryCurrencyId#].</div><!--ET_END freeDelivery-->"));
+            $block->append($cartRow->freeDelivery, 'freeDelivery');
+            $block->append($cartRow->freeDeliveryCurrencyId, 'freeDeliveryCurrencyId');
+            
+            $tpl->append($block, 'CART_FOOTER');
+            
+        }
     }
     
     
