@@ -583,14 +583,11 @@ class eshop_CartDetails extends core_Detail
     {
         $masterRec = eshop_Carts::fetchRec($masterRec);
         $query = self::getQuery();
-        $query->where("#cartId = {$masterRec->id}");
-        $query->show('productId,quantity,packagingId');
+        $query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $query->where("#cartId = {$masterRec->id} AND #canStore != 'no'");
+        $query->show('productId,quantity,packagingId,canStore');
         
-        if (empty($masterRec->termId)) {
-            
-            return;
-        }
-        if (!$query->count()) {
+        if (empty($masterRec->termId) || !$query->count()) {
             
             return;
         }
