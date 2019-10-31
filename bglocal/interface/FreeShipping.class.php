@@ -145,7 +145,9 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      */
     public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
     {
-        $block = new core_ET(tr("|*<div>|Безплатна доставка на територията на|* <b>|България|*</b>|*</div>"));
+        $bgName = drdata_Countries::getCountryName('BG', core_Lg::getCurrent());
+        
+        $block = new core_ET(tr("|*<div>|Безплатна доставка на територията на|* <b>{$bgName}</b>|*</div>"));
         $tpl->append($block, 'CART_FOOTER');
         
         return true;
