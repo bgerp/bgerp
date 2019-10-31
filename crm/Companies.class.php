@@ -116,7 +116,7 @@ class crm_Companies extends core_Master
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    public $searchFields = 'name,pCode,place,country,folderName,email,tel,fax,website,vatId,info,uicId,id,nkid';
+    public $searchFields = 'name,pCode,place,country,folderName,email,tel,fax,website,vatId,info,uicId,id';
     
     
     /**
@@ -2420,6 +2420,13 @@ class crm_Companies extends core_Master
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
+       
+        // Ако полето е обозначено за оказване
+        if(isset($rec->nkid)){
+            // Добавяме в ключовите думи
+            $res = $res . plg_Search::normalizeText(bglocal_NKID::getTitleById($rec->nkid));
+        }
+
     }
     
     
