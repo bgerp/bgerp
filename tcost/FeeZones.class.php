@@ -429,15 +429,20 @@ class tcost_FeeZones extends core_Master
     {
         $settings = cms_Domains::getSettings();
         if(isset($settings->freeDelivery)){
-            if($settings->freeDelivery != 0){
-                $cartRow->freeDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($settings->freeDelivery);
-                $cartRow->freeDeliveryCurrencyId = $settings->currencyId;
+            $cartRow->freeDeliveryCurrencyId = $settings->currencyId;
+            $deliveryAmount = $settings->freeDelivery;
+            
+            if($cartRec->freeDelivery != 'yes'){
+                $string1 = tr('Добавете артикули на стойност');
+                $string2 = tr("|за да спечелите|* <b style='color:green;text-transform:uppercase'>" . tr('безплатна') . "</b> |доставка|*");
+                $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>{$string1} <b style='font-size:1.1em'>[#freeDelivery#]</b> [#freeDeliveryCurrencyId#] {$string2}</div><!--ET_END freeDelivery-->"));
+                $deliveryAmount = $deliveryAmount - $cartRec->total;
             } else {
-                $cartRow->deliveryZero = ' ';
+                $string = tr('Печелите безплатна доставка, защото поръчката ви надвишава');
+                $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>{$string} <b style='font-size:1.1em'>[#freeDelivery#]</b> [#freeDeliveryCurrencyId#].</div><!--ET_END freeDelivery-->"));
             }
             
-            $string = ($cartRec->freeDelivery != 'yes') ? 'Безплатна доставка при поръчка над' : 'Печелите безплатна доставка, защото поръчката ви надвишава';
-            $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>|{$string}|* <b>[#freeDelivery#]</b> [#freeDeliveryCurrencyId#].</div><!--ET_END freeDelivery-->"));
+            $cartRow->freeDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
             $block->append($cartRow->freeDelivery, 'freeDelivery');
             $block->append($cartRow->freeDeliveryCurrencyId, 'freeDeliveryCurrencyId');
             
