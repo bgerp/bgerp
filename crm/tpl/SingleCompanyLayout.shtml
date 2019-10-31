@@ -41,6 +41,9 @@
                         <!--ET_BEGIN uicId-->
                         <div>|Нац.|* №: <b>[#uicId#]</b></div>
                         <!--ET_END uicId-->
+                        <!--ET_BEGIN nkid-->
+                        <div>НКИД: <b>[#nkid#]</b></div>
+                        <!--ET_END nkid-->
                     </div>
                 </fieldset>
                 <!--ET_END address-->
