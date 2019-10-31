@@ -2423,8 +2423,9 @@ class crm_Companies extends core_Master
        
         // Ако полето е обозначено за оказване
         if(isset($rec->nkid)){
+            
             // Добавяме в ключовите думи
-            $res = $res . plg_Search::normalizeText(bglocal_NKID::getTitleById($rec->nkid));
+            $res .= ' ' . plg_Search::normalizeText(bglocal_NKID::getTitleById($rec->nkid));
         }
 
     }
