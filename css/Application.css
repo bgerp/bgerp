@@ -2976,23 +2976,10 @@ span.sharing-history-title {
   display: inline-block;
   position: relative;
   margin-left: 2px;
-  top: -6px;
-  animation: blink 1s linear infinite; }
+  top: -6px; }
   #cart-external-status .count a {
     padding-top: 5px; }
 
-@keyframes blink {
-    0% {
-    opacity: 0; }
-
-
-    50% {
-    opacity: 0.5; }
-
-
-    100% {
-    opacity: 1; }
- }
 .eshop-product>table {
   width: 100%; }
 

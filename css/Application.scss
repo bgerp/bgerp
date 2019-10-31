@@ -3460,15 +3460,9 @@ fieldset.sharing-history {
 	position: relative;
 	margin-left: 2px;
 	top: -6px;
-	animation: blink 1s linear infinite;
     a {
         padding-top: 5px;
     }
-}
-@keyframes blink{
-	0%{opacity: 0;}
-	50%{opacity: .5;}
-	100%{opacity: 1;}
 }
 
 .eshop-product>table {
