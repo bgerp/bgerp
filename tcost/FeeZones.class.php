@@ -467,9 +467,6 @@ class tcost_FeeZones extends core_Master
         $settings = cms_Domains::getSettings();
         $freeDelivery = currency_CurrencyRates::convertAmount($settings->freeDelivery, null, $settings->currencyId);
         
-        //bp(round($cartRec->total, 2), round($freeDelivery, 2));
-        
-        
         if(!empty($settings->freeDelivery) && round($cartRec->total, 2) >= round($freeDelivery, 2)){
             $cartRec->freeDelivery = 'yes';
         }
