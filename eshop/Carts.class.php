@@ -1474,8 +1474,11 @@ class eshop_Carts extends core_Master
         
         if (eshop_Carts::haveRightFor('finalize', $rec)) {
             $btn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да направите поръчката|*!', null, "title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow");
-            $tpl->append($btn, 'CART_TOOLBAR_TOP_RIGHT');
+            
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
+            if($rec->productCount > 3){
+                $tpl->append($btn, 'CART_TOOLBAR_TOP_RIGHT');
+            }
         }
     }
     
