@@ -440,6 +440,10 @@ class tcost_FeeZones extends core_Master
                 $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
                 $deliveryWithVat  = $cartRec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
                 $delivery = currency_CurrencyRates::convertAmount($cartRec->total - $deliveryWithVat, null, null, $settings->currencyId);
+                if($cartRec->haveOnlyServices == 'yes'){
+                    $delivery = 0;
+                }
+                
                 $deliveryAmount = round($deliveryAmount - ($delivery), 2);
             } else {
                 $string = tr('Печелите безплатна доставка, защото поръчката ви надвишава');

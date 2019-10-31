@@ -196,6 +196,7 @@ class eshop_Carts extends core_Master
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title)', 'caption=Локация,input=none,silent,removeAndRefreshForm=deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress,after=instruction');
         $this->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране||Activated->На,input=none');
+        $this->FLD('haveOnlyServices', 'enum(no=Не,yes=Да)', 'caption=Само услуги,input=none,notNull,value=no');
         
         $this->setDbIndex('brid');
         $this->setDbIndex('userId');
@@ -450,9 +451,21 @@ class eshop_Carts extends core_Master
         
         $dQuery = eshop_CartDetails::getQuery();
         $dQuery->where("#cartId = {$rec->id}");
+        $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $count = $dQuery->count();
+        $dRecs = $dQuery->fetchAll();
         
-        while ($dRec = $dQuery->fetch()) {
+        $haveOnlyServices = 'yes';
+        array_walk($dRecs, function ($a) use (&$haveOnlyServices){
+            if($a->canStore == 'yes'){
+                $haveOnlyServices = 'no';
+                //break;
+            }
+        });
+        
+        $rec->haveOnlyServices = $haveOnlyServices;
+        
+        foreach ($dRecs as $dRec) {
             $rec->productCount++;
             $finalPrice = currency_CurrencyRates::convertAmount($dRec->finalPrice, null, $dRec->currencyId);
             
@@ -500,7 +513,7 @@ class eshop_Carts extends core_Master
         $rec->totalNoVat = round($rec->totalNoVat, 4);
         $rec->total = round($rec->total, 4);
         
-        $id = $this->save_($rec, 'productCount,total,totalNoVat,deliveryNoVat,deliveryTime,freeDelivery');
+        $id = $this->save_($rec, 'productCount,total,totalNoVat,deliveryNoVat,deliveryTime,freeDelivery,haveOnlyServices');
         
         return $id;
     }
