@@ -288,7 +288,6 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         
-        if ($export === false) {
             $fld->FLD('type', 'varchar', 'caption=Тип на документа');
             $fld->FLD('number', 'varchar', 'caption=Номер на документа,tdClass=centered');
             $fld->FLD('date', 'date', 'caption=Дата');
@@ -307,29 +306,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $fld->FLD('measure', 'varchar', 'caption=Мерна единица,tdClass=centered');
             $fld->FLD('vat', 'double', 'caption=% ДДС');
             $fld->FLD('paymentType', 'varchar', 'caption=Плащане');
-            $fld->FLD('bankAccount', 'varchar', 'caption=Сметка');
-        } else {
-            $fld->FLD('type', 'varchar', 'caption=Док Тип');
-            $fld->FLD('number', 'varchar', 'caption=Номер,tdClass=centered');
-            $fld->FLD('date', 'date', 'caption=Дата');
-            $fld->FLD('state', 'varchar', 'caption=Статус');
-            $fld->FLD('contragentName', 'varchar', 'caption=Име');
-            $fld->FLD('contragentVatNo', 'varchar', 'caption=VAT');
-            $fld->FLD('contragentNo', 'varchar', 'caption=Код');
-            $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-            $fld->FLD('rate', 'double', 'caption=Курс');
-            $fld->FLD('dealValue', 'double', 'caption=без ДДС');
-            $fld->FLD('accItem', 'int', 'caption=Сч. с-ка');
-            $fld->FLD('prodCode', 'varchar', 'caption=Код прод.');
-            $fld->FLD('quantity', 'double', 'caption=Кол');
-            $fld->FLD('price', 'double', 'caption=Цена');
-            $fld->FLD('detAmount', 'double', 'caption=Ст. на реда');
-            $fld->FLD('measure', 'varchar', 'caption=Мерна ед.,tdClass=centered');
-            $fld->FLD('vat', 'double', 'caption=ДДС ставка');
-            $fld->FLD('paymentType', 'varchar', 'caption=Плащане');
-            $fld->FLD('bankAccount', 'varchar', 'caption=Сметка');
-        }
-        
+   
         return $fld;
     }
     
