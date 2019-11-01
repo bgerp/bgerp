@@ -3398,12 +3398,12 @@ class cal_Tasks extends embed_Manager
             }
             
             $startTime = isset($taskRec->timeStart) ? $taskRec->timeStart : (isset($taskRec->timeDuration, $taskRec->timeEnd) ? dt::addSecs(-1 * $taskRec->timeDuration, $taskRec->timeEnd) : null);
-            $druration = isset($taskRec->timeDuration) ? $taskRec->timeDuration : (isset($taskRec->timeStart, $taskRec->timeEnd) ? (strtotime($taskRec->timeEnd) - strtotime($taskRec->timeStart)) : null);
+            $duration = isset($taskRec->timeDuration) ? $taskRec->timeDuration : (isset($taskRec->timeStart, $taskRec->timeEnd) ? (strtotime($taskRec->timeEnd) - strtotime($taskRec->timeStart)) : null);
             
             if(!empty($startTime)){
                 $cloneTask->timeStart = dt::addSecs($dateDiff, $startTime);
-                if(isset($druration)){
-                    $cloneTask->timeEnd = dt::addSecs($druration, $cloneTask->timeStart);
+                if(isset($duration)){
+                    $cloneTask->timeEnd = dt::addSecs($duration, $cloneTask->timeStart);
                 }
             }
             
