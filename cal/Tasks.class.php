@@ -3337,6 +3337,11 @@ class cal_Tasks extends embed_Manager
         return tr('За') . ': ' . $rec->title;
     }
     
+    function act_Test()
+    {
+        self::cloneFromFolder(15, 19, dt::now());
+    }
+    
     
     /**
      * Клониране на задачите от една папка в друга, с транслиране на времената
@@ -3399,13 +3404,20 @@ class cal_Tasks extends embed_Manager
             
             $startTime = isset($taskRec->timeStart) ? $taskRec->timeStart : (isset($taskRec->timeDuration, $taskRec->timeEnd) ? dt::addSecs(-1 * $taskRec->timeDuration, $taskRec->timeEnd) : null);
             $duration = isset($taskRec->timeDuration) ? $taskRec->timeDuration : (isset($taskRec->timeStart, $taskRec->timeEnd) ? (strtotime($taskRec->timeEnd) - strtotime($taskRec->timeStart)) : null);
+            $newStart = dt::addSecs($dateDiff, $startTime);
             
-            if(!empty($startTime)){
-                $cloneTask->timeStart = dt::addSecs($dateDiff, $startTime);
-                if(isset($duration)){
-                    $cloneTask->timeEnd = dt::addSecs($duration, $cloneTask->timeStart);
-                }
+            if(isset($taskRec->timeDuration)){
+                $cloneTask->timeDuration = $duration;
             }
+            
+            if(isset($taskRec->timeStart)){
+                $cloneTask->timeStart = $newStart;
+            }
+            
+            if(isset($taskRec->timeEnd)){
+                $cloneTask->timeEnd = dt::addSecs($duration, $newStart);
+            }
+            //bp($cloneTask, $taskRec);
             
             $Tasks->route($cloneTask);
             $Tasks->save($cloneTask);
