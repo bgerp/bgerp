@@ -860,48 +860,53 @@ class store_Products extends core_Detail
                 $dQuery = $Detail->getQuery();
                 $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
                 $dRecs = $dQuery->fetchAll();
-                array_walk($dRecs, function($a) use (&$products, $Detail, &$totalValue, $isTransfer){
-                    if(!array_key_exists($a->{$Detail->productFld}, $products)){
-                        $products[$a->{$Detail->productFld}] = new stdClass();
+                
+                if(count($dRecs)){
+                    array_walk($dRecs, function($a) use (&$products, $Detail, &$totalValue, $isTransfer){
+                        if(!array_key_exists($a->{$Detail->productFld}, $products)){
+                            $products[$a->{$Detail->productFld}] = new stdClass();
+                        }
+                        
+                        $products[$a->{$Detail->productFld}]->quantity += $a->quantity;
+                        $value = ($isTransfer) ? ($a->quantity) : ($a->quantity * $a->price);
+                        $products[$a->{$Detail->productFld}]->amount += $value;
+                        $totalValue += $value;
+                    });
+                    
+                    // Колко е налично в склад от артикулите на документа
+                    $storeQuery = store_Products::getQuery();
+                    $storeQuery->where("#storeId = {$rec->{$storeField}}");
+
+                    $storeQuery->in('productId', array_keys($products));
+                    $storeQuery->show('productId,quantity');
+                    $sRecs = $storeQuery->fetchAll();
+                    array_walk($sRecs, function($a) use (&$quantities){
+                        $quantities[$a->productId] += $a->quantity;
+                    });
+                    
+                    // Колко е готовноста
+                    $missingAmount = 0;
+                    foreach ($products as $productId => $object){
+                        $singlePrice = round($object->amount / $object->quantity, 6);
+                        $inStore = $quantities[$productId];
+                        $inStore = (empty($inStore) || $inStore < 0) ? 0 : $inStore;
+                        
+                        // Каква е сумата на липсващото к-во. (За МСТ си е само количеството)
+                        $missingQuantity = $object->quantity - $inStore;
+                        $missingQuantity = ($missingQuantity <= 0) ? 0 : $missingQuantity;
+                        $missingAmount += $missingQuantity * $singlePrice;
                     }
                     
-                    $products[$a->{$Detail->productFld}]->quantity += $a->quantity;
-                    $value = ($isTransfer) ? ($a->quantity) : ($a->quantity * $a->price);
-                    $products[$a->{$Detail->productFld}]->amount += $value;
-                    $totalValue += $value;
-                });
- 
-                // Колко е налично в склад от артикулите на документа
-                $storeQuery = store_Products::getQuery();
-                $storeQuery->where("#storeId = {$rec->{$storeField}}");
-                $storeQuery->in('productId', array_keys($products));
-                $storeQuery->show('productId,quantity');
-                $sRecs = $storeQuery->fetchAll();
-                array_walk($sRecs, function($a) use (&$quantities){
-                    $quantities[$a->productId] += $a->quantity;
-                });
-                
-                // Колко е готовноста
-                $missingAmount = 0;
-                foreach ($products as $productId => $object){
-                    
-                    $singlePrice = round($object->amount / $object->quantity, 6);
-                    $inStore = $quantities[$productId];
-                    $inStore = (empty($inStore) || $inStore < 0) ? 0 : $inStore;
-                    
-                    // Каква е сумата на липсващото к-во. (За МСТ си е само количеството)
-                    $missingQuantity = $object->quantity - $inStore;
-                    $missingQuantity = ($missingQuantity <= 0) ? 0 : $missingQuantity;
-                    $missingAmount += $missingQuantity * $singlePrice;
+                    // Колко е готовността, тя е 1 - сумата на липсващото к-во/ общата сума на ЕН-то (За МСТ е от липсващото общо к-во)
+                    $missingAmount = round($missingAmount, 6);
+                    $totalValue = round($totalValue, 6);
+                    $storeReadiness = 1 - round($missingAmount / $totalValue, 2);
+                    $storeReadiness = ($storeReadiness < 0) ? 0 : $storeReadiness;
+                    $storeReadiness = ($storeReadiness > 1) ? 1 : $storeReadiness;
+                    $rec->storeReadiness = round($storeReadiness, 2);
+                } else {
+                    $rec->storeReadiness = null;
                 }
-                
-                // Колко е готовността, тя е 1 - сумата на липсващото к-во/ общата сума на ЕН-то (За МСТ е от липсващото общо к-во)
-                $missingAmount = round($missingAmount, 6);
-                $totalValue = round($totalValue, 6);
-                $storeReadiness = 1 - round($missingAmount / $totalValue, 2);
-                $storeReadiness = ($storeReadiness < 0) ? 0 : $storeReadiness;
-                $storeReadiness = ($storeReadiness > 1) ? 1 : $storeReadiness;
-                $rec->storeReadiness = round($storeReadiness, 2);
                 
                 $toSave[] = $rec;
                 
