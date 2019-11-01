@@ -23,6 +23,30 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
     
     
     /**
+     * Мениджъри за зареждане
+     */
+    public $loadList = 'Invoices=sales_Invoices';
+    
+    
+    /**
+     * Работен кеш
+     */
+    public $cacheParams = array();
+    
+    
+    /**
+     * Работен кеш
+     */
+    public $confCache = array();
+ 
+    
+    /**
+     * Ид на държавата България
+     */
+    public $countryId;
+    
+    
+    /**
      * Брой записи на страница
      *
      * @var int
@@ -45,6 +69,8 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
     {
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
+        
+        $fieldset->FNC('dealType', 'int', 'caption=Тип сделка,after=to,input=none,single=none,mandatory');
     }
     
     
@@ -146,13 +172,21 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             //Банкова сметка
             $bankAccount = $sRec->accountId;
             
+            $rec->dealType = self::getDealType($sRec);
+            $rec->docType = self::getDocType($sRec);
+            
+            
+            //$rec->docType = $sRec->type;
+            
+            
             if ($sRec->changeAmount || $sRec->dpOperation == 'accrued') {
                 $dealValue = $sRec->changeAmount ? $sRec->dealValue : $sRec->dpAmount;
                 
                 if (!array_key_exists($id, $recs)) {
                     $recs[$id] = (object) array(
                         
-                        'type' => $sRec->type,
+                        'type' => $rec->docType,
+                        'dealType' => $rec->dealType,
                         'number' => $sRec->number,
                         'date' => $sRec->date,
                         'contragentVatNo' => $contragentVatNo,
@@ -178,7 +212,8 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             if (!array_key_exists($id, $invoices)) {
                 $invoices[$id] = (object) array(
                     
-                    'type' => $sRec->type,
+                    'type' => $rec->docType,
+                    'dealType' => $rec->dealType,
                     'number' => $sRec->number,
                     'date' => $sRec->date,
                     'contragentVatNo' => $contragentVatNo,
@@ -204,7 +239,6 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         $dQuery = sales_InvoiceDetails::getQuery();
         $dQuery->in('invoiceId', $invArr);
         
-        
         while ($dRec = $dQuery->fetch()) {
             $id = $dRec->id;
             
@@ -213,6 +247,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 
                 $recs[$id] = (object) array(
                     'type' => $invoices[$dRec->invoiceId]->type,
+                    'dealType' => $rec->dealType,
                     'number' => $invoices[$dRec->invoiceId]->number,
                     'date' => $invoices[$dRec->invoiceId]->date,
                     'contragentVatNo' => $invoices[$dRec->invoiceId]->contragentVatNo,
@@ -231,7 +266,8 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 $id = $dRec->id;
             }
             
-            if ($invoices[$dRec->invoiceId]->type == 'dc_note') {
+            if ($invoices[$dRec->invoiceId]->type == $this->confCache->FSD_DOC_DEBIT_NOTE_TYPE ||
+                $invoices[$dRec->invoiceId]->type == $this->confCache->FSD_DOC_CREDIT_NOTE_TYPE) {
                 $detRec = clone $dRec;
                 $detRec = array($detRec->id => $detRec) ;
                 
@@ -270,6 +306,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         
         arr::sortObjects($recs, 'number', 'ASC');
         
+        //  bp($recs);
         return $recs;
     }
     
@@ -288,25 +325,27 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         
-            $fld->FLD('type', 'varchar', 'caption=Тип на документа');
-            $fld->FLD('number', 'varchar', 'caption=Номер на документа,tdClass=centered');
-            $fld->FLD('date', 'date', 'caption=Дата');
-            $fld->FLD('state', 'varchar', 'caption=Статус');
-            $fld->FLD('contragentName', 'varchar', 'caption=Доставчик->Име');
-            $fld->FLD('contragentVatNo', 'varchar', 'caption=Доставчик->VAT Код');
-            $fld->FLD('contragentNo', 'varchar', 'caption=Доставчик->Нац. Код');
-            $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-            $fld->FLD('rate', 'double', 'caption=Курс на валутата');
-            $fld->FLD('dealValue', 'double', 'caption=Обща стойност->без ДДС');
-            $fld->FLD('accItem', 'int', 'caption=Сч. с-ка');
-            $fld->FLD('prodCode', 'varchar', 'caption=Код на стоката');
-            $fld->FLD('quantity', 'double', 'caption=Количество');
-            $fld->FLD('price', 'double', 'caption=Ед цена');
-            $fld->FLD('detAmount', 'double', 'caption=Ст. на реда');
-            $fld->FLD('measure', 'varchar', 'caption=Мерна единица,tdClass=centered');
-            $fld->FLD('vat', 'double', 'caption=% ДДС');
-            $fld->FLD('paymentType', 'varchar', 'caption=Плащане');
-   
+        $fld->FLD('type', 'varchar', 'caption=Тип на документа');
+        $fld->FLD('dealType', 'varchar', 'caption=Тип на сделката');
+        $fld->FLD('number', 'varchar', 'caption=Номер на документа,tdClass=centered');
+        $fld->FLD('date', 'date', 'caption=Дата');
+        $fld->FLD('state', 'varchar', 'caption=Статус');
+        $fld->FLD('contragentName', 'varchar', 'caption=Доставчик->Име');
+        $fld->FLD('contragentVatNo', 'varchar', 'caption=Доставчик->VAT Код');
+        $fld->FLD('contragentNo', 'varchar', 'caption=Доставчик->Нац. Код');
+        $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
+        $fld->FLD('rate', 'double', 'caption=Курс на валутата');
+        $fld->FLD('dealValue', 'double', 'caption=Обща стойност->без ДДС');
+        $fld->FLD('accItem', 'int', 'caption=Сч. с-ка');
+        $fld->FLD('prodCode', 'varchar', 'caption=Код на стоката');
+        $fld->FLD('quantity', 'double', 'caption=Количество');
+        $fld->FLD('price', 'double', 'caption=Ед цена');
+        $fld->FLD('detAmount', 'double', 'caption=Ст. на реда');
+        $fld->FLD('measure', 'varchar', 'caption=Мерна единица,tdClass=centered');
+        $fld->FLD('vat', 'double', 'caption=% ДДС');
+        $fld->FLD('paymentType', 'varchar', 'caption=Плащане');
+        $fld->FLD('bankAccount', 'varchar', 'caption=Банкова с-ка');
+        
         return $fld;
     }
     
@@ -331,6 +370,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         $row = new stdClass();
         if ($dRec->invoice) {
             $row->type = $dRec->invoice->type;
+            $row->dealType = $dRec->invoice->dealType;
             $row->number = $dRec->invoice->number;
             $row->date = $Date->toVerbal($dRec->invoice->date);
             $row->state = $dRec->invoice->state;
@@ -351,6 +391,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $row->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
         } else {
             $row->type = $dRec->type;
+            $row->dealType = $dRec->dealType;
             $row->number = $dRec->number;
             $row->date = $Date->toVerbal($dRec->date);
             $row->state = $dRec->state;
@@ -394,6 +435,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         
         if ($dRec->invoice) {
             $res->type = $dRec->invoice->type;
+            $res->dealType = $dRec->invoice->dealType;
             $res->number = $dRec->invoice->number;
             $res->date = ($dRec->invoice->date);
             $res->state = $dRec->invoice->state;
@@ -412,9 +454,83 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $res->vat = $dRec->vat;
             $res->paymentType = $dRec->invoice->paymentType;
             $res->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
-        }else{
-            
+        } else {
             $res->bankAccount = bank_Accounts::getTitleById($dRec->accountId);
         }
+    }
+    
+    
+    /**
+     * Определя вида сделка
+     *
+     * @param stdClass $rec - запис
+     *
+     * @return int
+     */
+    private function getDealType($rec)
+    {
+        $this->confCache = core_Packs::getConfig('bnav');
+        $this->countryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+        
+        $number = ($rec->contragentVatNo) ? $rec->contragentVatNo : $rec->uicNo;
+        
+        if ($rec->contragentCountryId == $this->countryId || empty($rec->contragentCountryId)) {
+            // Ако е фирма от БГ сделката е 21
+            $vidSdelka = $this->confCache->FSD_DEAL_TYPE_BG;
+        } elseif (drdata_Vats::isHaveVatPrefix($number)) {
+            // Не е от БГ но е VAT - Евросъюз
+            $vidSdelka = $this->confCache->FSD_DEAL_TYPE_EU; // 23
+            // Обаче, ако експедиционното /packaging list/ е с адрес за доставката в страна извън ЕС
+            // => $vidSdelka = $this->confCache->FSD_DEAL_TYPE_NON_EU;
+            
+            // Ако има експедиционно със същия containerId,
+            // взимаме данните за доставка и проверяваме дали това ни е случая
+            $shOrder = store_ShipmentOrders::fetch("#fromContainerId = {$rec->containerId}");
+            if ($shOrder->country) {
+                $groupsArr = drdata_CountryGroups::getGroupsArr($shOrder->country);
+                foreach ($groupsArr as $group) {
+                    if ('Чужбина извън ЕС' == $group->name) {
+                        $vidSdelka = $this->confCache->FSD_DEAL_TYPE_NON_EU; // 22
+                    }
+                }
+            }
+        } else {
+            // Извън Евросъюза
+            
+            $vidSdelka = $this->confCache->FSD_DEAL_TYPE_NON_EU; // 22
+            // Но ако е начислено ДДС вида сделка става 21 - по заявка на Даниела /нерегистрирани по ДДС извън БГ/
+            if ($rec->vatRate != 'no' && $rec->vatRate != 'exempt') {
+                $vidSdelka = $this->confCache->FSD_DEAL_TYPE_BG;
+            }
+        }
+        
+        return ($vidSdelka);
+    }
+    
+    
+    /**
+     * Определя типа на документа
+     *
+     * @param stdClass $rec - запис
+     *
+     * @return int
+     */
+    private function getDocType($rec)
+    {
+        $this->confCache = core_Packs::getConfig('bnav');
+        $this->countryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+        $this->kgId = cat_UoM::fetchBySinonim('kg')->id;
+        
+        if ($rec->type == 'dc_note') {
+            if ($rec->dpAmount > 0 || $rec->changeAmount) {
+                $docType = $this->confCache->FSD_DOC_DEBIT_NOTE_TYPE;
+            } else {
+                $docType = $this->confCache->FSD_DOC_CREDIT_NOTE_TYPE;
+            }
+        } else {
+            $docType = $this->confCache->FSD_DOC_INVOCIE_TYPE;
+        }
+        
+        return ($docType);
     }
 }
