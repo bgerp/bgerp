@@ -125,12 +125,20 @@ class type_UserOrRole extends type_User
      */
     public function toVerbal_($value)
     {
+        $sel = $this->params['select'];
+        $mvc = $this->params['mvc'];
+        
         if ($value < 0) {
-            $this->params['mvc'] = &cls::get('core_Roles');
+            $this->params['mvc'] = cls::get('core_Roles');
             $this->params['select'] = 'role';
         }
         
-        return parent::toVerbal_($value);
+        $res = parent::toVerbal_($value);
+        
+        $this->params['mvc'] = $mvc;
+        $this->params['select'] = $sel;
+        
+        return $res;
     }
     
     
