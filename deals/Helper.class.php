@@ -35,6 +35,12 @@ abstract class deals_Helper
     
     
     /**
+     * Константа за умно конвертиране
+     */
+    const SMART_PRICE_CONVERT = '0.015';
+    
+    
+    /**
      * Умно закръгляне на цена
      *
      * @param float $price     - цена, която ще се закръгля
@@ -1887,11 +1893,13 @@ abstract class deals_Helper
             $style .= "#percent{$rec->containerId}:after{content: '$readinessVerbal'} ";
             
             // Ако има зони, колко % е готово от зоната
-            $zoneReadiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
-            if(isset($zoneReadiness)){
-                $zoneReadinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($zoneReadiness);
-                $string .= "<span id='zone{$rec->containerId}' class='enTag zone' title='Колко е нагласено в зоната'></span>";
-                $style .= "#zone{$rec->containerId}.zone:after{content: '$zoneReadinessVerbal'} ";
+            if(core_Packs::isInstalled('rack')){
+                $zoneReadiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
+                if(isset($zoneReadiness)){
+                    $zoneReadinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($zoneReadiness);
+                    $string .= "<span id='zone{$rec->containerId}' class='enTag zone' title='Колко е нагласено в зоната'></span>";
+                    $style .= "#zone{$rec->containerId}.zone:after{content: '$zoneReadinessVerbal'} ";
+                }
             }
 
             $string = "<style>" . $style . "</style><span class='tags'>" . $string . "</span>";
@@ -1899,5 +1907,39 @@ abstract class deals_Helper
         }
         
         return null;
+    }
+    
+    
+    public static function getSmartDisplay(&$packQuantity, &$packagingId, &$price)
+    {
+        /*
+         * а се направи функция, която има параметри количество, опаковка и цена.
+         * Функцията намира d1, d2 и d3 - абсолютните разлики между:
+         * round(Количество * Цена, 2) и
+         * 1. round(Количество, 3) * round(Цена, 2)
+         * 2. round(Количество /1000, 3) * round(Цена *1000, 2)
+         * 3. round(Количество * 1000, 3) * round(Цена/1000, 2)
+         * Алгоритъм:
+         * 1. Ако d1 е по-малко от дадена константа (0.015) продължава към 4.
+         * 2. Ако d2 е най-малкото измежду d1, d2 и d3 и има опаковка с 1000 пъти по-голямо съдържание, връща: цена = цена*1000, количество = количество/1000 и по-голямата опаковка
+         * 3. Ако d3 е най-малкото измежду d1, d2 и d3 и има опаковка с 1000 пъти по-малко съдържание, връща: цена = цена/1000, количество = количество*1000 и по-голямата опаковка
+         * 4. Връща непроменени количество, опаковка и цена
+         */
+        
+        $start = round($packQuantity * $price, 2);
+        
+        $d1 = abs($start - round($packQuantity, 3) * round($price, 2));
+        $d2 = abs($start - round($packQuantity / 1000, 3) * round($price * 1000, 2));
+        $d3 = abs($start - round($packQuantity * 1000, 3) * round($price / 1000, 2));
+        
+        if($d1 < self::SMART_PRICE_CONVERT) return;
+       // $mind
+        
+        //rand
+        
+        //$packQuantity = 10.2;
+        
+       // bp($start, $d1, $d2, $d3);
+        
     }
 }

@@ -2382,6 +2382,21 @@ pre.document {
 		background-color:red;
 	}
 }
+.document-block {
+	font-size: 0.9em;
+	.block-instock {
+		background-color: blue;
+		border:solid 1px white;
+		color:white;
+		font-size: 0.9em;
+	}
+	.block-readiness {
+		background-color:red;
+		border:solid 1px white;
+		color:white;
+		font-size: 0.9em;
+	}
+}
 
 .tags {
 	margin-left: 2px;
@@ -3428,7 +3443,9 @@ fieldset.sharing-history {
 	max-width: 100%;
 	margin: 5px 0 10px;
 }
-
+#cart-external-status .cardLink{
+	font-weight: bold;
+}
 #cart-external-status .count {
 	border: 1px solid #526b00;
 	background-color: #698900;

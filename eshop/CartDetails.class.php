@@ -399,8 +399,7 @@ class eshop_CartDetails extends core_Detail
                 $row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => 'img/16/deletered.png', 'title' => 'Премахване на артикул', 'data-cart' => $rec->cartId, 'data-url' => $removeUrl, 'class' => 'remove-from-cart', 'warning' => tr('Наистина ли желаете да премахнете артикула?')));
             }
             
-            $productTitle = eshop_ProductDetails::fetchField("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'title');
-            $row->productId = !empty($productTitle) ? core_Type::getByName('varchar')->toVerbal($productTitle) : cat_Products::getVerbal($rec->productId, 'name');
+            $row->productId = eshop_ProductDetails::getPublicProductName($rec->eshopProductId, $rec->productId);
             $row->packagingId = tr(cat_UoM::getShortName($rec->packagingId));
             
             $quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
@@ -576,24 +575,23 @@ class eshop_CartDetails extends core_Detail
      * Колко ще е доставката от въведените данни
      *
      * @param stdClass $masterRec
+     * @param mixed $TransCalc
      *
      * @return NULL|array
      */
-    public static function getDeliveryInfo($masterRec)
+    public static function getDeliveryInfo($masterRec, &$TransCalc)
     {
         $masterRec = eshop_Carts::fetchRec($masterRec);
         $query = self::getQuery();
-        $query->where("#cartId = {$masterRec->id}");
-        $query->show('productId,quantity,packagingId');
+        $query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $query->where("#cartId = {$masterRec->id} AND #canStore != 'no'");
+        $query->show('productId,quantity,packagingId,canStore');
         
-        if (empty($masterRec->termId)) {
+        if (empty($masterRec->termId) || !$query->count()) {
             
             return;
         }
-        if (!$query->count()) {
-            
-            return;
-        }
+        
         $TransCalc = cond_DeliveryTerms::getTransportCalculator($masterRec->termId);
         if (!$TransCalc) {
             
@@ -605,22 +603,14 @@ class eshop_CartDetails extends core_Detail
         
         // Колко е общото тегло и обем за доставка
         $products = arr::extractSubArray($query->fetchAll(), 'productId,quantity,packagingId');
-        $total = sales_TransportValues::getTotalWeightAndVolume($TransCalc, $products, $masterRec->termId, $deliveryData);
+        $total = sales_TransportValues::getTotalWeightAndVolume($products);
         
-        if($total > 0) {
-            
-            // За всеки артикул се изчислява очаквания му транспорт
-            $transportAmount = 0;
-            foreach ($products as $p1) {
-                $fee = sales_TransportValues::getTransportCost($masterRec->termId, $p1->productId, $p1->packagingId, $p1->quantity, $total, $deliveryData);
-                
-                
-                if (is_array($fee)) {
-                    $transportAmount += $fee['totalFee'];
-                }
+        $transportAmount = 0;
+        foreach ($products as $p1) {
+            $fee = sales_TransportValues::getTransportCost($masterRec->termId, $p1->productId, $p1->packagingId, $p1->quantity, $total, $deliveryData);
+            if (is_array($fee)) {
+                $transportAmount += $fee['totalFee'];
             }
-        } else {
-            $transportAmount = cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
         }
         
         $res = array('amount' => $transportAmount);

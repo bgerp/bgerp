@@ -50,7 +50,7 @@ if (setupKeyValid() && !setupProcess()) {
     // halt("Процес на обновяване - опитайте по късно.");
 } 
 
-header("Content-Encoding: none");
+// header("Content-Encoding: none"); чупи behat/mink тестовете
 header('X-Accel-Buffering: no');
 
 // На коя стъпка се намираме в момента?

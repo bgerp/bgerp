@@ -3397,14 +3397,18 @@ class cal_Tasks extends embed_Manager
                 }
             }
             
+            // Опит за транслиране на данните
             $startTime = isset($taskRec->timeStart) ? $taskRec->timeStart : (isset($taskRec->timeDuration, $taskRec->timeEnd) ? dt::addSecs(-1 * $taskRec->timeDuration, $taskRec->timeEnd) : null);
-            $druration = isset($taskRec->timeDuration) ? $taskRec->timeDuration : (isset($taskRec->timeStart, $taskRec->timeEnd) ? (strtotime($taskRec->timeEnd) - strtotime($taskRec->timeStart)) : null);
-            
-            if(!empty($startTime)){
-                $cloneTask->timeStart = dt::addSecs($dateDiff, $startTime);
-                if(isset($druration)){
-                    $cloneTask->timeEnd = dt::addSecs($druration, $cloneTask->timeStart);
-                }
+            $duration = isset($taskRec->timeDuration) ? $taskRec->timeDuration : (isset($taskRec->timeStart, $taskRec->timeEnd) ? (strtotime($taskRec->timeEnd) - strtotime($taskRec->timeStart)) : null);
+            $newStart = dt::addSecs($dateDiff, $startTime);
+            if(isset($taskRec->timeDuration)){
+                $cloneTask->timeDuration = $duration;
+            }
+            if(isset($taskRec->timeStart)){
+                $cloneTask->timeStart = $newStart;
+            }
+            if(isset($taskRec->timeEnd)){
+                $cloneTask->timeEnd = dt::addSecs($duration, $newStart);
             }
             
             $Tasks->route($cloneTask);

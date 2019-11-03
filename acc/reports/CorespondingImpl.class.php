@@ -922,10 +922,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         arr::sortObjects($this->innerState->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
         
         $rows = $this->prepareEmbeddedData()->rows;
-        
+        $dataRecs = array();
         if (count($this->innerState->recs)) {
             foreach ($this->innerState->recs as $id => $rec) {
-                $dataRecs[] = $this->getVerbalRec($rec, $data);
+                $dataRecs[$id] = $this->getVerbalRec($rec, $data);
                 foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'plus', 'minus','quantity','sum','amountSelf') as $fld) {
                     if (!is_null($rec->{$fld})) {
                         $dataRecs[$id]->{$fld} = $rec->{$fld};

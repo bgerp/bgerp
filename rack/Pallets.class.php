@@ -67,7 +67,7 @@ class rack_Pallets extends core_Manager
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'closedOn';
+    public $hideListFieldsIfEmpty = 'closedOn,batch';
     
     
     /**
@@ -340,19 +340,6 @@ class rack_Pallets extends core_Manager
         self::recalc($rec->productId, $rec->storeId);
         core_Cache::remove('UsedRacksPossitions', $rec->storeId);
     }
-    
-
-    /**
-     * Ако има указана позиция, използва я, като заявка за търсене
-     */
-    public function prepareListFilter_($data)
-    {
-        if($pos = Request::get('pos')) {
-            Request::push(array('search' => $pos));
-        }
-
-        return parent::prepareListFilter_($data);
-    }
 
 
     /**
@@ -368,13 +355,11 @@ class rack_Pallets extends core_Manager
         $data->query->where("#storeId = {$storeId}");
         $data->query->orderBy('state', 'ASC');
         
-        $data->listFilter = cls::get('core_Form', array('method' => 'GET'));
-        $data->listFilter->FLD('state', 'enum(,active=Активни,closed=Затворено)', 'caption=Всички,silent');
-        $data->listFilter->setDefault('state', 'active');
-        $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)', 'caption=Артикул,silent');
-        $data->listFilter->FLD('search', 'varchar', 'caption=Търсене');
+        $data->listFilter->setFieldType('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)');
+        $data->listFilter->FLD('stateFilter', 'enum(,active=Активни,closed=Затворено)', 'caption=Всички,silent');
+        $data->listFilter->setDefault('stateFilter', 'active');
         
-        $data->listFilter->showFields = 'productId,search,state';
+        $data->listFilter->showFields = 'productId,search,stateFilter';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -391,8 +376,8 @@ class rack_Pallets extends core_Manager
             }
         }
         
-        if (!empty($rec->state)) {
-            $data->query->where("#state = '{$rec->state}'");
+        if (!empty($rec->stateFilter)) {
+            $data->query->where("#state = '{$rec->stateFilter}'");
         }
         
         if (!$order) {
@@ -612,8 +597,6 @@ class rack_Pallets extends core_Manager
                         }
                         $row->batch = ht::createLink($row->batch, $link);
                     }
-                } else {
-                    $row->batch = "<span class='quiet'>" . tr('Няма') . "</span>";
                 }
             }
         }

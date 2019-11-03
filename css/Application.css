@@ -2039,6 +2039,19 @@ pre.document {
   .enTag.zone {
     background-color: red; }
 
+.document-block {
+  font-size: 0.9em; }
+  .document-block .block-instock {
+    background-color: blue;
+    border: solid 1px white;
+    color: white;
+    font-size: 0.9em; }
+  .document-block .block-readiness {
+    background-color: red;
+    border: solid 1px white;
+    color: white;
+    font-size: 0.9em; }
+
 .tags {
   margin-left: 2px; }
 
@@ -2946,6 +2959,9 @@ span.sharing-history-title {
   width: 100%;
   max-width: 100%;
   margin: 5px 0 10px; }
+
+#cart-external-status .cardLink {
+  font-weight: bold; }
 
 #cart-external-status .count {
   border: 1px solid #526b00;
