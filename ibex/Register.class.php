@@ -20,13 +20,19 @@ class ibex_Register extends core_Manager
     /**
      * Кой има право да променя?
      */
-    protected $canEdit = 'no_one';
+    protected $canEdit = 'admin';
     
     
     /**
      * Кой има право да добавя?
      */
     protected $canAdd = 'admin';
+
+
+    /**
+     * Кой може да редактира данните, добавени от системата
+     */
+    public $canDeletesysdata = 'admin';
     
     
     /**
@@ -38,7 +44,7 @@ class ibex_Register extends core_Manager
     /**
      * Кой има право да го изтрие?
      */
-    protected $canDelete = 'no_one';
+    protected $canDelete = 'admin';
     
     
     /**
@@ -50,7 +56,7 @@ class ibex_Register extends core_Manager
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'plg_Created,plg_Sorting';
+    public $loadList = 'plg_Created,plg_Sorting,plg_RowTools2';
 
 
     /**
@@ -62,8 +68,34 @@ class ibex_Register extends core_Manager
         $this->FLD('kind', 'varchar(32)', 'caption=Вид,smartCenter');
         $this->FLD('price', 'double(decimals=2)', 'caption=Стойност');
     }
+
+
+  /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if($rec->kind == '00-24') {
+            $row->ROW_ATTR['style'] = "background-color:#ffcc99;";
+        }
+    }
+
     
-    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        // Подготовка на филтъра
+        $data->query->orderBy('#date=DESC,#kind=DESC');
+    }
+
+
+
     /**
      * Извличане по разписание на данните от пазара
      */
@@ -86,8 +118,10 @@ class ibex_Register extends core_Manager
                     $rec->date = $date;
                     $rec->kind = $hour;
                     $rec->price = $price;
-
-                    $this->save($rec);
+                    
+                    if($rec->price > 0) {
+                        $this->save($rec);
+                    }
                 }
             }
         }
