@@ -555,12 +555,13 @@ class eshop_Carts extends core_Master
                 
                 return new core_ET(' ');
             }
-            $amount = core_Type::getByName('double(decimals=2)')->toVerbal($cartRec->total);
-            $amount = str_replace('&nbsp;', ' ', $amount);
+            
+            $amount = currency_CurrencyRates::convertAmount($cartRec->total, null, null, $settings->currencyId);
+            $amountVerbal = str_replace('&nbsp;', ' ', core_Type::getByName('double(decimals=2)')->toVerbal($amount));
             $count = core_Type::getByName('int')->toVerbal($cartRec->productCount);
             $url = array('eshop_Carts', 'view', $cartId);
             $str = ($count == 1) ? 'артикул' : 'артикула';
-            $hint = "|Поръчайте|* {$count} |{$str} за|* {$amount} " . $settings->currencyId;
+            $hint = "|Поръчайте|* {$count} |{$str} за|* {$amountVerbal} " . $settings->currencyId;
             
             if ($count) {
                 $tpl->append(new core_ET("<span class='count'>[#count#]</span>"));

@@ -603,7 +603,7 @@ class eshop_CartDetails extends core_Detail
         
         // Колко е общото тегло и обем за доставка
         $products = arr::extractSubArray($query->fetchAll(), 'productId,quantity,packagingId');
-        $total = sales_TransportValues::getTotalWeightAndVolume($TransCalc, $products);
+        $total = sales_TransportValues::getTotalWeightAndVolume($TransCalc, $products, $masterRec->termId, $deliveryData);
         
         $transportAmount = 0;
         foreach ($products as $p1) {
