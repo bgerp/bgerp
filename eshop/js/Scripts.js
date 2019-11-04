@@ -121,6 +121,15 @@ function eshopActions() {
 		
 		var aboveMax = max && parseFloat(packQuantity) > parseFloat(max);
 		
+		if(aboveMax){
+			var maxReachedText = $(this).attr("data-maxquantity-reached-text");
+			clearTimeout(timeout1[idProd]);
+			
+			timeout1[idProd] = setTimeout(function(){
+				render_showToast({timeOut: 1000, text: maxReachedText, isSticky: true, stayTime: 8000, type: 'error'});
+			}, 2000);
+		}
+		
 		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1 || aboveMax)){
 			$(this).addClass('inputError');
 		} else {
@@ -164,6 +173,12 @@ function eshopActions() {
 		var valNew = parseFloat(val) + parseFloat(step);
         var update = $(input).hasClass('autoUpdate');
 
+        if(max && ((val + step) > max)){
+        	var maxReachedText = input.attr("data-maxquantity-reached-text");
+        	
+        	render_showToast({timeOut: 800, text: maxReachedText, isSticky: true, stayTime: 8000, type: 'error'});
+        }
+        
 		if (valNew > 0 && (!max || step == -1 || (max && val + step <= max))) {
 			$(input).val(valNew);
             if(update) {
