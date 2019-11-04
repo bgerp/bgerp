@@ -1,7 +1,10 @@
 body{
     background-color:#fff;
     height: 100%;
+    width: 100%;
+    overflow-x: hidden;
 }
+
 html {
     height: 99.9%;
 }
