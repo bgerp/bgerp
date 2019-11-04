@@ -696,4 +696,30 @@ class core_Array
         
         return $sum;
     }
+    
+    
+    /**
+     * Проверява дали посочените стрингови елементи от масива имат минимална дължина
+     * 
+     * @param array $arr - масив
+     * @param int $checkLength - минимална дължина за проверка
+     * @param null|string $field - поле, което ще се проверява. При null приема че масива е от скалари
+     * @return boolean $res - дали търсените елементи от масива имат минимална дължина
+     */
+    public static function checkMinLength($arr, $checkLength, $field = null)
+    {
+        $res = true;
+        array_walk($arr, function ($a) use ($checkLength, $field, &$res){
+            $val = $a;
+            if(isset($field)){
+                $val = (is_array($a)) ? $a[$field] : $a->{$field};
+            }
+            
+            if(mb_strlen($val) < $checkLength) {
+                $res = false;
+            }
+        });
+        
+        return (count($arr)) ? $res : false;
+    }
 }

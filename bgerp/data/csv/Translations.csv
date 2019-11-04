@@ -622,6 +622,7 @@ en,Задача,Task
 en,Задачи за прои_01a40,Manufacturing assignments
 en,Задачи към,Tasks for
 en,Задачи от,Tasks from
+en,Задачи от мен,Tasks from me
 en,Задачи,Tasks
 en,Задачите на,Tasks of
 en,Задължения,Duties
@@ -1944,8 +1945,8 @@ en,Събития,Events
 en,Съблюдаване на,Compliance
 en,Съблюдаване,Observation
 en,Събудено,Awakened
-en,Събуждане,Awake
-en,Събуждане на,Awake
+en,Събуждане,Wake up
+en,Събуждане на,Wake up
 en,Съвет,Advice
 en,Съгласно сделка,According to deal
 en,Съгласно сделки,According to deals
@@ -2099,6 +2100,7 @@ en,Факс,Fax
 en,Факсове,Faxes
 en,Фактура за про_288aa,Sale invoice
 en,Фактура,Invoice
+en,фактура,invoice
 en,Фактури за про_aec89,Sales Invoice
 en,Фактури,Invoices
 en,Фактурирани,Invoiced
@@ -2793,7 +2795,7 @@ en,Модел,Model
 en,Въведете IP адреса на устройството,Please input IP address of device
 en,До два месеца след фактуриране,Until 2 months after invoicing
 en,Направете поръчка,Place order
-en,Безплатна доставка за поръчки над,Free shipping for orders over
+en,"Печелите безплатна доставка, защото поръчката ви надвишава","You win free shipping, because your order is above"
 en,"Безплатна доставка, съгласно ""Общите условия""","Free shipping under the ""Terms of Service"""
 en,Невалиден VAT номер,Invalid VAT ID
 en,Игнорирай предупреждението,Ignore the warning

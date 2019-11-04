@@ -13,6 +13,13 @@
                   <span class="bigData">[#valior#]</span>
                   </span>
                </div>
+               <!--ET_BEGIN storeReadiness-->
+               <div class="document-block"><span class='block-caption'>Налично в склад</span>: <span class='block-instock'>[#storeReadiness#]</span></div>
+               <!--ET_END storeReadiness-->
+
+               <!--ET_BEGIN zoneReadiness-->
+               <div class="document-block"><span class='block-caption'>В зона [#zoneId#]</span>: <span class='block-readiness'>[#zoneReadiness#]</span></div>
+               <!--ET_END zoneReadiness-->
             </td>
          </tr>
          <tr>
@@ -74,7 +81,7 @@
                   <!--ET_END deliveryTime-->
                   <!--ET_BEGIN fromContainerId-->
                   <tr>
-                     <td colspan='2'><span class='quiet'>|Към|* [#fromContainerName#]:</span> [#fromContainerId#]</td>
+                     <td class='quiet aright'>|Към|*[#fromContainerName#]:</td><td>[#fromContainerId#]</td>
                   </tr>
                   <!--ET_END fromContainerId-->
                   <!--ET_BEGIN deliveryAddressBlock-->
@@ -94,7 +101,7 @@
                   <!--ET_END lineId-->
                   <!--ET_BEGIN lineNotes-->
                   <tr>
-                     <td colspan=2><hr><span class="quiet">|Забележки|*:</span> [#lineNotes#]</td>
+                     <td class='quiet nowrap aright'>|Забележки|*:</td><td>[#lineNotes#]</td>
                   </tr>
                   <!--ET_END lineNotes-->
                   <!--ET_BEGIN note-->

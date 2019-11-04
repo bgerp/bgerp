@@ -440,7 +440,10 @@ class core_Master extends core_Manager
                         }
                     }
                 }
-                
+
+                $tabBottom->htmlId = 'Bottom-tab-' . cls::getClassName($this);
+                $tabBottom->tabGroup = 'Bottom-tab-' . cls::getClassName($this);
+
                 // Проверяваме имали избран детайл от долния таб
                 $selectedBottom = $tabBottom->getSelected();
                 

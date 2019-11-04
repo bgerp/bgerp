@@ -355,7 +355,7 @@ class rack_ZoneDetails extends core_Detail
         $Movements->FLD('_rowTools', 'varchar', 'tdClass=small-field');
         
         $data = (object) array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements, 'inlineMovement' => true);
-        $data->listFields = arr::make('movement=Движение,workerId=Работник', true);
+        $data->listFields = arr::make('movement=Движение,startBtn=Започни,stopBtn=Приключи,workerId=Работник', true);
         if($masterRec->_isSingle === true){
             $data->listFields['modifiedOn'] = 'Модифициране||Modified->На||On';
             $data->listFields['modifiedBy'] = 'Модифициране||Modified->От||By';

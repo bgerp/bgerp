@@ -411,6 +411,11 @@ class acc_ClosePeriods extends core_Master
         
         // За всяка от тях, намираме състоянието им след контирането на документа
         $bId = acc_Balances::fetchField("#periodId = {$rec->periodId}", 'id');
+        if (!$bId) {
+            
+            return;
+        }
+        
         $dQuery = acc_BalanceDetails::getQuery();
         $dQuery->where("#balanceId = {$bId}");
         $dQuery->where('#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL');

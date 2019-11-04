@@ -31,7 +31,7 @@ class rack_Pallets extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper,recently_Plugin,plg_Sorting';
+    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper,recently_Plugin,plg_Sorting, plg_Search';
     
     
     /**
@@ -80,6 +80,12 @@ class rack_Pallets extends core_Manager
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = 'barcode_SearchIntf';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'position,batch,productId,comment';
     
     
     /**
@@ -353,9 +359,9 @@ class rack_Pallets extends core_Manager
         $data->listFilter->FLD('state', 'enum(,active=Активни,closed=Затворено)', 'caption=Всички,silent');
         $data->listFilter->setDefault('state', 'active');
         $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)', 'caption=Артикул,silent');
-        $data->listFilter->FLD('pos', 'varchar', 'caption=Позиция', array('attr' => array('style' => 'width:5em;')));
+        $data->listFilter->FLD('search', 'varchar', 'caption=Търсене');
         
-        $data->listFilter->showFields = 'productId,pos,state';
+        $data->listFilter->showFields = 'productId,search,state';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -366,19 +372,6 @@ class rack_Pallets extends core_Manager
         }
         if ($rec->productId) {
             $data->query->where("#productId = {$rec->productId}");
-            if (!Request::get('Sort')) {
-                $data->query->orderBy('position', 'ASC');
-                $order = true;
-            }
-        }
-        
-        if (!$rec->pos) {
-            $rec->pos = Request::get('pos', 'rack_PositionType');
-            $data->listFilter->setDefault('pos', $rec->pos);
-        }
-        
-        if ($rec->pos) {
-            $data->query->where(array("#position LIKE UPPER('[#1#]')", $rec->pos));
             if (!Request::get('Sort')) {
                 $data->query->orderBy('position', 'ASC');
                 $order = true;

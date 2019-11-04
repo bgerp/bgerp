@@ -491,7 +491,7 @@ abstract class deals_DealMaster extends deals_DealBase
                         $data->query->where("#paymentState = 'overdue'");
                         break;
                     case 'delivered':
-                        $data->query->where('#deliveredRound = #dealRound');
+                        $data->query->where('#deliveredRound >= #dealRound');
                         $data->query->where("#state = 'active' OR #state = 'closed'");
                         break;
                     case 'undelivered':
@@ -1764,14 +1764,9 @@ abstract class deals_DealMaster extends deals_DealBase
         );
         
         // Проверяваме дали въвдения детайл е уникален
-        $where = "#{$Detail->masterKey} = {$id} AND #productId = {$dRec->productId}";
-        if ($packagingId) {
-            $where .= " AND #packagingId = {$packagingId}";
-        } else {
-            $where .= ' AND #packagingId IS NULL';
-        }
+        $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes);
         
-        if ($exRec = $Detail->fetch($where)) {
+        if (is_object($exRec)) {
             
             // Смятаме средно притеглената цена и отстъпка
             $nPrice = ($exRec->quantity * $exRec->price + $dRec->quantity * $dRec->price) / ($dRec->quantity + $exRec->quantity);

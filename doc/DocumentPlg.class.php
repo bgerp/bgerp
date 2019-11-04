@@ -843,6 +843,18 @@ class doc_DocumentPlg extends core_Plugin
             } catch (core_exception_Expect $e) {
             }
         }
+        
+        if ($mvc->canEditActivated) {
+            if ($rec->state == 'draft' || $rec->state == 'rejected') {
+                $sharedArr = array();
+            } else {
+                $sharedArr = $mvc->getShared($rec->id);
+                $sharedArr = type_Keylist::toArray($sharedArr);
+                $sharedArr = arr::make($sharedArr, true);
+            }
+            
+            doc_ThreadUsers::syncContainerRelations($rec->containerId, $sharedArr, $rec->threadId);
+        }
     }
     
     
@@ -916,6 +928,8 @@ class doc_DocumentPlg extends core_Plugin
                     
                     $docRow = $mvc->getDocumentRow($rec->id);
                     $docTitle = $docRow->recTitle ? $docRow->recTitle : $docRow->title;
+                    $docTitle = strip_tags(str_replace('&nbsp;', ' ', $docTitle));
+                    
                     $folderTitle = doc_Folders::getTitleById($rec->folderId, false);
                     
                     $message = "{$currUserNick} |създаде заявка за|* \"|{$docTitle}|*\" |в папка|* \"{$folderTitle}\"";
@@ -1519,8 +1533,12 @@ class doc_DocumentPlg extends core_Plugin
         doc_Threads::setModification($rec->threadId);
         
         doc_Files::recalcFiles($rec->containerId);
-        
         bgerp_Notifications::hideNotificationsForSingle($mvc->className, $rec->id);
+        
+        // Ако е оттеглен контиран документ, се бият нотификации
+        if($rec->brState == 'active' && cls::haveInterface('acc_TransactionSourceIntf', $mvc)){
+            acc_plg_Contable::notifyUsersForReject($mvc, $rec);
+        }
     }
     
     

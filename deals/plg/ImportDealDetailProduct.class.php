@@ -167,15 +167,15 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             }
             
             $pRec = cat_Products::getByCode($obj->code);
-           
-            $state = cat_Products::fetchField($pRec->productId, 'state');
-            if($state != 'active'){
-                $err[$i][] = $obj->code . ' |Артикулът е неактивен|*';
-                continue;
-            }
             
             if (!$pRec) {
                 $err[$i][] = $obj->code . ' |Няма артикул с такъв код|*';
+                continue;
+            }
+            
+            $state = cat_Products::fetchField($pRec->productId, 'state');
+            if($state != 'active'){
+                $err[$i][] = $obj->code . ' |Артикулът е неактивен|*';
                 continue;
             }
             

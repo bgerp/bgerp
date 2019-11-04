@@ -13,6 +13,14 @@
                         <!--ET_BEGIN state-->
                         <div class="[#STATE_CLASS#]" style='margin-top: 5px 0;'>[#state#]</div>
                         <!--ET_END state-->
+
+                        <!--ET_BEGIN storeReadiness-->
+                        <div class="document-block"><span class='block-caption'>Налично в склад</span>: <span class='block-instock'>[#storeReadiness#]</span></div>
+                        <!--ET_END storeReadiness-->
+
+                        <!--ET_BEGIN zoneReadiness-->
+                        <div class="document-block"><span class='block-caption'>В зона [#zoneId#]</span>: <span class='block-readiness'>[#zoneReadiness#]</span></div>
+                        <!--ET_END zoneReadiness-->
                     </td>
                     <td class="cell custom-header-bg"  style='width:35%;'><b>|Доставчик|*</b></td>
                 </tr>
@@ -51,7 +59,7 @@
                             <!--ET_END deliveryTime-->
                             <!--ET_BEGIN fromContainerId-->
                   			<tr>
-                     			<td colspan='2'><span class='quiet'>|Към|* [#fromContainerName#]:</span> [#fromContainerId#]</td>
+                                <td class='quiet aright'>|Към|*[#fromContainerName#]:</td><td>[#fromContainerId#]</td>
                   			</tr>
                   			<!--ET_END fromContainerId-->
                             <!--ET_BEGIN storeId-->
@@ -83,7 +91,7 @@
                             <!--ET_END lineId-->
                            <!--ET_BEGIN lineNotes-->
                            <tr>
-                               <td class='quiet nowrap'>|Забележки|*: </td>
+                               <td class='quiet nowrap aright'>|Забележки|*: </td>
                                <td>[#lineNotes#]</td>
                            </tr>
                            <!--ET_END lineNotes-->

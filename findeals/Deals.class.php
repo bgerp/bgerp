@@ -689,7 +689,14 @@ class findeals_Deals extends deals_DealBase
             $DocType = new core_ObjectReference($jRec->docType, $jRec->docId);
            
             $row->docId = $DocType->getLink(0);
-            $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($DocType->fetchField('folderId')))->title;
+            
+            if($DocType->isInstanceOf('purchase_Invoices')){
+                $folderId = cls::get($DocType->fetchField('contragentClassId'))->forceCoverAndFolder($DocType->fetchField('contragentId'));
+            } else {
+                $folderId = doc_Folders::fetch($DocType->fetchField('folderId'));
+            }
+            $row->folderId = doc_Folders::recToVerbal($folderId)->title;
+            
             $row->activatedBy = crm_Profiles::createLink($DocType->fetchField('activatedBy'));
             $row->activatedOn = $DocType->getVerbal('activatedOn');
         } catch (core_exception_Expect $e) {

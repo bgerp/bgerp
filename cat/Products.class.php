@@ -589,8 +589,17 @@ class cat_Products extends embed_Manager
                 }
             }
             
-            if(isset($rec->id)){
+            if(isset($rec->id) && $form->_cloneForm !== true){
                 $rec->_isEditedFromForm = true;
+               
+                // Предупреждение ако артикула е на чернова
+                $sQuery = sales_SalesDetails::getQuery();
+                $sQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
+                $sQuery->where("#productId = {$rec->id} AND #state = 'draft'");
+                $sQuery->show('id');
+                if($sQuery->fetch()){
+                    $form->setWarning('name', '|Артикулът участва в продажба на чернова|*. |За да се преизчисли цената в нея, трябва да се редактира артикула, да се изтрие цената и да се презапише|*. |Наистина ли желаете да редактирате артикула|*?');
+                }
             }
         }
     }
@@ -1822,7 +1831,7 @@ class cat_Products extends embed_Manager
         if ($Driver = static::getDriver($productId)) {
             $rec = self::fetchRec($productId);
             $weight = $Driver->getTransportWeight($rec, $quantity);
-            if (!empty($weight)) {
+            if (!empty($weight) && !is_nan($weight)) {
                 
                 return $weight;
             }
@@ -1906,7 +1915,7 @@ class cat_Products extends embed_Manager
         if ($Driver = static::getDriver($productId)) {
             $rec = self::fetchRec($productId);
             $volume = $Driver->getTransportVolume($rec, $quantity);
-            if (!empty($volume)) {
+            if (!empty($volume) && !is_nan($volume)) {
                 
                 return $volume;
             }
@@ -2257,7 +2266,7 @@ class cat_Products extends embed_Manager
         // Ако не е указан тип, се взима последната рецепта
         $query = cat_Boms::getQuery();
         $query->where("#productId = '{$rec->id}' AND #state = 'active'");
-        $query->orderBy('id', ASC);
+        $query->orderBy('id', 'ASC');
         
         return $query->fetch();
     }
@@ -2464,16 +2473,21 @@ class cat_Products extends embed_Manager
         $iStQuery->where("#createdOn <= '{$before}' AND #pState = 'active'");
         $iStQuery->show('objectId');
         while ($iStRec = $iStQuery->fetch()) {
-            $pRec1 = cat_Products::fetch($iStRec->objectId, 'id,state');
+            $pRec1 = cat_Products::fetch($iStRec->objectId, 'id,state,brState');
+            $pRec1->brState = $pRec1->state;
             $pRec1->state = 'closed';
             $pRec1->modifiedOn = $now;
             $pRec1->modifiedBy = core_Users::SYSTEM_USER;
             $stProductsToClose[$iStRec->objectId] = $pRec1;
         }
-        $this->closeItems = $stProductsToClose;
         
-        $this->saveArray($stProductsToClose, 'id,state,modifiedBy,modifiedOn');
-        log_System::add('cat_Products', 'ST close items:' . count($stProductsToClose));
+        $this->closeItems = $stProductsToClose;
+        $this->saveArray($stProductsToClose, 'id,state,brState,modifiedBy,modifiedOn');
+        
+        foreach ($stProductsToClose as $sd1) {
+            $this->logWrite('Автоматично затваряне', $sd1);
+        }
+        log_System::add('cat_Products', 'ST close items:' . count($stProductsToClose), null, 'info', 17);
         
         // Намираме всички нестандартни артикули
         $before1 = dt::addMonths(-5);
@@ -2492,19 +2506,20 @@ class cat_Products extends embed_Manager
         $diff = array_diff($products1, $iTems);
         $saveDiff = array();
         foreach ($diff as $p1) {
-            $pr1 = cat_Products::fetch($p1, 'id,state');
+            $pr1 = cat_Products::fetch($p1, 'id,state,brState');
+            $pr1->brState = $pr1->state;
             $pr1->state = 'closed';
             $pr1->modifiedOn = $now;
             $pr1->modifiedBy = core_Users::SYSTEM_USER;
             $saveDiff[$p1] = $pr1;
         }
         
-        $this->saveArray($saveDiff, 'id,state,modifiedOn,modifiedBy');
+        $this->saveArray($saveDiff, 'id,state,brState,modifiedOn,modifiedBy');
         foreach ($saveDiff as $sd) {
-            $this->logWrite('Приключване', $sd);
+            $this->logWrite('Автоматично затваряне', $sd);
         }
         
-        log_System::add('cat_Products', 'Products Without Items Closed:' . count($diff));
+        log_System::add('cat_Products', 'Products Without Items Closed:' . count($diff), null, 'info', 17);
         
         $productQuery = cat_Products::getQuery();
         $productQuery->where("#isPublic != 'yes'");
@@ -2543,7 +2558,7 @@ class cat_Products extends embed_Manager
             
             return;
         }
-        log_System::add('cat_Products', 'Item products count:' . count($productItems));
+        log_System::add('cat_Products', 'Item products count:' . count($productItems), null, 'info', 17);
         
         // Оставяме само записите където участват перата на частните артикули на произволно място
         $bQuery = acc_BalanceDetails::getQuery();
@@ -2559,8 +2574,8 @@ class cat_Products extends embed_Manager
         $bQuery->show('ent1Id,ent2Id,ent3Id');
         $bQuery->groupBy('ent1Id,ent2Id,ent3Id');
         
-        log_System::add('cat_Products', 'Details in:' . implode(',', $balances));
-        log_System::add('cat_Products', 'Balance Recs:' . $bQuery->count());
+        log_System::add('cat_Products', 'Details in:' . implode(',', $balances), null, 'info', 17);
+        log_System::add('cat_Products', 'Balance Recs:' . $bQuery->count(), null, 'info', 17);
         
         $itemsInBalanceBefore = array();
         while ($bRec = $bQuery->fetch()) {
@@ -2582,7 +2597,7 @@ class cat_Products extends embed_Manager
             }
         }
         
-        log_System::add('cat_Products', 'Items to Close count:' . count($productItems));
+        log_System::add('cat_Products', 'Items to Close count:' . count($productItems), null, 'info', 17);
         
         // Ако не са останали пера за затваряне
         if (!count($productItems)) {
@@ -2592,16 +2607,23 @@ class cat_Products extends embed_Manager
         
         $toSave = array();
         foreach ($productItems as $itemId) {
-            $pRec = cat_Products::fetch($objectIds[$itemId], 'id,state');
+            $pRec = cat_Products::fetch($objectIds[$itemId], 'id,state,brState');
+            $pRec->brState = $pRec->state;
             $pRec->state = 'closed';
+            $pRec->modifiedOn = $now;
+            $pRec->modifiedBy = core_Users::SYSTEM_USER;
             $toSave[] = $pRec;
         }
         
-        $this->saveArray($toSave, 'id,state');
+        $this->saveArray($toSave, 'id,state,brState,modifiedOn,modifiedBy');
+        foreach ($toSave as $sd2) {
+            $this->logWrite('Автоматично затваряне', $sd2);
+        }
+        
         $this->closeItems = (is_array($this->closeItems)) ? $this->closeItems : array();
         $this->closeItems += $toSave;
         
-        log_System::add('cat_Products', 'END close items:' . count($toSave));
+        log_System::add('cat_Products', 'END close items:' . count($toSave), null, 'info', 17);
     }
     
     
@@ -3063,36 +3085,51 @@ class cat_Products extends embed_Manager
     /**
      * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
-     * @param mixed $id       - ид или запис на артикул
+     * @param mixed $jobRec   - ид или запис на задание
      * @param float $quantity - к-во за произвеждане
      *
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
-     *               o title           - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
-     *               o plannedQuantity - планирано к-во в основна опаковка
-     *               o productId       - ид на артикул
-     *               o packagingId     - ид на опаковка
-     *               o quantityInPack  - к-во в 1 опаковка
-     *               o products        - масив от масиви с продуктите за влагане/произвеждане/отпадане
-     *               - array input           - материали за влагане
-     *               o productId      - ид на материал
-     *               o packagingId    - ид на опаковка
-     *               o quantityInPack - к-во в 1 опаковка
-     *               o packQuantity   - общо количество от опаковката
-     *               - array production      - артикули за произвеждане
-     *               o productId      - ид на заготовка
-     *               o packagingId    - ид на опаковка
-     *               o quantityInPack - к-во в 1 опаковка
-     *               o packQuantity   - общо количество от опаковката
-     *               - array waste           - отпадъци
-     *               o productId      - ид на отпадък
-     *               o packagingId    - ид на опаковка
-     *               o quantityInPack - к-во в 1 опаковка
-     *               o packQuantity   - общо количество от опаковката
+     *               o title                          - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
+     *               o plannedQuantity                - планирано к-во в основна опаковка
+     *               o productId                      - ид на артикул
+     *               o packagingId                    - ид на опаковка
+     *               o quantityInPack                 - к-во в 1 опаковка
+     *               o products                       - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     *               o timeStart                      - начало
+     *               o timeDuration                   - продължителност
+     *               o timeEnd                        - край
+     *               o fixedAssets                    - списък (кейлист) от оборудвания
+     *               o employees                      - списък (кейлист) от служители
+     *               o storeId                        - склад
+     *               o indTime                        - норма
+     *               o indPackagingId                 - опаковка/мярка за норма
+     *               o indTimeAllocation              - начин на отчитане на нормата
+     *               o showadditionalUom              - какъв е режима за изчисляване на теглото
+     *               o weightDeviationNotice          - какво да е отклонението на теглото за внимание
+     *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
+     *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
+     *               
+     *               - array input        - масив отматериали за влагане
+     *                  o productId      - ид на материал
+     *                  o packagingId    - ид на опаковка
+     *                  o quantityInPack - к-во в 1 опаковка
+     *                  o packQuantity   - общо количество от опаковката
+     *               - array production   - масив от производими артикули
+     *                  o productId      - ид на заготовка
+     *                  o packagingId    - ид на опаковка
+     *                  o quantityInPack - к-во в 1 опаковка
+     *                  o packQuantity   - общо количество от опаковката
+     *               - array waste        - масив от отпадъци
+     *                  o productId      - ид на отпадък
+     *                  o packagingId    - ид на опаковка
+     *                  o quantityInPack - к-во в 1 опаковка
+     *                  o packQuantity   - общо количество от опаковката
      */
-    public static function getDefaultProductionTasks($id, $quantity = 1)
+    public static function getDefaultProductionTasks($jobRec, $quantity = 1)
     {
         $defaultTasks = array();
-        expect($rec = self::fetch($id));
+        expect($jobRec = planning_Jobs::fetchRec($jobRec));
+        $rec = self::fetch($jobRec->productId);
         
         if ($rec->canManifacture != 'yes') {
             
@@ -3102,7 +3139,7 @@ class cat_Products extends embed_Manager
         // Питаме драйвера какви дефолтни задачи да се генерират
         $ProductDriver = cat_Products::getDriver($rec);
         if (!empty($ProductDriver)) {
-            $defaultTasks = $ProductDriver->getDefaultProductionTasks($id, $quantity);
+            $defaultTasks = $ProductDriver->getDefaultProductionTasks($jobRec, $quantity);
         }
         
         // Ако няма дефолтни задачи
@@ -3564,7 +3601,16 @@ class cat_Products extends embed_Manager
                 
                 if ($dInst->exportToMaster) {
                     $exportToMasterArr = arr::make($dInst->exportToMaster, true);
-                    $allFFieldsArr += $exportToMasterArr;
+                    
+                    foreach ($exportToMasterArr as $eName => $eFields) {
+                        if ($eName == $eFields) {
+                            $exportToMasterArr[$eName] = $eName;
+                        } else {
+                            $exportToMasterArr[$eName] = explode('|', $eFields);
+                        }
+                    }
+                    
+                    $allFFieldsArr = array_merge($allFFieldsArr, $exportToMasterArr);
                 }
                 
                 foreach ($allFFieldsArr as $k => $vArr) {
@@ -3627,7 +3673,7 @@ class cat_Products extends embed_Manager
                         
                         if (!$csvFields->fields[$k]) {
                             if ($dInst->fields[$k]->type instanceof type_Double) {
-                                $csvFields->FLD($k, 'varchar', "caption={$vInst->fields[$k]->caption}");
+                                $csvFields->FLD($k, 'varchar', "caption={$dInst->fields[$k]->caption}");
                             } else {
                                 $csvFields->fields[$k] = $dInst->fields[$k];
                             }

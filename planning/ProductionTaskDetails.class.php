@@ -128,6 +128,14 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     
     /**
+     * Каква да е максималната дължина на стринга за пълнотекстово търсене
+     * 
+     * @see plg_Search
+     */
+    public $maxSearchKeywordLen = 13;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -180,9 +188,12 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $value = planning_AssetResources::getTitleById($key, false);
             }
             
-            $arr = ((Mode::is('terminalProgressForm')) ? array(' ' => ' ') : array('' => '')) + $arr;
-            $form->setOptions('fixedAsset', $arr);
-            $form->setField('fixedAsset', 'input');
+            $assetOptions = ((Mode::is('terminalProgressForm')) ? array(' ' => ' ') : array('' => '')) + $arr;
+            $form->setOptions('fixedAsset', $assetOptions);
+            $form->setField('fixedAsset', 'input,mandatory');
+            if(count($arr) == 1 && !Mode::is('terminalProgressForm')){
+                $form->setReadOnly('fixedAsset', key($arr));
+            }
         } else {
             $form->setField('fixedAsset', 'input=none');
         }
@@ -214,6 +225,14 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         // Ако е избран артикул
         if (isset($rec->productId)) {
+            $labelType = (($rec->type == 'production') ? $masterRec->labelType : (($rec->type == 'input') ? 'scan' : 'print'));
+            
+            if($labelType == 'print'){
+                $form->setField('serial', 'input=none');
+            } elseif($labelType == 'scan'){
+                $form->setField('serial', 'mandatory');
+            }
+            
             $pRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
             if ($pRec->canStore != 'yes' && $rec->productId == $masterRec->productId) {
                 if ($rest = $masterRec->plannedQuantity - $masterRec->totalQuantity) {
@@ -241,8 +260,18 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         // Връща избрани оператори от операцията, или ако няма всички от центъра
         $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
+       
         if (count($employees)) {
             $form->setSuggestions('employees', $employees);
+            
+            if(!empty($masterRec->employees)){
+                $form->setField('employees', 'mandatory');
+            }
+            if(count($employees) == 1){
+                if(!Mode::is('terminalProgressForm')){
+                    $form->setDefault('employees', keylist::addKey('', key($employees)));
+                }
+            }
         } else {
             $form->setField('employees', 'input=none');
         }
@@ -294,7 +323,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
                 
                 if (!empty($rec->serial)) {
-                    $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->taskId);
+                    $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->taskId, $rec->type);
+                    
                     $rec->serialType = $serialInfo['type'];
                     if (isset($serialInfo['error'])) {
                         $form->setError('serial', $serialInfo['error']);
@@ -381,20 +411,23 @@ class planning_ProductionTaskDetails extends doc_Detail
      *
      * @return array $res
      */
-    private static function fetchSerialInfo($serial, $productId, $taskId)
+    private static function fetchSerialInfo($serial, $productId, $taskId, $type = null)
     {
         if (!$Driver = cat_Products::getDriver($productId)) {
             
             return;
         }
-        $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
         
+        $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
         $canonizedSerial = $Driver->canonizeSerial($productId, $serial);
         $exRec = self::fetch(array("#serial = '[#1#]'", $canonizedSerial));
         
         if (!empty($exRec)) {
             $res['type'] = 'existing';
             $res['productId'] = $exRec->productId;
+            if($type == 'production' && $exRec->type == 'production' && $taskId != $exRec->taskId){
+                $res['error'] = 'Серийния номер е произведен по друга операция|*: <b>' . planning_Tasks::getHyperlink($exRec->taskId, true) . '</b>';
+            }
         } else {
             if ($pRec = $Driver->getRecBySerial($serial)) {
                 $res['type'] = 'existing';
@@ -1006,13 +1039,24 @@ class planning_ProductionTaskDetails extends doc_Detail
             $rec->weight = $params['weight'];
         }
         
+        if(!empty($taskRec->fixedAssets)){
+            $taskAssets = keylist::toArray($taskRec->fixedAssets);
+            if(count($taskAssets) && empty($rec->fixedAsset)){
+                expect(!empty($rec->fixedAsset), 'Задължително трябва да е избрано оборудване');
+            }
+        }
+        
+        if(!empty($taskRec->employees) && empty($rec->employees)){
+            expect(!empty($rec->employees), 'Задължително трябва да са избрани служители');
+        }
+        
         if($taskRec->showadditionalUom == 'mandatory' && $rec->type == 'production' && $rec->productId == $taskRec->productId){
             expect($rec->weight, 'Теглото е задължително');
         }
         
         $canStore = cat_Products::fetchField($productId, 'canStore');
         if(!empty($params['serial'])){
-            expect(type_Int::isInt($params['serial']), 'Серийния номер може да е само от цифри');
+            expect(str::containOnlyDigits($params['serial']), 'Серийния номер може да е само от цифри');
             $params['serial'] = plg_Search::normalizeText($params['serial']);
             $params['serial'] = str::removeWhiteSpace($params['serial']);
             if ($Driver = cat_Products::getDriver($productId)) {
@@ -1021,6 +1065,10 @@ class planning_ProductionTaskDetails extends doc_Detail
             $serialInfo = self::fetchSerialInfo($params['serial'], $productId, $taskId);
             $rec->serial = $params['serial'];
             $rec->serialType = $serialInfo['type'];
+        }
+        
+        if($taskRec->labelType == 'scan' || $rec->type == 'input'){
+            expect($params['serial'], 'Трябва да е сканиран сериен номер|*!');
         }
         
         if($rec->type == 'input' && $canStore != 'yes') {

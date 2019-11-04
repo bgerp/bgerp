@@ -9,7 +9,7 @@
                         <div><b>№[#number#]</b></div>
                         <div style='margin-top:5px;'><b>[#date#]</b></div>
                         <!--ET_BEGIN clonedFromId-->
-                        <div style='font-size:0.8em'>(cloned [#clonedFromId#])</div>
+                        <div style='font-size:0.8em'>(|клонирано от|* [#clonedFromId#])</div>
                         <!--ET_END clonedFromId-->
                         <!--ET_BEGIN buzPlace-->
                         <div class='quiet-small'>|Място|*</div>

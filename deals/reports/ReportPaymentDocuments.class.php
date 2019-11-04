@@ -300,9 +300,8 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
-        
-        $fld->FLD('documentId', 'varchar', 'caption=Документ');
         $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
+        $fld->FLD('documentId', 'varchar', 'caption=Документ');
         $fld->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума,smartCenter');
         $fld->FLD('payDate', 'date', 'caption=Срок->за плащане');
         $fld->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,smartCenter');
@@ -350,7 +349,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         if (isset($dRec->amountDeal)) {
             $row->amountDeal = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal);
             $row->amountDeal = ht::createHint($row->amountDeal, "${hint}", 'notice');
-            $row->payDate = ($dRec->payDate) ? $Date->toVerbal($dRec->payDate) : 'не посочен';
+            $row->payDate = ($dRec->payDate) ? $Date->toVerbal($dRec->payDate) : tr('|*<span class="quiet">|не е посочен|*</span>');
         }
         
         if (isset($dRec->currencyId)) {

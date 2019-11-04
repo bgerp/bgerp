@@ -480,7 +480,7 @@ abstract class deals_Helper
     public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack)
     {
         if ($packRec = cat_products_Packagings::getPack($productId, $packagingId)) {
-            if (cat_UoM::fetchField($packagingId, 'showContents') !== 'no') {
+            if (cat_UoM::fetchField($packagingId, 'showContents') == 'yes') {
                 $measureId = cat_Products::fetchField($productId, 'measureId');
                 $packagingRow .= ' ' . self::getPackMeasure($measureId, $quantityInPack, $packRec);
             }
@@ -563,7 +563,7 @@ abstract class deals_Helper
      *
      * @return FALSE|stdClass
      */
-    public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = null, $term = null, $batch = null, $expenseItemId = null, $notes = null)
+    public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = null, $term = null, $batch = null, $expenseItemId = null, $notes = null, $quantity = null)
     {
         $cond = "#{$mvc->masterKey} = ${masterId}";
         $vars = array('productId' => $productId, 'packagingId' => $packagingId, 'price' => $price, 'discount' => $discount);
@@ -597,6 +597,10 @@ abstract class deals_Helper
             } else {
                 $cond .= ' AND #expenseItemId IS NULL';
             }
+        }
+        
+        if(isset($quantity)){
+            $cond .= " AND #quantity = '{$quantity}'";
         }
         
         // Ако има забележки
@@ -1853,5 +1857,47 @@ abstract class deals_Helper
         }
         
         return array('notActive' => $errorNotActive, 'metasError' => $errorMetas);
+    }
+    
+    
+    /**
+     * Допълнителен индикатор на складовите документи на заявка
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @return string|NULL
+     */
+    public static function getShipmentDocumentPendingIndicator($mvc, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        expect($mvc instanceof store_ShipmentOrders || $mvc instanceof store_Transfers);
+        
+        // Ако документа е на заявка
+        if($rec->state == 'pending'){
+            $transInfo = cls::get($mvc->mainDetail)->getTransportInfo($rec);
+            
+            // Колко е общото тегло
+            $weightVerbal = !empty($transInfo->weight) ? core_Type::getByName('cat_type_Weight')->toVerbal($transInfo->weight) : 'N/A';
+            $string = "<span id='weight{$rec->containerId}' class='enTag weightTag' title='Общо тегло на документа'></span>";
+            $style = "#weight{$rec->containerId}:after{content: '$weightVerbal'} ";
+
+            // Колко е готовността от склада
+            $readinessVerbal = (isset($rec->storeReadiness)) ? core_Type::getByName('percent(smartRound)')->toVerbal($rec->storeReadiness) : 'N/A';
+            $string .= "<span id='percent{$rec->containerId}' class='enTag percent' title='Наличност в склада'></span>";
+            $style .= "#percent{$rec->containerId}:after{content: '$readinessVerbal'} ";
+            
+            // Ако има зони, колко % е готово от зоната
+            $zoneReadiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
+            if(isset($zoneReadiness)){
+                $zoneReadinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($zoneReadiness);
+                $string .= "<span id='zone{$rec->containerId}' class='enTag zone' title='Колко е нагласено в зоната'></span>";
+                $style .= "#zone{$rec->containerId}.zone:after{content: '$zoneReadinessVerbal'} ";
+            }
+
+            $string = "<style>" . $style . "</style><span class='tags'>" . $string . "</span>";
+            return $string;
+        }
+        
+        return null;
     }
 }

@@ -2077,13 +2077,13 @@ a.tOld {
 
 .wide .approved {
 	position: absolute;
-	top:7px;
+	top: 7px;
 	right: 2px;
 	transform: rotate(10deg);
 	margin-top: 10px;
 }
 
-.narrow .approved {
+.narrow .approved, .no-transform {
 	transform: rotate(0deg);
 	top: 0;
 }
@@ -2364,6 +2364,47 @@ pre.document {
 	width: 100% !important;
 	clear: both;
 	float: none;
+}
+.enTag {
+	vertical-align:top;
+	font-size:0.7em;
+	border:solid 1px white;
+	color:white;
+	padding:1px;
+	white-space: nowrap;
+	&.weightTag {
+		background-color:black;
+	}
+	&.percent {
+		background-color: blue;
+	}
+	&.zone {
+		background-color:red;
+	}
+}
+.document-block {
+	font-size: 0.9em;
+	.block-instock {
+		background-color: blue;
+		border:solid 1px white;
+		color:white;
+		font-size: 0.9em;
+	}
+	.block-readiness {
+		background-color:red;
+		border:solid 1px white;
+		color:white;
+		font-size: 0.9em;
+	}
+}
+
+.tags {
+	margin-left: 2px;
+}
+
+.maxwidth .tags, .document-handler .tags, .rowBlock .tags {
+	position: relative;
+	top: 2px;
 }
 
 .document .listTable .acc-article-entries {
@@ -3003,15 +3044,14 @@ fieldset.sharing-history {
 /* CMS */
 /*външни стилове за ширина*/
 
-#all {
+.externalPage {
 	font-family:Verdana,Helvetica,Arial,Sans-serif;
-    text-align:center;
 }
-.wide #all{
+.wide .externalPage{
 	font-size: 16px;
 }
 
-.narrow  #all #cmsTop {
+.narrow  .externalPage #cmsTop {
 	background-color: white;
 }
 
@@ -3031,20 +3071,20 @@ fieldset.sharing-history {
 	max-height: 90px;
 	float:left;
 }
-.narrow #all {
+.narrow .externalPage {
 	position: relative;
 }
 
-#all #maincontent {
+.externalPage #maincontent {
 	clear:both;
     background-color:white;
 }
 
-#all #maincontent .richtext a:hover, #all #maincontent .richtext a:visited:hover {
+.externalPage #maincontent .richtext a:hover, .externalPage #maincontent .richtext a:visited:hover {
 	color: #ee7700 !important;
 }
 
-.narrow #all .vertical .formTable{
+.narrow .externalPage .vertical .formTable{
     padding: 5px;
 }
 
@@ -3069,13 +3109,11 @@ fieldset.sharing-history {
 	display: block;
 }
 
-.wide #all, .wide #cmsTop, .wide #cmsTop img{
+.wide #all, .wide #all #cmsTop, .wide #all #cmsTop img {
 	border-radius: 10px 10px 0 0;
 }
 
 #cmsMenu {
-	float: left;
-	width: 100%;
 	padding-top: 5px;
 	padding-bottom: 5px;
 	text-align: left;
@@ -3129,7 +3167,7 @@ fieldset.sharing-history {
 
 #cmsTop,#cmsBottom,#cmsTop.a,#cmsBottom.a {
 	display: block;
-	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
+	overflow: hidden;
 }
 
 #cmsBottom {
@@ -3207,7 +3245,6 @@ fieldset.sharing-history {
 	max-width: 1400px;
 	display: block;
 	margin: 0 auto;
-	text-align: left;
 	#searchform {
 		margin-bottom: 20px;
 	}
@@ -3226,11 +3263,11 @@ fieldset.sharing-history {
 	height: auto;
 }
 
-.narrow #all #maincontent {
+.narrow .externalPage #maincontent {
 	padding: 2px 5px 5px;
 }
 
-.wide #all .formTable{
+.wide .externalPage .formTable{
     margin: 20px;
 }
 
@@ -4415,7 +4452,7 @@ table .eshop-btn {
 	background: rgb(229,229,229);
 }
 
-#all .blogm-article-body img{
+.externalPage .blogm-article-body img{
 	width: 100% \9;
 	max-width: none \9;
 	*width: auto;
@@ -5828,13 +5865,13 @@ body.narrow {
 		margin-right: 8px;
 		font-size: 1.04em;
     }
-    #all .formTitle {
+    .externalPage .formTitle {
         font-size: 1.1em;
     }
-    #all h2{
+    .externalPage h2{
         font-size: 1.4em;
     }
-    #all h1{
+    .externalPage h1{
         font-size: 1.9em;
     }
 	.wide .cartHolder {
@@ -5858,10 +5895,10 @@ body.narrow {
             margin-left: 1%;
        }
     }
-    #all h2{
+    .externalPage h2{
         font-size: 1.38em;
     }
-    #all h1{
+	.externalPage h1{
         font-size: 1.88em;
     }
     .wide .app-name {
@@ -5890,13 +5927,13 @@ body.narrow {
             margin-left: 1%;
        }
     }
-    #all .formTitle {
+    .externalPage .formTitle {
         font-size: 1em;
     }
-    #all h2{
+    .externalPage h2{
         font-size: 1.38em;
     }
-    #all h1{
+    .externalPage h1{
         font-size: 1.88em;
     }
     .wide .app-name {
@@ -5916,10 +5953,10 @@ body.narrow {
 		margin-left: 2%;
 		font-size: 0.9em;
     }
-    #all h2{
+    .externalPage h2{
         font-size: 1.36em;
     }
-    #all h1{
+    .externalPage h1{
         font-size: 1.86em;
     }
 }
@@ -5943,10 +5980,10 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    #all h2{
+    .externalPage h2{
         font-size: 1.34em;
     }
-    #all h1{
+    .externalPage h1{
         font-size: 1.84em;
     }
     .wide .app-name {
@@ -5976,10 +6013,10 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    #all h2{
+    .externalPage h2{
         font-size: 1.32em;
     }
-    #all h1{
+    .externalPage h1{
         font-size: 1.82em;
     }
 }
@@ -6002,10 +6039,10 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
 	}
-	#all .formTitle {
+	.externalPage .formTitle {
         font-size: 0.95em;
     }
-    #all .formGroup {
+    .externalPage .formGroup {
         font-size: 0.85em;
     }
     :not('.modern-theme') {
@@ -6019,10 +6056,10 @@ body.narrow {
             max-width: 538px;
         }
     }
-    #all h2{
+    .externalPage h2{
         font-size: 1.3em;
     }
-    #all h1{
+    .externalPage h1{
         font-size: 1.8em;
     }
     .wide .app-name {
@@ -6054,10 +6091,10 @@ body.narrow {
             max-width: 471px;
         }
     }
-    #all h2{
+    .externalPage h2{
         font-size: 1.28em;
     }
-    #all h1{
+    .externalPage h1{
         font-size: 1.78em;
     }
 }
@@ -6083,10 +6120,10 @@ body.narrow {
             max-width: 438px;
         }
     }
-    #all h2{
+    .externalPage h2{
         font-size: 1.26em;
     }
-    #all h1{
+    .externalPage h1{
         font-size: 1.76em;
     }
 }
@@ -6115,10 +6152,10 @@ body.narrow {
             max-width: 418px;
         }
     }
-    #all h2{
+    .externalPage h2{
         font-size: 1.24em;
     }
-    #all h1{
+    .externalPage h1{
         font-size: 1.74em;
     }
 }
@@ -6145,10 +6182,10 @@ body.narrow {
        margin-left: 0%;
        font-size: 0.9em;
     }
-    #all .formTitle{
+    .externalPage .formTitle{
         font-size: 0.9em;
     }
-    #all .formGroup {
+    .externalPage .formGroup {
         font-size: 0.75em;
     }
     :not('.modern-theme') {
@@ -6165,10 +6202,10 @@ body.narrow {
             max-width: 159px;
         }
     }
-    #all h2{
+    .externalPage h2{
         font-size: 1.22em;
     }
-    #all h1{
+	.externalPage h1{
         font-size: 1.72em;
     }
     .narrow .special-table td{
@@ -6210,10 +6247,10 @@ body.narrow {
         }
     }
 
-    #all h2{
+    .externalPage h2{
         font-size: 1.2em;
     }
-    #all h1{
+    .externalPage h1{
         font-size: 1.7em;
     }
     .narrow a.rtbutton {

@@ -58,7 +58,7 @@ class deals_plg_SelectInvoice extends core_Plugin
             } else {
                 $row->fromContainerId = ht::createLink("#{$Document->getHandle()}", $Document->getSingleUrlArray());
             }
-            $row->fromContainerName = tr(mb_strtolower($Document->singleTitle));
+            $row->fromContainerName = " " . mb_strtolower(tr($Document->singleTitle));
         }
         
         if (!Mode::isReadOnly() && !isset($fields['-list'])) {
@@ -169,6 +169,24 @@ class deals_plg_SelectInvoice extends core_Plugin
                 $form->setDefault($mvc->reasonField, tr('Към') . ' #' . $fromDocument->getHandle());
                 unset($form->rec->fromContainerId);
             }
+        }
+    }
+    
+    
+    /**
+     * След взимане на полетата, които да не се клонират
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
+    {
+        $additionalFields = array('fromContainerId' => 'fromContainerId');
+        if (!is_array($res)) {
+            $res = $additionalFields;
+        } else {
+            $res += $additionalFields;
         }
     }
 }

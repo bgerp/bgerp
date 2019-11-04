@@ -143,7 +143,7 @@ class fileman_Indexes extends core_Manager
         // Масив с всички табове
         $tabsArr = $data->tabs;
         
-        if (! count($data->tabs)) {
+        if (! countR($data->tabs)) {
             
             return false;
         }

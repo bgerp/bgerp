@@ -29,6 +29,11 @@ class bgerp_plg_Fancybox extends core_Plugin
      */
     public function on_BeforeGetImage($mvc, &$resTpl, $fh, $thumbSize, $maxSize, $baseName = null, $imgAttr = array(), $aAttr = array())
     {
+        // Добавяме файла към списъка
+        if ($sCid = Mode::get('saveObjectsToCid')) {
+            doc_UsedInDocs::addObject(array($baseName => $baseName), $sCid, 'images');
+        }
+        
         // Да сработва само за plain режим
         if (!Mode::is('text', 'plain')) {
             
@@ -38,11 +43,6 @@ class bgerp_plg_Fancybox extends core_Plugin
         // Създава линк към свалянето на картинката
         $resUrl = toUrl(array('F', 'T', doc_DocumentPlg::getMidPlace(), 'n' => $baseName), $imgAttr['isAbsolute'], true, array('n'));
         $resTpl = new ET(tr('Картинка|*: ') . $resUrl);
-        
-        // Добавяме файла към списъка
-        if ($sCid = Mode::get('saveObjectsToCid')) {
-            doc_UsedInDocs::addObject(array($baseName => $baseName), $sCid, 'images');
-        }
         
         return false;
     }

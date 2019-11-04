@@ -550,7 +550,7 @@ class cal_Calendar extends core_Master
         $lastDay = date('t', $firstDayTms);
         
         // Днес
-        $today = date('d-m-Y');
+        $today = date('j-m-Y');
         
         for($i = 1; $i <= $lastDay; $i++) {
             $t = mktime(0, 0, 0, $month, $i, $year);
@@ -878,17 +878,27 @@ class cal_Calendar extends core_Master
      */
     public static function nextWorkingDay($date = NULL, $userId = null, $direction = 1, $country = 'bg')
     {
-        if($userId === null) {
+        if ($userId === null) {
             $userId = core_Users::getCurrent();
         }
         
         expect($direction);
         
+        $dPos = ($direction < 0) ? -1 : 1;
+        
+        $dAbs = abs($direction);
+        
+        $maxCnt = 0;
+        
         do {
-            $date = dt::addDays($direction, $date);
+            $date = dt::addDays($dPos, $date);
+            
+            if (!self::isHoliday($date, $country) && !self::isAbsent($date, $userId)) {
+                if (!--$dAbs) break;
+            }
             
             if ($maxCnt++ > 100000) break;
-        } while(self::isHoliday($date, $country) || self::isAbsent($date, $userId));
+        } while(true);
         
         list($date, $time) = explode(' ', $date);
         
@@ -902,9 +912,10 @@ class cal_Calendar extends core_Master
     public static function isAbsent($date, $userId)
     {
         // Системните и анонимните потребители не отсъстват
-        if($userId <= 0)
- 
- return false;
+        if ($userId <= 0) {
+            
+            return false;
+        }
         
         list($date, $time) = explode(' ', $date);
         $fromTime = $date . ' 00:00:00';
@@ -912,9 +923,10 @@ class cal_Calendar extends core_Master
         
         $rec = self::fetch("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND LOCATE('|{$userId}|', #users) AND (#type = 'leaves' OR #type = 'sick')");
         
-        if($rec)
- 
- return true;
+        if ($rec) {
+            
+            return true;
+        }
         
         return false;
     }

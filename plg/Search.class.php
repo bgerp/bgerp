@@ -14,12 +14,15 @@ defIfNot('PLG_SEARCH_MAX_KEYWORD_LEN', '10');
  * searchFields = "field1,field2,..." в които да са описани полетата за търсене
  * По пдоразбиране полето за търсене в филтер формата се казва 'search',
  * да се смени името му трябва да се дефинира в съответния мениджър searchInputField
+ * 
+ * Ако се зададе maxSearchKeywordLen може да се промени дефолтната дължина на стринга
+ * за търсене зададена в PLG_SEARCH_MAX_KEYWORD_LEN
  *
- * @category  ef
+ * @category  bgerp
  * @package   plg
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -262,7 +265,10 @@ class plg_Search extends core_Plugin
                 
                 // Ако няма да се търси точно съвпадение, ограничаваме дължината на думите
                 if ($mode != '"') {
-                    $maxLen = PLG_SEARCH_MAX_KEYWORD_LEN ? PLG_SEARCH_MAX_KEYWORD_LEN : 10;
+                    
+                    // Колко е максималната дължина на стринга, гледа се първо в класа на заявката после дефолта за плъгина
+                    $maxLen = null;
+                    setIfNot($maxLen, $query->mvc->maxSearchKeywordLen, PLG_SEARCH_MAX_KEYWORD_LEN, 10);
                     $w = substr($w, 0, $maxLen);
                 }
                 

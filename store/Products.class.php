@@ -510,6 +510,7 @@ class store_Products extends core_Detail
      */
     public function cron_CalcReservedQuantity()
     {
+        //@todo трябва цялото да се рефакторира
         core_Debug::$isLogging = false;
         core_App::setTimeLimit(200);
         $now = dt::now();
@@ -518,6 +519,7 @@ class store_Products extends core_Detail
                         'store_ShipmentOrders' => array('storeFld' => 'storeId', 'Detail' => 'store_ShipmentOrderDetails'),
                         'planning_ConsumptionNotes' => array('storeFld' => 'storeId', 'Detail' => 'planning_ConsumptionNoteDetails'),
                         'store_ConsignmentProtocols' => array('storeFld' => 'storeId', 'Detail' => 'store_ConsignmentProtocolDetailsSend'),
+                        'planning_DirectProductionNote' => array('storeFld' => 'storeId', 'Detail' => 'planning_DirectProductNoteDetails'), 
         );
         
         $result = $queue = array();
@@ -558,6 +560,10 @@ class store_Products extends core_Detail
                     $shQuery->where("#{$Detail->masterKey} = {$sRec->id}");
                     $shQuery->show("{$Detail->productFieldName},{$suMFld},{$Detail->masterKey},sum,quantityInPack");
                     $shQuery->groupBy($Detail->productFieldName);
+                    
+                    if($Detail instanceof planning_DirectProductNoteDetails){
+                        $shQuery->where("#{$storeField} IS NOT NULL");
+                    }
                     
                     while ($sd = $shQuery->fetch()) {
                         $storeId = $sRec->{$storeField};
@@ -606,6 +612,39 @@ class store_Products extends core_Detail
             }
         }
        
+        // Всички СР
+        $srQuery = store_Receipts::getQuery();
+        $srQuery->where("#state = 'pending'");
+        $srQuery->show("id,containerId,modifiedOn,storeId,deliveryTime");
+        
+        while ($sRec = $srQuery->fetch()) {
+            $reserved = core_Permanent::get("reserved_{$sRec->containerId}", $sRec->modifiedOn);
+            
+            // Ако няма кеширани к-ва
+            if (!isset($reserved)) {
+                $reserved = array();
+                $sdQuery = store_ReceiptDetails::getQuery();
+                $sdQuery->XPR('sum', 'double', "SUM(#quantity)");
+                $sdQuery->where("#receiptId = {$sRec->id}");
+                $sdQuery->show('productId,quantity,receiptId,sum');
+                $sdQuery->groupBy('productId');
+                
+                $deliveryTime = (!empty($sRec->deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $sRec->deliveryTime) : $tRec->deliveryTime;
+                while ($sd = $sdQuery->fetch()) {
+                    if(!empty($deliveryTime) && $deliveryTime >= $now){
+                        $key = "{$sRec->storeId}|{$sd->productId}";
+                        $reserved[$key] = array('sId' => $sRec->storeId, 'pId' => $sd->productId, 'reserved' => null, 'expected' => $sd->sum);
+                    }
+                }
+                
+                core_Permanent::set("reserved_{$sRec->containerId}", $reserved, 4320);
+            }
+            
+            if(is_array($reserved) && count($reserved)){
+                $queue[] = $reserved;
+            }
+        }
+        
         // Добавят се и запазените от бележки в POS-а
         if(core_Packs::isInstalled('pos')){
             $receiptQuery = pos_Receipts::getQuery();
@@ -723,7 +762,7 @@ class store_Products extends core_Detail
         
         // Намират се документите, запазили количества
         $docs = array();
-        foreach (array('sales_SalesDetails' => 'shipmentStoreId', 'store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore,toStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId') as $Detail => $stores) {
+        foreach (array('sales_SalesDetails' => 'shipmentStoreId', 'store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore,toStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId', 'planning_DirectProductNoteDetails' => 'storeId') as $Detail => $stores) {
             $stores = arr::make($stores, true);
             $Detail = cls::get($Detail);
             expect($Detail->productFld, $Detail);
@@ -732,7 +771,11 @@ class store_Products extends core_Detail
                 $Master = $Detail->Master;
                 $dQuery = $Detail->getQuery();
                 $dQuery->EXT('containerId', $Master->className, "externalName=containerId,externalKey={$Detail->masterKey}");
-                $dQuery->EXT('storeId', $Master->className, "externalName={$storeField},externalKey={$Detail->masterKey}");
+                
+                if(!($Detail instanceof planning_DirectProductNoteDetails)){
+                    $dQuery->EXT('storeId', $Master->className, "externalName={$storeField},externalKey={$Detail->masterKey}");
+                }
+                
                 $dQuery->EXT('state', $Master->className, "externalName=state,externalKey={$Detail->masterKey}");
                 $dQuery->where("#state = 'pending'");
                 $dQuery->where("#{$Detail->productFld} = {$rec->productId}");
@@ -788,5 +831,65 @@ class store_Products extends core_Detail
         }
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Изчисляване на готовноста на складовите документи на заявка 
+     */
+    public function cron_UpdateShipmentDocumentReadiness()
+    {
+        // За всички ЕН и МСТ
+        foreach (array('store_ShipmentOrders' => 'store_ShipmentOrderDetails', 'store_Transfers' => 'store_TransfersDetails') as $Master => $Detail){
+            $Master = cls::get($Master);
+            $Detail = cls::get($Detail);
+            $storeField = ($Master instanceof store_ShipmentOrders) ? 'storeId' : 'fromStore';
+            
+            // Тези които са на заявка
+            $query = $Master->getQuery();
+            $query->where("#state = 'pending'");
+            $query->show("id,storeReadiness,{$storeField}");
+            
+            $toSave = array();
+            while($rec = $query->fetch()){
+                $products = array();
+                
+                // Сумира се какво е общото к-во за експедиране
+                $dQuery = $Detail->getQuery();
+                $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+                $dQuery->show("{$Detail->productFld},quantity");
+                $dRecs = $dQuery->fetchAll();
+                array_walk($dRecs, function($a) use (&$products, $Detail){
+                    $products[$a->{$Detail->productFld}] += $a->quantity;
+                });
+                
+                $neededQuantity = round(array_sum($products), 4);
+                
+                // Колко е налично в склада
+                $storeQuery = store_Products::getQuery();
+                $storeQuery->where("#storeId = {$rec->{$storeField}}");
+                $storeQuery->in('productId', array_keys($products));
+                $storeQuery->XPR('sum', 'double', 'SUM(#quantity)');
+                $storeQuery->show('sum');
+                $inStore = $storeQuery->fetch()->sum;
+                $inStore = !empty($inStore) ? $inStore : 0;
+                $inStore = round($inStore, 4);
+                
+                // Изчисляване на % готовност на склада
+                if($inStore >= $neededQuantity){
+                    $rec->storeReadiness = 1;
+                } elseif($inStore <= 0) {
+                    $rec->storeReadiness = 0;
+                } else {
+                    $rec->storeReadiness = round(($inStore / $neededQuantity), 2);
+                }
+                
+                $toSave[] = $rec;
+                
+                if(count($toSave)){
+                    $Master->saveArray($toSave, 'id,storeReadiness');
+                }
+            }
+        }
     }
 }

@@ -281,6 +281,58 @@ class cms_Articles extends core_Master
             $content = new ET();
         }
         
+        $navData = $this->prepareNavigation($rec, $menuId, $content, $lArr);
+        
+
+        // Подготвяме SEO елементите
+        cms_Content::prepareSeo($rec, array('seoDescription' => $rec->body, 'seoTitle' => $rec->title));
+
+        if ($navData->cnt + Mode::is('screenMode', 'wide') > 1) {
+            $content->append($this->renderNavigation($navData), 'NAVIGATION');
+        }
+                
+        // Задаване на SEO елементите
+        cms_Content::renderSeo($content, $rec);
+        
+        // Линкове за следваща/предишна статия
+        $prevLink = $nextLink = '';
+        if($navData->prev) {
+            $prevLink = ht::createLink('«&nbsp;' . $navData->prev->title, $navData->prev->url);
+        }
+        if($navData->next) {
+            $nextLink = ht::createLink($navData->next->title . '&nbsp;»', $navData->next->url);
+        }
+
+        if($prevLink || $nextLink) {
+            $content->append("<div class='prevNextNav'><div style='float:left;margin-right:5px;'>{$prevLink}</div><div style='float:right;margin-left:5px;'>{$nextLink}</div></div>");
+        }
+
+
+        if ($rec && $rec->id) {
+            if (core_Packs::fetch("#name = 'vislog'")) {
+                vislog_History::add($rec->title);
+            }
+            
+            // Добавя канонично URL
+            $url = self::getUrl($rec, true);
+            $url = toUrl($url, 'absolute');
+            cms_Content::addCanonicalUrl($url, $content);
+        }
+        
+        // Страницата да се кешира в браузъра за 1 час
+        Mode::set('BrowserCacheExpires', $conf->CMS_BROWSER_CACHE_EXPIRES);
+        
+        Mode::set('cmsNav', false);
+        
+        return $content;
+    }
+    
+
+    /**
+     * Подготовка на данните за навигацията
+     */
+    public function prepareNavigation(&$rec, $menuId, &$content, $lArr)
+    {
         // Подготвя навигацията
         $query = self::getQuery();
         
@@ -291,9 +343,7 @@ class cms_Articles extends core_Master
         $query->orderBy('#level');
         
         $navData = new stdClass();
-        
-        $cnt = 0;
-        
+        $navData->cnt = 0;
         
         if (($q = Request::get('q')) && $menuId > 0 && !$rec) {
             $rec = new stdClass();
@@ -313,12 +363,17 @@ class cms_Articles extends core_Master
         } else {
             $query->where("#state = 'active'");
         }
-        
+
+        $flagSelected = false;
+        $navData->next = $navData->prev = null;
+
         while ($rec1 = $query->fetch()) {
-            $cnt++;
+            $navData->cnt++;
             
             $lArr1 = explode('.', self::getVerbal($rec1, 'level'));
             
+            //if($lArr1[2]) bp($lArr1, $lArr);
+
             if ($lArr) {
                 if ($lArr1[2] && (($lArr[0] != $lArr1[0]) || ($lArr[1] != $lArr1[1]))) {
                     continue;
@@ -327,23 +382,15 @@ class cms_Articles extends core_Master
             
             $title = self::getVerbal($rec1, 'title');
             
-            
             if (!$rec && $rec1->body) {
                 
                 // Това е първата срещната статия
-                
                 $id = $rec1->id;
-                
                 $rec = self::fetch($id);
-                
                 $menuId = $rec->menuId;
-                
                 $lArr = explode('.', self::getVerbal($rec, 'level'));
-                
                 $content = new ET('[#1#]', self::getVerbal($rec, 'body'));
-                
                 $ptitle = self::getVerbal($rec, 'title') . ' » ';
-                
                 $content->prepend($ptitle, 'PAGE_TITLE');
             }
             
@@ -375,6 +422,17 @@ class cms_Articles extends core_Master
             }
             
             $navData->links[] = $l;
+
+            if($l->selected) {
+                $flagSelected = true;
+            } elseif($l->url) {
+                if(!$flagSelected) {
+                    $navData->prev = $l;
+                }
+                if($flagSelected && !$navData->next) {
+                    $navData->next = $l;
+                }
+            }
         }
         
         $navData->searchCtr = 'cms_Articles';
@@ -392,35 +450,9 @@ class cms_Articles extends core_Master
                 'ret_url' => array('cms_Articles', 'Article', 'menuId' => $menuId)));
         }
         
-        // Подготвяме SEO елементите
-        cms_Content::prepareSeo($rec, array('seoDescription' => $rec->body, 'seoTitle' => $rec->title));
-
-        if ($cnt + Mode::is('screenMode', 'wide') > 1) {
-            $content->append($this->renderNavigation($navData), 'NAVIGATION');
-        }
-                
-        // Задаване на SEO елементите
-        cms_Content::renderSeo($content, $rec);
-        
-        if ($rec && $rec->id) {
-            if (core_Packs::fetch("#name = 'vislog'")) {
-                vislog_History::add($rec->title);
-            }
-            
-            // Добавя канонично URL
-            $url = self::getUrl($rec, true);
-            $url = toUrl($url, 'absolute');
-            cms_Content::addCanonicalUrl($url, $content);
-        }
-        
-        // Страницата да се кешира в браузъра за 1 час
-        Mode::set('BrowserCacheExpires', $conf->CMS_BROWSER_CACHE_EXPIRES);
-        
-        Mode::set('cmsNav', false);
-        
-        return $content;
+        return $navData;
     }
-    
+
     
     /**
      * $data->items = $array( $rec{$level, $title, $url, $isSelected, $icon, $editLink} )

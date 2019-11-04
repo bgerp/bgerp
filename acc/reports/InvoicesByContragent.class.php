@@ -251,6 +251,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             //Ако са избрани ВСИЧКИ записваме масив $allInvoices със всички фактури
             $threadsId = array();
             
+            // Синхронизира таймлимита с броя записи //
+            $maxTimeLimit = $invQuery->count() * 5;
+            $maxTimeLimit = max(array($maxTimeLimit, 300));
+            if ($maxTimeLimit > 300) {
+                core_App::setTimeLimit($maxTimeLimit);
+            }
             while ($salesInvoice = $invQuery->fetch()) {
                 
                 
@@ -499,6 +505,13 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 if (strpos($purchase->contoActions, 'pay')) {
                     $fastPur[$purchase->id] = ($purchase->amountPaid - $purchase->amountVat);
                 }
+            }
+            
+            // Синхронизира таймлимита с броя записи //
+            $maxTimeLimit = $pQuery->count() * 5;
+            $maxTimeLimit = max(array($maxTimeLimit, 300));
+            if ($maxTimeLimit > 300) {
+                core_App::setTimeLimit($maxTimeLimit);
             }
             
             // Фактури ПОКУПКИ

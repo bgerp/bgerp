@@ -196,6 +196,14 @@ class planning_Tasks extends core_Master
     
     
     /**
+     * Да се показват ли във филтъра по дата и NULL записите
+     * 
+     * @see acc_plg_DocumentSummary
+     */
+    public $showNullDateFields = true;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -209,7 +217,7 @@ class planning_Tasks extends core_Master
         $this->FLD('quantityInPack', 'double', 'mandatory,caption=Производство->К-во в мярка,input=none');
         
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Производство->Склад,input=none');
-        $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks)', 'caption=Производство->Оборудване');
+        $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Производство->Оборудване');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Производство->Оператори');
         
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=none,tdClass=small-field nowrap,placeholder=Няма');
@@ -628,6 +636,12 @@ class planning_Tasks extends core_Master
         
         $rec->producedQuantity = $producedQuantity;
         
+        // Ако няма зададено начало, тогава се записва времето на първо добавения запис
+        if(empty($rec->timeStart) && !isset($rec->timeDuration, $rec->timeEnd) && planning_ProductionTaskDetails::count("#taskId = {$rec->id}")){
+            $rec->timeStart = dt::now();
+            $updateFields .= ',timeStart';
+        }
+        
         return $this->save($rec, $updateFields);
     }
     
@@ -704,7 +718,7 @@ class planning_Tasks extends core_Master
             
             // Ако е по източник
             if (isset($rec->systemId)) {
-                $tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
+                $tasks = cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity);
                 if (isset($tasks[$rec->systemId])) {
                     $def = $tasks[$rec->systemId];
                     
@@ -786,11 +800,12 @@ class planning_Tasks extends core_Master
         }
        
         $form->setOptions('productId', $options);
-        $tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
+        $tasks = cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity);
         
         if (isset($rec->systemId, $tasks[$rec->systemId])) {
-            foreach (array('plannedQuantity', 'productId', 'quantityInPack', 'packagingId') as $fld) {
-                $form->setDefault($fld, $tasks[$rec->systemId]->{$fld});
+            $fields = array_keys($form->selectFields("#input != 'none' AND #input != 'hidden'"));
+            foreach ($fields as $fieldName) {
+                $form->setDefault($fieldName, $tasks[$rec->systemId]->{$fieldName});
             }
             $form->setReadOnly('productId');
         }
@@ -888,7 +903,8 @@ class planning_Tasks extends core_Master
                 $form->setField('packagingId', 'input');
                 $form->setField('indPackagingId', 'input');
             } else {
-                $form->setField('labelType', 'input=none');
+                $form->setField('labelType', 'input=hidden');
+                $form->setField('labelType', 'print');
                 $form->setDefault('indPackagingId', $rec->measureId);
                 $form->setField('indTime', "unit=за|* 1 |{$measureShort}|*");
             }
@@ -1308,6 +1324,19 @@ class planning_Tasks extends core_Master
         if (planning_ConsumptionNotes::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
             $pUrl = array('planning_ConsumptionNotes', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
             $data->toolbar->addBtn('Влагане', $pUrl, 'ef_icon = img/16/produce_in.png,title=Създаване на протокол за влагане от операцията');
+        }
+    }
+    
+    
+    /**
+     * След промяна на състоянието
+     */
+    protected static function on_AfterChangeState($mvc, &$rec, $action)
+    {
+        // При затваряне се попълва очаквания край, ако не може да се изчисли
+        if($action == 'closed' && empty($rec->timeEnd) && !isset($rec->timeStart, $rec->timeDuration)){
+            $rec->timeEnd =  dt::now();
+            $mvc->save_($rec, 'timeEnd');
         }
     }
 }

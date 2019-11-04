@@ -545,7 +545,7 @@ class cams_Records extends core_Master
         }
         
         // Преоразмеряваме големите картинки
-        if (count($toThumb)) {
+        if (countR($toThumb)) {
             foreach ($toThumb as $src => $dest) {
                 if (Mode::is('screenMode', 'narrow')) {
                     $width = 420;

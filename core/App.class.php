@@ -122,7 +122,7 @@ class core_App
     public static function processUrl()
     {
         $q = array();
-        
+       
         // Подготвяме виртуалното URL
         if (!empty($_GET['virtual_url'])) {
             $dir = dirname($_SERVER['SCRIPT_NAME']);
@@ -137,18 +137,18 @@ class core_App
                 $pos = strpos($_GET['virtual_url'], '?');
             }
             
-            if ($pos) {
+            if ($pos !== false) {
                 $_GET['virtual_url'] = rtrim(substr($_GET['virtual_url'], 0, $pos + 1), '?/') . '/';
             }
         }
-        
+     
         // Опитваме се да извлечем името на модула
         // Ако имаме виртуално URL - изпращаме заявката към него
         if (!empty($_GET['virtual_url'])) {
             
             // Ако виртуалното URL не завършва на'/', редиректваме към адрес, който завършва
             $vUrl = explode('/', $_GET['virtual_url']);
-            
+               
             // Премахваме последният елемент
             $cnt = count($vUrl);
             
@@ -167,7 +167,7 @@ class core_App
             if (defined('EF_ACT_NAME')) {
                 $q['Act'] = EF_ACT_NAME;
             }
-            
+             
             foreach ($vUrl as $id => $prm) {
                 // Определяме случая, когато заявката е за браузърен ресурс
                 if ($id == 0 && $prm == EF_SBF) {
@@ -853,10 +853,16 @@ class core_App
             foreach ($arr as $key => $value) {
                 if (is_array($value)) {
                     foreach ($value as $k => $v) {
-                        $url .= ($url ? '/' : '') . "{$key},{$k}/" . urlencode($v);
+                        if (is_array($v)) {
+                            wp($v);
+                        }
+                        $url .= ($url ? '/' : '') . "{$key},{$k}/" . @urlencode($v);
                     }
                 } else {
-                    $url .= ($url ? '/' : '') . "{$key}/" . urlencode($value);
+                    if (is_array($value)) {
+                        wp($value);
+                    }
+                    $url .= ($url ? '/' : '') . "{$key}/" . @urlencode($value);
                 }
             }
         } else {

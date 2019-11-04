@@ -522,18 +522,11 @@ class sales_QuotationsDetails extends doc_Detail
             deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
             
             if (!$form->gotErrors()) {
+                
                 if (Request::get('Act') != 'CreateProduct') {
                     if ($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")) {
                         if ($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id) {
                             $form->setError('productId', 'Не може да добавите продукта като задължителен, защото фигурира вече като опционален!');
-                            
-                            return;
-                        }
-                    }
-                    
-                    if ($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")) {
-                        if ($sameProduct->id != $rec->id || $form->cmd == 'save_new_row') {
-                            $form->setError('packQuantity', 'Избраният продукт вече фигурира с това количество');
                             
                             return;
                         }
@@ -561,13 +554,9 @@ class sales_QuotationsDetails extends doc_Detail
                     $price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
                     $rec->price = $price;
                 }
-                
-                if ($form->cmd == 'save_new_row') {
-                    unset($rec->id);
-                }
             }
             
-            // При редакция, ако е променена опаковката слагаме преудпреждение
+            // При редакция, ако е променена опаковката слагаме предупреждение
             if ($rec->id) {
                 $oldRec = $mvc->fetch($rec->id);
                 if ($oldRec && $rec->packagingId != $oldRec->packagingId && !empty($rec->packPrice) && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)) {
@@ -575,7 +564,15 @@ class sales_QuotationsDetails extends doc_Detail
                 }
             }
             
+            if ($form->cmd == 'save_new_row') {
+                unset($rec->id);
+            }
+            
             if (!$form->gotErrors()) {
+                if(deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
+                    $form->setError('productId,packagingId,packPrice,discount,notes,packQuantity', 'Има въведен ред със същите данни');
+                }
+                
                 if (isset($masterRec->deliveryPlaceId)) {
                     if ($locationId = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}' AND #contragentCls = {$masterRec->contragentClassId} AND #contragentId = {$masterRec->contragentId}", 'id')) {
                         $masterRec->deliveryPlaceId = $locationId;
@@ -676,9 +673,9 @@ class sales_QuotationsDetails extends doc_Detail
             $pId = $data->recs[$i]->productId;
             $optional = $data->recs[$i]->optional;
             
-            // Сездава се специален индекс на записа productId|optional, така
+            // Създава се специален индекс на записа productId|optional, така
             // резултатите са разделени по продукти и дали са опционални или не
-            $pId = $pId . "|{$optional}";
+            $pId = $pId . "|{$optional}|" . md5($rec->notes);
             
             $newRows[$pId][] = $row;
         }
@@ -960,9 +957,13 @@ class sales_QuotationsDetails extends doc_Detail
         if ($rec->quantityInPack != 1) {
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
             $totalQuantity = cat_UoM::round($measureId, $rec->quantity);
-            $row->totalQuantity = core_Type::getByName('double(smartRound)')->toVerbal($totalQuantity);
-            $shortUom = cat_Uom::getShortName($measureId);
-            $row->totalQuantity .= ' ' . tr($shortUom);
+            
+            // Показване на к-то в основна мярка, само ако тя е различна от мярката/опаковката на показване
+            if($measureId != $rec->packagingId){
+                $row->totalQuantity = core_Type::getByName('double(smartRound)')->toVerbal($totalQuantity);
+                $shortUom = cat_Uom::getShortName($measureId);
+                $row->totalQuantity .= ' ' . tr($shortUom);
+            }
         }
         
         // Показваме подробната информация за опаковката при нужда

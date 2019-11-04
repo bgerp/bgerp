@@ -937,8 +937,7 @@ class rack_Zones extends core_Master
         $document = doc_Containers::getDocument($containerId);
         
         if ($zoneRec = rack_Zones::fetch("#containerId = {$containerId}")){
-            $readiness = str_replace('&nbsp;', ' ', rack_Zones::getVerbal($zoneRec, 'readiness'));
-            $res->caption .= "|* " . rack_Zones::getTitleById($zoneRec) . " {$readiness}";
+            $res->caption .= "|* " . rack_Zones::getTitleById($zoneRec);
         }
         
         if(empty($zoneRec)){

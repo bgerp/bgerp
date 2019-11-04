@@ -165,7 +165,15 @@ class doc_UsedInDocs extends core_Manager
                 $rec->containerId = $cId;
                 $rec->last = dt::now();
                 
-                $me->save($rec);
+                try {
+                    $me->save($rec);
+                } catch(core_exception_Db $e) {
+                    $dump = $e->getDump();
+                    if ($dump['mysqlErrCode'] == 1062) {
+                        $rec->id = self::fetchField(array("#containerId = '[#1#]' AND #userId = '[#2#]'", $cId, $userId), 'id');
+                        $me->save($rec);
+                    }
+                }
             }
         }
         

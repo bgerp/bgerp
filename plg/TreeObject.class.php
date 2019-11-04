@@ -311,10 +311,10 @@ class plg_TreeObject extends core_Plugin
         
         foreach ($array as $key => $value) {
             $return[$value->id] = $value;
-            if (count($value->children)) {
+            if (countR($value->children)) {
                 $return = $return + self::flattenTree($value->children);
             }
-            $value->_childrenCount = count($value->children);
+            $value->_childrenCount = countR($value->children);
             unset($value->children);
         }
         

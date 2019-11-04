@@ -326,8 +326,8 @@ class crm_ext_ContragentInfo extends core_manager
                     $r = self::prepareNewRec($classId, $cRec->id, array('createdOn' => $now));
                 }
                 
-                $total = $sales[$cRec->id]['total'];
-                $overdues = $sales[$cRec->id]['overdue'];
+                $total = is_array($sales[$cRec->id]['total']) ? $sales[$cRec->id]['total'] : array();
+                $overdues = is_array($sales[$cRec->id]['overdue']) ? $sales[$cRec->id]['overdue'] : array();
                 
                 $r->overdueSales = count($overdues) ? 'yes' : null;
                 $r->totalDeals = count($total) ? $total : null;

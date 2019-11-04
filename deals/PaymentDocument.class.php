@@ -87,7 +87,7 @@ abstract class deals_PaymentDocument extends core_Master
             $recTitle .= ' / ' . dt::mysql2verbal($date, 'd.m.y');
         }
         
-        $row->recTitle = $recTitle;
+        $row->recTitle = html_entity_decode($recTitle);
         
         return $row;
     }

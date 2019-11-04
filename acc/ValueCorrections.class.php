@@ -699,7 +699,7 @@ class acc_ValueCorrections extends core_Master
         $query->EXT('firstDocClass', 'doc_Threads', 'externalName=firstDocClass,externalKey=threadId');
         $query->where("#state = 'active' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
         $query->where("#modifiedOn >= '{$timeline}' AND #firstDocClass = " . sales_Sales::getClassId());
-        $query->show('state,action,amount,valior,threadId');
+        $query->show('state,action,amount,valior,threadId,productsData');
         
         $classId = self::getClassId();
         $iRec = hr_IndicatorNames::force('priceCorrection', __CLASS__, 1);
@@ -707,22 +707,56 @@ class acc_ValueCorrections extends core_Master
         // За всеки
         while ($rec = $query->fetch()) {
             
-            // Опит за намиране на търговеца от продажбата
-            $firstContainerId = doc_Threads::getFirstContainerId($rec->threadId);
-            $dealers = sales_PrimeCostByDocument::getDealerAndInitiatorId($firstContainerId);
-            if (empty($dealers['dealerId'])) {
-                continue;
-            }
+            $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+            $firstDocumentRec = $firstDocument->fetch();
             
-            // Кое е лицето от визитника
-            $personId = crm_Profiles::fetchField("#userId = '{$dealers['dealerId']}'", 'personId');
             $isRejected = ($rec->state == 'rejected');
-            
             $sign = ($rec->action == 'decrease') ? -1 : 1;
-            $value = round($rec->amount * $sign, 2);
             
-            // Добавяне на записа за индикатора
-            hr_Indicators::addIndicatorToArray($result, $rec->valior, $personId, $rec->id, $classId, $iRec->id, $value, $isRejected);
+            // Ако продажбата не е обединяваща, стойноста се начислява на търговеца
+            // Ако продажбата е обединяваща, за всеки артикул коригираната сума се начислява на търговеца му
+            if(empty($firstDocumentRec->closedDocuments)){
+                
+                // Опит за намиране на търговеца от продажбата
+                $dealers = sales_PrimeCostByDocument::getDealerAndInitiatorId($firstDocumentRec->containerId);
+                if (empty($dealers['dealerId'])) continue;
+                
+                // Кое е лицето от визитника
+                $personId = crm_Profiles::fetchField("#userId = '{$dealers['dealerId']}'", 'personId');
+                $isRejected = ($rec->state == 'rejected');
+                
+                $sign = ($rec->action == 'decrease') ? -1 : 1;
+                $value = round($rec->amount * $sign, 2);
+                
+                // Добавяне на записа за индикатора
+                hr_Indicators::addIndicatorToArray($result, $rec->valior, $personId, $rec->id, $classId, $iRec->id, $value, $isRejected);
+            } else {
+                if(!is_array($rec->productsData)) continue;
+                
+                // Вземат се данните от делтите, за това кои са търговците на артикулите от обединения договор
+                $sQuery = sales_PrimeCostByDocument::getQuery();
+                $sQuery->where("#threadId = {$rec->threadId}");
+                $sQuery->orderBy('id', 'ASC');
+                $sQuery->groupBy('productId');
+                $sQuery->show('productId,dealerId');
+                $primeCostArr = $sQuery->fetchAll();
+                
+                // За всеки артикул
+                foreach ($rec->productsData as $prodRec){
+                    
+                    // Намира се кой е отбелязан за негов търговец от модела с делтите
+                    $dealerId = null;
+                    array_walk($primeCostArr, function($a) use (&$dealerId, $prodRec){if($prodRec->productId == $a->productId){$dealerId = $a->dealerId;}});
+                    if (empty($dealerId)) continue;
+                    
+                    // Коригираното от документа се отнася към точно този търговец
+                    $personId = crm_Profiles::fetchField("#userId = '{$dealerId}'", 'personId');
+                    $value = round($prodRec->allocated * $sign, 2);
+                    
+                    // Добавяне на записа за индикатора
+                    hr_Indicators::addIndicatorToArray($result, $rec->valior, $personId, $rec->id, $classId, $iRec->id, $value, $isRejected);
+                }
+            }  
         }
         
         return $result;

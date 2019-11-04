@@ -5,6 +5,7 @@
 </div>
 <div class='blogm-article-body'>
     [#body#]
+    [#prevNextLinks#]
 </div>
 <!--ET_BEGIN SHARE_TOOLBAR-->
 [#SHARE_TOOLBAR#]

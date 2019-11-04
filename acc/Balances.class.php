@@ -189,6 +189,9 @@ class acc_Balances extends core_Master
                     $row->periodId = ht::createLink($row->periodId, array($mvc, 'single', $rec->id), null, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост|* {$row->periodId}");
                 }
             }
+        } else {
+            $periodState = acc_Periods::fetchField($rec->periodId, 'state');
+            $row->ROW_ATTR['class'] = "state-{$periodState}";
         }
         
         // Добавяме връзка към последния алтерниращ документ
@@ -294,6 +297,13 @@ class acc_Balances extends core_Master
         
         $now = dt::now();
         
+        // Ако датата е 
+        $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
+        if($alternateWindow) {
+            $windowStart = dt::addSecs(-$alternateWindow);
+            if($windowStart > $date) return;
+        }
+
         $query = self::getQuery();
         $query->where("#toDate >= '{$date}'");
         

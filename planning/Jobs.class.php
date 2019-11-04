@@ -715,7 +715,7 @@ class planning_Jobs extends core_Master
         $rec->quantityNotStored = $rec->quantityFromTasks - $rec->quantityProduced;
         $row->quantityNotStored = $Double->toVerbal($rec->quantityNotStored);
         
-        $rec->quantityToProduce = $rec->packQuantity - $rec->quantityFromTasks;
+        $rec->quantityToProduce = $rec->packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $rec->quantityProduced);
         
         $row->quantityToProduce = $Double->toVerbal($rec->quantityToProduce);
         
@@ -824,8 +824,14 @@ class planning_Jobs extends core_Master
                 $row->batches = implode(', ', $batchArr);
             }
             
-            $row->measureId2 = $row->measureId;
-            $row->quantityFromTasksCaption = tr('Произведено');
+            if(!empty($rec->quantityFromTasks)){
+                $row->measureId2 = $row->measureId;
+                $row->quantityFromTasksCaption = tr('Произведено');
+            } else {
+                unset($row->quantityFromTasks);
+                unset($row->captionNotStored);
+                unset($row->quantityNotStored);
+            }
             
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
@@ -1155,7 +1161,7 @@ class planning_Jobs extends core_Master
             if ($actionArr[0] == 'sys') {
                 
                 // Създаване на шаблонна операция
-                $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec->productId, $jobRec->quantity);
+                $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
                 $draft = $defaultTasks[$actionArr[1]];
                 $url = array('planning_Tasks', 'add', 'folderId' => $folderId, 'originId' => $jobRec->containerId, 'title' => $draft->title, 'ret_url' => true, 'systemId' => $actionArr[1]);
                 redirect($url);
@@ -1205,7 +1211,7 @@ class planning_Jobs extends core_Master
         $options = array();
         
         // Има ли дефолтни задачи от артикула
-        $defaultTasks = cat_Products::getDefaultProductionTasks($rec->productId, $rec->quantity);
+        $defaultTasks = cat_Products::getDefaultProductionTasks($rec, $rec->quantity);
         if (count($defaultTasks)) {
             foreach ($defaultTasks as $k => $defRec) {
                 $options["sys|{$k}"] = $defRec->title;

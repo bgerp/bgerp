@@ -145,7 +145,13 @@ class cms_Domains extends core_Embedder
      */
     public $listFields = 'domain,lang,theme,createdOn,createdBy';
     
-    
+
+    /**
+     * Възможна ли е смяната на вече избран драйвер?
+     */
+    public $allowDriverChange = true;
+
+
     /**
      * Описание на модела
      */
