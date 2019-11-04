@@ -62,7 +62,7 @@ class store_Products extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity,reservedQuantity,expectedQuantity,freeQuantity,storeId';
+    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity,reservedQuantity,expectedQuantity,expectedQuantityTotal,freeQuantity,storeId';
     
     
     /**
@@ -93,6 +93,7 @@ class store_Products extends core_Detail
         $this->FLD('quantity', 'double(maxDecimals=3)', 'caption=Налично');
         $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Запазено');
         $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Очаквано (сега)');
+        $this->FLD('expectedQuantityTotal', 'double(maxDecimals=3)', 'caption=Очаквано (общо)');
         $this->FNC('freeQuantity', 'double(maxDecimals=3)', 'caption=Разполагаемо');
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
@@ -546,7 +547,6 @@ class store_Products extends core_Detail
                     $Detail = cls::get($arr['Detail']);
                     setIfNot($Detail->productFieldName, 'productId');
                     $shQuery = $Detail->getQuery();
-                    
                     $isCp = ($arr['Detail'] == 'store_ConsignmentProtocolDetailsSend');
                     
                     if ($isCp) {
@@ -568,7 +568,7 @@ class store_Products extends core_Detail
                     while ($sd = $shQuery->fetch()) {
                         $storeId = $sRec->{$storeField};
                         $key = "{$storeId}|{$sd->{$Detail->productFieldName}}";
-                        $reserved[$key] = array('sId' => $storeId, 'pId' => $sd->{$Detail->productFieldName}, 'reserved' => $sd->sum, 'expected' => null);
+                        $reserved[$key] = array('sId' => $storeId, 'pId' => $sd->{$Detail->productFieldName}, 'reserved' => $sd->sum, 'expected' => null, 'expectedTotal' => null);
                     }
                     
                     core_Permanent::set("reserved_{$sRec->containerId}", $reserved, 4320);
@@ -595,12 +595,14 @@ class store_Products extends core_Detail
                
                 while ($td = $tdQuery->fetch()) {
                     $key = "{$tRec->fromStore}|{$td->newProductId}";
-                    $reserved[$key] = array('sId' => $tRec->fromStore, 'pId' => $td->newProductId, 'reserved' => $td->sum, 'expected' => null);
-                    $deliveryTime = (!empty($tRec->deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $tRec->deliveryTime) : $tRec->deliveryTime;
+                    $key2 = "{$tRec->toStore}|{$td->newProductId}";
                     
+                    $reserved[$key] = array('sId' => $tRec->fromStore, 'pId' => $td->newProductId, 'reserved' => $td->sum, 'expected' => null, 'expectedTotal' => null);
+                    $reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $td->sum);
+                    
+                    $deliveryTime = (!empty($tRec->deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $tRec->deliveryTime) : $tRec->deliveryTime;
                     if(!(empty($deliveryTime) || $deliveryTime > $now)){
-                        $key2 = "{$tRec->toStore}|{$td->newProductId}";
-                        $reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'reserved' => null, 'expected' => $td->sum);
+                        $reserved[$key2]['expected'] = $td->sum;
                     }
                 }
                
@@ -611,7 +613,7 @@ class store_Products extends core_Detail
                 $queue[] = $reserved;
             }
         }
-       
+        
         // Всички СР
         $srQuery = store_Receipts::getQuery();
         $srQuery->where("#state = 'pending'");
@@ -631,15 +633,17 @@ class store_Products extends core_Detail
                 
                 $deliveryTime = (!empty($sRec->deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $sRec->deliveryTime) : $tRec->deliveryTime;
                 while ($sd = $sdQuery->fetch()) {
+                    $key = "{$sRec->storeId}|{$sd->productId}";
+                    $reserved[$key] = array('sId' => $sRec->storeId, 'pId' => $sd->productId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $sd->sum);
+                    
                     if(!empty($deliveryTime) && $deliveryTime >= $now){
-                        $key = "{$sRec->storeId}|{$sd->productId}";
-                        $reserved[$key] = array('sId' => $sRec->storeId, 'pId' => $sd->productId, 'reserved' => null, 'expected' => $sd->sum);
+                        $reserved[$key]['expected'] = $sd->sum;
                     }
                 }
                 
                 core_Permanent::set("reserved_{$sRec->containerId}", $reserved, 4320);
             }
-            
+           
             if(is_array($reserved) && count($reserved)){
                 $queue[] = $reserved;
             }
@@ -666,7 +670,7 @@ class store_Products extends core_Detail
                         $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
                         $quantity = $quantityInPack * $rd->quantity;
                         $key = "{$receiptRec->storeId}|{$rd->productId}";
-                        $reserved[$key] = array('sId' => $receiptRec->storeId, 'pId' => $rd->productId, 'reserved' => $quantity, 'expected' => null);
+                        $reserved[$key] = array('sId' => $receiptRec->storeId, 'pId' => $rd->productId, 'reserved' => $quantity, 'expected' => null, 'expectedTotal' => null);
                     }
                     
                     core_Permanent::set("reserved_receipts_{$receiptRec->id}", $reserved, 4320);
@@ -676,13 +680,18 @@ class store_Products extends core_Detail
             }
         }
        
+        
+        
+        
+        
         // Сумиране на к-та
         foreach ($queue as $arr) {
             foreach ($arr as $key => $obj) {
                 if (!array_key_exists($key, $result)) {
-                    $result[$key] = (object) array('storeId' => $obj['sId'], 'productId' => $obj['pId'], 'reservedQuantity' => $obj['reserved'], 'expectedQuantity' => $obj['expected'], 'state' => 'active');
+                    $result[$key] = (object) array('storeId' => $obj['sId'], 'productId' => $obj['pId'], 'reservedQuantity' => $obj['reserved'], 'expectedQuantity' => $obj['expected'], 'expectedQuantityTotal' => $obj['expectedTotal'], 'state' => 'active');
                 } else {
                     $result[$key]->reservedQuantity += $obj['reserved'];
+                    $result[$key]->expectedQuantityTotal += $obj['expectedTotal'];
                     $result[$key]->expectedQuantity += $obj['expected'];
                 }
             }
@@ -693,7 +702,7 @@ class store_Products extends core_Detail
         $old = $storeQuery->fetchAll();
         
         // Синхронизират се новите със старите записи
-        $res = arr::syncArrays($result, $old, 'storeId,productId', 'reservedQuantity,expectedQuantity');
+        $res = arr::syncArrays($result, $old, 'storeId,productId', 'reservedQuantity,expectedQuantity,expectedQuantityTotal');
         
         // Заклюване на процеса
         if (!core_Locks::get(self::SYNC_LOCK_KEY, 60, 1)) {
@@ -704,11 +713,14 @@ class store_Products extends core_Detail
         
         // Добавяне и ъпдейт на резервираното количество на новите
         $this->saveArray($res['insert']);
-        $this->saveArray($res['update'], 'id,reservedQuantity,expectedQuantity');
+        $this->saveArray($res['update'], 'id,reservedQuantity,expectedQuantity,expectedQuantityTotal');
+        
+      
+        
         
         // Намиране на тези записи, от старите които са имали резервирано к-во, но вече нямат
         $unsetArr = array_filter($old, function (&$r) use ($result) {
-            if (!isset($r->reservedQuantity) && !isset($r->expectedQuantity)) {
+            if (!isset($r->reservedQuantity) && !isset($r->expectedQuantity) && !isset($r->expectedQuantityTotal)) {
                 
                 return false;
             }
@@ -725,6 +737,10 @@ class store_Products extends core_Detail
                 $r->_nullifyExpected = true;
             }
             
+            if(isset($r->expectedQuantityTotal)){
+                $r->_nullifyExpectedTotal = true;
+            }
+            
             return true;
         });
         
@@ -739,8 +755,12 @@ class store_Products extends core_Detail
                     $obj->expectedQuantity = null;
                 }
                 
+                if($obj->_nullifyExpectedTotal === true){
+                    $obj->expectedQuantityTotal = null;
+                }
+                
             });
-            $this->saveArray($unsetArr, 'id,reservedQuantity,expectedQuantity');
+            $this->saveArray($unsetArr, 'id,reservedQuantity,expectedQuantity,expectedQuantityTotal');
         }
         
         // Освобождаване на процеса
