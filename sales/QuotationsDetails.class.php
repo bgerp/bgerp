@@ -270,7 +270,7 @@ class sales_QuotationsDetails extends doc_Detail
         if (!haveRole('seePrice,ceo')) {
             $data->noTotal = true;
         }
-        
+       
         if (empty($data->noTotal) && count($notOptional)) {
             
             // Запомня се стойноста и ддс-то само на опционалните продукти
@@ -325,7 +325,7 @@ class sales_QuotationsDetails extends doc_Detail
                 }
             }
         }
-        
+      
         // Подготовка за показване на опционалните продукти
         deals_Helper::fillRecs($mvc, $optional, $masterRec);
         $recs = $notOptional + $optional;
@@ -333,7 +333,7 @@ class sales_QuotationsDetails extends doc_Detail
         // Изчисляване на цената с отстъпка
         foreach ($recs as $id => $rec) {
             if ($rec->optional == 'no') {
-                $other = $mvc->checkUnique($recs, $rec->productId, $rec->id);
+                $other = $mvc->checkUnique($recs, $rec->productId, $rec->id, 'no', $rec->notes);
                 if ($other) {
                     unset($data->summary);
                 }
@@ -345,10 +345,10 @@ class sales_QuotationsDetails extends doc_Detail
     /**
      * Проверява дали има вариация на продукт
      */
-    private function checkUnique($recs, $productId, $id, $isOptional = 'no')
+    private function checkUnique($recs, $productId, $id, $isOptional = 'no', $notes)
     {
-        $other = array_values(array_filter($recs, function ($val) use ($productId, $id, $isOptional) {
-            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id) {
+        $other = array_values(array_filter($recs, function ($val) use ($productId, $id, $isOptional, $notes) {
+            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id && md5($notes) == md5($val->productId)) {
                 
                 return $val;
             }
