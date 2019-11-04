@@ -407,10 +407,9 @@ class eshop_CartDetails extends core_Detail
             
             // Колко е максималното допустимо количество
             $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
-            
             $maxReachedTex = '';
             if(isset($maxQuantity)){
-                $maxReachedTex = tr("Недостатъчна наличност");
+                $maxReachedTex = tr("Избраното количество не е в момента налично");
             }
             
             $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
