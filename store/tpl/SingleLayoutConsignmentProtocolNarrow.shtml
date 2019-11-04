@@ -11,6 +11,10 @@
                                     <span class="bigData">[#valior#]</span>
                                 </span>
                         </div>
+                        
+                        <!--ET_BEGIN zoneReadiness-->
+               			<div class="document-block"><span class='block-caption'>|В зона|* [#zoneId#]</span>: <span class='block-readiness'>[#zoneReadiness#]</span></div>
+               			<!--ET_END zoneReadiness-->
                     </td>
                 </tr>
                 <tr>
