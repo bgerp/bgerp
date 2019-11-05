@@ -62,7 +62,7 @@ class store_Products extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity,reservedQuantity,expectedQuantity,expectedQuantityTotal,freeQuantity,storeId';
+    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity,reservedQuantity,expectedQuantity,freeQuantity,expectedQuantityTotal,storeId';
     
     
     /**
