@@ -248,7 +248,7 @@ class eshop_CartDetails extends core_Detail
             $packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultQuantity;
             $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
             if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
-                $form->setError('packQuantity', 'В момента количеството не е налично в склада');
+                $form->setError('packQuantity', 'Избраното количество не е в момента налично');
             }
             
             if (!$form->gotErrors()) {
