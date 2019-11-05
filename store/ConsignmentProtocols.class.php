@@ -39,9 +39,15 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
+     * Кои външни(external) роли могат да създават/редактират документа в споделена папка
+     */
+    public $canWriteExternal = 'distributor';
+    
+    
+    /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_ConsignmentProtocol';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_ConsignmentProtocol,colab_CreateDocumentIntf';
     
     
     /**
@@ -54,7 +60,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'ceo,store';
+    public $canPending = 'ceo,store,distributor';
     
     
     /**
@@ -185,7 +191,7 @@ class store_ConsignmentProtocols extends core_Master
         $this->FLD('contragentId', 'int', 'input=hidden,tdClass=leftCol');
         
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Плащане->Валута');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory');
         
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
@@ -204,12 +210,21 @@ class store_ConsignmentProtocols extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($requiredRoles == 'no_one') {
-            
-            return;
-        }
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')) {
             $requiredRoles = 'no_one';
+        }
+        
+        // Ако партньор създава, но няма дефолтен скалд в папката да не му се появява бутона
+        if($action == 'add' && isset($rec) && (core_Packs::isInstalled('colab') && haveRole('partner', $userId))){
+            if(isset($rec->folderId)){
+                $cId = doc_Folders::fetchCoverId($rec->folderId);
+                $Class = doc_Folders::fetchCoverClassId($rec->folderId);
+                
+                $defaultColabStore = cond_Parameters::getParameter($Class, $cId, 'defaultStoreSale');
+                if(empty($defaultColabStore)){
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
     }
     
@@ -364,6 +379,30 @@ class store_ConsignmentProtocols extends core_Master
         if (isset($rec->id)) {
             if (store_ConsignmentProtocolDetailsSend::fetchField("#protocolId = {$rec->id}")) {
                 $form->setReadOnly('currencyId');
+            }
+        }
+        
+        // Скриване на определени полета, ако потребителя е партньор
+        if(core_Packs::isInstalled('colab') && haveRole('partner')){
+            $form->setField('currencyId', 'input=hidden');
+            $form->setField('storeId', 'input=none');
+        }
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if($form->isSubmitted()){
+            
+            // Задаване на дефолтния склад, ако потребителя е партньор
+            if(core_Packs::isInstalled('colab') && haveRole('partner')){
+                $form->rec->storeId = cond_Parameters::getParameter($form->rec->contragentClassId, $form->rec->contragentId, 'defaultStoreSale');
             }
         }
     }

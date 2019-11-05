@@ -111,24 +111,26 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         }
         
         if ($form->isSubmitted()) {
-            $productInfo = cat_Products::getProductInfo($rec->productId);
-            
-            // Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
-            $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-            
-            $autoPrice = false;
-            
-            if (!isset($rec->packPrice)) {
-                $autoPrice = true;
-                $Policy = cls::get('price_ListToCustomers');
+            if(isset($rec->productId)){
+                $productInfo = cat_Products::getProductInfo($rec->productId);
                 
-                $packPrice = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity * $rec->quantityInPack, $masterRec->valior, $currencyRate, $rec->chargeVat)->price;
-                if (isset($packPrice)) {
-                    $rec->packPrice = $packPrice * $rec->quantityInPack;
+                // Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
+                $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+                
+                $autoPrice = false;
+                
+                if (!isset($rec->packPrice)) {
+                    $autoPrice = true;
+                    $Policy = cls::get('price_ListToCustomers');
+                    
+                    $packPrice = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity * $rec->quantityInPack, $masterRec->valior, $currencyRate, $rec->chargeVat)->price;
+                    if (isset($packPrice)) {
+                        $rec->packPrice = $packPrice * $rec->quantityInPack;
+                    }
                 }
             }
             
-            if (!isset($rec->packPrice)) {
+            if (!isset($rec->packPrice) && (Request::get('Act') != 'CreateProduct')) {
                 $form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика (3)');
             }
             
