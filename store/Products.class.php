@@ -604,7 +604,7 @@ class store_Products extends core_Detail
                     $reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $td->sum);
                     
                     $deliveryTime = (!empty($tRec->deliveryTime)) ? str_replace(' 00:00:00', " 00:00:00", $tRec->deliveryTime) : $tRec->deliveryTime;
-                    if(!(empty($deliveryTime) || $deliveryTime <= $now)){
+                    if(!empty($deliveryTime) || $deliveryTime <= $now){
                         $reserved[$key2]['expected'] = $td->sum;
                     }
                 }
