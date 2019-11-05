@@ -118,7 +118,6 @@ function eshopActions() {
 		var packQuantity = $(this).val();
 		
 		var max = parseFloat($(this).attr("data-maxquantity"));
-		
 		var aboveMax = max && parseFloat(packQuantity) > parseFloat(max);
 		
 		if(aboveMax){
@@ -132,6 +131,8 @@ function eshopActions() {
 		
 		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1 || aboveMax)){
 			$(this).addClass('inputError');
+			clearTimeout(timeout1[idProd]);
+			
 		} else {
 			$(this).removeClass('inputError');
 			changeInputWidth();
@@ -142,7 +143,7 @@ function eshopActions() {
 		    // След всяко натискане на бутон изчистваме времето на изчакване
 			var idProd = $(this).attr('name');
 			clearTimeout(timeout1[idProd]);
-
+			
 			// Правим Ajax заявката като изтече време за изчакване
 			timeout1[idProd] = setTimeout(function(){
 				resObj = new Object();
@@ -165,6 +166,10 @@ function eshopActions() {
 
 	// Бутоните за +/- да променят количеството
 	$(document.body).on('click tap', ".btnUp, .btnDown",  function(){
+		
+		var data = {type:'error'};
+		render_clearStatuses(data)
+		
 		var input = $(this).siblings('.option-quantity-input');
 
 		var max = parseFloat(input.attr("data-maxquantity"));
