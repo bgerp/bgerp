@@ -453,6 +453,7 @@ class store_Products extends core_Detail
     {
         $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
+        $data->listTableMvc->setField('expectedQuantityTotal', 'tdClass=expectedTotalCol');
         
         if (!count($data->rows)) {
             
@@ -465,13 +466,11 @@ class store_Products extends core_Detail
             foreach (array('reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal') as $type){
                 if (!empty($rec->{$type})) {
                     
-                    //core_Request::setProtected('field');
                     $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $rec->id, 'field' => $type), 'local');
                     $arrowImg = ht::createElement('img', array('src' => sbf('img/16/info-gray.png', '')));
                     $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'От кои документи е резервирано количеството'), $arrowImg, true);
                     $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$type}{$rec->id}'></span>{$arrow}</span>";
                     $row->{$type} .= "&nbsp;{$arrow}";
-                   // core_Request::removeProtected('field');
                 }
             }
         }
