@@ -604,7 +604,7 @@ class store_Products extends core_Detail
                     $reserved[$key] = array('sId' => $tRec->fromStore, 'pId' => $td->newProductId, 'reserved' => $td->sum, 'expected' => null, 'expectedTotal' => null);
                     $reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $td->sum);
                     
-                    $deliveryTime = (!empty($tRec->deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $tRec->deliveryTime) : $tRec->deliveryTime;
+                    $deliveryTime = (!empty($tRec->deliveryTime)) ? str_replace(' 00:00:00', " 00:00:00", $tRec->deliveryTime) : $tRec->deliveryTime;
                     if(!(empty($deliveryTime) || $deliveryTime <= $now)){
                         $reserved[$key2]['expected'] = $td->sum;
                     }
@@ -635,7 +635,7 @@ class store_Products extends core_Detail
                 $sdQuery->show('productId,quantity,receiptId,sum');
                 $sdQuery->groupBy('productId');
                 
-                $deliveryTime = (!empty($sRec->deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $sRec->deliveryTime) : $tRec->deliveryTime;
+                $deliveryTime = (!empty($sRec->deliveryTime)) ? str_replace(' 00:00:00', " 00:00:00", $sRec->deliveryTime) : $tRec->deliveryTime;
                 while ($sd = $sdQuery->fetch()) {
                     $key = "{$sRec->storeId}|{$sd->productId}";
                     $reserved[$key] = array('sId' => $sRec->storeId, 'pId' => $sd->productId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $sd->sum);
@@ -813,7 +813,7 @@ class store_Products extends core_Detail
                     $deliveryTime = null;
                     if($Master->getField('deliveryTime', false)){
                         $deliveryTime = $Master->fetchField($dRec->{$Detail->masterKey}, 'deliveryTime');
-                        $deliveryTime = (!empty($deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $deliveryTime) : $deliveryTime;
+                        $deliveryTime = (!empty($deliveryTime)) ? str_replace(' 00:00:00', " 00:00:00", $deliveryTime) : $deliveryTime;
                     }
                     
                     if($field == 'reservedQuantity'){
