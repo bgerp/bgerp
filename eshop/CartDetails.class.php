@@ -408,7 +408,6 @@ class eshop_CartDetails extends core_Detail
             // Колко е максималното допустимо количество
             $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
             
-            $maxQuantity = 5;
             $maxReachedTex = '';
             $maxQuantityReached = '';
             if(isset($maxQuantity)){
