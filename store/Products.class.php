@@ -461,16 +461,19 @@ class store_Products extends core_Detail
         
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
-            if (empty($rec->reservedQuantity)) {
-                continue;
-            }
             
-            $hashed = str::addHash($rec->id, 6);
-            $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'recId' => $hashed), 'local');
-            $arrowImg = ht::createElement('img', array('src' => sbf('img/16/info-gray.png', '')));
-            $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'От кои документи е резервирано количеството'), $arrowImg, true);
-            $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='reserve{$rec->id}'></span>{$arrow}</span>";
-            $row->reservedQuantity .= "&nbsp;{$arrow}";
+            foreach (array('reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal') as $type){
+                if (!empty($rec->{$type})) {
+                    
+                    //core_Request::setProtected('field');
+                    $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $rec->id, 'field' => $type), 'local');
+                    $arrowImg = ht::createElement('img', array('src' => sbf('img/16/info-gray.png', '')));
+                    $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'От кои документи е резервирано количеството'), $arrowImg, true);
+                    $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$type}{$rec->id}'></span>{$arrow}</span>";
+                    $row->{$type} .= "&nbsp;{$arrow}";
+                   // core_Request::removeProtected('field');
+                }
+            }
         }
     }
     
@@ -578,6 +581,7 @@ class store_Products extends core_Detail
             }
         }
         
+        
         $tQuery = store_Transfers::getQuery();
         $tQuery->where("#state = 'pending'");
         $tQuery->show('id,containerId,fromStore,toStore,modifiedOn,deliveryTime');
@@ -631,6 +635,7 @@ class store_Products extends core_Detail
                 $sdQuery->show('productId,quantity,receiptId,sum');
                 $sdQuery->groupBy('productId');
                 
+               // bp($sdQuery->fetchAll());
                 $deliveryTime = (!empty($sRec->deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $sRec->deliveryTime) : $tRec->deliveryTime;
                 while ($sd = $sdQuery->fetch()) {
                     $key = "{$sRec->storeId}|{$sd->productId}";
@@ -680,10 +685,6 @@ class store_Products extends core_Detail
             }
         }
        
-        
-        
-        
-        
         // Сумиране на к-та
         foreach ($queue as $arr) {
             foreach ($arr as $key => $obj) {
@@ -696,7 +697,7 @@ class store_Products extends core_Detail
                 }
             }
         }
-       
+        
         // Извличане на всички стари записи
         $storeQuery = static::getQuery();
         $old = $storeQuery->fetchAll();
@@ -714,9 +715,6 @@ class store_Products extends core_Detail
         // Добавяне и ъпдейт на резервираното количество на новите
         $this->saveArray($res['insert']);
         $this->saveArray($res['update'], 'id,reservedQuantity,expectedQuantity,expectedQuantityTotal');
-        
-      
-        
         
         // Намиране на тези записи, от старите които са имали резервирано к-во, но вече нямат
         $unsetArr = array_filter($old, function (&$r) use ($result) {
@@ -774,15 +772,21 @@ class store_Products extends core_Detail
      */
     public function act_ShowReservedDocs()
     {
+        //core_Request::setProtected('field');
         requireRole('powerUser');
-        $id = Request::get('recId', 'varchar');
-        expect($id = str::checkHash($id, 6));
-        $rec = self::fetch($id);
+        $id = Request::get('id', 'int');
+        $field = Request::get('field', 'varchar');
+        expect($rec = self::fetch($id));
         $now = dt::now();
+        
+        $arr = array();
+        $arr['reservedQuantity'] = array('sales_SalesDetails' => 'shipmentStoreId', 'store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore,toStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId', 'planning_DirectProductNoteDetails' => 'storeId');
+        $arr['expectedQuantity'] = array('store_TransfersDetails' => 'toStore', 'store_ReceiptDetails' => 'storeId');
+        $arr['expectedQuantityTotal'] = array('store_TransfersDetails' => 'toStore', 'store_ReceiptDetails' => 'storeId');
         
         // Намират се документите, запазили количества
         $docs = array();
-        foreach (array('sales_SalesDetails' => 'shipmentStoreId', 'store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore,toStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId', 'planning_DirectProductNoteDetails' => 'storeId') as $Detail => $stores) {
+        foreach ($arr[$field] as $Detail => $stores) {
             $stores = arr::make($stores, true);
             $Detail = cls::get($Detail);
             expect($Detail->productFld, $Detail);
@@ -804,24 +808,26 @@ class store_Products extends core_Detail
                 $dQuery->show("containerId,{$Detail->masterKey}");
                 
                 while ($dRec = $dQuery->fetch()) {
-                    $add = true;
-                    if($storeField == 'toStore'){
-                        $deliveryTime = $Master->fetchField($dRec->{$Detail->masterKey}, 'deliveryTime');
-                        $deliveryTime = (!empty($deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $deliveryTime) : $deliveryTime;
-                        if(!(empty($deliveryTime) || $deliveryTime > $now)){
-                            $add = false;
-                        }
-                    }
+                    $deliveryTime = $Master->fetchField($dRec->{$Detail->masterKey}, 'deliveryTime');
+                    $deliveryTime = (!empty($deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $deliveryTime) : $deliveryTime;
                     
-                    if($add){
+                    if($field == 'reservedQuantity'){
                         $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
+                    } elseif($storeField == 'toStore'){
+                        if($field == 'expectedQuantityTotal'){
+                            $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
+                        } else {
+                            if(!empty($deliveryTime) || $deliveryTime <= $now){
+                                $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
+                            }
+                        }
                     }
                 }
             }
         }
         
         // Бележките в които е участвало
-        if(core_Packs::isInstalled('pos')){
+        if(core_Packs::isInstalled('pos') && $field == 'reservedQuantity'){
             $receiptQuery = pos_ReceiptDetails::getQuery();
             $receiptQuery->EXT('pointId', 'pos_Receipts', "externalName=pointId,externalKey=receiptId");
             $receiptQuery->EXT('storeId', 'pos_Points', "externalName=storeId,externalKey=pointId");
@@ -845,7 +851,7 @@ class store_Products extends core_Detail
         if (Request::get('ajax_mode')) {
             $resObj = new stdClass();
             $resObj->func = 'html';
-            $resObj->arg = array('id' => "reserve{$id}", 'html' => $tpl->getContent(), 'replace' => true);
+            $resObj->arg = array('id' => "{$field}{$id}", 'html' => $tpl->getContent(), 'replace' => true);
             
             return array($resObj);
         }
