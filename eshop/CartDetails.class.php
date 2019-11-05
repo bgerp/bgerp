@@ -407,14 +407,20 @@ class eshop_CartDetails extends core_Detail
             
             // Колко е максималното допустимо количество
             $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
+            
+            $maxQuantity = 5;
             $maxReachedTex = '';
+            $maxQuantityReached = '';
             if(isset($maxQuantity)){
                 $maxReachedTex = tr("Избраното количество не е в момента налично");
+                if($quantity == $maxQuantity){
+                    $maxQuantityReached = 'maxQuantityReached';
+                }
             }
             
             $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
             $plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), '+');
-            $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "class=option-quantity-input autoUpdate,data-quantity={$quantity},data-url='{$dataUrl}',data-maxquantity={$maxQuantity},data-maxquantity-reached-text={$maxReachedTex}") . $plus . '</span>';
+            $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "class=option-quantity-input autoUpdate,data-quantity={$quantity},data-url='{$dataUrl}',data-maxquantity={$maxQuantity},data-maxquantity-reached-text={$maxReachedTex},maxQuantityReached={$maxQuantityReached}") . $plus . '</span>';
             
             self::updatePriceInfo($rec, null, true);
             

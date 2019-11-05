@@ -64,7 +64,7 @@ function render_changeInputWidth()
 function eshopActions() {
 
 	changeInputWidth();
-
+	
 	// Изтриване на ред от кошницата
 	$(document.body).on("click", '.remove-from-cart', function(event){
 		
@@ -167,6 +167,10 @@ function eshopActions() {
 	// Бутоните за +/- да променят количеството
 	$(document.body).on('click tap', ".btnUp, .btnDown",  function(){
 		
+		// При натискане елемента се дисейлбва от кликане
+		$(this).addClass('quiet');
+		$(this).css("pointer-events", "none");
+		
 		var data = {type:'error'};
 		render_clearStatuses(data)
 		
@@ -181,6 +185,9 @@ function eshopActions() {
         if(max && ((val + step) > max)){
         	var maxReachedText = input.attr("data-maxquantity-reached-text");
         	
+        	$(this).removeClass('quiet');
+        	$(this).css("pointer-events", "auto");
+        	
         	render_showToast({timeOut: 800, text: maxReachedText, isSticky: true, stayTime: 8000, type: 'error'});
         }
         
@@ -193,7 +200,6 @@ function eshopActions() {
 			changeInputWidth();
 			if(max > 0 && valNew >= max)  {
 				$(this).addClass('quiet');
-				return;
 			}
 		}
         
