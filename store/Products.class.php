@@ -780,9 +780,12 @@ class store_Products extends core_Detail
         $now = dt::now();
         
         $arr = array();
-        $arr['reservedQuantity'] = array('sales_SalesDetails' => 'shipmentStoreId', 'store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore,toStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId', 'planning_DirectProductNoteDetails' => 'storeId');
+        $arr['reservedQuantity'] = array('sales_SalesDetails' => 'shipmentStoreId', 'store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId', 'planning_DirectProductNoteDetails' => 'storeId');
         $arr['expectedQuantity'] = array('store_TransfersDetails' => 'toStore', 'store_ReceiptDetails' => 'storeId');
-        $arr['expectedQuantityTotal'] = array('store_TransfersDetails' => 'toStore', 'store_ReceiptDetails' => 'storeId');
+        $arr['expectedQuantityTotal'] = array('store_ReceiptDetails' => 'storeId');
+        
+        //'store_TransfersDetails' => 'toStore', 
+        
         
         // Намират се документите, запазили количества
         $docs = array();
@@ -808,19 +811,18 @@ class store_Products extends core_Detail
                 $dQuery->show("containerId,{$Detail->masterKey}");
                 
                 while ($dRec = $dQuery->fetch()) {
-                    $deliveryTime = $Master->fetchField($dRec->{$Detail->masterKey}, 'deliveryTime');
-                    $deliveryTime = (!empty($deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $deliveryTime) : $deliveryTime;
+                    $deliveryTime = null;
+                    if($Master->getField('deliveryTime', false)){
+                        $deliveryTime = $Master->fetchField($dRec->{$Detail->masterKey}, 'deliveryTime');
+                        $deliveryTime = (!empty($deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $deliveryTime) : $deliveryTime;
+                    }
                     
                     if($field == 'reservedQuantity'){
                         $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
-                    } elseif($storeField == 'toStore'){
-                        if($field == 'expectedQuantityTotal'){
-                            $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
-                        } else {
-                            if(!empty($deliveryTime) || $deliveryTime <= $now){
-                                $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
-                            }
-                        }
+                    } elseif($field == 'expectedQuantityTotal'){
+                        $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
+                    } if(!empty($deliveryTime) || $deliveryTime <= $now){
+                        $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
                     }
                 }
             }
