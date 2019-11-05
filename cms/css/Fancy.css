@@ -99,6 +99,7 @@ html {
 }
 
 .centerContent {
+    clear: both;
     position: relative;
     width: 1200px;
     margin: 0 auto;
@@ -115,6 +116,10 @@ html {
 }
 header {
     position: relative;
+}
+
+.wide .externalPage .formTable {
+    float: left;
 }
 
 .narrow .app-name {
