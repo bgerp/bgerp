@@ -62,7 +62,7 @@ class store_Products extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity,reservedQuantity,expectedQuantity,expectedQuantityTotal,freeQuantity,storeId';
+    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity,reservedQuantity,expectedQuantity,freeQuantity,expectedQuantityTotal,storeId';
     
     
     /**
@@ -92,8 +92,8 @@ class store_Products extends core_Detail
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
         $this->FLD('quantity', 'double(maxDecimals=3)', 'caption=Налично');
         $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Запазено');
-        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Очаквано (сега)');
-        $this->FLD('expectedQuantityTotal', 'double(maxDecimals=3)', 'caption=Очаквано (общо)');
+        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Очаквано (днес)');
+        $this->FLD('expectedQuantityTotal', 'double(maxDecimals=3)', 'caption=Очаквано');
         $this->FNC('freeQuantity', 'double(maxDecimals=3)', 'caption=Разполагаемо');
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
@@ -604,7 +604,7 @@ class store_Products extends core_Detail
                     $reserved[$key] = array('sId' => $tRec->fromStore, 'pId' => $td->newProductId, 'reserved' => $td->sum, 'expected' => null, 'expectedTotal' => null);
                     $reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $td->sum);
                     
-                    $deliveryTime = (!empty($tRec->deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $tRec->deliveryTime) : $tRec->deliveryTime;
+                    $deliveryTime = (!empty($tRec->deliveryTime)) ? str_replace(' 00:00:00', " 00:00:00", $tRec->deliveryTime) : $tRec->deliveryTime;
                     if(!(empty($deliveryTime) || $deliveryTime <= $now)){
                         $reserved[$key2]['expected'] = $td->sum;
                     }
@@ -635,7 +635,7 @@ class store_Products extends core_Detail
                 $sdQuery->show('productId,quantity,receiptId,sum');
                 $sdQuery->groupBy('productId');
                 
-                $deliveryTime = (!empty($sRec->deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $sRec->deliveryTime) : $tRec->deliveryTime;
+                $deliveryTime = (!empty($sRec->deliveryTime)) ? str_replace(' 00:00:00', " 00:00:00", $sRec->deliveryTime) : $tRec->deliveryTime;
                 while ($sd = $sdQuery->fetch()) {
                     $key = "{$sRec->storeId}|{$sd->productId}";
                     $reserved[$key] = array('sId' => $sRec->storeId, 'pId' => $sd->productId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $sd->sum);
@@ -813,7 +813,7 @@ class store_Products extends core_Detail
                     $deliveryTime = null;
                     if($Master->getField('deliveryTime', false)){
                         $deliveryTime = $Master->fetchField($dRec->{$Detail->masterKey}, 'deliveryTime');
-                        $deliveryTime = (!empty($deliveryTime)) ? str_replace(' 00:00:00', " 23:59:59", $deliveryTime) : $deliveryTime;
+                        $deliveryTime = (!empty($deliveryTime)) ? str_replace(' 00:00:00', " 00:00:00", $deliveryTime) : $deliveryTime;
                     }
                     
                     if($field == 'reservedQuantity'){
