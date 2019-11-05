@@ -51,6 +51,12 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     
     
     /**
+     * Какви мета данни да изискват продуктите, които да се показват
+     */
+    public $metaProducts = 'canSell,canStore';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, store, distributor';
