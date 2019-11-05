@@ -180,10 +180,15 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 continue;
             }
             
-            $meta = cat_Products::fetchField($pRec->productId, $mvc->metaProducts);
-            if($meta != 'yes'){
-                $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
+            $meta = (array)cat_Products::fetch($pRec->productId, $mvc->metaProducts);
+            unset($meta['id']);
+            
+            foreach ($meta as $metaValue){
+                if($metaValue != 'yes'){
+                    $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
+                }
             }
+            
             
             $packs = cat_Products::getPacks($pRec->productId);
             
