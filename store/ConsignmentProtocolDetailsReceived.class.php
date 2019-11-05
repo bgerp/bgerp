@@ -41,7 +41,7 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      * var string|array
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
-                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy,plg_PrevAndNext,store_plg_TransportDataDetail';
+                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy,deals_plg_ImportDealDetailProduct,plg_PrevAndNext,store_plg_TransportDataDetail';
     
     
     /**
@@ -83,6 +83,12 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     
     
     /**
+     * Какви мета данни да изискват продуктите, които да се показват
+     */
+    public $metaProducts = 'canSell,canStore';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -90,18 +96,5 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
         $this->FLD('protocolId', 'key(mvc=store_ConsignmentProtocols)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setFields($this);
         $this->setDbUnique('protocolId,productId,packagingId');
-    }
-    
-    
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $data
-     */
-    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
-    {
-        $masterRec = $data->masterRec;
-        $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => 'canSell,canStore'));
     }
 }

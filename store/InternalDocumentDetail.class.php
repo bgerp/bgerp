@@ -8,7 +8,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -75,6 +75,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         $chargeVat = ($rec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
         
         $data->form->setField('packPrice', "unit={$masterRec->currencyId} {$chargeVat}");
+        $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts));
     }
     
     
@@ -230,5 +231,46 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         $rec = $mvc->fetchRec($rec);
         
         $res->quantity = $rec->packQuantity * $rec->quantityInPack;
+    }
+    
+    
+    /**
+     * Импортиране на артикул генериран от ред на csv файл
+     *
+     * @param int   $masterId - ид на мастъра на детайла
+     * @param array $row      - Обект представляващ артикула за импортиране
+     *                        ->code - код/баркод на артикула
+     *                        ->quantity - К-во на опаковката или в основна мярка
+     *                        ->price - цената във валутата на мастъра, ако няма се изчислява директно
+     *                        ->pack - Опаковката
+     *
+     * @return mixed - резултата от експорта
+     */
+    public function import($masterId, $row)
+    {
+        $Master = $this->Master;
+        
+        $pRec = cat_Products::getByCode($row->code);
+        $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
+        $pacRec = cat_products_Packagings::getPack($pRec->productId, $pRec->packagingId);
+        $quantityInPack = (is_object($pacRec)) ? $pacRec->quantity : 1;
+        
+        $masterRec = $Master->fetch($masterId);
+        $chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId)) ? 'yes' : 'no';
+        $currencyRate = currency_CurrencyRates::getRate($masterRec->valior, $masterRec->currencyId, acc_Periods::getBaseCurrencyCode($masterRec->valior));
+        
+        // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
+        if ($row->price) {
+            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $currencyRate, $chargeVat);
+        } else {
+            $Policy = cls::get('price_ListToCustomers');
+            $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $pRec->productId, $pRec->packagingId, ($row->quantity * $quantityInPack), $masterRec->valior, $currencyRate, $chargeVat);
+            $price = $policyInfo->price;
+        }
+        
+        $price *= $quantityInPack;
+        $dRec = (object)array('protocolId' => $masterId, 'productId' => $pRec->productId, 'packagingId' => $pRec->packagingId, 'packPrice' => $price, 'packQuantity' => $row->quantity, 'quantityInPack' => $quantityInPack);
+        
+        return self::save($dRec);
     }
 }

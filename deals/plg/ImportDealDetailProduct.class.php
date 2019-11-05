@@ -189,7 +189,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 }
             }
             
-            
             $packs = cat_Products::getPacks($pRec->productId);
             
             if (isset($obj->pack)) {
