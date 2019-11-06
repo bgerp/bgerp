@@ -201,7 +201,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)) {
+        if (($action == 'edit' || $action == 'delete' || $action == 'add' || $action == 'createproduct') && isset($rec)) {
             if (!($mvc instanceof store_DocumentPackagingDetail)) {
                 if ($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft') {
                     $requiredRoles = 'no_one';

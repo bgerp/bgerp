@@ -500,8 +500,14 @@ class store_ConsignmentProtocols extends core_Master
         $res1 = cls::get('store_ConsignmentProtocolDetailsReceived')->getTransportInfo($id, $force);
         $res2 = cls::get('store_ConsignmentProtocolDetailsSend')->getTransportInfo($id, $force);
         
-        $weight = (!is_null($res1->weight) && !is_null($res2->weight)) ? $res1->weight + $res2->weight : null;
-        $volume = (!is_null($res1->volume) && !is_null($res2->volume)) ? $res1->volume + $res2->volume : null;
+        $count1 = store_ConsignmentProtocolDetailsReceived::count("#protocolId = {$id}");
+        $count2 = store_ConsignmentProtocolDetailsSend::count("#protocolId = {$id}");
+        
+        $nullWeight = ($count1 && is_null($res1->weight)) || ($count2 && is_null($res2->weight)) || (!$count1 && !$count2);
+        $weight = ($nullWeight) ? null : $res1->weight + $res2->weight;
+        
+        $nullWeight = ($count1 && is_null($res1->volume)) || ($count2 && is_null($res2->volume)) || (!$count1 && !$count2);
+        $volume = ($nullWeight) ? null : $res1->volume + $res2->volume;
         
         $units = trans_Helper::getCombinedTransUnits($res1->transUnits, $res2->transUnits);
         
