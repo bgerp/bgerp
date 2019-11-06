@@ -1847,6 +1847,10 @@ table.listTable.listAction>tbody>tr>td.wideColumn {
 .amount-field {
   min-width: 180px; }
 
+.expectedTotalCol {
+  color: #888888;
+  font-size: 0.8em; }
+
 .wrap {
   white-space: normal !important; }
 
