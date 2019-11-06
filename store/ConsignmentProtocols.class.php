@@ -506,8 +506,8 @@ class store_ConsignmentProtocols extends core_Master
         $nullWeight = ($count1 && is_null($res1->weight)) || ($count2 && is_null($res2->weight)) || (!$count1 && !$count2);
         $weight = ($nullWeight) ? null : $res1->weight + $res2->weight;
         
-        $nullWeight = ($count1 && is_null($res1->volume)) || ($count2 && is_null($res2->volume)) || (!$count1 && !$count2);
-        $volume = ($nullWeight) ? null : $res1->volume + $res2->volume;
+        $nullVolume = ($count1 && is_null($res1->volume)) || ($count2 && is_null($res2->volume)) || (!$count1 && !$count2);
+        $volume = ($nullVolume) ? null : $res1->volume + $res2->volume;
         
         $units = trans_Helper::getCombinedTransUnits($res1->transUnits, $res2->transUnits);
         
