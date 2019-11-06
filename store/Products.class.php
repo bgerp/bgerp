@@ -603,7 +603,7 @@ class store_Products extends core_Detail
                     $reserved[$key] = array('sId' => $tRec->fromStore, 'pId' => $td->newProductId, 'reserved' => $td->sum, 'expected' => null, 'expectedTotal' => null);
                     $reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $td->sum);
                     
-                    $deliveryTime = (!empty($tRec->deliveryTime)) ? str_replace(' 00:00:00', " 00:00:00", $tRec->deliveryTime) : $tRec->deliveryTime;
+                    $deliveryTime = $tRec->deliveryTime;
                     if(!empty($deliveryTime) && $deliveryTime <= $now){
                         $reserved[$key2]['expected'] = $td->sum;
                     }
@@ -634,7 +634,7 @@ class store_Products extends core_Detail
                 $sdQuery->show('productId,quantity,receiptId,sum');
                 $sdQuery->groupBy('productId');
                 
-                $deliveryTime = (!empty($sRec->deliveryTime)) ? str_replace(' 00:00:00', " 00:00:00", $sRec->deliveryTime) : $tRec->deliveryTime;
+                $deliveryTime = $sRec->deliveryTime;
                 while ($sd = $sdQuery->fetch()) {
                     $key = "{$sRec->storeId}|{$sd->productId}";
                     $reserved[$key] = array('sId' => $sRec->storeId, 'pId' => $sd->productId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $sd->sum);
@@ -780,48 +780,42 @@ class store_Products extends core_Detail
         $arr = array();
         $arr['reservedQuantity'] = array('sales_SalesDetails' => 'shipmentStoreId', 'store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId', 'planning_DirectProductNoteDetails' => 'storeId');
         $arr['expectedQuantity'] = array('store_TransfersDetails' => 'toStore', 'store_ReceiptDetails' => 'storeId');
-        $arr['expectedQuantityTotal'] = array('store_ReceiptDetails' => 'storeId');
-        
-        //'store_TransfersDetails' => 'toStore', 
-        
+        $arr['expectedQuantityTotal'] = array('store_TransfersDetails' => 'toStore', 'store_ReceiptDetails' => 'storeId');
         
         // Намират се документите, запазили количества
         $docs = array();
-        foreach ($arr[$field] as $Detail => $stores) {
-            $stores = arr::make($stores, true);
+        foreach ($arr[$field] as $Detail => $storeField) {
+            
             $Detail = cls::get($Detail);
             expect($Detail->productFld, $Detail);
             
-            foreach ($stores as $storeField) {
-                $Master = $Detail->Master;
-                $dQuery = $Detail->getQuery();
-                $dQuery->EXT('containerId', $Master->className, "externalName=containerId,externalKey={$Detail->masterKey}");
-                
-                if(!($Detail instanceof planning_DirectProductNoteDetails)){
-                    $dQuery->EXT('storeId', $Master->className, "externalName={$storeField},externalKey={$Detail->masterKey}");
+            $Master = $Detail->Master;
+            $dQuery = $Detail->getQuery();
+            $dQuery->EXT('containerId', $Master->className, "externalName=containerId,externalKey={$Detail->masterKey}");
+            if(!($Detail instanceof planning_DirectProductNoteDetails)){
+                $dQuery->EXT('storeId', $Master->className, "externalName={$storeField},externalKey={$Detail->masterKey}");
+            }
+            
+            $dQuery->EXT('state', $Master->className, "externalName=state,externalKey={$Detail->masterKey}");
+            $dQuery->where("#state = 'pending'");
+            $dQuery->where("#{$Detail->productFld} = {$rec->productId}");
+            $dQuery->where("#storeId = {$rec->storeId}");
+            $dQuery->groupBy('containerId');
+            $dQuery->show("containerId,{$Detail->masterKey}");
+            
+            while ($dRec = $dQuery->fetch()) {
+                $deliveryTime = null;
+                if($Master->getField('deliveryTime', false)){
+                    $deliveryTime = $Master->fetchField($dRec->{$Detail->masterKey}, 'deliveryTime');
+                    $deliveryTime = $deliveryTime;
                 }
                 
-                $dQuery->EXT('state', $Master->className, "externalName=state,externalKey={$Detail->masterKey}");
-                $dQuery->where("#state = 'pending'");
-                $dQuery->where("#{$Detail->productFld} = {$rec->productId}");
-                $dQuery->where("#storeId = {$rec->storeId}");
-                $dQuery->groupBy('containerId');
-                $dQuery->show("containerId,{$Detail->masterKey}");
-                
-                while ($dRec = $dQuery->fetch()) {
-                    $deliveryTime = null;
-                    if($Master->getField('deliveryTime', false)){
-                        $deliveryTime = $Master->fetchField($dRec->{$Detail->masterKey}, 'deliveryTime');
-                        $deliveryTime = (!empty($deliveryTime)) ? str_replace(' 00:00:00', " 00:00:00", $deliveryTime) : $deliveryTime;
-                    }
-                    
-                    if($field == 'reservedQuantity'){
-                        $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
-                    } elseif($field == 'expectedQuantityTotal'){
-                        $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
-                    } if(!empty($deliveryTime) || $deliveryTime <= $now){
-                        $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
-                    }
+                if($field == 'reservedQuantity'){
+                    $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
+                } elseif($field == 'expectedQuantityTotal'){
+                    $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
+                } if(!empty($deliveryTime) || $deliveryTime <= $now){
+                    $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
                 }
             }
         }
