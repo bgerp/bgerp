@@ -175,16 +175,16 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             }
             
             $state = cat_Products::fetchField($pRec->productId, 'state');
-            if($state != 'active'){
+            if ($state != 'active') {
                 $err[$i][] = $obj->code . ' |Артикулът е неактивен|*';
                 continue;
             }
             
-            $meta = (array)cat_Products::fetch($pRec->productId, $mvc->metaProducts);
+            $meta = (array) cat_Products::fetch($pRec->productId, $mvc->metaProducts);
             unset($meta['id']);
             
-            foreach ($meta as $metaValue){
-                if($metaValue != 'yes'){
+            foreach ($meta as $metaValue) {
+                if ($metaValue != 'yes') {
                     $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
                 }
             }
@@ -208,7 +208,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                     $obj->pack = $packId;
                 }
             } else {
-                $obj->pack = key($packs);
+                $obj->pack = ($pRec->packagingId) ? $pRec->packagingId : key($packs);
             }
             
             if ($obj->price) {
@@ -231,7 +231,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             }
             
             if (!$obj->quantity) {
-                $err[$i][] = $obj->code . ' |Липсващо количество|*';
+                // $err[$i][] = $obj->code . ' |Липсващо количество|*';
+                $obj->quantity = 1;
             }
             
             if ($pRec && isset($obj->pack)) {
