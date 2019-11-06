@@ -2968,8 +2968,13 @@ span.sharing-history-title {
   max-width: 100%;
   margin: 5px 0 10px; }
 
+#cart-external-status a:hover {
+  opacity: 1 !important; }
+
 #cart-external-status .cardLink {
   font-weight: bold; }
+  #cart-external-status .cardLink:hover {
+    opacity: 0.7; }
 
 #cart-external-status .count {
   border: 1px solid #526b00;
