@@ -229,6 +229,11 @@ namespace Tremol {
     const Yes = 'C';
   }
   
+  class OptionDailyReportSetting extends EnumType {
+    const Automatic_Z_report_without_printing = '1';
+    const Z_report_with_printing = '0';
+  }
+  
   class OptionForbiddenVoid extends EnumType {
     const allowed = '0';
     const forbidden = '1';
@@ -280,6 +285,14 @@ namespace Tremol {
   class OptionChange extends EnumType {
     const With_Change = '0';
     const Without_Change = '1';
+  }
+  
+  class OptionLastReceiptType extends EnumType {
+    const Invoice_Credit_note = '5';
+    const Invoice_sales_receipt = '1';
+    const Non_fiscal_receipt = '2';
+    const Sales_receipt_printing = '0';
+    const Storno_receipt = '4';
   }
   
   class OptionFiscalRcpPrintType extends EnumType {
@@ -685,7 +698,7 @@ class LastDailyReportInfoRes extends BaseResClass {
   protected $TotalReceiptCounter;
   protected $DateTimeLastFiscRec;
   protected $EJNum;
-  protected $OptionTypeReceipt;
+  protected $OptionLastReceiptType;
 }
 
 class StatusRes extends BaseResClass {
@@ -918,7 +931,7 @@ class DailyPORes extends BaseResClass {
 
 class FP extends FP_Core {
   function __construct() {
-    $this->timeStamp = 1907251601;
+    $this->timeStamp = 1910211454;
   }
   /**
    * Provides information about the amounts on hand by type of payment.
@@ -1420,35 +1433,6 @@ class FP extends FP_Core {
    */
   public function ReceivedOnAccount_PaidOut($OperNum,$OperPass,$Amount,$OptionPrintAvailability=NULL,$Text=NULL) {
     $this->execute("ReceivedOnAccount_PaidOut", "OperNum", $OperNum, "OperPass", $OperPass, "Amount", $Amount, "OptionPrintAvailability", $OptionPrintAvailability, "Text", $Text);
-  }
-  
-  /**
-   * Open an electronic fiscal storno receipt with 1 minute timeout assigned to the specified operator number and operator password, parameters for receipt format, print VAT, printing type and parameters for the related storno receipt.
-   * @param double $OperNum Symbols from 1 to 20 corresponding to operator's 
-   * number
-   * @param string $OperPass 6 symbols for operator's password
-   * @param OptionReceiptFormat $OptionReceiptFormat 1 symbol with value: 
-   *  - '1' - Detailed 
-   *  - '0' - Brief
-   * @param OptionPrintVAT $OptionPrintVAT 1 symbol with value:  
-   *  - '1' - Yes 
-   *  - '0' - No
-   * @param OptionStornoReason $OptionStornoReason 1 symbol for reason of storno operation with value:  
-   * - '0' - Operator error  
-   * - '1' - Goods Claim or Goods return  
-   * - '2' - Tax relief
-   * @param double $RelatedToRcpNum Up to 6 symbols for issued receipt number
-   * @param DateTime $RelatedToRcpDateTime 17 symbols for Date and Time of the issued receipt 
-   * in format DD-MM-YY HH:MM:SS
-   * @param string $FMNum 8 symbols for number of the Fiscal Memory
-   * @param string $RelatedToURN Up to 24 symbols for the issed receipt unique receipt number. 
-   * NRA format: XXXХХХХХ-ZZZZ-YYYYYYY where: 
-   * * ХХХХХХXX - 8 symbols [A-Z, a-z, 0-9] for individual device number, 
-   * * ZZZZ - 4 symbols [A-Z, a-z, 0-9] for code of the operator, 
-   * * YYYYYYY - 7 symbols [0-9] for next number of the receipt
-   */
-  public function OpenElectronicStornoReceipt($OperNum,$OperPass,$OptionReceiptFormat,$OptionPrintVAT,$OptionStornoReason,$RelatedToRcpNum,$RelatedToRcpDateTime,$FMNum,$RelatedToURN=NULL) {
-    $this->execute("OpenElectronicStornoReceipt", "OperNum", $OperNum, "OperPass", $OperPass, "OptionReceiptFormat", $OptionReceiptFormat, "OptionPrintVAT", $OptionPrintVAT, "OptionStornoReason", $OptionStornoReason, "RelatedToRcpNum", $RelatedToRcpNum, "RelatedToRcpDateTime", $RelatedToRcpDateTime, "FMNum", $FMNum, "RelatedToURN", $RelatedToURN);
   }
   
   /**
@@ -2100,6 +2084,16 @@ class FP extends FP_Core {
   }
   
   /**
+   * Provide information about daily report parameter. If the parameter is set to 0 the status flag 4.6 will become 1 and the device will block all sales operation until daily report is printed. If the parameter is set to 1 the report will be generated automaticly without printout
+   * @return OptionDailyReportSetting 1 symbol with value: 
+   *  - '0' -Z report with printing 
+   *  - '1' - Automatic Z report without printing
+   */
+  public function ReadDailyReportParameter() {
+    return $this->execute("ReadDailyReportParameter");
+  }
+  
+  /**
    * Provides information about daily turnover on the FD client display
    */
   public function DisplayDailyTurnover() {
@@ -2449,40 +2443,6 @@ class FP extends FP_Core {
    */
   public function ProgDecimalPointPosition($Password,$OptionDecimalPointPosition) {
     $this->execute("ProgDecimalPointPosition", "Password", $Password, "OptionDecimalPointPosition", $OptionDecimalPointPosition);
-  }
-  
-  /**
-   * Opens an electronic fiscal invoice credit note receipt with 1 minute timeout assigned to the specified operator number and operator password with free info for customer data. The Invoice receipt can be issued only if the invoice range (start and end numbers) is set.
-   * @param double $OperNum Symbol from 1 to 20 corresponding to operator's 
-   * number
-   * @param string $OperPass 6 symbols for operator's password
-   * @param string $Recipient 26 symbols for Invoice recipient
-   * @param string $Buyer 16 symbols for Invoice buyer
-   * @param string $VATNumber 13 symbols for customer Fiscal number
-   * @param string $UIC 13 symbols for customer Unique Identification Code
-   * @param string $Address 30 symbols for Address
-   * @param OptionUICType $OptionUICType 1 symbol for type of Unique Identification Code:  
-   *  - '0' - Bulstat 
-   *  - '1' - EGN 
-   *  - '2' - Foreigner Number 
-   *  - '3' - NRA Official Number
-   * @param OptionStornoReason $OptionStornoReason 1 symbol for reason of storno operation with value:  
-   * - '0' - Operator error  
-   * - '1' - Goods Claim or Goods return  
-   * - '2' - Tax relief
-   * @param string $RelatedToInvoiceNum 10 symbols for issued invoice number
-   * @param DateTime $RelatedToInvoiceDateTime 17 symbols for issued invoice date and time in format
-   * @param double $RelatedToRcpNum Up to 6 symbols for issued receipt number
-   * @param string $FMNum 8 symbols for number of the Fiscal Memory
-   * @param string $RelatedToURN Up to 24 symbols for the issed invoice receipt unique receipt number. 
-   * NRA format: XXXХХХХХ-ZZZZ-YYYYYYY where: 
-   * * ХХХХХХXX - 8 symbols [A-Z, a-z, 0-9] for individual device 
-   * number, 
-   * * ZZZZ - 4 symbols [A-Z, a-z, 0-9] for code of the operator, 
-   * * YYYYYYY - 7 symbols [0-9] for next number of the receipt
-   */
-  public function OpenElectronicCreditNoteWithFreeCustomerData($OperNum,$OperPass,$Recipient,$Buyer,$VATNumber,$UIC,$Address,$OptionUICType,$OptionStornoReason,$RelatedToInvoiceNum,$RelatedToInvoiceDateTime,$RelatedToRcpNum,$FMNum,$RelatedToURN=NULL) {
-    $this->execute("OpenElectronicCreditNoteWithFreeCustomerData", "OperNum", $OperNum, "OperPass", $OperPass, "Recipient", $Recipient, "Buyer", $Buyer, "VATNumber", $VATNumber, "UIC", $UIC, "Address", $Address, "OptionUICType", $OptionUICType, "OptionStornoReason", $OptionStornoReason, "RelatedToInvoiceNum", $RelatedToInvoiceNum, "RelatedToInvoiceDateTime", $RelatedToInvoiceDateTime, "RelatedToRcpNum", $RelatedToRcpNum, "FMNum", $FMNum, "RelatedToURN", $RelatedToURN);
   }
   
   /**
@@ -3034,31 +2994,6 @@ class FP extends FP_Core {
    */
   public function ReadDailyReturnedChangeAmountsByOperator($OperNum) {
     return new \Tremol\DailyReturnedChangeAmountsByOperatorRes($this->execute("ReadDailyReturnedChangeAmountsByOperator", "OperNum", $OperNum));
-  }
-  
-  /**
-   * Opens an electronic fiscal invoice credit note receipt with 1 minute timeout assigned to the specified operator number and operator password with internal DB info for customer data. The Invoice receipt can be issued only if the invoice range (start and end numbers) is set.
-   * @param double $OperNum Symbol from 1 to 20 corresponding to operator's 
-   * number
-   * @param string $OperPass 6 symbols for operator's password
-   * @param string $CustomerNum Symbol '#' and following up to 4 symbols for related customer ID 
-   * number corresponding to the FD database
-   * @param OptionStornoReason $OptionStornoReason 1 symbol for reason of storno operation with value:  
-   * - '0' - Operator error  
-   * - '1' - Goods Claim or Goods return  
-   * - '2' - Tax relief
-   * @param string $RelatedToInvoiceNum 10 symbols for issued invoice number
-   * @param DateTime $RelatedToInvoiceDateTime 17 symbols for issued invoice date and time in format
-   * @param double $RelatedToRcpNum Up to 6 symbols for issued receipt number
-   * @param string $FMNum 8 symbols for number of the Fiscal Memory
-   * @param string $RelatedToURN Up to 24 symbols for the issed invoice receipt unique receipt number. 
-   * NRA format: XXXХХХХХ-ZZZZ-YYYYYYY where: 
-   * * ХХХХХХXX - 8 symbols [A-Z, a-z, 0-9] for individual device number, 
-   * * ZZZZ - 4 symbols [A-Z, a-z, 0-9] for code of the operator, 
-   * * YYYYYYY - 7 symbols [0-9] for next number of the receipt
-   */
-  public function OpenElectronicCreditNoteWithFDCustomerDB($OperNum,$OperPass,$CustomerNum,$OptionStornoReason,$RelatedToInvoiceNum,$RelatedToInvoiceDateTime,$RelatedToRcpNum,$FMNum,$RelatedToURN=NULL) {
-    $this->execute("OpenElectronicCreditNoteWithFDCustomerDB", "OperNum", $OperNum, "OperPass", $OperPass, "CustomerNum", $CustomerNum, "OptionStornoReason", $OptionStornoReason, "RelatedToInvoiceNum", $RelatedToInvoiceNum, "RelatedToInvoiceDateTime", $RelatedToInvoiceDateTime, "RelatedToRcpNum", $RelatedToRcpNum, "FMNum", $FMNum, "RelatedToURN", $RelatedToURN);
   }
   
   /**

@@ -1,6 +1,6 @@
 var Tremol = Tremol || { };
 Tremol.FP = Tremol.FP || function () { };
-Tremol.FP.prototype.timeStamp = 1906120933;
+Tremol.FP.prototype.timeStamp = 1910211454;
 /**
  * @typedef {Object} DailyAvailableAmountsRes
  * @property {number} AmountPayment0 Up to 13 symbols for the accumulated amount by payment type 0
@@ -63,6 +63,14 @@ Tremol.FP.prototype.ReadDecimalPoint = function () {
 };
 
 /**
+ * Starts session for reading electronic receipt by number with Base64 encoded BMP QR code.
+ * @param {number} RcpNum 6 symbols with format ######
+ */
+Tremol.FP.prototype.ReadElectronicReceipt_QR_BMP = function (RcpNum) {
+	return this.do('ReadElectronicReceipt_QR_BMP', 'RcpNum', RcpNum);
+};
+
+/**
  * Programs the number of POS, printing of logo, cash drawer opening, cutting permission, external display management mode, article report type, enable or disable currency in receipt, EJ font type and working operators counter.
  * @param {number} POSNum 4 symbols for number of POS in format ####
  * @param {Tremol.Enums.OptionPrintLogo} OptionPrintLogo 1 symbol of value: 
@@ -96,10 +104,10 @@ Tremol.FP.prototype.ProgParameters = function (POSNum, OptionPrintLogo, OptionAu
 
 /**
  * @typedef {Object} SentRcpInfoStatusRes
- * @property {string} LastSentRcpNum Up to 6 symbols for the last sent receipt number to NRA server
+ * @property {number} LastSentRcpNum Up to 6 symbols for the last sent receipt number to NRA server
  * @property {Date} LastSentRcpDateTime 16 symbols for the date and time of the last sent receipt to NRA 
 server in format DD-MM-YYYY HH:MM
- * @property {string} FirstUnsentRcpNum Up to 6 symbols for the first unsent receipt number to NRA server
+ * @property {number} FirstUnsentRcpNum Up to 6 symbols for the first unsent receipt number to NRA server
  * @property {Date} FirstUnsentRcpDateTime 16 symbols for the date and time of the first unsent receipt to
  * @property {string} NRA_ErrorMessage Up to 100 symbols for error message from NRA server, if exist
  */
@@ -614,35 +622,6 @@ Tremol.FP.prototype.ReceivedOnAccount_PaidOut = function (OperNum, OperPass, Amo
 };
 
 /**
- * Open an electronic fiscal storno receipt with 1 minute timeout assigned to the specified operator number and operator password, parameters for receipt format, print VAT, printing type and parameters for the related storno receipt.
- * @param {number} OperNum Symbols from 1 to 20 corresponding to operator's 
-number
- * @param {string} OperPass 6 symbols for operator's password
- * @param {Tremol.Enums.OptionReceiptFormat} OptionReceiptFormat 1 symbol with value: 
- - '1' - Detailed 
- - '0' - Brief
- * @param {Tremol.Enums.OptionPrintVAT} OptionPrintVAT 1 symbol with value:  
- - '1' - Yes 
- - '0' - No
- * @param {Tremol.Enums.OptionStornoReason} OptionStornoReason 1 symbol for reason of storno operation with value:  
-- '0' - Operator error  
-- '1' - Goods Claim or Goods return  
-- '2' - Tax relief
- * @param {number} RelatedToRcpNum Up to 6 symbols for issued receipt number
- * @param {Date} RelatedToRcpDateTime 17 symbols for Date and Time of the issued receipt 
-in format DD-MM-YY HH:MM:SS
- * @param {string} FMNum 8 symbols for number of the Fiscal Memory
- * @param {string=} RelatedToURN Up to 24 symbols for the issed receipt unique receipt number. 
-NRA format: XXXХХХХХ-ZZZZ-YYYYYYY where: 
-* ХХХХХХXX - 8 symbols [A-Z, a-z, 0-9] for individual device number, 
-* ZZZZ - 4 symbols [A-Z, a-z, 0-9] for code of the operator, 
-* YYYYYYY - 7 symbols [0-9] for next number of the receipt
- */
-Tremol.FP.prototype.OpenElectronicStornoReceipt = function (OperNum, OperPass, OptionReceiptFormat, OptionPrintVAT, OptionStornoReason, RelatedToRcpNum, RelatedToRcpDateTime, FMNum, RelatedToURN) {
-	return this.do('OpenElectronicStornoReceipt', 'OperNum', OperNum, 'OperPass', OperPass, 'OptionReceiptFormat', OptionReceiptFormat, 'OptionPrintVAT', OptionPrintVAT, 'OptionStornoReason', OptionStornoReason, 'RelatedToRcpNum', RelatedToRcpNum, 'RelatedToRcpDateTime', RelatedToRcpDateTime, 'FMNum', FMNum, 'RelatedToURN', RelatedToURN);
-};
-
-/**
  * Executes the direct command .
  * @param {string} Input Raw request to FP
  * @return {string}
@@ -1011,6 +990,15 @@ Tremol.FP.prototype.SellFractQtyPLUwithSpecifiedVAT = function (NamePLU, OptionV
 };
 
 /**
+ * Starts session for reading electronic receipt by number with specified ASCII symbol for QR code block.
+ * @param {number} RcpNum 6 symbols with format ######
+ * @param {string} QRSymbol 1 symbol for QR code drawing image
+ */
+Tremol.FP.prototype.ReadElectronicReceipt_QR_ASCII = function (RcpNum, QRSymbol) {
+	return this.do('ReadElectronicReceipt_QR_ASCII', 'RcpNum', RcpNum, 'QRSymbol', QRSymbol);
+};
+
+/**
  * @typedef {Object} DailyPObyOperatorRes
  * @property {number} OperNum Symbols from 1 to 20 corresponding to operator's number
  * @property {number} AmountPO_Payment0 Up to 13 symbols for the PO by type of payment 0
@@ -1076,15 +1064,6 @@ Tremol.FP.prototype.ProgHeaderUICprefix = function (HeaderUICprefix) {
  */
 Tremol.FP.prototype.ProgPLUprice = function (PLUNum, Price, OptionPrice) {
 	return this.do('ProgPLUprice', 'PLUNum', PLUNum, 'Price', Price, 'OptionPrice', OptionPrice);
-};
-
-/**
- * Provides information about the QR code data in specified number issued receipt.
- * @param {number} RcpNum 6 symbols with format ######
- * @return {string}
- */
-Tremol.FP.prototype.ReadReceiptNumQRcodeData = function (RcpNum) {
-	return this.do('ReadReceiptNumQRcodeData', 'RcpNum', RcpNum);
 };
 
 /**
@@ -1241,6 +1220,15 @@ Tremol.FP.prototype.CloseReceipt = function () {
 };
 
 /**
+ * Provides information about the QR code data in specified number issued receipt.
+ * @param {number} RcpNum 6 symbols with format ######
+ * @return {string}
+ */
+Tremol.FP.prototype.ReadSpecifiedReceiptQRcodeData = function (RcpNum) {
+	return this.do('ReadSpecifiedReceiptQRcodeData', 'RcpNum', RcpNum);
+};
+
+/**
  * Registers the sell (for correction use minus sign in the price field)  of article with specified department, name, price, quantity and/or discount/addition on  the transaction.
  * @param {string} NamePLU 36 symbols for name of sale. 34 symbols are printed on 
 paper. Symbol 0x7C '|' is new line separator.
@@ -1297,7 +1285,7 @@ Tremol.FP.prototype.OpenCreditNoteWithFreeCustomerData = function (OperNum, Oper
 };
 
 /**
- * Prints barcode from type stated by CodeType and CodeLen and with data stated in CodeData field.
+ * Prints barcode from type stated by CodeType and CodeLen and with data stated in CodeData field. Command works only for fiscal printer devices. ECR does not support this command.
  * @param {Tremol.Enums.OptionCodeType} OptionCodeType 1 symbol with possible values: 
  - '0' - UPC A 
  - '1' - UPC E 
@@ -1454,6 +1442,14 @@ Tremol.FP.prototype.ConfirmFiscalization = function (Password) {
 };
 
 /**
+ * Starts session for reading electronic receipt by number with its QR code data in the end.
+ * @param {number} RcpNum 6 symbols with format ######
+ */
+Tremol.FP.prototype.ReadElectronicReceipt_QR_Data = function (RcpNum) {
+	return this.do('ReadElectronicReceipt_QR_Data', 'RcpNum', RcpNum);
+};
+
+/**
  * @typedef {Object} DailyRAbyOperatorRes
  * @property {number} OperNum Symbols from 1 to 20 corresponding to operator's number
  * @property {number} AmountRA_Payment0 Up to 13 symbols for the RA by type of payment 0
@@ -1478,6 +1474,14 @@ Tremol.FP.prototype.ConfirmFiscalization = function (Password) {
  */
 Tremol.FP.prototype.ReadDailyRAbyOperator = function (OperNum) {
 	return this.do('ReadDailyRAbyOperator', 'OperNum', OperNum);
+};
+
+/**
+ * Provide information about daily report parameter. If the parameter is set to 0 the status flag 4.6 will become 1 and the device will block all sales operation until daily report is printed. If the parameter is set to 1 the report will be generated automaticly without printout
+ * @return {Tremol.Enums.OptionDailyReportSetting}
+ */
+Tremol.FP.prototype.ReadDailyReportParameter = function () {
+	return this.do('ReadDailyReportParameter');
 };
 
 /**
@@ -1865,15 +1869,12 @@ Tremol.FP.prototype.ReadFMcontent = function () {
  * @property {number} TotalReceiptCounter 6 symbols for the total number of receipts in format ######
  * @property {Date} DateTimeLastFiscRec Date Time parameter in format: DD-MM-YYYY HH:MM
  * @property {string} EJNum Up to 2 symbols for number of EJ
- * @property {Tremol.Enums.OptionTypeReceipt} OptionTypeReceipt (Receipt and Printing type) 1 symbol with value: 
- - '0' - Sales receipt printing step by step 
- - '2' - Sales receipt Postponed Printing 
- - '4' - Storno receipt printing step by step 
- - '6' - Storno receipt Postponed Printing 
- - '1' - Invoice sales receipt printing step by step 
- - '3' - Invoice sales receipt Postponed Printing 
- - '5' - Invoice Credit note receipt printing step by step 
- - '7' - Invoice Credit note receipt Postponed Printing
+ * @property {Tremol.Enums.OptionLastReceiptType} OptionLastReceiptType (Receipt and Printing type) 1 symbol with value: 
+ - '0' - Sales receipt printing 
+ - '2' - Non fiscal receipt  
+ - '4' - Storno receipt 
+ - '1' - Invoice sales receipt 
+ - '5' - Invoice Credit note
  */
 
 /**
@@ -2065,40 +2066,6 @@ Tremol.FP.prototype.SetDateTime = function (DateTime) {
  */
 Tremol.FP.prototype.ProgDecimalPointPosition = function (Password, OptionDecimalPointPosition) {
 	return this.do('ProgDecimalPointPosition', 'Password', Password, 'OptionDecimalPointPosition', OptionDecimalPointPosition);
-};
-
-/**
- * Opens an electronic fiscal invoice credit note receipt with 1 minute timeout assigned to the specified operator number and operator password with free info for customer data. The Invoice receipt can be issued only if the invoice range (start and end numbers) is set.
- * @param {number} OperNum Symbol from 1 to 20 corresponding to operator's 
-number
- * @param {string} OperPass 6 symbols for operator's password
- * @param {string} Recipient 26 symbols for Invoice recipient
- * @param {string} Buyer 16 symbols for Invoice buyer
- * @param {string} VATNumber 13 symbols for customer Fiscal number
- * @param {string} UIC 13 symbols for customer Unique Identification Code
- * @param {string} Address 30 symbols for Address
- * @param {Tremol.Enums.OptionUICType} OptionUICType 1 symbol for type of Unique Identification Code:  
- - '0' - Bulstat 
- - '1' - EGN 
- - '2' - Foreigner Number 
- - '3' - NRA Official Number
- * @param {Tremol.Enums.OptionStornoReason} OptionStornoReason 1 symbol for reason of storno operation with value:  
-- '0' - Operator error  
-- '1' - Goods Claim or Goods return  
-- '2' - Tax relief
- * @param {string} RelatedToInvoiceNum 10 symbols for issued invoice number
- * @param {Date} RelatedToInvoiceDateTime 17 symbols for issued invoice date and time in format
- * @param {number} RelatedToRcpNum Up to 6 symbols for issued receipt number
- * @param {string} FMNum 8 symbols for number of the Fiscal Memory
- * @param {string=} RelatedToURN Up to 24 symbols for the issed invoice receipt unique receipt number. 
-NRA format: XXXХХХХХ-ZZZZ-YYYYYYY where: 
-* ХХХХХХXX - 8 symbols [A-Z, a-z, 0-9] for individual device 
-number, 
-* ZZZZ - 4 symbols [A-Z, a-z, 0-9] for code of the operator, 
-* YYYYYYY - 7 symbols [0-9] for next number of the receipt
- */
-Tremol.FP.prototype.OpenElectronicCreditNoteWithFreeCustomerData = function (OperNum, OperPass, Recipient, Buyer, VATNumber, UIC, Address, OptionUICType, OptionStornoReason, RelatedToInvoiceNum, RelatedToInvoiceDateTime, RelatedToRcpNum, FMNum, RelatedToURN) {
-	return this.do('OpenElectronicCreditNoteWithFreeCustomerData', 'OperNum', OperNum, 'OperPass', OperPass, 'Recipient', Recipient, 'Buyer', Buyer, 'VATNumber', VATNumber, 'UIC', UIC, 'Address', Address, 'OptionUICType', OptionUICType, 'OptionStornoReason', OptionStornoReason, 'RelatedToInvoiceNum', RelatedToInvoiceNum, 'RelatedToInvoiceDateTime', RelatedToInvoiceDateTime, 'RelatedToRcpNum', RelatedToRcpNum, 'FMNum', FMNum, 'RelatedToURN', RelatedToURN);
 };
 
 /**
@@ -2622,14 +2589,6 @@ Tremol.FP.prototype.PrintDetailedFMPaymentsReportByDate = function (StartDate, E
 };
 
 /**
- * Starts session for read specified number electronic receipt data from EJ with its QR data.
- * @param {number} RcpNum 6 symbols with format ######
- */
-Tremol.FP.prototype.ReadElectronicReceiptDataFromEJ = function (RcpNum) {
-	return this.do('ReadElectronicReceiptDataFromEJ', 'RcpNum', RcpNum);
-};
-
-/**
  * @typedef {Object} DailyRARes
  * @property {number} AmountPayment0 Up to 13 symbols for the accumulated amount by payment type 0
  * @property {number} AmountPayment1 Up to 13 symbols for the accumulated amount by payment type 1
@@ -2892,31 +2851,6 @@ Tremol.FP.prototype.PrintOrStoreEJByRcpNum = function (OptionReportStorage, Star
  */
 Tremol.FP.prototype.ReadDailyReturnedChangeAmountsByOperator = function (OperNum) {
 	return this.do('ReadDailyReturnedChangeAmountsByOperator', 'OperNum', OperNum);
-};
-
-/**
- * Opens an electronic fiscal invoice credit note receipt with 1 minute timeout assigned to the specified operator number and operator password with internal DB info for customer data. The Invoice receipt can be issued only if the invoice range (start and end numbers) is set.
- * @param {number} OperNum Symbol from 1 to 20 corresponding to operator's 
-number
- * @param {string} OperPass 6 symbols for operator's password
- * @param {string} CustomerNum Symbol '#' and following up to 4 symbols for related customer ID 
-number corresponding to the FD database
- * @param {Tremol.Enums.OptionStornoReason} OptionStornoReason 1 symbol for reason of storno operation with value:  
-- '0' - Operator error  
-- '1' - Goods Claim or Goods return  
-- '2' - Tax relief
- * @param {string} RelatedToInvoiceNum 10 symbols for issued invoice number
- * @param {Date} RelatedToInvoiceDateTime 17 symbols for issued invoice date and time in format
- * @param {number} RelatedToRcpNum Up to 6 symbols for issued receipt number
- * @param {string} FMNum 8 symbols for number of the Fiscal Memory
- * @param {string=} RelatedToURN Up to 24 symbols for the issed invoice receipt unique receipt number. 
-NRA format: XXXХХХХХ-ZZZZ-YYYYYYY where: 
-* ХХХХХХXX - 8 symbols [A-Z, a-z, 0-9] for individual device number, 
-* ZZZZ - 4 symbols [A-Z, a-z, 0-9] for code of the operator, 
-* YYYYYYY - 7 symbols [0-9] for next number of the receipt
- */
-Tremol.FP.prototype.OpenElectronicCreditNoteWithFDCustomerDB = function (OperNum, OperPass, CustomerNum, OptionStornoReason, RelatedToInvoiceNum, RelatedToInvoiceDateTime, RelatedToRcpNum, FMNum, RelatedToURN) {
-	return this.do('OpenElectronicCreditNoteWithFDCustomerDB', 'OperNum', OperNum, 'OperPass', OperPass, 'CustomerNum', CustomerNum, 'OptionStornoReason', OptionStornoReason, 'RelatedToInvoiceNum', RelatedToInvoiceNum, 'RelatedToInvoiceDateTime', RelatedToInvoiceDateTime, 'RelatedToRcpNum', RelatedToRcpNum, 'FMNum', FMNum, 'RelatedToURN', RelatedToURN);
 };
 
 /**
@@ -3410,6 +3344,16 @@ Tremol.Enums = Tremol.Enums || {
 	},
 	
 	/**
+	 * @typedef {Tremol.Enums.OptionDailyReportSetting} Tremol.Enums.OptionDailyReportSetting
+	 * @readonly
+	 * @enum
+	 */
+	OptionDailyReportSetting: {
+		Automatic_Z_report_without_printing: '1',
+		Z_report_with_printing: '0'
+	},
+	
+	/**
 	 * @typedef {Tremol.Enums.OptionForbiddenVoid} Tremol.Enums.OptionForbiddenVoid
 	 * @readonly
 	 * @enum
@@ -3505,6 +3449,19 @@ Tremol.Enums = Tremol.Enums || {
 	OptionChange: {
 		With_Change: '0',
 		Without_Change: '1'
+	},
+	
+	/**
+	 * @typedef {Tremol.Enums.OptionLastReceiptType} Tremol.Enums.OptionLastReceiptType
+	 * @readonly
+	 * @enum
+	 */
+	OptionLastReceiptType: {
+		Invoice_Credit_note: '5',
+		Invoice_sales_receipt: '1',
+		Non_fiscal_receipt: '2',
+		Sales_receipt_printing: '0',
+		Storno_receipt: '4'
 	},
 	
 	/**
