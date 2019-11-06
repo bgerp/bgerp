@@ -807,14 +807,13 @@ class store_Products extends core_Detail
                 $deliveryTime = null;
                 if($Master->getField('deliveryTime', false)){
                     $deliveryTime = $Master->fetchField($dRec->{$Detail->masterKey}, 'deliveryTime');
-                    $deliveryTime = $deliveryTime;
                 }
                 
                 if($field == 'reservedQuantity'){
                     $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
                 } elseif($field == 'expectedQuantityTotal'){
                     $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
-                } if(!empty($deliveryTime) || $deliveryTime <= $now){
+                } if(!empty($deliveryTime) && $deliveryTime <= $now){
                     $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
                 }
             }
@@ -839,7 +838,6 @@ class store_Products extends core_Detail
         foreach ($docs as $link) {
             $links .= "<div style='float:left'>{$link}</div>";
         }
-        
         $tpl = new core_ET($links);
        
         if (Request::get('ajax_mode')) {
