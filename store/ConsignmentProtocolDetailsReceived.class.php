@@ -81,6 +81,14 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     
     
     /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canImport = 'ceo, store, distributor';
+    
+    
+    /**
      * Какво движение на партида поражда документа в склада
      *
      * @param out|in|stay - тип движение (излиза, влиза, стои)

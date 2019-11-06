@@ -40,7 +40,15 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
      *
      * @var string|array
      */
-    public $canImport = 'ceo, store';
+    public $canImport = 'ceo, store, distributor';
+    
+    
+    /**
+     * Кой може да създава артикул директно към документа?
+     *
+     * @var string|array
+     */
+    public $canCreateproduct = 'ceo, store';
     
     
     /**
