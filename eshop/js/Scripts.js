@@ -148,6 +148,7 @@ function eshopActions() {
 				resObj['url'] = url;
 				getEfae().process(resObj, data);
 			}, 2000);
+
 		}
 	});
 	
@@ -237,7 +238,7 @@ function eshopActions() {
  */
 function disableBtns() {
 	$(".option-quantity-input").each(function(){
-		if ($(this).attr('data-maxquantity') && $(this).val() >= $(this).attr('data-maxquantity')) {
+		if ($(this).attr('data-maxquantity') && $(this).val() >= parseFloat($(this).attr('data-maxquantity'))) {
 			$(this).siblings('.btnUp').addClass('quiet');
 			$(this).siblings('.btnUp').css("pointer-events", "none");
 		} else {
