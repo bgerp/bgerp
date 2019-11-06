@@ -33,7 +33,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
      */
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        if ($mvc->haveRightFor('createProduct', (object) array($mvc->masterKey => $data->masterId))) {
+        if ($mvc->haveRightFor('createproduct', (object) array($mvc->masterKey => $data->masterId))) {
             $data->toolbar->addBtn('Създаване||New item', array($mvc, 'CreateProduct', $mvc->masterKey => $data->masterId, 'ret_url' => true), 'id=btnNewProduct,title=Създаване на нов нестандартен артикул', 'ef_icon = img/16/bag-new.png,order=12');
         }
     }
@@ -55,7 +55,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                             $requiredRoles = 'no_one';
                         }
                     }
-                } else {
+                } elseif(!($mvc instanceof store_InternalDocumentDetail)){
                     $requiredRoles = $mvc->getRequiredRoles('add', $rec);
                 }
                 
