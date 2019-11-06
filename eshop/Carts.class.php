@@ -287,7 +287,7 @@ class eshop_Carts extends core_Master
         
         $maxQuantity = eshop_CartDetails::getMaxQuantity($productId, $quantityInPack);
         if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
-            $msg = '|Избраното количество не е в момента налично|*';
+            $msg = '|Избраното количество не е налично|*';
             $success = false;
             $skip = true;
         }

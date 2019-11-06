@@ -248,7 +248,7 @@ class eshop_CartDetails extends core_Detail
             $packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultQuantity;
             $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
             if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
-                $form->setError('packQuantity', 'Избраното количество не е в момента налично');
+                $form->setError('packQuantity', 'Избраното количество не е налично');
             }
             
             if (!$form->gotErrors()) {
@@ -410,7 +410,7 @@ class eshop_CartDetails extends core_Detail
             
             $maxReachedTex = '';
             if(isset($maxQuantity)){
-                $maxReachedTex = tr("Избраното количество не е в момента налично");
+                $maxReachedTex = tr("Избраното количество не е налично");
             }
             
             $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
@@ -534,13 +534,17 @@ class eshop_CartDetails extends core_Detail
         // Ще се реплейсне статуса на кошницата
         $resObj4 = new stdClass();
         $resObj4->func = 'changeInputWidth';
+
+        // Ще забрани необходимите бутони
+        $resObj5 = new stdClass();
+        $resObj5->func = 'disableBtns';
         
         // Показваме веднага и чакащите статуси
         $hitTime = Request::get('hitTime', 'int');
         $idleTime = Request::get('idleTime', 'int');
         $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
         
-        $res = array_merge(array($resObj1, $resObj2, $resObj3, $resObj4), (array) $statusData);
+        $res = array_merge(array($resObj1, $resObj2, $resObj3, $resObj4, $resObj5), (array) $statusData);
         core_Lg::pop();
         
         return $res;

@@ -109,29 +109,28 @@ function eshopActions() {
 	
 	// Време за изчакване
 	var timeout1 = [];
-	
+	disableBtns();
 	// Ъпдейт на кошницата след промяна на к-то
 	$(document.body).on('keyup', ".option-quantity-input", function(e){
-		
-		//this.value = this.value.replace(/[^0-9\.]/g,'');
 		$(this).removeClass('inputError');
 		var packQuantity = $(this).val();
 		
 		var max = parseFloat($(this).attr("data-maxquantity"));
 		var aboveMax = max && parseFloat(packQuantity) > parseFloat(max);
-		
+
+		var idProd = $(this).attr('name');
+
 		if(aboveMax){
 			var maxReachedText = $(this).attr("data-maxquantity-reached-text");
 			clearTimeout(timeout1[idProd]);
-			
+
 			timeout1[idProd] = setTimeout(function(){
-				render_showToast({timeOut: 1000, text: maxReachedText, isSticky: true, stayTime: 8000, type: 'error'});
+				render_showToast({timeOut: 100, text: maxReachedText, isSticky: true, stayTime: 8000, type: 'error'});
 			}, 2000);
 		}
-		
+		disableBtns();
 		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1 || aboveMax)){
 			$(this).addClass('inputError');
-			clearTimeout(timeout1[idProd]);
 			
 		} else {
 			$(this).removeClass('inputError');
@@ -139,11 +138,10 @@ function eshopActions() {
 			var url = $(this).attr("data-url");
 		    if(!url) return;
 		    var data = {packQuantity:packQuantity};
-		    
+
 		    // След всяко натискане на бутон изчистваме времето на изчакване
-			var idProd = $(this).attr('name');
 			clearTimeout(timeout1[idProd]);
-			
+
 			// Правим Ajax заявката като изтече време за изчакване
 			timeout1[idProd] = setTimeout(function(){
 				resObj = new Object();
@@ -166,11 +164,6 @@ function eshopActions() {
 
 	// Бутоните за +/- да променят количеството
 	$(document.body).on('click tap', ".btnUp, .btnDown",  function(){
-		
-		// При натискане елемента се дисейлбва от кликане
-		$(this).addClass('quiet');
-		$(this).css("pointer-events", "none");
-		
 		var data = {type:'error'};
 		render_clearStatuses(data)
 		
@@ -182,15 +175,6 @@ function eshopActions() {
 		var valNew = parseFloat(val) + parseFloat(step);
         var update = $(input).hasClass('autoUpdate');
 
-        if(max && ((val + step) > max)){
-        	var maxReachedText = input.attr("data-maxquantity-reached-text");
-        	
-        	$(this).removeClass('quiet');
-        	$(this).css("pointer-events", "auto");
-        	
-        	render_showToast({timeOut: 800, text: maxReachedText, isSticky: true, stayTime: 8000, type: 'error'});
-        }
-        
 		if (valNew > 0 && (!max || step == -1 || (max && val + step <= max))) {
 			$(input).val(valNew);
             if(update) {
@@ -198,9 +182,6 @@ function eshopActions() {
                 $("#cart-view-table").css("cursor", "progress");
             }
 			changeInputWidth();
-			if(max > 0 && valNew >= max)  {
-				$(this).addClass('quiet');
-			}
 		}
         
         if(update) {
@@ -249,4 +230,34 @@ function eshopActions() {
 			});
 		}
 	});
-};
+}
+
+/**
+ * Забраняване на бутоните от кошницата според количеството
+ */
+function disableBtns() {
+	$(".option-quantity-input").each(function(){
+		if ($(this).attr('data-maxquantity') && $(this).val() >= $(this).attr('data-maxquantity')) {
+			$(this).siblings('.btnUp').addClass('quiet');
+			$(this).siblings('.btnUp').css("pointer-events", "none");
+		} else {
+			$(this).siblings('.btnDown').removeClass('quiet');
+			$(this).siblings('.btnDown').css("pointer-events", "auto");
+		}
+		if($(this).val() == 1) {
+			$(this).siblings('.btnDown').addClass('quiet');
+			$(this).siblings('.btnDown').css("pointer-events", "none");
+		} else {
+			$(this).siblings('.btnDown').removeClass('quiet');
+			$(this).siblings('.btnDown').css("pointer-events", "auto");
+		}
+	});
+}
+
+/**
+ * Забраняване на бутоните от кошницата според количеството
+ */
+function render_disableBtns(data)
+{
+	disableBtns();
+}
