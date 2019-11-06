@@ -981,6 +981,10 @@ div.acc-detail {
       text-align: left !important; }
     .additionalInfo-holder .additionalInfo .aright {
       text-align: right !important; }
+  .additionalInfo-holder .tags {
+    top: -1px !important; }
+    .additionalInfo-holder .tags .enTag {
+      vertical-align: middle; }
   .additionalInfo-holder .anchor-arrow {
     cursor: pointer; }
 

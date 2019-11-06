@@ -1128,6 +1128,12 @@ div.acc-detail {
 	       text-align: right !important;
 	   }
 	}
+	.tags {
+		top: -1px !important;
+		.enTag {
+			vertical-align: middle;
+		}
+	}
 	.anchor-arrow {
 	   cursor: pointer;
 	}
