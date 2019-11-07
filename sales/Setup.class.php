@@ -351,6 +351,7 @@ class sales_Setup extends core_ProtoSetup
         'migrate::setContragentFieldKeylist3',
         'migrate::updateDeltaFields',
         'migrate::closeZDDSRep',
+        'migrate::migrateTransportsInDeals'
     );
     
     
@@ -638,7 +639,6 @@ class sales_Setup extends core_ProtoSetup
         while ($saleRec = $saleQuery->fetch()){
             
             try{
-                
                 // Извличат се детайлите на офертите, към които са създадени
                 $quoteOrigin = doc_Containers::getDocument($saleRec->originId);
                 $quoteDetails = sales_QuotationsDetails::getQuery();
