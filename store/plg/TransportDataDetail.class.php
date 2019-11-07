@@ -33,7 +33,7 @@ class store_plg_TransportDataDetail extends core_Plugin
         $mvc->FLD($mvc->weightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Бруто,forceField,autohide');
         $mvc->FLD($mvc->volumeField, 'cat_type_Volume', 'input=none,caption=Логистична информация->Обем,forceField,autohide');
         $mvc->FLD('transUnitId', 'key(mvc=trans_TransportUnits,select=name,allowEmpty)', "caption=Логистична информация->Единици,forceField,autohide,tdClass=nowrap,after={$mvc->volumeField},input=none");
-        $mvc->FLD('transUnitQuantity', 'int(Min=0)', 'caption=К-во,autohide,inlineTo=transUnitId,forceField,unit=бр.,input=none');
+        $mvc->FLD('transUnitQuantity', 'int', 'caption=К-во,autohide,inlineTo=transUnitId,forceField,unit=бр.,input=none');
     }
     
     
@@ -83,8 +83,12 @@ class store_plg_TransportDataDetail extends core_Plugin
         $masterInputUnits = is_array($masterInputUnits) ? $masterInputUnits : array();
         $transUnitId = isset($rec->transUnitId) ? $rec->transUnitId : trans_TransportUnits::fetchIdByName('load');
         if (!array_key_exists($transUnitId, $masterInputUnits)) {
-            $row->transUnitId = trans_TransportUnits::display($rec->transUnitId, $rec->transUnitQuantity);
+             $row->transUnitId = trans_TransportUnits::display($rec->transUnitId, $rec->transUnitQuantity);
         } else {
+            unset($row->transUnitId);
+        }
+        
+        if(empty($rec->transUnitQuantity)){
             unset($row->transUnitId);
         }
     }
@@ -262,6 +266,7 @@ class store_plg_TransportDataDetail extends core_Plugin
         while ($dRec = $dQuery->fetch()) {
             $canStore = cat_Products::fetchField($dRec->{$mvc->productFld}, 'canStore');
             if($canStore != 'yes') continue;
+            if(empty($dRec->transUnitQuantity)) continue;
             
             if (!empty($dRec->transUnitId)) {
                 $res[$dRec->transUnitId] += $dRec->transUnitQuantity;
