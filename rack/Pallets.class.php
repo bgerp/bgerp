@@ -638,10 +638,6 @@ class rack_Pallets extends core_Manager
             while ($rec = $query->fetch("#storeId = {$storeId} AND #state != 'closed'")) {
                 if ($rec->position) {
                     $res[$rec->position] = (object)array('productId' => $rec->productId, 'batch' => $rec->batch);
-                    if(ord(substr($rec->position, -1)) > ord('9')) {
-                        list($n, $r, $c) = rack_PositionType::toArray($rec->position);
-                        $res["{$n}-{$r}-{$c}*"][] = (object)array('productId' => $rec->productId, 'batch' => $rec->batch);
-                    }
                 }
             }
             core_Cache::set('UsedRacksPossitions', $storeId, $res, 1440);
