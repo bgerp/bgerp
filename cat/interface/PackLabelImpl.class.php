@@ -238,6 +238,6 @@ class cat_interface_PackLabelImpl
      */
     public function getDefaultPeripheralLabel($id, peripheral_PrinterIntf $driverRec)
     {
-        return null
+        return null;
     }
 }
