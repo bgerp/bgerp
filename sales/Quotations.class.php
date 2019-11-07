@@ -1224,13 +1224,12 @@ class sales_Quotations extends core_Master
                     
                     $dRec = sales_QuotationsDetails::fetch($dRecId);
                     
-                    // Добавяме детайла към офертата
-                    $addedRecId = sales_Sales::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
-                    
                     // Копира се и транспорта, ако има
-                    $tRec = sales_TransportValues::get($this, $id, $addedRecId);
+                    $addedRecId = sales_Sales::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
+                    $tRec = sales_TransportValues::get($this, $id, $dRecId);
+                    
                     if (isset($tRec->fee)) {
-                        sales_TransportValues::sync('sales_Sales', $sId, $addedRecId, $tRec->fee, $tRec->deliveryTime);
+                        sales_TransportValues::sync('sales_Sales', $sId, $addedRecId, $tRec->fee, $tRec->deliveryTime, $tRec->explain);
                     }
                 }
                 
