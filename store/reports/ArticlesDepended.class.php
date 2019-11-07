@@ -92,7 +92,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             }
             
             if ($form->rec->period < $form->rec->soonPeriod) {
-                $form->setError('period,soonPeriod', 'Краткия период не може да бъде по-голям от общия период на справката');
+                $form->setError('period,soonPeriod', 'Краткият период не може да бъде по-голям от общия период на справката');
             }
         }
     }
@@ -155,7 +155,10 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, $pRec->quantity, null);
             
             if (!$selfPrice) {
-                array_push($notSelfPrice, $pRec->productId);
+                
+                if (!in_array($pRec->productId, $notSelfPrice)){
+                    array_push($notSelfPrice, $pRec->productId);
+                }
                 continue;
             }
             $minCost = $rec->minCost ? $rec->minCost : 0;
@@ -425,7 +428,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
     private static function removeSoonDeliveredProds($rec, $prodArr)
     {
         $query = purchase_PurchasesData::getQuery();
-        
+      
         $from = dt::addSecs(-($rec->soonPeriod), dt::now());
         $query->where(array("#valior>= '[#1#]' AND #valior <= '[#2#]'",$from,dt::now()));
         $query->where("#isFromInventory = 'no'");
@@ -466,6 +469,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         
         $planningQuery->in('productId', $extractProdArr);
         
+        $planningProdsInPeriod = array();
         while ($planningProd = $planningQuery->fetch()) {
             $planningProdsInPeriod[$planningProd->productId] += $planningProd->quantity * $prodArr[$planningProd->productId]->selfPrice;
         }
