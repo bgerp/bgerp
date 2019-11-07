@@ -212,11 +212,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         foreach ($prodArr as $prod) {
             
             $id = $prod->productId;
-            
-            if (is_null($journalProdArr[$prod->productId]) && in_array($prod->productId, $soonDeliveredProds)) {
-                continue;
-            }
-            
+ 
             $reversibility = $prod->pQuantity ? $journalProdArr[$prod->productId] / $prod->pQuantity :0 ;
             
             if ($reversibility > $rec->reversibility) {
