@@ -155,7 +155,10 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, $pRec->quantity, null);
             
             if (!$selfPrice) {
-                array_push($notSelfPrice, $pRec->productId);
+                
+                if (!in_array($pRec->productId, $notSelfPrice)){
+                    array_push($notSelfPrice, $pRec->productId);
+                }
                 continue;
             }
             $minCost = $rec->minCost ? $rec->minCost : 0;
