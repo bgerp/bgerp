@@ -137,7 +137,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Кой може да печата бърз етикет
      */
-    public $canPrintfastlabel = 'taskWorker,ceo';
+    public $canPrintfastlabel = 'debug';
     
     
     /**

@@ -84,15 +84,30 @@ class label_SequenceIntf
     
     
     /**
-     * Връща дефолтен шаблон за печат на етикет от периферията
+     * Връща дефолтен шаблон за печат на бърз етикет
      *
      * @param int  $id
-     * @param stdClass  $driverRec
+     * @param stdClass|null  $driverRec
      *
      * @return int
      */
-    public function getDefaultPeripheralLabel($id, $driverRec)
+    public function getDefaultFastLabel($id, $driverRec = null)
     {
-        return $this->class->getDefaultPeripheralLabel($id, $driverRec);
+        return $this->class->getDefaultFastLabel($id, $driverRec);
+    }
+    
+    
+    /**
+     * Връща попълнен дефолтен шаблон с дефолтни данни.
+     * Трябва `getDefaultFastLabel` да върне резултат за да се покажат данните
+     *
+     * @param int  $id
+     * @param int $templateId
+     *
+     * @return core_ET|null
+     */
+    public function getDefaultLabelWithData($id, $templateId)
+    {
+        return null;
     }
 }
