@@ -234,4 +234,18 @@ class planning_Points extends core_Manager
             }
         }
     }
+    
+    
+    function act_Test()
+    {
+        $fp = @fsockopen(Request::get('printerIp'), Request::get('printerPort'), $errno, $errstr, 30);
+        if (!$fp) {
+            echo "ERR: $errstr ($errno)";
+            shutdown();
+        }
+        fwrite($fp, Request::get('printText'));
+        fclose($fp);
+        echo "OK";
+        shutdown();
+    }
 }
