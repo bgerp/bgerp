@@ -312,6 +312,7 @@ class bgerp_Recently extends core_Manager
     
     /**
      * Рендира блок с последните документи и папки, посетени от даден потребител
+     * @deprecated
      */
     public static function render_($userId = null)
     {
@@ -433,13 +434,15 @@ class bgerp_Recently extends core_Manager
      */
     public static function on_BeforePrepareListPager($mvc, &$res, $data)
     {
-        // Задаваме броя на елементите в страница
-        $portalArrange = core_Setup::get('PORTAL_ARRANGE');
-        
-        if ($portalArrange == 'recentlyNotifyTaskCal') {
-            $mvc->listItemsPerPage = 20;
-        } else {
-            $mvc->listItemsPerPage = 10;
+        if ($data->usePortalArrange !== false) {
+            // Задаваме броя на елементите в страница
+            $portalArrange = core_Setup::get('PORTAL_ARRANGE');
+            
+            if ($portalArrange == 'recentlyNotifyTaskCal') {
+                $mvc->listItemsPerPage = 20;
+            } else {
+                $mvc->listItemsPerPage = 10;
+            }
         }
     }
     

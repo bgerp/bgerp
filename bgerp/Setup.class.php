@@ -218,7 +218,14 @@ class bgerp_Setup extends core_ProtoSetup
      */
     public $managers = array(
             'migrate::setUrlIds',
+            'migrate::setNewPortal',
     );
+    
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'bgerp_drivers_Recently, bgerp_drivers_Notifications, bgerp_drivers_Calendar, bgerp_drivers_Tasks';
     
     
     /**
@@ -536,6 +543,38 @@ class bgerp_Setup extends core_ProtoSetup
             $rec->customUrlId = $Notifications->prepareUrlId($rec->customUrl);
             
             $Notifications->save_($rec, 'urlId, customUrlId');
+        }
+    }
+    
+    
+    /**
+     * Миграция за изтриване на старите данни в портала и за добавяне на новите интерфейси
+     */
+    public function setNewPortal()
+    {
+        $Portal = cls::get('bgerp_Portal');
+        $bQuery = bgerp_Portal::getQuery();
+        $bQuery->delete("1=1");
+        
+        $iArr = array('bgerp_drivers_Notifications' => array('pages' => 15, 'column' => 1, 'order' => 11),
+                      'bgerp_drivers_Tasks' => array('pages' => 20, 'column' => 2, 'order' => 22),
+                      'bgerp_drivers_Recently' => array('pages' => 10, 'column' => 3, 'order' => 66),
+                      'bgerp_drivers_Calendar' => array('column' => 3, 'order' => 33)
+                      );
+        
+        foreach ($iArr as $iName => $iData) {
+            $rec = new stdClass();
+            $rec->{$Portal->driverClassField} = $iName::getClassId();
+            $rec->column = $iData['column'];
+            $rec->order = $iData['order'];
+            
+            if ($iData['pages']) {
+                $rec->pages = $iData['pages'];
+            }
+            
+            $rec->userOrRole = type_UserOrRole::getAllSysTeamId();
+            
+            $Portal->save($rec);
         }
     }
 }

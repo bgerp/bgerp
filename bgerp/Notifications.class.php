@@ -1159,6 +1159,7 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Рендира блок с нотификации за текущия или посочения потребител
+     * @deprecated
      */
     public static function render_($userId = null)
     {
