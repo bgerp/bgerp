@@ -101,14 +101,14 @@ class peripheral_Devices extends embed_Manager
      * Връща едно устройство
      *
      * @param string      $intfName
-     * @param array       $oParams
+     * @param array|false $checkParams
      * @param array       $checkFieldArr
      *
      * @return false|stdClass
      */
-    public static function getDevice($intfName, $oParams = array(), $checkFieldArr = array())
+    public static function getDevice($intfName, $checkParams = array(), $checkFieldArr = array())
     {
-        $deviceArr = self::getDevices($intfName, $oParams, $checkFieldArr, 1);
+        $deviceArr = self::getDevices($intfName, $checkParams, $checkFieldArr, 1);
         
         $dRec = false;
         
@@ -125,16 +125,16 @@ class peripheral_Devices extends embed_Manager
      *
      * @param string      $intfName
      * @param array       $checkFieldArr
-     * @param array       $oParams
+     * @param array|false $checkParams
      * @param null|int    $limit
      *
      * @return array
      */
-    public static function getDevices($intfName, $oParams = array(), $checkFieldArr = array(), $limit = null)
+    public static function getDevices($intfName, $checkParams = array(), $checkFieldArr = array(), $limit = null)
     {
         static $cArr = array();
         
-        $hash = md5($intfName . '|' . serialize($oParams));
+        $hash = md5($intfName . '|' . serialize($checkParams));
         
         if (!isset($cArr[$hash])) {
             
@@ -161,9 +161,11 @@ class peripheral_Devices extends embed_Manager
                 if (!cls::load($rec->{$me->driverClassField})) continue;
                 $inst = cls::get($rec->{$me->driverClassField});
                 
-                if (!$inst->checkDevice($rec, $oParams)) {
-                    
-                    continue;
+                if ($checkParams !== false) {
+                    if (!$inst->checkDevice($rec, $checkParams)) {
+                        
+                        continue;
+                    }
                 }
                 
                 $cArr[$hash][$recId] = $rec;
@@ -202,13 +204,13 @@ class peripheral_Devices extends embed_Manager
      *
      * @param string      $intfName
      * @param string      $fName
-     * @param array       $oParams
+     * @param array|false $checkParams
      *
      * @return array
      */
-    public static function getDevicesArrByField($intfName, $fName, $oParams = array())
+    public static function getDevicesArrByField($intfName, $fName, $checkParams = array())
     {
-        $allDevicesArr = self::getDevices($intfName, $oParams);
+        $allDevicesArr = self::getDevices($intfName, $checkParams);
         
         $resArr = array();
         
@@ -263,9 +265,6 @@ class peripheral_Devices extends embed_Manager
         
         return $resArr;
     }
-    
-    
-    
     
     
     /**

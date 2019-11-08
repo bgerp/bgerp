@@ -135,4 +135,18 @@ class store_iface_ShipmentLabelImpl
         
         return $resArr[$key];
     }
+    
+    
+    /**
+     * Връща дефолтен шаблон за печат на етикет от периферията
+     *
+     * @param int  $id
+     * @param stdClass  $driverRec
+     *
+     * @return int
+     */
+    public function getDefaultPeripheralLabel($id, $driverRec)
+    {
+        return null;
+    }
 }

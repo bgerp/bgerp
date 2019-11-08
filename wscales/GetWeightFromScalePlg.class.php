@@ -51,7 +51,7 @@ class wscales_GetWeightFromScalePlg extends core_Plugin
     private static function insertJsIfNeeded(&$res, $mvc, $formName = null)
     {
         if ($mvc->scaleWeightFieldName) {
-            $aDivecesArr = peripheral_Devices::getDevices('wscales_intf_Scales', array('brid' => log_Browsers::getBrid(), 'ip' => core_Users::getRealIpAddr()));
+            $aDivecesArr = peripheral_Devices::getDevices('wscales_intf_Scales');
             if (!empty($aDivecesArr)) {
                 $lRec = reset($aDivecesArr);
                 setIfNot($formName, $mvc->className . '-EditForm');
@@ -64,7 +64,7 @@ class wscales_GetWeightFromScalePlg extends core_Plugin
                 $lRec->_formIdName = '#' . $formName;
                 
                 $js = $interface->getJs($lRec);
-              
+                
                 $res->appendOnce($js, 'SCRIPTS');
             }
         }
@@ -97,7 +97,7 @@ class wscales_GetWeightFromScalePlg extends core_Plugin
     {
         if ($mvc->scaleWeightFieldName) {
             if ($data->form->fields[$mvc->scaleWeightFieldName]) {
-                $aDivecesArr = peripheral_Devices::getDevices('wscales_intf_Scales', array('brid' => log_Browsers::getBrid(), 'ip' => core_Users::getRealIpAddr()));
+                $aDivecesArr = peripheral_Devices::getDevices('wscales_intf_Scales');
                 if (!empty($aDivecesArr)) {
                     $lRec = reset($aDivecesArr);
                     if ($lRec->hostName != 'localhost') {

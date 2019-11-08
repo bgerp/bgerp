@@ -39,9 +39,15 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
+     * Кои външни(external) роли могат да създават/редактират документа в споделена папка
+     */
+    public $canWriteExternal = 'distributor';
+    
+    
+    /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_ConsignmentProtocol';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_ConsignmentProtocol,colab_CreateDocumentIntf';
     
     
     /**
@@ -54,7 +60,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'ceo,store';
+    public $canPending = 'ceo,store,distributor';
     
     
     /**
@@ -109,6 +115,12 @@ class store_ConsignmentProtocols extends core_Master
      * Детайла, на модела
      */
     public $details = 'store_ConsignmentProtocolDetailsSend,store_ConsignmentProtocolDetailsReceived';
+    
+    
+    /**
+     * Кой детайл да се наглася в зоните
+     */
+    public $detailToPlaceInZones = 'store_ConsignmentProtocolDetailsSend';
     
     
     /**
@@ -179,7 +191,7 @@ class store_ConsignmentProtocols extends core_Master
         $this->FLD('contragentId', 'int', 'input=hidden,tdClass=leftCol');
         
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Плащане->Валута');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory');
         
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
@@ -198,12 +210,21 @@ class store_ConsignmentProtocols extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($requiredRoles == 'no_one') {
-            
-            return;
-        }
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')) {
             $requiredRoles = 'no_one';
+        }
+        
+        // Ако партньор създава, но няма дефолтен скалд в папката да не му се появява бутона
+        if($action == 'add' && isset($rec) && (core_Packs::isInstalled('colab') && haveRole('partner', $userId))){
+            if(isset($rec->folderId)){
+                $cId = doc_Folders::fetchCoverId($rec->folderId);
+                $Class = doc_Folders::fetchCoverClassId($rec->folderId);
+                
+                $defaultColabStore = cond_Parameters::getParameter($Class, $cId, 'defaultStoreSale');
+                if(empty($defaultColabStore)){
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
     }
     
@@ -360,6 +381,30 @@ class store_ConsignmentProtocols extends core_Master
                 $form->setReadOnly('currencyId');
             }
         }
+        
+        // Скриване на определени полета, ако потребителя е партньор
+        if(core_Packs::isInstalled('colab') && haveRole('partner')){
+            $form->setField('currencyId', 'input=hidden');
+            $form->setField('storeId', 'input=none');
+        }
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if($form->isSubmitted()){
+            
+            // Задаване на дефолтния склад, ако потребителя е партньор
+            if(core_Packs::isInstalled('colab') && haveRole('partner')){
+                $form->rec->storeId = cond_Parameters::getParameter($form->rec->contragentClassId, $form->rec->contragentId, 'defaultStoreSale');
+            }
+        }
     }
     
     
@@ -455,8 +500,14 @@ class store_ConsignmentProtocols extends core_Master
         $res1 = cls::get('store_ConsignmentProtocolDetailsReceived')->getTransportInfo($id, $force);
         $res2 = cls::get('store_ConsignmentProtocolDetailsSend')->getTransportInfo($id, $force);
         
-        $weight = (!is_null($res1->weight) && !is_null($res2->weight)) ? $res1->weight + $res2->weight : null;
-        $volume = (!is_null($res1->volume) && !is_null($res2->volume)) ? $res1->volume + $res2->volume : null;
+        $count1 = store_ConsignmentProtocolDetailsReceived::count("#protocolId = {$id}");
+        $count2 = store_ConsignmentProtocolDetailsSend::count("#protocolId = {$id}");
+        
+        $nullWeight = ($count1 && is_null($res1->weight)) || ($count2 && is_null($res2->weight)) || (!$count1 && !$count2);
+        $weight = ($nullWeight) ? null : $res1->weight + $res2->weight;
+        
+        $nullVolume = ($count1 && is_null($res1->volume)) || ($count2 && is_null($res2->volume)) || (!$count1 && !$count2);
+        $volume = ($nullVolume) ? null : $res1->volume + $res2->volume;
         
         $units = trans_Helper::getCombinedTransUnits($res1->transUnits, $res2->transUnits);
         
@@ -525,33 +576,5 @@ class store_ConsignmentProtocols extends core_Master
         $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId, $rec->state);
         
         return $warning;
-    }
-    
-    
-    /**
-     * Обобщение на артикулите в документа
-     *
-     * @param core_Mvc $mvc
-     * @param array $res
-     * @param stdClass $rec
-     * @return void
-     */
-    public function getProductsSummary($rec)
-    {
-        $res = array();
-        $rec = $this->fetchRec($rec);
-        
-        $dQuery = store_ConsignmentProtocolDetailsSend::getQuery();
-        $dQuery->where("#protocolId = {$rec->id}");
-        
-        while($dRec = $dQuery->fetch()){
-            $key = "{$dRec->productId}|{$dRec->packagingId}";
-            if(!array_key_exists($key, $res)){
-                $res[$key] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId);
-            }
-            $res[$key]->quantity += $dRec->packQuantity * $dRec->quantityInPack;
-        }
-        
-        return $res;
     }
 }
