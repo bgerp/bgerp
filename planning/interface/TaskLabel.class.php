@@ -130,17 +130,40 @@ class planning_interface_TaskLabel
     
     
     /**
-     * Връща дефолтен шаблон за печат на етикет от периферията
+     * Връща дефолтен шаблон за печат на бърз етикет
      *
      * @param int  $id
-     * @param stdClass  $driverRec
+     * @param stdClass|null  $driverRec
      *
      * @return int
      */
-    public function getDefaultPeripheralLabel($id, $driverRec)
+    public function getDefaultFastLabel($id, $driverRec = null)
     {
         $defaultRec = label_Templates::fetchField("#classId={$this->class->getClassId()} AND #peripheralDriverClassId = {$driverRec->driverClass}");
        
         return $defaultRec;
+    }
+    
+    
+    /**
+     * Връща попълнен дефолтен шаблон с дефолтни данни.
+     * Трябва `getDefaultFastLabel` да върне резултат за да се покажат данните
+     *
+     * @param int  $id
+     * @param int $templateId
+     *
+     * @return core_ET|null
+     */
+    public function getDefaultLabelWithData($id, $templateId)
+    {
+        $template = label_Templates::fetch($templateId);
+        $templateTpl = new core_ET($template->template);
+        
+        // Взимат се данните за бърз етикет
+        $labelData = $this->getLabelData($id, 1, false);
+        $content = $labelData[0];
+        $templateTpl->placeObject($content);
+        
+        return $templateTpl->getContent();
     }
 }

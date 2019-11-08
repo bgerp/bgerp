@@ -80,16 +80,8 @@ class label_plg_Print extends core_Plugin
             expect($deviceRec = peripheral_Devices::getDevice('peripheral_PrinterIntf'));
             $source = $mvc->getLabelSource($rec);
             $interface = cls::getInterface('label_SequenceIntf', $source['class']);
-            expect($peripheralTemplateId = $interface->getDefaultPeripheralLabel($source['id'], $deviceRec));
-            
-            $template = label_Templates::fetch($peripheralTemplateId);
-            $templateTpl = new core_ET($template->template);
-            
-            // Взимат се данните за бърз етикет
-            $labelData = $interface->getLabelData($id, 1, false);
-            $content = $labelData[0];
-            $templateTpl->placeObject($content);
-            $labelText = $templateTpl->getContent();
+            expect($peripheralTemplateId = $interface->getDefaultFastLabel($source['id'], $deviceRec));
+            $labelContent = $interface->getDefaultLabelWithData($rec, $peripheralTemplateId);
             
             Request::setProtected('hash');
             $hash = str::addHash('fastlabel', 4);
@@ -98,7 +90,7 @@ class label_plg_Print extends core_Plugin
             
             // Прави се опит за печат от периферията
             $interface = core_Cls::getInterface('escpos_PrinterIntf', $deviceRec->driverClass);
-            $js = $interface->getJS($deviceRec, $labelText);
+            $js = $interface->getJS($deviceRec, $labelContent);
             $js .= " function escPrintOnSuccess(res) {
             if (res == 'OK') {
                 document.location = '{$responseUrl}&res=' + res;
@@ -129,16 +121,16 @@ class label_plg_Print extends core_Plugin
             $logId = ($mvc instanceof core_Detail) ? $rec->{$mvc->masterKey} : $rec->id;
             
             $msg = tr("Етикетът е разпечатан успешно|*!");
-            $type = 'notice';
-            if($type = Request::get('type', 'varchar')){
+            $type = Request::get('type', 'varchar');
+            
+            if($type == 'error'){
                 $msg = $res;
-                $type = 'error';
                 $logMvc->logDebug($msg, $logId);
+                core_Statuses::newStatus($msg, 'error');
             } else {
                 $logMvc->logWrite('Разпечатване на бърз етикет', $logId);
+                core_Statuses::newStatus($msg);
             }
-            
-            core_Statuses::newStatus($msg, $type);
             
             followRetUrl();
         }
@@ -255,7 +247,7 @@ class label_plg_Print extends core_Plugin
                     $requiredRoles = 'no_one';
                 } else {
                     $interface = cls::getInterface('label_SequenceIntf', $source['class']);
-                    if(!$interface->getDefaultPeripheralLabel($source['id'], $deviceRec)){
+                    if(!$interface->getDefaultFastLabel($source['id'], $deviceRec)){
                         $requiredRoles = 'no_one';
                     }
                 }
