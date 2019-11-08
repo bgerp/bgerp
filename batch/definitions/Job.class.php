@@ -59,7 +59,7 @@ class batch_definitions_Job extends batch_definitions_Proto
      * @param int $jobId
      * @return string $res
      */
-    private function getDefaultBatchName($jobId)
+    public function getDefaultBatchName($jobId)
     {
         $jobProductId = planning_Jobs::fetchField($jobId, 'productId');
         $res = "JOB{$jobId}/" . str::removeWhiteSpace(cat_Products::getTitleById($jobProductId, false), ' ');

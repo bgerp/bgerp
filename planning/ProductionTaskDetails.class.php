@@ -870,6 +870,12 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $requiredRoles = 'no_one';
             }
         }
+        
+        if($action == 'printperipherallabel' && isset($rec)){
+            if($rec->type != 'production'){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     

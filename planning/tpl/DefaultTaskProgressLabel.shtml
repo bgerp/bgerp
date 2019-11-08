@@ -1,7 +1,14 @@
-<q4>[#SERIAL#]
+    
+<q11>[#SERIAL#]
+<p>
 <p>[#PRODUCT_NAME#]
-<p>[#QUANTITY#]
-<p>[#WEIGHT#]
-<p>[#DATE#]
-
-k
+<p>J:[#JOB#]
+<!--ET_BEGIN BATCH-->
+<p>B:[#BATCH#]
+<!--ET_END BATCH-->
+<p>Q:[#QUANTITY#]
+<!--ET_BEGIN WEIGHT-->
+<p>W:[#WEIGHT#]
+<!--ET_END WEIGHT-->
+<p>D:[#DATE#]
+<p>S:[#SERIAL_STRING#]
