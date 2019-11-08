@@ -121,16 +121,16 @@ class label_plg_Print extends core_Plugin
             $logId = ($mvc instanceof core_Detail) ? $rec->{$mvc->masterKey} : $rec->id;
             
             $msg = tr("Етикетът е разпечатан успешно|*!");
-            $type = 'notice';
-            if($type = Request::get('type', 'varchar')){
+            $type = Request::get('type', 'varchar');
+            
+            if($type == 'error'){
                 $msg = $res;
-                $type = 'error';
                 $logMvc->logDebug($msg, $logId);
+                core_Statuses::newStatus($msg, 'error');
             } else {
                 $logMvc->logWrite('Разпечатване на бърз етикет', $logId);
+                core_Statuses::newStatus($msg);
             }
-            
-            core_Statuses::newStatus($msg, $type);
             
             followRetUrl();
         }
