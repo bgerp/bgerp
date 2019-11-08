@@ -58,7 +58,10 @@ class planning_interface_TaskLabel
         $placeholders['QUANTITY'] = (object) array('type' => 'text');
         $placeholders['WEIGHT'] = (object) array('type' => 'text');
         $placeholders['DATE'] = (object) array('type' => 'text');
-        $placeholders['QR_CODE'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['SERIAL'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['BATCH'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['SERIAL_STRING'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['JOB'] = (object) array('type' => 'text');
         
         if (isset($objId)) {
             $labelData = $this->getLabelData($objId, 1, true);
@@ -98,18 +101,34 @@ class planning_interface_TaskLabel
         }
         
         expect($rec = planning_ProductionTaskDetails::fetchRec($id));
-        $productName = cat_Products::getVerbal($rec->productId, 'name');
-        $quantity = $rec->quantity;
+        $rowInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type);
+        $productName = str::limitLen(cat_Products::getVerbal($rec->productId, 'name'), 16, 20, '');
+        
+        core_Lg::push('en');
+        $quantity = $rec->quantity . " " . tr(cat_UoM::getShortName($rowInfo->measureId));
+        core_Lg::pop('en');
+        
         $weight = (!empty($rec->weight)) ? core_Type::getByName('cat_type_Weight')->toVerbal($rec->weight) : null;
+        
         $date = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
-       
+        $Origin = doc_Containers::getDocument(planning_Tasks::fetchField($rec->taskId, 'originId'));
+        
+        $batch = null;
+        if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
+            if($BatchDef instanceof batch_definitions_Job){
+                $batch = $BatchDef->getDefaultBatchName($Origin->that);
+            }
+        }
+        
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
-            $res = array('PRODUCT_NAME' => $productName, 'QUANTITY' => $quantity, 'DATE' => $date, 'WEIGHT' => $weight, 'SERIAL' => $rec->serial);
+            $res = array('PRODUCT_NAME' => $productName, 'QUANTITY' => $quantity, 'DATE' => $date, 'WEIGHT' => $weight, 'SERIAL' => $rec->serial, 'SERIAL_STRING' => $rec->serial, 'JOB' => "#" . $Origin->getHandle());
+            $res['BATCH'] = $batch;
+            
             $arr[] = $res;
         }
         $resArr[$key] = $arr;
-        
+       
         return $resArr[$key];
     }
     
