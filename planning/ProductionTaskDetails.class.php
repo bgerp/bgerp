@@ -28,11 +28,10 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     public $singleTitle = 'Прогрес';
     
-    
     /**
      * Интерфейси
      */
-    public $interfaces = 'hr_IndicatorsSourceIntf';
+    public $interfaces = 'hr_IndicatorsSourceIntf,label_SequenceIntf=planning_interface_TaskLabel';
     
     
     /**
@@ -133,6 +132,12 @@ class planning_ProductionTaskDetails extends doc_Detail
      * @see plg_Search
      */
     public $maxSearchKeywordLen = 13;
+    
+    
+    /**
+     * Кой може да печата бърз етикет
+     */
+    public $canPrintfastlabel = 'taskWorker,ceo';
     
     
     /**

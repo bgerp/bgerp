@@ -81,4 +81,18 @@ class label_SequenceIntf
     {
         return $this->class->getLabelData($id, $cnt, $onlyPreview, $lRec);
     }
+    
+    
+    /**
+     * Връща дефолтен шаблон за печат на етикет от периферията
+     *
+     * @param int  $id
+     * @param stdClass  $driverRec
+     *
+     * @return int
+     */
+    public function getDefaultPeripheralLabel($id, $driverRec)
+    {
+        return $this->class->getDefaultPeripheralLabel($id, $driverRec);
+    }
 }

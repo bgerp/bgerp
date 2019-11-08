@@ -15,15 +15,14 @@
                     <!--ET_BEGIN state-->
                     <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                     <!--ET_END state-->
-                    
+
                     <!--ET_BEGIN storeReadiness-->
-                    <div class="pending-document-block"><span class='pending-document-block-caption'>In stock</span>: <span class='pending-document-block-instock'>[#storeReadiness#]</span></div>
+                    <div class="document-block"><span class='block-caption'>In stock:</span> <span class='block-instock'>[#storeReadiness#]</span></div>
                     <!--ET_END storeReadiness-->
-                    
+
                     <!--ET_BEGIN zoneReadiness-->
-                    <div class="pending-document-block"><span class='pending-document-block-caption'>In zone [#zoneId#]</span>: <span class='pending-document-block-readiness'>[#zoneReadiness#]</span></div>
+                    <div class="document-block"><span class='block-caption'>In zone [#zoneId#]</span>: <span class='block-readiness'>[#zoneReadiness#]</span></div>
                     <!--ET_END zoneReadiness-->
-                    
                 </td>
                 <td class="cell custom-header-bg" style="width:35%"><b>Supplier</b></td>
             </tr>

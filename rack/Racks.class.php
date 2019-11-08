@@ -143,7 +143,7 @@ class rack_Racks extends core_Master
     {
         $pos = Request::get('pos');
         
-        list($n, $r, $c) = explode('-', $pos);
+        list($n, $r, $c) = rack_PositionType::toArray($pos);
         
         $n = (int) $n;
         
@@ -230,7 +230,9 @@ class rack_Racks extends core_Master
      */
     public static function checkPosition($position, $productId, $storeId, $batch = null, &$error = null, &$rec = null)
     {
-        list($num, $row, $col) = explode('-', $position);
+        list($num, $row, $col) = rack_PositionType::toArray($position);
+        $col = (int) $col;
+
         if (!($num && $row && $col)) {
             $error = 'Невалиден синтаксис';
             
@@ -267,15 +269,16 @@ class rack_Racks extends core_Master
     public static function isPlaceUsable($position, $productId = null, $storeId = null, $batch = null, &$error = null)
     {
         expect($position);
-        $storeId = $storeId ?? store_Stores::getCurrent();
+        $storeId = $storeId ? $storeId : store_Stores::getCurrent();
         
         $rec = null;
         if (!self::checkPosition($position, $productId, $storeId, $batch, $error, $rec)) {
             
             return;
         }
-        list(, $row, $col) = explode('-', $position);
-        
+        list(, $row, $col) = rack_PositionType::toArray($position);
+        $col = (int) $col;
+
         $dRec = rack_RackDetails::fetch("#rackId = {$rec->id} && #row = '{$row}' AND #col = {$col}");
         if ($dRec) {
             if ($dRec->status == 'unusable') {
@@ -402,6 +405,39 @@ class rack_Racks extends core_Master
                 $attr['ondblclick'] = "document.location='{$url}';";
                 $pId = null;
                 
+
+                // Ако са заети някои от вътрешните му местао
+                if (!isset($title) && ($pArr = $used[$posFull . '*'])) {
+                    if($pRec = $used[$posFull]) {
+                        array_unshift($pArr, $pRec);
+                    }
+
+                    $attrA = array();
+                    $color = null;
+                    $bgColor = '';
+
+                    foreach($pArr as $pRec) {
+                        $prodTitle = cat_Products::getTitleById($pRec->productId);
+                        if(!empty($pRec->batch)){
+                            $prodTitle .= " / {$pRec->batch}";
+                        }
+                        
+                        $attrA['title'] .= ($attrA['title'] ? "\n" : '') . $prodTitle;
+                        if(!$color) {
+                            $color = self::getColor($prodTitle, 0, 110);
+                        }
+                        $bgColor .= ($bgColor ? ', ' : '') . '#' . self::getColor($prodTitle, 130, 240);
+                    }
+                    
+                    if(count($pArr) > 1) {
+                        $attrA['style'] = "color:#{$color};background-image: linear-gradient(to right, {$bgColor});";
+                    } else {
+                        $attrA['style'] = "color:#{$color};background-color: {$bgColor};";
+                    }
+                    
+                    $title = ht::createLink($pos, array('rack_Pallets', 'list', 'search' => "{$rec->num}-{$pos}"), null, $attrA);
+                }
+
                 // Ако е заето с нещо
                 if (!isset($title) && ($pRec = $used[$posFull])) {
                     $prodTitle = cat_Products::getTitleById($pRec->productId);
@@ -416,7 +452,7 @@ class rack_Racks extends core_Master
                     
                     $attrA['style'] = "color:#{$color};background-color:#{$bgColor};";
                     
-                    $title = ht::createLink($pos, array('rack_Pallets', 'list', 'pos' => "{$rec->num}-{$pos}"), null, $attrA);
+                    $title = ht::createLink($pos, array('rack_Pallets', 'list', 'search' => "{$rec->num}-{$pos}"), null, $attrA);
                 }
                 
                 // Ако е неизползваемо
@@ -545,20 +581,20 @@ class rack_Racks extends core_Master
         $pQuery = rack_Pallets::getQuery();
         $pQuery->where("#storeId = {$storeId} AND #position LIKE '{$num}-%'");
         while ($pRec = $pQuery->fetch()) {
-            list($num, $row, $col) = explode('-', $pRec->position);
+            list($num, $row, $col) = rack_PositionType::toArray($pRec->position);
             $res[$row][$col] = 'U';
         }
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("#storeId = {$storeId} AND #state != 'closed' AND (#positionTo LIKE '{$num}-%' OR #position LIKE '{$num}-%')");
         while ($mRec = $mQuery->fetch()) {
             if ($mRec->positionTo) {
-                list($num1, $row, $col) = explode('-', $mRec->positionTo);
+                list($num1, $row, $col) = rack_PositionType::toArray($mRec->positionTo);
                 if ($num1 == $num) {
                     $res[$row][$col] = 'M';
                 }
             }
             if ($mRec->position) {
-                list($num1, $row, $col) = explode('-', $mRec->position);
+                list($num1, $row, $col) = rack_PositionType::toArray($mRec->position);
                 if ($num1 == $num) {
                     $res[$row][$col] = 'F';
                 }

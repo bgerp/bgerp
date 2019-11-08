@@ -224,19 +224,6 @@ function render_setFocus(data)
 	setFocus(data.tabId);
 }
 
-/**
- * Скриване на грешките
- */
-function render_clearStatuses(data)
-{
-	var type = data.type;
-	var elementClass = ".toast-type-" + type;
-	
-	if ($(elementClass).length) {
-	    $(elementClass).remove();
-	}
-}
-
 
 /**
  * Чете информацията от дадена бисквитка

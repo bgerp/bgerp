@@ -109,7 +109,7 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за текст за добавяне към количката на en
      */
-    const DEFAULT_ADD_TO_CART_TEXT_EN = 'In the cart there are [#packQuantity#] [#packagingId#] of [#productName#]';
+    const DEFAULT_ADD_TO_CART_TEXT_EN = 'There are [#packQuantity#] [#packagingId#] of [#productName#] in the cart';
     
     
     /**

@@ -115,11 +115,12 @@ class frame2_CsvExport extends core_Mvc
             
             // Подсигуряване че енкодига е UTF8
             $csv = mb_convert_encoding($csv, 'UTF-8', 'UTF-8');
-            $csv = iconv('UTF-8', 'UTF-8//IGNORE', $csv);
+            $csv = iconv('utf-8', $params['encoding'] . '//TRANSLIT', $csv);
             
             // Записване във файловата система
+            $extension = $params['extension'];
             $fileName = $Frame->getHandle($objId) . '-' . str::removeWhiteSpace(str::utf2ascii($frameRec->title), '_');
-            $fileHnd = fileman::absorbStr($csv, 'exportCsv', "{$fileName}.csv");
+            $fileHnd = fileman::absorbStr($csv, "exportFiles", "{$fileName}.{$extension}");
             $fileId = fileman::fetchByFh($fileHnd, 'id');
             doc_Linked::add($frameRec->containerId, $fileId, 'doc', 'file');
         }
@@ -172,15 +173,17 @@ class frame2_CsvExport extends core_Mvc
     {
         $title = $this->getExportTitle($clsId, $objId);
         
-        $form->FLD("columns", 'enum(yes=Да,none=Не)', "caption=Настройки на {$title} за експорт->Имена на колони,autohide=any");
+        $form->FLD("columns", 'enum(yes=Да,none=Не)', "caption=|{$title}|* - |настройки|*->Имена на колони,autohide=any");
         $form->setDefault("columns", 'yes');
         
-        $form->FNC('decPoint', 'varchar(1,size=3)', "input,caption=Настройки на {$title} за експорт->Десетичен знак,autohide=any");
-        $form->FNC('dateFormat', 'enum(,d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', "input,caption=Настройки на {$title} за експорт->Формат за дата,autohide=any");
-        $form->FNC('datetimeFormat', 'enum(,d.m.y H:i=|*22.11.1999 00:00, d.m.y H:i:s=|*22.11.1999 00:00:00)', "input,caption=Настройки на {$title} за експорт->Формат за дата и час,autohide=any");
-        $form->FNC('delimiter', 'varchar(1,size=3)', "input,caption=Настройки на {$title} за експорт->Разделител,autohide=any");
-        $form->FNC('enclosure', 'varchar(1,size=3)', "input,caption=Настройки на {$title} за експорт->Ограждане,autohide");
-        $form->FNC('newLineDelimiter', 'varchar(1,size=3)', "input,caption=Настройки на {$title} за експорт->Нов ред,autohide");
+        $form->FNC('decPoint', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Десетичен знак,autohide=any");
+        $form->FNC('dateFormat', 'enum(,d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', "input,caption=|{$title}|* - |настройки|*->Формат за дата,autohide=any");
+        $form->FNC('datetimeFormat', 'enum(,d.m.y H:i=|*22.11.1999 00:00, d.m.y H:i:s=|*22.11.1999 00:00:00)', "input,caption=|{$title}|* - |настройки|*->Формат за дата и час,autohide=any");
+        $form->FNC('delimiter', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Разделител,autohide=any");
+        $form->FNC('enclosure', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Ограждане,autohide");
+        $form->FNC('encoding', 'enum(utf-8=Уникод|* (UTF-8),cp1251=Windows Cyrillic|* (CP1251))', "caption=|{$title}|* - |разширени настройки|*->Кодиране,input,autohide=any");
+        $form->FNC('extension', 'enum(csv=.csv,txt=.txt)', "input,caption=|{$title}|* - |разширени настройки|*->Файлово разширение,autohide=any");
+        $form->FNC('newLineDelimiter', 'varchar(1,size=3)', "input,caption=|{$title}|* - |разширени настройки|*->Нов ред,autohide=any");
         
         $dateFormat = null;
         setIfNot($dateFormat, csv_Setup::get('DATE_MASK'), core_Setup::get('EF_DATE_FORMAT', true));

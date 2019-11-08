@@ -5545,6 +5545,19 @@ function focusOnce(id) {
 }
 
 
+/**
+ * Изчистване на статусите от посочен тип
+ */
+function render_clearStatuses(data)
+{
+	var type = data.type;
+	var elementClass = ".toast-type-" + type;
+	
+	if ($(elementClass).length) {
+	    $(elementClass).remove();
+	}
+}
+
 
 /**
  * Кокусиране върху заглавията, при дабъклик върху H2 заглавие

@@ -143,4 +143,17 @@ class price_interface_LabelImpl
         return $rec->title;
     }
     
+    
+    /**
+     * Връща дефолтен шаблон за печат на етикет от периферията
+     *
+     * @param int  $id
+     * @param stdClass  $driverRec
+     *
+     * @return int
+     */
+    public function getDefaultPeripheralLabel($id, $driverRec)
+    {
+        return null;
+    }
 }
