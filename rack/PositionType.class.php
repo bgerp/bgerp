@@ -58,9 +58,10 @@ class rack_PositionType extends type_Varchar
         }
         
         $value = str_replace(array('а', 'А', 'б', 'Б', 'ц', 'Ц', 'д', 'Д', 'е', 'Е', 'ф', 'Ф'), array('a', 'a', 'b', 'b', 'c', 'c', 'd', 'd', 'e', 'e', 'f', 'f'), $value);
+        $value = trim($value);
         
         $matches = array();
-        preg_match('/([0-9]{1,3})[\\-]{0,1}([a-z])[\\-]{0,1}([0-9]{1,3})/i', $value, $matches);
+        preg_match('/^([0-9]{1,3})[\\-]{0,1}([a-z])[\\-]{0,1}([0-9]{1,3})$/i', $value, $matches);
         
         if (!is_array($matches) || count($matches) < 4) {
             $this->error = 'Невалиден синтаксис';

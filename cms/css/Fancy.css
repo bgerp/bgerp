@@ -16,14 +16,18 @@ html {
 #cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a {
     color: white;
 }
-
-.wide .fadein {
+.wide .narrowCenter {
+    text-align: center;
     height: auto !important;
     max-height: 300px;
-    text-align: center;
-
 }
-.wide .fadein  .headerImg{
+
+.wide .fadein {
+  display: inline-block;
+    position: relative;
+}
+
+.wide  .headerImg{
     height: 300px;
     width: auto;
     float: none;
@@ -151,7 +155,7 @@ header img {
     padding: 7px 7px 7px 2px;
 }
 @media handheld, only screen and (max-width: 1200px) {
-    .wide .fadein  .headerImg{
+    .wide  .headerImg{
         width: 100%;
         height: auto !important;
     }

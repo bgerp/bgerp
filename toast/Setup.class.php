@@ -37,7 +37,7 @@ class toast_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'TOAST_MESSAGE_VERSION' => array('enum(0.3.0f,1.3.2)', 'caption=Версия на `ToastMessage`->Версия'),
+        'TOAST_MESSAGE_VERSION' => array('enum(0.3.0f)', 'caption=Версия на `ToastMessage`->Версия'),
     );
     
     
@@ -65,8 +65,7 @@ class toast_Setup extends core_ProtoSetup
     {
         $conf = core_Packs::getConfig('toast');
         
-        //return 'toast/' . $conf->TOAST_MESSAGE_VERSION . '/javascript/jquery.toastmessage.js';
-        return 'toast/' . $conf->TOAST_MESSAGE_VERSION . '/javascript/jquery.toast.js';
+        return 'toast/' . $conf->TOAST_MESSAGE_VERSION . '/javascript/jquery.toastmessage.js';
     }
     
     
@@ -77,7 +76,6 @@ class toast_Setup extends core_ProtoSetup
     {
         $conf = core_Packs::getConfig('toast');
         
-        //return 'toast/' . $conf->TOAST_MESSAGE_VERSION . '/resources/css/jquery.toastmessage.css';
-        return 'toast/' . $conf->TOAST_MESSAGE_VERSION . '/resources/css/jquery.toast.css';
+        return 'toast/' . $conf->TOAST_MESSAGE_VERSION . '/resources/css/jquery.toastmessage.css';
     }
 }

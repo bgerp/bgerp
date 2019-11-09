@@ -16,33 +16,274 @@
  *
  * @since     v 0.1
  */
-class bgerp_Portal extends core_Manager
+class bgerp_Portal extends embed_Manager
 {
+    /**
+     * Свойство, което указва интерфейса на вътрешните обекти
+     */
+    public $driverInterface = 'bgerp_PortalBlockIntf';
+    
+    public $canClonesysdata = 'powerUser';
+    public $canCloneuserdata = 'powerUser';
+    public $canClonerec = 'powerUser';
+    
+//     public $canList = 'powerUser';
+    public $canList = 'debug';
+    public $canSingle = 'powerUser';
+    public $canAdd = 'powerUser';
+    public $canEdit = 'powerUser';
+    public $canDelete = 'powerUser';
+    
     /**
      * Неща за зареждане в началото
      */
-    public $loadList = 'plg_Created, plg_RowTools, bgerp_Wrapper';
-    
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, bgerp_Wrapper, plg_Clone';
+    public $fieldsNotToClone = 'createdOn, createdBy, modifiedOn, modifiedBy';
     
     /**
      * Заглавие на мениджъра
      */
     public $title = 'Елементи на портала';
     
-    // Права
     
-    
+    public $listFields = 'driverClass, userOrRole, column, order, color, originIdCalc, createdOn, createdBy';
     
     /**
      * Описание на модела
      */
     public function description()
     {
-        $this->FLD('column', 'enum(1,2,3,4)', 'caption=Колона, mandatory');
-        $this->FLD('blockSource', 'class(interface=bgerp_BlockSource)', 'caption=Контролер, mandatory');
-        $this->FLD('params', 'text', 'caption=Настройки,input=none');
-        $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Потребител');
-        $this->FLD('mobile', 'enum(no=Не,yes=Да)', 'caption=Мобилен');
+        $this->FLD('userOrRole', 'userOrRole(rolesType=team, rolesForAllRoles=admin, rolesForAllSysTeam=admin, userRoles=powerUser)', 'caption=Потребител/Роля, silent, refreshForm');
+        $this->FLD('column', 'enum(1,2,3)', 'caption=Колона');
+        $this->FLD('order', 'int(min=-1000, max=1000)', 'caption=Подредба, notNull');
+        $this->FLD('color', 'enum(red=Червен, green=Зелен, blue=Син)', 'caption=Цвят');
+        
+        $this->FNC('originIdCalc', 'key(mvc=bgerp_Portal, allowEmpty)', 'caption=Източник,input=none');
+        
+        $optArr = array();
+        foreach ($this->fields['color']->type->options as $color => $verbal) {
+            if (is_object($verbal)) {
+                $optArr[$color] = $verbal;
+            } else {
+                $opt = new stdClass();
+                $opt->title = $verbal;
+                $opt->attr = array('class' => "color-{$color}");
+                $optArr[$color] = $opt;
+            }
+        }
+        
+        $this->fields['color']->type->options = $optArr;
+    }
+    
+    
+    /**
+     * Добавя стойност на функционалното поле boxFrom
+     *
+     * @param bgerp_Portal $mvc
+     * @param stdClass         $rec
+     */
+    public static function on_CalcOriginIdCalc($mvc, &$rec)
+    {
+        if ($rec->clonedFromId) {
+            $rec->originIdCalc = $rec->clonedFromId;
+        } else {
+            $rec->originIdCalc = $rec->id;
+        }
+    }
+    
+    
+    /**
+     * Показва портала
+     */
+    public function act_Show2()
+    {
+        // Ако е инсталиран пакета за партньори
+        // И текущия потребител е контрактор, но не е powerUser
+        if (core_Users::haveRole('partner')) {
+            if ((core_Packs::isInstalled('colab'))) {
+                $folderId = colab_FolderToPartners::getLastSharedContragentFolder();
+                
+                if ($folderId) {
+                    
+                    return new Redirect(array('colab_Threads', 'list', 'folderId' => $folderId));
+                }
+            }
+            
+            // Редирект към профила на партньора
+            return new Redirect(array('cms_Profiles', 'single'));
+        }
+        
+        requireRole('powerUser');
+        
+        Mode::set('pageMenuKey', '_none_');
+        
+        $recArr = $this->getRecsForUser();
+        
+        $cu = core_Users::getCurrent();
+        
+        $tpl = new ET("
+            <table style='width:100%' class='top-table large-spacing'>
+            <tr>
+                <td style='width:33.3%'>[#LEFT_COLUMN#]</td>
+                <td style='width:33.4%'>[#MIDDLE_COLUMN#]</td>
+                <td style='width:33.3%'>[#RIGHT_COLUMN#]</td>
+            </tr>
+            </table>
+        ");
+        
+        $columnMap = array(1 => 'LEFT_COLUMN', 2 => 'MIDDLE_COLUMN', 3 => 'RIGHT_COLUMN');
+        
+        foreach ($recArr as $r) {
+            if (!cls::load($r->{$this->driverClassField}, true)) continue;
+            
+            $intf = cls::getInterface('bgerp_PortalBlockIntf', $r->{$this->driverClassField});
+            
+            $data = $intf->prepare($r, $cu);
+            $res = $intf->render($data);
+            
+            if (!$r->column) {
+                $r->column = 1;
+            }
+            
+            $colorCls = $r->color ? $r->color : 'all';
+            
+            $res->prepend("<div class='portalBlockColor-{$colorCls}'>");
+            $res->append("</div>");
+            
+            $tpl->append($res, $columnMap[$r->column]);
+        }
+        
+        $tpl->push('js/PortalSearch.js', 'JS');
+        jquery_Jquery::run($tpl, 'portalSearch();', true);
+        
+        bgerp_LastTouch::set('portal');
+        
+        self::logRead('Разглеждане на портала');
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на записите в модела
+     *
+     * @param null|integer $userId
+     * @param string $roleType
+     * @return array
+     */
+    protected function getRecsForUser($userId = null, $roleType = 'team')
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $query = $this->getQuery();
+        
+        if ($roleType) {
+            $rolesList = core_Users::getUserRolesByType($userId, $roleType);
+        } else {
+            $rolesList = core_Users::getRoles($userId);
+        }
+        
+        $rolesArr = type_Keylist::toArray($rolesList);
+        if ($rolesArr) {
+            $rolesArrSysId = array_map(array('type_UserOrRole', 'getSysRoleId'), $rolesArr);
+        }
+        
+        // Настройките за цялата система
+        $rolesArrSysId[-1] = type_UserOrRole::getAllSysTeamId();
+        
+        if ($userId > 0) {
+            $rolesArrSysId[] = $userId;
+        }
+        
+        $query->in('userOrRole', $rolesArrSysId);
+        
+        // С по-голям приоритет са данните въведени от потребителя, а с най-нисък - за цялата система
+        $query->XPR('orderUserOrRole', 'int', "IF(#userOrRole > 0, #userOrRole, IF(#userOrRole = '{$rolesArrSysId[-1]}', #userOrRole, 0))");
+        $query->orderBy('orderUserOrRole', 'DESC');
+        
+        $query->orderBy('createdOn', 'DESC');
+        
+        $resArr = array();
+        while ($rec = $query->fetch()) {
+            if ($resArr[$rec->originIdCalc]) continue;
+            
+            $resArr[$rec->originIdCalc] = $rec;
+        }
+        
+        // Подреждаме масива, според order
+        arr::sortObjects($resArr, 'order', 'DESC');
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Manager $mvc
+     * @param string       $requiredRoles
+     * @param string       $action
+     * @param stdClass     $rec
+     * @param int          $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($rec) {
+            if (($userId != $rec->createdBy) && !haveRole('admin', $userId)) {
+                if (($action == 'edit') || ($action == 'delete')) {
+                    $requiredRoles = 'no_one';
+                }
+                
+                if (($action == 'single') && ($rec->createdBy != $userId)) {
+                    if ($rec->userOrRole > 0) {
+                        $requiredRoles = 'no_one';
+                    }
+                }
+                
+                if (($requiredRoles != 'no_one') && $action == 'cloneuserdata') {
+                    $requiredRoles = $mvc->getRequiredRoles('single', $rec, $userId);
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    public static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        // Да се показва полето за търсене
+        $data->listFilter->showFields = 'userOrRole';
+        
+        $data->listFilter->view = 'horizontal';
+        
+        //Добавяме бутон "Филтрирай"
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->setDefault('userOrRole', core_Users::getCurrent());
+        
+        $data->listFilter->input();
+        
+        if ($data->listFilter->rec->userOrRole) {
+            $data->query->where(array("#userOrRole = '[#1#]'", $data->listFilter->rec->userOrRole));
+            if ($data->listFilter->rec->userOrRole > 0) {
+                $uRoles = core_Users::fetchField(array("#id = '[#1#]'", $data->listFilter->rec->userOrRole), 'roles');
+                $uRolesArr = type_Keylist::toArray($uRoles);
+                foreach ($uRolesArr as &$uRole) {
+                    $uRole = type_UserOrRole::getSysRoleId($uRole);
+                }
+                
+                $data->query->in('userOrRole', $uRolesArr, false, true);
+                $data->query->orWhere(array("#userOrRole = '[#1#]'", type_UserOrRole::getAllSysTeamId()));
+            }
+        }
+        
+        $data->query->orderBy('userOrRole', 'DESC');
+        $data->query->orderBy('order', 'DESC');
+        $data->query->orderBy('createdBy', 'DESC');
     }
     
     
