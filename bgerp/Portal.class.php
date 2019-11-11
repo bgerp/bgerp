@@ -148,6 +148,8 @@ class bgerp_Portal extends embed_Manager
             $data = $intf->prepare($r, $cu);
             $res = $intf->render($data);
             
+            if (!$res) continue;
+            
             if (!$r->column) {
                 $r->column = 1;
             }
