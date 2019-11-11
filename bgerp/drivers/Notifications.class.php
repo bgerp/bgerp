@@ -27,7 +27,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('pages', 'int(min=1, max=50)', 'caption=Страници, mandatory');
+        $fieldset->FLD('perPage', 'int(min=1, max=50)', 'caption=Редове, mandatory');
     }
     
     
@@ -108,7 +108,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
             $resData->lastModifiedOnKey .= '|' . $cLastRec->id;
         }
         
-        $resData->cacheKey = md5($dRec->pages . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch') . '_' . core_Lg::getCurrent());
+        $resData->cacheKey = md5($dRec->perPage . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch') . '_' . core_Lg::getCurrent());
         $resData->cacheType = 'Notifications';
         
         list($resData->tpl, $resData->modifiedOnKey) = core_Cache::get($resData->cacheType, $resData->cacheKey);
@@ -147,7 +147,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
             $data->listFilter->showFields = $Notifications->searchInputField;
             bgerp_Portal::prepareSearchForm($Notifications, $data->listFilter);
             
-            $Notifications->listItemsPerPage = $dRec->pages ? $dRec->pages : 20;
+            $Notifications->listItemsPerPage = $dRec->perPage ? $dRec->perPage : 20;
             
             // Подготвяме навигацията по страници
             $Notifications->prepareListPager($data);
@@ -209,6 +209,6 @@ class bgerp_drivers_Notifications extends core_BaseClass
      */
     protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
     {
-        $data->form->setDefault('pages', 20);
+        $data->form->setDefault('perPage', 20);
     }
 }

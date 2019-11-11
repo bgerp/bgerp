@@ -555,9 +555,9 @@ class bgerp_Setup extends core_ProtoSetup
         $bQuery = bgerp_Portal::getQuery();
         $bQuery->delete("1=1");
         
-        $iArr = array('bgerp_drivers_Notifications' => array('pages' => 15, 'column' => 1, 'order' => 11),
-                      'bgerp_drivers_Tasks' => array('pages' => 20, 'column' => 2, 'order' => 22),
-                      'bgerp_drivers_Recently' => array('pages' => 10, 'column' => 3, 'order' => 66),
+        $iArr = array('bgerp_drivers_Notifications' => array('perPage' => 15, 'column' => 1, 'order' => 11),
+                      'bgerp_drivers_Tasks' => array('perPage' => 20, 'column' => 2, 'order' => 22),
+                      'bgerp_drivers_Recently' => array('perPage' => 10, 'column' => 3, 'order' => 66),
                       'bgerp_drivers_Calendar' => array('column' => 3, 'order' => 33)
                       );
         
@@ -567,8 +567,8 @@ class bgerp_Setup extends core_ProtoSetup
             $rec->column = $iData['column'];
             $rec->order = $iData['order'];
             
-            if ($iData['pages']) {
-                $rec->pages = $iData['pages'];
+            if ($iData['perPage']) {
+                $rec->perPage = $iData['perPage'];
             }
             
             $rec->userOrRole = type_UserOrRole::getAllSysTeamId();
