@@ -217,8 +217,7 @@ class bgerp_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'migrate::setUrlIds',
-            'migrate::setNewPortal',
+            'migrate::setUrlIds'
     );
     
     
@@ -576,5 +575,18 @@ class bgerp_Setup extends core_ProtoSetup
             
             $Portal->save($rec);
         }
+    }
+    
+    
+    /**
+     * Зареждане на данни
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        
+        $res .= $this->callMigrate('setNewPortal', 'bgerp');
+        
+        return $res;
     }
 }
