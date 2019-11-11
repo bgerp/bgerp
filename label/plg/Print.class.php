@@ -74,7 +74,7 @@ class label_plg_Print extends core_Plugin
             $mvc->requireRightFor('printperipherallabel', $rec);
             
             $res = new core_ET('');
-            $res->append('<body><div class="fullScreenBg" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: block;"><h3 style="color: #fff; font-size: 56px; text-align: center; position: absolute; top: 30%; width: 100%">Отпечатва се етикет ...<br> Моля, изчакайте!</h3></div></body>');
+            $res->append('<body><div class="fullScreenBg" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: block;"><h3 style="color: #fff; font-size: 56px; text-align: center; position: absolute; top: 30%; width: 100%">Разпечатва се етикет ...<br> Моля, изчакайте!</h3></div></body>');
             
             // Ако има периферия за печат на етикети
             expect($deviceRec = peripheral_Devices::getDevice('peripheral_PrinterIntf'));
