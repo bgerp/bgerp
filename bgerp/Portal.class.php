@@ -38,7 +38,12 @@ class bgerp_Portal extends embed_Manager
      * Неща за зареждане в началото
      */
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, bgerp_Wrapper, plg_Clone';
-    public $fieldsNotToClone = 'createdOn, createdBy, modifiedOn, modifiedBy';
+    
+    /**
+     * Полета, които да не се клонират
+     */
+    public $fieldsNotToClone = 'createdOn, createdBy, modifiedOn, modifiedBy, userOrRole';
+    
     
     /**
      * Заглавие на мениджъра
@@ -59,6 +64,8 @@ class bgerp_Portal extends embed_Manager
         $this->FLD('color', 'enum(red=Червен, green=Зелен, blue=Син)', 'caption=Цвят');
         
         $this->FNC('originIdCalc', 'key(mvc=bgerp_Portal, allowEmpty)', 'caption=Източник,input=none');
+        
+        //@todo - празна стойност
         
         $optArr = array();
         foreach ($this->fields['color']->type->options as $color => $verbal) {
@@ -214,6 +221,9 @@ class bgerp_Portal extends embed_Manager
         
         // Подреждаме масива, според order
         arr::sortObjects($resArr, 'order', 'DESC');
+        
+        // @todo - ограничение на бройката
+//         $resArr
         
         return $resArr;
     }
