@@ -651,7 +651,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $row->serial = ht::createLink($row->serial, $selectRowUrl, false, 'title=Редакция на реда');
                 }
             } else {
-                if(!empty($rec->serial)){
+                if(!empty($rec->serial) && $rec->state != 'rejected'){
                     $row->serial = self::getLink($rec->taskId, $rec->serial);
                 }
             }

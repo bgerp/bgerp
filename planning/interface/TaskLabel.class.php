@@ -106,9 +106,8 @@ class planning_interface_TaskLabel
         
         core_Lg::push('en');
         $quantity = $rec->quantity . " " . tr(cat_UoM::getShortName($rowInfo->measureId));
-        core_Lg::pop();
-        
         $weight = (!empty($rec->weight)) ? core_Type::getByName('cat_type_Weight')->toVerbal($rec->weight) : null;
+        core_Lg::pop('en');
         
         $date = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
         $Origin = doc_Containers::getDocument(planning_Tasks::fetchField($rec->taskId, 'originId'));
