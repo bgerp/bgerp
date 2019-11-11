@@ -28,6 +28,7 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('target', 'int(Min=0)', 'caption=Цел, mandatory');
+        $fieldset->FLD('gaugeType', 'enum(radial=Скоростомер,linear=Линейно)', 'caption=Показване, mandatory');
     }
     
     
@@ -120,7 +121,7 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
         
         $iRec = $query->fetch();
         
-        $resData->cacheKey = md5($dRec->target . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent() . '_' . $iRec->id . '_' . $iRec->value);
+        $resData->cacheKey = md5($dRec->gaugeType . '_' . $dRec->target . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent() . '_' . $iRec->id . '_' . $iRec->value);
         $resData->cacheType = 'TotalRepPortal';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
@@ -128,6 +129,8 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
         if (!$resData->tpl) {
             $resData->speed = acc_reports_TotalRep::getDeltaSpeed($from, $to, $target, $deltaId);
         }
+        
+        $resData->gaugeType = $dRec->gaugeType ? $dRec->gaugeType : 'radial';
         
         return $resData;
     }
@@ -143,9 +146,14 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
     public function render($data)
     {
         if (!$data->tpl && $data->speed) {
-            $gauge = acc_reports_TotalRep::getSpeedRatioGauge($data->speed, false);
             
-            $data->tpl = new ET(tr('|*<div class="legend">|Общи цели|*<div>[#GAUGE#]</div></div>'));
+            if ($data->gaugeType == 'linear') {
+                $scaleArr = array('width' => 500);
+            }
+            
+            $gauge = acc_reports_TotalRep::getSpeedRatioGauge($data->speed, false, $data->gaugeType, $scaleArr);
+            
+            $data->tpl = new ET('[#GAUGE#]');
             
             $data->tpl->replace($gauge, 'GAUGE');
             

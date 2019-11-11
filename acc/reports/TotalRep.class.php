@@ -184,8 +184,16 @@ class acc_reports_TotalRep extends frame2_driver_TableData
     }
     
     
-    
-    public static function getSpeedRatioGauge($speed, $checkVal = true)
+    /**
+     * Връща gauge представяне
+     * 
+     * @param integer $speed
+     * @param boolean $checkVal
+     * @param string $type
+     * 
+     * @return null|ET
+     */
+    public static function getSpeedRatioGauge($speed, $checkVal = true, $type = 'radial', $scaleArr = array())
     {
         $ratio = self::getWorkingDaysBetween(date('Y-m-01'), dt::now()) / self::getWorkingDaysBetween(date('Y-m-01'), date('Y-m-t'));
         
@@ -214,12 +222,24 @@ class acc_reports_TotalRep extends frame2_driver_TableData
                         (object) array('from' => 100, 'to' => 160, 'color' => '#66ff00'),
                         
                 ),
+                'title' => tr('Общи цели')
         );
         
-        $gauge = canvasgauge_Gauge::drawRadial($value, null, $scale);
+        if (!empty($scaleArr)) {
+            foreach ($scaleArr as $f => $n) {
+                $scale[$f] = $n;
+            }
+        }
+        
+        if ($type == 'radial') {
+            $gauge = canvasgauge_Gauge::drawRadial($value, null, $scale);
+        } else {
+            $gauge = canvasgauge_Gauge::drawLinear($value, null, $scale);
+        }
         
         return $gauge;
     }
+    
     
     /**
      * Връша броя на работните дни между посочените дати
