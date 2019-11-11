@@ -27,7 +27,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('pages', 'int(min=1, max=50)', 'caption=Страници, mandatory');
+        $fieldset->FLD('perPage', 'int(min=1, max=50)', 'caption=Редове, mandatory');
     }
     
     
@@ -96,7 +96,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         $cloneQuery->show('modifiedOn, id');
         $cRec = $cloneQuery->fetch();
         
-        $resData->cacheKey = md5($dRec->pages . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_cal_Tasks') . '_' . core_Lg::getCurrent() . '_' . $cRec->id . '_' . $cRec->modifiedOn . '_' . Mode::get('listTasks'));
+        $resData->cacheKey = md5($dRec->perPage . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_cal_Tasks') . '_' . core_Lg::getCurrent() . '_' . $cRec->id . '_' . $cRec->modifiedOn . '_' . Mode::get('listTasks'));
         $resData->cacheType = 'Tasks';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
@@ -120,7 +120,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
             
             $Tasks = cls::get('cal_Tasks');
             
-            $Tasks->listItemsPerPage = $dRec->pages ? $dRec->pages : 15;
+            $Tasks->listItemsPerPage = $dRec->perPage ? $dRec->perPage : 15;
             
             $resData->data->usePortalArrange = false;
             
@@ -270,6 +270,6 @@ class bgerp_drivers_Tasks extends core_BaseClass
      */
     protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
     {
-        $data->form->setDefault('pages', 20);
+        $data->form->setDefault('perPage', 20);
     }
 }

@@ -27,7 +27,7 @@ class bgerp_drivers_Recently extends core_BaseClass
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('pages', 'int(min=1, max=50)', 'caption=Страници, mandatory');
+        $fieldset->FLD('perPage', 'int(min=1, max=50)', 'caption=Редове, mandatory');
     }
     
     
@@ -68,7 +68,7 @@ class bgerp_drivers_Recently extends core_BaseClass
         $query->limit(1);
         $query->orderBy('#last', 'DESC');
         $lastRec = $query->fetch();
-        $resData->cacheKey = md5($dRec->pages . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Recently') . '_' . Request::get('recentlySearch') . '_' . core_Lg::getCurrent());
+        $resData->cacheKey = md5($dRec->perPage . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Recently') . '_' . Request::get('recentlySearch') . '_' . core_Lg::getCurrent());
         $resData->cacheType = 'RecentDoc';
         
         list($resData->tpl, $lastCreatedOn) = core_Cache::get($resData->cacheType, $resData->cacheKey);
@@ -94,7 +94,7 @@ class bgerp_drivers_Recently extends core_BaseClass
             $data->listFilter->showFields = $Recently->searchInputField;
             bgerp_Portal::prepareSearchForm($Recently, $data->listFilter);
             
-            $Recently->listItemsPerPage = $dRec->pages ? $dRec->pages : 15;
+            $Recently->listItemsPerPage = $dRec->perPage ? $dRec->perPage : 15;
             
             $data->usePortalArrange = false;
             
@@ -158,6 +158,6 @@ class bgerp_drivers_Recently extends core_BaseClass
      */
     protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
     {
-        $data->form->setDefault('pages', 10);
+        $data->form->setDefault('perPage', 10);
     }
 }
