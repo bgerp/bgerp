@@ -228,6 +228,11 @@ class type_UserOrRole extends type_User
             $allSysTeams = 1 - pow(2, 31);
         }
         
+        if ($allSysTeams >= 0) {
+            wp($allSysTeams);
+            $allSysTeams = -2147483647;
+        }
+        
         return $allSysTeams;
     }
     

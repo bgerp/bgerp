@@ -387,8 +387,8 @@ class bgerp_Recently extends core_Manager
             $divId = $Recently->getDivId();
             
             $tpl = new ET("
-                <div class='clearfix21 portal' style='background-color:#f8f8ff'>
-                <div style='background-color:#eef' class='legend'><div style='float:left'>[#PortalTitle#]</div>
+                <div class='clearfix21 portal'>
+                <div class='legend'><div style='float:left'>[#PortalTitle#]</div>
                 [#ListFilter#]<div class='clearfix21'></div></div>
                 [#PortalPagerTop#]
                 

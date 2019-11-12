@@ -486,7 +486,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         
         if ($rec->type == 'production') {
-            $row->type = (!empty($packagingId)) ? tr("Произв.|* {$labelPackagingName}") : tr('Произвеждане');
+            $row->type = (!empty($packagingId) && ($labelPackagingId !== $pRec->measureId)) ? tr("Произв.|* {$labelPackagingName}") : tr('Произвеждане');
         }
         
         $row->scrappedQuantity = '';
@@ -651,7 +651,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $row->serial = ht::createLink($row->serial, $selectRowUrl, false, 'title=Редакция на реда');
                 }
             } else {
-                if(!empty($rec->serial)){
+                if(!empty($rec->serial) && $rec->state != 'rejected'){
                     $row->serial = self::getLink($rec->taskId, $rec->serial);
                 }
             }
@@ -875,7 +875,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         
         if($action == 'printperipherallabel' && isset($rec)){
-            if($rec->type != 'production'){
+            if($rec->type != 'production' || $rec->state == 'rejected'){
                 $requiredRoles = 'no_one';
             }
         }

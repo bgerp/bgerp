@@ -181,7 +181,6 @@ body {
 .portal {
   margin-top: 0;
   margin-bottom: 15px;
-  background-color: white !important;
   border-radius: 2px;
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
   -webkit-transition: -webkit-transform 300 ease-in-out, opacity 300;
@@ -193,13 +192,100 @@ body {
     margin-left: -15px;
     margin-right: -15px;
     padding: 10px 15px 10px;
-    background: #f1f1f1 !important;
     border: none;
+    background: #f1f1f1;
     position: relative;
     top: 0;
     border-radius: 0 !important;
     box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.1);
     margin-bottom: 20px; }
+  .portal .pages a {
+    background-color: white;
+    border-color: #bbbbbb; }
+
+  .color-lightgray .portal {
+    background-color: white; }
+  .color-lightgray .legend,
+  span.color-lightgray {
+    background: #f1f1f1;
+    color: black; }
+
+  .color-darkgray .portal {
+    background-color: #e1e1e1; }
+  .color-darkgray .legend,
+  span.color-darkgray {
+    background-color: #333333;
+    color: #dddddd; }
+
+  .color-lightgreen .portal {
+    background-color: #e6f4e0; }
+  .color-lightgreen .legend,
+  span.color-lightgreen {
+    background-color: #7ac15b;
+    color: #222222; }
+
+  .color-darkgreen .portal {
+    background-color: #dae6d5; }
+  .color-darkgreen .legend,
+  span.color-darkgreen {
+    background-color: #375d26;
+    color: #eeeeee; }
+
+  .color-darkblue .portal {
+    background-color: #eceaf9; }
+  .color-darkblue .legend,
+  span.color-darkblue {
+    background-color: #261e75;
+    color: white; }
+
+  .color-lightblue .portal {
+    background-color: #dbedf9; }
+  .color-lightblue .legend,
+  span.color-lightblue {
+    background-color: #2085ca;
+    color: white; }
+
+  .color-lightred .portal {
+    background-color: #fce8e8; }
+  .color-lightred .legend,
+  span.color-lightred {
+    background-color: #ea5757;
+    color: white; }
+
+  .color-darkred .portal {
+    background-color: #f4dbdb; }
+  .color-darkred .legend,
+  span.color-darkred {
+    background-color: #6b1e1e;
+    color: white; }
+
+  .color-purple .portal {
+    background-color: #ecdff1; }
+  .color-purple .legend,
+  span.color-purple {
+    background-color: #6d417b;
+    color: white; }
+
+  .color-pink .portal {
+    background-color: #f5daf0; }
+  .color-pink .legend,
+  span.color-pink {
+    background-color: #c147aa;
+    color: white; }
+
+  .color-yellow .portal {
+    background-color: #f8f7e2; }
+  .color-yellow .legend,
+  span.color-yellow {
+    background-color: #eaea6b;
+    color: #333333; }
+
+  .color-orange .portal {
+    background-color: #fbefe3; }
+  .color-orange .legend,
+  span.color-orange {
+    background-color: #e48027;
+    color: white; }
 
 .narrow .portal {
   box-shadow: none;

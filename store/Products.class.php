@@ -905,7 +905,7 @@ class store_Products extends core_Detail
                     // Колко е готовноста
                     $missingAmount = 0;
                     foreach ($products as $productId => $object){
-                        $singlePrice = round($object->amount / $object->quantity, 6);
+                        $singlePrice = (!empty($object->quantity)) ? round($object->amount / $object->quantity, 6) : 0;
                         $inStore = $quantities[$productId];
                         $inStore = (empty($inStore) || $inStore < 0) ? 0 : $inStore;
                         
