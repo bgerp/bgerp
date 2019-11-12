@@ -156,7 +156,7 @@ class bgerp_Portal extends embed_Manager
             
             $colorCls = $r->color ? $r->color : 'all';
             
-            $res->prepend("<div class='portalBlockColor-{$colorCls}'>");
+            $res->prepend("<div class='color-{$colorCls}'>");
             $res->append("</div>");
             
             $tpl->append($res, $columnMap[$r->column]);
