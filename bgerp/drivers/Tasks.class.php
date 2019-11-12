@@ -195,8 +195,8 @@ class bgerp_drivers_Tasks extends core_BaseClass
         if (!$data->tpl) {
             
             $data->tpl = new ET('
-                                <div class="clearfix21 portal" style="background-color:#fffff0;margin-bottom:25px;">
-                                <div class="legend" style="background-color:#ffd;">[#taskTitle#]&nbsp;[#profile#]&nbsp;[#SWITCH_BTN#]&nbsp;[#ADD_BTN#]&nbsp;[#REM_BTN#]</div>
+                                <div class="clearfix21 portal" style="margin-bottom:25px;">
+                                <div class="legend">[#taskTitle#]&nbsp;[#profile#]&nbsp;[#SWITCH_BTN#]&nbsp;[#ADD_BTN#]&nbsp;[#REM_BTN#]</div>
                                 [#PortalPagerTop#]
                                 [#PortalTable#]
                             	[#PortalPagerBottom#]

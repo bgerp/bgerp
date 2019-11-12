@@ -61,7 +61,7 @@ class bgerp_Portal extends embed_Manager
         $this->FLD('userOrRole', 'userOrRole(rolesType=team, rolesForAllRoles=admin, rolesForAllSysTeam=admin, userRoles=powerUser)', 'caption=Потребител/Роля, silent, refreshForm');
         $this->FLD('column', 'enum(1,2,3)', 'caption=Колона');
         $this->FLD('order', 'int(min=-1000, max=1000)', 'caption=Подредба, notNull');
-        $this->FLD('color', 'enum(red=Червен, green=Зелен, blue=Син)', 'caption=Цвят');
+        $this->FLD('color', 'enum(lightgray=Светло сив,darkgray=Тъмно сив,lightred=Светло червен,darkred=Тъмно червен,lightgreen=Светло зелен,darkgreen=Тъмно зелен,lightblue=Светло син,darkblue= Тъмно син, yellow=Жълт, pink=Розав, purple=Лилав, orange=Оранжево)', 'caption=Цвят');
         
         $this->FNC('originIdCalc', 'key(mvc=bgerp_Portal, allowEmpty)', 'caption=Източник,input=none');
         
@@ -361,8 +361,8 @@ class bgerp_Portal extends embed_Manager
         
         $taskTitle = str_replace(' ', '&nbsp;', $taskTitle);
         
-        $tasksTpl = new ET('<div class="clearfix21 portal" style="background-color:#fffff0;margin-bottom:25px;">
-            <div class="legend" style="background-color:#ffd;">' . $taskTitle . '&nbsp;' . crm_Profiles::createLink() . '&nbsp;[#SWITCH_BTN#]&nbsp;[#ADD_BTN#]&nbsp;[#REM_BTN#]</div>
+        $tasksTpl = new ET('<div class="clearfix21 portal" style="margin-bottom:25px;">
+            <div class="legend">' . $taskTitle . '&nbsp;' . crm_Profiles::createLink() . '&nbsp;[#SWITCH_BTN#]&nbsp;[#ADD_BTN#]&nbsp;[#REM_BTN#]</div>
             [#TASKS#]
             </div>');
         
@@ -393,8 +393,8 @@ class bgerp_Portal extends embed_Manager
         $searchForm = $calMvc->getForm();
         self::prepareSearchForm($calMvc, $searchForm);
         
-        $calendarHeader = new ET('<div class="clearfix21 portal" style="background-color:#f8fff8;">
-            <div class="legend" id="calendarPortal" style="background-color:#efe;height:20px;">' . $calTitle . '
+        $calendarHeader = new ET('<div class="clearfix21 portal">
+            <div class="legend" id="calendarPortal" style="height:20px;">' . $calTitle . '
             ' . $searchForm->renderHtml() . '
             </div>
             [#CALENDAR_DETAILS#]

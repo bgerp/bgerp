@@ -1354,8 +1354,8 @@ class bgerp_Notifications extends core_Manager
             $divId = $Notifications->getDivId();
             
             $tpl = new ET("
-                <div class='clearfix21 portal' style='background-color:#fff8f8'>
-                <div style='background-color:#fee' class='legend'><div style='float:left'>[#PortalTitle#]</div>
+                <div class='clearfix21 portal'>
+                <div class='legend'><div style='float:left'>[#PortalTitle#]</div>
                 [#ListFilter#]<div class='clearfix21'></div></div>
                 [#PortalPagerTop#]
                 
