@@ -146,14 +146,19 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
     public function render($data)
     {
         if (!$data->tpl && $data->speed) {
-            
+            $scaleArr = array('title' => "");
+
             if ($data->gaugeType == 'linear') {
-                $scaleArr = array('width' => 500);
+                $scaleArr = $scaleArr + array(  'width' => 500,
+                                                'title' => "",
+                                                'borders' => false,
+                                                'borderShadowWidth' => 0
+                );
             }
             
             $gauge = acc_reports_TotalRep::getSpeedRatioGauge($data->speed, false, $data->gaugeType, $scaleArr);
             
-            $data->tpl = new ET('[#GAUGE#]');
+            $data->tpl = new ET(tr('|*<div class="clearfix21 portal"> <div class="legend">|Общи цели|*</div><div style="text-align: center"> [#GAUGE#]</div></div>'));
             
             $data->tpl->replace($gauge, 'GAUGE');
             
