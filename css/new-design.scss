@@ -289,7 +289,7 @@ body {
     .portal {
         background-color: #ecdff1;
     }
-    .legend {
+    span&, .legend {
         background-color: #6d417b;
         color: #FFF;
     }
@@ -299,7 +299,7 @@ body {
     .portal {
         background-color: #f5daf0;
     }
-    .legend {
+    span&, .legend {
         background-color: #c147aa;
         color: #FFF;
     }

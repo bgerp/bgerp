@@ -258,13 +258,15 @@ body {
 
   .color-purple .portal {
     background-color: #ecdff1; }
-  .color-purple .legend {
+  .color-purple .legend,
+  span.color-purple {
     background-color: #6d417b;
     color: white; }
 
   .color-pink .portal {
     background-color: #f5daf0; }
-  .color-pink .legend {
+  .color-pink .legend,
+  span.color-pink {
     background-color: #c147aa;
     color: white; }
 
