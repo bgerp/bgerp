@@ -180,7 +180,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         $arr = array();
         $key = date('m/Y');
         
-        $tpl->append($this->getSpeedRatioGauge($data->rec->data->recs[$key]->speed), 'DRIVER_FIELDS');
+        $tpl->append($Driver->getSpeedRatioGauge($data->rec->data->recs[$key]->speed), 'DRIVER_FIELDS');
     }
     
     
