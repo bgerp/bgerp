@@ -241,6 +241,8 @@ class type_UserOrRole extends type_User
      */
     public static function getSysRoleId($roleId)
     {
+        $roleId = (int) $roleId;
+
         $allSysTeam = self::getAllSysTeamId();
         
         $nRoleId = $allSysTeam + $roleId;
@@ -257,7 +259,9 @@ class type_UserOrRole extends type_User
      * @return int|NULL
      */
     public static function getRoleIdFromSys($sysRoleId)
-    {
+    {   
+        $sysRoleId = (int) $sysRoleId;
+
         if ($sysRoleId >= 0) {
             
             return;
