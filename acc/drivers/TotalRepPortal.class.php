@@ -146,7 +146,7 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
     public function render($data)
     {
         if (!$data->tpl && $data->speed) {
-            $scaleArr = array('title' => "");
+            $scaleArr = array('title' => "" , 'colorPlate' => 'transparent');
 
             if ($data->gaugeType == 'linear') {
                 $scaleArr = $scaleArr + array(  'width' => 500,
