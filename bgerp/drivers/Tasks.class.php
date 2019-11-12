@@ -76,11 +76,10 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         // Вадим 3 работни дни
         $now = dt::now();
+        
         $before = $after = dt::now(false);
-        while (cal_Tasks::$taskShowPeriod--) {
-            $before = cal_Calendar::nextWorkingDay($before, null, -1);
-            $after = cal_Calendar::nextWorkingDay($after, null, 1);
-        }
+        $before = cal_Calendar::nextWorkingDay($before, null, -1 * cal_Tasks::$taskShowPeriod);
+        $after = cal_Calendar::nextWorkingDay($after, null, cal_Tasks::$taskShowPeriod);
         $before .= ' 00:00:00';
         $after .= ' 23:59:59';
         
