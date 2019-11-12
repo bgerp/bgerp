@@ -199,6 +199,9 @@ body {
     border-radius: 0 !important;
     box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.1);
     margin-bottom: 20px; }
+  .portal .pages a {
+    background-color: white;
+    border-color: #bbbbbb; }
 
   .color-lightgray .portal {
     background-color: white; }
