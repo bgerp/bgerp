@@ -77,12 +77,11 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
             return cls::get('type_Html')->toVerbal($value);
         }
         
-        $today = strtotime(dt::today());
-        
+        $currentTime = strtotime(dt::today());
         $mysqlValue = dt::getMysqlFromMask($value, $this->rec->format);
         
         // Ако партидата е изтекла оцветяваме я в червено
-        if (strtotime($mysqlValue) < $today) {
+        if (strtotime($mysqlValue) < $currentTime) {
             $valueHint = ht::createHint($value, 'Срокът на годност на партидата е изтекъл', 'warning');
             $value = new core_ET("<span class='red'>[#value#]</span>");
             $value->replace($valueHint, 'value');
@@ -94,7 +93,6 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
                 $startDate = dt::verbal2mysql($startDate, false);
                 $startTime = strtotime($startDate);
                 $endTime = strtotime($mysqlValue);
-                $currentTime = strtotime($today);
                 
                 // Намираме колко сме близо до изтичането на партидата
                 $percent = ($currentTime - $startTime) / ($endTime - $startTime);
