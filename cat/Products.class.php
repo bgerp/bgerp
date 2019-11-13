@@ -2381,6 +2381,12 @@ class cat_Products extends embed_Manager
                 }
             }
         }
+        
+        if($action == 'add' && isset($rec->innerClass)){
+            if(!cls::load($rec->innerClass, true)){
+                $res = 'no_one';
+            }
+        }
     }
     
     
