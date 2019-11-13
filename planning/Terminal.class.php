@@ -592,7 +592,7 @@ class planning_Terminal extends peripheral_Terminal
     {
         $dump = $e->getDump();
         $dump = $dump[0];
-        $errorMsg = (haveRole('debug')) ? $dump : 'Възникна проблем при отчитане на прогреса|*!';
+        $errorMsg = $dump;
         reportException($e);
         
         if (Request::get('ajax_mode')) {
