@@ -26,7 +26,7 @@ class bgerp_Portal extends embed_Manager
     public $canClonesysdata = 'powerUser';
     public $canCloneuserdata = 'powerUser';
     public $canClonerec = 'powerUser';
-    
+
 //     public $canList = 'powerUser';
     public $canList = 'debug';
     public $canSingle = 'powerUser';
@@ -34,10 +34,12 @@ class bgerp_Portal extends embed_Manager
     public $canEdit = 'powerUser';
     public $canDelete = 'powerUser';
     
+    
     /**
      * Неща за зареждане в началото
      */
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, bgerp_Wrapper, plg_Clone';
+    
     
     /**
      * Полета, които да не се клонират
@@ -51,7 +53,11 @@ class bgerp_Portal extends embed_Manager
     public $title = 'Елементи на портала';
     
     
-    public $listFields = 'driverClass, userOrRole, column, order, color, originIdCalc, createdOn, createdBy';
+    /**
+     * 
+     */
+    public $listFields = 'driverClass, userOrRole, column, order, color, createdOn, createdBy';
+    
     
     /**
      * Описание на модела
@@ -61,7 +67,7 @@ class bgerp_Portal extends embed_Manager
         $this->FLD('userOrRole', 'userOrRole(rolesType=team, rolesForAllRoles=admin, rolesForAllSysTeam=admin, userRoles=powerUser)', 'caption=Потребител/Роля, silent, refreshForm');
         $this->FLD('column', 'enum(1,2,3)', 'caption=Колона');
         $this->FLD('order', 'int(min=-1000, max=1000)', 'caption=Подредба, notNull');
-        $this->FLD('color', 'enum(lightgray=Светло сив,darkgray=Тъмно сив,lightred=Светло червен,darkred=Тъмно червен,lightgreen=Светло зелен,darkgreen=Тъмно зелен,lightblue=Светло син,darkblue= Тъмно син, yellow=Жълт, pink=Розoв, purple=Лилав, orange=Оранжев)', 'caption=Цвят');
+        $this->FLD('color', 'enum(lightgray=Светло сив,darkgray=Тъмно сив,lightred=Светло червен,darkred=Тъмно червен,lightgreen=Светло зелен,darkgreen=Тъмно зелен,lightblue=Светло син,darkblue= Тъмно син, yellow=Жълт, pink=Розов, purple=Лилав, orange=Оранжев)', 'caption=Цвят');
         
         $this->FNC('originIdCalc', 'key(mvc=bgerp_Portal, allowEmpty)', 'caption=Източник,input=none');
         
@@ -256,6 +262,15 @@ class bgerp_Portal extends embed_Manager
                 
                 if (($requiredRoles != 'no_one') && $action == 'cloneuserdata') {
                     $requiredRoles = $mvc->getRequiredRoles('single', $rec, $userId);
+                }
+            }
+            
+            // Ако имат "баща", да не може да се изтрие
+            if ($action == 'delete') {
+                if ($rec->clonedFromId) {
+                    if ($mvc->fetch($rec->clonedFromId)) {
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
