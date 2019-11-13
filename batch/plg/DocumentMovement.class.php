@@ -59,23 +59,24 @@ class batch_plg_DocumentMovement extends core_Plugin
         $templateQuery->where("#alwaysRequire = 'yes' AND #state != 'closed'");
         $templateQuery->show('id');
         $templateIds = arr::extractValuesFromArray($templateQuery->fetchAll(), 'id');
-        
-        // Има ли артикули с партидни дефиниции от тях
-        $defQuery = batch_Defs::getQuery();
-        $defQuery->show('productId');
+       
+        // Кои са артикулите със задължителни партиди, или с избрано автоматично и партидноста им по дефолт да е задължителна
+        $where = "#alwaysRequire = 'yes'";
         if(count($templateIds)){
-            $defQuery->in("templateId", $templateIds);
-        } else {
-            $defQuery->where("1=2");
+            $templateIds = implode(',', $templateIds);
+            $where .= " OR (#alwaysRequire = 'auto' && #templateId IN ({$templateIds}))";
         }
         
-        // Ако няма не се прави нищо
+        $defQuery = batch_Defs::getQuery();
+        $defQuery->where($where);
+        $defQuery->show('productId');
         $productIds = arr::extractValuesFromArray($defQuery->fetchAll(), 'productId');
+        
         if(!count($productIds)){
             
             return;
         }
-        
+       
         // Гледат се детайлите на документа
         $productsWithoutBatchesArr = array();
         $detailMvcs = ($mvc instanceof store_ConsignmentProtocols) ? array('store_ConsignmentProtocolDetailsReceived', 'store_ConsignmentProtocolDetailsSend') : (isset($mvc->mainDetail) ? array($mvc->mainDetail) : array());
