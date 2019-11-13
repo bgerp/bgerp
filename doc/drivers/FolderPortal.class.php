@@ -120,7 +120,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
             
             $Threads->listItemsPerPage = $dRec->perPage ? $dRec->perPage : 5;
             
-            $data->listFields = arr::make('title=Заглавие,author=Автор,last=Последно,hnd=Номер,allDocCnt=Документи', true);
+            $data->listFields = arr::make('title=Заглавие,author=Автор,last=Последно', true);
             
             $data->query = $dQuery;
             $data->rejQuery = clone $dQuery;
@@ -152,7 +152,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
                 $attrArr['url'] = array();
             }
             
-            $resData->folderTitle = doc_Folders::getLink($dRec->folderId, 52, $attrArr);
+            $resData->folderTitle = doc_Folders::getLink($dRec->folderId, 42, $attrArr);
             
             $dRec->search = trim($dRec->search);
             if ($dRec->search) {
