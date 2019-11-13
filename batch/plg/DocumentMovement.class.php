@@ -48,6 +48,66 @@ class batch_plg_DocumentMovement extends core_Plugin
     
     
     /**
+     * Изпълнява се преди контиране на документа
+     */
+    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        // Всички дефиниции, със задължителни партиди
+        $templateQuery = batch_Templates::getQuery();
+        $templateQuery->where("#alwaysRequire = 'yes' AND #state != 'closed'");
+        $templateQuery->show('id');
+        $templateIds = arr::extractValuesFromArray($templateQuery->fetchAll(), 'id');
+        
+        // Има ли артикули с партидни дефиниции от тях
+        $defQuery = batch_Defs::getQuery();
+        $defQuery->show('productId');
+        if(count($templateIds)){
+            $defQuery->in("templateId", $templateIds);
+        } else {
+            $defQuery->where("1=2");
+        }
+        
+        // Ако няма не се прави нищо
+        $productIds = arr::extractValuesFromArray($defQuery->fetchAll(), 'productId');
+        if(!count($productIds)){
+            
+            return;
+        }
+        
+        // Гледат се детайлите на документа
+        $productsWithoutBatchesArr = array();
+        $detailMvcs = ($mvc instanceof store_ConsignmentProtocols) ? array('store_ConsignmentProtocolDetailsReceived', 'store_ConsignmentProtocolDetailsSend') : (isset($mvc->mainDetail) ? array($mvc->mainDetail) : array());
+        foreach ($detailMvcs as $det){
+            
+            // Има ли в тях артикули, от тези, на които задължително трябва да е посочена партида
+            $Detail = cls::get($det);
+            $dQuery = $Detail->getQuery();
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+            $dQuery->in("{$Detail->productFld}", $productIds);
+            $dQuery->show("id,{$Detail->productFld}");
+            
+            while($dRec = $dQuery->fetch()){
+                
+                // Ако някои от тях нямат посочена партида, документа няма да се контира
+                if(!batch_BatchesInDocuments::fetch("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$dRec->id}")){
+                    $productsWithoutBatchesArr[$dRec->{$Detail->productFld}] = "<b>" . cat_Products::getTitleById($dRec->{$Detail->productFld}, false) . "</b>";
+                }
+            }
+        }
+        
+        // Ако има артикули, с задължителни партидности, които не са посочени няма да може да се контира
+        if(count($productsWithoutBatchesArr)){
+            $productMsg = implode(', ', $productsWithoutBatchesArr);
+            core_Statuses::newStatus("Следните артикули, трябва да са с посочени партиди|*: {$productMsg}", 'error');
+            
+            return false;
+        }
+    }
+    
+    
+    /**
      * Извиква се след успешен запис в модела
      *
      * @param core_Mvc $mvc
