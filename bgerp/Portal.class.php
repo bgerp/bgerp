@@ -109,6 +109,8 @@ class bgerp_Portal extends embed_Manager
      */
     public function act_Show2()
     {
+        $maxShowCnt = 12;
+        
         // Ако е инсталиран пакета за партньори
         // И текущия потребител е контрактор, но не е powerUser
         if (core_Users::haveRole('partner')) {
@@ -165,6 +167,8 @@ class bgerp_Portal extends embed_Manager
             $res->append("</div>");
             
             $tpl->append($res, $columnMap[$r->column]);
+            
+            if (!--$maxShowCnt) break;
         }
         
         $tpl->push('js/PortalSearch.js', 'JS');
@@ -235,8 +239,6 @@ class bgerp_Portal extends embed_Manager
         
         // Подреждаме масива, според order
         arr::sortObjects($resArr, 'order', 'DESC');
-        
-        $resArr = array_slice($resArr, 0, 12, true);
         
         return $resArr;
     }
