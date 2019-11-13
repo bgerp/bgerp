@@ -102,7 +102,7 @@ class planning_interface_TaskLabel
         
         expect($rec = planning_ProductionTaskDetails::fetchRec($id));
         $rowInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type);
-        $productName = str::limitLen(trim(cat_Products::getVerbal($rec->productId, 'name')), 16, 20, '');
+        $productName = trim(cat_Products::getVerbal($rec->productId, 'name'));
         
         core_Lg::push('en');
         $quantity = $rec->quantity . " " . tr(cat_UoM::getShortName($rowInfo->measureId));
