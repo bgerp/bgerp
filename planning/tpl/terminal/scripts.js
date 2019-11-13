@@ -61,12 +61,16 @@ function planningActions() {
 				quantity = 1;
 			}
 		}
-		
-		var employees = [];
-		$('input[id^="employees"]:checked').each(function () {
-			employees.push($(this).val());
-		});
-		
+
+		if ($("select#employeeSelect").length) {
+			var employees = $("select#employeeSelect").val();
+		} else {
+			$('input[id^="employees"]:checked').each(function () {
+				employees.push($(this).val());
+			});
+
+		}
+
 		var fixedAsset = $("#fixedAssetSelect").val();
 		var taskId = $("input[name=taskId]").val();
 
@@ -199,6 +203,15 @@ function setFocus(tabName) {
 	}
 	if(tabName == 'tab-support'){
 		$("textarea[name=body]").focus();
+	}
+}
+
+/**
+ * Активира селект2 след ajax
+ */
+function render_prepareSelect() {
+	if($('.select2').length){
+		$('select').trigger("change");
 	}
 }
 

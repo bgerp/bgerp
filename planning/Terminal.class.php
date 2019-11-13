@@ -48,7 +48,7 @@ class planning_Terminal extends peripheral_Terminal
      * Кой има право да чете?
      */
     public $canOpenterminal = 'debug';
-    
+
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -555,6 +555,11 @@ class planning_Terminal extends peripheral_Terminal
         // Подготовка на клавиатурата
         $resObj = new stdClass();
         $resObj->func = 'prepareKeyboard';
+        $objectArr[] = $resObj;
+
+        // Подготовка на селекта
+        $resObj = new stdClass();
+        $resObj->func = 'prepareSelect';
         $objectArr[] = $resObj;
         
         // Задаване на фокус на нужното поле според таба
