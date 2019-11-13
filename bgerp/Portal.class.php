@@ -236,7 +236,7 @@ class bgerp_Portal extends embed_Manager
         // Подреждаме масива, според order
         arr::sortObjects($resArr, 'order', 'DESC');
         
-        $resArr = array_slice($resArr, 0, 10, true);
+        $resArr = array_slice($resArr, 0, 12, true);
         
         return $resArr;
     }
