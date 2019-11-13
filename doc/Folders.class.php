@@ -180,6 +180,10 @@ class doc_Folders extends core_Master
             $url = array('doc_Folders', 'single', $id);
         }
         
+        if ($maxLength) {
+            $rec->title = str::limitLen($rec->title, $maxLength, (int) ($maxLength/2));
+        }
+        
         $title = static::getVerbal($rec, 'title');
         
         if (!static::haveRightFor('single', $id)) {
