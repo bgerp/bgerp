@@ -538,4 +538,19 @@ class bgerp_Portal extends embed_Manager
         $html .= "</datalist>\n";
         $form->layout->append(new ET($html), 'DATA_LIST');
     }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if ($rec->color) {
+            $row->color = "<span class='color-{$rec->color}'>{$row->color}</span>";
+        }
+    }
 }

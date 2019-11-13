@@ -573,6 +573,8 @@ class bgerp_Setup extends core_ProtoSetup
             
             $rec->userOrRole = type_UserOrRole::getAllSysTeamId();
             
+            $rec->color = 'lightgray';
+            
             $Portal->save($rec);
         }
     }
