@@ -87,12 +87,19 @@ class batch_plg_DocumentMovement extends core_Plugin
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
             $dQuery->in("{$Detail->productFld}", $productIds);
-            $dQuery->show("id,{$Detail->productFld}");
-            
+            $dQuery->show("id,{$Detail->productFld},{$Detail->quantityFld}");
+          
             while($dRec = $dQuery->fetch()){
                 
+                $bdQuery = batch_BatchesInDocuments::getQuery();
+                $bdQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$dRec->id}");
+                $bdQuery->XPR('sum', 'double', 'SUM(#quantity)');
+                $bdQuery->show('sum');
+                $bsRec = $bdQuery->fetch();
+                $sum = (is_object($bsRec)) ? $bsRec->sum : 0;
+                
                 // Ако някои от тях нямат посочена партида, документа няма да се контира
-                if(!batch_BatchesInDocuments::fetch("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$dRec->id}")){
+                if($sum < $dRec->{$Detail->quantityFld}){
                     $productsWithoutBatchesArr[$dRec->{$Detail->productFld}] = "<b>" . cat_Products::getTitleById($dRec->{$Detail->productFld}, false) . "</b>";
                 }
             }
@@ -101,7 +108,7 @@ class batch_plg_DocumentMovement extends core_Plugin
         // Ако има артикули, с задължителни партидности, които не са посочени няма да може да се контира
         if(count($productsWithoutBatchesArr)){
             $productMsg = implode(', ', $productsWithoutBatchesArr);
-            core_Statuses::newStatus("Следните артикули, трябва да са с посочени партиди|*: {$productMsg}", 'error');
+            core_Statuses::newStatus("Следните артикули, не могат да са без партида|*: {$productMsg}", 'error');
             
             return false;
         }
