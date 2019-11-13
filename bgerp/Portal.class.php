@@ -66,12 +66,11 @@ class bgerp_Portal extends embed_Manager
     {
         $this->FLD('userOrRole', 'userOrRole(rolesType=team, rolesForAllRoles=admin, rolesForAllSysTeam=admin, userRoles=powerUser)', 'caption=Потребител/Роля, silent, refreshForm');
         $this->FLD('column', 'enum(1,2,3)', 'caption=Колона');
-        $this->FLD('order', 'int(min=-1000, max=1000)', 'caption=Подредба, notNull');
+        $this->FLD('order', 'int(min=-1000, max=1000)', 'caption=Подредба');
         $this->FLD('color', 'enum(lightgray=Светло сив,darkgray=Тъмно сив,lightred=Светло червен,darkred=Тъмно червен,lightgreen=Светло зелен,darkgreen=Тъмно зелен,lightblue=Светло син,darkblue= Тъмно син, yellow=Жълт, pink=Розов, purple=Лилав, orange=Оранжев)', 'caption=Цвят');
+        $this->FLD('show', 'enum(yes=Да,no=Не)', 'caption=Показване, notNull');
         
         $this->FNC('originIdCalc', 'key(mvc=bgerp_Portal, allowEmpty)', 'caption=Източник,input=none');
-        
-        //@todo - празна стойност
         
         $optArr = array();
         foreach ($this->fields['color']->type->options as $color => $verbal) {
@@ -227,11 +226,17 @@ class bgerp_Portal extends embed_Manager
             $resArr[$rec->originIdCalc] = $rec;
         }
         
+        // Премахваме от масива блоковете, които да не се показват
+        foreach ($resArr as $rId => $rRec) {
+            if ($rRec->show == 'no') {
+                unset($resArr[$rId]);
+            }
+        }
+        
         // Подреждаме масива, според order
         arr::sortObjects($resArr, 'order', 'DESC');
         
-        // @todo - ограничение на бройката
-//         $resArr
+        $resArr = array_slice($resArr, 0, 10, true);
         
         return $resArr;
     }
@@ -255,7 +260,7 @@ class bgerp_Portal extends embed_Manager
                 }
                 
                 if (($action == 'single') && ($rec->createdBy != $userId)) {
-                    if ($rec->userOrRole > 0) {
+                    if (($rec->userOrRole > 0) && $rec->createdBy > 0) {
                         $requiredRoles = 'no_one';
                     }
                 }
