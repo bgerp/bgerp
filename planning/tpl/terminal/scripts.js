@@ -61,9 +61,9 @@ function planningActions() {
 				quantity = 1;
 			}
 		}
-
+		var employees = [];
 		if ($("select#employeeSelect").length) {
-			var employees = $("select#employeeSelect").val();
+			employees = $("select#employeeSelect").val();
 		} else {
 			$('input[id^="employees"]:checked').each(function () {
 				employees.push($(this).val());
