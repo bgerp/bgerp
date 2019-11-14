@@ -271,4 +271,16 @@ class bgerp_drivers_Tasks extends core_BaseClass
     {
         $data->form->setDefault('perPage', 20);
     }
+    
+    
+    /**
+     * Връща типа на блока за портала
+     *
+     * @return string - other, tasks, notifications, calendar, recently
+     */
+    public function getBlockType()
+    {
+        
+        return 'tasks';
+    }
 }

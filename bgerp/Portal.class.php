@@ -135,15 +135,35 @@ class bgerp_Portal extends embed_Manager
         
         $cu = core_Users::getCurrent();
         
-        $tpl = new ET("
-            <table style='width:100%' class='top-table large-spacing'>
-            <tr>
-                <td style='width:33.3%'>[#LEFT_COLUMN#]</td>
-                <td style='width:33.4%'>[#MIDDLE_COLUMN#]</td>
-                <td style='width:33.3%'>[#RIGHT_COLUMN#]</td>
-            </tr>
-            </table>
-        ");
+        $isNarrow = Mode::is('screenMode', 'narrow');
+        
+        if ($isNarrow) {
+            $tpl = new ET(tr("|*
+                          	<ul class='portalTabs'>
+                                <li class='tab-link' data-tab='notificationsPortal'>|Известия|*</li>
+                                <li class='tab-link' data-tab='calendarPortal'>|Календар|*</li>
+                                <li class='tab-link' data-tab='taskPortal'>|Задачи|*</li>
+                                <li class='tab-link' data-tab='recentlyPortal'>|Последно|*</li>
+                            </ul>
+                            <div class='portalContent'>
+                                <div class='narrowPortalBlocks' id='notificationsPortal'>[#NOTIFICATIONS_COLUMN#]</div>
+                                <div class='narrowPortalBlocks' id='calendarPortal'>[#CALENDAR_COLUMN#]</div>
+                                <div class='narrowPortalBlocks' id='taskPortal'>[#TASK_COLUMN#]</div>
+                                <div class='narrowPortalBlocks' id='recentlyPortal'>[#RECENTLY_COLUMN#]</div>
+                                <div class='narrowPortalOther' id='recentlyPortal'>[#OTHER#]</div>
+                            </div>
+                            "));
+        } else {
+            $tpl = new ET("
+                <table style='width:100%' class='top-table large-spacing'>
+                <tr>
+                    <td style='width:33.3%'>[#LEFT_COLUMN#]</td>
+                    <td style='width:33.4%'>[#MIDDLE_COLUMN#]</td>
+                    <td style='width:33.3%'>[#RIGHT_COLUMN#]</td>
+                </tr>
+                </table>
+            ");
+        }
         
         $columnMap = array(1 => 'LEFT_COLUMN', 2 => 'MIDDLE_COLUMN', 3 => 'RIGHT_COLUMN');
         
@@ -166,9 +186,45 @@ class bgerp_Portal extends embed_Manager
             $res->prepend("<div class='color-{$colorCls}'>");
             $res->append("</div>");
             
-            $tpl->append($res, $columnMap[$r->column]);
-            
-            if (!--$maxShowCnt) break;
+            if ($isNarrow) {
+                $blockType = $intf->getBlockType();
+                
+                if ($intf->getBlockType() == 'other') {
+                    $tpl->prepend($res, 'OTHER');
+                } else {
+                    switch ($blockType) {
+                        case 'tasks':
+                            $blockName = 'TASK_COLUMN';
+                        break;
+                        
+                        case 'notifications':
+                            $blockName = 'NOTIFICATIONS_COLUMN';
+                        break;
+                        
+                        case 'calendar':
+                            $blockName = 'CALENDAR_COLUMN';
+                        break;
+                            
+                        case 'recently':
+                            $blockName = 'RECENTLY_COLUMN';
+                        break;
+                        
+                        default:
+                            expect(false, $blockName);
+                        break;
+                    }
+                    
+                    $tpl->append($res, $blockName);
+                }
+            } else {
+                $tpl->append($res, $columnMap[$r->column]);
+                
+                if (!--$maxShowCnt) break;
+            }
+        }
+        
+        if ($isNarrow) {
+            jquery_Jquery::run($tpl, "openCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime(core_Users::getCurrent())) . "'); ");
         }
         
         $tpl->push('js/PortalSearch.js', 'JS');
