@@ -53,9 +53,11 @@ class batch_plg_DocumentMovement extends core_Plugin
     public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
+        $rec->contoActions = null;
+        $actions = type_Set::toArray($rec->contoActions);
         
         // Ако няма избран склад, няма какво да се прави
-        if(empty($rec->{$mvc->storeFieldName})) {
+        if(empty($rec->{$mvc->storeFieldName}) || ($mvc instanceof sales_Sales && !isset($actions['ship']))) {
             
             return;
         }
