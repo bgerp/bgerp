@@ -37,7 +37,7 @@ class batch_Defs extends core_Manager
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'productId,templateId=Дефиниция,batchCaption=Кепшън,alwaysRequire,modifiedOn,modifiedBy';
+    public $listFields = 'productId,templateId=Дефиниция,batchCaption=Кепшън,alwaysRequire,onlyExistingBatches,modifiedOn,modifiedBy';
     
     
     /**
