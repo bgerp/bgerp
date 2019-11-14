@@ -83,11 +83,11 @@ class batch_plg_DocumentMovement extends core_Plugin
                 $sum = 0;
                 while($bdRec = $bdQuery->fetch()){
                     $sum += $bdRec->quantity;
-                    $batchesArr = $Def->makeArray($bdRec->batch);
+                    $batchesArr = array_keys($Def->makeArray($bdRec->batch));
                     
                     // Проверка дали посочената партида на изходящите документи е налична
                     if($checkIfBatchExists == 'yes' && $bdRec->operation == 'out'){
-                        if(!array_key_exists("", $cache)){
+                        if(!array_key_exists("{$bdRec->productId}|{$bdRec->storeId}", $cache)){
                             $cache["{$bdRec->productId}|{$bdRec->storeId}"] = batch_Items::getBatchQuantitiesInStore($bdRec->productId, $bdRec->storeId);
                         }
                         $quantitiesInStore = $cache["{$bdRec->productId}|{$bdRec->storeId}"];
