@@ -86,7 +86,8 @@ class batch_Defs extends core_Manager
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,before=driverClass,silent,mandatory');
         $this->FLD('templateId', 'key(mvc=batch_Templates,select=name, allowEmpty)', 'caption=Дефиниция,mandatory,removeAndRefreshForm=batchCaption|alwaysRequire,silent');
         $this->FLD('batchCaption', 'varchar(20)', 'caption=Заглавие,input=none,after=driverClass');
-        $this->FLD('alwaysRequire', 'enum(auto=По подразбиране,no=Не,yes=Да)', 'caption=Задължително използване,notNull,value=auto,input=none,after=batchCaption');
+        $this->FLD('alwaysRequire', 'enum(auto=По подразбиране,no=Не,yes=Да)', 'caption=Използване в документи->Задължително,notNull,value=auto,input=none,after=batchCaption');
+        $this->FLD('onlyExistingBatches', 'enum(auto=По подразбиране,no=Не,yes=Да)', 'caption=Използване в документи->Задължителна наличност,notNull,value=no,input=none');
         
         $this->setDbUnique('productId');
     }
@@ -168,6 +169,9 @@ class batch_Defs extends core_Manager
             $form->setField('alwaysRequire', 'input');
             $form->setDefault('alwaysRequire', 'auto');
             
+            $form->setField('onlyExistingBatches', 'input');
+            $form->setDefault('onlyExistingBatches', 'auto');
+            
             $Class = cls::get($templateRec->driverClass);
             if (isset($Class->fieldCaption)) {
                 $form->setField('batchCaption', "placeholder={$Class->fieldCaption}");
@@ -216,6 +220,9 @@ class batch_Defs extends core_Manager
                 $template->batchCaption = $rec->batchCaption;
                 if($rec->alwaysRequire != 'auto'){
                     $template->alwaysRequire = $rec->alwaysRequire;
+                }
+                if($rec->onlyExistingBatches != 'auto'){
+                    $template->onlyExistingBatches = $rec->onlyExistingBatches;
                 }
                 
                 $BatchClass->setRec($template);
