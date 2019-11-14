@@ -67,15 +67,13 @@ class batch_plg_DocumentMovement extends core_Plugin
         $productsWithoutBatchesArr = array();
         $productsWithNotExistingBatchesArr = array();
         $detailMvcs = ($mvc instanceof store_ConsignmentProtocols) ? array('store_ConsignmentProtocolDetailsReceived', 'store_ConsignmentProtocolDetailsSend') : (isset($mvc->mainDetail) ? array($mvc->mainDetail) : array());
+        
         foreach ($detailMvcs as $det){
-            
             
             // Има ли в тях артикули, от тези, на които задължително трябва да е посочена партида
             $Detail = cls::get($det);
-            
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-            $dQuery->show("id,{$Detail->productFld},{$Detail->quantityFld}");
             $dRecs = $dQuery->fetchAll();
             
             // хак за мастъра на протокола за производство
@@ -87,6 +85,10 @@ class batch_plg_DocumentMovement extends core_Plugin
                 $dRec->detMvcId = (empty($dRec->detMvcId)) ? $Detail->getClassId() : $dRec->detMvcId;
                 $defRec = batch_Defs::fetch("#productId = {$dRec->{$Detail->productFld}}");
                 if(empty($defRec)) continue;
+                
+                if($Detail instanceof store_InternalDocumentDetail){
+                    $dRec->quantity = $dRec->quantityInPack * $dRec->packQuantity;
+                }
                 
                 $checkIfBatchExists = ($defRec->onlyExistingBatches == 'auto') ? batch_Templates::fetchField($defRec->templateId, 'onlyExistingBatches') : $defRec->onlyExistingBatches;
                 $checkIfBatchIsMandatory = ($defRec->alwaysRequire == 'auto') ? batch_Templates::fetchField($defRec->templateId, 'alwaysRequire') : $defRec->alwaysRequire;
