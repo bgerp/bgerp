@@ -62,30 +62,38 @@ class batch_plg_DocumentMovement extends core_Plugin
         }
         
         static $cache = array();
-       
+        
         // Гледат се детайлите на документа
         $productsWithoutBatchesArr = array();
         $productsWithNotExistingBatchesArr = array();
         $detailMvcs = ($mvc instanceof store_ConsignmentProtocols) ? array('store_ConsignmentProtocolDetailsReceived', 'store_ConsignmentProtocolDetailsSend') : (isset($mvc->mainDetail) ? array($mvc->mainDetail) : array());
         foreach ($detailMvcs as $det){
-           
+            
+            
             // Има ли в тях артикули, от тези, на които задължително трябва да е посочена партида
             $Detail = cls::get($det);
             
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
             $dQuery->show("id,{$Detail->productFld},{$Detail->quantityFld}");
-          
-            while($dRec = $dQuery->fetch()){
+            $dRecs = $dQuery->fetchAll();
+            
+            // хак за мастъра на протокола за производство
+            if($mvc instanceof planning_DirectProductionNote){
+                $dRecs[0] = (object)array("{$Detail->productFld}" => $rec->productId, "{$Detail->quantityFld}" => $rec->quantity, 'id' => $rec->id, 'detMvcId' => $mvc->getClassId());
+            }
+            
+            foreach ($dRecs as $dRec){
+                $dRec->detMvcId = (empty($dRec->detMvcId)) ? $Detail->getClassId() : $dRec->detMvcId;
                 $defRec = batch_Defs::fetch("#productId = {$dRec->{$Detail->productFld}}");
                 if(empty($defRec)) continue;
                 
                 $checkIfBatchExists = ($defRec->onlyExistingBatches == 'auto') ? batch_Templates::fetchField($defRec->templateId, 'onlyExistingBatches') : $defRec->onlyExistingBatches;
                 $checkIfBatchIsMandatory = ($defRec->alwaysRequire == 'auto') ? batch_Templates::fetchField($defRec->templateId, 'alwaysRequire') : $defRec->alwaysRequire;
                 
-                $Def = batch_Defs::getBatchDef($dRec->productId);
+                $Def = batch_Defs::getBatchDef($dRec->{$Detail->productFld});
                 $bdQuery = batch_BatchesInDocuments::getQuery();
-                $bdQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$dRec->id}");
+                $bdQuery->where("#detailClassId = {$dRec->detMvcId} AND #detailRecId = {$dRec->id}");
                 
                 $sum = 0;
                 while($bdRec = $bdQuery->fetch()){
