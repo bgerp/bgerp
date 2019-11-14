@@ -107,7 +107,7 @@ class core_Tabs extends core_BaseClass
             core_Settings::setValues('TABS::' . $this->tabGroup, array('DEFAULT_TABS' => $selectedTab));
 
         }
-        $headers = getallheaders();
+        $headers = function_exists('getallheaders') ? getallheaders() : array();
         
         $head = '';
         
