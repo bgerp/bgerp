@@ -128,6 +128,8 @@ class batch_plg_DocumentMovement extends core_Plugin
                 core_Statuses::newStatus("Следните артикули, са с неналични партиди|*: {$productMsg}", 'error');
             }
             
+            $res = false;
+            
             return false;
         }
     }

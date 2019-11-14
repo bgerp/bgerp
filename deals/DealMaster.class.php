@@ -1406,7 +1406,8 @@ abstract class deals_DealMaster extends deals_DealBase
             
             // Контиране на документа
             $this->logWrite('Избор на операция', $id);
-            if($this->conto($id)){
+            $contoRes = $this->conto($id);
+            if($contoRes !== false){
                 $this->invoke('AfterContoQuickSale', array($rec));
             } else {
                 $rec->contoActions = null;
