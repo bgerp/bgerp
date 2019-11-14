@@ -617,38 +617,55 @@ class store_Products extends core_Detail
             }
         }
         
-        // Всички СР
-        $srQuery = store_Receipts::getQuery();
-        $srQuery->where("#state = 'pending'");
-        $srQuery->show("id,containerId,modifiedOn,storeId,deliveryTime");
+        $docArr = array('purchase_Purchases' => array('storeFld' => 'shipmentStoreId', 'Detail' => 'purchase_PurchasesDetails'),
+                        'store_Receipts' => array('storeFld' => 'storeId', 'Detail' => 'store_ReceiptDetails'));
         
-        while ($sRec = $srQuery->fetch()) {
-            $reserved = core_Permanent::get("reserved_{$sRec->containerId}", $sRec->modifiedOn);
+        foreach ($docArr as $Doc1 => $arr){
+            $Doc = cls::get($Doc1);
             
-            // Ако няма кеширани к-ва
-            if (!isset($reserved)) {
-                $reserved = array();
-                $sdQuery = store_ReceiptDetails::getQuery();
-                $sdQuery->XPR('sum', 'double', "SUM(#quantity)");
-                $sdQuery->where("#receiptId = {$sRec->id}");
-                $sdQuery->show('productId,quantity,receiptId,sum');
-                $sdQuery->groupBy('productId');
+            $srQuery = $Doc->getQuery();
+            $srQuery->where("#state = 'pending' AND #{$arr['storeFld']} IS NOT NULL");
+            
+            if($Doc instanceof purchase_Purchases){
+                $srQuery->show("id,containerId,modifiedOn,shipmentStoreId,valior");
+            } else {
+                $srQuery->show("id,containerId,modifiedOn,storeId,deliveryTime");
+            }
+            
+            while ($sRec = $srQuery->fetch()) {
+                $reserved = core_Permanent::get("reserved_{$sRec->containerId}", $sRec->modifiedOn);
                 
-                $deliveryTime = $sRec->deliveryTime;
-                while ($sd = $sdQuery->fetch()) {
-                    $key = "{$sRec->storeId}|{$sd->productId}";
-                    $reserved[$key] = array('sId' => $sRec->storeId, 'pId' => $sd->productId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $sd->sum);
+                // Ако няма кеширани к-ва
+                if (!isset($reserved)) {
+                    $reserved = array();
+                    $Detail = cls::get($arr['Detail']);
                     
-                    if(!empty($deliveryTime) && $deliveryTime <= $now){
-                        $reserved[$key]['expected'] = $sd->sum;
+                    $sdQuery = $Detail->getQuery();
+                    $sdQuery->XPR('sum', 'double', "SUM(#quantity)");
+                    $sdQuery->where("#{$Detail->masterKey} = {$sRec->id}");
+                    $sdQuery->show("productId,quantity,{$Detail->masterKey},sum");
+                    $sdQuery->groupBy('productId');
+                    
+                    $deliveryTime = $sRec->deliveryTime;
+                    while ($sd = $sdQuery->fetch()) {
+                        $key = "{$sRec->{$arr['storeFld']}}|{$sd->productId}";
+                        $reserved[$key] = array('sId' => $sRec->{$arr['storeFld']}, 'pId' => $sd->productId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $sd->sum);
+                        
+                        if($Doc instanceof purchase_Purchases){
+                            $deliveryTime = $sRec->valior;
+                        }
+                        
+                        if(!empty($deliveryTime) && $deliveryTime <= $now){
+                            $reserved[$key]['expected'] = $sd->sum;
+                        }
                     }
+                    
+                    core_Permanent::set("reserved_{$sRec->containerId}", $reserved, 4320);
                 }
                 
-                core_Permanent::set("reserved_{$sRec->containerId}", $reserved, 4320);
-            }
-           
-            if(is_array($reserved) && count($reserved)){
-                $queue[] = $reserved;
+                if(is_array($reserved) && count($reserved)){
+                    $queue[] = $reserved;
+                }
             }
         }
         
@@ -754,8 +771,8 @@ class store_Products extends core_Detail
                 if($obj->_nullifyExpectedTotal === true){
                     $obj->expectedQuantityTotal = null;
                 }
-                
             });
+            
             $this->saveArray($unsetArr, 'id,reservedQuantity,expectedQuantity,expectedQuantityTotal');
         }
         
@@ -779,8 +796,8 @@ class store_Products extends core_Detail
         
         $arr = array();
         $arr['reservedQuantity'] = array('sales_SalesDetails' => 'shipmentStoreId', 'store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId', 'planning_DirectProductNoteDetails' => 'storeId');
-        $arr['expectedQuantity'] = array('store_TransfersDetails' => 'toStore', 'store_ReceiptDetails' => 'storeId');
-        $arr['expectedQuantityTotal'] = array('store_TransfersDetails' => 'toStore', 'store_ReceiptDetails' => 'storeId');
+        $arr['expectedQuantity'] = array('purchase_PurchasesDetails' => 'shipmentStoreId', 'store_TransfersDetails' => 'toStore', 'store_ReceiptDetails' => 'storeId');
+        $arr['expectedQuantityTotal'] = array('purchase_PurchasesDetails' => 'shipmentStoreId', 'store_TransfersDetails' => 'toStore', 'store_ReceiptDetails' => 'storeId');
         
         // Намират се документите, запазили количества
         $docs = array();
