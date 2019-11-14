@@ -52,7 +52,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
         $date = dt::today();
         
         $time = cat_Products::getParams($this->rec->productId, 'expiryTime');
-        if (!isset($time)) {
+        if (empty($time)) {
             $time = $this->rec->time;
         }
         
