@@ -88,18 +88,16 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     /**
      * Дефолтни кодове на начините на плащане
      */
-    const DEFAULT_STORNO_REASONS_MAP = array('Операторска грешка' => 0,
-                                             'Връщане/Рекламация' => 1,
-                                             'Данъчно облекчение' => 2,);
+    public static $defaultStornoReasonmap  = array('Операторска грешка' => 0,
+                                                   'Връщане/Рекламация' => 1,
+                                                   'Данъчно облекчение' => 2,);
     
     
     /**
      * Дефолтни кодове за ДДС групите
      */
-    const DEFAULT_VAT_GROUPS_MAP = array('A' => 0,
-                                         'B' => 1,
-                                         'V' => 2,
-                                         'G' => 3,);
+    
+    public static $defaultVatGroupsMap = array('A' => 0, 'B' => 1, 'V' => 2, 'G' => 3,);
     
     
     /**
@@ -469,7 +467,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function getStornoReasonCode($rec, $reason)
     {
-        return self::DEFAULT_STORNO_REASONS_MAP[$reason];
+        return self::$defaultStornoReasonmap[$reason];
     }
     
     
@@ -481,7 +479,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function getStornoReasons($rec)
     {
-        $res = arr::make(array_keys(self::DEFAULT_STORNO_REASONS_MAP), true);
+        $res = arr::make(array_keys(self::$defaultStornoReasonmap), true);
         
         return $res;
     }
@@ -527,7 +525,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             return ;
         }
         
-        return self::DEFAULT_VAT_GROUPS_MAP[$sysId];
+        return self::$defaultVatGroupsMap[$sysId];
     }
     
     
