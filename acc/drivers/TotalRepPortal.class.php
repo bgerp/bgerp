@@ -169,4 +169,16 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
         
         return $data->tpl;
     }
+    
+    
+    /**
+     * Връща типа на блока за портала
+     *
+     * @return string - other, tasks, notifications, calendar, recently
+     */
+    public function getBlockType()
+    {
+        
+        return 'other';
+    }
 }
