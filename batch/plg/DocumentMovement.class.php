@@ -54,8 +54,14 @@ class batch_plg_DocumentMovement extends core_Plugin
     {
         $rec = $mvc->fetchRec($id);
         
-        static $cache = array();
+        // Ако няма избран склад, няма какво да се прави
+        if(empty($rec->{$mvc->storeFieldName})) {
+            
+            return;
+        }
         
+        static $cache = array();
+       
         // Гледат се детайлите на документа
         $productsWithoutBatchesArr = array();
         $productsWithNotExistingBatchesArr = array();
