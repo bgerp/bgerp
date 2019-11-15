@@ -140,10 +140,10 @@ class bgerp_Portal extends embed_Manager
         if ($isNarrow) {
             $tpl = new ET(tr("|*
                           	<ul class='portalTabs'>
-                                <li class='tab-link' data-tab='notificationsPortal'>|Известия|*</li>
-                                <li class='tab-link' data-tab='calendarPortal'>|Календар|*</li>
-                                <li class='tab-link' data-tab='taskPortal'>|Задачи|*</li>
-                                <li class='tab-link' data-tab='recentlyPortal'>|Последно|*</li>
+                                <li class='tab-link [#NOTIFICATIONS_COLOR_TAB#]' data-tab='notificationsPortal'>|Известия|*</li>
+                                <li class='tab-link [#CALENDAR_COLOR_TAB#]' data-tab='calendarPortal'>|Календар|*</li>
+                                <li class='tab-link [#TASKS_COLOR_TAB#]' data-tab='taskPortal'>|Задачи|*</li>
+                                <li class='tab-link [#RECENTLY_COLOR_TAB#]' data-tab='recentlyPortal'>|Последно|*</li>
                             </ul>
                             <div class='portalContent'>
                                 <div class='narrowPortalBlocks' id='notificationsPortal'>[#NOTIFICATIONS_COLUMN#]</div>
@@ -181,9 +181,9 @@ class bgerp_Portal extends embed_Manager
                 $r->column = 1;
             }
             
-            $colorCls = $r->color ? $r->color : 'all';
+            $colorCls = 'color-' . ($r->color ? $r->color : 'all');
             
-            $res->prepend("<div class='color-{$colorCls}'>");
+            $res->prepend("<div class='{$colorCls}'>");
             $res->append("</div>");
             
             if ($isNarrow) {
@@ -195,24 +195,30 @@ class bgerp_Portal extends embed_Manager
                     switch ($blockType) {
                         case 'tasks':
                             $blockName = 'TASK_COLUMN';
+                            $tabColorName = 'TASKS_COLOR_TAB';
                         break;
                         
                         case 'notifications':
                             $blockName = 'NOTIFICATIONS_COLUMN';
+                            $tabColorName = 'NOTIFICATIONS_COLOR_TAB';
                         break;
                         
                         case 'calendar':
                             $blockName = 'CALENDAR_COLUMN';
+                            $tabColorName = 'CALENDAR_COLOR_TAB';
                         break;
                             
                         case 'recently':
                             $blockName = 'RECENTLY_COLUMN';
+                            $tabColorName = 'RECENTLY_COLOR_TAB';
                         break;
                         
                         default:
                             expect(false, $blockName);
                         break;
                     }
+                    
+                    $tpl->replace($colorCls, $tabColorName);
                     
                     $tpl->append($res, $blockName);
                 }
