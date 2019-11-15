@@ -81,10 +81,4 @@ class bank_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(2.2, 'Финанси', 'Банки', 'bank_OwnAccounts', 'default', 'bank, ceo'),
     );
-    
-    
-    /**
-     * Дефинирани класове, които имат интерфейси
-     */
-    public $defClasses = 'bank_reports_AccountImpl';
 }

@@ -59,13 +59,13 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'cat,ceo,sales,purchase';
+    public $canSelectSource = 'no_one';
     
     
     /**
      * Права за писане
      */
-    public $canWrite = 'cat,ceo,sales,purchase';
+    public $canWrite = 'no_one';
     
     /**
      * Кой има право да добавя?
@@ -76,13 +76,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     /**
      * Права за писане
      */
-    public $canEdit = 'cat,ceo,sales,purchase';
-    
-    
-    /**
-     * Права за запис
-     */
-    public $canRead = 'cat,ceo,sales,purchase';
+    public $canEdit = 'no_one';
     
     
     /**
