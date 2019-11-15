@@ -410,13 +410,13 @@ class bgerp_Portal extends embed_Manager
         
         if (Mode::is('screenMode', 'narrow')) {
             $tpl = new ET(tr("|*
-          	<ul class='portalTabs'>
+          	<ul class='portalTabs defaultPortal'>
                 <li class='tab-link' data-tab='notificationsPortal'>|Известия|*</li>
                 <li class='tab-link' data-tab='calendarPortal'>|Календар|*</li>
                 <li class='tab-link' data-tab='taskPortal'>|Задачи|*</li>
                 <li class='tab-link' data-tab='recentlyPortal'>|Последно|*</li>
             </ul>
-            <div class='portalContent'>
+            <div class='portalContent defaultPortal'>
                 <div class='narrowPortalBlocks' id='notificationsPortal'>[#NOTIFICATIONS_COLUMN#]</div>
                 <div class='narrowPortalBlocks' id='calendarPortal'>[#CALENDAR_COLUMN#]</div>
                 <div class='narrowPortalBlocks' id='taskPortal'>[#TASK_COLUMN#]</div>
