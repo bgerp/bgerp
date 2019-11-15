@@ -362,7 +362,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             $sQuery->where("#storeId = {$rec->storeId}");
         }
         
-        while ($recProduct = $sQuery->fetch()) {bp($recProduct);
+        while ($recProduct = $sQuery->fetch()) {
             $productId = $recProduct->productId;
             
             if ($rec->typeOfQuantity == 'TRUE') {
