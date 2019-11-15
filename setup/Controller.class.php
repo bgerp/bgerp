@@ -46,7 +46,7 @@ class setup_Controller
         $res->title = 'Лицензно споразумение';
         $res->next = 'Приемам лиценза »';
         $res->back = false;
-        $res->body = markdown_Render::Convert(file_get_contents(__DIR__ . '/../LICENSE'));
+        $res->body = markdown_Render::Convert(file_get_contents(__DIR__ . '/../LICENSE.md'));
     }
     
     

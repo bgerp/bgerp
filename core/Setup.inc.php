@@ -519,7 +519,7 @@ if (function_exists('opcache_reset')) {
 
 // Стъпка 1: Лиценз
 if ($step == 1) {
-    $licenseText =  markdown_Render::Convert(file_get_contents(__DIR__ . '/../LICENSE'));
+    $licenseText =  markdown_Render::Convert(file_get_contents(__DIR__ . '/../LICENSE.md'));
     $texts['body'] = "<ul class='msg stats'><li>" .
         "\n<a href='{$nextUrl}'>&#9746; Ако приемате лиценза по-долу, може да продължите »</a></li></ul><br>";
     $texts['body'] .= "\n<div id='license'>" . $licenseText . '</div>';
