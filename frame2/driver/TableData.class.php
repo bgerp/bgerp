@@ -552,7 +552,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * 
      * @return array $result
      */
-    protected function extractFieldsFromArr($arr, $fieldsToCheck)
+    protected static function extractFieldsFromArr($arr, $fieldsToCheck)
     {
         $fieldsToCheckArr = arr::make($fieldsToCheck, true);
         $result = array_values(array_map(function ($obj) use ($fieldsToCheckArr) {
