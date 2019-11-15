@@ -140,10 +140,10 @@ class bgerp_Portal extends embed_Manager
         if ($isNarrow) {
             $tpl = new ET(tr("|*
                           	<ul class='portalTabs'>
-                                <li class='tab-link [#NOTIFICATIONS_COLOR_TAB#]' data-tab='notificationsPortal'>|Известия|*</li>
-                                <li class='tab-link [#CALENDAR_COLOR_TAB#]' data-tab='calendarPortal'>|Календар|*</li>
-                                <li class='tab-link [#TASKS_COLOR_TAB#]' data-tab='taskPortal'>|Задачи|*</li>
-                                <li class='tab-link [#RECENTLY_COLOR_TAB#]' data-tab='recentlyPortal'>|Последно|*</li>
+                                <!--ET_BEGIN NOTIFICATIONS_COLOR_TAB--><li class='tab-link [#NOTIFICATIONS_COLOR_TAB#]' data-tab='notificationsPortal'>|Известия|*</li><!--ET_END NOTIFICATIONS_COLOR_TAB-->
+                                <!--ET_BEGIN CALENDAR_COLOR_TAB--><li class='tab-link [#CALENDAR_COLOR_TAB#]' data-tab='calendarPortal'>|Календар|*</li><!--ET_END CALENDAR_COLOR_TAB-->
+                                <!--ET_BEGIN TASKS_COLOR_TAB--><li class='tab-link [#TASKS_COLOR_TAB#]' data-tab='taskPortal'>|Задачи|*</li><!--ET_END TASKS_COLOR_TAB-->
+                                <!--ET_BEGIN RECENTLY_COLOR_TAB--><li class='tab-link [#RECENTLY_COLOR_TAB#]' data-tab='recentlyPortal'>|Последно|*</li><!--ET_END RECENTLY_COLOR_TAB-->
                             </ul>
                             <div class='portalContent'>
                                 <div class='narrowPortalBlocks' id='notificationsPortal'>[#NOTIFICATIONS_COLUMN#]</div>
@@ -224,9 +224,9 @@ class bgerp_Portal extends embed_Manager
                 }
             } else {
                 $tpl->append($res, $columnMap[$r->column]);
-                
-                if (!--$maxShowCnt) break;
             }
+            
+            if (!--$maxShowCnt) break;
         }
         
         if ($isNarrow) {
