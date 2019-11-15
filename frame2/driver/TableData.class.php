@@ -487,7 +487,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     public function getNewFieldsToCheckOnRefresh($rec)
     {
-        return $this->newFieldToCheck;
+        return $this->newFieldsToCheck;
     }
     
     
