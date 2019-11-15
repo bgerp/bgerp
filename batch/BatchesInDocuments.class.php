@@ -548,7 +548,11 @@ class batch_BatchesInDocuments extends core_Manager
                 $dRec = cls::get($detailClassId)->fetch($detailRecId);
                 
                 if ($form->cmd == 'updateQuantity' && !empty($total)) {
-                    $dRec->quantity = $total * $recInfo->quantityInPack;
+                    if($Detail instanceof store_InternalDocumentDetail){
+                        $dRec->packQuantity = $total / $recInfo->quantityInPack;
+                    } else {
+                        $dRec->quantity = $total * $recInfo->quantityInPack;
+                    }
                 }
                 
                 cls::get($detailClassId)->save($dRec);
