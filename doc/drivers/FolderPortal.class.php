@@ -91,7 +91,9 @@ class doc_drivers_FolderPortal extends core_BaseClass
         
         $fLast = doc_Folders::fetchField($dRec->folderId, 'last');
         
-        $resData->cacheKey = md5($fLast . '_' . $dRec->modifiedOn . '_' . $userId . '_' . Request::get('ajax_mode') . '–' . Request::get('P_doc_Threads') . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent());
+        $pageVar = 'P_' . get_called_class() . '_' . $dRec->originIdCalc;
+        
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $fLast. '_' . $userId . '_' . Request::get('ajax_mode') . '–' . Request::get($pageVar) . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent());
         $resData->cacheType = 'FolderPortal';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
@@ -127,6 +129,8 @@ class doc_drivers_FolderPortal extends core_BaseClass
             
             // Подготвяме навигацията по страници
             $Threads->prepareListPager($data);
+            
+            $data->pager->pageVar = $pageVar;
             
             // Подготвяме записите за таблицата
             $Threads->prepareListRecs($data);

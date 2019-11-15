@@ -105,15 +105,18 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $agendaStateQueryClone->show('id');
         $lastAgendaEventId = $agendaStateQueryClone->fetch()->id;
         
-        $resData->cacheKey = md5($dRec->pages . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . $resData->month . '_' . $resData->year . '_' . Request::get('calSearch') . '_' . core_Lg::getCurrent() . '_' . $lastCalendarEventId . '_' . $lastAgendaEventId);
+        // Съдържание на клетките на календара
+        $Calendar = cls::get('cal_Calendar');
+        
+        $Calendar->searchInputField .= '_' . $dRec->originIdCalc;
+        
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->pages . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . $resData->month . '_' . $resData->year . '_' . Request::get($Calendar->searchInputField) . '_' . core_Lg::getCurrent() . '_' . $lastCalendarEventId . '_' . $lastAgendaEventId);
         $resData->cacheType = 'Calendar';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
             
-            // Съдържание на клетките на календара
-            $Calendar = cls::get('cal_Calendar');
             $Calendar->prepareListRecs($resData->calendarState);
             if (is_array($resData->calendarState->recs)) {
                 $resData->cData = array();

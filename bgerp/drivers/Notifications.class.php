@@ -64,6 +64,10 @@ class bgerp_drivers_Notifications extends core_BaseClass
         
         $Notifications = cls::get('bgerp_Notifications');
         
+        $Notifications->searchInputField .= '_' . $dRec->originIdCalc;
+        
+        $pageVar = 'P_' . get_called_class() . '_' . $dRec->originIdCalc;
+        
         // Намираме времето на последния запис
         $query = $Notifications->getQuery();
         $query->where("#userId = ${userId}");
@@ -108,7 +112,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
             $resData->lastModifiedOnKey .= '|' . $cLastRec->id;
         }
         
-        $resData->cacheKey = md5($dRec->perPage . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch') . '_' . core_Lg::getCurrent());
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get($Notifications->searchInputField) . '_' . Request::get($pageVar) . '_' . core_Lg::getCurrent());
         $resData->cacheType = 'Notifications';
         
         list($resData->tpl, $resData->modifiedOnKey) = core_Cache::get($resData->cacheType, $resData->cacheKey);
@@ -151,6 +155,8 @@ class bgerp_drivers_Notifications extends core_BaseClass
             
             // Подготвяме навигацията по страници
             $Notifications->prepareListPager($data);
+            
+            $data->pager->pageVar = $pageVar;
             
             // Подготвяме записите за таблицата
             $Notifications->prepareListRecs($data);
