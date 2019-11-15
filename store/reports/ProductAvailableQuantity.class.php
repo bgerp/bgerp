@@ -362,12 +362,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             $sQuery->where("#storeId = {$rec->storeId}");
         }
         
-        while ($recProduct = $sQuery->fetch()) {
+        while ($recProduct = $sQuery->fetch()) {bp($recProduct);
             $productId = $recProduct->productId;
             
             if ($rec->typeOfQuantity == 'TRUE') {
                 // Гледаме разполагаемото количество
-                $quantity = $recProduct->quantity - $recProduct->reservedQuantity;
+                $quantity = $recProduct->quantity - $recProduct->reservedQuantity +$recProduct->expectedQuantity;
             } else {
                 // Гледаме наличното количество
                 $quantity = $recProduct->quantity;
