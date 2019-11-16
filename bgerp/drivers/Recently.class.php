@@ -62,13 +62,17 @@ class bgerp_drivers_Recently extends core_BaseClass
         
         $Recently = cls::get('bgerp_Recently');
         
+        $Recently->searchInputField .= '_' . $dRec->originIdCalc;
+        
+        $pageVar = 'P_' . get_called_class() . '_' . $dRec->originIdCalc;
+        
         // Намираме времето на последния запис
         $query = $Recently->getQuery();
         $query->where(array("#userId = '[#1#]'", $userId));
         $query->limit(1);
         $query->orderBy('#last', 'DESC');
         $lastRec = $query->fetch();
-        $resData->cacheKey = md5($dRec->perPage . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Recently') . '_' . Request::get('recentlySearch') . '_' . core_Lg::getCurrent());
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->perPage . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get($pageVar) . '_' . Request::get($Recently->searchInputField) . '_' . core_Lg::getCurrent());
         $resData->cacheType = 'RecentDoc';
         
         list($resData->tpl, $lastCreatedOn) = core_Cache::get($resData->cacheType, $resData->cacheKey);
@@ -100,6 +104,8 @@ class bgerp_drivers_Recently extends core_BaseClass
             
             // Подготвяме навигацията по страници
             $Recently->prepareListPager($data);
+            
+            $data->pager->pageVar = $pageVar;
             
             // Подготвяме записите за таблицата
             $Recently->prepareListRecs($data);
@@ -159,5 +165,17 @@ class bgerp_drivers_Recently extends core_BaseClass
     protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
     {
         $data->form->setDefault('perPage', 10);
+    }
+    
+    
+    /**
+     * Връща типа на блока за портала
+     *
+     * @return string - other, tasks, notifications, calendar, recently
+     */
+    public function getBlockType()
+    {
+        
+        return 'recently';
     }
 }

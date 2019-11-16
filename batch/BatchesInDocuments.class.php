@@ -548,7 +548,11 @@ class batch_BatchesInDocuments extends core_Manager
                 $dRec = cls::get($detailClassId)->fetch($detailRecId);
                 
                 if ($form->cmd == 'updateQuantity' && !empty($total)) {
-                    $dRec->quantity = $total * $recInfo->quantityInPack;
+                    if($Detail instanceof store_InternalDocumentDetail){
+                        $dRec->packQuantity = $total / $recInfo->quantityInPack;
+                    } else {
+                        $dRec->quantity = $total * $recInfo->quantityInPack;
+                    }
                 }
                 
                 cls::get($detailClassId)->save($dRec);
@@ -735,6 +739,7 @@ class batch_BatchesInDocuments extends core_Manager
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
+        $data->query->orderBy('id', 'DESC');
         
         if ($fRec = $data->listFilter->rec) {
             if (isset($fRec->document)) {

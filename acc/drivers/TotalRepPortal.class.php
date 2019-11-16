@@ -121,7 +121,7 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
         
         $iRec = $query->fetch();
         
-        $resData->cacheKey = md5($dRec->gaugeType . '_' . $dRec->target . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent() . '_' . $iRec->id . '_' . $iRec->value);
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->target . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent() . '_' . $iRec->id . '_' . $iRec->value);
         $resData->cacheType = 'TotalRepPortal';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
@@ -168,5 +168,17 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
         }
         
         return $data->tpl;
+    }
+    
+    
+    /**
+     * Връща типа на блока за портала
+     *
+     * @return string - other, tasks, notifications, calendar, recently
+     */
+    public function getBlockType()
+    {
+        
+        return 'other';
     }
 }

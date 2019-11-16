@@ -89,16 +89,18 @@ class doc_drivers_FolderPortal extends core_BaseClass
         
         expect($dRec->folderId);
         
-        $resData->data = new stdClass();
-        
         $fLast = doc_Folders::fetchField($dRec->folderId, 'last');
         
-        $resData->cacheKey = md5($fLast . '_' . $dRec->modifiedOn . '_' . $userId . '_' . Request::get('ajax_mode') . '–' . Request::get('P_doc_Threads') . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent());
+        $pageVar = 'P_' . get_called_class() . '_' . $dRec->originIdCalc;
+        
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $fLast. '_' . $userId . '_' . Request::get('ajax_mode') . '–' . Request::get($pageVar) . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent());
         $resData->cacheType = 'FolderPortal';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if ($resData->tpl === false) {
+            $resData->data = new stdClass();
+            
             $dQuery = doc_Threads::getQuery();
             
             $filter = new stdClass();
@@ -120,13 +122,15 @@ class doc_drivers_FolderPortal extends core_BaseClass
             
             $Threads->listItemsPerPage = $dRec->perPage ? $dRec->perPage : 5;
             
-            $data->listFields = arr::make('title=Заглавие,author=Автор,last=Последно,hnd=Номер,allDocCnt=Документи', true);
+            $data->listFields = arr::make('title=Заглавие,author=Автор,last=Последно', true);
             
             $data->query = $dQuery;
             $data->rejQuery = clone $dQuery;
             
             // Подготвяме навигацията по страници
             $Threads->prepareListPager($data);
+            
+            $data->pager->pageVar = $pageVar;
             
             // Подготвяме записите за таблицата
             $Threads->prepareListRecs($data);
@@ -152,7 +156,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
                 $attrArr['url'] = array();
             }
             
-            $resData->folderTitle = doc_Folders::getLink($dRec->folderId, false, $attrArr);
+            $resData->folderTitle = doc_Folders::getLink($dRec->folderId, 42, $attrArr);
             
             $dRec->search = trim($dRec->search);
             if ($dRec->search) {
@@ -195,5 +199,17 @@ class doc_drivers_FolderPortal extends core_BaseClass
         }
         
         return $data->tpl;
+    }
+    
+    
+    /**
+     * Връща типа на блока за портала
+     *
+     * @return string - other, tasks, notifications, calendar, recently
+     */
+    public function getBlockType()
+    {
+        
+        return 'other';
     }
 }

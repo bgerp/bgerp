@@ -73,7 +73,7 @@ class deals_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'deals_reports_ArrearsImpl,deals_reports_ReportPaymentDocuments';
+    public $defClasses = 'deals_reports_ReportPaymentDocuments';
     
     
     /**

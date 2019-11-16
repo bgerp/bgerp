@@ -188,6 +188,9 @@ body {
     -webkit-transition: -webkit-transform 300ms ease-in-out,opacity 300ms;
     transition: transform 300ms ease-in-out,opacity 300ms;
     padding: 0px 15px 15px;
+    &.defaultPortal {
+
+    }
     &.detail-info {
         border-radius: 5px;
     }
@@ -209,13 +212,32 @@ body {
     }
 }
 
+.defaultPortal {
+    .tab-link {
+        background: #eee;
+        &.activeTab, &:hover {
+            color: #000;
+            background: #fff;
+        }
+    }
+    .portal {
+        box-shadow: none;
+        border: none;
+        .legend {
+            background-color:#fff;
+        }
+    }
+}
 .color-lightgray {
     .portal {
         background-color: #fff;
     }
-    span&, .legend {
+    span&, .legend, li& {
         background: #f1f1f1;
         color: #000;
+        a {
+            color: #333;
+        }
     }
 }
 
@@ -223,9 +245,12 @@ body {
     .portal {
         background-color: #e1e1e1;
     }
-    span&, .legend {
+    span&, .legend, li& {
         background-color: #333;
-        color: #ddd;
+        color: #eee;
+        a {
+            color: #bbb;
+        }
     }
 }
 
@@ -233,9 +258,12 @@ body {
     .portal {
         background-color: #e6f4e0;
     }
-    span&, .legend {
+    span&, .legend, li& {
         background-color: #7ac15b;
         color: #222;
+        a {
+            color: #444;
+        }
     }
 }
 
@@ -243,9 +271,12 @@ body {
     .portal {
         background-color: #dae6d5;
     }
-    span&, .legend {
+    span&, .legend, li& {
         background-color: #375d26;
         color: #eee;
+        a {
+            color: #ccc;
+        }
     }
 }
 
@@ -253,9 +284,12 @@ body {
     .portal {
         background-color: #eceaf9;
     }
-    span&, .legend {
+    span&, .legend, li& {
         background-color: #261e75;
         color: #FFF;
+        a {
+            color: #ccc;
+        }
     }
 }
 
@@ -263,9 +297,12 @@ body {
     .portal {
         background-color: #dbedf9;
     }
-    span&, .legend  {
+    span&, .legend, li& {
         background-color: #2085ca;
         color: #FFF;
+        a {
+            color: #ccc;
+        }
     }
 }
 
@@ -273,9 +310,12 @@ body {
     .portal {
         background-color: #fce8e8;
     }
-    span&, .legend {
+    span&, .legend, li& {
         background-color: #ea5757;
         color: #FFF;
+        a {
+            color: #ccc;
+        }
     }
 }
 
@@ -283,9 +323,12 @@ body {
     .portal {
         background-color: #f4dbdb;
     }
-    span&, .legend  {
+    span&, .legend, li& {
         background-color: #6b1e1e;
         color: #FFF;
+        a {
+          color: #ccc;
+        }
     }
 }
 
@@ -293,9 +336,12 @@ body {
     .portal {
         background-color: #ecdff1;
     }
-    span&, .legend {
+    span&, .legend, li& {
         background-color: #6d417b;
         color: #FFF;
+        a {
+            color: #ccc;
+        }
     }
 }
 
@@ -303,9 +349,12 @@ body {
     .portal {
         background-color: #f5daf0;
     }
-    span&, .legend {
+    span&, .legend, li& {
         background-color: #c147aa;
         color: #FFF;
+        a {
+            color: #ccc;
+        }
     }
 }
 
@@ -313,9 +362,12 @@ body {
     .portal {
         background-color: #f8f7e2;
     }
-    span&, .legend {
+    span&, .legend, li& {
         background-color: #eaea6b;
         color: #333;
+        a {
+            color: #555;
+        }
     }
 }
 
@@ -323,17 +375,17 @@ body {
     .portal {
         background-color: #fbefe3;
     }
-    span&, .legend {
+    span&, .legend, li& {
         background-color: #E48027;
         color: #fff;
+        a {
+            color: #444;
+        }
     }
 }
 
 .narrow .portal {
-  box-shadow: none;
-  border:none !important;
   .legend {
-      background: #fff !important;
       border: 1px solid #ccc;
       box-shadow: none;
 

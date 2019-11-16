@@ -26,7 +26,7 @@ class bgerp_Portal extends embed_Manager
     public $canClonesysdata = 'powerUser';
     public $canCloneuserdata = 'powerUser';
     public $canClonerec = 'powerUser';
-    
+
 //     public $canList = 'powerUser';
     public $canList = 'debug';
     public $canSingle = 'powerUser';
@@ -34,10 +34,12 @@ class bgerp_Portal extends embed_Manager
     public $canEdit = 'powerUser';
     public $canDelete = 'powerUser';
     
+    
     /**
      * Неща за зареждане в началото
      */
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, bgerp_Wrapper, plg_Clone';
+    
     
     /**
      * Полета, които да не се клонират
@@ -51,7 +53,11 @@ class bgerp_Portal extends embed_Manager
     public $title = 'Елементи на портала';
     
     
-    public $listFields = 'driverClass, userOrRole, column, order, color, originIdCalc, createdOn, createdBy';
+    /**
+     * 
+     */
+    public $listFields = 'driverClass, userOrRole, column, order, color, createdOn, createdBy';
+    
     
     /**
      * Описание на модела
@@ -59,13 +65,12 @@ class bgerp_Portal extends embed_Manager
     public function description()
     {
         $this->FLD('userOrRole', 'userOrRole(rolesType=team, rolesForAllRoles=admin, rolesForAllSysTeam=admin, userRoles=powerUser)', 'caption=Потребител/Роля, silent, refreshForm');
-        $this->FLD('column', 'enum(1,2,3)', 'caption=Колона');
+        $this->FLD('column', 'enum(1,2,3)', 'caption=Колона, notNull');
         $this->FLD('order', 'int(min=-1000, max=1000)', 'caption=Подредба, notNull');
-        $this->FLD('color', 'enum(lightgray=Светло сив,darkgray=Тъмно сив,lightred=Светло червен,darkred=Тъмно червен,lightgreen=Светло зелен,darkgreen=Тъмно зелен,lightblue=Светло син,darkblue= Тъмно син, yellow=Жълт, pink=Розoв, purple=Лилав, orange=Оранжев)', 'caption=Цвят');
+        $this->FLD('color', 'enum(lightgray=Светло сив,darkgray=Тъмно сив,lightred=Светло червен,darkred=Тъмно червен,lightgreen=Светло зелен,darkgreen=Тъмно зелен,lightblue=Светло син,darkblue= Тъмно син, yellow=Жълт, pink=Розов, purple=Лилав, orange=Оранжев)', 'caption=Цвят, notNull');
+        $this->FLD('show', 'enum(yes=Да,no=Не)', 'caption=Показване, notNull');
         
         $this->FNC('originIdCalc', 'key(mvc=bgerp_Portal, allowEmpty)', 'caption=Източник,input=none');
-        
-        //@todo - празна стойност
         
         $optArr = array();
         foreach ($this->fields['color']->type->options as $color => $verbal) {
@@ -104,6 +109,8 @@ class bgerp_Portal extends embed_Manager
      */
     public function act_Show2()
     {
+        $maxShowCnt = 12;
+        
         // Ако е инсталиран пакета за партньори
         // И текущия потребител е контрактор, но не е powerUser
         if (core_Users::haveRole('partner')) {
@@ -128,15 +135,35 @@ class bgerp_Portal extends embed_Manager
         
         $cu = core_Users::getCurrent();
         
-        $tpl = new ET("
-            <table style='width:100%' class='top-table large-spacing'>
-            <tr>
-                <td style='width:33.3%'>[#LEFT_COLUMN#]</td>
-                <td style='width:33.4%'>[#MIDDLE_COLUMN#]</td>
-                <td style='width:33.3%'>[#RIGHT_COLUMN#]</td>
-            </tr>
-            </table>
-        ");
+        $isNarrow = Mode::is('screenMode', 'narrow');
+        
+        if ($isNarrow) {
+            $tpl = new ET(tr("|*
+                          	<ul class='portalTabs'>
+                                <!--ET_BEGIN NOTIFICATIONS_COLOR_TAB--><li class='tab-link [#NOTIFICATIONS_COLOR_TAB#]' data-tab='notificationsPortal'>|Известия|*</li><!--ET_END NOTIFICATIONS_COLOR_TAB-->
+                                <!--ET_BEGIN CALENDAR_COLOR_TAB--><li class='tab-link [#CALENDAR_COLOR_TAB#]' data-tab='calendarPortal'>|Календар|*</li><!--ET_END CALENDAR_COLOR_TAB-->
+                                <!--ET_BEGIN TASKS_COLOR_TAB--><li class='tab-link [#TASKS_COLOR_TAB#]' data-tab='taskPortal'>|Задачи|*</li><!--ET_END TASKS_COLOR_TAB-->
+                                <!--ET_BEGIN RECENTLY_COLOR_TAB--><li class='tab-link [#RECENTLY_COLOR_TAB#]' data-tab='recentlyPortal'>|Последно|*</li><!--ET_END RECENTLY_COLOR_TAB-->
+                            </ul>
+                            <div class='portalContent'>
+                                <div class='narrowPortalBlocks' id='notificationsPortal'>[#NOTIFICATIONS_COLUMN#]</div>
+                                <div class='narrowPortalBlocks' id='calendarPortal'>[#CALENDAR_COLUMN#]</div>
+                                <div class='narrowPortalBlocks' id='taskPortal'>[#TASK_COLUMN#]</div>
+                                <div class='narrowPortalBlocks' id='recentlyPortal'>[#RECENTLY_COLUMN#]</div>
+                                <div class='narrowPortalOther' id='recentlyPortal'>[#OTHER#]</div>
+                            </div>
+                            "));
+        } else {
+            $tpl = new ET("
+                <table style='width:100%' class='top-table large-spacing'>
+                <tr>
+                    <td style='width:33.3%'>[#LEFT_COLUMN#]</td>
+                    <td style='width:33.4%'>[#MIDDLE_COLUMN#]</td>
+                    <td style='width:33.3%'>[#RIGHT_COLUMN#]</td>
+                </tr>
+                </table>
+            ");
+        }
         
         $columnMap = array(1 => 'LEFT_COLUMN', 2 => 'MIDDLE_COLUMN', 3 => 'RIGHT_COLUMN');
         
@@ -154,12 +181,56 @@ class bgerp_Portal extends embed_Manager
                 $r->column = 1;
             }
             
-            $colorCls = $r->color ? $r->color : 'all';
+            $colorCls = 'color-' . ($r->color ? $r->color : 'all');
             
-            $res->prepend("<div class='color-{$colorCls}'>");
+            $res->prepend("<div class='{$colorCls}'>");
             $res->append("</div>");
             
-            $tpl->append($res, $columnMap[$r->column]);
+            if ($isNarrow) {
+                $blockType = $intf->getBlockType();
+                
+                if ($intf->getBlockType() == 'other') {
+                    $tpl->prepend($res, 'OTHER');
+                } else {
+                    switch ($blockType) {
+                        case 'tasks':
+                            $blockName = 'TASK_COLUMN';
+                            $tabColorName = 'TASKS_COLOR_TAB';
+                        break;
+                        
+                        case 'notifications':
+                            $blockName = 'NOTIFICATIONS_COLUMN';
+                            $tabColorName = 'NOTIFICATIONS_COLOR_TAB';
+                        break;
+                        
+                        case 'calendar':
+                            $blockName = 'CALENDAR_COLUMN';
+                            $tabColorName = 'CALENDAR_COLOR_TAB';
+                        break;
+                            
+                        case 'recently':
+                            $blockName = 'RECENTLY_COLUMN';
+                            $tabColorName = 'RECENTLY_COLOR_TAB';
+                        break;
+                        
+                        default:
+                            expect(false, $blockName);
+                        break;
+                    }
+                    
+                    $tpl->replace($colorCls, $tabColorName);
+                    
+                    $tpl->append($res, $blockName);
+                }
+            } else {
+                $tpl->append($res, $columnMap[$r->column]);
+            }
+            
+            if (!--$maxShowCnt) break;
+        }
+        
+        if ($isNarrow) {
+            jquery_Jquery::run($tpl, "openCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime(core_Users::getCurrent())) . "'); ");
         }
         
         $tpl->push('js/PortalSearch.js', 'JS');
@@ -221,11 +292,15 @@ class bgerp_Portal extends embed_Manager
             $resArr[$rec->originIdCalc] = $rec;
         }
         
+        // Премахваме от масива блоковете, които да не се показват
+        foreach ($resArr as $rId => $rRec) {
+            if ($rRec->show == 'no') {
+                unset($resArr[$rId]);
+            }
+        }
+        
         // Подреждаме масива, според order
         arr::sortObjects($resArr, 'order', 'DESC');
-        
-        // @todo - ограничение на бройката
-//         $resArr
         
         return $resArr;
     }
@@ -249,13 +324,22 @@ class bgerp_Portal extends embed_Manager
                 }
                 
                 if (($action == 'single') && ($rec->createdBy != $userId)) {
-                    if ($rec->userOrRole > 0) {
+                    if (($rec->userOrRole > 0) && $rec->createdBy > 0) {
                         $requiredRoles = 'no_one';
                     }
                 }
                 
                 if (($requiredRoles != 'no_one') && $action == 'cloneuserdata') {
                     $requiredRoles = $mvc->getRequiredRoles('single', $rec, $userId);
+                }
+            }
+            
+            // Ако имат "баща", да не може да се изтрие
+            if ($action == 'delete') {
+                if ($rec->clonedFromId) {
+                    if ($mvc->fetch($rec->clonedFromId)) {
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
@@ -326,13 +410,13 @@ class bgerp_Portal extends embed_Manager
         
         if (Mode::is('screenMode', 'narrow')) {
             $tpl = new ET(tr("|*
-          	<ul class='portalTabs'>
+          	<ul class='portalTabs defaultPortal'>
                 <li class='tab-link' data-tab='notificationsPortal'>|Известия|*</li>
                 <li class='tab-link' data-tab='calendarPortal'>|Календар|*</li>
                 <li class='tab-link' data-tab='taskPortal'>|Задачи|*</li>
                 <li class='tab-link' data-tab='recentlyPortal'>|Последно|*</li>
             </ul>
-            <div class='portalContent'>
+            <div class='portalContent defaultPortal'>
                 <div class='narrowPortalBlocks' id='notificationsPortal'>[#NOTIFICATIONS_COLUMN#]</div>
                 <div class='narrowPortalBlocks' id='calendarPortal'>[#CALENDAR_COLUMN#]</div>
                 <div class='narrowPortalBlocks' id='taskPortal'>[#TASK_COLUMN#]</div>
@@ -522,5 +606,20 @@ class bgerp_Portal extends embed_Manager
         }
         $html .= "</datalist>\n";
         $form->layout->append(new ET($html), 'DATA_LIST');
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if ($rec->color) {
+            $row->color = "<span class='color-{$rec->color}'>{$row->color}</span>";
+        }
     }
 }

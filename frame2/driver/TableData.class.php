@@ -43,11 +43,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
-     * Кое поле от $data->recs да се следи, ако има нов във новата версия
+     * Коя комбинация от полета от $data->recs да се следи, ако има промяна в последната версия
      *
      * @var string
      */
-    protected $newFieldToCheck;
+    protected $newFieldsToCheck;
     
     
     /**
@@ -479,6 +479,19 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
+     * Кои полета да се следят при обновяване, за да се бие нотификация
+     *
+     * @param stdClass       $rec
+     *
+     * @return string
+     */
+    public function getNewFieldsToCheckOnRefresh($rec)
+    {
+        return $this->newFieldsToCheck;
+    }
+    
+    
+    /**
      * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
      *
      * @param stdClass $rec
@@ -503,27 +516,56 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             return true;
         }
         
-        if (empty($this->newFieldToCheck)) {
+        // Комбинацията при промяна на кои полета ще се следи
+        $newFieldsToCheck = $this->getNewFieldsToCheckOnRefresh($rec);
+        if (empty($newFieldsToCheck)) {
             
             return false;
         }
         
         $oldRec = $all[key($all)]->oldRec;
-        $newContainerIds = $oldContainerIds = array();
+        $newValuesToCheck = $oldValuesToCheck = array();
         
+        // Извличане на стойностите за следене от текущата версия
         if (is_array($rec->data->recs)) {
-            $newContainerIds = arr::extractValuesFromArray($rec->data->recs, $this->newFieldToCheck);
+            $newValuesToCheck = static::extractFieldsFromArr($rec->data->recs, $newFieldsToCheck);
         }
         
+        // Извличане на стойностите за следене от предишната версия
         if (is_array($oldRec->data->recs)) {
-            $oldContainerIds = arr::extractValuesFromArray($oldRec->data->recs, $this->newFieldToCheck);
+            $oldValuesToCheck = static::extractFieldsFromArr($oldRec->data->recs, $newFieldsToCheck);
         }
-        
-        // Ако има нови документи бие се нотификация
-        $diff = array_diff_key($newContainerIds, $oldContainerIds);
+       
+        // Ако има промяна в следената комбинация от полета, да се бие нотификация
+        $diff = array_diff_key($newValuesToCheck, $oldValuesToCheck);
         $res = (is_array($diff) && count($diff));
         
         return $res;
+    }
+    
+    
+    /**
+     * Помощна ф-я за извличане на желаните полета от масив
+     * 
+     * @param mixed $arr
+     * @param mixed $fieldsToCheck
+     * 
+     * @return array $result
+     */
+    protected static function extractFieldsFromArr($arr, $fieldsToCheck)
+    {
+        $fieldsToCheckArr = arr::make($fieldsToCheck, true);
+        $result = array_values(array_map(function ($obj) use ($fieldsToCheckArr) {
+            $value = array();
+            foreach ($fieldsToCheckArr as $fld){
+                $value[] = (is_object($obj)) ? $obj->{$fld} : $obj[$fld];
+            }
+            return implode('|', $value);
+        }, $arr));
+        
+        $result = array_combine($result, $result);
+        
+        return $result;
     }
     
     
