@@ -469,7 +469,9 @@ class doc_Setup extends core_ProtoSetup
      */
     public function loadSetupData($itr = '')
     {
-        $res = parent::loadSetupData($itr);
+        $res .= parent::loadSetupData($itr);
+        
+        $res .= cls::get('bgerp_Setup')->loadSetupData();
         
         $res .= $this->callMigrate('addBlockToPortal4619', 'doc');
         
