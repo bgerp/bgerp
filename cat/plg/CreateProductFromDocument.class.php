@@ -385,7 +385,9 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 
                 if (!$form->gotErrors()) {
                     // Създаване на нов артикул само при нужда
-                    $sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$productId}  AND #quantity='{$rec->quantity}'");
+                    if (!empty($productId) && $mvc instanceof sales_QuotationsDetails) {
+                        $sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$productId}  AND #quantity='{$rec->quantity}'");
+                    }
                     
                     $msg = null;
                     if (!isset($productId)) {
