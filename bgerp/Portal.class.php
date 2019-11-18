@@ -28,7 +28,7 @@ class bgerp_Portal extends embed_Manager
     public $canClonerec = 'powerUser';
 
 //     public $canList = 'powerUser';
-    public $canList = 'debug';
+    public $canList = 'debug,ceo,admin';
     public $canSingle = 'powerUser';
     public $canAdd = 'powerUser';
     public $canEdit = 'powerUser';
