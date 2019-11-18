@@ -471,7 +471,7 @@ class doc_Setup extends core_ProtoSetup
     {
         $res = parent::loadSetupData($itr);
         
-        $res .= $this->callMigrate('addBlockToPortal1946', 'doc');
+        $res .= $this->callMigrate('addBlockToPortal4619', 'doc');
         
         return $res;
     }
@@ -480,7 +480,7 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Добавя блок в портала за всеки powerUser с пощенската му кутия
      */
-    public function addBlockToPortal1946()
+    public function addBlockToPortal4619()
     {
         $Portal = cls::get('bgerp_Portal');
         
