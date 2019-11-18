@@ -89,9 +89,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $calendarStateQueryClone = clone $resData->calendarState->query;
         $calendarStateQueryClone->orderBy('createdOn', 'DESC');
         $calendarStateQueryClone->limit(1);
-        $calendarStateQueryClone->show('id');
-        $lastCalendarEventId = $calendarStateQueryClone->fetch()->id;
-
+        $lastCalendarEventRec = serialize($calendarStateQueryClone->fetch());
+        
         // Само бележки за текущия потребител или за всички потребители
         $resData->agendaData = new stdClass();
         $resData->agendaData->query = cal_Calendar::getQuery();
@@ -102,15 +101,14 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $agendaStateQueryClone = clone $resData->agendaData->query;
         $agendaStateQueryClone->orderBy('createdOn', 'DESC');
         $agendaStateQueryClone->limit(1);
-        $agendaStateQueryClone->show('id');
-        $lastAgendaEventId = $agendaStateQueryClone->fetch()->id;
+        $lastAgendaEventRec = serialize($agendaStateQueryClone->fetch());
         
         // Съдържание на клетките на календара
         $Calendar = cls::get('cal_Calendar');
         
         $Calendar->searchInputField .= '_' . $dRec->originIdCalc;
         
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->pages . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . $resData->month . '_' . $resData->year . '_' . Request::get($Calendar->searchInputField) . '_' . core_Lg::getCurrent() . '_' . $lastCalendarEventId . '_' . $lastAgendaEventId);
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->pages . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . $resData->month . '_' . $resData->year . '_' . Request::get($Calendar->searchInputField) . '_' . core_Lg::getCurrent() . '_' . $lastCalendarEventRec. '_' . $lastAgendaEventRec);
         $resData->cacheType = 'Calendar';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
