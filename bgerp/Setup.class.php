@@ -556,7 +556,7 @@ class bgerp_Setup extends core_ProtoSetup
         $bQuery->delete("1=1");
         
         $iArr = array('bgerp_drivers_Notifications' => array('perPage' => 15, 'column' => 'left', 'order' => 500),
-                      'bgerp_drivers_Tasks' => array('perPage' => 20, 'column' => 'center', 'order' => 500),
+                      'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 500),
                       'bgerp_drivers_Recently' => array('perPage' => 10, 'column' => 'right', 'order' => 500),
                       'bgerp_drivers_Calendar' => array('column' => 'right', 'order' => 300)
                       );
