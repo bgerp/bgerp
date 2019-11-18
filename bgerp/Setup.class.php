@@ -549,7 +549,7 @@ class bgerp_Setup extends core_ProtoSetup
     /**
      * Миграция за изтриване на старите данни в портала и за добавяне на новите интерфейси
      */
-    public function setNewPortal1946()
+    public function setNewPortal4619()
     {
         $Portal = cls::get('bgerp_Portal');
         $bQuery = bgerp_Portal::getQuery();
@@ -588,7 +588,7 @@ class bgerp_Setup extends core_ProtoSetup
     {
         $res = parent::loadSetupData($itr);
         
-        $res .= $this->callMigrate('setNewPortal1946', 'bgerp');
+        $res .= $this->callMigrate('setNewPortal4619', 'bgerp');
         
         return $res;
     }
