@@ -195,7 +195,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     protected function renderTable($rec, &$data)
     {
         $tpl = new core_ET('');
-        
+       
         // Подготовка на пейджъра
         $itemsPerPage = null;
         if (!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'))) {
@@ -207,6 +207,18 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         
         // Вербализиране само на нужните записи
         if (is_array($data->recs)) {
+            
+            // Ако е указано сортиране, сортират се записите
+            if($sortDirection = Request::get("Sort{$rec->containerId}")){
+                list($sortFld, $sortDirection) = explode('|', $sortDirection);
+                if(isset($sortFld) && isset($sortDirection)){
+                    if($sortDirection != 'none'){
+                        usort($data->recs, function($a, $b) use ($sortFld, $sortDirection) {
+                            return ($a->{$sortFld} > $b->{$sortFld}) ? (($sortDirection  == 'up') ? -1 : 1) : (($sortDirection  == 'up')? 1 : -1);
+                        });
+                    }
+                }
+            }
             
             // Ако има поле за групиране, предварително се групират записите
             if (!empty($data->groupByField)) {
@@ -402,6 +414,46 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
+     * Добавя бутони за сортиране на поле от таблицата
+     * 
+     * @param string $sortUrlParam
+     * @param string $fieldName
+     * @param string $fieldCaption
+     * 
+     * @return string $fieldCaption
+     */
+    private function addSortingBtnsToField($sortUrlParam, $fieldName, $fieldCaption)
+    {
+        $direction = Request::get($sortUrlParam);
+        $directionArr = (!empty($direction)) ? explode('|', $direction) : null;
+        
+        // Подготовка на бутоните за сортиране
+        $sort = "{$fieldName}|up";
+        $img = 'img/icon_sort.gif';
+        if(is_array($directionArr)){
+            if($directionArr[0] == $fieldName){
+                $img = ($directionArr[1] == 'up') ? 'img/icon_sort_up.gif' : (($directionArr[1] == 'down') ? 'img/icon_sort_down.gif' : $img);
+                $sort = ($directionArr[1] == 'up') ? "{$fieldName}|down" : (($directionArr[1] == 'down') ? "{$fieldName}|none" : "{$fieldName}|up");
+            }
+        }
+        
+        $currUrl = getCurrentUrl();
+        $currUrl[$sortUrlParam] = $sort;
+        $href = ht::escapeAttr(toUrl($currUrl));
+        
+        // Добавя се на кепшъна бутони за сортиране
+        $captionArr = explode('->', $fieldCaption);
+        $startCapttion = (count($captionArr) == 2) ? "{$captionArr[0]}->" : "";
+        $midCapttion = (count($captionArr) == 2) ? $captionArr[1] : $captionArr[0];
+        
+        $fieldCaption = "{$startCapttion}|*<div class='rowtools'><div class='l'>|{$midCapttion}|*</div><a class='r' href='{$href}' ><img  src=" . sbf($img) .
+        " width='16' height='16' alt='sort' class='sortBtn'></a></div>";
+        
+        return $fieldCaption;
+    }
+    
+    
+    /**
      * Подготвя данните на справката от нулата, които се записват в модела
      *
      * @param stdClass $rec    - запис на справката
@@ -412,11 +464,17 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     protected function getListFields($rec, $export = false)
     {
         $listFields = array();
+        $sortUrlParam = "Sort{$rec->containerId}";
         
         $fieldset = $this->getTableFieldSet($rec, $export);
         $fields = $fieldset->selectFields();
         if (is_array($fields)) {
             foreach ($fields as $name => $fld) {
+                
+                // Ако полето ще се сортира, добавя се функционалност за сортиране
+                if(!empty($fld->sorting)) {
+                    $fld->caption = $this->addSortingBtnsToField($sortUrlParam, $name, $fld->caption);
+                }
                 $listFields[$name] = $fld->caption;
             }
         }
