@@ -33,6 +33,22 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
+     * Кои полета от таблицата в справката да се сумират в обобщаващия ред
+     *
+     * @var int
+     */
+    protected $summaryListFields;
+    
+   
+    /**
+     * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
+     *
+     * @var int
+     */
+    protected $summaryRowCaption = 'ОБЩО';
+    
+    
+    /**
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
@@ -110,6 +126,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $data->recs = $this->prepareRecs($rec, $data);
         setIfNot($data->groupByField, $this->groupByField);
         setIfNot($data->groupedFieldOnNewRow, $this->groupedFieldOnNewRow);
+        setIfNot($data->summaryListFields, $this->summaryListFields);
+        setIfNot($data->summaryRowCaption, $this->summaryRowCaption);
         
         return $data;
     }
@@ -186,6 +204,44 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
+     * Подготвя сумиращия ред
+     * 
+     * @param stdClass $data
+     * @param array $fieldsToSumArr
+     * 
+     * @return void|stdClass $summaryRow
+     */
+    protected function getSummaryListRow($data, $fieldsToSumArr)
+    {
+        $summaryRow = new stdClass();
+        if(!count($data->recs) || !count($fieldsToSumArr)) {
+            
+            return;
+        }
+        
+        // Ако има полета за сумиране
+        array_walk($data->recs, function ($a) use (&$summaryRow, $fieldsToSumArr){
+            foreach ($fieldsToSumArr as $fld){
+                if(is_numeric($a->{$fld})){
+                    $summaryRow->{$fld} += $a->{$fld};
+                }
+            }
+        });
+        
+        // Добавяне на сумиращия ред
+        $firstKey = key($data->listFields);
+        $summaryRow->{$firstKey} = tr($data->summaryRowCaption);
+        $summaryRow->_isSummary = true;
+        $summaryRow->ROW_ATTR['class'] = 'reportTableDataTotal';
+        foreach ($fieldsToSumArr as $fld){
+            $summaryRow->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($summaryRow->{$fld});
+        }
+        
+        return $summaryRow;
+    }
+    
+    
+    /**
      * рендиране на таблицата
      * 
      * @param stdClass $rec
@@ -195,18 +251,27 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     protected function renderTable($rec, &$data)
     {
         $tpl = new core_ET('');
-       
+     
         // Подготовка на пейджъра
         $itemsPerPage = null;
         if (!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'))) {
             setIfNot($itemsPerPage, $rec->listItemsPerPage, $this->listItemsPerPage);
             $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $itemsPerPage));
             $data->Pager->setPageVar('frame2_Reports', $rec->id);
-            $data->Pager->itemsCount = countR($data->recs);
         }
         
         // Вербализиране само на нужните записи
         if (is_array($data->recs)) {
+            
+            
+            // Добавяне на обобщаващия ред, ако е указано да се показва
+            $summaryFields = arr::make($data->summaryListFields);
+            $fieldsToSumArr = array_intersect($summaryFields, array_keys($data->listFields));
+            $summaryRow = $this->getSummaryListRow($data, $fieldsToSumArr);
+            if(is_object($summaryRow)){
+                $data->recs = array('_total' => $summaryRow) + $data->recs;
+            }
+            $data->Pager->itemsCount = countR($data->recs);
             
             // Ако е указано сортиране, сортират се записите
             if($sortDirection = Request::get("Sort{$rec->containerId}")){
@@ -223,16 +288,22 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             // Ако има поле за групиране, предварително се групират записите
             if (!empty($data->groupByField)) {
                 $data->recs = $this->orderByGroupField($data->recs, $data->groupByField);
+                
             }
             
             foreach ($data->recs as $index => $dRec) {
                 if (isset($data->Pager) && !$data->Pager->isOnPage()) {
                     continue;
                 }
-                $data->rows[$index] = $this->detailRecToVerbal($rec, $dRec);
+                
+                $data->rows[$index] = ($dRec->_isSummary !== true) ? $this->detailRecToVerbal($rec, $dRec) : $dRec;
+                
+                if(isset($data->groupByField) && $dRec->_isSummary === true){
+                    $data->rows[$index]->{$data->groupByField} = '';
+                }
             }
         }
-        
+       
         // Рендиране на пейджъра
         if (isset($data->Pager)) {
             $tpl->replace($data->Pager->getHtml(), 'PAGER_TOP');
@@ -251,6 +322,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $filterFields = arr::make($this->filterEmptyListFields, true);
         $filterFields['_tagField'] = '_tagField';
         
+        // Ако има поле за групиране
         if (isset($data->groupByField)) {
             $found = false;
             
@@ -270,9 +342,9 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 $filterFields[$data->groupByField] = $data->groupByField;
             }
         }
-        
+       
+        // Филтриране на празните колони и рендиране на таблицата
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, implode(',', $filterFields));
-        
         $tpl->append($table->get($data->rows, $data->listFields), 'TABLE');
         
         return $tpl;
