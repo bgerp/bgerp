@@ -585,6 +585,12 @@ class store_Products extends core_Detail
         $tQuery->where("#state = 'pending'");
         $tQuery->show('id,containerId,fromStore,toStore,modifiedOn,deliveryTime');
         while ($tRec = $tQuery->fetch()) {
+            
+            // Ако има срок на доставка и той е <= на сега, инвалидира се кеша, да се изчисли наново
+            if(!empty($tRec->deliveryTime) && $tRec->deliveryTime <= $now){
+                core_Permanent::remove("reserved_{$tRec->containerId}");
+            }
+            
             $reserved = core_Permanent::get("reserved_{$tRec->containerId}", $tRec->modifiedOn);
             
             // Ако няма кеширани к-ва
@@ -633,6 +639,10 @@ class store_Products extends core_Detail
             }
             
             while ($sRec = $srQuery->fetch()) {
+                if(!empty($sRec->deliveryTime) && $sRec->deliveryTime <= $now){
+                    core_Permanent::remove("reserved_{$sRec->containerId}");
+                }
+                
                 $reserved = core_Permanent::get("reserved_{$sRec->containerId}", $sRec->modifiedOn);
                 
                 // Ако няма кеширани к-ва
