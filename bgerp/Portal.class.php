@@ -65,8 +65,8 @@ class bgerp_Portal extends embed_Manager
     public function description()
     {
         $this->FLD('userOrRole', 'userOrRole(rolesType=team, rolesForAllRoles=admin, rolesForAllSysTeam=admin, userRoles=powerUser)', 'caption=Потребител/Роля, silent, refreshForm');
-        $this->FLD('column', 'enum(1,2,3)', 'caption=Колона, notNull');
-        $this->FLD('order', 'int(min=-1000, max=1000)', 'caption=Подредба, notNull');
+        $this->FLD('column', 'enum(left=Лява,center=Средна,right=Дясна)', 'caption=Колона, notNull, hint=Колона в широкия изглед');
+        $this->FLD('order', 'enum(800=Най-нагоре,700=По-нагоре,600=Нагоре,500=Средата,400=Надолу,300=По-надолу,200=Най-надолу)', 'caption=Подредба, notNull, hint=Подредба спрямо другите блокове');
         $this->FLD('color', 'enum(lightgray=Светло сив,darkgray=Тъмно сив,lightred=Светло червен,darkred=Тъмно червен,lightgreen=Светло зелен,darkgreen=Тъмно зелен,lightblue=Светло син,darkblue= Тъмно син, yellow=Жълт, pink=Розов, purple=Лилав, orange=Оранжев)', 'caption=Цвят, notNull');
         $this->FLD('show', 'enum(yes=Да,no=Не)', 'caption=Показване, notNull');
         
@@ -165,7 +165,7 @@ class bgerp_Portal extends embed_Manager
             ");
         }
         
-        $columnMap = array(1 => 'LEFT_COLUMN', 2 => 'MIDDLE_COLUMN', 3 => 'RIGHT_COLUMN');
+        $columnMap = array('left' => 'LEFT_COLUMN', 'center' => 'MIDDLE_COLUMN', 'right' => 'RIGHT_COLUMN');
         
         foreach ($recArr as $r) {
             if (!cls::load($r->{$this->driverClassField}, true)) continue;
@@ -178,7 +178,7 @@ class bgerp_Portal extends embed_Manager
             if (!$res) continue;
             
             if (!$r->column) {
-                $r->column = 1;
+                $r->column = 'left';
             }
             
             $colorCls = 'color-' . ($r->color ? $r->color : 'all');
@@ -190,7 +190,7 @@ class bgerp_Portal extends embed_Manager
                 $blockType = $intf->getBlockType();
                 
                 if ($intf->getBlockType() == 'other') {
-                    $tpl->prepend($res, 'OTHER');
+                    $tpl->append($res, 'OTHER');
                 } else {
                     switch ($blockType) {
                         case 'tasks':
