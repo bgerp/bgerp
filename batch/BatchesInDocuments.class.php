@@ -431,12 +431,13 @@ class batch_BatchesInDocuments extends core_Manager
         }
         
         // Добавяне на поле за нова партида
+        $btnoff = ($Detail->cantCreateNewBatch === true) ? 'btnOff' : '';
         $caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
         $columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
         $captions = ($Def instanceof batch_definitions_Serial) ? 'Номер' : 'Номер|Количество';
         $noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
         
-        $form->FLD('newArray', "table(columns={$columns},batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
+        $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
         
         $form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
         $form->setFieldTypeParams('newArray', array('batchDefinition' => $Def));
