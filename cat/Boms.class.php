@@ -627,7 +627,7 @@ class cat_Boms extends core_Master
     /**
      * Ф-я за добавяне на нова рецепта към артикул
      *
-     * @param int   $productId - ид на производим артикул
+     * @param mixed   $productId - ид или запис на производим артикул
      * @param int   $quantity  - количество за което е рецептата
      * @param array $details   - масив с обекти за детайли
      *                         ->resourceId   - ид на ресурс
@@ -643,7 +643,7 @@ class cat_Boms extends core_Master
     public static function createNewDraft($productId, $quantity, $originId, $details = array(), $notes = null, $expenses = null)
     {
         // Проверка на подадените данни
-        expect($pRec = cat_Products::fetch($productId));
+        expect($pRec = cat_Products::fetchRec($productId));
         expect($pRec->canManifacture == 'yes', $pRec);
         $origin = doc_Containers::getDocument($originId);
         $type = ($origin->isInstanceOf('planning_Jobs')) ? 'production' : 'sales';
@@ -719,16 +719,16 @@ class cat_Boms extends core_Master
      * ако може затваря предишната дефолтна рецепта (ако е различна) и създава нова
      * активна рецепта с подадените данни.
      *
-     * @param int $productId - ид на артикул
+     * @param mixed $productId - ид на артикул
      *
-     * @return void
+     * @return null|int
      */
     public static function createDefault($productId)
     {
-        $pRec = cat_Products::fetch($productId);
+        $pRec = cat_Products::fetchRec($productId);
         $Driver = cat_Products::getDriver($productId);
         $bomInfo = $Driver->getDefaultBom($pRec);
-        
+       
         // Ако има информация за дефолтна рецепта
         if ($bomInfo) {
             $hash = md5(serialize($bomInfo));
@@ -771,6 +771,7 @@ class cat_Boms extends core_Master
                 }
             }
             
+            
             // Ако някой от артикулите липсва, не създаваме нищо
             if (count($error)) {
                 $string = implode(',', $error);
@@ -790,7 +791,7 @@ class cat_Boms extends core_Master
             
             try {
                 // Ако има стара активна дефолтна рецепта със същите данни не правим нищо
-                if ($oldRec = static::fetch("#productId = {$productId} AND #state = 'active'  AND #hash IS NOT NULL")) {
+                if ($oldRec = static::fetch("#productId = {$pRec->id} AND #state = 'active'  AND #hash IS NOT NULL")) {
                     
                     // Ако дефолтната рецепта е различна от текущата дефолтна затваряме я
                     if ($oldRec->hash != $hash) {
@@ -804,21 +805,27 @@ class cat_Boms extends core_Master
                 
                 // Създаваме нова дефолтна рецепта от системния потребител
                 core_Users::forceSystemUser();
-                $bomId = static::createNewDraft($productId, $bomInfo['quantity'], $pRec->containerId, $details, 'Автоматична рецепта', $bomInfo['expenses']);
+                $bomId = static::createNewDraft($pRec->id, $bomInfo['quantity'], $pRec->containerId, $details, 'Автоматична рецепта', $bomInfo['expenses']);
                 $bomRec = static::fetchRec($bomId);
                 $bomRec->state = 'active';
                 $bomRec->hash = $hash;
                 static::save($bomRec);
                 core_Users::cancelSystemUser();
                 
+                doc_Threads::doUpdateThread($bomRec->threadId);
                 core_Statuses::newStatus('|Успешно е създадена нова базова рецепта');
+                
+                return $bomRec->id;
             } catch (core_exception_Expect $e) {
                 
                 // Ако има проблем, репортваме
                 core_Statuses::newStatus('|Проблем при създаването на нова базова рецепта', 'error');
+                cat_Products::logErr($e->getMessage(), $pRec->id);
                 reportException($e);
             }
         }
+        
+        return null;
     }
     
     
@@ -918,6 +925,8 @@ class cat_Boms extends core_Master
      *
      * @param int $fromProductId
      * @param int $toProductId
+     * 
+     * @return int|null
      */
     public static function cloneBom($fromProductId, $toProductId)
     {
@@ -941,7 +950,11 @@ class cat_Boms extends core_Master
             } else {
                 core_Statuses::newStatus('|Грешка при клониране на запис', 'warning');
             }
+            
+            return $nRec->id;
         }
+        
+        return null;
     }
     
     
