@@ -437,11 +437,13 @@ class batch_BatchesInDocuments extends core_Manager
         $captions = ($Def instanceof batch_definitions_Serial) ? 'Номер' : 'Номер|Количество';
         $noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
         
-        $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
+        if(!(!empty($btnoff) && $Def instanceof batch_definitions_Serial)){
+            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
         
-        $form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
-        $form->setFieldTypeParams('newArray', array('batchDefinition' => $Def));
-        $form->setDefault('newArray', $tableRec);
+            $form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
+            $form->setFieldTypeParams('newArray', array('batchDefinition' => $Def));
+            $form->setDefault('newArray', $tableRec);
+        }
         
         // Какви са наличните партиди
         $Def = batch_Defs::getBatchDef($recInfo->productId);
