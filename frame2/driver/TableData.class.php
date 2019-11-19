@@ -49,6 +49,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
+     * Кои полета от листовия изглед да може да се сортират
+     *
+     * @var int
+     */
+    protected $listFieldsToSort;
+    
+    
+    /**
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
@@ -227,15 +235,12 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 }
             }
         });
-        
+          
         // Добавяне на сумиращия ред
         $firstKey = key($data->listFields);
         $summaryRow->{$firstKey} = tr($data->summaryRowCaption);
         $summaryRow->_isSummary = true;
         $summaryRow->ROW_ATTR['class'] = 'reportTableDataTotal';
-        foreach ($fieldsToSumArr as $fld){
-            $summaryRow->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($summaryRow->{$fld});
-        }
         
         return $summaryRow;
     }
@@ -263,7 +268,6 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         // Вербализиране само на нужните записи
         if (is_array($data->recs)) {
             
-            
             // Добавяне на обобщаващия ред, ако е указано да се показва
             $summaryFields = arr::make($data->summaryListFields);
             $fieldsToSumArr = array_intersect($summaryFields, array_keys($data->listFields));
@@ -273,22 +277,27 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             }
             $data->Pager->itemsCount = countR($data->recs);
             
+            // Ако има поле за групиране, предварително се групират записите
+            if (!empty($data->groupByField)) {
+                $totalRow = $data->recs['_total'];
+                unset($data->recs['_total']);
+                
+                $data->recs = $this->orderByGroupField($data->recs, $data->groupByField);
+                if(is_object($totalRow)){
+                    $data->recs = array('_total' => $totalRow) + $data->recs;
+                }
+            }
+            
             // Ако е указано сортиране, сортират се записите
             if($sortDirection = Request::get("Sort{$rec->containerId}")){
                 list($sortFld, $sortDirection) = explode('|', $sortDirection);
                 if(isset($sortFld) && isset($sortDirection)){
                     if($sortDirection != 'none'){
                         usort($data->recs, function($a, $b) use ($sortFld, $sortDirection) {
-                            return ($a->{$sortFld} > $b->{$sortFld}) ? (($sortDirection  == 'up') ? -1 : 1) : (($sortDirection  == 'up')? 1 : -1);
+                            return (strip_tags($a->{$sortFld}) > strip_tags($b->{$sortFld})) ? (($sortDirection  == 'up') ? -1 : 1) : (($sortDirection  == 'up')? 1 : -1);
                         });
                     }
                 }
-            }
-            
-            // Ако има поле за групиране, предварително се групират записите
-            if (!empty($data->groupByField)) {
-                $data->recs = $this->orderByGroupField($data->recs, $data->groupByField);
-                
             }
             
             foreach ($data->recs as $index => $dRec) {
@@ -298,8 +307,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 
                 $data->rows[$index] = ($dRec->_isSummary !== true) ? $this->detailRecToVerbal($rec, $dRec) : $dRec;
                 
-                if(isset($data->groupByField) && $dRec->_isSummary === true){
-                    $data->rows[$index]->{$data->groupByField} = '';
+                // Ако реда е обобщаващ сумира се отделно
+                if($dRec->_isSummary === true && count($fieldsToSumArr)){
+                    foreach ($fieldsToSumArr as $fld){
+                        $data->rows[$index]->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
+                    }
                 }
             }
         }
@@ -324,6 +336,9 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         
         // Ако има поле за групиране
         if (isset($data->groupByField)) {
+            $totalRow = $data->rows['_total'];
+            unset($data->rows['_total']);
+            
             $found = false;
             
             // Групиране само ако има поне една стойност за групиране
@@ -340,6 +355,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             if ($found === true) {
                 $this->groupRows($data->recs, $data->rows, $data->listFields, $data->groupByField, $data);
                 $filterFields[$data->groupByField] = $data->groupByField;
+            }
+           
+            if(is_object($totalRow)){
+                $data->rows = array('_total' => $totalRow) + $data->rows;
             }
         }
        
@@ -537,6 +556,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     {
         $listFields = array();
         $sortUrlParam = "Sort{$rec->containerId}";
+        $listFieldsToSort = arr::make($this->listFieldsToSort, true);
         
         $fieldset = $this->getTableFieldSet($rec, $export);
         $fields = $fieldset->selectFields();
@@ -544,7 +564,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             foreach ($fields as $name => $fld) {
                 
                 // Ако полето ще се сортира, добавя се функционалност за сортиране
-                if(!empty($fld->sorting)) {
+                if(array_key_exists($name, $listFieldsToSort)) {
                     $fld->caption = $this->addSortingBtnsToField($sortUrlParam, $name, $fld->caption);
                 }
                 $listFields[$name] = $fld->caption;
