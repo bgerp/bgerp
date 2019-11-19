@@ -65,7 +65,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=typeOfQuantity');
         $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm');
         
-        $fieldset->FLD('inputArts', 'varchar', 'caption=Наблюдавани артикули,input=hidden,removeAndRefreshForm,single=none');
+        $fieldset->FLD('inputArts', 'varchar', 'caption=Наблюдавани артикули,input=hidden,single=none');
+        
+        $fieldset->FLD('groupsChecked', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Наблюдавани групи,input=hidden11,single=none11,silent');
     }
     
     
@@ -83,7 +85,19 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $rec = $form->rec;
         $rec->flag = true;
         
+        $form->input('additional');
         $form->setDefault('typeOfQuantity', 'TRUE');
+     
+        if(!$rec->additional){
+            $form->setField('groupId', 'mandatory');
+        }
+        
+        if(isset($rec->groupId)){
+            
+            $rec->groupsChecked = keylist::addKey($rec->groupsChecked, $rec->groupId);
+           // bp($rec);
+           // core_Statuses::newStatus($rec->groupsChecked);
+        }
     }
     
     
@@ -97,6 +111,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+   
         if ($form->rec->limmits == 'yes') {
             if (is_string($form->rec->additional)) {
                 $details = json_decode($form->rec->additional);
@@ -107,7 +122,15 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             $form->setField('additional', 'input=none');
         }
         
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted()) {//bp($rec);
+            
+            if ($rec->groupId && !keylist::isIn($rec->groupId,$rec->groupsChecked)){
+
+               // $groupsChecked = ;
+                
+               // $rec->groupsChecked = keylist::addKey($rec->groupsChecked, $rec->groupId);
+            }
+            
             if ($form->rec->limmits == 'no') {
                 $form->rec->additional = array();
             }
@@ -118,6 +141,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     
                     $arts = count($details->code);
                     $form->rec->inputArts = $arts;
+                    
+//                     if ($form->rec->groupId && !keylist::isIn($form->rec->groupId,$groupsChecked)){
+                       
+//                         $groupsChecked = keylist::addKey($groupsChecked, $form->rec->groupId);
+//                         $form->rec->groupsChecked = $groupsChecked;bp( $form->rec);
+//                     }
                     
                     if ($arts > $maxPost) {
                         $form->setError('droupId', 'Лимитът за следени продукти е достигнат.
@@ -188,7 +217,15 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 }
             }
         } else {
-            $rec = $form->rec;
+            $rec = $form->rec;//bp($rec);
+            
+            if ($rec->groupId && !keylist::isIn($rec->groupId,$rec->groupsChecked)){
+                
+                //$groupsChecked = keylist::addKey($groupsChecked, $rec->groupId);
+                
+               // $rec->groupsChecked = $groupsChecked;
+            }
+            
             
             if ($form->rec->limmits == 'no') {
                 $form->rec->additional = array();
@@ -200,6 +237,13 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     
                     $arts = count($details->code);
                     $form->rec->inputArts = $arts;
+                    
+                    
+                    
+//                     if ($form->rec->groupId && !keylist::isIn($form->rec->groupId,$groupsChecked)){
+//                         $groupsChecked = keylist::addKey($groupsChecked, $form->rec->groupId);
+//                         $form->rec->groupsChecked = $groupsChecked;//bp( $form->rec);
+//                     }
                     
                     $grInArts = cat_Groups::fetch($rec->groupId)->productCnt;
                     
@@ -322,6 +366,10 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        
+       
+        
+       
         $recs = array();
         
         $codes = array();
@@ -518,9 +566,16 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     {
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
+                                <small><div><!--ET_BEGIN groupsChecked-->|Наблюдавани групи|*: [#groupsChecked#]<!--ET_END groupsChecked--></div></small>
                                 <small><div><!--ET_BEGIN inputArts-->|Наблюдавани артикули|*: [#inputArts#]<!--ET_END inputArts--></div></small>
                                 <small><div><!--ET_BEGIN ariculsData-->|Артикули с данни|*: [#ariculsData#]<!--ET_END ariculsData--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
+     
+        
+        if (isset($data->rec->groupsChecked)) {
+            $fieldTpl->append('<b>' .$data->rec->groupsChecked. '</b>', 'groupsChecked');
+        }
+        
         
         
         $data->rec->ariculsData = count($data->rec->data->recs);
@@ -584,4 +639,19 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         
         return $arr;
     }
+    
+    /**
+     * Кои полета да се следят при обновяване, за да се бие нотификация
+     *
+     * @param stdClass       $rec
+     *
+     * @return string
+     */
+    public function getNewFieldsToCheckOnRefresh($rec)
+    {
+       
+        return ($rec->limmits == 'yes') ? "productId,conditionQuantity" : "productId,quantity";
+       
+    }
+    
 }
