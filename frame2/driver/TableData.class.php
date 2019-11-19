@@ -374,7 +374,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Подреждане на записите първо по-поле и после групиране по полр
      *
-     * @param int    $recs
+     * @param array    $recs
      * @param string $field
      *
      * @return array $newRecs
@@ -477,7 +477,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      *
      * @param int      $columnsCount - брой колони
      * @param string   $groupValue   - невербалното име на групата
-     * @param string   $groupVerbal  - вербалното име на групата
+     * @param mixed   $groupVerbal  - вербалното име на групата
      * @param stdClass $data         - датата
      *
      * @return string - съдържанието на групиращия ред
@@ -495,7 +495,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      *
      * @param stdClass $rec
      *
-     * @return array
+     * @return core_FieldSet $fld
      */
     public function getCsvExportFieldset($rec)
     {
@@ -546,12 +546,12 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
-     * Подготвя данните на справката от нулата, които се записват в модела
+     * Взима полетата, които ще се показват в листовия изглед на данните
      *
      * @param stdClass $rec    - запис на справката
      * @param bool     $export - таблицата за експорт ли е
      *
-     * @return stdClass|NULL $data - подготвените данни
+     * @return array $da$listFieldsta - полетата за листовия изглед
      */
     protected function getListFields($rec, $export = false)
     {
@@ -561,15 +561,13 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         
         $fieldset = $this->getTableFieldSet($rec, $export);
         $fields = $fieldset->selectFields();
-        if (is_array($fields)) {
-            foreach ($fields as $name => $fld) {
-                
-                // Ако полето ще се сортира, добавя се функционалност за сортиране
-                if(array_key_exists($name, $listFieldsToSort)) {
-                    $fld->caption = $this->addSortingBtnsToField($sortUrlParam, $name, $fld->caption);
-                }
-                $listFields[$name] = $fld->caption;
+        
+        foreach ($fields as $name => $fld) {
+            // Ако полето ще се сортира, добавя се функционалност за сортиране
+            if(array_key_exists($name, $listFieldsToSort)) {
+                $fld->caption = $this->addSortingBtnsToField($sortUrlParam, $name, $fld->caption);
             }
+            $listFields[$name] = $fld->caption;
         }
         
         return $listFields;
@@ -716,7 +714,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         
         $result = array_combine($result, $result);
         
-        return $result;
+        return is_array($result) ? $result : array();
     }
     
     
