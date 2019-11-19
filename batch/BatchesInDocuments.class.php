@@ -447,7 +447,6 @@ class batch_BatchesInDocuments extends core_Manager
         
         // Какви са наличните партиди
         $Def = batch_Defs::getBatchDef($recInfo->productId);
-        $batchCount = count($batches);
         
         $form->input();
         $saveBatches = array();
@@ -456,11 +455,10 @@ class batch_BatchesInDocuments extends core_Manager
         if ($form->isSubmitted()) {
             $r = $form->rec;
             
-            $update = $delete = $fields = $error = $error2 = $errorFields = array();
+            $delete = array();
             $total = 0;
             
             if (!empty($r->newArray)) {
-                $newBatchArray = array();
                 $newBatches = (array) @json_decode($r->newArray);
                 $bCount = count($newBatches['batch']);
                 
@@ -485,6 +483,7 @@ class batch_BatchesInDocuments extends core_Manager
                         $saveBatches[$batch] = $quantity * $recInfo->quantityInPack;
                         
                         // Проверка на к-то
+                        $warning = null;
                         if (!deals_Helper::checkQuantity($recInfo->packagingId, $quantity, $warning)) {
                             $form->setError('newArray', $warning);
                         }
@@ -506,7 +505,6 @@ class batch_BatchesInDocuments extends core_Manager
                     $saveBatches[$b] = 1 / $recInfo->quantityInPack;
                     ++$total;
                 }
-                $fields[] = 'serials';
                 
                 if (is_array($foundBatches)) {
                     foreach ($foundBatches as $fb => $q) {
@@ -609,7 +607,7 @@ class batch_BatchesInDocuments extends core_Manager
                         $tableData['quantity'][$key] = 1;
                     }
                 }
-                
+                $msg = null;
                 if (!$Def->isValid($batch, $tableData['quantity'][$key], $msg)) {
                     $error[] = "<b>{$batch}</b>:|* {$msg}";
                     $errorFields['batch'][$key] = "<b>{$batch}</b>:|* {$msg}";
