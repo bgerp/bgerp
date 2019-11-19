@@ -753,13 +753,12 @@ class cat_Boms extends core_Master
                     $nRec->propQuantity = $matRec->propQuantity;
                     $nRec->quantityInPack = 1;
                     $nRec->type = ($matRec->waste) ? 'pop' : 'input';
+                    $nRec->packagingId = cat_Products::fetchField($prod->productId, 'measureId');
                     if (isset($prod->packagingId)) {
                         $nRec->packagingId = $prod->packagingId;
                         if ($pRec = cat_products_Packagings::getPack($prod->productId, $prod->packagingId)) {
                             $nRec->quantityInPack = $pRec->quantity;
                         }
-                    } else {
-                        $nRec->packagingId = cat_Products::fetchField($prod->productId, 'measureId');
                     }
                     
                     // Форсираме производствения етап
@@ -771,58 +770,45 @@ class cat_Boms extends core_Master
                 }
             }
             
-            
             // Ако някой от артикулите липсва, не създаваме нищо
             if (count($error)) {
                 $string = implode(',', $error);
-                $msg = tr("Базовата рецепта не може да бъде създадена|*, |защото материалите с кодове|*: <b>{$string}</b> |не са въведени в системата|*");
-                core_Statuses::newStatus($msg, 'warning');
+                $error = "Базовата рецепта не може да бъде създадена|*, |защото материалите с кодове|*: <b>{$string}</b> |не са въведени в системата|*";
+                expect(false, $error);
                 
                 return;
             }
             
             // Ако няма вложими материали, не създаваме рецепта
             if ($hasInputMats === false) {
-                $msg = tr('Базовата рецепта не може да бъде създадена|*, |защото не са подадени вложими материали|*, |а само отпадаци|*');
-                core_Statuses::newStatus($msg, 'warning');
+                $error = 'Базовата рецепта не може да бъде създадена|*, |защото не са подадени вложими материали|*, |а само отпадаци|*';
+                expect(false, $error);
                 
                 return;
             }
             
-            try {
-                // Ако има стара активна дефолтна рецепта със същите данни не правим нищо
-                if ($oldRec = static::fetch("#productId = {$pRec->id} AND #state = 'active'  AND #hash IS NOT NULL")) {
-                    
-                    // Ако дефолтната рецепта е различна от текущата дефолтна затваряме я
-                    if ($oldRec->hash != $hash) {
-                        $oldRec->state = 'closed';
-                        static::save($oldRec);
-                    } else {
-                        // Не правим нищо
-                        return;
-                    }
+            // Ако има стара активна дефолтна рецепта със същите данни не правим нищо
+            if ($oldRec = static::fetch("#productId = {$pRec->id} AND #state = 'active'  AND #hash IS NOT NULL")) {
+                
+                // Ако дефолтната рецепта е различна от текущата дефолтна затваряме я
+                if ($oldRec->hash != $hash) {
+                    $oldRec->state = 'closed';
+                    static::save($oldRec);
                 }
-                
-                // Създаваме нова дефолтна рецепта от системния потребител
-                core_Users::forceSystemUser();
-                $bomId = static::createNewDraft($pRec->id, $bomInfo['quantity'], $pRec->containerId, $details, 'Автоматична рецепта', $bomInfo['expenses']);
-                $bomRec = static::fetchRec($bomId);
-                $bomRec->state = 'active';
-                $bomRec->hash = $hash;
-                static::save($bomRec);
-                core_Users::cancelSystemUser();
-                
-                doc_Threads::doUpdateThread($bomRec->threadId);
-                core_Statuses::newStatus('|Успешно е създадена нова базова рецепта');
-                
-                return $bomRec->id;
-            } catch (core_exception_Expect $e) {
-                
-                // Ако има проблем, репортваме
-                core_Statuses::newStatus('|Проблем при създаването на нова базова рецепта', 'error');
-                cat_Products::logErr($e->getMessage(), $pRec->id);
-                reportException($e);
             }
+            
+            // Създаваме нова дефолтна рецепта от системния потребител
+            core_Users::forceSystemUser();
+            $bomId = static::createNewDraft($pRec->id, $bomInfo['quantity'], $pRec->containerId, $details, 'Автоматична рецепта', $bomInfo['expenses']);
+            $bomRec = static::fetchRec($bomId);
+            $bomRec->state = 'active';
+            $bomRec->hash = $hash;
+            static::save($bomRec);
+            core_Users::cancelSystemUser();
+            doc_Threads::doUpdateThread($bomRec->threadId);
+            
+            return $bomRec->id;
+            
         }
         
         return null;
