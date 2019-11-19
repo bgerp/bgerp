@@ -307,10 +307,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 
                 $data->rows[$index] = ($dRec->_isSummary !== true) ? $this->detailRecToVerbal($rec, $dRec) : $dRec;
                 
-                // Ако реда е обобщаващ сумира се отделно
+                // Ако реда е обобщаващ вербализира се отделно
                 if($dRec->_isSummary === true && count($fieldsToSumArr)){
                     foreach ($fieldsToSumArr as $fld){
                         $data->rows[$index]->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
+                        $data->rows[$index]->{$fld} = ht::styleNumber($data->rows[$index]->{$fld}, $dRec->{$fld});
                     }
                 }
             }
