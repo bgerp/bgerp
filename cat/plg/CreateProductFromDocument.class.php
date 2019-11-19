@@ -379,7 +379,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     }
                 }
                 
-                if(deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $rec->id, $productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
+                if(deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
                     $form->setError('productId,packagingId,packPrice,discount,notes,packQuantity', 'Има въведен ред със същите данни');
                 }
                 
