@@ -67,7 +67,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         
         $fieldset->FLD('inputArts', 'varchar', 'caption=Наблюдавани артикули,input=hidden,single=none');
         
-        $fieldset->FLD('groupsChecked', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Наблюдавани групи,input=hidden11,single=none11,silent');
+        $fieldset->FLD('groupsChecked', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Наблюдавани групи,input=none,single=none');
     }
     
     
@@ -92,11 +92,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             $form->setField('groupId', 'mandatory');
         }
         
-        if(isset($rec->groupId)){
-            
-            $rec->groupsChecked = keylist::addKey($rec->groupsChecked, $rec->groupId);
-           // bp($rec);
-           // core_Statuses::newStatus($rec->groupsChecked);
+        if(isset($form->rec->groupId)){
+            $form->rec->groupsChecked = keylist::addKey($form->rec->groupsChecked, $form->rec->groupId);
         }
     }
     
@@ -111,7 +108,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
-   
         if ($form->rec->limmits == 'yes') {
             if (is_string($form->rec->additional)) {
                 $details = json_decode($form->rec->additional);
