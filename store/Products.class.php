@@ -639,7 +639,8 @@ class store_Products extends core_Detail
             }
             
             while ($sRec = $srQuery->fetch()) {
-                if(!empty($sRec->deliveryTime) && $sRec->deliveryTime <= $now){
+                $deliveryTime = isset($sRec->deliveryTime) ? $sRec->deliveryTime : (isset($sRec->valior) ? $sRec->valior : $now);
+                if($deliveryTime <= $now){
                     core_Permanent::remove("reserved_{$sRec->containerId}");
                 }
                 
@@ -656,16 +657,11 @@ class store_Products extends core_Detail
                     $sdQuery->show("productId,quantity,{$Detail->masterKey},sum");
                     $sdQuery->groupBy('productId');
                     
-                    $deliveryTime = $sRec->deliveryTime;
                     while ($sd = $sdQuery->fetch()) {
                         $key = "{$sRec->{$arr['storeFld']}}|{$sd->productId}";
                         $reserved[$key] = array('sId' => $sRec->{$arr['storeFld']}, 'pId' => $sd->productId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $sd->sum);
                         
-                        if($Doc instanceof purchase_Purchases){
-                            $deliveryTime = $sRec->valior;
-                        }
-                        
-                        if(!empty($deliveryTime) && $deliveryTime <= $now){
+                        if($deliveryTime <= $now){
                             $reserved[$key]['expected'] = $sd->sum;
                         }
                     }
