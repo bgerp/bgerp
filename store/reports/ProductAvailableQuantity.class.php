@@ -66,8 +66,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm');
         
         $fieldset->FLD('inputArts', 'varchar', 'caption=Наблюдавани артикули,input=hidden,single=none');
-        
-        $fieldset->FLD('groupsChecked', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Наблюдавани групи,input=none,single=none');
     }
     
     
@@ -87,13 +85,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         
         $form->input('additional');
         $form->setDefault('typeOfQuantity', 'TRUE');
-     
-        if(!$rec->additional){
-            $form->setField('groupId', 'mandatory');
-        }
         
-        if(isset($form->rec->groupId)){
-            $form->rec->groupsChecked = keylist::addKey($form->rec->groupsChecked, $form->rec->groupId);
+        if (!$rec->additional) {
+            $form->setField('groupId', 'mandatory');
         }
     }
     
@@ -118,15 +112,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             $form->setField('additional', 'input=none');
         }
         
-        if ($form->isSubmitted()) {//bp($rec);
-            
-            if ($rec->groupId && !keylist::isIn($rec->groupId,$rec->groupsChecked)){
-
-               // $groupsChecked = ;
-                
-               // $rec->groupsChecked = keylist::addKey($rec->groupsChecked, $rec->groupId);
-            }
-            
+        if ($form->isSubmitted()) {
             if ($form->rec->limmits == 'no') {
                 $form->rec->additional = array();
             }
@@ -138,15 +124,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     $arts = count($details->code);
                     $form->rec->inputArts = $arts;
                     
-//                     if ($form->rec->groupId && !keylist::isIn($form->rec->groupId,$groupsChecked)){
-                       
-//                         $groupsChecked = keylist::addKey($groupsChecked, $form->rec->groupId);
-//                         $form->rec->groupsChecked = $groupsChecked;bp( $form->rec);
-//                     }
-                    
                     if ($arts > $maxPost) {
                         $form->setError('droupId', 'Лимитът за следени продукти е достигнат.
-            				За да добавите нов артикул трябва да премахнете поне един от вече включените. ');
+                            За да добавите нов артикул трябва да премахнете поне един от вече включените. ');
                     }
                     
                     foreach ($details->code as $v) {
@@ -213,33 +193,19 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 }
             }
         } else {
-            $rec = $form->rec;//bp($rec);
-            
-            if ($rec->groupId && !keylist::isIn($rec->groupId,$rec->groupsChecked)){
-                
-                //$groupsChecked = keylist::addKey($groupsChecked, $rec->groupId);
-                
-               // $rec->groupsChecked = $groupsChecked;
-            }
-            
+            $rec = $form->rec;
             
             if ($form->rec->limmits == 'no') {
                 $form->rec->additional = array();
             }
             
-            if ($form->rec->limmits == 'yes') {  
+            if ($form->rec->limmits == 'yes') {
                 if ($form->cmd == 'refresh' && $rec->groupId) {
                     $maxPost = ini_get('max_input_vars') - self::MAX_POST_ART;
                     
                     $arts = count($details->code);
+                    
                     $form->rec->inputArts = $arts;
-                    
-                    
-                    
-//                     if ($form->rec->groupId && !keylist::isIn($form->rec->groupId,$groupsChecked)){
-//                         $groupsChecked = keylist::addKey($groupsChecked, $form->rec->groupId);
-//                         $form->rec->groupsChecked = $groupsChecked;//bp( $form->rec);
-//                     }
                     
                     $grInArts = cat_Groups::fetch($rec->groupId)->productCnt;
                     
@@ -247,12 +213,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     
                     $prodForCut = ($arts + $grInArts) - $maxPost;
                     
-                    $numbersOfItemsToAdd = (ini_get('max_input_vars')/4) - (51+$arts);
-                    //$numbersOfItemsToAdd = 100;
+                    $numbersOfItemsToAdd = (ini_get('max_input_vars') / 4) - (51 + $arts);
                     
-                    if ((($arts + $numbersOfItemsToAdd) * 4) > $maxPost) {bp(ini_get('max_input_vars'),self::MAX_POST_ART,$arts,$numbersOfItemsToAdd);
+                    if ((($arts + $numbersOfItemsToAdd) * 4) > $maxPost) {
+                        bp(ini_get('max_input_vars'), self::MAX_POST_ART, $arts, $numbersOfItemsToAdd);
                         $form->setError('droupId', "Лимита за следени продукти е достигнат.
-            				За да добавите група \" ${groupName}\" трябва да премахнете ${prodForCut} артикула ");
+                            За да добавите група \" ${groupName}\" трябва да премахнете ${prodForCut} артикула ");
                     } else {
                         
                         // Добавя цяла група артикули
@@ -337,8 +303,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                                 $maxArt = self::NUMBER_OF_ITEMS_TO_ADD;
                                 
                                 $form->setWarning('groupId', "${countUnset} артикула от група ${groupName} няма да  бъдат добавени.
-            						Максимален брой артикули за еднократно добавяне - ${maxArt}.
-            						Може да добавите още артикули от групата при следваща редакция.");
+                                    Максимален брой артикули за еднократно добавяне - ${maxArt}.
+                                    Може да добавите още артикули от групата при следваща редакция.");
                             }
                         }
                         
@@ -362,10 +328,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        
-       
-        
-       
         $recs = array();
         
         $codes = array();
@@ -411,7 +373,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             
             if ($rec->typeOfQuantity == 'TRUE') {
                 // Гледаме разполагаемото количество
-                $quantity = $recProduct->quantity - $recProduct->reservedQuantity +$recProduct->expectedQuantity;
+                $quantity = $recProduct->quantity - $recProduct->reservedQuantity + $recProduct->expectedQuantity;
             } else {
                 // Гледаме наличното количество
                 $quantity = $recProduct->quantity;
@@ -422,12 +384,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             } else {
                 $key = mb_strtolower($recProduct->code);
                 
-                if(is_string($minQuantity[$key]) && strpos($minQuantity[$key], ',')){
+                if (is_string($minQuantity[$key]) && strpos($minQuantity[$key], ',')) {
                     $pos = strpos($minQuantity[$key], ',');
                     $minQuantity[$key][$pos] = '.';
                 }
                 
-                if(is_string($maxQuantity[$key]) && strpos($maxQuantity[$key], ',')){
+                if (is_string($maxQuantity[$key]) && strpos($maxQuantity[$key], ',')) {
                     $pos = strpos($maxQuantity[$key], ',');
                     $maxQuantity[$key][$pos] = '.';
                 }
@@ -566,12 +528,11 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN inputArts-->|Наблюдавани артикули|*: [#inputArts#]<!--ET_END inputArts--></div></small>
                                 <small><div><!--ET_BEGIN ariculsData-->|Артикули с данни|*: [#ariculsData#]<!--ET_END ariculsData--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
-     
+        
         
         if (isset($data->rec->groupsChecked)) {
             $fieldTpl->append('<b>' .$data->rec->groupsChecked. '</b>', 'groupsChecked');
         }
-        
         
         
         $data->rec->ariculsData = count($data->rec->data->recs);
@@ -636,18 +597,16 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         return $arr;
     }
     
+    
     /**
      * Кои полета да се следят при обновяване, за да се бие нотификация
      *
-     * @param stdClass       $rec
+     * @param stdClass $rec
      *
      * @return string
      */
     public function getNewFieldsToCheckOnRefresh($rec)
     {
-       
-        return ($rec->limmits == 'yes') ? "productId,conditionQuantity" : "productId,quantity";
-       
+        return ($rec->limmits == 'yes') ? 'productId,conditionQuantity' : 'productId,quantity';
     }
-    
 }
