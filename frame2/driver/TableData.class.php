@@ -53,7 +53,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      *
      * @var int
      */
-    protected $listFieldsToSort;
+    protected $sortableListFields;
     
     
     /**
@@ -574,7 +574,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     {
         $listFields = array();
         $sortUrlParam = "Sort{$rec->containerId}";
-        $listFieldsToSort = arr::make($this->listFieldsToSort, true);
+        $listFieldsToSort = arr::make($this->sortableListFields, true);
         
         $fieldset = $this->getTableFieldSet($rec, $export);
         $fields = $fieldset->selectFields();

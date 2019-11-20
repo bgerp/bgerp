@@ -25,7 +25,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $listFieldsToSort = 'quantity';
+    protected $sortableListFields = 'quantity';
     
     /**
      * Кои полета от таблицата в справката да се сумират в обобщаващия ред
