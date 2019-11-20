@@ -1639,7 +1639,7 @@ class crm_Companies extends core_Master
             
             // Добавяме свойствата от групите, ако има такива
             $groupFeatures = crm_Groups::getFeaturesArray($rec->groupList);
-            if (count($groupFeatures)) {
+            if (countR($groupFeatures)) {
                 $result->features += $groupFeatures;
             }
             
