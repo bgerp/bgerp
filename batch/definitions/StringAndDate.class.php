@@ -208,10 +208,13 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
      */
     public function toVerbal($value)
     {
-        $value = parent::toVerbal($value);
         $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
+        list($string, $date) = explode($delimiter, $value);
         
-        $value = str_replace('|', $delimiter, $value);
+        $date = batch_definitions_ExpirationDate::displayExpiryDate($date, $this->rec->format, $this->rec->time);
+        $string = core_Type::getByName('varchar')->toVerbal($string);
+        
+        $value = "{$string}{$delimiter}{$date}";
         
         return $value;
     }
