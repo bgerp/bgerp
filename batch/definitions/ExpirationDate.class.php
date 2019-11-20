@@ -86,6 +86,10 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
         $currentTime = strtotime(dt::today());
         $mysqlValue = dt::getMysqlFromMask($date, $format);
         
+        if(stripos($format, 'd') === false){
+            $mysqlValue = dt::getLastDayOfMonth($mysqlValue);
+        }
+        
         // Ако партидата е изтекла оцветяваме я в червено
         if (strtotime($mysqlValue) < $currentTime) { 
         $valueHint = ht::createHint($date, 'Срокът на годност на партидата е изтекъл', 'warning');
