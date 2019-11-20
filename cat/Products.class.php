@@ -3074,7 +3074,7 @@ class cat_Products extends embed_Manager
         } else {
             
             // Ако не е прототипен, питаме драйвера може ли да се генерира рецепта
-            return cat_Boms::createDefault($rec);
+            //return cat_Boms::createDefault($rec);
         }
     }
     
