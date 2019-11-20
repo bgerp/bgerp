@@ -493,19 +493,21 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      * @param float      $priceWithoutVat
      * @param float      $vat
      * @param float|null $discountPercent
+     * @param float|null $quantity
      *
      * @return float
      *
      * @see peripheral_FiscPrinterIntf
      */
-    public function getDisplayPrice($priceWithoutVat, $vat, $discountPercent)
+    public function getDisplayPrice($priceWithoutVat, $vat, $discountPercent, $quantity)
     {
-        $displayPrice = $priceWithoutVat * (1 + $vat);
+        $displayPrice = $priceWithoutVat * $quantity * (1 + $vat);
         
         if (!empty($discountPercent)) {
             $discountedPrice = round($displayPrice * $discountPercent, 2);
             $displayPrice = $displayPrice - $discountedPrice;
         }
+        $displayPrice /= $quantity;
         
         return $displayPrice;
     }
