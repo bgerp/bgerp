@@ -329,7 +329,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         }
         
         // Рендираме параметрите винаги ако сме към артикул или ако има записи
-        if ($data->noChange !== true || count($data->params)) {
+        if ($data->noChange !== true || countR($data->params)) {
             $paramTpl = cat_products_Params::renderParams($data);
             $tpl->append($paramTpl, 'PARAMS');
         }
