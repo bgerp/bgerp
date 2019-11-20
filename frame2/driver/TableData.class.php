@@ -275,19 +275,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             
             // Ако има поле за групиране, предварително се групират записите
             if (!empty($data->groupByField)) {
-               
-                //$totalRow = $data->recs['_total'];
-                //unset($data->recs['_total']);
-                
                 $data->recs = $this->orderByGroupField($data->recs, $data->groupByField);
-                /*
-                if(is_object($totalRow)){
-                    $data->recs = array('_total' => $totalRow) + $data->recs;
-                }
-                */
             }
             
-            // Ако е указано сортиране, сортират се записите
+            // Ако е указано сортиране, сортират се записите, ако има сумарен ред той не участва в сортирането
             if($sortDirection = Request::get("Sort{$rec->containerId}")){
                 list($sortFld, $sortDirection) = explode('|', $sortDirection);
                 if(isset($sortFld) && isset($sortDirection)){
@@ -299,6 +290,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 }
             }
             
+            // Добавяне на сумарния ред, ако има такъв към записите, за да участва в страницирането
             if(is_object($summaryRow)){
                 $data->recs = array('_total' => $summaryRow) + $data->recs;
             }
