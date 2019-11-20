@@ -433,7 +433,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         
         // Определяне на индикаторите за "свръх наличност" и "под минимум";
         foreach ($recs as $productId => $prodRec) {
-            $prodRec->conditionQuantity = '3|ok';
+            $prodRec->conditionQuantity = '3|ок';
             $prodRec->conditionColor = 'green';
             if ($prodRec->maxQuantity == 0 && $prodRec->minQuantity == 0) {
                 continue;
