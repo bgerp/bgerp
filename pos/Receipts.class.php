@@ -605,6 +605,7 @@ class pos_Receipts extends core_Master
         $tpl->push('pos/tpl/css/styles.css', 'CSS');
         if (!Mode::is('printing')) {
             $tpl->push('pos/js/scripts.js', 'JS');
+            $tpl->push('https://cdn.jsdelivr.net/npm/naviboard@4.1.0/dist/naviboard.min.js', 'JS');
             jquery_Jquery::run($tpl, 'posActions();');
         }
         $conf = core_Packs::getConfig('pos');
@@ -1519,8 +1520,11 @@ class pos_Receipts extends core_Master
                 
                 $resObj2 = new stdClass();
                 $resObj2->func = 'fancybox';
+
+                $resObj3 = new stdClass();
+                $resObj3->func = 'prepareTableResult';
                 
-                return array($resObj, $resObj1, $resObj2);
+                return array($resObj, $resObj1, $resObj2,  $resObj3);
                 
             } else {
                 
@@ -1533,8 +1537,11 @@ class pos_Receipts extends core_Master
                 $resObj1 = new stdClass();
                 $resObj1->func = 'html';
                 $resObj1->arg = array('id' => 'pos-choose-buttons', 'html' => $this->getSelectFavourites()->getContent(), 'replace' => true);
+
+                $resObj2 = new stdClass();
+                $resObj2->func = 'prepareTableResult';
                 
-                return array($resObj, $resObj1);
+                return array($resObj, $resObj1, $resObj2);
             }
         }
         

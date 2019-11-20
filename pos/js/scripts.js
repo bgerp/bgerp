@@ -11,7 +11,7 @@ function posActions() {
 		      }
 		})
 	});
-	
+
 	// Забраняване на скалирането, за да избегнем забавяне
 	if(isTouchDevice()){
 		 $('meta[name=viewport]').remove();
@@ -319,9 +319,34 @@ function posActions() {
 		// Задействаме евент 'keyup' в инпут полето
 		var e = jQuery.Event("keyup");
 		closestSearch.trigger(e);
-	}); 
-	
-	
+	});
+
+	document.addEventListener("keydown", function(event) {
+		if(event.key == "ArrowUp"){
+			if (event.code == "Numpad8") pageUp();
+			else arrowUp();
+		}
+
+		if(event.key == "ArrowDown") {
+			if (event.code == "Numpad2") pageDown();
+			else arrowDown();
+		}
+
+		if(event.key == "ArrowLeft") {
+			arrowLeft();
+		}
+		if(event.key == "ArrowRight") {
+			arrowRight();
+		}
+		if(event.key == "Enter"){
+			enter();
+		}
+	});
+
+	naviBoard.setNavigation("pos-products");
+
+
+
 	// Триене на символи от формата за търсене
 	$(document.body).on('click', ".keyboard-back-btn-tools, .keyboard-back-btn-payment", function(e){
 		var inpValLength = $(".large-field").val().length;
@@ -340,22 +365,24 @@ function posActions() {
 	
 	// След въвеждане на стойност, прави заявка по Ajax
 	$(".select-input-pos").keyup(function() {
-		
+
 		var inpVal = $(this).val();
 		var receiptId = $("input[name=receiptId]").val();
-		
+
 		var url = $(this).attr("data-url");
-		
+
 		// След всяко натискане на бутон изчистваме времето на изчакване
 		clearTimeout(timeout);
-		
+
 		// Правим Ajax заявката като изтече време за изчакване
 		timeout = setTimeout(function(){
 			resObj = new Object();
 			resObj['url'] = url;
-			
+
 			getEfae().process(resObj, {searchString:inpVal,receiptId:receiptId});
+
 		}, 700);
+
 	});
 	
 	// Добавяне на продукт от резултатите за търсене
@@ -495,6 +522,8 @@ function calculateWidth(){
 	var searchTopHeight = parseInt($('.search-top-holder').height());
 	$('#pos-search-result-table').css('maxHeight', winHeight - searchTopHeight - 120);
 
+	$('#pos-search-result-table .rowBlock:first-child').addClass('activeRow');
+
 	$('#result_contragents').css('max-height', 239);
 	$('#result_contragents').css('overflow-y', 'auto');
 	$('#result_contragents').css('width', '100%');
@@ -557,3 +586,53 @@ function render_fancybox()
 	$('a.fancybox').fancybox();
 }
 
+function pageUp(){
+	console.log('pageUp')
+}
+
+function pageDown(){
+	console.log('pageDOwn')
+}
+
+function arrowDown(){
+	console.log('arrowDOwn')
+
+	var current = $('#pos-search-result-table .rowBlock.active');
+	if(current.length) {
+		$(current).next().addClass('active');
+		current.removeClass('active');
+	}
+}
+
+function arrowUp(){
+	console.log('arrowUp')
+	var current = $('#pos-search-result-table .rowBlock.active');
+	if(current.length) {
+		$(current).prev().addClass('active');
+		current.removeClass('active');
+	}
+}
+
+function arrowRight(){
+	console.log('arrowRight')
+}
+
+function arrowLeft(){
+	console.log('arrowLeft')
+}
+
+function enter(){
+	if($('.pos-product:focus').length) {
+		$('.pos-product:focus').click();
+	}
+	if($('.pos-search-result-table .rowBlock.active').length) {
+		$('.pos-search-result-table .rowBlock.active .pos-add-res-btn').click();
+	}
+}
+
+function render_prepareTableResult() {
+	$('#pos-search-result-table .rowBlock').addClass('navigable');
+	$('#pos-search-result-table .rowBlock').eq(0).addClass('active');
+	$('#pos-search-result-table .listTable').attr('id', 'resultTable');
+	naviBoard.setNavigation("resultTable");
+}

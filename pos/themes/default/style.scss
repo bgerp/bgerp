@@ -73,6 +73,9 @@
 	margin-top:5px;
 	margin-bottom:5px;
 	box-shadow:0px 1px 3px rgba(0,0,0,0.8);
+	&:focus {
+		box-shadow:0px 1px 5px rgba(0,0,250,1);
+	}
 }
 
 .narrow .pos-product{
