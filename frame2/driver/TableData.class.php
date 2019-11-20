@@ -245,6 +245,29 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         return $summaryRow;
     }
     
+    /**
+     * Сортира полетата на записите в указаната стойност
+     * 
+     * @param array $recs
+     * @param null|string $sortFld
+     * @param null|string $sortDirection
+     * 
+     * @return void
+     */
+    private function sortRecsByDirection(&$recs, $sortFld = null, $sortDirection = null)
+    {
+        if(!isset($sortFld) || !isset($sortDirection)) {
+            
+            return;
+        }
+       
+        if($sortDirection != 'none'){
+            usort($recs, function($a, $b) use ($sortFld, $sortDirection) {
+                return (strip_tags($a->{$sortFld}) > strip_tags($b->{$sortFld})) ? (($sortDirection  == 'up') ? -1 : 1) : (($sortDirection  == 'up')? 1 : -1);
+            });
+        }
+    }
+    
     
     /**
      * рендиране на таблицата
@@ -273,21 +296,17 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $fieldsToSumArr = array_intersect($summaryFields, array_keys($data->listFields));
             $summaryRow = $this->getSummaryListRow($data, $fieldsToSumArr);
             
+            // Ако е указано сортиране, сортират се записите, ако има сумарен ред той не участва в сортирането
+            $sortDirection = Request::get("Sort{$rec->containerId}");
+            $sortDirectionArr  = explode('|', $sortDirection);
+            $sortFld = !empty($sortDirectionArr[0]) ? $sortDirectionArr[0] : null;
+            $sortDirection = !empty($sortDirectionArr[1]) ? $sortDirectionArr[1] : null;
+            
             // Ако има поле за групиране, предварително се групират записите
             if (!empty($data->groupByField)) {
-                $data->recs = $this->orderByGroupField($data->recs, $data->groupByField);
-            }
-            
-            // Ако е указано сортиране, сортират се записите, ако има сумарен ред той не участва в сортирането
-            if($sortDirection = Request::get("Sort{$rec->containerId}")){
-                list($sortFld, $sortDirection) = explode('|', $sortDirection);
-                if(isset($sortFld) && isset($sortDirection)){
-                    if($sortDirection != 'none'){
-                        usort($data->recs, function($a, $b) use ($sortFld, $sortDirection) {
-                            return (strip_tags($a->{$sortFld}) > strip_tags($b->{$sortFld})) ? (($sortDirection  == 'up') ? -1 : 1) : (($sortDirection  == 'up')? 1 : -1);
-                        });
-                    }
-                }
+                $this->orderByGroupField($data->recs, $data->groupByField, $sortFld, $sortDirection);
+            } else {
+                $this->sortRecsByDirection($data->recs, $sortFld, $sortDirection);
             }
             
             // Добавяне на сумарния ред, ако има такъв към записите, за да участва в страницирането
@@ -335,7 +354,6 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         if (isset($data->groupByField)) {
             $totalRow = $data->rows['_total'];
             unset($data->rows['_total']);
-            
             $found = false;
             
             // Групиране само ако има поне една стойност за групиране
@@ -373,23 +391,26 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * @param array    $recs
      * @param string $field
      *
-     * @return array $newRecs
+     * @return void
      */
-    private function orderByGroupField($recs, $groupField)
+    private function orderByGroupField($recs, $groupField, $sortFld = null, $sortDirection = null)
     {
         $newRecs = array();
         foreach ($recs as $i => $r) {
-            $newRecs[$i] = $r;
+            
+            // Извличане на тези записи от със същата стойност за групиране
+            $groupedArr = array($i => $r);
             $subArr = array_filter($recs, function ($a) use ($r, $groupField) {
-                
                 return ($a->{$groupField} == $r->{$groupField});
             });
-            if (count($subArr)) {
-                $newRecs = array_replace($newRecs, $subArr);
-            }
+            
+            // Сортират се допълнително ако е указано
+            $groupedArr += $subArr;
+            $this->sortRecsByDirection($groupedArr, $sortFld, $sortDirection);
+            $newRecs += $groupedArr;
         }
         
-        return $newRecs;
+        $recs = $newRecs;
     }
     
     
