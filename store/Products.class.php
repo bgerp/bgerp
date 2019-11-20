@@ -820,17 +820,18 @@ class store_Products extends core_Detail
             }
             
             $dQuery->EXT('state', $Master->className, "externalName=state,externalKey={$Detail->masterKey}");
+            $dQuery->EXT('valior', $Master->className, "externalName=valior,externalKey={$Detail->masterKey}");
+            if($Master->getField('deliveryTime', false)){
+                $dQuery->EXT('deliveryTime', $Master->className, "externalName=deliveryTime,externalKey={$Detail->masterKey}");
+            }
+            
             $dQuery->where("#state = 'pending'");
             $dQuery->where("#{$Detail->productFld} = {$rec->productId}");
             $dQuery->where("#storeId = {$rec->storeId}");
             $dQuery->groupBy('containerId');
-            $dQuery->show("containerId,{$Detail->masterKey}");
             
             while ($dRec = $dQuery->fetch()) {
-                $deliveryTime = null;
-                if($Master->getField('deliveryTime', false)){
-                    $deliveryTime = $Master->fetchField($dRec->{$Detail->masterKey}, 'deliveryTime');
-                }
+                $deliveryTime = isset($dRec->deliveryTime) ? $dRec->deliveryTime : (isset($dRec->valior) ? $dRec->valior : $now);
                 
                 if($field == 'reservedQuantity'){
                     $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
