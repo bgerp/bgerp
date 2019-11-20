@@ -348,7 +348,7 @@ class sales_QuotationsDetails extends doc_Detail
     private function checkUnique($recs, $productId, $id, $isOptional = 'no', $notes)
     {
         $other = array_values(array_filter($recs, function ($val) use ($productId, $id, $isOptional, $notes) {
-            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id && md5($notes) == md5($val->productId)) {
+            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id && md5($notes) == md5($val->notes)) {
                 
                 return $val;
             }
