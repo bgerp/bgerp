@@ -79,13 +79,13 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                         $verbal = strip_tags($BatchClass->toVerbal($b));
                         $suggestions[$verbal] = $verbal;
                     }
-                    
+                 
                     if($mvc->cantCreateNewBatch === true){
                         $form->setOptions('batch', $suggestions);
                     } else {
                         $form->setSuggestions('batch', array('' => '') + $suggestions);
                     }
-                } else {
+                } elseif($mvc->cantCreateNewBatch === true){
                     $form->setReadOnly('batch');
                 }
                 
@@ -197,7 +197,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         } else {
             
             // Ако се създава нова партида, прави се опит за автоматичното и създаване
-            if (empty($rec->batch)) {
+            if (empty($rec->batch) && $mvc->cantCreateNewBatch !== true) {
                 $BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
                 if (is_object($BatchClass)) {
                     if ($mvc instanceof core_Master) {
