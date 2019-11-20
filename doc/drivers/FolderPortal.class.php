@@ -32,8 +32,6 @@ class doc_drivers_FolderPortal extends core_BaseClass
         $fieldset->FLD('fOrder', 'enum(' . doc_Threads::filterList . ')', 'caption=Подредба');
         $fieldset->FLD('documentClassId', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид документ');
         $fieldset->FLD('perPage', 'int(min=1, max=20)', 'caption=Редове, mandatory');
-        
-        
     }
     
     
@@ -89,11 +87,11 @@ class doc_drivers_FolderPortal extends core_BaseClass
         
         expect($dRec->folderId);
         
-        $fLast = doc_Folders::fetchField($dRec->folderId, 'last');
+        $fRec = doc_Folders::fetch($dRec->folderId, 'last, statistic');
         
         $pageVar = 'P_' . get_called_class() . '_' . $dRec->originIdCalc;
         
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $fLast. '_' . $userId . '_' . Request::get('ajax_mode') . '–' . Request::get($pageVar) . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent());
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $fRec->last . '_' . serialize($fRec->statistic) . '_' . $userId . '_' . Request::get($pageVar) . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent());
         $resData->cacheType = 'FolderPortal';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
@@ -209,7 +207,6 @@ class doc_drivers_FolderPortal extends core_BaseClass
      */
     public function getBlockType()
     {
-        
         return 'other';
     }
 }

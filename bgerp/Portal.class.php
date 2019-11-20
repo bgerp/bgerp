@@ -36,6 +36,12 @@ class bgerp_Portal extends embed_Manager
     
     
     /**
+     * По-колко да се показвата максимум в портала
+     */
+    protected $maxShowCnt = 12;
+    
+    
+    /**
      * Неща за зареждане в началото
      */
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, bgerp_Wrapper, plg_Clone';
@@ -109,7 +115,14 @@ class bgerp_Portal extends embed_Manager
      */
     public function act_Show2()
     {
-        $maxShowCnt = 12;
+        if (Request::get('ajax_mode')) {
+            
+            requireRole('powerUser');
+            
+            $resArr = $this->getPortalBlockForAJAX();
+            
+            return core_App::outputJson($resArr);
+        }
         
         // Ако е инсталиран пакета за партньори
         // И текущия потребител е контрактор, но не е powerUser
@@ -168,25 +181,28 @@ class bgerp_Portal extends embed_Manager
         $columnMap = array('left' => 'LEFT_COLUMN', 'center' => 'MIDDLE_COLUMN', 'right' => 'RIGHT_COLUMN');
         
         foreach ($recArr as $r) {
-            if (!cls::load($r->{$this->driverClassField}, true)) continue;
             
-            $intf = cls::getInterface('bgerp_PortalBlockIntf', $r->{$this->driverClassField});
+            $rData = new stdClass();
             
-            $data = $intf->prepare($r, $cu);
-            $res = $intf->render($data);
+            $res = $this->getResForBlock($r, $rData);
             
             if (!$res) continue;
+            
+            $this->saveAJAXCache($res, $rData, $r);
             
             if (!$r->column) {
                 $r->column = 'left';
             }
             
-            $colorCls = 'color-' . ($r->color ? $r->color : 'all');
+            $pClass = $this->getPortalClass($r->color);
+            $pId = $this->getPortalId($r->originIdCalc);
             
-            $res->prepend("<div class='{$colorCls}'>");
+            $res->prepend("<div id='{$pId}' class='{$pClass}'>");
             $res->append("</div>");
             
             if ($isNarrow) {
+                $intf = cls::getInterface('bgerp_PortalBlockIntf', $r->{$this->driverClassField});
+                
                 $blockType = $intf->getBlockType();
                 
                 if ($intf->getBlockType() == 'other') {
@@ -207,7 +223,7 @@ class bgerp_Portal extends embed_Manager
                             $blockName = 'CALENDAR_COLUMN';
                             $tabColorName = 'CALENDAR_COLOR_TAB';
                         break;
-                            
+                        
                         case 'recently':
                             $blockName = 'RECENTLY_COLUMN';
                             $tabColorName = 'RECENTLY_COLOR_TAB';
@@ -226,21 +242,244 @@ class bgerp_Portal extends embed_Manager
                 $tpl->append($res, $columnMap[$r->column]);
             }
             
-            if (!--$maxShowCnt) break;
+            if (!--$this->maxShowCnt) break;
         }
         
         if ($isNarrow) {
             jquery_Jquery::run($tpl, "openCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime(core_Users::getCurrent())) . "'); ");
         }
         
-        $tpl->push('js/PortalSearch.js', 'JS');
-        jquery_Jquery::run($tpl, 'portalSearch();', true);
-        
         bgerp_LastTouch::set('portal');
         
         self::logRead('Разглеждане на портала');
         
+        // Абонираме URL-то за викане по AJAX
+        core_Ajax::subscribe($tpl, getCurrentUrl(), $this->className . '_AJAX_REFRESH', 5000);
+        
         return $tpl;
+    }
+    
+    
+    /**
+     * Връща блоковете в портала за AJAX
+     * 
+     * @return array
+     */
+    public function getPortalBlockForAJAX()
+    {
+        Mode::set('pageMenuKey', '_none_');
+        
+        $recArr = $this->getRecsForUser();
+        
+        $resArr = array();
+        
+        foreach ($recArr as $r) {
+            
+            $aMode = Request::get('ajax_mode');
+            
+            Request::push(array('ajax_mode' => false));
+            
+            $rData = new stdClass();
+            
+            $res = $this->getResForBlock($r, $rData);
+            
+            Request::push(array('ajax_mode' => $aMode));
+            
+            if (!$this->saveAJAXCache($res, $rData, $r)) {
+                continue;
+            }
+            
+            if (!$res) continue;
+            
+            $divId = $this->getPortalId($r->originIdCalc);
+            
+            // Масив с добавения CSS
+            $cssArr = array();
+            $allCssArr = (array) $res->getArray('CSS');
+            $allCssArr = array_unique($allCssArr);
+            foreach ($allCssArr as $css) {
+                $cssArr[] = page_Html::getFileForAppend($css);
+            }
+            
+            // Масив с добавения JS
+            $jsArr = array();
+            $allJsArr = (array) $res->getArray('JS');
+            $allJsArr = array_unique($allJsArr);
+            foreach ($allJsArr as $js) {
+                $jsArr[] = page_Html::getFileForAppend($js);
+            }
+            
+            // Добавяме резултата
+            $resObj = new stdClass();
+            $resObj->func = 'html';
+            $resObj->arg = array('id' => $divId, 'html' => $res->getContent(), 'replace' => true, 'css' => $cssArr, 'js' => $jsArr);
+            $resArr[] = $resObj;
+            
+            // Ако има скрипт, който да се изпълнява
+            $scriptsArr = $res->getArray('SCRIPTS', 'append');
+            if ($scriptsArr) {
+                foreach ($scriptsArr as $scripts) {
+                    // Добавяме резултата
+                    $resObj = new stdClass();
+                    $resObj->func = 'js';
+                    $resObj->arg = array('js' => $scripts->getContent());
+                    $resArr[] = $resObj;
+                }
+            }
+            
+            // Стойности на плейсхолдера
+            $runAfterAjaxArr = $res->getArray('JQUERY_RUN_AFTER_AJAX');
+            
+            // Добавя всички функции в масива, които ще се виката
+            if (!empty($runAfterAjaxArr)) {
+                
+                // Да няма повтарящи се функции
+                $runAfterAjaxArr = array_unique($runAfterAjaxArr);
+                
+                foreach ((array) $runAfterAjaxArr as $runAfterAjax) {
+                    $jqResObj = new stdClass();
+                    $jqResObj->func = $runAfterAjax;
+                    
+                    $resArr[] = $jqResObj;
+                }
+            }
+            
+            if (!--$this->maxShowCnt) break;
+        }
+        
+        if (!empty($resArr)) {
+            // Форсираме рефреша след връщане назад
+            $resObjReload = new stdClass();
+            $resObjReload->func = 'forceReloadAfterBack';
+            $resArr[] = $resObjReload;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на блока
+     * 
+     * @param stdClass $rec
+     * @param stdClass $data
+     * 
+     * @return null|core_ET
+     */
+    protected function getResForBlock($rec, &$data)
+    {
+        if (!cls::load($rec->{$this->driverClassField}, true)) {
+            
+            return $res;
+        }
+        
+        $intf = cls::getInterface('bgerp_PortalBlockIntf', $rec->{$this->driverClassField});
+        
+        $data = $intf->prepare($rec, $cu);
+        $res = $intf->render($data);
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на клас за div
+     * 
+     * @param null|string $color
+     * 
+     * @return string
+     */
+    protected function getPortalClass($color = null)
+    {
+        return 'color-' . ($color ? $color : 'all');
+    }
+    
+    
+    /**
+     * Помощна функция за вземана на id за div
+     * 
+     * @param integer $id
+     * 
+     * @return string
+     */
+    protected function getPortalId($id)
+    {
+        return "blockPortal_{$id}";
+    }
+    
+    
+    /**
+     * Помощна функция за записване на кеш за AJAX
+     * Ако върне true, значи записът е нов и е записан
+     * 
+     * @param core_ET $res
+     * @param stdClass $rData
+     * @param stdClass $rec
+     * 
+     * @return boolean
+     */
+    protected function saveAJAXCache($res, $rData, $rec)
+    {
+        $cKey = $rData->cacheKey;
+        
+        if (!$cKey) {
+            $cKey = md5($res);
+        }
+        
+        $newCache = $this->getCacheVal($res, $rData, $rec);
+        
+        $cName = $this->getCacheName($rec);
+        
+        $oldCache = Mode::get($cName);
+        
+        if (!$oldCache || ($oldCache != $newCache)) {
+            Mode::setPermanent($cName, $newCache);
+            
+            return true;
+        }
+        
+        return false;
+    }
+    
+    
+    /**
+     * Връща стойността на кеша
+     * 
+     * @param core_ET $res
+     * @param stdClass $rData
+     * 
+     * @return string
+     */
+    protected function getCacheVal($res, $rData)
+    {
+        $cKey = $rData->cacheKey;
+        
+        if (!$cKey) {
+            $cKey = md5($res);
+        }
+        
+        $cKey .= '|' . core_Users::getCurrent();
+        
+        $cKey = md5($cKey);
+        
+        return $cKey;
+    }
+    
+    
+    /**
+     * Връща името на кеша за AJAX
+     * 
+     * @param stdClass $rec
+     * 
+     * @return string
+     */
+    protected function getCacheName($rec)
+    {
+        setIfNot($hitTime, Request::get('hitTime'), Mode::get('hitTime'), dt::mysql2timestamp());
+        
+        Mode::set('hitTime', $hitTime);
+        
+        return 'PORTAL_AJAX_' . $hitTime . '_' . $rec->originIdCalc;
     }
     
     
