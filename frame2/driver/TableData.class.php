@@ -272,20 +272,19 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $summaryFields = arr::make($data->summaryListFields);
             $fieldsToSumArr = array_intersect($summaryFields, array_keys($data->listFields));
             $summaryRow = $this->getSummaryListRow($data, $fieldsToSumArr);
-            if(is_object($summaryRow)){
-                $data->recs = array('_total' => $summaryRow) + $data->recs;
-            }
-            $data->Pager->itemsCount = countR($data->recs);
             
             // Ако има поле за групиране, предварително се групират записите
             if (!empty($data->groupByField)) {
-                $totalRow = $data->recs['_total'];
-                unset($data->recs['_total']);
+               
+                //$totalRow = $data->recs['_total'];
+                //unset($data->recs['_total']);
                 
                 $data->recs = $this->orderByGroupField($data->recs, $data->groupByField);
+                /*
                 if(is_object($totalRow)){
                     $data->recs = array('_total' => $totalRow) + $data->recs;
                 }
+                */
             }
             
             // Ако е указано сортиране, сортират се записите
@@ -299,6 +298,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                     }
                 }
             }
+            
+            if(is_object($summaryRow)){
+                $data->recs = array('_total' => $summaryRow) + $data->recs;
+            }
+            $data->Pager->itemsCount = countR($data->recs);
             
             foreach ($data->recs as $index => $dRec) {
                 if (isset($data->Pager) && !$data->Pager->isOnPage()) {
