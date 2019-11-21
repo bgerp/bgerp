@@ -429,7 +429,9 @@
 	cursor: pointer;
 }
 
-
+.activeRow {
+	background-color: #c00;
+}
 
 .different-btns, .colum-btn .different-btns {
 	color: #fff !important;
@@ -880,12 +882,16 @@
 .narrow .pos-product-field{
 	font-size: 0.9em;
 }
-
+.rowBlock.navigable:focus td{
+	border-color: #a00 !important;
+}
 .narrow .pos-price-field, .narrow  .pos-stock-field{
     font-size: 0.8em;
     width: 1%;
 }
-
+.rowBlock.navigable.active td {
+	background-color: #ccc !important;
+}
 .pos-search-result-table .linkWithIcon{
 	font-weight: bold;
 }

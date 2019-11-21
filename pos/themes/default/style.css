@@ -69,6 +69,8 @@
   margin-top: 5px;
   margin-bottom: 5px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.8); }
+  .pos-product:focus {
+    box-shadow: 0px 1px 5px #0000fa; }
 
 .narrow .pos-product {
   width: 80px;

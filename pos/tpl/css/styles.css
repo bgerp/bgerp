@@ -383,6 +383,9 @@
   border-bottom: 1px solid #999999;
   cursor: pointer; }
 
+.activeRow {
+  background-color: #cc0000; }
+
 .different-btns,
 .colum-btn .different-btns {
   color: white !important;
@@ -775,10 +778,16 @@
 .narrow .pos-product-field {
   font-size: 0.9em; }
 
+.rowBlock.navigable:focus td {
+  border-color: #aa0000 !important; }
+
 .narrow .pos-price-field,
 .narrow  .pos-stock-field {
   font-size: 0.8em;
   width: 1%; }
+
+.rowBlock.navigable.active td {
+  background-color: #cccccc !important; }
 
 .pos-search-result-table .linkWithIcon {
   font-weight: bold; }
