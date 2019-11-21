@@ -69,6 +69,14 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
+     * Дефолтен брой копия при печат
+     *
+     * @var int
+     */
+    public $defaultCopiesOnPrint = 2;
+    
+    
+    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc

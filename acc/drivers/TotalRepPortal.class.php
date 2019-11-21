@@ -121,7 +121,7 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
         
         $iRec = $query->fetch();
         
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->target . '_' . $userId . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent() . '_' . $iRec->id . '_' . $iRec->value);
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->target . '_' . $userId . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent() . '_' . $iRec->id . '_' . $iRec->value . '_' . dt::now(false));
         $resData->cacheType = 'TotalRepPortal';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);

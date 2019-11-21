@@ -79,6 +79,14 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * Дефолтен брой копия при печат
+     * 
+     * @var int
+     */
+    public $defaultCopiesOnPrint = 2;
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)
