@@ -348,7 +348,7 @@ class sales_QuotationsDetails extends doc_Detail
     private function checkUnique($recs, $productId, $id, $isOptional = 'no', $notes)
     {
         $other = array_values(array_filter($recs, function ($val) use ($productId, $id, $isOptional, $notes) {
-            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id && md5($notes) == md5($val->productId)) {
+            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id && md5($notes) == md5($val->notes)) {
                 
                 return $val;
             }
@@ -569,7 +569,8 @@ class sales_QuotationsDetails extends doc_Detail
             }
             
             if (!$form->gotErrors()) {
-                if(deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
+                
+                if($rec->_createProductForm != true && deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
                     $form->setError('productId,packagingId,packPrice,discount,notes,packQuantity', 'Има въведен ред със същите данни');
                 }
                 

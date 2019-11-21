@@ -629,6 +629,7 @@ class cal_Calendar extends core_Master
     
     /**
      * Рендира блока за портала на текущия потребител
+     * @deprecated
      */
     public static function renderPortal()
     {

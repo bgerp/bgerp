@@ -359,11 +359,16 @@ class eshop_Carts extends core_Master
             $resObjReload = new stdClass();
             $resObjReload->func = 'forceReloadAfterBack';
             
+            // Махане на другите статуси от екрана
+            $resObj3 = new stdClass();
+            $resObj3->func = 'clearStatuses';
+            $resObj3->arg = array('type' => 'notice');
+            
             $hitTime = Request::get('hitTime', 'int');
             $idleTime = Request::get('idleTime', 'int');
             $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
             
-            $res = array_merge(array($resObj, $resObj2, $resObjReload), (array) $statusData);
+            $res = array_merge(array($resObj, $resObj2, $resObjReload, $resObj3), (array) $statusData);
             core_Lg::pop();
             
             return $res;

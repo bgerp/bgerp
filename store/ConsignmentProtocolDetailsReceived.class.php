@@ -89,6 +89,12 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     
     
     /**
+     * Да се забрани ли създаването на нова партида
+     */
+    public $cantCreateNewBatch = true;
+    
+    
+    /**
      * Какво движение на партида поражда документа в склада
      *
      * @param out|in|stay - тип движение (излиза, влиза, стои)

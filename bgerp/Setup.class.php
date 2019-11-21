@@ -217,8 +217,14 @@ class bgerp_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'migrate::setUrlIds',
+            'migrate::setUrlIds'
     );
+    
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'bgerp_drivers_Recently, bgerp_drivers_Notifications, bgerp_drivers_Calendar, bgerp_drivers_Tasks';
     
     
     /**
@@ -537,5 +543,53 @@ class bgerp_Setup extends core_ProtoSetup
             
             $Notifications->save_($rec, 'urlId, customUrlId');
         }
+    }
+    
+    
+    /**
+     * Миграция за изтриване на старите данни в портала и за добавяне на новите интерфейси
+     */
+    public function setNewPortal4619()
+    {
+        $Portal = cls::get('bgerp_Portal');
+        $bQuery = bgerp_Portal::getQuery();
+        $bQuery->delete("1=1");
+        
+        $iArr = array('bgerp_drivers_Notifications' => array('perPage' => 15, 'column' => 'left', 'order' => 500),
+                      'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 500),
+                      'bgerp_drivers_Recently' => array('perPage' => 10, 'column' => 'right', 'order' => 500),
+                      'bgerp_drivers_Calendar' => array('column' => 'right', 'order' => 300)
+                      );
+        
+        foreach ($iArr as $iName => $iData) {
+            $rec = new stdClass();
+            $rec->{$Portal->driverClassField} = $iName::getClassId();
+            $rec->column = $iData['column'];
+            $rec->order = $iData['order'];
+            
+            if ($iData['perPage']) {
+                $rec->perPage = $iData['perPage'];
+            }
+            
+            $rec->userOrRole = type_UserOrRole::getAllSysTeamId();
+            
+            $rec->color = 'lightgray';
+            $rec->show = 'yes';
+            
+            $Portal->save($rec);
+        }
+    }
+    
+    
+    /**
+     * Зареждане на данни
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        
+        $res .= $this->callMigrate('setNewPortal4619', 'bgerp');
+        
+        return $res;
     }
 }

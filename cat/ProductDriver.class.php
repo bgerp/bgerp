@@ -103,7 +103,8 @@ abstract class cat_ProductDriver extends core_BaseClass
         if (count($fields)) {
             
             // За всички полета
-            foreach ($fields as $name => $fld) {
+            $fields = array_keys($fields);
+            foreach ($fields as $name) {
                 
                 // Ако има атрибут display
                 $display = $form->getFieldParam($name, 'display');

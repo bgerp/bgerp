@@ -13,6 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deprecated
  */
 class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 {

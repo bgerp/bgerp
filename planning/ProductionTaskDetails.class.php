@@ -471,19 +471,22 @@ class planning_ProductionTaskDetails extends doc_Detail
         $row->measureId = cat_UoM::getShortName($pRec->measureId);
         
         $foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
+        $labelPackagingId = (!empty($foundRec->packagingId)) ? $foundRec->packagingId : $pRec->measureId;
+        
         if($taskRec->productId != $rec->productId){
-            $packagingId = (!empty($foundRec->packagingId)) ? $foundRec->packagingId : $pRec->measureId;
+            $packagingId = $labelPackagingId;
         } else {
             $packagingId = $pRec->measureId;
         }
-        $packagingName = cat_UoM::getShortName($packagingId);
+        $packagingName = tr(cat_UoM::getShortName($packagingId));
+        $labelPackagingName = tr(cat_UoM::getShortName($labelPackagingId));
         
         if (cat_UoM::fetchField($packagingId, 'type') != 'uom') {
             $row->measureId = str::getPlural($rec->quantity, $packagingName, true);
         }
         
         if ($rec->type == 'production') {
-            $row->type = (!empty($packagingId)) ? tr("Произв.|* {$packagingName}") : tr('Произвеждане');
+            $row->type = (!empty($packagingId) && ($labelPackagingId !== $pRec->measureId)) ? tr("Произв.|* {$labelPackagingName}") : tr('Произвеждане');
         }
         
         $row->scrappedQuantity = '';
@@ -648,7 +651,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $row->serial = ht::createLink($row->serial, $selectRowUrl, false, 'title=Редакция на реда');
                 }
             } else {
-                if(!empty($rec->serial)){
+                if(!empty($rec->serial) && $rec->state != 'rejected'){
                     $row->serial = self::getLink($rec->taskId, $rec->serial);
                 }
             }
@@ -872,7 +875,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         
         if($action == 'printperipherallabel' && isset($rec)){
-            if($rec->type != 'production'){
+            if($rec->type != 'production' || $rec->state == 'rejected'){
                 $requiredRoles = 'no_one';
             }
         }

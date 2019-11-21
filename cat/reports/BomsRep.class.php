@@ -12,6 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deprecated
  */
 class cat_reports_BomsRep extends frame_BaseDriver
 {
@@ -42,25 +43,25 @@ class cat_reports_BomsRep extends frame_BaseDriver
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'cat,ceo,sales,purchase';
+    public $canSelectSource = 'no_one';
     
     
     /**
      * Права за писане
      */
-    public $canWrite = 'cat,ceo,sales,purchase';
+    public $canWrite = 'no_one';
     
     
     /**
      * Права за писане
      */
-    public $canEdit = 'cat,ceo,sales,purchase';
+    public $canEdit = 'no_one';
     
     
     /**
      * Права за запис
      */
-    public $canRead = 'cat,ceo,sales,purchase';
+    public $canRead = 'no_one';
     
     
     /**

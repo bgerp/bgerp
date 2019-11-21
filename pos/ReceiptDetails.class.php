@@ -525,7 +525,7 @@ class pos_ReceiptDetails extends core_Detail
         $productInfo = cat_Products::getProductInfo($rec->productId);
         $perPack = ($productInfo->packagings[$rec->value]) ? $productInfo->packagings[$rec->value]->quantity : 1;
         
-        $price = $this->Master->getDisplayPrice($rec->price, $rec->param, $rec->discountPercent, pos_Receipts::fetchField($rec->receiptId, 'pointId'));
+        $price = $this->Master->getDisplayPrice($rec->price, $rec->param, $rec->discountPercent, pos_Receipts::fetchField($rec->receiptId, 'pointId'), $rec->quantity);
         $row->price = $Double->toVerbal($price);
         $row->amount = $Double->toVerbal($price * $rec->quantity);
         if ($rec->discountPercent < 0) {

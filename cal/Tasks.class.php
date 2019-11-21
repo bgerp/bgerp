@@ -38,7 +38,7 @@ class cal_Tasks extends embed_Manager
     /**
      * Период на показване на чакащи и активни задачи в портала
      */
-    protected static $taskShowPeriod = 3;
+    public static $taskShowPeriod = 3;
     
     
     /**
@@ -530,6 +530,7 @@ class cal_Tasks extends embed_Manager
     
     /**
      * Показване на задачите в портала
+     * @deprecated
      */
     public static function renderPortal($userId = null)
     {
@@ -672,7 +673,12 @@ class cal_Tasks extends embed_Manager
             Mode::setPermanent('listTasks', 'by');
         }
         
-        return new Redirect(array('Portal', 'Show', '#' => Mode::is('screenMode', 'narrow') ? 'taskPortal' : null));
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = array('Portal', 'Show', '#' => Mode::is('screenMode', 'narrow') ? 'taskPortal' : null);
+        }
+        
+        return new Redirect($retUrl);
     }
     
     
@@ -1150,13 +1156,15 @@ class cal_Tasks extends embed_Manager
             $mvc->listItemsPerPage = 1000000;
         }
         
-        if (Request::get('Ctr') == 'Portal') {
-            // Задаваме броя на елементите в страница
-            $portalArrange = core_Setup::get('PORTAL_ARRANGE');
-            if ($portalArrange == 'recentlyNotifyTaskCal') {
-                $mvc->listItemsPerPage = 10;
-            } else {
-                $mvc->listItemsPerPage = 20;
+        if ($data->usePortalArrange !== false) {
+            if (Request::get('Ctr') == 'Portal') {
+                // Задаваме броя на елементите в страница
+                $portalArrange = core_Setup::get('PORTAL_ARRANGE');
+                if ($portalArrange == 'recentlyNotifyTaskCal') {
+                    $mvc->listItemsPerPage = 10;
+                } else {
+                    $mvc->listItemsPerPage = 20;
+                }
             }
         }
     }

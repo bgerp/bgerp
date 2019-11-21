@@ -1965,7 +1965,7 @@ abstract class deals_Helper
             return;
         }
         
-        if($d2 < $d1 && $d2 < $d3 && $d2){
+        if($d2 < $d1 && $d2 < $d3){
             foreach ($similarUoms as $uomId => $ratio){
                 if(($ratio / 1000 >= 1)  && $uomId != $packagingRec->id){
                     $price *= 1000; 

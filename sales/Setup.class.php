@@ -373,7 +373,7 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'sales_SalesLastPricePolicy,sales_reports_SalesPriceImpl, sales_reports_OweInvoicesImpl, 
+    public $defClasses = 'sales_SalesLastPricePolicy, 
                        sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_OverdueByAdvancePayment,
                        sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,sales_reports_OverdueInvoices,sales_reports_SalesByContragents';
     

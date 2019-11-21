@@ -1336,12 +1336,20 @@ class cat_Products extends embed_Manager
             self::updateGroupsCnt();
         }
         
-        
         // За всеки от създадените артикули, създаваме му дефолтната рецепта ако можем
         if (count($mvc->createdProducts)) {
             foreach ($mvc->createdProducts as $rec) {
                 if ($rec->canManifacture == 'yes') {
-                    self::createDefaultBom($rec);
+                    try{
+                        if($bomId = self::createDefaultBom($rec)){
+                            core_Statuses::newStatus("Успешно е създадена нова базова рецепта|* #" . cat_Boms::getHandle($bomId));
+                        }
+                    } catch(core_exception_Expect $e){
+                        $dump = $e->getDump();
+                        core_Statuses::newStatus($dump[0], 'error');
+                        static::logErr($dump[0], $rec->id);
+                        reportException($e);
+                    }
                 }
                 
                 // Ако е създаден артикул, базиран на прототип клонират се споделените му папки, само ако той е частен
@@ -2381,6 +2389,12 @@ class cat_Products extends embed_Manager
                 }
             }
         }
+        
+        if($action == 'add' && isset($rec->innerClass)){
+            if(!cls::load($rec->innerClass, true)){
+                $res = 'no_one';
+            }
+        }
     }
     
     
@@ -3048,27 +3062,19 @@ class cat_Products extends embed_Manager
      *
      * @param int $id - ид на артикул
      *
-     * @return void;
+     * @return int|null;
      */
     private static function createDefaultBom($id)
     {
         $rec = static::fetchRec($id);
         
-        // Ако не е производим артикула, не правим рецепта
-        if ($rec->canManifacture == 'no') {
-            
-            return;
-        }
-        
         // Ако има прототипен артикул, клонираме му рецептата и я разпъваме
         if (isset($rec->proto)) {
-            cat_Boms::cloneBom($rec->proto, $rec);
+            return cat_Boms::cloneBom($rec->proto, $rec);
         } else {
             
             // Ако не е прототипен, питаме драйвера може ли да се генерира рецепта
-            if ($Driver = static::getDriver($rec)) {
-                $defaultData = $Driver->getDefaultBom($rec);
-            }
+            //return cat_Boms::createDefault($rec);
         }
     }
     

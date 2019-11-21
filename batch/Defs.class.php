@@ -37,7 +37,7 @@ class batch_Defs extends core_Manager
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'productId,templateId=Дефиниция,batchCaption=Кепшън,modifiedOn,modifiedBy';
+    public $listFields = 'productId,templateId=Дефиниция,batchCaption=Кепшън,alwaysRequire,onlyExistingBatches,modifiedOn,modifiedBy';
     
     
     /**
@@ -84,9 +84,11 @@ class batch_Defs extends core_Manager
     public function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,before=driverClass,silent,mandatory');
-        $this->FLD('templateId', 'key(mvc=batch_Templates,select=name, allowEmpty)', 'caption=Дефиниция,mandatory,removeAndRefreshForm=batchCaption,silent');
-        
+        $this->FLD('templateId', 'key(mvc=batch_Templates,select=name, allowEmpty)', 'caption=Дефиниция,mandatory,removeAndRefreshForm=batchCaption|alwaysRequire,silent');
         $this->FLD('batchCaption', 'varchar(20)', 'caption=Заглавие,input=none,after=driverClass');
+        $this->FLD('alwaysRequire', 'enum(auto=По подразбиране,no=Не,yes=Да)', 'caption=Използване в документи->Задължително,notNull,value=auto,input=none,after=batchCaption');
+        $this->FLD('onlyExistingBatches', 'enum(auto=По подразбиране,no=Не,yes=Да)', 'caption=Използване в документи->Задължителна наличност,notNull,value=no,input=none');
+        
         $this->setDbUnique('productId');
     }
     
@@ -162,9 +164,15 @@ class batch_Defs extends core_Manager
         
         // Ако е избрана дефиниция, полето за заглавие на дефиницията се показва
         if (isset($rec->templateId)) {
+            $templateRec = batch_Templates::fetch($rec->templateId);
             $form->setField('batchCaption', 'input');
+            $form->setField('alwaysRequire', 'input');
+            $form->setDefault('alwaysRequire', 'auto');
             
-            $Class = cls::get(batch_Templates::fetchField($rec->templateId, 'driverClass'));
+            $form->setField('onlyExistingBatches', 'input');
+            $form->setDefault('onlyExistingBatches', 'auto');
+            
+            $Class = cls::get($templateRec->driverClass);
             if (isset($Class->fieldCaption)) {
                 $form->setField('batchCaption', "placeholder={$Class->fieldCaption}");
             }
@@ -210,6 +218,13 @@ class batch_Defs extends core_Manager
                 $BatchClass = cls::get($template->driverClass);
                 $template->productId = $productId;
                 $template->batchCaption = $rec->batchCaption;
+                if($rec->alwaysRequire != 'auto'){
+                    $template->alwaysRequire = $rec->alwaysRequire;
+                }
+                if($rec->onlyExistingBatches != 'auto'){
+                    $template->onlyExistingBatches = $rec->onlyExistingBatches;
+                }
+                
                 $BatchClass->setRec($template);
                 
                 self::$cache[$productId] = $BatchClass;

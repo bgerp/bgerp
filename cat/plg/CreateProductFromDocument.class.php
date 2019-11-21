@@ -228,6 +228,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 
                 $form->rec->folderId = $masterRec->folderId;
                 $form->rec->threadId = $masterRec->threadId;
+                $form->rec->_createProductForm = true;
                 
                 // Извикваме в класа и драйвера нужните ивенти
                 if ($proto && !$form->rec->innerClass) {
@@ -378,17 +379,16 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     }
                 }
                 
-                $hasError = false;
-                if (!empty($productId) && $mvc instanceof sales_QuotationsDetails) {
-                    if ($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$productId}  AND #quantity='{$rec->quantity}'")) {
-                        if (($sameProduct->id != $rec->id) && $rec->id) {
-                            $form->setError('packQuantity', 'Избраният продукт вече фигурира с това количество');
-                        }
-                    }
+                if(deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
+                    $form->setError('productId,packagingId,packPrice,discount,notes,packQuantity', 'Има въведен ред със същите данни');
                 }
                 
                 if (!$form->gotErrors()) {
                     // Създаване на нов артикул само при нужда
+                    if (!empty($productId) && $mvc instanceof sales_QuotationsDetails) {
+                        $sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$productId}  AND #quantity='{$rec->quantity}'");
+                    }
+                    
                     $msg = null;
                     if (!isset($productId)) {
                         if ($sameProduct && $sameProduct->productId) {

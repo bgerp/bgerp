@@ -173,7 +173,16 @@ class doc_Folders extends core_Master
         $haveRight = static::haveRightFor('single', $rec);
         
         $iconStyle = 'background-image:url(' . static::getIconImg($rec, $haveRight) . ');';
-        $url = array('doc_Folders', 'single', $id);
+        
+        if ($attr['url']) {
+            $url = $attr['url'];
+        } else {
+            $url = array('doc_Folders', 'single', $id);
+        }
+        
+        if ($maxLength) {
+            $rec->title = str::limitLen($rec->title, $maxLength, (int) ($maxLength/2));
+        }
         
         $title = static::getVerbal($rec, 'title');
         

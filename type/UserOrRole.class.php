@@ -228,6 +228,11 @@ class type_UserOrRole extends type_User
             $allSysTeams = 1 - pow(2, 31);
         }
         
+        if ($allSysTeams >= 0) {
+            wp($allSysTeams);
+            $allSysTeams = -2147483647;
+        }
+        
         return $allSysTeams;
     }
     
@@ -241,6 +246,8 @@ class type_UserOrRole extends type_User
      */
     public static function getSysRoleId($roleId)
     {
+        $roleId = (int) $roleId;
+
         $allSysTeam = self::getAllSysTeamId();
         
         $nRoleId = $allSysTeam + $roleId;
@@ -257,7 +264,9 @@ class type_UserOrRole extends type_User
      * @return int|NULL
      */
     public static function getRoleIdFromSys($sysRoleId)
-    {
+    {   
+        $sysRoleId = (int) $sysRoleId;
+
         if ($sysRoleId >= 0) {
             
             return;
