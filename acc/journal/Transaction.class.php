@@ -117,6 +117,10 @@ class acc_journal_Transaction
      */
     public function check()
     {
+        if(Mode::is('saveTransaction') && count($this->entries)){
+            acc_journal_Exception::expect($this->rec->valior, 'Няма вальор');
+        }
+        
         /* @var $entry acc_journal_Entry */
         if (count($this->entries)) {
             foreach ($this->entries as $entry) {
@@ -210,6 +214,17 @@ class acc_journal_Transaction
      */
     protected function begin()
     {
+        // Преди да започне транзакцията, се гледа ако документа е чернова/заявка и има започната транзакция по погрешка
+        // ако има такава изтрива се, за да не гърми за дупликация
+        $Doc = cls::get($this->rec->docType);
+        $docState = $Doc->fetchField($this->rec->docId, 'state');
+        if(in_array($docState, array('draft', 'pending'))){
+            if($exJournalRec = acc_Journal::fetchByDoc($Doc, $this->rec->docId)){
+                $this->Journal->delete("#id = {$exJournalRec->id}");
+                wp($exJournalRec, $docState);
+            }
+        }
+        
         // Ако транзакцията е празна не се записва в журнала
         if ($this->isEmpty()) {
             

@@ -149,6 +149,14 @@ class cat_interface_PackLabelImpl
         }
         
         $quantity = cat_UoM::round($measureId, $quantity);
+        
+        // Ако мярката е 'хил. бр' и к-то е под 10 да се каства към бройки
+        $thousandPcsId = cat_UoM::fetchBySysId('K pcs')->id;
+        if($measureId == $thousandPcsId && $quantity < 10){
+            $quantity *= 1000;
+            $measureId = cat_UoM::fetchBySysId('pcs')->id;
+        }
+        
         $measureId = tr(cat_UoM::getShortName($measureId));
         
         // Продуктови параметри
@@ -217,5 +225,34 @@ class cat_interface_PackLabelImpl
      */
     public function getLabelEstimatedCnt($id)
     {
+    }
+    
+    
+    /**
+     * Връща дефолтен шаблон за печат на бърз етикет
+     *
+     * @param int  $id
+     * @param stdClass|null  $driverRec
+     *
+     * @return int
+     */
+    public function getDefaultFastLabel($id, $driverRec = null)
+    {
+        return null;
+    }
+    
+    
+    /**
+     * Връща попълнен дефолтен шаблон с дефолтни данни.
+     * Трябва `getDefaultFastLabel` да върне резултат за да се покажат данните
+     *
+     * @param int  $id
+     * @param int $templateId
+     *
+     * @return core_ET|null 
+     */
+    public function getDefaultLabelWithData($id, $templateId)
+    {
+        return null;
     }
 }

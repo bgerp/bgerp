@@ -22,6 +22,14 @@ abstract class deals_PaymentDocument extends core_Master
     
     
     /**
+     * Дефолтен брой копия при печат
+     *
+     * @var int
+     */
+    public $defaultCopiesOnPrint = 2;
+    
+    
+    /**
      * Функция, която се извиква след активирането на документа
      */
     public static function on_AfterActivation($mvc, &$rec)
@@ -81,13 +89,13 @@ abstract class deals_PaymentDocument extends core_Master
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
         
-        $recTitle = $rec->amount . ' ' . currency_Currencies::getCodeById($rec->currencyId);
+        $recTitle = currency_Currencies::decorate($rec->amount, $rec->currencyId);
         $date = ($rec->valior) ? $rec->valior : (isset($rec->termDate) ? $rec->termDate : null);
         if (isset($date)) {
             $recTitle .= ' / ' . dt::mysql2verbal($date, 'd.m.y');
         }
         
-        $row->recTitle = $recTitle;
+        $row->recTitle = html_entity_decode($recTitle);
         
         return $row;
     }

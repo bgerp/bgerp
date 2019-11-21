@@ -517,7 +517,7 @@ class cal_Calendar extends core_Master
             if($seeUserFlag){
                 $row->event = $row->event."</br>"."<span class = fright>".tr('Възложено на').': '.$users."</span>";
             }
-            
+        
         }
         
         return $row;
@@ -542,7 +542,7 @@ class cal_Calendar extends core_Master
         // Падваме годината и месеца
         $year  = str_pad($year, 2, '0', STR_PAD_LEFT);
         $month = str_pad($month, 2, '0', STR_PAD_LEFT);
- 
+        
         // Таймстамп на първия ден на месеца
         $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
         
@@ -550,7 +550,7 @@ class cal_Calendar extends core_Master
         $lastDay = date('t', $firstDayTms);
         
         // Днес
-        $today = date('d-m-Y');
+        $today = date('j-m-Y');
         
         for($i = 1; $i <= $lastDay; $i++) {
             $t = mktime(0, 0, 0, $month, $i, $year);
@@ -629,6 +629,7 @@ class cal_Calendar extends core_Master
     
     /**
      * Рендира блока за портала на текущия потребител
+     * @deprecated
      */
     public static function renderPortal()
     {
@@ -638,7 +639,7 @@ class cal_Calendar extends core_Master
         
         if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
             $year = date('Y');
-            $month = date('n');
+            $month = date('m');
         }
         
         $monthOpt = self::prepareMonthOptions();
@@ -680,13 +681,7 @@ class cal_Calendar extends core_Master
         $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
         
         $Calendar = cls::get('cal_Calendar');
-        $Calendar->prepareListFields($state);
-        $Calendar->prepareListFilter($state);
         $Calendar->prepareListRecs($state);
-        $Calendar->prepareListRows($state);
-        
-        // Подготвяме лентата с инструменти
-        $Calendar->prepareListToolbar($state);
         
         if (is_array($state->recs)) {
             $data = array();
@@ -884,17 +879,27 @@ class cal_Calendar extends core_Master
      */
     public static function nextWorkingDay($date = NULL, $userId = null, $direction = 1, $country = 'bg')
     {
-        if($userId === null) {
+        if ($userId === null) {
             $userId = core_Users::getCurrent();
         }
         
         expect($direction);
         
+        $dPos = ($direction < 0) ? -1 : 1;
+        
+        $dAbs = abs($direction);
+        
+        $maxCnt = 0;
+        
         do {
-            $date = dt::addDays($direction, $date);
+            $date = dt::addDays($dPos, $date);
+            
+            if (!self::isHoliday($date, $country) && !self::isAbsent($date, $userId)) {
+                if (!--$dAbs) break;
+            }
             
             if ($maxCnt++ > 100000) break;
-        } while(self::isHoliday($date, $country) || self::isAbsent($date, $userId));
+        } while(true);
         
         list($date, $time) = explode(' ', $date);
         
@@ -908,9 +913,10 @@ class cal_Calendar extends core_Master
     public static function isAbsent($date, $userId)
     {
         // Системните и анонимните потребители не отсъстват
-        if($userId <= 0)
- 
- return false;
+        if ($userId <= 0) {
+            
+            return false;
+        }
         
         list($date, $time) = explode(' ', $date);
         $fromTime = $date . ' 00:00:00';
@@ -918,9 +924,10 @@ class cal_Calendar extends core_Master
         
         $rec = self::fetch("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND LOCATE('|{$userId}|', #users) AND (#type = 'leaves' OR #type = 'sick')");
         
-        if($rec)
- 
- return true;
+        if ($rec) {
+            
+            return true;
+        }
         
         return false;
     }
@@ -1103,7 +1110,7 @@ class cal_Calendar extends core_Master
      * Генерираме масива за годината
      */
     public static function generateYear()
-    {  
+    {
     	$fromFilter = $from = Request::get('from');
     	$fromFilter = explode(".", $fromFilter);
 	    
@@ -2195,10 +2202,10 @@ class cal_Calendar extends core_Master
 	    		}
 	    		
 	    		// Определяме класа на клетката, за да стане на зебра
-	    		if($h % 2 == 0 && $h !== 'allDay' && ($h != $nowTime || $h != $isToday)){
+	    		if($h !== 'allDay' && $h % 2 == 0 && ($h != $nowTime || $h != $isToday)){
 	    			$classTd = 'calDayN';
 	    			$classTr = 'calDayC';
-			    }elseif($h % 2 == 0 && $h !== 'allDay' && $isToday == FALSE && $h != $nowTime){
+			    }elseif($h !== 'allDay' && $h % 2 == 0 && $isToday == FALSE && $h != $nowTime){
 			    	$classTd = 'calDayN';
 			    	$classTr = 'calDayC';
 			    }elseif($h == $nowTime && $isToday && $h % 2 == 0){
@@ -2316,7 +2323,7 @@ class cal_Calendar extends core_Master
     		$cTpl = $tpl->getBlock("COMMENT_LI");
    			
    			// Определяме класа на клетката, за да стане на зебра
-    		if($h % 2 == 0 && $h !== 'allDay' && ($h != $nowTime || $h != $isToday)){
+    		if($h !== 'allDay' && $h % 2 == 0 && ($h != $nowTime || $h != $isToday)){
     			$classTd = 'calWeekN';
     			$classTr = 'calDayC';
 			    $classToday = 'calWeekN';

@@ -95,13 +95,19 @@ class unit_Tests extends core_Manager
         return false;
     }
     
-    
-    public static function expectEqual($a, $b)
+
+    /**
+     * Проверка за еквивалентнтност на двата аргумента
+     */
+    public static function expectEqual($a, $b = true)
     {
-        if ($a == $b) {
-        } else {
+        if ($a !== $b) {
             $me = cls::get('unit_Tests');
-            $me->errorLog .= "{$a} != {$b}";
+            if(is_string($a)) $a = '"' . $a . '"';
+            if(is_string($b)) $b = '"' . $b . '"';
+            if(is_bool($a)) $a = $a ? 'true' : 'false';
+            if(is_bool($b)) $b = $b ? 'true' : 'false';
+            $me->errorLog .= "{$a} !== {$b}";
         }
     }
     

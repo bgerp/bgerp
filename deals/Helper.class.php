@@ -35,6 +35,12 @@ abstract class deals_Helper
     
     
     /**
+     * Константа за умно конвертиране
+     */
+    const SMART_PRICE_CONVERT = '0.015';
+    
+    
+    /**
      * Умно закръгляне на цена
      *
      * @param float $price     - цена, която ще се закръгля
@@ -480,7 +486,7 @@ abstract class deals_Helper
     public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack)
     {
         if ($packRec = cat_products_Packagings::getPack($productId, $packagingId)) {
-            if (cat_UoM::fetchField($packagingId, 'showContents') !== 'no') {
+            if (cat_UoM::fetchField($packagingId, 'showContents') == 'yes') {
                 $measureId = cat_Products::fetchField($productId, 'measureId');
                 $packagingRow .= ' ' . self::getPackMeasure($measureId, $quantityInPack, $packRec);
             }
@@ -563,7 +569,7 @@ abstract class deals_Helper
      *
      * @return FALSE|stdClass
      */
-    public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = null, $term = null, $batch = null, $expenseItemId = null, $notes = null)
+    public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = null, $term = null, $batch = null, $expenseItemId = null, $notes = null, $quantity = null)
     {
         $cond = "#{$mvc->masterKey} = ${masterId}";
         $vars = array('productId' => $productId, 'packagingId' => $packagingId, 'price' => $price, 'discount' => $discount);
@@ -597,6 +603,10 @@ abstract class deals_Helper
             } else {
                 $cond .= ' AND #expenseItemId IS NULL';
             }
+        }
+        
+        if(isset($quantity)){
+            $cond .= " AND #quantity = '{$quantity}'";
         }
         
         // Ако има забележки
@@ -1279,7 +1289,12 @@ abstract class deals_Helper
         }
         
         $valueType = ($type == 'weight') ? 'cat_type_Weight(decimals=2)' : 'cat_type_Volume';
-        $value = round($value, 2);
+        $value = round($value, 3);
+        
+        // Ако стойноста е 0 да не се показва
+        if(empty($value)){
+            return null;
+        }
         
         // Вербализиране на теглото
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
@@ -1853,5 +1868,127 @@ abstract class deals_Helper
         }
         
         return array('notActive' => $errorNotActive, 'metasError' => $errorMetas);
+    }
+    
+    
+    /**
+     * Допълнителен индикатор на складовите документи на заявка
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @return string|NULL
+     */
+    public static function getShipmentDocumentPendingIndicator($mvc, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        expect($mvc instanceof store_ShipmentOrders || $mvc instanceof store_Transfers);
+        
+        // Ако документа е на заявка
+        if($rec->state == 'pending'){
+            $transInfo = cls::get($mvc->mainDetail)->getTransportInfo($rec);
+            
+            // Колко е общото тегло
+            $weightVerbal = !empty($transInfo->weight) ? core_Type::getByName('cat_type_Weight')->toVerbal($transInfo->weight) : 'N/A';
+            $string = "<span id='weight{$rec->containerId}' class='enTag weightTag' title='Общо тегло на документа'></span>";
+            $style = "#weight{$rec->containerId}:after{content: '$weightVerbal'} ";
+
+            // Колко е готовността от склада
+            $readinessVerbal = (isset($rec->storeReadiness)) ? core_Type::getByName('percent(smartRound)')->toVerbal($rec->storeReadiness) : 'N/A';
+            $string .= "<span id='percent{$rec->containerId}' class='enTag percent' title='Наличност в склада'></span>";
+            $style .= "#percent{$rec->containerId}:after{content: '$readinessVerbal'} ";
+            
+            // Ако има зони, колко % е готово от зоната
+            if(core_Packs::isInstalled('rack')){
+                $zoneReadiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
+                if(isset($zoneReadiness)){
+                    $zoneReadinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($zoneReadiness);
+                    $string .= "<span id='zone{$rec->containerId}' class='enTag zone' title='Колко е нагласено в зоната'></span>";
+                    $style .= "#zone{$rec->containerId}.zone:after{content: '$zoneReadinessVerbal'} ";
+                }
+            }
+
+            $string = "<style>" . $style . "</style><span class='tags'>" . $string . "</span>";
+            return $string;
+        }
+        
+        return null;
+    }
+    
+    
+    /**
+     * Помощна ф-я за умно конвертиране на цена и к-во
+     * 
+     * Функцията намира d1, d2 и d3 - абсолютните разлики между:
+     * round(Количество * Цена, 2) и
+     * 1. round(Количество, 3) * round(Цена, 2)
+     * 2. round(Количество /1000, 3) * round(Цена *1000, 2)
+     * 3. round(Количество * 1000, 3) * round(Цена/1000, 2)
+     * Алгоритъм:
+     * 1. Ако d1 е по-малко от дадена константа (0.015) продължава към 4.
+     * 2. Ако d2 е най-малкото измежду d1, d2 и d3 и има мярка с 1000 пъти по-голямо съдържание, връща: цена = цена*1000, количество = количество/1000 и по-голямата мярка
+     * 3. Ако d3 е най-малкото измежду d1, d2 и d3 и има мярка с 1000 пъти по-малко съдържание, връща: цена = цена/1000, количество = количество*1000 и по-голямата мярка
+     * 4. Връща непроменени количество, опаковка и цена
+     * 
+     * @param int $packQuantity
+     * @param int $packagingId
+     * @param double $price
+     * @return void
+     */
+    public static function getSmartDisplay(&$packQuantity, &$packagingId, &$price)
+    {
+        
+        $packagingRec = cat_UoM::fetchRec($packagingId, 'type');
+        if($packagingRec->type != 'uom') {
+            
+            return;
+        }
+        
+        $similarUoms = cat_UoM::getSameTypeMeasures($packagingRec->id);
+        unset($similarUoms['']);
+        foreach (array_keys($similarUoms) as $uomId){
+            $similarUoms[$uomId] = cat_UoM::fetchField($uomId, 'baseUnitRatio');
+        }
+        
+        if(count($similarUoms) == 1){
+            
+            return;
+        }
+        
+        $start = round($packQuantity * $price, 2);
+        $d1 = abs($start - round($packQuantity, 3) * round($price, 2));
+        $d2 = abs($start - round($packQuantity / 1000, 3) * round($price * 1000, 2));
+        $d3 = abs($start - round($packQuantity * 1000, 3) * round($price / 1000, 2));
+        
+        
+        if($d1 < self::SMART_PRICE_CONVERT) {
+            
+            return;
+        }
+        
+        if($d2 < $d1 && $d2 < $d3){
+            foreach ($similarUoms as $uomId => $ratio){
+                if(($ratio / 1000 >= 1)  && $uomId != $packagingRec->id){
+                    $price *= 1000; 
+                    $packQuantity /= 1000;
+                    $packagingId = $uomId;
+                    
+                    return;
+                }
+            }
+        }
+        
+        if($d3 < $d1 && $d3 < $d2){
+            foreach ($similarUoms as $uomId => $ratio){
+                if(($ratio * 1000 >= 1)  && $uomId != $packagingRec->id){
+                    $price /= 1000;
+                    $packQuantity *= 1000;
+                    $packagingId = $uomId;
+                    
+                    return;
+                }
+            }
+        }
+        
+        return;
     }
 }

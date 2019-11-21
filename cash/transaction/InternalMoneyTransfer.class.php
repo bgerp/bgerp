@@ -40,11 +40,12 @@ class cash_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
         // Извличаме записа
         expect($rec = $this->class->fetchRec($id));
         
-        ($rec->debitCase) ? $debitArr = array('cash_Cases', $rec->debitCase) : $debitArr = array('bank_OwnAccounts', $rec->debitBank);
+        $debitArr = ($rec->debitCase) ? array('cash_Cases', $rec->debitCase) : array('bank_OwnAccounts', $rec->debitBank);
+        $item2Arr = ($rec->paymentDebitId) ? array('cond_Payments', $rec->paymentDebitId) : array('currency_Currencies', $rec->currencyId);
         
         $creditArr = array($rec->creditAccId, array('cash_Cases', $rec->creditCase), array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount);
 
-        if ($rec->operationSysId == 'nonecash2bank' || $rec->operationSysId == 'nonecash2case') {
+        if ($rec->operationSysId == 'nonecash2bank' || $rec->operationSysId == 'nonecash2case' || $rec->operationSysId == 'noncash2noncash') {
             $creditArr = array($rec->creditAccId,
                 array('cash_Cases', $rec->creditCase),
                 array('cond_Payments', $rec->paymentId),
@@ -54,21 +55,18 @@ class cash_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
                     $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
                     $creditArr['quantity'] = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
                 }
-                
-            $payment = cond_Payments::getTitleById($rec->paymentId);
-            $reason = "Инкасирано от: '{$payment}'";
-        } elseif ($rec->operationSysId == 'case2case') {
-            $reason = 'Вътрешно касов трансфер';
-        } elseif ($rec->operationSysId == 'case2bank') {
-            $reason = 'Захранване на банкова сметка';
         }
         
+        $reason = cash_InternalMoneyTransfer::getVerbal($rec, 'operationSysId');
+        
         $entry = array('debit' => array($rec->debitAccId, $debitArr,
-            array('currency_Currencies', $rec->currencyId),
+            $item2Arr,
             'quantity' => $rec->amount),
         'credit' => $creditArr, 'reason' => $reason);
         
         $entry = array($entry);
+        
+        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(

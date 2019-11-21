@@ -8,7 +8,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -75,6 +75,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         $chargeVat = ($rec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
         
         $data->form->setField('packPrice', "unit={$masterRec->currencyId} {$chargeVat}");
+        $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts));
     }
     
     
@@ -111,24 +112,26 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         }
         
         if ($form->isSubmitted()) {
-            $productInfo = cat_Products::getProductInfo($rec->productId);
-            
-            // Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
-            $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-            
-            $autoPrice = false;
-            
-            if (!isset($rec->packPrice)) {
-                $autoPrice = true;
-                $Policy = cls::get('price_ListToCustomers');
+            if(isset($rec->productId)){
+                $productInfo = cat_Products::getProductInfo($rec->productId);
                 
-                $packPrice = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity * $rec->quantityInPack, $masterRec->valior, $currencyRate, $rec->chargeVat)->price;
-                if (isset($packPrice)) {
-                    $rec->packPrice = $packPrice * $rec->quantityInPack;
+                // Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
+                $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+                
+                $autoPrice = false;
+                
+                if (!isset($rec->packPrice)) {
+                    $autoPrice = true;
+                    $Policy = cls::get('price_ListToCustomers');
+                    
+                    $packPrice = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity * $rec->quantityInPack, $masterRec->valior, $currencyRate, $rec->chargeVat)->price;
+                    if (isset($packPrice)) {
+                        $rec->packPrice = $packPrice * $rec->quantityInPack;
+                    }
                 }
             }
             
-            if (!isset($rec->packPrice)) {
+            if (!isset($rec->packPrice) && (Request::get('Act') != 'CreateProduct')) {
                 $form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика (3)');
             }
             
@@ -198,7 +201,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)) {
+        if (($action == 'edit' || $action == 'delete' || $action == 'add' || $action == 'createproduct') && isset($rec)) {
             if (!($mvc instanceof store_DocumentPackagingDetail)) {
                 if ($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft') {
                     $requiredRoles = 'no_one';
@@ -228,5 +231,46 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         $rec = $mvc->fetchRec($rec);
         
         $res->quantity = $rec->packQuantity * $rec->quantityInPack;
+    }
+    
+    
+    /**
+     * Импортиране на артикул генериран от ред на csv файл
+     *
+     * @param int   $masterId - ид на мастъра на детайла
+     * @param array $row      - Обект представляващ артикула за импортиране
+     *                        ->code - код/баркод на артикула
+     *                        ->quantity - К-во на опаковката или в основна мярка
+     *                        ->price - цената във валутата на мастъра, ако няма се изчислява директно
+     *                        ->pack - Опаковката
+     *
+     * @return mixed - резултата от експорта
+     */
+    public function import($masterId, $row)
+    {
+        $Master = $this->Master;
+        
+        $pRec = cat_Products::getByCode($row->code);
+        $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
+        $pacRec = cat_products_Packagings::getPack($pRec->productId, $pRec->packagingId);
+        $quantityInPack = (is_object($pacRec)) ? $pacRec->quantity : 1;
+        
+        $masterRec = $Master->fetch($masterId);
+        $chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId)) ? 'yes' : 'no';
+        $currencyRate = currency_CurrencyRates::getRate($masterRec->valior, $masterRec->currencyId, acc_Periods::getBaseCurrencyCode($masterRec->valior));
+        
+        // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
+        if ($row->price) {
+            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $currencyRate, $chargeVat);
+        } else {
+            $Policy = cls::get('price_ListToCustomers');
+            $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $pRec->productId, $pRec->packagingId, ($row->quantity * $quantityInPack), $masterRec->valior, $currencyRate, $chargeVat);
+            $price = $policyInfo->price;
+        }
+        
+        $price *= $quantityInPack;
+        $dRec = (object)array('protocolId' => $masterId, 'productId' => $pRec->productId, 'packagingId' => $pRec->packagingId, 'packPrice' => $price, 'packQuantity' => $row->quantity, 'quantityInPack' => $quantityInPack);
+        
+        return self::save($dRec);
     }
 }

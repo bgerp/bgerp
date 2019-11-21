@@ -25,7 +25,7 @@ class pos_Receipts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Rejected, doc_plg_MultiPrint, plg_Printing, acc_plg_DocumentSummary, plg_Printing,plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,plg_Modified';
+    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing,plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,plg_Modified';
     
     
     /**
@@ -44,6 +44,12 @@ class pos_Receipts extends core_Master
      * Детайли на бележката
      */
     public $details = 'pos_ReceiptDetails';
+    
+    
+    /**
+     * Главен детайл на модела
+     */
+    public $mainDetail = 'pos_ReceiptDetails';
     
     
     /**
@@ -396,7 +402,7 @@ class pos_Receipts extends core_Master
             $action = explode('|', $dRec->action);
             switch ($action[0]) {
                 case 'sale':
-                    $price = $this->getDisplayPrice($dRec->price, $dRec->param, $dRec->discountPercent, $rec->pointId);
+                    $price = $this->getDisplayPrice($dRec->price, $dRec->param, $dRec->discountPercent, $rec->pointId, $dRec->quantity);
                     $rec->total += round($dRec->quantity * $price, 2);
                     break;
                 case 'payment':
@@ -1361,13 +1367,6 @@ class pos_Receipts extends core_Master
             return $this->pos_ReceiptDetails->returnError($receiptId);
         }
         
-        $error = '';
-        if (!self::checkQuantity($rec, $error)) {
-            core_Statuses::newStatus($error, 'error');
-            
-            return $this->pos_ReceiptDetails->returnError($receiptId);
-        }
-        
         $revertId = pos_Receipts::fetchField($receiptId, 'revertId');
         if (!empty($revertId)) {
             $rec->quantity *= -1;
@@ -1390,6 +1389,13 @@ class pos_Receipts extends core_Master
             $rec->quantity = $newQuantity;
             $rec->amount += $sameProduct->amount;
             $rec->id = $sameProduct->id;
+        }
+        
+        $error = '';
+        if (!self::checkQuantity($rec, $error)) {
+            core_Statuses::newStatus($error, 'error');
+            
+            return $this->pos_ReceiptDetails->returnError($receiptId);
         }
         
         if (!empty($revertId) && abs($originProductRec->quantity) < abs($rec->quantity)) {
@@ -1442,7 +1448,7 @@ class pos_Receipts extends core_Master
         $quantityInStock -= $rec->quantity * $quantityInPack;
         
         if ($quantityInStock < 0) {
-            $error = 'Артикулът не е в наличност';
+            $error = 'Желаното количество не е налично';
             
             return false;
         }
@@ -1632,8 +1638,7 @@ class pos_Receipts extends core_Master
         $Double->params['decimals'] = 2;
         $row = new stdClass();
         
-        $row->price = $Double->toVerbal($obj->price);
-        $row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
+        $row->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
         $row->stock = $Double->toVerbal($obj->stock);
         $row->packagingId = ($obj->packagingId) ? cat_UoM::getTitleById($obj->packagingId) : cat_UoM::getTitleById($obj->measureId);
         $row->packagingId = str::getPlural($obj->stock, $row->packagingId, true);
@@ -1924,13 +1929,14 @@ class pos_Receipts extends core_Master
     /**
      * Обработване на цената
      */
-    protected function on_AfterGetDisplayPrice($mvc, &$res, $priceWithoutVat, $vat, $discountPercent, $pointId)
+    protected function on_AfterGetDisplayPrice($mvc, &$res, $priceWithoutVat, $vat, $discountPercent, $pointId, $quantity)
     {
         if (empty($res)) {
-            $res = $priceWithoutVat * (1 + $vat);
+            $res = $priceWithoutVat * $quantity * (1 + $vat);
             if (!empty($discountPercent)) {
                 $res *= (1 - $discountPercent);
             }
+            $res /= $quantity;
             
             $res = round($res, 2);
         }

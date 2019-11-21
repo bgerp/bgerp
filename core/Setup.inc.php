@@ -48,9 +48,9 @@ if (setupKeyValid() && !setupProcess()) {
     
     return;
     // halt("Процес на обновяване - опитайте по късно.");
-}
+} 
 
-header("Content-Encoding: none");
+// header("Content-Encoding: none"); чупи behat/mink тестовете
 header('X-Accel-Buffering: no');
 
 // На коя стъпка се намираме в момента?
@@ -119,7 +119,6 @@ if (isset($_REQUEST['cancel'])) {
 
     header("location: {$appUri}");
 }
-
  
 header('Content-Type: text/html; charset=UTF-8');
 
@@ -520,11 +519,10 @@ if (function_exists('opcache_reset')) {
 
 // Стъпка 1: Лиценз
 if ($step == 1) {
+    $licenseText =  markdown_Render::Convert(file_get_contents(__DIR__ . '/../LICENSE.md'));
     $texts['body'] = "<ul class='msg stats'><li>" .
         "\n<a href='{$nextUrl}'>&#9746; Ако приемате лиценза по-долу, може да продължите »</a></li></ul><br>";
-    $texts['body'] .= "\n<div id='license'>" .
-        file_get_contents(__DIR__ . '/../license/gpl3.html') .
-        '</div>';
+    $texts['body'] .= "\n<div id='license'>" . $licenseText . '</div>';
     $texts['body'] .= "\n<br><ul class='msg stats'><li>" .
         "\n<a href='${nextUrl}'>&#9746; Ако приемате лиценза по-горе, може да продължите »</a></li></ul>";
 }
@@ -630,6 +628,7 @@ if ($step == 2) {
 
 // Ако се намираме на стъпка 3: Проверки
 if ($step == 3) {
+
     $log = array();
 
     // Ако има по-нова версия, към която да се мигрира базата данни - правим чекаут на нейния таг
@@ -961,9 +960,8 @@ if ($step == 'setup') {
 
     // Освобождава манипулатора на сесията. Ако трябва да се правят
     // записи в сесията, то те трябва да се направят преди shutdown()
-    if (session_id()) {
-        session_write_close();
-    }
+   // core_Session::pause();
+
 
     set_time_limit(1000);
 
@@ -1097,12 +1095,12 @@ if ($step == 'setup') {
         
     
     sleep(1);
-    Debug::log('Sleep 1 sec. in' . __CLASS__);
+    Debug::log('Sleep 1 sec. in ' . __CLASS__);
 
     contentFlush("<h3 id='success'>Инициализирането завърши успешно!</h3>");
     
     $links = array();
-
+    
     $haveNewVersion = false;
     $haveNewVersion = core_Updates::getNewVersionTag();
     if (!$haveNewVersion) {
@@ -1111,12 +1109,12 @@ if ($step == 'setup') {
             $haveNewVersion = true;
         }
     }
-    
+
     if ($haveNewVersion) {
         $links[] = "inf|{$selfUrl}&amp;step=3|Има по-нова версия. Обновете я »|_parent";
-    }
-    
-    $links[] = "new|{$appUri}|Стартиране bgERP »|_parent";
+    }    
+    $links[] = "new|{$appUri}|Стартиране на bgERP »|_parent";
+  
     
     $l = linksToHtml($links);
     $l = preg_replace(array("/\r?\n/", "/\//"), array('\\n', "\/"), addslashes($l));
@@ -1126,12 +1124,15 @@ if ($step == 'setup') {
                 </script>");
     // Спираме и smooth скрол-а и чистим setup cookie
     sleep(1);
-    Debug::log('Sleep 1 sec. in' . __CLASS__);
+    Debug::log('Sleep 1 sec. in ' . __CLASS__);
 
     contentFlush("<script>
                         clearInterval(handle);
                         document.cookie = 'setup=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
                 </script>");
+
+    
+ 
 
     contentFlush("</body>");
 
@@ -1240,11 +1241,14 @@ function logToHtml($log, &$stat)
  */
 function linksToHtml($links)
 {
+    $html .= "\n<ul class='msg stats'>";
+
     foreach ($links as $l) {
         list($class, $url, $text, $target, $info) = array_pad(explode('|', $l, 5), 5, '');
-        $html .= "\n<ul class='msg stats'><li>" .
-            "\n<a href='{$url}' class='{$class}' target='{$target}'>{$text}</a>\n{$info}</li></ul><br>";
+        $html .= "\n<li>" .  "\n<a href='{$url}' class='{$class}' target='{$target}'>{$text}</a>\n{$info}</li>";
     }
+
+    $html .= "</ul><br>";
 
     return $html;
 }
@@ -1286,9 +1290,10 @@ function gitCurrentBranch($repoPath, &$log)
     $command = " --git-dir=\"{$repoPath}/.git\" rev-parse --abbrev-ref HEAD 2>&1";
 
     $repoName = basename($repoPath);
-
+ 
     // Първият ред съдържа резултата
     if (gitExec($command, $res)) {
+
         return trim($res[0]);
     }
     

@@ -9,7 +9,7 @@
  * @package   doc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -17,9 +17,15 @@
 class doc_UnsortedFolders extends core_Master
 {
     /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    public $interfaces = 'doc_ContragentDataIntf';
+    
+    
+    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools2,plg_Search, plg_Modified, plg_Sorting';
+    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,plg_Clone,doc_FolderPlg,plg_RowTools2,plg_Search, plg_Modified, plg_Sorting';
     
     
     /**
@@ -43,7 +49,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'name, description';
+    public $searchFields = 'name, description, contragentFolderId';
     
     
     /**
@@ -211,15 +217,57 @@ class doc_UnsortedFolders extends core_Master
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'folderId';
+    
+    
+    /**
      * Описание на полетата на модела
      */
     public function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование,mandatory');
         $this->FLD('description', 'richtext(rows=3, passage=Общи,bucket=Notes)', 'caption=Описание');
+        $this->FLD('contragentFolderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент');
         $this->FLD('receiveEmail', 'enum(yes=Да, no=Не)', 'caption=Получаване на имейли->Избор');
         
         $this->setDbUnique('name');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        
+        if($data->action == 'clone'){
+            $form->FNC('newStartDate', 'datetime', 'mandatory,caption=Клониране на задачи->Ново начало,input,before=taskCloneState');
+            $form->FNC('taskCloneState', 'enum(draft=Чернова,active=Активно)', 'mandatory,caption=Клониране на задачи->Състояние,input,before=receiveEmail,unit=след клониране');
+        
+            $form->setDefault('newStartDate', dt::now());
+            
+        }
+    }
+    
+    
+    /**
+     * След клониране на записа
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec  - клонирания запис
+     * @param stdClass $nRec - новия запис
+     */
+    protected static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+        cal_Tasks::cloneFromFolder($rec->folderId, $nRec->folderId, $nRec->newStartDate, $nRec->taskCloneState);
     }
     
     
@@ -232,21 +280,13 @@ class doc_UnsortedFolders extends core_Master
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
         $cu = core_Users::getCurrent();
-        
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,autoFilter');
-        
-        // Задаваме стойността по подразбиране
-        //$data->listFilter->setDefault('selectedUsers', $cu);
-        
         $data->listFilter->view = 'horizontal';
-        
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        // Показваме само това поле. Иначе и другите полета
-        // на модела ще се появят
+        // Показваме само това поле. Иначе и другите полета на модела ще се появят
         $data->listFilter->showFields = 'search,selectedUsers';
-        
-        $rec = $data->listFilter->input('selectedUsers,search', 'silent');
+        $data->listFilter->input('selectedUsers,search', 'silent');
         
         if (!$data->listFilter->rec->selectedUsers) {
             $data->listFilter->rec->selectedUsers = '|' . $cu . '|';
@@ -276,8 +316,10 @@ class doc_UnsortedFolders extends core_Master
     public static function recToVerbal_($rec, &$fields = array())
     {
         $row = parent::recToVerbal_($rec, $fields);
-        
         $row->folder = 'Папка';
+        if(isset($rec->contragentFolderId)){
+            $row->contragentFolderId = doc_Folders::recToVerbal($rec->contragentFolderId)->title;
+        }
         
         return $row;
     }
@@ -819,5 +861,139 @@ class doc_UnsortedFolders extends core_Master
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Подготовка на клиентските проекти
+     *
+     * @param stdClass $data
+     * @return void
+     */
+    public function prepareContragentUnsortedFolders($data)
+    {
+        if(empty($data->masterData->rec->folderId)) return;
+        
+        $data->recs = $data->rows = array();
+        $query = self::getQuery();
+        $query->where("#contragentFolderId = {$data->masterData->rec->folderId}");
+        while($rec = $query->fetch()){
+            $data->recs[$rec->id] = doc_Folders::fetch($rec->folderId);
+            $data->rows[$rec->id] = doc_Folders::recToVerbal($data->recs[$rec->id]);
+            $data->rows[$rec->id]->created = $data->rows[$rec->id]->createdOn . " " . tr('от') . " " . $data->rows[$rec->id]->createdBy;
+        }
+    }
+    
+    
+    /**
+     * Рендиране на клиентските проекти
+     * 
+     * @param stdClass $data
+     * @return void|ET $tpl
+     */
+    public function renderContragentUnsortedFolders($data)
+    {
+        if(!countr($data->recs)) return;
+        
+        $tpl = new ET("<fieldset class='detail-info'>
+                            <legend class='groupTitle'>" . tr('Проекти') . "</legend>
+                                <div class='groupList clearfix21'>
+                                 [#PROJECT_TABLE#]
+                            </div>
+                         </fieldset>");
+       
+        $table = cls::get('core_TableView', array('mvc' => cls::get('doc_Folders')));
+        $dTpl = $table->get($data->rows, 'title=Наименование,allThreadsCnt=Нишки,inCharge=Отговорник,created=Създаване');
+        $dTpl->append("style='width:100%'", 'TABLE_ATTR');
+        
+        $tpl->append($dTpl, 'PROJECT_TABLE');
+        
+        return $tpl;
+    }
+    /**
+     * Връща данните на получателя
+     * return object
+     *
+     * $obj->company    - Името на компанията
+     * $obj->companyId  - Id' то на компанията - key(mvc=crm_Companies)
+     * $obj->country    - Името на държавата
+     * $obj->countryId  - Id' то на
+     * $obj->vatNo      - ДДС номер на компанията
+     * $obj->uicId      - Национален номер на компанията
+     * $obj->pCode      - код
+     * $obj->place      -
+     * $obj->email      - Имейл
+     * $obj->tel        - Телефон
+     * $obj->fax        - Факс
+     * $obj->address    - Адрес
+     *
+     * $obj->name       - Име на физическо лице
+     * $obj->personId   - ИД на лице - key(mvc=crm_Persons)
+     * $obj->pTel       - Персонален телефон
+     * $obj->pMobile    - Мобилен
+     * $obj->pFax       - Персонален
+     * $obj->pAddress   - Персонален адрес
+     * $obj->pEmail     - Персонален имейл
+     * 
+     * @see doc_ContragentDataIntf
+     */
+    public static function getContragentData($id)
+    {
+        $contragentData = null;
+        
+        if ($id) {
+            $rec = self::fetchRec($id);
+            
+            if ($rec->contragentFolderId) {
+                $contragentData = doc_Folders::getContragentData($rec->contragentFolderId);
+            }
+        }
+        
+        return $contragentData;
+    }
+    
+    
+    /**
+     * Връща пълния конкатениран адрес на контрагента
+     *
+     * @param int       $id            - ид на контрагент
+     * @param bool      $translitarate - дали да се транслитерира адреса
+     * @param bool|NULL $showCountry   - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
+     *
+     * @return core_ET $tpl - адреса
+     * 
+     * @see doc_ContragentDataIntf
+     */
+    public function getFullAdress($id, $translitarate = false, $showCountry = null)
+    {
+        
+        return null;
+    }
+    
+    
+    /**
+     * Връща дали на контрагента се начислява ДДС
+     * 
+     * @see doc_ContragentDataIntf
+     */
+    public function shouldChargeVat($id)
+    {
+        
+        return null;
+    }
+    
+    
+    /**
+     * Форсира контрагент в дадена група
+     *
+     * @param int    $id         -ид на продукт
+     * @param string $groupSysId - sysId на група
+     * 
+     * @see doc_ContragentDataIntf
+     */
+    public function forceGroup($id, $groupSysId)
+    {
+        
+        return null;
     }
 }

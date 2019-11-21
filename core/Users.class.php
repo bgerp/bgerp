@@ -79,8 +79,6 @@ defIfNot(
 );
 
 
-
-
 /**
  * Клас 'core_Users' - Мениджър за потребителите на системата
  *
@@ -161,12 +159,6 @@ class core_Users extends core_Manager
     
     
     /**
-     * Дали да се стартира крон-а в shutDown
-     */
-    public $runCron = false;
-    
-    
-    /**
      * Кой има право да променя потребителите, създадени от системата?
      */
     public $canEditsysdata = 'admin';
@@ -205,8 +197,6 @@ class core_Users extends core_Manager
             //Ако не използвам никовете, тогава полето трябва да е задължително
             $this->FLD('nick', 'nick(64, ci)', 'caption=Ник,notNull,mandatory,width=100%');
         }
-        
-        $this->FLD('pinCode', 'password', 'caption=ПИН код, input=hidden');
         
         $this->FLD(
             'state',
@@ -741,10 +731,6 @@ class core_Users extends core_Manager
         }
         
         $form->setField('rolesInput', 'input=none');
-        
-        if ($form->rec->id) {
-            $form->setField('pinCode', 'input=input');
-        }
     }
     
     
@@ -872,7 +858,6 @@ class core_Users extends core_Manager
     {
         if (self::count() == 1) {
             $mvc->invoke('AfterCreateFirstUser', array(&$html));
-            $mvc->runCron = true;
         }
     }
     
@@ -1231,11 +1216,6 @@ class core_Users extends core_Manager
                 core_LoginLog::add('new_user', core_Users::getCurrent());
             }
         }
-        
-        // Автоматично попълва на ПИН код на новите потребители
-        if (!$rec->pinCode && !$rec->id) {
-            $rec->pinCode = str::getRand('######');
-        }
     }
     
     
@@ -1438,6 +1418,7 @@ class core_Users extends core_Manager
         } else {
             $lastLoginIp = self::getOwnIp($userRec->lastLoginIp);
             $ownIp = self::getOwnIp($Users->getRealIpAddr());
+            
             // Дали нямаме дублирано ползване?
             if (($lastLoginIp != $ownIp) &&
                 $userRec->lastLoginTime > $sessUserRec->loginTime &&
@@ -1631,7 +1612,7 @@ class core_Users extends core_Manager
                         $osName = log_Browsers::getUserAgentOsName($bRec->userAgent);
                         
                         // Ако е от друго ОС
-                        if ($cOsName !=  $osName) {
+                        if ($cOsName != $osName) {
                             $lastSuccessLoginAnotherDeviceKey = $sKey;
                             
                             continue;
@@ -2464,23 +2445,6 @@ class core_Users extends core_Manager
     
     
     /**
-     *
-     *
-     * @param core_Users $mvc
-     */
-    public function on_ShutDown($mvc)
-    {
-        if ($this->runCron) {
-            if (!@fopen(toUrl(array('core_Cron', 'cron'), 'absolute'), 'r')) {
-                self::logWarning('Не може да се пусне крон ръчно');
-            }
-            
-            $this->runCron = false;
-        }
-    }
-    
-    
-    /**
      * Филтрира опциите за избор на потребител при миграцията
      */
     public static function filterUserForMigrateFolders($type)
@@ -2710,5 +2674,23 @@ class core_Users extends core_Manager
         $compare = ($rangs[$firstUserRangName] == $rangs[$secondUserRangName]) ? 0 : (($rangs[$firstUserRangName] < $rangs[$secondUserRangName]) ? -1 : 1);
         
         return $compare;
+    }
+    
+    
+    /**
+     * Проверява имената дали са валидни - поне две думи с поне по две букви
+     *
+     * @param string $names
+     * 
+     * @return boolean
+     */
+    public static function checkNames($names)
+    {
+        if (preg_match("/^[\p{L}']{2,16}[\s\-][\s\p{L}\'\-]+[\p{L}]$/u", $names)) {
+            
+            return true;
+        }
+        
+        return false;
     }
 }

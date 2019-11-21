@@ -296,18 +296,7 @@ class acc_Journal extends core_Master
         expect($docId = Request::get('docId', 'int'));
         expect($docClassId = Request::get('docType', 'class(interface=acc_TransactionSourceIntf)'));
         $mvc = cls::get($docClassId);
-        
-        // Дали имаме права за контиране
         $mvc->requireRightFor('conto', $docId);
-        
-        // Ако случайно има замърсена контировка, и документа не е активиран да се изтрие да не гърми поради дупликация
-        $docState = $mvc->fetchField($docId, 'state');
-        if($docState == 'draft'){
-            if($exJournalRec = self::fetchByDoc($mvc, $docId)){
-                self::delete("#id = {$exJournalRec->id}");
-                wp($exJournalRec, $docState);
-            }
-        }
         
         // Контиране на документа
         $mvc->conto($docId);
@@ -375,7 +364,8 @@ class acc_Journal extends core_Master
             Mode::pop('saveTransaction');
         } catch (acc_journal_Exception $ex) {
             $tr = $docClass->getTransaction($docRec->id);
-            error($ex->getMessage(), $tr);
+            reportException($ex);
+            error($ex->getMessage(), $tr, $ex->getMessage());
         }
         
         $transaction->rec->docType = $mvc->getClassId();
@@ -389,7 +379,7 @@ class acc_Journal extends core_Master
             }
             
             // Нотифицираме документа че транзакцията му е записана
-            $mvc->invoke('AfterTransactionIsSaved', array($docRec));
+            $mvc->invoke('AfterSaveJournalTransaction', array($success, $docRec));
         }
         
         return $success;

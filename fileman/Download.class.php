@@ -237,6 +237,12 @@ class fileman_Download extends core_Manager
      */
     public function act_Download()
     {
+        // Ако файла се сваля от vt - за да не се подават вирусни файлове
+        if (log_Browsers::checkUserAgent('virustotalcloud')) {
+            
+            return new Redirect(array('Index'));
+        }
+        
         // Манипулатора на файла
         $fh = Request::get('fh');
         

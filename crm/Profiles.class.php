@@ -338,18 +338,6 @@ class crm_Profiles extends core_Master
                 unset($data->User->row->password);
             }
             
-            if ((core_Users::getCurrent() == $data->User->rec->id) || haveRole('admin,ceo')) {
-                if ($data->User->rec->pinCode) {
-                    if ($data->rec->userId == core_Users::getCurrent()) {
-                        $data->User->row->pinCode = type_Varchar::escape($data->User->rec->pinCode);
-                    } else {
-                        $data->User->row->pinCode = tr('Да');
-                    }
-                } else {
-                    $data->User->row->pinCode = tr('Не');
-                }
-            }
-            
             // Ако има роля admin
             if (haveRole('admin') && core_Users::haveRightFor('edit', $data->rec->userId)) {
                 
@@ -484,6 +472,10 @@ class crm_Profiles extends core_Master
         $currUser = core_Users::getCurrent();
         if (self::canModifySettings($key, $data->rec->userId)) {
             core_Settings::addBtn($data->toolbar, $key, 'crm_Profiles', $data->rec->userId, 'Персонализиране');
+        }
+        
+        if (bgerp_Portal::haveRightFor('list')) {
+            $data->toolbar->addBtn('Портал', array('bgerp_Portal', 'list'), 'ef_icon=img/16/application_home.png');
         }
     }
     
@@ -686,27 +678,13 @@ class crm_Profiles extends core_Master
                     $msg .= '|Паролата е променена успешно|*.';
                 }
                 
-                $uRec = core_Users::fetch(core_Users::getCurrent());
-                
-                if ($form->rec->pinCode) {
-                    $uRec->pinCode = $form->rec->pinCode;
-                    
-                    core_Users::save($uRec, 'pinCode');
-                    
-                    self::logWrite('Смяна на ПИН код', $form->rec->id);
-                    
-                    $msg .= $msg ? '<br>' : '';
-                    
-                    $msg .= '|ПИН кодът е сменен успешно|*.';
-                }
-                
                 // Редиректваме към предварително установения адрес
                 return new Redirect(getRetUrl(), $msg);
             }
         }
         
         // Кои полета да се показват
-        $form->showFields = (($form->fields['nick']) ? 'nick' : 'email') . ',passEx,passNew,passRe,pinCode';
+        $form->showFields = (($form->fields['nick']) ? 'nick' : 'email') . ',passEx,passNew,passRe';
         
         // Получаваме изгледа на формата
         $tpl = $form->renderHtml();
@@ -753,9 +731,6 @@ class crm_Profiles extends core_Master
         $passReHint = 'Въведете отново паролата за потвърждение, че сте я написали правилно';
         $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', 'caption=Нова парола (пак),input,width=15em', array('hint' => $passReHint));
         
-        $pinCodeHint = 'Промяна на ПИН код';
-        $form->FNC('pinCode', 'password(allowEmpty,autocomplete=off)', "caption=ПИН код,input,hint={$pinCodeHint},width=15em");
-        
         // Подготвяме лентата с инструменти на формата
         $form->toolbar->addSbBtn('Запис', 'change_password', 'ef_icon = img/16/disk.png');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
@@ -764,7 +739,6 @@ class crm_Profiles extends core_Master
         $form->title = 'Смяна на паролата';
         $form->rec->passExHash = '';
         $form->rec->passNewHash = '';
-        $form->rec->pinCode = '';
         
         core_Users::setUserFormJS($form);
         
@@ -791,8 +765,8 @@ class crm_Profiles extends core_Master
             $form->setError('passNew', 'Паролата трябва да е минимум |* ' . EF_USERS_PASS_MIN_LEN . ' |символа');
         } elseif ($rec->passNew != $rec->passRe) {
             $form->setError('passNew,passRe', 'Двете пароли не съвпадат');
-        } elseif (!$rec->passNewHash && !$rec->pinCode) {
-            $form->setError('passNew,passRe,pinCode', 'Моля, въведете (и повторете) новата парола или въведете ПИН код');
+        } elseif (!$rec->passNewHash) {
+            $form->setError('passNew,passRe', 'Моля, въведете (и повторете) новата парола');
         }
     }
     

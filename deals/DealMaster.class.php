@@ -69,6 +69,14 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
+     * Дефолтен брой копия при печат
+     *
+     * @var int
+     */
+    public $defaultCopiesOnPrint = 2;
+    
+    
+    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc
@@ -491,7 +499,7 @@ abstract class deals_DealMaster extends deals_DealBase
                         $data->query->where("#paymentState = 'overdue'");
                         break;
                     case 'delivered':
-                        $data->query->where('#deliveredRound = #dealRound');
+                        $data->query->where('#deliveredRound >= #dealRound');
                         $data->query->where("#state = 'active' OR #state = 'closed'");
                         break;
                     case 'undelivered':
@@ -1406,8 +1414,13 @@ abstract class deals_DealMaster extends deals_DealBase
             
             // Контиране на документа
             $this->logWrite('Избор на операция', $id);
-            $this->conto($id);
-            $this->invoke('AfterContoQuickSale', array($rec));
+            $contoRes = $this->conto($id);
+            if($contoRes !== false){
+                $this->invoke('AfterContoQuickSale', array($rec));
+            } else {
+                $rec->contoActions = null;
+                $this->save_($rec, 'contoActions');
+            }
             
             // Редирект
             return new Redirect(array($this, 'single', $id));
@@ -1573,6 +1586,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *		o $fields['makeInvoice'] 		-  изисквали се фактура или не (yes = Да, no = Не), По дефолт 'yes'
      *		o $fields['template'] 		    -  бележки за сделката
      *      o $fields['receiptId']          -  информативно от коя бележка е
+     *      o $fields['onlineSale']         -  дали е онлайн продажба
      *
      * @return mixed $id/FALSE - ид на запис или FALSE
      */
@@ -1590,6 +1604,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $allowedFields['currencyRate'] = true;
         $allowedFields['deliveryTermId'] = true;
         $allowedFields['receiptId'] = true;
+        $allowedFields['onlineSale'] = true;
         
         // Проверяваме подадените полета дали са позволени
         if (count($fields)) {
@@ -1667,6 +1682,10 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Опиваме се да запишем мастъра на сделката
         $rec = (object) $fields;
+        if($fields['onlineSale'] === true){
+            $rec->_onlineSale = true;
+        }
+        
         if(isset($fields['receiptId'])){
             $rec->_receiptId = $fields['receiptId'];
         }
@@ -1764,14 +1783,9 @@ abstract class deals_DealMaster extends deals_DealBase
         );
         
         // Проверяваме дали въвдения детайл е уникален
-        $where = "#{$Detail->masterKey} = {$id} AND #productId = {$dRec->productId}";
-        if ($packagingId) {
-            $where .= " AND #packagingId = {$packagingId}";
-        } else {
-            $where .= ' AND #packagingId IS NULL';
-        }
+        $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes);
         
-        if ($exRec = $Detail->fetch($where)) {
+        if (is_object($exRec)) {
             
             // Смятаме средно притеглената цена и отстъпка
             $nPrice = ($exRec->quantity * $exRec->price + $dRec->quantity * $dRec->price) / ($dRec->quantity + $exRec->quantity);

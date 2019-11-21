@@ -103,13 +103,13 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_ADD_TO_CART_TEXT_BG = 'Вече има [#packQuantity#] [#packagingId#] от [#productName#] в количката';
+    const DEFAULT_ADD_TO_CART_TEXT_BG = 'Във вашата [#cartName#] има [#packQuantity#] [#packagingId#] от [#productName#]';
     
     
     /**
      * Дефолтен шаблон за текст за добавяне към количката на en
      */
-    const DEFAULT_ADD_TO_CART_TEXT_EN = 'There is already [#packQuantity#] [#packagingId#] from [#productName#] in the cart';
+    const DEFAULT_ADD_TO_CART_TEXT_EN = 'There are [#packQuantity#] [#packagingId#] of [#productName#] in the cart';
     
     
     /**

@@ -274,9 +274,7 @@ class doc_plg_TplManager extends core_Plugin
             $form = cls::get('core_Form');
             
             $form->class .= ' simpleForm';
-            
             $form->FNC('tplId', 'key(mvc=doc_TplManager, select=name)', 'caption=Изглед, silent, input');
-            
             $form->addAttr('tplId', array('onchange' => 'this.form.submit();'));
             
             $tplArr = doc_TplManager::getTemplates($mvc->getClassId());
@@ -284,12 +282,7 @@ class doc_plg_TplManager extends core_Plugin
             expect($tplArr);
             
             $form->setOptions('tplId', $tplArr);
-            
             $form->setDefault('tplId', $data->rec->template);
-
-//             $form->title = "Избор на изглед за отпечатване";
-//             $form->toolbar->addSbBtn('Избор', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Избор на шаблон за отпечатване, style=display:none;');
-            
             $form->input();
             
             if ($form->isSubmitted()) {
@@ -310,7 +303,7 @@ class doc_plg_TplManager extends core_Plugin
                         
                         doclog_Documents::save($logRec, 'dataBlob');
                     } else {
-                        setIfNot($doclogActionDataArr, Mode::get('doclogActionData'), array());
+                        $doclogActionDataArr = Mode::get('doclogActionData') ? Mode::get('doclogActionData') : array();
                         $doclogActionDataArr['tplManagerId'] = $data->rec->template;
                         Mode::set('doclogActionData', $doclogActionDataArr);
                     }
@@ -352,9 +345,9 @@ class doc_plg_TplManager extends core_Plugin
                 $toggleFields = arr::make($mvc->toggleFields);
                 
                 // Намират се засичането на двата масива с полета
-                $intersect = array_intersect_key((array) $data->row, $toggleFields);
+                $intersect = array_keys(array_intersect_key((array) $data->row, $toggleFields));
                 
-                foreach ($intersect as $k => $v) {
+                foreach ($intersect as $k) {
                     
                     // За всяко от опционалните полета: ако не е избран да се показва, се маха
                     if (!in_array($k, $fields)) {
@@ -437,8 +430,6 @@ class doc_plg_TplManager extends core_Plugin
             } else {
                 $cLanguages = drdata_Countries::fetchField($cData->countryId, 'languages');
                 $languages = array_merge(arr::make($cLanguages, true), $languages);
-                
-                $defLang = 'en';
             }
             $languages['en'] = 'en';
             
@@ -570,6 +561,19 @@ class doc_plg_TplManager extends core_Plugin
     {
         if ($cnt > 1) {
             $container->removeBlock('FORM_FIELDS');
+        }
+    }
+    
+    
+    /**
+     * Колко копия да се отпечатат от документа при принтиране
+     */
+    public static function on_AfterGetCopiesOnPrint($mvc, &$res, $id)
+    {
+        // Ръчно зададения брой копия е с приоритет
+        $rec = $mvc->fetchRec($id);
+        if($templatePrintCount = doc_TplManager::fetchField($rec->template, 'printCount')){
+            $res = $templatePrintCount;
         }
     }
 }

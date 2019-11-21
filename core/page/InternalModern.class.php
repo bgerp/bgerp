@@ -384,9 +384,9 @@ class core_page_InternalModern extends core_page_Active
         $appLen = mb_strlen($coreConf->EF_APP_TITLE);
         
         if ($appLen >= 20) {
-            $portalLinkAttr['style'] = 'letter-spacing: -2px;';
+            $portalLinkAttr['style'] = 'letter-spacing: -2px;font-size: 0.9em;';
         } elseif ($appLen >= 13) {
-            $portalLinkAttr['style'] = 'letter-spacing: -1px;';
+            $portalLinkAttr['style'] = 'letter-spacing: -1px;font-size: 0.95em;';
         } elseif (($appLen >= 6) && ($appLen <= 12)) {
             $lSpacing = (5 - $appLen) / 10;
             
@@ -410,12 +410,12 @@ class core_page_InternalModern extends core_page_Active
         }
         
         // Рендираме бутоните за търсене
-        $inputType = "<input {$val} class='serch-input-modern' type='search' onkeyup='onSearchEnter(event, \"modern-doc-search\", this);'/>";
+        $inputType = "<input {$val} class='search-input-modern' type='search' onkeyup='onSearchEnter(event, \"modern-doc-search\", this);'/>";
         
         $tpl->replace($inputType, 'SEARCH_INPUT');
         
         $attr = array();
-        $attr['onClick'] = "return searchInLink(this, 'serch-input-modern', 'search', false);";
+        $attr['onClick'] = "return searchInLink(this, 'search-input-modern', 'search', false);";
         $searchLink = '';
         $colum1 = '';
         $colum2 = '';

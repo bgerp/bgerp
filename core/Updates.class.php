@@ -232,27 +232,29 @@ class core_Updates extends core_Manager
                 throw $e;
             }
         }
-        
-        // Вземаме текущата версия на DB
-        $dbVer = self::parseVersion($lastDbVersion);
-        
-        $pastVers = self::getReleaseTags();
-        
-        $newVer = null;
-        
-        $success = false;
-        foreach ($pastVers as $v) {
-            if ($success) {
-                $newVer = $v;
-                break;
+     
+        if($lastDbVersion) {
+            // Вземаме текущата версия на DB
+            $dbVer = self::parseVersion($lastDbVersion);
+             
+            $pastVers = self::getReleaseTags();
+
+            $newVer = null;
+            
+            $success = false;
+            foreach ($pastVers as $v) {
+                if ($success) {
+                    $newVer = $v;
+                    break;
+                }
+                
+                if (self::parseVersion($v) == $dbVer) {
+                    $success = true;
+                }
             }
             
-            if (self::parseVersion($v) == $dbVer) {
-                $success = true;
-            }
+            return $newVer;
         }
-        
-        return $newVer;
     }
     
     

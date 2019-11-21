@@ -42,7 +42,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter,deals_plg_SaveValiorOnActivation,store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting,store_plg_Request, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter,deals_plg_SaveValiorOnActivation,store_Wrapper,purchase_plg_ExtractPurchasesData, sales_plg_CalcPriceDelta, plg_Sorting,store_plg_Request,acc_plg_ForceExpenceAllocation, acc_plg_Contable, cond_plg_DefaultValues,
                     plg_Clone,doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, doc_plg_TplManager,deals_plg_SelectInvoice,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
     
@@ -218,6 +218,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $this->FLD('pCode', 'varchar', 'caption=Адрес за доставка->П. код, changable, class=contactData');
         $this->FLD('place', 'varchar', 'caption=Адрес за доставка->Град/с, changable, class=contactData');
         $this->FLD('address', 'varchar', 'caption=Адрес за доставка->Адрес, changable, class=contactData');
+        $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->setField('deliveryTime', 'caption=Натоварване');
     }
     
@@ -314,6 +315,16 @@ class store_ShipmentOrders extends store_DocumentMaster
                 $row->inlineContragentAddress = $row->inlineDeliveryAddress;
             }
             $row->toCompany = $logisticData['toCompany'];
+            
+            if($rec->state != 'pending'){
+                unset($row->storeReadiness);
+            } else {
+                $row->storeReadiness = isset($row->storeReadiness) ? $row->storeReadiness : "<b class='quiet'>N/A</b>";
+            }
+            
+            if(Mode::isReadOnly()){
+                unset($row->storeReadiness, $row->zoneReadiness);
+            }
         }
         
         core_Lg::pop();
@@ -393,6 +404,10 @@ class store_ShipmentOrders extends store_DocumentMaster
         $tplArr[] = array('name' => 'Експедиционно нареждане с цени в евро',
             'content' => 'store/tpl/SingleLayoutShipmentOrderEuro.shtml', 'lang' => 'bg',
             'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+        
+        $tplArr[] = array('name' => 'Packing list за митница',
+            'content' => 'store/tpl/SingleLayoutPackagingListGrouped.shtml', 'lang' => 'en',
+            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
         
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
@@ -555,6 +570,42 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
         if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $data->listFields = 'deliveryTime,valior, title=Документ, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId';
+        }
+    }
+    
+    
+    /**
+     * След извличане на името на документа за показване в RichText-а
+     */
+    protected static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
+    {
+        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
+        if(isset($indicator)){
+            if($docName instanceof core_ET){
+                $docName->append($indicator);
+            } else {
+                $docName .= $indicator;
+            }
+        }
+    }
+    
+    
+    /**
+     * Връща линк към документа
+     */
+    protected function on_AfterGetLink($mvc, &$link, $id, $maxLength = false, $attr = array())
+    {
+        
+        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
+        
+        if(isset($indicator)){
+            if($link instanceof core_ET){
+                $link->append($indicator);
+                $link->removeBlocks();
+                $link->removePlaces();
+            } else {
+                $link .= $indicator;
+            }
         }
     }
 }

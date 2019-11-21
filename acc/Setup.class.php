@@ -100,6 +100,12 @@ defIfNot('ACC_BALANCE_REPAIR_NO_DEFAULTS', 'no');
 
 
 /**
+ * Колко назад във времето ще се инвалидират балансите
+ */
+defIfNot('ACC_ALTERNATE_WINDOW', '');
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -241,7 +247,11 @@ class acc_Setup extends core_ProtoSetup
         'ACC_BALANCE_REPAIR_AMOUNT_BELLOW' => array(
             'double',
             'caption=Корекция на грешки от закръгляне->Сума под'
-        )
+        ),
+        'ACC_ALTERNATE_WINDOW' => array(
+            'time(suggestions=3 месец|4 месеца|5 месеца|6 месеца|7 месеца|8 месеца|9 месеца|10 месеца|11 месеца|12 месеца)',
+            'caption=Колко назад могат да бъдат променяни счетоводни документи->Време,placeholder=Винаги'
+        ),
     );
     
     
@@ -400,7 +410,7 @@ class acc_Setup extends core_ProtoSetup
             'controller' => 'acc_Balances',
             'action' => 'Recalc',
             'period' => 1,
-            'timeLimit' => 55
+            'timeLimit' => 255
         ),
         array(
             'systemId' => 'SyncAccFeatures',
@@ -426,12 +436,11 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'acc_ReportDetails, acc_reports_BalanceImpl, acc_BalanceHistory, acc_reports_HistoryImpl, acc_reports_PeriodHistoryImpl,
-    					acc_reports_CorespondingImpl,acc_reports_SaleArticles,acc_reports_SaleContractors,acc_reports_OweProviders,
-    					acc_reports_ProfitArticles,acc_reports_ProfitContractors,acc_reports_MovementContractors,acc_reports_TakingCustomers,
-    					acc_reports_ManufacturedProducts,acc_reports_PurchasedProducts,acc_reports_BalancePeriodImpl, acc_reports_ProfitSales,
-                        acc_reports_MovementsBetweenAccounts,acc_reports_MovementArtRep,acc_reports_TotalRep,acc_reports_UnpaidInvoices,
-                        acc_reports_UnactiveContableDocs,acc_reports_NegativeQuantities,acc_reports_InvoicesByContragent';
+    public $defClasses = 'acc_ReportDetails, acc_reports_BalanceImpl, acc_BalanceHistory, acc_reports_HistoryImpl,
+    					acc_reports_CorespondingImpl,
+    					acc_reports_BalancePeriodImpl, acc_reports_ProfitSales,
+                        acc_reports_MovementArtRep,acc_reports_TotalRep,acc_reports_UnpaidInvoices,
+                        acc_reports_UnactiveContableDocs,acc_reports_NegativeQuantities,acc_reports_InvoicesByContragent, acc_drivers_TotalRepPortal';
     
     
     

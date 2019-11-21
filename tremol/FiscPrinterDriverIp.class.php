@@ -154,7 +154,10 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         
         // Задаваме параметрите за отваряне на ФБ
         setIfNot($params['OPER_NUM'], 1);
-        setIfNot($params['OPER_PASS'], 0);
+        
+        if (!isset($params['OPER_PASS'])) {
+            $params['OPER_PASS'] = $this->getOperPass($params['OPER_NUM'], $pRec);
+        }
         
         $params['IS_DETAILED'] = (int) $params['IS_DETAILED'];
         $params['IS_PRINT_VAT'] = (int) $params['IS_PRINT_VAT'];
@@ -287,15 +290,10 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 }
                 
                 try {
-                    if ($params['IS_ELECTRONIC']) {
-                        $fp->OpenElectronicStornoReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['STORNO_REASON'], $params['RELATED_TO_RCP_NUM'], $params['RELATED_TO_RCP_DATE_TIME'], $params['FM_NUM'], $params['RELATED_TO_URN']);
-                    } else {
-                        $fp->OpenStornoReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['PRINT_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_RCP_NUM'], $params['RELATED_TO_RCP_DATE_TIME'], $params['FM_NUM'], $params['RELATED_TO_URN']);
-                    }
+                    $fp->OpenStornoReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['PRINT_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_RCP_NUM'], $params['RELATED_TO_RCP_DATE_TIME'], $params['FM_NUM'], $params['RELATED_TO_URN']);
                 } catch (\Tremol\SException $e) {
                     $this->handleTremolException($e);
                 }
-            
             } else if ($params['IS_CREDIT_NOTE']) {
                 
                 if ($params['PRINT_TYPE_STR'] == 'postponed') {
@@ -324,11 +322,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 }
                 
                 try {
-                    if ($params['IS_ELECTRONIC']) {
-                        $fp->OpenElectronicCreditNoteWithFreeCustomerData($params['OPER_NUM'], $params['OPER_PASS'], $params['RECIPIENT'], $params['BUYER'], $params['VAT_NUMBER'], $params['UIC'], $params['ADDRESS'], $params['UIC_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_INV_NUM'], $params['RELATED_TO_INV_DATE_TIME'], $params['RELATED_TO_RCP_NUM'], $params['FM_NUM'], $params['RELATED_TO_URN']);
-                    } else {
-                        $fp->OpenCreditNoteWithFreeCustomerData($params['OPER_NUM'], $params['OPER_PASS'], $params['PRINT_TYPE'], $params['RECIPIENT'], $params['BUYER'], $params['VAT_NUMBER'], $params['UIC'], $params['ADDRESS'], $params['UIC_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_INV_NUM'], $params['RELATED_TO_INV_DATE_TIME'], $params['RELATED_TO_RCP_NUM'], $params['FM_NUM'], $params['RELATED_TO_URN']);
-                    }
+                    $fp->OpenCreditNoteWithFreeCustomerData($params['OPER_NUM'], $params['OPER_PASS'], $params['PRINT_TYPE'], $params['RECIPIENT'], $params['BUYER'], $params['VAT_NUMBER'], $params['UIC'], $params['ADDRESS'], $params['UIC_TYPE'], $params['STORNO_REASON'], $params['RELATED_TO_INV_NUM'], $params['RELATED_TO_INV_DATE_TIME'], $params['RELATED_TO_RCP_NUM'], $params['FM_NUM'], $params['RELATED_TO_URN']);
                 } catch (\Tremol\SException $e) {
                     $this->handleTremolException($e);
                 }
@@ -428,8 +422,17 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         
         try {
             $res = $fp->ReadLastReceiptQRcodeData();
+            if (!$res) {
+                sleep(1);
+                $res = $fp->ReadLastReceiptQRcodeData();
+            }
         } catch (\Tremol\SException $e) {
-            $res = true;
+            try {
+                sleep(1);
+                $res = $fp->ReadLastReceiptQRcodeData();
+            } catch (\Tremol\SException $e) {
+                $res = true;
+            }
         }
         
         return $res;
@@ -608,26 +611,53 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
     protected static function on_AfterRenderSingle($Driver, $Embedder, &$tpl, $data)
     {
         if ($Embedder instanceof peripheral_Devices && $Embedder->haveRightFor('edit', $data->rec->id)) {
-            
             try {
-                // Променя серийния номер на ФУ, ако не е коректно
                 $sn = $Driver->getSerialNumber($data->rec);
             } catch (Exception $e) {
                 $Driver->handleAndShowException($e);
             }
             
-            if ($sn) {
-                if ($sn != $data->rec->serialNumber) {
-                    $data->rec->serialNumber = $sn;
-                    
-                    $Embedder->save($data->rec, 'serialNumber');
-                    
-                    status_Messages::newStatus('|Променен сериен номер на|* ' . $sn);
-                }
-            }
-            
             // Настройваме хедърите и футърите на ФУ
             if (Request::get('update')) {
+                // Променя серийния номер на ФУ, ако не е коректно
+                if ($sn) {
+                    if ($sn != $data->rec->serialNumber) {
+                        $data->rec->serialNumber = $sn;
+                        
+                        $Embedder->save($data->rec, 'serialNumber');
+                        
+                        status_Messages::newStatus('|Променен сериен номер на|* ' . $sn);
+                    }
+                }
+                
+                // Добавяме паролата на оператора
+                try {
+                    $oPass = $Driver->getOperPassFromFU($data->rec);
+                } catch (Exception $e) {
+                    $Driver->handleAndShowException($e);
+                }
+                
+                if (isset($oPass)) {
+                    if ($oPass != $data->rec->otherData['operPass']) {
+                        $data->rec->otherData['operPass'] = $oPass;
+                        
+                        $Embedder->save($data->rec, 'otherData');
+                    }
+                }
+                
+                try {
+                    $dPaymArr = $Driver->getDefaultPaymentsFromFU($data->rec);
+                } catch (Exception $e) {
+                    $Driver->handleAndShowException($e);
+                }
+                
+                if ($dPaymArr['defPaymArr']) {
+                    $data->rec->otherData['defPaymArr'] = $dPaymArr['defPaymArr'];
+                    $data->rec->otherData['exRate'] = $dPaymArr['exRate'];
+                    
+                    $Embedder->save($data->rec, 'otherData');
+                }
+                
                 try {
                     self::setDateTime($data->rec);
                 } catch (Exception $e) {
@@ -667,15 +697,19 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
      * 
      * @param stdClass $rec
      * @param boolean $keepPortOpen
+     * @param boolean $setDeviceSettings
+     * 
      * @return false|\Tremol\FP
      */
-    protected static function connectToPrinter($rec, $keepPortOpen = false)
+    protected static function connectToPrinter($rec, $keepPortOpen = false, $setDeviceSettings = true)
     {
         static $fpArr = array();
         
         expect($rec);
         
-        $fp = $fpArr[$rec->id];
+        $key = md5($keepPortOpen . '|' . $setDeviceSettings . '|' . serialize($rec));
+        
+        $fp = $fpArr[$key];
         
         if (!isset($fp)) {
             try {
@@ -683,12 +717,22 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 
                 $fp = new \Tremol\FP();
                 
-                $fp->ServerSetSettings($rec->serverIp, $rec->serverTcpPort);
+                $serverIp = $rec->serverIp;
                 
-                if ($rec->tcpIp) {
-                    $fp->ServerSetDeviceTcpSettings($rec->tcpIp, $rec->tcpPort, $rec->tcpPass);
-                } else {
-                    $fp->ServerSetDeviceSerialSettings($rec->serialPort, $rec->serialSpeed, $keepPortOpen);
+                $sArr = explode('://', $serverIp);
+                
+                if (count($sArr) == 2) {
+                    $serverIp = $sArr[1];
+                }
+                
+                $fp->ServerSetSettings($serverIp, $rec->serverTcpPort);
+                
+                if ($setDeviceSettings) {
+                    if ($rec->tcpIp) {
+                        $fp->ServerSetDeviceTcpSettings($rec->tcpIp, $rec->tcpPort, $rec->tcpPass);
+                    } else {
+                        $fp->ServerSetDeviceSerialSettings($rec->serialPort, $rec->serialSpeed, $keepPortOpen);
+                    }
                 }
             } catch (\Tremol\SException $e) {
                 self::handleTremolException($e);
@@ -697,9 +741,47 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             }
         }
         
-        $fpArr[$rec->id] = $fp;
+        $fpArr[$key] = $fp;
         
         return $fp;
+    }
+    
+    
+    /**
+     * Помощна функция за намиране на порта и скоростта на периферното устройство
+     * 
+     * @param stdClass $pRec
+     * @param null|core_Et $jsTpl
+     * 
+     * @return array
+     * 
+     * {@inheritDoc}
+     * @see tremol_FiscPrinterDriverParent::findDevicePort()
+     */
+    protected function findDevicePort($pRec, &$jsTpl = null)
+    {
+        $resArr = array();
+        
+        $fp = $this->connectToPrinter($pRec, false, false);
+        
+        if ($fp) {
+            
+            try {
+                $fDev = $fp->ServerFindDevice(false);
+                
+                if (strlen($fDev->SerialPort)) {
+                    $resArr['serialPort'] = $fDev->SerialPort;
+                }
+                
+                if (strlen($fDev->BaudRate) && $fDev->BaudRate && $fDev->SerialPort) {
+                    $resArr['baudRate'] = $fDev->BaudRate;
+                }
+            } catch (\Tremol\SException $e) {
+                self::handleTremolException($e);
+            }
+        }
+        
+        return $resArr;
     }
     
     
@@ -725,6 +807,112 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         }
         
         return $sn;
+    }
+    
+    
+    /**
+     * Връща паролата на оператора от ФУ
+     *
+     * @param stdClass $rec
+     * @param integer $oper
+     *
+     * @return false|string
+     */
+    protected static function getOperPassFromFU($rec, $oper = 1)
+    {
+        $oPass = false;
+        
+        try {
+            $fp = self::connectToPrinter($rec);
+            
+            if ($fp) {
+                $oPass = $fp->ReadOperatorNamePassword($oper)->Password;
+            }
+        } catch (\Tremol\SException $e) {
+            self::handleTremolException($e);
+        }
+        
+        return $oPass;
+    }
+    
+    
+    /**
+     * Връща зададените начини на плащания във ФУ
+     *
+     * @param stdClass $rec
+     *
+     * @return false|string
+     */
+    protected static function getDefaultPaymentsFromFU($rec)
+    {
+        $resArr = array();
+        
+        try {
+            $fp = self::connectToPrinter($rec);
+            
+            $isNew = self::isNewVersion($fp);
+            
+            $dPaymArr = array();
+            
+            if ($isNew) {
+                $paymRes = $fp->ReadPayments();
+                for($i=0;$i<=11;$i++) {
+                    try {
+                        $namePayment = "NamePayment{$i}";
+                        $dPaymArr[trim($paymRes->{$namePayment})] = $i;
+                    } catch (Exception $e) { }
+                }
+                try {
+                    $exchangeRate = trim($paymRes->ExchangeRate);
+                } catch (Exception $e) {
+                    $exchangeRate = null;
+                }
+            } else {
+                $paymRes = $fp->ReadPayments_Old();
+                
+                for($i=0;$i<=4;$i++) {
+                    try {
+                        $namePayment = "NamePaym{$i}";
+                        $codePayment = "CodePaym{$i}";
+                        
+                        $dPaymArr[trim($paymRes->{$namePayment})] = $i;
+                    } catch (Exception $e) { }
+                }
+                
+                try {
+                    $exchangeRate = trim($paymRes->ExRate);
+                } catch (Exception $e) {
+                    $exchangeRate = null;
+                }
+            }
+            
+            $resArr['defPaymArr'] = $dPaymArr;
+            $resArr['exRate'] = $exchangeRate;
+        } catch (\Tremol\SException $e) {
+            self::handleTremolException($e);
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Проверява дали ФУ е нова версия
+     *
+     * @param \Tremol\FP $fp
+     * 
+     * @return boolean
+     */
+    protected static function isNewVersion($fp)
+    {
+        $model = $fp->ReadVersion()->Model;
+        
+        if (strpos($model, "V2") == (strlen($model) - 2)) {
+            
+            return false;
+        }
+        
+        return true;
     }
     
     
@@ -830,10 +1018,11 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
      * @param stdClass $rec
      * @param string $rVerb
      * @param null|core_Et $jsTpl
+     * @param array $retUrl
      * 
      * @see tremol_FiscPrinterDriverParent::getResForReport()
      */
-    protected function getResForReport($pRec, $rec, $rVerb = '', &$jsTpl = null)
+    protected function getResForReport($pRec, $rec, $rVerb = '', &$jsTpl = null, $retUrl = array())
     {
         try {
             try {
@@ -944,7 +1133,12 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     }
                 }
                 
-                status_Messages::newStatus("|Успешно отпечатан {$rVerb} отчет");
+                $msg = "|Успешно отпечатан {$rVerb} отчет";
+                if (!empty($retUrl)) {
+                    
+                    return redirect($retUrl, false, $msg);
+                }
+                status_Messages::newStatus($msg);
             } catch (\Tremol\SException $e) {
                 $this->handleTremolException($e);
             }
@@ -997,7 +1191,6 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 $ste1 = $ex->getSte1();
                 $ste2 = $ex->getSte2();
                 
-                
                 /**
                  *   Possible reasons:
                  * ste1 =                                              ste2 =
@@ -1019,33 +1212,35 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                  *  0x3f Insufficient conditions
                  */
                 if ($ste1 == 0x30 && $ste2 == 0x32) {
-                    $msg = "Грешка!  ste1 == 0x30 - Командата е ОК и ste2 == 0x32 - Командата е непозволена в текущото състояние на ФУ";
+                    $msg = "Грешка! ste1 == 0x30 - Командата е ОК и ste2 == 0x32 - Командата е непозволена в текущото състояние на ФУ";
                 } else if ($ste1 == 0x30 && $ste2 == 0x33) {
-                    $msg = "Грешка!  ste1 == 0x30 - Командата е ОК и ste2 == 0x33 - Направете Z отчет";
+                    $msg = "Грешка! ste1 == 0x30 - Командата е ОК и ste2 == 0x33 - Направете Z отчет";
                 } else if ($ste1 == 0x34 && $ste2 == 0x32) {
-                    $msg = "Грешка!  ste1 == 0x34 - Отворен фискален бон и ste2 == 0x32 - Командата е непозволена в текущото състояние на ФУ";
+                    $msg = "Грешка! ste1 == 0x34 - Отворен фискален бон и ste2 == 0x32 - Командата е непозволена в текущото състояние на ФУ";
                 } else if ($ste1 == 0x39 && $ste2 == 0x32) {
-                    $msg = "Грешка!  ste1 == 0x39 - Грешна парола и ste2 == 0x32 - Командата е непозволена";
+                    $msg = "Грешка! ste1 == 0x39 - Грешна парола и ste2 == 0x32 - Командата е непозволена";
                 } else {
                     $msg = "Грешка! " . $ex->getMessage() . " ste1=" . $ste1 . ", ste2=" . $ste2;
                 }
             } else if($code == \Tremol\ServerErrorType::ServerDefsMismatch) {
-                $msg = "Грешка!  Текущата версия на библиотеката и сървърните дефиниции се различават.";
+                $msg = "Грешка! Текущата версия на библиотеката и сървърните дефиниции се различават.";
             } else if ($code == \Tremol\ServerErrorType::ServMismatchBetweenDefinitionAndFPResult) {
-                $msg = "Грешка!  Текущата версия на библиотеката и фърмуера на ФУ са несъвместими";
+                $msg = "Грешка! Текущата версия на библиотеката и фърмуера на ФУ са несъвместими";
             } else if ($code == \Tremol\ServerErrorType::ServerAddressNotSet) {
-                $msg = "Грешка!  Не е зададен адрес на сървъра!";
+                $msg = "Грешка! Не е зададен адрес на сървъра!";
             } else if ($code == \Tremol\ServerErrorType::ServerConnectionError) {
-                $msg = "Грешка!  Не може да се осъществи връзка със ZfpLab сървъра";
+                $msg = "Грешка! Не може да се осъществи връзка със ZfpLab сървъра";
             } else if ($code == \Tremol\ServerErrorType::ServSockConnectionFailed) {
-                $msg = "Грешка!  Сървъра не може да се свърже с ФУ";
+                $msg = "Грешка! Сървъра не може да се свърже с ФУ";
             } else if ($code == \Tremol\ServerErrorType::ServTCPAuth) {
-                $msg = "Грешка!  Грешна TCP парола на устройството";
+                $msg = "Грешка! Грешна TCP парола на устройството";
             } else if ($code == \Tremol\ServerErrorType::ServWaitOtherClientCmdProcessingTimeOut) {
-                $msg = "Грешка!  Обработката на другите клиенти на сървъра отнема много време";
+                $msg = "Грешка! Обработката на другите клиенти на сървъра отнема много време";
             } else {
                 $msg = "Грешка! " . $ex->getMessage();
             }
+            
+            self::logDebug($msg);
             
             throw new core_exception_Expect($msg);
         }
@@ -1076,7 +1271,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
      */
     public function act_PrintDuplicate()
     {
-        peripheral_Devices::requireRightFor('printduplicate');
+        requireRole($this->canPrintDuplicate);
         expect($id = Request::get('id', 'int'));
         expect($pRec = peripheral_Devices::fetch($id));
         $Driver = peripheral_Devices::getDriver($pRec);

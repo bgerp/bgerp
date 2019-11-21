@@ -533,6 +533,22 @@ class acc_plg_Contable extends core_Plugin
     
     
     /**
+     * Нотифицира нужните потребители, че контиран документ е оттеглен
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public static function notifyUsersForReject($mvc, $rec)
+    {
+        $users = array();
+        $users[$rec->activatedBy] = $rec->activatedBy;
+        $users[$rec->createdBy] = $rec->createdBy;
+        
+        self::sendActionNotifications($users, $mvc, $rec, 'reject');
+    }
+    
+    
+    /**
      * Реакция в счетоводния журнал при възстановяване на оттеглен счетоводен документ
      *
      * @param core_Mvc   $mvc
@@ -765,19 +781,39 @@ class acc_plg_Contable extends core_Plugin
         // Ако е зададено в персоналните настройки на потребителя за всички папки
         doc_Containers::prepareUsersArrForNotifications($userArr, $pSettingsKey, 'DOC_NOTIFY_FOR_CONTO', $rec->threadId);
         
-        $currUserNick = core_Users::getCurrent('nick');
+        self::sendActionNotifications($userArr, $mvc, $rec, 'conto');
+    }
+    
+    
+    /**
+     * Изпраща нотификация за извъшено действие
+     * 
+     * @param array $users
+     * @param mixed $mvc
+     * @param stdClass $rec
+     * @param string $action
+     * @param int|null $userId
+     */
+    private static function sendActionNotifications($users, $mvc, $rec, $action, $userId = null)
+    {
+        if(!isset($userId)){
+            $userId = core_Users::getCurrent();
+        }
+        
+        $currUserNick = core_Users::fetchField($userId, 'nick');
         $currUserNick = type_Nick::normalize($currUserNick);
         
         $docRow = $mvc->getDocumentRow($rec->id);
         $docTitle = $docRow->title;
-        $folderTitle = doc_Threads::getThreadTitle($rec->threadId);
         
-        $message = "{$currUserNick} |контира|* \"|{$docTitle}|*\" |в нишка|* \"{$folderTitle}\"";
-        foreach ($userArr as $uId) {
-
-//     	    if (!$mvc->haveRightFor('single', $rec->id, $uId)) continue;
-            
-            bgerp_Notifications::add($message, array($mvc, 'single', $rec->id), $uId);
+        $folderTitle = doc_Threads::getThreadTitle($rec->threadId);
+        $actionVerbal = ($action == 'reject') ? 'оттегли' : 'контира';
+        $message = "{$currUserNick} |{$actionVerbal}|* \"|{$docTitle}|*\" |в нишка|* \"{$folderTitle}\"";
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        $url = ($firstDoc->fetchField('state') == 'rejected') ? array('doc_Containers', 'list', "threadId" => $rec->threadId) : array($mvc, 'single', $rec->id);
+        
+        foreach ($users as $uId) {
+            bgerp_Notifications::add($message, $url, $uId);
         }
     }
     

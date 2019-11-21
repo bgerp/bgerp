@@ -191,6 +191,7 @@ class price_ProductCosts extends core_Manager
     {
         $pQuery = purchase_PurchasesDetails::getQuery();
         $pQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
+        $pQuery->EXT('valior', 'purchase_Purchases', 'externalName=valior,externalKey=requestId');
         $pQuery->EXT('modifiedOn', 'purchase_Purchases', 'externalName=modifiedOn,externalKey=requestId');
         $pQuery->EXT('amountDelivered', 'purchase_Purchases', 'externalName=amountDelivered,externalKey=requestId');
         
@@ -216,7 +217,7 @@ class price_ProductCosts extends core_Manager
         }
         
         $pQuery->in('productId', $productKeys);
-        $pQuery->orderBy('id', 'DESC');
+        $pQuery->orderBy('valior,id', 'DESC');
         
         // Връщаме намерените резултати
         return $pQuery->fetchAll();
@@ -603,7 +604,7 @@ class price_ProductCosts extends core_Manager
         $purQuery = purchase_PurchasesData::getQuery();
         $purQuery->in('productId', $productArr);
         $purQuery->where("#state != 'rejected'");
-        $purQuery->show('quantity,price,productId');
+        $purQuery->show('quantity,price,productId,expenses');
         $purQuery->orderBy('valior,id', "DESC");
         $all = $purQuery->fetchAll();
         
@@ -612,7 +613,7 @@ class price_ProductCosts extends core_Manager
             
             // Всички покупки на търсения артикул
             $accObject = $accCosts[$productId];
-            $foundIn = array_filter($all, function ($a) use ($productId){return $a->productId == $productId && $a->quantity >= 0;});
+            $foundIn = array_filter($all, function ($a) use ($productId){return $a->productId == $productId;});
             
             $useFirstPurchase = true;
             $averageAmount = 0;
@@ -624,9 +625,11 @@ class price_ProductCosts extends core_Manager
                     $availableQuantity = $accObject->quantity;
                     $sum = $quantityByNow = 0;
                     
-                    
                     // За всяка покупка от последната към първата
                     foreach ($foundIn as $delData){
+                        $delData->quantity = round($delData->quantity, 6);
+                        $expensesPerPcs = (!empty($delData->quantity)) ? ($delData->expenses / $delData->quantity) : 0;
+                        
                         $quantityByNow += $delData->quantity;
                         if($delData->quantity <= $availableQuantity){
                             $quantity = $delData->quantity;
@@ -635,7 +638,7 @@ class price_ProductCosts extends core_Manager
                         }
                         
                         $availableQuantity -= $quantity;
-                        $sum += $quantity * $delData->price;
+                        $sum += $quantity * ($delData->price + $expensesPerPcs);
                         
                         if($availableQuantity <= 0) break;
                     }

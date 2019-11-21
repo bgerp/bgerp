@@ -38,7 +38,7 @@ class cal_Tasks extends embed_Manager
     /**
      * Период на показване на чакащи и активни задачи в портала
      */
-    protected static $taskShowPeriod = 3;
+    public static $taskShowPeriod = 3;
     
     
     /**
@@ -260,7 +260,7 @@ class cal_Tasks extends embed_Manager
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'timeStart,timeDuration,timeEnd,expectationTimeEnd, expectationTimeStart, expectationTimeDuration,timeClosed';
+    public $fieldsNotToClone = 'timeStart,timeDuration,timeEnd,expectationTimeEnd, expectationTimeStart, expectationTimeDuration,timeClosed,progress';
     
     
     public $canPending = 'powerUser';
@@ -530,6 +530,7 @@ class cal_Tasks extends embed_Manager
     
     /**
      * Показване на задачите в портала
+     * @deprecated
      */
     public static function renderPortal($userId = null)
     {
@@ -547,9 +548,9 @@ class cal_Tasks extends embed_Manager
         $data->listFields = 'groupDate,title,progress';
         
         if (Mode::is('listTasks', 'by')) {
-            $data->query->where("#createdBy = ${userId}");
+            $data->query->where(array("#createdBy = '[#1#]'", $userId));
         } else {
-            $data->query->like('assign', "|{$userId}|");
+            $data->query->likeKeylist('assign', $userId);
         }
         
         // Вадим 3 работни дни
@@ -658,6 +659,26 @@ class cal_Tasks extends embed_Manager
         $tpl->append(self::renderListPager($data), 'PortalPagerBottom');
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Сменя задачите в сесията между 'поставените към', на 'поставените от' и обратно
+     */
+    public function act_SwitchByTo()
+    {
+        if (Mode::is('listTasks', 'by')) {
+            Mode::setPermanent('listTasks', 'to');
+        } else {
+            Mode::setPermanent('listTasks', 'by');
+        }
+        
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = array('Portal', 'Show', '#' => Mode::is('screenMode', 'narrow') ? 'taskPortal' : null);
+        }
+        
+        return new Redirect($retUrl);
     }
     
     
@@ -1135,13 +1156,15 @@ class cal_Tasks extends embed_Manager
             $mvc->listItemsPerPage = 1000000;
         }
         
-        if (Request::get('Ctr') == 'Portal') {
-            // Задаваме броя на елементите в страница
-            $portalArrange = core_Setup::get('PORTAL_ARRANGE');
-            if ($portalArrange == 'recentlyNotifyTaskCal') {
-                $mvc->listItemsPerPage = 10;
-            } else {
-                $mvc->listItemsPerPage = 20;
+        if ($data->usePortalArrange !== false) {
+            if (Request::get('Ctr') == 'Portal') {
+                // Задаваме броя на елементите в страница
+                $portalArrange = core_Setup::get('PORTAL_ARRANGE');
+                if ($portalArrange == 'recentlyNotifyTaskCal') {
+                    $mvc->listItemsPerPage = 10;
+                } else {
+                    $mvc->listItemsPerPage = 20;
+                }
             }
         }
     }
@@ -1172,6 +1195,8 @@ class cal_Tasks extends embed_Manager
         }
         $orderType = cls::get('type_Enum');
         
+        $options = array('' => '') + $options;
+        
         $orderType->options = $options;
         
         $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent', array('removeAndRefreshForm' => 'from|to|selectedUsers|Chart|View|stateTask'));
@@ -1192,7 +1217,7 @@ class cal_Tasks extends embed_Manager
         
         // по критерий "Всички"
         if (!$data->listFilter->rec->order) {
-            $data->listFilter->rec->order = 'all';
+            $data->listFilter->rec->order = '';
         }
         
         // филтъра по дата е -1/+1 месец от днещната дата
@@ -1847,21 +1872,6 @@ class cal_Tasks extends embed_Manager
                 }
             }
         }
-    }
-    
-    
-    /**
-     * Сменя задачите в сесията между 'поставените към', на 'поставените от' и обратно
-     */
-    public function act_SwitchByTo()
-    {
-        if (Mode::is('listTasks', 'by')) {
-            Mode::setPermanent('listTasks', 'to');
-        } else {
-            Mode::setPermanent('listTasks', 'by');
-        }
-        
-        return new Redirect(array('Portal', 'Show', '#' => Mode::is('screenMode', 'narrow') ? 'taskPortal' : null));
     }
     
     
@@ -3333,5 +3343,85 @@ class cal_Tasks extends embed_Manager
         $rec = $this->fetchRec($id);
         
         return tr('За') . ': ' . $rec->title;
+    }
+    
+    
+    /**
+     * Клониране на задачите от една папка в друга, с транслиране на времената
+     * 
+     * @param int $fromFolderId
+     * @param int $toFolderId
+     * @param string $newStartDate
+     * @param string $cloneInState
+     */
+    public static function cloneFromFolder($fromFolderId, $toFolderId, $newStartDate = null, $cloneInState = 'draft')
+    {
+        $Tasks = cls::get(get_called_class());
+        expect($fromFolderId != $toFolderId);
+        $tQuery = doc_Threads::getQuery();
+        $tQuery->where("#folderId = {$fromFolderId} AND #firstDocClass =" . $Tasks->getClassId());
+        $tQuery->show('firstContainerId');
+        
+        // Ако няма задачи в папката, няма какво да се клонира
+        $containers = arr::extractValuesFromArray($tQuery->fetchAll(), 'firstContainerId');
+        if(!count($containers)) return;
+        
+        $taskQuery = cal_Tasks::getQuery();
+        $taskQuery->in("containerId", $containers);
+        $taskQuery->where("#state != 'closed' AND #state != 'rejected'");
+        $tasks = $taskQuery->fetchAll();
+        
+        $minDate = null;
+        array_walk($tasks, function ($a) use (&$minDate){
+            $startTime = !empty($a->timeStart) ? $a->timeStart : (isset($a->timeDuration, $a->timeEnd) ? dt::addSecs(-1 * $a->timeDuration, $a->timeEnd) : null);
+            if(!empty($startTime)){
+                if(empty($minDate)){
+                    $minDate = $startTime;
+                } else {
+                    if($startTime < $minDate){
+                        $minDate = $startTime;
+                    }
+                }
+            }
+        });
+        
+        $dateDiff = dt::secsBetween($newStartDate, $minDate);
+        
+        foreach ($tasks as $taskRec){
+            $cloneTask = clone $taskRec;
+            plg_Clone::unsetFieldsNotToClone($Tasks, $cloneTask, $taskRec);
+            unset($cloneTask->id, $cloneTask->folderId, $cloneTask->threadId, $cloneTask->containerId, $cloneTask->createdOn, $cloneTask->createdBy, $cloneTask->modifiedOn, $cloneTask->modifiedBy);
+            $cloneTask->folderId = $toFolderId;
+            $cloneTask->state = $cloneInState;
+            
+            if($cloneInState == 'active'){
+                $sharedUsersArr = keylist::toArray($cloneTask->sharedUsers);
+                if ($cloneTask->assign) {
+                    $sharedUsersArr += type_Keylist::toArray($cloneTask->assign);
+                }
+                
+                if(empty($sharedUsersArr)){
+                    $cloneTask->state = 'pending';
+                }
+            }
+            
+            // Опит за транслиране на данните
+            $startTime = isset($taskRec->timeStart) ? $taskRec->timeStart : (isset($taskRec->timeDuration, $taskRec->timeEnd) ? dt::addSecs(-1 * $taskRec->timeDuration, $taskRec->timeEnd) : null);
+            $duration = isset($taskRec->timeDuration) ? $taskRec->timeDuration : (isset($taskRec->timeStart, $taskRec->timeEnd) ? (strtotime($taskRec->timeEnd) - strtotime($taskRec->timeStart)) : null);
+            $newStart = dt::addSecs($dateDiff, $startTime);
+            if(isset($taskRec->timeDuration)){
+                $cloneTask->timeDuration = $duration;
+            }
+            if(isset($taskRec->timeStart)){
+                $cloneTask->timeStart = $newStart;
+            }
+            if(isset($taskRec->timeEnd)){
+                $cloneTask->timeEnd = dt::addSecs($duration, $newStart);
+            }
+            
+            $Tasks->route($cloneTask);
+            $Tasks->save($cloneTask);
+            $Tasks->logWrite("Създаване при клониране на проект", $cloneTask->id);
+        }
     }
 }

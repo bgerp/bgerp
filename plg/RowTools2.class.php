@@ -73,7 +73,7 @@ class plg_RowTools2 extends core_Plugin
             $ddTools->addLink('Разглеждане', $singleUrl, "ef_icon={$singleIcon},title=Разглеждане на|* {$singleTitle},id=single{$rec->id}");
         }
         
-        $editUrl = $mvc->getEditUrl($rec);
+        $editUrl = $mvc->getEditUrl($rec);  
         if (!empty($editUrl)) {
             $editUrl = $mvc->getEditUrl($rec);
             $ddTools->addLink('Редактиране', $editUrl, "ef_icon=img/16/edit-icon.png,title=Редактиране на|* {$singleTitle},id=edt{$rec->id}");
@@ -144,7 +144,7 @@ class plg_RowTools2 extends core_Plugin
     public static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
     {
         if (!$mvc->haveRightFor('edit', $rec)) {
-            
+
             return;
         }
         $retUrl = (cls::existsMethod($mvc, 'getRetUrl')) ? $mvc->getRetUrl($rec) : true;

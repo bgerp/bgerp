@@ -205,7 +205,7 @@ class store_Transfers extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,weight,volume,weightInput,volumeInput,deliveryTime,palletCount';
+    public $fieldsNotToClone = 'valior,weight,volume,weightInput,volumeInput,deliveryTime,palletCount,storeReadiness';
     
     
     /**
@@ -234,6 +234,7 @@ class store_Transfers extends core_Master
         // Доставка
         $this->FLD('deliveryTime', 'datetime', 'caption=Натоварване');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
+        $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         
         // Допълнително
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
@@ -315,6 +316,16 @@ class store_Transfers extends core_Master
                 $row->createdOn = $mvc->getVerbal($rec, 'createdOn');
                 $row->title .= "<span class='fright'>" . $row->createdOn . " " . tr('от') . " " .   $row->createdBy . "</span>";
             }
+        }
+        
+        if($rec->state != 'pending'){
+            unset($row->storeReadiness);
+        } else {
+            $row->storeReadiness = isset($rec->storeReadiness) ? $row->storeReadiness : "<b class='quiet'>N/A</b>";
+        }
+        
+        if(Mode::isReadOnly()){
+            unset($row->storeReadiness, $row->zoneReadiness);
         }
     }
     
@@ -610,6 +621,38 @@ class store_Transfers extends core_Master
     {
         if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $data->listFields = 'deliveryTime,valior, title=Документ, folderId , weight, volume,lineId';
+        }
+    }
+    
+    
+    /**
+     * След извличане на името на документа за показване в RichText-а
+     */
+    protected static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
+    {
+        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
+        if(isset($indicator)){
+            if($docName instanceof core_ET){
+                $docName->append($indicator);
+            } else {
+                $docName .= $indicator;
+            }
+        }
+    }
+    
+    
+    /**
+     * Връща линк към документа
+     */
+    protected function on_AfterGetLink($mvc, &$link, $id, $maxLength = false, $attr = array())
+    {
+        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
+        if(isset($indicator)){
+            if($link instanceof core_ET){
+                $link->append($indicator);
+            } else {
+                $link .= $indicator;
+            }
         }
     }
 }

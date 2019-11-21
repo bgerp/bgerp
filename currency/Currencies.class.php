@@ -159,6 +159,40 @@ class currency_Currencies extends core_Master
         return $id;
     }
     
+
+    /**
+     *
+     */
+    public static function decorate($amount, $currency = null)
+    {
+        if(is_numeric($currency)) {
+            $currency = self::getCodeById($currency);
+        } 
+
+        if(!strlen($currency) == 3) {
+            $currency = acc_Periods::getBaseCurrencyCode();
+        }
+
+        $currency = strtoupper($currency);
+
+        switch($currency) {
+            case 'BGN': 
+                $amount .= ' лв';
+                break;
+            case 'USD': 
+                $amount = "\${$amount}";
+                break;
+            case "EUR":
+                $amount = "€{$amount}";
+                break;
+            default: 
+                $amount .= ' <span class="cCode">' . $currency . '</span>';
+        }
+
+        $amount = str_replace(' ', '&nbsp;', trim($amount));
+
+        return $amount;
+    }
     
     /**
      * Връща кода на валутата по зададено id

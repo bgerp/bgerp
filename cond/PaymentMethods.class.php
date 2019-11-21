@@ -509,4 +509,20 @@ class cond_PaymentMethods extends embed_Manager
             }
         }
     }
+    
+    
+    /**
+     * Модификация на изгледа на количката в е-шоп
+     * 
+     * @param int $id
+     * @param stdClass $cartRec
+     * @param stdClass $cartRow
+     * @param core_ET $tpl
+     * 
+     * @return void
+     */
+    public static function addToCartView($id, $cartRec, $cartRow, &$tpl)
+    {
+        
+    }
 }

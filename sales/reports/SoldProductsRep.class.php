@@ -34,11 +34,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     
     
     /**
-     * Кое поле от $data->recs да се следи, ако има нов във новата версия
+     * Коя комбинация от полета от $data->recs да се следи, ако има промяна в последната версия
      *
      * @var string
      */
-    protected $newFieldToCheck;
+    protected $newFieldsToCheck;
     
     
     /**
@@ -297,23 +297,23 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if (!$rec->crmGroup && $rec->contragent) {
                 $contragentsArr = keylist::toArray($rec->contragent);
                 
-                $invQuery->in('folderId', $contragentsArr);
+                $query->in('folderId', $contragentsArr);
             }
             
             if ($rec->crmGroup && !$rec->contragent) {
                 $foldersInGroups = self::getFoldersInGroups($rec);
                 
-                $invQuery->in('folderId', $foldersInGroups);
+                $query->in('folderId', $foldersInGroups);
             }
             
             if ($rec->crmGroup && $rec->contragent) {
                 $contragentsArr = keylist::toArray($rec->contragent);
                 
-                $invQuery->in('folderId', $contragentsArr);
+                $query->in('folderId', $contragentsArr);
                 
                 $foldersInGroups = self::getFoldersInGroups($rec);
                 
-                $invQuery->in('folderId', $foldersInGroups);
+                $query->in('folderId', $foldersInGroups);
             }
         }
         

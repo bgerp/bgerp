@@ -86,19 +86,12 @@ class store_iface_ShipmentLabelImpl
         $rec = $this->class->fetchRec($id);
         
         $count = 0;
-        $transUnits = is_array($rec->transUnits) ? $rec->transUnits : array();
+        $transUnits = is_array($rec->transUnitsInput) ? $rec->transUnitsInput : (is_array($rec->transUnits) ? $rec->transUnits : array());
         array_walk($transUnits, function ($e) use (&$count) {
             $count += $e;
         });
         $count = max(1, $count);
-        
-        if (isset($count)) {
-            $count = ceil($count);
-            if ($count % 2 == 1) {
-                $count++;
-            }
-        }
-        
+              
         return $count;
     }
     
@@ -141,5 +134,34 @@ class store_iface_ShipmentLabelImpl
         $resArr[$key] = $arr;
         
         return $resArr[$key];
+    }
+    
+    
+    /**
+     * Връща дефолтен шаблон за печат на бърз етикет
+     *
+     * @param int  $id
+     * @param stdClass|null  $driverRec
+     *
+     * @return int
+     */
+    public function getDefaultFastLabel($id, $driverRec = null)
+    {
+        return null;
+    }
+    
+    
+    /**
+     * Връща попълнен дефолтен шаблон с дефолтни данни.
+     * Трябва `getDefaultFastLabel` да върне резултат за да се покажат данните
+     *
+     * @param int  $id
+     * @param int $templateId
+     *
+     * @return core_ET|null
+     */
+    public function getDefaultLabelWithData($id, $templateId)
+    {
+        return null;
     }
 }

@@ -313,7 +313,7 @@
 .keyboard-holder {
   clear: both; }
 
-.button {
+.single-receipt-wrapper .button {
   color: #333333 !important; }
 
 .flex {

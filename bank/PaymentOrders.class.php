@@ -25,8 +25,7 @@ class bank_PaymentOrders extends bank_DocumentBlank
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_DocumentSummary, plg_Search,
-         plg_Sorting,doc_DocumentPlg, plg_Printing,doc_plg_MultiPrint, doc_ActivatePlg, doc_EmailCreatePlg';
+    public $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Sorting,doc_DocumentPlg, plg_Printing, doc_ActivatePlg, doc_EmailCreatePlg';
     
     
     /**

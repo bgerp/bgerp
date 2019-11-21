@@ -79,7 +79,7 @@ class cat_UoM extends core_Manager
     /**
      * Полета за лист изгледа
      */
-    public $listFields = 'id,name,shortName=Съкращение,sysId=System Id,round=Точност,showContents,defQuantity,state';
+    public $listFields = 'id,name,shortName=Съкращение,baseUnitId,sysId=System Id,round=Точност,showContents,defQuantity,state,createdOn,createdBy';
     
     
     /**
@@ -108,8 +108,8 @@ class cat_UoM extends core_Manager
         $this->FLD('name', 'varchar(36)', 'caption=Мярка, export, translate=user|tr|transliterate, mandatory');
         $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export, translate=user|tr|transliterate, mandatory');
         $this->FLD('type', 'enum(uom=Мярка,packaging=Опаковка)', 'notNull,value=uom,caption=Тип,silent,input=hidden');
-        $this->FLD('baseUnitId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Базова мярка, export');
-        $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
+        $this->FLD('baseUnitId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Базова мярка, export,removeAndRefreshForm=baseUnitRatio,silent');
+        $this->FLD('baseUnitRatio', 'double(Min=0)', 'caption=Коефициент, export, input=hidden');
         $this->FLD('sysId', 'varchar', 'caption=System Id,input=hidden');
         $this->FLD('isBasic', 'enum(no=Друга,yes=Първична)', 'caption=Тип,notNull,value=no');
         $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
@@ -232,7 +232,7 @@ class cat_UoM extends core_Manager
         if ($quantity < 1 && ($downMeasureId = cat_UoM::getMeasureByRatio($uomId, 0.001))) {
             $quantity *= 1000;
             $uomId = $downMeasureId;
-        } elseif ($quantityInPack > 1000 && ($downMeasureId = cat_UoM::getMeasureByRatio($uomId, 1000))) {
+        } elseif ($quantity > 1000 && ($downMeasureId = cat_UoM::getMeasureByRatio($uomId, 1000))) {
             $quantity /= 1000;
             $uomId = $downMeasureId;
         }
@@ -330,8 +330,8 @@ class cat_UoM extends core_Manager
         $key = $measureId. '|' . $ratio;
         if (!isset($res[$key])) {
             $res[$key] = false;
-            $mArr = self::getSameTypeMeasures($measureId);
-            foreach ($mArr as $id => $name) {
+            $mArr = array_keys(self::getSameTypeMeasures($measureId));
+            foreach ($mArr as $id) {
                 if ($id == $measureId || empty($id)) {
                     continue;
                 }
@@ -581,23 +581,28 @@ class cat_UoM extends core_Manager
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $rec = $data->form->rec;
+        $form = $data->form;
+        $rec = $form->rec;
         $data->title = ($rec->type == 'uom') ? 'Мерки' : 'Опаковки';
         
         if ($rec->type == 'packaging') {
             $mvc->currentTab = 'Мерки->Опаковки';
-            $data->form->setField('name', 'caption=Опаковка');
+            $form->setField('name', 'caption=Опаковка');
         } else {
-            $data->form->setField('isBasic', 'input=none');
+            $form->setField('isBasic', 'input=none');
         }
         
-        $data->form->setDefault('showContents', 'no');
+        $form->setDefault('showContents', 'no');
         
         // Ако записа е създаден от системния потребител, може да се
         if ($rec->createdBy == core_Users::SYSTEM_USER) {
             foreach (array('name', 'shortName', 'baseUnitId', 'baseUnitRatio', 'sysId', 'sinonims') as $fld) {
-                $data->form->setField($fld, 'input=none');
+                $form->setField($fld, 'input=none');
             }
+        }
+        
+        if(isset($form->rec->baseUnitId)){
+            $form->setField('baseUnitRatio', 'input,mandatory');
         }
     }
     

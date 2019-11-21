@@ -388,8 +388,15 @@ class purchase_Invoices extends deals_InvoiceMaster
                 $rec->number = null;
             }
             
-            if (!$mvc->isNumberFree($rec)) {
-                $form->setError("{$fld},number", 'Има вече входяща фактура с този номер, за този контрагент');
+            $foundInvoiceId = null;
+            $checkRec = clone $rec;
+            if($form->_cloneForm === true){
+                unset($checkRec->id);
+            }
+            
+            if (!$mvc->isNumberFree($checkRec, $foundInvoiceId)) {
+                $foundInvoiceId = purchase_Invoices::getLink($foundInvoiceId, 0);
+                $form->setError("{$fld},number", "Има вече входяща фактура с този номер, за този контрагент|*: <b>{$foundInvoiceId}</b>");
             }
         }
     }
@@ -428,10 +435,11 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Проверява дали номера е свободен
      *
      * @param stdClass $rec
+     * @param string|null $foundInvoiceId
      *
      * @return bool
      */
-    private function isNumberFree($rec)
+    private function isNumberFree($rec, &$foundInvoiceId = null)
     {
         $rec = $this->fetchRec($rec);
         
@@ -443,7 +451,8 @@ class purchase_Invoices extends deals_InvoiceMaster
         // Проверяваме дали за този контрагент има друга фактура със същия номер, която не е оттеглена
         foreach (array('contragentVatNo', 'uicNo') as $fld) {
             if (!empty($rec->{$fld})) {
-                if ($this->fetchField("#{$fld}='{$rec->{$fld}}' AND #number='{$rec->number}' AND #id != '{$rec->id}' AND #state != 'rejected'")) {
+                if ($invRec = $this->fetchField("#{$fld}='{$rec->{$fld}}' AND #number='{$rec->number}' AND #id != '{$rec->id}' AND #state != 'rejected'")) {
+                    $foundInvoiceId = $invRec;
                     
                     return false;
                 }
@@ -811,15 +820,30 @@ class purchase_Invoices extends deals_InvoiceMaster
             
             if ($pRec->threadId) {
                 
+                $canStore = false;
+                
+                $dQuery = purchase_PurchasesDetails::getQuery();
+                $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+                $dQuery->where(array("#requestId = '[#1#]'", $pRec->id));
+                $dQuery->where("#canStore = 'yes'");
+                $dQuery->limit(1);
+                $dQuery->show('id');
+                if ($dQuery->fetch()) {
+                    $canStore = true;
+                }
+                
                 // Ако няма създадена складова разписка - да е избрано във формата
                 $rClsId = store_Receipts::getClassId();
                 $sClsId = purchase_Services::getClassId();
                 if (!doc_Containers::fetch(array("#threadId = [#1#] AND #state != 'rejected' AND #docClass = '[#2#]'", $pRec->threadId, $rClsId))) {
-                    $aSet['store'] = 'store';
+                    
+                    if ($canStore) {
+                        $aSet['store'] = 'store';
+                    }
                 }
                 
                 // Ако няма създаден приемателен протокол - да е избрано във формата
-                if (!doc_Containers::fetch(array("#threadId = [#1#] AND #state != 'rejected' AND #docClass = '[#2#]'", $pRec->threadId, $sClsId))) {
+                if (!$canStore && !doc_Containers::fetch(array("#threadId = [#1#] AND #state != 'rejected' AND #docClass = '[#2#]'", $pRec->threadId, $sClsId))) {
                     $aSet['service'] = 'service';
                 }
             }

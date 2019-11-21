@@ -18,6 +18,23 @@ function fpServerSetSettings(ip, port)
 
 
 /**
+ * Задава настройките на сървъра
+ * 
+ * @param useFound
+ */
+function fpServerFindDevice(useFound)
+{
+    try {
+        res = fp.ServerFindDevice(useFound);
+    } catch(ex) {
+        handleException(ex);
+    }
+    
+    return res;
+}
+
+
+/**
  * Задава настройките на устройствота
  * 
  * @param ip
@@ -41,7 +58,7 @@ function fpServerSetDeviceSettings(ip, tcpPort, password, serialPort, baudRate, 
         }
         
         if (!fp.IsCompatible()) {
-            throw new Error("Текущата версия на библиотеката и сървърните дефиниции се различават!");
+        	console.log("Текущата версия на библиотеката и сървърните дефиниции се различават!");
         }
     } catch(ex) {
         handleException(ex);
@@ -455,6 +472,106 @@ function fpSerialNumber()
     
     return res;
 };
+
+
+/**
+ * Връща паролата от ФУ на потребителя
+ * 
+ * @param integer
+ * 
+ * @return string
+ */
+function fpGetOperPass(operator)
+{
+	if (!operator) {
+		operator = 1;
+	}
+	var res = '';
+    try {
+        var res = fp.ReadOperatorNamePassword(operator).Password;
+    } catch(ex) {
+        handleException(ex);
+    }
+    
+    return res;
+};
+
+
+/**
+ * Връща паролата от ФУ на потребителя
+ * 
+ * @return array
+ */
+function fpGetDefPayments()
+{
+    try {
+    	var defPaymArr = {};
+    	var exRate = 0;
+    	
+        if (fpIsNew()) {
+        	var paymRes = fp.ReadPayments();
+        	var i = 0;
+        	for (var key in paymRes) {
+        		try {
+        			val = paymRes[key];
+            		if (key == 'ExchangeRate') {
+            			exRate = val.trim();
+            		} else {
+            			key = key.trim();
+            			val = val.trim();
+            			defPaymArr[val] = key.replace('NamePayment', '');
+            		}
+        		} catch(ex) { }
+        	}
+        } else {
+        	var paymRes = fp.ReadPayments_Old();
+        	for (i = 0; i <= 4; i++) {
+        		var namePayment = "NamePaym" + i;
+                var codePayment = "CodePaym" + i;
+        		try {
+                    var paymResStr = paymRes[namePayment];
+                    paymResStr = paymResStr.trim();
+                    defPaymArr[paymResStr] = i;
+        		} catch(ex) { }
+    		}
+        	
+        	try {
+    			exRate = paymRes['ExRate'];
+    		} catch(ex) { }
+        }
+    } catch(ex) {
+        handleException(ex);
+    }
+    
+    res = {defPaymArr: defPaymArr};
+    
+    if (exRate) {
+    	res.exRate = exRate;
+    }
+    
+    return res;
+};
+
+
+/**
+ * Проверява дали принтера е нов или е обновена версия на стар
+ * 
+ * @return boolean
+ */
+function fpIsNew()
+{
+	var model = fp.ReadVersion().Model;
+	
+	if (!model) return true;
+	
+	var len = model.length;
+	
+	if (!len) return true;
+	
+	if (model.slice(-2) != 'V2') return true;
+	
+	return false;
+}
 
 
 /**

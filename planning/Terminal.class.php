@@ -37,7 +37,7 @@ class planning_Terminal extends peripheral_Terminal
     /**
      * Информация за табовете
      */
-    const TAB_DATA = array('taskList'     => array('placeholder' => 'TASK_LIST', 'fnc' => 'getTaskListTable', 'tab-id' => 'task-list', 'id' => 'task-list-content'),
+    public static $tabData = array('taskList'     => array('placeholder' => 'TASK_LIST', 'fnc' => 'getTaskListTable', 'tab-id' => 'task-list', 'id' => 'task-list-content'),
                            'taskProgress' => array('placeholder' => 'TASK_PROGRESS', 'fnc' => 'getProgressTable', 'tab-id' => 'tab-progress', 'id' => 'task-progress-content'),
                            'taskSingle'   => array('placeholder' => 'TASK_SINGLE', 'fnc' => 'getTaskHtml', 'tab-id' => 'tab-single-task', 'id' => 'task-single-content'),
                            'taskJob'      => array('placeholder' => 'TASK_JOB', 'fnc' => 'getJobHtml', 'tab-id' => 'tab-job', 'id' => 'task-job-content'),
@@ -48,7 +48,7 @@ class planning_Terminal extends peripheral_Terminal
      * Кой има право да чете?
      */
     public $canOpenterminal = 'debug';
-    
+
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -141,8 +141,8 @@ class planning_Terminal extends peripheral_Terminal
         $rec = planning_Points::fetchRec($id);
         $tpl = new core_ET(tr("|*<h3 class='title'>|Сигнал за повреда|*</h3><div class='formHolder'>[#FORM#]</div>"));
         $form = cls::get('core_Form');
-        $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name,select2MinItems=100)', 'class=w100,placeholder=Оборудване,mandatory');
-        $form->FLD('body', 'richtext(rows=4)', 'caption=Описание на проблема,mandatory,placeholder=Описание на проблема');
+        $form->FLD('asset', 'key(mvc=planning_AssetResources,select=name,select2MinItems=100)', 'class=w100,placeholder=Оборудване,caption=Оборудване,mandatory');
+        $form->FLD('body', 'richtext(rows=4,bucket=calTasks)', 'caption=Описание на проблема,mandatory,placeholder=Описание на проблема');
         
         $options = planning_AssetResources::getByFolderId(planning_Centers::fetchField($rec->centerId, 'folderId'));
         $form->setOptions('asset', array('' => '') + $options);
@@ -295,8 +295,9 @@ class planning_Terminal extends peripheral_Terminal
         $Tasks->prepareListRows($data);
         if(count($data->recs)){
             foreach ($data->rows as $id => &$row){
+                $title = planning_Tasks::getRecTitle($data->recs[$id]);
                 $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
-                $row->title = ht::createLink($data->recs[$id]->title, $selectUrl, false, "title=Избиране на операцията за текуща,class=changeTab");
+                $row->title = ht::createLink($title, $selectUrl, false, "title=Избиране на операцията за текуща,class=changeTab");
                 $row->title .= "<br><small>{$row->originShortLink}</small>";
                 if($id == $taskId){
                     $row->ROW_ATTR['class'] .= ' task-selected';
@@ -392,7 +393,7 @@ class planning_Terminal extends peripheral_Terminal
         
         // Бутон за търсене
         $searchUrl = toUrl(array($this, 'search', $rec->id), 'local');
-        $searchBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/search.png', 'id' => 'searchBtn',  'data-url' => $searchUrl, 'class' => 'formBtn search',  'title' => 'Търсене'));
+        $searchBtn = ht::createFnBtn('', null, null, array('ef_icon' => 'img/24/search-white.png', 'id' => 'searchBtn',  'data-url' => $searchUrl, 'class' => 'formBtn search',  'title' => 'Търсене'));
         $tpl->append($searchBtn, 'searchBtn');
         
         // Бутон за сканиране
@@ -468,6 +469,10 @@ class planning_Terminal extends peripheral_Terminal
             list($type, $productId) = explode('|', $form->rec->action);
             $form->rec->productId = $productId;
             $form->rec->type = $type;
+            
+            if($taskRec->labelType == 'print' || $form->rec->type == 'waste'){
+                $form->setField('serial', 'input=none');
+            }
         }
         
         $data = (object) array('form' => $form, 'masterRec' => planning_Tasks::fetch($currentTaskId), 'action' => 'add');
@@ -527,7 +532,7 @@ class planning_Terminal extends peripheral_Terminal
         $rec = $this->fetchRec($rec);
         $objectArr = array();
         
-        foreach (self::TAB_DATA as $tabName => $tabArr){
+        foreach (self::$tabData as $tabName => $tabArr){
             $contentHtml = ($tabName == $name) ? $this->{$tabArr['fnc']}($rec)->getContent() : ' ';
             $resObj = new stdClass();
             $resObj->func = 'html';
@@ -538,7 +543,7 @@ class planning_Terminal extends peripheral_Terminal
         // Активиране на нужния таб
         $resObj = new stdClass();
         $resObj->func = 'activateTab';
-        $resObj->arg = array('tabId' => self::TAB_DATA[$name]['tab-id']);
+        $resObj->arg = array('tabId' => self::$tabData[$name]['tab-id']);
         $objectArr[] = $resObj;
         
         // Реплейсване на текущата дата
@@ -551,11 +556,16 @@ class planning_Terminal extends peripheral_Terminal
         $resObj = new stdClass();
         $resObj->func = 'prepareKeyboard';
         $objectArr[] = $resObj;
+
+        // Подготовка на селекта
+        $resObj = new stdClass();
+        $resObj->func = 'prepareSelect';
+        $objectArr[] = $resObj;
         
         // Задаване на фокус на нужното поле според таба
         $resObj = new stdClass();
         $resObj->func = 'setFocus';
-        $resObj->arg = array('tabId' => self::TAB_DATA[$name]['tab-id']);
+        $resObj->arg = array('tabId' => self::$tabData[$name]['tab-id']);
         $objectArr[] = $resObj;
         
         // Показване на чакащите статуси
@@ -563,7 +573,14 @@ class planning_Terminal extends peripheral_Terminal
         $idleTime = Request::get('idleTime', 'int');
         $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
         
-        $res = array_merge($objectArr, (array) $statusData);
+        // Скриване на грешките
+        $objectArr1 = array();
+        $resObj = new stdClass();
+        $resObj->func = 'clearStatuses';
+        $resObj->arg = array('type' => 'error');
+        $objectArr1[] = $resObj;
+        
+        $res = array_merge($objectArr, (array) $statusData, $objectArr1);
         
         return $res;
     }
@@ -580,7 +597,7 @@ class planning_Terminal extends peripheral_Terminal
     {
         $dump = $e->getDump();
         $dump = $dump[0];
-        $errorMsg = (haveRole('debug')) ? $dump : 'Възникна проблем при отчитане на прогреса|*!';
+        $errorMsg = $dump;
         reportException($e);
         
         if (Request::get('ajax_mode')) {
@@ -591,14 +608,21 @@ class planning_Terminal extends peripheral_Terminal
             $objectArr = array();
             $resObj = new stdClass();
             $resObj->func = 'setFocus';
-            $resObj->arg = array('tabId' => self::TAB_DATA[$name]['tab-id']);
+            $resObj->arg = array('tabId' => self::$tabData[$name]['tab-id']);
             $objectArr[] = $resObj;
+            
+            // Скриване на грешките
+            $objectArr1 = array();
+            $resObj = new stdClass();
+            $resObj->func = 'clearStatuses';
+            $resObj->arg = array('type' => 'error');
+            $objectArr1[] = $resObj;
             
             // Показваме веднага и чакащите статуси
             $hitTime = Request::get('hitTime', 'int');
             $idleTime = Request::get('idleTime', 'int');
             $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
-            $res = array_merge($objectArr, (array) $statusData);
+            $res = array_merge($objectArr, (array) $statusData, $objectArr1);
             
             return $res;
         }
@@ -773,7 +797,7 @@ class planning_Terminal extends peripheral_Terminal
         
         Mode::setPermanent('currentPlanningPoint', $id);
         Mode::set('wrapper', 'page_Empty');
-        $verbalAsset = strip_tags(core_Type::getByName('keylist(mvc=planning_AssetResources,select=code)')->toVerbal($rec->fixedAssets));
+        $verbalAsset = strip_tags(core_Type::getByName('keylist(mvc=planning_AssetResources,makeLinks=hyperlink)')->toVerbal($rec->fixedAssets));
         
         $tpl = getTplFromFile('planning/tpl/terminal/Point.shtml');
         $tpl->replace($rec->name, 'name');
@@ -784,7 +808,7 @@ class planning_Terminal extends peripheral_Terminal
         $tpl->replace($verbalAsset, 'fixedAssets');
         $tpl->replace(dt::mysql2verbal(dt::now(), 'd/m/y'), 'date');
         $tpl->replace(strip_tags(crm_Profiles::createLink()), 'userId');
-        $img = ht::createImg(array('path' => 'img/16/logout.png'));
+        $img = ht::createImg(array('path' => 'img/16/logout-white.png'));
         
         $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => array('core_Users', 'login')), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
         
@@ -821,7 +845,7 @@ class planning_Terminal extends peripheral_Terminal
         $tpl->replace($this->getSearchTpl($rec), "SEARCH_FORM");
         
         // Рендиране на активния таб
-        expect($aciveTabData = self::TAB_DATA[$activeTab]);
+        expect($aciveTabData = self::$tabData[$activeTab]);
         $tableTpl = $this->{$aciveTabData['fnc']}($rec);
         $tpl->replace($tableTpl, $aciveTabData['placeholder']);
         

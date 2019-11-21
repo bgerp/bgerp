@@ -119,6 +119,7 @@ class page_Html extends core_ET
         
         jquery_Jquery::run($tpl, 'getContextMenuFromAjax();', true);
         jquery_Jquery::runAfterAjax($tpl, 'getContextMenuFromAjax');
+        jquery_Jquery::runAfterAjax($tpl, 'makeTooltipFromTitle');
         
         jquery_Jquery::run($tpl, 'scrollLongListTable();');
         jquery_Jquery::run($tpl, 'editCopiedTextBeforePaste();');

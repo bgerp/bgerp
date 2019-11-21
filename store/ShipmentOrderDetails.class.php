@@ -132,6 +132,12 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     
     
     /**
+     * Полета, които се експортват
+     */
+    public $exportToMaster = 'quantity, productId=code|name';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -208,6 +214,8 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         
         $masterRec = $data->masterData->rec;
         foreach ($rows as $id => $row) {
+            if($row instanceof core_ET) continue;
+            
             $rec = $data->recs[$id];
             deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $masterRec->storeId, $rec->quantity, $masterRec->state);
             

@@ -1,3 +1,7 @@
+body {
+  background-color: #333333;
+  height: 100%; }
+
 task-selectedbody {
   background: #f1f1f1;
   width: 100%;
@@ -122,15 +126,13 @@ task-selectedbody {
   .narrow .qrBtn {
     background-image: url("../../../img/24/qr.png") !important; }
   .narrow .search {
-    background-image: url("../../../img/24/search.png") !important; }
+    background-image: url("../../../img/24/search-white.png") !important; }
 
 .terminalHeader {
   padding: 15px;
   height: 30px;
-  background: white;
-  -webkit-box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
-  -moz-box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
-  box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2); }
+  background: #333333;
+  color: white; }
     .terminalHeader .fleft .logo {
       float: left; }
       .terminalHeader .fleft .logo img {
@@ -318,6 +320,14 @@ task-selectedbody {
   background-color: #fefeb7 !important; }
 
 @media handheld,
+only screen and (max-width: 1400px) {
+  .centerContent {
+    width: 100%; }
+
+  .wide table.listAction {
+    min-width: auto; } }
+
+@media handheld,
 only screen and (min-width: 760px) and (max-width: 800px) {
   .taskHolder {
     clear: both;
@@ -450,7 +460,7 @@ only screen and (max-width:740px) {
     .terminalHeader .qrBtn {
       background-image: url("../../../img/24/qr.png") !important; }
     .terminalHeader .search {
-      background-image: url("../../../img/24/search.png") !important; }
+      background-image: url("../../../img/24/search-white.png") !important; }
 
   .searchHolder {
     position: relative;

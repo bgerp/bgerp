@@ -270,7 +270,7 @@ class sales_QuotationsDetails extends doc_Detail
         if (!haveRole('seePrice,ceo')) {
             $data->noTotal = true;
         }
-        
+       
         if (empty($data->noTotal) && count($notOptional)) {
             
             // Запомня се стойноста и ддс-то само на опционалните продукти
@@ -325,7 +325,7 @@ class sales_QuotationsDetails extends doc_Detail
                 }
             }
         }
-        
+      
         // Подготовка за показване на опционалните продукти
         deals_Helper::fillRecs($mvc, $optional, $masterRec);
         $recs = $notOptional + $optional;
@@ -333,7 +333,7 @@ class sales_QuotationsDetails extends doc_Detail
         // Изчисляване на цената с отстъпка
         foreach ($recs as $id => $rec) {
             if ($rec->optional == 'no') {
-                $other = $mvc->checkUnique($recs, $rec->productId, $rec->id);
+                $other = $mvc->checkUnique($recs, $rec->productId, $rec->id, 'no', $rec->notes);
                 if ($other) {
                     unset($data->summary);
                 }
@@ -345,10 +345,10 @@ class sales_QuotationsDetails extends doc_Detail
     /**
      * Проверява дали има вариация на продукт
      */
-    private function checkUnique($recs, $productId, $id, $isOptional = 'no')
+    private function checkUnique($recs, $productId, $id, $isOptional = 'no', $notes)
     {
-        $other = array_values(array_filter($recs, function ($val) use ($productId, $id, $isOptional) {
-            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id) {
+        $other = array_values(array_filter($recs, function ($val) use ($productId, $id, $isOptional, $notes) {
+            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id && md5($notes) == md5($val->notes)) {
                 
                 return $val;
             }
@@ -522,18 +522,11 @@ class sales_QuotationsDetails extends doc_Detail
             deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
             
             if (!$form->gotErrors()) {
+                
                 if (Request::get('Act') != 'CreateProduct') {
                     if ($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")) {
                         if ($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id) {
                             $form->setError('productId', 'Не може да добавите продукта като задължителен, защото фигурира вече като опционален!');
-                            
-                            return;
-                        }
-                    }
-                    
-                    if ($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")) {
-                        if ($sameProduct->id != $rec->id || $form->cmd == 'save_new_row') {
-                            $form->setError('packQuantity', 'Избраният продукт вече фигурира с това количество');
                             
                             return;
                         }
@@ -561,13 +554,9 @@ class sales_QuotationsDetails extends doc_Detail
                     $price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
                     $rec->price = $price;
                 }
-                
-                if ($form->cmd == 'save_new_row') {
-                    unset($rec->id);
-                }
             }
             
-            // При редакция, ако е променена опаковката слагаме преудпреждение
+            // При редакция, ако е променена опаковката слагаме предупреждение
             if ($rec->id) {
                 $oldRec = $mvc->fetch($rec->id);
                 if ($oldRec && $rec->packagingId != $oldRec->packagingId && !empty($rec->packPrice) && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)) {
@@ -575,7 +564,16 @@ class sales_QuotationsDetails extends doc_Detail
                 }
             }
             
+            if ($form->cmd == 'save_new_row') {
+                unset($rec->id);
+            }
+            
             if (!$form->gotErrors()) {
+                
+                if($rec->_createProductForm != true && deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
+                    $form->setError('productId,packagingId,packPrice,discount,notes,packQuantity', 'Има въведен ред със същите данни');
+                }
+                
                 if (isset($masterRec->deliveryPlaceId)) {
                     if ($locationId = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}' AND #contragentCls = {$masterRec->contragentClassId} AND #contragentId = {$masterRec->contragentId}", 'id')) {
                         $masterRec->deliveryPlaceId = $locationId;
@@ -665,7 +663,7 @@ class sales_QuotationsDetails extends doc_Detail
             $rec = $data->recs[$i];
             if ($rec->livePrice === true) {
                 $row->packPrice = "<span style='color:blue'>{$row->packPrice}</span>";
-                $row->packPrice = ht::createHint($row->packPrice, 'Цената е динамично изчислена. Ще бъде записана при активиране', 'notice', false, 'width=14px,height=14px');
+                $row->packPrice = ht::createHint($row->packPrice, 'Цената е динамично изчислена. Ще бъде записана при активиране', 'notice', false);
             }
             
             if (!isset($data->recs[$i]->price) && haveRole('seePrice,ceo')) {
@@ -676,9 +674,9 @@ class sales_QuotationsDetails extends doc_Detail
             $pId = $data->recs[$i]->productId;
             $optional = $data->recs[$i]->optional;
             
-            // Сездава се специален индекс на записа productId|optional, така
+            // Създава се специален индекс на записа productId|optional, така
             // резултатите са разделени по продукти и дали са опционални или не
-            $pId = $pId . "|{$optional}";
+            $pId = $pId . "|{$optional}|" . md5($rec->notes);
             
             $newRows[$pId][] = $row;
         }
@@ -960,9 +958,13 @@ class sales_QuotationsDetails extends doc_Detail
         if ($rec->quantityInPack != 1) {
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
             $totalQuantity = cat_UoM::round($measureId, $rec->quantity);
-            $row->totalQuantity = core_Type::getByName('double(smartRound)')->toVerbal($totalQuantity);
-            $shortUom = cat_Uom::getShortName($measureId);
-            $row->totalQuantity .= ' ' . tr($shortUom);
+            
+            // Показване на к-то в основна мярка, само ако тя е различна от мярката/опаковката на показване
+            if($measureId != $rec->packagingId){
+                $row->totalQuantity = core_Type::getByName('double(smartRound)')->toVerbal($totalQuantity);
+                $shortUom = cat_Uom::getShortName($measureId);
+                $row->totalQuantity .= ' ' . tr($shortUom);
+            }
         }
         
         // Показваме подробната информация за опаковката при нужда
@@ -1102,12 +1104,12 @@ class sales_QuotationsDetails extends doc_Detail
      */
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
-        // Преди клониране клонира се и сумата на цената на транспорта
-        $cRec = sales_TransportValues::get($mvc->Master, $oldRec->quotationId, $oldRec->id);
-        if (isset($cRec)) {
-            $rec->fee = $cRec->fee;
-            $rec->deliveryTimeFromFee = $cRec->deliveryTime;
-            $rec->syncFee = true;
+        // Изчисляване на транспортните разходи
+        if (core_Packs::isInstalled('tcost')) {
+            $form = sales_QuotationsDetails::getForm();
+            $clone = clone sales_Quotations::fetch($rec->quotationId);
+            $clone->deliveryPlaceId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
+            sales_TransportValues::prepareFee($rec, $form, $clone, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
         }
         
         $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
@@ -1117,8 +1119,10 @@ class sales_QuotationsDetails extends doc_Detail
         $isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
         if($isPublic == 'yes'){
             $masterRec = sales_Quotations::fetch($rec->quotationId);
-            $livePrice = self::calcLivePrice($rec, $masterRec);
-            if(empty($livePrice)){
+            
+            $clone = clone $rec;
+            self::calcLivePrice($clone, $masterRec);
+            if(empty($clone->price)){
                 $rec->price = $oldRec->price;
             }
         }

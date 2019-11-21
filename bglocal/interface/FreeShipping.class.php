@@ -46,7 +46,12 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      */
     public function getVolumicWeight($weight, $volume, $deliveryTermId, $params)
     {
-        return max($weight, $volume);
+        $m = 1;
+        if($volume * 33 < $weight) {
+            $m = 1000;
+        }
+
+        return max($weight, $volume * $m);
     }
     
     
@@ -125,5 +130,39 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     public function renderDeliveryInfo($rec)
     {
         return new core_ET('');
+    }
+    
+    
+    /**
+     * Добавя промени по изгледа на количката във външната част
+     *
+     * @param stdClass $termRec
+     * @param stdClass $cartRec
+     * @param stdClass $cartRow
+     * @param core_ET $tpl
+     *
+     * @return boolean
+     */
+    public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
+    {
+        $bgName = drdata_Countries::getCountryName('BG', core_Lg::getCurrent());
+        
+        $block = new core_ET(tr("|*<div>|Безплатна доставка на територията на|* <b>{$bgName}</b>|*</div>"));
+        $tpl->append($block, 'CART_FOOTER');
+        
+        return true;
+    }
+    
+    
+    /**
+     * При упдейт на количката в е-магазина, какво да се  изпълнява
+     *
+     * @param stdClass $cartRec
+     *
+     * @return void
+     */
+    public function onUpdateCartMaster(&$cartRec)
+    {
+        $cartRec->freeDelivery = 'yes';
     }
 }

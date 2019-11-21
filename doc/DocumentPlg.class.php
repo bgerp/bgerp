@@ -137,6 +137,7 @@ class doc_DocumentPlg extends core_Plugin
         setIfNot($mvc->pendingQueue, array());
         setIfNot($mvc->canPending, 'no_one');
         setIfNot($mvc->requireDetailForPending, true);
+        setIfNot($mvc->mustUpdateUsed, false);
         
         $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
@@ -748,6 +749,17 @@ class doc_DocumentPlg extends core_Plugin
         // Задаваме стойностите на полетата за последно модифициране
         $rec->modifiedBy = Users::getCurrent() ? Users::getCurrent() : 0;
         $rec->modifiedOn = dt::verbal2Mysql();
+        
+        if (!Mode::is('MassImporting') && (($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected') || $rec->state != 'draft')) {
+            if ($rec->id) {
+                $oRec = $mvc->fetch($rec->id);
+                if ($rec->state !== $oRec->state) {
+                    $mvc->mustUpdateUsed = true;
+                }
+            } else {
+                $mvc->mustUpdateUsed = true;
+            }
+        }
     }
     
     
@@ -795,7 +807,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа
-        if (!Mode::is('MassImporting') && (($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected') || $rec->state != 'draft')) {
+        if ($mvc->mustUpdateUsed) {
             $usedDocuments = $mvc->getUsedDocs($rec->id);
             foreach ((array) $usedDocuments as $usedCid) {
                 $msg = '';
@@ -830,6 +842,18 @@ class doc_DocumentPlg extends core_Plugin
                 $outDoc->instance->logRead('Създаден документ', $outDoc->that);
             } catch (core_exception_Expect $e) {
             }
+        }
+        
+        if ($mvc->canEditActivated) {
+            if ($rec->state == 'draft' || $rec->state == 'rejected') {
+                $sharedArr = array();
+            } else {
+                $sharedArr = $mvc->getShared($rec->id);
+                $sharedArr = type_Keylist::toArray($sharedArr);
+                $sharedArr = arr::make($sharedArr, true);
+            }
+            
+            doc_ThreadUsers::syncContainerRelations($rec->containerId, $sharedArr, $rec->threadId);
         }
     }
     
@@ -904,6 +928,8 @@ class doc_DocumentPlg extends core_Plugin
                     
                     $docRow = $mvc->getDocumentRow($rec->id);
                     $docTitle = $docRow->recTitle ? $docRow->recTitle : $docRow->title;
+                    $docTitle = strip_tags(str_replace('&nbsp;', ' ', $docTitle));
+                    
                     $folderTitle = doc_Folders::getTitleById($rec->folderId, false);
                     
                     $message = "{$currUserNick} |създаде заявка за|* \"|{$docTitle}|*\" |в папка|* \"{$folderTitle}\"";
@@ -1507,8 +1533,12 @@ class doc_DocumentPlg extends core_Plugin
         doc_Threads::setModification($rec->threadId);
         
         doc_Files::recalcFiles($rec->containerId);
-        
         bgerp_Notifications::hideNotificationsForSingle($mvc->className, $rec->id);
+        
+        // Ако е оттеглен контиран документ, се бият нотификации
+        if($rec->brState == 'active' && cls::haveInterface('acc_TransactionSourceIntf', $mvc)){
+            acc_plg_Contable::notifyUsersForReject($mvc, $rec);
+        }
     }
     
     
@@ -2834,11 +2864,54 @@ class doc_DocumentPlg extends core_Plugin
             
             $tpl->append($linkTpl, 'DETAILS');
         }
+        
+        if (Mode::get('printing')) {
+            
+            $copiesNum = $mvc->getCopiesOnPrint($data->rec);
+            if($copiesNum == 1) {
+                
+                // За всяко копие предизвикваме ивент в документа, ако той иска да добави нещо към шаблона на копието
+                $mvc->invoke('AfterRenderPrintCopy', array($tpl, 1, $data->rec));
+                return;
+            }
+            
+            $originalTpl = clone($tpl);
+            $tpl = new ET('');
+            
+            for ($i = 1; $i <= $copiesNum; $i++) {
+                
+                // Ако сме в режим принтиране, добавяме копие на ордера
+                $clone = clone($originalTpl);
+                
+                // Контейнер в който ще вкараме документа + шаблона с параметрите му
+                $container = new ET("<div class='print-break'>[#clone#]</div>");
+                $container->replace($clone, 'clone');
+                
+                // За всяко копие предизвикваме ивент в документа, ако той иска да добави нещо към шаблона на копието
+                $mvc->invoke('AfterRenderPrintCopy', array($container, $i, $data->rec));
+                
+                $tpl->append($container);
+                
+                $tpl->removeBlocks();
+            }
+        }
     }
     
     
     /**
-     * Изпълнява се, акодефиниран метод getContragentData
+     * Колко копия да се отпечатат от документа при принтиране
+     */
+    public static function on_AfterGetCopiesOnPrint($mvc, &$res, $id)
+    {
+        if(empty($res)){
+            $res = isset($mvc->defaultCopiesOnPrint) ? $mvc->defaultCopiesOnPrint : 1;
+        }
+    }
+    
+    
+    
+    /**
+     * Изпълнява се, ако е дефиниран метод getContragentData
      */
     public function on_AfterGetContragentData($mvc, $data, $id)
     {

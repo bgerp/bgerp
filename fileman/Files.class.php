@@ -1396,7 +1396,7 @@ class fileman_Files extends core_Master
         //Проверяваме дали сме открили записа
         if (!$fRec) {
             sleep(2);
-            Debug::log('Sleep 2 sec. in' . __CLASS__);
+            Debug::log('Sleep 2 sec. in ' . __CLASS__);
             
             return false;
         }
@@ -1743,7 +1743,7 @@ class fileman_Files extends core_Master
         // Ако няма запис
         if (!$rec) {
             sleep(2);
-            Debug::log('Sleep 2 sec. in' . __CLASS__);
+            Debug::log('Sleep 2 sec. in ' . __CLASS__);
             
             return false;
         }

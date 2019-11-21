@@ -122,7 +122,7 @@ class core_App
     public static function processUrl()
     {
         $q = array();
-        
+       
         // Подготвяме виртуалното URL
         if (!empty($_GET['virtual_url'])) {
             $dir = dirname($_SERVER['SCRIPT_NAME']);
@@ -137,18 +137,18 @@ class core_App
                 $pos = strpos($_GET['virtual_url'], '?');
             }
             
-            if ($pos) {
+            if ($pos !== false) {
                 $_GET['virtual_url'] = rtrim(substr($_GET['virtual_url'], 0, $pos + 1), '?/') . '/';
             }
         }
-        
+     
         // Опитваме се да извлечем името на модула
         // Ако имаме виртуално URL - изпращаме заявката към него
         if (!empty($_GET['virtual_url'])) {
             
             // Ако виртуалното URL не завършва на'/', редиректваме към адрес, който завършва
             $vUrl = explode('/', $_GET['virtual_url']);
-            
+               
             // Премахваме последният елемент
             $cnt = count($vUrl);
             
@@ -167,7 +167,7 @@ class core_App
             if (defined('EF_ACT_NAME')) {
                 $q['Act'] = EF_ACT_NAME;
             }
-            
+             
             foreach ($vUrl as $id => $prm) {
                 // Определяме случая, когато заявката е за браузърен ресурс
                 if ($id == 0 && $prm == EF_SBF) {
@@ -351,12 +351,6 @@ class core_App
      */
     public static function shutdown($sendOutput = true)
     {
-        // Освобождава манипулатора на сесията. Ако трябва да се правят
-        // записи в сесията, то те трябва да се направят преди shutdown()
-        if (session_id()) {
-            session_write_close();
-        }
-        
         // Флъшваме и затваряме връзката, като евентулано показваме съдържанието в буфера
         core_App::flushAndClose($sendOutput);
         
@@ -482,28 +476,45 @@ class core_App
         }
         $oneTimeFlag = true;
         
+        ignore_user_abort(true);
+        
+        // Освобождава манипулатора на сесията. Ако трябва да се правят
+        // записи в сесията, то те трябва да се направят преди shutdown()
+        core_Session::pause();
         
         if ($output) {
             $content = ob_get_contents();         // Get the content of the output buffer
-            
+            if (strlen($content) == 0) {
+                $output = false;
+            }
             while (ob_get_level() > 0) {
                 ob_end_clean();
             }
         }
         
-        $isHeadersSent = headers_sent();
-        
-        if (!$isHeadersSent) {
+        if (!headers_sent()) {
+            header('Connection: close');
             if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output) {
+                $supportsGzip = strpos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip' ) !== false;
+                if ( $supportsGzip && strlen($content) > 1000) {
+                    $content = gzencode($content);
+                    header('Content-Encoding: gzip');
+                }
                 $len = strlen($content);
                 header("Content-Length: ${len}");
+
             } else {
-                header('Content-Length: 0');
+                if ($_SERVER['REQUEST_METHOD'] != 'HEAD') {
+                    header('Content-Length: 2');
+                    header("Content-Encoding: none");
+                    $content = 'OK';
+                    $len = 2;
+                    $output = true;
+                } else {
+                    header('Content-Length: 0');
+                }
             }
-            header('Cache-Control: private, max-age=0');
-            header('Expires: -1');
-            header('Connection: close');
-            header('X-Accel-Buffering: no');
+            
             
             // Добавяме допълнителните хедъри
             $aHeadersArr = self::getAdditionalHeadersArr();
@@ -512,10 +523,10 @@ class core_App
             }
         }
         
-        if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output && $len) {
+        if (($_SERVER['REQUEST_METHOD'] != 'HEAD') && $output && $len) {
             echo $content; // Output content
         } else {
-            if (!$isHeadersSent) {
+            if (!headers_sent()) {
                 header('Content-Encoding: none');
             }
         }
@@ -523,13 +534,14 @@ class core_App
         if ($output) {
             ob_end_flush();
             ob_flush();
-            flush();
-            
-            // Изпращаме съдържанието на изходния буфер
-            if (function_exists('fastcgi_finish_request')) {
-                @fastcgi_finish_request();
-            }
         }
+        
+        // Изпращаме съдържанието на изходния буфер
+        if (function_exists('fastcgi_finish_request')) {
+            @fastcgi_finish_request();
+        }
+        
+        flush();
     }
     
     
@@ -618,7 +630,7 @@ class core_App
             $resObj->func = 'redirect';
             $resObj->arg = array('url' => $url);
             
-            return self::outputJson(array($resObj), false);
+            return self::outputJson(array($resObj));
         }
         
         // Забранява кеширането. Дали е необходимо тук?
@@ -841,10 +853,16 @@ class core_App
             foreach ($arr as $key => $value) {
                 if (is_array($value)) {
                     foreach ($value as $k => $v) {
-                        $url .= ($url ? '/' : '') . "{$key},{$k}/" . urlencode($v);
+                        if (is_array($v)) {
+                            wp($v);
+                        }
+                        $url .= ($url ? '/' : '') . "{$key},{$k}/" . @urlencode($v);
                     }
                 } else {
-                    $url .= ($url ? '/' : '') . "{$key}/" . urlencode($value);
+                    if (is_array($value)) {
+                        wp($value);
+                    }
+                    $url .= ($url ? '/' : '') . "{$key}/" . @urlencode($value);
                 }
             }
         } else {

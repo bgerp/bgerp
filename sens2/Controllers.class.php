@@ -191,7 +191,7 @@ class sens2_Controllers extends core_Master
             $ap[$controllerId . '_' . $type] = array();
             $rec = self::fetch($controllerId);
             $drv = self::getDriver($controllerId);
-
+            
             $ports = array();
             
             if ($type != 'outputs') {
@@ -228,21 +228,21 @@ class sens2_Controllers extends core_Master
         return  $ap[$controllerId . '_' . $type];
     }
     
-
+    
     /**
      * Преди подготовка на сингъла
      */
     protected static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
-    {   
+    {
         $driver = cls::get($data->rec->driver);
         
-        if(!$driver->hasDetail) {
+        if (!$driver->hasDetail) {
             $data->details = arr::make($data->details, true);
             $mvc->details = arr::make($mvc->details, true);
             unset($mvc->details['sens2_IOPorts'], $data->details['sens2_IOPorts']);
         }
     }
-
+    
     
     /**
      * Подготвя конфигурационната форма на посочения драйвер
@@ -362,9 +362,9 @@ class sens2_Controllers extends core_Master
         expect($rec = self::fetch($id));
         
         $drv = self::getDriver($id);
-
+        
         $ports = $drv->getInputPorts($rec->config);
-
+        
         foreach ($ports as $name => $def) {
             if ($def->readPeriod > 0) {
                 $force[$name] = $name;
@@ -372,7 +372,7 @@ class sens2_Controllers extends core_Master
         }
         
         $res = $this->updateInputs($id, $force, false);
-
+        
         return new Redirect(array($this, 'Single', $id), "|Обновени са|* <b>{$res}</b> |входа на контролера");
     }
     
@@ -386,9 +386,9 @@ class sens2_Controllers extends core_Master
      * @param $sav      bool   Дали да се запишат стойностите в dataLog
      */
     public function updateInputs($id, $force = array(), $save = true)
-    {   
+    {
         $save = true;
-
+        
         expect($rec = self::fetch($id));
         
         $Driver = self::getDriver($id);
@@ -408,14 +408,14 @@ class sens2_Controllers extends core_Master
                     $inputs[$port] = $port;
                 }
                 
-                $logMinutes = abs(round($params->logPeriod / 60));  
+                $logMinutes = abs(round($params->logPeriod / 60));
                 if ($logMinutes && ($nowMinutes % $logMinutes) == 0) {
                     $inputs[$port] = $port;
                     $log[$port] = $port;
                 }
             }
         }
-
+        
         if (is_array($inputs) && count($inputs)) {
             
             // Прочитаме състоянието на входовете от драйвера
@@ -430,15 +430,15 @@ class sens2_Controllers extends core_Master
                 self::save($rec, 'persistentState');
             }
             
-           
+            
             foreach ($inputs as $port) {
                 
                 // Текущото време
                 $time = dt::now();
-
+                
                 if (is_array($values)) {
                     $value = $values[$port];
-                    if(is_object($value)) {
+                    if (is_object($value)) {
                         $time = $value->lastValue;
                         $value = $value->value;
                     }
@@ -476,9 +476,9 @@ class sens2_Controllers extends core_Master
      * Задава стойност на физически изход. Те се записва и в модела.
      */
     public static function setOutput($output, $value)
-    {   
+    {
         $value = round($value, 4);
-
+        
         // Парсраме входа и получаваме името на контролера и изхода
         list($ctrName, $name) = explode('.', ltrim($output, '$'), 2);
         
@@ -639,7 +639,7 @@ class sens2_Controllers extends core_Master
         
         if (!$id) {
             echo 'Controllers::Update - miss id on ' . dt::now();
-            core_App::shutdown(false);
+            core_App::shutdown();
         }
         
         echo "Controllers::Update for device with id={$id} started on " . dt::now();
@@ -650,17 +650,16 @@ class sens2_Controllers extends core_Master
         
         // Освобождава манипулатора на сесията. Ако трябва да се правят
         // записи в сесията, то те трябва да се направят преди shutdown()
-        if (session_id()) {
-            session_write_close();
-        }
+        core_Session::pause();
         
         
         if ($id) {
-            echo " Starting...";
+            echo ' Starting...';
+            
             // Извършваме обновяването "на сянка""
             $this->updateInputs($id);
         }
         
-        core_App::shutdown(false);
+        core_App::shutdown();
     }
 }

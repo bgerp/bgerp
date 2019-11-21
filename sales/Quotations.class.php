@@ -535,6 +535,15 @@ class sales_Quotations extends core_Master
         }
         
         if ($fields['-single']) {
+            
+            // Линк към от коя оферта е клонирано
+            if(isset($rec->clonedFromId)){
+                $row->clonedFromId = "#" . self::getHandle($rec->clonedFromId);
+                if(!Mode::isReadOnly()){
+                    $row->clonedFromId = ht::createLink($row->clonedFromId, self::getSingleUrlArray($rec->clonedFromId));
+                }
+            }
+            
             if (isset($rec->validFor)) {
                 
                 // До коя дата е валидна
@@ -1209,42 +1218,18 @@ class sales_Quotations extends core_Master
             
             if (!$form->gotErrors()) {
                 $sId = $this->createSale($rec);
-                
-                foreach ($products as $index => $quantity) {
-                    list($productId, $optional, $packagingId, $quantityInPack) = explode('|', $index);
-                    $quantityInPack = str_replace('_', '.', $quantityInPack);
+               
+                foreach ($products as $dRecId) {
+                    if(empty($dRecId)) continue;
                     
-                    // При опционален продукт без к-во се продължава
-                    if (empty($quantity)) {
-                        continue;
-                    }
-                    $quantity = $quantity * $quantityInPack;
-                    
-                    // Опитваме се да намерим записа съотвестващ на това количество
-                    $where = "#quotationId = {$id} AND #productId = {$productId} AND #optional = '{$optional}' AND #quantity = {$quantity}";
-                    $where .= ($packagingId) ? " AND #packagingId = {$packagingId}" : ' AND #packagingId IS NULL';
-                    $dRec = sales_QuotationsDetails::fetch($where);
-                    
-                    if (!$dRec) {
-                        
-                        // Ако няма (к-то е друго) се намира първия срещнат
-                        $dRec = sales_QuotationsDetails::fetch("#quotationId = {$id} AND #productId = {$productId} AND #packagingId = {$packagingId} AND #optional = '{$optional}'");
-                        
-                        // Тогава приемаме, че подаденото количество е количество за опаковка
-                        $dRec->packQuantity = $quantity;
-                    } else {
-                        
-                        // Ако има такъв запис, изчисляваме колко е количеството на опаковката
-                        $dRec->packQuantity = $quantity / $dRec->quantityInPack;
-                    }
-                    
-                    // Добавяме детайла към офертата
-                    $addedRecId = sales_Sales::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
+                    $dRec = sales_QuotationsDetails::fetch($dRecId);
                     
                     // Копира се и транспорта, ако има
-                    $tRec = sales_TransportValues::get($this, $id, $dRec->id);
+                    $addedRecId = sales_Sales::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
+                    $tRec = sales_TransportValues::get($this, $id, $dRecId);
+                    
                     if (isset($tRec->fee)) {
-                        sales_TransportValues::sync('sales_Sales', $sId, $addedRecId, $tRec->fee, $tRec->deliveryTime);
+                        sales_TransportValues::sync('sales_Sales', $sId, $addedRecId, $tRec->fee, $tRec->deliveryTime, $tRec->explain);
                     }
                 }
                 
@@ -1276,7 +1261,7 @@ class sales_Quotations extends core_Master
         $form = cls::get('core_Form');
         
         $form->title = 'Създаване на продажба от|* ' . sales_Quotations::getFormTitleLink($id);
-        $form->info = tr('Моля уточнете количествата');
+        $form->info = tr('Моля уточнете, кои редове ще се прехвърлят в продажбата');
         $filteredProducts = $this->filterProducts($id);
         
         foreach ($filteredProducts as $index => $product) {
@@ -1286,29 +1271,23 @@ class sales_Quotations extends core_Master
                 $mandatory = '';
             } else {
                 $product->title = "Оферирани->{$product->title}";
+                $mandatory = '';
                 if (count($product->options) > 1) {
                     $product->options = array('' => '') + $product->options;
                     $mandatory = 'mandatory';
-                } else {
-                    $mandatory = '';
                 }
+            }
+            $form->FNC($index, 'double(decimals=2)', "input,caption={$product->title},hint={$product->hint},{$mandatory}");
+            if (count($product->options) == 1) {
+                $default = key($product->options);
             }
             
-            $form->FNC($index, 'double(decimals=2)', "input,caption={$product->title},{$mandatory}");
-            if ($product->suggestions) {
-                $form->setSuggestions($index, $product->options);
-            } else {
-                if (count($product->options) == 1) {
-                    $default = key($product->options);
-                }
-                $product->options = $product->options + array('0' => '0');
-                
-                $form->setOptions($index, $product->options);
-                $form->setDefault($index, $default);
-            }
+            $product->options = $product->options + array('0' => '0');
+            $form->setOptions($index, $product->options);
+            $form->setDefault($index, $default);
         }
         
-        $form->toolbar->addSbBtn('Създай', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+        $form->toolbar->addSbBtn('Създаване', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title = Прекратяване на действията');
         
         return $form;
@@ -1324,30 +1303,54 @@ class sales_Quotations extends core_Master
      */
     private function filterProducts($id)
     {
-        $products = array();
-        $query = sales_QuotationsDetails::getQuery();
-        $query->where("#quotationId = {$id}");
-        $query->orderBy('optional', 'ASC');
+        $Detail = clone cls::get('sales_QuotationsDetails');
         
-        while ($rec = $query->fetch()) {
-            $quantityInPack = str_replace('.', '_', $rec->quantityInPack);
-            $index = "{$rec->productId}|{$rec->optional}|{$rec->packagingId}|{$quantityInPack}";
+        $rec = $this->fetchRec($id);
+        $products = array();
+        $query = $Detail->getQuery();
+        $query->where("#quotationId = {$id}");
+        $query->orderBy('optional=ASC,id=ASC');
+        $dRecs = $query->fetchAll();
+        
+        deals_Helper::fillRecs($Detail, $dRecs, $rec);
+        
+        foreach ($dRecs as $dRec) {
+            $index = "{$dRec->productId}|{$dRec->optional}|{$dRec->packagingId}|" .md5($dRec->notes);
             
             if (!array_key_exists($index, $products)) {
-                $title = cat_Products::getTitleById($rec->productId);
-                if ($rec->packagingId) {
-                    $title .= ' / ' . cat_UoM::getShortName($rec->packagingId);
+                $title = cat_Products::getTitleById($dRec->productId);
+                $title = str_replace(',', '.', $title);
+                if (isset($dRec->packagingId)) {
+                    $title .= ' / ' . cat_UoM::getShortName($dRec->packagingId);
                 }
-                $products[$index] = (object) array('title' => $title, 'options' => array(), 'optional' => $rec->optional, 'suggestions' => false);
+                
+                $hint = null;
+                if (!empty($dRec->notes)) {
+                    $title .= ' / ' . str::limitLen(strip_tags(core_Type::getByName('richtext')->toVerbal($dRec->notes)), 10);
+                    $hint = $dRec->notes;
+                }
+                $products[$index] = (object) array('title' => $title, 'options' => array(), 'optional' => $dRec->optional, 'suggestions' => false, 'hint' => $hint);
             }
             
-            if ($rec->optional == 'yes') {
+            if ($dRec->optional == 'yes') {
                 $products[$index]->suggestions = true;
             }
             
-            if ($rec->quantity) {
-                $pQuantity = $rec->quantity / $rec->quantityInPack;
-                $products[$index]->options[$pQuantity] = $pQuantity;
+            if ($dRec->quantity) {
+                core_Mode::push('text', 'plain');
+                $packQuantity = core_Type::getByName('double(smartRound)')->toVerbal($dRec->packQuantity);
+                $packPrice = core_Type::getByName('double(smartRound)')->toVerbal($dRec->packPrice);
+                
+                $val = "{$packQuantity} / {$packPrice} " . $rec->currencyId;
+                foreach (array('discount', 'tolerance', 'term') as $fld){
+                    if(!empty($dRec->{$fld})){
+                        $Type = ($fld != 'term') ? core_Type::getByName('percent') : core_Type::getByName('time');
+                        $val .= " / " . $Type->toVerbal($dRec->{$fld});
+                    }
+                }
+                core_Mode::pop('text');
+                
+                $products[$index]->options[$dRec->id] = $val;
             }
         }
         
@@ -1726,7 +1729,7 @@ class sales_Quotations extends core_Master
             return false;
         }
         
-        cls::get(sales_QuotationsDetails)->saveArray($saveRecs);
+        cls::get('sales_QuotationsDetails')->saveArray($saveRecs);
     }
     
     

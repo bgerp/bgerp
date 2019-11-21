@@ -146,7 +146,10 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         
         // Задаваме параметрите за отваряне на ФБ
         setIfNot($params['OPER_NUM'], 1);
-        setIfNot($params['OPER_PASS'], 0);
+        if (!isset($params['OPER_PASS'])) {
+            $params['OPER_PASS'] = $this->getOperPass($params['OPER_NUM'], $pRec);
+        }
+        
         if ($params['IS_DETAILED']) {
             $params['IS_DETAILED'] = 'true';
         } else {
@@ -508,40 +511,77 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      * @param core_ET   $tpl
      * @param stdClass  $pRec
      * @param null|bool $serialKeepPortOpen
+     * @param boolean $setDeviceSettings
      */
-    protected function connectToPrinter($tpl, $pRec, $serialKeepPortOpen = null)
+    protected function connectToPrinter($tpl, $pRec, $serialKeepPortOpen = null, $setDeviceSettings = true)
     {
         // Задаваме настройките за връзка със сървъра
         $tpl->replace(json_encode($pRec->serverIp), 'SERVER_IP');
         $tpl->replace(json_encode($pRec->serverTcpPort), SERVER_TCP_PORT);
         
-        // Свързваме се с ФП
-        if ($pRec->type == 'tcp') {
-            $tpl->replace(json_encode($pRec->tcpIp), 'TCP_IP');
-            $tpl->replace($pRec->tcpPort, 'TCP_PORT');
-            $tpl->replace(json_encode($pRec->tcpPass), 'TCP_PASS');
-            
-            $tpl->replace('false', 'SERIAL_PORT');
-            $tpl->replace('false', 'SERIAL_BAUD_RATE');
-            $tpl->replace('false', 'SERIAL_KEEP_PORT_OPEN');
-        } elseif ($pRec->type == 'serial') {
-            $tpl->replace('false', 'TCP_IP');
-            $tpl->replace('false', 'TCP_PORT');
-            $tpl->replace('false', 'TCP_PASS');
-            $tpl->replace(json_encode($pRec->serialPort), 'SERIAL_PORT');
-            $tpl->replace($pRec->serialSpeed, 'SERIAL_BAUD_RATE');
-            
-            setIfNot($serialKeepPortOpen, 'true');
-            if ($serialKeepPortOpen) {
-                $serialKeepPortOpen = 'true';
+        if ($setDeviceSettings) {
+            // Свързваме се с ФП
+            if ($pRec->type == 'tcp') {
+                $tpl->replace(json_encode($pRec->tcpIp), 'TCP_IP');
+                $tpl->replace($pRec->tcpPort, 'TCP_PORT');
+                $tpl->replace(json_encode($pRec->tcpPass), 'TCP_PASS');
+                
+                $tpl->replace('false', 'SERIAL_PORT');
+                $tpl->replace('false', 'SERIAL_BAUD_RATE');
+                $tpl->replace('false', 'SERIAL_KEEP_PORT_OPEN');
+            } elseif ($pRec->type == 'serial') {
+                $tpl->replace('false', 'TCP_IP');
+                $tpl->replace('false', 'TCP_PORT');
+                $tpl->replace('false', 'TCP_PASS');
+                $tpl->replace(json_encode($pRec->serialPort), 'SERIAL_PORT');
+                $tpl->replace($pRec->serialSpeed, 'SERIAL_BAUD_RATE');
+                
+                setIfNot($serialKeepPortOpen, 'true');
+                if ($serialKeepPortOpen) {
+                    $serialKeepPortOpen = 'true';
+                } else {
+                    $serialKeepPortOpen = 'false';
+                }
+                
+                $tpl->replace($serialKeepPortOpen, 'SERIAL_KEEP_PORT_OPEN');
             } else {
-                $serialKeepPortOpen = 'false';
+                expect(false, $pRec);
             }
-            
-            $tpl->replace($serialKeepPortOpen, 'SERIAL_KEEP_PORT_OPEN');
-        } else {
-            expect(false, $pRec);
         }
+    }
+    
+    
+    /**
+     * Помощна функция за намиране на порта и скоростта на периферното устройство
+     *
+     * @param stdClass $pRec
+     * @param null|core_Et $jsTpl
+     *
+     * @return array
+     *
+     * {@inheritDoc}
+     * @see tremol_FiscPrinterDriverParent::findDevicePort()
+     */
+    protected function findDevicePort($pRec, &$jsTpl = null)
+    {
+        $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                                try {
+                                    fpServerSetSettings([#SERVER_IP#], [#SERVER_TCP_PORT#]);
+                                    var res = fpServerFindDevice(false);
+                                    if (res.serialPort && res.baudRate) {
+                                        $('.serialSpeedInput').val(res.baudRate);
+                                    }
+                                    
+                                    if (res.serialPort) {
+                                        $('.serialPortInput').val(res.serialPort);
+                                    }
+                                } catch(ex) { }
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]");
+        
+        $this->addTplFile($jsTpl, $pRec->driverVersion);
+        $this->connectToPrinter($jsTpl, $pRec, false, false);
+        
+        return array();
     }
     
     
@@ -585,61 +625,93 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      */
     protected static function on_AfterRenderSingle($Driver, $Embedder, &$tpl, $data)
     {
-        if ($Embedder instanceof peripheral_Devices && $Embedder->haveRightFor('edit', $data->rec->id)) {
-            $setSerialUrl = toUrl(array($Driver, 'setSerialNumber', $data->rec->id), 'local');
-            $setSerialUrl = urlencode($setSerialUrl);
-            
-            $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+        $update = Request::get('update');
+        
+        if ($update !== 0) {
+            if ($Embedder instanceof peripheral_Devices && $Embedder->haveRightFor('edit', $data->rec->id)) {
+                $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
                                 try {
                                     [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                
+                                    var sn = fpSerialNumber();
                                     
-                                    try {
-                                        getEfae().process({url: '{$setSerialUrl}'}, {serial: fpSerialNumber()});
-                                    } catch(ex) {
-                                        render_showToast({timeOut: 800, text: '" . tr('Грешка при обновяване на серийния номер') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
-                                    }
-
                                     [#OTHER#]
                                 } catch(ex) {
                                     render_showToast({timeOut: 800, text: '" . tr('Грешка при свързване с принтера') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
                                 }
                             [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]");
-            
-            // След запис, обновяваме хедър и футъра
-            if (Request::get('update')) {
-                // Сверяваме времето
-                $now = json_encode(date('d-m-Y H:i:s'));
-                $updateTime = "try {
+                
+                // След запис, обновяваме хедър и футъра
+                if ($update) {
+                    
+                    // Вземаме серийния номер от ФУ
+                    $setSerialUrl = toUrl(array($Driver, 'setSerialNumber', $data->rec->id), 'local');
+                    $setSerialUrl = urlencode($setSerialUrl);
+                    $updateSn = "try {
+                                     getEfae().process({url: '{$setSerialUrl}'}, {serial: sn});
+                                 } catch(ex) {
+                                     render_showToast({timeOut: 800, text: '" . tr('Грешка при обновяване на серийния номер') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
+                                 }";
+                    $jsTpl->prepend($updateSn, 'OTHER');
+                    
+                    // Вземаме паролата от ФУ
+                    $setOperPassUrl = toUrl(array($Driver, 'SetOperPass', $data->rec->id), 'local');
+                    $setOperPassUrl = urlencode($setOperPassUrl);
+                    $updateSn = "try {
+                                     var operPass = fpGetOperPass();
+                                     getEfae().process({url: '{$setOperPassUrl}'}, {operPass: operPass});
+                                 } catch(ex) {
+                                     render_showToast({timeOut: 800, text: '" . tr('Грешка при промяна на парола за връзка с ФУ') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
+                                 }";
+                    
+                    $jsTpl->prepend($updateSn, 'OTHER');
+                    
+                    // Вземаме начините на плащане от ФУ
+                    $setDefaultPaymenst = toUrl(array($Driver, 'SetDefPayments', $data->rec->id), 'local');
+                    $setDefaultPaymenst = urlencode($setDefaultPaymenst);
+                    $updateSn = "try {
+                                     var defPaym = fpGetDefPayments();
+                                     defPaym = JSON.stringify(defPaym);
+                                     getEfae().process({url: '{$setDefaultPaymenst}'}, {defPaym: defPaym});
+                                 } catch(ex) {
+                                     render_showToast({timeOut: 800, text: '" . tr('Грешка при добавяне на плащания') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
+                                 }";
+                    
+                    $jsTpl->prepend($updateSn, 'OTHER');
+                    
+                    // Сверяваме времето
+                    $now = json_encode(date('d-m-Y H:i:s'));
+                    $updateTime = "try {
                                     fpSetDateTime({$now});
                                 } catch(ex) {
                                     render_showToast({timeOut: 800, text: '" . tr('Не може да се синхронизира времето') . ": ' + ex.message, isSticky: false, stayTime: 12000, type: 'warning'});
                                 }";
-                $jsTpl->prepend($updateTime, 'OTHER');
-                
-                // Нулираме другихте хедъри
-                $headersTextStr = '';
-                
-                $maxTextLen = ($data->rec->fpType == 'fiscalPrinter') ? $Driver->fpLen : $Driver->crLen;
-                
-                if ($data->rec->header == 'yes') {
-                    for ($i = 1; $i <= 7; $i++) {
-                        $h = headerText . $i;
-                        $ht = (string) $data->rec->{$h};
-                        $ht = self::formatText($ht, $data->rec->headerPos, $maxTextLen);
-                        $ht = json_encode($ht);
-                        $headersTextStr .= "fpProgramHeader({$ht}, {$i});";
+                    $jsTpl->prepend($updateTime, 'OTHER');
+                    
+                    // Нулираме другихте хедъри
+                    $headersTextStr = '';
+                    
+                    $maxTextLen = ($data->rec->fpType == 'fiscalPrinter') ? $Driver->fpLen : $Driver->crLen;
+                    
+                    if ($data->rec->header == 'yes') {
+                        for ($i = 1; $i <= 7; $i++) {
+                            $h = headerText . $i;
+                            $ht = (string) $data->rec->{$h};
+                            $ht = self::formatText($ht, $data->rec->headerPos, $maxTextLen);
+                            $ht = json_encode($ht);
+                            $headersTextStr .= "fpProgramHeader({$ht}, {$i});";
+                        }
                     }
-                }
-                $footerTextStr = '';
-                if ($data->rec->footer == 'yes') {
-                    $ft = (string) $data->rec->footerText;
-                    $ft = self::formatText($ft, $data->rec->footerPos, $maxTextLen);
-                    $ft = json_encode($ft);
-                    $footerTextStr = "fpProgramFooter({$ft});";
-                }
-                
-                if ($headersTextStr || $footerTextStr) {
-                    $headerText = "try {
+                    $footerTextStr = '';
+                    if ($data->rec->footer == 'yes') {
+                        $ft = (string) $data->rec->footerText;
+                        $ft = self::formatText($ft, $data->rec->footerPos, $maxTextLen);
+                        $ft = json_encode($ft);
+                        $footerTextStr = "fpProgramFooter({$ft});";
+                    }
+                    
+                    if ($headersTextStr || $footerTextStr) {
+                        $headerText = "try {
                                         {$headersTextStr}
                                     } catch(ex) {
                                         render_showToast({timeOut: 800, text: '" . tr('Грешка при програмиране на хедъра на устройството') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
@@ -650,16 +722,17 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                                     } catch(ex) {
                                         render_showToast({timeOut: 800, text: '" . tr('Грешка при програмиране на футъра на устройството') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
                                     }";
-                    $jsTpl->append($headerText, 'OTHER');
+                                        $jsTpl->append($headerText, 'OTHER');
+                    }
                 }
+                
+                $Driver->addTplFile($jsTpl, $data->rec->driverVersion);
+                $Driver->connectToPrinter($jsTpl, $data->rec, false);
+                
+                $jsTpl->removePlaces();
+                
+                jquery_Jquery::run($tpl, $jsTpl);
             }
-            
-            $Driver->addTplFile($jsTpl, $data->rec->driverVersion);
-            $Driver->connectToPrinter($jsTpl, $data->rec, false);
-            
-            $jsTpl->removePlaces();
-            
-            jquery_Jquery::run($tpl, $jsTpl);
         }
     }
     
@@ -667,7 +740,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
     /**
      * Екшън за промяна на серийния номер
      *
-     * @return array|string
+     * @return array
      */
     public function act_SetSerialNumber()
     {
@@ -724,13 +797,86 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         return $res;
     }
     
-
+    
+    /**
+     * Екшън за промяна на паролата на оператора за връзка с ФУ
+     *
+     * @return array
+     */
+    public function act_SetOperPass()
+    {
+        expect(Request::get('ajax_mode'));
+        
+        peripheral_Devices::requireRightFor('single');
+        
+        $operPass = Request::get('operPass');
+        $id = Request::get('id', 'int');
+        
+        expect($id);
+        
+        $pRec = peripheral_Devices::fetch($id);
+        
+        expect($pRec);
+        
+        peripheral_Devices::requireRightFor('single', $id);
+        peripheral_Devices::requireRightFor('edit', $id);
+        
+        $res = array();
+        
+        if ($pRec->otherData['operPass'] != $operPass) {
+            $pRec->otherData['operPass'] = $operPass;
+            
+            peripheral_Devices::save($pRec, 'otherData');
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Екшън за добавяне на плащания по подразбиране
+     *
+     * @return array
+     */
+    public function act_SetDefPayments()
+    {
+        expect(Request::get('ajax_mode'));
+        
+        peripheral_Devices::requireRightFor('single');
+        
+        $operPass = Request::get('operPass');
+        $id = Request::get('id', 'int');
+        
+        expect($id);
+        
+        $pRec = peripheral_Devices::fetch($id);
+        
+        expect($pRec);
+        
+        peripheral_Devices::requireRightFor('single', $id);
+        peripheral_Devices::requireRightFor('edit', $id);
+        
+        $defPaym = Request::get('defPaym');
+        
+        $dPaymArr = json_decode($defPaym, true);
+        
+        if ($dPaymArr['defPaymArr']) {
+            $pRec->otherData['defPaymArr'] = $dPaymArr['defPaymArr'];
+            $pRec->otherData['exRate'] = $dPaymArr['exRate'];
+            
+            peripheral_Devices::save($pRec, 'otherData');
+        }
+        
+        return array();
+    }
+    
+    
     /**
      * Екшън за печат на дубликат
      */
     public function act_PrintDuplicate()
     {
-        peripheral_Devices::requireRightFor('printduplicate');
+        requireRole($this->canPrintDuplicate);
         expect($id = Request::get('id', 'int'));
         expect($pRec = peripheral_Devices::fetch($id));
         $Driver = peripheral_Devices::getDriver($pRec);
@@ -796,10 +942,11 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      * @param stdClass $rec
      * @param string $rVerb
      * @param null|core_Et $jsTpl
+     * @param array $retUrl
      *
      * @see tremol_FiscPrinterDriverParent::getResForReport()
      */
-    protected function getResForReport($pRec, $rec, $rVerb = '', &$jsTpl = null)
+    protected function getResForReport($pRec, $rec, $rVerb = '', &$jsTpl = null, $retUrl = array())
     {
         $fnc = '';
         
@@ -854,13 +1001,20 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         
         $fnc .= ';';
         
+        if (!empty($retUrl)) {
+            $toUrul = toUrl($retUrl);
+            $location = "document.location = '{$toUrul}';";
+        } else {
+            $location = '';
+        }
+        
         $jsTpl = new ET("function fpPrintReport() {
                                 $('.fullScreenBg').fadeIn();
                                 [#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
                                 try {
                                     [#/tremol/js/FiscPrinterTplConnect.txt#]
                                     {$fnc}
-                                    render_showToast({timeOut: 800, text: '" . tr("Успешно отпечатан {$rVerb} отчет") . "', isSticky: false, stayTime: 8000, type: 'notice'});
+                                    {$location}
                                 } catch(ex) {
                                     render_showToast({timeOut: 800, text: '" . tr("Грешка при отпечатване на {$rVerb} отчет") . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'error'});
                                 }

@@ -61,12 +61,16 @@ function planningActions() {
 				quantity = 1;
 			}
 		}
-		
 		var employees = [];
-		$('input[id^="employees"]:checked').each(function () {
-			employees.push($(this).val());
-		});
-		
+		if ($("select#employeeSelect").length) {
+			employees = $("select#employeeSelect").val();
+		} else {
+			$('input[id^="employees"]:checked').each(function () {
+				employees.push($(this).val());
+			});
+
+		}
+
 		var fixedAsset = $("#fixedAssetSelect").val();
 		var taskId = $("input[name=taskId]").val();
 
@@ -202,6 +206,15 @@ function setFocus(tabName) {
 	}
 }
 
+/**
+ * Активира селект2 след ajax
+ */
+function render_prepareSelect() {
+	if($('.select2').length){
+		$('select').trigger("change");
+	}
+}
+
 function focusSerial(){
 	$(document).keypress(function(e) {
 		var isFocused = 0 ;
@@ -223,6 +236,7 @@ function render_setFocus(data)
 {
 	setFocus(data.tabId);
 }
+
 
 /**
  * Чете информацията от дадена бисквитка

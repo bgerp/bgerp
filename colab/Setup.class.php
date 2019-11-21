@@ -47,21 +47,21 @@ class colab_Setup extends core_ProtoSetup
     public $managers = array(
         'colab_FolderToPartners',
         'colab_DocumentLog',
-        'migrate::addAgentToPartners'
+        'migrate::addAgentToPartners',
+        'migrate::creatableDocuments',
     );
     
     
     /**
      * Кои документи могат да бъдат създавани по дефолт от контрактори
      */
-    private static $defaultCreatableDocuments = 'sales_Sales,doc_Comments,doc_Notes,marketing_Inquiries2';
+    private static $defaultCreatableDocuments = 'sales_Sales,doc_Comments,doc_Notes,marketing_Inquiries2,store_ConsignmentProtocols';
     
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'COLAB_CREATABLE_DOCUMENTS_LIST' => array('keylist(mvc=core_Classes,select=name)', 'caption=Кои документи могат да се създават от партньори->Документи,optionsFunc=colab_Setup::getDocumentOptions'),
         'COLAB_CREATABLE_DOCUMENTS_LIST' => array('keylist(mvc=core_Classes,select=name)', 'caption=Кои документи могат да се създават от партньори->Документи,optionsFunc=colab_Setup::getDocumentOptions'),
         'COLAB_DEFAULT_ROLES_FOR_NEW_PARTNER' => array('keylist(mvc=core_Roles,select=name)', 'caption=Регистриране на нов партньор->Роли,optionsFunc=colab_Setup::getExternalRoles'),
     );
@@ -126,8 +126,7 @@ class colab_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Colab за протоколи за отговорно пазене', 'colab_plg_Document', 'store_ConsignmentProtocols', 'private');
         $html .= $Plugins->installPlugin('Colab за складови разписки', 'colab_plg_Document', 'store_Receipts', 'private');
         $html .= $Plugins->installPlugin('Colab за експедиционни нареждания', 'colab_plg_Document', 'store_ShipmentOrders', 'private');
-
-//     	$html .= $Plugins->installPlugin('Colab за сигнали', 'colab_plg_Document', 'support_Issues', 'private');
+        $html .= $Plugins->installPlugin('Colab за протоколи за отговорно пазене', 'colab_plg_Document', 'store_ConsignmentProtocols', 'private');
         $html .= $Plugins->installPlugin('Colab за резолюция на сигнал', 'colab_plg_Document', 'support_Resolutions', 'private');
         $html .= $Plugins->installPlugin('Colab за коментар', 'colab_plg_Document', 'doc_Comments', 'private');
         $html .= $Plugins->installPlugin('Colab за бележка', 'colab_plg_Document', 'doc_Notes', 'private');
@@ -168,29 +167,40 @@ class colab_Setup extends core_ProtoSetup
     
     
     /**
+     * Форсира, кои документи да могат да се създават от партньори
+     */
+    public static function forceCreatableDocuments()
+    {
+        $res = '';
+        $arr = array();
+        $defaultCreatableDocuments = arr::make(self::$defaultCreatableDocuments);
+        foreach ($defaultCreatableDocuments as $docName) {
+            $Doc = cls::get($docName);
+            if (cls::haveInterface('colab_CreateDocumentIntf', $Doc)) {
+                $classId = $Doc->getClassId();
+                $arr[$classId] = $classId;
+            }
+        }
+        
+        // Записват се ид-та на документите, които могат да се създават от контрактори
+        if (count($arr)) {
+            core_Packs::setConfig('colab', array('COLAB_CREATABLE_DOCUMENTS_LIST' => keylist::fromArray($arr)));
+            $res = "<li style='color:green'>Задаване на дефолт документи, които могат да се създават от партньори";
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
      * Зареждане на начални данни
      */
     public function loadSetupData($itr = '')
     {
-        $config = core_Packs::getConfig('colab');
         $res = '';
-        
+        $config = core_Packs::getConfig('colab');
         if (strlen($config->COLAB_CREATABLE_DOCUMENTS_LIST) === 0) {
-            $arr = array();
-            $defaultCreatableDocuments = arr::make(self::$defaultCreatableDocuments);
-            foreach ($defaultCreatableDocuments as $docName) {
-                $Doc = cls::get($docName);
-                if (cls::haveInterface('colab_CreateDocumentIntf', $Doc)) {
-                    $classId = $Doc->getClassId();
-                    $arr[$classId] = $classId;
-                }
-            }
-            
-            // Записват се ид-та на документите, които могат да се създават от контрактори
-            if (count($arr)) {
-                core_Packs::setConfig('colab', array('COLAB_CREATABLE_DOCUMENTS_LIST' => keylist::fromArray($arr)));
-                $res .= "<li style='color:green'>Задаване на дефолт документи, които могат да се създават от партньори";
-            }
+            $res = self::forceCreatableDocuments();
         }
         
         return $res;
@@ -212,5 +222,14 @@ class colab_Setup extends core_ProtoSetup
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Миграция на кои документи, могат да се създават
+     */
+    public function creatableDocuments()
+    {
+        self::forceCreatableDocuments();
     }
 }

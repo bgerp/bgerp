@@ -276,7 +276,7 @@ a.menuItem:focus {
 div.folder-cover {
   background-image: url('../img/cover-bg.png');
   display: inline-block;
-  max-width: 720px;
+  max-width: 800px;
   min-width: 540px;
   margin-top: 10px;
   line-height: 1.2em;
@@ -297,6 +297,7 @@ div.folder-cover {
       background: none !important;
       box-shadow: none; }
   div.folder-cover .groupTitle {
+    white-space: nowrap;
     color: #333333;
     font-weight: bold; }
   div.folder-cover .groupList {
@@ -980,6 +981,10 @@ div.acc-detail {
       text-align: left !important; }
     .additionalInfo-holder .additionalInfo .aright {
       text-align: right !important; }
+  .additionalInfo-holder .tags {
+    top: -1px !important; }
+    .additionalInfo-holder .tags .enTag {
+      vertical-align: middle; }
   .additionalInfo-holder .anchor-arrow {
     cursor: pointer; }
 
@@ -1796,7 +1801,8 @@ a.tOld {
   transform: rotate(10deg);
   margin-top: 10px; }
 
-.narrow .approved {
+.narrow .approved,
+.no-transform {
   transform: rotate(0deg);
   top: 0; }
 
@@ -1844,6 +1850,10 @@ table.listTable.listAction>tbody>tr>td.wideColumn {
 
 .amount-field {
   min-width: 180px; }
+
+.expectedTotalCol {
+  color: #888888;
+  font-size: 0.8em; }
 
 .wrap {
   white-space: normal !important; }
@@ -2022,6 +2032,42 @@ pre.document {
   width: 100% !important;
   clear: both;
   float: none; }
+
+.enTag {
+  vertical-align: top;
+  font-size: 0.7em;
+  border: solid 1px white;
+  color: white;
+  padding: 1px;
+  white-space: nowrap; }
+  .enTag.weightTag {
+    background-color: black; }
+  .enTag.percent {
+    background-color: blue; }
+  .enTag.zone {
+    background-color: red; }
+
+.document-block {
+  font-size: 0.9em; }
+  .document-block .block-instock {
+    background-color: blue;
+    border: solid 1px white;
+    color: white;
+    font-size: 0.9em; }
+  .document-block .block-readiness {
+    background-color: red;
+    border: solid 1px white;
+    color: white;
+    font-size: 0.9em; }
+
+.tags {
+  margin-left: 2px; }
+
+.maxwidth .tags,
+.document-handler .tags,
+.rowBlock .tags {
+  position: relative;
+  top: 2px; }
 
 .document .listTable .acc-article-entries {
   font-size: 0.8em;
@@ -2575,14 +2621,13 @@ span.sharing-history-title {
 /*
  * външни стилове за ширина
  */
-#all {
-  font-family: Verdana, Helvetica, Arial, Sans-serif;
-  text-align: center; }
+.externalPage {
+  font-family: Verdana, Helvetica, Arial, Sans-serif; }
 
-.wide #all {
+.wide .externalPage {
   font-size: 16px; }
 
-.narrow  #all #cmsTop {
+.narrow  .externalPage #cmsTop {
   background-color: white; }
 
 .headerImg {
@@ -2599,18 +2644,18 @@ span.sharing-history-title {
   max-height: 90px;
   float: left; }
 
-.narrow #all {
+.narrow .externalPage {
   position: relative; }
 
-#all #maincontent {
+.externalPage #maincontent {
   clear: both;
   background-color: white; }
 
-#all #maincontent .richtext a:hover,
-#all #maincontent .richtext a:visited:hover {
+.externalPage #maincontent .richtext a:hover,
+.externalPage #maincontent .richtext a:visited:hover {
   color: #ee7700 !important; }
 
-.narrow #all .vertical .formTable {
+.narrow .externalPage .vertical .formTable {
   padding: 5px; }
 
 .filterForm #filter {
@@ -2633,13 +2678,11 @@ span.sharing-history-title {
   display: block; }
 
 .wide #all,
-.wide #cmsTop,
-.wide #cmsTop img {
+.wide #all #cmsTop,
+.wide #all #cmsTop img {
   border-radius: 10px 10px 0 0; }
 
 #cmsMenu {
-  float: left;
-  width: 100%;
   padding-top: 5px;
   padding-bottom: 5px;
   text-align: left;
@@ -2693,10 +2736,7 @@ span.sharing-history-title {
 #cmsTop.a,
 #cmsBottom.a {
   display: block;
-  overflow: hidden;
-    /*
-   * Disable scrollbars. Set to "scroll" to enable
-   */ }
+  overflow: hidden; }
 
 #cmsBottom {
   clear: both;
@@ -2761,8 +2801,7 @@ span.sharing-history-title {
   border-bottom: solid 1px black;
   max-width: 1400px;
   display: block;
-  margin: 0 auto;
-  text-align: left; }
+  margin: 0 auto; }
   #all #searchform {
     margin-bottom: 20px; }
 
@@ -2776,10 +2815,10 @@ span.sharing-history-title {
   max-width: 100%;
   height: auto; }
 
-.narrow #all #maincontent {
+.narrow .externalPage #maincontent {
   padding: 2px 5px 5px; }
 
-.wide #all .formTable {
+.wide .externalPage .formTable {
   margin: 20px; }
 
 .wide #login-form {
@@ -2928,6 +2967,14 @@ span.sharing-history-title {
   width: 100%;
   max-width: 100%;
   margin: 5px 0 10px; }
+
+#cart-external-status a:hover {
+  opacity: 1 !important; }
+
+#cart-external-status .cardLink {
+  font-weight: bold; }
+  #cart-external-status .cardLink:hover {
+    opacity: 0.7; }
 
 #cart-external-status .count {
   border: 1px solid #526b00;
@@ -3225,13 +3272,13 @@ table .eshop-btn {
     padding: 0;
     margin-left: 20px;
     list-style: none; }
-  .foldertabs > .tab-row > .row-holder > .tab {
+  .foldertabs > .tab-row > .row-holder .tab {
     float: left;
     z-index: auto !important;
     margin: 1px 0 -1px 2px !important;
     padding: 0 !important;
     border-top: 1px solid #cccccc !important; }
-  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title {
+  .foldertabs > .tab-row > .row-holder .tab >  .tab-title {
     position: relative;
     background: #dddddd;
     background-image: linear-gradient(to bottom, white, #dddddd);
@@ -3243,16 +3290,16 @@ table .eshop-btn {
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
     border-radius: 5px 0 0 0;
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.4); }
-  .foldertabs > .tab-row > .row-holder > .tab >  span.tab-title {
+  .foldertabs > .tab-row > .row-holder .tab >  span.tab-title {
     color: #cccccc; }
-  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:hover,
-  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:hover::after,
-  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:focus,
-  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:focus::after {
+  .foldertabs > .tab-row > .row-holder .tab >  .tab-title:hover,
+  .foldertabs > .tab-row > .row-holder .tab >  .tab-title:hover::after,
+  .foldertabs > .tab-row > .row-holder .tab >  .tab-title:focus,
+  .foldertabs > .tab-row > .row-holder .tab >  .tab-title:focus::after {
     background: white; }
-  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:focus {
+  .foldertabs > .tab-row > .row-holder .tab >  .tab-title:focus {
     outline: 0; }
-  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title::after {
+  .foldertabs > .tab-row > .row-holder .tab >  .tab-title::after {
     content: '';
     position: absolute;
     z-index: 1;
@@ -3265,12 +3312,12 @@ table .eshop-btn {
     box-shadow: 2px 1px 2px rgba(0, 0, 0, 0.4);
     transform: skew(15deg);
     border-radius: 0 5px 0 0; }
-  .foldertabs > .tab-row > .row-holder > .tab.selected .tab-title,
-  .foldertabs > .tab-row > .row-holder > .tab.selected .tab-title::after {
+  .foldertabs > .tab-row > .row-holder .tab.selected .tab-title,
+  .foldertabs > .tab-row > .row-holder .tab.selected .tab-title::after {
     background: white !important;
     z-index: 3; }
-  .foldertabs > .tab-row > .row-holder > .tab:hover .tab-title,
-  .foldertabs > .tab-row > .row-holder > .tab:hover .tab-title::after {
+  .foldertabs > .tab-row > .row-holder .tab:hover .tab-title,
+  .foldertabs > .tab-row > .row-holder .tab:hover .tab-title::after {
     background: white;
     z-index: 4; }
   .foldertabs > .tab-page {
@@ -3868,7 +3915,7 @@ table .eshop-btn {
 #blog-article-details .listTable {
   background: #e5e5e5; }
 
-#all .blogm-article-body img {
+.externalPage .blogm-article-body img {
   width: 100% \9;
   max-width: none \9;
   *width: auto; }
@@ -4483,16 +4530,14 @@ div.location.public {
     list-style: none;
     border: 1px solid #cccccc;
     border-bottom: none;
-    background: #eeeeee;
     font-size: 0.9em;
     position: relative;
     bottom: -12px;
-    color: #888888; }
+    opacity: 0.8; }
     .modern-theme .portalTabs .tab-link.activeTab,
     .modern-theme .portalTabs .tab-link:hover {
-      color: black;
-      background: white;
-      z-index: 20; }
+      z-index: 20;
+      opacity: 1; }
 
 /*
  * край на търсене в портала
@@ -5157,13 +5202,13 @@ only screen and (max-width: 950px) {
     margin-right: 8px;
     font-size: 1.04em; }
 
-  #all .formTitle {
+  .externalPage .formTitle {
     font-size: 1.1em; }
 
-  #all h2 {
+  .externalPage h2 {
     font-size: 1.4em; }
 
-  #all h1 {
+  .externalPage h1 {
     font-size: 1.9em; }
 
   .wide .cartHolder {
@@ -5185,10 +5230,10 @@ only screen and (max-width: 900px) {
       margin-right: 1%;
       margin-left: 1%; }
 
-  #all h2 {
+  .externalPage h2 {
     font-size: 1.38em; }
 
-  #all h1 {
+  .externalPage h1 {
     font-size: 1.88em; }
 
   .wide .app-name {
@@ -5216,13 +5261,13 @@ only screen and (max-width: 800px) {
       margin-right: 1%;
       margin-left: 1%; }
 
-  #all .formTitle {
+  .externalPage .formTitle {
     font-size: 1em; }
 
-  #all h2 {
+  .externalPage h2 {
     font-size: 1.38em; }
 
-  #all h1 {
+  .externalPage h1 {
     font-size: 1.88em; }
 
   .wide .app-name {
@@ -5241,10 +5286,10 @@ only screen and (max-width: 760px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-  #all h2 {
+  .externalPage h2 {
     font-size: 1.36em; }
 
-  #all h1 {
+  .externalPage h1 {
     font-size: 1.86em; } }
 
 @media handheld,
@@ -5267,10 +5312,10 @@ only screen and (max-width: 700px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-  #all h2 {
+  .externalPage h2 {
     font-size: 1.34em; }
 
-  #all h1 {
+  .externalPage h1 {
     font-size: 1.84em; }
 
   .wide .app-name {
@@ -5298,10 +5343,10 @@ only screen and (max-width: 640px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-  #all h2 {
+  .externalPage h2 {
     font-size: 1.32em; }
 
-  #all h1 {
+  .externalPage h1 {
     font-size: 1.82em; } }
 
 @media handheld,
@@ -5323,10 +5368,10 @@ only screen and (max-width: 600px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-  #all .formTitle {
+  .externalPage .formTitle {
     font-size: 0.95em; }
 
-  #all .formGroup {
+  .externalPage .formGroup {
     font-size: 0.85em; }
 
     :not('.modern-theme') .narrow .main-container .chzn-container,
@@ -5341,10 +5386,10 @@ only screen and (max-width: 600px) {
     :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
       max-width: 538px; }
 
-  #all h2 {
+  .externalPage h2 {
     font-size: 1.3em; }
 
-  #all h1 {
+  .externalPage h1 {
     font-size: 1.8em; }
 
   .wide .app-name {
@@ -5376,10 +5421,10 @@ only screen and (max-width: 533px) {
     :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
       max-width: 471px; }
 
-  #all h2 {
+  .externalPage h2 {
     font-size: 1.28em; }
 
-  #all h1 {
+  .externalPage h1 {
     font-size: 1.78em; } }
 
 @media handheld,
@@ -5405,10 +5450,10 @@ only screen and (max-width: 500px) {
     :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
       max-width: 438px; }
 
-  #all h2 {
+  .externalPage h2 {
     font-size: 1.26em; }
 
-  #all h1 {
+  .externalPage h1 {
     font-size: 1.76em; } }
 
 @media handheld,
@@ -5437,10 +5482,10 @@ only screen and (max-width: 480px) {
     :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
       max-width: 418px; }
 
-  #all h2 {
+  .externalPage h2 {
     font-size: 1.24em; }
 
-  #all h1 {
+  .externalPage h1 {
     font-size: 1.74em; } }
 
 @media handheld,
@@ -5465,10 +5510,10 @@ only screen and (max-width: 360px) {
     margin-left: 0%;
     font-size: 0.9em; }
 
-  #all .formTitle {
+  .externalPage .formTitle {
     font-size: 0.9em; }
 
-  #all .formGroup {
+  .externalPage .formGroup {
     font-size: 0.75em; }
 
     :not('.modern-theme') .narrow .main-container .chzn-container,
@@ -5485,10 +5530,10 @@ only screen and (max-width: 360px) {
     :not('.modern-theme') .narrow .main-container .formTable .keylist label {
       max-width: 159px; }
 
-  #all h2 {
+  .externalPage h2 {
     font-size: 1.22em; }
 
-  #all h1 {
+  .externalPage h1 {
     font-size: 1.72em; }
 
   .narrow .special-table td {
@@ -5526,10 +5571,10 @@ only screen and (max-width: 320px) {
     :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
       max-width: 258px; }
 
-  #all h2 {
+  .externalPage h2 {
     font-size: 1.2em; }
 
-  #all h1 {
+  .externalPage h1 {
     font-size: 1.7em; }
 
   .narrow a.rtbutton {
@@ -5702,7 +5747,8 @@ only screen and (max-width: 320px) {
 
 .labelBreak {
   page-break-after: auto;
-  page-break-inside: avoid; }
+  page-break-inside: avoid;
+  margin-bottom: 10mm; }
 
 /*
  * стилове за принтиране

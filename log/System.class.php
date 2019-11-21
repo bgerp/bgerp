@@ -193,7 +193,13 @@ class log_System extends core_Manager
                 if ($mustUpdate) {
                     $oRec->lastSaved = dt::now();
                     
-                    return self::save($oRec, 'lastSaved');
+                    try {
+                        return self::save($oRec, 'lastSaved');
+                    } catch (Throwable $e) {
+                        reportException($e);
+						
+						return ;
+                    }
                 }
             }
         }
@@ -206,7 +212,11 @@ class log_System extends core_Manager
         $rec->lastSaved = dt::now();
         $rec->type = $type;
         
-        return self::save($rec);
+        try {
+            return self::save($rec);
+        } catch (Throwable $e) {
+            reportException($e);
+        }
     }
     
     
@@ -272,7 +282,7 @@ class log_System extends core_Manager
             $query->where(array("#type = '[#1#]'", $fRec->type));
         }
         
-        $query->orderBy('#createdOn', 'DESC');
+        $query->orderBy('#createdOn,#id', 'DESC');
     }
     
     
@@ -418,7 +428,7 @@ class log_System extends core_Manager
                 }
                 
                 if ($more || $moreUsr) {
-                    $msg .= " |и др.|*";
+                    $msg .= ' |и др.|*';
                 }
                 
                 if (!$this->haveRightFor('list', null, $userId)) {

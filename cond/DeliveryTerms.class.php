@@ -329,4 +329,25 @@ class cond_DeliveryTerms extends core_Master
             $res = 'no_one';
         }
     }
+    
+    
+    /**
+     * Модификация на изгледа на количката в е-шоп
+     *
+     * @param int $id
+     * @param stdClass $cartRec
+     * @param stdClass $cartRow
+     * @param core_ET $tpl
+     *
+     * @return void
+     */
+    public static function addToCartView($id, $cartRec, $cartRow, &$tpl)
+    {
+        $rec = self::fetchRec($id);
+        
+        $Calculator = self::getTransportCalculator($rec);
+        if($Calculator){
+            $Calculator->addToCartView($rec, $cartRec, $cartRow, $tpl);
+        }
+    }
 }

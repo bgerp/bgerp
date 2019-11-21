@@ -244,7 +244,7 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
             
             $exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, null, null, $rec->batch, $rec->expenseItemId, $rec->notes);
             if ($exRec) {
-                core_Statuses::newStatus('Записа, не е импортиран защото им дублаж', 'warning');
+                core_Statuses::newStatus('Записът не е импортиран, защото има дублиране', 'warning');
                 continue;
             }
             

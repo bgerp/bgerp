@@ -341,7 +341,7 @@ class batch_Items extends core_Master
     
     
     /**
-     * Чръща всички складируеми артикули с дефинирани видове партидност
+     * Връща всички складируеми артикули с дефинирани видове партидност
      *
      * @return array $storable - масив с артикули
      */
@@ -356,7 +356,9 @@ class batch_Items extends core_Master
             $dQuery->show('productId');
             while ($dRec = $dQuery->fetch()) {
                 $pRec = cat_Products::fetch($dRec->productId, 'name,isPublic,code,nameEn');
-                $storable[$dRec->productId] = cat_Products::getRecTitle($pRec, false);
+                if($pRec) {
+                    $storable[$dRec->productId] = cat_Products::getRecTitle($pRec, false);
+                }
             }
             core_Cache::set('batch_Defs', 'products', $storable, 60);
         }
@@ -557,11 +559,12 @@ class batch_Items extends core_Master
      * @param datetime|NULL $date      - към дата, ако е празно текущата
      * @param int|NULL      $limit     - лимит на резултатите
      * @param array         $except    - кой документ да се игнорира
+     * @param boolean       $onlyActiveBatches - дали да са само текущо активните партиди
      *
      * @return array $res - масив с партидите и к-та
      *               ['batch'] => ['quantity']
      */
-    public static function getBatchQuantitiesInStore($productId, $storeId, $date = null, $limit = null, $except = array())
+    public static function getBatchQuantitiesInStore($productId, $storeId, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false)
     {
         $date = (isset($date)) ? $date : dt::today();
         $res = array();
@@ -620,7 +623,7 @@ class batch_Items extends core_Master
         $bQuery->where("#date <= '{$date}'");
         $bQuery->show('batch');
         while ($bRec = $bQuery->fetch()) {
-            if (!array_key_exists($bRec->batch, $res)) {
+            if (!array_key_exists($bRec->batch, $res) && $onlyActiveBatches === false) {
                 $res[$bRec->batch] = 0;
             }
         }

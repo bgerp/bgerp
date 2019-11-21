@@ -189,6 +189,9 @@ class acc_Balances extends core_Master
                     $row->periodId = ht::createLink($row->periodId, array($mvc, 'single', $rec->id), null, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост|* {$row->periodId}");
                 }
             }
+        } else {
+            $periodState = acc_Periods::fetchField($rec->periodId, 'state');
+            $row->ROW_ATTR['class'] = "state-{$periodState}";
         }
         
         // Добавяме връзка към последния алтерниращ документ
@@ -294,6 +297,13 @@ class acc_Balances extends core_Master
         
         $now = dt::now();
         
+        // Ако датата е 
+        $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
+        if($alternateWindow) {
+            $windowStart = dt::addSecs(-$alternateWindow);
+            if($windowStart > $date) return;
+        }
+
         $query = self::getQuery();
         $query->where("#toDate >= '{$date}'");
         
@@ -361,10 +371,14 @@ class acc_Balances extends core_Master
             
             // Преизчисляваме първия баланс, в който има промени още веднъж, за да подаде верни данни на следващите
             static $rc1;
-                        
+            
+            self::logDebug("After Calc: {$rec->lastCalculateChange}; rc1 = {$rc1}");
+            
             if (!$rc1 && $rec->lastCalculateChange != 'no') {
                 self::calc($rec);
                 $rc1 = true;
+                
+                self::logDebug("After Calc2: {$rec->lastCalculateChange}; rc1 = {$rc1}");
             }
             
             return true;
@@ -450,6 +464,7 @@ class acc_Balances extends core_Master
             do {
                 core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME);
                 self::forceCalc($rec);
+                self::logDebug("After forceCalc: {$rec->lastCalculateChange}; j = {$j}; rc = {$rc}");
             } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
             $rc = false;
         }
@@ -753,7 +768,7 @@ class acc_Balances extends core_Master
         $res->amount = 0;
         
         // Ако няма записи, връщаме празен масив
-        if (!count($jRecs)) {
+        if (!countR($jRecs)) {
             
             return $res;
         }

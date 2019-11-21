@@ -1645,7 +1645,7 @@ function getCalculatedElementWidth() {
     // разстояние около формата
 	var outsideWidth = 42;
     var menuSize = 0;
-	if($('#all').length) {
+	if($('.externalPage').length) {
 		outsideWidth = 30;
 		if($('#login-form input').length) {
 			outsideWidth = parseInt($('#login-form input').offset().left * 2  + 2);
@@ -1745,8 +1745,8 @@ function setFormElementsWidth() {
         $('.formTable .hiddenFormRow select.w100').css('width', "100%");
         $('.formTable .hiddenFormRow select.w25').css('width', "25%");
 
-        var tempWidth = $('#all .formTable input.w100').last().width() > 200 ? $('#all .formTable input.w100').last().width() : 400;
-        $('#all .formTable textarea').css('min-width', tempWidth);
+        var tempWidth = $('.externalPage .formTable input.w100').last().width() > 200 ? $('.externalPage .formTable input.w100').last().width() : 400;
+        $('.externalPage .formTable textarea').css('min-width', tempWidth);
 
     	 $('.formTable label').each(function() {
     		 if($(this).parent().is('td')){
@@ -2033,61 +2033,25 @@ function appendQuote(id, line) {
 
     // Ако вече е нагласен или не е изтекъл
 	if ((!quoteText) && (selTime > now)) {
-
+		
         // Вземаме текста
         text = sessionStorage.getItem('selText');
 
         if (text) {
-    		
-        	text = text.replace(/^\s+|\s+$/g, '');
-        	text = text.replace(/\n{2,}/g, "\n\n");
-        	
-        	if (text.length) {
-        	
-	        	var textSplit = text.split("\n");
-	        	
-	        	// Вземаме манипулатора на документа
-	            selHandle = sessionStorage.getItem('selHandle');
-	        	
-	        	var isBegin = true;
-	        	newText = new Array();
-	        	
-	        	$.each( textSplit, function( key, value ) {
-	        		if (value.trim()) {
-	        			if (isBegin) {
-	        				
-	        				var quoteStr = '';
-	        				if (key) {
-	        					quoteStr = '\n\n\n';
-	        				}
-	        				
-	        				quoteStr += '[bQuote';
-	        				
-	        				// Ако има манипулато, го добавяме
-	    		            if (selHandle && (typeof selHandle != "undefined") && (selHandle != 'undefined')) {
-	    		            	quoteStr += "=" + selHandle + "]";
-	    		            } else {
-	    		            	quoteStr += "]";
-	    		            }
-	    		            
-	    		            value = quoteStr + value.trim();
-	        			}
-	        			
-	        			newText.push(value);
-	        			
-	        			isBegin = false;
-	        		} else {
-	        			lastVal = newText.pop();
-	        			newText.push(lastVal + "[/bQuote]");
-	        			isBegin = true;
-	        		}
-	            });
-	        	lastVal = newText.pop();
-	        	newText.push(lastVal + "[/bQuote]");
-	        	
-	        	quoteText = newText.join("\n");
-	        }
-        }
+			// Вземаме манипулатора на документа
+			selHandle = sessionStorage.getItem('selHandle');
+			
+			// Стринга, който ще добавим
+			quoteText = "[bQuote";
+			
+			// Ако има манипулато, го добавяме
+			if (selHandle && (typeof selHandle != "undefined") && (selHandle != 'undefined')) {
+				quoteText += "=" + selHandle + "]";
+			} else {
+				quoteText += "]";
+			}
+			quoteText += text + "[/bQuote]";
+		}
 	}
 	
     if (quoteText) {
@@ -2158,7 +2122,7 @@ function getType (val) {
  * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
  */
 function refreshForm(form, removeFields) {
-
+	
 	// Добавяме команда за рефрешване на формата
 	addCmdRefresh(form);
 
@@ -2220,6 +2184,55 @@ function refreshForm(form, removeFields) {
 	}).fail(function(res) {
 		getEO().log('Грешка при извличане на данни по AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
 	});
+}
+
+
+/**
+ * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
+ */
+function updateTab(bodyId, url) {
+
+    $.ajax({
+        url: url,
+        headers: {
+            'Ajax-Mode':'yes',
+            'Html-Part-Id':bodyId
+        },
+        method: 'GET',
+        cache: false,
+        dataType: 'json',
+        success: function(data) {
+                        for (cssFile in data.css) {
+                            console.log("start: " + cssFile);
+                            console.log($("link[href*='" + cssFile + "']"));
+                            if($("link[href*='" + cssFile + "']").length == 0) {
+                                console.log("load: " + cssFile);
+                                $('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', cssFile) );
+                            }
+                        }
+                        for (jsFile in data.js) {
+                            console.log("start: " + jsFile);
+                            console.log($("script[src*='" + jsFile + "']"));
+                            if($("script[src*='" + jsFile + "']").length == 0) {
+                                console.log("load: " + jsFile);
+                                jQuery.ajax({
+                                                type: "GET",
+                                                url: jsFile,
+                                                async: false,
+                                                dataType: "script",
+                                                cache: true
+                                        });
+                            }
+                        }
+                        var head = $('#head-' + bodyId);
+                        head.html(data.head);
+                        var body = $('#' + bodyId);
+                        body.html(data.body);
+                        // Пушваме ново URL
+                        history.pushState(null, null, url);
+                }
+        }
+   );
 }
 
 
@@ -5494,6 +5507,19 @@ function focusOnce(id) {
     }
 }
 
+
+/**
+ * Изчистване на статусите от посочен тип
+ */
+function render_clearStatuses(data)
+{
+	var type = data.type;
+	var elementClass = ".toast-type-" + type;
+	
+	if ($(elementClass).length) {
+	    $(elementClass).remove();
+	}
+}
 
 
 /**

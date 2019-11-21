@@ -698,9 +698,8 @@ class hr_WorkingCycles extends core_Master
             
             if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recLeave->leaveFrom) {
                 $persons[$id] = (object) array('stateInfo' => 'leaveDay',
-                    'stateDateFrom' => $recLeave->leaveFrom,
-                    'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recLeave->leaveTo, crm_Profiles::getUserByPerson($id))),
-                );
+                                               'stateDateFrom' => $recLeave->leaveFrom,
+                                                'stateDateTo' =>dt::addDays(-1, cal_Calendar::nextWorkingDay($recLeave->leaveTo, crm_Profiles::getUserByPerson($id))));
             }
         }
         
@@ -709,7 +708,7 @@ class hr_WorkingCycles extends core_Master
         
         // които са активни
         $query->where("#state = 'active'");
-        
+    
         while ($rec = $query->fetch()) {
             if (!is_object($persons[$rec->personId])) {
                 $persons[$rec->personId] = (object) array('stateInfo' => null, 'stateDateFrom' => null, 'stateDateTo' => null);

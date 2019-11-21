@@ -26,9 +26,11 @@ class bgerp_plg_CheckCronOnLogin extends core_Plugin
             return ;
         }
         
+        debug::log('Start WatchDog');
         // Стартираме самоподдържащия процес за Крон
         core_Url::start(toUrl(array('core_Cron', 'Watchdog'), 'absolute-force'));
-        
+        debug::log('OK WatchDog');
+
         $adminId = core_Users::getCurrent();
         
         if (!haveRole('admin', $adminId)) {

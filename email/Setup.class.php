@@ -2,6 +2,12 @@
 
 
 /**
+ * Роля, която трябва да имат потребителите за да им се създаде корпоративен имейл
+ */
+defIfNot('EMAIL_ROLE_FOR_CORPORATE_EMAIL', 'powerUser');
+
+
+/**
  * Максимално време за еднократно фетчване на писма
  */
 defIfNot('EMAIL_MAX_FETCHING_TIME', 30);
@@ -125,6 +131,12 @@ defIfNot('EMAIL_DEFAULT_SENT_INBOX', '');
  * Автоматично попълване на имейлите в полето копие
  */
 defIfNot('EMAIL_AUTO_FILL_EMAILS_FROM_CC', 0);
+
+
+/**
+ * Автоматично попълване на имейлите в полето До
+ */
+defIfNot('EMAIL_AUTO_FILL_EMAILS_FROM_TO', 0);
 
 
 /**
@@ -313,7 +325,9 @@ class email_Setup extends core_ProtoSetup
         
         'EMAIL_DEFAULT_SENT_INBOX' => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращач на изходящите имейли->От, placeholder=Автоматично,customizeBy=powerUser, optionsFunc=email_Inboxes::getAllowedFromEmailOptions'),
         
-        'EMAIL_AUTO_FILL_EMAILS_FROM_CC' => array('int', 'caption=Автоматично попълване на имейлите в полето копие|*&comma; |когато са до->Брой, customizeBy=powerUser'),
+        'EMAIL_AUTO_FILL_EMAILS_FROM_CC' => array('int', 'caption=Автоматично попълване на полето имейл от->Копие, customizeBy=powerUser, unit=бр.'),
+        
+        'EMAIL_AUTO_FILL_EMAILS_FROM_TO' => array('int', 'caption=Автоматично попълване на полето имейл от->До, customizeBy=powerUser, unit=бр.'),
         
         'EMAIL_RESTRICT_ROUTE' => array('enum(yes=Да, no=Не)', 'caption=Ограничаване на рутурането по папки->Избор'),
         

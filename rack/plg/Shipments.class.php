@@ -26,6 +26,7 @@ class rack_plg_Shipments extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         setIfNot($mvc->storeFieldName, 'storeId');
+        setIfNot($mvc->detailToPlaceInZones, $mvc->mainDetail);
     }
     
     
@@ -49,8 +50,9 @@ class rack_plg_Shipments extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($zoneId = rack_Zones::fetch("#containerId = {$rec->containerId}")){
-            $row->zoneId = rack_Zones::getHyperlink($zoneId);
+        if ($zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId}")){
+            $row->zoneId = rack_Zones::getHyperlink($zoneRec);
+            $row->zoneReadiness = rack_Zones::getVerbal($zoneRec, 'readiness');
         }
     }
     
@@ -89,8 +91,8 @@ class rack_plg_Shipments extends core_Plugin
             $rec = $mvc->fetchRec($rec);
             
             $res = array();
-            if(isset($mvc->mainDetail)){
-                $Detail = cls::get($mvc->mainDetail);
+            if(isset($mvc->detailToPlaceInZones)){
+                $Detail = cls::get($mvc->detailToPlaceInZones);
                 $dQuery = $Detail->getQuery();
                 $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$Detail->productFld}");
                 $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #canStore = 'yes'");

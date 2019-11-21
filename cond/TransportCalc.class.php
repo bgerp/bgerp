@@ -136,4 +136,33 @@ class cond_TransportCalc
     {
         return $this->class->renderDeliveryInfo($rec);
     }
+    
+    
+    /**
+     * Добавя промени по изгледа на количката във външната част
+     *
+     * @param stdClass $termRec
+     * @param stdClass $cartRec
+     * @param stdClass $cartRow
+     * @param core_ET $tpl
+     * 
+     * @return boolean
+     */
+    public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
+    {
+        return $this->class->addToCartView($termRec, $cartRec, $cartRow, $tpl);
+    }
+    
+    
+    /**
+     * При упдейт на количката в е-магазина, какво да се  изпълнява
+     *
+     * @param stdClass $cartRec
+     *
+     * @return void
+     */
+    public function onUpdateCartMaster(&$cartRec)
+    {
+        return $this->class->onUpdateCartMaster($cartRec);
+    }
 }

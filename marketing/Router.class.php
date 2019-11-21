@@ -404,4 +404,43 @@ class marketing_Router
         
         return null;
     }
+    
+    
+    /**
+     * Рутиран по личен телефон
+     *
+     * @param string $tel
+     * @param boolean $onlyMobile
+     * 
+     * @return int|null
+     */
+    public static function routeByPersonTel($tel, $onlyMobile = false)
+    {
+        // Намиране на всички визитки с подобен телефон, подредени по последна промяна
+        $normalized1 = drdata_PhoneType::getNumberStr($tel);
+        $pQuery = crm_Persons::getQuery();
+        $pQuery->where("#tel IS NOT NULL AND #state = 'active'");
+        $pQuery->where(array("#tel LIKE '%[#1#]%' OR #tel LIKE '%[#2#]%'", $tel, $normalized1));
+        $pQuery->show('tel,name');
+        $pQuery->orderBy('modifiedOn', 'DESC');
+        
+        while($pRec = $pQuery->fetch()){
+            
+            // Парсират се телефоните им
+            $telArr = drdata_PhoneType::toArray($pRec->tel);
+            foreach ($telArr as $telData){
+                
+                // Връщане на папката на лицето с първия мачнат телефон
+                $normalized2 = drdata_PhoneType::getNumberStr($telData->original);
+                if($normalized1 == $normalized2){
+                    if($onlyMobile === false || ($onlyMobile === true && $telData->mobile === true)){
+                        
+                        return crm_Persons::forceCoverAndFolder($pRec->id);
+                    }
+                }
+            }
+        }
+        
+        return null;
+    }
 }

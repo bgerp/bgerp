@@ -2,41 +2,37 @@
 <div class="sale-summary">
                 <table class='paddingCells' style='width:100%;margin-bottom:10px'>
                     <tr>
-                    	<td class = 'sum-th'>
+                    	<td class = 'sum-th' style="width: 25%">
                             |Информация|*
                         </td>
                         <td class = 'sum-th'>
                             |Обобщение|*
                         </td>
-                        <td class = 'sum-th'>
-                            |Продадено|*, [#baseCurrency#]
-                        </td>
-                        <td class = 'sum-th'>
-                            |Платено|*, [#baseCurrency#]
-                        </td>
                     </tr>
                     <tr>
-                    	<td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left;'>
-                        	<span style='font-weight:normal'>|От|*: [#from#]</span>
-                        	<br><span style='font-weight:normal'>|До|*: [#to#]</span>
-                        	<br><span style='font-weight:normal'>|Точка|*: [#pointId#]</span>
-                        	<br><span style='font-weight:normal'>|Каса|*: [#caseId#]</span>
-                        	<br><span style='font-weight:normal'>|Склад|*: [#storeId#]</span>
-                        	<br><span style='font-weight:normal'>|Търговец|*: [#dealerId#]</span>
+                    	<td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left;font-weight: normal'>
+                        	|От|*: [#from#]
+                        	<br>|До|*: [#to#]
+                        	<br>|Точка|*: [#pointId#]
+                        	<br>|Каса|*: [#caseId#]
+                        	<br>|Склад|*: [#storeId#]
+                        	<br>|Търговец|*: [#dealerId#]
                         	<!--ET_BEGIN baseAccountId-->
-                        	<br><span style='font-weight:normal'>|Начално салдо|*: [#baseAmountType#] <b>[#baseAmount#]</b> <span class='cCode'>[#bCurrencyId#]</span></span>
-		        			<br><span style='font-weight:normal'>|От|*: [#baseAccountId#]</span>
-		        			<!--ET_END baseAccountId-->
+                        	<br>|Начално салдо|*: [#baseAmountType#] <b>[#baseAmount#]</b> <span class='cCode'>[#bCurrencyId#]</span>
+		        			<br>|От|*: [#baseAccountId#]
+                            <!--ET_END baseAccountId-->
+							<hr>
+                            <div style="font-size: 1.2em;">|Продадено|*, [#baseCurrency#]: <b>[#total#]</b>
+                                <br>|Платено|*, [#baseCurrency#]: <b>[#paid#]</b> </div>
+
                         </td>
-                        <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left'>
+                        <td style='font-size:0.8em;vertical-align:top;text-align:left'>
 						     <!--ET_BEGIN ROW-->
 								[#ROW#]
-						     	<div style='font-weight:normal'>[#receiptBy#]: [#receiptTotal#] <span class='cCode'>[#baseCurrency#]</span></div>
+						     	<span style='font-weight:normal'>[#receiptBy#]: [#receiptTotal#] <span class='cCode'>[#baseCurrency#]</span></span>
 						     <!--ET_END ROW-->
-						     <div style='font-weight:normal'><hr></div><div style='font-weight:normal'>[#receiptIds#]</div>
+						     <div style='font-weight:normal'><hr></div><div style='font-weight:normal;font-size: 0.9em;'>[#receiptIds#]</div>
                         </td>
-                        <td class = 'nowrap'>[#total#]</td>
-                        <td class = 'nowrap'>[#paid#] </td>
                     </tr>
                 </table>
             </div>

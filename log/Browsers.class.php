@@ -212,14 +212,6 @@ class log_Browsers extends core_Master
      */
     public static function getBrid($generate = true)
     {
-        // brid от сесията
-        $brid = Mode::get(self::BRID_NAME);
-        
-        if ($brid) {
-            
-            return $brid;
-        }
-        
         // brid от кукитата
         if ($bridC = $_COOKIE[self::BRID_NAME]) {
             
@@ -230,10 +222,6 @@ class log_Browsers extends core_Master
             $brid = str::checkHash($bridC, self::HASH_LENGTH, $bridSalt);
             
             if ($brid) {
-                
-                // Записваме в сесията
-                Mode::setPermanent(self::BRID_NAME, $brid);
-                
                 // Добавяме в модела
                 self::add($brid);
                 
@@ -242,8 +230,6 @@ class log_Browsers extends core_Master
             
             // Ако не отговаря на хеша
             self::logNotice("Грешен хеш за BRID: {$bridC}");
-
-//                return FALSE;
         }
         
         // Ако е зададено да се генерира brid
@@ -251,9 +237,6 @@ class log_Browsers extends core_Master
             
             // Генерира brid
             $brid = self::generateBrid();
-            
-            // Записваме в сесията
-            Mode::setPermanent(self::BRID_NAME, $brid);
             
             // Записваме кукито
             self::setBridCookie($brid);
@@ -488,7 +471,7 @@ class log_Browsers extends core_Master
         
         // Добавяме хеш към brid и записваме в кукитата
         $bridHash = str::addHash($brid, self::HASH_LENGTH, $bridSalt);
-        $cArr = array('expires' => time() + $conf->CORE_COOKIE_LIFETIME, 'path' => '/', 'secure' => (EF_HTTPS == 'MANDATORY') ? true : false, 'httponly' => true, 'samesite' => 'Strict');
+        $cArr = array('expires' => time() + $conf->CORE_COOKIE_LIFETIME, 'path' => '/', 'secure' => (EF_HTTPS == 'MANDATORY') ? true : false, 'httponly' => null, 'samesite' => null);
         
         // Опитваме се да определим домейна за кукито
         $cArr['domain'] = null;
@@ -604,6 +587,29 @@ class log_Browsers extends core_Master
         }
         
         return $brid;
+    }
+    
+    
+    /**
+     * 
+     * @param null|string $userAgent
+     * @param string $check
+     * 
+     * @return boolean
+     */
+    public static function checkUserAgent($check, $userAgent = null)
+    {
+        if (!$userAgent) {
+            // Вземаме ОС от HTTP_USER_AGENT
+            $userAgent = self::getUserAgent();
+        }
+        
+        if (mb_stripos($userAgent, $check) !== false) {
+            
+            return true;
+        }
+        
+        return false;
     }
     
     
@@ -794,7 +800,7 @@ class log_Browsers extends core_Master
     
     
     /**
-     * Рвъща TRUE, ако браузърът има висока резолюция на дисплея
+     * Връща TRUE, ако браузърът има висока резолюция на дисплея
      */
     public static function isRetina()
     {

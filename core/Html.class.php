@@ -486,6 +486,9 @@ class core_Html
                     }
                     
                     $radioAttr['class'] .= ' radiobutton';
+                    if(isset($attr['onchange'])){
+                        $radioAttr['onclick'] = $attr['onchange'];
+                    }
                     
                     $input->append($indent);
                     
@@ -1034,13 +1037,9 @@ class core_Html
      */
     public static function createHint($body, $hint, $type = 'notice', $appendToEnd = true, $iconAttr = array(), $elementArr = array())
     {
-        if (empty($hint)) {
+        if (empty($hint) || Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
             
-            return $body;
-        }
-        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
-            
-            return $body;
+            return new core_ET($body);
         }
         
         $hint = strip_tags(tr($hint));
@@ -1448,15 +1447,15 @@ class core_Html
     /**
      * Стилизира числото според стойноста му:
      * 		ако е отрицателно го оцветява в червено
-     * 		ако е положително не го променя
+     * 		ако е положително не го променя (освен ако не е зададен конкретен цвят)
      * 		ако е 0, го засивява
      *
      * @param mixed $verbal
      * @param float $notVerbal
-     *
+     * @param string|null $colorIfPositive - с какъв цвят да е оцветено, ако е положително
      * @return mixed $verbal
      */
-    public static function styleNumber($verbal, $notVerbal)
+    public static function styleNumber($verbal, $notVerbal, $colorIfPositive = null)
     {
         if ($notVerbal == 0) {
             if ($verbal instanceof core_ET) {
@@ -1467,6 +1466,8 @@ class core_Html
             }
             
             return $verbal;
+        } elseif($notVerbal > 0 && isset($colorIfPositive)){
+            $verbal = "<span style='color:{$colorIfPositive}'>{$verbal}</span>";
         }
         
         return self::styleIfNegative($verbal, $notVerbal);

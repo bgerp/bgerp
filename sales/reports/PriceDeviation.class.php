@@ -31,11 +31,11 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
     
     
     /**
-     * Кое поле от $data->recs да се следи, ако има нов във новата версия
+     * Коя комбинация от полета от $data->recs да се следи, ако има промяна в последната версия
      *
      * @var string
      */
-    protected $newFieldToCheck = 'conditionQuantity';
+    protected $newFieldsToCheck = 'conditionQuantity';
     
     
     /**
@@ -135,6 +135,11 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
         if ($rec->articleType == 'no') {
             $query->where("#isPublic = 'no'");
         }
+        
+        // Синхронизира таймлимита с броя записи //
+        $maxTimeLimit = $query->count() * 5;
+        $maxTimeLimit = max(array($maxTimeLimit, 300));
+        core_App::setTimeLimit($maxTimeLimit);
         
         while ($saleProducts = $query->fetch()) {
             if ($rec->dealers && ! in_array($saleProducts->dealerId, $dealersId)) {
@@ -284,6 +289,11 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
         if ($rec->articleType == 'no') {
             $query->where("#isPublic = 'no'");
         }
+        
+        // Синхронизира таймлимита с броя записи //
+        $maxTimeLimitExp = $expQuery->count() * 5;
+        $maxTimeLimit = max(array($maxTimeLimit, $maxTimeLimitExp));
+        core_App::setTimeLimit($maxTimeLimit);
         
         while ($expProducts = $expQuery->fetch()) {
             $threadId = store_ShipmentOrders::fetch($expProducts->shipmentId)->threadId;
