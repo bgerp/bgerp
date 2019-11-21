@@ -11,51 +11,13 @@
  * @package   doc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 class doc_plg_MultiPrint extends core_Plugin
 {
-    /**
-     * След инициализирането на модела
-     *
-     * @param core_Mvc $mvc
-     * @param core_Mvc $data
-     */
-    public static function on_AfterDescription($mvc)
-    {
-        // Проверка за приложимост на плъгина към зададения $mvc
-        static::checkApplicability($mvc);
-    }
-    
-    
-    /**
-     * Проверява дали този плъгин е приложим към зададен мениджър
-     *
-     * @param core_Mvc $mvc
-     *
-     * @return bool
-     */
-    protected static function checkApplicability($mvc)
-    {
-        // Прикачане е допустимо само към наследник на core_Manager ...
-        if (!$mvc instanceof core_Manager) {
-            
-            return false;
-        }
-        
-        // ... към който е прикачен doc_DocumentPlg
-        $plugins = arr::make($mvc->loadList);
-        
-        if (isset($plugins['doc_DocumentPlg'])) {
-            
-            return false;
-        }
-        
-        return true;
-    }
     
     
     /**

@@ -24,11 +24,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
     
     
     /**
-     * Кое поле от $data->recs да се следи, ако има нов във новата версия
+     * Коя комбинация от полета от $data->recs да се следи, ако има промяна в последната версия
      *
      * @var string
      */
-    protected $newFieldToCheck = 'containerId';
+    protected $newFieldsToCheck = 'containerId';
     
     
     /**
@@ -424,6 +424,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             
             // Изчислява се готовността
             $readiness = core_Cache::get('sales_reports_ShipmentReadiness', "c{$sRec->containerId}");
+            
             if ($readiness === false) {
                 $readiness = self::calcSaleReadiness($sRec);
                 core_Cache::set('sales_reports_ShipmentReadiness', "c{$sRec->containerId}", $readiness, 58);
@@ -752,7 +753,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         }
         
         // Готовността е процента на изпълнената сума от общата
-        $readiness = (isset($readyAmount)) ? @round($readyAmount / $totalAmount, 2) : null;
+        $readiness = (isset($readyAmount) && !empty($totalAmount)) ? @round($readyAmount / $totalAmount, 2) : null;
         
         // Подсигуряване че процента не е над 100%
         if ($readiness > 1) {

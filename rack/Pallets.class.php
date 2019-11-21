@@ -882,9 +882,20 @@ class rack_Pallets extends core_Manager
     }
     
     
+    /**
+     * Добавя иконка за палетиране на артикул
+     * 
+     * @param int $storeId
+     * @param int $productId
+     * @param int $packagingId
+     * @param double $packQuantity
+     * @param string $batch
+     * 
+     * @return boolean|core_ET
+     */
     public static function getFloorToPalletImgLink($storeId, $productId, $packagingId, $packQuantity, $batch = null)
     {
-        if (store_Stores::getCurrent('id', false) != $storeId) {
+        if (store_Stores::getCurrent('id', false) != $storeId || core_Mode::isReadOnly()) {
             
             return false;
         }

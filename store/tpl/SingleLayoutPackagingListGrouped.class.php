@@ -88,8 +88,10 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
             
             $transUnitId = (!empty($rec1->transUnitId)) ? $rec1->transUnitId : trans_TransportUnits::fetchIdByName('load');
-            $transUnitQuantity = (!empty($rec1->transUnitQuantity)) ? $rec1->transUnitQuantity : 1;
-            $tarriffCodes[$rec1->tariffNumber]->transUnits[$transUnitId] += $transUnitQuantity;
+            $transUnitQuantity = (isset($rec1->transUnitQuantity)) ? $rec1->transUnitQuantity : 1;
+            if(!empty($transUnitQuantity)){
+                $tarriffCodes[$rec1->tariffNumber]->transUnits[$transUnitId] += $transUnitQuantity;
+            }
             
             $weight = $detail->getWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->weight);
             
@@ -105,7 +107,6 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         // За всяко поле за групиране
         foreach ($tarriffCodes as $tariffNumber => $tariffObject) {
             
-            core_Lg::push('bg');
             $weight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->weight);
             if(count($tariffObject->withoutWeightProducts) && !Mode::isReadOnly()){
                 $imploded = implode(',', $tariffObject->withoutWeightProducts);
@@ -113,11 +114,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
             
             $code = ($tariffNumber != self::EMPTY_TARIFF_NUMBER) ? "HS Code / CTN {$tariffObject->code}" : tr('Без тарифен код');
-            
-            
             $transUnits = trans_Helper::displayTransUnits($tariffObject->transUnits);
             $groupVerbal = tr("|*<b>{$code}</b>, |Бруто|*: {$weight}, {$transUnits}");
-            core_Lg::pop('bg');
             
             // Създаваме по един ред с името му, разпънат в цялата таблица
             $rowAttr = array('class' => ' group-by-field-row');

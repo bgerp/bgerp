@@ -50,7 +50,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         }
         $recs = array();
         
-        $deltaId = hr_IndicatorNames::fetchField("#name = 'Delta'", 'id');
+        $deltaId = $this->getDeltaId();
         
         foreach ($rec->targets['month'] as $i => $month) {
             $year = $rec->targets['year'][$i];
@@ -63,18 +63,8 @@ class acc_reports_TotalRep extends frame2_driver_TableData
             $from = "{$year}-{$month}-01";
             $to = dt::getLastDayOfMonth($from);
             
-            $delta = 0;
-            $query = hr_Indicators::getQuery();
-            $query->where("(#date >= '{$from}' AND #date <= '{$to}') && #indicatorId = {$deltaId}");
-            while ($recIndic = $query->fetch()) {
-                // Проверка дали служителя е от посочената роля
-                if ($recIndic->roleId) {
-                }
-                $delta += $recIndic->value;
-            }
-            
             $res->period = "{$month}/{$year}";
-            $res->speed = round(100 * $delta / $target, 2);
+            $res->speed = $this->getDeltaSpeed($from, $to, $target, $deltaId);
             
             $recs[$res->period] = $res;
         }
@@ -82,6 +72,55 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         return $recs;
     }
     
+    
+    /**
+     * Връща id на делта индикатора
+     * 
+     * @return integer
+     */
+    public static function getDeltaId()
+    {
+        
+        return hr_IndicatorNames::fetchField("#name = 'Delta'", 'id');
+    }
+    
+    
+    /**
+     * Връща скоростта на растежа според постигнатите цели за месеца
+     * 
+     * @param string $from
+     * @param string $to
+     * @param integer $target
+     * @param null|integer $deltaId
+     * 
+     * @return number
+     */
+    public static function getDeltaSpeed($from, $to, $target, $deltaId = null)
+    {
+        expect($target);
+        
+        if (!isset($deltaId)) {
+            $deltaId = self::getDeltaId();
+        }
+        
+        $query = hr_Indicators::getQuery();
+        
+        $query->where(array("(#date >= '[#1#]' AND #date <= '[#2#]') AND #indicatorId = [#3#]", $from, $to, $deltaId));
+        
+        $delta = 0;
+        
+        while ($recIndic = $query->fetch()) {
+//             // Проверка дали служителя е от посочената роля
+//             if ($recIndic->roleId) {
+//             }
+            
+            $delta += $recIndic->value;
+        }
+        
+        $speed = round(100 * $delta / $target, 2);
+        
+        return $speed;
+    }
     
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
@@ -118,7 +157,9 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         $row->speed = $Double->toVerbal($dRec->speed);
         $row->period = $dRec->period;
         
-        if ($row->period == $key = date('m/Y')) {
+        $key = date('m/Y');
+        
+        if ($row->period == $key) {
             $row->ROW_ATTR['class'] = 'highlight';
         }
         
@@ -139,6 +180,21 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         $arr = array();
         $key = date('m/Y');
         
+        $tpl->append($Driver->getSpeedRatioGauge($data->rec->data->recs[$key]->speed), 'DRIVER_FIELDS');
+    }
+    
+    
+    /**
+     * Връща gauge представяне
+     * 
+     * @param integer $speed
+     * @param boolean $checkVal
+     * @param string $type
+     * 
+     * @return null|ET
+     */
+    public static function getSpeedRatioGauge($speed, $checkVal = true, $type = 'radial', $scaleArr = array())
+    {
         $ratio = self::getWorkingDaysBetween(date('Y-m-01'), dt::now()) / self::getWorkingDaysBetween(date('Y-m-01'), date('Y-m-t'));
         
         if ($ratio == 0) {
@@ -146,29 +202,42 @@ class acc_reports_TotalRep extends frame2_driver_TableData
             return;
         }
         
-        $value = $data->rec->data->recs[$key]->speed / $ratio;
+        $value = $speed / $ratio;
         
-        if (!($value >= 40 && $value <= 160)) {
-            
-            return;
+        if ($checkVal) {
+            if (!($value >= 40 && $value <= 160)) {
+                
+                return;
+            }
         }
         
         $scale = array(
-            'majorTicks' => array(40, 60, 80, 100, 120, 140, 160),
-            'minValue' => 40,
-            'maxValue' => 160,
-            'units' => '%',
-            'highlights' => array(
-                (object) array('from' => 40, 'to' => 80, 'color' => '#ff6600'),
-                (object) array('from' => 80, 'to' => 100, 'color' => '#ffcc66'),
-                (object) array('from' => 100, 'to' => 160, 'color' => '#66ff00'),
-            
-            ),
+                'majorTicks' => array(40, 60, 80, 100, 120, 140, 160),
+                'minValue' => 40,
+                'maxValue' => 160,
+                'units' => '%',
+                'highlights' => array(
+                        (object) array('from' => 40, 'to' => 80, 'color' => '#ff6600'),
+                        (object) array('from' => 80, 'to' => 100, 'color' => '#ffcc66'),
+                        (object) array('from' => 100, 'to' => 160, 'color' => '#66ff00'),
+                        
+                ),
+                'title' => tr('Общи цели')
         );
         
-        $gauge = canvasgauge_Gauge::drawRadial($value, null, $scale);
+        if (!empty($scaleArr)) {
+            foreach ($scaleArr as $f => $n) {
+                $scale[$f] = $n;
+            }
+        }
         
-        $tpl->append($gauge, 'DRIVER_FIELDS');
+        if ($type == 'radial') {
+            $gauge = canvasgauge_Gauge::drawRadial($value, null, $scale);
+        } else {
+            $gauge = canvasgauge_Gauge::drawLinear($value, null, $scale);
+        }
+        
+        return $gauge;
     }
     
     

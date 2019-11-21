@@ -102,13 +102,12 @@ class planning_interface_TaskLabel
         
         expect($rec = planning_ProductionTaskDetails::fetchRec($id));
         $rowInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type);
-        $productName = str::limitLen(cat_Products::getVerbal($rec->productId, 'name'), 16, 20, '');
+        $productName = trim(cat_Products::getVerbal($rec->productId, 'name'));
         
         core_Lg::push('en');
         $quantity = $rec->quantity . " " . tr(cat_UoM::getShortName($rowInfo->measureId));
-        core_Lg::pop('en');
-        
         $weight = (!empty($rec->weight)) ? core_Type::getByName('cat_type_Weight')->toVerbal($rec->weight) : null;
+        core_Lg::pop('en');
         
         $date = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
         $Origin = doc_Containers::getDocument(planning_Tasks::fetchField($rec->taskId, 'originId'));

@@ -13,13 +13,14 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deprecated
  */
 class sales_reports_SalesPriceImpl extends frame_BaseDriver
 {
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'ceo,sales';
+    public $canSelectSource = 'no_one';
     
     
     /**

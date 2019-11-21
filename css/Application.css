@@ -4530,16 +4530,14 @@ div.location.public {
     list-style: none;
     border: 1px solid #cccccc;
     border-bottom: none;
-    background: #eeeeee;
     font-size: 0.9em;
     position: relative;
     bottom: -12px;
-    color: #888888; }
+    opacity: 0.8; }
     .modern-theme .portalTabs .tab-link.activeTab,
     .modern-theme .portalTabs .tab-link:hover {
-      color: black;
-      background: white;
-      z-index: 20; }
+      z-index: 20;
+      opacity: 1; }
 
 /*
  * край на търсене в портала
