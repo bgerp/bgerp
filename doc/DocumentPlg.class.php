@@ -2897,6 +2897,10 @@ class doc_DocumentPlg extends core_Plugin
         }
     }
     
+    
+    /**
+     * Колко копия да се отпечатат от документа при принтиране
+     */
     public static function on_AfterGetCopiesOnPrint($mvc, &$res, $id)
     {
         if(empty($res)){
@@ -2907,7 +2911,7 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Изпълнява се, акодефиниран метод getContragentData
+     * Изпълнява се, ако е дефиниран метод getContragentData
      */
     public function on_AfterGetContragentData($mvc, $data, $id)
     {

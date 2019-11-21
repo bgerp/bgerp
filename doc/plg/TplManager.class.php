@@ -572,4 +572,17 @@ class doc_plg_TplManager extends core_Plugin
             $container->removeBlock('FORM_FIELDS');
         }
     }
+    
+    
+    /**
+     * Колко копия да се отпечатат от документа при принтиране
+     */
+    public static function on_AfterGetCopiesOnPrint($mvc, &$res, $id)
+    {
+        // Ръчно зададения брой копия е с приоритет
+        $rec = $mvc->fetchRec($id);
+        if($templatePrintCount = doc_TplManager::fetchField($rec->template, 'printCount')){
+            $res = $templatePrintCount;
+        }
+    }
 }
