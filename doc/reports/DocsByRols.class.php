@@ -79,10 +79,16 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
         
         $recs = array();
         
-        if (core_Users::getByRole($rec->roleId)) {
-            $query->in('createdBy', core_Users::getByRole($rec->roleId));
+        $uArr = core_Users::getByRole($rec->roleId);
+        
+        if ($uArr) {
+            $query->in('createdBy', $uArr);
             
             $documentsForCheck = $query->fetchAll();
+            
+            $timeLimit = (int)(count($documentsForCheck) / 100);
+            $timeLimit = max($timeLimit, 240);
+            core_App::setTimeLimit($timeLimit);
             
             $query->show('createdBy, docClass, docId');
             
