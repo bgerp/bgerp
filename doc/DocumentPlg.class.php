@@ -2864,7 +2864,46 @@ class doc_DocumentPlg extends core_Plugin
             
             $tpl->append($linkTpl, 'DETAILS');
         }
+        
+        if (Mode::get('printing')) {
+            
+            $copiesNum = $mvc->getCopiesOnPrint($data->rec);
+            if($copiesNum == 1) {
+                
+                // За всяко копие предизвикваме ивент в документа, ако той иска да добави нещо към шаблона на копието
+                $mvc->invoke('AfterRenderPrintCopy', array($tpl, 1, $data->rec));
+                return;
+            }
+            
+            $originalTpl = clone($tpl);
+            $tpl = new ET('');
+            
+            for ($i = 1; $i <= $copiesNum; $i++) {
+                
+                // Ако сме в режим принтиране, добавяме копие на ордера
+                $clone = clone($originalTpl);
+                
+                // Контейнер в който ще вкараме документа + шаблона с параметрите му
+                $container = new ET("<div class='print-break'>[#clone#]</div>");
+                $container->replace($clone, 'clone');
+                
+                // За всяко копие предизвикваме ивент в документа, ако той иска да добави нещо към шаблона на копието
+                $mvc->invoke('AfterRenderPrintCopy', array($container, $i, $data->rec));
+                
+                $tpl->append($container);
+                
+                $tpl->removeBlocks();
+            }
+        }
     }
+    
+    public static function on_AfterGetCopiesOnPrint($mvc, &$res, $id)
+    {
+        if(empty($res)){
+            $res = isset($mvc->defaultCopiesOnPrint) ? $mvc->defaultCopiesOnPrint : 1;
+        }
+    }
+    
     
     
     /**
