@@ -549,7 +549,7 @@ class bgerp_Setup extends core_ProtoSetup
     /**
      * Миграция за изтриване на старите данни в портала и за добавяне на новите интерфейси
      */
-    public function setNewPortal4619()
+    public function setNewPortal46192()
     {
         $Portal = cls::get('bgerp_Portal');
         $bQuery = bgerp_Portal::getQuery();
@@ -562,6 +562,10 @@ class bgerp_Setup extends core_ProtoSetup
                       );
         
         foreach ($iArr as $iName => $iData) {
+            
+            // Ако драйверите не са добавени
+            core_Classes::add($iName);
+            
             $rec = new stdClass();
             $rec->{$Portal->driverClassField} = $iName::getClassId();
             $rec->column = $iData['column'];
@@ -588,7 +592,13 @@ class bgerp_Setup extends core_ProtoSetup
     {
         $res = parent::loadSetupData($itr);
         
-        $res .= $this->callMigrate('setNewPortal4619', 'bgerp');
+        // За да може да мине миграцията при нова инсталация
+        $dbUpdate = Mode::get('dbInit', 'update');
+        Mode::set('dbInit', 'update');
+        
+        $res .= $this->callMigrate('setNewPortal46192', 'bgerp');
+        
+        Mode::set('dbInit', $dbUpdate);
         
         return $res;
     }
