@@ -318,8 +318,7 @@ class doc_UnsortedFolders extends core_Master
         $row = parent::recToVerbal_($rec, $fields);
         $row->folder = 'Папка';
         if(isset($rec->contragentFolderId)){
-            $Cover = doc_Folders::getCover($rec->contragentFolderId);
-            $row->contragentFolderId = $Cover->getHyperlink(true);
+            $row->contragentFolderId = doc_Folders::recToVerbal($rec->contragentFolderId)->title;
         }
         
         return $row;
