@@ -73,7 +73,7 @@ class bgerp_drivers_Recently extends core_BaseClass
         $query->orderBy('#last', 'DESC');
         
         $lastRec = $query->fetch();
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->perPage . '_' . $userId . '_' . Mode::get('screenMode') . '_' . Request::get($pageVar) . '_' . Request::get($Recently->searchInputField) . '_' . core_Lg::getCurrent() . '_' . $lastRec->last);
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->perPage . '_' . $userId . '_' . Mode::get('screenMode') . '_' . Request::get($pageVar) . '_' . Request::get($Recently->searchInputField) . '_' . core_Lg::getCurrent() . '_' . $lastRec->last . '_' . dt::now(false));
         $resData->cacheType = 'RecentDoc';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
