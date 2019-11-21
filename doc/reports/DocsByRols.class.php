@@ -84,6 +84,10 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
             
             $documentsForCheck = $query->fetchAll();
             
+            $query->show('createdBy, docClass, docId');
+            
+            $dDoc = array();
+            
             foreach ($documentsForCheck as $doc) {
                 $recs[$doc->createdBy]['user'] = $doc->createdBy;
                 
@@ -92,8 +96,10 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
                 $recs[$doc->createdBy]['cnt']++;
                 
                 $dDoc[$doc->createdBy][$doc->docClass][$doc->docId] = $doc->docId;
-                
-                foreach ($dDoc[$doc->createdBy] as $clsId => $objArr) {
+            }
+            
+            foreach ($dDoc as $createdBy => $dObjArr) {
+                foreach ($dObjArr as $clsId => $objArr) {
                     if (cls::load($clsId, true)) {
                         $clsInst = cls::get($clsId);
                     }
@@ -122,7 +128,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
                                     continue;
                                 }
                                 
-                                $recs[$doc->createdBy]['details'][$clsId] = $cnt;
+                                $recs[$createdBy]['details'][$clsId] = $cnt;
                             }
                         }
                     }
