@@ -112,7 +112,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
             $resData->lastModifiedOnKey .= '|' . $cLastRec->id;
         }
         
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $userId . '_' . Mode::get('screenMode') . '_' . Request::get($Notifications->searchInputField) . '_' . Request::get($pageVar) . '_' . core_Lg::getCurrent() . '_' . $resData->lastModifiedOnKey);
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $userId . '_' . Mode::get('screenMode') . '_' . Request::get($Notifications->searchInputField) . '_' . Request::get($pageVar) . '_' . core_Lg::getCurrent() . '_' . $resData->lastModifiedOnKey . '_' . dt::now(false));
         $resData->cacheType = 'Notifications';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);

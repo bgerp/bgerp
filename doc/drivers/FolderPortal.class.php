@@ -91,7 +91,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
         
         $pageVar = 'P_' . get_called_class() . '_' . $dRec->originIdCalc;
         
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $fRec->last . '_' . serialize($fRec->statistic) . '_' . $userId . '_' . Request::get($pageVar) . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent());
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $fRec->last . '_' . serialize($fRec->statistic) . '_' . $userId . '_' . Request::get($pageVar) . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent() . '_' . dt::now(false));
         $resData->cacheType = 'FolderPortal';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
