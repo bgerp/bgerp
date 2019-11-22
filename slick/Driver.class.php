@@ -68,6 +68,8 @@ class slick_Driver extends core_BaseClass
             return ;
         }
         
+        shuffle($images);
+
         $tpl = new ET("
             <div>
                 <div id='slick{$rec->id}' class='[#OUTER_ARROWS#] [#OUTER_DOTS#]'>
