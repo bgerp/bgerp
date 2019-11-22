@@ -436,7 +436,7 @@ class batch_BatchesInDocuments extends core_Manager
         $columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
         $captions = ($Def instanceof batch_definitions_Serial) ? 'Номер' : 'Номер|Количество';
         $noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
-        $hideTable = ($Def instanceof batch_definitions_Serial && !empty($btnoff)) || (!empty($btnoff) && !countR($suggestions) && !($Def instanceof batch_definitions_Serial));
+        $hideTable = (($Def instanceof batch_definitions_Serial) && !empty($btnoff)) || (!empty($btnoff) && !countR($suggestions) && !($Def instanceof batch_definitions_Serial));
         
         if($hideTable === false){
             $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
