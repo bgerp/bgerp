@@ -68,28 +68,39 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
     
     
     /**
-     * Кой може да избере драйвера
+     * Оцветява датата според зададените данни
+     * 
+     * @param string $date
+     * @param string $format
+     * @param int $time
+     * 
+     * @return mixed $value
      */
-    public function toVerbal($value)
+    public static function displayExpiryDate($date, $format, $time)
     {
         if (Mode::isReadOnly()) {
             
-            return cls::get('type_Html')->toVerbal($value);
+            return cls::get('type_Html')->toVerbal($date);
         }
         
         $currentTime = strtotime(dt::today());
-        $mysqlValue = dt::getMysqlFromMask($value, $this->rec->format);
+        $mysqlValue = dt::getMysqlFromMask($date, $format);
+        
+        if(stripos($format, 'd') === false){
+            $mysqlValue = dt::getLastDayOfMonth($mysqlValue);
+        }
         
         // Ако партидата е изтекла оцветяваме я в червено
-        if (strtotime($mysqlValue) < $currentTime) {
-            $valueHint = ht::createHint($value, 'Срокът на годност на партидата е изтекъл', 'warning');
+        if (strtotime($mysqlValue) < $currentTime) { 
+        $valueHint = ht::createHint($date, 'Срокът на годност на партидата е изтекъл', 'warning');
             $value = new core_ET("<span class='red'>[#value#]</span>");
             $value->replace($valueHint, 'value');
         } else {
+            $value = $date;
             
             // Ако има срок на годност
-            if (isset($this->rec->time)) {
-                $startDate = dt::addSecs(-1 * $this->rec->time, $mysqlValue);
+            if (isset($time)) {
+                $startDate = dt::addSecs(-1 * $time, $mysqlValue);
                 $startDate = dt::verbal2mysql($startDate, false);
                 $startTime = strtotime($startDate);
                 $endTime = strtotime($mysqlValue);
@@ -113,6 +124,15 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
         }
         
         return cls::get('type_Html')->toVerbal($value);
+    }
+    
+    
+    /**
+     * Кой може да избере драйвера
+     */
+    public function toVerbal($value)
+    {
+        return self::displayExpiryDate($value, $this->rec->format, $this->rec->time);
     }
     
     

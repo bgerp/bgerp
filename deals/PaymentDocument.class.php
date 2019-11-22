@@ -22,6 +22,14 @@ abstract class deals_PaymentDocument extends core_Master
     
     
     /**
+     * Дефолтен брой копия при печат
+     *
+     * @var int
+     */
+    public $defaultCopiesOnPrint = 2;
+    
+    
+    /**
      * Функция, която се извиква след активирането на документа
      */
     public static function on_AfterActivation($mvc, &$rec)

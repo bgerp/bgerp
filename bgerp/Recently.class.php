@@ -377,6 +377,8 @@ class bgerp_Recently extends core_Manager
     
     /**
      * Рендира блок в портала с последните документи и папки, посетени от даден потребител
+     * 
+     * @deprecated
      */
     public function renderPortal($data)
     {
@@ -660,6 +662,8 @@ class bgerp_Recently extends core_Manager
      * Връща id, което ще се използва за обграждащия div на таблицата, който ще се замества по AJAX
      *
      * @return string
+     * 
+     * @deprecated
      */
     public function getDivId()
     {

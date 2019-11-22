@@ -21,6 +21,12 @@
             <td class="title-style" style='width:150px'>|Език|*</td>
             <td> [#lang#]</td>
         </tr>
+        
+        <tr>
+            <td class="title-style" style='width:150px'>|Брой копия при печат|*</td>
+            <td> [#printCount#]</td>
+        </tr>
+        
         <tr>
             <td class="title-style" style='width:150px'>|Видимост|*</td>
             <td> [#state#]</td>

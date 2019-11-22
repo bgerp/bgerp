@@ -25,7 +25,7 @@ class bank_CashWithdrawOrders extends bank_DocumentBlank
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_DocumentSummary, doc_ActivatePlg,
-         plg_Sorting, doc_DocumentPlg, plg_Printing,  plg_Search, doc_plg_MultiPrint, cond_plg_DefaultValues, doc_EmailCreatePlg';
+         plg_Sorting, doc_DocumentPlg, plg_Printing,  plg_Search, cond_plg_DefaultValues, doc_EmailCreatePlg';
     
     
     /**

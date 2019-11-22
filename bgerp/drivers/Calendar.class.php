@@ -89,9 +89,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $calendarStateQueryClone = clone $resData->calendarState->query;
         $calendarStateQueryClone->orderBy('createdOn', 'DESC');
         $calendarStateQueryClone->limit(1);
-        $calendarStateQueryClone->show('id');
-        $lastCalendarEventId = $calendarStateQueryClone->fetch()->id;
-
+        $lastCalendarEventRec = serialize($calendarStateQueryClone->fetch());
+        
         // Само бележки за текущия потребител или за всички потребители
         $resData->agendaData = new stdClass();
         $resData->agendaData->query = cal_Calendar::getQuery();
@@ -102,15 +101,14 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $agendaStateQueryClone = clone $resData->agendaData->query;
         $agendaStateQueryClone->orderBy('createdOn', 'DESC');
         $agendaStateQueryClone->limit(1);
-        $agendaStateQueryClone->show('id');
-        $lastAgendaEventId = $agendaStateQueryClone->fetch()->id;
+        $lastAgendaEventRec = serialize($agendaStateQueryClone->fetch());
         
         // Съдържание на клетките на календара
         $Calendar = cls::get('cal_Calendar');
         
         $Calendar->searchInputField .= '_' . $dRec->originIdCalc;
         
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->pages . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . $resData->month . '_' . $resData->year . '_' . Request::get($Calendar->searchInputField) . '_' . core_Lg::getCurrent() . '_' . $lastCalendarEventId . '_' . $lastAgendaEventId);
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->pages . '_' . $userId . '_' . Mode::get('screenMode') . '_' . $resData->month . '_' . $resData->year . '_' . Request::get($Calendar->searchInputField) . '_' . core_Lg::getCurrent() . '_' . $lastCalendarEventRec. '_' . $lastAgendaEventRec . '_' . dt::now(false));
         $resData->cacheType = 'Calendar';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
@@ -127,7 +125,6 @@ class bgerp_drivers_Calendar extends core_BaseClass
                     
                     if(!isset($resData->cData[$i])) {
                         $resData->cData[$i] = new stdClass();
-                        
                     }
                     
                     list ($d, $t) = explode(" ", $rec->time);
@@ -137,26 +134,18 @@ class bgerp_drivers_Calendar extends core_BaseClass
                         $i = (int) date('j', $time);
                         if(!isset($resData->cData[$i])) {
                             $resData->cData[$i] = new stdClass();
-                            
                         }
                         $resData->cData[$i]->type = $rec->type;
-                        
+                    
                     } elseif($rec->type == 'working-travel') {
-                        
                         $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/working-travel.png') .">&nbsp;";
-                        
                     } elseif($rec->type == 'leaves') {
-                        
                         $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/leaves.png') .">&nbsp;";
-                        
                     } elseif($rec->type == 'sick') {
-                        
                         $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/sick.png') .">&nbsp;";
-                        
                     } elseif($rec->type == 'workday') {
-                        
+                        // Нищо не се прави
                     } elseif($rec->type == 'task' || $rec->type == 'reminder'){
-                        
                         if ($arr[$d] != 'active') {
                             if($rec->state == 'active' || $rec->state == 'waiting') {
                                 $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .">&nbsp;";
@@ -246,6 +235,10 @@ class bgerp_drivers_Calendar extends core_BaseClass
             
             $data->tpl->replace($Calendar->renderListTable($data->agendaData), 'AGENDA');
             
+            $data->tpl->push('js/PortalSearch.js', 'JS');
+            jquery_Jquery::run($data->tpl, 'portalSearch();', true);
+            jquery_Jquery::runAfterAjax($data->tpl, 'portalSearch');
+            
             $cacheLifetime = doc_Setup::get('CACHE_LIFETIME') ? doc_Setup::get('CACHE_LIFETIME') : 5;
             core_Cache::set($data->cacheType, $data->cacheKey, $data->tpl, $cacheLifetime);
         }
@@ -261,7 +254,6 @@ class bgerp_drivers_Calendar extends core_BaseClass
      */
     public function getBlockType()
     {
-        
         return 'calendar';
     }
 }

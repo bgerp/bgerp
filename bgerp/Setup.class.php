@@ -549,19 +549,23 @@ class bgerp_Setup extends core_ProtoSetup
     /**
      * Миграция за изтриване на старите данни в портала и за добавяне на новите интерфейси
      */
-    public function setNewPortal()
+    public function setNewPortal46192()
     {
         $Portal = cls::get('bgerp_Portal');
         $bQuery = bgerp_Portal::getQuery();
         $bQuery->delete("1=1");
         
-        $iArr = array('bgerp_drivers_Notifications' => array('perPage' => 15, 'column' => 1, 'order' => 11),
-                      'bgerp_drivers_Tasks' => array('perPage' => 20, 'column' => 2, 'order' => 22),
-                      'bgerp_drivers_Recently' => array('perPage' => 10, 'column' => 3, 'order' => 66),
-                      'bgerp_drivers_Calendar' => array('column' => 3, 'order' => 33)
+        $iArr = array('bgerp_drivers_Notifications' => array('perPage' => 15, 'column' => 'left', 'order' => 500),
+                      'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 500),
+                      'bgerp_drivers_Recently' => array('perPage' => 10, 'column' => 'right', 'order' => 500),
+                      'bgerp_drivers_Calendar' => array('column' => 'right', 'order' => 300)
                       );
         
         foreach ($iArr as $iName => $iData) {
+            
+            // Ако драйверите не са добавени
+            core_Classes::add($iName);
+            
             $rec = new stdClass();
             $rec->{$Portal->driverClassField} = $iName::getClassId();
             $rec->column = $iData['column'];
@@ -588,7 +592,13 @@ class bgerp_Setup extends core_ProtoSetup
     {
         $res = parent::loadSetupData($itr);
         
-        $res .= $this->callMigrate('setNewPortal', 'bgerp');
+        // За да може да мине миграцията при нова инсталация
+        $dbUpdate = Mode::get('dbInit');
+        Mode::set('dbInit', 'update');
+        
+        $res .= $this->callMigrate('setNewPortal46192', 'bgerp');
+        
+        Mode::set('dbInit', $dbUpdate);
         
         return $res;
     }

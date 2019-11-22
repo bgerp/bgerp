@@ -16,7 +16,7 @@ html {
 #cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a {
     color: white;
 }
-.wide .narrowCenter {
+.wide .narrowCenter, header {
     text-align: center;
     height: auto !important;
     max-height: 300px;
@@ -156,8 +156,13 @@ header img {
 }
 @media handheld, only screen and (max-width: 1200px) {
     .wide  .headerImg{
-        width: 100%;
+        width: 100% !important;
         height: auto !important;
+        position: relative;
+        display: block;
+    }
+    .wide .fadein {
+        display: block;
     }
     .narrow .externalPage #maincontent {
         min-height: 410px;
@@ -165,6 +170,7 @@ header img {
     .centerContent, .narrow .narrowCenter, .centerFixed {
         width: 100%;
         margin: 0;
+        display: block;
     }
     .centerFixed {
         left: 0

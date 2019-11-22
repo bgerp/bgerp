@@ -71,15 +71,14 @@ class bgerp_drivers_Recently extends core_BaseClass
         $query->where(array("#userId = '[#1#]'", $userId));
         $query->limit(1);
         $query->orderBy('#last', 'DESC');
+        
         $lastRec = $query->fetch();
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->perPage . '_' . $userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get($pageVar) . '_' . Request::get($Recently->searchInputField) . '_' . core_Lg::getCurrent());
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->perPage . '_' . $userId . '_' . Mode::get('screenMode') . '_' . Request::get($pageVar) . '_' . Request::get($Recently->searchInputField) . '_' . core_Lg::getCurrent() . '_' . $lastRec->last . '_' . dt::now(false));
         $resData->cacheType = 'RecentDoc';
         
-        list($resData->tpl, $lastCreatedOn) = core_Cache::get($resData->cacheType, $resData->cacheKey);
+        $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
-        $resData->lastRecLast = $lastRec->last;
-        
-        if (!$resData->tpl || $lastCreatedOn != $resData->lastRecLast) {
+        if (!$resData->tpl) {
             // Създаваме обекта $data
             $data = new stdClass();
             
@@ -125,7 +124,7 @@ class bgerp_drivers_Recently extends core_BaseClass
         }
         
         return $resData;
-        
+    
     }
     
     
@@ -140,17 +139,62 @@ class bgerp_drivers_Recently extends core_BaseClass
     {
         if (!$data->tpl) {
             
-            $Recently = cls::get('bgerp_Recently');
-            
             // Рендираме изгледа
-            $data->tpl = $Recently->renderPortal($data->data);
+            $data->tpl = $this->renderPortal($data->data);
+            
+            $data->tpl->push('js/PortalSearch.js', 'JS');
+            jquery_Jquery::run($data->tpl, 'portalSearch();', true);
+            jquery_Jquery::runAfterAjax($data->tpl, 'portalSearch');
             
             $cacheLifetime = doc_Setup::get('CACHE_LIFETIME') ? doc_Setup::get('CACHE_LIFETIME') : 5;
             
-            core_Cache::set($data->cacheType, $data->cacheKey, array($data->tpl, $data->lastRecLast), $cacheLifetime);
+            core_Cache::set($data->cacheType, $data->cacheKey, $data->tpl, $cacheLifetime);
         }
         
         return $data->tpl;
+    }
+    
+    
+    /**
+     * Рендира блок в портала с последните документи и папки, посетени от даден потребител
+     */
+    public function renderPortal($data)
+    {
+        $Recently = cls::get('bgerp_Recently');
+        
+        $tpl = new ET("
+            <div class='clearfix21 portal'>
+            <div class='legend'><div style='float:left'>[#PortalTitle#]</div>
+            [#ListFilter#]<div class='clearfix21'></div></div>
+            [#PortalPagerTop#]
+                        
+            <div>
+                <!--ET_BEGIN PortalTable-->
+                    [#PortalTable#]
+                <!--ET_END PortalTable-->
+            </div>
+            
+            [#PortalPagerBottom#]
+            </div>
+        ");
+        
+        // Попълваме титлата
+        $tpl->append($data->title, 'PortalTitle');
+        
+        // Попълваме горния страньор
+        $tpl->append($Recently->renderListPager($data), 'PortalPagerTop');
+        
+        if ($data->listFilter) {
+            $tpl->append($data->listFilter->renderHtml(), 'ListFilter');
+        }
+        
+        // Попълваме долния страньор
+        $tpl->append($Recently->renderListPager($data), 'PortalPagerBottom');
+        
+        // Попълваме таблицата с редовете
+        $tpl->append($Recently->renderListTable($data), 'PortalTable');
+        
+        return $tpl;
     }
     
     

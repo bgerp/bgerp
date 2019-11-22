@@ -585,6 +585,12 @@ class store_Products extends core_Detail
         $tQuery->where("#state = 'pending'");
         $tQuery->show('id,containerId,fromStore,toStore,modifiedOn,deliveryTime');
         while ($tRec = $tQuery->fetch()) {
+            
+            // Ако има срок на доставка и той е <= на сега, инвалидира се кеша, да се изчисли наново
+            if(!empty($tRec->deliveryTime) && $tRec->deliveryTime <= $now){
+                core_Permanent::remove("reserved_{$tRec->containerId}");
+            }
+            
             $reserved = core_Permanent::get("reserved_{$tRec->containerId}", $tRec->modifiedOn);
             
             // Ако няма кеширани к-ва
@@ -633,6 +639,11 @@ class store_Products extends core_Detail
             }
             
             while ($sRec = $srQuery->fetch()) {
+                $deliveryTime = isset($sRec->deliveryTime) ? $sRec->deliveryTime : (isset($sRec->valior) ? $sRec->valior : $now);
+                if($deliveryTime <= $now){
+                    core_Permanent::remove("reserved_{$sRec->containerId}");
+                }
+                
                 $reserved = core_Permanent::get("reserved_{$sRec->containerId}", $sRec->modifiedOn);
                 
                 // Ако няма кеширани к-ва
@@ -646,16 +657,11 @@ class store_Products extends core_Detail
                     $sdQuery->show("productId,quantity,{$Detail->masterKey},sum");
                     $sdQuery->groupBy('productId');
                     
-                    $deliveryTime = $sRec->deliveryTime;
                     while ($sd = $sdQuery->fetch()) {
                         $key = "{$sRec->{$arr['storeFld']}}|{$sd->productId}";
                         $reserved[$key] = array('sId' => $sRec->{$arr['storeFld']}, 'pId' => $sd->productId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $sd->sum);
                         
-                        if($Doc instanceof purchase_Purchases){
-                            $deliveryTime = $sRec->valior;
-                        }
-                        
-                        if(!empty($deliveryTime) && $deliveryTime <= $now){
+                        if($deliveryTime <= $now){
                             $reserved[$key]['expected'] = $sd->sum;
                         }
                     }
@@ -814,17 +820,18 @@ class store_Products extends core_Detail
             }
             
             $dQuery->EXT('state', $Master->className, "externalName=state,externalKey={$Detail->masterKey}");
+            $dQuery->EXT('valior', $Master->className, "externalName=valior,externalKey={$Detail->masterKey}");
+            if($Master->getField('deliveryTime', false)){
+                $dQuery->EXT('deliveryTime', $Master->className, "externalName=deliveryTime,externalKey={$Detail->masterKey}");
+            }
+            
             $dQuery->where("#state = 'pending'");
             $dQuery->where("#{$Detail->productFld} = {$rec->productId}");
             $dQuery->where("#storeId = {$rec->storeId}");
             $dQuery->groupBy('containerId');
-            $dQuery->show("containerId,{$Detail->masterKey}");
             
             while ($dRec = $dQuery->fetch()) {
-                $deliveryTime = null;
-                if($Master->getField('deliveryTime', false)){
-                    $deliveryTime = $Master->fetchField($dRec->{$Detail->masterKey}, 'deliveryTime');
-                }
+                $deliveryTime = isset($dRec->deliveryTime) ? $dRec->deliveryTime : (isset($dRec->valior) ? $dRec->valior : $now);
                 
                 if($field == 'reservedQuantity'){
                     $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
@@ -922,7 +929,7 @@ class store_Products extends core_Detail
                     // Колко е готовноста
                     $missingAmount = 0;
                     foreach ($products as $productId => $object){
-                        $singlePrice = (!empty($object->quantity)) ? round($object->amount / $object->quantity, 6) : 0;
+                        $singlePrice = (!empty(round($object->quantity, 4))) ? round($object->amount / $object->quantity, 6) : 0;
                         $inStore = $quantities[$productId];
                         $inStore = (empty($inStore) || $inStore < 0) ? 0 : $inStore;
                         

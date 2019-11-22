@@ -28,6 +28,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         setIfNot($mvc->productFieldName, 'productId');
         setIfNot($mvc->storeFieldName, 'storeId');
         setIfNot($mvc->batchMovementDocument, 'out');
+        setIfNot($mvc->cantCreateNewBatch, false);
         $mvc->declareInterface('batch_MovementSourceIntf');
     }
     
@@ -71,13 +72,21 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 
                 // Ако има налични партиди в склада да се показват като предложения
                 $exBatches = batch_Items::getBatchQuantitiesInStore($rec->{$mvc->productFieldName}, $storeId);
+                
                 if (count($exBatches)) {
                     $suggestions = array();
                     foreach ($exBatches as $b => $q) {
                         $verbal = strip_tags($BatchClass->toVerbal($b));
                         $suggestions[$verbal] = $verbal;
                     }
-                    $form->setSuggestions('batch', array('' => '') + $suggestions);
+                 
+                    if($mvc->cantCreateNewBatch === true){
+                        $form->setOptions('batch', $suggestions);
+                    } else {
+                        $form->setSuggestions('batch', array('' => '') + $suggestions);
+                    }
+                } elseif($mvc->cantCreateNewBatch === true){
+                    $form->setReadOnly('batch');
                 }
                 
                 $fieldCaption = $BatchClass->getFieldCaption();
@@ -188,7 +197,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         } else {
             
             // Ако се създава нова партида, прави се опит за автоматичното и създаване
-            if (empty($rec->batch)) {
+            if (empty($rec->batch) && $mvc->cantCreateNewBatch !== true) {
                 $BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
                 if (is_object($BatchClass)) {
                     if ($mvc instanceof core_Master) {

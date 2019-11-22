@@ -79,6 +79,14 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * Дефолтен брой копия при печат
+     * 
+     * @var int
+     */
+    public $defaultCopiesOnPrint = 2;
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)
@@ -929,7 +937,7 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $payments = $invoicePayments[$containerId]->payments;
         
-        if (count($payments) && isset($payments)) {
+        if (countR($payments) && isset($payments)) {
             $hasCash = array_key_exists('cash', $payments);
             $hasBank = array_key_exists('bank', $payments);
             $hasIntercept = array_key_exists('intercept', $payments);
@@ -1188,7 +1196,7 @@ abstract class deals_InvoiceMaster extends core_Master
             
             // Добавяме към фактурираните продукти
             $update = false;
-            if (count($invoiced)) {
+            if (countR($invoiced)) {
                 foreach ($invoiced as &$inv) {
                     if ($inv->productId == $p->productId) {
                         $inv->quantity += $p->quantity;

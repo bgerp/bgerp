@@ -471,7 +471,15 @@ class doc_Setup extends core_ProtoSetup
     {
         $res = parent::loadSetupData($itr);
         
-        $res .= $this->callMigrate('addBlockToPortal', 'doc');
+        // За да може да мине миграцията при нова инсталация
+        $dbUpdate = Mode::get('dbInit');
+        Mode::set('dbInit', 'update');
+        
+        $res .= cls::get('bgerp_Setup')->loadSetupData();
+        
+        $res .= $this->callMigrate('addBlockToPortal46192', 'doc');
+        
+        Mode::set('dbInit', $dbUpdate);
         
         return $res;
     }
@@ -480,7 +488,7 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Добавя блок в портала за всеки powerUser с пощенската му кутия
      */
-    public function addBlockToPortal()
+    public function addBlockToPortal46192()
     {
         $Portal = cls::get('bgerp_Portal');
         
@@ -504,8 +512,8 @@ class doc_Setup extends core_ProtoSetup
             
             $rec = new stdClass();
             $rec->{$Portal->driverClassField} = doc_drivers_FolderPortal::getClassId();
-            $rec->column = 2;
-            $rec->order = -2;
+            $rec->column = 'center';
+            $rec->order = 200;
             $rec->perPage = 5;
             $rec->userOrRole = $uId;
             $rec->folderId = $fId;
