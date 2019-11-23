@@ -81,12 +81,12 @@ class doc_RichTextPlg extends core_Plugin
         }
         
         $hideLen = $rt->params['hideTextAfterLength'];
-        if(!$hideLen) {
+        if (!$hideLen) {
             $conf = core_Packs::getConfig('doc');
             $hideLen = $conf->DOC_HIDE_TEXT_AFTER_LENGTH;
         }
-
-        if (mb_strlen($html) <= $hideLen) {
+        
+        if (mb_strlen($html) <= $hideLen || strpos($html, '[/hide]') !== false) {
             
             return $html;
         }
