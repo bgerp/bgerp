@@ -178,7 +178,7 @@ class rack_RackDetails extends core_Detail
                 $x2 = $rec->nextCol;
                 $y2 = ord($rec->nextRow);
                 
-                list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
+                list($unusable, $reserved) = rack_RackDetails::getUnusableAndReserved();
                 $used = rack_Pallets::getUsed();
                 list($movedFrom, $movedTo) = rack_Movements::getExpected();
                 
@@ -203,7 +203,7 @@ class rack_RackDetails extends core_Detail
                             }
                             
                             if ($used[$pos]) {
-                                if ($rec->status == 'reserved' && $used[$pos] != $rec->productId) {
+                                if ($rec->status == 'reserved' && $used[$pos]->productId != $rec->productId) {
                                     $form->setError('nextCol,nextRow', 'В посочената област има други артикули' . "|* [{$pos}]");
                                 }
                                 if ($rec->status != 'reserved') {
