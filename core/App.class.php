@@ -1115,6 +1115,8 @@ class core_App
             }
             
             if ($domain = Mode::get('BGERP_CURRENT_DOMAIN')) {
+                $boot = $protocol . '://' . $auth . $domain . $dirName; 
+            } elseif (core_Url::isValidTld($domain = $_SERVER['HTTP_HOST'])) {
                 $boot = $protocol . '://' . $auth . $domain . $dirName;
             } elseif (defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
                 $boot = $protocol . '://' . $auth . BGERP_ABSOLUTE_HTTP_HOST . $dirName;
