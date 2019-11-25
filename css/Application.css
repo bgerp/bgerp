@@ -6260,6 +6260,10 @@ only screen and (max-width: 320px) {
   .document .reportHolder div.tab-control.alphabet div.tab-row .tab.selected {
     top: 0 !important; }
 
+.reportTableDataTotal {
+  background-color: #cccccc !important;
+  font-weight: bold; }
+
 .logs-type-warning {
   background-color: #fae3ca; }
 
