@@ -1382,7 +1382,7 @@ class sales_Sales extends deals_DealMaster
     {
         $rec = $data->form->rec;
         if (empty($rec->id)) {
-            if (sales_SalesDetails::haveRightFor('importlisted') && cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, salesList)) {
+            if (sales_SalesDetails::haveRightFor('importlisted') && cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, "salesList")) {
                 $data->form->toolbar->addSbBtn('Чернова и лист', 'save_and_list', 'id=btnsaveAndList,order=9.99987', 'ef_icon = img/16/save_and_new.png');
             }
         }
