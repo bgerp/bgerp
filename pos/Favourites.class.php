@@ -231,9 +231,9 @@ class pos_Favourites extends core_Manager
      */
     public static function renderPosProducts($data)
     {
-        $conf = core_Packs::getConfig('pos');
-        $ThemeClass = cls::get($conf->POS_PRODUCTS_DEFAULT_THEME);
-        $tpl = $ThemeClass->getFavouritesTpl();
+        $file = Mode::is('screenMode', 'narrow') ? 'pos/themes/default/FavouritesNarrow.shtml' : 'pos/themes/default/Favourites.shtml';
+        $tpl = getTplFromFile($file);
+        
         $self = cls::get(get_called_class());
         if ($data->arr) {
             $self->renderProducts($data->arr, $tpl);
@@ -284,8 +284,9 @@ class pos_Favourites extends core_Manager
     {
         $blockTpl = $tpl->getBlock('ITEM');
         
+        $cnt = 0;
         foreach ($products as $row) {
-            $row->url = toUrl(array('pos_Receipts', 'addProduct'), 'local');
+            $row->url = toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local');
             $row->name = ($row->title) ? $row->title : $row->name;
             if ($row->image) {
                 $img = new thumb_Img(array($row->image, 80, 80, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
@@ -293,10 +294,15 @@ class pos_Favourites extends core_Manager
                 $row->image = ht::createElement('img', array('src' => $imageURL, 'width' => '90px', 'height' => '90px'));
             }
             
+            if($cnt == 0){
+                $row->CLASS = 'pos-result-selected';
+            }
+            
             $rowTpl = clone($blockTpl);
             $rowTpl->placeObject($row);
             $rowTpl->removeBlocks();
             $rowTpl->append2master();
+            $cnt++;
         }
     }
     

@@ -97,6 +97,7 @@ class pos_ReceiptDetails extends core_Detail
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума, input=none');
         $this->FLD('value', 'varchar(32)', 'caption=Мярка, input=hidden,smartCenter');
         $this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка,input=none');
+        $this->FLD('text', 'varchar', 'caption=Пояснение,input=none');
     }
     
     
@@ -106,7 +107,6 @@ class pos_ReceiptDetails extends core_Detail
     public function renderReceiptDetail($data)
     {
         $tpl = new ET('');
-        $lastRow = Mode::get('lastAdded');
         
         if (!Mode::is('printing')) {
             $blocksTpl = getTplFromFile('pos/tpl/terminal/ReceiptDetail.shtml');
@@ -140,280 +140,270 @@ class pos_ReceiptDetails extends core_Detail
     
     
     /**
-     * Добавя отстъпка на избран продукт
-     */
-    public function act_setDiscount()
-    {
-        $this->requireRightFor('add');
-        
-        if (!$recId = Request::get('recId', 'int')) {
-            core_Statuses::newStatus('|Не е избран ред|*!', 'error');
-            
-            return $this->returnError($recId);
-        }
-        
-        if (!$rec = $this->fetch($recId)) {
-            
-            return $this->returnError($recId);
-        }
-        
-        // Трябва да може да се редактира записа
-        $this->requireRightFor('add', $rec);
-        
-        $discount = Request::get('amount');
-        $this->getFieldType('discountPercent')->params['Max'] = 1;
-        $discount = $this->getFieldType('discountPercent')->fromVerbal($discount);
-        if (!isset($discount)) {
-            core_Statuses::newStatus('|Не е въведено валидна процентна отстъпка|*!', 'error');
-            
-            return $this->returnError($rec->receiptId);
-        }
-        
-        if ($discount > 1) {
-            core_Statuses::newStatus('|Отстъпката не може да е над|* 100%!', 'error');
-            
-            return $this->returnError($rec->receiptId);
-        }
-        
-        // Записваме променената отстъпка
-        $rec->discountPercent = $discount;
-        
-        if ($this->save($rec)) {
-            core_Statuses::newStatus('|Отстъпката е зададена успешно|*!');
-            
-            return $this->returnResponse($rec->receiptId);
-        }
-        core_Statuses::newStatus('|Проблем при задаване на отстъпка|*!', 'error');
-        
-        return $this->returnError($rec->receiptId);
-    }
-    
-    
-    /**
-     * При грешка, ако е в Ajax режим, връща празен масив, иначе редиректва към бележката
-     */
-    public function returnError($id)
-    {
-        if (Request::get('ajax_mode')) {
-            $hitTime = Request::get('hitTime', 'int');
-            $idleTime = Request::get('idleTime', 'int');
-            $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
-            
-            // Връщаме статусите ако има
-            return (array) $statusData;
-        }
-        if (!$id) {
-            redirect(array('pos_Receipts', 'list'));
-        }
-        
-        redirect(array('pos_Receipts', 'terminal', $id));
-    }
-    
-    
-    /**
-     * Връщане на отговор, при успех
-     */
-    public function returnResponse($receiptId)
-    {
-        // Ако заявката е по ajax
-        if (Request::get('ajax_mode')) {
-            $receiptTpl = $this->Master->getReceipt($receiptId);
-            $toolsTpl = $this->Master->renderToolsTab($receiptId);
-            $paymentTpl = $this->Master->renderPaymentTab($receiptId);
-            
-            // Ще реплейснем само бележката
-            $resObj = new stdClass();
-            $resObj->func = 'html';
-            $resObj->arg = array('id' => 'receipt-table', 'html' => $receiptTpl->getContent(), 'replace' => true);
-            
-            // Ще реплесйнем и таба за плащанията
-            $resObj1 = new stdClass();
-            $resObj1->func = 'html';
-            $resObj1->arg = array('id' => 'tools-payment', 'html' => $paymentTpl->getContent(), 'replace' => true);
-            
-            // Ще реплесйнем и пулта
-            $resObj2 = new stdClass();
-            $resObj2->func = 'html';
-            $resObj2->arg = array('id' => 'tools-form', 'html' => $toolsTpl->getContent(), 'replace' => true);
-            
-            // Ще реплесйнем и таба за плащанията
-            $resObj3 = new stdClass();
-            $resObj3->func = 'html';
-            $resObj3->arg = array('id' => 'result_contragents', 'html' => ' ', 'replace' => true);
-            
-            // Показваме веднага и чакащите статуси
-            $hitTime = Request::get('hitTime', 'int');
-            $idleTime = Request::get('idleTime', 'int');
-            $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
-            
-            $res = array_merge(array($resObj, $resObj1, $resObj2, $resObj3), (array) $statusData);
-            
-            return $res;
-        }
-        
-        // Ако не сме в Ajax режим пренасочваме към терминала
-        redirect(array($this->Master, 'Terminal', $receiptId));
-    }
-    
-    
-    /**
-     * Промяна на количество на избран продукт
-     */
-    public function act_setQuantity()
-    {
-        $this->requireRightFor('add');
-        
-        // Трябва да има избран ред
-        if (!$recId = Request::get('recId', 'int')) {
-            core_Statuses::newStatus('|Не е избран ред|*!', 'error');
-            
-            return $this->returnError($rec->receiptId);
-        }
-        
-        // Трябва да има такъв запис
-        if (!$rec = $this->fetch($recId)) {
-            
-            return $this->returnError($rec->receiptId);
-        }
-        
-        // Трябва да може да се редактира записа
-        $this->requireRightFor('add', $rec);
-        $quantityId = Request::get('amount');
-        
-        // Трябва да е подадено валидно количество
-        $quantityId = $this->getFieldType('quantity')->fromVerbal($quantityId);
-        
-        if ($quantityId === false) {
-            core_Statuses::newStatus('|Въведеното количество не е валидно|*!', 'error');
-            
-            return $this->returnError($rec->receiptId);
-        }
-        
-        // Ако е въведено '0' за количество изтриваме реда
-        if ($quantityId === (double) 0) {
-            $this->delete($recId);
-            core_Statuses::newStatus('|Артикулът е изтрит успешно|*!');
-            
-            return $this->returnResponse($rec->receiptId);
-        }
-        
-        $revertId = pos_Receipts::fetchField($rec->receiptId, 'revertId');
-        if(!empty($revertId)){
-            $originProductRec = $this->findSale($rec->productId, $revertId, $rec->value);
-            if(is_object($originProductRec)){
-                $quantityId *= -1;
-                if(abs($originProductRec->quantity) < abs($quantityId)){
-                    core_Statuses::newStatus("Количеството е по-голямо от продаденото|* {$originProductRec->quantity}", 'error');
-                    
-                    return $this->returnError($rec->receiptId);
-                }
-            }
-        }
-        
-        // Преизчисляване на сумата
-        $rec->quantity = $quantityId;
-        $rec->amount = $rec->price * $rec->quantity;
-        
-        $error = '';
-        if(!pos_Receipts::checkQuantity($rec, $error)){
-            core_Statuses::newStatus($error, 'error');
-            
-            return $this->returnError($rec->receiptId);
-        }
-        
-        // Запис на новото количество
-        if ($this->save($rec)) {
-            core_Statuses::newStatus('|Количеството е променено успешно|*!');
-            
-            return $this->returnResponse($rec->receiptId);
-        }
-        core_Statuses::newStatus('|Проблем при редакция на количество|*!', 'error');
-        
-        return $this->returnError($rec->receiptId);
-    }
-    
-    
-    /**
      * Добавяне на плащане към бележка
      */
     public function act_makePayment()
     {
         $this->requireRightFor('add');
+        expect($receiptId = Request::get('receiptId', 'int'));
+        expect($receiptRec = pos_Receipts::fetch($receiptId));
+        pos_Receipts::requireRightFor('pay', $receiptRec);
+        $success = true;
         
-        // Трябва да е избрана бележка
-        if (!$recId = Request::get('receiptId', 'int')) {
+        try{
+            $type = Request::get('type', 'int');
+            if($type != -1){
+                expect(cond_Payments::fetch($type), 'Неразпознат метод на плащане');
+            }
             
-            return $this->returnError($recId);
-        }
-        
-        // Можем ли да направим плащане към бележката
-        $this->Master->requireRightFor('pay', $recId);
-        
-        // Трябва да има избран запис на бележка
-        if (!$receipt = $this->Master->fetch($recId)) {
+            $amount = Request::get('amount', 'varchar');
+            $amount = core_Type::getByName('double')->fromVerbal($amount);
+            expect($amount, 'Не е подадане сума за плащане');
+            expect($amount > 0, 'Сумата трябва да е положителна');
             
-            return $this->returnError($recId);
-        }
-        
-        // Трябва да е подаден валидно ид на начин на плащане
-        $type = Request::get('type', 'int');
-        if (!cond_Payments::fetch($type) && $type != -1) {
+            $diff = abs($receiptRec->paid - $receiptRec->total);
             
-            return $this->returnError($recId);
-        }
-        
-        // Трябва да е подадена валидна сума
-        $amount = Request::get('amount');
-        $amount = $this->getFieldType('amount')->fromVerbal($amount);
-        if(empty($amount)){
-            core_Statuses::newStatus('|Липсва сума|*!', 'error');
+            $paidAmount = $amount;
+            if ($type != -1) {
+                $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receiptRec->valior);
+                expect(!(!cond_Payments::returnsChange($type) && (string) abs($paidAmount) > (string) $diff), 'Платежния метод не позволява да се плати по-голяма сума от общата|*!');
+            }
             
-            return $this->returnError($recId);
-        } elseif($amount < 0){
-            core_Statuses::newStatus('|Сумата трябва да е положителна|*!', 'error');
+            if($receiptRec->revertId){
+                $amount *= -1;
+            }
             
-            return $this->returnError($recId);
-        }
-        
-        $diff = abs($receipt->paid - $receipt->total);
-        
-        $paidAmount = $amount;
-        if ($type != -1) {
-            $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receipt->valior);
+            // Подготвяме записа на плащането
+            $rec = (object)array('receiptId' => $receiptRec->id, 'action' => "payment|{$type}", 'amount' => $amount);
             
-            // Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
-            if (!cond_Payments::returnsChange($type) && (string) abs($paidAmount) > (string) $diff) {
-                core_Statuses::newStatus('|Платежния метод не позволява да се плати по-голяма сума от общата|*!', 'error');
-                
-                return $this->returnError($recId);
+            if($this->save($rec)){
+                core_Statuses::newStatus('Плащането е направено успешно|*!');
+            }
+            
+       } catch(core_exception_Expect $e){
+           $dump = $e->dump;
+           $dump1 = $dump[0];
+           
+           if (!Request::get('ajax_mode')) {
+               throw new core_exception_Expect('', 'Изключение', $dump);
+           } else {
+               core_Statuses::newStatus($dump1, 'error');
+               $success = false;
+           }
+       }
+        
+       return pos_Terminal::returnAjaxResponse($receiptId, null, $success, true);
+    }
+    
+    
+    
+    public function act_updaterec()
+    {
+        $this->requireRightFor('edit');
+        expect($receiptId = Request::get('receiptId', 'int'));
+        $success = true;
+       
+        try{
+            $id = Request::get('recId', 'int');
+            $id = isset($id) ? $id : self::getLastProductRecId($receiptId);
+            expect($rec = self::fetch($id), 'Не е избран ред');
+            $this->requireRightFor('edit', $rec);
+           
+            expect($operation = Request::get('action', 'enum(setquantity,setdiscount,settext,setprice,setpack)'), 'Невалидна операция');
+            $string = Request::get('string', 'varchar');
+            expect(isset($string), 'Проблем при разчитане на операцията');
+            
+            if($operation == 'settext' || $operation == 'setpack'){
+                $firstValue = trim($string);
+            } else {
+                $string = str::removeWhiteSpace(trim($string), " ");
+                list($firstValue, $secondValue) = explode(" ", $string);
+            }
+            
+            switch($operation){
+                case 'setquantity':
+                    expect($quantity = core_Type::getByName('double')->fromVerbal($firstValue), 'Не е зададено количество');
+                    $rec->quantity = $quantity;
+                    $rec->amount = $rec->price * $rec->quantity;
+                    
+                    if(!empty($secondValue)){
+                        expect($packagingId = cat_UoM::fetchBySinonim($secondValue)->id, 'Не е разпозната опаковка');
+                        $packs = cat_Products::getPacks($rec->productId);
+                        
+                        expect(array_key_exists($packagingId, $packs), 'Опаковката/мярка не е налична за въпросния артикул');
+                        $rec->value = $packagingId;
+                    }
+                    $sucessMsg = 'Количеството на реда е променено|*!';
+                    break;
+               case 'setdiscount':
+                   $discount = core_Type::getByName('percent')->fromVerbal($firstValue);
+                   expect(isset($discount), 'Не е въведен процент отстъпка');
+                   expect($discount >= 0 && $discount <= 1, 'Отстъпката трябва да е между 0% и 100%');
+                   $rec->discountPercent = $discount;
+                   $sucessMsg = 'Отстъпката на реда е променена|*!';
+                   break;
+               case 'setprice':
+                   expect($price = core_Type::getByName('double')->fromVerbal($firstValue), 'Не е зададена цена');
+                   $price /= 1 + $rec->param;
+                   $rec->price = $price;
+                   $sucessMsg = 'Цената на реда е променена|*!';
+                   
+                   break;
+               case 'settext':
+                   $text = core_Type::getByName('text')->fromVerbal($firstValue);
+                   expect(isset($text), 'Не е зададено пояснение');
+                   $rec->text = (!empty($text)) ? $text : null;
+                   $sucessMsg = 'Променено пояснение на реда|*!';
+                   break;
+               case 'setpack':
+                   expect($packagingId = cat_UoM::fetchBySinonim($firstValue)->id, 'Не е разпозната опаковка');
+                   $packs = cat_Products::getPacks($rec->productId);
+                   expect(array_key_exists($packagingId, $packs), 'Опаковката/мярка не е налична за въпросния артикул');
+                   $rec->value = $packagingId;
+                   $sucessMsg = 'Променена опаковка/мярка|*!';
+                   
+                   break;
+            }
+            
+            if($this->save($rec)){
+                core_Statuses::newStatus($sucessMsg);
+            }
+            
+        } catch(core_exception_Expect $e){
+            $dump = $e->dump;
+            $dump1 = $dump[0];
+            
+            if (!Request::get('ajax_mode')) {
+                throw new core_exception_Expect('', 'Изключение', $dump);
+            } else {
+                core_Statuses::newStatus($dump1, 'error');
+                $success = false;
             }
         }
         
-        if($receipt->revertId){
-            $amount *= -1;
-        }
-        
-        // Подготвяме записа на плащането
-        $rec = new stdClass();
-        $rec->receiptId = $recId;
-        $rec->action = "payment|{$type}";
-        $rec->amount = $amount;
-        
-        $paidAmount = $rec->amount;
-        if($type != -1){
-            $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receipt->valior);
-        }
-        
-        // Запис на плащането
-        if ($this->save($rec)) {
-            core_Statuses::newStatus('|Плащането е направено успешно|*!');
-            
-            return $this->returnResponse($recId);
-        }
-        core_Statuses::newStatus('|Проблем при плащането|*!', 'error');
-        
-        return $this->returnError($recId);
+        return pos_Terminal::returnAjaxResponse($receiptId, $id, $success, true);
     }
+    
+    
+    /**
+     * Екшън добавящ продукт в бележката
+     */
+    public function act_addProduct()
+    {
+        $this->requireRightFor('add');
+        expect($receiptId = Request::get('receiptId', 'int'));
+        expect($receiptRec = pos_Receipts::fetch($receiptId));
+        $this->requireRightFor('add', (object)array('receiptId' => $receiptId));
+        $success = false;
+        
+        try{
+            expect(empty($receiptRec->paid), 'Не може да се добавя продукт, ако има направено плащане|*!');
+            
+            // Запис на продукта
+            $rec = (object)array('receiptId' => $receiptId, 'action' => 'sale|code');
+            $quantity = Request::get('quantity');
+            if ($quantity = cls::get('type_Double')->fromVerbal($quantity)) {
+                $rec->quantity = $quantity;
+            } else {
+                $rec->quantity = 1;
+            }
+            
+            // Ако е зададено ид на продукта
+            if ($productId = Request::get('productId', 'int')) {
+                $rec->productId = $productId;
+            }
+            
+            // Ако е зададен код на продукта
+            if ($ean = Request::get('ean')) {
+                $matches = array();
+                
+                // Проверяваме дали въведения "код" дали е във формата '< число > * < код >',
+                // ако да то приемаме числото преди '*' за количество а след '*' за код
+                preg_match('/([0-9+\ ?]*[\.|\,]?[0-9]*\ *)(\ ?\* ?)([0-9a-zа-я\- _]*)/iu', $ean, $matches);
+                
+                // Ако има намерени к-во и код от регулярния израз
+                if (!empty($matches[1]) && !empty($matches[3])) {
+                    
+                    // Ако има ид на продукт
+                    if (isset($rec->productId)) {
+                        $rec->quantity = cls::get('type_Double')->fromVerbal($matches[1] * $matches[3]);
+                    } else {
+                        
+                        // Ако няма приемаме, че от ляво е колчиество а от дясно код
+                        $rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
+                        $rec->ean = $matches[3];
+                    }
+                    
+                    // Ако има само лява част приемаме, че е количество
+                } elseif (!empty($matches[1]) && empty($matches[3])) {
+                    $rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
+                } else {
+                    if (isset($rec->productId)) {
+                        $rec->quantity = cls::get('type_Double')->fromVerbal($ean);
+                    } else {
+                        $rec->ean = $ean;
+                    }
+                }
+            }
+            
+            expect(!empty($rec->productId) || !empty($rec->ean), 'Не е избран артикул|*!');
+            
+            if ($packId = Request::get('packId', 'int')) {
+                expect(cat_UoM::fetch($packId), "Невалидна опаковка|*!");
+                $rec->value = $packId;
+            }
+            
+            // Намираме нужната информация за продукта
+            $this->getProductInfo($rec);
+            expect($rec->productId, 'Няма такъв продукт в системата, или той не е продаваем|*!');
+            
+            // Ако няма цена
+            if (!$rec->price) {
+                $createdOn = pos_Receipts::fetchField($rec->receiptId, 'createdOn');
+                $createdOn = dt::mysql2verbal($createdOn, 'd.m.Y H:i');
+                expect(false,  "Артикулът няма цена към|* <b>{$createdOn}</b>");
+            }
+            
+            $revertId = pos_Receipts::fetchField($receiptId, 'revertId');
+            if (!empty($revertId)) {
+                $rec->quantity *= -1;
+                expect($originProductRec = $this->findSale($rec->productId, $revertId, $rec->value), 'Артикулът го няма в оригиналната бележка|*!');
+            }
+            
+            // Намираме дали този проект го има въведен
+            $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value);
+            if ($sameProduct) {
+                
+                // Ако цената и опаковката му е същата като на текущия продукт,
+                // не добавяме нов запис а ъпдейтваме стария
+                $newQuantity = $rec->quantity + $sameProduct->quantity;
+                $rec->quantity = $newQuantity;
+                $rec->amount += $sameProduct->amount;
+                $rec->id = $sameProduct->id;
+            }
+            
+            $error = '';
+            if (!pos_Receipts::checkQuantity($rec, $error)) {
+                expect(false, $error);
+            }
+            expect(!(!empty($revertId) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|*|* {$originProductRec->quantity}");
+            $this->save($rec);
+            $success = true;
+        } catch(core_exception_Expect $e){
+            $dump = $e->dump;
+            $dump1 = $dump[0];
+            reportException($e);
+            if (!Request::get('ajax_mode')) {
+                throw new core_exception_Expect('', 'Изключение', $dump);
+            } else {
+                core_Statuses::newStatus($dump1, 'error');
+                $success = false;
+            }
+        }
+        core_Statuses::newStatus($receiptId);
+        return pos_Terminal::returnAjaxResponse($receiptId, null, $success, true);
+    }
+    
     
     
     /**
@@ -422,35 +412,15 @@ class pos_ReceiptDetails extends core_Detail
     public function act_DeleteRec()
     {
         $this->requireRightFor('delete');
+        expect($id = Request::get('recId', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('delete', $id);
         
-        // Трябва да има ид на ред за изтриване
-        if (!$id = Request::get('recId', 'int')) {
-            
-            return $this->returnError($receiptId);
-        }
+        $this->delete($rec->id);
+        $this->Master->updateReceipt($rec->receiptId);
+        core_Statuses::newStatus("Редът е изтрит успешно");
         
-        // Трябва да има такъв запис
-        if (!$rec = $this->fetch($id)) {
-            
-            return $this->returnError($receiptId);
-        }
-        
-        // Трябва да можем да изтриваме от бележката
-        $this->requireRightFor('delete', $rec);
-        
-        $receiptId = $rec->receiptId;
-        
-        if ($this->delete($rec->id)) {
-            core_Statuses::newStatus('|Успешно изтриване|*!');
-            
-            // Ъпдейт на бележката след изтриването
-            $this->Master->updateReceipt($receiptId);
-            
-            return $this->returnResponse($receiptId);
-        }
-        core_Statuses::newStatus('|Проблем при изтриването на ред|*!', 'error');
-        
-        return $this->returnError($receiptId);
+        return pos_Terminal::returnAjaxResponse($rec->receiptId, null, true, true);
     }
     
     
@@ -463,6 +433,7 @@ class pos_ReceiptDetails extends core_Detail
         $query = $this->getQuery();
         $query->where("#receiptId = '{$receiptId}'");
         $query->orderBy('id', 'asc');
+        
         while ($rec = $query->fetch()) {
             $res->recs[$rec->id] = $rec;
             $res->rows[$rec->id] = $this->recToVerbal($rec);
@@ -662,7 +633,6 @@ class pos_ReceiptDetails extends core_Detail
      */
     public static function on_AfterSave($mvc, &$id, $rec, $fieldsList = null)
     {
-        Mode::setPermanent('lastAdded', $id);
         $mvc->Master->updateReceipt($rec->receiptId);
     }
     
@@ -795,5 +765,17 @@ class pos_ReceiptDetails extends core_Detail
         cls::get('pos_Receipts')->updateReceipt($receiptId);
         
         followRetUrl();
+    }
+    
+    
+    public static function getLastProductRecId($receiptId)
+    {
+        $query = pos_ReceiptDetails::getQuery();
+        $query->where("#receiptId = {$receiptId} AND #action = 'sale|code'");
+        $query->orderBy("id", 'DESC');
+        $query->limit(1);
+        $rec = $query->fetch();
+        
+        return is_object($rec) ? $rec->id : null;
     }
 }

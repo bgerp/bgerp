@@ -31,15 +31,6 @@ function posActions() {
 		$(this).css( 'cursor', 'pointer' );
 	});
 	
-	// Засветяване на избрания ред и запис в хидън поле
-	$(document.body).on('click', ".pos-sale", function(e){
-		var id = $(this).attr("data-id");
-		$(".pos-sale td").removeClass('pos-hightligted');
-		$(".pos-sale").removeClass('pos-hightligted');
-		$('[data-id="'+ id +'"] td').addClass('pos-hightligted');
-		$("input[name=rowId]").val(id);
-	});
-	
 	
 	// Използване на числата за въвеждане в пулта
 	$(document.body).on('click', "#tools-form .numPad", function(e){
@@ -151,6 +142,32 @@ function posActions() {
 	// При натискане на бутон от клавиатурата, ако е 'ENTER'
 	$(document).keypress(function(e) {
 	    if(e.which == 13) {
+	    	var value = $("input[name=ean]").val();
+	    	var url = $("input[name=ean]").attr("data-url");
+	    	var operation = $("select[name=operation]").val();
+	    	
+		    if(!url){
+		    	
+				return;
+			}
+	    	
+			resObj = new Object();
+			resObj['url'] = url;
+			
+			console.log(url + " " + value);
+			
+			getEfae().process(resObj, {string:value});
+		    
+		    
+		    
+		    
+		    
+	    	return;
+	    	
+	    	
+	    	
+	    	
+	    	
 	    	
 	    	// И има попълнен продуктов код/баркод
 	    	var code = $("input[name=ean]").val();
@@ -191,7 +208,10 @@ function posActions() {
 	$(document.body).on('click', ".paymentBtn", function(e){
 		if(!$(this).hasClass( "disabledBtn")){
 			var url = $(this).attr("data-url");
-			var type = $("[name=selectedPayment]").val();
+			
+			var type = $(this).attr("data-type");
+			
+			
 			type = (!type) ? '-1' : type;
 			
 			doPayment(url, type);
@@ -343,7 +363,7 @@ function posActions() {
 		}
 	});
 
-	naviBoard.setNavigation("pos-products");
+	//naviBoard.setNavigation("pos-products");
 
 
 
@@ -363,27 +383,50 @@ function posActions() {
 	var timeout;
 	
 	
-	// След въвеждане на стойност, прави заявка по Ajax
-	$(".select-input-pos").keyup(function() {
+	$(document.body).on('keyup', "input[name=ean]", function(e){
 
 		var inpVal = $(this).val();
 		var receiptId = $("input[name=receiptId]").val();
-
-		var url = $(this).attr("data-url");
-
+		var operation = $("select[name=operation]").val();
+		
+		var url = $(this).attr("data-keyupurl");
+		if(!url){
+			return;
+		}
+		
 		// След всяко натискане на бутон изчистваме времето на изчакване
 		clearTimeout(timeout);
-
+		console.log('keyp');
 		// Правим Ajax заявката като изтече време за изчакване
 		timeout = setTimeout(function(){
 			resObj = new Object();
 			resObj['url'] = url;
-
-			getEfae().process(resObj, {searchString:inpVal,receiptId:receiptId});
+			console.log(url, operation,inpVal);
+			getEfae().process(resObj, {operation:operation,search:inpVal});
 
 		}, 700);
 
 	});
+	
+	
+	// След въвеждане на стойност, прави заявка по Ajax
+	$(document.body).on('change', "select[name=operation]", function(e){
+		clearTimeout(timeout);
+		var operation = $(this).val();
+		
+		var selectedElement = $(".pos-receipt-selected");
+		var selectedRecId = selectedElement.attr("data-id");
+		
+		var url = $(this).attr("data-url");
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		getEfae().process(resObj, {operation:operation,recId:selectedRecId});
+	});
+	
+	
+	
+	
 	
 	// Добавяне на продукт от резултатите за търсене
 	$(document.body).on('click', ".pos-add-res-btn", function(e){
@@ -479,6 +522,23 @@ function posActions() {
 		getEfae().process(resObj, {receiptId:receiptId,searchString:searchStr});
 		calculateWidth();
 	});
+	
+	
+	$(document.body).on('click', "tr.pos-quantity-result-quantity-row", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		var selectedElement = $(".pos-receipt-selected");
+		var selectedRecId = selectedElement.attr("data-id");
+		
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		console.log(url);
+		getEfae().process(resObj, {recId:selectedRecId});
+		//calculateWidth();
+	});
+	
 }
 
 // Калкулира ширината
@@ -546,16 +606,15 @@ function scrollRecieptBottom(){
 // Направа на плащане
 function doPayment(url, type){
 	if(!url || !type) return;
-	var amount = $("input[name=paysum]").val();
+	var amount = $("input[name=ean]").val();
 	
-	var receiptId = $("input[name=receiptId]").val();
-	var data = {receiptId:receiptId, amount:amount, type:type};
+	var data = {amount:amount, type:type};
 	
 	resObj = new Object();
 	resObj['url'] = url;
 	getEfae().process(resObj, data);
 
-	$("input[name=paysum]").val("");
+	$("input[name=ean]").val("");
 	scrollRecieptBottom();
 }
 
@@ -634,5 +693,5 @@ function render_prepareTableResult() {
 	$('#pos-search-result-table .rowBlock').addClass('navigable');
 	$('#pos-search-result-table .rowBlock').eq(0).addClass('active');
 	$('#pos-search-result-table .listTable').attr('id', 'resultTable');
-	naviBoard.setNavigation("resultTable");
+	//naviBoard.setNavigation("resultTable");
 }

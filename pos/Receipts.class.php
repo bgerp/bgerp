@@ -603,6 +603,8 @@ class pos_Receipts extends core_Master
     
     /**
      * Вкарване на css и js файлове
+     * 
+     * @TODO REMOVE
      */
     public function pushTerminalFiles_(&$tpl)
     {
@@ -627,7 +629,7 @@ class pos_Receipts extends core_Master
     
     /**
      * Подготовка и рендиране на бележка
-     *
+     *@TODO
      * @param int $id - ид на бележка
      *
      * @return core_ET $tpl - шаблона
@@ -647,6 +649,7 @@ class pos_Receipts extends core_Master
     
     /**
      * Подготовка на бележка
+     * @TODO
      */
     private function prepareReceipt(&$data)
     {
@@ -660,7 +663,7 @@ class pos_Receipts extends core_Master
     
     /**
      * Подготовка и рендиране на бележка
-     *
+     * @TODO
      * @return core_ET $tpl - шаблон
      */
     private function renderReceipt($data)
@@ -734,6 +737,7 @@ class pos_Receipts extends core_Master
     
     /**
      * Рендира бързите бутони
+     * @TODO
      *
      * @return core_ET $block - шаблон
      */
@@ -753,6 +757,7 @@ class pos_Receipts extends core_Master
     
     /**
      * Рендиране на таба с пулта
+     * @TODO
      *
      * @param int $id - ид на бележка
      *
@@ -767,8 +772,8 @@ class pos_Receipts extends core_Master
         if ($this->pos_ReceiptDetails->haveRightFor('add', (object) array('receiptId' => $rec->id))) {
             $modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
             $discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
-            $addUrl = toUrl(array('pos_Receipts', 'addProduct', $rec->id), 'local');
-            $absUrl = toUrl(array('pos_Receipts', 'addProduct', $rec->id), 'absolute');
+            $addUrl = toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id), 'local');
+            $absUrl = toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id), 'absolute');
         } else {
             $discUrl = $addUrl = $addUrl = $modQUrl = null;
             $disClass = 'disabledBtn';
@@ -777,11 +782,6 @@ class pos_Receipts extends core_Master
         
         $value = null;
         
-        // Ако има последно добавен продукт, записваме ид-то на записа в скрито поле
-        if ($lastRow = Mode::get('lastAdded')) {
-            $value = $lastRow;
-            Mode::setPermanent('lastAdded', null);
-        }
         
         $browserInfo = Mode::get('getUserAgent');
         if (stripos($browserInfo, 'Android') !== false) {
@@ -828,7 +828,7 @@ class pos_Receipts extends core_Master
     
     /**
      * Рендира клавиатурата
-     * 
+     * @TODO
      * @return core_ET $tpl
      */
     public static function renderKeyboard($tab)
@@ -859,42 +859,6 @@ class pos_Receipts extends core_Master
         Mode::set('wrapper', 'page_Empty');
         
         return $this->renderDraftsTab($id)->getContent() . '<div class="clearfix21"></div>';
-    }
-    
-    
-    /**
-     * Рендиране на таба с черновите
-     *
-     * @param int $id -ид на бележка
-     *
-     * @return core_ET $block - шаблон
-     */
-    public function renderDraftsTab($id)
-    {
-        $rec = $this->fetchRec($id);
-        $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('DRAFTS');
-        $pointId = pos_Points::getCurrent('id');
-        $now = dt::today();
-        
-        // Намираме всички чернови бележки и ги добавяме като линк
-        $query = $this->getQuery();
-        $query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$rec->id}");
-        while ($rec = $query->fetch()) {
-            $date = dt::mysql2verbal($rec->createdOn, 'H:i');
-            $between = dt::daysBetween($now, $rec->valior);
-            $between = ($between != 0) ? " <span class='num'>-${between}</span>" : null;
-            
-            $revertClass = isset($rec->revertId) ? 'revert-receipt' : '';
-            $row = ht::createLink("<span class='pos-span-name'>№{$rec->id} <br> {$date}$between</span>", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => "pos-notes {$revertClass}", 'title' => 'Преглед на бележката'));
-            $block->append($row);
-        }
-        
-        if ($this->haveRightFor('add')) {
-            $addBtn = ht::createLink("<span class='pos-span-name'>" . tr('Нова') . '</span>', array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes');
-            $block->prepend($addBtn);
-        }
-        
-        return $block;
     }
     
     
@@ -1256,175 +1220,6 @@ class pos_Receipts extends core_Master
     
     
     /**
-     * Екшън добавящ продукт в бележката
-     */
-    public function act_addProduct()
-    {
-        $this->pos_ReceiptDetails->requireRightFor('add');
-        
-        // Трябва да има такава бележка
-        if (!$receiptId = Request::get('id', 'int')) {
-            if (!$receiptId = Request::get('receiptId', 'int')) {
-                
-                return $this->pos_ReceiptDetails->returnError($receiptId);
-            }
-        }
-        
-        if ($this->fetchField($receiptId, 'paid')) {
-            core_Statuses::newStatus('|Не може да се добавя продукт, ако има направено плащане|*!', 'error');
-            
-            return $this->pos_ReceiptDetails->returnError($receiptId);
-        }
-        
-        // Трябва да можем да добавяме към нея
-        $this->pos_ReceiptDetails->requireRightFor('add', (object) array('receiptId' => $receiptId));
-        
-        // Запис на продукта
-        $rec = new stdClass();
-        $rec->receiptId = $receiptId;
-        $rec->action = 'sale|code';
-        
-        // Ако има к-во и то валидно задаваме го на записа
-        $quantity = Request::get('quantity');
-        if ($quantity = cls::get('type_Double')->fromVerbal($quantity)) {
-            $rec->quantity = $quantity;
-        } else {
-            $rec->quantity = 1;
-        }
-        
-        // Ако е зададено ид на продукта
-        if ($productId = Request::get('productId', 'int')) {
-            $rec->productId = $productId;
-        }
-        
-        // Ако е зададен код на продукта
-        if ($ean = Request::get('ean')) {
-            $matches = array();
-            
-            // Проверяваме дали въведения "код" дали е във формата '< число > * < код >',
-            // ако да то приемаме числото преди '*' за количество а след '*' за код
-            preg_match('/([0-9+\ ?]*[\.|\,]?[0-9]*\ *)(\ ?\* ?)([0-9a-zа-я\- _]*)/iu', $ean, $matches);
-            
-            // Ако има намерени к-во и код от регулярния израз
-            if (!empty($matches[1]) && !empty($matches[3])) {
-                
-                // Ако има ид на продукт
-                if (isset($rec->productId)) {
-                    $rec->quantity = cls::get('type_Double')->fromVerbal($matches[1] * $matches[3]);
-                } else {
-                    
-                    // Ако няма приемаме, че от ляво е колчиество а от дясно код
-                    $rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
-                    $rec->ean = $matches[3];
-                }
-                
-                // Ако има само лява част приемаме, че е количество
-            } elseif (!empty($matches[1]) && empty($matches[3])) {
-                $rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
-            } else {
-                if (isset($rec->productId)) {
-                    $rec->quantity = cls::get('type_Double')->fromVerbal($ean);
-                } else {
-                    $rec->ean = $ean;
-                }
-            }
-        }
-        
-        // Трябва да е подаден код или ид на продукт
-        if (!$rec->productId && !$rec->ean) {
-            core_Statuses::newStatus('|Не е избран артикул|*!', 'error');
-            
-            return $this->pos_ReceiptDetails->returnError($receiptId);
-        }
-        
-        if ($packId = Request::get('packId', 'int')) {
-            if (!cat_UoM::fetch($packId)) {
-                core_Statuses::newStatus('|Невалидна опаковка|*!', 'error');
-                
-                return $this->pos_ReceiptDetails->returnError($receiptId);
-            }
-            
-            $rec->value = $packId;
-        }
-        
-        
-        // Намираме нужната информация за продукта
-        $this->pos_ReceiptDetails->getProductInfo($rec);
-        
-        // Ако не е намерен продукт
-        if (!$rec->productId) {
-            core_Statuses::newStatus('|Няма такъв продукт в системата, или той не е продаваем|*!', 'error');
-            
-            return $this->pos_ReceiptDetails->returnError($receiptId);
-        }
-        
-        // Ако няма цена
-        if (!$rec->price) {
-            $createdOn = pos_Receipts::fetchField($rec->receiptId, 'createdOn');
-            $createdOn = dt::mysql2verbal($createdOn, 'd.m.Y H:i');
-            
-            core_Statuses::newStatus("|Артикулът няма цена към|* <b>{$createdOn}</b>", 'error');
-            
-            return $this->pos_ReceiptDetails->returnError($receiptId);
-        }
-        
-        $revertId = pos_Receipts::fetchField($receiptId, 'revertId');
-        if (!empty($revertId)) {
-            $rec->quantity *= -1;
-            
-            $originProductRec = $this->pos_ReceiptDetails->findSale($rec->productId, $revertId, $rec->value);
-            if (empty($originProductRec)) {
-                core_Statuses::newStatus('Артикулът го няма в оригиналната бележка|*!', 'error');
-                
-                return $this->pos_ReceiptDetails->returnError($receiptId);
-            }
-        }
-        
-        // Намираме дали този проект го има въведен
-        $sameProduct = $this->pos_ReceiptDetails->findSale($rec->productId, $rec->receiptId, $rec->value);
-        if ($sameProduct) {
-            
-            // Ако цената и опаковката му е същата като на текущия продукт,
-            // не добавяме нов запис а ъпдейтваме стария
-            $newQuantity = $rec->quantity + $sameProduct->quantity;
-            $rec->quantity = $newQuantity;
-            $rec->amount += $sameProduct->amount;
-            $rec->id = $sameProduct->id;
-        }
-        
-        $error = '';
-        if (!self::checkQuantity($rec, $error)) {
-            core_Statuses::newStatus($error, 'error');
-            
-            return $this->pos_ReceiptDetails->returnError($receiptId);
-        }
-        
-        if (!empty($revertId) && abs($originProductRec->quantity) < abs($rec->quantity)) {
-            core_Statuses::newStatus("количеството е по-голямо от продаденото|*|* {$originProductRec->quantity}", 'error');
-            
-            return $this->pos_ReceiptDetails->returnError($receiptId);
-        }
-        
-        // Добавяне/обновяване на продукта
-        if ($this->pos_ReceiptDetails->save($rec)) {
-            $resObj = new stdClass();
-            $resObj->func = 'Sound';
-            $resObj->arg = array('soundOgg' => sbf('sounds/scanner.ogg', ''),
-                'soundMp3' => sbf('sounds/scanner.mp3', ''),
-            );
-            
-            $resArr = $this->pos_ReceiptDetails->returnResponse($rec->receiptId);
-            $resArr[] = $resObj;
-            
-            return $resArr;
-        }
-        core_Statuses::newStatus('|Проблем при добавяне на артикул|*!', 'error');
-        
-        return $this->pos_ReceiptDetails->returnError($receiptId);
-    }
-    
-    
-    /**
      * Проверка на количеството
      *
      * @param stdClass $rec
@@ -1555,164 +1350,7 @@ class pos_Receipts extends core_Master
     }
     
     
-    /**
-     * Връща таблицата с продукти отговарящи на определен стринг
-     */
-    public function getResultsTable($string, $rec)
-    {
-        $searchString = plg_Search::normalizeText($string);
-        $data = new stdClass();
-        $data->rec = $rec;
-        $data->searchString = $searchString;
-        $data->baseCurrency = acc_Periods::getBaseCurrencyCode();
-        
-        $this->prepareSearchData($data);
-        
-        return $this->renderSearchResultTable($data);
-    }
     
-    
-    /**
-     * Подготвя данните от резултатите за търсене
-     */
-    private function prepareSearchData(&$data)
-    {
-        $data->rows = array();
-        $count = 0;
-        $conf = core_Packs::getConfig('pos');
-        $data->showParams = $conf->POS_RESULT_PRODUCT_PARAMS;
-        
-        $folderId = cls::get($data->rec->contragentClass)->fetchField($data->rec->contragentObjectId, 'folderId');
-        $pQuery = cat_Products::getQuery();
-        $pQuery->where("#canSell = 'yes' AND #state = 'active'");
-        $pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
-        $pQuery->where(array("#searchKeywords LIKE '%[#1#]%'", $data->searchString));
-        $pQuery->show('id,name,isPublic,nameEn,code');
-        $pQuery->limit($this->maxSearchProducts);
-        $sellable = $pQuery->fetchAll();
-        if (!count($sellable)) {
-            
-            return;
-        }
-        
-        $Policy = cls::get('price_ListToCustomers');
-        $Products = cls::get('cat_Products');
-        
-        foreach ($sellable as $id => $name) {
-            $pInfo = cat_Products::getProductInfo($id);
-            
-            $packs = $Products->getPacks($id);
-            $packId = key($packs);
-            $perPack = (isset($pInfo->packagings[$packId])) ? $pInfo->packagings[$packId]->quantity : 1;
-            
-            $price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $packId, 1, $data->rec->createdOn, 1, 'yes');
-            
-            // Ако няма цена също го пропускаме
-            if (empty($price->price)) {
-                continue;
-            }
-            $vat = $Products->getVat($id);
-            $obj = (object) array('productId' => $id,
-                'measureId' => $pInfo->productRec->measureId,
-                'price' => $price->price * $perPack,
-                'packagingId' => $packId,
-                'vat' => $vat);
-            
-            $photo = cat_Products::getParams($id, 'preview');
-            if (!empty($photo)) {
-                $obj->photo = $photo;
-            }
-            
-            if (isset($pInfo->meta['canStore'])) {
-                $obj->stock = pos_Stocks::getQuantity($id, $data->rec->pointId);
-                $obj->stock /= $perPack;
-            }
-            
-            // Обръщаме реда във вербален вид
-            $data->rows[$id] = $this->getVerbalSearchresult($obj, $data);
-            
-            $count++;
-        }
-    }
-    
-    
-    /**
-     * Връща вербалното представяне на един ред от резултатите за търсене
-     */
-    private function getVerbalSearchResult($obj, &$data)
-    {
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
-        $row = new stdClass();
-        
-        $row->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
-        $row->stock = $Double->toVerbal($obj->stock);
-        $row->packagingId = ($obj->packagingId) ? cat_UoM::getTitleById($obj->packagingId) : cat_UoM::getTitleById($obj->measureId);
-        $row->packagingId = str::getPlural($obj->stock, $row->packagingId, true);
-       
-        $obj->receiptId = $data->rec->id;
-        if ($this->pos_ReceiptDetails->haveRightFor('add', $obj)) {
-            $addUrl = toUrl(array('pos_Receipts', 'addProduct', $data->rec->id), 'local');
-        } else {
-            $addUrl = null;
-        }
-        
-        $row->productId = cat_Products::getTitleById($obj->productId);
-        if ($data->showParams) {
-            $params = keylist::toArray($data->showParams);
-            foreach ($params as $pId) {
-                
-                //@TODO да използва нов метод getParamValue
-                if ($vRec = cat_products_Params::fetch("#productId = {$obj->productId} AND #paramId = {$pId}")) {
-                    $row->productId .= ' &nbsp;' . cat_products_Params::recToVerbal($vRec, 'paramValue')->paramValue;
-                }
-            }
-        }
-        
-        $attr = array('class' => 'pos-add-res-btn', 'data-url' => $addUrl, 'data-productId' => $obj->productId, 'title' => 'Добавете артикула към бележката');
-        $row->productId = ht::createElement('span', $attr, $row->productId, true);
-        $row->productId = ht::createLinkRef($row->productId, array('cat_Products', 'single', $obj->productId), null, array('target' => '_blank', 'class' => 'singleProd'));
-        
-        $row->stock = ht::styleNumber($row->stock, $obj->stock, 'green');
-        $row->stock = "{$row->stock} <span class='pos-search-row-packagingid'>{$row->packagingId}</span>";
-        $row->productId = "<span class='pos-search-row-productId'>{$row->productId}</span><span class='pos-search-row-stock'>{$row->stock}</span> ";
-        
-        $row->ROW_ATTR['class'] = 'search-product-row';
-        if (!Mode::is('screenMode', 'narrow')) {
-            if(!empty($obj->photo)){
-                $Fancybox = cls::get('fancybox_Fancybox');
-                $preview = $Fancybox->getImage($obj->photo, array('64', '64'), array('550', '550'));
-                $row->photo = $preview;
-            } else {
-                $thumb = new thumb_Img(getFullPath('pos/img/default-image.jpg'), 64, 64, 'path');
-                $arr = array();
-                $row->photo = $thumb->createImg($arr);
-            }
-        }
-        
-        return $row;
-    }
-    
-    
-    /**
-     * Рендира таблицата с резултатите от търсенето
-     */
-    private function renderSearchResultTable(&$data)
-    {
-        $fSet = cls::get('core_FieldSet');
-        $fSet->FNC('photo', 'varchar', 'tdClass=pos-photo-field');
-        $fSet->FNC('productId', 'varchar', 'tdClass=pos-product-field');
-        $fSet->FNC('price', 'double', 'tdClass=pos-price-field');
-        $fSet->FNC('stock', 'double', 'tdClass=pos-stock-field');
-        
-        $table = cls::get('core_TableView', array('mvc' => $fSet));
-        $fields = arr::make('photo=Снимка,productId=Продукт,price=Цена');
-        if (Mode::is('screenMode', 'narrow')) {
-            unset($fields['photo']);
-        }
-        
-        return $table->get($data->rows, $fields)->getContent();
-    }
     
     
     /**

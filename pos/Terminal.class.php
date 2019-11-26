@@ -33,6 +33,11 @@ class pos_Terminal extends peripheral_Terminal
     protected $fieldArr = array('payments', 'policyId', 'caseId', 'storeId');
     
     
+    protected static $operationsArr = "add=Артикул,payment=Плащане,pack=Опаковка,quantity=Количество,price=Цена,discount=Отстъпка,text=Текст,receipts=Бележки";
+    
+    //,packaging=Опаковка,quantity=Количество,price=Цена,discount=Отстъпка,text=Текст,client=Клиент,sale=Продажба,payment=Плащане,revert=Сторниране,nullify=Анулиране,receipts=Бележки
+    
+    protected static $forbiddenOperationOnEmptyReceipts = array('discount', 'price', 'pack', 'text', 'quantity', 'payment');
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -68,5 +73,774 @@ class pos_Terminal extends peripheral_Terminal
     public function getTerminalUrl($pointId)
     {
         return array('pos_Points', 'openTerminal', $pointId);
+    }
+    
+    public function act_Open()
+    {
+        
+        $Receipt = cls::get('pos_Receipts');
+        
+        $Receipt->requireRightFor('terminal');
+        expect($id = Request::get('receiptId', 'int'));
+        expect($rec = $Receipt->fetch($id));
+        
+        // Имаме ли достъп до терминала
+        if (!$Receipt->haveRightFor('terminal', $rec)) {
+            
+            return new Redirect(array($Receipt, 'new'));
+        }
+        
+        // Лейаут на терминала
+        $tpl = getTplFromFile('pos/tpl/terminal/Layout2.shtml');
+        
+        $tpl->replace(pos_Points::getTitleById($rec->pointId), 'PAGE_TITLE');
+        $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/cash-register.png', '"', true) . '>', 'HEAD');
+        $img = ht::createImg(array('path' => 'img/16/logout.png'));
+        
+        // Добавяме бележката в изгледа
+        $receiptTpl = $this->getReceipt($rec);
+        $tpl->replace($receiptTpl, 'RECEIPT');
+        $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
+        
+        // Ако не сме в принтиране, сменяме обвивквата и рендираме табовете
+        if (!Mode::is('printing')) {
+            
+            // Задаваме празна обвивка
+            Mode::set('wrapper', 'page_Empty');
+            
+            // Ако сме чернова, добавяме пултовете
+            if ($rec->state == 'draft') {
+                
+                $defaultOperation = Mode::get("currentOperation") ? Mode::get("currentOperation") : 'quantity';
+                $defaultSearchString = Mode::get("currentSearchString");
+                
+                // Добавяне на табовете под бележката
+                $toolsTpl = $this->getCommandPanel($rec, $defaultOperation);
+                $tpl->replace($toolsTpl, 'TAB_TOOLS');
+                
+                // Добавяне на табовете показващи се в широк изглед отстрани
+                $lastRecId = pos_ReceiptDetails::getLastProductRecId($rec->id);
+                
+                
+                $resultTabHtml = $this->renderResult($rec, $defaultOperation, $defaultSearchString, $lastRecId);
+                $tpl->append($resultTabHtml, 'SEARCH_RESULT');
+            }
+        }
+        
+        $data = (object) array('rec' => $rec);
+        
+        $this->invoke('AfterRenderSingle', array(&$tpl, $data));
+        if (!Mode::is('printing')) {
+            $tpl->append("<iframe name='iframe_a' style='display:none'></iframe>");
+        }
+        
+        // Вкарване на css и js файлове
+        $this->pushTerminalFiles($tpl);
+        $this->renderWrapping($tpl);
+        
+        return $tpl;
+    }
+    
+    public function getCommandPanel($rec)
+    {
+        $Receipt = cls::get('pos_Receipts');
+        expect($rec = $Receipt->fetchRec($rec));
+        
+        $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('TAB_TOOLS');
+        $operation = Mode::get("currentOperation");
+        $keyupUrl = null;
+        
+        switch($operation){
+            case 'add':
+                $inputUrl = array('pos_ReceiptDetails', 'add', 'productId' => 5);
+                $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id);
+                break;
+            case 'quantity':
+                $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity');
+                break;
+            case 'discount':
+                $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setdiscount');
+                break;
+            case 'price':
+                $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice');
+                break;
+            case 'text':
+                $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'settext');
+                break;
+            case 'pack':
+                $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setpack');
+            case 'payment';
+
+                break;
+        }
+        
+        $inputUrl = toUrl($inputUrl, 'local');
+        if(is_array($keyupUrl)){
+            $keyupUrl = toUrl($keyupUrl, 'local');
+        }
+        
+        // Ако можем да добавяме към бележката
+        if ($Receipt->pos_ReceiptDetails->haveRightFor('add', (object) array('receiptId' => $rec->id))) {
+            $modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
+            $discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
+            $absUrl = toUrl(array('pos_Receipts', 'addProduct', $rec->id), 'absolute');
+            $doActionUrl = toUrl(array($this, 'setoperation', 'receiptId' => $rec->id), 'local');
+        } else {
+            $discUrl = $modQUrl = $doActionUrl = null;
+            $disClass = 'disabledBtn';
+            $disabled = 'disabled';
+        }
+        
+        $value = null;
+        
+        $browserInfo = Mode::get('getUserAgent');
+        if (stripos($browserInfo, 'Android') !== false) {
+            $htmlScan = "<input type='button' class='webScan {$disClass}' {$disabled} id='webScan' name='scan' onclick=\"document.location = 'http://zxing.appspot.com/scan?ret={$absUrl}?ean={CODE}'\" value='Scan' />";
+            $block->append($htmlScan, 'FIRST_TOOLS_ROW');
+        }
+        
+        $value = round(abs($rec->total) - abs($rec->paid), 2);
+        $value = ($value > 0) ? $value : null;
+        
+        //bp($operation, $rec);
+        $inputValue = ($operation == 'payment') ? $value : Mode::get("currentSearchString");
+        
+        $searchUrl = toUrl(array($this, 'displayOperation', 'receiptId' => $rec->id), 'local');
+        $params = array('name' => 'ean', 'value' => $inputValue, 'type' => 'text', 'class'=> 'large-field select-input-pos', 'data-url' => $inputUrl, 'data-keyupurl' => $keyupUrl, 'title' => 'Въвеждане', 'list' => 'suggestions');
+        if(Mode::is('screenMode', 'narrow')) {
+            $params['readonly'] = 'readonly';
+        }
+        
+        // Показване на даталист на сторно бележката, с предложения на артикулите, които се срещат в оригинала
+        if(isset($rec->revertId)){
+            $dQuery = pos_ReceiptDetails::getQuery();
+            $dQuery->where(array('#receiptId = [#1#]', $rec->revertId));
+            $dQuery->where('#productId IS NOT NULL');
+            $datalist = "<datalist id='suggestions'>";
+            while ($dRec = $dQuery->fetch()){
+                $pCode = cat_Products::getVerbal($dRec->productId, 'code');
+                $pName = cat_Products::getTitleById($dRec->productId, false);
+                $datalist .= "<option data-value = '{$pCode}' value='{$pName}'>";
+            }
+            $datalist .= "</datalist>";
+            $block->append($datalist, 'INPUT_DATA_LIST');
+        }
+        
+        $operations = arr::make(self::$operationsArr);
+        if (pos_Setup::get('SHOW_DISCOUNT_BTN') != 'yes') {
+            unset($operations['discount']);
+        }
+        
+        $detailsCount = pos_ReceiptDetails::count("#receiptId = {$rec->id}");
+        if(empty($detailsCount)){
+            foreach (self::$forbiddenOperationOnEmptyReceipts as $operationToRemove){
+                unset($operations[$operationToRemove]);
+            }
+            
+        }
+        
+        $operationSelectFld = ht::createSelect('operation', $operations, Mode::get("currentOperation"), array('class' => '', 'data-url' => $searchUrl));
+        $block->append($operationSelectFld, 'INPUT_FLD');
+        
+        
+        $block->append(ht::createElement('input', $params), 'INPUT_FLD');
+        $block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
+        $block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
+        
+        $block->append($this->renderKeyboard('tools'), 'KEYBOARDS');
+        
+        return $block;
+    }
+    
+    
+    function act_displayOperation()
+    {
+        expect($id = Request::get('receiptId', 'int'));
+        expect($rec = pos_Receipts::fetch($id));
+        expect($operation = Request::get('operation', "enum(" . self::$operationsArr . ")"));
+        $selectedRecId = Request::get('recId', 'int');
+        
+        
+        $string = Request::get('search', 'varchar');
+        Mode::setPermanent("currentOperation", $operation);
+        Mode::setPermanent("currentSearchString", $string);
+        
+        
+        
+        
+       // $resObj->arg = array('id' => 'receipt-table', 'html' => $this->getReceipt($detailRec->receiptId)->getContent(), 'replace' => true);
+        
+        
+        //$resultTpl = $this->renderResult($rec, $operation, $string);
+        
+        //$toolsTpl = $this->Master->renderToolsTab($rec);
+        //$paymentTpl = $this->Master->renderPaymentTab($rec);
+        
+        return static::returnAjaxResponse($rec, $selectedRecId, true);
+    }
+    
+    public function renderResult($rec, $currOperation, $string, $selectedRecId = null)
+    {
+        $detailsCount = pos_ReceiptDetails::count("#receiptId = {$rec->id}");
+        if(empty($detailsCount) && in_array($currOperation, static::$forbiddenOperationOnEmptyReceipts)){
+            
+            return new core_ET();
+        }
+        
+        $string = trim($string);
+        
+        switch($currOperation){
+            case 'add':
+                $res = (empty($string)) ? $this->getFavouritesBtns() : $this->getProductResultTable($rec, $string);
+                break;
+            case 'receipts':
+                $res = $this->renderDraftsTab($rec);
+                break;
+            case 'quantity':
+                $res = $this->renderQuantityTable($rec, $string, $selectedRecId);
+                break;
+            case 'discount':
+                $res = ' ';
+            case 'text':
+                $res = ' ';
+                break;
+            case 'price':
+                $res = $this->renderLastPriceTable($rec, $string, $selectedRecId);
+                break;
+            case 'pack':
+                $res = $this->renderPackagingTable($rec, $string, $selectedRecId);
+                break;
+            case 'payment':
+                $res = $this->renderPaymentTabs($rec, $string, $selectedRecId);
+                break;
+            default:
+                $res = "{$currOperation} '$string' {$selectedRecId} @TODO";
+                break;
+        }
+        
+        return new core_ET($res);
+    }
+    
+    public static function renderPaymentTabs($rec, $string, $selectedRecId)
+    {
+        $Receipts = cls::get('pos_Receipts');
+        $tpl = new core_ET("");
+        
+        $payUrl = array();
+        if (pos_Receipts::haveRightFor('pay', $rec)) {
+            $payUrl = toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local');
+        }
+        
+        // Показваме всички активни методи за плащания
+        $disClass = ($payUrl) ? '' : 'disabledBtn';
+        
+        $tpl->append(ht::createFnBtn('В брой', '', '', array('class' => "{$disClass} actionBtn paymentBtn pos-result-selected", 'data-type' => '-1', 'data-url' => $payUrl)));
+        $payments = pos_Points::fetchSelected($rec->pointId);
+        foreach ($payments as $paymentId => $paymentTitle){
+            $tpl->append(ht::createFnBtn($paymentTitle, '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => $paymentId, 'data-url' => $payUrl)));
+        }
+        
+        $buttons = $Receipts->getPaymentTabBtns($rec);
+        foreach ($buttons as $btn){
+            $tpl->append($btn);
+        }
+        
+        return $tpl;
+        
+    }
+    
+    public function renderPackagingTable($rec, $string, $selectedRecId)
+    {
+        $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
+        $measureId = cat_Products::fetchField($selectedRec->productId, 'measureId');
+        $rows = array();
+        $rows[$measureId] = (object)array('packagingId' => tr(cat_UoM::getTitleById($measureId)));
+        $rows[$measureId]->ROW_ATTR = array('class' => 'pos-quantity-result-quantity-row', 'data-url' => toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setpack', 'string' => cat_UoM::getTitleById($measureId)), 'local'));
+        
+        $packQuery = cat_products_Packagings::getQuery();
+        $packQuery->where("#productId = {$selectedRec->productId}");
+        while ($packRec = $packQuery->fetch()) {
+            $packagingId = tr(cat_UoM::getTitleById($packRec->packagingId));
+            $baseMeasureId = $measureId;
+            $packRec->quantity = cat_Uom::round($baseMeasureId, $packRec->quantity);
+            
+            $packagingId .= " <span class='small'>" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . tr(cat_UoM::getTitleById($baseMeasureId)) . "</span>";
+            $rows[$packRec->packagingId] = (object)array('packagingId' => $packagingId);
+            $rows[$packRec->packagingId]->ROW_ATTR = array('class' => 'pos-quantity-result-quantity-row', 'data-url' => toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setpack', 'string' => cat_UoM::getTitleById($packRec->packagingId)), 'local'));
+        }
+        
+        $packs = cat_Products::getPacks($selectedRec->productId);
+        $basePackagingId = key($packs);
+        $baseObject = $rows[$basePackagingId];
+        $baseObject->ROW_ATTR['class'] .= ' pos-result-selected';
+        unset($rows[$basePackagingId]);
+        $rows = array($basePackagingId => $baseObject) + $rows;
+        
+        $fSet = new core_FieldSet();
+        $fSet->FLD('packagingId', 'varchar', 'tdClass=pos-quantity-result-packaging');
+        $fSet->tableRowTpl = "[#ROW#]";
+        
+        $table = cls::get('core_TableView', array('thHide' => true, 'mvc' => $fSet));
+        $fields = arr::make('packagingId');
+        
+        return $table->get($rows, $fields);
+        
+    }
+    
+    
+    public function renderLastPriceTable($rec, $string, $selectedRecId)
+    {
+        $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
+        $rows = array();
+        
+        $dQuery = pos_ReceiptDetails::getQuery();
+        $dQuery->where("#action = 'sale|code' AND #productId = {$selectedRec->productId} AND #quantity > 0");
+        if(isset($selectedRec->value)){
+            $dQuery->where("#value = {$selectedRec->value}");
+            $value = $selectedRec->value;
+        } else {
+            $dQuery->where("#value IS NULL");
+            $value = cat_Products::fetchField($selectedRec->productId, 'measureId');
+        }
+        
+        $cnt = 0;
+        $packName = cat_UoM::getShortName($value);
+        $dQuery->show('price,param');
+        while($dRec = $dQuery->fetch()){
+            $dRec->price *= 1 + $dRec->param;
+            $row = (object)array('price' => core_Type::getByName('double(smartRound)')->toVerbal($dRec->price), 'value' => tr($packName));
+            $row->ROW_ATTR = array('class' => 'pos-quantity-result-quantity-row', 'data-url' => toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $row->price), 'local'));
+            $row->price .= " <span class='cCode'>" . acc_Periods::getBaseCurrencyCode() . "</span>";
+            
+            $rows[trim($dRec->price)] = $row;
+            $cnt++;
+            if($cnt == 1){
+                $row->ROW_ATTR['class'] .= " pos-result-selected";
+            }
+        }
+        
+        $fSet = new core_FieldSet();
+        $fSet->FLD('price', 'double', 'tdClass=pos-quantity-result-quantity');
+        $fSet->FLD('value', 'double', 'tdClass=pos-quantity-result-packagingId');
+        $fSet->tableRowTpl = "[#ROW#]";
+        
+        $table = cls::get('core_TableView', array('thHide' => true, 'mvc' => $fSet));
+        $fields = arr::make('price,value');
+        
+        return $table->get($rows, $fields);
+    }
+    
+    
+    public function renderQuantityTable($rec, $string, $selectedRecId)
+    {
+        $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
+        $rows = array();
+        
+        $cnt = 0;
+        $dQuery = pos_ReceiptDetails::getQuery();
+        $dQuery->where("#action = 'sale|code' AND #productId = {$selectedRec->productId} AND #quantity > 0");
+        $dQuery->show('quantity,value');
+        $dQuery->orderBy('id', 'DESC');
+        while($dRec = $dQuery->fetch()){
+            if(!array_key_exists("{$dRec->quantity}|{$dRec->value}", $rows)){
+                $packName = cat_UoM::getShortName($dRec->value);
+                $row = (object)array('quantity' => core_Type::getByName('double(smartRound)')->toVerbal($dRec->quantity), 'value' => tr($packName));
+                $row->ROW_ATTR = array('class' => 'pos-quantity-result-quantity-row', 'data-url' => toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity', 'string' => "{$row->quantity} {$packName}"), 'local'));
+                
+                $rows["{$dRec->quantity}|{$dRec->value}"] = $row;
+                $cnt++;
+                
+                if($cnt == 1){
+                    $row->ROW_ATTR['class'] .= " pos-result-selected";
+                }
+            }
+            
+            if($cnt >= 10) break;
+        }
+        
+        $fSet = new core_FieldSet();
+        $fSet->FLD('quantity', 'double', 'tdClass=pos-quantity-result-quantity');
+        $fSet->FLD('value', 'double', 'tdClass=pos-quantity-result-packagingId');
+        $fSet->tableRowTpl = "[#ROW#]";
+        
+        $table = cls::get('core_TableView', array('thHide' => true, 'mvc' => $fSet));
+        $fields = arr::make('quantity,value');
+        
+        return $table->get($rows, $fields);
+    }
+    
+    
+    /**
+     * Рендира бързите бутони
+     *
+     * @return core_ET $block - шаблон
+     */
+    public function getFavouritesBtns()
+    {
+        $products = pos_Favourites::prepareProducts();
+        if (!$products->arr) {
+            
+            return false;
+        }
+        
+        $tpl = pos_Favourites::renderPosProducts($products);
+        
+        return $tpl;
+    }
+    
+    
+    
+    /**
+     * Рендира клавиатурата
+     *
+     * @return core_ET $tpl
+     */
+    public static function renderKeyboard($tab)
+    {
+        $tpl = new core_ET("");
+        if(Mode::get('screenWidth') >= 1200){
+            $tpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
+        }
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Подготовка и рендиране на бележка
+     *
+     * @param int $id - ид на бележка
+     *
+     * @return core_ET $tpl - шаблона
+     */
+    public function getReceipt_($id)
+    {
+        $Receipt = cls::get('pos_Receipts');
+        expect($rec = $Receipt->fetchRec($id));
+        
+        $data = new stdClass();
+        $data->rec = $rec;
+        $this->prepareReceipt($data);
+        $tpl = $this->renderReceipt($data);
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Подготовка на бележка
+     */
+    private function prepareReceipt(&$data)
+    {
+        $Receipt = cls::get('pos_Receipts');
+        
+        $fields = $Receipt->selectFields();
+        $fields['-terminal'] = true;
+        $data->row = $Receipt->recToverbal($data->rec, $fields);
+        unset($data->row->contragentName);
+        $data->receiptDetails = $Receipt->pos_ReceiptDetails->prepareReceiptDetails($data->rec->id);
+        $data->receiptDetails->rec = $data->rec;
+    }
+    
+    
+    /**
+     * Подготовка и рендиране на бележка
+     *
+     * @return core_ET $tpl - шаблон
+     */
+    private function renderReceipt($data)
+    {
+        $Receipt = cls::get('pos_Receipts');
+        
+        // Слагане на мастър данните
+        if (!Mode::is('printing')) {
+            $tpl = getTplFromFile('pos/tpl/terminal/Receipt.shtml');
+        } else {
+            $tpl = getTplFromFile('pos/tpl/terminal/ReceiptPrint.shtml');
+        }
+        
+        $tpl->placeObject($data->row);
+        $img = ht::createElement('img', array('src' => sbf('pos/img/bgerp.png', '')));
+        $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink', 'title' => 'Към портала'));
+        $tpl->append($logo, 'LOGO');
+        
+        if($lastRecId = pos_ReceiptDetails::getLastProductRecId($data->rec->id)){
+            $data->receiptDetails->rows[$lastRecId]->lastRow = 'class="pos-receipt-selected"';
+        }
+        
+        // Слагане на детайлите на бележката
+        $detailsTpl = $Receipt->pos_ReceiptDetails->renderReceiptDetail($data->receiptDetails);
+        $tpl->append($detailsTpl, 'DETAILS');
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Вкарване на css и js файлове
+     */
+    public function pushTerminalFiles_(&$tpl)
+    {
+        $tpl->push('css/Application.css', 'CSS');
+        $tpl->push('css/default-theme.css', 'CSS');
+        $tpl->push('pos/tpl/css/styles.css', 'CSS');
+        if (!Mode::is('printing')) {
+            $tpl->push('pos/js/scripts.js', 'JS');
+            $tpl->push('https://cdn.jsdelivr.net/npm/naviboard@4.1.0/dist/naviboard.min.js', 'JS');
+            jquery_Jquery::run($tpl, 'posActions();');
+        }
+        
+        $tpl->push('pos/themes/default/style.css', 'CSS');
+        $conf = core_Packs::getConfig('fancybox');
+        $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.css', 'CSS');
+        $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.js', 'JS');
+        jquery_Jquery::run($tpl, "$('a.fancybox').fancybox();", true);
+    }
+    
+    
+    /**
+     * Връща таблицата с продукти отговарящи на определен стринг
+     */
+    public function getProductResultTable($rec, $string)
+    {
+        $searchString = plg_Search::normalizeText($string);
+        $data = new stdClass();
+        $data->rec = $rec;
+        $data->searchString = $searchString;
+        $data->baseCurrency = acc_Periods::getBaseCurrencyCode();
+        
+        $this->prepareProductTable($data);
+        
+        return $this->renderProductResultTable($data);
+    }
+    
+    
+    /**
+     * Подготвя данните от резултатите за търсене
+     */
+    private function prepareProductTable(&$data)
+    {
+        $data->rows = array();
+        $count = 0;
+        $conf = core_Packs::getConfig('pos');
+        $data->showParams = $conf->POS_RESULT_PRODUCT_PARAMS;
+        
+        $folderId = cls::get($data->rec->contragentClass)->fetchField($data->rec->contragentObjectId, 'folderId');
+        $pQuery = cat_Products::getQuery();
+        $pQuery->where("#canSell = 'yes' AND #state = 'active'");
+        $pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
+        $pQuery->where(array("#searchKeywords LIKE '%[#1#]%'", $data->searchString));
+        $pQuery->show('id,name,isPublic,nameEn,code');
+        $pQuery->limit($this->maxSearchProducts);
+        $sellable = $pQuery->fetchAll();
+        if (!count($sellable)) {
+            
+            return;
+        }
+        
+        $Policy = cls::get('price_ListToCustomers');
+        $Products = cls::get('cat_Products');
+        
+        foreach ($sellable as $id => $name) {
+            $pInfo = cat_Products::getProductInfo($id);
+            
+            $packs = $Products->getPacks($id);
+            $packId = key($packs);
+            $perPack = (isset($pInfo->packagings[$packId])) ? $pInfo->packagings[$packId]->quantity : 1;
+            
+            $price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $packId, 1, $data->rec->createdOn, 1, 'yes');
+            
+            // Ако няма цена също го пропускаме
+            if (empty($price->price)) {
+                continue;
+            }
+            $vat = $Products->getVat($id);
+            $obj = (object) array('productId' => $id,
+                'measureId' => $pInfo->productRec->measureId,
+                'price' => $price->price * $perPack,
+                'packagingId' => $packId,
+                'vat' => $vat);
+            
+            $photo = cat_Products::getParams($id, 'preview');
+            if (!empty($photo)) {
+                $obj->photo = $photo;
+            }
+            
+            if (isset($pInfo->meta['canStore'])) {
+                $obj->stock = pos_Stocks::getQuantity($id, $data->rec->pointId);
+                $obj->stock /= $perPack;
+            }
+            
+            // Обръщаме реда във вербален вид
+            $data->rows[$id] = $this->getVerbalSearchresult($obj, $data);
+            if($count == 0){
+                $data->rows[$id]->ROW_ATTR['class'] .= ' pos-result-selected';
+            }
+            
+            $count++;
+        }
+    }
+    
+    
+    /**
+     * Връща вербалното представяне на един ред от резултатите за търсене
+     */
+    private function getVerbalSearchResult($obj, &$data)
+    {
+        $Receipts = cls::get('pos_Receipts');
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+        $row = new stdClass();
+        
+        $row->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
+        $row->stock = $Double->toVerbal($obj->stock);
+        $row->packagingId = ($obj->packagingId) ? cat_UoM::getTitleById($obj->packagingId) : cat_UoM::getTitleById($obj->measureId);
+        $row->packagingId = str::getPlural($obj->stock, $row->packagingId, true);
+        
+        $obj->receiptId = $data->rec->id;
+        if ($Receipts->pos_ReceiptDetails->haveRightFor('add', $obj)) {
+            $addUrl = toUrl(array('pos_Receipts', 'addProduct', $data->rec->id), 'local');
+        } else {
+            $addUrl = null;
+        }
+        
+        $row->productId = cat_Products::getTitleById($obj->productId);
+        if ($data->showParams) {
+            $params = keylist::toArray($data->showParams);
+            foreach ($params as $pId) {
+                if ($vRec = cat_products_Params::fetch("#productId = {$obj->productId} AND #paramId = {$pId}")) {
+                    $row->productId .= ' &nbsp;' . cat_products_Params::recToVerbal($vRec, 'paramValue')->paramValue;
+                }
+            }
+        }
+        
+        $attr = array('class' => 'pos-add-res-btn', 'data-url' => $addUrl, 'data-productId' => $obj->productId, 'title' => 'Добавете артикула към бележката');
+        $row->productId = ht::createElement('span', $attr, $row->productId, true);
+        $row->productId = ht::createLinkRef($row->productId, array('cat_Products', 'single', $obj->productId), null, array('target' => '_blank', 'class' => 'singleProd'));
+        
+        $row->stock = ht::styleNumber($row->stock, $obj->stock, 'green');
+        $row->stock = "{$row->stock} <span class='pos-search-row-packagingid'>{$row->packagingId}</span>";
+        $row->productId = "<span class='pos-search-row-productId'>{$row->productId}</span><span class='pos-search-row-stock'>{$row->stock}</span> ";
+        
+        $row->ROW_ATTR['class'] = 'search-product-row';
+        if (!Mode::is('screenMode', 'narrow')) {
+            if(!empty($obj->photo)){
+                $Fancybox = cls::get('fancybox_Fancybox');
+                $preview = $Fancybox->getImage($obj->photo, array('64', '64'), array('550', '550'));
+                $row->photo = $preview;
+            } else {
+                $thumb = new thumb_Img(getFullPath('pos/img/default-image.jpg'), 64, 64, 'path');
+                $arr = array();
+                $row->photo = $thumb->createImg($arr);
+            }
+        }
+        
+        return $row;
+    }
+    
+    
+    /**
+     * Рендира таблицата с резултатите от търсенето
+     */
+    private function renderProductResultTable(&$data)
+    {
+        $fSet = cls::get('core_FieldSet');
+        $fSet->FNC('photo', 'varchar', 'tdClass=pos-photo-field');
+        $fSet->FNC('productId', 'varchar', 'tdClass=pos-product-field');
+        $fSet->FNC('price', 'double', 'tdClass=pos-price-field');
+        $fSet->FNC('stock', 'double', 'tdClass=pos-stock-field');
+        $fSet->tableRowTpl = "[#ROW#]";
+        
+        $table = cls::get('core_TableView', array('mvc' => $fSet));
+        $fields = arr::make('photo=Снимка,productId=Продукт,price=Цена');
+        if (Mode::is('screenMode', 'narrow')) {
+            unset($fields['photo']);
+        }
+        
+        return $table->get($data->rows, $fields);
+    }
+    
+    
+    /**
+     * Рендиране на таба с черновите
+     *
+     * @param int $id -ид на бележка
+     *
+     * @return core_ET $block - шаблон
+     */
+    public function renderDraftsTab($id)
+    {
+        $rec = $this->fetchRec($id);
+        $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('DRAFTS');
+        $pointId = pos_Points::getCurrent('id');
+        $now = dt::today();
+        
+        // Намираме всички чернови бележки и ги добавяме като линк
+        $query = pos_Receipts::getQuery();
+        $query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$rec->id}");
+        while ($rec = $query->fetch()) {
+            $date = dt::mysql2verbal($rec->createdOn, 'H:i');
+            $between = dt::daysBetween($now, $rec->valior);
+            $between = ($between != 0) ? " <span class='num'>-${between}</span>" : null;
+            
+            $revertClass = isset($rec->revertId) ? 'revert-receipt' : '';
+            $row = ht::createLink("<span class='pos-span-name'>№{$rec->id} <br> {$date}$between</span>", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => "pos-notes {$revertClass}", 'title' => 'Преглед на бележката'));
+            $block->append($row);
+        }
+        
+        if (pos_Receipts::haveRightFor('add')) {
+            $addBtn = ht::createLink("<span class='pos-span-name'>" . tr('Нова') . '</span>', array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes');
+            $block->prepend($addBtn);
+        }
+        
+        return $block;
+    }
+    
+    
+    
+    
+    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false)
+    {
+        $me = cls::get(get_called_class());
+        $Receipts = cls::get('pos_Receipts');
+        $rec = $Receipts->fetchRec($receiptId);
+        $operation = Mode::get("currentOperation");
+        $string = Mode::get("currentSearchString");
+        $res = array();
+        
+        if($success === true){
+            $resultTpl = $me->renderResult($rec, $operation, $string, $selectedRecId);
+            $toolsTpl = $me->getCommandPanel($rec, $operation, $string);
+            
+            // Ще се реплейсват резултатите
+            $resObj = new stdClass();
+            $resObj->func = 'html';
+            $resObj->arg = array('id' => 'tools-choose', 'html' => $resultTpl->getContent(), 'replace' => true);
+            $res[] = $resObj;
+            
+            // Ще се реплейсва и пулта
+            $resObj1 = new stdClass();
+            $resObj1->func = 'html';
+            $resObj1->arg = array('id' => 'tools-form', 'html' => $toolsTpl->getContent(), 'replace' => true);
+            $res[] = $resObj1;
+            
+            if($refreshTable === true){
+                $receiptTpl = $me->getReceipt($rec);
+                
+                $resObj2 = new stdClass();
+                $resObj2->func = 'html';
+                $resObj2->arg = array('id' => 'receipt-table', 'html' => $receiptTpl->getContent(), 'replace' => true);
+                $res[] = $resObj2;
+            }
+        }
+        
+        // Показваме веднага и чакащите статуси
+        $hitTime = Request::get('hitTime', 'int');
+        $idleTime = Request::get('idleTime', 'int');
+        $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+        
+        $res = array_merge($res, (array) $statusData);
+        
+        return $res;
     }
 }
