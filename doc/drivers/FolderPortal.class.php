@@ -87,7 +87,12 @@ class doc_drivers_FolderPortal extends core_BaseClass
         
         expect($dRec->folderId);
         
-        $fRec = doc_Folders::fetch($dRec->folderId, 'last, statistic');
+        $fRec = doc_Folders::fetch($dRec->folderId);
+        
+        if (!doc_Folders::haveRightFor('single', $fRec)) {
+            
+            return $resData;
+        }
         
         $pageVar = 'P_' . get_called_class() . '_' . $dRec->originIdCalc;
         

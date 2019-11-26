@@ -119,22 +119,18 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
                         'quantity' => $recMaterial->quantity,
                         'group' => cat_Products::fetchField($recMaterial->productId, 'groups'),
                         'reservedQuantity' => $recMaterial->reservedQuantity,
-                        'changeQuantity' => '',
-                        'expectedQuantity' => $recMaterial->expectedQuantityTotal
+                        'changeQuantity' => ''
                     );
             } else {
                 $obj = &$recs[$id];
                 $obj->quantity += $recMaterial->quantity;
-                $obj->expectedQuantity += $recMaterial->expectedQuantityTotal;
                 $obj->reservedQuantity += $recMaterial->reservedQuantity;
             }
         }
         
-       
         foreach ($recs as $idProd => $products) { 
             
-            $products->freeQuantity = $products->quantity - $products->reservedQuantity + $products->expectedQuantity;
-            
+            $products->freeQuantity = $products->quantity - $products->reservedQuantity;
             if (is_array($oldData) && count($oldData)) {
                 foreach ($oldData as $oData) {
                     if ($oData->productId == $idProd) {
@@ -170,7 +166,6 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка');
         $fld->FLD('quantity', 'double(smartRound)', 'caption=Наличност');
         $fld->FLD('reservedQuantity', 'double', 'caption=Запазено');
-        $fld->FLD('expectedQuantity', 'double', 'caption=Oчаквано');
         $fld->FLD('freeQuantity', 'double', 'caption=Разполагаемо');
         $fld->FLD('changeQuantity', 'double', 'caption=Промяна');
         
@@ -193,7 +188,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         $row->productId = cat_Products::getShortHyperlink($dRec->productId);
         $row->measure = cat_UoM::getShortName($dRec->measure);
         
-        foreach (array('quantity', 'reservedQuantity', 'expectedQuantity','freeQuantity', 'changeQuantity') as $fld) {
+        foreach (array('quantity', 'reservedQuantity', 'freeQuantity', 'changeQuantity') as $fld) {
             $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
             $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
         }
