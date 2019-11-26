@@ -77,19 +77,13 @@ class bgerp_drivers_Tasks extends core_BaseClass
             $resData->data->query->likeKeylist('assign', $userId);
         }
         
-        // Вадим 3 работни дни
-        $now = dt::now();
-        
-        $before = $after = dt::now(false);
-        $before = cal_Calendar::nextWorkingDay($before, null, -1 * cal_Tasks::$taskShowPeriod);
-        $after = cal_Calendar::nextWorkingDay($after, null, cal_Tasks::$taskShowPeriod);
-        $before .= ' 00:00:00';
-        $after .= ' 23:59:59';
-        
         $resData->data->query->where("#state = 'active'");
         $resData->data->query->orWhere("#state = 'wakeup'");
-        $resData->data->query->orWhere(array("(#state = 'waiting' OR #state = 'pending') AND #expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $after, $before));
-        $resData->data->query->orWhere(array("(#state = 'closed' OR #state = 'stopped') AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
+        $resData->data->query->orWhere("#state = 'waiting'");
+        $resData->data->query->orWhere("#state = 'pending'");
+        
+        $resData->data->query->where("#timeStart IS NULL");
+        $resData->data->query->where("#timeEnd IS NULL");
         
         $cloneQuery = clone $resData->data->query;
         
@@ -98,25 +92,16 @@ class bgerp_drivers_Tasks extends core_BaseClass
         $cloneQuery->show('modifiedOn, id');
         $cRec = $cloneQuery->fetch();
         
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->perPage . '_' . $userId . '_' . Mode::get('screenMode') . '_' . Request::get($pageVar) . '_' . core_Lg::getCurrent() . '_' . $cRec->id . '_' . $cRec->modifiedOn . '_' . Mode::get('listTasks') . '_' . dt::now(false));
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->perPage . '_' . $userId . '_' . Mode::get('screenMode') . '_' . Request::get($pageVar) . '_' . core_Lg::getCurrent() . '_' . $cRec->id . '_' . $cRec->modifiedOn . '_' . Mode::get('listTasks') . '_' . dt::now(false) . '_' . Mode::is('listTasks', 'by'));
         $resData->cacheType = 'Tasks';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
-            // Чакащите задачи под определено време да са в началото
-            $waitingShow = dt::addSecs(cal_Setup::get('WAITING_SHOW_TOP_TIME'), $now);
-            $resData->data->query->XPR('waitingOrderTop', 'datetime', "IF((#state = 'waiting' AND (#expectationTimeStart) AND (#expectationTimeStart <= '{$waitingShow}')), -#expectationTimeStart, NULL)");
-            $resData->data->query->orderBy('waitingOrderTop', 'DESC');
             
-            // Време за подредба на записите в портала
             $resData->data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 WHEN 'pending' THEN 3 ELSE 4 END)");
-            $resData->data->query->orderBy('#orderByState=ASC');
             
-            // Чакащите задачи, ако имат начало първо по тях да се подреждат, после по последно
-            $resData->data->query->XPR('waitingOrder', 'datetime', "IF((#state = 'waiting' AND (#timeStart)), -#timeStart, NULL)");
-            
-            $resData->data->query->orderBy('waitingOrder', 'DESC');
+            $resData->data->query->orderBy('orderByState', 'ASC');
             $resData->data->query->orderBy('modifiedOn', 'DESC');
             $resData->data->query->orderBy('createdOn', 'DESC');
             
@@ -146,7 +131,6 @@ class bgerp_drivers_Tasks extends core_BaseClass
             $Tasks->prepareListRows($resData->data);
             
             if (is_array($resData->data->recs)) {
-                $now = dt::now();
                 foreach ($resData->data->recs as $id => &$rec) {
                     $row = &$resData->data->rows[$id];
                     
@@ -163,18 +147,6 @@ class bgerp_drivers_Tasks extends core_BaseClass
                     
                     if ($rec->savedState) {
                         $sState = $rec->savedState;
-                        
-                        if (($rec->savedState != 'closed') && ($rec->savedState != 'stopped')) {
-                            $tEnd = $rec->timeEnd;
-                            if (!$tEnd && $rec->timeStart) {
-                                if ($rec->timeStart != $rec->expectationTimeEnd) {
-                                    $tEnd = $rec->expectationTimeEnd;
-                                }
-                            }
-                            if (($tEnd) && ($tEnd < $now)) {
-                                $sState = 'late';
-                            }
-                        }
                         $row->title = "<div class='state-{$sState}-link'>{$row->title}</div>";
                     }
                 }
@@ -183,7 +155,6 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         return $resData;
     }
-    
     
     /**
      * Рендира данните
