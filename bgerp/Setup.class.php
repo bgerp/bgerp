@@ -593,7 +593,7 @@ class bgerp_Setup extends core_ProtoSetup
         $res = parent::loadSetupData($itr);
         
         // За да може да мине миграцията при нова инсталация
-        $dbUpdate = Mode::get('dbInit', 'update');
+        $dbUpdate = Mode::get('dbInit');
         Mode::set('dbInit', 'update');
         
         $res .= $this->callMigrate('setNewPortal46192', 'bgerp');

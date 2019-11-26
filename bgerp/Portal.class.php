@@ -184,7 +184,7 @@ class bgerp_Portal extends embed_Manager
             
             $rData = new stdClass();
             
-            $res = $this->getResForBlock($r, $rData);
+            $res = $this->getResForBlock($r, $rData, $cu);
             
             if (!$res) continue;
             
@@ -234,7 +234,7 @@ class bgerp_Portal extends embed_Manager
                         break;
                     }
                     
-                    $tpl->replace($colorCls, $tabColorName);
+                    $tpl->replace($pClass, $tabColorName);
                     
                     $tpl->append($res, $blockName);
                 }
@@ -273,6 +273,8 @@ class bgerp_Portal extends embed_Manager
         
         $resArr = array();
         
+        $cu = core_Users::getCurrent();
+        
         foreach ($recArr as $r) {
             
             $aMode = Request::get('ajax_mode');
@@ -281,7 +283,7 @@ class bgerp_Portal extends embed_Manager
             
             $rData = new stdClass();
             
-            $res = $this->getResForBlock($r, $rData);
+            $res = $this->getResForBlock($r, $rData, $cu);
             
             Request::push(array('ajax_mode' => $aMode));
             
@@ -363,14 +365,19 @@ class bgerp_Portal extends embed_Manager
      * 
      * @param stdClass $rec
      * @param stdClass $data
+     * @param null|integer $cu
      * 
      * @return null|core_ET
      */
-    protected function getResForBlock($rec, &$data)
+    protected function getResForBlock($rec, &$data, $cu = null)
     {
         if (!cls::load($rec->{$this->driverClassField}, true)) {
             
-            return $res;
+            return ;
+        }
+        
+        if (!$cu) {
+            $cu = core_Users::getCurrent();
         }
         
         $intf = cls::getInterface('bgerp_PortalBlockIntf', $rec->{$this->driverClassField});
@@ -426,7 +433,7 @@ class bgerp_Portal extends embed_Manager
             $cKey = md5($res);
         }
         
-        $newCache = $this->getCacheVal($res, $rData, $rec);
+        $newCache = $this->getCacheVal($res, $rData);
         
         $cName = $this->getCacheName($rec);
         
@@ -575,10 +582,8 @@ class bgerp_Portal extends embed_Manager
             
             // Ако имат "баща", да не може да се изтрие
             if ($action == 'delete') {
-                if ($rec->clonedFromId) {
-                    if ($mvc->fetch($rec->clonedFromId)) {
-                        $requiredRoles = 'no_one';
-                    }
+                if ($mvc->fetch(array("#clonedFromId = '[#1#]'", $rec->id))) {
+                    $requiredRoles = 'no_one';
                 }
             }
         }

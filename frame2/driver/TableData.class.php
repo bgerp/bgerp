@@ -313,7 +313,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             if(is_object($summaryRow)){
                 $data->recs = array('_total' => $summaryRow) + $data->recs;
             }
-            $data->Pager->itemsCount = countR($data->recs);
+            
+            if (isset($data->Pager)) {
+                $data->Pager->itemsCount = countR($data->recs);
+            }
             
             foreach ($data->recs as $index => $dRec) {
                 if (isset($data->Pager) && !$data->Pager->isOnPage()) {

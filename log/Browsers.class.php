@@ -471,7 +471,7 @@ class log_Browsers extends core_Master
         
         // Добавяме хеш към brid и записваме в кукитата
         $bridHash = str::addHash($brid, self::HASH_LENGTH, $bridSalt);
-        $cArr = array('expires' => time() + $conf->CORE_COOKIE_LIFETIME, 'path' => '/', 'secure' => (EF_HTTPS == 'MANDATORY') ? true : false, 'httponly' => null, 'samesite' => null);
+        $cArr = array('expires' => time() + $conf->CORE_COOKIE_LIFETIME, 'path' => '/', 'secure' => null, 'httponly' => null, 'samesite' => null);
         
         // Опитваме се да определим домейна за кукито
         $cArr['domain'] = null;

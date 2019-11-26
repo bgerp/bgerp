@@ -462,7 +462,7 @@ class sales_QuotationsDetails extends doc_Detail
     public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         if (!empty($data->form->rec->id) || $data->form->cmd == 'save_new_row') {
-            $data->form->toolbar->addSbBtn('Запис в нов ред', 'save_new_row', null, array('id' => 'saveInNewRec', 'order' => '9.99955', 'ef_icon' => 'img/16/save_and_new.png', 'title' => 'Запиши в нов ред'));
+            $data->form->toolbar->addSbBtn('Запис в нов ред', 'save_new_row', null, array('id' => 'saveInNewRec', 'order' => '9', 'ef_icon' => 'img/16/save_and_new.png', 'title' => 'Запиши в нов ред'));
         }
     }
     
@@ -564,10 +564,6 @@ class sales_QuotationsDetails extends doc_Detail
                 }
             }
             
-            if ($form->cmd == 'save_new_row') {
-                unset($rec->id);
-            }
-            
             if (!$form->gotErrors()) {
                 
                 if($rec->_createProductForm != true && deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
@@ -578,6 +574,10 @@ class sales_QuotationsDetails extends doc_Detail
                     if ($locationId = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}' AND #contragentCls = {$masterRec->contragentClassId} AND #contragentId = {$masterRec->contragentId}", 'id')) {
                         $masterRec->deliveryPlaceId = $locationId;
                     }
+                }
+                
+                if (!$form->gotErrors()) {
+                    unset($rec->id);
                 }
                 
                 if ($rec->productId) {
