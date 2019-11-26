@@ -483,14 +483,15 @@ class email_Inboxes extends core_Master
             }
         }
         
+        $userRec = null;
         // Ако сметката е корпоративна, то разглеждаме и евентуалните не-създадени-още кутии на powerUser-ите
         if ($accRec->type == 'corporate') {
             
             // Вземаме масив от PowerUsers, като индекса е ника на потребителя
-            $powerUsers = static::getPowerUsers();
+            $powerUsers = static::getPowerUsers(false);
             
             list(, $accDomain) = explode('@', $accRec->email);
-            
+			
             // Ако имейла е съставен от ник на потребител и домейн на корпоративна сметка
             // тогава създаваме кутия за този имейл, вързана към съответния потребител
             foreach ($emailsArr as $eml) {
@@ -512,22 +513,24 @@ class email_Inboxes extends core_Master
                 // Създаваме кутия (основна) на потребителя, към този домейн
                 // и връщаме имейла на тази кутия
                 if ($accDomain == $domain) {
-                    $rec = new stdClass();
-                    $rec->email = $eml;
-                    $rec->accountId = $accRec->id;
-                    $rec->inCharge = $userRec->id;
-                    $rec->access = 'private';
-                    
-                    $rec->id = self::fetchField("#email = '{$rec->email}'", 'id');
-                    
-                    self::save($rec);
-                    
-                    return $rec->email;
+                    if ($userRec->state != 'rejected') {
+                        $rec = new stdClass();
+                        $rec->email = $eml;
+                        $rec->accountId = $accRec->id;
+                        $rec->inCharge = $userRec->id;
+                        $rec->access = 'private';
+                        
+                        $rec->id = self::fetchField("#email = '{$rec->email}'", 'id');
+                        
+                        self::save($rec);
+                        
+                        return $rec->email;
+                    }
                 }
             }
         }
         
-        if ($bestEmail = self::getClosest($emailsArr)) {
+        if ((!$userRec || ($userRec->state != 'rejected')) && ($bestEmail = self::getClosest($emailsArr))) {
             
             return $bestEmail;
         }
@@ -574,10 +577,12 @@ class email_Inboxes extends core_Master
      *
      *
      * @param array $emailsArr
+     * @param boolean $removeClosed
+     * @param boolean $removeRejected
      *
      * @return NULL|string
      */
-    public static function getClosest($emailsArr)
+    public static function getClosest($emailsArr, $removeClosed = true, $removeRejected = true)
     {
         $md = md5(serialize($emailsArr));
         
@@ -588,7 +593,7 @@ class email_Inboxes extends core_Master
         
         // Всички наши имейли
         if (!$ourEmailsArr) {
-            $allEmailsArr = self::getAllEmailsArr();
+            $allEmailsArr = self::getAllEmailsArr($removeClosed, $removeRejected);
             
             foreach ((array) $allEmailsArr as $email) {
                 list($emailL, $domain) = explode('@', $email);
@@ -1166,8 +1171,10 @@ class email_Inboxes extends core_Master
     
     /**
      * Връща потребителите с ранг на корпоративен потребител: ceo, manager, officer, executive
+     * 
+     * @param boolean $removeRejected
      */
-    public static function getPowerUsers()
+    public static function getPowerUsers($removeRejected = true)
     {
         // Масив за съхранение на потребителите имащи право на пощенска кутия в системата
         static $powerUsers;
@@ -1177,7 +1184,10 @@ class email_Inboxes extends core_Master
             $userQuery = core_Users::getQuery();
             $powerRole = core_Roles::getRolesAsKeylist('powerUser');
             $userQuery->likeKeylist('roles', $powerRole);
-            $userQuery->where("#state != 'rejected'");
+            
+            if ($removeRejected) {
+                $userQuery->where("#state != 'rejected'");
+            }
             
             while ($uRec = $userQuery->fetch()) {
                 $powerUsers[strtolower($uRec->nick)] = $uRec;
