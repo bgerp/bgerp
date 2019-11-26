@@ -38,7 +38,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
         $fieldset->FLD('roleId', 'key(mvc=core_Roles,select=role,allowEmpty)', 'caption=Роля,after=title,mandatory');
         $fieldset->FLD('from', 'date', 'caption=Период->От,mandatory,after=documents');
         $fieldset->FLD('to', 'date', 'caption=Период->До,mandatory');
-        $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=name)', 'caption=Документи,after=roleId');
+        $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=title)', 'caption=Документи,after=roleId');
         $fieldset->FLD('order', 'enum(cnt=брой документи,letter=азбучен ред)', 'caption=Подреди по,after=documents,mandatory,column=none');
     }
     
@@ -104,6 +104,8 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
                 $dDoc[$doc->createdBy][$doc->docClass][$doc->docId] = $doc->docId;
             }
             
+            arr::sortObjects($recs, 'cnt', 'desc');
+
             foreach ($dDoc as $createdBy => $dObjArr) {
                 foreach ($dObjArr as $clsId => $objArr) {
                     if (cls::load($clsId, true)) {

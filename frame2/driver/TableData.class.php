@@ -262,7 +262,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         }
        
         if($sortDirection != 'none'){
-            usort($recs, function($a, $b) use ($sortFld, $sortDirection) {
+            uasort($recs, function($a, $b) use ($sortFld, $sortDirection) {
                 return (strip_tags($a->{$sortFld}) > strip_tags($b->{$sortFld})) ? (($sortDirection  == 'up') ? -1 : 1) : (($sortDirection  == 'up')? 1 : -1);
             });
         }
@@ -304,7 +304,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             
             // Ако има поле за групиране, предварително се групират записите
             if (!empty($data->groupByField)) {
-                $this->orderByGroupField($data->recs, $data->groupByField, $sortFld, $sortDirection);
+                $data->recs = $this->orderByGroupField($data->recs, $data->groupByField, $sortFld, $sortDirection);
             } else {
                 $this->sortRecsByDirection($data->recs, $sortFld, $sortDirection);
             }
@@ -313,7 +313,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             if(is_object($summaryRow)){
                 $data->recs = array('_total' => $summaryRow) + $data->recs;
             }
-            $data->Pager->itemsCount = countR($data->recs);
+            
+            if (isset($data->Pager)) {
+                $data->Pager->itemsCount = countR($data->recs);
+            }
             
             foreach ($data->recs as $index => $dRec) {
                 if (isset($data->Pager) && !$data->Pager->isOnPage()) {
@@ -400,6 +403,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             
             // Извличане на тези записи от със същата стойност за групиране
             $groupedArr = array($i => $r);
+            
+            
             $subArr = array_filter($recs, function ($a) use ($r, $groupField) {
                 return ($a->{$groupField} == $r->{$groupField});
             });
@@ -409,8 +414,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $this->sortRecsByDirection($groupedArr, $sortFld, $sortDirection);
             $newRecs += $groupedArr;
         }
-        
-        $recs = $newRecs;
+       
+        return $newRecs;
     }
     
     

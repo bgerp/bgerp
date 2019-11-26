@@ -582,10 +582,8 @@ class bgerp_Portal extends embed_Manager
             
             // Ако имат "баща", да не може да се изтрие
             if ($action == 'delete') {
-                if ($rec->clonedFromId) {
-                    if ($mvc->fetch($rec->clonedFromId)) {
-                        $requiredRoles = 'no_one';
-                    }
+                if ($mvc->fetch(array("#clonedFromId = '[#1#]'", $rec->id))) {
+                    $requiredRoles = 'no_one';
                 }
             }
         }
