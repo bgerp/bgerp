@@ -1077,7 +1077,7 @@ class email_Incomings extends core_Master
             $allEmailToArr[$email] = $email;
         }
         
-        $closestEmail = email_Inboxes::getClosest($allEmailToArr);
+        $closestEmail = email_Inboxes::getClosest($allEmailToArr, false, false);
         
         if (is_string($body)) {
             $isString = true;
