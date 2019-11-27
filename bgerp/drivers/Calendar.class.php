@@ -245,8 +245,13 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $tomorrow = dt::addDays(1, $today, false);
             $nextDay = dt::addDays(2, $today, false);
             
+            $format = Mode::is('screenMode', 'narrow') ? 'd-M-year, D': 'd F-YEAR, l';
+            
             // Показваме събитията близките дни
             foreach ((array)$tArr['now'] as $tDate => $tRowArr) {
+                
+                $dStr = dt::mysql2verbal($tDate, $format, null, false);
+                
                 if ($today == $tDate) {
                     $dVerb = tr('Днес');
                 } elseif ($tDate == $tomorrow) {
@@ -254,8 +259,12 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 }elseif ($tDate == $nextDay) {
                     $dVerb = tr('Вдругиден');
                 } else {
-                    $dVerb = cls::get('type_Date')->toVerbal($tDate);
+                    $dVerb = '';
                 }
+                
+                $dVerb .= $dVerb ? ', ' : '';
+                $dVerb .= $dStr;
+                
                 Mode::set('ysn', true);
                 $res = (object)array('day' => $dVerb);
                 $Calendar->invoke('AfterPrepareGroupDate', array(&$res, $tDate));
