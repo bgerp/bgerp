@@ -426,10 +426,9 @@ function posActions() {
 		clearTimeout(timeout);
 		var operation = $(this).attr("data-value");
 		
-		var selectedElement = $(".selected");
+		var selectedElement = $(".highlighted");
 		var selectedRecId = selectedElement.attr("data-id");
 		console.log(operation, selectedElement);
-
 
 		var url = $(this).attr("data-url");
 		resObj = new Object();
