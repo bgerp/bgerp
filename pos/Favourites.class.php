@@ -295,7 +295,7 @@ class pos_Favourites extends core_Manager
             }
             
             if($cnt == 0){
-                $row->CLASS = 'pos-result-selected';
+                $row->CLASS = 'selected';
             }
             
             $rowTpl = clone($blockTpl);

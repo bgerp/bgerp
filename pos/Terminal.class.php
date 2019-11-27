@@ -250,7 +250,7 @@ class pos_Terminal extends peripheral_Terminal
             foreach ($operations as $operation => $operationCaption){
                 $class = 'operationBtn';
                 if($operation == $currentOperation){
-                    $class .= " operation-selected";
+                    $class .= " selected";
                 }
                 $btn = ht::createFnBtn($operationCaption, '', '', array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation));
                 $block->append($btn, 'INPUT_FLD');
@@ -349,7 +349,7 @@ class pos_Terminal extends peripheral_Terminal
         while($receiptRec = $query->fetch()){
             $btnTitle = pos_Receipts::getTitleById($receiptRec);
             
-            $class = ($cnt == 0) ? "pos-result-selected" : "";
+            $class = ($cnt == 0) ? "selected" : "";
             $buttons[] = ht::createBtn($btnTitle, array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true), 'Наистина ли желаете да сторнирате бележката|*?', false, "ef_icon=img/16/red-back.png,title=Сторниране на бележката,class={$class}");
             $cnt++;
         }
@@ -375,7 +375,7 @@ class pos_Terminal extends peripheral_Terminal
         // Показваме всички активни методи за плащания
         $disClass = ($payUrl) ? '' : 'disabledBtn';
         
-        $tpl->append(ht::createFnBtn('В брой', '', '', array('class' => "{$disClass} actionBtn paymentBtn pos-result-selected", 'data-type' => '-1', 'data-url' => $payUrl)));
+        $tpl->append(ht::createFnBtn('В брой', '', '', array('class' => "{$disClass} actionBtn paymentBtn selected", 'data-type' => '-1', 'data-url' => $payUrl)));
         $payments = pos_Points::fetchSelected($rec->pointId);
         foreach ($payments as $paymentId => $paymentTitle){
             $tpl->append(ht::createFnBtn($paymentTitle, '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => $paymentId, 'data-url' => $payUrl)));
@@ -403,7 +403,7 @@ class pos_Terminal extends peripheral_Terminal
         $dataUrl = (pos_ReceiptDetails::haveRightFor('edit', $selectedRec)) ? toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity'), 'local') : null;
         
         $buttons = array();
-        $class = ($measureId == $basePackagingId) ? "{$baseClass} pos-result-selected" : $baseClass;
+        $class = ($measureId == $basePackagingId) ? "{$baseClass} selected" : $baseClass;
         $buttons[$measureId] = ht::createFnBtn($basePackName, '', '', array('class' => $class, 'data-pack' => $basePackName, 'data-url' => $dataUrl));
        
         $packQuery = cat_products_Packagings::getQuery();
@@ -415,7 +415,7 @@ class pos_Terminal extends peripheral_Terminal
             $packRec->quantity = cat_Uom::round($baseMeasureId, $packRec->quantity);
             $packaging = "|{$packagingId}|* (" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . cat_UoM::getTitleById($baseMeasureId) . ")";
             
-            $class = ($packRec->packagingId == $basePackagingId) ? "{$baseClass} pos-result-selected" : $baseClass;
+            $class = ($packRec->packagingId == $basePackagingId) ? "{$baseClass} selected" : $baseClass;
             $buttons[$packRec->packagingId] = ht::createFnBtn($packaging, '', '', array('class' => $class, 'data-pack' => $packagingId, 'data-url' => $dataUrl));
         }
         
@@ -462,7 +462,7 @@ class pos_Terminal extends peripheral_Terminal
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
             
             
-            $class = ($cnt == 0) ? 'pos-result-price-btn pos-result-selected' : 'pos-result-price-btn';
+            $class = ($cnt == 0) ? 'pos-result-price-btn selected' : 'pos-result-price-btn';
             $buttons[$dRec->price] = ht::createFnBtn($btnName, '', '', array('class' => $class, 'data-url' => $dataUrl));
         }
         
@@ -571,7 +571,7 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->append($logo, 'LOGO');
         
         if($lastRecId = pos_ReceiptDetails::getLastProductRecId($data->rec->id)){
-            $data->receiptDetails->rows[$lastRecId]->lastRow = 'class="pos-receipt-selected"';
+            $data->receiptDetails->rows[$lastRecId]->lastRow = 'class="highlighted"';
         }
         
         // Слагане на детайлите на бележката
@@ -688,7 +688,7 @@ class pos_Terminal extends peripheral_Terminal
             // Обръщаме реда във вербален вид
             $data->rows[$id] = $this->getVerbalSearchresult($obj, $data);
             if($count == 0){
-                $data->rows[$id]->CLASS = ' pos-result-selected';
+                $data->rows[$id]->CLASS = ' selected';
             }
             $count++;
 
@@ -782,7 +782,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         if (pos_Receipts::haveRightFor('add')) {
-            $addBtn = ht::createLink("<span class='pos-span-name'>" . tr('Нова') . '</span>', array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes pos-result-selected');
+            $addBtn = ht::createLink("<span class='pos-span-name'>" . tr('Нова') . '</span>', array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes selected');
             $block->prepend($addBtn);
         }
         

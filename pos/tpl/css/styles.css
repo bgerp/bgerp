@@ -191,6 +191,9 @@
 .wide .result-content {
   float: left; }
 
+.operationBtn.selected {
+  background-color: #6cc049; }
+
 .narrow .doc_Containers table.listTable.listTable > tbody > tr > td:first-child {
   width: auto; }
 
@@ -228,9 +231,14 @@
   cursor: pointer;
   width: 16px; }
 
-.pos-hightligted,
-.pos-hightligted td {
+.highlighted tr,
+.highlighted td {
   background: #ffffcd !important; }
+
+.selected {
+  box-shadow: 1px 1px 5px #0b5b98 !important;
+  border: 1px solid #0b5b98;
+  box-sizing: border-box; }
 
 .numPad,
 .numBack {

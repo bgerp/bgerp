@@ -147,7 +147,7 @@ function posActions() {
 	    	var operation = getSelectedOperation();
 	    	
 	    	// Ако има селектиран ред в резултатите
-	    	var element = $(".pos-result-selected");
+	    	var element = $(".selected");
 	    	
 	    	
 	    	if(element.length){
@@ -426,7 +426,7 @@ function posActions() {
 		clearTimeout(timeout);
 		var operation = $(this).attr("data-value");
 		
-		var selectedElement = $(".pos-receipt-selected");
+		var selectedElement = $(".selected");
 		var selectedRecId = selectedElement.attr("data-id");
 		console.log(operation, selectedElement);
 
@@ -444,7 +444,7 @@ function posActions() {
 		clearTimeout(timeout);
 		var operation = $(this).val();
 		
-		var selectedElement = $(".pos-receipt-selected");
+		var selectedElement = $(".selected");
 		var selectedRecId = selectedElement.attr("data-id");
 		
 		var url = $(this).attr("data-url");

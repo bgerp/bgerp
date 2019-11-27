@@ -3,7 +3,7 @@
 <tr class='pos-sale' title = '|Селектиране на реда|*'>
 	<td colspan='3' class='receipt-sale name-product'>[#productId#] [#DEL_BTN#]&nbsp;&nbsp;[#perPack#] [#uomId#]</td>
 </tr>
-<tr data-code='[#code#]'class='pos-sale [#lastRow#]' data-url='[#selectUrl#]'>
+<tr data-code='[#code#]'class='pos-sale' data-url='[#selectUrl#]'>
 	<td class='receipt-quantity'><span class='quantity'>[#quantity#]</span> <!--ET_BEGIN packagingId--> &nbsp;[#value#]<!--ET_END packagingId--></td>
 	<td class='receipt-price'>[#price#] 
 	<!--ET_BEGIN discountPercent-->
