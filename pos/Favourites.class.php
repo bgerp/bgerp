@@ -137,7 +137,7 @@ class pos_Favourites extends core_Manager
         
         // Коя е текущата точка на продажба и нейния дефолт контрагент
         $posRec = pos_Points::fetch(pos_Points::getCurrent('id'));
-        $cache = core_Cache::get('pos_Favourites', "products{$posRec->id}");
+        $cache = NULL;core_Cache::get('pos_Favourites', "products{$posRec->id}");
         if (!$cache) {
             $query = static::getQuery();
             $query->where('#pointId IS NULL');
@@ -151,7 +151,7 @@ class pos_Favourites extends core_Manager
                 $obj->packagingId = $rec->packagingId;
                 $cache[$rec->id] = $obj;
             }
-            core_Cache::set('pos_Favourites', "products{$posRec->id}", $cache, 10, array('cat_Products'));
+            //core_Cache::set('pos_Favourites', "products{$posRec->id}", $cache, 10, array('cat_Products'));
         }
         
         if ($cache) {
@@ -231,7 +231,7 @@ class pos_Favourites extends core_Manager
      */
     public static function renderPosProducts($data)
     {
-        $file = Mode::is('screenMode', 'narrow') ? 'pos/themes/default/FavouritesNarrow.shtml' : 'pos/themes/default/Favourites.shtml';
+        $file  = Mode::is('screenMode', 'narrow') ? 'pos/tpl/FavouritesNarrow.shtml' : 'pos/tpl/terminal/Favourites.shtml';
         $tpl = getTplFromFile($file);
         
         $self = cls::get(get_called_class());

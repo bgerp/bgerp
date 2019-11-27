@@ -595,8 +595,7 @@ class pos_Terminal extends peripheral_Terminal
             $tpl->push('https://cdn.jsdelivr.net/npm/naviboard@4.1.0/dist/naviboard.min.js', 'JS');
             jquery_Jquery::run($tpl, 'posActions();');
         }
-        
-        $tpl->push('pos/themes/default/style.css', 'CSS');
+
         $conf = core_Packs::getConfig('fancybox');
         $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.css', 'CSS');
         $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.js', 'JS');
@@ -692,6 +691,8 @@ class pos_Terminal extends peripheral_Terminal
                 $data->rows[$id]->CLASS = ' pos-result-selected';
             }
             $count++;
+
+        //    if($count > 10) break;
         }
     }
     
@@ -807,13 +808,13 @@ class pos_Terminal extends peripheral_Terminal
             // Ще се реплейсват резултатите
             $resObj = new stdClass();
             $resObj->func = 'html';
-            $resObj->arg = array('id' => 'tools-choose', 'html' => $resultTpl->getContent(), 'replace' => true);
+            $resObj->arg = array('id' => 'result-holder', 'html' => $resultTpl->getContent(), 'replace' => true);
             $res[] = $resObj;
             
             // Ще се реплейсва и пулта
             $resObj = new stdClass();
             $resObj->func = 'html';
-            $resObj->arg = array('id' => 'tools-form', 'html' => $toolsTpl->getContent(), 'replace' => true);
+            $resObj->arg = array('id' => 'tools-holder', 'html' => $toolsTpl->getContent(), 'replace' => true);
             $res[] = $resObj;
             
             $resObj = new stdClass();

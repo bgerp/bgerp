@@ -34,9 +34,9 @@
 <!--ET_END TRANSFERS_BLOCK-->
 
 <!--ET_BEGIN PRODUCTS_RESULT-->
-<div class='[#CLASS#]'>
-	<span class='pos-photo-field'>[#photo#]</span>
-	<span class='pos-product-field'>[#productId#]</span>
+<div class='element [#CLASS#]'>
+	<div class='pos-photo-field fleft'>[#photo#]</div>
+	[#productId#]
 	<span class='pos-price-field'>[#price#]</span>
 	<span class='pos-stock-field'>[#stock#]</span>
 </div>

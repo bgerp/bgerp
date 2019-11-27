@@ -31,14 +31,7 @@ class pos_DefaultTheme extends core_Manager
      * Имплементация на pos_ThemeIntf
      */
     
-    
-    /**
-     * Подготвя стиловете за пос-a
-     */
-    public function getStyleFile()
-    {
-        return 'pos/themes/default/style.css';
-    }
+
     
     
     /**
@@ -46,7 +39,7 @@ class pos_DefaultTheme extends core_Manager
      */
     public function getFavouritesTpl()
     {
-        $tplFile = Mode::is('screenMode', 'narrow') ? 'pos/themes/default/FavouritesNarrow.shtml' : 'pos/themes/default/Favourites.shtml';
+        $tplFile = Mode::is('screenMode', 'narrow') ? 'pos/tpl/FavouritesNarrow.shtml' : 'pos/tpl/terminal/Favourites.shtml';
         
         return getTplFromFile($tplFile);
     }

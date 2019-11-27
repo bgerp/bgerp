@@ -428,7 +428,9 @@ function posActions() {
 		
 		var selectedElement = $(".pos-receipt-selected");
 		var selectedRecId = selectedElement.attr("data-id");
-		
+		console.log(operation, selectedElement);
+
+
 		var url = $(this).attr("data-url");
 		resObj = new Object();
 		resObj['url'] = url;
@@ -562,13 +564,7 @@ function posActions() {
 		
 		getEfae().process(resObj);
 	});
-	
-	
-	
-	
-	
-	
-	
+
 	
 	$(document.body).on('click', ".pos-result-pack-btn", function(e){
 		var url = $(this).attr("data-url");
@@ -610,19 +606,14 @@ function calculateWidth(){
 	
 	//задаване на ширина на двете колони
 	if (maxColWidth > 700 && $('body').hasClass('wide')) {
-		$('#single-receipt').css('width', 700);
-		$('.tabs-holder-content').css('width', 700);
-		$('.tools-wide-select-content').css('width', winWidth - 770);
+		$('#single-receipt-holder').css('width', 700);
+		$('#result-holder').css('width', winWidth - 770);
 	} else {
-		$('#single-receipt').css('width', maxColWidth);
-		$('.tabs-holder-content').css('width', maxColWidth);
-		$('.tools-wide-select-content').css('width', maxColWidth);
+		$('#single-receipt-holder').css('width', maxColWidth);
+		$('#result-holder').css('width', maxColWidth);
 	}
 
-	
-	//максимална височина на дясната колона и на елементите й
-	$('.tools-wide-select-content').css('maxHeight', winHeight-85);
-	$('.wide #pos-products').css('maxHeight', winHeight-155);
+
 	
 	//височина за таблицата с резултатите
 	var searchTopHeight = parseInt($('.search-top-holder').height());
