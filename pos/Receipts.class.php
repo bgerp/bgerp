@@ -198,8 +198,10 @@ class pos_Receipts extends core_Master
         
         // Записваме, че потребителя е разглеждал този списък
         $this->logWrite('Отваряне на бележка в ПОС терминала', $id);
+        Mode::setPermanent("currentOperation", 'add');
+        Mode::setPermanent("currentSearchString", null);
         
-        return new Redirect(array($this, 'terminal', $id));
+        return new Redirect(array('pos_Terminal', 'open', 'receiptId' => $id));
     }
     
     
@@ -1511,31 +1513,22 @@ class pos_Receipts extends core_Master
      */
     public function act_Revert()
     {
-        if (!$this->haveRightFor('revert')) {
-            
-            return $this->pos_ReceiptDetails->returnError(null);
-        }
-       
-        $search = Request::get('search', 'varchar');
-        if (empty($search)) {
-            core_Statuses::newStatus('|Не е въведен номер на вече издадена бележка|*!', 'error');
-            
-            return $this->pos_ReceiptDetails->returnError(null);
-        }
-       
-        // Ако не е разпозната бележка, не се прави нищо
-        $search = trim($search);
-        $foundArr = $this->findReceiptByNumber($search, true);
+        $this->requireRightFor('revert');
+        expect($id = Request::get('id', 'int'));
         
+        $foundArr = $this->findReceiptByNumber($id, true);
         if (!is_object($foundArr['rec'])) {
             core_Statuses::newStatus($foundArr['notFoundError'], 'error');
             
-            return $this->pos_ReceiptDetails->returnError(null);
+            return followRetUrl();
         }
         
         $newReceiptId = $this->createNew($foundArr['rec']->id);
         
-        return new Redirect(array($this, 'terminal', $newReceiptId));
+        Mode::setPermanent("currentOperation", 'add');
+        Mode::setPermanent("currentSearchString", null);
+        
+        return new Redirect(array('pos_Terminal', 'open', "receiptId" => $newReceiptId));
     }
     
     

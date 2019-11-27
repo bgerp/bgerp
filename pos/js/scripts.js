@@ -144,43 +144,58 @@ function posActions() {
 	    if(e.which == 13) {
 	    	var value = $("input[name=ean]").val();
 	    	var url = $("input[name=ean]").attr("data-url");
-	    	var operation = $("select[name=operation]").val();
+	    	var operation = getSelectedOperation();
 	    	
-		    if(!url){
-		    	
-				return;
-			}
+	    	// Ако има селектиран ред в резултатите
+	    	var element = $(".pos-result-selected");
 	    	
-			resObj = new Object();
+	    	
+	    	if(element.length){
+	    		//console.log(element);
+	    		
+	    		//return;
+	    		// Намира първия елемент с data-url
+	    		var elementDataUrl = element.attr("data-url");
+	    		var hrefUrl = element.attr("href");
+	    		elementDataUrl = (elementDataUrl) ? elementDataUrl : ((hrefUrl) ? hrefUrl : elementDataUrl);
+	    		
+	    		console.log(elementDataUrl);
+	    		
+	    		if(elementDataUrl == undefined){
+	    			var child = element.find('[data-url]');
+	    			
+	    			var elementDataUrl = child.attr("data-url");
+	    			if(elementDataUrl){
+	    				element = child;
+	    			}
+	    		}
+	    		
+	    		if(elementDataUrl == undefined){
+	    			var child = element.find('[href]');
+	    			if(child.length){
+	    				element = child;
+	    			}
+	    		}
+	    		
+	    		
+	    		if(element != undefined){
+	    			// Вика се клик
+		    		var event = jQuery.Event("click");
+		    		element.trigger(event);
+		    		
+		    		return;
+	    		}
+	    	}
+	    	
+	    	if(!url){
+	    		return;
+	    	}
+	    	
+	    	console.log(url, value);
+	    	resObj = new Object();
 			resObj['url'] = url;
 			
-			console.log(url + " " + value);
-			
 			getEfae().process(resObj, {string:value});
-		    
-		    
-		    
-		    
-		    
-	    	return;
-	    	
-	    	
-	    	
-	    	
-	    	
-	    	
-	    	// И има попълнен продуктов код/баркод
-	    	var code = $("input[name=ean]").val();
-	    	if(!code) return;
-	    	
-	    	// Задейства 'click' събитие на бутона 'Код'
-	    	var event = jQuery.Event("click");
-			$("#addProductBtn").trigger(event);
-			
-			// Ако приложението не е отворено на таблет, слагаме фокус на полето за кода
-			if(!((pageWidth > 800 && pageWidth < 1400) && isTouchDevice())){
-				$("input[name=ean]").focus();
-			}
 	    }
 	});
 	
@@ -384,28 +399,41 @@ function posActions() {
 	
 	
 	$(document.body).on('keyup', "input[name=ean]", function(e){
-
-		var inpVal = $(this).val();
-		var receiptId = $("input[name=receiptId]").val();
-		var operation = $("select[name=operation]").val();
+		// След всяко натискане на бутон изчистваме времето на изчакване
+		clearTimeout(timeout);
 		
 		var url = $(this).attr("data-keyupurl");
 		if(!url){
 			return;
 		}
 		
-		// След всяко натискане на бутон изчистваме времето на изчакване
-		clearTimeout(timeout);
-		console.log('keyp');
+		var inpVal = $(this).val();
+		var operation = getSelectedOperation();
+		
 		// Правим Ajax заявката като изтече време за изчакване
 		timeout = setTimeout(function(){
 			resObj = new Object();
 			resObj['url'] = url;
-			console.log(url, operation,inpVal);
+			
 			getEfae().process(resObj, {operation:operation,search:inpVal});
 
 		}, 700);
 
+	});
+	
+	
+	$(document.body).on('click', ".operationBtn", function(e){
+		clearTimeout(timeout);
+		var operation = $(this).attr("data-value");
+		
+		var selectedElement = $(".pos-receipt-selected");
+		var selectedRecId = selectedElement.attr("data-id");
+		
+		var url = $(this).attr("data-url");
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		getEfae().process(resObj, {operation:operation,recId:selectedRecId});
 	});
 	
 	
@@ -524,19 +552,37 @@ function posActions() {
 	});
 	
 	
-	$(document.body).on('click', "tr.pos-quantity-result-quantity-row", function(e){
+	
+	$(document.body).on('click', ".pos-result-price-btn", function(e){
 		var url = $(this).attr("data-url");
 		if(!url) return;
 		
-		var selectedElement = $(".pos-receipt-selected");
-		var selectedRecId = selectedElement.attr("data-id");
+		resObj = new Object();
+		resObj['url'] = url;
 		
+		getEfae().process(resObj);
+	});
+	
+	
+	
+	
+	
+	
+	
+	
+	$(document.body).on('click', ".pos-result-pack-btn", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		var pack = $(this).attr("data-pack");
+		var quantity = $("input[name=ean]").val();
+		quantity = (quantity) ? quantity : 1;
+		var string = quantity + " " + pack;
 		
 		resObj = new Object();
 		resObj['url'] = url;
-		console.log(url);
-		getEfae().process(resObj, {recId:selectedRecId});
-		//calculateWidth();
+		
+		getEfae().process(resObj, {string:string});
 	});
 	
 }
@@ -687,6 +733,17 @@ function enter(){
 	if($('.pos-search-result-table .rowBlock.active').length) {
 		$('.pos-search-result-table .rowBlock.active .pos-add-res-btn').click();
 	}
+}
+
+function getSelectedOperation()
+{
+	if($("select[name=operation]").length){
+		var operation = $("select[name=operation]").val();
+	} else {
+		var operation = $(".operation-selected").attr("data-value");
+	}
+	
+	return operation;
 }
 
 function render_prepareTableResult() {

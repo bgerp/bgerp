@@ -33,11 +33,11 @@ class pos_Terminal extends peripheral_Terminal
     protected $fieldArr = array('payments', 'policyId', 'caseId', 'storeId');
     
     
-    protected static $operationsArr = "add=Артикул,payment=Плащане,pack=Опаковка,quantity=Количество,price=Цена,discount=Отстъпка,text=Текст,receipts=Бележки";
+    protected static $operationsArr = "add=Артикул,payment=Плащане,quantity=Количество,price=Цена,discount=Отстъпка,text=Текст,receipts=Бележки,revert=Сторно";
     
     //,packaging=Опаковка,quantity=Количество,price=Цена,discount=Отстъпка,text=Текст,client=Клиент,sale=Продажба,payment=Плащане,revert=Сторниране,nullify=Анулиране,receipts=Бележки
     
-    protected static $forbiddenOperationOnEmptyReceipts = array('discount', 'price', 'pack', 'text', 'quantity', 'payment');
+    protected static $forbiddenOperationOnEmptyReceipts = array('discount', 'price', 'text', 'quantity', 'payment');
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -78,16 +78,16 @@ class pos_Terminal extends peripheral_Terminal
     public function act_Open()
     {
         
-        $Receipt = cls::get('pos_Receipts');
+        $Receipts = cls::get('pos_Receipts');
         
-        $Receipt->requireRightFor('terminal');
+        $Receipts->requireRightFor('terminal');
         expect($id = Request::get('receiptId', 'int'));
-        expect($rec = $Receipt->fetch($id));
+        expect($rec = $Receipts->fetch($id));
         
         // Имаме ли достъп до терминала
-        if (!$Receipt->haveRightFor('terminal', $rec)) {
+        if (!$Receipts->haveRightFor('terminal', $rec)) {
             
-            return new Redirect(array($Receipt, 'new'));
+            return new Redirect(array($Receipts, 'new'));
         }
         
         // Лейаут на терминала
@@ -99,6 +99,7 @@ class pos_Terminal extends peripheral_Terminal
         
         // Добавяме бележката в изгледа
         $receiptTpl = $this->getReceipt($rec);
+        
         $tpl->replace($receiptTpl, 'RECEIPT');
         $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
         
@@ -143,8 +144,8 @@ class pos_Terminal extends peripheral_Terminal
     
     public function getCommandPanel($rec)
     {
-        $Receipt = cls::get('pos_Receipts');
-        expect($rec = $Receipt->fetchRec($rec));
+        $Receipts = cls::get('pos_Receipts');
+        expect($rec = $Receipts->fetchRec($rec));
         
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('TAB_TOOLS');
         $operation = Mode::get("currentOperation");
@@ -152,7 +153,7 @@ class pos_Terminal extends peripheral_Terminal
         
         switch($operation){
             case 'add':
-                $inputUrl = array('pos_ReceiptDetails', 'add', 'productId' => 5);
+                $inputUrl = array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id);
                 $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id);
                 break;
             case 'quantity':
@@ -167,23 +168,26 @@ class pos_Terminal extends peripheral_Terminal
             case 'text':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'settext');
                 break;
-            case 'pack':
-                $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setpack');
             case 'payment';
-
+                break;
+            case 'revert';
+                $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id);
                 break;
         }
         
-        $inputUrl = toUrl($inputUrl, 'local');
+        if(is_array($inputUrl)){
+            $inputUrl = toUrl($inputUrl, 'local');
+        }
+        
         if(is_array($keyupUrl)){
             $keyupUrl = toUrl($keyupUrl, 'local');
         }
         
         // Ако можем да добавяме към бележката
-        if ($Receipt->pos_ReceiptDetails->haveRightFor('add', (object) array('receiptId' => $rec->id))) {
+        if ($Receipts->pos_ReceiptDetails->haveRightFor('add', (object) array('receiptId' => $rec->id))) {
             $modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
             $discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
-            $absUrl = toUrl(array('pos_Receipts', 'addProduct', $rec->id), 'absolute');
+            
             $doActionUrl = toUrl(array($this, 'setoperation', 'receiptId' => $rec->id), 'local');
         } else {
             $discUrl = $modQUrl = $doActionUrl = null;
@@ -195,8 +199,8 @@ class pos_Terminal extends peripheral_Terminal
         
         $browserInfo = Mode::get('getUserAgent');
         if (stripos($browserInfo, 'Android') !== false) {
-            $htmlScan = "<input type='button' class='webScan {$disClass}' {$disabled} id='webScan' name='scan' onclick=\"document.location = 'http://zxing.appspot.com/scan?ret={$absUrl}?ean={CODE}'\" value='Scan' />";
-            $block->append($htmlScan, 'FIRST_TOOLS_ROW');
+            //$htmlScan = "<input type='button' class='webScan {$disClass}' {$disabled} id='webScan' name='scan' onclick=\"document.location = 'http://zxing.appspot.com/scan?ret={$absUrl}?ean={CODE}'\" value='Scan' />";
+            //$block->append($htmlScan, 'FIRST_TOOLS_ROW');
         }
         
         $value = round(abs($rec->total) - abs($rec->paid), 2);
@@ -236,12 +240,22 @@ class pos_Terminal extends peripheral_Terminal
             foreach (self::$forbiddenOperationOnEmptyReceipts as $operationToRemove){
                 unset($operations[$operationToRemove]);
             }
-            
         }
         
-        $operationSelectFld = ht::createSelect('operation', $operations, Mode::get("currentOperation"), array('class' => '', 'data-url' => $searchUrl));
-        $block->append($operationSelectFld, 'INPUT_FLD');
-        
+        $currentOperation = Mode::get("currentOperation");
+        if(Mode::is('screenMode', 'narrow')){
+            $operationSelectFld = ht::createSelect('operation', $operations, $currentOperation, array('class' => '', 'data-url' => $searchUrl));
+            $block->append($operationSelectFld, 'INPUT_FLD');
+        } else {
+            foreach ($operations as $operation => $operationCaption){
+                $class = 'operationBtn';
+                if($operation == $currentOperation){
+                    $class .= " operation-selected";
+                }
+                $btn = ht::createFnBtn($operationCaption, '', '', array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation));
+                $block->append($btn, 'INPUT_FLD');
+            }
+        }
         
         $block->append(ht::createElement('input', $params), 'INPUT_FLD');
         $block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
@@ -265,17 +279,6 @@ class pos_Terminal extends peripheral_Terminal
         Mode::setPermanent("currentOperation", $operation);
         Mode::setPermanent("currentSearchString", $string);
         
-        
-        
-        
-       // $resObj->arg = array('id' => 'receipt-table', 'html' => $this->getReceipt($detailRec->receiptId)->getContent(), 'replace' => true);
-        
-        
-        //$resultTpl = $this->renderResult($rec, $operation, $string);
-        
-        //$toolsTpl = $this->Master->renderToolsTab($rec);
-        //$paymentTpl = $this->Master->renderPaymentTab($rec);
-        
         return static::returnAjaxResponse($rec, $selectedRecId, true);
     }
     
@@ -297,7 +300,7 @@ class pos_Terminal extends peripheral_Terminal
                 $res = $this->renderDraftsTab($rec);
                 break;
             case 'quantity':
-                $res = $this->renderQuantityTable($rec, $string, $selectedRecId);
+                $res = $this->renderPackagingTable($rec, $string, $selectedRecId);
                 break;
             case 'discount':
                 $res = ' ';
@@ -307,11 +310,12 @@ class pos_Terminal extends peripheral_Terminal
             case 'price':
                 $res = $this->renderLastPriceTable($rec, $string, $selectedRecId);
                 break;
-            case 'pack':
-                $res = $this->renderPackagingTable($rec, $string, $selectedRecId);
                 break;
             case 'payment':
                 $res = $this->renderPaymentTabs($rec, $string, $selectedRecId);
+                break;
+            case 'revert':
+                $res = $this->renderRevertTable($rec, $string, $selectedRecId);
                 break;
             default:
                 $res = "{$currOperation} '$string' {$selectedRecId} @TODO";
@@ -319,6 +323,43 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         return new core_ET($res);
+    }
+    
+    
+    public static function renderRevertTable($rec, $string, $selectedRecId)
+    {
+        $Receipts = cls::get('pos_Receipts');
+        $string = plg_Search::normalizeText($string);
+        
+        
+        $query = $Receipts->getQuery();
+        $query->where("#revertId IS NULL AND #state != 'draft' AND #pointId = {$rec->pointId}");
+        
+       
+        //$foundArr = $Receipts->findReceiptByNumber($string, true);
+        
+        if (is_object($foundArr['rec'])) {
+            $query->where(array("#id = {$foundArr['rec']->id}"));
+        } else {
+            $query->where(array("#searchKeywords LIKE '%[#1#]%'", $string));
+        }
+        
+        $buttons = array();
+        $cnt = 0;
+        while($receiptRec = $query->fetch()){
+            $btnTitle = pos_Receipts::getTitleById($receiptRec);
+            
+            $class = ($cnt == 0) ? "pos-result-selected" : "";
+            $buttons[] = ht::createBtn($btnTitle, array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true), 'Наистина ли желаете да сторнирате бележката|*?', false, "ef_icon=img/16/red-back.png,title=Сторниране на бележката,class={$class}");
+            $cnt++;
+        }
+        
+        $tpl = new core_ET("");
+        foreach ($buttons as $btn){
+            $tpl->append($btn);
+        }
+        
+        return $tpl;
     }
     
     public static function renderPaymentTabs($rec, $string, $selectedRecId)
@@ -353,37 +394,41 @@ class pos_Terminal extends peripheral_Terminal
     {
         $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
         $measureId = cat_Products::fetchField($selectedRec->productId, 'measureId');
-        $rows = array();
-        $rows[$measureId] = (object)array('packagingId' => tr(cat_UoM::getTitleById($measureId)));
-        $rows[$measureId]->ROW_ATTR = array('class' => 'pos-quantity-result-quantity-row', 'data-url' => toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setpack', 'string' => cat_UoM::getTitleById($measureId)), 'local'));
-        
-        $packQuery = cat_products_Packagings::getQuery();
-        $packQuery->where("#productId = {$selectedRec->productId}");
-        while ($packRec = $packQuery->fetch()) {
-            $packagingId = tr(cat_UoM::getTitleById($packRec->packagingId));
-            $baseMeasureId = $measureId;
-            $packRec->quantity = cat_Uom::round($baseMeasureId, $packRec->quantity);
-            
-            $packagingId .= " <span class='small'>" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . tr(cat_UoM::getTitleById($baseMeasureId)) . "</span>";
-            $rows[$packRec->packagingId] = (object)array('packagingId' => $packagingId);
-            $rows[$packRec->packagingId]->ROW_ATTR = array('class' => 'pos-quantity-result-quantity-row', 'data-url' => toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setpack', 'string' => cat_UoM::getTitleById($packRec->packagingId)), 'local'));
-        }
         
         $packs = cat_Products::getPacks($selectedRec->productId);
         $basePackagingId = key($packs);
-        $baseObject = $rows[$basePackagingId];
-        $baseObject->ROW_ATTR['class'] .= ' pos-result-selected';
-        unset($rows[$basePackagingId]);
-        $rows = array($basePackagingId => $baseObject) + $rows;
         
-        $fSet = new core_FieldSet();
-        $fSet->FLD('packagingId', 'varchar', 'tdClass=pos-quantity-result-packaging');
-        $fSet->tableRowTpl = "[#ROW#]";
+        $baseClass = "pos-result-pack-btn";
+        $basePackName = cat_UoM::getTitleById($measureId);
+        $dataUrl = (pos_ReceiptDetails::haveRightFor('edit', $selectedRec)) ? toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity'), 'local') : null;
         
-        $table = cls::get('core_TableView', array('thHide' => true, 'mvc' => $fSet));
-        $fields = arr::make('packagingId');
+        $buttons = array();
+        $class = ($measureId == $basePackagingId) ? "{$baseClass} pos-result-selected" : $baseClass;
+        $buttons[$measureId] = ht::createFnBtn($basePackName, '', '', array('class' => $class, 'data-pack' => $basePackName, 'data-url' => $dataUrl));
+       
+        $packQuery = cat_products_Packagings::getQuery();
+        $packQuery->where("#productId = {$selectedRec->productId}");
+        while ($packRec = $packQuery->fetch()) {
+            
+            $packagingId = cat_UoM::getTitleById($packRec->packagingId);
+            $baseMeasureId = $measureId;
+            $packRec->quantity = cat_Uom::round($baseMeasureId, $packRec->quantity);
+            $packaging = "|{$packagingId}|* (" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . cat_UoM::getTitleById($baseMeasureId) . ")";
+            
+            $class = ($packRec->packagingId == $basePackagingId) ? "{$baseClass} pos-result-selected" : $baseClass;
+            $buttons[$packRec->packagingId] = ht::createFnBtn($packaging, '', '', array('class' => $class, 'data-pack' => $packagingId, 'data-url' => $dataUrl));
+        }
         
-        return $table->get($rows, $fields);
+        $firstBtn = $buttons[$basePackagingId];
+        unset($buttons[$basePackagingId]);
+        $buttons = array($basePackagingId => $firstBtn) + $buttons;
+        
+        $tpl = new core_ET("");
+        foreach ($buttons as $btn){
+            $tpl->append($btn);
+        }
+        
+        return $tpl;
         
     }
     
@@ -391,12 +436,14 @@ class pos_Terminal extends peripheral_Terminal
     public function renderLastPriceTable($rec, $string, $selectedRecId)
     {
         $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
-        $rows = array();
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+        $buttons = array();
         
         $dQuery = pos_ReceiptDetails::getQuery();
         $dQuery->where("#action = 'sale|code' AND #productId = {$selectedRec->productId} AND #quantity > 0");
+        $dQuery->orderBy('id', 'desc');
         if(isset($selectedRec->value)){
-            $dQuery->where("#value = {$selectedRec->value}");
+            $dQuery->where("#value = {$selectedRec->value}"); 
             $value = $selectedRec->value;
         } else {
             $dQuery->where("#value IS NULL");
@@ -408,65 +455,23 @@ class pos_Terminal extends peripheral_Terminal
         $dQuery->show('price,param');
         while($dRec = $dQuery->fetch()){
             $dRec->price *= 1 + $dRec->param;
-            $row = (object)array('price' => core_Type::getByName('double(smartRound)')->toVerbal($dRec->price), 'value' => tr($packName));
-            $row->ROW_ATTR = array('class' => 'pos-quantity-result-quantity-row', 'data-url' => toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $row->price), 'local'));
-            $row->price .= " <span class='cCode'>" . acc_Periods::getBaseCurrencyCode() . "</span>";
+            Mode::push('text', 'plain');
+            $price = core_Type::getByName('double(smartRound)')->toVerbal($dRec->price);
+            Mode::pop('text', 'plain');
+            $btnName = "|*{$price} {$baseCurrencyCode} |" . tr($packName);
+            $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
             
-            $rows[trim($dRec->price)] = $row;
-            $cnt++;
-            if($cnt == 1){
-                $row->ROW_ATTR['class'] .= " pos-result-selected";
-            }
+            
+            $class = ($cnt == 0) ? 'pos-result-price-btn pos-result-selected' : 'pos-result-price-btn';
+            $buttons[$dRec->price] = ht::createFnBtn($btnName, '', '', array('class' => $class, 'data-url' => $dataUrl));
         }
         
-        $fSet = new core_FieldSet();
-        $fSet->FLD('price', 'double', 'tdClass=pos-quantity-result-quantity');
-        $fSet->FLD('value', 'double', 'tdClass=pos-quantity-result-packagingId');
-        $fSet->tableRowTpl = "[#ROW#]";
-        
-        $table = cls::get('core_TableView', array('thHide' => true, 'mvc' => $fSet));
-        $fields = arr::make('price,value');
-        
-        return $table->get($rows, $fields);
-    }
-    
-    
-    public function renderQuantityTable($rec, $string, $selectedRecId)
-    {
-        $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
-        $rows = array();
-        
-        $cnt = 0;
-        $dQuery = pos_ReceiptDetails::getQuery();
-        $dQuery->where("#action = 'sale|code' AND #productId = {$selectedRec->productId} AND #quantity > 0");
-        $dQuery->show('quantity,value');
-        $dQuery->orderBy('id', 'DESC');
-        while($dRec = $dQuery->fetch()){
-            if(!array_key_exists("{$dRec->quantity}|{$dRec->value}", $rows)){
-                $packName = cat_UoM::getShortName($dRec->value);
-                $row = (object)array('quantity' => core_Type::getByName('double(smartRound)')->toVerbal($dRec->quantity), 'value' => tr($packName));
-                $row->ROW_ATTR = array('class' => 'pos-quantity-result-quantity-row', 'data-url' => toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity', 'string' => "{$row->quantity} {$packName}"), 'local'));
-                
-                $rows["{$dRec->quantity}|{$dRec->value}"] = $row;
-                $cnt++;
-                
-                if($cnt == 1){
-                    $row->ROW_ATTR['class'] .= " pos-result-selected";
-                }
-            }
-            
-            if($cnt >= 10) break;
+        $tpl = new core_ET("");
+        foreach ($buttons as $btn){
+            $tpl->append($btn);
         }
         
-        $fSet = new core_FieldSet();
-        $fSet->FLD('quantity', 'double', 'tdClass=pos-quantity-result-quantity');
-        $fSet->FLD('value', 'double', 'tdClass=pos-quantity-result-packagingId');
-        $fSet->tableRowTpl = "[#ROW#]";
-        
-        $table = cls::get('core_TableView', array('thHide' => true, 'mvc' => $fSet));
-        $fields = arr::make('quantity,value');
-        
-        return $table->get($rows, $fields);
+        return $tpl;
     }
     
     
@@ -515,13 +520,14 @@ class pos_Terminal extends peripheral_Terminal
      */
     public function getReceipt_($id)
     {
-        $Receipt = cls::get('pos_Receipts');
-        expect($rec = $Receipt->fetchRec($id));
+        $Receipts = cls::get('pos_Receipts');
+        expect($rec = $Receipts->fetchRec($id));
         
         $data = new stdClass();
         $data->rec = $rec;
         $this->prepareReceipt($data);
         $tpl = $this->renderReceipt($data);
+        $Receipts->invoke('AfterGetReceipt', array(&$tpl, $rec));
         
         return $tpl;
     }
@@ -611,7 +617,16 @@ class pos_Terminal extends peripheral_Terminal
         
         $this->prepareProductTable($data);
         
-        return $this->renderProductResultTable($data);
+        $tpl = new core_ET("");
+        $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PRODUCTS_RESULT');
+        foreach ($data->rows as $row){
+            $bTpl = clone $block;
+            $bTpl->placeObject($row);
+            $bTpl->removeBlocksAndPlaces();
+            $tpl->append($bTpl);
+        }
+        
+        return $tpl;
     }
     
     
@@ -674,9 +689,8 @@ class pos_Terminal extends peripheral_Terminal
             // Обръщаме реда във вербален вид
             $data->rows[$id] = $this->getVerbalSearchresult($obj, $data);
             if($count == 0){
-                $data->rows[$id]->ROW_ATTR['class'] .= ' pos-result-selected';
+                $data->rows[$id]->CLASS = ' pos-result-selected';
             }
-            
             $count++;
         }
     }
@@ -699,7 +713,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $obj->receiptId = $data->rec->id;
         if ($Receipts->pos_ReceiptDetails->haveRightFor('add', $obj)) {
-            $addUrl = toUrl(array('pos_Receipts', 'addProduct', $data->rec->id), 'local');
+            $addUrl = toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $obj->receiptId), 'local');
         } else {
             $addUrl = null;
         }
@@ -740,28 +754,6 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
-     * Рендира таблицата с резултатите от търсенето
-     */
-    private function renderProductResultTable(&$data)
-    {
-        $fSet = cls::get('core_FieldSet');
-        $fSet->FNC('photo', 'varchar', 'tdClass=pos-photo-field');
-        $fSet->FNC('productId', 'varchar', 'tdClass=pos-product-field');
-        $fSet->FNC('price', 'double', 'tdClass=pos-price-field');
-        $fSet->FNC('stock', 'double', 'tdClass=pos-stock-field');
-        $fSet->tableRowTpl = "[#ROW#]";
-        
-        $table = cls::get('core_TableView', array('mvc' => $fSet));
-        $fields = arr::make('photo=Снимка,productId=Продукт,price=Цена');
-        if (Mode::is('screenMode', 'narrow')) {
-            unset($fields['photo']);
-        }
-        
-        return $table->get($data->rows, $fields);
-    }
-    
-    
-    /**
      * Рендиране на таба с черновите
      *
      * @param int $id -ид на бележка
@@ -783,13 +775,13 @@ class pos_Terminal extends peripheral_Terminal
             $between = dt::daysBetween($now, $rec->valior);
             $between = ($between != 0) ? " <span class='num'>-${between}</span>" : null;
             
-            $revertClass = isset($rec->revertId) ? 'revert-receipt' : '';
-            $row = ht::createLink("<span class='pos-span-name'>№{$rec->id} <br> {$date}$between</span>", array('pos_Receipts', 'Terminal', $rec->id), null, array('class' => "pos-notes {$revertClass}", 'title' => 'Преглед на бележката'));
+            $class = isset($rec->revertId) ? 'revert-receipt' : '';
+            $row = ht::createLink("<span class='pos-span-name'>№{$rec->id} <br> {$date}$between</span>", array('pos_Terminal', 'open', 'receiptId' => $rec->id), null, array('class' => "pos-notes {$class}", 'title' => 'Преглед на бележката'));
             $block->append($row);
         }
         
         if (pos_Receipts::haveRightFor('add')) {
-            $addBtn = ht::createLink("<span class='pos-span-name'>" . tr('Нова') . '</span>', array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes');
+            $addBtn = ht::createLink("<span class='pos-span-name'>" . tr('Нова') . '</span>', array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes pos-result-selected');
             $block->prepend($addBtn);
         }
         
@@ -819,18 +811,22 @@ class pos_Terminal extends peripheral_Terminal
             $res[] = $resObj;
             
             // Ще се реплейсва и пулта
-            $resObj1 = new stdClass();
-            $resObj1->func = 'html';
-            $resObj1->arg = array('id' => 'tools-form', 'html' => $toolsTpl->getContent(), 'replace' => true);
-            $res[] = $resObj1;
+            $resObj = new stdClass();
+            $resObj->func = 'html';
+            $resObj->arg = array('id' => 'tools-form', 'html' => $toolsTpl->getContent(), 'replace' => true);
+            $res[] = $resObj;
+            
+            $resObj = new stdClass();
+            $resObj->func = 'fancybox';
+            $res[] = $resObj;
             
             if($refreshTable === true){
                 $receiptTpl = $me->getReceipt($rec);
                 
-                $resObj2 = new stdClass();
-                $resObj2->func = 'html';
-                $resObj2->arg = array('id' => 'receipt-table', 'html' => $receiptTpl->getContent(), 'replace' => true);
-                $res[] = $resObj2;
+                $resObj = new stdClass();
+                $resObj->func = 'html';
+                $resObj->arg = array('id' => 'receipt-table', 'html' => $receiptTpl->getContent(), 'replace' => true);
+                $res[] = $resObj;
             }
         }
         

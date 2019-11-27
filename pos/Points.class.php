@@ -207,7 +207,7 @@ class pos_Points extends core_Master
         $rec = $data->rec;
         
         if ($mvc->haveRightFor('select', $rec->id) && pos_Receipts::haveRightFor('terminal')) {
-            $urlArr = array('pos_Points', 'OpenTerminal', $rec->id);
+            $urlArr = array('pos_Terminal', 'open', 'receiptId' => $rec->id);
             $data->toolbar->addBtn('Отвори', $urlArr, null, 'title=Отваряне на терминала за POS продажби,class=pos-open-btn,ef_icon=img/16/forward16.png,target=_blank');
         }
         

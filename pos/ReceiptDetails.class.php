@@ -209,15 +209,15 @@ class pos_ReceiptDetails extends core_Detail
             expect($rec = self::fetch($id), 'Не е избран ред');
             $this->requireRightFor('edit', $rec);
            
-            expect($operation = Request::get('action', 'enum(setquantity,setdiscount,settext,setprice,setpack)'), 'Невалидна операция');
+            expect($operation = Request::get('action', 'enum(setquantity,setdiscount,settext,setprice)'), 'Невалидна операция');
             $string = Request::get('string', 'varchar');
             expect(isset($string), 'Проблем при разчитане на операцията');
             
-            if($operation == 'settext' || $operation == 'setpack'){
+            if($operation == 'settext' || $operation == 'setprice'){
                 $firstValue = trim($string);
             } else {
                 $string = str::removeWhiteSpace(trim($string), " ");
-                list($firstValue, $secondValue) = explode(" ", $string);
+                list($firstValue, $secondValue) = explode(" ", $string, 2);
             }
             
             switch($operation){
@@ -254,13 +254,6 @@ class pos_ReceiptDetails extends core_Detail
                    expect(isset($text), 'Не е зададено пояснение');
                    $rec->text = (!empty($text)) ? $text : null;
                    $sucessMsg = 'Променено пояснение на реда|*!';
-                   break;
-               case 'setpack':
-                   expect($packagingId = cat_UoM::fetchBySinonim($firstValue)->id, 'Не е разпозната опаковка');
-                   $packs = cat_Products::getPacks($rec->productId);
-                   expect(array_key_exists($packagingId, $packs), 'Опаковката/мярка не е налична за въпросния артикул');
-                   $rec->value = $packagingId;
-                   $sucessMsg = 'Променена опаковка/мярка|*!';
                    
                    break;
             }
@@ -314,7 +307,7 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             // Ако е зададен код на продукта
-            if ($ean = Request::get('ean')) {
+            if ($ean = Request::get('string')) {
                 $matches = array();
                 
                 // Проверяваме дали въведения "код" дали е във формата '< число > * < код >',
@@ -328,8 +321,6 @@ class pos_ReceiptDetails extends core_Detail
                     if (isset($rec->productId)) {
                         $rec->quantity = cls::get('type_Double')->fromVerbal($matches[1] * $matches[3]);
                     } else {
-                        
-                        // Ако няма приемаме, че от ляво е колчиество а от дясно код
                         $rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
                         $rec->ean = $matches[3];
                     }
@@ -400,10 +391,9 @@ class pos_ReceiptDetails extends core_Detail
                 $success = false;
             }
         }
-        core_Statuses::newStatus($receiptId);
+       
         return pos_Terminal::returnAjaxResponse($receiptId, null, $success, true);
     }
-    
     
     
     /**
@@ -418,7 +408,7 @@ class pos_ReceiptDetails extends core_Detail
         
         $this->delete($rec->id);
         $this->Master->updateReceipt($rec->receiptId);
-        core_Statuses::newStatus("Редът е изтрит успешно");
+        core_Statuses::newStatus("Редът е изтрит успешно|*!");
         
         return pos_Terminal::returnAjaxResponse($rec->receiptId, null, true, true);
     }
