@@ -33,7 +33,7 @@ class pos_Terminal extends peripheral_Terminal
     protected $fieldArr = array('payments', 'policyId', 'caseId', 'storeId');
     
     
-    protected static $operationsArr = "add=Артикул,payment=Плащане,quantity=Количество,price=Цена,discount=Отстъпка,text=Текст,receipts=Бележки,revert=Сторно";
+    protected static $operationsArr = "add=Артикул,payment=Плащане,quantity=Количество,price=Цена,discount=Отстъпка,text=Текст,contragent=Клиент,receipts=Бележки,revert=Сторно";
     
     //,packaging=Опаковка,quantity=Количество,price=Цена,discount=Отстъпка,text=Текст,client=Клиент,sale=Продажба,payment=Плащане,revert=Сторниране,nullify=Анулиране,receipts=Бележки
     
@@ -170,6 +170,9 @@ class pos_Terminal extends peripheral_Terminal
                 break;
             case 'payment';
                 break;
+            case 'contragent';
+                $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id);
+                break;
             case 'revert';
                 $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id);
                 break;
@@ -282,6 +285,7 @@ class pos_Terminal extends peripheral_Terminal
         return static::returnAjaxResponse($rec, $selectedRecId, true);
     }
     
+    
     public function renderResult($rec, $currOperation, $string, $selectedRecId = null)
     {
         $detailsCount = pos_ReceiptDetails::count("#receiptId = {$rec->id}");
@@ -317,6 +321,9 @@ class pos_Terminal extends peripheral_Terminal
             case 'revert':
                 $res = $this->renderRevertTable($rec, $string, $selectedRecId);
                 break;
+            case 'contragent':
+                $res = $this->renderContragentTable($rec, $string, $selectedRecId);
+                break;
             default:
                 $res = "{$currOperation} '$string' {$selectedRecId} @TODO";
                 break;
@@ -325,6 +332,79 @@ class pos_Terminal extends peripheral_Terminal
         return new core_ET($res);
     }
     
+    public function renderContragentTable($rec, $string, $selectedRecId)
+    {
+        
+        //return new core_ET("");
+        
+        //Задава клиент към мастъра на бележката. Ако няма нищо записано в инпут полето, показва клиентите
+        //или от маршрута за дена на дадения търговец или тези, които са най-близко или нищо.
+        //Като се напише нещо - вади клиентите, които мачват филтъра. Ако е код на карта на
+        //клиент или визитка или ЕГН или Булстат - на първо място вади съответният клиент.
+        
+        $contragents = array();
+        
+        $stringInput = core_Type::getByName('varchar')->fromVerbal($string);
+        if($cardRec = crm_ext_Cards::fetch("#number = '{$stringInput}'")){
+            $contragents["{$cardRec->contragentClassId}|{$cardRec->contragentId}"] = (object)array('contragentClassId' => $cardRec->contragentClassId, 'contragentId' => $cardRec->contragentId, 'title' => cls::get($cardRec)->getHyperlink($cardRec->contragentId, true));
+        }
+        
+        $personClassId = crm_Persons::getClassId();
+        $companyClassId = crm_Companies::getClassId();
+        
+        $cQuery = crm_Companies::getQuery();
+        $cQuery->fetch("#vatId = '{$stringInput}' OR #uicId = '{$stringInput}'");
+        $cQuery->show('id');
+        while($cRec = $cQuery->fetch()){
+            $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => crm_Companies::getHyperlink($cRec->id, true));
+        }
+        
+        
+        $pQuery = crm_Persons::getQuery();
+        $pQuery->fetch("#egn = '{$stringInput}' OR #vatId = '{$stringInput}'");
+        $pQuery->show('id');
+        while($pRec = $pQuery->fetch()){
+            $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => crm_Persons::getHyperlink($pRec->id, true));
+        }
+        
+        foreach (array('crm_Companies', 'crm_Persons') as $ContragentClass){
+            $cQuery = $ContragentClass::getQuery();
+            $stringInput = plg_Search::normalizeText($stringInput);
+            plg_Search::applySearch($stringInput, $cQuery);
+            
+            
+            //bp($cQuery->where);
+            $cQuery->where("#state != 'rejected' AND #state != 'closed'");
+            $cQuery->show('id');
+            
+            $classId = ($ContragentClass == 'crm_Companies') ? $companyClassId : $personClassId;
+            while($cRec = $cQuery->fetch()){
+                if(!array_key_exists("{$classId}|{$cRec->id}", $contragents)){
+                    $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $ContragentClass::getHyperlink($cRec->id, true));
+                }
+                
+                if(count($contragents) > 20) break;
+            }
+        }
+        //bp($contragents);
+        $canTransfer = pos_Receipts::haveRightFor('transfer', $rec);
+        $tpl = new core_ET("");
+        $cnt = 0;
+        foreach ($contragents as $obj){
+            $class = ($cnt == 0) ? 'posResultContragent pos-result-selected' : 'posResultContragent';
+            $transferUrl = ($canTransfer === true) ? array('pos_Receipts', 'Transfer', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId) : array();
+            $obj->transferBtn = ht::createBtn('Прехвърли', $transferUrl, false, false, "class=transferBtn,title=Прехвърли продажбата към контрагента");
+            
+            $block = new core_ET("<div class='{$class}'><div>[#transferBtn#]</div><div class='posResultContragentTitle'>[#title#]</div></div>");
+            $block->placeObject($obj);
+            $block->removeBlocksAndPlaces();
+            
+            $tpl->append($block);
+            $cnt++;
+        }
+        
+        return $tpl;
+    }
     
     public static function renderRevertTable($rec, $string, $selectedRecId)
     {
