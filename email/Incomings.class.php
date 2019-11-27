@@ -1070,6 +1070,8 @@ class email_Incomings extends core_Master
      */
     protected static function addClosestEmailWarning($emailsArr, &$body)
     {
+        $allEmailToArr = array();
+        
         foreach ((array) $emailsArr as $emailArr) {
             $email = trim($emailArr['address']);
             $email = strtolower($email);
