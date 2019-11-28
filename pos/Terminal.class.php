@@ -363,6 +363,13 @@ class pos_Terminal extends peripheral_Terminal
     
     public function renderContragentTable($rec, $string, $selectedRecId)
     {
+        $tpl = new core_ET("");
+        if(empty($string)){
+            $tpl->append(tr("Моля търсете контрагенти"));
+            
+            return $tpl;
+        }
+        
         $contragents = array();
         
         $stringInput = core_Type::getByName('varchar')->fromVerbal($string);
@@ -406,7 +413,6 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $canTransfer = pos_Receipts::haveRightFor('transfer', $rec);
-        $tpl = new core_ET("");
         $cnt = 0;
         foreach ($contragents as $obj){
             $class = ($cnt == 0) ? 'posResultContragent navigable selected' : 'posResultContragent navigable';
