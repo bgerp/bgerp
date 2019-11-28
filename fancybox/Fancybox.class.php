@@ -94,7 +94,7 @@ class fancybox_Fancybox extends core_Manager
         }
         
         setIfNot($aAttr['rel'], $maxSize[0] . '_' . $maxSize[1]);
-        $aAttr['class'] .= 'fancybox';
+        $aAttr['class'] .= ' fancybox';
         $tpl = ht::createElement('a', $aAttr, $imgTpl);
         
         // Когато отпечатваме да не сработва плъгина
