@@ -378,7 +378,7 @@ function posActions() {
 		}
 	});
 
-	//naviBoard.setNavigation("pos-products");
+	naviBoard.setNavigation("result-holder");
 
 
 
@@ -608,7 +608,7 @@ function calculateWidth(){
 	//задаване на ширина на двете колони
 	if (maxColWidth > 700 && $('body').hasClass('wide')) {
 		$('#single-receipt-holder').css('width', 700);
-		$('#result-holder').css('width', winWidth - 770);
+		$('#result-holder').css('width', winWidth - 800);
 	} else {
 		$('#single-receipt-holder').css('width', maxColWidth);
 		$('#result-holder').css('width', maxColWidth);
@@ -739,8 +739,5 @@ function getSelectedOperation()
 }
 
 function render_prepareTableResult() {
-	$('#pos-search-result-table .rowBlock').addClass('navigable');
-	$('#pos-search-result-table .rowBlock').eq(0).addClass('active');
-	$('#pos-search-result-table .listTable').attr('id', 'resultTable');
-	//naviBoard.setNavigation("resultTable");
+	naviBoard.setNavigation("result-holder");
 }

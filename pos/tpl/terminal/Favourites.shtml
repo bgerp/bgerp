@@ -1,4 +1,4 @@
-<div class=''>
+
 	<div id='pos-producy-categories'>
 	  <div class="pos-product-category active"  title="|Показване на всички артикули от тази категория|*">
                 <span class="pos-span-name">
@@ -15,7 +15,6 @@
 		<div class='clearfix21'></div>
 	</div>
 	<div id='pos-products' class='scrolling-holder'>
-	<div>
 	 
 		<!--ET_BEGIN ITEM-->
 		[#ITEM#]
@@ -30,5 +29,3 @@
 		<!--ET_END ITEM-->
 		<div class='clearfix21'></div>
 	</div>
-	</div>
-</div>

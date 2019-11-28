@@ -414,9 +414,9 @@ class pos_Terminal extends peripheral_Terminal
         $buttons = array();
         $cnt = 0;
         while($receiptRec = $query->fetch()){
-            $class = ($cnt == 0) ? "navigable selected" : "navigable";
+            $class = ($cnt == 0) ? "navigable posBtns selected" : "navigable posBtns";
             
-            $buttons[] = ht::createLink(self::getReceiptTitle($receiptRec), array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true), 'Наистина ли желаете да сторнирате бележката|*?', "title=Сторниране на бележката,class={$class}");
+            $buttons[] = ht::createLink(self::getReceiptTitle($receiptRec), array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true), 'Наистина ли желаете да сторнирате бележката|*?', "title=Сторниране на бележката,class={$class} pos-notes revert-receipt");
             $cnt++;
         }
         
@@ -441,20 +441,20 @@ class pos_Terminal extends peripheral_Terminal
         // Показваме всички активни методи за плащания
         $disClass = ($payUrl) ? '' : 'disabledBtn';
         
-        $element = ht::createElement("div", array('class' => "{$disClass} navigable payment selected", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true);
+        $element = ht::createElement("div", array('class' => "{$disClass} navigable posBtns payment selected", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true);
         $tpl->append($element);
         
         $payments = pos_Points::fetchSelected($rec->pointId);
         foreach ($payments as $paymentId => $paymentTitle){
-            $element = ht::createElement("div", array('class' => "{$disClass} navigable payment", 'data-type' => $paymentId, 'data-url' => $payUrl), tr($paymentTitle), true);
+            $element = ht::createElement("div", array('class' => "{$disClass} navigable posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl), tr($paymentTitle), true);
             $tpl->append($element);
         }
-        
+        $tpl->append("<div class='clearfix21'></div><div class='actionBnts'>");
         $buttons = $Receipts->getPaymentTabBtns($rec);
         foreach ($buttons as $btn){
             $tpl->append($btn);
         }
-        
+        $tpl->append("</div>");
         return $tpl;
         
     }
@@ -467,7 +467,7 @@ class pos_Terminal extends peripheral_Terminal
         $packs = cat_Products::getPacks($selectedRec->productId);
         $basePackagingId = key($packs);
         
-        $baseClass = "resultPack navigable";
+        $baseClass = "resultPack navigable posBtns";
         $basePackName = cat_UoM::getTitleById($measureId);
         $dataUrl = (pos_ReceiptDetails::haveRightFor('edit', $selectedRec)) ? toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity'), 'local') : null;
         
@@ -531,7 +531,7 @@ class pos_Terminal extends peripheral_Terminal
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
             
             
-            $class = ($cnt == 0) ? 'resultPrice navigable selected' : 'resultPrice navigable';
+            $class = ($cnt == 0) ? 'resultPrice posBtns navigable selected' : 'resultPrice posBtns navigable';
             $buttons[$dRec->price] = ht::createElement("div", array('class' => $class, 'data-url' => $dataUrl), tr($btnName), true);
         }
         
@@ -846,12 +846,12 @@ class pos_Terminal extends peripheral_Terminal
         $query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$rec->id}");
         while ($rec = $query->fetch()) {
             $class = isset($rec->revertId) ? 'revert-receipt' : '';
-            $row = ht::createLink(self::getReceiptTitle($rec), array('pos_Terminal', 'open', 'receiptId' => $rec->id), null, array('class' => "pos-notes navigable {$class}", 'title' => 'Преглед на бележката'));
+            $row = ht::createLink(self::getReceiptTitle($rec), array('pos_Terminal', 'open', 'receiptId' => $rec->id), null, array('class' => "pos-notes posBtns navigable {$class}", 'title' => 'Преглед на бележката'));
             $block->append($row);
         }
         
         if (pos_Receipts::haveRightFor('add')) {
-            $addBtn = ht::createLink("<span class='pos-span-name'>" . tr('Нова') . '</span>', array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes navigable selected');
+            $addBtn = ht::createLink(tr('Нова'), array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes posBtns navigable selected');
             $block->prepend($addBtn);
         }
         
@@ -861,9 +861,9 @@ class pos_Terminal extends peripheral_Terminal
     
     private static function getReceiptTitle($rec)
     {
-        $date = dt::mysql2verbal($rec->createdOn, 'd.m.y h.i');
+        $date = dt::mysql2verbal($rec->createdOn, 'd.m. h:i');
         $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
-        $title = "<span class='pos-span-name'>{$rec->id}/{$amountVerbal} <br> {$date}</span>";
+        $title = "{$rec->id} / {$amountVerbal} <br> {$date}";
         
         return $title;
     }
