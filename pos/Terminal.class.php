@@ -28,6 +28,12 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
+     * При търсене до колко продукта да се показват в таба
+     */
+    protected $maxSearchProducts = 20;
+    
+    
+    /**
      * Полета
      */
     protected $fieldArr = array('payments', 'policyId', 'caseId', 'storeId');
@@ -770,58 +776,53 @@ class pos_Terminal extends peripheral_Terminal
         $pQuery = cat_Products::getQuery();
         $pQuery->where("#canSell = 'yes' AND #state = 'active'");
         $pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
-        $pQuery->where(array("#searchKeywords LIKE '%[#1#]%'", $data->searchString));
+        plg_Search::applySearch($data->searchString, $pQuery);
+        
         $pQuery->show('id,name,isPublic,nameEn,code');
         $pQuery->limit($this->maxSearchProducts);
         $sellable = $pQuery->fetchAll();
+       
         if (!count($sellable)) {
             
             return;
         }
         
         $Policy = cls::get('price_ListToCustomers');
-        $Products = cls::get('cat_Products');
         
         foreach ($sellable as $id => $name) {
-            $pInfo = cat_Products::getProductInfo($id);
-            
-            $packs = $Products->getPacks($id);
+            $pRec = cat_Products::fetch($id, 'canStore,measureId');
+            $packs = cat_Products::getPacks($id);
             $packId = key($packs);
-            $perPack = (isset($pInfo->packagings[$packId])) ? $pInfo->packagings[$packId]->quantity : 1;
             
+            $packRec = cat_products_Packagings::getPack($id, $packId);
+            $perPack = (is_object($packRec)) ? $packRec->quantity : 1;
             $price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $packId, 1, $data->rec->createdOn, 1, 'yes');
             
             // Ако няма цена също го пропускаме
-            if (empty($price->price)) {
-                continue;
-            }
-            $vat = $Products->getVat($id);
-            $obj = (object) array('productId' => $id,
-                'measureId' => $pInfo->productRec->measureId,
-                'price' => $price->price * $perPack,
-                'packagingId' => $packId,
-                'vat' => $vat);
+            if (empty($price->price)) continue;
+            $vat = cat_Products::getVat($id);
+            $obj = (object) array('productId' => $id, 'measureId' => $pRec->measureId, 'price' => $price->price * $perPack, 'packagingId' => $packId, 'vat' => $vat);
             
             $photo = cat_Products::getParams($id, 'preview');
             if (!empty($photo)) {
                 $obj->photo = $photo;
             }
             
-            if (isset($pInfo->meta['canStore'])) {
+            if ($pRec->canStore == 'yes') {
                 $obj->stock = pos_Stocks::getQuantity($id, $data->rec->pointId);
                 $obj->stock /= $perPack;
             }
             
             // Обръщаме реда във вербален вид
             $data->rows[$id] = $this->getVerbalSearchresult($obj, $data);
-            $data->rows[$id]->CLASS = ' navigable';
+            $data->rows[$id]->CLASS = ' pos-add-res-btn navigable';
+            $data->rows[$id]->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', $obj)) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $data->rec->id), 'local') : null;
+            $data->rows[$id]->id = $pRec->id;
             
             if($count == 0){
                 $data->rows[$id]->CLASS .= ' selected';
             }
             $count++;
-
-        //    if($count > 10) break;
         }
     }
     
@@ -831,22 +832,14 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function getVerbalSearchResult($obj, &$data)
     {
-        $Receipts = cls::get('pos_Receipts');
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
+        $Double = core_Type::getByName('double(decimals=2)');
         $row = new stdClass();
         
         $row->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
         $row->stock = $Double->toVerbal($obj->stock);
         $row->packagingId = ($obj->packagingId) ? cat_UoM::getTitleById($obj->packagingId) : cat_UoM::getTitleById($obj->measureId);
         $row->packagingId = str::getPlural($obj->stock, $row->packagingId, true);
-        
         $obj->receiptId = $data->rec->id;
-        if ($Receipts->pos_ReceiptDetails->haveRightFor('add', $obj)) {
-            $addUrl = toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $obj->receiptId), 'local');
-        } else {
-            $addUrl = null;
-        }
         
         $row->productId = cat_Products::getTitleById($obj->productId);
         if ($data->showParams) {
@@ -858,10 +851,7 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $attr = array('class' => 'pos-add-res-btn', 'data-url' => $addUrl, 'data-productId' => $obj->productId, 'title' => 'Добавете артикула към бележката');
-        $row->productId = ht::createElement('span', $attr, $row->productId, true);
         $row->productId = ht::createLinkRef($row->productId, array('cat_Products', 'single', $obj->productId), null, array('target' => '_blank', 'class' => 'singleProd'));
-        
         $row->stock = ht::styleNumber($row->stock, $obj->stock, 'green');
         $row->stock = "{$row->stock} <span class='pos-search-row-packagingid'>{$row->packagingId}</span>";
         $row->productId = "<span class='pos-search-row-productId'>{$row->productId}</span><span class='pos-search-row-stock'>{$row->stock}</span> ";

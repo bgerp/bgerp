@@ -131,12 +131,6 @@ class pos_Receipts extends core_Master
     
     
     /**
-     * При търсене до колко продукта да се показват в таба
-     */
-    protected $maxSearchProducts = 20;
-    
-    
-    /**
      * Кои полета да се извлекат преди изтриване
      */
     public $fetchFieldsBeforeDelete = 'id';

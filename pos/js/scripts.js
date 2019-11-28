@@ -476,15 +476,13 @@ function posActions() {
 		var elemRow = $(this).closest('tr');
 		$(elemRow).addClass('pos-hightligted');
 		setTimeout(function(){$(elemRow).removeClass('pos-hightligted');},1000);
-		var receiptId = $(this).attr("data-recId");
 		var url = $(this).attr("data-url");
 		var productId = $(this).attr("data-productId");
-		var quant = $("input[name=ean]").val();
 		
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		getEfae().process(resObj, {receiptId:receiptId,productId:productId,quantity:quant});
+		getEfae().process(resObj, {productId:productId});
 		calculateWidth();
 	});
 	

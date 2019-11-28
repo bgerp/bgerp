@@ -1,7 +1,7 @@
 <!--ET_BEGIN sale-->
 <tbody data-id='[#id#]' data-id='[#1#]' class='receiptRow [#CLASS#]'>
 <tr class='pos-sale' title = '|Селектиране на реда|*'>
-	<td colspan='3' class='receipt-sale name-product'><div>[#productId#] [#DEL_BTN#]&nbsp;&nbsp;[#perPack#] [#uomId#]</div><!--ET_BEGIN text--><div>[#text#]</div><!--ET_END text--></td>
+	<td colspan='3' class='receipt-sale name-product'><div>[#productId#] [#DEL_BTN#]&nbsp;&nbsp;[#perPack#] [#uomId#]</div><!--ET_BEGIN text--><div class='receiptRowText'>[#text#]</div><!--ET_END text--></td>
 </tr>
 <tr data-code='[#code#]'class='pos-sale' data-url='[#selectUrl#]'>
 	<td class='receipt-quantity'><span class='quantity'>[#quantity#]</span> <!--ET_BEGIN packagingId--> &nbsp;[#value#]<!--ET_END packagingId--></td>
