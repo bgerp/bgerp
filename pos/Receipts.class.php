@@ -1510,14 +1510,14 @@ class pos_Receipts extends core_Master
         $this->requireRightFor('revert');
         expect($id = Request::get('id', 'int'));
         
-        $foundArr = $this->findReceiptByNumber($id, true);
+        //$foundArr = $this->findReceiptByNumber($id, true);
         if (!is_object($foundArr['rec'])) {
-            core_Statuses::newStatus($foundArr['notFoundError'], 'error');
+            //core_Statuses::newStatus($foundArr['notFoundError'], 'error');
             
-            return followRetUrl();
+            //return followRetUrl();
         }
         
-        $newReceiptId = $this->createNew($foundArr['rec']->id);
+        $newReceiptId = $this->createNew($id);
         
         Mode::setPermanent("currentOperation", 'add');
         Mode::setPermanent("currentSearchString", null);
