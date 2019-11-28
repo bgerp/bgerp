@@ -381,8 +381,9 @@ class pos_Terminal extends peripheral_Terminal
             $class = ($cnt == 0) ? 'posResultContragent navigable selected' : 'posResultContragent navigable';
             $transferUrl = ($canTransfer === true) ? array('pos_Receipts', 'Transfer', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId) : array();
             $obj->transferBtn = ht::createBtn('Прехвърли', $transferUrl, false, false, "class=transferBtn,title=Прехвърли продажбата към контрагента");
+            $obj->title = ht::createLink($obj->title, $transferUrl, 'Наистина ли желаете да прехвърлите продажбата към документната система', 'class=transferBtn');
             
-            $block = new core_ET("<div class='{$class}'><div>[#transferBtn#]</div><div class='posResultContragentTitle'>[#title#]</div></div>");
+            $block = new core_ET("<div class='{$class}'><div class='posResultContragentTitle'>[#title#]</div></div>");
             $block->placeObject($obj);
             $block->removeBlocksAndPlaces();
             
@@ -482,7 +483,7 @@ class pos_Terminal extends peripheral_Terminal
             $packagingId = cat_UoM::getTitleById($packRec->packagingId);
             $baseMeasureId = $measureId;
             $packRec->quantity = cat_Uom::round($baseMeasureId, $packRec->quantity);
-            $packaging = "|{$packagingId}|* (" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . cat_UoM::getTitleById($baseMeasureId) . ")";
+            $packaging = "|{$packagingId}|*</br> <small>" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . cat_UoM::getTitleById($baseMeasureId) . "</small>";
             
             $class = ($packRec->packagingId == $basePackagingId) ? "{$baseClass} selected" : $baseClass;
             $buttons[$packRec->packagingId] = ht::createElement("div", array('class' => $class, 'data-pack' => $packagingId, 'data-url' => $dataUrl), tr($packaging), true);
@@ -527,7 +528,7 @@ class pos_Terminal extends peripheral_Terminal
             Mode::push('text', 'plain');
             $price = core_Type::getByName('double(smartRound)')->toVerbal($dRec->price);
             Mode::pop('text', 'plain');
-            $btnName = "|*{$price} {$baseCurrencyCode} |" . tr($packName);
+            $btnName = "|*{$price} {$baseCurrencyCode}</br> |" . tr($packName);
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
             
             
@@ -815,7 +816,7 @@ class pos_Terminal extends peripheral_Terminal
         if (!Mode::is('screenMode', 'narrow')) {
             if(!empty($obj->photo)){
                 $Fancybox = cls::get('fancybox_Fancybox');
-                $preview = $Fancybox->getImage($obj->photo, array('64', '64'), array('550', '550'));
+                $preview = $Fancybox->getImage($obj->photo, array('64', '64'), array('550', '550'), null, array(), array('class' => 'pos-photo-field fleft'));
                 $row->photo = $preview;
             } else {
                 $thumb = new thumb_Img(getFullPath('pos/img/default-image.jpg'), 64, 64, 'path');

@@ -35,7 +35,7 @@
 
 <!--ET_BEGIN PRODUCTS_RESULT-->
 <div class='element [#CLASS#]'>
-	<div class='pos-photo-field fleft'>[#photo#]</div>
+	<div>[#photo#]</div>
 	[#productId#]
 	<span class='pos-price-field'>[#price#]</span>
 	<span class='pos-stock-field'>[#stock#]</span>
