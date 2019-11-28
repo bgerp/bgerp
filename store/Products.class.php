@@ -661,7 +661,9 @@ class store_Products extends core_Detail
                         $key = "{$sRec->{$arr['storeFld']}}|{$sd->productId}";
                         $reserved[$key] = array('sId' => $sRec->{$arr['storeFld']}, 'pId' => $sd->productId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $sd->sum);
                         
-                        if($deliveryTime <= $now){
+                        $deliveryTime = isset($sRec->deliveryTime) ? $sRec->deliveryTime : (isset($sRec->valior) ? $sRec->valior : null);
+                        
+                        if(!empty($deliveryTime) && $deliveryTime <= $now){
                             $reserved[$key]['expected'] = $sd->sum;
                         }
                     }
@@ -831,7 +833,7 @@ class store_Products extends core_Detail
             $dQuery->groupBy('containerId');
             
             while ($dRec = $dQuery->fetch()) {
-                $deliveryTime = isset($dRec->deliveryTime) ? $dRec->deliveryTime : (isset($dRec->valior) ? $dRec->valior : $now);
+                $deliveryTime = isset($dRec->deliveryTime) ? $dRec->deliveryTime : (isset($dRec->valior) ? $dRec->valior : null);
                 
                 if($field == 'reservedQuantity'){
                     $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
