@@ -351,7 +351,7 @@ class pos_Terminal extends peripheral_Terminal
         foreach ($discountsArr as $discAmount){
             $url = toUrl(array('pos_ReceiptDetails', 'updateRec', 'receiptId' => $rec->id, 'action' => 'setdiscount', 'string' => "{$discAmount}"), 'local');
             
-            $class = (round($discAmount/100, 2) == $currentDiscount) ? 'navigable discountBtn selected' : 'navigable discountBtn';
+            $class = (round($discAmount/100, 2) == $currentDiscount) ? 'navigable posBtns discountBtn selected' : 'navigable posBtns discountBtn';
             $element = ht::createElement("div", array('class' => $class, 'data-url' => $url), "{$discAmount} %", true);
             $tpl->append($element);
         }
