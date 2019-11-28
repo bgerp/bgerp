@@ -226,17 +226,20 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $data->tpl = new ET(tr('|*<div class="clearfix21 portal">
                                         <div class="legend" id="calendarPortal">[#CAL_TITLE#]
                                             [#SEARCH_FORM#]
+                                        </div>
+                                        
+                                        <div style="font-size: 0.9em">
+                                            <!--ET_BEGIN NOW--><div style="color:#5f1f3e; font-style: italic; background-color:#ffc;">
+                                                [#NOW_DATE#]
+                                                <div>[#NOW#]</div>
+                                            </div><!--ET_END NOW-->
                                             
-                                            <!--ET_BEGIN NOW--><div>[#NOW_DATE#]</div>[#NOW#]<!--ET_END NOW-->
-                                            
-                                            <!--ET_BEGIN NEXT_DAY_OTHER--><div>[#NEXT_DAY_OTHER_DATE#]</div>[#NEXT_DAY_OTHER#]<!--ET_END NEXT_DAY_OTHER-->
                                         </div>
 
                                         [#MONTH_CALENDAR#] <br> [#AGENDA#]
 
-                                        <!--ET_BEGIN FUTURE--><div>[#NFUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
+                                        <!--ET_BEGIN FUTURE--><div>[#FUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
                                     </div>'
-                            
                                     ));
             
             $tArr = $data->EventsData;
@@ -265,7 +268,6 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $dVerb .= $dVerb ? ', ' : '';
                 $dVerb .= $dStr;
                 
-                Mode::set('ysn', true);
                 $res = (object)array('day' => $dVerb);
                 $Calendar->invoke('AfterPrepareGroupDate', array(&$res, $tDate));
                 
@@ -286,7 +288,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             
             // Показваме събитията за в бъдеще
             $data->tpl->append($tArr['future'], 'FUTURE');
-            $data->tpl->replace(tr('По-нататък'), 'NFUTURE_DATE');
+            $data->tpl->replace(tr('По-нататък'), 'FUTURE_DATE');
             
             if (!Mode::is('screenMode', 'narrow')) {
                 $data->tpl->replace(tr('Календар'), 'CAL_TITLE');
@@ -432,7 +434,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $title = str::limitLen(type_Varchar::escape($rec->title), 60, 30, ' ... ', true);
         $rToVerb->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, array('ef_icon' => $Tasks->getIcon($rec->id)));
         
-        $rToVerb->title->append("<span style='float: right;'" . $rToVerb->progress . '</span>');
+        $rToVerb->title->append("<span style='float: right;'>" . $rToVerb->progress . '</span>');
         
         $rToVerb->title->append($subTitle);
         
