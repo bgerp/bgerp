@@ -1,5 +1,5 @@
 <!--ET_BEGIN sale-->
-<tbody data-id='[#id#]' data-id='[#1#]' [#lastRow#]>
+<tbody data-id='[#id#]' data-id='[#1#]' class='receiptRow [#CLASS#]'>
 <tr class='pos-sale' title = '|Селектиране на реда|*'>
 	<td colspan='3' class='receipt-sale name-product'>[#productId#] [#DEL_BTN#]&nbsp;&nbsp;[#perPack#] [#uomId#]</td>
 </tr>

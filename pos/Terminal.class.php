@@ -641,7 +641,7 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->append($logo, 'LOGO');
         
         if($lastRecId = pos_ReceiptDetails::getLastProductRecId($data->rec->id)){
-            $data->receiptDetails->rows[$lastRecId]->lastRow = 'class="highlighted"';
+            $data->receiptDetails->rows[$lastRecId]->CLASS = 'highlighted';
         }
         
         // Слагане на детайлите на бележката
