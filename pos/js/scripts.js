@@ -321,7 +321,7 @@ function posActions() {
 	
 	
 	// Смяна на текущата клавиатура
-	$(document.body).on('click', ".keyboard-change-btn-payment, .keyboard-change-btn-tools", function(e){
+	$(document.body).on('click', ".keyboard-change-btn", function(e){
 		var currentAttrValue = $(this).attr('data-klang');
 		$('.keyboard#' + currentAttrValue).show().siblings().hide();
 	}); 
@@ -377,9 +377,11 @@ function posActions() {
 			enter();
 		}
 	});
+	if($('#result-holder').length) {
 
-	naviBoard.setNavigation("result-holder");
+		naviBoard.setNavigation("result-holder");
 
+	}
 
 
 	// Триене на символи от формата за търсене
