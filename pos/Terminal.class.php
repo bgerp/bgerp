@@ -648,7 +648,6 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->append($detailsTpl, 'DETAILS');
         
         if(empty($data->rec->paid)){
-            $tpl->append($detailsTpl, 'DETAILS');
             $tpl->removeBlock('PAYMENT_TAB');
         }
         
