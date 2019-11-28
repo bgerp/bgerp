@@ -149,7 +149,6 @@ function posActions() {
 	    	// Ако има селектиран ред в резултатите
 	    	var element = $(".selected");
 	    	
-	    	
 	    	if(element.length){
 	    		//console.log(element);
 	    		
@@ -191,7 +190,7 @@ function posActions() {
 	    		return;
 	    	}
 	    	
-	    	console.log(url, value);
+	    	console.log(url, value, 'ddddd');
 	    	resObj = new Object();
 			resObj['url'] = url;
 			
@@ -429,9 +428,9 @@ function posActions() {
 		
 		var selectedElement = $(".highlighted");
 		var selectedRecId = selectedElement.attr("data-id");
-		console.log(operation, selectedElement);
-
+		
 		var url = $(this).attr("data-url");
+		
 		resObj = new Object();
 		resObj['url'] = url;
 		
@@ -737,6 +736,6 @@ function getSelectedOperation()
 	return operation;
 }
 
-function render_prepareTableResult() {
+function render_prepareResult() {
 	naviBoard.setNavigation("result-holder");
 }
