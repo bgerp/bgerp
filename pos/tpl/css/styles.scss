@@ -217,7 +217,7 @@
 .wide .result-content {
 	float: right;
 }
-.operationBtn.selected {
+.operationBtn.active {
 	background-color: #6cc049;
 }
 .narrow .doc_Containers table.listTable.listTable > tbody > tr > td:first-child{
@@ -594,6 +594,14 @@
 	background: linear-gradient(to bottom,  #e570e7 0%,#c85ec7 47%,#a849a3 100%);
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e570e7', endColorstr='#a849a3',GradientType=0 );
 
+}
+.discountBtn {
+	background: #ffb76b;
+	background: -moz-linear-gradient(top,  #ffb76b 0%, #ff7f04 100%);
+	background: -webkit-linear-gradient(top,  #ffb76b 0%,#ff7f04 100%);
+	background: linear-gradient(to bottom,  #ffb76b 0%,#ff7f04 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffb76b', endColorstr='#ff7f04',GradientType=0 );
+	color: #333 !important;
 }
 
 .posResultContragent {
