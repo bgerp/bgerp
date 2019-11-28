@@ -414,10 +414,9 @@ class pos_Terminal extends peripheral_Terminal
         $buttons = array();
         $cnt = 0;
         while($receiptRec = $query->fetch()){
-            $btnTitle = pos_Receipts::getTitleById($receiptRec);
             $class = ($cnt == 0) ? "navigable selected" : "navigable";
             
-            $buttons[] = ht::createLink($btnTitle, array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true), 'Наистина ли желаете да сторнирате бележката|*?', "ef_icon=img/16/red-back.png,title=Сторниране на бележката,class={$class}");
+            $buttons[] = ht::createLink(self::getReceiptTitle($receiptRec), array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true), 'Наистина ли желаете да сторнирате бележката|*?', "title=Сторниране на бележката,class={$class}");
             $cnt++;
         }
         
@@ -837,18 +836,13 @@ class pos_Terminal extends peripheral_Terminal
         $rec = $this->fetchRec($id);
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('DRAFTS');
         $pointId = pos_Points::getCurrent('id');
-        $now = dt::today();
         
         // Намираме всички чернови бележки и ги добавяме като линк
         $query = pos_Receipts::getQuery();
         $query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$rec->id}");
         while ($rec = $query->fetch()) {
-            $date = dt::mysql2verbal($rec->createdOn, 'H:i');
-            $between = dt::daysBetween($now, $rec->valior);
-            $between = ($between != 0) ? " <span class='num'>-${between}</span>" : null;
-            
             $class = isset($rec->revertId) ? 'revert-receipt' : '';
-            $row = ht::createLink("<span class='pos-span-name'>№{$rec->id} <br> {$date}$between</span>", array('pos_Terminal', 'open', 'receiptId' => $rec->id), null, array('class' => "pos-notes navigable {$class}", 'title' => 'Преглед на бележката'));
+            $row = ht::createLink(self::getReceiptTitle($rec), array('pos_Terminal', 'open', 'receiptId' => $rec->id), null, array('class' => "pos-notes navigable {$class}", 'title' => 'Преглед на бележката'));
             $block->append($row);
         }
         
@@ -861,7 +855,14 @@ class pos_Terminal extends peripheral_Terminal
     }
     
     
-    
+    private static function getReceiptTitle($rec)
+    {
+        $date = dt::mysql2verbal($rec->createdOn, 'd.m.y h.i');
+        $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
+        $title = "<span class='pos-span-name'>{$rec->id}/{$amountVerbal} <br> {$date}</span>";
+        
+        return $title;
+    }
     
     public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false)
     {
