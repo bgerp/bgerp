@@ -647,6 +647,11 @@ class pos_Terminal extends peripheral_Terminal
         $detailsTpl = $Receipt->pos_ReceiptDetails->renderReceiptDetail($data->receiptDetails);
         $tpl->append($detailsTpl, 'DETAILS');
         
+        if(empty($data->rec->paid)){
+            $tpl->append($detailsTpl, 'DETAILS');
+            $tpl->removeBlock('PAYMENT_TAB');
+        }
+        
         return $tpl;
     }
     

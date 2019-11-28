@@ -24,6 +24,7 @@
 						<td id = 'total-label'>|Общо|*:</td>
 						<td colspan='2' id = 'receipt-total-sum' class = 'receipt-info-right'>[#total#] [#currency#]</td>
 					</tr>
+					<!--ET_BEGIN PAYMENT_TAB-->
 					<tr>
 						<td>[#PAID_CAPTION#]:</td>
 						<td colspan='2' class = 'receipt-info-right'><b>[#paid#]</b> <small>[#currency#]</small></td>
@@ -32,6 +33,7 @@
 						<td style='padding-bottom:6px'>|Ресто|*:</td>	
 						<td  colspan='2' style='padding-bottom:6px' class = 'receipt-info-right'>[#change#] <small>[#currency#]</small></td>
 					</tr>
+					<!--ET_END PAYMENT_TAB-->
 				</table>
 			</td>
 		</tr>
