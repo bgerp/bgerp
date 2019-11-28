@@ -576,7 +576,7 @@ class sales_QuotationsDetails extends doc_Detail
                     }
                 }
                 
-                if (!$form->gotErrors()) {
+                if (!$form->gotErrors()&& $form->cmd == 'save_new_row') {
                     unset($rec->id);
                 }
                 
