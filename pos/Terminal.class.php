@@ -208,7 +208,6 @@ class pos_Terminal extends peripheral_Terminal
         $value = round(abs($rec->total) - abs($rec->paid), 2);
         $value = ($value > 0) ? $value : null;
         
-        //bp($operation, $rec);
         $inputValue = ($operation == 'payment') ? $value : Mode::get("currentSearchString");
         
         $searchUrl = toUrl(array($this, 'displayOperation', 'receiptId' => $rec->id), 'local');
@@ -548,9 +547,6 @@ class pos_Terminal extends peripheral_Terminal
             $buttons["{$productRec->packagingId}|{$productRec->quantity}"] = ht::createElement("div", array('class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packagingId, 'data-url' => $dataUrl), $btnCaption, true);
         }
         
-        
-        //bp($buttons);
-        
         $tpl = new core_ET("");
         foreach ($buttons as $btn){
             $tpl->append($btn);
@@ -873,7 +869,7 @@ class pos_Terminal extends peripheral_Terminal
         if (!Mode::is('screenMode', 'narrow')) {
             if(!empty($obj->photo)){
                 $Fancybox = cls::get('fancybox_Fancybox');
-                $preview = $Fancybox->getImage($obj->photo, array('64', '64'), array('550', '550'), null, array(), array('class' => 'pos-photo-field fleft'));
+                $preview = $Fancybox->getImage($obj->photo, array('64', '64'), array('550', '550'));
                 $row->photo = $preview;
             } else {
                 $thumb = new thumb_Img(getFullPath('pos/img/default-image.jpg'), 64, 64, 'path');
