@@ -220,7 +220,7 @@ function posActions() {
 	});
 	
 	// Направата на плащане след натискане на бутон
-	$(document.body).on('click', ".paymentBtn", function(e){
+	$(document.body).on('click', ".payment", function(e){
 		if(!$(this).hasClass( "disabledBtn")){
 			var url = $(this).attr("data-url");
 			
@@ -554,7 +554,7 @@ function posActions() {
 	
 	
 	
-	$(document.body).on('click', ".pos-result-price-btn", function(e){
+	$(document.body).on('click', "div.resultPrice", function(e){
 		var url = $(this).attr("data-url");
 		if(!url) return;
 		
@@ -565,7 +565,7 @@ function posActions() {
 	});
 
 	
-	$(document.body).on('click', ".pos-result-pack-btn", function(e){
+	$(document.body).on('click', "div.resultPack", function(e){
 		var url = $(this).attr("data-url");
 		if(!url) return;
 		

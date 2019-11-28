@@ -121,8 +121,6 @@ class pos_Terminal extends peripheral_Terminal
                 
                 // Добавяне на табовете показващи се в широк изглед отстрани
                 $lastRecId = pos_ReceiptDetails::getLastProductRecId($rec->id);
-                
-                
                 $resultTabHtml = $this->renderResult($rec, $defaultOperation, $defaultSearchString, $lastRecId);
                 $tpl->append($resultTabHtml, 'SEARCH_RESULT');
             }
@@ -334,14 +332,6 @@ class pos_Terminal extends peripheral_Terminal
     
     public function renderContragentTable($rec, $string, $selectedRecId)
     {
-        
-        //return new core_ET("");
-        
-        //Задава клиент към мастъра на бележката. Ако няма нищо записано в инпут полето, показва клиентите
-        //или от маршрута за дена на дадения търговец или тези, които са най-близко или нищо.
-        //Като се напише нещо - вади клиентите, които мачват филтъра. Ако е код на карта на
-        //клиент или визитка или ЕГН или Булстат - на първо място вади съответният клиент.
-        
         $contragents = array();
         
         $stringInput = core_Type::getByName('varchar')->fromVerbal($string);
@@ -359,7 +349,6 @@ class pos_Terminal extends peripheral_Terminal
             $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => crm_Companies::getHyperlink($cRec->id, true));
         }
         
-        
         $pQuery = crm_Persons::getQuery();
         $pQuery->fetch("#egn = '{$stringInput}' OR #vatId = '{$stringInput}'");
         $pQuery->show('id');
@@ -372,8 +361,6 @@ class pos_Terminal extends peripheral_Terminal
             $stringInput = plg_Search::normalizeText($stringInput);
             plg_Search::applySearch($stringInput, $cQuery);
             
-            
-            //bp($cQuery->where);
             $cQuery->where("#state != 'rejected' AND #state != 'closed'");
             $cQuery->show('id');
             
@@ -386,7 +373,7 @@ class pos_Terminal extends peripheral_Terminal
                 if(count($contragents) > 20) break;
             }
         }
-        //bp($contragents);
+        
         $canTransfer = pos_Receipts::haveRightFor('transfer', $rec);
         $tpl = new core_ET("");
         $cnt = 0;
@@ -455,10 +442,13 @@ class pos_Terminal extends peripheral_Terminal
         // Показваме всички активни методи за плащания
         $disClass = ($payUrl) ? '' : 'disabledBtn';
         
-        $tpl->append(ht::createFnBtn('В брой', '', '', array('class' => "{$disClass} actionBtn paymentBtn selected", 'data-type' => '-1', 'data-url' => $payUrl)));
+        $element = ht::createElement("div", array('class' => "{$disClass} payment selected", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true);
+        $tpl->append($element);
+        
         $payments = pos_Points::fetchSelected($rec->pointId);
         foreach ($payments as $paymentId => $paymentTitle){
-            $tpl->append(ht::createFnBtn($paymentTitle, '', '', array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => $paymentId, 'data-url' => $payUrl)));
+            $element = ht::createElement("div", array('class' => "{$disClass} payment", 'data-type' => $paymentId, 'data-url' => $payUrl), tr($paymentTitle), true);
+            $tpl->append($element);
         }
         
         $buttons = $Receipts->getPaymentTabBtns($rec);
@@ -478,13 +468,13 @@ class pos_Terminal extends peripheral_Terminal
         $packs = cat_Products::getPacks($selectedRec->productId);
         $basePackagingId = key($packs);
         
-        $baseClass = "pos-result-pack-btn";
+        $baseClass = "resultPack";
         $basePackName = cat_UoM::getTitleById($measureId);
         $dataUrl = (pos_ReceiptDetails::haveRightFor('edit', $selectedRec)) ? toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity'), 'local') : null;
         
         $buttons = array();
         $class = ($measureId == $basePackagingId) ? "{$baseClass} selected" : $baseClass;
-        $buttons[$measureId] = ht::createFnBtn($basePackName, '', '', array('class' => $class, 'data-pack' => $basePackName, 'data-url' => $dataUrl));
+        $buttons[$measureId] = ht::createElement("div", array('class' => $class, 'data-pack' => $basePackName, 'data-url' => $dataUrl), tr($basePackName), true);
        
         $packQuery = cat_products_Packagings::getQuery();
         $packQuery->where("#productId = {$selectedRec->productId}");
@@ -496,7 +486,7 @@ class pos_Terminal extends peripheral_Terminal
             $packaging = "|{$packagingId}|* (" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . cat_UoM::getTitleById($baseMeasureId) . ")";
             
             $class = ($packRec->packagingId == $basePackagingId) ? "{$baseClass} selected" : $baseClass;
-            $buttons[$packRec->packagingId] = ht::createFnBtn($packaging, '', '', array('class' => $class, 'data-pack' => $packagingId, 'data-url' => $dataUrl));
+            $buttons[$packRec->packagingId] = ht::createElement("div", array('class' => $class, 'data-pack' => $packagingId, 'data-url' => $dataUrl), tr($packaging), true);
         }
         
         $firstBtn = $buttons[$basePackagingId];
@@ -542,8 +532,8 @@ class pos_Terminal extends peripheral_Terminal
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
             
             
-            $class = ($cnt == 0) ? 'pos-result-price-btn selected' : 'pos-result-price-btn';
-            $buttons[$dRec->price] = ht::createFnBtn($btnName, '', '', array('class' => $class, 'data-url' => $dataUrl));
+            $class = ($cnt == 0) ? 'resultPrice selected' : 'resultPrice';
+            $buttons[$dRec->price] = ht::createElement("div", array('class' => $class, 'data-url' => $dataUrl), tr($btnName), true);
         }
         
         $tpl = new core_ET("");
