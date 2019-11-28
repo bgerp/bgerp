@@ -389,12 +389,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
-     * Подреждане на записите първо по-поле и после групиране по полр
-     *
-     * @param array    $recs
-     * @param string $field
-     *
-     * @return void
+     * Групиране и сортиране на резултатите по поле
+     * 
+     * @param array $recs
+     * @param string $groupField
+     * @param string|null $sortFld
+     * @param string|null $sortDirection
+     * 
+     * @return array $newRecs
      */
     private function orderByGroupField($recs, $groupField, $sortFld = null, $sortDirection = null)
     {
@@ -403,8 +405,6 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             
             // Извличане на тези записи от със същата стойност за групиране
             $groupedArr = array($i => $r);
-            
-            
             $subArr = array_filter($recs, function ($a) use ($r, $groupField) {
                 return ($a->{$groupField} == $r->{$groupField});
             });

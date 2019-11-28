@@ -24,13 +24,26 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
     
     
     /**
-     * Полета за хеширане на таговете
+     * Кои полета от листовия изглед да може да се сортират
      *
-     * @see uiext_Labels
-     *
-     * @var string
+     * @var int
      */
-    protected $hashField;
+    protected $sortableListFields;
+    
+    /**
+     * Кои полета от таблицата в справката да се сумират в обобщаващия ред
+     *
+     * @var int
+     */
+    protected $summaryListFields;
+    
+    
+    /**
+     * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
+     *
+     * @var int
+     */
+    protected $summaryRowCaption = 'ОБЩО';
     
     
     /**
@@ -64,7 +77,13 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $fieldset->FLD('period', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година)', 'caption=Период, after=storeId,mandatory,single=none,removeAndRefreshForm');
         $fieldset->FLD('minCost', 'double', 'caption=Мин. наличност, after=period,single=none, unit= лв.');
         $fieldset->FLD('reversibility', 'percent(suggestions=1%|5% |10%|20%)', 'caption=Обращаемост, after=minCost,mandatory,single=none');
-        
+       
+       
+        if (BGERP_GIT_BRANCH == 'dev') {
+            $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=reversibility,single=none');
+        } else {
+            $fieldset->FLD('groups', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=reversibility,single=none');
+        }
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(name=Артикул, reversibility=Обращаемост,storeAmount=Стойност,storeQuantity=Количество,code=Код)', 'caption=Подреждане по,after=reversibility');
         
@@ -141,10 +160,24 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $recs = array();
         
         $pQuery = store_Products::getQuery();
+       
         $pQuery->where("#state != 'rejected'");
         $pQuery->where('#quantity > 0');
         
         $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+        $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+         
+        //Филтър по група артикули
+        if (isset($rec->groups)) {
+            $pQuery->likeKeylist('groups', $rec->groups);
+        }
+        
+        // Синхронизира таймлимита с броя записи
+        $timeLimit = $pQuery->count() * 0.05;
+        
+        if ($timeLimit >= 30) {
+            core_App::setTimeLimit($timeLimit);
+        }
         
         $prodArr = $notSelfPrice = array();
         
@@ -185,6 +218,8 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $prodArr = self::removeSoonDeliveredProds($rec, $prodArr);
         
         //Масив с дебитните обороти на артикулите от журнала, филтрирани за периода и с-ка'321'
+        
+        $docTypeIdArr = array();
         foreach (array('sales_Sales','store_ShipmentOrders','planning_DirectProductionNote','planning_ConsumptionNotes') as $val) {
             $docTypeIdArr[] = (core_Classes::getId($val));
         }
@@ -377,6 +412,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN storeId-->|Склад|*: [#storeId#]<!--ET_END storeId--></div></small>
+                                <small><div><!--ET_BEGIN groups-->|Групи продукти|*: [#groups#]<!--ET_END groups--></div></small>
                                 <small><div><!--ET_BEGIN minCost-->|Мин. наличност|*: [#minCost#] ${currency}<!--ET_END minCost--></div></small>
                                 <small><div><!--ET_BEGIN reversibility-->|Мин. обращаемост|*: [#reversibility#]<!--ET_END reversibility--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
@@ -398,6 +434,23 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         
         if ((isset($data->rec->reversibility))) {
             $fieldTpl->append('<b>'. core_Type::getByName('percent(smartRound,decimals=2)')->toVerbal($data->rec->reversibility) .'</b>', 'reversibility');
+        }
+        
+        $marker = 0;
+        if (isset($data->rec->groups)) {
+            foreach (type_Keylist::toArray($data->rec->groups) as $group) {
+                $marker++;
+                
+                $groupVerb .= (cat_Groups::getTitleById($group));
+                
+                if ((count((type_Keylist::toArray($data->rec->groups))) - $marker) != 0) {
+                    $groupVerb .= ', ';
+                }
+            }
+            
+            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groups');
+        }else {
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'groups');
         }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
