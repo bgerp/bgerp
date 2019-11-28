@@ -473,9 +473,8 @@ function posActions() {
 	
 	// Добавяне на продукт от резултатите за търсене
 	$(document.body).on('click', ".pos-add-res-btn", function(e){
-		var elemRow = $(this).closest('tr');
-		$(elemRow).addClass('pos-hightligted');
-		setTimeout(function(){$(elemRow).removeClass('pos-hightligted');},1000);
+		var elemRow = $(this).closest('.receiptRow ');
+		$(elemRow).addClass('highlighted');
 		var receiptId = $(this).attr("data-recId");
 		var url = $(this).attr("data-url");
 		var productId = $(this).attr("data-productId");
@@ -509,8 +508,15 @@ function posActions() {
 		$("input[name=ean]").val(inpVal);
 		$("input[name=ean]").focus();
 	});
-	
-	
+
+
+	// сменяне на селектирания ред от бележките при клик
+	$(document.body).on('click', "#receipt-table td", function(e){
+		$('.highlighted').removeClass('highlighted');
+		$(this).closest('.receiptRow').addClass('highlighted');
+	});
+
+
 	// Време за изчакване
 	var timeout1;
 	
@@ -755,5 +761,9 @@ function getSelectedOperation()
 }
 
 function render_prepareResult() {
-	naviBoard.setNavigation("result-holder");
+
+	if ($('.navigable').length) {
+		$('.navigable').eq(0).focus();
+		naviBoard.setNavigation("result-holder");
+	}
 }
