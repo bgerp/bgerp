@@ -410,6 +410,8 @@ function posActions() {
 		var inpVal = $(this).val();
 		var operation = getSelectedOperation();
 		
+		console.log(operation,inpVal);
+		
 		// Правим Ajax заявката като изтече време за изчакване
 		timeout = setTimeout(function(){
 			resObj = new Object();
@@ -730,7 +732,7 @@ function getSelectedOperation()
 	if($("select[name=operation]").length){
 		var operation = $("select[name=operation]").val();
 	} else {
-		var operation = $(".operation-selected").attr("data-value");
+		var operation = $("input.operationBtn.selected").attr("data-value");
 	}
 	
 	return operation;

@@ -346,14 +346,14 @@ class pos_Terminal extends peripheral_Terminal
         $cQuery->fetch("#vatId = '{$stringInput}' OR #uicId = '{$stringInput}'");
         $cQuery->show('id');
         while($cRec = $cQuery->fetch()){
-            $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => crm_Companies::getHyperlink($cRec->id, true));
+            $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => crm_Companies::getShortHyperlink($cRec->id, true));
         }
         
         $pQuery = crm_Persons::getQuery();
         $pQuery->fetch("#egn = '{$stringInput}' OR #vatId = '{$stringInput}'");
         $pQuery->show('id');
         while($pRec = $pQuery->fetch()){
-            $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => crm_Persons::getHyperlink($pRec->id, true));
+            $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => crm_Persons::getShortHyperlink($pRec->id, true));
         }
         
         foreach (array('crm_Companies', 'crm_Persons') as $ContragentClass){
@@ -367,7 +367,7 @@ class pos_Terminal extends peripheral_Terminal
             $classId = ($ContragentClass == 'crm_Companies') ? $companyClassId : $personClassId;
             while($cRec = $cQuery->fetch()){
                 if(!array_key_exists("{$classId}|{$cRec->id}", $contragents)){
-                    $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $ContragentClass::getHyperlink($cRec->id, true));
+                    $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $ContragentClass::getShortHyperlink($cRec->id, true));
                 }
                 
                 if(count($contragents) > 20) break;
@@ -378,7 +378,7 @@ class pos_Terminal extends peripheral_Terminal
         $tpl = new core_ET("");
         $cnt = 0;
         foreach ($contragents as $obj){
-            $class = ($cnt == 0) ? 'posResultContragent pos-result-selected' : 'posResultContragent';
+            $class = ($cnt == 0) ? 'posResultContragent navigable selected' : 'posResultContragent navigable';
             $transferUrl = ($canTransfer === true) ? array('pos_Receipts', 'Transfer', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId) : array();
             $obj->transferBtn = ht::createBtn('Прехвърли', $transferUrl, false, false, "class=transferBtn,title=Прехвърли продажбата към контрагента");
             
@@ -415,9 +415,9 @@ class pos_Terminal extends peripheral_Terminal
         $cnt = 0;
         while($receiptRec = $query->fetch()){
             $btnTitle = pos_Receipts::getTitleById($receiptRec);
+            $class = ($cnt == 0) ? "navigable selected" : "navigable";
             
-            $class = ($cnt == 0) ? "selected" : "";
-            $buttons[] = ht::createBtn($btnTitle, array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true), 'Наистина ли желаете да сторнирате бележката|*?', false, "ef_icon=img/16/red-back.png,title=Сторниране на бележката,class={$class}");
+            $buttons[] = ht::createLink($btnTitle, array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true), 'Наистина ли желаете да сторнирате бележката|*?', "ef_icon=img/16/red-back.png,title=Сторниране на бележката,class={$class}");
             $cnt++;
         }
         
@@ -442,12 +442,12 @@ class pos_Terminal extends peripheral_Terminal
         // Показваме всички активни методи за плащания
         $disClass = ($payUrl) ? '' : 'disabledBtn';
         
-        $element = ht::createElement("div", array('class' => "{$disClass} payment selected", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true);
+        $element = ht::createElement("div", array('class' => "{$disClass} navigable payment selected", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true);
         $tpl->append($element);
         
         $payments = pos_Points::fetchSelected($rec->pointId);
         foreach ($payments as $paymentId => $paymentTitle){
-            $element = ht::createElement("div", array('class' => "{$disClass} payment", 'data-type' => $paymentId, 'data-url' => $payUrl), tr($paymentTitle), true);
+            $element = ht::createElement("div", array('class' => "{$disClass} navigable payment", 'data-type' => $paymentId, 'data-url' => $payUrl), tr($paymentTitle), true);
             $tpl->append($element);
         }
         
@@ -468,7 +468,7 @@ class pos_Terminal extends peripheral_Terminal
         $packs = cat_Products::getPacks($selectedRec->productId);
         $basePackagingId = key($packs);
         
-        $baseClass = "resultPack";
+        $baseClass = "resultPack navigable";
         $basePackName = cat_UoM::getTitleById($measureId);
         $dataUrl = (pos_ReceiptDetails::haveRightFor('edit', $selectedRec)) ? toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity'), 'local') : null;
         
@@ -532,7 +532,7 @@ class pos_Terminal extends peripheral_Terminal
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
             
             
-            $class = ($cnt == 0) ? 'resultPrice selected' : 'resultPrice';
+            $class = ($cnt == 0) ? 'resultPrice navigable selected' : 'resultPrice navigable';
             $buttons[$dRec->price] = ht::createElement("div", array('class' => $class, 'data-url' => $dataUrl), tr($btnName), true);
         }
         
@@ -757,8 +757,10 @@ class pos_Terminal extends peripheral_Terminal
             
             // Обръщаме реда във вербален вид
             $data->rows[$id] = $this->getVerbalSearchresult($obj, $data);
+            $data->rows[$id]->CLASS = ' navigable';
+            
             if($count == 0){
-                $data->rows[$id]->CLASS = ' selected';
+                $data->rows[$id]->CLASS .= ' selected';
             }
             $count++;
 
@@ -807,7 +809,6 @@ class pos_Terminal extends peripheral_Terminal
         $row->stock = "{$row->stock} <span class='pos-search-row-packagingid'>{$row->packagingId}</span>";
         $row->productId = "<span class='pos-search-row-productId'>{$row->productId}</span><span class='pos-search-row-stock'>{$row->stock}</span> ";
         
-        $row->ROW_ATTR['class'] = 'search-product-row';
         if (!Mode::is('screenMode', 'narrow')) {
             if(!empty($obj->photo)){
                 $Fancybox = cls::get('fancybox_Fancybox');
@@ -847,12 +848,12 @@ class pos_Terminal extends peripheral_Terminal
             $between = ($between != 0) ? " <span class='num'>-${between}</span>" : null;
             
             $class = isset($rec->revertId) ? 'revert-receipt' : '';
-            $row = ht::createLink("<span class='pos-span-name'>№{$rec->id} <br> {$date}$between</span>", array('pos_Terminal', 'open', 'receiptId' => $rec->id), null, array('class' => "pos-notes {$class}", 'title' => 'Преглед на бележката'));
+            $row = ht::createLink("<span class='pos-span-name'>№{$rec->id} <br> {$date}$between</span>", array('pos_Terminal', 'open', 'receiptId' => $rec->id), null, array('class' => "pos-notes navigable {$class}", 'title' => 'Преглед на бележката'));
             $block->append($row);
         }
         
         if (pos_Receipts::haveRightFor('add')) {
-            $addBtn = ht::createLink("<span class='pos-span-name'>" . tr('Нова') . '</span>', array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes selected');
+            $addBtn = ht::createLink("<span class='pos-span-name'>" . tr('Нова') . '</span>', array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes navigable selected');
             $block->prepend($addBtn);
         }
         
