@@ -33,10 +33,10 @@ function posActions() {
 	
 	
 	// Използване на числата за въвеждане в пулта
-	$(document.body).on('click', "#tools-form .numPad", function(e){
+	$(document.body).on('click', "#tools-holder .numPad", function(e){
 		var val = $(this).val();
 		
-		var closestSearch = $(this).closest('.tab-content').find('.select-input-pos');
+		var closestSearch = $(this).closest('#tools-holder').find('.select-input-pos');
 
 		var inpVal = $(closestSearch).val();
 		if(val == '.'){
@@ -337,7 +337,7 @@ function posActions() {
 			return;
 		}
 		
-		var closestSearch = $(this).closest('.tab-content').find('.select-input-pos');
+		var closestSearch = $(this).closest('#tools-holder').find('.select-input-pos');
 		
 		var inpVal = closestSearch.val();
 		if (currentAttrValue == "ENTER") {
@@ -347,7 +347,6 @@ function posActions() {
 			closestSearch.val(inpVal);
 		}
 
-		
 		if(!((pageWidth > 800 && pageWidth < 1400) && isTouchDevice())){
 			closestSearch.focus();
 		}
@@ -378,9 +377,7 @@ function posActions() {
 		}
 	});
 	if($('#result-holder').length) {
-
 		naviBoard.setNavigation("result-holder");
-
 	}
 
 
