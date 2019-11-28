@@ -301,6 +301,19 @@ function posActions() {
 		}
 	});
 	
+	// При клик на бутон изтрива запис от бележката
+	$(document.body).on('click', ".discountBtn", function(e){
+		var url = $(this).attr("data-url");
+		
+		var selectedElement = $(".highlighted");
+		var selectedRecId = selectedElement.attr("data-id");
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		getEfae().process(resObj, {recId:selectedRecId});
+	});
+	
 	var tabContent = $('#tools-wide-tabs li.active a').attr('href');
 	$('.tab-content.active').find('input[type=text]').focus();
 	$(tabContent).addClass('active');
@@ -408,14 +421,15 @@ function posActions() {
 		var inpVal = $(this).val();
 		var operation = getSelectedOperation();
 		
-		console.log(operation,inpVal);
+		var selectedElement = $(".highlighted");
+		var selectedRecId = selectedElement.attr("data-id");
 		
 		// Правим Ajax заявката като изтече време за изчакване
 		timeout = setTimeout(function(){
 			resObj = new Object();
 			resObj['url'] = url;
 			
-			getEfae().process(resObj, {operation:operation,search:inpVal});
+			getEfae().process(resObj, {operation:operation,search:inpVal,recId:selectedRecId});
 
 		}, 700);
 
@@ -564,13 +578,17 @@ function posActions() {
 		getEfae().process(resObj);
 	});
 
-	
 	$(document.body).on('click', "div.resultPack", function(e){
 		var url = $(this).attr("data-url");
 		if(!url) return;
-		
 		var pack = $(this).attr("data-pack");
-		var quantity = $("input[name=ean]").val();
+		
+		if($(this).hasClass("packWithQuantity")){
+			var quantity = $(this).attr("data-quantity");
+		} else {
+			var quantity = $("input[name=ean]").val();
+		}
+		
 		quantity = (quantity) ? quantity : 1;
 		var string = quantity + " " + pack;
 		
@@ -730,7 +748,7 @@ function getSelectedOperation()
 	if($("select[name=operation]").length){
 		var operation = $("select[name=operation]").val();
 	} else {
-		var operation = $("input.operationBtn.selected").attr("data-value");
+		var operation = $("input.operationBtn.active").attr("data-value");
 	}
 	
 	return operation;

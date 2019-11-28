@@ -159,6 +159,7 @@ class pos_Terminal extends peripheral_Terminal
                 break;
             case 'discount':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setdiscount');
+                $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id);
                 break;
             case 'price':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice');
@@ -251,7 +252,7 @@ class pos_Terminal extends peripheral_Terminal
             foreach ($operations as $operation => $operationCaption){
                 $class = 'operationBtn';
                 if($operation == $currentOperation){
-                    $class .= " selected";
+                    $class .= " active";
                 }
                 $btn = ht::createFnBtn($operationCaption, '', '', array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation));
                 $block->append($btn, 'INPUT_FLD');
@@ -305,7 +306,8 @@ class pos_Terminal extends peripheral_Terminal
                 $res = $this->renderPackagingTable($rec, $string, $selectedRecId);
                 break;
             case 'discount':
-                $res = ' ';
+                $res = $this->renderDiscountTable($rec, $string, $selectedRecId);
+                break;
             case 'text':
                 $res = ' ';
                 break;
@@ -329,6 +331,35 @@ class pos_Terminal extends peripheral_Terminal
         
         return new core_ET($res);
     }
+    
+    public function renderDiscountTable($rec, $string, $selectedRecId)
+    {
+        $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
+        
+        $currentDiscount = round($selectedRec->discountPercent, 2);
+        $discountsArr = array('0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100');
+        $string = trim(str_replace('%', '', $string));
+        $discountInputed = core_Type::getByName('double')->fromVerbal($string);
+        if(isset($discountInputed) && $discountInputed >= 0 && $discountInputed <= 100){
+            if(!in_array($discountInputed, $discountsArr)){
+                $discountsArr = array_merge(array($discountInputed), $discountsArr);
+            }
+            
+            $currentDiscount = round($discountInputed/100, 2);
+        }
+        
+        $tpl = new core_ET("");
+        foreach ($discountsArr as $discAmount){
+            $url = toUrl(array('pos_ReceiptDetails', 'updateRec', 'receiptId' => $rec->id, 'action' => 'setdiscount', 'string' => "{$discAmount}"), 'local');
+            
+            $class = (round($discAmount/100, 2) == $currentDiscount) ? 'navigable discountBtn selected' : 'navigable discountBtn';
+            $element = ht::createElement("div", array('class' => $class, 'data-url' => $url), "{$discAmount} %", true);
+            $tpl->append($element);
+        }
+        
+        return $tpl;
+    }
+    
     
     public function renderContragentTable($rec, $string, $selectedRecId)
     {
@@ -380,8 +411,7 @@ class pos_Terminal extends peripheral_Terminal
         foreach ($contragents as $obj){
             $class = ($cnt == 0) ? 'posResultContragent navigable selected' : 'posResultContragent navigable';
             $transferUrl = ($canTransfer === true) ? array('pos_Receipts', 'Transfer', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId) : array();
-            $obj->transferBtn = ht::createBtn('Прехвърли', $transferUrl, false, false, "class=transferBtn,title=Прехвърли продажбата към контрагента");
-            $obj->title = ht::createLink($obj->title, $transferUrl, 'Наистина ли желаете да прехвърлите продажбата към документната система', 'class=transferBtn');
+            $obj->title = ht::createLink($obj->title, $transferUrl, 'Наистина ли желаете да прехвърлите продажбата към документната система|*!', 'class=transferBtn');
             
             $block = new core_ET("<div class='{$class}'><div class='posResultContragentTitle'>[#title#]</div></div>");
             $block->placeObject($obj);
@@ -469,7 +499,8 @@ class pos_Terminal extends peripheral_Terminal
         $basePackagingId = key($packs);
         
         $baseClass = "resultPack navigable posBtns";
-        $basePackName = cat_UoM::getTitleById($measureId);
+        $basePackName = cat_UoM::getVerbal($measureId, 'name');
+        
         $dataUrl = (pos_ReceiptDetails::haveRightFor('edit', $selectedRec)) ? toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity'), 'local') : null;
         
         $buttons = array();
@@ -480,10 +511,10 @@ class pos_Terminal extends peripheral_Terminal
         $packQuery->where("#productId = {$selectedRec->productId}");
         while ($packRec = $packQuery->fetch()) {
             
-            $packagingId = cat_UoM::getTitleById($packRec->packagingId);
+            $packagingId = cat_UoM::getVerbal($packRec->packagingId, 'name');
             $baseMeasureId = $measureId;
             $packRec->quantity = cat_Uom::round($baseMeasureId, $packRec->quantity);
-            $packaging = "|{$packagingId}|*</br> <small>" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . cat_UoM::getTitleById($baseMeasureId) . "</small>";
+            $packaging = "|{$packagingId}|*</br> <small>" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . cat_UoM::getVerbal($baseMeasureId, 'name') . "</small>";
             
             $class = ($packRec->packagingId == $basePackagingId) ? "{$baseClass} selected" : $baseClass;
             $buttons[$packRec->packagingId] = ht::createElement("div", array('class' => $class, 'data-pack' => $packagingId, 'data-url' => $dataUrl), tr($packaging), true);
@@ -492,6 +523,27 @@ class pos_Terminal extends peripheral_Terminal
         $firstBtn = $buttons[$basePackagingId];
         unset($buttons[$basePackagingId]);
         $buttons = array($basePackagingId => $firstBtn) + $buttons;
+        
+        
+        $query = pos_ReceiptDetails::getQuery();
+        $query->where("#productId = {$selectedRec->productId} AND #action = 'sale|code' AND #quantity > 0");
+        $query->show("quantity,value");
+        $query->groupBy("quantity,value");
+        $query->limit(10);
+        
+        while ($productRec = $query->fetch()) {
+            
+            $packagingId = cat_UoM::getVerbal($productRec->value, 'name');
+            Mode::push('text', 'plain');
+            $quantity = core_Type::getByName('double(smartRound)')->toVerbal($productRec->quantity);
+            Mode::pop('text', 'plain');
+            $btnCaption =  "{$quantity} " .tr(str::getPlural($productRec->quantity, $packagingId, true));
+            
+            $buttons["{$productRec->packagingId}|{$productRec->quantity}"] = ht::createElement("div", array('class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packagingId, 'data-url' => $dataUrl), $btnCaption, true);
+        }
+        
+        
+        //bp($buttons);
         
         $tpl = new core_ET("");
         foreach ($buttons as $btn){
@@ -521,7 +573,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $cnt = 0;
-        $packName = cat_UoM::getShortName($value);
+        $packName = cat_UoM::getVerbal($value, 'name');
         $dQuery->show('price,param');
         while($dRec = $dQuery->fetch()){
             $dRec->price *= 1 + $dRec->param;
@@ -530,7 +582,6 @@ class pos_Terminal extends peripheral_Terminal
             Mode::pop('text', 'plain');
             $btnName = "|*{$price} {$baseCurrencyCode}</br> |" . tr($packName);
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
-            
             
             $class = ($cnt == 0) ? 'resultPrice posBtns navigable selected' : 'resultPrice posBtns navigable';
             $buttons[$dRec->price] = ht::createElement("div", array('class' => $class, 'data-url' => $dataUrl), tr($btnName), true);
@@ -892,6 +943,10 @@ class pos_Terminal extends peripheral_Terminal
             $resObj = new stdClass();
             $resObj->func = 'html';
             $resObj->arg = array('id' => 'tools-holder', 'html' => $toolsTpl->getContent(), 'replace' => true);
+            $res[] = $resObj;
+            
+            $resObj = new stdClass();
+            $resObj->func = 'prepareResult';
             $res[] = $resObj;
             
             $resObj = new stdClass();
