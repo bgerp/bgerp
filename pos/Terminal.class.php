@@ -854,7 +854,6 @@ class pos_Terminal extends peripheral_Terminal
         $row->productId = ht::createLinkRef($row->productId, array('cat_Products', 'single', $obj->productId), null, array('target' => '_blank', 'class' => 'singleProd'));
         $row->stock = ht::styleNumber($row->stock, $obj->stock, 'green');
         $row->stock = "{$row->stock} <span class='pos-search-row-packagingid'>{$row->packagingId}</span>";
-        $row->productId = "<span class='pos-search-row-productId'>{$row->productId}</span><span class='pos-search-row-stock'>{$row->stock}</span> ";
         
         if (!Mode::is('screenMode', 'narrow')) {
             if(!empty($obj->photo)){

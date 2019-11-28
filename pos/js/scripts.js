@@ -475,7 +475,6 @@ function posActions() {
 	$(document.body).on('click', ".pos-add-res-btn", function(e){
 		var elemRow = $(this).closest('.receiptRow ');
 		$(elemRow).addClass('highlighted');
-		var receiptId = $(this).attr("data-recId");
 		var url = $(this).attr("data-url");
 		var productId = $(this).attr("data-productId");
 		
