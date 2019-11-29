@@ -369,13 +369,11 @@ function posActions() {
 
 	document.addEventListener("keydown", function(event) {
 		if(event.key == "ArrowUp"){
-			if (event.code == "Numpad8") pageUp();
-			else arrowUp();
+			arrowUp();
 		}
 
 		if(event.key == "ArrowDown") {
-			if (event.code == "Numpad2") pageDown();
-			else arrowDown();
+			arrowDown();
 		}
 
 		if(event.key == "ArrowLeft") {
@@ -386,6 +384,12 @@ function posActions() {
 		}
 		if(event.key == "Enter"){
 			enter();
+		}
+		if(event.key == "PageDown"){
+			pageDown();
+		}
+		if(event.key == "PageUp"){
+			pageUp();
 		}
 	});
 	if($('#result-holder').length) {
@@ -639,13 +643,7 @@ function calculateWidth(){
 	//височина за таблицата с резултатите
 	var searchTopHeight = parseInt($('.search-top-holder').height());
 	$('#pos-search-result-table').css('maxHeight', winHeight - searchTopHeight - 120);
-
-	$('#pos-search-result-table .rowBlock:first-child').addClass('activeRow');
-
-	$('#result_contragents').css('max-height', 239);
-	$('#result_contragents').css('overflow-y', 'auto');
-	$('#result_contragents').css('width', '100%');
-	
+	$('#result-holder').css('height', winHeight - 88);
 	var receiptHeight = winHeight -  totalOffset - 410;
 	$('.scrolling-vertical').css('maxHeight',receiptHeight);
 	$('.scrolling-vertical').css('minHeight',130);
