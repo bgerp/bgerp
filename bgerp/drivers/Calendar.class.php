@@ -219,24 +219,21 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $searchForm = $Calendar->getForm();
             bgerp_Portal::prepareSearchForm($Calendar, $searchForm);
             
-            $data->tpl = new ET(tr('|*<div class="clearfix21 portal">
+            $data->tpl = new ET(tr('|*<div class="clearfix21 portal newCalendar">
                                         <div class="legend" id="calendarPortal">[#CAL_TITLE#]
                                             [#SEARCH_FORM#]
                                         </div>
                                         
                                         <!--ET_BEGIN NOW-->
-                                            <div style="font-size: 0.9em">
-                                                <div style="color:#5f1f3e; font-style: italic; background-color:#ffc;">
-                                                    [#NOW_DATE#]
-                                                    [#NOW#]
-                                                </div>
+                                            <div class="[#NOW_CLASS_NAME#] portal-cal-day">
+                                                <span class="title">[#NOW_DATE#]</span>
+                                                [#NOW#]
                                             </div>
                                         <!--ET_END NOW-->    
                                         
-
                                         [#MONTH_CALENDAR#]
-
-                                        <!--ET_BEGIN FUTURE--><div>[#FUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
+                                        
+                                        <!--ET_BEGIN FUTURE--><div class="portal-cal-day" style="padding: 5px; background-color: rgba(210, 255, 120, 0.6);">[#FUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
                                     </div>'
                                     ));
             
@@ -253,16 +250,20 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 
                 ksort($tRowArr);
                 
-                $dStr = dt::mysql2verbal($tDate, $format, null, false);
+                $dStr = dt::mysql2verbal($tDate, $format, null, null, false);
                 
                 if ($today == $tDate) {
                     $dVerb = tr('Днес');
+                    $nowClassName = 'portal-cal-today';
                 } elseif ($tDate == $tomorrow) {
                     $dVerb = tr('Утре');
+                    $nowClassName = 'portal-cal-tomorrow';
                 }elseif ($tDate == $nextDay) {
                     $dVerb = tr('Вдругиден');
+                    $nowClassName = 'portal-cal-nextday';
                 } else {
                     $dVerb = '';
+                    $nowClassName = 'portal-cal-after';
                 }
                 
                 $dVerb .= $dVerb ? ', ' : '';
@@ -273,8 +274,6 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 
                 $dVerb = $res->day;
                 
-                $this->invoke('AfterPrepareDateName', array(&$dVerb, $tDate));
-                
                 $dBlock = $data->tpl->getBlock('NOW');
                 
                 if ($tRowArr['events']) {
@@ -282,9 +281,10 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 }
                 
                 $dBlock->replace($dVerb, 'NOW_DATE');
+                $dBlock->replace($nowClassName, 'NOW_CLASS_NAME');
                 
                 foreach ($tRowArr as $tRow) {
-                    $dBlock->append('<div>' . $tRow->title . '</div>', 'NOW');
+                    $dBlock->append('<div class="task">' . $tRow->title . '</div>', 'NOW');
                 }
                 
                 $dBlock->removeBlocks();
@@ -460,7 +460,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $rToVerb = cal_Tasks::recToVerbal($rec, $f);
         
         $subTitle = $Tasks->getDocumentRow($rec->id)->subTitle;
-        $subTitle = "<div class='threadSubTitle'>{$subTitle}</div>";
+        $subTitle = "<span class='threadSubTitle'> {$subTitle}</span>";
         
         $title = str::limitLen(type_Varchar::escape($rec->title), 60, 30, ' ... ', true);
         $rToVerb->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, array('ef_icon' => $Tasks->getIcon($rec->id)));
@@ -513,7 +513,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $tRec = $Reminders->recToVerbal($rec, 'title');
             if ($Reminders->haveRightFor('single', $rec)) {
                 
-                $tRec->title = ' ' . dt::mysql2verbal($rec->startTimeOrder, 'H:i', null, false) . ' ' . $tRec->title;
+                $tRec->title = ' ' . dt::mysql2verbal($rec->startTimeOrder, 'H:i', null, true) . ' ' . $tRec->title;
                 
                 $title = ht::createLink($tRec->title, $Reminders->getSingleUrlArray($rec->id), null, array('ef_icon' => $Reminders->getIcon($rec->id)));
             }
