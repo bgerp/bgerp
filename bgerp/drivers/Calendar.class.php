@@ -250,7 +250,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 
                 ksort($tRowArr);
                 
-                $dStr = dt::mysql2verbal($tDate, $format, null, false);
+                $dStr = dt::mysql2verbal($tDate, $format, null, null, false);
                 
                 if ($today == $tDate) {
                     $dVerb = tr('Днес');
@@ -513,7 +513,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $tRec = $Reminders->recToVerbal($rec, 'title');
             if ($Reminders->haveRightFor('single', $rec)) {
                 
-                $tRec->title = ' ' . dt::mysql2verbal($rec->startTimeOrder, 'H:i', null, false) . ' ' . $tRec->title;
+                $tRec->title = ' ' . dt::mysql2verbal($rec->startTimeOrder, 'H:i', null, true) . ' ' . $tRec->title;
                 
                 $title = ht::createLink($tRec->title, $Reminders->getSingleUrlArray($rec->id), null, array('ef_icon' => $Reminders->getIcon($rec->id)));
             }
