@@ -270,11 +270,6 @@
 	background:#ffffcd !important;
 }
 
-.selected {
-	box-shadow: 1px 1px 5px #0b5b98 !important;
-	border: 1px solid #0b5b98;
-	box-sizing: border-box;
-}
 .numPad, .numBack{
 	min-width: 42px;
 	height: 43px;
@@ -525,6 +520,7 @@
 	color: #FFF !important;
 	font-weight: bold;
 	box-sizing: border-box;
+	border: 1px solid #ccc;
 	box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0,0,0,0.7);
 	&.payment {
 		background: #6db3f2;
@@ -533,6 +529,14 @@
 		background: linear-gradient(to bottom,  #6db3f2 0%,#54a3ee 50%,#1e69de 100%);
 		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6db3f2', endColorstr='#1e69de',GradientType=0 );
 	}
+
+}
+
+.navigable:focus {
+	box-shadow: 1px 1px 5px #0b5b98 !important;
+	border: 2px solid #0b5b98;
+	box-sizing: border-box;
+	outline: none;
 }
 .pos-notes{
 	box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0,0,0,0.7);
@@ -912,16 +916,12 @@
 .narrow .pos-product-field{
 	font-size: 0.9em;
 }
-.rowBlock.navigable:focus td{
-	border-color: #a00 !important;
-}
+
 .narrow .pos-price-field, .narrow  .pos-stock-field{
     font-size: 0.8em;
     width: 1%;
 }
-.rowBlock.navigable.active td {
-	background-color: #ccc !important;
-}
+
 .pos-search-result-table .linkWithIcon{
 	font-weight: bold;
 }

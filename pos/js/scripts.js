@@ -147,7 +147,7 @@ function posActions() {
 	    	var operation = getSelectedOperation();
 	    	
 	    	// Ако има селектиран ред в резултатите
-	    	var element = $(".selected");
+	    	var element = $(".navigable:focus");
 	    	
 	    	if(element.length){
 	    		//console.log(element);
@@ -770,9 +770,10 @@ function getSelectedOperation()
 }
 
 function render_prepareResult() {
-
+	console.log('render');
 	if ($('.navigable').length) {
-		$('.navigable').eq(0).focus();
+		console.log('ifff');
+		//$('.navigable').eq(0).attr('tabindex', "0");
 		naviBoard.setNavigation("result-holder");
 	}
 }
