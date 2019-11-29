@@ -392,7 +392,7 @@ function posActions() {
 			pageUp();
 		}
 	});
-	if($('#result-holder').length) {
+	if($('.navigable').length) {
 		naviBoard.setNavigation("result-holder");
 	}
 
