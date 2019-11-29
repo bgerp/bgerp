@@ -549,7 +549,7 @@ class bgerp_Setup extends core_ProtoSetup
     /**
      * Миграция за изтриване на старите данни в портала и за добавяне на новите интерфейси
      */
-    public function setNewPortal46192()
+    public function setNewPortal46193()
     {
         $Portal = cls::get('bgerp_Portal');
         $bQuery = bgerp_Portal::getQuery();
@@ -558,7 +558,7 @@ class bgerp_Setup extends core_ProtoSetup
         $iArr = array('bgerp_drivers_Notifications' => array('perPage' => 15, 'column' => 'left', 'order' => 500),
                       'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 500),
                       'bgerp_drivers_Recently' => array('perPage' => 10, 'column' => 'right', 'order' => 500),
-                      'bgerp_drivers_Calendar' => array('column' => 'right', 'order' => 300)
+                      'bgerp_drivers_Calendar' => array('column' => 'right', 'order' => 300, 'fTasksPerPage' => 5, 'fTasksDays' => 2629746)
                       );
         
         foreach ($iArr as $iName => $iData) {
@@ -568,11 +568,9 @@ class bgerp_Setup extends core_ProtoSetup
             
             $rec = new stdClass();
             $rec->{$Portal->driverClassField} = $iName::getClassId();
-            $rec->column = $iData['column'];
-            $rec->order = $iData['order'];
             
-            if ($iData['perPage']) {
-                $rec->perPage = $iData['perPage'];
+            foreach ($iData as $cName => $cVal) {
+                $rec->{$cName} = $cVal;
             }
             
             $rec->userOrRole = type_UserOrRole::getAllSysTeamId();
@@ -596,7 +594,7 @@ class bgerp_Setup extends core_ProtoSetup
         $dbUpdate = Mode::get('dbInit');
         Mode::set('dbInit', 'update');
         
-        $res .= $this->callMigrate('setNewPortal46192', 'bgerp');
+        $res .= $this->callMigrate('setNewPortal46193', 'bgerp');
         
         Mode::set('dbInit', $dbUpdate);
         
