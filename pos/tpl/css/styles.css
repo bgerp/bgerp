@@ -633,6 +633,7 @@
   border-top-left-radius: 0;
   background: #f6f6f6;
   padding: 15px;
+  overflow-y: auto;
   border-radius: 3px; }
 
 .narrow .result-content {
