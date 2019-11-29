@@ -113,7 +113,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->pages . '_' . $userId . '_' . Mode::get('screenMode') . '_' . $resData->month . '_' . $resData->year . '_' . Request::get($Calendar->searchInputField) . '_' . core_Lg::getCurrent() . '_' . $lastCalendarEventRec. '_' . $lastAgendaEventRec . '_' . dt::now(false));
         $resData->cacheType = 'Calendar';
         
-        $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
+       // $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
             
@@ -225,15 +225,15 @@ class bgerp_drivers_Calendar extends core_BaseClass
                                         </div>
                                         
                                         <!--ET_BEGIN NOW-->
-                                            <div style="color:#5f1f3e; font-style: italic; background-color:#ffc; font-size: 0.9em;" class="[#NOW_CLASS_NAME#] portal-cal-day">
-                                                [#NOW_DATE#]
+                                            <div class="[#NOW_CLASS_NAME#] portal-cal-day">
+                                                <span class="title">[#NOW_DATE#]</span>
                                                 [#NOW#]
                                             </div>
                                         <!--ET_END NOW-->    
                                         
                                         [#MONTH_CALENDAR#]
                                         
-                                        <!--ET_BEGIN FUTURE--><div>[#FUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
+                                        <!--ET_BEGIN FUTURE--><div class="portal-cal-day" style="padding: 5px; background-color: rgba(210, 255, 120, 0.6);">[#FUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
                                     </div>'
                                     ));
             
@@ -284,7 +284,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $dBlock->replace($nowClassName, 'NOW_CLASS_NAME');
                 
                 foreach ($tRowArr as $tRow) {
-                    $dBlock->append('<div>' . $tRow->title . '</div>', 'NOW');
+                    $dBlock->append('<div class="task">' . $tRow->title . '</div>', 'NOW');
                 }
                 
                 $dBlock->removeBlocks();
@@ -460,7 +460,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $rToVerb = cal_Tasks::recToVerbal($rec, $f);
         
         $subTitle = $Tasks->getDocumentRow($rec->id)->subTitle;
-        $subTitle = "<div class='threadSubTitle'>{$subTitle}</div>";
+        $subTitle = "<span class='threadSubTitle'> {$subTitle}</span>";
         
         $title = str::limitLen(type_Varchar::escape($rec->title), 60, 30, ' ... ', true);
         $rToVerb->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, array('ef_icon' => $Tasks->getIcon($rec->id)));
