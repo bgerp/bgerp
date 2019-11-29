@@ -44,7 +44,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, cash_Wrapper,acc_plg_Contable, acc_plg_DocumentSummary, doc_plg_MultiPrint,
+    public $loadList = 'plg_RowTools2, cash_Wrapper,acc_plg_Contable, acc_plg_DocumentSummary,
      	plg_Clone,doc_DocumentPlg, plg_Printing, deals_plg_SaveValiorOnActivation, plg_Search, bgerp_plg_Blank, doc_SharablePlg';
     
     
@@ -149,6 +149,14 @@ class cash_InternalMoneyTransfer extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'valior,createdOn,modifiedOn';
+    
+    
+    /**
+     * Дефолтен брой копия при печат
+     *
+     * @var int
+     */
+    public $defaultCopiesOnPrint = 2;
     
     
     /**

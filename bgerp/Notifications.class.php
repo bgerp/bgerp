@@ -611,7 +611,7 @@ class bgerp_Notifications extends core_Manager
         $tpl->append($markBtn);
         
         // Ако има записи за отабониране от нотификациите
-        self::getAutoNotifyArr($rec, null, $haveStopped);
+        $this->getAutoNotifyArr($rec, null, $haveStopped);
         if ($haveStopped) {
             $unsubscribeUrl = array(get_called_class(), 'unsubscribe', $rec->id);
             $attr = array('ef_icon' => 'img/16/no-bell.png', 'title' => 'Автоматично отписване от нотификациите', 'class' => 'button', 'data-url' => toUrl($unsubscribeUrl, 'local'));
@@ -870,7 +870,7 @@ class bgerp_Notifications extends core_Manager
         
         expect($rec->userId == core_Users::getCurrent());
         
-        $valsArr = self::getAutoNotifyArr($rec, 'unsubscribe');
+        $valsArr = $this->getAutoNotifyArr($rec, 'unsubscribe');
         
         if (!Request::get('ajax_mode')) {
             if ($rec->state == 'active') {
@@ -933,7 +933,7 @@ class bgerp_Notifications extends core_Manager
         
         // Ако сме активирали нотификацията, връщаме автоматично нулираните настройки за нотифициране
         if ($rec->state == 'active') {
-            $valsArr = self::getAutoNotifyArr($rec, 'revert');
+            $valsArr = $this->getAutoNotifyArr($rec, 'revert');
         }
         
         $this->logWrite($act . ' на нотификация', $rec->id);
@@ -946,7 +946,12 @@ class bgerp_Notifications extends core_Manager
             return new Redirect(array('Portal', 'show'), "|Успешно {$msg} нотификацията|*{$notifyMsg}");
         }
         
-        $res = $this->action('render');
+        // @todo Remove
+        if (stripos(Request::get('parentUrl'), 'show2') !== false) {
+            $res = cls::get('bgerp_Portal')->getPortalBlockForAJAX();
+        } else {
+            $res = $this->action('render');
+        }
         
         // Добавяме резултата и броя на нотификациите
         if (is_array($res)) {
@@ -955,7 +960,6 @@ class bgerp_Notifications extends core_Manager
             $obj = new stdClass();
             $obj->func = 'notificationsCnt';
             $obj->arg = array('id' => 'nCntLink', 'cnt' => $notifCnt, 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
-            
             
             if ($notifyMsg) {
                 $hitId = rand();
@@ -1146,6 +1150,8 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Екшън за рендиране блок с нотификации за текущия
+     * 
+     * @deprecated
      */
     public function act_Render()
     {
@@ -1159,6 +1165,7 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Рендира блок с нотификации за текущия или посочения потребител
+     * @deprecated
      */
     public static function render_($userId = null)
     {
@@ -1343,6 +1350,8 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Рендира портала
+     * 
+     * @deprecated
      */
     public function renderPortal($data)
     {
@@ -1353,8 +1362,8 @@ class bgerp_Notifications extends core_Manager
             $divId = $Notifications->getDivId();
             
             $tpl = new ET("
-                <div class='clearfix21 portal' style='background-color:#fff8f8'>
-                <div style='background-color:#fee' class='legend'><div style='float:left'>[#PortalTitle#]</div>
+                <div class='clearfix21 portal'>
+                <div class='legend'><div style='float:left'>[#PortalTitle#]</div>
                 [#ListFilter#]<div class='clearfix21'></div></div>
                 [#PortalPagerTop#]
                 
@@ -1602,7 +1611,7 @@ class bgerp_Notifications extends core_Manager
             }
             
             $res = array('cnt' => $res, 'priority' => $priority);
-
+            
             if(isset($msgRec)) {
                 $res['msg'] = $msgRec->msg;
             }
@@ -1616,6 +1625,8 @@ class bgerp_Notifications extends core_Manager
      * Връща id, което ще се използва за обграждащия div на таблицата, който ще се замества по AJAX
      *
      * @return string
+     * 
+     * @deprecated
      */
     public function getDivId()
     {

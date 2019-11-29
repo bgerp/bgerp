@@ -20,6 +20,13 @@ defIfNot('BGERP_OWN_COMPANY_ID', 1);
 
 
 /**
+ * Да се показва ли полето Класификация на икономическите дейности (НКИД)
+ */
+defIfNot('CRM_VISIBLE_NKID', 'none');
+
+
+
+/**
  * Клас 'crm_Setup' -
  *
  *
@@ -69,6 +76,15 @@ class crm_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Визитник и управление на контактите';
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        
+        'CRM_VISIBLE_NKID' => array('enum(none=Не показвай, yes=Покажи)', 'caption=Класификация на икономическите дейности->НКИД'),
+    );
     
     
     /**

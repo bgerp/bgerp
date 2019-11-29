@@ -24,11 +24,11 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
     
     
     /**
-     * Кое поле от $data->recs да се следи, ако има нов във новата версия
+     * Коя комбинация от полета от $data->recs да се следи, ако има промяна в последната версия
      *
      * @var string
      */
-    protected $newFieldToCheck = 'docId';
+    protected $newFieldsToCheck = 'docId';
     
     
     /**
@@ -84,6 +84,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         // Обръщаме се към трудовите договори
         $query = store_Products::getQuery();
         $query->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
+        $query->where('#storeId IS NOT NULL');
         
         if (isset($rec->group)) {
             $query->likeKeylist('groupMat', $rec->group);
@@ -97,7 +98,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         $num = 1;
         
         // за всеки един индикатор
-        while ($recMaterial = $query->fetch()) {
+        while ($recMaterial = $query->fetch()) { 
             if (!is_null($rec->storeId) && ($rec->storeId != $recMaterial->storeId)) {
                 continue;
             }
@@ -119,18 +120,20 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
                         'quantity' => $recMaterial->quantity,
                         'group' => cat_Products::fetchField($recMaterial->productId, 'groups'),
                         'reservedQuantity' => $recMaterial->reservedQuantity,
-                        'changeQuantity' => ''
+                        'changeQuantity' => '',
+                        'expectedQuantity' => $recMaterial->expectedQuantityTotal
                     );
             } else {
                 $obj = &$recs[$id];
                 $obj->quantity += $recMaterial->quantity;
+                $obj->expectedQuantity += $recMaterial->expectedQuantityTotal;
                 $obj->reservedQuantity += $recMaterial->reservedQuantity;
             }
         }
         
-        foreach ($recs as $idProd => $products) {
-            $products->freeQuantity = $products->quantity - $products->reservedQuantity + $products->expectedQuantity;
+        foreach ($recs as $idProd => $products) { 
             
+            $products->freeQuantity = $products->quantity - $products->reservedQuantity;
             if (is_array($oldData) && count($oldData)) {
                 foreach ($oldData as $oData) {
                     if ($oData->productId == $idProd) {
@@ -188,7 +191,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         $row->productId = cat_Products::getShortHyperlink($dRec->productId);
         $row->measure = cat_UoM::getShortName($dRec->measure);
         
-        foreach (array('quantity', 'reservedQuantity', 'freeQuantity', 'changeQuantity') as $fld) {
+        foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'freeQuantity', 'changeQuantity') as $fld) {
             $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
             $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
         }

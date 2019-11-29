@@ -90,7 +90,9 @@ class batch_Templates extends embed_Manager
         $this->FLD('name', 'varchar', 'caption=Име,mandatory');
         
         $this->FLD('autoAllocate', 'enum(yes=Да,no=Не)', 'caption=Автоматично разпределение в документи->Избор,notNull,value=yes,formOrder=1000');
-        $this->FLD('uniqueProduct', 'enum(no=Не,yes=Да)', 'caption=Партидния № може да се използва само в един артикул->Избор,notNull,value=no,formOrder=1000');
+        $this->FLD('uniqueProduct', 'enum(no=Не,yes=Да)', 'caption=Партидния № може да се използва само в един артикул->Избор,notNull,value=no,formOrder=1001');
+        $this->FLD('alwaysRequire', 'enum(no=Не,yes=Да)', 'caption=Използване в документи->Задължително,notNull,value=no,formOrder=1002');
+        $this->FLD('onlyExistingBatches', 'enum(no=Не,yes=Да)', 'caption=Използване в документи->Задължителна наличност,notNull,value=no,formOrder=1003');
         
         $this->setDbUnique('name');
     }
@@ -195,9 +197,9 @@ class batch_Templates extends embed_Manager
         $rec = &$form->rec;
         
         if ($rec->createdBy == core_Users::SYSTEM_USER && isset($rec->id)) {
-            $fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
-            foreach ($fields as $name => $fld) {
-                if (in_array($name, array('autoAllocate', 'uniqueProduct'))) {
+            $fields = array_keys($form->selectFields("#input != 'none' AND #input != 'hidden'"));
+            foreach ($fields as $name) {
+                if (in_array($name, array('autoAllocate', 'uniqueProduct', 'alwaysRequire', 'onlyExistingBatches'))) {
                     continue;
                 }
                 $form->setReadOnly($name);

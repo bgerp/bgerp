@@ -37,7 +37,7 @@ class planning_Terminal extends peripheral_Terminal
     /**
      * Информация за табовете
      */
-    const TAB_DATA = array('taskList'     => array('placeholder' => 'TASK_LIST', 'fnc' => 'getTaskListTable', 'tab-id' => 'task-list', 'id' => 'task-list-content'),
+    public static $tabData = array('taskList'     => array('placeholder' => 'TASK_LIST', 'fnc' => 'getTaskListTable', 'tab-id' => 'task-list', 'id' => 'task-list-content'),
                            'taskProgress' => array('placeholder' => 'TASK_PROGRESS', 'fnc' => 'getProgressTable', 'tab-id' => 'tab-progress', 'id' => 'task-progress-content'),
                            'taskSingle'   => array('placeholder' => 'TASK_SINGLE', 'fnc' => 'getTaskHtml', 'tab-id' => 'tab-single-task', 'id' => 'task-single-content'),
                            'taskJob'      => array('placeholder' => 'TASK_JOB', 'fnc' => 'getJobHtml', 'tab-id' => 'tab-job', 'id' => 'task-job-content'),
@@ -48,7 +48,7 @@ class planning_Terminal extends peripheral_Terminal
      * Кой има право да чете?
      */
     public $canOpenterminal = 'debug';
-    
+
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -532,7 +532,7 @@ class planning_Terminal extends peripheral_Terminal
         $rec = $this->fetchRec($rec);
         $objectArr = array();
         
-        foreach (self::TAB_DATA as $tabName => $tabArr){
+        foreach (self::$tabData as $tabName => $tabArr){
             $contentHtml = ($tabName == $name) ? $this->{$tabArr['fnc']}($rec)->getContent() : ' ';
             $resObj = new stdClass();
             $resObj->func = 'html';
@@ -543,7 +543,7 @@ class planning_Terminal extends peripheral_Terminal
         // Активиране на нужния таб
         $resObj = new stdClass();
         $resObj->func = 'activateTab';
-        $resObj->arg = array('tabId' => self::TAB_DATA[$name]['tab-id']);
+        $resObj->arg = array('tabId' => self::$tabData[$name]['tab-id']);
         $objectArr[] = $resObj;
         
         // Реплейсване на текущата дата
@@ -556,11 +556,16 @@ class planning_Terminal extends peripheral_Terminal
         $resObj = new stdClass();
         $resObj->func = 'prepareKeyboard';
         $objectArr[] = $resObj;
+
+        // Подготовка на селекта
+        $resObj = new stdClass();
+        $resObj->func = 'prepareSelect';
+        $objectArr[] = $resObj;
         
         // Задаване на фокус на нужното поле според таба
         $resObj = new stdClass();
         $resObj->func = 'setFocus';
-        $resObj->arg = array('tabId' => self::TAB_DATA[$name]['tab-id']);
+        $resObj->arg = array('tabId' => self::$tabData[$name]['tab-id']);
         $objectArr[] = $resObj;
         
         // Показване на чакащите статуси
@@ -592,7 +597,7 @@ class planning_Terminal extends peripheral_Terminal
     {
         $dump = $e->getDump();
         $dump = $dump[0];
-        $errorMsg = (haveRole('debug')) ? $dump : 'Възникна проблем при отчитане на прогреса|*!';
+        $errorMsg = $dump;
         reportException($e);
         
         if (Request::get('ajax_mode')) {
@@ -603,7 +608,7 @@ class planning_Terminal extends peripheral_Terminal
             $objectArr = array();
             $resObj = new stdClass();
             $resObj->func = 'setFocus';
-            $resObj->arg = array('tabId' => self::TAB_DATA[$name]['tab-id']);
+            $resObj->arg = array('tabId' => self::$tabData[$name]['tab-id']);
             $objectArr[] = $resObj;
             
             // Скриване на грешките
@@ -840,7 +845,7 @@ class planning_Terminal extends peripheral_Terminal
         $tpl->replace($this->getSearchTpl($rec), "SEARCH_FORM");
         
         // Рендиране на активния таб
-        expect($aciveTabData = self::TAB_DATA[$activeTab]);
+        expect($aciveTabData = self::$tabData[$activeTab]);
         $tableTpl = $this->{$aciveTabData['fnc']}($rec);
         $tpl->replace($tableTpl, $aciveTabData['placeholder']);
         

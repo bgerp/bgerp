@@ -13,13 +13,14 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deprecated
  */
 class deals_reports_ArrearsImpl extends frame_BaseDriver
 {
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'ceo,sales,cash, bank, store';
+    public $canSelectSource = 'no_one';
     
     
     /**

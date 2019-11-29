@@ -981,6 +981,10 @@ div.acc-detail {
       text-align: left !important; }
     .additionalInfo-holder .additionalInfo .aright {
       text-align: right !important; }
+  .additionalInfo-holder .tags {
+    top: -1px !important; }
+    .additionalInfo-holder .tags .enTag {
+      vertical-align: middle; }
   .additionalInfo-holder .anchor-arrow {
     cursor: pointer; }
 
@@ -1846,6 +1850,10 @@ table.listTable.listAction>tbody>tr>td.wideColumn {
 
 .amount-field {
   min-width: 180px; }
+
+.expectedTotalCol {
+  color: #888888;
+  font-size: 0.8em; }
 
 .wrap {
   white-space: normal !important; }
@@ -2960,6 +2968,14 @@ span.sharing-history-title {
   max-width: 100%;
   margin: 5px 0 10px; }
 
+#cart-external-status a:hover {
+  opacity: 1 !important; }
+
+#cart-external-status .cardLink {
+  font-weight: bold; }
+  #cart-external-status .cardLink:hover {
+    opacity: 0.7; }
+
 #cart-external-status .count {
   border: 1px solid #526b00;
   background-color: #698900;
@@ -3256,13 +3272,13 @@ table .eshop-btn {
     padding: 0;
     margin-left: 20px;
     list-style: none; }
-  .foldertabs > .tab-row > .row-holder > .tab {
+  .foldertabs > .tab-row > .row-holder .tab {
     float: left;
     z-index: auto !important;
     margin: 1px 0 -1px 2px !important;
     padding: 0 !important;
     border-top: 1px solid #cccccc !important; }
-  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title {
+  .foldertabs > .tab-row > .row-holder .tab >  .tab-title {
     position: relative;
     background: #dddddd;
     background-image: linear-gradient(to bottom, white, #dddddd);
@@ -3274,16 +3290,16 @@ table .eshop-btn {
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
     border-radius: 5px 0 0 0;
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.4); }
-  .foldertabs > .tab-row > .row-holder > .tab >  span.tab-title {
+  .foldertabs > .tab-row > .row-holder .tab >  span.tab-title {
     color: #cccccc; }
-  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:hover,
-  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:hover::after,
-  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:focus,
-  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:focus::after {
+  .foldertabs > .tab-row > .row-holder .tab >  .tab-title:hover,
+  .foldertabs > .tab-row > .row-holder .tab >  .tab-title:hover::after,
+  .foldertabs > .tab-row > .row-holder .tab >  .tab-title:focus,
+  .foldertabs > .tab-row > .row-holder .tab >  .tab-title:focus::after {
     background: white; }
-  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title:focus {
+  .foldertabs > .tab-row > .row-holder .tab >  .tab-title:focus {
     outline: 0; }
-  .foldertabs > .tab-row > .row-holder > .tab >  .tab-title::after {
+  .foldertabs > .tab-row > .row-holder .tab >  .tab-title::after {
     content: '';
     position: absolute;
     z-index: 1;
@@ -3296,12 +3312,12 @@ table .eshop-btn {
     box-shadow: 2px 1px 2px rgba(0, 0, 0, 0.4);
     transform: skew(15deg);
     border-radius: 0 5px 0 0; }
-  .foldertabs > .tab-row > .row-holder > .tab.selected .tab-title,
-  .foldertabs > .tab-row > .row-holder > .tab.selected .tab-title::after {
+  .foldertabs > .tab-row > .row-holder .tab.selected .tab-title,
+  .foldertabs > .tab-row > .row-holder .tab.selected .tab-title::after {
     background: white !important;
     z-index: 3; }
-  .foldertabs > .tab-row > .row-holder > .tab:hover .tab-title,
-  .foldertabs > .tab-row > .row-holder > .tab:hover .tab-title::after {
+  .foldertabs > .tab-row > .row-holder .tab:hover .tab-title,
+  .foldertabs > .tab-row > .row-holder .tab:hover .tab-title::after {
     background: white;
     z-index: 4; }
   .foldertabs > .tab-page {
@@ -4514,16 +4530,14 @@ div.location.public {
     list-style: none;
     border: 1px solid #cccccc;
     border-bottom: none;
-    background: #eeeeee;
     font-size: 0.9em;
     position: relative;
     bottom: -12px;
-    color: #888888; }
+    opacity: 0.8; }
     .modern-theme .portalTabs .tab-link.activeTab,
     .modern-theme .portalTabs .tab-link:hover {
-      color: black;
-      background: white;
-      z-index: 20; }
+      z-index: 20;
+      opacity: 1; }
 
 /*
  * край на търсене в портала
@@ -6245,6 +6259,10 @@ only screen and (max-width: 320px) {
   background: #dddddd; }
   .document .reportHolder div.tab-control.alphabet div.tab-row .tab.selected {
     top: 0 !important; }
+
+.reportTableDataTotal {
+  background-color: #cccccc !important;
+  font-weight: bold; }
 
 .logs-type-warning {
   background-color: #fae3ca; }

@@ -173,7 +173,16 @@ class doc_Folders extends core_Master
         $haveRight = static::haveRightFor('single', $rec);
         
         $iconStyle = 'background-image:url(' . static::getIconImg($rec, $haveRight) . ');';
-        $url = array('doc_Folders', 'single', $id);
+        
+        if ($attr['url']) {
+            $url = $attr['url'];
+        } else {
+            $url = array('doc_Folders', 'single', $id);
+        }
+        
+        if ($maxLength) {
+            $rec->title = str::limitLen($rec->title, $maxLength, (int) ($maxLength/2));
+        }
         
         $title = static::getVerbal($rec, 'title');
         
@@ -398,21 +407,31 @@ class doc_Folders extends core_Master
             return true;
         }
         
-        // Ако собственика на папката има права 'manager' или 'ceo' отказваме достъпа
-        if (core_Users::haveRole('manager,ceo', $rec->inCharge)) {
-            
-            // Ако собственика на папката има права 'manager' и е оттеглене и текущия потребител е такъв и са от един и същи екип
-            if ($rec->access != 'secret' && core_Users::haveRole('manager', $userId) && (!core_Users::haveRole('ceo', $rec->inCharge))) {
-                $uState = core_Users::fetchField($rec->inCharge, 'state');
-                if (($uState == 'rejected') || ($uState == 'draft')) {
-                    if (core_Users::isFromSameTeam($userId, $rec->inCharge)) {
-                        
-                        return true;
+        if ($rec->inCharge) {
+            // Ако собственика на папката има права 'manager' или 'ceo' отказваме достъпа
+            if (core_Users::haveRole('manager,ceo', $rec->inCharge)) {
+                
+                // Ако собственика на папката има права 'manager' и е оттеглене и текущия потребител е такъв и са от един и същи екип
+                if ($rec->access != 'secret' && core_Users::haveRole('manager', $userId) && (!core_Users::haveRole('ceo', $rec->inCharge))) {
+                    $uState = core_Users::fetchField($rec->inCharge, 'state');
+                    if (($uState == 'rejected') || ($uState == 'draft')) {
+                        if (core_Users::isFromSameTeam($userId, $rec->inCharge)) {
+                            
+                            return true;
+                        }
                     }
                 }
+                
+                return false;
             }
-            
-            return false;
+        } else {
+            if (core_Users::haveRole('ceo', $userId)) {
+                
+                return true;
+            } else {
+                
+                return false;
+            }
         }
         
         // Ако папката е лична на член от екипа, и потребителя има права 'manager' - има достъп

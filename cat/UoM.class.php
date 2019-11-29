@@ -229,14 +229,18 @@ class cat_UoM extends core_Manager
             }
         }
         
+        
+        
         if ($quantity < 1 && ($downMeasureId = cat_UoM::getMeasureByRatio($uomId, 0.001))) {
             $quantity *= 1000;
             $uomId = $downMeasureId;
-        } elseif ($quantityInPack > 1000 && ($downMeasureId = cat_UoM::getMeasureByRatio($uomId, 1000))) {
+        } elseif ($quantity > 1000 && ($downMeasureId = cat_UoM::getMeasureByRatio($uomId, 1000))) {
             $quantity /= 1000;
             $uomId = $downMeasureId;
         }
         
+        $rec = self::fetch($uomId);
+        $round = $rec->round;
         $res = round($quantity, $round);
         
         return $res;
@@ -330,8 +334,8 @@ class cat_UoM extends core_Manager
         $key = $measureId. '|' . $ratio;
         if (!isset($res[$key])) {
             $res[$key] = false;
-            $mArr = self::getSameTypeMeasures($measureId);
-            foreach ($mArr as $id => $name) {
+            $mArr = array_keys(self::getSameTypeMeasures($measureId));
+            foreach ($mArr as $id) {
                 if ($id == $measureId || empty($id)) {
                     continue;
                 }

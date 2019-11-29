@@ -1,7 +1,10 @@
 body{
     background-color:#fff;
     height: 100%;
+    width: 100%;
+    overflow-x: hidden;
 }
+
 html {
     height: 99.9%;
 }
@@ -13,16 +16,21 @@ html {
 #cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a {
     color: white;
 }
+.wide .narrowCenter, header {
+    text-align: center;
+    height: auto !important;
+    max-height: 300px;
+}
 
 .wide .fadein {
-    float: left;
-    height: auto !important;
-    max-height: none;
-
+  display: inline-block;
+    position: relative;
 }
-.wide .fadein  .headerImg{
-    height: auto !important;
-    max-height: none;
+
+.wide  .headerImg{
+    height: 300px;
+    width: auto;
+    float: none;
 
 }
 #cmsBottom {
@@ -54,16 +62,11 @@ html {
     background-color: #ddf;
     padding:5px;
 }
-
-header {
-    min-height: 150px;
-    position: relative;
-}
-
 .wide .app-name{
     top: 21%;
     left: 2%;
 }
+
 .wide #maincontent {
     min-height: auto;
 }
@@ -100,17 +103,27 @@ header {
 }
 
 .centerContent {
+    clear: both;
     position: relative;
     width: 1200px;
     margin: 0 auto;
     float: none;
 }
-
+.centerFixed {
+    position: absolute;
+    width: 1200px;
+    left: 20%;
+    top: 0;
+}
 #searchform {
     margin-bottom: 20px;
 }
 header {
     position: relative;
+}
+
+.wide .externalPage .formTable {
+    float: left;
 }
 
 .narrow .app-name {
@@ -142,12 +155,25 @@ header img {
     padding: 7px 7px 7px 2px;
 }
 @media handheld, only screen and (max-width: 1200px) {
+    .wide  .headerImg{
+        width: 100% !important;
+        height: auto !important;
+        position: relative;
+        display: block;
+    }
+    .wide .fadein {
+        display: block;
+    }
     .narrow .externalPage #maincontent {
         min-height: 410px;
     }
-    .centerContent, .narrow .narrowCenter {
+    .centerContent, .narrow .narrowCenter, .centerFixed {
         width: 100%;
         margin: 0;
+        display: block;
+    }
+    .centerFixed {
+        left: 0
     }
     .narrow .externalPage #maincontent {
         padding: 0px 3px 3px;

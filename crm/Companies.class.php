@@ -299,11 +299,20 @@ class crm_Companies extends core_Master
         $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv');
         $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv');
         
+        // Вземаме конфига
+        $visibleNKID = crm_Setup::get('VISIBLE_NKID');
+        
+        // Ако полето е обозначено за оказване
+        if($visibleNKID == 'yes'){
+            // Добавяме поле във формата
+            $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', "caption=НКИД,after=folderName, hint=Номер по НКИД");
+        }
+        
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=crmFiles, passage=Общи)', 'caption=Бележки,height=150px,class=contactData,export=Csv');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого,export=Csv');
         $this->FLD('folderName', 'varchar', 'caption=Име на папка');
-        
+
         // В кои групи е?
         $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'persons\\\'AND #state !\\= \\\'rejected\\\',classLink=group-link)', 'caption=Групи->Групи,remember,silent,export=Csv');
         
@@ -334,6 +343,9 @@ class crm_Companies extends core_Master
         
         // Задаваме стойността по подразбиране
         $data->listFilter->setDefault('users', $default);
+        
+        // Задаваме стойността по подразбиране
+        $data->listFilter->setDefault('nkid', '');
         
         $options = array();
         
@@ -483,7 +495,7 @@ class crm_Companies extends core_Master
             // Да има само 2 колони
             $data->form->setField($mvc->expandInputFieldName, array('maxColumns' => 2));
         }
-        
+
         $mvc->autoChangeFields($form);
     }
     
@@ -698,7 +710,7 @@ class crm_Companies extends core_Master
     {
         $rec = $form->rec;
         
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted()) { 
             
             // Проверяваме да няма дублиране на записи
             $resStr = static::getSimilarWarningStr($form->rec, $fields);
@@ -1290,7 +1302,7 @@ class crm_Companies extends core_Master
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_Shutdown($mvc)
+    public static function on_AfterSessionClose($mvc)
     {
         if ($mvc->updateGroupsCnt) {
             crm_Groups::updateGroupsCnt($mvc->className, 'companiesCnt');
@@ -1627,7 +1639,7 @@ class crm_Companies extends core_Master
             
             // Добавяме свойствата от групите, ако има такива
             $groupFeatures = crm_Groups::getFeaturesArray($rec->groupList);
-            if (count($groupFeatures)) {
+            if (countR($groupFeatures)) {
                 $result->features += $groupFeatures;
             }
             
@@ -2408,6 +2420,14 @@ class crm_Companies extends core_Master
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
+       
+        // Ако полето е обозначено за оказване
+        if(isset($rec->nkid)){
+            
+            // Добавяме в ключовите думи
+            $res .= ' ' . plg_Search::normalizeText(bglocal_NKID::getTitleById($rec->nkid));
+        }
+
     }
     
     

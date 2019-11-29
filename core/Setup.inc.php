@@ -50,7 +50,7 @@ if (setupKeyValid() && !setupProcess()) {
     // halt("Процес на обновяване - опитайте по късно.");
 } 
 
-header("Content-Encoding: none");
+// header("Content-Encoding: none"); чупи behat/mink тестовете
 header('X-Accel-Buffering: no');
 
 // На коя стъпка се намираме в момента?
@@ -519,11 +519,10 @@ if (function_exists('opcache_reset')) {
 
 // Стъпка 1: Лиценз
 if ($step == 1) {
+    $licenseText =  markdown_Render::Convert(file_get_contents(__DIR__ . '/../LICENSE.md'));
     $texts['body'] = "<ul class='msg stats'><li>" .
         "\n<a href='{$nextUrl}'>&#9746; Ако приемате лиценза по-долу, може да продължите »</a></li></ul><br>";
-    $texts['body'] .= "\n<div id='license'>" .
-        file_get_contents(__DIR__ . '/../license/gpl3.html') .
-        '</div>';
+    $texts['body'] .= "\n<div id='license'>" . $licenseText . '</div>';
     $texts['body'] .= "\n<br><ul class='msg stats'><li>" .
         "\n<a href='${nextUrl}'>&#9746; Ако приемате лиценза по-горе, може да продължите »</a></li></ul>";
 }

@@ -30,7 +30,7 @@ class docoffice_Pdf
     public static function convertPdfToTxt($fileHnd, $params = array())
     {
         // Инстанция на класа
-        $Script = cls::get(fconv_Script);
+        $Script = cls::get('fconv_Script');
         
         // Пътя до файла, в който ще се записва получения текст
         $outFilePath = $Script->tempDir . $Script->id . '.txt';
@@ -88,7 +88,7 @@ class docoffice_Pdf
     public static function convertPdfToJpg($fileHnd, $params = array())
     {
         // Инстанция на класа
-        $Script = cls::get(fconv_Script);
+        $Script = cls::get('fconv_Script');
         
         // Вземаме името на файла без разширението
         $name = fileman_Files::getFileNameWithoutExt($fileHnd);

@@ -18,11 +18,17 @@ class peripheral_TerminalChoicePlg extends core_Plugin
 {
     function on_PrepareLoginForm($mvc, &$form)
     {
-        if ($_GET['ret_url']) return ;
+        if ($_GET['ret_url']) {
+            
+            return ;
+        }
         
-        $dArr = peripheral_Devices::getDevices('peripheral_TerminalIntf', array('brid' => log_Browsers::getBrid(), 'ip' => core_Users::getRealIpAddr()));
+        $dArr = peripheral_Devices::getDevices('peripheral_TerminalIntf');
         
-        if (empty($dArr)) return ;
+        if (empty($dArr)) {
+            
+            return ;
+        }
         
         $form->FNC('terminal', 'key(mvc=peripheral_Devices, select=name, allowEmpty)', 'caption=Терминал, input');
         

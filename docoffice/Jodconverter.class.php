@@ -46,7 +46,7 @@ class docoffice_Jodconverter extends core_Manager
         $jodPath = getFullPath('docoffice/jodconverter/' . $conf->OFFICE_JODCONVERTER_VERSION . '/lib/jodconverter-core.jar');
         
         // Инстанция на класа
-        $Script = cls::get(fconv_Script);
+        $Script = cls::get('fconv_Script');
         
         // Пътя до изходния файл
         $outFilePath = $Script->tempDir . fileman_Files::getFileNameWithoutExt($fileHnd) . '.' . $toExt;

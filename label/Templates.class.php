@@ -95,7 +95,7 @@ class label_Templates extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy, lastUsedOn=Последно, state';
+    public $listFields = 'id, title, sizes, template=Шаблон, lang=Език, classId, peripheralDriverClassId, createdOn, createdBy, lastUsedOn=Последно, state';
     
     
     /**
@@ -151,7 +151,8 @@ class label_Templates extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
         $this->FLD('sizes', 'varchar(128)', 'caption=Размери, mandatory, width=100%');
-        $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Източник');
+        $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Източник->Клас');
+        $this->FLD('peripheralDriverClassId', 'class(interface=peripheral_PrinterIntf, select=title, allowEmpty)', 'caption=Източник->Периферия');
         $this->FLD('template', 'html(tinyEditor=no)', 'caption=Шаблон->HTML');
         $this->FLD('css', 'text', 'caption=Шаблон->CSS');
         $this->FLD('sysId', 'varchar', 'input=none');
@@ -572,16 +573,17 @@ class label_Templates extends core_Master
     /**
      * Добавя шаблон от файл. Обновява съществуващ файл само ако има промяна в някой от параметрите му
      *
-     * @param string      $title    - име на шаблона
-     * @param string      $filePath - път към файла на шаблона
-     * @param string      $sysId    - систем ид на шаблона
-     * @param array       $sizes    - размери на шаблона, масив с 2 елемента: широчина и височина
-     * @param string|NULL $lang     - език на шаблона
-     * @param mixed       $class    - клас към който да е шаблона
+     * @param string      $title             - име на шаблона
+     * @param string      $filePath          - път към файла на шаблона
+     * @param string      $sysId             - систем ид на шаблона
+     * @param array       $sizes             - размери на шаблона, масив с 2 елемента: широчина и височина
+     * @param string|NULL $lang              - език на шаблона
+     * @param mixed       $class             - клас към който да е шаблона
+     * @param mixed       $peripheralClassId - драйвър на периферията
      *
      * @return stdClass|FALSE - записа на шаблона или FALSE ако не е променян
      */
-    public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = null)
+    public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = null, $peripheralClassId = null)
     {
         // Проверки на данните
         expect(in_array($lang, array('bg', 'en')), $lang);
@@ -627,6 +629,10 @@ class label_Templates extends core_Master
             $exRec->classId = $classId;
         }
         
+        if (isset($peripheralClassId)) {
+            $exRec->peripheralDriverClassId = cls::get($peripheralClassId)->getClassId();
+        }
+        
         // Създаване/обновяване на шаблона
         static::save($exRec);
         
@@ -651,7 +657,7 @@ class label_Templates extends core_Master
         
         core_Users::forceSystemUser();
         foreach ($array as $sysId => $cArr) {
-            $tRec = self::addFromFile($cArr['title'], $cArr['path'], $sysId, $cArr['sizes'], $cArr['lang'], $cArr['class']);
+            $tRec = self::addFromFile($cArr['title'], $cArr['path'], $sysId, $cArr['sizes'], $cArr['lang'], $cArr['class'], $cArr['peripheralDriverClass']);
             
             if ($tRec !== false) {
                 label_TemplateFormats::delete("#templateId = {$tRec->id}");
@@ -706,11 +712,14 @@ class label_Templates extends core_Master
      * @param mixed $class
      * @return array $res
      */
-    public static function getTemplatesByClass($class)
+    public static function getTemplatesByClass($class, $ignoreWithPeripheralDriver = true)
     {
         $Class = cls::get($class);
         $tQuery = label_Templates::getQuery();
         $tQuery->where("#classId = '{$Class->getClassId()}' AND #state != 'rejected' AND #state != 'closed'");
+        if($ignoreWithPeripheralDriver){
+            $tQuery->where("#peripheralDriverClassId IS NULL");
+        }
         
         $res = array();
         while ($tRec = $tQuery->fetch()) {

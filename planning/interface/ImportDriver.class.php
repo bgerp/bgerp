@@ -53,7 +53,7 @@ abstract class planning_interface_ImportDriver extends import2_AbstractDriver
             $fields = array();
             $exRec = null;
             if (!$mvc->isUnique($rec, $fields, $exRec)) {
-                core_Statuses::newStatus('Записа, не е импортиран защото има дублаж');
+                core_Statuses::newStatus('Записът не е импортиран, защото има дублиране');
                 continue;
             }
             

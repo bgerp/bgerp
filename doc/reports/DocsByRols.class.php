@@ -38,7 +38,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
         $fieldset->FLD('roleId', 'key(mvc=core_Roles,select=role,allowEmpty)', 'caption=Роля,after=title,mandatory');
         $fieldset->FLD('from', 'date', 'caption=Период->От,mandatory,after=documents');
         $fieldset->FLD('to', 'date', 'caption=Период->До,mandatory');
-        $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=name)', 'caption=Документи,after=roleId');
+        $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=title)', 'caption=Документи,after=roleId');
         $fieldset->FLD('order', 'enum(cnt=брой документи,letter=азбучен ред)', 'caption=Подреди по,after=documents,mandatory,column=none');
     }
     
@@ -79,10 +79,20 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
         
         $recs = array();
         
-        if (core_Users::getByRole($rec->roleId)) {
-            $query->in('createdBy', core_Users::getByRole($rec->roleId));
+        $uArr = core_Users::getByRole($rec->roleId);
+        
+        if ($uArr) {
+            $query->in('createdBy', $uArr);
             
             $documentsForCheck = $query->fetchAll();
+            
+            $timeLimit = (int)(count($documentsForCheck) / 100);
+            $timeLimit = max($timeLimit, 240);
+            core_App::setTimeLimit($timeLimit);
+            
+            $query->show('createdBy, docClass, docId');
+            
+            $dDoc = array();
             
             foreach ($documentsForCheck as $doc) {
                 $recs[$doc->createdBy]['user'] = $doc->createdBy;
@@ -92,8 +102,12 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
                 $recs[$doc->createdBy]['cnt']++;
                 
                 $dDoc[$doc->createdBy][$doc->docClass][$doc->docId] = $doc->docId;
-                
-                foreach ($dDoc[$doc->createdBy] as $clsId => $objArr) {
+            }
+            
+            arr::sortObjects($recs, 'cnt', 'desc');
+
+            foreach ($dDoc as $createdBy => $dObjArr) {
+                foreach ($dObjArr as $clsId => $objArr) {
                     if (cls::load($clsId, true)) {
                         $clsInst = cls::get($clsId);
                     }
@@ -122,7 +136,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
                                     continue;
                                 }
                                 
-                                $recs[$doc->createdBy]['details'][$clsId] = $cnt;
+                                $recs[$createdBy]['details'][$clsId] = $cnt;
                             }
                         }
                     }

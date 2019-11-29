@@ -431,20 +431,24 @@ class batch_BatchesInDocuments extends core_Manager
         }
         
         // Добавяне на поле за нова партида
+        $btnoff = ($Detail->cantCreateNewBatch === true) ? 'btnOff' : '';
         $caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
         $columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
         $captions = ($Def instanceof batch_definitions_Serial) ? 'Номер' : 'Номер|Количество';
         $noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
+        $hideTable = (($Def instanceof batch_definitions_Serial) && !empty($btnoff)) || (!empty($btnoff) && !countR($suggestions) && !($Def instanceof batch_definitions_Serial));
         
-        $form->FLD('newArray', "table(columns={$columns},batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
-        
-        $form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
-        $form->setFieldTypeParams('newArray', array('batchDefinition' => $Def));
-        $form->setDefault('newArray', $tableRec);
+        if($hideTable === false){
+            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
+            $form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
+            $form->setFieldTypeParams('newArray', array('batchDefinition' => $Def));
+            $form->setDefault('newArray', $tableRec);
+        } else {
+            $form->info->append("<br>" . tr('В документа, може да се използват само, вече създадени партиди'));
+        }
         
         // Какви са наличните партиди
         $Def = batch_Defs::getBatchDef($recInfo->productId);
-        $batchCount = count($batches);
         
         $form->input();
         $saveBatches = array();
@@ -453,11 +457,10 @@ class batch_BatchesInDocuments extends core_Manager
         if ($form->isSubmitted()) {
             $r = $form->rec;
             
-            $update = $delete = $fields = $error = $error2 = $errorFields = array();
+            $delete = array();
             $total = 0;
             
             if (!empty($r->newArray)) {
-                $newBatchArray = array();
                 $newBatches = (array) @json_decode($r->newArray);
                 $bCount = count($newBatches['batch']);
                 
@@ -482,6 +485,7 @@ class batch_BatchesInDocuments extends core_Manager
                         $saveBatches[$batch] = $quantity * $recInfo->quantityInPack;
                         
                         // Проверка на к-то
+                        $warning = null;
                         if (!deals_Helper::checkQuantity($recInfo->packagingId, $quantity, $warning)) {
                             $form->setError('newArray', $warning);
                         }
@@ -503,7 +507,6 @@ class batch_BatchesInDocuments extends core_Manager
                     $saveBatches[$b] = 1 / $recInfo->quantityInPack;
                     ++$total;
                 }
-                $fields[] = 'serials';
                 
                 if (is_array($foundBatches)) {
                     foreach ($foundBatches as $fb => $q) {
@@ -548,7 +551,11 @@ class batch_BatchesInDocuments extends core_Manager
                 $dRec = cls::get($detailClassId)->fetch($detailRecId);
                 
                 if ($form->cmd == 'updateQuantity' && !empty($total)) {
-                    $dRec->quantity = $total * $recInfo->quantityInPack;
+                    if($Detail instanceof store_InternalDocumentDetail){
+                        $dRec->packQuantity = $total / $recInfo->quantityInPack;
+                    } else {
+                        $dRec->quantity = $total * $recInfo->quantityInPack;
+                    }
                 }
                 
                 cls::get($detailClassId)->save($dRec);
@@ -602,7 +609,7 @@ class batch_BatchesInDocuments extends core_Manager
                         $tableData['quantity'][$key] = 1;
                     }
                 }
-                
+                $msg = null;
                 if (!$Def->isValid($batch, $tableData['quantity'][$key], $msg)) {
                     $error[] = "<b>{$batch}</b>:|* {$msg}";
                     $errorFields['batch'][$key] = "<b>{$batch}</b>:|* {$msg}";
@@ -735,6 +742,7 @@ class batch_BatchesInDocuments extends core_Manager
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
+        $data->query->orderBy('id', 'DESC');
         
         if ($fRec = $data->listFilter->rec) {
             if (isset($fRec->document)) {

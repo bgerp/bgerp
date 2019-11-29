@@ -40,7 +40,7 @@ class cash_ExchangeDocument extends core_Master
      */
     public $loadList = 'plg_RowTools2, cash_Wrapper, acc_plg_Contable,
      	plg_Sorting,plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,
-     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_SharablePlg';
+     	plg_Search, bgerp_plg_Blank, doc_SharablePlg';
     
     
     /**
@@ -83,12 +83,6 @@ class cash_ExchangeDocument extends core_Master
      * Абревиатура
      */
     public $abbr = 'Ced';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'cash, ceo';
     
     
     /**
@@ -139,6 +133,14 @@ class cash_ExchangeDocument extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, valior,modifiedOn';
+    
+    
+    /**
+     * Дефолтен брой копия при печат
+     *
+     * @var int
+     */
+    public $defaultCopiesOnPrint = 2;
     
     
     /**

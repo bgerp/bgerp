@@ -125,12 +125,20 @@ class type_UserOrRole extends type_User
      */
     public function toVerbal_($value)
     {
+        $sel = $this->params['select'];
+        $mvc = $this->params['mvc'];
+        
         if ($value < 0) {
-            $this->params['mvc'] = &cls::get('core_Roles');
+            $this->params['mvc'] = cls::get('core_Roles');
             $this->params['select'] = 'role';
         }
         
-        return parent::toVerbal_($value);
+        $res = parent::toVerbal_($value);
+        
+        $this->params['mvc'] = $mvc;
+        $this->params['select'] = $sel;
+        
+        return $res;
     }
     
     
@@ -220,6 +228,11 @@ class type_UserOrRole extends type_User
             $allSysTeams = 1 - pow(2, 31);
         }
         
+        if ($allSysTeams >= 0) {
+            wp($allSysTeams);
+            $allSysTeams = -2147483647;
+        }
+        
         return $allSysTeams;
     }
     
@@ -233,6 +246,8 @@ class type_UserOrRole extends type_User
      */
     public static function getSysRoleId($roleId)
     {
+        $roleId = (int) $roleId;
+
         $allSysTeam = self::getAllSysTeamId();
         
         $nRoleId = $allSysTeam + $roleId;
@@ -249,7 +264,9 @@ class type_UserOrRole extends type_User
      * @return int|NULL
      */
     public static function getRoleIdFromSys($sysRoleId)
-    {
+    {   
+        $sysRoleId = (int) $sysRoleId;
+
         if ($sysRoleId >= 0) {
             
             return;

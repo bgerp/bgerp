@@ -307,7 +307,7 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder,doc_reports_DocsByRols, doc_ExpandComments';
+    public $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder,doc_reports_DocsByRols, doc_ExpandComments, doc_drivers_FolderPortal';
     
     
     /**
@@ -460,6 +460,68 @@ class doc_Setup extends core_ProtoSetup
             $valArr['showDocumentsAsButtons'] = $rec->showDocumentsAsButtons;
             
             core_Settings::setValues($fKey, $valArr, $allSysTeamId, true);
+        }
+    }
+    
+    
+    /**
+     * Зареждане на данни
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        
+        // За да може да мине миграцията при нова инсталация
+        $dbUpdate = Mode::get('dbInit');
+        Mode::set('dbInit', 'update');
+        
+        $res .= cls::get('bgerp_Setup')->loadSetupData();
+        
+        $res .= $this->callMigrate('addBlockToPortal46193', 'doc');
+        
+        Mode::set('dbInit', $dbUpdate);
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Добавя блок в портала за всеки powerUser с пощенската му кутия
+     */
+    public function addBlockToPortal46193()
+    {
+        $Portal = cls::get('bgerp_Portal');
+        
+        $uArr = core_Users::getByRole('powerUser');
+        
+        foreach ($uArr as $uId) {
+            $uEmail = email_Inboxes::getUserEmail($uId);
+            if (!$uEmail) {
+                continue;
+            }
+            
+            $iRec = email_Inboxes::fetch(array("#email = '[#1#]'", $uEmail));
+            
+            if (!$iRec) {
+                continue;
+            }
+            
+            $fId = email_Inboxes::forceCoverAndFolder($iRec);
+            
+            if (!$fId) continue;
+            
+            $rec = new stdClass();
+            $rec->{$Portal->driverClassField} = doc_drivers_FolderPortal::getClassId();
+            $rec->column = 'center';
+            $rec->order = 200;
+            $rec->perPage = 5;
+            $rec->userOrRole = $uId;
+            $rec->folderId = $fId;
+            $rec->fOrder = 'open';
+            $rec->color = 'lightgray';
+            $rec->show = 'yes';
+            
+            $Portal->save($rec);
         }
     }
 }

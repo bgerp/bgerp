@@ -698,14 +698,8 @@ class hr_WorkingCycles extends core_Master
             
             if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recLeave->leaveFrom) {
                 $persons[$id] = (object) array('stateInfo' => 'leaveDay',
-                                               'stateDateFrom' => $recLeave->leaveFrom);
-                //ако сме си пуснали отпуск в петък
-                if(date('w', $recLeave->leaveTo) == 4){
-                    $persons[$id]->stateDateTo = $recLeave->leaveTo;
-                 
-                } else {
-                    $persons[$id]->stateDateTo = dt::addDays(-1, cal_Calendar::nextWorkingDay($recLeave->leaveTo, crm_Profiles::getUserByPerson($id)));
-                }
+                                               'stateDateFrom' => $recLeave->leaveFrom,
+                                                'stateDateTo' =>dt::addDays(-1, cal_Calendar::nextWorkingDay($recLeave->leaveTo, crm_Profiles::getUserByPerson($id))));
             }
         }
         

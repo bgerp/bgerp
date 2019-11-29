@@ -48,6 +48,104 @@ class batch_plg_DocumentMovement extends core_Plugin
     
     
     /**
+     * Изпълнява се преди контиране на документа
+     */
+    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        $actions = type_Set::toArray($rec->contoActions);
+        
+        // Ако няма избран склад, няма какво да се прави
+        if(empty($rec->{$mvc->storeFieldName}) || ($mvc instanceof sales_Sales && !isset($actions['ship']))) {
+            
+            return;
+        }
+        
+        static $cache = array();
+        
+        // Гледат се детайлите на документа
+        $productsWithoutBatchesArr = array();
+        $productsWithNotExistingBatchesArr = array();
+        $detailMvcs = ($mvc instanceof store_ConsignmentProtocols) ? array('store_ConsignmentProtocolDetailsReceived', 'store_ConsignmentProtocolDetailsSend') : (isset($mvc->mainDetail) ? array($mvc->mainDetail) : array());
+        
+        foreach ($detailMvcs as $det){
+            
+            // Има ли в тях артикули, от тези, на които задължително трябва да е посочена партида
+            $Detail = cls::get($det);
+            $dQuery = $Detail->getQuery();
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+            $dRecs = $dQuery->fetchAll();
+            
+            // хак за мастъра на протокола за производство
+            if($mvc instanceof planning_DirectProductionNote){
+                $dRecs[0] = (object)array("{$Detail->productFld}" => $rec->productId, "{$Detail->quantityFld}" => $rec->quantity, 'id' => $rec->id, 'detMvcId' => $mvc->getClassId());
+            }
+            
+            foreach ($dRecs as $dRec){
+                $dRec->detMvcId = (empty($dRec->detMvcId)) ? $Detail->getClassId() : $dRec->detMvcId;
+                $defRec = batch_Defs::fetch("#productId = {$dRec->{$Detail->productFld}}");
+                if(empty($defRec)) continue;
+                
+                if($Detail instanceof store_InternalDocumentDetail){
+                    $dRec->quantity = $dRec->quantityInPack * $dRec->packQuantity;
+                }
+                
+                $checkIfBatchExists = ($defRec->onlyExistingBatches == 'auto') ? batch_Templates::fetchField($defRec->templateId, 'onlyExistingBatches') : $defRec->onlyExistingBatches;
+                $checkIfBatchIsMandatory = ($defRec->alwaysRequire == 'auto') ? batch_Templates::fetchField($defRec->templateId, 'alwaysRequire') : $defRec->alwaysRequire;
+                
+                $Def = batch_Defs::getBatchDef($dRec->{$Detail->productFld});
+                $bdQuery = batch_BatchesInDocuments::getQuery();
+                $bdQuery->where("#detailClassId = {$dRec->detMvcId} AND #detailRecId = {$dRec->id}");
+                
+                $sum = 0;
+                while($bdRec = $bdQuery->fetch()){
+                    $sum += $bdRec->quantity;
+                    $batchesArr = array_keys($Def->makeArray($bdRec->batch));
+                    
+                    // Проверка дали посочената партида на изходящите документи е налична
+                    if($checkIfBatchExists == 'yes' && $bdRec->operation == 'out'){
+                        if(!array_key_exists("{$bdRec->productId}|{$bdRec->storeId}", $cache)){
+                            $cache["{$bdRec->productId}|{$bdRec->storeId}"] = batch_Items::getBatchQuantitiesInStore($bdRec->productId, $bdRec->storeId);
+                        }
+                        $quantitiesInStore = $cache["{$bdRec->productId}|{$bdRec->storeId}"];
+                        
+                        $quantity = ($Def instanceof batch_definitions_Serial) ? 1 : $bdRec->quantity;
+                        foreach ($batchesArr as $batchValue){
+                            $inStore = isset($quantitiesInStore[$batchValue]) ? $quantitiesInStore[$batchValue] : 0;
+                            if($quantity > $inStore){
+                                $productsWithNotExistingBatchesArr[$dRec->{$Detail->productFld}] = "<b>" . cat_Products::getTitleById($dRec->{$Detail->productFld}, false) . "</b>";
+                            }
+                        }
+                    }
+                }
+               
+                // Ако някои от тях нямат посочена партида, документа няма да се контира
+                if($checkIfBatchIsMandatory == 'yes' && $sum < $dRec->{$Detail->quantityFld}){
+                    $productsWithoutBatchesArr[$dRec->{$Detail->productFld}] = "<b>" . cat_Products::getTitleById($dRec->{$Detail->productFld}, false) . "</b>";
+                }
+            }
+        }
+        
+        // Ако има артикули, с задължителни партидности, които не са посочени няма да може да се контира
+        if(count($productsWithoutBatchesArr) || count($productsWithNotExistingBatchesArr)){
+            if(count($productsWithoutBatchesArr)){
+                $productMsg = implode(', ', $productsWithoutBatchesArr);
+                core_Statuses::newStatus("Следните артикули, не могат да са без партида|*: {$productMsg}", 'error');
+            }
+            
+            if(count($productsWithNotExistingBatchesArr)){
+                $productMsg = implode(', ', $productsWithNotExistingBatchesArr);
+                core_Statuses::newStatus("Следните артикули, са с неналични партиди|*: {$productMsg}", 'error');
+            }
+            
+            $res = false;
+            
+            return false;
+        }
+    }
+    
+    
+    /**
      * Извиква се след успешен запис в модела
      *
      * @param core_Mvc $mvc

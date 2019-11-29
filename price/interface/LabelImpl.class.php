@@ -143,4 +143,32 @@ class price_interface_LabelImpl
         return $rec->title;
     }
     
+    
+    /**
+     * Връща дефолтен шаблон за печат на бърз етикет
+     *
+     * @param int  $id
+     * @param stdClass|null  $driverRec
+     *
+     * @return int
+     */
+    public function getDefaultFastLabel($id, $driverRec = null)
+    {
+        return null;
+    }
+    
+    
+    /**
+     * Връща попълнен дефолтен шаблон с дефолтни данни.
+     * Трябва `getDefaultFastLabel` да върне резултат за да се покажат данните
+     *
+     * @param int  $id
+     * @param int $templateId
+     *
+     * @return core_ET|null
+     */
+    public function getDefaultLabelWithData($id, $templateId)
+    {
+        return null;
+    }
 }

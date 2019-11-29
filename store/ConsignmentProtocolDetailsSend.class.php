@@ -36,28 +36,44 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     
     
     /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canImport = 'ceo, store, distributor';
+    
+    
+    /**
+     * Кой може да създава артикул директно към документа?
+     *
+     * @var string|array
+     */
+    public $canCreateproduct = 'ceo, store';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
-                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy, plg_PrevAndNext,store_plg_TransportDataDetail';
+                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy,cat_plg_CreateProductFromDocument,deals_plg_ImportDealDetailProduct, plg_PrevAndNext,store_plg_TransportDataDetail';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, store';
+    public $canEdit = 'ceo, store, distributor';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, store';
+    public $canAdd = 'ceo, store, distributor';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, store';
+    public $canDelete = 'ceo, store, distributor';
     
     
     /**
@@ -73,6 +89,12 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     
     
     /**
+     * Какви мета данни да изискват продуктите, които да се показват
+     */
+    public $metaProducts = 'canSell,canStore';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -80,19 +102,6 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
         $this->FLD('protocolId', 'key(mvc=store_ConsignmentProtocols)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setFields($this);
         $this->setDbUnique('protocolId,productId,packagingId');
-    }
-    
-    
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $data
-     */
-    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
-    {
-        $masterRec = $data->masterRec;
-        $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => 'canSell,canStore'));
     }
     
     

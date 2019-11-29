@@ -44,6 +44,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         if ($action == 'import') {
             $mvc->requireRightFor('import');
             expect($masterId = Request::get($mvc->masterKey, 'int'));
+            $masterRec = $mvc->Master->fetch($masterId);
             $mvc->requireRightFor('import', (object) array($mvc->masterKey => $masterId));
             
             $mvc->requireRightFor('import');
@@ -55,9 +56,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             // Подготвяме формата
             $form->FLD($mvc->masterKey, "key(mvc={$mvc->Master->className})", 'input=hidden,silent');
             $form->input(null, 'silent');
-            $form->title = 'Импортиране на артикули към|*' . ' <b>' . $mvc->Master->getRecTitle($form->rec->{$mvc->masterKey}) . '</b>';
+            $form->title = 'Импортиране на артикули към|*' . ' <b>' . $mvc->Master->getFormTitleLink($masterRec) . '</b>';
             $form->FLD('folderId', 'int', 'input=hidden');
-            $form->setDefault('folderId', $mvc->Master->fetchField($form->rec->{$mvc->masterKey}, 'folderId'));
+            $form->setDefault('folderId', $masterRec->folderId);
             
             self::prepareForm($form);
             
@@ -174,14 +175,18 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             }
             
             $state = cat_Products::fetchField($pRec->productId, 'state');
-            if($state != 'active'){
+            if ($state != 'active') {
                 $err[$i][] = $obj->code . ' |Артикулът е неактивен|*';
                 continue;
             }
             
-            $meta = cat_Products::fetchField($pRec->productId, $mvc->metaProducts);
-            if($meta != 'yes'){
-                $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
+            $meta = (array) cat_Products::fetch($pRec->productId, $mvc->metaProducts);
+            unset($meta['id']);
+            
+            foreach ($meta as $metaValue) {
+                if ($metaValue != 'yes') {
+                    $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
+                }
             }
             
             $packs = cat_Products::getPacks($pRec->productId);
@@ -203,7 +208,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                     $obj->pack = $packId;
                 }
             } else {
-                $obj->pack = key($packs);
+                $obj->pack = ($pRec->packagingId) ? $pRec->packagingId : key($packs);
             }
             
             if ($obj->price) {
@@ -226,7 +231,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             }
             
             if (!$obj->quantity) {
-                $err[$i][] = $obj->code . ' |Липсващо количество|*';
+                // $err[$i][] = $obj->code . ' |Липсващо количество|*';
+                $obj->quantity = 1;
             }
             
             if ($pRec && isset($obj->pack)) {

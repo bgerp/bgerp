@@ -13,6 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deprecated
  */
 class bank_reports_AccountImpl extends acc_reports_PeriodHistoryImpl
 {
@@ -25,7 +26,7 @@ class bank_reports_AccountImpl extends acc_reports_PeriodHistoryImpl
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'ceo, acc';
+    public $canSelectSource = 'no_one';
     
     
     /**

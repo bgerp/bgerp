@@ -556,7 +556,7 @@ class acc_Items extends core_Manager
             $register = cls::get($register);
         }
         
-        core_Lg::push(EF_DEFAULT_LANGUAGE);
+        core_Lg::push(core_Setup::get('EF_DEFAULT_LANGUAGE', true));
         if (!$regRec = $register->getItemRec($objectId)) {
             
             return false;

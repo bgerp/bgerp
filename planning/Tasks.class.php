@@ -360,11 +360,9 @@ class planning_Tasks extends core_Master
             $row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($rec->expectedTimeEnd);
         }
         
-        if (isset($rec->originId)) {
-            $origin = doc_Containers::getDocument($rec->originId);
-            $row->originId = $origin->getLink();
-            $row->originShortLink = $origin->getShortHyperlink();
-        }
+        $origin = doc_Containers::getDocument($rec->originId);
+        $row->originId = $origin->getLink();
+        $row->originShortLink = $origin->getShortHyperlink();
         
         if (isset($rec->inputInTask)) {
             $row->inputInTask = planning_Tasks::getLink($rec->inputInTask);
@@ -427,6 +425,12 @@ class planning_Tasks extends core_Master
             $row->toggleBtn = "<a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
             $row->productDescription = cat_Products::getAutoProductDesc($rec->productId, null, 'detailed', 'job');
             $row->tId = $rec->id;
+            
+            if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
+                if($BatchDef instanceof batch_definitions_Job){
+                    $row->batch = $BatchDef->getDefaultBatchName($origin->that);
+                }
+            }
         }
         
         if (!empty($rec->employees)) {

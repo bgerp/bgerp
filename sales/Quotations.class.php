@@ -1224,13 +1224,12 @@ class sales_Quotations extends core_Master
                     
                     $dRec = sales_QuotationsDetails::fetch($dRecId);
                     
-                    // Добавяме детайла към офертата
-                    $addedRecId = sales_Sales::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
-                    
                     // Копира се и транспорта, ако има
-                    $tRec = sales_TransportValues::get($this, $id, $addedRecId);
+                    $addedRecId = sales_Sales::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
+                    $tRec = sales_TransportValues::get($this, $id, $dRecId);
+                    
                     if (isset($tRec->fee)) {
-                        sales_TransportValues::sync('sales_Sales', $sId, $addedRecId, $tRec->fee, $tRec->deliveryTime);
+                        sales_TransportValues::sync('sales_Sales', $sId, $addedRecId, $tRec->fee, $tRec->deliveryTime, $tRec->explain);
                     }
                 }
                 
@@ -1278,12 +1277,7 @@ class sales_Quotations extends core_Master
                     $mandatory = 'mandatory';
                 }
             }
-            
-            $form->FNC($index, 'double(decimals=2)', "input,caption={$product->title},{$mandatory}");
-            //if ($product->optional == 'yes') {
-                //$form->FLD("{$index}-new", 'double(decimals=2)', "input,caption=-,inlineTo={$index},placeholder=Ново к-во,{$mandatory}");
-            //}
-            
+            $form->FNC($index, 'double(decimals=2)', "input,caption={$product->title},hint={$product->hint},{$mandatory}");
             if (count($product->options) == 1) {
                 $default = key($product->options);
             }
@@ -1315,7 +1309,7 @@ class sales_Quotations extends core_Master
         $products = array();
         $query = $Detail->getQuery();
         $query->where("#quotationId = {$id}");
-        $query->orderBy('optional', 'ASC');
+        $query->orderBy('optional=ASC,id=ASC');
         $dRecs = $query->fetchAll();
         
         deals_Helper::fillRecs($Detail, $dRecs, $rec);
@@ -1330,10 +1324,12 @@ class sales_Quotations extends core_Master
                     $title .= ' / ' . cat_UoM::getShortName($dRec->packagingId);
                 }
                 
+                $hint = null;
                 if (!empty($dRec->notes)) {
-                    $title .= ' / ' . strip_tags(core_Type::getByName('richtext')->toVerbal($dRec->notes));
+                    $title .= ' / ' . str::limitLen(strip_tags(core_Type::getByName('richtext')->toVerbal($dRec->notes)), 10);
+                    $hint = $dRec->notes;
                 }
-                $products[$index] = (object) array('title' => $title, 'options' => array(), 'optional' => $dRec->optional, 'suggestions' => false);
+                $products[$index] = (object) array('title' => $title, 'options' => array(), 'optional' => $dRec->optional, 'suggestions' => false, 'hint' => $hint);
             }
             
             if ($dRec->optional == 'yes') {

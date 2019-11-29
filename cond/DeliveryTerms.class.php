@@ -345,18 +345,9 @@ class cond_DeliveryTerms extends core_Master
     {
         $rec = self::fetchRec($id);
         
-        $addedFromCalculator = false;
         $Calculator = self::getTransportCalculator($rec);
         if($Calculator){
-            $addedFromCalculator = $Calculator->addToCartView($rec, $cartRec, $cartRow, $tpl);
-        }
-        
-        if($addedFromCalculator !== true){
-            $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>|Печелите безплатна доставка, защото поръчката ви надвишава|* <b>[#freeDelivery#]</b> [#freeDeliveryCurrencyId#].</div><!--ET_END freeDelivery-->"));
-            $block->append($cartRow->freeDelivery, 'freeDelivery');
-            $block->append($cartRow->freeDeliveryCurrencyId, 'freeDeliveryCurrencyId');
-            
-            $tpl->append($block, 'CART_FOOTER');
+            $Calculator->addToCartView($rec, $cartRec, $cartRow, $tpl);
         }
     }
 }

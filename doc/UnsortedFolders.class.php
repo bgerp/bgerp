@@ -17,6 +17,12 @@
 class doc_UnsortedFolders extends core_Master
 {
     /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    public $interfaces = 'doc_ContragentDataIntf';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,plg_Clone,doc_FolderPlg,plg_RowTools2,plg_Search, plg_Modified, plg_Sorting';
@@ -312,8 +318,7 @@ class doc_UnsortedFolders extends core_Master
         $row = parent::recToVerbal_($rec, $fields);
         $row->folder = 'Папка';
         if(isset($rec->contragentFolderId)){
-            $Cover = doc_Folders::getCover($rec->contragentFolderId);
-            $row->contragentFolderId = $Cover->getHyperlink(true);
+            $row->contragentFolderId = doc_Folders::recToVerbal($rec->contragentFolderId)->title;
         }
         
         return $row;
@@ -904,5 +909,91 @@ class doc_UnsortedFolders extends core_Master
         $tpl->append($dTpl, 'PROJECT_TABLE');
         
         return $tpl;
+    }
+    /**
+     * Връща данните на получателя
+     * return object
+     *
+     * $obj->company    - Името на компанията
+     * $obj->companyId  - Id' то на компанията - key(mvc=crm_Companies)
+     * $obj->country    - Името на държавата
+     * $obj->countryId  - Id' то на
+     * $obj->vatNo      - ДДС номер на компанията
+     * $obj->uicId      - Национален номер на компанията
+     * $obj->pCode      - код
+     * $obj->place      -
+     * $obj->email      - Имейл
+     * $obj->tel        - Телефон
+     * $obj->fax        - Факс
+     * $obj->address    - Адрес
+     *
+     * $obj->name       - Име на физическо лице
+     * $obj->personId   - ИД на лице - key(mvc=crm_Persons)
+     * $obj->pTel       - Персонален телефон
+     * $obj->pMobile    - Мобилен
+     * $obj->pFax       - Персонален
+     * $obj->pAddress   - Персонален адрес
+     * $obj->pEmail     - Персонален имейл
+     * 
+     * @see doc_ContragentDataIntf
+     */
+    public static function getContragentData($id)
+    {
+        $contragentData = null;
+        
+        if ($id) {
+            $rec = self::fetchRec($id);
+            
+            if ($rec->contragentFolderId) {
+                $contragentData = doc_Folders::getContragentData($rec->contragentFolderId);
+            }
+        }
+        
+        return $contragentData;
+    }
+    
+    
+    /**
+     * Връща пълния конкатениран адрес на контрагента
+     *
+     * @param int       $id            - ид на контрагент
+     * @param bool      $translitarate - дали да се транслитерира адреса
+     * @param bool|NULL $showCountry   - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
+     *
+     * @return core_ET $tpl - адреса
+     * 
+     * @see doc_ContragentDataIntf
+     */
+    public function getFullAdress($id, $translitarate = false, $showCountry = null)
+    {
+        
+        return null;
+    }
+    
+    
+    /**
+     * Връща дали на контрагента се начислява ДДС
+     * 
+     * @see doc_ContragentDataIntf
+     */
+    public function shouldChargeVat($id)
+    {
+        
+        return null;
+    }
+    
+    
+    /**
+     * Форсира контрагент в дадена група
+     *
+     * @param int    $id         -ид на продукт
+     * @param string $groupSysId - sysId на група
+     * 
+     * @see doc_ContragentDataIntf
+     */
+    public function forceGroup($id, $groupSysId)
+    {
+        
+        return null;
     }
 }

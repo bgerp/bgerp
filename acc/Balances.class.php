@@ -628,7 +628,7 @@ class acc_Balances extends core_Master
         $res = array();
         
         // Ако няма записи, връщаме празен масив
-        if (!count($jRecs)) {
+        if (!countR($jRecs)) {
             
             return $res;
         }
@@ -768,7 +768,7 @@ class acc_Balances extends core_Master
         $res->amount = 0;
         
         // Ако няма записи, връщаме празен масив
-        if (!count($jRecs)) {
+        if (!countR($jRecs)) {
             
             return $res;
         }

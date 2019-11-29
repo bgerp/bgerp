@@ -50,7 +50,7 @@ class sales_Invoices extends deals_InvoiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_Clone, plg_Printing, doc_DocumentPlg, bgerp_plg_Export,
-					doc_EmailCreatePlg, doc_plg_MultiPrint, recently_Plugin, bgerp_plg_Blank, cond_plg_DefaultValues,deals_plg_DpInvoice,
+					doc_EmailCreatePlg, recently_Plugin, bgerp_plg_Blank, cond_plg_DefaultValues,deals_plg_DpInvoice,
                     doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary, change_Plugin,cat_plg_AddSearchKeywords, plg_Search';
     
     
@@ -244,7 +244,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $tplArr[] = array('name' => 'Invoice short', 'content' => 'sales/tpl/InvoiceHeaderShortEN.shtml',
             'narrowContent' => 'sales/tpl/InvoiceHeaderShortNarrowEN.shtml', 'lang' => 'en');
         $tplArr[] = array('name' => 'Фактура с цени в евро', 'content' => 'sales/tpl/InvoiceHeaderEuro.shtml', 'lang' => 'bg');
-        $tplArr[] = array('name' => 'Счетоводна фактура', 'content' => 'sales/tpl/InvoiceAccView.shtml', 'lang' => 'bg');
+        $tplArr[] = array('name' => 'Счетоводна фактура', 'content' => 'sales/tpl/InvoiceAccView.shtml', 'lang' => 'bg', 'printCount' => 1);
         
         $res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
@@ -627,8 +627,6 @@ class sales_Invoices extends deals_InvoiceMaster
     
     /**
      * След рендиране на копия за принтиране
-     *
-     * @see doc_plg_MultiPrint
      *
      * @param core_Mvc $mvc     - мениджър
      * @param core_ET  $copyTpl - копие за рендиране

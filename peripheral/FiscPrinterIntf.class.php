@@ -27,12 +27,13 @@ class peripheral_FiscPrinterIntf extends peripheral_DeviceIntf
      * @param float      $priceWithoutVat
      * @param float      $vat
      * @param float|null $discountPercent
+     * @param float|null $quantity
      *
      * @return float
      */
-    public function getDisplayPrice($priceWithoutVat, $vat, $discountPercent)
+    public function getDisplayPrice($priceWithoutVat, $vat, $discountPercent, $quantity)
     {
-        return $this->class->getDisplayPrice($priceWithoutVat, $vat, $discountPercent);
+        return $this->class->getDisplayPrice($priceWithoutVat, $vat, $discountPercent, $quantity);
     }
     
     

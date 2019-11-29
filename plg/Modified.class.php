@@ -24,7 +24,7 @@ class plg_Modified extends core_Plugin
     {
         // Добавяне на необходимите полета
         $invoker->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none,forceField');
-        $invoker->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Модифициране||Modified->От||By,input=none,forceField');
+        $invoker->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Модифициране||Modified->От||By,input=none,forceField,smartCenter');
     }
     
     

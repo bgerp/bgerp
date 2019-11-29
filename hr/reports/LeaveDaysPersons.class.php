@@ -14,13 +14,14 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deprecated
  */
 class hr_reports_LeaveDaysPersons extends frame_BaseDriver
 {
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'ceo, trz';
+    public $canSelectSource = 'no_one';
     
     
     /**

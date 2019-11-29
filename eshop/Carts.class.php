@@ -196,6 +196,7 @@ class eshop_Carts extends core_Master
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title)', 'caption=Локация,input=none,silent,removeAndRefreshForm=deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress,after=instruction');
         $this->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране||Activated->На,input=none');
+        $this->FLD('haveOnlyServices', 'enum(no=Не,yes=Да)', 'caption=Само услуги,input=none,notNull,value=no');
         
         $this->setDbIndex('brid');
         $this->setDbIndex('userId');
@@ -315,7 +316,7 @@ class eshop_Carts extends core_Master
                 }
                 
                 $packQuantity = core_Type::getByName('double(smartRound)')->toVerbal($exRec->packQuantity);
-                $productName = cat_Products::getVerbal($productId, 'name');
+                $productName = eshop_ProductDetails::getPublicProductName($eshopProductId, $productId);
                 
                 $settings = cms_Domains::getSettings();
                 $addText = new core_ET($settings->addProductText);
@@ -358,11 +359,16 @@ class eshop_Carts extends core_Master
             $resObjReload = new stdClass();
             $resObjReload->func = 'forceReloadAfterBack';
             
+            // Махане на другите статуси от екрана
+            $resObj3 = new stdClass();
+            $resObj3->func = 'clearStatuses';
+            $resObj3->arg = array('type' => 'notice');
+            
             $hitTime = Request::get('hitTime', 'int');
             $idleTime = Request::get('idleTime', 'int');
             $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
             
-            $res = array_merge(array($resObj, $resObj2, $resObjReload), (array) $statusData);
+            $res = array_merge(array($resObj, $resObj2, $resObjReload, $resObj3), (array) $statusData);
             core_Lg::pop();
             
             return $res;
@@ -450,9 +456,21 @@ class eshop_Carts extends core_Master
         
         $dQuery = eshop_CartDetails::getQuery();
         $dQuery->where("#cartId = {$rec->id}");
+        $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $count = $dQuery->count();
+        $dRecs = $dQuery->fetchAll();
         
-        while ($dRec = $dQuery->fetch()) {
+        $haveOnlyServices = 'yes';
+        array_walk($dRecs, function ($a) use (&$haveOnlyServices){
+            if($a->canStore == 'yes'){
+                $haveOnlyServices = 'no';
+                //break;
+            }
+        });
+        
+        $rec->haveOnlyServices = $haveOnlyServices;
+        
+        foreach ($dRecs as $dRec) {
             $rec->productCount++;
             $finalPrice = currency_CurrencyRates::convertAmount($dRec->finalPrice, null, $dRec->currencyId);
             
@@ -472,20 +490,20 @@ class eshop_Carts extends core_Master
         
         // Ако има цена за доставка добавя се и тя
         if ($count) {
-            if ($delivery = eshop_CartDetails::getDeliveryInfo($rec)) {
+            $TransCalc = null;
+            if ($delivery = eshop_CartDetails::getDeliveryInfo($rec, $TransCalc)) {
+                if(is_object($TransCalc)){
+                    $TransCalc->onUpdateCartMaster($rec);
+                }
                 
                 if ($delivery['amount'] >= 0) {
                     $rec->deliveryTime = $delivery['deliveryTime'];
-                    $settings = cms_Domains::getSettings();
-                    
                     $rec->deliveryNoVat = $delivery['amount'];
-                    $freeDelivery = currency_CurrencyRates::convertAmount($settings->freeDelivery, null, $settings->currencyId);
-                    $deliveryNoVat = $rec->deliveryNoVat;
                     
                     // Ако има сума за безплатна доставка и доставката е над нея, тя не се начислява
-                    if (!empty($settings->freeDelivery) && round($rec->total, 2) >= round($freeDelivery, 2)){
+                    $deliveryNoVat = $rec->deliveryNoVat;
+                    if ($rec->freeDelivery == 'yes'){
                         $delivery = $deliveryNoVat = 0;
-                        $rec->freeDelivery = 'yes';
                     }
                     
                     $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
@@ -500,7 +518,7 @@ class eshop_Carts extends core_Master
         $rec->totalNoVat = round($rec->totalNoVat, 4);
         $rec->total = round($rec->total, 4);
         
-        $id = $this->save_($rec, 'productCount,total,totalNoVat,deliveryNoVat,deliveryTime,freeDelivery');
+        $id = $this->save_($rec, 'productCount,total,totalNoVat,deliveryNoVat,deliveryTime,freeDelivery,haveOnlyServices');
         
         return $id;
     }
@@ -542,12 +560,13 @@ class eshop_Carts extends core_Master
                 
                 return new core_ET(' ');
             }
-            $amount = core_Type::getByName('double(decimals=2)')->toVerbal($cartRec->total);
-            $amount = str_replace('&nbsp;', ' ', $amount);
+            
+            $amount = currency_CurrencyRates::convertAmount($cartRec->total, null, null, $settings->currencyId);
+            $amountVerbal = str_replace('&nbsp;', ' ', core_Type::getByName('double(decimals=2)')->toVerbal($amount));
             $count = core_Type::getByName('int')->toVerbal($cartRec->productCount);
             $url = array('eshop_Carts', 'view', $cartId);
             $str = ($count == 1) ? 'артикул' : 'артикула';
-            $hint = "|*{$count} |{$str} за|* {$amount} " . $settings->currencyId;
+            $hint = "|Поръчайте|* {$count} |{$str} за|* {$amountVerbal} " . $settings->currencyId;
             
             if ($count) {
                 $tpl->append(new core_ET("<span class='count'>[#count#]</span>"));
@@ -569,8 +588,11 @@ class eshop_Carts extends core_Master
         $tpl->replace($count, 'count');
         
         $currentTab = Mode::get('currentExternalTab');
-        $selectedClass = ($currentTab == 'eshop_Carts') ? 'class=selected-external-tab' : ' ';
-        $tpl = ht::createLink($tpl, $url, false, "title={$hint}, ef_icon=img/16/cart-black.png,{$selectedClass},rel=nofollow");
+        $className = ($currentTab == 'eshop_Carts') ? 'selected-external-tab' : ' ';
+        $className .= $count ? " cardLink" : "";
+        $url = ($currentTab != 'eshop_Carts') ? $url : array();
+        
+        $tpl = ht::createLink($tpl, $url, false, "title={$hint}, ef_icon=img/16/cart-black.png,class={$className},rel=nofollow");
         
         $tpl->removeBlocks();
         $tpl->removePlaces();
@@ -604,6 +626,13 @@ class eshop_Carts extends core_Master
         Mode::set('currentExternalTab', 'eshop_Carts');
         
         $saleRec = self::forceSale($rec);
+        if(empty($saleRec)){
+            $this->logErr('Проблем при генериране на онлайн продажба', $rec->id);
+            $errorMs = 'Опитайте пак! Имаше проблем при завършването на поръчката! Ако все още имате проблем, свържете се с нас.';
+            
+            return new Redirect(array('eshop_Carts', 'view', $rec->id), $errorMs, 'error');
+        }
+        
         
         // Ако е партньор и има достъп до нишката, директно се редиректва към нея
         $colabUrl = null;
@@ -710,16 +739,16 @@ class eshop_Carts extends core_Master
      * Форсира продажба към количката
      * 
      * @param mixed $id
-     * @param boolean brutoForce
+     * @param boolean $force
      * @param boolean $sendEmailIfNecessary
      * 
      * @return stdClass $saleRec
      */
-    public static function forceSale($id, $brutoForce = false, $sendEmailIfNecessary = true)
+    public static function forceSale($id, $force = false, $sendEmailIfNecessary = true)
     {
         $rec = static::fetchRec($id);
         
-        if($brutoForce === false){
+        if($force === false){
             if(isset($rec->saleId)) return sales_Sales::fetch($rec->saleId);
         }
         
@@ -779,6 +808,7 @@ class eshop_Carts extends core_Master
             'currencyId' => $settings->currencyId,
             'shipmentStoreId' => $settings->storeId,
             'deliveryLocationId' => $rec->locationId,
+            'onlineSale' => true,
         );
         
         $folderIncharge = doc_Folders::fetchField($folderId, 'inCharge');
@@ -790,6 +820,11 @@ class eshop_Carts extends core_Master
         
         // Създаване на продажба по количката
         $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
+        if(empty($saleId)){
+            
+            return false;
+        }
+        
         sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId, 360, $cu);
         if(!empty($routerExplanation)){
             sales_Sales::logDebug($routerExplanation, $saleId, 7);
@@ -1333,17 +1368,6 @@ class eshop_Carts extends core_Master
         
         $row = self::recToVerbal($rec, $fields);
         $settings = cms_Domains::getSettings();
-        if(isset($settings->freeDelivery)){
-            if($settings->freeDelivery != 0){
-                $row->freeDelivery = $Double->toVerbal($settings->freeDelivery);
-                $row->freeDeliveryCurrencyId = $settings->currencyId;
-            } else {
-                $row->deliveryZero = ' ';
-                unset($row->freeDelivery);
-            }
-        } else {
-            unset($row->freeDelivery);
-        }
         
         $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
         $totalNoVat = currency_CurrencyRates::convertAmount($rec->totalNoVat, null, null, $settings->currencyId);
@@ -1472,8 +1496,11 @@ class eshop_Carts extends core_Master
         
         if (eshop_Carts::haveRightFor('finalize', $rec)) {
             $btn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да направите поръчката|*!', null, "title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow");
-            $tpl->append($btn, 'CART_TOOLBAR_TOP_RIGHT');
+            
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
+            if($rec->productCount > 3){
+                $tpl->append($btn, 'CART_TOOLBAR_TOP_RIGHT');
+            }
         }
     }
     
@@ -1876,13 +1903,13 @@ class eshop_Carts extends core_Master
             
             // Проверка на имената да са поне две с поне 2 букви
             if(!core_Users::checkNames($rec->personNames)){
-                $form->setError('personNames', 'Трябва да са въведени поне две имена с поне две букви');
+                $form->setError('personNames', 'Невалидни имена');
             }
             
             // Проверка на имената на лицето на фактурата, ако тя е за лице да са поне две с поне 2 букви
             if($rec->makeInvoice == 'person'){
                 if(!core_Users::checkNames($rec->invoiceNames)){
-                    $form->setError('invoiceNames', 'Трябва да са въведени поне две имена с поне две букви');
+                    $form->setError('invoiceNames', 'Невалидни имена');
                 }
             }
             

@@ -77,12 +77,4 @@ class cash_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(2.2, 'Финанси', 'Каси', 'cash_Cases', 'default', 'cash, ceo'),
     );
-    
-    
-    /**
-     * Дефинирани класове, които имат интерфейси
-     */
-    public $defClasses = 'cash_reports_CashImpl';
-    
-    
 }

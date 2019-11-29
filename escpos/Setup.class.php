@@ -48,6 +48,12 @@ class escpos_Setup extends core_ProtoSetup
     
     
     /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'escpos_printer_TD2120N';
+    
+    
+    /**
      * Инсталиране на пакета
      */
     public function install()

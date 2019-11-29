@@ -542,6 +542,7 @@ en,Допълнително,Additionally
 en,Доставени,Delivered
 en,Доставено,Delivered
 en,Доставка,Delivery
+en,доставка,shipping
 en,Доставки,Supply
 en,Доставчик,Supplier
 en,Доставчици,Suppliers
@@ -2797,6 +2798,10 @@ en,До два месеца след фактуриране,Until 2 months after
 en,Направете поръчка,Place order
 en,"Печелите безплатна доставка, защото поръчката ви надвишава","You win free shipping, because your order is above"
 en,"Безплатна доставка, съгласно ""Общите условия""","Free shipping under the ""Terms of Service"""
+en,"Безплатна доставка при поръчка над","Free shipping if order is above"
+en,"Безплатна доставка на територията на","Free shipping on the territory of"
+en,за да спечелите,to win,
+en,Добавете артикули на обща стойност,Add items with total value of
 en,Невалиден VAT номер,Invalid VAT ID
 en,Игнорирай предупреждението,Ignore the warning
 en,Редактиране на данните за поръчка,Edit order details
@@ -2838,6 +2843,8 @@ en,"Нямате избрани артикули","You haven't selected any item
 en,изпращане на запитването,send the enquiry
 en,Безплатна,Free
 en,Безплатно,Free
+en,безплатна,free
+en,безплатно,free
 en,"Моля, завършете поръчката, като направите плащането от бутона","Place the order after you make a payment from"
 en,"Ако имате клиентска карта, може да я въведете от","If you have a client card, you may input it from"
 en,Невалиден номер на карта,The card number is not valid
@@ -2889,3 +2896,6 @@ en,В момента количеството не е налично в скла
 en,Свържете се с нас,Contact us
 en,До 30 дни след фактуриране с 1% отстъпка при плащане до 10 дни,Up to 30 days after invoicing with 1% discount up to 10 days
 en,До 30 дни след фактуриране с 1.5% отстъпка при плащане до 10 дни,Up to 30 days after invoicing with 1.5% discount up to 10 days
+en,"Опитайте пак! Имаше проблем при завършването на поръчката! Ако все още имате проблем, свържете се с нас.","Try again! There was a problem placing your order! If you still can't place the order, contact us."
+en,Поръчайте,Order
+en,Избраното количество не е налично,The selected quantity is not available

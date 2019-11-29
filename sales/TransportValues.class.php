@@ -302,6 +302,21 @@ class sales_TransportValues extends core_Manager
     
     
     /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->query->orderBy('id', 'DESC');
+    }
+    
+    
+    /**
      * Изчиства записите в балансите
      */
     public function act_Truncate()

@@ -39,7 +39,7 @@ class bank_ExchangeDocument extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_Contable,
-         plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, doc_SharablePlg';
+         plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, bgerp_plg_Blank, doc_SharablePlg';
     
     
     /**
@@ -70,12 +70,6 @@ class bank_ExchangeDocument extends core_Master
      * Абревиатура
      */
     public $abbr = 'Sv';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'bank, ceo';
     
     
     /**
@@ -138,6 +132,14 @@ class bank_ExchangeDocument extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'valior,createdOn';
+    
+    
+    /**
+     * Дефолтен брой копия при печат
+     *
+     * @var int
+     */
+    public $defaultCopiesOnPrint = 2;
     
     
     /**

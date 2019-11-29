@@ -57,9 +57,9 @@ class doc_plg_TplManagerDetail extends core_Plugin
             
             // Всички полета, които могат да се скриват/показват
             $toggleFields = arr::make($mvc->toggleFields);
-            $intersect = array_intersect_key($data->listFields, $toggleFields);
+            $intersect = array_keys(array_intersect_key($data->listFields, $toggleFields));
             
-            foreach ($intersect as $k => $v) {
+            foreach ($intersect as $k) {
                 
                 // За всяко от опционалните полета: ако не е избран да се показва, се маха
                 if (!in_array($k, $fields)) {

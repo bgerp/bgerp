@@ -91,13 +91,13 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_EMAIL_FOOTER_BG = 'Сърдечни поздрави,' . "\n" . 'Екипът на [#COMPANY_NAME#]';
+    const DEFAULT_EMAIL_FOOTER_BG = "Сърдечни поздрави,\nЕкипът на [#COMPANY_NAME#]";
     
     
     /**
      * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_EMAIL_FOOTER_EN = 'Kind regards,' . "\n" . 'The team of [#COMPANY_NAME#]';
+    const DEFAULT_EMAIL_FOOTER_EN = "Kind regards,\nThe team of [#COMPANY_NAME#]";
     
     
     /**
@@ -109,7 +109,7 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за текст за добавяне към количката на en
      */
-    const DEFAULT_ADD_TO_CART_TEXT_EN = 'In the cart there are [#packQuantity#] [#packagingId#] of [#productName#]';
+    const DEFAULT_ADD_TO_CART_TEXT_EN = 'There are [#packQuantity#] [#packagingId#] of [#productName#] in the cart';
     
     
     /**

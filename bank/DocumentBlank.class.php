@@ -59,6 +59,14 @@ abstract class bank_DocumentBlank extends core_Master
     
     
     /**
+     * Дефолтен брой копия при печат
+     * 
+     * @var int
+     */
+    public $defaultCopiesOnPrint = 2;
+    
+    
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)

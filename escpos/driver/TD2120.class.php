@@ -15,8 +15,6 @@
  */
 class escpos_driver_TD2120 extends core_BaseClass
 {
-    
-    
     /**
      * Заглавие
      */
@@ -48,7 +46,7 @@ class escpos_driver_TD2120 extends core_BaseClass
             $u = 128;
         }
         
-        return $lf . chr(27) . '!' . chr($f | $b | $u);
+        return $lf . chr(27) . '!' . chr($f | $b | $u) . chr(27) . chr(107) . chr(11);
     }
     
     
@@ -156,6 +154,7 @@ class escpos_driver_TD2120 extends core_BaseClass
     public function placePrintData($tpl)
     {
         $dataArr = array();
+
 //         $dataArr['printerSelectCodetable'] = 17;
 
 // //         $dataArr['printerSelectCodetableChar'] = 117;

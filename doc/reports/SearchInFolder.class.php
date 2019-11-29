@@ -282,7 +282,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
         
         $send = false;
         if (is_array($data->recs)) {
-            foreach ($data->recs as $id => $rec) {
+            foreach ($data->recs as $rec) {
                 if (isset($oldData[$rec->index])) {
                     $oldCount = $oldData[$rec->index]->count;
                     $diff = $rec->count - $oldCount;

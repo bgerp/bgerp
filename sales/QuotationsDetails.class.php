@@ -270,7 +270,7 @@ class sales_QuotationsDetails extends doc_Detail
         if (!haveRole('seePrice,ceo')) {
             $data->noTotal = true;
         }
-        
+       
         if (empty($data->noTotal) && count($notOptional)) {
             
             // Запомня се стойноста и ддс-то само на опционалните продукти
@@ -325,7 +325,7 @@ class sales_QuotationsDetails extends doc_Detail
                 }
             }
         }
-        
+      
         // Подготовка за показване на опционалните продукти
         deals_Helper::fillRecs($mvc, $optional, $masterRec);
         $recs = $notOptional + $optional;
@@ -333,7 +333,7 @@ class sales_QuotationsDetails extends doc_Detail
         // Изчисляване на цената с отстъпка
         foreach ($recs as $id => $rec) {
             if ($rec->optional == 'no') {
-                $other = $mvc->checkUnique($recs, $rec->productId, $rec->id);
+                $other = $mvc->checkUnique($recs, $rec->productId, $rec->id, 'no', $rec->notes);
                 if ($other) {
                     unset($data->summary);
                 }
@@ -345,10 +345,10 @@ class sales_QuotationsDetails extends doc_Detail
     /**
      * Проверява дали има вариация на продукт
      */
-    private function checkUnique($recs, $productId, $id, $isOptional = 'no')
+    private function checkUnique($recs, $productId, $id, $isOptional = 'no', $notes)
     {
-        $other = array_values(array_filter($recs, function ($val) use ($productId, $id, $isOptional) {
-            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id) {
+        $other = array_values(array_filter($recs, function ($val) use ($productId, $id, $isOptional, $notes) {
+            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id && md5($notes) == md5($val->notes)) {
                 
                 return $val;
             }
@@ -462,7 +462,7 @@ class sales_QuotationsDetails extends doc_Detail
     public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         if (!empty($data->form->rec->id) || $data->form->cmd == 'save_new_row') {
-            $data->form->toolbar->addSbBtn('Запис в нов ред', 'save_new_row', null, array('id' => 'saveInNewRec', 'order' => '9.99955', 'ef_icon' => 'img/16/save_and_new.png', 'title' => 'Запиши в нов ред'));
+            $data->form->toolbar->addSbBtn('Запис в нов ред', 'save_new_row', null, array('id' => 'saveInNewRec', 'order' => '9', 'ef_icon' => 'img/16/save_and_new.png', 'title' => 'Запиши в нов ред'));
         }
     }
     
@@ -564,12 +564,10 @@ class sales_QuotationsDetails extends doc_Detail
                 }
             }
             
-            if ($form->cmd == 'save_new_row') {
-                unset($rec->id);
-            }
-            
             if (!$form->gotErrors()) {
-                if(deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
+                $idToCheck = ($form->cmd == 'save_new_row') ? null : $rec->id;
+               
+                if($rec->_createProductForm != true && deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $idToCheck, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
                     $form->setError('productId,packagingId,packPrice,discount,notes,packQuantity', 'Има въведен ред със същите данни');
                 }
                 
@@ -577,6 +575,10 @@ class sales_QuotationsDetails extends doc_Detail
                     if ($locationId = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}' AND #contragentCls = {$masterRec->contragentClassId} AND #contragentId = {$masterRec->contragentId}", 'id')) {
                         $masterRec->deliveryPlaceId = $locationId;
                     }
+                }
+                
+                if (!$form->gotErrors()&& $form->cmd == 'save_new_row') {
+                    unset($rec->id);
                 }
                 
                 if ($rec->productId) {

@@ -542,4 +542,20 @@ class eshop_ProductDetails extends core_Detail
             }
         }
     }
+    
+    
+    /**
+     * Какво е името на артикула във външната част
+     * 
+     * @param int $eProductId     - ид на е-артикул
+     * @param int $productId      - ид на артикул
+     * @return string $publicName - име за показване
+     */
+    public static function getPublicProductName($eProductId, $productId)
+    {
+        $productTitle = eshop_ProductDetails::fetchField("#eshopProductId = {$eProductId} AND #productId = {$productId}", 'title');
+        $publicName = !empty($productTitle) ? core_Type::getByName('varchar')->toVerbal($productTitle) : cat_Products::getVerbal($productId, 'name');
+    
+        return $publicName;
+    }
 }

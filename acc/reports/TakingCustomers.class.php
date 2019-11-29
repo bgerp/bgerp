@@ -14,6 +14,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deprecated
  */
 class acc_reports_TakingCustomers extends acc_reports_PeriodHistoryImpl
 {
@@ -26,7 +27,7 @@ class acc_reports_TakingCustomers extends acc_reports_PeriodHistoryImpl
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'ceo, acc';
+    public $canSelectSource = 'no_one';
     
     
     /**

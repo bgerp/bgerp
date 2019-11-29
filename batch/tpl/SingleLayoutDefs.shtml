@@ -54,6 +54,16 @@
 					<tr><td class="quiet">|Избор|*:</td> <td>[#uniqueProduct#]</td></tr>
 					<!--ET_END uniqueProduct-->
                 	
+                	<!--ET_BEGIN alwaysRequire-->
+					<tr><td colspan="2" class="quiet"> |Използване в документите|*</td></tr>
+					<tr><td class="quiet">|Избор|*:</td> <td>[#alwaysRequire#]</td></tr>
+					<!--ET_END alwaysRequire-->
+                	
+                	<!--ET_BEGIN onlyExistingBatches-->
+					<tr><td colspan="2" class="quiet"> |Използване в документите|*</td></tr>
+					<tr><td class="quiet">|Задължителна наличност|*:</td> <td>[#onlyExistingBatches#]</td></tr>
+					<!--ET_END onlyExistingBatches-->
+                	
                 	<tr><td colspan='2'><span class='quiet'>|Модифицирано от|*</span> [#modifiedBy#] |на|* [#modifiedOn#]</td></tr>
                 </table>
             </div>

@@ -123,6 +123,7 @@ class doc_TplManager extends core_Master
         $this->FLD('originId', 'key(mvc=doc_TplManager)', 'input=hidden,silent');
         $this->FLD('hash', 'varchar', 'input=none');
         $this->FLD('hashNarrow', 'varchar', 'input=none');
+        $this->FLD('printCount', 'int(min=0)', 'caption=Брой копия при печат,placeholder=По подразбиране');
         
         // Полета които ще се показват в съответния мениджър и неговите детайли
         $this->FLD('toggleFields', 'blob(serialize,compress)', 'caption=Полета за скриване,input=none');
@@ -159,6 +160,10 @@ class doc_TplManager extends core_Master
             $form->setDefault('narrowContent', $origin->narrowContent);
             $form->setDefault('toggleFields', $origin->toggleFields);
             $form->setReadOnly('path', $origin->path);
+            $form->setDefault('printCount', $origin->printCount);
+            
+            
+            
         } else {
             $form->setField('path', 'input=none');
         }
@@ -388,7 +393,6 @@ class doc_TplManager extends core_Master
         
         foreach ($tplArr as $object) {
             $object['docClassId'] = $mvc->getClassId();
-            
             $object = (object) $object;
             
             // Ако има старо име на шаблона
@@ -415,7 +419,7 @@ class doc_TplManager extends core_Master
                 expect($object->hashNarrow = md5_file(getFullPath($object->narrowContent)));
             }
             
-            if ($exRec && ($exRec->name == $object->name) && ($exRec->hashNarrow == $object->hashNarrow) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && ($exRec->toggleFields == $object->toggleFields) && ($exRec->path == $object->content)) {
+            if ($exRec && ($exRec->name == $object->name) && ($exRec->hashNarrow == $object->hashNarrow) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && ($exRec->toggleFields == $object->toggleFields) && ($exRec->path == $object->content) && ($exRec->printCount == $object->printCount)) {
                 $skipped++;
                 continue;
             }

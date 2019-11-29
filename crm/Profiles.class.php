@@ -473,6 +473,10 @@ class crm_Profiles extends core_Master
         if (self::canModifySettings($key, $data->rec->userId)) {
             core_Settings::addBtn($data->toolbar, $key, 'crm_Profiles', $data->rec->userId, 'Персонализиране');
         }
+        
+        if (bgerp_Portal::haveRightFor('list')) {
+            $data->toolbar->addBtn('Портал', array('bgerp_Portal', 'list'), 'ef_icon=img/16/application_home.png');
+        }
     }
     
     

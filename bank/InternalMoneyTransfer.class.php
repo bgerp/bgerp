@@ -44,7 +44,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, bank_Wrapper,acc_plg_Contable, acc_plg_DocumentSummary,doc_plg_MultiPrint,
+    public $loadList = 'plg_RowTools2, bank_Wrapper,acc_plg_Contable, acc_plg_DocumentSummary,
      	plg_Clone,doc_DocumentPlg, plg_Printing, deals_plg_SaveValiorOnActivation, plg_Search, bgerp_plg_Blank, doc_SharablePlg';
     
     
@@ -141,8 +141,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Позволени операции
      */
-    public $allowedOperations = array('bank2case' => array('debit' => '501', 'credit' => '503'),
-        'bank2bank' => array('debit' => '503', 'credit' => '503'));
+    public $allowedOperations = array('bank2case' => array('debit' => '501', 'credit' => '503'), 'bank2bank' => array('debit' => '503', 'credit' => '503'));
     
     
     /**

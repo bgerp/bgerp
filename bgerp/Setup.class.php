@@ -217,8 +217,14 @@ class bgerp_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'migrate::setUrlIds',
+            'migrate::setUrlIds'
     );
+    
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'bgerp_drivers_Recently, bgerp_drivers_Notifications, bgerp_drivers_Calendar, bgerp_drivers_Tasks';
     
     
     /**
@@ -537,5 +543,61 @@ class bgerp_Setup extends core_ProtoSetup
             
             $Notifications->save_($rec, 'urlId, customUrlId');
         }
+    }
+    
+    
+    /**
+     * Миграция за изтриване на старите данни в портала и за добавяне на новите интерфейси
+     */
+    public function setNewPortal46193()
+    {
+        $Portal = cls::get('bgerp_Portal');
+        $bQuery = bgerp_Portal::getQuery();
+        $bQuery->delete("1=1");
+        
+        $iArr = array('bgerp_drivers_Notifications' => array('perPage' => 15, 'column' => 'left', 'order' => 500),
+                      'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 500),
+                      'bgerp_drivers_Recently' => array('perPage' => 10, 'column' => 'right', 'order' => 500),
+                      'bgerp_drivers_Calendar' => array('column' => 'right', 'order' => 300, 'fTasksPerPage' => 5, 'fTasksDays' => 2629746)
+                      );
+        
+        foreach ($iArr as $iName => $iData) {
+            
+            // Ако драйверите не са добавени
+            core_Classes::add($iName);
+            
+            $rec = new stdClass();
+            $rec->{$Portal->driverClassField} = $iName::getClassId();
+            
+            foreach ($iData as $cName => $cVal) {
+                $rec->{$cName} = $cVal;
+            }
+            
+            $rec->userOrRole = type_UserOrRole::getAllSysTeamId();
+            
+            $rec->color = 'lightgray';
+            $rec->show = 'yes';
+            
+            $Portal->save($rec);
+        }
+    }
+    
+    
+    /**
+     * Зареждане на данни
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        
+        // За да може да мине миграцията при нова инсталация
+        $dbUpdate = Mode::get('dbInit');
+        Mode::set('dbInit', 'update');
+        
+        $res .= $this->callMigrate('setNewPortal46193', 'bgerp');
+        
+        Mode::set('dbInit', $dbUpdate);
+        
+        return $res;
     }
 }

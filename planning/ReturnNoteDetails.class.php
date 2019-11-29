@@ -99,6 +99,12 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
     
     
     /**
+     * Да се забрани ли създаването на нова партида
+     */
+    public $cantCreateNewBatch = true;
+    
+    
+    /**
      * Какви продукти да могат да се избират в детайла
      */
     protected $defaultMeta = 'canStore';

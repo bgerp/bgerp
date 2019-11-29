@@ -33,7 +33,7 @@ class trans_Cmrs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper,plg_Clone,doc_DocumentPlg, doc_plg_MultiPrint, plg_Printing, plg_Search, doc_ActivatePlg, doc_EmailCreatePlg';
+    public $loadList = 'plg_RowTools2, trans_Wrapper,plg_Clone,doc_DocumentPlg, plg_Printing, plg_Search, doc_ActivatePlg, doc_EmailCreatePlg';
     
     
     /**
@@ -115,9 +115,11 @@ class trans_Cmrs extends core_Master
     
     
     /**
-     * Брой копия при печат
+     * Дефолтен брой копия при печат
+     *
+     * @var int
      */
-    public $copiesOnPrint = 5;
+    public $defaultCopiesOnPrint = 5;
     
     
     /**
@@ -625,8 +627,6 @@ class trans_Cmrs extends core_Master
     
     /**
      * След рендиране на копия за принтиране
-     *
-     * @see doc_plg_MultiPrint
      *
      * @param core_Mvc $mvc     - мениджър
      * @param core_ET  $copyTpl - копие за рендиране

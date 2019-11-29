@@ -24,7 +24,7 @@ class fileman_webdrv_Webp extends fileman_webdrv_ImageT
     public static function startConvertingToJpg($fRec, $params)
     {
         // Инстанция на класа
-        $Script = cls::get(fconv_Script);
+        $Script = cls::get('fconv_Script');
         
         // Вземаме името на файла без разширението
         $name = fileman_Files::getFileNameWithoutExt($fRec->fileHnd);

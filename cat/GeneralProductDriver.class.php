@@ -24,6 +24,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
      */
     public function addFields(core_Fieldset &$fieldset)
     {
+        $fieldset->FLD('infoInt', 'richtext(rows=4, bucket=Notes)', 'caption=Допълнително->Описание международно,autohide');
         if (!$fieldset->getField('photo', false)) {
             $fieldset->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Изображение');
         } else {
@@ -314,8 +315,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         }
         
         // @TODO ревербализиране на описанието
-        if (!empty($data->rec->info)) {
-            $data->row->info = core_Type::getByName('richtext')->toVerbal($data->rec->info);
+        $lg = core_Lg::getCurrent();
+        $info = ($lg == 'en') ? (!empty($data->rec->infoInt) ? $data->rec->infoInt : $data->rec->info) : $data->rec->info;
+        if (!empty($info)) {
+            $data->row->info = core_Type::getByName('richtext')->toVerbal($info);
         }
         
         // Ако не е зададен шаблон, взимаме дефолтния
@@ -329,7 +332,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         }
         
         // Рендираме параметрите винаги ако сме към артикул или ако има записи
-        if ($data->noChange !== true || count($data->params)) {
+        if ($data->noChange !== true || countR($data->params)) {
             $paramTpl = cat_products_Params::renderParams($data);
             $tpl->append($paramTpl, 'PARAMS');
         }

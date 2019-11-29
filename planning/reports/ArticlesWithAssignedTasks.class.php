@@ -47,11 +47,11 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     
     
     /**
-     * Кое поле от $data->recs да се следи, ако има нов във новата версия
+     * Коя комбинация от полета от $data->recs да се следи, ако има промяна в последната версия
      *
      * @var string
      */
-    protected $newFieldToCheck = 'productId';
+    protected $newFieldsToCheck = 'productId';
     
     
     /**
@@ -127,6 +127,9 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         while ($jobses = $jobsQuery->fetch()) {
             $deliveryDate = $jobses->deliveryDate;
             
+            //Дата на падеж
+            $dueDate = $jobses->dueDate;
+            
             if (! $jobses->activatedOn) {
                 foreach ($jobses->history as $v) {
                     if ($v['action'] == 'Активиране');
@@ -157,6 +160,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                             'folderId' => $jobses->folderId,
                             'saleId' => $jobses->saleId,
                             'containerId' => $jobses->containerId,
+                            'dueDate' => $dueDate,
                             'deliveryDate' => $deliveryDate,
                             'activatedDate' => $activatedDate
                         
@@ -208,6 +212,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                             'tasksFolderId' => $task->folderId,
                             'tasksContainerId' => $task->containerId,
                             'linkFrom' => $linkFrom,
+                            'dueDate' => $dueDate,
                             'deliveryDate' => $deliveryDate,
                             'activatedDate' => $activatedDate
                         );
@@ -251,7 +256,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 if ($task->state == 'rejected') {
                     continue;
                 }
-                 
+                
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
                 $designers = $task->assign;
                 
@@ -267,6 +272,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                             'tasksFolderId' => $task->folderId,
                             'tasksContainerId' => $task->containerId,
                             'linkFrom' => $linkFrom,
+                            'dueDate' => $dueDate,
                             'deliveryDate' => $deliveryDate,
                             'activatedDate' => $activatedDate
                         );
@@ -317,12 +323,12 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     // Подреждане на масива по дата на падеж
     public function orderByPayDateUp($a, $b)
     {
-        return $a->deliveryDate > $b->deliveryDate;
+        return $a->dueDate > $b->dueDate;
     }
     
     public function orderByPayDateDown($a, $b)
     {
-        return $a->deliveryDate < $b->deliveryDate;
+        return $a->dueDate < $b->dueDate;
     }
     
     // Подреждане на масива по дата на активиране
@@ -387,7 +393,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         
         if ($rec->orderingDate == 'pay') {
             $typeOfDateText = 'Падеж : ';
-            $typeOfDate = $dRec->deliveryDate;
+            $typeOfDate = $dRec->dueDate;
         }
         
         $tasksContainerIdArr = explode(',', $dRec->tasksContainerId);
@@ -542,10 +548,9 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         }
         
         if (isset($data->rec->orderingDate)) {
-            
             $text = ($data->rec->orderingDate == 'activated')?'Дата на активиране' : 'Дата на падеж';
             
-                $fieldTpl->append('<b>' . $text . '</b>', 'orderingDate');
+            $fieldTpl->append('<b>' . $text . '</b>', 'orderingDate');
         }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');

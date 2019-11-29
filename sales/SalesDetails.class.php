@@ -109,7 +109,7 @@ class sales_SalesDetails extends deals_DealDetail
     
     
     /**
-     * Кой може да го импортира артикули?
+     * Кой може да създава артикул директно към документа?
      *
      * @var string|array
      */

@@ -213,10 +213,8 @@ class deals_OpenDeals extends core_Manager
             $docRec = $DocClass->fetch($rec->docId, 'folderId,currencyId,containerId,currencyRate,threadId');
             
             $folderRec = doc_Folders::fetch($docRec->folderId);
-            
             $row->currencyId = $docRec->currencyId;
-            $inCharge = doc_Folders::recToVerbal($folderRec, 'id,inCharge')->inCharge;
-            $row->client = $inCharge. ' » ' . doc_Folders::recToVerbal($folderRec)->title;
+            $row->client = crm_Profiles::createLink($folderRec->inCharge) . ' » ' . doc_Folders::recToVerbal($folderRec)->title;
             $row->docId = $DocClass->getHandle($rec->docId);
             
             // Обръщане на сумите във валутата на документа

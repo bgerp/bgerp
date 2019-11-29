@@ -2033,62 +2033,25 @@ function appendQuote(id, line) {
 
     // Ако вече е нагласен или не е изтекъл
 	if ((!quoteText) && (selTime > now)) {
-
+		
         // Вземаме текста
         text = sessionStorage.getItem('selText');
 
         if (text) {
-    		
-        	text = text.replace(/^\s+|\s+$/g, '');
-        	text = text.replace(/\n{2,}/g, "\n\n");
-        	
-        	if (text.length) {
-        	
-	        	var textSplit = text.split("\n");
-
-	        	// Вземаме манипулатора на документа
-	            selHandle = sessionStorage.getItem('selHandle');
-	        	
-	        	var isBegin = true;
-	        	newText = new Array();
-	        	
-	        	$.each( textSplit, function( key, value ) {
-	        		if (value.trim()) {
-	        			if (isBegin) {
-	        				
-	        				var quoteStr = '';
-	        				if (key) {
-	        					quoteStr = '\n\n\n';
-	        				}
-	        				
-	        				quoteStr += '[bQuote';
-	        				
-	        				// Ако има манипулато, го добавяме
-	    		            if (selHandle && (typeof selHandle != "undefined") && (selHandle != 'undefined')) {
-	    		            	quoteStr += "=" + selHandle + "]";
-	    		            } else {
-	    		            	quoteStr += "]";
-	    		            }
-	    		            
-	    		            value = quoteStr + value.trim();
-	        			}
-	        			
-	        			newText.push(value);
-	        			
-	        			isBegin = false;
-	        		} else {
-	        			lastVal = newText.pop();
-	        			newText.push(lastVal + "[/bQuote]");
-	        			isBegin = true;
-	        		}
-	            });
-	        	lastVal = newText.pop();
-	        	newText.push(lastVal + "[/bQuote]");
-	        	
-	        	quoteText = newText.join("\n");
-
-	        }
-        }
+			// Вземаме манипулатора на документа
+			selHandle = sessionStorage.getItem('selHandle');
+			
+			// Стринга, който ще добавим
+			quoteText = "[bQuote";
+			
+			// Ако има манипулато, го добавяме
+			if (selHandle && (typeof selHandle != "undefined") && (selHandle != 'undefined')) {
+				quoteText += "=" + selHandle + "]";
+			} else {
+				quoteText += "]";
+			}
+			quoteText += text + "[/bQuote]";
+		}
 	}
 	
     if (quoteText) {
@@ -5544,6 +5507,19 @@ function focusOnce(id) {
     }
 }
 
+
+/**
+ * Изчистване на статусите от посочен тип
+ */
+function render_clearStatuses(data)
+{
+	var type = data.type;
+	var elementClass = ".toast-type-" + type;
+	
+	if ($(elementClass).length) {
+	    $(elementClass).remove();
+	}
+}
 
 
 /**

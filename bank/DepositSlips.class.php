@@ -26,7 +26,7 @@ class bank_DepositSlips extends bank_DocumentBlank
      */
     public $loadList = 'plg_RowTools2, bank_Wrapper,
          plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg,
-         plg_Search, doc_plg_MultiPrint, cond_plg_DefaultValues, doc_EmailCreatePlg';
+         plg_Search, cond_plg_DefaultValues, doc_EmailCreatePlg';
     
     
     /**

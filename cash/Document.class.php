@@ -35,8 +35,7 @@ abstract class cash_Document extends deals_PaymentDocument
      */
     public $loadList = 'plg_RowTools2, cash_Wrapper, plg_Sorting,deals_plg_SaveValiorOnActivation, acc_plg_Contable,
                      plg_Clone,doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoice,acc_plg_DocumentSummary,
-                     plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_plg_HidePrices,
-                     doc_EmailCreatePlg, cond_plg_DefaultValues, doc_SharablePlg,deals_plg_SetTermDate';
+                     plg_Search, bgerp_plg_Blank, doc_plg_HidePrices, doc_EmailCreatePlg, cond_plg_DefaultValues, doc_SharablePlg,deals_plg_SetTermDate';
     
     
     /**
@@ -67,12 +66,6 @@ abstract class cash_Document extends deals_PaymentDocument
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'cash, ceo';
     
     
     /**
@@ -115,12 +108,6 @@ abstract class cash_Document extends deals_PaymentDocument
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'valior, contragentName, reason';
-    
-    
-    /**
-     * Параметри за принтиране
-     */
-    public $printParams = array(array('Оригинал'), array('Копие'));
     
     
     /**

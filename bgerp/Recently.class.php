@@ -312,6 +312,7 @@ class bgerp_Recently extends core_Manager
     
     /**
      * Рендира блок с последните документи и папки, посетени от даден потребител
+     * @deprecated
      */
     public static function render_($userId = null)
     {
@@ -376,6 +377,8 @@ class bgerp_Recently extends core_Manager
     
     /**
      * Рендира блок в портала с последните документи и папки, посетени от даден потребител
+     * 
+     * @deprecated
      */
     public function renderPortal($data)
     {
@@ -386,8 +389,8 @@ class bgerp_Recently extends core_Manager
             $divId = $Recently->getDivId();
             
             $tpl = new ET("
-                <div class='clearfix21 portal' style='background-color:#f8f8ff'>
-                <div style='background-color:#eef' class='legend'><div style='float:left'>[#PortalTitle#]</div>
+                <div class='clearfix21 portal'>
+                <div class='legend'><div style='float:left'>[#PortalTitle#]</div>
                 [#ListFilter#]<div class='clearfix21'></div></div>
                 [#PortalPagerTop#]
                 
@@ -433,13 +436,15 @@ class bgerp_Recently extends core_Manager
      */
     public static function on_BeforePrepareListPager($mvc, &$res, $data)
     {
-        // Задаваме броя на елементите в страница
-        $portalArrange = core_Setup::get('PORTAL_ARRANGE');
-        
-        if ($portalArrange == 'recentlyNotifyTaskCal') {
-            $mvc->listItemsPerPage = 20;
-        } else {
-            $mvc->listItemsPerPage = 10;
+        if ($data->usePortalArrange !== false) {
+            // Задаваме броя на елементите в страница
+            $portalArrange = core_Setup::get('PORTAL_ARRANGE');
+            
+            if ($portalArrange == 'recentlyNotifyTaskCal') {
+                $mvc->listItemsPerPage = 20;
+            } else {
+                $mvc->listItemsPerPage = 10;
+            }
         }
     }
     
@@ -657,6 +662,8 @@ class bgerp_Recently extends core_Manager
      * Връща id, което ще се използва за обграждащия div на таблицата, който ще се замества по AJAX
      *
      * @return string
+     * 
+     * @deprecated
      */
     public function getDivId()
     {

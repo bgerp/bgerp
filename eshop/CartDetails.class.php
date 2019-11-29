@@ -248,7 +248,7 @@ class eshop_CartDetails extends core_Detail
             $packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultQuantity;
             $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
             if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
-                $form->setError('packQuantity', 'В момента количеството не е налично в склада');
+                $form->setError('packQuantity', 'Избраното количество не е налично');
             }
             
             if (!$form->gotErrors()) {
@@ -399,8 +399,7 @@ class eshop_CartDetails extends core_Detail
                 $row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => 'img/16/deletered.png', 'title' => 'Премахване на артикул', 'data-cart' => $rec->cartId, 'data-url' => $removeUrl, 'class' => 'remove-from-cart', 'warning' => tr('Наистина ли желаете да премахнете артикула?')));
             }
             
-            $productTitle = eshop_ProductDetails::fetchField("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'title');
-            $row->productId = !empty($productTitle) ? core_Type::getByName('varchar')->toVerbal($productTitle) : cat_Products::getVerbal($rec->productId, 'name');
+            $row->productId = eshop_ProductDetails::getPublicProductName($rec->eshopProductId, $rec->productId);
             $row->packagingId = tr(cat_UoM::getShortName($rec->packagingId));
             
             $quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
@@ -409,9 +408,14 @@ class eshop_CartDetails extends core_Detail
             // Колко е максималното допустимо количество
             $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
             
+            $maxReachedTex = '';
+            if(isset($maxQuantity)){
+                $maxReachedTex = tr("Избраното количество не е налично");
+            }
+            
             $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
             $plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), '+');
-            $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "class=option-quantity-input autoUpdate,data-quantity={$quantity},data-url='{$dataUrl}',data-maxquantity={$maxQuantity}") . $plus . '</span>';
+            $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "class=option-quantity-input autoUpdate,data-quantity={$quantity},data-url='{$dataUrl}',data-maxquantity={$maxQuantity},data-maxquantity-reached-text={$maxReachedTex}") . $plus . '</span>';
             
             self::updatePriceInfo($rec, null, true);
             
@@ -530,13 +534,17 @@ class eshop_CartDetails extends core_Detail
         // Ще се реплейсне статуса на кошницата
         $resObj4 = new stdClass();
         $resObj4->func = 'changeInputWidth';
+
+        // Ще забрани необходимите бутони
+        $resObj5 = new stdClass();
+        $resObj5->func = 'disableBtns';
         
         // Показваме веднага и чакащите статуси
         $hitTime = Request::get('hitTime', 'int');
         $idleTime = Request::get('idleTime', 'int');
         $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
         
-        $res = array_merge(array($resObj1, $resObj2, $resObj3, $resObj4), (array) $statusData);
+        $res = array_merge(array($resObj1, $resObj2, $resObj3, $resObj4, $resObj5), (array) $statusData);
         core_Lg::pop();
         
         return $res;
@@ -576,24 +584,23 @@ class eshop_CartDetails extends core_Detail
      * Колко ще е доставката от въведените данни
      *
      * @param stdClass $masterRec
+     * @param mixed $TransCalc
      *
      * @return NULL|array
      */
-    public static function getDeliveryInfo($masterRec)
+    public static function getDeliveryInfo($masterRec, &$TransCalc)
     {
         $masterRec = eshop_Carts::fetchRec($masterRec);
         $query = self::getQuery();
-        $query->where("#cartId = {$masterRec->id}");
-        $query->show('productId,quantity,packagingId');
+        $query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $query->where("#cartId = {$masterRec->id} AND #canStore != 'no'");
+        $query->show('productId,quantity,packagingId,canStore');
         
-        if (empty($masterRec->termId)) {
+        if (empty($masterRec->termId) || !$query->count()) {
             
             return;
         }
-        if (!$query->count()) {
-            
-            return;
-        }
+        
         $TransCalc = cond_DeliveryTerms::getTransportCalculator($masterRec->termId);
         if (!$TransCalc) {
             
@@ -606,21 +613,17 @@ class eshop_CartDetails extends core_Detail
         // Колко е общото тегло и обем за доставка
         $products = arr::extractSubArray($query->fetchAll(), 'productId,quantity,packagingId');
         $total = sales_TransportValues::getTotalWeightAndVolume($TransCalc, $products, $masterRec->termId, $deliveryData);
-        
-        if($total > 0) {
+        if($total < 0){
             
-            // За всеки артикул се изчислява очаквания му транспорт
-            $transportAmount = 0;
-            foreach ($products as $p1) {
-                $fee = sales_TransportValues::getTransportCost($masterRec->termId, $p1->productId, $p1->packagingId, $p1->quantity, $total, $deliveryData);
-                
-                
-                if (is_array($fee)) {
-                    $transportAmount += $fee['totalFee'];
-                }
+            return array('amount' => -1);
+        }
+        
+        $transportAmount = 0;
+        foreach ($products as $p1) {
+            $fee = sales_TransportValues::getTransportCost($masterRec->termId, $p1->productId, $p1->packagingId, $p1->quantity, $total, $deliveryData);
+            if (is_array($fee)) {
+                $transportAmount += $fee['totalFee'];
             }
-        } else {
-            $transportAmount = cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
         }
         
         $res = array('amount' => $transportAmount);

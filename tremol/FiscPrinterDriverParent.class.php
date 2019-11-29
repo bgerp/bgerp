@@ -88,18 +88,16 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     /**
      * Дефолтни кодове на начините на плащане
      */
-    const DEFAULT_STORNO_REASONS_MAP = array('Операторска грешка' => 0,
-                                             'Връщане/Рекламация' => 1,
-                                             'Данъчно облекчение' => 2,);
+    public static $defaultStornoReasonmap  = array('Операторска грешка' => 0,
+                                                   'Връщане/Рекламация' => 1,
+                                                   'Данъчно облекчение' => 2,);
     
     
     /**
      * Дефолтни кодове за ДДС групите
      */
-    const DEFAULT_VAT_GROUPS_MAP = array('A' => 0,
-                                         'B' => 1,
-                                         'V' => 2,
-                                         'G' => 3,);
+    
+    public static $defaultVatGroupsMap = array('A' => 0, 'B' => 1, 'V' => 2, 'G' => 3,);
     
     
     /**
@@ -151,7 +149,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $fieldset->FLD('serverIp', 'url', 'caption=Настройки за връзка със ZFPLAB сървър->IP адрес, mandatory');
         $fieldset->FLD('serverTcpPort', 'int(Min=0, max=65535)', 'caption=Настройки за връзка със ZFPLAB сървър->TCP порт, mandatory');
         
-        $fieldset->FLD('driverVersion', 'enum(19.08.13,19.07.25,19.06.13)', 'caption=Настройки на ФУ->Версия, mandatory, notNull');
+        $fieldset->FLD('driverVersion', 'enum(19.10.21,19.08.13)', 'caption=Настройки на ФУ->Версия, mandatory, notNull');
         $fieldset->FLD('fpType', 'enum(cashRegister=Касов апарат, fiscalPrinter=Фискален принтер)', 'caption=Настройки на ФУ->Тип, mandatory, notNull');
         $fieldset->FLD('serialNumber', 'varchar(8)', 'caption=Настройки на ФУ->Сериен номер');
         
@@ -469,7 +467,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function getStornoReasonCode($rec, $reason)
     {
-        return self::DEFAULT_STORNO_REASONS_MAP[$reason];
+        return self::$defaultStornoReasonmap[$reason];
     }
     
     
@@ -481,7 +479,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function getStornoReasons($rec)
     {
-        $res = arr::make(array_keys(self::DEFAULT_STORNO_REASONS_MAP), true);
+        $res = arr::make(array_keys(self::$defaultStornoReasonmap), true);
         
         return $res;
     }
@@ -493,19 +491,21 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      * @param float      $priceWithoutVat
      * @param float      $vat
      * @param float|null $discountPercent
+     * @param float|null $quantity
      *
      * @return float
      *
      * @see peripheral_FiscPrinterIntf
      */
-    public function getDisplayPrice($priceWithoutVat, $vat, $discountPercent)
+    public function getDisplayPrice($priceWithoutVat, $vat, $discountPercent, $quantity)
     {
-        $displayPrice = $priceWithoutVat * (1 + $vat);
+        $displayPrice = $priceWithoutVat * $quantity * (1 + $vat);
         
         if (!empty($discountPercent)) {
             $discountedPrice = round($displayPrice * $discountPercent, 2);
             $displayPrice = $displayPrice - $discountedPrice;
         }
+        $displayPrice /= $quantity;
         
         return $displayPrice;
     }
@@ -527,7 +527,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             return ;
         }
         
-        return self::DEFAULT_VAT_GROUPS_MAP[$sysId];
+        return self::$defaultVatGroupsMap[$sysId];
     }
     
     

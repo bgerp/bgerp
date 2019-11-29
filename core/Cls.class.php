@@ -75,7 +75,11 @@ class core_Cls
             // Ако се използва съкратено име, то името на приложението
             // се прибавя като приставка и долна черта отпред
             if (($last = strrpos($className, '_')) === false) {
-                $className = EF_APP_CODE_NAME . '_' . $className;
+                if(is_dir(getFullPath($className))) {
+                    $className = strtolower($className) . '_Index';
+                } else {
+                    $className = EF_APP_CODE_NAME . '_' . $className;
+                }
             } elseif ($last > 0) {
                 // Капитализираме буквата след последната черта
                 if ($last + 1 < strlen($className)) {
@@ -467,6 +471,27 @@ class core_Cls
             }
             core_Debug::stopTimer('shutdown');
             core_Debug::log('Край на shutdown');
+        }
+    }
+    
+    
+    /**
+     * Генерира последователно 'shutdown' събития във всички singleton класове
+     */
+    public static function afterSessionClose()
+    {
+        if (count(core_Cls::$singletons)) {
+            core_Debug::log('Начало на afterSessionClose');
+            core_Debug::startTimer('afterSessionClose');
+            foreach (core_Cls::$singletons as $name => $instance) {
+                if ($instance instanceof core_BaseClass) {
+                    core_Debug::startTimer('afterSessionClose_' . $name);
+                    $instance->invoke('afterSessionClose');
+                    core_Debug::stopTimer('afterSessionClose_' . $name);
+                }
+            }
+            core_Debug::stopTimer('afterSessionClose');
+            core_Debug::log('Край на afterSessionClose');
         }
     }
     

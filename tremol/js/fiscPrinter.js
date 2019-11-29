@@ -58,7 +58,7 @@ function fpServerSetDeviceSettings(ip, tcpPort, password, serialPort, baudRate, 
         }
         
         if (!fp.IsCompatible()) {
-            throw new Error("Текущата версия на библиотеката и сървърните дефиниции се различават!");
+        	console.log("Текущата версия на библиотеката и сървърните дефиниции се различават!");
         }
     } catch(ex) {
         handleException(ex);

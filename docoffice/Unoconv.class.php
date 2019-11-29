@@ -45,7 +45,7 @@ class docoffice_Unoconv extends core_Manager
         $unoconv = $conf->OFFICE_CONVERTER_UNOCONV;
         
         // Инстанция на класа
-        $Script = cls::get(fconv_Script);
+        $Script = cls::get('fconv_Script');
         
         // Пътя до файла, в който ще се записва получения текст
         $outFilePath = $Script->tempDir . fileman_Files::getFileNameWithoutExt($fileHnd) . ".{$toExt}";

@@ -749,7 +749,7 @@ class eshop_Products extends core_Master
         
         if($data->rec->saleState == 'closed'){
             $data->row->STATE_EXTERNAL = "<span class='option-not-in-stock' style='font-size:0.9em !important'>" . tr('Този продукт вече не се предлага') . "</span>";
-        } elseif($data->rec->saleState == 'empty'){
+        } elseif($data->rec->saleState == 'empty' && empty($data->rec->coDriver)){
             $data->row->STATE_EXTERNAL = "<span style='border-radius: 3px;padding: 4px;font-size: .8em;background-color: #e6e6e6;border: solid 1px #ff7070;display: inline-block;color: #c00;' '>" . tr('Свържете се с нас') . "</span>";
         }
     }

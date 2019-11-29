@@ -31,3 +31,7 @@ function portalSearch() {
 		}
 	});
 }
+
+function render_portalSearch() {
+	portalSearch();
+}

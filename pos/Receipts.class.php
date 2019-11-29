@@ -25,7 +25,7 @@ class pos_Receipts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Rejected, doc_plg_MultiPrint, plg_Printing, acc_plg_DocumentSummary, plg_Printing,plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,plg_Modified';
+    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing,plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,plg_Modified';
     
     
     /**
@@ -402,7 +402,7 @@ class pos_Receipts extends core_Master
             $action = explode('|', $dRec->action);
             switch ($action[0]) {
                 case 'sale':
-                    $price = $this->getDisplayPrice($dRec->price, $dRec->param, $dRec->discountPercent, $rec->pointId);
+                    $price = $this->getDisplayPrice($dRec->price, $dRec->param, $dRec->discountPercent, $rec->pointId, $dRec->quantity);
                     $rec->total += round($dRec->quantity * $price, 2);
                     break;
                 case 'payment':
@@ -1919,13 +1919,14 @@ class pos_Receipts extends core_Master
     /**
      * Обработване на цената
      */
-    protected function on_AfterGetDisplayPrice($mvc, &$res, $priceWithoutVat, $vat, $discountPercent, $pointId)
+    protected function on_AfterGetDisplayPrice($mvc, &$res, $priceWithoutVat, $vat, $discountPercent, $pointId, $quantity)
     {
         if (empty($res)) {
-            $res = $priceWithoutVat * (1 + $vat);
+            $res = $priceWithoutVat * $quantity * (1 + $vat);
             if (!empty($discountPercent)) {
                 $res *= (1 - $discountPercent);
             }
+            $res /= $quantity;
             
             $res = round($res, 2);
         }

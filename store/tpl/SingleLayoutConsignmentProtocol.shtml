@@ -13,6 +13,10 @@
                             <!--ET_BEGIN state-->
                             <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                             <!--ET_END state-->
+                            
+                            <!--ET_BEGIN zoneReadiness-->
+               				<div class="document-block"><span class='block-caption'>|В зона|* [#zoneId#]</span>: <span class='block-readiness'>[#zoneReadiness#]</span></div>
+               				<!--ET_END zoneReadiness-->
                         </td>
                         <td class="cell custom-header-bg" style='width:35%;'><b>|Доверител|*</b></td>
                     </tr>

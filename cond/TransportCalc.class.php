@@ -152,4 +152,17 @@ class cond_TransportCalc
     {
         return $this->class->addToCartView($termRec, $cartRec, $cartRow, $tpl);
     }
+    
+    
+    /**
+     * При упдейт на количката в е-магазина, какво да се  изпълнява
+     *
+     * @param stdClass $cartRec
+     *
+     * @return void
+     */
+    public function onUpdateCartMaster(&$cartRec)
+    {
+        return $this->class->onUpdateCartMaster($cartRec);
+    }
 }

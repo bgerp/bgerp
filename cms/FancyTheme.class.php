@@ -45,8 +45,7 @@ class cms_FancyTheme extends core_ProtoInner
         $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (2000x300px)->Изображение 4');
         $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (2000x300px)->Изображение 5');
         $form->FLD('colabImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка за логин и при колаборатор (1000x150px)->Изображение');
-        
-        $form->FLD('interframeImage', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (2000x300px)->Междинна');
+
         $form->FLD('fadeDelay', 'int', 'caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000');
         $form->FLD('fadeTransition', 'int', 'caption=Превключване на картинките->Транзиция,suggestions=500|1000|1500');
         $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Заглавна картинка за мобилен (360x104px)->Изображение 1');
@@ -235,13 +234,7 @@ class cms_FancyTheme extends core_ProtoInner
                     $conf = core_Packs::getConfig('core');
                     
                     $banner = '';
-                    
-                    if ($this->innerForm->interframeImage) {
-                        $img = new thumb_Img(array($this->innerForm->interframeImage, 2000, 300, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
-                        $imageURL = $img->getUrl('forced');
-                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 2000, 'height' => 300, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => 'position:absolute'));
-                        $banner .= $hImage;
-                    }
+
                     $banner .= '<div class="fadein">';
                     $style = '';
                     foreach ($imgs as $iHash) {
@@ -257,7 +250,7 @@ class cms_FancyTheme extends core_ProtoInner
                     $fadeDelay = $this->innerForm->fadeDelay ? $this->innerForm->fadeDelay : 5000;
                     
                     if(count($imgs) > 1){
-                        $banner->append('.fadein { position:relative; display:block; max-height:100%; max-width:100%} .fadein img {position:relative; left:0; top:0;}', 'STYLES');
+                        $banner->append('.fadein { position:relative; display:block;} .fadein img {position:relative; left:0; top:0;}', 'STYLES');
                         jquery_Jquery::run($banner, "fadeImages({$fadeTransition}, {$fadeDelay});", true);
                     }
                     

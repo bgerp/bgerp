@@ -24,7 +24,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
     {
         setIfNot($mvc->filterProtoByMeta, 'canSell');
         expect(in_array($mvc->filterProtoByMeta, array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture')));
-        expect($mvc instanceof deals_DealDetail || $mvc instanceof sales_QuotationsDetails);
+        expect($mvc instanceof deals_DealDetail || $mvc instanceof sales_QuotationsDetails || $mvc instanceof store_InternalDocumentDetail);
     }
     
     
@@ -33,7 +33,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
      */
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        if ($mvc->haveRightFor('createProduct', (object) array($mvc->masterKey => $data->masterId))) {
+        if ($mvc->haveRightFor('createproduct', (object) array($mvc->masterKey => $data->masterId))) {
             $data->toolbar->addBtn('Създаване||New item', array($mvc, 'CreateProduct', $mvc->masterKey => $data->masterId, 'ret_url' => true), 'id=btnNewProduct,title=Създаване на нов нестандартен артикул', 'ef_icon = img/16/bag-new.png,order=12');
         }
     }
@@ -55,7 +55,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                             $requiredRoles = 'no_one';
                         }
                     }
-                } else {
+                } elseif(!($mvc instanceof store_InternalDocumentDetail)){
                     $requiredRoles = $mvc->getRequiredRoles('add', $rec);
                 }
                 
@@ -228,6 +228,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 
                 $form->rec->folderId = $masterRec->folderId;
                 $form->rec->threadId = $masterRec->threadId;
+                $form->rec->_createProductForm = true;
                 
                 // Извикваме в класа и драйвера нужните ивенти
                 if ($proto && !$form->rec->innerClass) {
@@ -262,8 +263,10 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 $Driver->invoke('AfterPrepareEditForm', array($Products, (object) array('form' => $form, 'action' => $action)));
                 $defMetas = $Driver->getDefaultMetas();
                 if (isset($defMetas['canManifacture'])) {
-                    $form->setField('tolerance', 'input');
-                    $form->setField('term', 'input');
+                    if(!($mvc instanceof store_InternalDocumentDetail)){
+                        $form->setField('tolerance', 'input');
+                        $form->setField('term', 'input');
+                    }
                 }
                 
                 $form->input();
@@ -376,17 +379,16 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     }
                 }
                 
-                $hasError = false;
-                if (!empty($productId) && $mvc instanceof sales_QuotationsDetails) {
-                    if ($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$productId}  AND #quantity='{$rec->quantity}'")) {
-                        if (($sameProduct->id != $rec->id) && $rec->id) {
-                            $form->setError('packQuantity', 'Избраният продукт вече фигурира с това количество');
-                        }
-                    }
+                if(deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
+                    $form->setError('productId,packagingId,packPrice,discount,notes,packQuantity', 'Има въведен ред със същите данни');
                 }
                 
                 if (!$form->gotErrors()) {
                     // Създаване на нов артикул само при нужда
+                    if (!empty($productId) && $mvc instanceof sales_QuotationsDetails) {
+                        $sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$productId}  AND #quantity='{$rec->quantity}'");
+                    }
+                    
                     $msg = null;
                     if (!isset($productId)) {
                         if ($sameProduct && $sameProduct->productId) {
@@ -420,6 +422,19 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                         if ($Driver->canAutoCalcPrimeCost($productId) == true && empty($dRec->packPrice)) {
                             $Policy = (isset($mvc->Master->Policy)) ? $mvc->Master->Policy : cls::get('price_ListToCustomers');
                             $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
+                            
+                            if(empty($masterRec->currencyRate)){
+                                $masterRec->currencyRate = currency_CurrencyRates::getRate(dt::now(), null, $masterRec->currencyId);
+                            }
+                            
+                            if(empty($masterRec->chargeVat)){
+                                $masterRec->chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId)) ? 'yes' : 'no';
+                            }
+                            
+                            if($mvc instanceof store_InternalDocumentDetail){
+                                $dRec->quantity = $dRec->packQuantity * $dRec->quantityInPack;
+                            }
+                            
                             $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $dRec->productId, $dRec->packagingId, $dRec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
                             
                             $price = $policyInfo->price;
@@ -428,8 +443,12 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                             }
                             $dRec->autoPrice = true;
                             
-                            $price = deals_Helper::getPurePrice($price, cat_Products::getVat($productId, $masterRec->valior), $masterRec->currencyRate, $masterRec->chargeVat);
-                            $dRec->price = $price;
+                            if($mvc instanceof store_InternalDocumentDetail){
+                                $dRec->packPrice = $price;
+                            } else {
+                                $price = deals_Helper::getPurePrice($price, cat_Products::getVat($productId, $masterRec->valior), $masterRec->currencyRate, $masterRec->chargeVat);
+                                $dRec->price = $price;
+                            }
                         }
                     } else {
                         

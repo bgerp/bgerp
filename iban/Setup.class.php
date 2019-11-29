@@ -45,6 +45,6 @@ class iban_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-        'IBAN_CODE_VERSION' => array('enum(1.1.2, 1.4.7, 2.5.6, 2.6.5)', 'caption=Версия на IBAN модула->Версия'),
+        'IBAN_CODE_VERSION' => array('enum(1.1.2, 1.4.7, 2.5.6, 2.6.5, 2.7.1)', 'caption=Версия на IBAN модула->Версия'),
     );
 }

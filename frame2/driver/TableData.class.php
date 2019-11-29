@@ -33,6 +33,30 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
+     * Кои полета от таблицата в справката да се сумират в обобщаващия ред
+     *
+     * @var int
+     */
+    protected $summaryListFields;
+    
+   
+    /**
+     * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
+     *
+     * @var int
+     */
+    protected $summaryRowCaption = 'ОБЩО';
+    
+    
+    /**
+     * Кои полета от листовия изглед да може да се сортират
+     *
+     * @var int
+     */
+    protected $sortableListFields;
+    
+    
+    /**
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
@@ -43,11 +67,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
-     * Кое поле от $data->recs да се следи, ако има нов във новата версия
+     * Коя комбинация от полета от $data->recs да се следи, ако има промяна в последната версия
      *
      * @var string
      */
-    protected $newFieldToCheck;
+    protected $newFieldsToCheck;
     
     
     /**
@@ -110,6 +134,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $data->recs = $this->prepareRecs($rec, $data);
         setIfNot($data->groupByField, $this->groupByField);
         setIfNot($data->groupedFieldOnNewRow, $this->groupedFieldOnNewRow);
+        setIfNot($data->summaryListFields, $this->summaryListFields);
+        setIfNot($data->summaryRowCaption, $this->summaryRowCaption);
         
         return $data;
     }
@@ -186,6 +212,64 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
+     * Подготвя сумиращия ред
+     * 
+     * @param stdClass $data
+     * @param array $fieldsToSumArr
+     * 
+     * @return void|stdClass $summaryRow
+     */
+    protected function getSummaryListRow($data, $fieldsToSumArr)
+    {
+        $summaryRow = new stdClass();
+        if(!count($data->recs) || !count($fieldsToSumArr)) {
+            
+            return;
+        }
+        
+        // Ако има полета за сумиране
+        array_walk($data->recs, function ($a) use (&$summaryRow, $fieldsToSumArr){
+            foreach ($fieldsToSumArr as $fld){
+                if(is_numeric($a->{$fld})){
+                    $summaryRow->{$fld} += $a->{$fld};
+                }
+            }
+        });
+          
+        // Добавяне на сумиращия ред
+        $firstKey = key($data->listFields);
+        $summaryRow->{$firstKey} = tr($data->summaryRowCaption);
+        $summaryRow->_isSummary = true;
+        $summaryRow->ROW_ATTR['class'] = 'reportTableDataTotal';
+        
+        return $summaryRow;
+    }
+    
+    /**
+     * Сортира полетата на записите в указаната стойност
+     * 
+     * @param array $recs
+     * @param null|string $sortFld
+     * @param null|string $sortDirection
+     * 
+     * @return void
+     */
+    private function sortRecsByDirection(&$recs, $sortFld = null, $sortDirection = null)
+    {
+        if(!isset($sortFld) || !isset($sortDirection)) {
+            
+            return;
+        }
+       
+        if($sortDirection != 'none'){
+            uasort($recs, function($a, $b) use ($sortFld, $sortDirection) {
+                return (strip_tags($a->{$sortFld}) > strip_tags($b->{$sortFld})) ? (($sortDirection  == 'up') ? -1 : 1) : (($sortDirection  == 'up')? 1 : -1);
+            });
+        }
+    }
+    
+    
+    /**
      * рендиране на таблицата
      * 
      * @param stdClass $rec
@@ -195,32 +279,62 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     protected function renderTable($rec, &$data)
     {
         $tpl = new core_ET('');
-        
+     
         // Подготовка на пейджъра
         $itemsPerPage = null;
         if (!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'))) {
             setIfNot($itemsPerPage, $rec->listItemsPerPage, $this->listItemsPerPage);
             $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $itemsPerPage));
             $data->Pager->setPageVar('frame2_Reports', $rec->id);
-            $data->Pager->itemsCount = countR($data->recs);
         }
         
         // Вербализиране само на нужните записи
         if (is_array($data->recs)) {
             
+            // Добавяне на обобщаващия ред, ако е указано да се показва
+            $summaryFields = arr::make($data->summaryListFields);
+            $fieldsToSumArr = array_intersect($summaryFields, array_keys($data->listFields));
+            $summaryRow = $this->getSummaryListRow($data, $fieldsToSumArr);
+            
+            // Ако е указано сортиране, сортират се записите, ако има сумарен ред той не участва в сортирането
+            $sortDirection = Request::get("Sort{$rec->containerId}");
+            $sortDirectionArr  = explode('|', $sortDirection);
+            $sortFld = !empty($sortDirectionArr[0]) ? $sortDirectionArr[0] : null;
+            $sortDirection = !empty($sortDirectionArr[1]) ? $sortDirectionArr[1] : null;
+            
             // Ако има поле за групиране, предварително се групират записите
             if (!empty($data->groupByField)) {
-                $data->recs = $this->orderByGroupField($data->recs, $data->groupByField);
+                $data->recs = $this->orderByGroupField($data->recs, $data->groupByField, $sortFld, $sortDirection);
+            } else {
+                $this->sortRecsByDirection($data->recs, $sortFld, $sortDirection);
+            }
+            
+            // Добавяне на сумарния ред, ако има такъв към записите, за да участва в страницирането
+            if(is_object($summaryRow)){
+                $data->recs = array('_total' => $summaryRow) + $data->recs;
+            }
+            
+            if (isset($data->Pager)) {
+                $data->Pager->itemsCount = countR($data->recs);
             }
             
             foreach ($data->recs as $index => $dRec) {
                 if (isset($data->Pager) && !$data->Pager->isOnPage()) {
                     continue;
                 }
-                $data->rows[$index] = $this->detailRecToVerbal($rec, $dRec);
+                
+                $data->rows[$index] = ($dRec->_isSummary !== true) ? $this->detailRecToVerbal($rec, $dRec) : $dRec;
+                
+                // Ако реда е обобщаващ вербализира се отделно
+                if($dRec->_isSummary === true && count($fieldsToSumArr)){
+                    foreach ($fieldsToSumArr as $fld){
+                        $data->rows[$index]->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
+                        $data->rows[$index]->{$fld} = ht::styleNumber($data->rows[$index]->{$fld}, $dRec->{$fld});
+                    }
+                }
             }
         }
-        
+       
         // Рендиране на пейджъра
         if (isset($data->Pager)) {
             $tpl->replace($data->Pager->getHtml(), 'PAGER_TOP');
@@ -239,7 +353,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $filterFields = arr::make($this->filterEmptyListFields, true);
         $filterFields['_tagField'] = '_tagField';
         
+        // Ако има поле за групиране
         if (isset($data->groupByField)) {
+            $totalRow = $data->rows['_total'];
+            unset($data->rows['_total']);
             $found = false;
             
             // Групиране само ако има поне една стойност за групиране
@@ -257,10 +374,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 $this->groupRows($data->recs, $data->rows, $data->listFields, $data->groupByField, $data);
                 $filterFields[$data->groupByField] = $data->groupByField;
             }
+           
+            if(is_object($totalRow)){
+                $data->rows = array('_total' => $totalRow) + $data->rows;
+            }
         }
-        
+       
+        // Филтриране на празните колони и рендиране на таблицата
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, implode(',', $filterFields));
-        
         $tpl->append($table->get($data->rows, $data->listFields), 'TABLE');
         
         return $tpl;
@@ -268,27 +389,32 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
-     * Подреждане на записите първо по-поле и после групиране по полр
-     *
-     * @param int    $recs
-     * @param string $field
-     *
+     * Групиране и сортиране на резултатите по поле
+     * 
+     * @param array $recs
+     * @param string $groupField
+     * @param string|null $sortFld
+     * @param string|null $sortDirection
+     * 
      * @return array $newRecs
      */
-    private function orderByGroupField($recs, $groupField)
+    private function orderByGroupField($recs, $groupField, $sortFld = null, $sortDirection = null)
     {
         $newRecs = array();
         foreach ($recs as $i => $r) {
-            $newRecs[$i] = $r;
+            
+            // Извличане на тези записи от със същата стойност за групиране
+            $groupedArr = array($i => $r);
             $subArr = array_filter($recs, function ($a) use ($r, $groupField) {
-                
                 return ($a->{$groupField} == $r->{$groupField});
             });
-            if (count($subArr)) {
-                $newRecs = array_replace($newRecs, $subArr);
-            }
+            
+            // Сортират се допълнително ако е указано
+            $groupedArr += $subArr;
+            $this->sortRecsByDirection($groupedArr, $sortFld, $sortDirection);
+            $newRecs += $groupedArr;
         }
-        
+       
         return $newRecs;
     }
     
@@ -373,7 +499,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      *
      * @param int      $columnsCount - брой колони
      * @param string   $groupValue   - невербалното име на групата
-     * @param string   $groupVerbal  - вербалното име на групата
+     * @param mixed   $groupVerbal  - вербалното име на групата
      * @param stdClass $data         - датата
      *
      * @return string - съдържанието на групиращия ред
@@ -391,7 +517,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      *
      * @param stdClass $rec
      *
-     * @return array
+     * @return core_FieldSet $fld
      */
     public function getCsvExportFieldset($rec)
     {
@@ -402,23 +528,68 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
-     * Подготвя данните на справката от нулата, които се записват в модела
+     * Добавя бутони за сортиране на поле от таблицата
+     * 
+     * @param string $sortUrlParam
+     * @param string $fieldName
+     * @param string $fieldCaption
+     * 
+     * @return string $fieldCaption
+     */
+    private function addSortingBtnsToField($sortUrlParam, $fieldName, $fieldCaption)
+    {
+        $direction = Request::get($sortUrlParam);
+        $directionArr = (!empty($direction)) ? explode('|', $direction) : null;
+        
+        // Подготовка на бутоните за сортиране
+        $sort = "{$fieldName}|up";
+        $img = 'img/icon_sort.gif';
+        if(is_array($directionArr)){
+            if($directionArr[0] == $fieldName){
+                $img = ($directionArr[1] == 'up') ? 'img/icon_sort_up.gif' : (($directionArr[1] == 'down') ? 'img/icon_sort_down.gif' : $img);
+                $sort = ($directionArr[1] == 'up') ? "{$fieldName}|down" : (($directionArr[1] == 'down') ? "{$fieldName}|none" : "{$fieldName}|up");
+            }
+        }
+        
+        $currUrl = getCurrentUrl();
+        $currUrl[$sortUrlParam] = $sort;
+        $href = ht::escapeAttr(toUrl($currUrl));
+        
+        // Добавя се на кепшъна бутони за сортиране
+        $captionArr = explode('->', $fieldCaption);
+        $startCapttion = (count($captionArr) == 2) ? "{$captionArr[0]}->" : "";
+        $midCapttion = (count($captionArr) == 2) ? $captionArr[1] : $captionArr[0];
+        
+        $fieldCaption = "{$startCapttion}|*<div class='rowtools'><div class='l'>|{$midCapttion}|*</div><a class='r' href='{$href}' ><img  src=" . sbf($img) .
+        " width='16' height='16' alt='sort' class='sortBtn'></a></div>";
+        
+        return $fieldCaption;
+    }
+    
+    
+    /**
+     * Взима полетата, които ще се показват в листовия изглед на данните
      *
      * @param stdClass $rec    - запис на справката
      * @param bool     $export - таблицата за експорт ли е
      *
-     * @return stdClass|NULL $data - подготвените данни
+     * @return array $da$listFieldsta - полетата за листовия изглед
      */
     protected function getListFields($rec, $export = false)
     {
         $listFields = array();
+        $sortUrlParam = "Sort{$rec->containerId}";
+        $listFieldsToSort = arr::make($this->sortableListFields, true);
         
         $fieldset = $this->getTableFieldSet($rec, $export);
         $fields = $fieldset->selectFields();
-        if (is_array($fields)) {
-            foreach ($fields as $name => $fld) {
-                $listFields[$name] = $fld->caption;
+        
+        foreach ($fields as $name => $fld) {
+            // Ако полето ще се сортира, добавя се функционалност за сортиране
+            if(array_key_exists($name, $listFieldsToSort)) {
+                $fld->caption = $this->addSortingBtnsToField($sortUrlParam, $name, $fld->caption);
             }
+            $listFields[$name] = $fld->caption;
         }
         
         return $listFields;
@@ -479,6 +650,19 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
+     * Кои полета да се следят при обновяване, за да се бие нотификация
+     *
+     * @param stdClass       $rec
+     *
+     * @return string
+     */
+    public function getNewFieldsToCheckOnRefresh($rec)
+    {
+        return $this->newFieldsToCheck;
+    }
+    
+    
+    /**
      * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
      *
      * @param stdClass $rec
@@ -503,27 +687,56 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             return true;
         }
         
-        if (empty($this->newFieldToCheck)) {
+        // Комбинацията при промяна на кои полета ще се следи
+        $newFieldsToCheck = $this->getNewFieldsToCheckOnRefresh($rec);
+        if (empty($newFieldsToCheck)) {
             
             return false;
         }
         
         $oldRec = $all[key($all)]->oldRec;
-        $newContainerIds = $oldContainerIds = array();
+        $newValuesToCheck = $oldValuesToCheck = array();
         
+        // Извличане на стойностите за следене от текущата версия
         if (is_array($rec->data->recs)) {
-            $newContainerIds = arr::extractValuesFromArray($rec->data->recs, $this->newFieldToCheck);
+            $newValuesToCheck = static::extractFieldsFromArr($rec->data->recs, $newFieldsToCheck);
         }
         
+        // Извличане на стойностите за следене от предишната версия
         if (is_array($oldRec->data->recs)) {
-            $oldContainerIds = arr::extractValuesFromArray($oldRec->data->recs, $this->newFieldToCheck);
+            $oldValuesToCheck = static::extractFieldsFromArr($oldRec->data->recs, $newFieldsToCheck);
         }
-        
-        // Ако има нови документи бие се нотификация
-        $diff = array_diff_key($newContainerIds, $oldContainerIds);
+       
+        // Ако има промяна в следената комбинация от полета, да се бие нотификация
+        $diff = array_diff_key($newValuesToCheck, $oldValuesToCheck);
         $res = (is_array($diff) && count($diff));
         
         return $res;
+    }
+    
+    
+    /**
+     * Помощна ф-я за извличане на желаните полета от масив
+     * 
+     * @param mixed $arr
+     * @param mixed $fieldsToCheck
+     * 
+     * @return array $result
+     */
+    protected static function extractFieldsFromArr($arr, $fieldsToCheck)
+    {
+        $fieldsToCheckArr = arr::make($fieldsToCheck, true);
+        $result = array_values(array_map(function ($obj) use ($fieldsToCheckArr) {
+            $value = array();
+            foreach ($fieldsToCheckArr as $fld){
+                $value[] = (is_object($obj)) ? $obj->{$fld} : $obj[$fld];
+            }
+            return implode('|', $value);
+        }, $arr));
+        
+        $result = array_combine($result, $result);
+        
+        return is_array($result) ? $result : array();
     }
     
     

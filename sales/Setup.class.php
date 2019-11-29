@@ -351,6 +351,7 @@ class sales_Setup extends core_ProtoSetup
         'migrate::setContragentFieldKeylist3',
         'migrate::updateDeltaFields',
         'migrate::closeZDDSRep',
+        'migrate::migrateTransportsInDeals'
     );
     
     
@@ -372,7 +373,7 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'sales_SalesLastPricePolicy,sales_reports_SalesPriceImpl, sales_reports_OweInvoicesImpl, 
+    public $defClasses = 'sales_SalesLastPricePolicy, 
                        sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_OverdueByAdvancePayment,
                        sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,sales_reports_OverdueInvoices,sales_reports_SalesByContragents';
     
@@ -598,6 +599,85 @@ class sales_Setup extends core_ProtoSetup
         if ($rec) {
             $rec->state = 'closed';
             core_Classes::save($rec, 'state');
+        }
+    }
+    
+    
+    /**
+     * Oпит за миграция на транспорта
+     */
+    function migrateTransportsInDeals()
+    {
+        $Sales = cls::get('sales_Sales');
+        $Sales->setupMvc();
+        if(!$Sales->count()) return;
+        core_App::setTimeLimit(800);
+        
+        $SaleDetails = cls::get('sales_SalesDetails');
+        $SaleDetails->setupMvc();
+        
+        // Кои начини на доставка имат калкулатор за транспорт
+        $Terms = cls::get('cond_DeliveryTerms');
+        $Terms->setupMvc();
+        $dTermQuery = $Terms->getQuery();
+        $dTermQuery->where("#costCalc IS NOT NULL");
+        $dTermQuery->show('id');
+        $termsWithCalcs = arr::extractValuesFromArray($dTermQuery->fetchAll(), 'id');
+        if(!count($termsWithCalcs)) return;
+        
+        // Намиране на продажбите, с избраните начини на доставка
+        $startDate = '2019-10-28 00:00:00';
+        $saleQuery = $Sales->getQuery();
+        $saleQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=originId');
+        $saleQuery->where("#createdOn >= '{$startDate}'");
+        $saleQuery->where("#state != 'rejected' AND #originId IS NOT NULL AND #deliveryTermId IS NOT NULL");
+        $saleQuery->where("#docClass =" . sales_Quotations::getClassId());
+        $saleQuery->in('deliveryTermId', $termsWithCalcs);
+        $saleQuery->show('id,originId');
+        
+        while ($saleRec = $saleQuery->fetch()){
+            
+            try{
+                // Извличат се детайлите на офертите, към които са създадени
+                $quoteOrigin = doc_Containers::getDocument($saleRec->originId);
+                $quoteDetails = sales_QuotationsDetails::getQuery();
+                $quoteDetails->where("#quotationId = {$quoteOrigin->that}");
+                $quoteDetails->show('productId,packagingId,notes,quantity,quotationId');
+                $quoteDetails->orderBy('optional', 'DESC');
+                $quoteRecs = $quoteDetails->fetchAll();
+                
+                // Всички детайли към продажбата
+                $dQuery = $SaleDetails->getQuery();
+                $dQuery->show('productId,packagingId,notes,quantity,saleId');
+                $dQuery->where("#saleId = {$saleRec->id}");
+                while($dRec = $dQuery->fetch()){
+                    
+                    // Ако има транспорт към нея, не се прави нищо
+                    $tRec = sales_TransportValues::get('sales_Sales', $saleRec->id, $dRec->id);
+                    if(is_object($tRec)) continue;
+                    $continue = false;
+                    
+                    // Ако няма се търси в оригиналната оферта имали ред със същите данни
+                    foreach ($quoteRecs as $quoteRec){
+                        if($quoteRec->productId == $dRec->productId && $quoteRec->packagingId == $dRec->packagingId && md5($quoteRec->notes) == md5($dRec->notes) && $dRec->quantity == $quoteRec->quantity){
+                            
+                            // И той има транспорт
+                            $qRec = sales_TransportValues::get('sales_Quotations', $quoteRec->quotationId, $quoteRec->id);
+                            if (isset($qRec->fee)) {
+                                
+                                // Транспорта се копира
+                                sales_TransportValues::sync('sales_Sales', $saleRec->id, $dRec->id, $qRec->fee, $qRec->deliveryTime, $qRec->explain);
+                                $continue = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if($continue) continue;
+                }
+            } catch(core_exception_Expect $e){
+                
+            }
         }
     }
 }
