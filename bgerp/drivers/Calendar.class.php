@@ -113,7 +113,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->pages . '_' . $userId . '_' . Mode::get('screenMode') . '_' . $resData->month . '_' . $resData->year . '_' . Request::get($Calendar->searchInputField) . '_' . core_Lg::getCurrent() . '_' . $lastCalendarEventRec. '_' . $lastAgendaEventRec . '_' . dt::now(false));
         $resData->cacheType = 'Calendar';
         
-       // $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
+        $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
             
