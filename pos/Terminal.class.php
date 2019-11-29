@@ -732,7 +732,7 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->push('pos/tpl/css/styles.css', 'CSS');
         if (!Mode::is('printing')) {
             $tpl->push('pos/js/scripts.js', 'JS');
-            $tpl->push('https://cdn.jsdelivr.net/npm/naviboard@4.1.0/dist/naviboard.min.js', 'JS');
+            $tpl->push('pos/js/naviboard.js', 'JS');
             jquery_Jquery::run($tpl, 'posActions();');
         }
 

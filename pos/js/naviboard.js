@@ -474,7 +474,7 @@ var handleKeyDown = function(event) {
 
         if (this.matrixForNavigation != null && this.matrixForNavigation.length != 0) {
             this.currentEvent = event;
-            if (event.keyCode == 40) { //Navigating down in vertical direction
+            if (event.keyCode == 40 && event.code != "Numpad2") { //Navigating down in vertical direction
                 if (this.currentX + 1 >= maxHeight) { //"Nothing is DOWN!"
 
                 } else if (this.matrixForNavigation[this.currentX + 1][this.currentY] != undefined && this.matrixForNavigation[this.currentX + 1][this.currentY] != this.activeElement) {
@@ -518,7 +518,7 @@ var handleKeyDown = function(event) {
                 } else {
 
                 }
-            } else if (event.keyCode == 38) {
+            } else if (event.keyCode == 38 && event.code != "Numpad8") {
                 if (this.currentX - 1 < 0) { //"Nothing is UP !!"
 
                 } else if (this.matrixForNavigation[this.currentX - 1][this.currentY] != undefined && this.matrixForNavigation[this.currentX - 1][this.currentY] != this.activeElement) {
