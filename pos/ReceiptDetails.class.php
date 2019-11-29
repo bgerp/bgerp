@@ -83,6 +83,12 @@ class pos_ReceiptDetails extends core_Detail
     
     
     /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'plg_Modified,plg_Created';
+        
+        
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -762,7 +768,7 @@ class pos_ReceiptDetails extends core_Detail
     {
         $query = pos_ReceiptDetails::getQuery();
         $query->where("#receiptId = {$receiptId} AND #action = 'sale|code'");
-        $query->orderBy("id", 'DESC');
+        $query->orderBy("modifiedOn", 'DESC');
         $query->limit(1);
         $rec = $query->fetch();
         
