@@ -296,7 +296,7 @@ class pos_ReceiptDetails extends core_Detail
         $success = false;
         
         try{
-            expect(empty($receiptRec->paid), 'Не може да се добавя продукт, ако има направено плащане|*!');
+            expect(empty($receiptRec->paid), 'Не може да се добави артикул, ако има направено плащане|*!');
             
             // Запис на продукта
             $rec = (object)array('receiptId' => $receiptId, 'action' => 'sale|code');

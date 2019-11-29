@@ -158,14 +158,14 @@ class pos_Terminal extends peripheral_Terminal
         switch($operation){
             case 'add':
                 $inputUrl = array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id);
-                $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id);
+                $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id, 'refreshPanel' => 'no');
                 break;
             case 'quantity':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity');
                 break;
             case 'discount':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setdiscount');
-                $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id);
+                $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id, 'refreshPanel' => 'no');
                 break;
             case 'price':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice');
@@ -176,10 +176,10 @@ class pos_Terminal extends peripheral_Terminal
             case 'payment';
                 break;
             case 'contragent';
-                $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id);
+                $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id, 'refreshPanel' => 'no');
                 break;
             case 'revert';
-                $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id);
+            $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id, 'refreshPanel' => 'no');
                 break;
         }
         
@@ -191,20 +191,7 @@ class pos_Terminal extends peripheral_Terminal
             $keyupUrl = toUrl($keyupUrl, 'local');
         }
         
-        // Ако можем да добавяме към бележката
-        if ($Receipts->pos_ReceiptDetails->haveRightFor('add', (object) array('receiptId' => $rec->id))) {
-            $modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
-            $discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
-            
-            $doActionUrl = toUrl(array($this, 'setoperation', 'receiptId' => $rec->id), 'local');
-        } else {
-            $discUrl = $modQUrl = $doActionUrl = null;
-            $disClass = 'disabledBtn';
-            $disabled = 'disabled';
-        }
-        
         $value = null;
-        
         $browserInfo = Mode::get('getUserAgent');
         if (stripos($browserInfo, 'Android') !== false) {
             //$htmlScan = "<input type='button' class='webScan {$disClass}' {$disabled} id='webScan' name='scan' onclick=\"document.location = 'http://zxing.appspot.com/scan?ret={$absUrl}?ean={CODE}'\" value='Scan' />";
@@ -220,21 +207,6 @@ class pos_Terminal extends peripheral_Terminal
         $params = array('name' => 'ean', 'value' => $inputValue, 'type' => 'text', 'class'=> 'large-field select-input-pos', 'data-url' => $inputUrl, 'data-keyupurl' => $keyupUrl, 'title' => 'Въвеждане', 'list' => 'suggestions');
         if(Mode::is('screenMode', 'narrow')) {
             $params['readonly'] = 'readonly';
-        }
-        
-        // Показване на даталист на сторно бележката, с предложения на артикулите, които се срещат в оригинала
-        if(isset($rec->revertId)){
-            $dQuery = pos_ReceiptDetails::getQuery();
-            $dQuery->where(array('#receiptId = [#1#]', $rec->revertId));
-            $dQuery->where('#productId IS NOT NULL');
-            $datalist = "<datalist id='suggestions'>";
-            while ($dRec = $dQuery->fetch()){
-                $pCode = cat_Products::getVerbal($dRec->productId, 'code');
-                $pName = cat_Products::getTitleById($dRec->productId, false);
-                $datalist .= "<option data-value = '{$pCode}' value='{$pName}'>";
-            }
-            $datalist .= "</datalist>";
-            $block->append($datalist, 'INPUT_DATA_LIST');
         }
         
         $operations = arr::make(self::$operationsArr);
@@ -265,9 +237,6 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $block->append(ht::createElement('input', $params), 'INPUT_FLD');
-        $block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
-        $block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
-        
         $block->append($this->renderKeyboard('tools'), 'KEYBOARDS');
         
         return $block;
@@ -279,13 +248,16 @@ class pos_Terminal extends peripheral_Terminal
         expect($id = Request::get('receiptId', 'int'));
         expect($rec = pos_Receipts::fetch($id));
         expect($operation = Request::get('operation', "enum(" . self::$operationsArr . ")"));
-        $selectedRecId = Request::get('recId', 'int');
+        $refreshPanel = Request::get('refreshPanel', 'varchar');
         
+        $refreshPanel = ($refreshPanel == 'no') ? false : true;
+        $selectedRecId = Request::get('recId', 'int');
+       
         $string = Request::get('search', 'varchar');
         Mode::setPermanent("currentOperation", $operation);
         Mode::setPermanent("currentSearchString", $string);
         
-        return static::returnAjaxResponse($rec, $selectedRecId, true);
+        return static::returnAjaxResponse($rec, $selectedRecId, true, false, $refreshPanel);
     }
     
     
@@ -638,10 +610,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     public static function renderKeyboard($tab)
     {
-        $tpl = new core_ET("");
-        if(Mode::get('screenWidth') >= 1200){
-            $tpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
-        }
+        $tpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
         
         return $tpl;
     }
@@ -960,7 +929,7 @@ class pos_Terminal extends peripheral_Terminal
         return $title;
     }
     
-    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false)
+    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true)
     {
         $me = cls::get(get_called_class());
         $Receipts = cls::get('pos_Receipts');
@@ -971,7 +940,6 @@ class pos_Terminal extends peripheral_Terminal
         
         if($success === true){
             $resultTpl = $me->renderResult($rec, $operation, $string, $selectedRecId);
-            $toolsTpl = $me->getCommandPanel($rec, $operation, $string);
             
             // Ще се реплейсват резултатите
             $resObj = new stdClass();
@@ -979,11 +947,15 @@ class pos_Terminal extends peripheral_Terminal
             $resObj->arg = array('id' => 'result-holder', 'html' => $resultTpl->getContent(), 'replace' => true);
             $res[] = $resObj;
             
-            // Ще се реплейсва и пулта
-            $resObj = new stdClass();
-            $resObj->func = 'html';
-            $resObj->arg = array('id' => 'tools-holder', 'html' => $toolsTpl->getContent(), 'replace' => true);
-            $res[] = $resObj;
+            if($refreshPanel === true){
+                $toolsTpl = $me->getCommandPanel($rec, $operation, $string);
+                
+                // Ще се реплейсва и пулта
+                $resObj = new stdClass();
+                $resObj->func = 'html';
+                $resObj->arg = array('id' => 'tools-holder', 'html' => $toolsTpl->getContent(), 'replace' => true);
+                $res[] = $resObj;
+            }
             
             $resObj = new stdClass();
             $resObj->func = 'prepareResult';
