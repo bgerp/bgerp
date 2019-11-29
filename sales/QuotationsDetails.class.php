@@ -565,8 +565,9 @@ class sales_QuotationsDetails extends doc_Detail
             }
             
             if (!$form->gotErrors()) {
-                
-                if($rec->_createProductForm != true && deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
+                $idToCheck = ($form->cmd == 'save_new_row') ? null : $rec->id;
+               
+                if($rec->_createProductForm != true && deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $idToCheck, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
                     $form->setError('productId,packagingId,packPrice,discount,notes,packQuantity', 'Има въведен ред със същите данни');
                 }
                 
@@ -576,7 +577,7 @@ class sales_QuotationsDetails extends doc_Detail
                     }
                 }
                 
-                if (!$form->gotErrors()) {
+                if (!$form->gotErrors()&& $form->cmd == 'save_new_row') {
                     unset($rec->id);
                 }
                 
