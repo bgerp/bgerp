@@ -802,7 +802,9 @@
   height: 118px; }
   .element .pos-add-res-btn {
     color: #333333;
-    font-size: 0.95em; }
+    height: 73px; }
+  .element .pos-stock-field {
+    float: right; }
 
 .narrow .pos-product-field {
   font-size: 0.9em; }

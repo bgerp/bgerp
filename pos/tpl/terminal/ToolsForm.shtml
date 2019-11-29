@@ -36,7 +36,7 @@
 <!--ET_BEGIN PRODUCTS_RESULT-->
 <div class='element [#CLASS#]' data-url='[#DATA_URL#]' data-productId = '[#id#]'>
 	<div class='pos-photo-field fleft'>[#photo#]</div>
-	[#productId#]
+	<div class="pos-add-res-btn">[#productId#]</div>
 	<span class='pos-price-field'>[#price#]</span>
 	<span class='pos-stock-field'>[#stock#]</span>
 </div>
