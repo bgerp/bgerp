@@ -262,7 +262,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         }
        
         if($sortDirection != 'none'){
-            usort($recs, function($a, $b) use ($sortFld, $sortDirection) {
+            uasort($recs, function($a, $b) use ($sortFld, $sortDirection) {
                 return (strip_tags($a->{$sortFld}) > strip_tags($b->{$sortFld})) ? (($sortDirection  == 'up') ? -1 : 1) : (($sortDirection  == 'up')? 1 : -1);
             });
         }
@@ -304,7 +304,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             
             // Ако има поле за групиране, предварително се групират записите
             if (!empty($data->groupByField)) {
-                $this->orderByGroupField($data->recs, $data->groupByField, $sortFld, $sortDirection);
+                $data->recs = $this->orderByGroupField($data->recs, $data->groupByField, $sortFld, $sortDirection);
             } else {
                 $this->sortRecsByDirection($data->recs, $sortFld, $sortDirection);
             }
@@ -389,12 +389,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
-     * Подреждане на записите първо по-поле и после групиране по полр
-     *
-     * @param array    $recs
-     * @param string $field
-     *
-     * @return void
+     * Групиране и сортиране на резултатите по поле
+     * 
+     * @param array $recs
+     * @param string $groupField
+     * @param string|null $sortFld
+     * @param string|null $sortDirection
+     * 
+     * @return array $newRecs
      */
     private function orderByGroupField($recs, $groupField, $sortFld = null, $sortDirection = null)
     {
@@ -412,8 +414,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $this->sortRecsByDirection($groupedArr, $sortFld, $sortDirection);
             $newRecs += $groupedArr;
         }
-        
-        $recs = $newRecs;
+       
+        return $newRecs;
     }
     
     

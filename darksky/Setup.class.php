@@ -94,7 +94,7 @@ class darksky_Setup extends core_ProtoSetup
                     'description' => 'Извличане на прогнози от darksky.net',
                     'controller' => 'darksky_Forecasts',
                     'action' => 'Update',
-                    'period' => 3 * 60,
+                    'period' => 180,
                     'offset' => 73,
                     'delay' => 0,
                     'timeLimit' => 50,
@@ -103,7 +103,7 @@ class darksky_Setup extends core_ProtoSetup
                     'description' => 'Изтриване на старите записи за прогнозата',
                     'controller' => 'darksky_Forecasts',
                     'action' => 'DeleteOld',
-                    'period' => 24 * 60,
+                    'period' => 1440,
                     'timeLimit' => 50,
             ),
         );

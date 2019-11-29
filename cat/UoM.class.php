@@ -229,6 +229,8 @@ class cat_UoM extends core_Manager
             }
         }
         
+        
+        
         if ($quantity < 1 && ($downMeasureId = cat_UoM::getMeasureByRatio($uomId, 0.001))) {
             $quantity *= 1000;
             $uomId = $downMeasureId;
@@ -237,6 +239,8 @@ class cat_UoM extends core_Manager
             $uomId = $downMeasureId;
         }
         
+        $rec = self::fetch($uomId);
+        $round = $rec->round;
         $res = round($quantity, $round);
         
         return $res;

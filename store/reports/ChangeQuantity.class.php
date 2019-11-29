@@ -84,6 +84,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         // Обръщаме се към трудовите договори
         $query = store_Products::getQuery();
         $query->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
+        $query->where('#storeId IS NOT NULL');
         
         if (isset($rec->group)) {
             $query->likeKeylist('groupMat', $rec->group);
@@ -97,7 +98,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         $num = 1;
         
         // за всеки един индикатор
-        while ($recMaterial = $query->fetch()) {
+        while ($recMaterial = $query->fetch()) { 
             if (!is_null($rec->storeId) && ($rec->storeId != $recMaterial->storeId)) {
                 continue;
             }
@@ -130,11 +131,9 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
             }
         }
         
-       
         foreach ($recs as $idProd => $products) { 
             
             $products->freeQuantity = $products->quantity - $products->reservedQuantity;
-            
             if (is_array($oldData) && count($oldData)) {
                 foreach ($oldData as $oData) {
                     if ($oData->productId == $idProd) {
@@ -170,7 +169,6 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка');
         $fld->FLD('quantity', 'double(smartRound)', 'caption=Наличност');
         $fld->FLD('reservedQuantity', 'double', 'caption=Запазено');
-        $fld->FLD('expectedQuantity', 'double', 'caption=Oчаквано');
         $fld->FLD('freeQuantity', 'double', 'caption=Разполагаемо');
         $fld->FLD('changeQuantity', 'double', 'caption=Промяна');
         
@@ -193,7 +191,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         $row->productId = cat_Products::getShortHyperlink($dRec->productId);
         $row->measure = cat_UoM::getShortName($dRec->measure);
         
-        foreach (array('quantity', 'reservedQuantity', 'expectedQuantity','freeQuantity', 'changeQuantity') as $fld) {
+        foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'freeQuantity', 'changeQuantity') as $fld) {
             $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
             $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
         }
