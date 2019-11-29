@@ -507,7 +507,7 @@ class cal_Tasks extends embed_Manager
                 $bold = 'font-weight:bold;';
             }
         }
-        $row->progress = "<span style='color:{$grey};{$bold}'>{$row->progress}</span>";
+        $row->progress = "<span class='progress' style='color:{$grey};{$bold}'>{$row->progress}</span>";
         
         // Ако имаме само начална дата на задачата
         if ($rec->timeStart && !$rec->timeEnd) {

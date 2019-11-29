@@ -2308,9 +2308,9 @@ table.mc-calendar {
   .portal-cal-day.portal-cal-after {
     background-color: #c8ffc6; }
 
-  .portal .mc-calendar {
+  .portal.newCalendar .mc-calendar {
     margin: 10px 0; }
-  .portal .threadSubTitle {
+  .portal.newCalendar .threadSubTitle {
     padding: 2px;
     display: inline-block;
     margin-left: 10px;

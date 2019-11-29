@@ -219,7 +219,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $searchForm = $Calendar->getForm();
             bgerp_Portal::prepareSearchForm($Calendar, $searchForm);
             
-            $data->tpl = new ET(tr('|*<div class="clearfix21 portal">
+            $data->tpl = new ET(tr('|*<div class="clearfix21 portal newCalendar">
                                         <div class="legend" id="calendarPortal">[#CAL_TITLE#]
                                             [#SEARCH_FORM#]
                                         </div>
