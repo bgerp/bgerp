@@ -509,7 +509,7 @@ function posActions() {
 
 
 	// сменяне на селектирания ред от бележките при клик
-	$(document.body).on('click', "#receipt-table td", function(e){
+	$(document.body).on('click', "#receipt-table .receiptRow td", function(e){
 		$('.highlighted').removeClass('highlighted');
 		$(this).closest('.receiptRow').addClass('highlighted');
 	});
@@ -705,9 +705,20 @@ function render_fancybox()
 
 function pageUp(){
 	console.log('pageUp')
+
+	var current = $('#receipt-table .receiptRow.highlighted');
+	if(current.length && $(current).prev('.receiptRow').length) {
+		$(current).prev('.receiptRow').addClass('highlighted');
+		current.removeClass('highlighted');
+	}
 }
 
 function pageDown(){
+	var current = $('#receipt-table .receiptRow.highlighted');
+	if(current.length && $(current).next('.receiptRow').length) {
+		$(current).next('.receiptRow').addClass('highlighted');
+		current.removeClass('highlighted');
+	}
 	console.log('pageDOwn')
 }
 
