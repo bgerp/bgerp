@@ -281,7 +281,6 @@ class pos_Terminal extends peripheral_Terminal
         expect($operation = Request::get('operation', "enum(" . self::$operationsArr . ")"));
         $selectedRecId = Request::get('recId', 'int');
         
-        
         $string = Request::get('search', 'varchar');
         Mode::setPermanent("currentOperation", $operation);
         Mode::setPermanent("currentSearchString", $string);
@@ -302,7 +301,12 @@ class pos_Terminal extends peripheral_Terminal
         
         switch($currOperation){
             case 'add':
-                $res = (empty($string)) ? $this->getFavouritesBtns() : $this->getProductResultTable($rec, $string);
+                if(isset($rec->revertId)){
+                    $res = $this->getProductResultTable($rec, $string, $rec->revertId);
+                } else {
+                    $res = (empty($string)) ? $this->getFavouritesBtns() : $this->getProductResultTable($rec, $string);
+                }
+                
                 break;
             case 'receipts':
                 $res = $this->renderDraftsTab($rec);
@@ -387,16 +391,18 @@ class pos_Terminal extends peripheral_Terminal
         
         $cQuery = crm_Companies::getQuery();
         $cQuery->fetch("#vatId = '{$stringInput}' OR #uicId = '{$stringInput}'");
-        $cQuery->show('id');
+        $cQuery->show('id,folderId');
         while($cRec = $cQuery->fetch()){
-            $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => crm_Companies::getShortHyperlink($cRec->id, true));
+            $contragentTitle = (isset($cRec->folderId)) ? (doc_Threads::haveRightFor('list', $cRec->folderId) ? ht::createLinkRef(crm_Companies::getTitleById($cRec->id), array('doc_Threads', 'list', 'folderId' => $cRec->folderId)) : crm_Companies::getTitleById($cRec->id)) : crm_Companies::getShortHyperlink($cRec->id, true);
+            $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => $contragentTitle);
         }
         
         $pQuery = crm_Persons::getQuery();
         $pQuery->fetch("#egn = '{$stringInput}' OR #vatId = '{$stringInput}'");
-        $pQuery->show('id');
+        $pQuery->show('id,folderId');
         while($pRec = $pQuery->fetch()){
-            $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => crm_Persons::getShortHyperlink($pRec->id, true));
+            $contragentTitle = (isset($pRec->folderId)) ? (doc_Threads::haveRightFor('list', $pRec->folderId) ? ht::createLinkRef(crm_Persons::getTitleById($pRec->id), array('doc_Threads', 'list', 'folderId' => $pRec->folderId)): crm_Persons::getRecTitle($cRec->id)) : crm_Persons::getShortHyperlink($cRec->id, true);
+            $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => $contragentTitle);
         }
         
         foreach (array('crm_Companies', 'crm_Persons') as $ContragentClass){
@@ -405,12 +411,13 @@ class pos_Terminal extends peripheral_Terminal
             plg_Search::applySearch($stringInput, $cQuery);
             
             $cQuery->where("#state != 'rejected' AND #state != 'closed'");
-            $cQuery->show('id');
-            
+            $cQuery->show('id,folderId');
+           
             $classId = ($ContragentClass == 'crm_Companies') ? $companyClassId : $personClassId;
             while($cRec = $cQuery->fetch()){
                 if(!array_key_exists("{$classId}|{$cRec->id}", $contragents)){
-                    $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $ContragentClass::getShortHyperlink($cRec->id, true));
+                    $contragentTitle = (isset($cRec->folderId)) ? (doc_Threads::haveRightFor('list', $cRec->folderId) ? ht::createLinkRef($ContragentClass::getTitleById($cRec->id), array('doc_Threads', 'list', 'folderId' => $cRec->folderId)) : $ContragentClass::getTitleById($cRec->id)) : $ContragentClass::getShortHyperlink($cRec->id, true);
+                    $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $contragentTitle);
                 }
                 
                 if(count($contragents) > 20) break;
@@ -422,7 +429,7 @@ class pos_Terminal extends peripheral_Terminal
         foreach ($contragents as $obj){
             $class = ($cnt == 0) ? 'posResultContragent navigable selected' : 'posResultContragent navigable';
             $transferUrl = ($canTransfer === true) ? array('pos_Receipts', 'Transfer', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId) : array();
-            $obj->title = ht::createLink($obj->title, $transferUrl, 'Наистина ли желаете да прехвърлите продажбата към документната система|*!', 'class=transferBtn');
+            $obj->title = ht::createLink($obj->title, $transferUrl, null, 'class=transferBtn,target=_blank');
             
             $block = new core_ET("<div class='{$class}'><div class='posResultContragentTitle'>[#title#]</div></div>");
             $block->placeObject($obj);
@@ -739,14 +746,14 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Връща таблицата с продукти отговарящи на определен стринг
      */
-    public function getProductResultTable($rec, $string)
+    public function getProductResultTable($rec, $string, $revertReceiptId = null)
     {
         $searchString = plg_Search::normalizeText($string);
         $data = new stdClass();
         $data->rec = $rec;
         $data->searchString = $searchString;
         $data->baseCurrency = acc_Periods::getBaseCurrencyCode();
-        
+        $data->revertReceiptId = $revertReceiptId;
         $this->prepareProductTable($data);
         
         $tpl = new core_ET("");
@@ -756,6 +763,10 @@ class pos_Terminal extends peripheral_Terminal
             $bTpl->placeObject($row);
             $bTpl->removeBlocksAndPlaces();
             $tpl->append($bTpl);
+        }
+        
+        if(isset($data->revertReceiptId)){
+            $tpl->prepend(tr('Артикулите от оригиналната рецепта'));
         }
         
         return $tpl;
@@ -772,45 +783,83 @@ class pos_Terminal extends peripheral_Terminal
         $conf = core_Packs::getConfig('pos');
         $data->showParams = $conf->POS_RESULT_PRODUCT_PARAMS;
         
-        $folderId = cls::get($data->rec->contragentClass)->fetchField($data->rec->contragentObjectId, 'folderId');
-        $pQuery = cat_Products::getQuery();
-        $pQuery->where("#canSell = 'yes' AND #state = 'active'");
-        $pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
-        plg_Search::applySearch($data->searchString, $pQuery);
-        
-        $pQuery->show('id,name,isPublic,nameEn,code');
-        $pQuery->limit($this->maxSearchProducts);
-        $sellable = $pQuery->fetchAll();
-       
-        if (!count($sellable)) {
+        if(isset($data->revertReceiptId)){
+            $pdQuery = pos_ReceiptDetails::getQuery();
+            $pdQuery->where("#receiptId =  '{$data->revertReceiptId}' AND #productId IS NOT NULL");
+            $pdQuery->EXT('searchKeywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');
+            if(!empty($data->searchString)){
+                plg_Search::applySearch($data->searchString, $pdQuery);
+            }
+            $sellable = array();
             
-            return;
+            while($pdRec = $pdQuery->fetch()){
+                $pdRec->_isRevert = true;
+                $pdRec->packId = $pdRec->value;
+                $pdRec->stock = $pdRec->quantity;
+                $pdRec->price = $pdRec->amount;
+                $pdRec->vat = $pdRec->param;
+                $sellable[$pdRec->productId] = $pdRec;
+            }
+            
+        } else {
+            $folderId = cls::get($data->rec->contragentClass)->fetchField($data->rec->contragentObjectId, 'folderId');
+            $pQuery = cat_Products::getQuery();
+            $pQuery->where("#canSell = 'yes' AND #state = 'active'");
+            $pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
+            plg_Search::applySearch($data->searchString, $pQuery);
+            
+            $pQuery->show('id,name,isPublic,nameEn,code');
+            $pQuery->limit($this->maxSearchProducts);
+            $sellable = $pQuery->fetchAll();
+            
+            if (!count($sellable)) {
+                
+                return;
+            }
         }
         
         $Policy = cls::get('price_ListToCustomers');
         
-        foreach ($sellable as $id => $name) {
+        foreach ($sellable as $id => $obj) {
             $pRec = cat_Products::fetch($id, 'canStore,measureId');
-            $packs = cat_Products::getPacks($id);
-            $packId = key($packs);
+            $inStock = null;
             
-            $packRec = cat_products_Packagings::getPack($id, $packId);
-            $perPack = (is_object($packRec)) ? $packRec->quantity : 1;
-            $price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $packId, 1, $data->rec->createdOn, 1, 'yes');
+            if($obj->_isRevert === true){
+                $vat = $obj->vat;
+                $price = pos_Receipts::getDisplayPrice($obj->price, $obj->vat, null, $data->rec->pointId, 1);
+                if ($pRec->canStore == 'yes') {
+                    $inStock = $obj->stock;
+                }
+                
+            } else {
+                $packs = cat_Products::getPacks($id);
+                $packId = key($packs);
+                
+                $packRec = cat_products_Packagings::getPack($id, $packId);
+                $perPack = (is_object($packRec)) ? $packRec->quantity : 1;
+                
+                $price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $packId, 1, $data->rec->createdOn, 1, 'yes');
+                $vat = cat_Products::getVat($id);
+                
+                // Ако няма цена също го пропускаме
+                if (empty($price->price)) continue;
+                $price = $price->price * $perPack;
+                
+                if ($pRec->canStore == 'yes') {
+                    $inStock = pos_Stocks::getQuantity($id, $data->rec->pointId);
+                    $inStock /= $perPack;
+                }
+            }
             
-            // Ако няма цена също го пропускаме
-            if (empty($price->price)) continue;
-            $vat = cat_Products::getVat($id);
-            $obj = (object) array('productId' => $id, 'measureId' => $pRec->measureId, 'price' => $price->price * $perPack, 'packagingId' => $packId, 'vat' => $vat);
+            $obj = (object) array('productId' => $id, 'measureId' => $pRec->measureId, 'price' => $price, 'packagingId' => $packId, 'vat' => $vat);
             
             $photo = cat_Products::getParams($id, 'preview');
             if (!empty($photo)) {
                 $obj->photo = $photo;
             }
             
-            if ($pRec->canStore == 'yes') {
-                $obj->stock = pos_Stocks::getQuantity($id, $data->rec->pointId);
-                $obj->stock /= $perPack;
+            if (isset($inStock)) {
+                $obj->stock = $inStock;
             }
             
             // Обръщаме реда във вербален вид
@@ -954,7 +1003,7 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        // Показваме веднага и чакащите статуси
+        // Показване веднага на чакащите статуси
         $hitTime = Request::get('hitTime', 'int');
         $idleTime = Request::get('idleTime', 'int');
         $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
