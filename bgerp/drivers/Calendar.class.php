@@ -225,17 +225,14 @@ class bgerp_drivers_Calendar extends core_BaseClass
                                         </div>
                                         
                                         <!--ET_BEGIN NOW-->
-                                            <div style="font-size: 0.9em">
-                                                <div style="color:#5f1f3e; font-style: italic; background-color:#ffc;">
-                                                    [#NOW_DATE#]
-                                                    [#NOW#]
-                                                </div>
+                                            <div style="color:#5f1f3e; font-style: italic; background-color:#ffc; font-size: 0.9em;" class="[#NOW_CLASS_NAME#] portal-cal-day">
+                                                [#NOW_DATE#]
+                                                [#NOW#]
                                             </div>
                                         <!--ET_END NOW-->    
                                         
-
                                         [#MONTH_CALENDAR#]
-
+                                        
                                         <!--ET_BEGIN FUTURE--><div>[#FUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
                                     </div>'
                                     ));
@@ -257,12 +254,16 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 
                 if ($today == $tDate) {
                     $dVerb = tr('Днес');
+                    $nowClassName = 'portal-cal-today';
                 } elseif ($tDate == $tomorrow) {
                     $dVerb = tr('Утре');
+                    $nowClassName = 'portal-cal-tomorrow';
                 }elseif ($tDate == $nextDay) {
                     $dVerb = tr('Вдругиден');
+                    $nowClassName = 'portal-cal-nextday';
                 } else {
                     $dVerb = '';
+                    $nowClassName = 'portal-cal-after';
                 }
                 
                 $dVerb .= $dVerb ? ', ' : '';
@@ -273,8 +274,6 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 
                 $dVerb = $res->day;
                 
-                $this->invoke('AfterPrepareDateName', array(&$dVerb, $tDate));
-                
                 $dBlock = $data->tpl->getBlock('NOW');
                 
                 if ($tRowArr['events']) {
@@ -282,6 +281,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 }
                 
                 $dBlock->replace($dVerb, 'NOW_DATE');
+                $dBlock->replace($nowClassName, 'NOW_CLASS_NAME');
                 
                 foreach ($tRowArr as $tRow) {
                     $dBlock->append('<div>' . $tRow->title . '</div>', 'NOW');
