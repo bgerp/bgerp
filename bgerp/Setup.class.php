@@ -94,6 +94,7 @@ defIfNot(
 Запис и Нов,Save and New,Нов,New = N
 Артикул,Item = A
 Създаване,Create = R
+Заявка,Request = Z
 Активиране,Activation,Контиране = K
 Conto,Реконтиране = K
 Отказ,Cancel = C
