@@ -766,7 +766,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         if(isset($data->revertReceiptId)){
-            $tpl->prepend(tr('Артикулите от оригиналната рецепта'));
+            $tpl->prepend(tr('Артикулите от оригиналната бележка'));
         }
         
         return $tpl;
