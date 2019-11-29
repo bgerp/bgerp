@@ -770,10 +770,7 @@ function getSelectedOperation()
 }
 
 function render_prepareResult() {
-	console.log('render');
 	if ($('.navigable').length) {
-		console.log('ifff');
-		//$('.navigable').eq(0).attr('tabindex', "0");
-		naviBoard.setNavigation("result-holder");
+		naviBoard.refreshNavigation("result-holder",status)
 	}
 }
