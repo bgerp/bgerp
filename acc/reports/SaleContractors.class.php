@@ -251,11 +251,11 @@ class acc_reports_SaleContractors extends acc_reports_BalanceImpl
         
         $tpl->append($table->get($data->rows, $data->listFields), 'DETAILS');
         
-        $data->summary->colspan = count($data->listFields);
+        $data->summary->colspan = countR($data->listFields);
         
         if ($data->bShowQuantities) {
             $data->summary->colspan -= 4;
-            if ($data->summary->colspan != 0 && count($data->rows)) {
+            if ($data->summary->colspan != 0 && countR($data->rows)) {
                 $beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td></tr>");
             }
         }

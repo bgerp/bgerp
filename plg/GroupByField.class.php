@@ -26,11 +26,11 @@ class plg_GroupByField extends core_Plugin
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         // Ако няма записи, не правим нищо
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }

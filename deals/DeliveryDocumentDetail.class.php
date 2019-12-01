@@ -223,7 +223,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
      */
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 if($row instanceof core_ET) continue;
                 

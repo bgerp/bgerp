@@ -271,7 +271,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }
@@ -345,7 +345,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $masterRec = $data->masterData->rec;
         
         if (isset($masterRec->type)) {
-            if ($masterRec->type == 'debit_note' || $masterRec->type == 'credit_note' || ($masterRec->type == 'dc_note' && isset($masterRec->changeAmount) && !count($data->rows))) {
+            if ($masterRec->type == 'debit_note' || $masterRec->type == 'credit_note' || ($masterRec->type == 'dc_note' && isset($masterRec->changeAmount) && !countR($data->rows))) {
                 // При дебитни и кредитни известия показваме основанието
                 $data->listFields = array();
                 $data->listFields['RowNumb'] = '№';

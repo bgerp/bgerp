@@ -134,7 +134,7 @@ class cash_NonCashPaymentDetails extends core_Manager
         $tpl = new core_ET('');
         $block = getTplFromFile('cash/tpl/NonCashPayments.shtml');
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             foreach ($data->rows as $row) {
                 $clone = clone $block;
                 $clone->placeObject($row);

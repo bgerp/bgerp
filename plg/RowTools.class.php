@@ -244,7 +244,7 @@ class plg_RowTools extends core_Plugin
         // Определяме в кое поле ще показваме инструментите
         $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             $rowToolsTpl = new ET(static::$rowToolsTpl);
             
             foreach ($data->rows as $row) {

@@ -280,7 +280,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
         
         $data->summary = $this->getVerbalSummary($data->summary);
         $data->summary->colspan = count($data->listFields);
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             $data->summary->colspan -= 5;
             $afterRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#uDelay#]</b></td><td style='text-align:right'><b>[#delay1#]</b></td><td style='text-align:right'><b>[#delay2#]</b></td><td style='text-align:right'><b>[#delay3#]</b></td><td style='text-align:right'><b>[#amount#]</b></td></tr>");
         }

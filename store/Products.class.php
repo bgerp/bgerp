@@ -455,7 +455,7 @@ class store_Products extends core_Detail
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
         $data->listTableMvc->setField('expectedQuantityTotal', 'tdClass=expectedTotalCol');
         
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }

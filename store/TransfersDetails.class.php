@@ -173,7 +173,7 @@ class store_TransfersDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
                 

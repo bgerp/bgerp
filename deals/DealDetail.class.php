@@ -450,7 +450,7 @@ abstract class deals_DealDetail extends doc_Detail
             return;
         }
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = $data->recs[$i];
                 

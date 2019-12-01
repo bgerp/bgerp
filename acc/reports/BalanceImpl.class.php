@@ -304,11 +304,11 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         
         if (!$data->bShowQuantities || $data->rec->action === 'group') {
             $data->summary->colspan -= 4;
-            if ($data->summary->colspan != 0 && count($data->rows)) {
+            if ($data->summary->colspan != 0 && countR($data->rows)) {
                 $beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#baseAmount#]</b></td><td style='text-align:right'><b>[#debitAmount#]</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
             }
         } else {
-            if (count($data->rows)) {
+            if (countR($data->rows)) {
                 $data->summary->colspan -= 8;
                 $beforeRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#baseQuantity#]</b></td><td style='text-align:right'><b>[#baseAmount#]</b></td><td style='text-align:right'><b>[#debitQuantity#]</b></td><td style='text-align:right'><b>[#debitAmount#]</b></td><td style='text-align:right'><b>[#creditQuantity#]</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td><td style='text-align:right'><b>[#blQuantity#]</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
             }

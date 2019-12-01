@@ -131,7 +131,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     {
         $date = ($data->masterData->rec->state == 'draft') ? null : $data->masterData->rec->modifiedOn;
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
                 $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'title', 'public', $data->masterData->rec->tplLang);

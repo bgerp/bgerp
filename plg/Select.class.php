@@ -60,7 +60,7 @@ class plg_Select extends core_Plugin
             return;
         }
         
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             unset($data->listFields['_checkboxes']);
             
             return;
@@ -229,7 +229,7 @@ class plg_Select extends core_Plugin
         }
         
         // Ако няма никакви редове не правим нищо
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }
@@ -265,7 +265,7 @@ class plg_Select extends core_Plugin
             return;
         }
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             $data->toolbar->addSbBtn('С избраните ...', 'with_selected', 'class=btn-with-selected,id=with_selected', array('order' => 11, 'title' => 'Действия с избраните редове'));
         }
     }
@@ -281,13 +281,13 @@ class plg_Select extends core_Plugin
             return;
         }
         
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }
         
         // Ако няма никакви редове не правим нищо
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }
