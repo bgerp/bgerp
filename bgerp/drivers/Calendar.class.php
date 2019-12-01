@@ -110,7 +110,9 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $Calendar->searchInputField .= '_' . $dRec->originIdCalc;
         
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->pages . '_' . $userId . '_' . Mode::get('screenMode') . '_' . $resData->month . '_' . $resData->year . '_' . Request::get($Calendar->searchInputField) . '_' . core_Lg::getCurrent() . '_' . $lastCalendarEventRec. '_' . $lastAgendaEventRec . '_' . dt::now(false));
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->pages . '_' . $userId . '_' . Mode::get('screenMode') . 
+                '_' . $resData->month . '_' . $resData->year . '_' . Request::get($Calendar->searchInputField) . '_' . core_Lg::getCurrent() . '_' . 
+                $lastCalendarEventRec. '_' . $lastAgendaEventRec . '_' . dt::now(false));
         $resData->cacheType = 'Calendar';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
@@ -201,7 +203,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
      */
     public function render($data)
     {
-        if (!$data->tpl || 1) {
+        if (!$data->tpl) {
             $Calendar = cls::get('cal_Calendar');
             $select = ht::createSelect('dropdown-cal', $data->monthOptions->opt, $data->monthOptions->currentM, array('onchange' => 'javascript:location.href = this.value;', 'class' => 'portal-select'));
             

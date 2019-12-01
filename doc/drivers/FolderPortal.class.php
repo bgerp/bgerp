@@ -101,7 +101,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
-        if ($resData->tpl === false || 1) {
+        if ($resData->tpl === false) {
             $resData->data = new stdClass();
             
             $dQuery = doc_Threads::getQuery();
@@ -188,7 +188,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
      */
     public function render($data)
     {
-        if (!$data->tpl && $data->data || 1) {
+        if (!$data->tpl && $data->data) {
             $data->tpl = new ET('<div class="clearfix21 portal" style="margin-bottom:25px;">
                                 <div class="legend">[#folderTitle#]</div>
                                 [#PortalTable#]
