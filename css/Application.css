@@ -2283,10 +2283,11 @@ table.mc-calendar {
   color: #5f1f3e;
   font-style: italic;
   background-color: #ffffcc;
-  font-size: 0.9em; }
+  font-size: 0.9em;
+  padding-top: 3px; }
   .portal-cal-day .title {
-    padding-top: 2px;
-    padding: 3px;
+    padding-top: 1px;
+    padding: 2px;
     display: block; }
     .portal-cal-day .title span {
       display: inline-block; }
@@ -2302,11 +2303,11 @@ table.mc-calendar {
     padding: 4px; }
 
   .portal-cal-day.portal-cal-tomorrow {
-    background-color: #eeffcc; }
+    background-color: #ddffbb; }
   .portal-cal-day.portal-cal-nextday {
-    background-color: #ddffcc; }
+    background-color: #ccffbb; }
   .portal-cal-day.portal-cal-after {
-    background-color: #c8ffc6; }
+    background-color: #bbffaa; }
 
   .portal.newCalendar .mc-calendar {
     margin: 10px 0; }

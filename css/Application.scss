@@ -2664,14 +2664,16 @@ table.mc-calendar {
 	font-style: italic;
 	background-color:#ffc;
 	font-size: 0.9em;
+    padding-top:3px;
 	.title {
-		padding-top: 2px;
-		padding: 3px;
+		padding-top: 1px;
+		padding: 2px;
 		display: block;
 		span {
 			display: inline-block;
 		}
 	}
+
 	.progress {
 		float: right;
 		display: inline-block;
@@ -2689,13 +2691,13 @@ table.mc-calendar {
 
 	}
 	&.portal-cal-tomorrow{
-		background-color:#efc;
+		background-color:#dfb;
 	}
 	&.portal-cal-nextday {
-		background-color:#dfc;
+		background-color:#cfb;
 	}
 	&.portal-cal-after {
-		background-color: #c8ffc6;
+		background-color: #bfa;
 	}
 }
 .portal.newCalendar {

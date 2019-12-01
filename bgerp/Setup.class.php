@@ -106,6 +106,12 @@ Conto,Реконтиране = K
 
 
 /**
+ * Изглед на портала на системата
+ */
+defIfNot('BGERP_PORTAL_VIEW', 'standard');
+
+
+/**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
  *
@@ -172,6 +178,8 @@ class bgerp_Setup extends core_ProtoSetup
         
         'BGERP_ACCESS_KEYS' => array('text(rows=6)', 'caption=Клавиши за бързо избиране на бутони->Дефиниции, customizeBy=powerUser'),
         
+        'BGERP_PORTAL_VIEW' => array('enum(standard=Стандартен,customized=Настройваем)', 'caption=Портал на системата->Изглед, customizeBy=powerUser'),
+        
         'BGERP_NOTIFY_ALERT' => array('time(suggestions=1 min|5 min|10 min|20 min|30 min|60 min|2 hours|3 hours|6 hours|12 hours|24 hours)', 'caption=Изчакване преди сигнализация за нови известия->Критични,placeholder=Неограничено, customizeBy=powerUser'),
         
         'BGERP_NOTIFY_WARNING' => array('time(suggestions=1 min|5 min|10 min|20 min|30 min|60 min|2 hours|3 hours|6 hours|12 hours|24 hours)', 'caption=Изчакване преди сигнализация за нови известия->Спешни,placeholder=Неограничено, customizeBy=powerUser'),
@@ -218,7 +226,7 @@ class bgerp_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'migrate::setUrlIds'
+        'migrate::setUrlIds'
     );
     
     
@@ -341,7 +349,6 @@ class bgerp_Setup extends core_ProtoSetup
                             unset($haveError[$p]);
                         }
                     } catch (core_exception_Expect $exp) {
-                        
                         $force = true;
                         $Packs->alreadySetup[$p . $force] = false;
                         
@@ -525,20 +532,19 @@ class bgerp_Setup extends core_ProtoSetup
     
     
     /**
-     * Задава стойност на urlId и customUrlId в bgerp_Notifications 
+     * Задава стойност на urlId и customUrlId в bgerp_Notifications
      */
     public static function setUrlIds()
     {
         $Notifications = cls::get('bgerp_Notifications');
         
         $query = $Notifications->getQuery();
-        $query->where("#urlId IS NULL");
-        $query->where("#customUrlId IS NULL");
+        $query->where('#urlId IS NULL');
+        $query->where('#customUrlId IS NULL');
         
         $query->orderBy('modifiedOn', 'DESC');
         
         while ($rec = $query->fetch()) {
-            
             $rec->urlId = $Notifications->prepareUrlId($rec->url);
             $rec->customUrlId = $Notifications->prepareUrlId($rec->customUrl);
             
@@ -554,13 +560,13 @@ class bgerp_Setup extends core_ProtoSetup
     {
         $Portal = cls::get('bgerp_Portal');
         $bQuery = bgerp_Portal::getQuery();
-        $bQuery->delete("1=1");
+        $bQuery->delete('1=1');
         
-        $iArr = array('bgerp_drivers_Notifications' => array('perPage' => 15, 'column' => 'left', 'order' => 500),
-                      'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 500),
-                      'bgerp_drivers_Recently' => array('perPage' => 10, 'column' => 'right', 'order' => 500),
-                      'bgerp_drivers_Calendar' => array('column' => 'right', 'order' => 300, 'fTasksPerPage' => 5, 'fTasksDays' => 2629746)
-                      );
+        $iArr = array('bgerp_drivers_Notifications' => array('perPage' => 15, 'column' => 'left', 'order' => 500, 'color' => 'lightblue'),
+            'bgerp_drivers_Calendar' => array('column' => 'center', 'order' => 700, 'fTasksPerPage' => 5, 'fTasksDays' => 2629746, 'color' => 'yellow'),
+            'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 400, 'color' => 'pink'),
+            'bgerp_drivers_Recently' => array('perPage' => 10, 'column' => 'right', 'order' => 500, 'color' => 'darkgray'),
+        );
         
         foreach ($iArr as $iName => $iData) {
             
@@ -576,7 +582,7 @@ class bgerp_Setup extends core_ProtoSetup
             
             $rec->userOrRole = type_UserOrRole::getAllSysTeamId();
             
-            $rec->color = 'lightgray';
+            setIfNot($rec->color, 'lightgray');
             $rec->show = 'yes';
             
             $Portal->save($rec);

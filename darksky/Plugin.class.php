@@ -18,7 +18,7 @@
 class darksky_Plugin extends core_Plugin
 {
     /**
-     * 
+     *
      * @param core_Mvc $mvc
      * @param stdClass $res
      * @param stdClass $date
@@ -27,12 +27,12 @@ class darksky_Plugin extends core_Plugin
     {
         $now = dt::now(false);
         
-        if (dt::addDays(3, $now, false) < $date) {
+        if (dt::addDays(5, $now, false) < $date) {
             
             return;
         }
         
-        if (dt::addDays(-3, $now, false) >= $date) {
+        if (dt::addDays(-5, $now, false) >= $date) {
             
             return;
         }

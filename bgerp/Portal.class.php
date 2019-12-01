@@ -59,9 +59,6 @@ class bgerp_Portal extends embed_Manager
     public $title = 'Елементи на портала';
     
     
-    /**
-     * 
-     */
     public $listFields = 'driverClass, userOrRole, column, order, color, createdOn, createdBy';
     
     
@@ -98,7 +95,7 @@ class bgerp_Portal extends embed_Manager
      * Добавя стойност на функционалното поле boxFrom
      *
      * @param bgerp_Portal $mvc
-     * @param stdClass         $rec
+     * @param stdClass     $rec
      */
     public static function on_CalcOriginIdCalc($mvc, &$rec)
     {
@@ -116,7 +113,6 @@ class bgerp_Portal extends embed_Manager
     public function act_Show2()
     {
         if (Request::get('ajax_mode')) {
-            
             requireRole('powerUser');
             
             $resArr = $this->getPortalBlockForAJAX();
@@ -181,12 +177,13 @@ class bgerp_Portal extends embed_Manager
         $columnMap = array('left' => 'LEFT_COLUMN', 'center' => 'MIDDLE_COLUMN', 'right' => 'RIGHT_COLUMN');
         
         foreach ($recArr as $r) {
-            
             $rData = new stdClass();
             
             $res = $this->getResForBlock($r, $rData, $cu);
             
-            if (!$res) continue;
+            if (!$res) {
+                continue;
+            }
             
             $this->saveAJAXCache($res, $rData, $r);
             
@@ -198,7 +195,7 @@ class bgerp_Portal extends embed_Manager
             $pId = $this->getPortalId($r->originIdCalc);
             
             $res->prepend("<div id='{$pId}' class='{$pClass}'>");
-            $res->append("</div>");
+            $res->append('</div>');
             
             if ($isNarrow) {
                 $intf = cls::getInterface('bgerp_PortalBlockIntf', $r->{$this->driverClassField});
@@ -242,7 +239,9 @@ class bgerp_Portal extends embed_Manager
                 $tpl->append($res, $columnMap[$r->column]);
             }
             
-            if (!--$this->maxShowCnt) break;
+            if (!--$this->maxShowCnt) {
+                break;
+            }
         }
         
         if ($isNarrow) {
@@ -262,7 +261,7 @@ class bgerp_Portal extends embed_Manager
     
     /**
      * Връща блоковете в портала за AJAX
-     * 
+     *
      * @return array
      */
     public function getPortalBlockForAJAX()
@@ -276,7 +275,6 @@ class bgerp_Portal extends embed_Manager
         $cu = core_Users::getCurrent();
         
         foreach ($recArr as $r) {
-            
             $aMode = Request::get('ajax_mode');
             
             Request::push(array('ajax_mode' => false));
@@ -291,7 +289,9 @@ class bgerp_Portal extends embed_Manager
                 continue;
             }
             
-            if (!$res) continue;
+            if (!$res) {
+                continue;
+            }
             
             $divId = $this->getPortalId($r->originIdCalc);
             
@@ -346,7 +346,9 @@ class bgerp_Portal extends embed_Manager
                 }
             }
             
-            if (!--$this->maxShowCnt) break;
+            if (!--$this->maxShowCnt) {
+                break;
+            }
         }
         
         if (!empty($resArr)) {
@@ -362,11 +364,11 @@ class bgerp_Portal extends embed_Manager
     
     /**
      * Помощна функция за вземане на блока
-     * 
+     *
      * @param stdClass $rec
      * @param stdClass $data
-     * @param null|integer $cu
-     * 
+     * @param null|int $cu
+     *
      * @return null|core_ET
      */
     protected function getResForBlock($rec, &$data, $cu = null)
@@ -391,9 +393,9 @@ class bgerp_Portal extends embed_Manager
     
     /**
      * Помощна функция за вземане на клас за div
-     * 
+     *
      * @param null|string $color
-     * 
+     *
      * @return string
      */
     protected function getPortalClass($color = null)
@@ -404,9 +406,9 @@ class bgerp_Portal extends embed_Manager
     
     /**
      * Помощна функция за вземана на id за div
-     * 
-     * @param integer $id
-     * 
+     *
+     * @param int $id
+     *
      * @return string
      */
     protected function getPortalId($id)
@@ -418,12 +420,12 @@ class bgerp_Portal extends embed_Manager
     /**
      * Помощна функция за записване на кеш за AJAX
      * Ако върне true, значи записът е нов и е записан
-     * 
-     * @param core_ET $res
+     *
+     * @param core_ET  $res
      * @param stdClass $rData
      * @param stdClass $rec
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
     protected function saveAJAXCache($res, $rData, $rec)
     {
@@ -451,10 +453,10 @@ class bgerp_Portal extends embed_Manager
     
     /**
      * Връща стойността на кеша
-     * 
-     * @param core_ET $res
+     *
+     * @param core_ET  $res
      * @param stdClass $rData
-     * 
+     *
      * @return string
      */
     protected function getCacheVal($res, $rData)
@@ -475,9 +477,9 @@ class bgerp_Portal extends embed_Manager
     
     /**
      * Връща името на кеша за AJAX
-     * 
+     *
      * @param stdClass $rec
-     * 
+     *
      * @return string
      */
     protected function getCacheName($rec)
@@ -493,8 +495,9 @@ class bgerp_Portal extends embed_Manager
     /**
      * Помощна функция за вземане на записите в модела
      *
-     * @param null|integer $userId
-     * @param string $roleType
+     * @param null|int $userId
+     * @param string   $roleType
+     *
      * @return array
      */
     protected function getRecsForUser($userId = null, $roleType = 'team')
@@ -533,7 +536,9 @@ class bgerp_Portal extends embed_Manager
         
         $resArr = array();
         while ($rec = $query->fetch()) {
-            if ($resArr[$rec->originIdCalc]) continue;
+            if ($resArr[$rec->originIdCalc]) {
+                continue;
+            }
             
             $resArr[$rec->originIdCalc] = $rec;
         }
@@ -632,6 +637,11 @@ class bgerp_Portal extends embed_Manager
      */
     public function act_Show()
     {
+        if (bgerp_Setup::get('PORTAL_VIEW') == 'customized') {
+            
+            return $this->act_Show2();
+        }
+        
         // Ако е инсталиран пакета за партньори
         // И текущия потребител е контрактор, но не е powerUser
         if (core_Users::haveRole('partner')) {

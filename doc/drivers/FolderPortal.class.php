@@ -73,7 +73,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
      * Подготвя данните
      *
      * @param stdClass $dRec
-     * @param null|integer $userId
+     * @param null|int $userId
      *
      * @return stdClass
      */
@@ -101,7 +101,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
-        if ($resData->tpl === false) {
+        if ($resData->tpl === false || 1) {
             $resData->data = new stdClass();
             
             $dQuery = doc_Threads::getQuery();
@@ -140,6 +140,14 @@ class doc_drivers_FolderPortal extends core_BaseClass
             
             // Подготвяме редовете на таблицата
             $Threads->prepareListRows($data);
+            
+            foreach ($data->rows as $row) {
+                if (is_string($row->title)) {
+                    $row->title .= "<div style='float:right'><small>{$row->author}, {$row->last}</small></div>";
+                } elseif ($row->title instanceof ET) {
+                    $row->title->append("<div style='float:right'><small>{$row->author}, {$row->last}</small></div>");
+                }
+            }
             
             $resData->data = $data;
             
@@ -180,17 +188,19 @@ class doc_drivers_FolderPortal extends core_BaseClass
      */
     public function render($data)
     {
-        if (!$data->tpl && $data->data) {
+        if (!$data->tpl && $data->data || 1) {
             $data->tpl = new ET('<div class="clearfix21 portal" style="margin-bottom:25px;">
                                 <div class="legend">[#folderTitle#]</div>
-                                [#PortalPagerTop#]
                                 [#PortalTable#]
                             	[#PortalPagerBottom#]
                                 </div>
                               ');
             
             $Threads = cls::get('doc_Threads');
-            $data->tpl->append($Threads->renderListPager($data->data), 'PortalPagerTop');
+            
+            
+            $data->data->listFields = array('title' => 'Заглавие');
+            
             $data->tpl->append($Threads->renderListTable($data->data), 'PortalTable');
             $data->tpl->append($Threads->renderListPager($data->data), 'PortalPagerBottom');
             
