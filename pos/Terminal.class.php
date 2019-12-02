@@ -467,7 +467,9 @@ class pos_Terminal extends peripheral_Terminal
             $tpl->append($element);
         }
         $tpl->append("<div class='clearfix21'></div><div class='actionBnts'>");
-        $buttons = $Receipts->getPaymentTabBtns($rec);
+        
+        $buttons = array();
+        $Receipts->invoke('BeforeGetPaymentTabBtns', array(&$buttons, $rec));
         foreach ($buttons as $btn){
             $tpl->append($btn);
         }
