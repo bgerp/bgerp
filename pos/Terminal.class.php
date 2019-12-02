@@ -725,7 +725,7 @@ class pos_Terminal extends peripheral_Terminal
         $data->revertReceiptId = $revertReceiptId;
         $this->prepareProductTable($data);
         
-        $tpl = new core_ET("");
+        $tpl = new core_ET(" ");
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PRODUCTS_RESULT');
         foreach ($data->rows as $row){
             $bTpl = clone $block;
@@ -736,6 +736,10 @@ class pos_Terminal extends peripheral_Terminal
         
         if(isset($data->revertReceiptId)){
             $tpl->prepend(tr('Артикулите от оригиналната бележка'));
+        }
+        
+        if(!count($data->rows)){
+            $tpl->prepend(tr('Не са намерени артикули|*!'));
         }
         
         return $tpl;
