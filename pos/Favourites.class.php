@@ -113,14 +113,14 @@ class pos_Favourites extends core_Manager
      * @return stdClass - обект съдържащ пос продуктите за текущата
      *                  точка и формата за филтриране
      */
-    public static function prepareProducts()
+    public static function prepareProducts($rec)
     {
         $self = cls::get(get_called_class());
         $productsArr = $self->preparePosProducts();
         
-        $categoriesArr = pos_FavouritesCategories::prepareAll(pos_Points::getCurrent('id'));
+        $categoriesArr = pos_FavouritesCategories::prepareAll($rec->pointId);
         
-        return (object) array('arr' => $productsArr, 'categories' => $categoriesArr);
+        return (object) array('arr' => $productsArr, 'categories' => $categoriesArr, 'rec' => $rec);
     }
     
     
@@ -236,7 +236,7 @@ class pos_Favourites extends core_Manager
         
         $self = cls::get(get_called_class());
         if ($data->arr) {
-            $self->renderProducts($data->arr, $tpl);
+            $self->renderProducts($data, $tpl);
         }
         if ($data->categories) {
             $self->renderCategories($data->categories, $tpl);
@@ -280,13 +280,14 @@ class pos_Favourites extends core_Manager
      *
      * @return core_ET $tpl - шаблон с продуктите
      */
-    public function renderProducts($products, &$tpl)
+    public function renderProducts($data, &$tpl)
     {
+        $products = $data->arr;
         $blockTpl = $tpl->getBlock('ITEM');
-        
+       
         $cnt = 0;
         foreach ($products as $row) {
-            $row->url = toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local');
+            $row->url = toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $data->rec->id), 'local');
             $row->name = ($row->title) ? $row->title : $row->name;
             if ($row->image) {
                 $img = new thumb_Img(array($row->image, 80, 80, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));

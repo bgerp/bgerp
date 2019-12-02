@@ -276,7 +276,7 @@ class pos_Terminal extends peripheral_Terminal
                 if(isset($rec->revertId)){
                     $res = $this->getProductResultTable($rec, $string, $rec->revertId);
                 } else {
-                    $res = (empty($string)) ? $this->getFavouritesBtns() : $this->getProductResultTable($rec, $string);
+                    $res = (empty($string)) ? $this->getFavouritesBtns($rec) : $this->getProductResultTable($rec, $string);
                 }
                 
                 break;
@@ -588,9 +588,9 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return core_ET $block - шаблон
      */
-    public function getFavouritesBtns()
+    public function getFavouritesBtns($rec)
     {
-        $products = pos_Favourites::prepareProducts();
+        $products = pos_Favourites::prepareProducts($rec);
         if (!$products->arr) {
             
             return false;
