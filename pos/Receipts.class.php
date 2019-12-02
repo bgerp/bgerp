@@ -319,7 +319,7 @@ class pos_Receipts extends core_Master
         if ($mvc->haveRightFor('terminal', $data->rec)) {
             $data->toolbar->addBtn(
                             'Терминал',
-                            array($mvc, 'Terminal', $data->rec->id, 'ret_url' => true),
+                            array('pos_Terminal', 'open', 'receiptId' => $data->rec->id, 'ret_url' => true),
                             'ef_icon=img/16/forward16.png, order=18,target=_blank'
                             );
         }
@@ -704,6 +704,24 @@ class pos_Receipts extends core_Master
             
             $data->rows[$rec->id] = $num;
         }
+    }
+    
+    
+    /**
+     * Рендиране на чакащите бележки в сингъла на точката на продажба
+     *
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
+     */
+    public function renderReceipts($data)
+    {
+        $tpl = new ET('');
+        $str = implode('', $data->rows);
+        $tpl->append($str);
+        $tpl->replace($data->count, 'waitingCount');
+        
+        return $tpl;
     }
     
     
