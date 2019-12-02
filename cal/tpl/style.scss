@@ -143,7 +143,7 @@ table.mc-calendar.mc-calendar-month td.mc-day,table.mc-calendar td.mc-today {
 	font-weight:bold;
 	cursor: pointer;
 	padding:1px;
-	background-color: #e8efe8;
+	background-color: rgba(230,230,230, 0.7);
 }
 
 table.mc-calendar.mc-calendar-month td.mc-day{
@@ -168,7 +168,7 @@ table.mc-header a{
 
 table.mc-calendar-year td.mc-day, table.mc-calendar-year td.mc-today {
 	text-align:right;
-	background-color: #e8efe8;
+	background-color: rgba(230,230,230, 0.7);
 	padding:1px;
 	font-weight:bold;
 	cursor: pointer;

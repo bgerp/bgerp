@@ -144,7 +144,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
             foreach ($data->rows as $row) {
                 if (is_string($row->title)) {
                     $row->title .= "<div style='float:right'><small>{$row->author}, {$row->last}</small></div>";
-                } elseif ($row->title instanceof ET) {
+                } elseif ($row->title instanceof core_Et) {
                     $row->title->append("<div style='float:right'><small>{$row->author}, {$row->last}</small></div>");
                 }
             }

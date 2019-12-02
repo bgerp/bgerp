@@ -2255,7 +2255,7 @@ table.mc-calendar {
     width: 13%;
     text-align: right;
     border: none;
-    background-color: #e8efe8;
+    background-color: rgba(200, 200, 200, 0.2);
     border: solid 2px #e8efe8;
     padding: 1px;
     font-weight: bold;
@@ -2284,7 +2284,8 @@ table.mc-calendar {
   font-style: italic;
   background-color: #ffffcc;
   font-size: 0.9em;
-  padding-top: 3px; }
+  padding-top: 3px;
+  padding-left: 3px; }
   .portal-cal-day .title {
     padding-top: 1px;
     padding: 2px;
