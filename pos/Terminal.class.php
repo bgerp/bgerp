@@ -864,7 +864,7 @@ class pos_Terminal extends peripheral_Terminal
             $params = keylist::toArray($data->showParams);
             foreach ($params as $pId) {
                 if ($vRec = cat_products_Params::fetch("#productId = {$obj->productId} AND #paramId = {$pId}")) {
-                    $row->productId .= ' &nbsp;' . cat_products_Params::recToVerbal($vRec, 'paramValue')->paramValue;
+                    $row->productId .= ' &nbsp;' . strip_tags(cat_products_Params::recToVerbal($vRec, 'paramValue')->paramValue);
                 }
             }
         }
@@ -872,17 +872,11 @@ class pos_Terminal extends peripheral_Terminal
         $row->productId = ht::createLinkRef($row->productId, array('cat_Products', 'single', $obj->productId), null, array('target' => '_blank', 'class' => 'singleProd'));
         $row->stock = ht::styleNumber($row->stock, $obj->stock, 'green');
         $row->stock = "{$row->stock} <span class='pos-search-row-packagingid'>{$row->packagingId}</span>";
-        
+       
         if (!Mode::is('screenMode', 'narrow')) {
-            if(!empty($obj->photo)){
-                $Fancybox = cls::get('fancybox_Fancybox');
-                $preview = $Fancybox->getImage($obj->photo, array('64', '64'), array('550', '550'));
-                $row->photo = $preview;
-            } else {
-                $thumb = new thumb_Img(getFullPath('pos/img/default-image.jpg'), 64, 64, 'path');
-                $arr = array();
-                $row->photo = $thumb->createImg($arr);
-            }
+            $thumb = (!empty($obj->photo)) ? new thumb_Img(array($obj->photo, 64, 64, 'fileman')) : new thumb_Img(getFullPath('pos/img/default-image.jpg'), 64, 64, 'path');
+            $arr = array();
+            $row->photo = $thumb->createImg($arr);
         }
         
         return $row;
@@ -959,10 +953,6 @@ class pos_Terminal extends peripheral_Terminal
             
             $resObj = new stdClass();
             $resObj->func = 'prepareResult';
-            $res[] = $resObj;
-            
-            $resObj = new stdClass();
-            $resObj->func = 'fancybox';
             $res[] = $resObj;
             
             if($refreshTable === true){
