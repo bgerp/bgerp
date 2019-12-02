@@ -458,7 +458,8 @@ class pos_Receipts extends core_Master
         
         // Никой не може да оттегли затворена бележка
         if ($action == 'reject' && isset($rec)) {
-            if ($rec->state == 'closed') {
+            $period = acc_Periods::fetchByDate($rec->valior);
+            if ($rec->state == 'closed' || $period->state == 'closed') {
                 $res = 'no_one';
             }
         }
@@ -474,14 +475,6 @@ class pos_Receipts extends core_Master
         // сума е по-голяма или равна на общата или общата сума е <= 0
         if ($action == 'close' && isset($rec->id)) {
             if ($rec->total == 0 || round($rec->paid, 2) < round($rec->total, 2)) {
-                $res = 'no_one';
-            }
-        }
-        
-        // Немогат да се оттеглят бележки в затворен сч. период
-        if ($action == 'reject') {
-            $period = acc_Periods::fetchByDate($rec->valior);
-            if ($period->state == 'closed') {
                 $res = 'no_one';
             }
         }

@@ -133,11 +133,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $data = (object) array('rec' => $rec);
-        
         $this->invoke('AfterRenderSingle', array(&$tpl, $data));
-        if (!Mode::is('printing')) {
-            $tpl->append("<iframe name='iframe_a' style='display:none'></iframe>");
-        }
         
         // Вкарване на css и js файлове
         $this->pushTerminalFiles($tpl, $rec);
