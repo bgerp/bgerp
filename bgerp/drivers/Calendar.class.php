@@ -234,7 +234,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
                                         
                                         [#MONTH_CALENDAR#]
                                         
-                                        <!--ET_BEGIN FUTURE--><div class="portal-cal-day" style="padding: 5px; background-color: rgba(210, 255, 120, 0.6);">[#FUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
+                                        <!--ET_BEGIN FUTURE--><div class="portal-cal-day" style="padding: 5px; ">[#FUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
                                     </div>'
                                     ));
             

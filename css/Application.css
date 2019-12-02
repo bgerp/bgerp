@@ -2302,13 +2302,13 @@ table.mc-calendar {
   .portal-cal-day .task {
     padding: 4px; }
   .portal-cal-day.portal-cal-today {
-    background-color: rgba(250, 250, 250, 0.5); }
+    background-color: rgba(0, 0, 0, 0.07); }
   .portal-cal-day.portal-cal-tomorrow {
-    background-color: rgba(0, 0, 0, 0.05); }
-  .portal-cal-day.portal-cal-nextday {
     background-color: rgba(0, 0, 0, 0.12); }
+  .portal-cal-day.portal-cal-nextday {
+    background-color: rgba(0, 0, 0, 0.17); }
   .portal-cal-day.portal-cal-after {
-    background-color: rgba(0, 0, 0, 0.2); }
+    background-color: rgba(0, 0, 0, 0.22); }
 
   .portal.newCalendar .mc-calendar {
     margin: 10px 0; }
