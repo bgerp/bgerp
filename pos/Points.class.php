@@ -9,7 +9,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -123,7 +123,6 @@ class pos_Points extends core_Master
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад, mandatory');
         $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory');
         $this->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Безналични налични на плащане->Позволени,placeholder=Всички');
-        $this->FLD('driver', 'class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър');
     }
     
     

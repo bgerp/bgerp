@@ -500,18 +500,6 @@ class pos_Receipts extends core_Master
             }
         }
         
-        // Дали може да се принтира касова бележка
-        if ($action == 'printreceipt') {
-            $pointRec = pos_Points::fetch($rec->pointId);
-            
-            // Трябва точката да има драйвър, да има инсталирани драйвъри и бележката да е чернова
-            if ($pointRec->driver && array_key_exists($pointRec->driver, core_Classes::getOptionsByInterface('sales_FiscPrinterIntf')) && $rec->state == 'draft') {
-                $res = $mvc->getRequiredRoles('close', $rec);
-            } else {
-                $res = 'no_one';
-            }
-        }
-        
         // Не може да се прехвърля бележката, ако общото и е нула, има платено или не е чернова
         if ($action == 'transfer' && isset($rec)) {
             if (empty($rec->id) || round($rec->paid, 2) > 0 || $rec->state != 'draft') {
