@@ -763,8 +763,8 @@ class pos_Terminal extends peripheral_Terminal
             if(!empty($data->searchString)){
                 plg_Search::applySearch($data->searchString, $pdQuery);
             }
-            $sellable = array();
             
+            $sellable = array();
             while($pdRec = $pdQuery->fetch()){
                 $pdRec->_isRevert = true;
                 $pdRec->packId = $pdRec->value;
@@ -773,12 +773,12 @@ class pos_Terminal extends peripheral_Terminal
                 $pdRec->vat = $pdRec->param;
                 $sellable[$pdRec->productId] = $pdRec;
             }
-            
         } else {
             $folderId = cls::get($data->rec->contragentClass)->fetchField($data->rec->contragentObjectId, 'folderId');
             $pQuery = cat_Products::getQuery();
             $pQuery->where("#canSell = 'yes' AND #state = 'active'");
             $pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
+            
             plg_Search::applySearch($data->searchString, $pQuery);
             
             $pQuery->show('id,name,isPublic,nameEn,code');
@@ -791,8 +791,14 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
+        if(!empty($data->searchString)){
+            $foundRec = cat_Products::getByCode($data->searchString);
+            if(isset($foundRec->productId) && (!isset($data->revertReceiptId) || (isset($data->revertReceiptId) && pos_ReceiptDetails::fetchField("#receiptId = {$data->revertReceiptId} AND #productId = {$foundRec->productId}")))){
+                $sellable = array("{$foundRec->productId}" => (object)array('packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null)) + $sellable;
+            }
+        }
+       
         $Policy = cls::get('price_ListToCustomers');
-        
         foreach ($sellable as $id => $obj) {
             $pRec = cat_Products::fetch($id, 'canStore,measureId');
             $inStock = null;
@@ -805,8 +811,12 @@ class pos_Terminal extends peripheral_Terminal
                 }
                 
             } else {
-                $packs = cat_Products::getPacks($id);
-                $packId = key($packs);
+                if(!isset($obj->packId)){
+                    $packs = cat_Products::getPacks($id);
+                    $packId = key($packs);
+                } else {
+                    $packId = $obj->packId;
+                }
                 
                 $packRec = cat_products_Packagings::getPack($id, $packId);
                 $perPack = (is_object($packRec)) ? $packRec->quantity : 1;
@@ -873,7 +883,6 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $row->productId = ht::createLinkRef($row->productId, array('cat_Products', 'single', $obj->productId), null, array('target' => '_blank', 'class' => 'singleProd'));
         $row->stock = ht::styleNumber($row->stock, $obj->stock, 'green');
         $row->stock = "{$row->stock} <span class='pos-search-row-packagingid'>{$row->packagingId}</span>";
        
