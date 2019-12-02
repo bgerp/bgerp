@@ -576,7 +576,7 @@ class eshop_CartDetails extends core_Detail
             return self::getUpdateCartResponse($cartId);
         }
         
-        return followRremoveexternaletUrl();
+        return followRetUrl();
     }
     
     
