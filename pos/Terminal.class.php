@@ -140,7 +140,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         // Вкарване на css и js файлове
-        $this->pushTerminalFiles($tpl);
+        $this->pushTerminalFiles($tpl, $rec);
         $this->renderWrapping($tpl);
         
         return $tpl;
@@ -694,7 +694,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Вкарване на css и js файлове
      */
-    public function pushTerminalFiles_(&$tpl)
+    public function pushTerminalFiles_(&$tpl, $rec)
     {
         $tpl->push('css/Application.css', 'CSS');
         $tpl->push('css/default-theme.css', 'CSS');
@@ -709,6 +709,8 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.css', 'CSS');
         $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.js', 'JS');
         jquery_Jquery::run($tpl, "$('a.fancybox').fancybox();", true);
+        
+        //@TODO да се добавят стилове от тема $rec->theme
     }
     
     
