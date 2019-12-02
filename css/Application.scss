@@ -2662,10 +2662,13 @@ table.mc-calendar {
 .portal-cal-day {
 	color:#5f1f3e;
 	font-style: italic;
-
 	font-size: 0.9em;
     padding-top:3px;
     padding-left:3px;
+	border-top: 1px solid #ccc;
+	&:first-child {
+		border-top: none !important;
+	}
 	.title {
 		padding-top: 1px;
 		padding: 2px;
