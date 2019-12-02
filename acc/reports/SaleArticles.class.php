@@ -247,7 +247,7 @@ class acc_reports_SaleArticles extends acc_reports_BalanceImpl
         $tpl->placeObject($data->row);
         
         // Името на перото да се показва като линк
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             $articlePositionId = acc_Lists::getPosition($this->accountSysId, 'cat_ProductAccRegIntf');
             foreach ($data->rows as $id => &$row) {
                 $articleItem = acc_Items::fetch($data->recs[$id]->{"ent{$articlePositionId}Id"}, 'classId,objectId');
@@ -266,7 +266,7 @@ class acc_reports_SaleArticles extends acc_reports_BalanceImpl
         
         if ($data->bShowQuantities) {
             $data->summary->colspan -= 4;
-            if ($data->summary->colspan != 0 && count($data->rows)) {
+            if ($data->summary->colspan != 0 && countR($data->rows)) {
                 $beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td></tr>");
             }
         }

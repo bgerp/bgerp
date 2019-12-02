@@ -241,7 +241,7 @@ class doc_ExpensesSummary extends core_Manager
         // Рендиране на таблицата
         $tableHtml = $table->get($data->rows, "valior=Вальор,item2Id=Артикул,docId=Документ,quantity=Количество,amount=Сума|* <small>({$currencyCode}</small>)");
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             $total = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($total);
             $afterRow = "<tr style='background-color:#eee'><td colspan=4 style='text-align:right'><b>" . tr('Общо') . "</b></td><td style='text-align:right'><b>{$total}</b></td></tr>";
             $tableHtml->append($afterRow, 'ROW_AFTER');

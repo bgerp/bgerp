@@ -280,7 +280,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             return;
         }
         
-        if (!count($data->rows) || haveRole('partner')) {
+        if (!countR($data->rows) || haveRole('partner')) {
             
             return;
         }
@@ -310,7 +310,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             
             return;
         }
-        if (!count($data->rows) || haveRole('partner')) {
+        if (!countR($data->rows) || haveRole('partner')) {
             
             return;
         }

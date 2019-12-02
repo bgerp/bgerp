@@ -2255,7 +2255,7 @@ table.mc-calendar {
     width: 13%;
     text-align: right;
     border: none;
-    background-color: #e8efe8;
+    background-color: rgba(200, 200, 200, 0.2);
     border: solid 2px #e8efe8;
     padding: 1px;
     font-weight: bold;
@@ -2278,6 +2278,45 @@ table.mc-calendar {
     border: solid 2px red; }
   table.mc-calendar td.mc-holiday {
     color: red; }
+
+.portal-cal-day {
+  color: #5f1f3e;
+  font-style: italic;
+  background-color: #ffffcc;
+  font-size: 0.9em;
+  padding-top: 3px;
+  padding-left: 3px; }
+  .portal-cal-day .title {
+    padding-top: 1px;
+    padding: 2px;
+    display: block; }
+    .portal-cal-day .title span {
+      display: inline-block; }
+  .portal-cal-day .progress {
+    float: right;
+    display: inline-block;
+    padding-left: 5px; }
+  .portal-cal-day .threadSubTitle {
+    display: inline-block;
+    clear: both;
+    font-size: 0.9em; }
+  .portal-cal-day .task {
+    padding: 4px; }
+
+  .portal-cal-day.portal-cal-tomorrow {
+    background-color: #ddffbb; }
+  .portal-cal-day.portal-cal-nextday {
+    background-color: #ccffbb; }
+  .portal-cal-day.portal-cal-after {
+    background-color: #bbffaa; }
+
+  .portal.newCalendar .mc-calendar {
+    margin: 10px 0; }
+  .portal.newCalendar .threadSubTitle {
+    padding: 2px;
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 0.9em; }
 
 table.mc-header a {
   color: #999999; }

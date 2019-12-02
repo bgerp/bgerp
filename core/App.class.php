@@ -357,9 +357,11 @@ class core_App
         // Генерираме събитието 'suthdown' във всички сингълтон обекти
         core_Cls::shutdown();
         
-        // Освобождава манипулатора на сесията. Ако трябва да се правят
-        // записи в сесията, то те трябва да се направят преди shutdown()
-        core_Session::pause();
+        if (!Request::get('ajax_mode')) {
+            // Освобождава манипулатора на сесията. Ако трябва да се правят
+            // записи в сесията, то те трябва да се направят преди shutdown()
+            core_Session::pause();
+        }
         
         // Генерираме събитието 'suthdown' във всички сингълтон обекти
         core_Cls::afterSessionClose();
@@ -484,6 +486,12 @@ class core_App
         $oneTimeFlag = true;
         
         ignore_user_abort(true);
+        
+        // Освобождава манипулатора на сесията. Ако трябва да се правят
+        // записи в сесията, то те трябва да се направят преди shutdown()
+        if (Request::get('ajax_mode')) {
+            core_Session::pause();
+        }
         
         if ($output) {
             $content = ob_get_contents();         // Get the content of the output buffer

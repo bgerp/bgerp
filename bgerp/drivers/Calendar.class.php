@@ -49,7 +49,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
      * Подготвя данните
      *
      * @param stdClass $dRec
-     * @param null|integer $userId
+     * @param null|int $userId
      *
      * @return stdClass
      */
@@ -65,9 +65,9 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $resData->month = Request::get('cal_month', 'int');
         $resData->month = str_pad($resData->month, 2, '0', STR_PAD_LEFT);
-        $resData->year  = Request::get('cal_year', 'int');
+        $resData->year = Request::get('cal_year', 'int');
         
-        if(!$resData->month || $resData->month < 1 || $resData->month > 12 || !$resData->year || $resData->year < 1970 || $resData->year > 2038) {
+        if (!$resData->month || $resData->month < 1 || $resData->month > 12 || !$resData->year || $resData->year < 1970 || $resData->year > 2038) {
             $resData->year = date('Y');
             $resData->month = date('m');
         }
@@ -110,70 +110,69 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $Calendar->searchInputField .= '_' . $dRec->originIdCalc;
         
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->pages . '_' . $userId . '_' . Mode::get('screenMode') . '_' . $resData->month . '_' . $resData->year . '_' . Request::get($Calendar->searchInputField) . '_' . core_Lg::getCurrent() . '_' . $lastCalendarEventRec. '_' . $lastAgendaEventRec . '_' . dt::now(false));
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->pages . '_' . $userId . '_' . Mode::get('screenMode') . 
+                '_' . $resData->month . '_' . $resData->year . '_' . Request::get($Calendar->searchInputField) . '_' . core_Lg::getCurrent() . '_' . 
+                $lastCalendarEventRec. '_' . $lastAgendaEventRec . '_' . dt::now(false));
         $resData->cacheType = 'Calendar';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
-            
             $Calendar->prepareListRecs($resData->calendarState);
             if (is_array($resData->calendarState->recs)) {
                 $resData->cData = array();
-                foreach($resData->calendarState->recs as $id => $rec) {
-                    
+                foreach ($resData->calendarState->recs as $id => $rec) {
                     $time = dt::mysql2timestamp($rec->time);
                     $i = (int) date('j', $time);
                     
-                    if(!isset($resData->cData[$i])) {
+                    if (!isset($resData->cData[$i])) {
                         $resData->cData[$i] = new stdClass();
                     }
                     
-                    list ($d, $t) = explode(" ", $rec->time);
+                    list($d, $t) = explode(' ', $rec->time);
                     
-                    if($rec->type == 'holiday' || $rec->type == 'non-working' || $rec->type == 'workday') {
+                    if ($rec->type == 'holiday' || $rec->type == 'non-working' || $rec->type == 'workday') {
                         $time = dt::mysql2timestamp($rec->time);
                         $i = (int) date('j', $time);
-                        if(!isset($resData->cData[$i])) {
+                        if (!isset($resData->cData[$i])) {
                             $resData->cData[$i] = new stdClass();
                         }
                         $resData->cData[$i]->type = $rec->type;
-                    
-                    } elseif($rec->type == 'working-travel') {
-                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/working-travel.png') .">&nbsp;";
-                    } elseif($rec->type == 'leaves') {
-                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/leaves.png') .">&nbsp;";
-                    } elseif($rec->type == 'sick') {
-                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/sick.png') .">&nbsp;";
-                    } elseif($rec->type == 'workday') {
+                    } elseif ($rec->type == 'working-travel') {
+                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/working-travel.png') .'>&nbsp;';
+                    } elseif ($rec->type == 'leaves') {
+                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/leaves.png') .'>&nbsp;';
+                    } elseif ($rec->type == 'sick') {
+                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/sick.png') .'>&nbsp;';
+                    } elseif ($rec->type == 'workday') {
                         // Нищо не се прави
-                    } elseif($rec->type == 'task' || $rec->type == 'reminder'){
+                    } elseif ($rec->type == 'task' || $rec->type == 'reminder') {
                         if ($arr[$d] != 'active') {
-                            if($rec->state == 'active' || $rec->state == 'waiting') {
-                                $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .">&nbsp;";
+                            if ($rec->state == 'active' || $rec->state == 'waiting') {
+                                $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .'>&nbsp;';
                             } else {
-                                $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .">&nbsp;";
+                                $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .'>&nbsp;';
                             }
                         }
                     }
                 }
             }
             
-            for($i = 1; $i <= 31; $i++) {
-                if(!isset($resData->cData[$i])) {
+            for ($i = 1; $i <= 31; $i++) {
+                if (!isset($resData->cData[$i])) {
                     $resData->cData[$i] = new stdClass();
                 }
-                $resData->cData[$i]->url = toUrl(array('cal_Calendar', 'day', 'from' => "{$i}.{$resData->month}.{$resData->year}"));;
+                $resData->cData[$i]->url = toUrl(array('cal_Calendar', 'day', 'from' => "{$i}.{$resData->month}.{$resData->year}"));
             }
             
             // Съдържание на списъка със събития
             
             // От вчера
-            $previousDayTms = mktime(0, 0, 0, date('m'), date('j')-1, date('Y'));
+            $previousDayTms = mktime(0, 0, 0, date('m'), date('j') - 1, date('Y'));
             $from = dt::timestamp2mysql($previousDayTms);
             
             // До вдругиден
-            $afterTwoDays = mktime(0, 0, -1, date('m'), date('j')+3, date('Y'));
+            $afterTwoDays = mktime(0, 0, -1, date('m'), date('j') + 3, date('Y'));
             $to = dt::timestamp2mysql($afterTwoDays);
             
             // Подготвяме данните за бележника
@@ -206,7 +205,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
     {
         if (!$data->tpl) {
             $Calendar = cls::get('cal_Calendar');
-            $select = ht::createSelect('dropdown-cal', $data->monthOptions->opt, $data->monthOptions->currentM, array('onchange' => "javascript:location.href = this.value;", 'class' => 'portal-select'));
+            $select = ht::createSelect('dropdown-cal', $data->monthOptions->opt, $data->monthOptions->currentM, array('onchange' => 'javascript:location.href = this.value;', 'class' => 'portal-select'));
             
             $header = "<table class='mc-header' style='width:100%'>
                     <tr>
@@ -219,24 +218,23 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $searchForm = $Calendar->getForm();
             bgerp_Portal::prepareSearchForm($Calendar, $searchForm);
             
-            $data->tpl = new ET(tr('|*<div class="clearfix21 portal">
+            $data->tpl = new ET(tr(
+                
+                '|*<div class="clearfix21 portal newCalendar">
                                         <div class="legend" id="calendarPortal">[#CAL_TITLE#]
                                             [#SEARCH_FORM#]
                                         </div>
                                         
                                         <!--ET_BEGIN NOW-->
-                                            <div style="font-size: 0.9em">
-                                                <div style="color:#5f1f3e; font-style: italic; background-color:#ffc;">
-                                                    [#NOW_DATE#]
-                                                    [#NOW#]
-                                                </div>
+                                            <div class="[#NOW_CLASS_NAME#] portal-cal-day">
+                                                <span class="title">[#NOW_DATE#]</span>
+                                                [#NOW#]
                                             </div>
                                         <!--ET_END NOW-->    
                                         
-
                                         [#MONTH_CALENDAR#]
-
-                                        <!--ET_BEGIN FUTURE--><div>[#FUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
+                                        
+                                        <!--ET_BEGIN FUTURE--><div class="portal-cal-day" style="padding: 5px; background-color: rgba(210, 255, 120, 0.6);">[#FUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
                                     </div>'
                                     ));
             
@@ -246,45 +244,49 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $tomorrow = dt::addDays(1, $today, false);
             $nextDay = dt::addDays(2, $today, false);
             
-            $format = Mode::is('screenMode', 'narrow') ? 'd-M-year, D': 'd F-YEAR, l';
+            $format = Mode::is('screenMode', 'narrow') ? 'd-M-year, D': 'd M-year, D';
             
             // Показваме събитията близките дни
-            foreach ((array)$tArr['now'] as $tDate => $tRowArr) {
-                
+            foreach ((array) $tArr['now'] as $tDate => $tRowArr) {
                 ksort($tRowArr);
                 
-                $dStr = dt::mysql2verbal($tDate, $format, null, false);
+                $dStr = dt::mysql2verbal($tDate, $format, null, null, false);
                 
                 if ($today == $tDate) {
                     $dVerb = tr('Днес');
+                    $nowClassName = 'portal-cal-today';
                 } elseif ($tDate == $tomorrow) {
                     $dVerb = tr('Утре');
-                }elseif ($tDate == $nextDay) {
+                    $nowClassName = 'portal-cal-tomorrow';
+                } elseif ($tDate == $nextDay) {
                     $dVerb = tr('Вдругиден');
+                    $nowClassName = 'portal-cal-nextday';
                 } else {
                     $dVerb = '';
+                    $nowClassName = 'portal-cal-after';
                 }
                 
                 $dVerb .= $dVerb ? ', ' : '';
                 $dVerb .= $dStr;
                 
-                $res = (object)array('day' => $dVerb);
+                $res = (object) array('day' => $dVerb);
                 $Calendar->invoke('AfterPrepareGroupDate', array(&$res, $tDate));
                 
                 $dVerb = $res->day;
                 
-                $this->invoke('AfterPrepareDateName', array(&$dVerb, $tDate));
-                
                 $dBlock = $data->tpl->getBlock('NOW');
                 
-                if ($tRowArr['events']) {
-                    $dVerb .= $tRowArr['events'];
-                }
                 
                 $dBlock->replace($dVerb, 'NOW_DATE');
+                $dBlock->replace($nowClassName, 'NOW_CLASS_NAME');
+                
+                if ($tRowArr['events']) {
+                    $dBlock->append('<span class="title"><small style="vertical-align:text-top">&nbsp;' . tr('Празнуваме||Celebrate') . ':</small>' . $tRowArr['events'] . '</span>', 'NOW');
+                    unset($tRowArr['events']);
+                }
                 
                 foreach ($tRowArr as $tRow) {
-                    $dBlock->append('<div>' . $tRow->title . '</div>', 'NOW');
+                    $dBlock->append('<div class="task">' . $tRow->title . '</div>', 'NOW');
                 }
                 
                 $dBlock->removeBlocks();
@@ -292,8 +294,10 @@ class bgerp_drivers_Calendar extends core_BaseClass
             }
             
             // Показваме събитията за в бъдеще
-            $data->tpl->append($tArr['future'], 'FUTURE');
-            $data->tpl->replace(tr('По-нататък'), 'FUTURE_DATE');
+            if ($tArr['future']) {
+                $data->tpl->append($tArr['future'], 'FUTURE');
+                $data->tpl->replace(tr('По-нататък'), 'FUTURE_DATE');
+            }
             
             if (!Mode::is('screenMode', 'narrow')) {
                 $data->tpl->replace(tr('Календар'), 'CAL_TITLE');
@@ -330,10 +334,10 @@ class bgerp_drivers_Calendar extends core_BaseClass
     
     /**
      * Помощна функция за вземане на събитията за съответни дни
-     * 
-     * @param null|integer $userId
-     * @param array $pArr
-     * 
+     *
+     * @param null|int $userId
+     * @param array    $pArr
+     *
      * @return array
      */
     protected function prepareCalendarEvents($userId = null, $pArr = array())
@@ -361,15 +365,20 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $this->prepareHolidaysCalendarEvents($pArr, $resArr['now']);
         
+        if (!is_array($resArr['now'])) {
+            $resArr['now'] = array();
+        }
+        ksort($resArr['now']);
+        
         return $resArr;
     }
     
     
     /**
      * Помощна функция за вземане на всички задачи за съответния период
-     * 
+     *
      * @param array $pArr
-     * 
+     *
      * @return array
      */
     protected function prepareTasksCalendarEvents($pArr)
@@ -385,8 +394,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $query->likeKeylist('assign', $pArr['_userId']);
         
-        $query->where("#timeStart IS NOT NULL");
-        $query->orWhere("#timeEnd IS NOT NULL");
+        $query->where('#timeStart IS NOT NULL');
+        $query->orWhere('#timeEnd IS NOT NULL');
         
         $todayF = $pArr['_todayF'];
         $query->where(array("#expectationTimeStart >= '[#1#]'", $todayF));
@@ -433,7 +442,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $Tasks->prepareListRows($fTasks);
         
         if ($fTasks->recs) {
-            $fTpl = new ET("[#table#][#pager#]");
+            $fTpl = new ET('[#table#][#pager#]');
             $fTpl->replace($Tasks->renderListTable($fTasks), 'table');
             $fTpl->replace($Tasks->renderListPager($fTasks), 'pager');
             $resArr['future'] = $fTpl;
@@ -445,9 +454,9 @@ class bgerp_drivers_Calendar extends core_BaseClass
     
     /**
      * Помощна функция за вземане на вербалните стойности на запис за задача
-     * 
+     *
      * @param stdClass $rec
-     * 
+     *
      * @return stdClass
      */
     protected function getRowForTask($rec)
@@ -460,7 +469,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $rToVerb = cal_Tasks::recToVerbal($rec, $f);
         
         $subTitle = $Tasks->getDocumentRow($rec->id)->subTitle;
-        $subTitle = "<div class='threadSubTitle'>{$subTitle}</div>";
+        $subTitle = "<span class='threadSubTitle'> {$subTitle}</span>";
         
         $title = str::limitLen(type_Varchar::escape($rec->title), 60, 30, ' ... ', true);
         $rToVerb->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, array('ef_icon' => $Tasks->getIcon($rec->id)));
@@ -512,13 +521,12 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $orderH .= ' ' . ++$i;
             $tRec = $Reminders->recToVerbal($rec, 'title');
             if ($Reminders->haveRightFor('single', $rec)) {
-                
-                $tRec->title = ' ' . dt::mysql2verbal($rec->startTimeOrder, 'H:i', null, false) . ' ' . $tRec->title;
+                $tRec->title = ' ' . dt::mysql2verbal($rec->startTimeOrder, 'H:i', null, true) . ' ' . $tRec->title;
                 
                 $title = ht::createLink($tRec->title, $Reminders->getSingleUrlArray($rec->id), null, array('ef_icon' => $Reminders->getIcon($rec->id)));
             }
             
-            $rArrNow[$orderDate][$orderH] = (object)array('title' => $title);
+            $rArrNow[$orderDate][$orderH] = (object) array('title' => $title);
         }
     }
     
@@ -563,18 +571,13 @@ class bgerp_drivers_Calendar extends core_BaseClass
             }
             
             $orderH .= ' ' . ++$i;
-            
-            if ($pArr['search']) {
+            $rr[] = $rec;
+            if ($pArr['search'] || $rec->type == 'working-travel' || $rec->type == 'leaves' || $rec->type == 'sick') {
                 $cRec = $Calendar->recToVerbal($rec, 'title');
-                $rArrNow[$orderDate][$orderH] = (object)array('title' => $cRec->event);
+                $rArrNow[$orderDate][$orderH] = (object) array('title' => $cRec->event);
             } else {
                 $type = strtolower($rec->type);
-                
-                $cUrl = array();
-                if (cal_Calendar::haveRightFor('day')) {
-                    $cUrl = array('cal_Calendar', 'day', 'from' => $orderDate);
-                }
-                
+                $cUrl = parseLocalUrl($rec->url, false);
                 $cEventsTypeArr[$orderDate][$orderH] = ht::createLink(ht::createImg(array('path' => "img/16/{$type}.png")), $cUrl, false, array('title' => $rec->title));
             }
         }
@@ -586,7 +589,9 @@ class bgerp_drivers_Calendar extends core_BaseClass
                     $iconStr .= ' ' . $icon;
                 }
                 
-                if (!$iconStr) continue;
+                if (!$iconStr) {
+                    continue;
+                }
                 
                 $rArrNow[$orderDate]['events'] = $iconStr;
             }

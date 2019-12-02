@@ -95,8 +95,8 @@ class plg_Chart extends core_Plugin
         // Намираме полетата, дефинирани като разграничаващи различните графики
         $diffFieldArr = $mvc->selectFields("#chart == 'diff'");
         
-        if (count($diffFieldArr) && count($data->rows)) {
-            expect(count($diffFieldArr) == 1);
+        if (countR($diffFieldArr) && countR($data->rows)) {
+            expect(countR($diffFieldArr) == 1);
             
             $diffField = current($diffFieldArr);
             

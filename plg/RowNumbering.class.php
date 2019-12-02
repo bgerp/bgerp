@@ -41,12 +41,12 @@ class plg_RowNumbering extends core_Plugin
      */
     public static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
-        if ($cnt = count($data->recs)) {
+        if ($cnt = countR($data->recs)) {
             if ($data->reverseOrder) {
                 if ($data->pager) {
                     $number = $data->pager->itemsCount - $data->pager->rangeStart;
                 } else {
-                    $number = count($data->rows);
+                    $number = Rcount($data->rows);
                 }
                 
                 $increment = -1;

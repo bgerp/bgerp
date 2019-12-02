@@ -198,7 +198,7 @@ class planning_ObjectResources extends core_Manager
             $data->notConvertableAnymore = true;
         }
         
-        if (!(count($data->rows) || isset($pInfo->meta['canConvert']))) {
+        if (!(countR($data->rows) || isset($pInfo->meta['canConvert']))) {
             
             return;
         }
@@ -221,7 +221,7 @@ class planning_ObjectResources extends core_Manager
     public function renderResources(&$data)
     {
         // Ако няма записи и вече не е вложим да не се показва
-        if (!count($data->rows) && $data->notConvertableAnymore) {
+        if (!countR($data->rows) && $data->notConvertableAnymore) {
             
             return;
         }

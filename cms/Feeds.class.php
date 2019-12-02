@@ -256,7 +256,7 @@ class cms_Feeds extends core_Manager
         // Поставяме иконка и заглавие
         $layout->append(tr('Нашите емисии'), 'HEADER');
         
-        if (count($data->rows) > 0) {
+        if (countR($data->rows) > 0) {
             foreach ($data->rows as $row) {
                 $feedTpl = $layout->getBlock('ROW');
                 $feedTpl->placeObject($row);

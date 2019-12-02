@@ -232,7 +232,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
                 });
                 
                 if (strpos($data->fRec->sorting, 'group_z') !== false) {
-                    for ($i = count($data->rows) - 1; $i >= 0; $i--) {
+                    for ($i = countR($data->rows) - 1; $i >= 0; $i--) {
                         $a[] = $data->rows[$i];
                     }
                     $data->rows = $a;

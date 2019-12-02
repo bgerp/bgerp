@@ -329,7 +329,7 @@ class batch_Items extends core_Master
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }
@@ -528,7 +528,7 @@ class batch_Items extends core_Master
         // Подготвяме таблицата за рендиране
         $table = cls::get('core_TableView', array('mvc' => $fieldSet));
         $fields = arr::make('batch=Партида,storeId=Склад,measureId=Мярка,quantity=Количество', true);
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             $fields = array('icon' => ' ') + $fields;
         }
         

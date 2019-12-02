@@ -299,7 +299,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
         $data->summBottomVer->colspan = count($data->listFields);
         if ($data->summBottom) {
             $data->summBottomVer->colspan -= 3;
-            if ($data->summBottomVer->colspan != 0 && count($data->rows)) {
+            if ($data->summBottomVer->colspan != 0 && countR($data->rows)) {
                 $afterRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#quantity#]</b></td><td style='text-align:right'><b>[#amount#]</b></td><td style='text-align:right'></td></tr>");
             }
         }

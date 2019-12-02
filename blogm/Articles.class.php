@@ -721,12 +721,12 @@ class blogm_Articles extends core_Master
             
             $data->title = tr('Статии в') .  ' "<b>' . blogm_Categories::getVerbal($catRec, 'title') . '</b>"';
             $data->descr = blogm_Categories::getVerbal($catRec, 'description');
-            if (!count($data->rows)) {
+            if (!countR($data->rows)) {
                 $data->descr .= "<p><b style='color:#666;'>" . tr('Все още няма статии в тази категория') . '</b></p>';
             }
         } else {
             $data->title = cms_Content::getLang() == 'bg' ? 'Всички статии в блога' : 'All Articles in the Blog';
-            if (!count($data->rows)) {
+            if (!countR($data->rows)) {
                 $data->descr .= "<p><b style='color:#666;'>" . tr('Все още няма статии в този блог') . '</b></p>';
             }
         }
@@ -745,7 +745,7 @@ class blogm_Articles extends core_Master
     {
         $layout = $data->ThemeClass->getBrowseLayout();
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             foreach ($data->rows as $row) {
                 $rowTpl = $layout->getBlock('ROW');
                 $rowTpl->placeObject($row);
