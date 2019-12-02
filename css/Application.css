@@ -2305,11 +2305,11 @@ table.mc-calendar {
   .portal-cal-day .task {
     padding: 4px; }
   .portal-cal-day.portal-cal-today {
-    background-color: rgba(225, 251, 162, 0.9); }
+    background-color: #e1fba2; }
   .portal-cal-day.portal-cal-tomorrow {
-    background-color: rgba(225, 251, 162, 0.6); }
+    background-color: rgba(225, 251, 162, 0.66); }
   .portal-cal-day.portal-cal-nextday {
-    background-color: rgba(225, 251, 162, 0.3); }
+    background-color: rgba(225, 251, 162, 0.33); }
   .portal-cal-day.portal-cal-after {
     background-color: rgba(225, 251, 162, 0); }
 
