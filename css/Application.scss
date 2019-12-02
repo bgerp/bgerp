@@ -2689,16 +2689,16 @@ table.mc-calendar {
 		padding: 4px;
 	}
 	&.portal-cal-today {
-		background-color: rgba(0,0,0,0.05);
+		background-color: rgba(225, 251, 162, 0.9);
 	}
 	&.portal-cal-tomorrow{
-		background-color: rgba(0,0,0,0.1);
+		background-color: rgba(225, 251, 162, 0.6);
 	}
 	&.portal-cal-nextday {
-		background-color:rgba(0,0,0,0.15);
+		background-color:rgba(225, 251, 162, 0.3);
 	}
 	&.portal-cal-after {
-		background-color:rgba(0,0,0,0.2);
+		background-color:rgba(225, 251, 162, 0.0);
 	}
 }
 .portal.newCalendar {
