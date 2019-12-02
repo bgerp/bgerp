@@ -2634,7 +2634,7 @@ table.mc-calendar {
 		cursor: pointer;
 		white-space: nowrap;
 		&:hover {
-		    background-color: #ffff66;
+		    background-color: rgba(0,0,0,0.3);
 		}
     }
 	td.mc-week-nb {
@@ -2662,7 +2662,7 @@ table.mc-calendar {
 .portal-cal-day {
 	color:#5f1f3e;
 	font-style: italic;
-	background-color:#ffc;
+
 	font-size: 0.9em;
     padding-top:3px;
     padding-left:3px;
@@ -2689,16 +2689,16 @@ table.mc-calendar {
 		padding: 4px;
 	}
 	&.portal-cal-today {
-
+		background-color: rgba(250,250,250,0.5);
 	}
 	&.portal-cal-tomorrow{
-		background-color:#dfb;
+		background-color: rgba(0,0,0,0.05);
 	}
 	&.portal-cal-nextday {
-		background-color:#cfb;
+		background-color:rgba(0,0,0,0.12);
 	}
 	&.portal-cal-after {
-		background-color: #bfa;
+		background-color:rgba(0,0,0,0.2);
 	}
 }
 .portal.newCalendar {
