@@ -424,7 +424,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             
             // Изчислява се готовността
             $readiness = core_Cache::get('sales_reports_ShipmentReadiness', "c{$sRec->containerId}");
-            
+           
             if ($readiness === false) {
                 $readiness = self::calcSaleReadiness($sRec);
                 core_Cache::set('sales_reports_ShipmentReadiness', "c{$sRec->containerId}", $readiness, 58);
@@ -688,6 +688,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             
             $price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
             $amount = null;
+            
+            // Ако няма цена се гледа мениджърската себестойност за да не е 0
+            if(empty($price)){
+                $price = cat_Products::getPrimeCost($pId, $pRec->packagingId, 1, $pRec->valior);
+            }
             
             // Ако артикула е нестандартен и има приключено задание по продажбата и няма друго активно по нея
             $q = $pRec->quantity;
