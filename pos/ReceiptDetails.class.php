@@ -437,7 +437,7 @@ class pos_ReceiptDetails extends core_Detail
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $Double = cls::get('type_Double');
         $Double->params['smartRound'] = true;
@@ -481,11 +481,8 @@ class pos_ReceiptDetails extends core_Detail
     public function renderSale($rec, &$row, $receiptDate, $fields = array())
     {
         $Varchar = cls::get('type_Varchar');
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
-        
-        $productInfo = cat_Products::getProductInfo($rec->productId);
-        $perPack = ($productInfo->packagings[$rec->value]) ? $productInfo->packagings[$rec->value]->quantity : 1;
+        $Double = core_Type::getByName('double(decimals=2)');
+        $productRec = cat_Products::fetch($rec->productId, 'code,measureId');
         
         $price = $this->Master->getDisplayPrice($rec->price, $rec->param, $rec->discountPercent, pos_Receipts::fetchField($rec->receiptId, 'pointId'), $rec->quantity);
         $row->price = $Double->toVerbal($price);
@@ -494,17 +491,27 @@ class pos_ReceiptDetails extends core_Detail
             $row->discountPercent = '+' . trim($row->discountPercent, '-');
         }
         
-        $row->code = $Varchar->toVerbal($productInfo->productRec->code);
+        $row->code = $Varchar->toVerbal($productRec->code);
         
         if ($rec->value) {
             $row->value = tr(cat_UoM::getTitleById($rec->value));
-            if ($packRec = cat_products_Packagings::getPack($rec->productId, $rec->value)) {
-                if (cat_UoM::fetchField($rec->value, 'showContents') == 'yes') {
-                    $row->quantityInPack = core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity);
+            $packRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
+            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+            
+            if(isset($fields['-list'])){
+                deals_Helper::getPackInfo($row->value, $rec->productId, $rec->value, $quantityInPack);
+            } else {
+                if ($packRec = cat_products_Packagings::getPack($rec->productId, $rec->value)) {
+                    if (cat_UoM::fetchField($rec->value, 'showContents') == 'yes') {
+                        $baseMeasureId = $productRec->measureId;
+                        $quantityInPack = cat_UoM::round($baseMeasureId, $packRec->quantity);
+                        $row->quantityInPack = core_Type::getByName('double(smartRound)')->toVerbal($quantityInPack);
+                        $row->quantityInPack .= " " . tr(cat_UoM::getShortName($baseMeasureId));
+                    }
                 }
             }
         } else {
-            $row->value = tr(cat_UoM::getTitleById($productInfo->productRec->measureId));
+            $row->value = tr(cat_UoM::getTitleById($productRec->measureId));
         }
         
         // Ако отстъпката е нула да не се показва
@@ -567,11 +574,7 @@ class pos_ReceiptDetails extends core_Detail
         }
         
         if (!$product->packagingId) {
-            if (isset($rec->value)) {
-                $basePackId = $rec->value;
-            } else {
-                $basePackId = key(cat_Products::getPacks($product->productId));
-            }
+            $basePackId = (isset($rec->value)) ? $rec->value : key(cat_Products::getPacks($product->productId));
         } else {
             $basePackId = $product->packagingId;
         }
@@ -626,7 +629,7 @@ class pos_ReceiptDetails extends core_Detail
     /**
      * След като създадем елемент, ъпдейтваме Бележката
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $fieldsList = null)
+    protected static function on_AfterSave($mvc, &$id, $rec, $fieldsList = null)
     {
         $mvc->Master->updateReceipt($rec->receiptId);
     }

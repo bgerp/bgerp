@@ -597,12 +597,7 @@ class pos_Terminal extends peripheral_Terminal
         $Receipts = cls::get('pos_Receipts');
         $tpl = new core_ET("");
         
-        $payUrl = array();
-        if (pos_Receipts::haveRightFor('pay', $rec)) {
-            $payUrl = toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local');
-        }
-        
-        // Показваме всички активни методи за плащания
+        $payUrl = (pos_Receipts::haveRightFor('pay', $rec)) ? toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local') : null;
         $disClass = ($payUrl) ? '' : 'disabledBtn';
         
         $element = ht::createElement("div", array('class' => "{$disClass} navigable posBtns payment selected", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true);
@@ -615,7 +610,12 @@ class pos_Terminal extends peripheral_Terminal
         }
         $tpl->append("<div class='clearfix21'></div><div class='actionBnts'>");
         
+        // Добавяне на бутон за приключване на бележката
         $buttons = array();
+        $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id) : null;
+        $disClass = ($payUrl) ? '' : 'disabledBtn';
+        $buttons[] = ht::createBtn('Приключи', $contoUrl, '', '', array('class' => "navigable posBtns payment closeBtn"));
+        
         $Receipts->invoke('BeforeGetPaymentTabBtns', array(&$buttons, $rec));
         foreach ($buttons as $btn){
             $tpl->append($btn);
@@ -645,7 +645,6 @@ class pos_Terminal extends peripheral_Terminal
         
         $baseClass = "resultPack navigable posBtns";
         $basePackName = cat_UoM::getVerbal($measureId, 'name');
-        
         $dataUrl = (pos_ReceiptDetails::haveRightFor('edit', $selectedRec)) ? toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity'), 'local') : null;
         
         $buttons = array();
@@ -669,7 +668,6 @@ class pos_Terminal extends peripheral_Terminal
         unset($buttons[$basePackagingId]);
         $buttons = array($basePackagingId => $firstBtn) + $buttons;
         
-        
         $query = pos_ReceiptDetails::getQuery();
         $query->where("#productId = {$selectedRec->productId} AND #action = 'sale|code' AND #quantity > 0");
         $query->show("quantity,value");
@@ -683,7 +681,6 @@ class pos_Terminal extends peripheral_Terminal
             $quantity = core_Type::getByName('double(smartRound)')->toVerbal($productRec->quantity);
             Mode::pop('text', 'plain');
             $btnCaption =  "{$quantity} " .tr(str::getPlural($productRec->quantity, $packagingId, true));
-            
             $buttons["{$productRec->packagingId}|{$productRec->quantity}"] = ht::createElement("div", array('class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packagingId, 'data-url' => $dataUrl), $btnCaption, true);
         }
         
@@ -693,7 +690,6 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         return $tpl;
-        
     }
     
     
