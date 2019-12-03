@@ -652,7 +652,7 @@ class pos_Receipts extends core_Master
             
             // Обновяваме складовите наличности
             pos_Stocks::updateStocks($rec->id);
-            pos_Receipts::logInAct('Приключване на бележка', $rec->id);
+            $this->logInAct('Приключване на бележка', $rec->id);
         }
         
         // Създаване на нова чернова бележка

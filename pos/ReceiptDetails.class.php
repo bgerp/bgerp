@@ -176,7 +176,7 @@ class pos_ReceiptDetails extends core_Detail
             $rec = (object)array('receiptId' => $receiptRec->id, 'action' => "payment|{$type}", 'amount' => $amount);
             
             if($this->save($rec)){
-                pos_Receipts::logInAct('Направено плащане', $receiptRec->id);
+                $this->Master->logInAct('Направено плащане', $receiptRec->id);
             }
             
        } catch(core_exception_Expect $e){
@@ -260,7 +260,7 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             if($this->save($rec)){
-                pos_Receipts::logInAct($sucessMsg, $receiptId);
+                $this->Master->logInAct($sucessMsg, $receiptId);
             }
             
         } catch(core_exception_Expect $e){
@@ -494,7 +494,9 @@ class pos_ReceiptDetails extends core_Detail
         $row->code = $Varchar->toVerbal($productRec->code);
         
         if ($rec->value) {
-            $row->value = tr(cat_UoM::getTitleById($rec->value));
+            $packaging = cat_UoM::getTitleById($rec->value);
+            $packaging = str::getPlural($rec->quantity, $packaging, true);
+            $row->value = tr($packaging);
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
             $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             
@@ -760,8 +762,8 @@ class pos_ReceiptDetails extends core_Detail
             $this->save($rec);
         }
         
-        cls::get('pos_Receipts')->updateReceipt($receiptId);
-        pos_Receipts::logInAct('Зареждане на всичко от сторнираната бележка', $receiptId);
+        $this->Master->updateReceipt($receiptId);
+        $this->Master->logInAct('Зареждане на всичко от сторнираната бележка', $receiptId);
         
         followRetUrl();
     }
