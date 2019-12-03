@@ -176,7 +176,7 @@ class pos_ReceiptDetails extends core_Detail
             $rec = (object)array('receiptId' => $receiptRec->id, 'action' => "payment|{$type}", 'amount' => $amount);
             
             if($this->save($rec)){
-                core_Statuses::newStatus('Плащането е направено успешно|*!');
+                pos_Receipts::logInAct('Направено плащане', $receiptRec->id);
             }
             
        } catch(core_exception_Expect $e){
@@ -260,7 +260,7 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             if($this->save($rec)){
-                core_Statuses::newStatus($sucessMsg);
+                pos_Receipts::logInAct($sucessMsg, $receiptId);
             }
             
         } catch(core_exception_Expect $e){
@@ -409,7 +409,7 @@ class pos_ReceiptDetails extends core_Detail
         
         $this->delete($rec->id);
         $this->Master->updateReceipt($rec->receiptId);
-        core_Statuses::newStatus("Редът е изтрит успешно|*!");
+        $this->Master->logInAct('Изтриване на ред', $rec->receiptId);
         
         return pos_Terminal::returnAjaxResponse($rec->receiptId, null, true, true);
     }
@@ -761,6 +761,7 @@ class pos_ReceiptDetails extends core_Detail
         }
         
         cls::get('pos_Receipts')->updateReceipt($receiptId);
+        pos_Receipts::logInAct('Зареждане на всичко от сторнираната бележка', $receiptId);
         
         followRetUrl();
     }

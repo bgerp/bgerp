@@ -181,17 +181,18 @@ class pos_Receipts extends core_Master
         // Ако форсираме, винаги създаваме нова бележка
         if ($forced) {
             $id = $this->createNew();
+            $this->logWrite('Създаване на нова бележка', $id);
         } else {
             
             // Ако има чернова бележка от същия ден, не създаваме нова
             $today = dt::today();
             if (!$id = $this->fetchField("#valior = '{$today}' AND #createdBy = {$cu} AND #pointId = {$posId} AND #state = 'draft'", 'id')) {
                 $id = $this->createNew();
+                $this->logWrite('Създаване на нова бележка', $id);
             }
         }
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->logWrite('Отваряне на бележка в ПОС терминала', $id);
         Mode::setPermanent("currentOperation", 'add');
         Mode::setPermanent("currentSearchString", null);
         
@@ -560,6 +561,7 @@ class pos_Receipts extends core_Master
         $rec->transferedIn = $sId;
         $rec->state = 'closed';
         $this->save($rec);
+        $this->logInAct('Прехвърляне на бележка', $rec->id);
         core_Statuses::newStatus("|Бележка|* №{$rec->id} |е затворена|*");
         
         // Споделяме потребителя към нишката на създадената продажба
@@ -650,6 +652,7 @@ class pos_Receipts extends core_Master
             
             // Обновяваме складовите наличности
             pos_Stocks::updateStocks($rec->id);
+            pos_Receipts::logInAct('Приключване на бележка', $rec->id);
         }
         
         // Създаване на нова чернова бележка
@@ -767,6 +770,7 @@ class pos_Receipts extends core_Master
         }
         
         $newReceiptId = $this->createNew($id);
+        $this->logWrite('Създаване на сторнираща бележка', $id);
         
         Mode::setPermanent("currentOperation", 'add');
         Mode::setPermanent("currentSearchString", null);
@@ -837,8 +841,8 @@ class pos_Receipts extends core_Master
         expect($rec->contragentObjectId = Request::get('contragentId', 'int'));
         
         $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
-        
         $this->save($rec, 'contragentObjectId,contragentClass');
+        $this->logWrite('Задаване на контрагент', $id);
         
         followRetUrl();
     }
