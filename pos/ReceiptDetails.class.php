@@ -498,7 +498,11 @@ class pos_ReceiptDetails extends core_Detail
         
         if ($rec->value) {
             $row->value = tr(cat_UoM::getTitleById($rec->value));
-            deals_Helper::getPackInfo($row->value, $rec->productId, $rec->value, $perPack);
+            if ($packRec = cat_products_Packagings::getPack($rec->productId, $rec->value)) {
+                if (cat_UoM::fetchField($rec->value, 'showContents') == 'yes') {
+                    $row->quantityInPack = core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity);
+                }
+            }
         } else {
             $row->value = tr(cat_UoM::getTitleById($productInfo->productRec->measureId));
         }
