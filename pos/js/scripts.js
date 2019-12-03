@@ -626,23 +626,15 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		//getEfae().process(resObj, {id:productId});
+		getEfae().process(resObj, {productId:productId});
 
 		dialog = $("#ajax-form").dialog({
 			autoOpen: false,
-			height: 300,
-			width: 500,
+			height: 600,
+			width: 900,
 			modal: true
 		});
-
-		dialog.dialog( "open" );
-		
-		
-		
-		console.log(operation, productId);
-		
 	});
-	
 }
 
 // Калкулира ширината
