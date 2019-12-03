@@ -386,7 +386,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         
-        $res->quantyti = $Double->toVerbal($dRec->blQuantity);
+        $res->quantyti = $dRec->blQuantity;
         
         $res->measure = cat_UoM::fetch(cat_Products::fetch($dRec->productId)->measureId)->shortName;
         
