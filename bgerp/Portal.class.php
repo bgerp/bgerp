@@ -44,7 +44,7 @@ class bgerp_Portal extends embed_Manager
     /**
      * Неща за зареждане в началото
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, bgerp_Wrapper, plg_Clone';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, bgerp_Wrapper, plg_Clone, plg_State2';
     
     
     /**
@@ -61,7 +61,15 @@ class bgerp_Portal extends embed_Manager
     
     public $listFields = 'driverClass, userOrRole, column, order, color, createdOn, createdBy';
     
+    // Състояния за показване/не показване
+    public $activeState = 'yes';
+    public $closedState = 'no';
     
+    /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 100;
+
     /**
      * Описание на модела
      */
@@ -71,23 +79,9 @@ class bgerp_Portal extends embed_Manager
         $this->FLD('column', 'enum(left=Лява,center=Средна,right=Дясна)', 'caption=Колона, notNull, hint=Колона в широкия изглед');
         $this->FLD('order', 'enum(800=Най-нагоре,700=По-нагоре,600=Нагоре,500=Средата,400=Надолу,300=По-надолу,200=Най-надолу)', 'caption=Подредба, notNull, hint=Подредба спрямо другите блокове');
         $this->FLD('color', 'enum(lightgray=Светло сив,darkgray=Тъмно сив,lightred=Светло червен,darkred=Тъмно червен,lightgreen=Светло зелен,darkgreen=Тъмно зелен,lightblue=Светло син,darkblue= Тъмно син, yellow=Жълт, pink=Розов, purple=Лилав, orange=Оранжев)', 'caption=Цвят, notNull');
-        $this->FLD('show', 'enum(yes=Да,no=Не)', 'caption=Показване, notNull');
+        $this->FLD('state', 'enum(yes=Да,no=Не)', 'caption=Показване, notNull,oldFieldName=show,smartCenter');
         
         $this->FNC('originIdCalc', 'key(mvc=bgerp_Portal, allowEmpty)', 'caption=Източник,input=none');
-        
-        $optArr = array();
-        foreach ($this->fields['color']->type->options as $color => $verbal) {
-            if (is_object($verbal)) {
-                $optArr[$color] = $verbal;
-            } else {
-                $opt = new stdClass();
-                $opt->title = $verbal;
-                $opt->attr = array('class' => "color-{$color}");
-                $optArr[$color] = $opt;
-            }
-        }
-        
-        $this->fields['color']->type->options = $optArr;
     }
     
     
@@ -104,6 +98,28 @@ class bgerp_Portal extends embed_Manager
         } else {
             $rec->originIdCalc = $rec->id;
         }
+    }
+
+
+
+    /**
+     * Преди подготвяне на едит формата
+     */
+    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+        $optArr = array();
+        foreach ($mvc->fields['color']->type->options as $color => $verbal) {
+            if (is_object($verbal)) {
+                $optArr[$color] = $verbal;
+            } else {
+                $opt = new stdClass();
+                $opt->title = $verbal;
+                $opt->attr = array('class' => "color-{$color}");
+                $optArr[$color] = $opt;
+            }
+        }
+        
+        $mvc->fields['color']->type->options = $optArr;
     }
     
     
@@ -631,6 +647,23 @@ class bgerp_Portal extends embed_Manager
         $data->query->orderBy('createdBy', 'DESC');
     }
     
+    /**
+     * След извличане на записите от БД
+     * Премахва клонираните редове
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListRecs($mvc, &$res, $data)
+    {
+        foreach($data->recs as $id => $rec) {
+            if(isset($rec->originIdCalc) && $id != $rec->originIdCalc) {
+                unset($data->recs[$rec->originIdCalc]);
+            }
+        }
+    }
+
     
     /**
      * Показва портала
