@@ -142,6 +142,30 @@ class pos_Terminal extends peripheral_Terminal
         return $tpl;
     }
     
+    public function act_EnlargeProduct()
+    {
+        expect($productId = Request::get('productId', 'int'));
+        $document = doc_Containers::getDocument(cat_Products::fetchField($productId, 'containerId'));
+        
+        Mode::push('noBlank', true);
+        $docHtml = $document->getInlineDocumentBody('xhtml');
+        Mode::pop('noBlank', true);
+        
+        // Ще се реплейсва и пулта
+        $res = array();
+        $resObj = new stdClass();
+        $resObj->func = 'html';
+        $resObj->arg = array('id' => 'ajax-form', 'html' => $docHtml->getContent(), 'replace' => true);
+        $res[] = $resObj;
+
+        $resObj = new stdClass();
+        $resObj->func = 'fancybox';
+        $res[] = $resObj;
+        
+        return $res;
+    }
+    
+    
     public function getCommandPanel($rec)
     {
         $Receipts = cls::get('pos_Receipts');
@@ -232,7 +256,10 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $enlargeBtn = ht::createFnBtn('', '', '', array('data-url' => toUrl(array('cat_Products', 'single'), 'local'), 'class' => 'enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
+        if($currentOperation == 'add'){
+            $enlargeBtn = ht::createFnBtn('', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => 'enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
+        }
+        
         $block->append($enlargeBtn, 'INPUT_FLD');
         $block->append(ht::createElement('input', $params), 'INPUT_FLD');
         $block->append($this->renderKeyboard('tools'), 'KEYBOARDS');
