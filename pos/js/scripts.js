@@ -69,6 +69,38 @@ function posActions() {
 	});
 
 	
+	/**
+	 * При спиране на писането в полето за търсене
+	 * @param e
+	 * @returns
+	 */
+	$(document.body).on('keyup', "input[name=ean]", function(e){
+		// След всяко натискане на бутон изчистваме времето на изчакване
+		clearTimeout(timeout);
+
+		var url = $(this).attr("data-keyupurl");
+		if(!url){
+			return;
+		}
+
+		var inpVal = $(this).val();
+		var operation = getSelectedOperation();
+
+		var selectedElement = $(".highlighted");
+		var selectedRecId = selectedElement.attr("data-id");
+
+		// Правим Ajax заявката като изтече време за изчакване
+		timeout = setTimeout(function(){
+			resObj = new Object();
+			resObj['url'] = url;
+
+			getEfae().process(resObj, {operation:operation,search:inpVal,recId:selectedRecId});
+
+		}, 700);
+
+	});
+	
+	
 	// При натискане на бутон от клавиатурата, ако е 'ENTER'
 	$(document).keypress(function(e) {
 	    if(e.which == 13) {
