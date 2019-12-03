@@ -508,17 +508,19 @@ class doc_Setup extends core_ProtoSetup
             
             $fId = email_Inboxes::forceCoverAndFolder($iRec);
             
-            if (!$fId) continue;
+            if (!$fId) {
+                continue;
+            }
             
             $rec = new stdClass();
             $rec->{$Portal->driverClassField} = doc_drivers_FolderPortal::getClassId();
-            $rec->column = 'center';
-            $rec->order = 200;
+            $rec->column = 'right';
+            $rec->order = 800;
             $rec->perPage = 5;
             $rec->userOrRole = $uId;
             $rec->folderId = $fId;
             $rec->fOrder = 'open';
-            $rec->color = 'lightgray';
+            $rec->color = 'lightgreen';
             $rec->show = 'yes';
             
             $Portal->save($rec);

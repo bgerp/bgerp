@@ -167,7 +167,6 @@ class acc_plg_DocumentSummary extends core_Plugin
         return true;
     }
     
-    
     /**
      * Подготовка на филтър формата
      */
@@ -178,9 +177,17 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
         $data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
         
-        if (is_array($mvc->filterDateField) || strpos($mvc->filterDateField, ',')) {
+        $dateFields = arr::make($mvc->filterDateField, true);
+        $userFields = arr::make($mvc->filterFieldUsers, true);
+        if(count($userFields)){
+            $userFields['createdBy'] = 'createdBy';
+        }
+        
+        //bp($userFields);
+        $flds = $dateFields + $userFields;
+        
+        if (count($flds)) {
             $opt = array();
-            $flds = arr::make($mvc->filterDateField);
             $defaultFilterDateField = null;
             foreach ($flds as $f) {
                 if (!$defaultFilterDateField) {
@@ -282,11 +289,15 @@ class acc_plg_DocumentSummary extends core_Plugin
                 if (!$userIds[-1]) {
                     $userArr = implode(',', $userIds);
                     
-                    $data->query->where("#{$mvc->filterFieldUsers} IN ({$userArr})");
-                    
-                    // Ако полето за филтриране по потребител нее създателя, добавяме и към него
-                    if ($mvc->filterFieldUsers != 'createdBy') {
-                        $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
+                    if(in_array($filter->filterDateField, $userFields)){
+                        $data->query->where("#{$filter->filterDateField} IN ({$userArr})");
+                    } else {
+                        $data->query->where("#{$mvc->filterFieldUsers} IN ({$userArr})");
+                        
+                        // Ако полето за филтриране по потребител нее създателя, добавяме и към него
+                        if ($mvc->filterFieldUsers != 'createdBy') {
+                            $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
+                        }
                     }
                 }
             }
@@ -307,6 +318,10 @@ class acc_plg_DocumentSummary extends core_Plugin
             
             if ($showFilterDateField) {
                 $fromField = $filter->filterDateField ? $filter->filterDateField : $defaultFilterDateField;
+                if(in_array($fromField, $userFields)){
+                    $fromField = $defaultFilterDateField;
+                }
+                
                 $toField = $fromField;
                 $data->query->orderBy($fromField, 'DESC');
             } else {

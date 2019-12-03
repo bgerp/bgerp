@@ -112,7 +112,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }

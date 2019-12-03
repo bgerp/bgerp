@@ -137,7 +137,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
         core_Lg::push($data->masterData->rec->tplLang);
         $date = ($data->masterData->rec->state == 'draft') ? null : $data->masterData->rec->modifiedOn;
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
                 $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);

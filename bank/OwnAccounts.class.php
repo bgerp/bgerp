@@ -239,7 +239,7 @@ class bank_OwnAccounts extends core_Master
      */
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }

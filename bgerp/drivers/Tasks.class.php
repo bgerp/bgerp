@@ -48,7 +48,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
      * Подготвя данните
      *
      * @param stdClass $dRec
-     * @param null|integer $userId
+     * @param null|int $userId
      *
      * @return stdClass
      */
@@ -82,8 +82,8 @@ class bgerp_drivers_Tasks extends core_BaseClass
         $resData->data->query->orWhere("#state = 'waiting'");
         $resData->data->query->orWhere("#state = 'pending'");
         
-        $resData->data->query->where("#timeStart IS NULL");
-        $resData->data->query->where("#timeEnd IS NULL");
+        $resData->data->query->where('#timeStart IS NULL');
+        $resData->data->query->where('#timeEnd IS NULL');
         
         $cloneQuery = clone $resData->data->query;
         
@@ -98,7 +98,6 @@ class bgerp_drivers_Tasks extends core_BaseClass
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
-            
             $resData->data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 WHEN 'pending' THEN 3 ELSE 4 END)");
             
             $resData->data->query->orderBy('orderByState', 'ASC');
@@ -147,7 +146,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
                     
                     if ($rec->savedState) {
                         $sState = $rec->savedState;
-                        $row->title = "<div class='state-{$sState}-link'>{$row->title}</div>";
+                        $row->title = "<div class='state-{$sState}-link'><strong>{$row->title}</strong></div>";
                     }
                 }
             }
@@ -155,6 +154,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         return $resData;
     }
+    
     
     /**
      * Рендира данните
@@ -166,11 +166,9 @@ class bgerp_drivers_Tasks extends core_BaseClass
     public function render($data)
     {
         if (!$data->tpl) {
-            
             $data->tpl = new ET('
                                 <div class="clearfix21 portal" style="margin-bottom:25px;">
                                 <div class="legend">[#taskTitle#]&nbsp;[#profile#]&nbsp;[#SWITCH_BTN#]&nbsp;[#ADD_BTN#]&nbsp;[#REM_BTN#]</div>
-                                [#PortalPagerTop#]
                                 [#PortalTable#]
                             	[#PortalPagerBottom#]
                                 </div>
@@ -185,7 +183,6 @@ class bgerp_drivers_Tasks extends core_BaseClass
                 $data->tpl->append($formTpl, 'ListFilter');
             }
             
-            $data->tpl->append(cal_Tasks::renderListPager($data->data), 'PortalPagerTop');
             $data->tpl->append(cal_Tasks::renderListTable($data->data), 'PortalTable');
             $data->tpl->append(cal_Tasks::renderListPager($data->data), 'PortalPagerBottom');
             
@@ -237,9 +234,9 @@ class bgerp_drivers_Tasks extends core_BaseClass
      * Преди показване на форма за добавяне/промяна.
      *
      * @param bgerp_drivers_Recently $Driver
-     *                                      $Driver
-     * @param embed_Manager       $Embedder
-     * @param stdClass            $data
+     *                                         $Driver
+     * @param embed_Manager          $Embedder
+     * @param stdClass               $data
      */
     protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
     {
@@ -254,7 +251,6 @@ class bgerp_drivers_Tasks extends core_BaseClass
      */
     public function getBlockType()
     {
-        
         return 'tasks';
     }
 }

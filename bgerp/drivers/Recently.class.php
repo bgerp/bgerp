@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Последни документи и папки
+ * @title     Последно
  */
 class bgerp_drivers_Recently extends core_BaseClass
 {
@@ -48,7 +48,7 @@ class bgerp_drivers_Recently extends core_BaseClass
      * Подготвя данните
      *
      * @param stdClass $dRec
-     * @param null|integer $userId
+     * @param null|int $userId
      *
      * @return stdClass
      */
@@ -124,7 +124,6 @@ class bgerp_drivers_Recently extends core_BaseClass
         }
         
         return $resData;
-    
     }
     
     
@@ -166,7 +165,6 @@ class bgerp_drivers_Recently extends core_BaseClass
             <div class='clearfix21 portal'>
             <div class='legend'><div style='float:left'>[#PortalTitle#]</div>
             [#ListFilter#]<div class='clearfix21'></div></div>
-            [#PortalPagerTop#]
                         
             <div>
                 <!--ET_BEGIN PortalTable-->
@@ -180,9 +178,6 @@ class bgerp_drivers_Recently extends core_BaseClass
         
         // Попълваме титлата
         $tpl->append($data->title, 'PortalTitle');
-        
-        // Попълваме горния страньор
-        $tpl->append($Recently->renderListPager($data), 'PortalPagerTop');
         
         if ($data->listFilter) {
             $tpl->append($data->listFilter->renderHtml(), 'ListFilter');
@@ -202,9 +197,9 @@ class bgerp_drivers_Recently extends core_BaseClass
      * Преди показване на форма за добавяне/промяна.
      *
      * @param bgerp_drivers_Recently $Driver
-     *                                      $Driver
-     * @param embed_Manager       $Embedder
-     * @param stdClass            $data
+     *                                         $Driver
+     * @param embed_Manager          $Embedder
+     * @param stdClass               $data
      */
     protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
     {
@@ -219,7 +214,6 @@ class bgerp_drivers_Recently extends core_BaseClass
      */
     public function getBlockType()
     {
-        
         return 'recently';
     }
 }

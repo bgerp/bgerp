@@ -637,10 +637,11 @@ class core_FieldSet extends core_BaseClass
      *
      * @param string $name
      * @param array  $params
+     * @param boolean $strict
      */
-    public function getFieldTypeParam($name, $paramName)
+    public function getFieldTypeParam($name, $paramName, $strict = true)
     {
-        $fieldType = $this->getFieldType($name);
+        $fieldType = $this->getFieldType($name, $strict);
         
         return $fieldType->params[$paramName];
     }

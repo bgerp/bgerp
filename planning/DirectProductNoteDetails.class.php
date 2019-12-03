@@ -193,7 +193,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $Int = cls::get('type_Int');
         
         // За всеки детайл (ако има)
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             foreach ($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
                 if (!is_object($row->tools)) {
