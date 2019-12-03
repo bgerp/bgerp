@@ -19,7 +19,7 @@
 		<!--ET_END DETAILS-->
 		<tr>
 			<td colspan="3" style='padding: 0;'>
-				<table class='gradient' >
+				<table class='paymentBlock' >
 					<tr>
 						<td id = 'total-label'>|Общо|*:</td>
 						<td colspan='2' id = 'receipt-total-sum' class = 'receipt-info-right'>[#total#] [#currency#]</td>

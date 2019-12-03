@@ -1,6 +1,6 @@
 <!--ET_BEGIN TAB_TOOLS-->
 
-	<div class='tools-btn flex'>[#FIRST_TOOLS_ROW#]</div>
+	<div class='buttonRow'>[#FIRST_TOOLS_ROW#]</div>
     [#INPUT_FLD#]
     [#INPUT_DATA_LIST#]
 	<div class='keyboard-holder'>[#KEYBOARDS#]</div>
