@@ -356,9 +356,6 @@
   background-image: -o-linear-gradient(top, #eeeeee, #cccccc);
   background-image: linear-gradient(top, #eeeeee, #cccccc); }
 
-.narrow .pos-notes {
-  max-width: 70px; }
-
 #pos-producy-categories {
   padding: 0 5px; }
 
@@ -535,9 +532,6 @@ only screen and (max-width: 800px) {
 
 @media handheld,
 only screen and (max-width: 640px) {
-  .wide #tools-wide-holder {
-    display: none; }
-
   .narrow .pos-product {
     width: 74px !important;
     height: 74px !important; }
@@ -552,20 +546,6 @@ only screen and (max-width: 533px) {
 
 @media handheld,
 only screen and (max-width: 360px) {
-  .narrow .contragent-btn,
-  .narrow .colum-btn-holder {
-    max-width: 60px;
-    float: left; }
-
-  .narrow .colum-btn-holder {
-    margin-top: -48px; }
-
-  .narrow .colum-btn {
-    margin-top: 0; }
-
-  .tab-content {
-    padding: 10px; }
-
   .narrow .pos-product {
     width: 73px !important;
     height: 73px !important; }
