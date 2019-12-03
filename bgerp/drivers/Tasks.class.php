@@ -70,6 +70,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         // Подготвяме полетата за показване
         $resData->data->listFields = 'groupDate,title,progress';
+        $cloneQuery = clone $resData->data->query;
         
         if (Mode::is('listTasks', 'by')) {
             $resData->data->query->where(array("#createdBy = '[#1#]'", $userId));
@@ -84,8 +85,6 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         $resData->data->query->where('#timeStart IS NULL');
         $resData->data->query->where('#timeEnd IS NULL');
-        
-        $cloneQuery = clone $resData->data->query;
         
         $cloneQuery->orderBy('modifiedOn', 'DESC');
         $cloneQuery->limit(1);
