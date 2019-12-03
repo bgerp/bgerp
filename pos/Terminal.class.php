@@ -232,7 +232,7 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $enlargeBtn = ht::createFnBtn('', '', '', array('data-url' => toUrl(array('cat_Products', 'single'), 'local'), 'class' => 'enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
+        $enlargeBtn = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('cat_Products', 'single'), 'local'), 'class' => 'operationBtn enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
         $block->append($enlargeBtn, 'INPUT_FLD');
         $block->append(ht::createElement('input', $params), 'INPUT_FLD');
         $block->append($this->renderKeyboard('tools'), 'KEYBOARDS');

@@ -551,6 +551,16 @@
 .narrow .pos-span-name {
   font-size: 0.85em; }
 
+.productInfo {
+  display: none; }
+
+.ui-widget-overlay {
+  background: rgba(0, 0, 0, 0.5) !important;
+  opacity: 1 !important; }
+
+.enlargeProductBtn {
+  background-position: center; }
+
 /*
  * media queries за клавиатурата
  */

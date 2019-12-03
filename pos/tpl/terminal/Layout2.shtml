@@ -17,8 +17,6 @@
     </div>
 </div>
 
-<div class='ajaxFormHolder'>
-	<div id = 'ajax-form' class='ajax-form'>
+<div id='productInfo'>
 	aaaaaa
-	</div>
 </div>
