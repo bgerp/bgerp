@@ -247,7 +247,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
-        $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+        $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
         
         $fld->FLD('quantyti', 'double(smartRound,decimals=2)', 'caption=Количество');
         $fld->FLD('selfPrice', 'double(smartRound,decimals=2)', 'caption=Себестойност');
@@ -383,5 +383,12 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+        
+        $res->quantyti = $Double->toVerbal($dRec->blQuantity);
+        
+        $res->measure = cat_UoM::fetch(cat_Products::fetch($dRec->productId)->measureId)->shortName;
+        
     }
 }
