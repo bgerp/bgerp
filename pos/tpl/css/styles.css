@@ -1,5 +1,12 @@
 #receipt-table {
-  width: 100%; }
+  width: 100%;
+  background: white; }
+
+.wide #single-receipt-holder {
+  float: left; }
+
+.wide .result-content {
+  float: right; }
 
 #receipt-table td,
 #receipt-table th {
@@ -10,9 +17,7 @@
 .scrolling-vertical {
   margin-bottom: 20px;
   overflow-y: auto;
-  overflow-x: hidden;
-  border-top: 1px solid black;
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.1); }
+  overflow-x: hidden; }
 
 #receipt-title {
   font-size: 1.5em;
@@ -23,68 +28,33 @@
 
 .portalLink {
   float: right;
-  margin-right: 25px; }
+  margin-right: 25px;
+  margin-top: -20px; }
   .portalLink img {
     max-height: 30px; }
 
 .logout {
   float: right; }
 
-.wide .portalLink {
-  margin-top: -20px; }
-
-.narrow .portalLink img {
-  margin-top: 7px;
-  max-height: 24px; }
-
-.wide .secondRow {
-  margin-top: 5px; }
-
 .terminal-revert-id a {
   color: #cc0000; }
-
-#total-label,
-#receipt-total-sum {
-  font-size: 1.5em;
-  font-weight: bold; }
-
-.receipt-info-right {
-  text-align: right;
-  padding-right: 10px; }
-
-.narrow .receipt-info-right {
-  padding-right: 5px; }
-
-#receipt-details-th {
-  background-color: #c8c8c8; }
-
-.narrow #receipt-details-th td {
-  text-align: center; }
-
-.receipt-sale,
-.gradient {
-  background: #f1f1f1;
-  background: -moz-linear-gradient(top, #f1f1f1 0%, #dddddd 100%);
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #f1f1f1), color-stop(100%, #dddddd));
-  background: -webkit-linear-gradient(top, #f1f1f1 0%, #dddddd 100%);
-  background: -o-linear-gradient(top, #f1f1f1 0%, #dddddd 100%);
-  background: -ms-linear-gradient(top, #f1f1f1 0%, #dddddd 100%);
-  background: linear-gradient(to bottom, #f1f1f1 0%, #dddddd 100%); }
 
 .paymentBlock {
   width: 100%; }
   .paymentBlock td {
     border: none !important;
     padding: 2px 5px !important; }
-
-.receipt-quantity,
-.receipt-price,
-.receipt-amount {
-  text-align: right; }
-
-.pos-search-contragent-btn {
-  margin-top: 20px !important;
-  margin-bottom: 20px !important; }
+  .paymentBlock .receipt-info-right {
+    text-align: right;
+    padding-right: 10px; }
+  .paymentBlock .receipt-quantity,
+  .paymentBlock .receipt-price,
+  .paymentBlock .receipt-amount {
+    text-align: right; }
+  .paymentBlock #total-label,
+  .paymentBlock #receipt-total-sum {
+    font-size: 1.5em;
+    font-weight: bold; }
 
 .receipt-payment {
   background-color: #d1ffda;
@@ -95,21 +65,12 @@
 .reject-btn {
   margin-left: 5px; }
 
+.receiptRow {
+  cursor: pointer; }
+
 .receipt-discount-td {
   font-style: italic;
   color: darkgreen; }
-
-#single-receipt-holder {
-  position: relative; }
-
-.wide #single-receipt-holder {
-  float: left; }
-
-.wide .result-content {
-  float: right; }
-
-.operationBtn.active {
-  background-color: #f7f749; }
 
 .name-product {
   font-size: 1.1em;
@@ -168,7 +129,8 @@
 
 .keyboard-row {
   clear: both;
-  padding: 2px 0; }
+  padding: 2px 0;
+  white-space: nowrap; }
 
 .keyboard-change-btn {
   background-color: #666666 !important;
@@ -178,9 +140,6 @@
     background: #505050 !important;
     box-shadow: inset 0 0 50px #444444 !important; }
 
-.keyboard-row {
-  white-space: nowrap; }
-
 .operationBtn.button {
   height: 41px;
   padding: 0 10px;
@@ -188,6 +147,8 @@
   text-align: center;
   font-size: 1em !important;
   font-weight: normal; }
+  .operationBtn.button.active {
+    background-color: #f7f749; }
 
 .narrow .num-keyboard {
   min-width: 176px !important; }
@@ -198,11 +159,12 @@
   width: 23% !important;
   margin: 0; }
 
-.navigable:focus {
-  box-shadow: 1px 1px 5px #0b5b98 !important;
-  border: 2px solid #0b5b98;
-  box-sizing: border-box;
-  outline: none; }
+.navigable {
+  box-sizing: border-box; }
+  .navigable:focus {
+    box-shadow: 1px 1px 5px #0b5b98 !important;
+    border: 2px solid #0b5b98;
+    outline: none; }
 
 .posBtns {
   padding: 0.4em 1em 0.3em;
@@ -296,9 +258,6 @@
   padding: 5px;
   box-sizing: border-box; }
 
-.narrow .pos-notes:hover {
-  box-shadow: none; }
-
 .close-btn .button {
   font-size: 1.07em; }
 
@@ -309,7 +268,7 @@
     background: #feb7b7; }
 
 .large-field {
-  width: 100%;
+  width: 85%;
   height: 2.2em !important;
   font-size: 1.2em !important;
   border: 1px solid #aaaaaa;
@@ -320,33 +279,12 @@
 .narrow .large-field {
   height: 1.8em; }
 
-/*
- * tabs
- */
 .holder {
   position: relative;
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.3);
   border-radius: 5px;
-  border-top-left-radius: 0;
   background: #f6f6f6;
   padding: 15px;
-  overflow-y: auto;
-  border-radius: 3px; }
-
-.narrow .result-content {
-  width: 100%; }
-
-.wide .pos-tabs {
-  -webkit-flex-flow: row wrap;
-  -moz-flex-flow: row wrap;
-  -ms-flex-flow: row wrap;
-  flex-flow: row wrap;
-  flex-wrap: nowrap;
-  align-items: stretch;
-  -webkit-justify-content: center;
-  -moz-justify-content: center;
-  -ms-justify-content: center;
-  justify-content: center; }
+  overflow-y: auto; }
 
 .pos-photo-field {
   width: 64px;
@@ -375,39 +313,8 @@
   .element .pos-stock-field {
     float: right; }
 
-.pos-search-result-table tr:nth-child(even) td {
-  background: #f1f1f1;
-  background: -moz-linear-gradient(top, #f1f1f1 0%, #dddddd 100%);
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #f1f1f1), color-stop(100%, #dddddd));
-  background: -webkit-linear-gradient(top, #f1f1f1 0%, #dddddd 100%);
-  background: -o-linear-gradient(top, #f1f1f1 0%, #dddddd 100%);
-  background: -ms-linear-gradient(top, #f1f1f1 0%, #dddddd 100%);
-  background: linear-gradient(to bottom, #f1f1f1 0%, #dddddd 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#f1f1f1', endColorstr='#dddddd', GradientType=0); }
-
-#result_contragents .pos-table td {
-  height: auto !important; }
-  #result_contragents .pos-table td:first-child {
-    width: 1%; }
-  #result_contragents .pos-table td .different-btns {
-    margin-bottom: 5px; }
-
-.narrow #result_contragents .pos-table td {
-  font-size: 0.8em; }
-
 .result-string {
   margin-bottom: 10px; }
-
-.contragent-form input {
-  display: flex; }
-  .contragent-form input#input-search-contragent {
-    width: auto;
-    max-width: 60%; }
-
-.pos-bar-holder {
-  position: fixed;
-  top: 25px;
-  left: 600px; }
 
 .pos-product-category {
   padding: 0.1em 0.5em 0.4em;

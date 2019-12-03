@@ -1,5 +1,12 @@
 #receipt-table {
 	width:100%;
+	background: #fff;
+}
+.wide #single-receipt-holder {
+	float: left;
+}
+.wide .result-content {
+	float: right;
 }
 
 #receipt-table td, #receipt-table th{
@@ -12,10 +19,7 @@
 	margin-bottom: 20px;
 	overflow-y:auto;
 	overflow-x:hidden;
-	border-top: 1px solid #000;
-	box-shadow: 4px 4px 4px rgba(0,0,0,0.3) ,inset 0 0 20px rgba(0,0,0,0.1);
 }
-
 
 #receipt-title {
 	font-size: 1.5em;
@@ -25,62 +29,22 @@
 .narrow #receipt-title {
     font-size: 1.1em;
 }
+
 .portalLink {
     float: right;
 	margin-right: 25px;
+	margin-top: -20px;
     img {
        max-height: 30px;
     }
 }
+
 .logout {
 	float: right;
-}
-.wide .portalLink {
-	 margin-top: -20px;
-}
-.narrow .portalLink img {
-	margin-top: 7px;
-	max-height: 24px;
-}
-.wide .secondRow {
-	margin-top: 5px;
 }
 
 .terminal-revert-id a {
 	color: #CC0000 ;
-}
-
-
-#total-label, #receipt-total-sum  {
-	font-size:1.5em;
-	font-weight:bold;
-}
-
-.receipt-info-right {
-	text-align:right;
-	padding-right: 10px;
-}
-
-.narrow .receipt-info-right{
-	padding-right:5px;
-}
-
-#receipt-details-th {
-	background-color: rgb(200, 200, 200);
-}
-
-.narrow #receipt-details-th td{
-	text-align:center;
-}
-
-.receipt-sale, .gradient {
-	background: rgb(241,241,241);
-	background: -moz-linear-gradient(top,  rgba(241,241,241,1) 0%, rgba(221,221,221,1) 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(241,241,241,1)), color-stop(100%,rgba(221,221,221,1)));
-	background: -webkit-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-	background: -o-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-	background: -ms-linear-gradient(top,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-	background: linear-gradient(to bottom,  rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
 }
 
 .paymentBlock{
@@ -89,18 +53,22 @@
 		border: none !important;
 		padding: 2px 5px !important;
 	}
+	.receipt-info-right {
+		text-align:right;
+		padding-right: 10px;
+	}
+	.receipt-quantity,.receipt-price, .receipt-amount{
+		text-align:right;
+	}
+
+	#total-label, #receipt-total-sum  {
+		font-size:1.5em;
+		font-weight:bold;
+	}
 }
 
 
-.receipt-quantity,.receipt-price, .receipt-amount{
-	text-align:right;
-}
 
-
-.pos-search-contragent-btn {
-	margin-top: 20px !important;
-	margin-bottom: 20px !important;
-}
 .receipt-payment {
 	background-color:#d1ffda;
 	font-size: 1.1em;
@@ -112,25 +80,15 @@
 	margin-left: 5px;
 }
 
-
+.receiptRow {
+	cursor: pointer;
+}
 
 .receipt-discount-td {
 	font-style:italic;
 	color:darkgreen;
 }
 
-#single-receipt-holder {
-	position:relative;
-}
-.wide #single-receipt-holder {
-	float: left;
-}
-.wide .result-content {
-	float: right;
-}
-.operationBtn.active {
-	background-color: #f7f749;
-}
 
 .name-product{
 	font-size: 1.1em;
@@ -194,6 +152,7 @@
 .keyboard-row{
 	clear:both;
 	padding: 2px 0;
+	white-space: nowrap;
 }
 
 .keyboard-change-btn{
@@ -206,12 +165,6 @@
 	}
 }
 
-
-.keyboard-row{
-	white-space: nowrap;
-}
-
-
 .operationBtn.button {
 	height: 41px;
 	padding: 0 10px;
@@ -219,6 +172,9 @@
     text-align: center;
     font-size: 1em !important;
     font-weight: normal;
+	&.active {
+		background-color: #f7f749;
+	}
 
 }
 
@@ -231,12 +187,13 @@
 	width: 23% !important;
 	margin: 0;
 }
-
-.navigable:focus {
-	box-shadow: 1px 1px 5px #0b5b98 !important;
-	border: 2px solid #0b5b98;
+.navigable {
 	box-sizing: border-box;
-	outline: none;
+	&:focus {
+		box-shadow: 1px 1px 5px #0b5b98 !important;
+		border: 2px solid #0b5b98;
+		outline: none;
+	}
 }
 
 .posBtns {
@@ -344,11 +301,7 @@
 	box-sizing: border-box;
 }
 
-.narrow .pos-notes:hover{
-	box-shadow: none;
-}
-
-.close-btn .button{
+.close-btn .button {
 	font-size: 1.07em;
 }
 
@@ -362,7 +315,7 @@
 }
 
 .large-field{
-	width: 100%;
+	width: 85%;
 	height: 2.2em !important;
 	font-size: 1.2em !important;
 	border: 1px solid #aaa;
@@ -376,33 +329,12 @@
     height:1.8em;
 }
 
-/*tabs */
 .holder {
     position: relative;
-    box-shadow: 4px 4px 4px rgba(0,0,0,0.3);
     border-radius: 5px;
-	border-top-left-radius: 0;
 	background: #f6f6f6;
 	padding:15px;
 	overflow-y: auto;
-	border-radius:3px;
-}
-
-.narrow .result-content{
-	width: 100%;
-}
-
-.wide .pos-tabs {
-	-webkit-flex-flow: row wrap;
-	-moz-flex-flow: row wrap;
-	-ms-flex-flow: row wrap;
-	flex-flow: row wrap;
-	flex-wrap: nowrap;
-	align-items: stretch;
-	-webkit-justify-content: center;
-	-moz-justify-content: center;
-	-ms-justify-content: center;
-	justify-content: center;
 }
 
 .pos-photo-field{
@@ -436,47 +368,8 @@
 	}
 }
 
-.pos-search-result-table tr:nth-child(even) td {
-	background: #F1F1F1;
-	background: -moz-linear-gradient(top, rgba(241,241,241,1) 0%, rgba(221,221,221,1) 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#F1F1F1), color-stop(100%,#DDD));
-	background: -webkit-linear-gradient(top, #F1F1F1 0%,#DDD 100%);
-	background: -o-linear-gradient(top, rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-	background: -ms-linear-gradient(top, rgba(241,241,241,1) 0%,rgba(221,221,221,1) 100%);
-	background: linear-gradient(to bottom, #F1F1F1 0%,#DDD 100%);
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1f1f1', endColorstr='#dddddd',GradientType=0 );
-}
-
-#result_contragents .pos-table td{
-	height: auto !important;
-	&:first-child {
-	   width: 1%;
-	}
-	.different-btns {
-	   margin-bottom: 5px;
-	}
-}
-
-.narrow #result_contragents .pos-table td{
-	font-size: 0.8em;
-}
-
 .result-string {
 	margin-bottom: 10px;
-}
-
-.contragent-form input{
-	display: flex;
-	&#input-search-contragent {
-	   width: auto;
-	   max-width: 60%;
-	}
-}
-
-.pos-bar-holder{
-	position:fixed;
-	top:25px;
-	left:600px;
 }
 
 .pos-product-category {
@@ -520,10 +413,6 @@
 	background-image: linear-gradient(top,#eee,#ccc);
 
 }
-.narrow .pos-notes{
-	max-width:70px;
-}
-
 #pos-producy-categories {
 	padding:0 5px;
 }
@@ -708,10 +597,6 @@
     }
 }
 @media handheld, only screen and (max-width: 640px) {
-	.wide #tools-wide-holder{
-	   display: none;
-	}
-
 	.narrow .pos-product {
 		width: 74px !important;
 		height: 74px !important;
@@ -722,26 +607,12 @@
 	}
 }
 @media handheld, only screen and (max-width: 533px) {
-
     .narrow .pos-span-name {
         font-size: 0.8em;
     }
 }
 
 @media handheld, only screen and (max-width: 360px) {
-	.narrow .contragent-btn ,.narrow .colum-btn-holder{
-	    max-width: 60px;
-	    float: left;
-	}
-	.narrow .colum-btn-holder{
-	   margin-top:-48px;
-	}
-	.narrow .colum-btn {
-	   margin-top: 0;
-	}
-	.tab-content {
-		padding: 10px;
-	}
 	.narrow .pos-product {
 		width: 73px !important;
 		height: 73px !important;
