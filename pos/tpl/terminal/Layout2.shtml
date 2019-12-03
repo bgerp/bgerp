@@ -16,3 +16,9 @@
        [#STATUSES#]
     </div>
 </div>
+
+<div class='ajaxFormHolder'>
+	<div id = 'ajax-form' class='ajax-form'>
+	aaaaaa
+	</div>
+</div>

@@ -1,5 +1,7 @@
 function posActions() {
 
+	var dialog;
+	
 	var pageWidth = parseInt($(window).width());
 	
 	$(document.body).on('input', "input[name=ean]", function(e){
@@ -603,6 +605,42 @@ function posActions() {
 		resObj['url'] = url;
 		
 		getEfae().process(resObj, {string:string});
+	});
+	
+	$(document.body).on('click', ".enlargeProductBtn", function(e){
+		var url = $(this).attr("data-url");
+		var operation = getSelectedOperation();
+		
+		if(operation != 'add' || !url){
+			return;
+		}
+		
+		var selectedElement = $(".selected");
+		var productId = selectedElement.attr("data-productid");
+		productId = (productId) ? productId : selectedElement.attr("data-id");
+		if(!productId) {
+			
+			return
+		}
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		//getEfae().process(resObj, {id:productId});
+
+		dialog = $("#ajax-form").dialog({
+			autoOpen: false,
+			height: 300,
+			width: 500,
+			modal: true
+		});
+
+		dialog.dialog( "open" );
+		
+		
+		
+		console.log(operation, productId);
+		
 	});
 	
 }
