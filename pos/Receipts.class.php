@@ -273,12 +273,18 @@ class pos_Receipts extends core_Master
             $row->id = ht::createLink($row->id, pos_Receipts::getSingleUrlArray($rec->id));
         }
         
+        $row->RECEIPT_CAPTION = tr('КБ');
+        $row->PAID_CAPTION = tr('Платено');
+        $row->CHANGE_CAPTION = tr("Ресто");
+        if($rec->change < 0){
+            $row->CHANGE_CAPTION = tr("Остатък");
+            $rec->change = abs($rec->change);
+            $row->change = $mvc->getFieldType('change')->toVerbal(abs($rec->change));
+        }
+        
         foreach (array('total', 'paid', 'change') as $fld) {
             $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
         }
-        
-        $row->RECEIPT_CAPTION = tr('КБ');
-        $row->PAID_CAPTION = tr('Платено');
         
         if (isset($rec->revertId)) {
             $row->PAID_CAPTION = tr('Върнато');
@@ -299,7 +305,6 @@ class pos_Receipts extends core_Master
             }
         }
         
-        
         // показваме датата на последната модификация на документа, ако е активиран
         if ($rec->state != 'draft') {
             $row->valior = dt::mysql2verbal($rec->modifiedOn, 'd.m.Y H:i:s');
@@ -308,7 +313,6 @@ class pos_Receipts extends core_Master
         $cu = core_Users::fetch($rec->createdBy);
         $row->createdBy = ht::createLink(core_Users::recToVerbal($cu)->nick, crm_Profiles::getUrl($rec->createdBy));
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
-        
         $row->time = dt::mysql2verbal(dt::now(), 'H:i');
     }
     
@@ -406,7 +410,7 @@ class pos_Receipts extends core_Master
         }
         
         $diff = round($rec->paid - $rec->total, 2);
-        $rec->change = ($diff <= 0) ? 0 : $diff;
+        $rec->change = $diff;
         $rec->total = $rec->total;
         
         $this->save($rec);
