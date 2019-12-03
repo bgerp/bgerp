@@ -628,7 +628,7 @@ function posActions() {
 		
 		getEfae().process(resObj, {productId:productId});
 
-		
+
 		//return;
 		dialog = $("#productInfo").dialog({
 			autoOpen: false,
@@ -636,7 +636,15 @@ function posActions() {
 			width: 900,
 			modal: true
 		});
+
+		dialog.dialog( "open" );
+
+
+
+		console.log(operation, productId);
+
 	});
+	
 }
 
 // Калкулира ширината
