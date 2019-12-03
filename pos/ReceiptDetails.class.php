@@ -113,12 +113,7 @@ class pos_ReceiptDetails extends core_Detail
     public function renderReceiptDetail($data)
     {
         $tpl = new ET('');
-        
-        if (!Mode::is('printing')) {
-            $blocksTpl = getTplFromFile('pos/tpl/terminal/ReceiptDetail.shtml');
-        } else {
-            $blocksTpl = getTplFromFile('pos/tpl/terminal/ReceiptDetailPrint.shtml');
-        }
+        $blocksTpl = getTplFromFile('pos/tpl/terminal/ReceiptDetail.shtml');
         
         $saleTpl = $blocksTpl->getBlock('sale');
         $paymentTpl = $blocksTpl->getBlock('payment');
@@ -130,9 +125,7 @@ class pos_ReceiptDetails extends core_Detail
                 if (is_object($at)) {
                     $rowTpl = clone(${"{$action->type}Tpl"});
                     $rowTpl->placeObject($row);
-                    if ($lastRow == $row->id) {
-                        $rowTpl->replace('pos-hightligted', 'lastRow');
-                    }
+                    
                     $rowTpl->removeBlocks();
                     $tpl->append($rowTpl);
                 }

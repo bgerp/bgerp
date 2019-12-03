@@ -10,12 +10,6 @@
 				<!--ET_END contragentId-->
 			</td>
 		</tr>
-		<tr id='receipt-details-th'>
-			<td>|К-во|*</td>
-			<td>|Цена|* <small class='currency-element'>[#currency#]</small></td>
-			<td>|Стойност|* <small class='currency-element'>[#currency#]</small></td>
-		</tr>
-		
 		<!--ET_BEGIN DETAILS-->
 			[#DETAILS#]
 		<!--ET_END DETAILS-->

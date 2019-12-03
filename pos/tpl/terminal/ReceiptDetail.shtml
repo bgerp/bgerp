@@ -1,29 +1,11 @@
 <!--ET_BEGIN sale-->
-<tbody data-id='[#id#]' data-id='[#1#]' class='receiptRow [#CLASS#]'>
-<tr class='pos-sale' title = '|Селектиране на реда|*'>
-	<td colspan='3' class='receipt-sale name-product'><div>[#productId#] [#DEL_BTN#]&nbsp;&nbsp;[#perPack#] [#uomId#]</div><!--ET_BEGIN text--><div class='receiptRowText'>[#text#]</div><!--ET_END text--></td>
-</tr>
-<tr data-code='[#code#]'class='pos-sale' data-url='[#selectUrl#]'>
-	<td class='receipt-quantity'><span class='quantity'>[#quantity#]</span> <!--ET_BEGIN packagingId--> &nbsp;[#value#]<!--ET_END packagingId--></td>
-	<td class='receipt-price'>[#price#] 
-	<!--ET_BEGIN discountPercent-->
-	 (<span class='receipt-discount-td'> [#discountPercent#] </span>)
-	<!--ET_END discountPercent-->
-	</td>
-	<td class='receipt-amount'><span class='sale-amount'>[#amount#]</span></td>
-</tr>
-
-</tbody>
+<div data-id='[#id#]' class='receiptRow [#CLASS#]' title = '|Селектиране на реда|*'>
+	[#productId#][#DEL_BTN#][#perPack#] [#uomId#]
+	<!--ET_BEGIN text-->[#text#]<!--ET_END text-->
+	[#quantity#][#value#][#price#][#discountPercent#][#amount#]
+</div>
 <!--ET_END sale-->
 
 <!--ET_BEGIN payment-->
-<tr [#lastRow#]>
-	<td colspan='3' class='receipt-payment'>[#paymentCaption#] [#actionValue#]: &nbsp;&nbsp;[#amount#] [#DEL_BTN#]</td>
-</tr>
+<div>[#paymentCaption#] [#actionValue#]: &nbsp;&nbsp;[#amount#] [#DEL_BTN#]</div>
 <!--ET_END payment-->
-
-<!--ET_BEGIN client-->
-<tr [#lastRow#]>
-	<td colspan='3' class='receipt-client'>|Клиент|*: &nbsp;&nbsp;[#clientName#] [#DEL_BTN#]</td>
-</tr>
-<!--ET_END client-->
