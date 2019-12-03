@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   pos
  *
- * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg> 
  * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
@@ -39,11 +39,18 @@ class pos_Terminal extends peripheral_Terminal
     protected $fieldArr = array('payments', 'policyId', 'caseId', 'storeId');
     
     
+    /**
+     * Кои са разрешените операции
+     */
     protected static $operationsArr = "add=Артикул,payment=Плащане,quantity=Количество,price=Цена,discount=Отстъпка,text=Текст,contragent=Клиент,receipts=Бележки,revert=Сторно";
     
-    //,packaging=Опаковка,quantity=Количество,price=Цена,discount=Отстъпка,text=Текст,client=Клиент,sale=Продажба,payment=Плащане,revert=Сторниране,nullify=Анулиране,receipts=Бележки
     
+    /**
+     * Кои операции са забранени за нови бележки
+     */
     protected static $forbiddenOperationOnEmptyReceipts = array('discount', 'price', 'text', 'quantity', 'payment');
+    
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -81,9 +88,14 @@ class pos_Terminal extends peripheral_Terminal
         return array('pos_Points', 'openTerminal', $pointId);
     }
     
+    
+    /**
+     * Отваряне на бележка в терминала
+     * 
+     * @return core_ET
+     */
     public function act_Open()
     {
-        
         $Receipts = cls::get('pos_Receipts');
         
         $Receipts->requireRightFor('terminal');
@@ -96,23 +108,20 @@ class pos_Terminal extends peripheral_Terminal
             return new Redirect(array($Receipts, 'new'));
         }
         
-        // Лейаут на терминала
         $tpl = getTplFromFile('pos/tpl/terminal/Layout2.shtml');
-        
         $tpl->replace(pos_Points::getTitleById($rec->pointId), 'PAGE_TITLE');
         $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/cash-register.png', '"', true) . '>', 'HEAD');
         $img = ht::createImg(array('path' => 'img/16/logout.png'));
         
         // Добавяме бележката в изгледа
         $receiptTpl = $this->getReceipt($rec);
-        
         $tpl->replace($receiptTpl, 'RECEIPT');
         $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
         
         // Ако не сме в принтиране, сменяме обвивквата и рендираме табовете
         if (!Mode::is('printing')) {
             
-            // Задаваме празна обвивка
+            // Задаване на празна обвивка
             Mode::set('wrapper', 'page_Empty');
             
             // Ако сме чернова, добавяме пултовете
@@ -142,11 +151,18 @@ class pos_Terminal extends peripheral_Terminal
         return $tpl;
     }
     
+    
+    /**
+     * Увеличаване на избрания артикул
+     * 
+     * @return array $res
+     */
     public function act_EnlargeProduct()
     {
         expect($productId = Request::get('productId', 'int'));
         $document = doc_Containers::getDocument(cat_Products::fetchField($productId, 'containerId'));
         
+        // Рендиране на изгледа на артикула
         Mode::push('noBlank', true);
         $docHtml = $document->getInlineDocumentBody('xhtml');
         Mode::pop('noBlank', true);
@@ -166,6 +182,12 @@ class pos_Terminal extends peripheral_Terminal
     }
     
     
+    /**
+     * Подготвяне на контролния панел
+     * 
+     * @param stdClass $rec
+     * @return core_ET
+     */
     public function getCommandPanel($rec)
     {
         $Receipts = cls::get('pos_Receipts');
@@ -220,7 +242,6 @@ class pos_Terminal extends peripheral_Terminal
         
         $value = round(abs($rec->total) - abs($rec->paid), 2);
         $value = ($value > 0) ? $value : null;
-        
         $inputValue = ($operation == 'payment') ? $value : Mode::get("currentSearchString");
         
         $searchUrl = toUrl(array($this, 'displayOperation', 'receiptId' => $rec->id), 'local');
@@ -229,6 +250,7 @@ class pos_Terminal extends peripheral_Terminal
             $params['readonly'] = 'readonly';
         }
         
+        // Може ли да се задава отстъпка?
         $operations = arr::make(self::$operationsArr);
         if (pos_Setup::get('SHOW_DISCOUNT_BTN') != 'yes') {
             unset($operations['discount']);
@@ -241,6 +263,7 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
+        // Показване на възможните операции
         $currentOperation = Mode::get("currentOperation");
         if(Mode::is('screenMode', 'narrow')){
             $operationSelectFld = ht::createSelect('operation', $operations, $currentOperation, array('class' => '', 'data-url' => $searchUrl));
@@ -256,6 +279,7 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
+        // Бутон за трансфер, ако контрагента не е дефолтния
         if(pos_Receipts::haveRightFor('transfer')){
             $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
             if(!($defaultContragentId == $rec->contragentObjectId && $rec->contragentClass == crm_Persons::getClassId())){
@@ -275,6 +299,11 @@ class pos_Terminal extends peripheral_Terminal
     }
     
     
+    /**
+     * Екшън за показване на текущата операция
+     * 
+     * @return array
+     */
     function act_displayOperation()
     {
         expect($id = Request::get('receiptId', 'int'));
@@ -293,6 +322,16 @@ class pos_Terminal extends peripheral_Terminal
     }
     
     
+    /**
+     * Рендиране на резултатите от операцията
+     * 
+     * @param stdClass $rec
+     * @param string $currOperation
+     * @param string $string
+     * @param int|null $selectedRecId
+     * 
+     * @return core_ET
+     */
     public function renderResult($rec, $currOperation, $string, $selectedRecId = null)
     {
         $detailsCount = pos_ReceiptDetails::count("#receiptId = {$rec->id}");
@@ -345,6 +384,16 @@ class pos_Terminal extends peripheral_Terminal
         return new core_ET($res);
     }
     
+    
+    /**
+     * Рендиране на таблицата с наличните отстъпки
+     * 
+     * @param stdClass $rec - записа на бележката
+     * @param string $string - въведения стринг за търсене
+     * @param int $selectedRecId - селектирания ред (ако има)
+     * 
+     * @return core_ET
+     */
     public function renderDiscountTable($rec, $string, $selectedRecId)
     {
         $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
@@ -374,6 +423,15 @@ class pos_Terminal extends peripheral_Terminal
     }
     
     
+    /**
+     * Рендиране на таблицата с контрагентите
+     * 
+     * @param stdClass $rec - записа на бележката
+     * @param string $string - въведения стринг за търсене
+     * @param int $selectedRecId - селектирания ред (ако има)
+     * 
+     * @return core_ET
+     */
     public function renderContragentTable($rec, $string, $selectedRecId)
     {
         $tpl = new core_ET("");
@@ -440,6 +498,16 @@ class pos_Terminal extends peripheral_Terminal
         return $tpl;
     }
     
+    
+    /**
+     * Рендиране на таблицата с бележките за сторниране
+     *
+     * @param stdClass $rec - записа на бележката
+     * @param string $string - въведения стринг за търсене
+     * @param int $selectedRecId - селектирания ред (ако има)
+     *
+     * @return core_ET
+     */
     public static function renderRevertTable($rec, $string, $selectedRecId)
     {
         $Receipts = cls::get('pos_Receipts');
@@ -475,6 +543,16 @@ class pos_Terminal extends peripheral_Terminal
         return $tpl;
     }
     
+    
+    /**
+     * Рендиране на таблицата с начините на плащане
+     *
+     * @param stdClass $rec - записа на бележката
+     * @param string $string - въведения стринг за търсене
+     * @param int $selectedRecId - селектирания ред (ако има)
+     *
+     * @return core_ET
+     */
     public static function renderPaymentTabs($rec, $string, $selectedRecId)
     {
         $Receipts = cls::get('pos_Receipts');
@@ -504,10 +582,20 @@ class pos_Terminal extends peripheral_Terminal
             $tpl->append($btn);
         }
         $tpl->append("</div>");
-        return $tpl;
         
+        return $tpl;
     }
     
+    
+    /**
+     * Рендиране на таблицата с наличните опаковки
+     *
+     * @param stdClass $rec - записа на бележката
+     * @param string $string - въведения стринг за търсене
+     * @param int $selectedRecId - селектирания ред (ако има)
+     *
+     * @return core_ET
+     */
     public function renderPackagingTable($rec, $string, $selectedRecId)
     {
         $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
@@ -570,6 +658,15 @@ class pos_Terminal extends peripheral_Terminal
     }
     
     
+    /**
+     * Рендиране на таблицата с последните цени
+     *
+     * @param stdClass $rec - записа на бележката
+     * @param string $string - въведения стринг за търсене
+     * @param int $selectedRecId - селектирания ред (ако има)
+     *
+     * @return core_ET
+     */
     public function renderLastPriceTable($rec, $string, $selectedRecId)
     {
         $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
@@ -744,7 +841,13 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
-     * Връща таблицата с продукти отговарящи на определен стринг
+     * Рендиране на таблицата с наличните отстъпки
+     * 
+     * @param stdClass $rec - записа на бележката
+     * @param string $string - въведения стринг за търсене
+     * @param int $revertReceiptId - ид-то на бележката за сторниране
+     * 
+     * @return core_ET
      */
     public function getProductResultTable($rec, $string, $revertReceiptId = null)
     {
@@ -787,7 +890,10 @@ class pos_Terminal extends peripheral_Terminal
         $conf = core_Packs::getConfig('pos');
         $data->showParams = $conf->POS_RESULT_PRODUCT_PARAMS;
         
+        // Ако има сторнираща бележка
         if(isset($data->revertReceiptId)){
+            
+            // Наличните артикули, са тези от оригиналната
             $pdQuery = pos_ReceiptDetails::getQuery();
             $pdQuery->where("#receiptId =  '{$data->revertReceiptId}' AND #productId IS NOT NULL");
             $pdQuery->EXT('searchKeywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');
@@ -822,6 +928,7 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
+        // Ако има стринг и по него отговаря артикул той ще е на първо място
         if(!empty($data->searchString)){
             $foundRec = cat_Products::getByCode($data->searchString);
             if(isset($foundRec->productId) && (!isset($data->revertReceiptId) || (isset($data->revertReceiptId) && pos_ReceiptDetails::fetchField("#receiptId = {$data->revertReceiptId} AND #productId = {$foundRec->productId}")))){
@@ -829,6 +936,7 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
        
+        
         $Policy = cls::get('price_ListToCustomers');
         foreach ($sellable as $id => $obj) {
             $pRec = cat_Products::fetch($id, 'canStore,measureId');
@@ -958,6 +1066,12 @@ class pos_Terminal extends peripheral_Terminal
     }
     
     
+    /**
+     * Как ще се показва бележката
+     * 
+     * @param stdClass $rec
+     * @return string $title
+     */
     private static function getReceiptTitle($rec)
     {
         $date = dt::mysql2verbal($rec->createdOn, 'd.m. h:i');
@@ -967,6 +1081,18 @@ class pos_Terminal extends peripheral_Terminal
         return $title;
     }
     
+    
+    /**
+     * Връща отговора за Ajax-а
+     * 
+     * @param int $receiptId
+     * @param int $selectedRecId
+     * @param boolean $success
+     * @param boolean $refreshTable
+     * @param boolean $refreshPanel
+     * 
+     * @return array $res
+     */
     public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true)
     {
         $me = cls::get(get_called_class());

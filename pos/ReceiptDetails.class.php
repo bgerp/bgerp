@@ -202,7 +202,9 @@ class pos_ReceiptDetails extends core_Detail
     }
     
     
-    
+    /**
+     * Екшън модифициращ бележката
+     */
     public function act_updaterec()
     {
         $this->requireRightFor('edit');
@@ -550,7 +552,7 @@ class pos_ReceiptDetails extends core_Detail
     public function getProductInfo(&$rec)
     {
         if ($rec->productId) {
-            expect($productId = cat_Products::fetch($rec->productId));
+            expect(cat_Products::fetchField($rec->productId));
             $product = (object) array('productId' => $rec->productId);
         } elseif ($rec->ean) {
             $product = cat_Products::getByCode($rec->ean);
@@ -764,6 +766,12 @@ class pos_ReceiptDetails extends core_Detail
     }
     
     
+    /**
+     * Кой е последно добавения ред
+     * 
+     * @param int $receiptId
+     * @return int|null
+     */
     public static function getLastProductRecId($receiptId)
     {
         $query = pos_ReceiptDetails::getQuery();

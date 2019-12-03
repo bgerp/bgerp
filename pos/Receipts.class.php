@@ -318,22 +318,8 @@ class pos_Receipts extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if ($mvc->haveRightFor('list')) {
-            
-            // Добавяме бутон за достъп до 'List' изгледа
-            $data->toolbar->addBtn(
-                            'Всички',
-                            array($mvc, 'list', 'ret_url' => true),
-                            'ef_icon=img/16/application_view_list.png, order=18'
-                            );
-        }
-        
         if ($mvc->haveRightFor('terminal', $data->rec)) {
-            $data->toolbar->addBtn(
-                            'Терминал',
-                            array('pos_Terminal', 'open', 'receiptId' => $data->rec->id, 'ret_url' => true),
-                            'ef_icon=img/16/forward16.png, order=18,target=_blank'
-                            );
+            $data->toolbar->addBtn('Терминал', array('pos_Terminal', 'open', 'receiptId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/forward16.png, order=18,target=_blank');
         }
     }
     
@@ -839,6 +825,9 @@ class pos_Receipts extends core_Master
     }
     
     
+    /**
+     * Екшън задаващ контрагент на бележката
+     */
     public function act_setcontragent()
     {
         $this->requireRightFor('setcontragent');
