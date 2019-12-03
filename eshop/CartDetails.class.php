@@ -558,10 +558,11 @@ class eshop_CartDetails extends core_Detail
     {
         $id = Request::get('id', 'int');
         $cartId = Request::get('cartId', 'int');
-        $quantity = Request::get('packQuantity', 'varchar');
+        $quantity = Request::get('packQuantity', 'double');
         $this->requireRightFor('updatecart', (object) array('cartId' => $cartId));
         $quantity = rtrim($quantity, '.');
         $quantity = rtrim($quantity, ',');
+        expect($quantity && $quantity > 0, 'Количеството трябва да е положително');
         
         $rec = self::fetch($id);
         $rec->quantity = $quantity * $rec->quantityInPack;
@@ -576,7 +577,7 @@ class eshop_CartDetails extends core_Detail
             return self::getUpdateCartResponse($cartId);
         }
         
-        return followRremoveexternaletUrl();
+        return followRetUrl();
     }
     
     

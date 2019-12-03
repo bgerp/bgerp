@@ -2662,10 +2662,13 @@ table.mc-calendar {
 .portal-cal-day {
 	color:#5f1f3e;
 	font-style: italic;
-
 	font-size: 0.9em;
     padding-top:3px;
     padding-left:3px;
+	border-top: 1px solid #ccc;
+	&:first-child {
+		border-top: none !important;
+	}
 	.title {
 		padding-top: 1px;
 		padding: 2px;
@@ -2689,13 +2692,13 @@ table.mc-calendar {
 		padding: 4px;
 	}
 	&.portal-cal-today {
-		background-color: rgba(225, 251, 162, 0.9);
+		background-color: rgba(225, 251, 162, 1);
 	}
 	&.portal-cal-tomorrow{
-		background-color: rgba(225, 251, 162, 0.6);
+		background-color: rgba(225, 251, 162, 0.66);
 	}
 	&.portal-cal-nextday {
-		background-color:rgba(225, 251, 162, 0.3);
+		background-color:rgba(225, 251, 162, 0.33);
 	}
 	&.portal-cal-after {
 		background-color:rgba(225, 251, 162, 0.0);

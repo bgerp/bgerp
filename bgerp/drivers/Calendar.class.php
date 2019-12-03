@@ -224,17 +224,18 @@ class bgerp_drivers_Calendar extends core_BaseClass
                                         <div class="legend" id="calendarPortal">[#CAL_TITLE#]
                                             [#SEARCH_FORM#]
                                         </div>
-                                        
+                                        <div>
                                         <!--ET_BEGIN NOW-->
+                                        
                                             <div class="[#NOW_CLASS_NAME#] portal-cal-day">
                                                 <span class="title">[#NOW_DATE#]</span>
                                                 [#NOW#]
                                             </div>
                                         <!--ET_END NOW-->    
-                                        
+                                        </div>
                                         [#MONTH_CALENDAR#]
                                         
-                                        <!--ET_BEGIN FUTURE--><div class="portal-cal-day" style="padding: 5px; ">[#FUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
+                                        <!--ET_BEGIN FUTURE--><div class="portal-cal-day" style="padding: 5px; border-top: none">[#FUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
                                     </div>'
                                     ));
             
