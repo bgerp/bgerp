@@ -275,7 +275,7 @@ class cond_ConditionsToCustomers extends core_Manager
             $tpl->append($data->addBtn, 'condTitle');
         }
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             foreach ($data->rows as $id => &$row) {
                 if (is_object($row->_rowTools)) {
                     $row->tools = $row->_rowTools->renderHtml();

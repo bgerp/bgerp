@@ -382,7 +382,7 @@ class store_InventoryNoteSummary extends doc_Detail
             if (!Mode::get('printing')) {
                 $Pager = cls::get('core_Pager', array('itemsPerPage' => 200));
                 $Pager->setPageVar($data->masterMvc->className, $data->masterId);
-                $Pager->itemsCount = count($data->rows);
+                $Pager->itemsCount = countR($data->rows);
                 $data->pager = $Pager;
             }
         }

@@ -73,7 +73,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
      * Подготвя данните
      *
      * @param stdClass $dRec
-     * @param null|integer $userId
+     * @param null|int $userId
      *
      * @return stdClass
      */
@@ -141,6 +141,14 @@ class doc_drivers_FolderPortal extends core_BaseClass
             // Подготвяме редовете на таблицата
             $Threads->prepareListRows($data);
             
+            foreach ($data->rows as $row) {
+                if (is_string($row->title)) {
+                    $row->title .= "<div style='float:right'><small>{$row->author}, {$row->last}</small></div>";
+                } elseif ($row->title instanceof core_Et) {
+                    $row->title->append("<div style='float:right'><small>{$row->author}, {$row->last}</small></div>");
+                }
+            }
+            
             $resData->data = $data;
             
             $attrArr = array();
@@ -183,14 +191,16 @@ class doc_drivers_FolderPortal extends core_BaseClass
         if (!$data->tpl && $data->data) {
             $data->tpl = new ET('<div class="clearfix21 portal" style="margin-bottom:25px;">
                                 <div class="legend">[#folderTitle#]</div>
-                                [#PortalPagerTop#]
                                 [#PortalTable#]
                             	[#PortalPagerBottom#]
                                 </div>
                               ');
             
             $Threads = cls::get('doc_Threads');
-            $data->tpl->append($Threads->renderListPager($data->data), 'PortalPagerTop');
+            
+            
+            $data->data->listFields = array('title' => 'Заглавие');
+            
             $data->tpl->append($Threads->renderListTable($data->data), 'PortalTable');
             $data->tpl->append($Threads->renderListPager($data->data), 'PortalPagerBottom');
             

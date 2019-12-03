@@ -2627,14 +2627,14 @@ table.mc-calendar {
 		width: 13%;
 		text-align: right;
 		border: none;
-		background-color: #e8efe8;
+		background-color: rgba(200,200,200, 0.2);
 		border: solid 2px #e8efe8;
 		padding: 1px;
 		font-weight: bold;
 		cursor: pointer;
 		white-space: nowrap;
 		&:hover {
-		    background-color: #ffff66;
+		    background-color: rgba(0,0,0,0.3);
 		}
     }
 	td.mc-week-nb {
@@ -2662,16 +2662,22 @@ table.mc-calendar {
 .portal-cal-day {
 	color:#5f1f3e;
 	font-style: italic;
-	background-color:#ffc;
 	font-size: 0.9em;
+    padding-top:3px;
+    padding-left:3px;
+	border-top: 1px solid #ccc;
+	&:first-child {
+		border-top: none !important;
+	}
 	.title {
-		padding-top: 2px;
-		padding: 3px;
+		padding-top: 1px;
+		padding: 2px;
 		display: block;
 		span {
 			display: inline-block;
 		}
 	}
+
 	.progress {
 		float: right;
 		display: inline-block;
@@ -2686,16 +2692,16 @@ table.mc-calendar {
 		padding: 4px;
 	}
 	&.portal-cal-today {
-
+		background-color: rgba(225, 251, 162, 1);
 	}
 	&.portal-cal-tomorrow{
-		background-color:#efc;
+		background-color: rgba(225, 251, 162, 0.66);
 	}
 	&.portal-cal-nextday {
-		background-color:#dfc;
+		background-color:rgba(225, 251, 162, 0.33);
 	}
 	&.portal-cal-after {
-		background-color: #c8ffc6;
+		background-color:rgba(225, 251, 162, 0.0);
 	}
 }
 .portal.newCalendar {

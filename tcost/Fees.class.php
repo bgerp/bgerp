@@ -286,7 +286,7 @@ class tcost_Fees extends core_Detail
         $data->listFields['thirdPrice'] = 'Стойност|* |без ДДС|*->Трета сума';
         $data->listFields['total'] = "Стойност|* |без ДДС|*->Общо|* (<small>{$baseCurrencyCode}</small>)";
         
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }

@@ -165,7 +165,7 @@ class cat_products_VatGroups extends core_Detail
             $data->rows[$rec->id] = $row;
         }
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             foreach ($data->rows as $id => &$row) {
                 $rec = $data->recs[$id];
                 

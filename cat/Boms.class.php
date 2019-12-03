@@ -843,7 +843,7 @@ class cat_Boms extends core_Master
             $data->notManifacturable = true;
         }
         
-        if (!haveRole('ceo,sales,cat,planning') || ($data->notManifacturable === true && !count($data->rows))) {
+        if (!haveRole('ceo,sales,cat,planning') || ($data->notManifacturable === true && !countR($data->rows))) {
             $data->hide = true;
             
             return;

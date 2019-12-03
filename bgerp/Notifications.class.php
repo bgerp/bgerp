@@ -1150,7 +1150,7 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Екшън за рендиране блок с нотификации за текущия
-     * 
+     *
      * @deprecated
      */
     public function act_Render()
@@ -1165,6 +1165,7 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Рендира блок с нотификации за текущия или посочения потребител
+     *
      * @deprecated
      */
     public static function render_($userId = null)
@@ -1350,7 +1351,7 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Рендира портала
-     * 
+     *
      * @deprecated
      */
     public function renderPortal($data)
@@ -1365,7 +1366,6 @@ class bgerp_Notifications extends core_Manager
                 <div class='clearfix21 portal'>
                 <div class='legend'><div style='float:left'>[#PortalTitle#]</div>
                 [#ListFilter#]<div class='clearfix21'></div></div>
-                [#PortalPagerTop#]
                 
                 <div id='{$divId}'>
                     <!--ET_BEGIN PortalTable-->
@@ -1381,9 +1381,6 @@ class bgerp_Notifications extends core_Manager
             if (!Mode::is('screenMode', 'narrow')) {
                 $tpl->append($data->title, 'PortalTitle');
             }
-            
-            // Попълваме горния страньор
-            $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
             
             if ($data->listFilter) {
                 $formTpl = $data->listFilter->renderHtml();
@@ -1612,7 +1609,7 @@ class bgerp_Notifications extends core_Manager
             
             $res = array('cnt' => $res, 'priority' => $priority);
             
-            if(isset($msgRec)) {
+            if (isset($msgRec)) {
                 $res['msg'] = $msgRec->msg;
             }
         }
@@ -1625,7 +1622,7 @@ class bgerp_Notifications extends core_Manager
      * Връща id, което ще се използва за обграждащия div на таблицата, който ще се замества по AJAX
      *
      * @return string
-     * 
+     *
      * @deprecated
      */
     public function getDivId()

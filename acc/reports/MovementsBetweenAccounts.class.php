@@ -543,7 +543,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         $tpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrencyCode');
         
         $cntItem = array();
-        $totalRows = count($data->rows);
+        $totalRows = countR($data->rows);
         for ($i = 0; $i <= $totalRows; $i++) {
             foreach (range(1, 6) as $l) {
                 if (!empty($data->rows[$i]->{"item{$l}"})) {
@@ -552,7 +552,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             }
         }
         
-        if (count($cntItem) <= 1 && count($data->recs) >= 2) {
+        if (countR($cntItem) <= 1 && countR($data->recs) >= 2) {
             
             // toolbar
             $btns = $this->generateBtns($data);

@@ -423,7 +423,6 @@ class cal_Tasks extends embed_Manager
         if (!$form->rec->{$mvc->driverClassField}) {
             $driverClass = Request::get('driverClass');
             if ($driverClass && cls::load($driverClass, true)) {
-                
                 if (!isset($form->rec)) {
                     $form->rec = new stdClass();
                 }
@@ -530,6 +529,7 @@ class cal_Tasks extends embed_Manager
     
     /**
      * Показване на задачите в портала
+     *
      * @deprecated
      */
     public static function renderPortal($userId = null)
@@ -640,7 +640,6 @@ class cal_Tasks extends embed_Manager
         }
         
         $tpl = new ET('
-            [#PortalPagerTop#]
             [#PortalTable#]
         	[#PortalPagerBottom#]
           ');
@@ -654,7 +653,6 @@ class cal_Tasks extends embed_Manager
             $tpl->append($formTpl, 'ListFilter');
         }
         
-        $tpl->append(self::renderListPager($data), 'PortalPagerTop');
         $tpl->append(self::renderListTable($data), 'PortalTable');
         $tpl->append(self::renderListPager($data), 'PortalPagerBottom');
         
@@ -940,7 +938,7 @@ class cal_Tasks extends embed_Manager
     protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if ($mvc->canAddProgress($data->rec)) {
-            $data->toolbar->addBtn('Прогрес', array('doc_Comments', 'add', 'originId' => $data->rec->containerId, cls::get('doc_Comments')->driverClassField => cal_Progresses::getClassId(), 'ret_url' => true), 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '"), ef_icon=img/16/progressbar.png', "title=Добавяне на прогрес към задачата, row=1");
+            $data->toolbar->addBtn('Прогрес', array('doc_Comments', 'add', 'originId' => $data->rec->containerId, cls::get('doc_Comments')->driverClassField => cal_Progresses::getClassId(), 'ret_url' => true), 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '"), ef_icon=img/16/progressbar.png', 'title=Добавяне на прогрес към задачата, row=1');
         }
         
         if (cal_TaskConditions::haveRightFor('add', (object) array('baseId' => $data->rec->id))) {
@@ -3348,9 +3346,9 @@ class cal_Tasks extends embed_Manager
     
     /**
      * Клониране на задачите от една папка в друга, с транслиране на времената
-     * 
-     * @param int $fromFolderId
-     * @param int $toFolderId
+     *
+     * @param int    $fromFolderId
+     * @param int    $toFolderId
      * @param string $newStartDate
      * @param string $cloneInState
      */
@@ -3364,21 +3362,24 @@ class cal_Tasks extends embed_Manager
         
         // Ако няма задачи в папката, няма какво да се клонира
         $containers = arr::extractValuesFromArray($tQuery->fetchAll(), 'firstContainerId');
-        if(!count($containers)) return;
+        if (!count($containers)) {
+            
+            return;
+        }
         
         $taskQuery = cal_Tasks::getQuery();
-        $taskQuery->in("containerId", $containers);
+        $taskQuery->in('containerId', $containers);
         $taskQuery->where("#state != 'closed' AND #state != 'rejected'");
         $tasks = $taskQuery->fetchAll();
         
         $minDate = null;
-        array_walk($tasks, function ($a) use (&$minDate){
+        array_walk($tasks, function ($a) use (&$minDate) {
             $startTime = !empty($a->timeStart) ? $a->timeStart : (isset($a->timeDuration, $a->timeEnd) ? dt::addSecs(-1 * $a->timeDuration, $a->timeEnd) : null);
-            if(!empty($startTime)){
-                if(empty($minDate)){
+            if (!empty($startTime)) {
+                if (empty($minDate)) {
                     $minDate = $startTime;
                 } else {
-                    if($startTime < $minDate){
+                    if ($startTime < $minDate) {
                         $minDate = $startTime;
                     }
                 }
@@ -3387,20 +3388,20 @@ class cal_Tasks extends embed_Manager
         
         $dateDiff = dt::secsBetween($newStartDate, $minDate);
         
-        foreach ($tasks as $taskRec){
+        foreach ($tasks as $taskRec) {
             $cloneTask = clone $taskRec;
             plg_Clone::unsetFieldsNotToClone($Tasks, $cloneTask, $taskRec);
             unset($cloneTask->id, $cloneTask->folderId, $cloneTask->threadId, $cloneTask->containerId, $cloneTask->createdOn, $cloneTask->createdBy, $cloneTask->modifiedOn, $cloneTask->modifiedBy);
             $cloneTask->folderId = $toFolderId;
             $cloneTask->state = $cloneInState;
             
-            if($cloneInState == 'active'){
+            if ($cloneInState == 'active') {
                 $sharedUsersArr = keylist::toArray($cloneTask->sharedUsers);
                 if ($cloneTask->assign) {
                     $sharedUsersArr += type_Keylist::toArray($cloneTask->assign);
                 }
                 
-                if(empty($sharedUsersArr)){
+                if (empty($sharedUsersArr)) {
                     $cloneTask->state = 'pending';
                 }
             }
@@ -3409,19 +3410,19 @@ class cal_Tasks extends embed_Manager
             $startTime = isset($taskRec->timeStart) ? $taskRec->timeStart : (isset($taskRec->timeDuration, $taskRec->timeEnd) ? dt::addSecs(-1 * $taskRec->timeDuration, $taskRec->timeEnd) : null);
             $duration = isset($taskRec->timeDuration) ? $taskRec->timeDuration : (isset($taskRec->timeStart, $taskRec->timeEnd) ? (strtotime($taskRec->timeEnd) - strtotime($taskRec->timeStart)) : null);
             $newStart = dt::addSecs($dateDiff, $startTime);
-            if(isset($taskRec->timeDuration)){
+            if (isset($taskRec->timeDuration)) {
                 $cloneTask->timeDuration = $duration;
             }
-            if(isset($taskRec->timeStart)){
+            if (isset($taskRec->timeStart)) {
                 $cloneTask->timeStart = $newStart;
             }
-            if(isset($taskRec->timeEnd)){
+            if (isset($taskRec->timeEnd)) {
                 $cloneTask->timeEnd = dt::addSecs($duration, $newStart);
             }
             
             $Tasks->route($cloneTask);
             $Tasks->save($cloneTask);
-            $Tasks->logWrite("Създаване при клониране на проект", $cloneTask->id);
+            $Tasks->logWrite('Създаване при клониране на проект', $cloneTask->id);
         }
     }
 }

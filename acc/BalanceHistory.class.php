@@ -659,7 +659,7 @@ class acc_BalanceHistory extends core_Manager
         // Проверка дали всички к-ва равнят на сумите
         $equalBl = true;
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             foreach ($data->rows as $row) {
                 if (trim($row->blQuantity) != trim($row->blAmount)) {
                     $equalBl = false;

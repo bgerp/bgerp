@@ -170,7 +170,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }

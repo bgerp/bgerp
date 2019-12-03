@@ -71,17 +71,25 @@ class plg_State2 extends core_Plugin
         }
         $opt = $mvc->getFieldType('state')->options;
         
-        foreach ($this->castToActive as $state) {
-            if ($opt[$state]) {
-                $this->activeState = $state;
-                break;
+        if(isset($mvc->activeState)) {
+            $this->activeState = $mvc->activeState;
+        } else {
+            foreach ($this->castToActive as $state) {
+                if ($opt[$state]) {
+                    $this->activeState = $state;
+                    break;
+                }
             }
         }
-        
-        foreach ($this->castToClosed as $state) {
-            if ($opt[$state]) {
-                $this->closedState = $state;
-                break;
+
+        if(isset($mvc->closedState)) {
+            $this->closedState = $mvc->closedState;
+        } else {
+            foreach ($this->castToClosed as $state) {
+                if ($opt[$state]) {
+                    $this->closedState = $state;
+                    break;
+                }
             }
         }
         

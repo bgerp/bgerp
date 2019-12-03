@@ -1436,7 +1436,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }
