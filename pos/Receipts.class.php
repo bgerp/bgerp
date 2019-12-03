@@ -405,11 +405,6 @@ class pos_Receipts extends core_Master
             }
         }
         
-        // Ако няма въведен клиент от потребителя
-        $rec->contragentName = tr('Анонимен Клиент');
-        $rec->contragentClass = core_Classes::getId('crm_Persons');
-        $rec->contragentObjectId = pos_Points::defaultContragent($rec->pointId);
-        
         $diff = round($rec->paid - $rec->total, 2);
         $rec->change = ($diff <= 0) ? 0 : $diff;
         $rec->total = $rec->total;
