@@ -188,7 +188,7 @@ class pos_Terminal extends peripheral_Terminal
      * @param stdClass $rec
      * @return core_ET
      */
-    public function getCommandPanel($rec)
+    private function getCommandPanel($rec)
     {
         $Receipts = cls::get('pos_Receipts');
         expect($rec = $Receipts->fetchRec($rec));
@@ -289,9 +289,11 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $enlargeBtn = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => 'operationBtn enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
-        $enlargeBtn = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => 'operationBtn enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
-        $block->append($enlargeBtn, 'INPUT_FLD');
+        if($currentOperation == 'add'){
+            $enlargeBtn = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => 'operationBtn enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
+            $block->append($enlargeBtn, 'INPUT_FLD');
+        }
+        
         $block->append(ht::createElement('input', $params), 'INPUT_FLD');
         $block->append($this->renderKeyboard('tools'), 'KEYBOARDS');
         
@@ -332,7 +334,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @return core_ET
      */
-    public function renderResult($rec, $currOperation, $string, $selectedRecId = null)
+    private function renderResult($rec, $currOperation, $string, $selectedRecId = null)
     {
         $detailsCount = pos_ReceiptDetails::count("#receiptId = {$rec->id}");
         if(empty($detailsCount) && in_array($currOperation, static::$forbiddenOperationOnEmptyReceipts)){
@@ -361,7 +363,7 @@ class pos_Terminal extends peripheral_Terminal
                 $res = $this->renderDiscountTable($rec, $string, $selectedRecId);
                 break;
             case 'text':
-                $res = ' ';
+                $res = $this->renderTextTable($rec, $string, $selectedRecId);
                 break;
             case 'price':
                 $res = $this->renderLastPriceTable($rec, $string, $selectedRecId);
@@ -386,6 +388,43 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
+     * Рендиране на таблицата с последните текстове
+     *
+     * @param stdClass $rec - записа на бележката
+     * @param string $string - въведения стринг за търсене
+     * @param int $selectedRecId - селектирания ред (ако има)
+     *
+     * @return core_ET
+     */
+    private function renderTextTable($rec, $string, $selectedRecId)
+    {
+        $tpl = new core_ET("");
+        
+        $count = 0;
+        $query = pos_ReceiptDetails::getQuery();
+        $query->where("#action = 'sale|code' AND #text IS NOT NULL AND #text != ''");
+        $query->XPR('orderBy', 'int', "(CASE #receiptId WHEN '{$rec->id}' THEN 1 ELSE 2 END)");
+        $query->show('text');
+        $query->orderBy('orderBy');
+        $query->limit(10);
+        
+        $texts = arr::extractValuesFromArray($query->fetchAll(), 'text');
+        
+        foreach ($texts as $text){
+            $selected = empty($count) ? 'selected' : '';
+            $dataUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'settext', 'string' => $text);
+            $dataUrl = toUrl($dataUrl, 'local');
+            
+            $element = ht::createElement('div', array("class" => "textResult navigable posBtns {$selected}", 'data-url' => $dataUrl), $text, true);
+            $tpl->append($element);
+            $count++;
+        }
+        
+        return $tpl;
+    }
+    
+    
+    /**
      * Рендиране на таблицата с наличните отстъпки
      * 
      * @param stdClass $rec - записа на бележката
@@ -394,7 +433,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @return core_ET
      */
-    public function renderDiscountTable($rec, $string, $selectedRecId)
+    private function renderDiscountTable($rec, $string, $selectedRecId)
     {
         $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
         
@@ -432,7 +471,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @return core_ET
      */
-    public function renderContragentTable($rec, $string, $selectedRecId)
+    private function renderContragentTable($rec, $string, $selectedRecId)
     {
         $tpl = new core_ET("");
         if(empty($string)){
@@ -508,7 +547,7 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return core_ET
      */
-    public static function renderRevertTable($rec, $string, $selectedRecId)
+    private function renderRevertTable($rec, $string, $selectedRecId)
     {
         $Receipts = cls::get('pos_Receipts');
         $string = plg_Search::normalizeText($string);
@@ -553,7 +592,7 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return core_ET
      */
-    public static function renderPaymentTabs($rec, $string, $selectedRecId)
+    private function renderPaymentTabs($rec, $string, $selectedRecId)
     {
         $Receipts = cls::get('pos_Receipts');
         $tpl = new core_ET("");
@@ -596,7 +635,7 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return core_ET
      */
-    public function renderPackagingTable($rec, $string, $selectedRecId)
+    private function renderPackagingTable($rec, $string, $selectedRecId)
     {
         $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
         $measureId = cat_Products::fetchField($selectedRec->productId, 'measureId');
@@ -667,7 +706,7 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return core_ET
      */
-    public function renderLastPriceTable($rec, $string, $selectedRecId)
+    private function renderLastPriceTable($rec, $string, $selectedRecId)
     {
         $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
@@ -713,7 +752,7 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return core_ET $block - шаблон
      */
-    public function getFavouritesBtns($rec)
+    private function getFavouritesBtns($rec)
     {
         $products = pos_Favourites::prepareProducts($rec);
         if (!$products->arr) {
@@ -849,7 +888,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @return core_ET
      */
-    public function getProductResultTable($rec, $string, $revertReceiptId = null)
+    private function getProductResultTable($rec, $string, $revertReceiptId = null)
     {
         $searchString = plg_Search::normalizeText($string);
         $data = new stdClass();
@@ -1042,7 +1081,7 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return core_ET $block - шаблон
      */
-    public function renderDraftsTab($id)
+    private function renderDraftsTab($id)
     {
         $rec = $this->fetchRec($id);
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('DRAFTS');
@@ -1101,7 +1140,7 @@ class pos_Terminal extends peripheral_Terminal
         $operation = Mode::get("currentOperation");
         $string = Mode::get("currentSearchString");
         $res = array();
-        
+       
         if($success === true){
             $resultTpl = $me->renderResult($rec, $operation, $string, $selectedRecId);
             

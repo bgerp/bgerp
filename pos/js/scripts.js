@@ -52,6 +52,21 @@ function posActions() {
 		}
 	});
 	
+	// Добавяне 
+	$(document.body).on('click', ".textResult", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		var selectedElement = $(".highlighted");
+		var selectedRecId = selectedElement.attr("data-id");
+		
+		console.log(selectedRecId);
+		//getEfae().process(resObj, {recId:selectedRecId});
+	});
+	
 	
 	// Използване на числата за въвеждане на суми за плащания
 	$(document.body).on('click', ".revertBtn", function(e){
