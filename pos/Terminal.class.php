@@ -260,7 +260,7 @@ class pos_Terminal extends peripheral_Terminal
             $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
             if(!($defaultContragentId == $rec->contragentObjectId && $rec->contragentClass == crm_Persons::getClassId())){
                 $transferUrl = array('pos_Receipts', 'transfer', $rec->id, 'contragentClassId' => $rec->contragentClass, 'contragentId' => $rec->contragentObjectId);
-                $transferBtn = ht::createBtn('Прехвърли', $transferUrl, 'aaaaa', false, 'class=operationBtn button');
+                $transferBtn = ht::createBtn('Прехвърли', $transferUrl, 'Наистина ли желаете да прехвърлите бележката към папката на контрагента|*?', false, 'class=operationBtn button');
                 $block->append($transferBtn, 'INPUT_FLD');
             }
         }
