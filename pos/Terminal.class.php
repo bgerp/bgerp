@@ -155,7 +155,7 @@ class pos_Terminal extends peripheral_Terminal
         $res = array();
         $resObj = new stdClass();
         $resObj->func = 'html';
-        $resObj->arg = array('id' => 'ajax-form', 'html' => $docHtml->getContent(), 'replace' => true);
+        $resObj->arg = array('id' => 'productInfo', 'html' => $docHtml->getContent(), 'replace' => true);
         $res[] = $resObj;
 
         $resObj = new stdClass();
