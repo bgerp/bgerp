@@ -691,7 +691,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             
             // Ако няма цена се гледа мениджърската себестойност за да не е 0
             if(empty($price)){
-                $price = cat_Products::getPrimeCost($pId, $pRec->packagingId, 1, $pRec->valior);
+                $price = cat_Products::getPrimeCost($pId, $pRec->packagingId, 1, $saleRec->valior);
             }
             
             // Ако артикула е нестандартен и има приключено задание по продажбата и няма друго активно по нея
@@ -797,6 +797,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         // За всеки се определя колко % може да се изпълни
         foreach ($all as $pId => $pRec) {
             $price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
+            if(empty($price)){
+                $price = cat_Products::getPrimeCost($pId, $pRec->packagingId, 1, $soRec->valior);
+            }
+            
             
             $totalAmount += $pRec->quantity * $price;
             
