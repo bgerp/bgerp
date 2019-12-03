@@ -101,6 +101,12 @@ class pos_Receipts extends core_Master
     
     
     /**
+     * Кой може да задава клиент?
+     */
+    public $canSetcontragent = 'ceo,pos';
+    
+    
+    /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,pos';
@@ -221,7 +227,13 @@ class pos_Receipts extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
         $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
+        if(!($defaultContragentId == $rec->contragentObjectId && crm_Persons::getClassId() == $rec->contragentClass)){
+            $Contragent = new core_ObjectReference($rec->contragentClass, $rec->contragentObjectId);
+            $contragentFolderId = $Contragent->fetchField('folderId');
+            $row->contragentId = (isset($contragentFolderId)) ? doc_Folders::recToVerbal($contragentFolderId)->title : $Contragent->getHyperlink(true);
+        }
         
         if ($fields['-list']) {
             $row->title = $mvc->getHyperlink($rec->id, true);
@@ -496,6 +508,12 @@ class pos_Receipts extends core_Master
         // Не може да се прехвърля бележката, ако общото и е нула, има платено или не е чернова
         if ($action == 'transfer' && isset($rec)) {
             if (empty($rec->id) || round($rec->paid, 2) > 0 || $rec->state != 'draft') {
+                $res = 'no_one';
+            }
+        }
+        
+        if($action == 'setcontragent' && isset($rec)){
+            if(!$mvc->haveRightFor('terminal', $rec)){
                 $res = 'no_one';
             }
         }
@@ -818,5 +836,22 @@ class pos_Receipts extends core_Master
             
             $res = round($res, 2);
         }
+    }
+    
+    
+    public function act_setcontragent()
+    {
+        $this->requireRightFor('setcontragent');
+        expect($id = Request::get('id'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('setcontragent', $rec);
+        expect($rec->contragentClass = Request::get('contragentClassId', 'int'));
+        expect($rec->contragentObjectId = Request::get('contragentId', 'int'));
+        
+        $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
+        
+        $this->save($rec, 'contragentObjectId,contragentClass');
+        
+        followRetUrl();
     }
 }

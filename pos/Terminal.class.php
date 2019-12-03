@@ -256,6 +256,15 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
+        if(pos_Receipts::haveRightFor('transfer')){
+            $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
+            if(!($defaultContragentId == $rec->contragentObjectId && $rec->contragentClass == crm_Persons::getClassId())){
+                $transferUrl = array('pos_Receipts', 'transfer', $rec->id, 'contragentClassId' => $rec->contragentClass, 'contragentId' => $rec->contragentObjectId);
+                $transferBtn = ht::createBtn('Прехвърли', $transferUrl, 'aaaaa', false, 'class=operationBtn button');
+                $block->append($transferBtn, 'INPUT_FLD');
+            }
+        }
+        
         $enlargeBtn = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => 'enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
         $block->append($enlargeBtn, 'INPUT_FLD');
         $block->append(ht::createElement('input', $params), 'INPUT_FLD');
@@ -377,7 +386,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $stringInput = core_Type::getByName('varchar')->fromVerbal($string);
         if($cardRec = crm_ext_Cards::fetch("#number = '{$stringInput}'")){
-            $contragents["{$cardRec->contragentClassId}|{$cardRec->contragentId}"] = (object)array('contragentClassId' => $cardRec->contragentClassId, 'contragentId' => $cardRec->contragentId, 'title' => cls::get($cardRec)->getHyperlink($cardRec->contragentId, true));
+            $contragents["{$cardRec->contragentClassId}|{$cardRec->contragentId}"] = (object)array('contragentClassId' => $cardRec->contragentClassId, 'contragentId' => $cardRec->contragentId, 'title' => cls::get($cardRec)->getTitleById($cardRec->contragentId));
         }
         
         $personClassId = crm_Persons::getClassId();
@@ -387,16 +396,14 @@ class pos_Terminal extends peripheral_Terminal
         $cQuery->fetch("#vatId = '{$stringInput}' OR #uicId = '{$stringInput}'");
         $cQuery->show('id,folderId');
         while($cRec = $cQuery->fetch()){
-            $contragentTitle = (isset($cRec->folderId)) ? (doc_Threads::haveRightFor('list', $cRec->folderId) ? ht::createLinkRef(crm_Companies::getTitleById($cRec->id), array('doc_Threads', 'list', 'folderId' => $cRec->folderId)) : crm_Companies::getTitleById($cRec->id)) : crm_Companies::getShortHyperlink($cRec->id, true);
-            $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => $contragentTitle);
+            $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => crm_Companies::getTitleById($cRec->id));
         }
         
         $pQuery = crm_Persons::getQuery();
         $pQuery->fetch("#egn = '{$stringInput}' OR #vatId = '{$stringInput}'");
         $pQuery->show('id,folderId');
         while($pRec = $pQuery->fetch()){
-            $contragentTitle = (isset($pRec->folderId)) ? (doc_Threads::haveRightFor('list', $pRec->folderId) ? ht::createLinkRef(crm_Persons::getTitleById($pRec->id), array('doc_Threads', 'list', 'folderId' => $pRec->folderId)): crm_Persons::getRecTitle($cRec->id)) : crm_Persons::getShortHyperlink($cRec->id, true);
-            $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => $contragentTitle);
+            $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => crm_Persons::getTitleById($cRec->id));
         }
         
         foreach (array('crm_Companies', 'crm_Persons') as $ContragentClass){
@@ -410,26 +417,22 @@ class pos_Terminal extends peripheral_Terminal
             $classId = ($ContragentClass == 'crm_Companies') ? $companyClassId : $personClassId;
             while($cRec = $cQuery->fetch()){
                 if(!array_key_exists("{$classId}|{$cRec->id}", $contragents)){
-                    $contragentTitle = (isset($cRec->folderId)) ? (doc_Threads::haveRightFor('list', $cRec->folderId) ? ht::createLinkRef($ContragentClass::getTitleById($cRec->id), array('doc_Threads', 'list', 'folderId' => $cRec->folderId)) : $ContragentClass::getTitleById($cRec->id)) : $ContragentClass::getShortHyperlink($cRec->id, true);
-                    $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $contragentTitle);
+                    $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $ContragentClass::getTitleById($cRec->id));
                 }
                 
                 if(count($contragents) > 20) break;
             }
         }
         
-        $canTransfer = pos_Receipts::haveRightFor('transfer', $rec);
+        $canSetContragent = pos_Receipts::haveRightFor('setcontragent', $rec);
         $cnt = 0;
         foreach ($contragents as $obj){
             $class = ($cnt == 0) ? 'posResultContragent navigable selected' : 'posResultContragent navigable';
-            $transferUrl = ($canTransfer === true) ? array('pos_Receipts', 'Transfer', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId) : array();
-            $obj->title = ht::createLink($obj->title, $transferUrl, null, 'class=transferBtn,target=_blank');
+            $setContragentUrl = ($canSetContragent === true) ? array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId, 'ret_url' => true) : array();
+            $holderDiv = ht::createElement('div', array('class' => $class), $obj->title, true);
+            $holderDiv = ht::createLink($holderDiv, $setContragentUrl);
             
-            $block = new core_ET("<div class='{$class}'><div class='posResultContragentTitle'>[#title#]</div></div>");
-            $block->placeObject($obj);
-            $block->removeBlocksAndPlaces();
-            
-            $tpl->append($block);
+            $tpl->append($holderDiv);
             $cnt++;
         }
         

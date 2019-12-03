@@ -5,7 +5,9 @@
 				<!--ET_BEGIN EXIT_TERMINAL--> <span class="logout">[#EXIT_TERMINAL#]</span><!--ET_END EXIT_TERMINAL-->
 				<div><span id='receipt-title'>[#RECEIPT_CAPTION#]<span id='receipt-number'> &nbsp;<b>№[#id#]/[#valior#]</b> [#rejectBtn#]</span></span></div>
 				<div class='secondRow'><!--ET_BEGIN SUB_TITLE--><span class='terminal-receipt-subtitle'>[#SUB_TITLE#] &#124; </span><!--ET_END SUB_TITLE-->[#createdBy#] &#124;[#LOGO#]<span class='newLine'>[#pointId#]</span><!--ET_BEGIN revertId-->  &#124;<span class='terminal-revert-id newLine'>[#revertId#]</span>[#loadUrl#]<!--ET_END revertId--></div>
-
+				<!--ET_BEGIN contragentId-->
+				<div class='contragentRow'>[#contragentId#]</div>
+				<!--ET_END contragentId-->
 			</td>
 		</tr>
 		<tr id='receipt-details-th'>

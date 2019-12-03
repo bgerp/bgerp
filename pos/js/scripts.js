@@ -628,6 +628,8 @@ function posActions() {
 		
 		getEfae().process(resObj, {productId:productId});
 
+		
+		//return;
 		dialog = $("#productInfo").dialog({
 			autoOpen: false,
 			height: 600,
