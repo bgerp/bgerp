@@ -51,7 +51,12 @@ function posActions() {
 			closestSearch.focus();
 		}
 	});
-	
+	// Добавяне
+	$(document.body).on('focus', ".navigable", function(e){
+		$('.navigable').removeClass('selected');
+		$(this).addClass('selected');
+	});
+
 	// Добавяне 
 	$(document.body).on('click', ".textResult", function(e){
 		var url = $(this).attr("data-url");
@@ -316,9 +321,6 @@ function posActions() {
 		if(event.key == "ArrowRight") {
 			arrowRight();
 		}
-		if(event.key == "Enter"){
-			enter();
-		}
 		if(event.key == "PageDown"){
 			pageDown();
 		}
@@ -380,10 +382,7 @@ function posActions() {
 		getEfae().process(resObj, {operation:operation,recId:selectedRecId});
 	});
 	
-	
-	
-	
-	
+
 	// Добавяне на продукт от резултатите за търсене
 	$(document.body).on('click', ".pos-add-res-btn", function(e){
 		var elemRow = $(this).closest('.receiptRow ');
@@ -601,7 +600,6 @@ function arrowLeft(){
 	console.log('arrowLeft')
 }
 
-
 function getSelectedOperation()
 {
 	if($("select[name=operation]").length){
@@ -618,7 +616,6 @@ function render_prepareResult() {
 	if ($('.navigable').length) {
 		naviBoard.refreshNavigation("result-holder",status)
 	}
-
 }
 
 function render_calculateWidth(){
