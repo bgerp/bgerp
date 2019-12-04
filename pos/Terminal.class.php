@@ -288,7 +288,7 @@ class pos_Terminal extends peripheral_Terminal
         }
 
         $input = ht::createElement('input', $params);
-        $holder = ht::createElement('div', array('class' => 'inputHolder'), $input);
+        $holder = ht::createElement('div', array('class' => 'inputHolder'), $input, true);
         $block->append($holder, 'INPUT_FLD');
         $block->append($this->renderKeyboard('tools'), 'KEYBOARDS');
         
