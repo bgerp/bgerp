@@ -34,7 +34,7 @@
 <!--ET_END TRANSFERS_BLOCK-->
 
 <!--ET_BEGIN PRODUCTS_RESULT-->
-<div class='element [#CLASS#]' data-url='[#DATA_URL#]' data-productId = '[#id#]'>
+<div id = '[#elementId#]' class='element [#CLASS#]' data-url='[#DATA_URL#]' data-productId = '[#id#]'>
 	<div class='pos-photo-field fleft'>[#photo#]</div>
 	<div class="pos-add-res-btn">[#productId#]</div>
 	<span class='pos-price-field'>[#price#]</span>

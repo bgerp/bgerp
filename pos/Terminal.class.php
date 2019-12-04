@@ -407,7 +407,7 @@ class pos_Terminal extends peripheral_Terminal
             $dataUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'settext', 'string' => $text);
             $dataUrl = toUrl($dataUrl, 'local');
             
-            $element = ht::createElement('div', array("class" => "textResult navigable posBtns {$selected}", 'data-url' => $dataUrl), $text, true);
+            $element = ht::createElement('div', array("id" => "text{$count}", "class" => "textResult navigable posBtns {$selected}", 'data-url' => $dataUrl), $text, true);
             $tpl->append($element);
             $count++;
         }
@@ -446,7 +446,7 @@ class pos_Terminal extends peripheral_Terminal
             $url = toUrl(array('pos_ReceiptDetails', 'updateRec', 'receiptId' => $rec->id, 'action' => 'setdiscount', 'string' => "{$discAmount}"), 'local');
             
             $class = (round($discAmount/100, 2) == $currentDiscount) ? 'navigable posBtns discountBtn selected' : 'navigable posBtns discountBtn';
-            $element = ht::createElement("div", array('class' => $class, 'data-url' => $url), "{$discAmount} %", true);
+            $element = ht::createElement("div", array('id' => "discount{$discAmount}", 'class' => $class, 'data-url' => $url), "{$discAmount} %", true);
             $tpl->append($element);
         }
         
@@ -519,7 +519,7 @@ class pos_Terminal extends peripheral_Terminal
         foreach ($contragents as $obj){
             $class = ($cnt == 0) ? 'posResultContragent navigable selected' : 'posResultContragent navigable';
             $setContragentUrl = ($canSetContragent === true) ? array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId, 'ret_url' => true) : array();
-            $holderDiv = ht::createElement('div', array('class' => $class), $obj->title, true);
+            $holderDiv = ht::createElement('div', array("id" => "contragent{$cnt}", 'class' => $class), $obj->title, true);
             $holderDiv = ht::createLink($holderDiv, $setContragentUrl);
             
             $tpl->append($holderDiv);
@@ -559,7 +559,7 @@ class pos_Terminal extends peripheral_Terminal
         while($receiptRec = $query->fetch()){
             $class = ($cnt == 0) ? "navigable posBtns selected" : "navigable posBtns";
             
-            $buttons[] = ht::createLink(self::getReceiptTitle($receiptRec), array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true), 'Наистина ли желаете да сторнирате бележката|*?', "title=Сторниране на бележката,class={$class} pos-notes revert-receipt");
+            $buttons[] = ht::createLink(self::getReceiptTitle($receiptRec), array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true), 'Наистина ли желаете да сторнирате бележката|*?', "title=Сторниране на бележката,class={$class} pos-notes revert-receipt,id=revert{$cnt}");
             $cnt++;
         }
         
@@ -589,12 +589,12 @@ class pos_Terminal extends peripheral_Terminal
         $payUrl = (pos_Receipts::haveRightFor('pay', $rec)) ? toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local') : null;
         $disClass = ($payUrl) ? '' : 'disabledBtn';
         
-        $element = ht::createElement("div", array('class' => "{$disClass} navigable posBtns payment selected", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true);
+        $element = ht::createElement("div", array('id' => "payment-1", 'class' => "{$disClass} navigable posBtns payment selected", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true);
         $tpl->append($element);
         
         $payments = pos_Points::fetchSelected($rec->pointId);
         foreach ($payments as $paymentId => $paymentTitle){
-            $element = ht::createElement("div", array('class' => "{$disClass} navigable posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl), tr($paymentTitle), true);
+            $element = ht::createElement("div", array('id' => "payment{$paymentId}", 'class' => "{$disClass} navigable posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl), tr($paymentTitle), true);
             $tpl->append($element);
         }
         $tpl->append("<div class='clearfix21'></div><div class='actionBnts'>");
@@ -603,7 +603,7 @@ class pos_Terminal extends peripheral_Terminal
         $buttons = array();
         $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id) : null;
         $disClass = ($payUrl) ? '' : 'disabledBtn';
-        $buttons[] = ht::createBtn('Приключи', $contoUrl, '', '', array('class' => "navigable posBtns payment closeBtn"));
+        $buttons[] = ht::createBtn('Приключи', $contoUrl, '', '', array('id' => 'closeBtn', 'class' => "navigable posBtns payment closeBtn"));
         
         $Receipts->invoke('BeforeGetPaymentTabBtns', array(&$buttons, $rec));
         foreach ($buttons as $btn){
@@ -638,7 +638,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $buttons = array();
         $class = ($measureId == $basePackagingId) ? "{$baseClass} selected" : $baseClass;
-        $buttons[$measureId] = ht::createElement("div", array('class' => $class, 'data-pack' => $basePackName, 'data-url' => $dataUrl), tr($basePackName), true);
+        $buttons[$measureId] = ht::createElement("div", array('id' => "packaging{$basePackName}", 'class' => $class, 'data-pack' => $basePackName, 'data-url' => $dataUrl), tr($basePackName), true);
        
         $packQuery = cat_products_Packagings::getQuery();
         $packQuery->where("#productId = {$selectedRec->productId}");
@@ -650,7 +650,7 @@ class pos_Terminal extends peripheral_Terminal
             $packaging = "|{$packagingId}|*</br> <small>" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . cat_UoM::getVerbal($baseMeasureId, 'name') . "</small>";
             
             $class = ($packRec->packagingId == $basePackagingId) ? "{$baseClass} selected" : $baseClass;
-            $buttons[$packRec->packagingId] = ht::createElement("div", array('class' => $class, 'data-pack' => $packagingId, 'data-url' => $dataUrl), tr($packaging), true);
+            $buttons[$packRec->packagingId] = ht::createElement("div", array('id' => "packaging{$packagingId}{$selectedRec->productId}", 'class' => $class, 'data-pack' => $packagingId, 'data-url' => $dataUrl), tr($packaging), true);
         }
         
         $firstBtn = $buttons[$basePackagingId];
@@ -670,7 +670,7 @@ class pos_Terminal extends peripheral_Terminal
             $quantity = core_Type::getByName('double(smartRound)')->toVerbal($productRec->quantity);
             Mode::pop('text', 'plain');
             $btnCaption =  "{$quantity} " .tr(str::getPlural($productRec->quantity, $packagingId, true));
-            $buttons["{$productRec->packagingId}|{$productRec->quantity}"] = ht::createElement("div", array('class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packagingId, 'data-url' => $dataUrl), $btnCaption, true);
+            $buttons["{$productRec->packagingId}|{$productRec->quantity}"] = ht::createElement("div", array('id' => "packaging{$packagingId}{$productRec->quantity}{$selectedRec->productId}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packagingId, 'data-url' => $dataUrl), $btnCaption, true);
         }
         
         $tpl = new core_ET("");
@@ -720,7 +720,8 @@ class pos_Terminal extends peripheral_Terminal
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
             
             $class = ($cnt == 0) ? 'resultPrice posBtns navigable selected' : 'resultPrice posBtns navigable';
-            $buttons[$dRec->price] = ht::createElement("div", array('class' => $class, 'data-url' => $dataUrl), tr($btnName), true);
+            $cnt++;
+            $buttons[$dRec->price] = ht::createElement("div", array('id' => "price{$cnt}",'class' => $class, 'data-url' => $dataUrl), tr($btnName), true);
         }
         
         $tpl = new core_ET("");
@@ -886,6 +887,7 @@ class pos_Terminal extends peripheral_Terminal
         $tpl = new core_ET(" ");
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PRODUCTS_RESULT');
         foreach ($data->rows as $row){
+            $row->elementId = "product{$row->id}";
             $bTpl = clone $block;
             $bTpl->placeObject($row);
             $bTpl->removeBlocksAndPlaces();
@@ -1076,12 +1078,12 @@ class pos_Terminal extends peripheral_Terminal
         $query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$rec->id}");
         while ($rec = $query->fetch()) {
             $class = isset($rec->revertId) ? 'revert-receipt' : '';
-            $row = ht::createLink(self::getReceiptTitle($rec), array('pos_Terminal', 'open', 'receiptId' => $rec->id), null, array('class' => "pos-notes posBtns navigable {$class}", 'title' => 'Преглед на бележката'));
+            $row = ht::createLink(self::getReceiptTitle($rec), array('pos_Terminal', 'open', 'receiptId' => $rec->id), null, array('id' => "receipt{$rec->id}", 'class' => "pos-notes posBtns navigable {$class}", 'title' => 'Преглед на бележката'));
             $block->append($row);
         }
         
         if (pos_Receipts::haveRightFor('add')) {
-            $addBtn = ht::createLink("+", array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes posBtns navigable selected');
+            $addBtn = ht::createLink("+", array('pos_Receipts', 'new', 'forced' => true), null, 'id="newreceipt",class=pos-notes posBtns navigable selected');
             $block->prepend($addBtn);
         }
         

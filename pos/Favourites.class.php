@@ -289,6 +289,7 @@ class pos_Favourites extends core_Manager
         foreach ($products as $row) {
             $row->url = toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $data->rec->id), 'local');
             $row->name = ($row->title) ? $row->title : $row->name;
+            $row->elementId = "product{$row->productId}";
             if ($row->image) {
                 $img = new thumb_Img(array($row->image, 80, 80, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
                 $imageURL = $img->getUrl('forced');
