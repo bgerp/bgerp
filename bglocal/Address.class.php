@@ -379,7 +379,7 @@ class bglocal_Address extends core_MVC
             }
         }
         
-        if (count($res['company'])) {
+        if (countR($res['company'])) {
             foreach ($res['company'] as $c => $i) {
                 if (strpos($c, '@') || strpos($c, '>') || preg_match('/(many thanks|best wishes|regard|regards|pozdrav|pozdravi|поздрав|поздрави|поздрави|с уважение|пожелани|довиждане)/ui', $c)) {
                     unset($res['company'][$c]);
