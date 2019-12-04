@@ -167,7 +167,12 @@ class pos_Terminal extends peripheral_Terminal
      */
     public function act_EnlargeProduct()
     {
-        expect($productId = Request::get('productId', 'int'));
+        $productId = Request::get('productId', 'int');
+        if(empty($productId)) {
+            
+            return array();
+        }
+        
         $document = doc_Containers::getDocument(cat_Products::fetchField($productId, 'containerId'));
         
         // Рендиране на изгледа на артикула
