@@ -407,7 +407,7 @@ function posActions() {
 	});
 
 	// сменяне на селектирания ред от бележките при клик
-	$(document.body).on('click', "#receipt-table .receiptRow td", function(e){
+	$(document.body).on('click', ".receiptRow", function(e){
 		$('.highlighted').removeClass('highlighted');
 		$(this).closest('.receiptRow').addClass('highlighted');
 	});
@@ -485,42 +485,27 @@ function posActions() {
 // Калкулира ширината
 function calculateWidth(){
 	var winWidth = parseInt($(window).width());
-	var winHeight = parseInt($(window).height());
-	var padd = 2 * parseInt($('.single-receipt-wrapper').css('padding-top'));
-	var marg = 2 * parseInt($('.single-receipt-wrapper').css('margin-top'));
-	var totalOffset = marg + padd + 2;
-	$('.single-receipt-wrapper').css('height', winHeight -  totalOffset);
-	
-	var usefulWidth = winWidth - totalOffset;
-	
-	var maxColWidth;
-	if($('body').hasClass('wide')) {
-		maxColWidth = parseInt(usefulWidth/2) - 10;
-	} else {
-		maxColWidth = usefulWidth;
-	}
-	if(maxColWidth < 285) {
-		maxColWidth = 245;
-	}
-	
+	var winHeight = parseInt();
+
 	//задаване на ширина на двете колони
-	if (maxColWidth > 700 && $('body').hasClass('wide')) {
-		$('#single-receipt-holder').css('width', 700);
-		$('#result-holder').css('width', winWidth - 800);
-	} else {
-		$('#single-receipt-holder').css('width', maxColWidth);
-		$('#result-holder').css('width', maxColWidth);
+	if (winWidth < 1200 || $('body').hasClass('narrow')) {
+		$('#single-receipt-holder, .result-content').css('width', winWidth);
+		$('#single-receipt-holder, .result-content').css('position', 'relative');
 	}
 
 	//височина за таблицата с резултатите
-	var searchTopHeight = parseInt($('.search-top-holder').height());
-	$('#pos-search-result-table').css('maxHeight', winHeight - searchTopHeight - 120);
-	$('#result-holder').css('height', winHeight - 88);
-	var receiptHeight = winHeight -  totalOffset - 410;
-	$('.scrolling-vertical').css('maxHeight',receiptHeight);
-	$('.scrolling-vertical').css('minHeight',130);
-	$('.scrolling-vertical').scrollTo = $('.scrolling-vertical').scrollHeight;
-	scrollRecieptBottom();
+	var receiptHeight = $(window).height() -  $('.tools-content').height() - $('.paymentBlock').height();
+	$('.scrolling-vertical').css('height',receiptHeight);
+
+
+	if ( $('.highlighted').length) {
+		var offset = $('.highlighted').offset().top - $('.scrolling-vertical').height() + $('.receipt-header').height() + 10;
+		$('.scrolling-vertical').animate({
+			scrollTop:  offset
+		}, 0);
+	}
+
+
 }
 
 // Скролиране на бележката до долу
@@ -626,7 +611,14 @@ function getSelectedOperation()
 }
 
 function render_prepareResult() {
+
 	if ($('.navigable').length) {
 		naviBoard.refreshNavigation("result-holder",status)
 	}
+
+}
+
+function render_calculateWidth(){
+	calculateWidth();
+
 }

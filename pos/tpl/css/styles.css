@@ -1,27 +1,49 @@
+@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro&display=swap');
 #receipt-table {
   width: 100%;
   background: white; }
 
 .wide #single-receipt-holder {
-  float: left; }
+  float: left;
+  font-family: 'Source Sans Pro', sans-serif; }
+
+#single-receipt-holder {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background: #9be7ff;
+  box-sizing: border-box; }
 
 .wide .result-content {
-  float: right; }
+  background: #cccccc;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 60%;
+  height: 100%;
+  padding: 15px;
+  overflow-y: auto;
+  box-sizing: border-box; }
 
-#receipt-table td,
-#receipt-table th {
-  padding: 5px;
-  border: 1px solid black;
-  border-top: none; }
+.tools-content {
+  min-height: 500px;
+  padding: 20px 15px;
+  box-sizing: border-box; }
 
 .scrolling-vertical {
-  margin-bottom: 20px;
   overflow-y: auto;
   overflow-x: hidden; }
 
-#receipt-title {
-  font-size: 1.5em;
-  font-weight: bold; }
+.receipt-header {
+  padding: 10px;
+  background: #f1f1f1; }
+  .receipt-header .receipt-title {
+    font-size: 1.5em;
+    font-weight: bold; }
+  .receipt-header .contragentRow {
+    margin-top: 3; }
 
 .narrow #receipt-title {
   font-size: 1.1em; }
@@ -40,51 +62,38 @@
   color: #cc0000; }
 
 .paymentBlock {
-  width: 100%; }
-  .paymentBlock td {
-    border: none !important;
-    padding: 2px 5px !important; }
-  .paymentBlock .receipt-info-right {
-    text-align: right;
-    padding-right: 10px; }
-  .paymentBlock .receipt-quantity,
-  .paymentBlock .receipt-price,
-  .paymentBlock .receipt-amount {
+  padding: 0 15px 15px; }
+  .paymentBlock .paymentRow {
     text-align: right; }
-  .paymentBlock #total-label,
-  .paymentBlock #receipt-total-sum {
-    font-size: 1.5em;
+  .paymentBlock .totalLabel {
+    display: inline-block;
+    padding-left: 10px;
+    border-top: 1px solid black;
+    font-size: 1.3em;
     font-weight: bold; }
 
-.receipt-payment {
+.receiptPayment {
   background-color: #d1ffda;
   font-size: 1.1em;
-  line-height: 1.5;
-  padding: 2px 5px !important; }
+  display: block;
+  padding: 10px 15px; }
+  .receiptPayment div {
+    font-weight: bold; }
 
 .reject-btn {
   margin-left: 5px; }
 
 .receiptRow {
+  display: block;
+  padding: 10px 15px;
   cursor: pointer; }
+  .receiptRow .receiptProduct {
+    font-weight: bold;
+    font-size: 1.1em; }
+  .receiptRow .discountText {
+    color: darkgreen; }
 
-.receipt-discount-td {
-  font-style: italic;
-  color: darkgreen; }
-
-.name-product {
-  font-size: 1.1em;
-  line-height: 1.5;
-  padding: 2px 5px !important; }
-
-.pos-del-btn {
-  position: relative;
-  top: 3px;
-  margin-left: 5px;
-  cursor: pointer;
-  width: 16px; }
-
-.highlighted td {
+.highlighted {
   background: #ffffcd !important; }
 
 .numPad,
@@ -168,12 +177,12 @@
 
 .posBtns {
   padding: 0.4em 1em 0.3em;
-  margin: 4px !important;
-  width: 130px;
-  height: 40px;
+  margin: 10px !important;
+  width: 200px;
+  height: 50px;
   color: white;
   font-family: Arial;
-  font-size: 0.8em;
+  font-size: 1em;
   text-align: center;
   display: block;
   float: left;
@@ -268,6 +277,7 @@
     background: #feb7b7; }
 
 .large-field {
+  clear: both;
   width: 85%;
   height: 2.2em !important;
   font-size: 1.2em !important;
@@ -278,13 +288,6 @@
 
 .narrow .large-field {
   height: 1.8em; }
-
-.holder {
-  position: relative;
-  border-radius: 5px;
-  background: #f6f6f6;
-  padding: 15px;
-  overflow-y: auto; }
 
 .pos-photo-field {
   width: 64px;

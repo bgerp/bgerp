@@ -1148,10 +1148,14 @@ class pos_Terminal extends peripheral_Terminal
             
             if($refreshTable === true){
                 $receiptTpl = $me->getReceipt($rec);
-                
+
                 $resObj = new stdClass();
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'receipt-table', 'html' => $receiptTpl->getContent(), 'replace' => true);
+                $res[] = $resObj;
+
+                $resObj = new stdClass();
+                $resObj->func = 'calculateWidth';
                 $res[] = $resObj;
             }
             

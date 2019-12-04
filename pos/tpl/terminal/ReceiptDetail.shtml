@@ -1,11 +1,14 @@
 <!--ET_BEGIN sale-->
 <div data-id='[#id#]' class='receiptRow [#CLASS#]' title = '|Селектиране на реда|*'>
-	[#productId#][#DEL_BTN#][#perPack#] [#uomId#]
-	<!--ET_BEGIN text-->[#text#]<!--ET_END text-->
-	[#quantity#][#value#][#price#][#discountPercent#][#amount#]
+	<div class="receiptProduct">[#productId#] [#DEL_BTN#] <div class="fright"> [#amount#]</div></div>
+	<!--ET_BEGIN text--><div class="subText"> [#text#]</div><!--ET_END text-->
+	<div>[#quantity#] [#value#]<span class="quiet">
+		<!--ET_BEGIN quantityInPack--><span>([#quantityInPack#])</span> <!--ET_END quantityInPack--> * [#price#]
+		<!--ET_BEGIN discountPercent--><span class="discountText"> ([#discountPercent#]) </span><!--ET_END discountPercent--></span>
+	</div>
 </div>
 <!--ET_END sale-->
 
 <!--ET_BEGIN payment-->
-<div>[#paymentCaption#] [#actionValue#]: &nbsp;&nbsp;[#amount#] [#DEL_BTN#]</div>
+<div class="receiptPayment">[#paymentCaption#] [#actionValue#]: [#DEL_BTN#]&nbsp; <div class="fright">[#amount#] </div></div>
 <!--ET_END payment-->
