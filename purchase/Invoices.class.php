@@ -155,6 +155,12 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Кой има право да експортва?
+     */
+    public $canExport = 'ceo,invoicer';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
