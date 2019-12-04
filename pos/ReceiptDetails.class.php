@@ -492,6 +492,7 @@ class pos_ReceiptDetails extends core_Detail
         $price = $this->Master->getDisplayPrice($rec->price, $rec->param, $rec->discountPercent, pos_Receipts::fetchField($rec->receiptId, 'pointId'), $rec->quantity);
         $row->price = $Double->toVerbal($price);
         $row->amount = $Double->toVerbal($price * $rec->quantity);
+        $row->amount = ht::styleNumber($row->amount, $price * $rec->quantity);
         if ($rec->discountPercent < 0) {
             $row->discountPercent = '+' . trim($row->discountPercent, '-');
         }
