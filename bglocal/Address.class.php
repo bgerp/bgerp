@@ -281,7 +281,7 @@ class bglocal_Address extends core_MVC
             
             $html .= '<hr>' . $rec->id . '<br>';
             
-            if (count($res)) {
+            if (countR($res)) {
                 foreach ($res as $key => $lines) {
                     $html .= "<li> ${key} </li>";
                     $html .= '<ol>';
@@ -337,7 +337,7 @@ class bglocal_Address extends core_MVC
                 foreach ($div as $d) {
                     $lArr = explode($d, $l);
                     
-                    if (count($lArr) < 4) {
+                    if (countR($lArr) < 4) {
                         foreach ($lArr as $lPart) {
                             $lPart = trim($lPart);
                             
@@ -352,7 +352,7 @@ class bglocal_Address extends core_MVC
         
         // Обикаляме всички линии и се опитваме от всяка една от тях да извлечем информация
         foreach ($div as $d) {
-            if (count($lines[$d])) {
+            if (countR($lines[$d])) {
                 foreach ($lines[$d] as $i => $L) {
                     if ($L == 'Links:') {
                         break;
@@ -362,7 +362,7 @@ class bglocal_Address extends core_MVC
             }
         }
         
-        if (count($result)) {
+        if (countR($result)) {
             foreach ($result as $key => $lines) {
                 if ($key == 'maxIndex') {
                     continue;
@@ -387,7 +387,7 @@ class bglocal_Address extends core_MVC
             }
         }
         
-        if (count($res['tel'])) {
+        if (countR($res['tel'])) {
             foreach ($res['tel'] as $l => $cnt) {
                 preg_match("/\b(t|p|phon|fon|tel|telefon|telephon|direct|switch)[^0-9\(\+]{0,3}([\d\- \(\)\.\+\/]{0,28}[\d|\)])/", strtolower(str::utf2ascii($l)), $m);
                 $tel = trim($m[2]);
@@ -399,7 +399,7 @@ class bglocal_Address extends core_MVC
             }
         }
         
-        if (count($res['fax'])) {
+        if (countR($res['fax'])) {
             foreach ($res['fax'] as $l => $cnt) {
                 preg_match("/\b(f|telefax|fax)[^0-9\(\+]{0,3}([\d\- \(\)\.\+\/]{8,28}[\d|\)])/", strtolower(str::utf2ascii($l)), $m);
                 $fax = trim($m[2]);
@@ -460,7 +460,7 @@ class bglocal_Address extends core_MVC
         $isLowerCase = preg_match("/(\b[a-z]{2,24}\b)/u", $lat);
         $isMixedCase = preg_match("/(\b[A-Za-z]+([a-z][A-Z]|[A-Z][a-z])[A-Za-z]*\b)/u", $lat);
         $isOnlyWords = preg_match("/(^[a-zA-Z \.\,\']{2,}$)/u", $lat);
-        $wordsCnt = count($words);
+        $wordsCnt = countR($words);
         
         if ($wordsCnt < 8) {
             $cnt = 0;
@@ -501,7 +501,7 @@ class bglocal_Address extends core_MVC
         }
         
         // Има ли фамилно име
-        if (($wordsCnt < 4) && (($res['maxIndex']['company'] != 1) && ((count($words) < 3) || ($res['maxIndex']['regards'] < 5)))) {
+        if (($wordsCnt < 4) && (($res['maxIndex']['company'] != 1) && ((countR($words) < 3) || ($res['maxIndex']['regards'] < 5)))) {
             if ($isOnlyWords && preg_match("/.*(ova|eva|ska|ski|ov|ev)\b.*/", $l)) {
                 $res['name'][$line][] = 60;
                 $res['maxIndex']['name'] = 1;
@@ -619,7 +619,7 @@ class bglocal_Address extends core_MVC
      */
     public function calcMax($arr)
     {
-        if (!count($arr)) {
+        if (!countR($arr)) {
             
             return 0;
         }
