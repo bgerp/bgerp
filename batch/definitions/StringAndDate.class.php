@@ -90,7 +90,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         $normalized = array();
         foreach ($existingBatches as $batch) {
             $exploded = explode($delimiter, $batch);
-            if(count($exploded) == 2){
+            if(countR($exploded) == 2){
                 $normalized[] = str_replace($this->rec->prefix, '', $exploded[0]);
             }
         }
