@@ -64,8 +64,7 @@ function posActions() {
 		var selectedElement = $(".highlighted");
 		var selectedRecId = selectedElement.attr("data-id");
 		
-		console.log(selectedRecId);
-		//getEfae().process(resObj, {recId:selectedRecId});
+		getEfae().process(resObj, {recId:selectedRecId});
 	});
 	
 	
@@ -515,19 +514,41 @@ function pageUp(){
 
 	var current = $('#receipt-table .receiptRow.highlighted');
 	if(current.length && $(current).prev('.receiptRow').length) {
-		$(current).prev('.receiptRow').addClass('highlighted');
+		var newElement = $(current).prev('.receiptRow');
+		newElement.addClass('highlighted');
 		current.removeClass('highlighted');
+		
+		getCurrentElementFromSelectedRow(newElement);
+		
 	}
 }
 
 function pageDown(){
 	var current = $('#receipt-table .receiptRow.highlighted');
 	if(current.length && $(current).next('.receiptRow').length) {
-		$(current).next('.receiptRow').addClass('highlighted');
+		var newElement = $(current).next('.receiptRow');
+		newElement.addClass('highlighted');
 		current.removeClass('highlighted');
+		
+		getCurrentElementFromSelectedRow(newElement);
 	}
 	console.log('pageDOwn')
 }
+
+function getCurrentElementFromSelectedRow(element){
+	var operation = getSelectedOperation();
+	console.log(element.attr("data-id"), operation);
+	
+	if(operation == 'text'){
+		var r = element.find('.subText');
+		if(r.length){
+			console.log(r.val());
+		}
+		
+	}
+	
+}
+
 
 function arrowDown(){
 	console.log('arrowDOwn')
@@ -613,6 +634,9 @@ function enter() {
 
 		if(element != undefined){
 
+			//console.log(element);
+			
+			//return;
 			// Вика се клик
 			var event = jQuery.Event("click");
 			element.trigger(event);
@@ -628,6 +652,9 @@ function enter() {
 	resObj = new Object();
 	resObj['url'] = url;
 
+	console.log(url);
+	//return;
+	
 	var selectedElement = $(".highlighted");
 	var selectedRecId = selectedElement.attr("data-id");
 
