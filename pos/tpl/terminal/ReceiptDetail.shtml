@@ -3,7 +3,7 @@
 	<div class="receiptProduct">[#productId#] [#DEL_BTN#] <div class="fright"> [#amount#]</div></div>
 	<!--ET_BEGIN text--><div class="subText"> [#text#]</div><!--ET_END text-->
 	<div>[#quantity#] [#value#]<span class="quiet">
-		<!--ET_BEGIN quantityInPack--><span>([#quantityInPack#])</span> <!--ET_END quantityInPack--> * [#price#]
+		<!--ET_BEGIN quantityInPack--><span>([#quantityInPack#])</span> <!--ET_END quantityInPack--> * <span class='priceText'>[#price#]</span>
 		<!--ET_BEGIN discountPercent--><span class="discountText"> ([#discountPercent#]) </span><!--ET_END discountPercent--></span>
 	</div>
 </div>

@@ -414,7 +414,8 @@ function posActions() {
 			return;
 		}
 		
-		var selectedElement = $(".selected");
+		var focused = sessionStorage.getItem('focused');
+		var selectedElement = $('#' + focused);
 		var productId = selectedElement.attr("data-productid");
 		productId = (productId) ? productId : selectedElement.attr("data-id");
 		if(!productId) {
@@ -424,7 +425,7 @@ function posActions() {
 		
 		resObj = new Object();
 		resObj['url'] = url;
-		
+		console.log(url);
 		getEfae().process(resObj, {productId:productId});
 
 		dialog = $("#productInfo").dialog({
@@ -537,16 +538,23 @@ function pageDown(){
 
 function getCurrentElementFromSelectedRow(element){
 	var operation = getSelectedOperation();
-	console.log(element.attr("data-id"), operation);
 	
 	if(operation == 'text'){
-		var r = element.find('.subText');
-		if(r.length){
-			console.log(r.val());
-		}
+		var textElement = element.find('.subText');
 		
+		if(textElement.length){
+			var text = textElement.text();
+			if(text.length){
+				$("input[name=ean]").val(text);
+			}
+		}
+	} else if(operation == 'price'){
+		var priceElement = element.find('.priceText');
+		var price = priceElement.text();
+		if(price.length){
+			$("input[name=ean]").val(price);
+		}
 	}
-	
 }
 
 
