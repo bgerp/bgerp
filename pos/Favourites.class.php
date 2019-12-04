@@ -293,7 +293,7 @@ class pos_Favourites extends core_Manager
             if ($row->image) {
                 $img = new thumb_Img(array($row->image, 80, 80, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
                 $imageURL = $img->getUrl('forced');
-                $row->image = ht::createElement('img', array('src' => $imageURL, 'width' => '90px', 'height' => '90px'));
+                $row->image = ht::createElement('img', array('src' => $imageURL, 'width' => '120px', 'height' => '120px'));
             }
             
             if($cnt == 0){
