@@ -1,15 +1,11 @@
 
 	<div id='pos-producy-categories'>
 	  <div class="pos-product-category active"  title="|Показване на всички артикули от тази категория|*">
-                <span class="pos-span-name">
                    |всички|*
-                </span>
             </div>
 		<!--ET_BEGIN CAT-->
 			<div class='pos-product-category' data-id='[#id#]' title='|Показване на всички артикули от тази категория|*'>
-			 	<span class='pos-span-name'>
 					[#name#]
-				</span>
 			</div>
 		<!--ET_END CAT-->
 		<div class='clearfix21'></div>

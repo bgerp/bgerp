@@ -28,7 +28,7 @@
   box-sizing: border-box; }
 
 .tools-content {
-  min-height: 500px;
+  height: 470px;
   padding: 20px 15px;
   box-sizing: border-box; }
 
@@ -388,8 +388,8 @@
   border-radius: 3px;
   position: relative;
   background-color: #f1f1f1;
-  width: 124px;
-  height: 124px;
+  width: 120px;
+  height: 120px;
   cursor: pointer;
   display: block;
   float: left;
@@ -399,7 +399,7 @@
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.8); }
   .pos-product:focus {
     box-shadow: 0px 0px 3px #0000fa !important;
-    outline: 2px solid #0b5b98;
+    outline: 3px solid #0b5b98;
     border: none; }
 
 .narrow .pos-product {
