@@ -212,7 +212,7 @@ class cat_BomDetails extends doc_Detail
         unset($stages[$rec->id]);
         
         // Добавяме намерените етапи за опции на етапите
-        if (count($stages)) {
+        if (countR($stages)) {
             $form->setOptions('parentId', array('' => '') + $stages);
         } else {
             $form->setReadOnly('parentId');
@@ -339,7 +339,7 @@ class cat_BomDetails extends doc_Detail
             $bomInfo = cat_Boms::getResourceInfo($bomId, 1, dt::now());
             
             // За всеки продукт от нея проверяваме дали не съдържа търсения продукт
-            if (count($bomInfo['resources'])) {
+            if (countR($bomInfo['resources'])) {
                 foreach ($bomInfo['resources'] as $res) {
                     $this->findNotAllowedProducts($res->productId, $needle, $notAllowed, $path);
                 }
@@ -479,7 +479,7 @@ class cat_BomDetails extends doc_Detail
                                     $path = $mvc->getProductPath($det);
                                     
                                     $intersected = array_intersect($thisPath, $path);
-                                    if (count($intersected)) {
+                                    if (countR($intersected)) {
                                         $canAdd = false;
                                         break;
                                     }
@@ -750,12 +750,12 @@ class cat_BomDetails extends doc_Detail
         if ($action == 'add' && isset($rec->type)) {
             if($rec->type == 'stage'){
                 $options = cat_Products::getProducts(null, null, null, 'canConvert', null, 1, false, null, null, null, planning_interface_StageDriver::getClassId());
-                if(!count($options)){
+                if(!countR($options)){
                     $requiredRoles = 'no_one';
                 }
             } elseif($rec->type == 'pop'){
                 $options = cat_Products::getProducts(null, null, null, 'canConvert,canStore', null, 1, false, cat_Groups::getKeylistBySysIds('waste'));
-                if(!count($options)){
+                if(!countR($options)){
                     $requiredRoles = 'no_one';
                 }
             }
@@ -852,7 +852,7 @@ class cat_BomDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
