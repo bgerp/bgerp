@@ -816,4 +816,28 @@ class pos_Receipts extends core_Master
         
         followRetUrl();
     }
+    
+    
+    /**
+     * Последните записи от потребителския лог в четим вид
+     * 
+     * @param int $id
+     * @param string $type
+     * @param int|null $limit
+     * 
+     * @return stdClass
+     */
+    public static function getLastUserActionsVerbal($id, $type = 'write', $limit = null)
+    {
+        $rows = array();
+        $rec = static::fetchRec($id);
+        $actions = log_Data::getObjectRecs(get_called_class(), $rec->id, $type, null, $limit);
+        foreach ($actions as $aRec){
+            $rows[] = (object)array('action' => log_Actions::getActionFromCrc($aRec->actionCrc), 
+                                    'time' => dt::mysql2verbal(dt::timestamp2Mysql($aRec->time)), 
+                                    'userId' => crm_Profiles::createLink($aRec->userId));
+        }
+        
+        return $rows;
+    }
 }
