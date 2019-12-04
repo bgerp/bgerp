@@ -170,7 +170,8 @@
 
 .navigable {
   box-sizing: border-box; }
-  .navigable:focus {
+  .navigable:focus,
+  .navigable.selected {
     box-shadow: 1px 1px 5px #0b5b98 !important;
     border: 2px solid #0b5b98;
     outline: none; }
@@ -317,7 +318,7 @@
   width: 32.3%;
   margin-right: 1%;
   margin-bottom: 1%;
-  border: 1px solid #cccccc;
+  border: 2px solid #cccccc;
   height: 118px; }
   .element .pos-add-res-btn {
     color: #333333;
@@ -397,7 +398,8 @@
   margin-top: 5px;
   margin-bottom: 5px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.8); }
-  .pos-product:focus {
+  .pos-product:focus,
+  .pos-product.selected {
     box-shadow: 0px 0px 3px #0000fa !important;
     outline: 3px solid #0b5b98;
     border: none; }

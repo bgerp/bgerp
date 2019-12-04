@@ -51,11 +51,7 @@ function posActions() {
 			closestSearch.focus();
 		}
 	});
-	// Добавяне
-	$(document.body).on('focus', ".navigable", function(e){
-		$('.navigable').removeClass('selected');
-		$(this).addClass('selected');
-	});
+
 
 	// Добавяне 
 	$(document.body).on('click', ".textResult", function(e){
@@ -120,61 +116,7 @@ function posActions() {
 
 	});
 	
-	
-	// При натискане на бутон от клавиатурата, ако е 'ENTER'
-	$(document).keypress(function(e) {
-	    if(e.which == 13) {
-	    	var value = $("input[name=ean]").val();
-	    	var url = $("input[name=ean]").attr("data-url");
-	    	var operation = getSelectedOperation();
-	    	
-	    	// Ако има селектиран ред в резултатите
-	    	var element = $(".navigable:focus");
-	    	
-	    	if(element.length){
-	    		// Намира първия елемент с data-url
-	    		var elementDataUrl = element.attr("data-url");
-	    		var hrefUrl = element.attr("href");
-	    		elementDataUrl = (elementDataUrl) ? elementDataUrl : ((hrefUrl) ? hrefUrl : elementDataUrl);
 
-	    		if(elementDataUrl == undefined){
-	    			var child = element.find('[data-url]');
-	    			
-	    			var elementDataUrl = child.attr("data-url");
-	    			if(elementDataUrl){
-	    				element = child;
-	    			}
-	    		}
-	    		
-	    		if(elementDataUrl == undefined){
-	    			var child = element.find('[href]');
-	    			if(child.length){
-	    				element = child;
-	    			}
-	    		}
-
-	    		if(element != undefined){
-	    			// Вика се клик
-		    		var event = jQuery.Event("click");
-		    		element.trigger(event);
-		    		
-		    		return;
-	    		}
-	    	}
-	    	
-	    	if(!url){
-	    		return;
-	    	}
-	    	
-	    	resObj = new Object();
-			resObj['url'] = url;
-			
-			var selectedElement = $(".highlighted");
-			var selectedRecId = selectedElement.attr("data-id");
-			
-			getEfae().process(resObj, {string:value,recId:selectedRecId});
-	    }
-	});
 
 	// Направата на плащане след натискане на бутон
 	$(document.body).on('click', ".payment", function(e){
@@ -327,11 +269,22 @@ function posActions() {
 		if(event.key == "PageUp"){
 			pageUp();
 		}
+
+		if(event.key == "Enter"){
+			enter();
+		}
 	});
 
 	if($('.navigable').length) {
-		naviBoard.setNavigation("result-holder");
+		var focused = sessionStorage.getItem('focused');
+		$('.selected').removeClass('selected');
+		$('#' + focused).addClass('selected');
+		$('#result-holder .navigable').keynav();
+
+
+
 	}
+
 
 
 	// Триене на символи от формата за търсене
@@ -470,8 +423,6 @@ function posActions() {
 		
 		getEfae().process(resObj, {productId:productId});
 
-
-		//return;
 		dialog = $("#productInfo").dialog({
 			autoOpen: false,
 			height: 700,
@@ -612,13 +563,70 @@ function getSelectedOperation()
 }
 
 function render_prepareResult() {
-
-	if ($('.navigable').length) {
-		naviBoard.refreshNavigation("result-holder",status)
+	if($('.navigable').length) {
+		var focused = sessionStorage.getItem('focused');
+		$('.selected').removeClass('selected');
+		$('#' + focused).addClass('selected');
+		$('#result-holder .navigable').keynav();
 	}
 }
 
 function render_calculateWidth(){
 	calculateWidth();
+
+}
+
+function enter() {
+	var value = $("input[name=ean]").val();
+	var url = $("input[name=ean]").attr("data-url");
+	var operation = getSelectedOperation();
+
+	// Ако има селектиран ред в резултатите
+	var element = $(".navigable.selected");
+
+	if(element.length){
+		// Намира първия елемент с data-url
+		var elementDataUrl = element.attr("data-url");
+		var hrefUrl = element.attr("href");
+		elementDataUrl = (elementDataUrl) ? elementDataUrl : ((hrefUrl) ? hrefUrl : elementDataUrl);
+
+		if(elementDataUrl == undefined){
+			var child = element.find('[data-url]');
+
+			var elementDataUrl = child.attr("data-url");
+			if(elementDataUrl){
+				element = child;
+			}
+		}
+
+		if(elementDataUrl == undefined){
+			var child = element.find('[href]');
+			if(child.length){
+				element = child;
+			}
+		}
+
+		if(element != undefined){
+
+			// Вика се клик
+			var event = jQuery.Event("click");
+			element.trigger(event);
+
+			return;
+		}
+	}
+
+	if(!url){
+		return;
+	}
+
+	resObj = new Object();
+	resObj['url'] = url;
+
+	var selectedElement = $(".highlighted");
+	var selectedRecId = selectedElement.attr("data-id");
+
+
+	getEfae().process(resObj, {string:value,recId:selectedRecId});
 
 }
