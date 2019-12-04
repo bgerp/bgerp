@@ -99,7 +99,9 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         setIfNot($mvc->filterDateField, 'valior');
         setIfNot($mvc->filterCurrencyField, 'currencyId');
-        setIfNot($mvc->filterFieldUsers, 'createdBy');
+        if(isset($mvc->fields['createdBy'])) {
+            setIfNot($mvc->filterFieldUsers, 'createdBy');
+        }
         setIfNot($mvc->termDateFld, null);
         setIfNot($mvc->showNullDateFields, false);
         
@@ -179,11 +181,11 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         $dateFields = arr::make($mvc->filterDateField, true);
         $userFields = arr::make($mvc->filterFieldUsers, true);
-        if(count($userFields)){
+        if(count($userFields) && isset($mvc->fields['createdBy'])){
             $userFields['createdBy'] = 'createdBy';
         }
         
-        //bp($userFields);
+       
         $flds = $dateFields + $userFields;
         
         if (count($flds)) {
@@ -295,7 +297,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                         $data->query->where("#{$mvc->filterFieldUsers} IN ({$userArr})");
                         
                         // Ако полето за филтриране по потребител нее създателя, добавяме и към него
-                        if ($mvc->filterFieldUsers != 'createdBy') {
+                        if ($mvc->filterFieldUsers != 'createdBy' && isset($mvc->fields['createdBy'])) {
                             $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
                         }
                     }
