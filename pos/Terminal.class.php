@@ -233,13 +233,6 @@ class pos_Terminal extends peripheral_Terminal
             $keyupUrl = toUrl($keyupUrl, 'local');
         }
         
-        $value = null;
-        $browserInfo = Mode::get('getUserAgent');
-        if (stripos($browserInfo, 'Android') !== false) {
-            //$htmlScan = "<input type='button' class='webScan {$disClass}' {$disabled} id='webScan' name='scan' onclick=\"document.location = 'http://zxing.appspot.com/scan?ret={$absUrl}?ean={CODE}'\" value='Scan' />";
-            //$block->append($htmlScan, 'FIRST_TOOLS_ROW');
-        }
-        
         $value = round(abs($rec->total) - abs($rec->paid), 2);
         $value = ($value > 0) ? $value : null;
         $inputValue = ($operation == 'payment') ? $value : Mode::get("currentSearchString");
@@ -339,7 +332,7 @@ class pos_Terminal extends peripheral_Terminal
         $detailsCount = pos_ReceiptDetails::count("#receiptId = {$rec->id}");
         if(empty($detailsCount) && in_array($currOperation, static::$forbiddenOperationOnEmptyReceipts)){
             
-            return new core_ET();
+            return new core_ET("");
         }
         
         $string = trim($string);
@@ -347,11 +340,10 @@ class pos_Terminal extends peripheral_Terminal
         switch($currOperation){
             case 'add':
                 if(isset($rec->revertId)){
-                    $res = $this->getAddResultTable($rec, $string, $rec->revertId);
+                    $res = $this->getResultProducts($rec, $string, $rec->revertId);
                 } else {
-                    $res = (empty($string)) ? $this->getFavouritesBtns($rec) : $this->getAddResultTable($rec, $string);
+                    $res = (empty($string)) ? $this->renderProductBtns($rec) : $this->getResultProducts($rec, $string);
                 }
-                
                 break;
             case 'receipts':
                 $res = $this->renderReceiptsResult($rec);
@@ -747,7 +739,7 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return core_ET $block - шаблон
      */
-    private function getFavouritesBtns($rec)
+    private function renderProductBtns($rec)
     {
         $products = pos_Favourites::prepareProducts($rec);
         if (!$products->arr) {
@@ -883,7 +875,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @return core_ET
      */
-    private function getAddResultTable($rec, $string, $revertReceiptId = null)
+    private function getResultProducts($rec, $string, $revertReceiptId = null)
     {
         $searchString = plg_Search::normalizeText($string);
         $data = new stdClass();
@@ -970,7 +962,6 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
        
-        
         $Policy = cls::get('price_ListToCustomers');
         foreach ($sellable as $id => $obj) {
             $pRec = cat_Products::fetch($id, 'canStore,measureId');

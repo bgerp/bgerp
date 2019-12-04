@@ -156,11 +156,7 @@ class pos_Receipts extends core_Master
         $this->FLD('paid', 'double(decimals=2)', 'caption=Платено, input=none, value=0, summary=amount');
         $this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0, summary=amount');
         $this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
-        $this->FLD(
-                        'state',
-                        'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,waiting=Чакащ,pending)',
-                        'caption=Статус, input=none'
-                        );
+        $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,waiting=Чакащ,pending)', 'caption=Статус, input=none');
         $this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
         $this->FLD('revertId', 'key(mvc=pos_Receipts)', 'input=none');
         
@@ -337,7 +333,7 @@ class pos_Receipts extends core_Master
         // Подменяме бутона за добавяне с такъв сочещ към терминала
         if (!empty($data->toolbar->buttons['btnAdd'])) {
             $data->toolbar->removeBtn('btnAdd');
-            $data->toolbar->addBtn('Нов запис', array($mvc, 'new'), 'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
+            $data->toolbar->addBtn('Терминал', array($mvc, 'new'), 'id=btnAdd', 'ef_icon = img/16/forward16.png,title=Създаване на нова бележка');
         }
     }
     
@@ -353,7 +349,6 @@ class pos_Receipts extends core_Master
     public static function getProducts($id)
     {
         expect($rec = static::fetch($id), 'Несъществуваща бележка');
-        
         $products = array();
         
         $query = pos_ReceiptDetails::getQuery();
@@ -580,20 +575,6 @@ class pos_Receipts extends core_Master
     public static function getLink($id)
     {
         return static::recToVerbal(static::fetchRec($id), 'id,title,-list')->title;
-    }
-    
-    
-    /**
-     * Метод по подразбиране на canActivate
-     */
-    public static function canActivate($rec)
-    {
-        if (empty($rec->id) && $rec->state != 'draft' && ($rec->total == 0 || $rec->paid < $rec->total)) {
-            
-            return false;
-        }
-        
-        return true;
     }
     
     
