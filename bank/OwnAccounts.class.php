@@ -258,7 +258,7 @@ class bank_OwnAccounts extends core_Master
         
         $currencyId = acc_Periods::getBaseCurrencyCode();
         $state = (Request::get('Rejected', 'int')) ? 'rejected' : 'closed';
-        $colspan = count($data->listFields) - 1;
+        $colspan = countR($data->listFields) - 1;
         $lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]:&nbsp;<span class='cCode'>{$currencyId}</span>&nbsp;<b>[#total#]</b></td><td>&nbsp;</td></tr>");
         $lastRow->replace(tr('Общо'), 'caption');
         $lastRow->replace($total, 'total');
