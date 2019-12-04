@@ -185,7 +185,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             $userFields['createdBy'] = 'createdBy';
         }
         
-       
+        //bp($userFields);
         $flds = $dateFields + $userFields;
         
         if (count($flds)) {
@@ -294,11 +294,13 @@ class acc_plg_DocumentSummary extends core_Plugin
                     if(in_array($filter->filterDateField, $userFields)){
                         $data->query->where("#{$filter->filterDateField} IN ({$userArr})");
                     } else {
-                        $data->query->where("#{$mvc->filterFieldUsers} IN ({$userArr})");
+                        if(isset($mvc->filterFieldUsers)){
+                            $data->query->where("#{$mvc->filterFieldUsers} IN ({$userArr})");
+                        }
                         
                         // Ако полето за филтриране по потребител нее създателя, добавяме и към него
                         if ($mvc->filterFieldUsers != 'createdBy' && isset($mvc->fields['createdBy'])) {
-                            $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
+                            $data->query->orWhere("#createdBy IS NULL AND #createdBy IN ({$userArr})");
                         }
                     }
                 }
