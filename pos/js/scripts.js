@@ -285,6 +285,11 @@ function posActions() {
 
 	}
 
+	$(document.body).on('click', ".navigable", function(e){
+		$('.navigable').removeClass('selected');
+		$(this).addClass('selected');
+		sessionStorage.setItem('focused', $(this).attr('id'));
+	});
 
 
 	// Триене на символи от формата за търсене
