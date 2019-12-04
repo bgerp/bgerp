@@ -481,7 +481,7 @@ class core_Mvc extends core_FieldSet
     public function saveArray_($recs, $fields = null)
     {
         // Ако нямаме какво да записваме - връщаме TRUE, в знак, че операцията е завършила успешно
-        if (!$recs || !count($recs)) {
+        if (!$recs || !countR($recs)) {
             
             return true;
         }
@@ -493,7 +493,7 @@ class core_Mvc extends core_FieldSet
         $fieldsArr = array();
         $fieldsMvc = $this->selectFields('FLD');
         foreach ($fieldsMvc as $name => $fld) {
-            if ($fld->kind == 'FLD' && (!count($fields) || $fields[$name])) {
+            if ($fld->kind == 'FLD' && (!countR($fields) || $fields[$name])) {
                 $fieldsArr[$name] = $fld;
                 $mysqlName = str::phpToMysqlName($name);
                 $insertFields .= "`${mysqlName}`,";
@@ -502,7 +502,7 @@ class core_Mvc extends core_FieldSet
         }
         
         // Очакваме, че имаме поне едно поле, което да записваме
-        expect(count($fieldsArr));
+        expect(countR($fieldsArr));
         
         // Композираме началото и края на заявката към db
         $queryBegin = "INSERT INTO `{$this->dbTableName}` (" . rtrim($insertFields, ',') . ') VALUES ';
@@ -668,7 +668,7 @@ class core_Mvc extends core_FieldSet
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }
@@ -802,7 +802,7 @@ class core_Mvc extends core_FieldSet
         
         $row = new stdClass();
         
-        if (count($fields) > 0) {
+        if (countR($fields) > 0) {
             foreach ($fields as $name => $caption) {
                 expect($name);
                 if (!$row->{$name} && $modelFields[$name]) {
@@ -1051,7 +1051,7 @@ class core_Mvc extends core_FieldSet
         // Какви физически полета има таблицата?
         $fields = $this->selectFields("#kind == 'FLD'");
         
-        if ($this->dbTableName && count($fields)) {
+        if ($this->dbTableName && countR($fields)) {
             $tableName = $this->dbTableName;
             
             $db = $this->db;     // За краткост
@@ -1146,7 +1146,7 @@ class core_Mvc extends core_FieldSet
                 if ($this->db->isType($mfAttr->type, 'have_options')) {
                     $info .= '(';
                     
-                    if (count($mfAttr->options)) {
+                    if (countR($mfAttr->options)) {
                         $comma = '';
                         
                         foreach ($mfAttr->options as $opt) {
@@ -1324,7 +1324,7 @@ class core_Mvc extends core_FieldSet
                 }
             }
             
-            if (count($indexes)) {
+            if (countR($indexes)) {
                 foreach ($indexes as $name => $dummy) {
                     $this->db->forceIndex($this->dbTableName, '', 'DROP', $name);
                     $html .= "<li class='debug-notice'>Премахнат е индекс '<b>{$name}</b>'</li>";

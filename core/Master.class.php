@@ -176,7 +176,7 @@ class core_Master extends core_Manager
         $this->prepareSingleToolbar($data);
         
         // Подготвяме детайлите
-        if (count($data->details)) {
+        if (countR($data->details)) {
             
             // Добавяме текущ таб, ако го има в заявката
             $data->Tab = Request::get('Tab');
@@ -251,14 +251,14 @@ class core_Master extends core_Manager
             // Използваме за колони, всички полета, които не са означени с column = 'none'
             $fields = $this->selectFields("#single != 'none'");
             
-            if (count($fields)) {
+            if (countR($fields)) {
                 foreach ($fields as $name => $fld) {
                     $data->singleFields[$name] = $fld->caption;
                 }
             }
         }
         
-        if (count($data->singleFields)) {
+        if (countR($data->singleFields)) {
             
             // Ако титлата съвпада с името на полето, вадим името от caption
             foreach ($data->singleFields as $field => $caption) {
@@ -448,7 +448,7 @@ class core_Master extends core_Manager
                 $selectedBottom = $tabBottom->getSelected();
                 
                 // Ако няма и горния детайл няма табове, показваме първия таб на долния
-                if (!$selectedBottom && !count($tabTop->getTabs())) {
+                if (!$selectedBottom && !countR($tabTop->getTabs())) {
                     $selectedBottom = $tabBottom->getFirstTab();
                 }
                 
@@ -461,7 +461,7 @@ class core_Master extends core_Manager
                             $selectedHtml = $this->{$selectedBottom}->$method($data->{$selectedBottom});
                             
                             // Ако е избран долен таб, и детайла му е само един, и няма горни табове, го рендираме без таб
-                            if (count($tabBottom->getTabs()) == 1 && !count($tabTop->getTabs())) {
+                            if (countR($tabBottom->getTabs()) == 1 && !countR($tabTop->getTabs())) {
                                 $tabHtml = $selectedHtml;
                             } else {
                                 $tabHtml = $tabBottom->renderHtml($selectedHtml, $selectedBottom);
@@ -512,7 +512,7 @@ class core_Master extends core_Manager
         } elseif (isset($this->singleLayoutTpl)) {
             $layoutText = $this->singleLayoutTpl;
         } else {
-            if (count($data->singleFields)) {
+            if (countR($data->singleFields)) {
                 $lastGroup = '';
                 foreach ($data->singleFields as $field => $caption) {
                     if (strpos($caption, '->')) {
@@ -883,7 +883,7 @@ class core_Master extends core_Manager
      */
     public static function on_Shutdown($mvc)
     {
-        if (count($mvc->updateQueue)) {
+        if (countR($mvc->updateQueue)) {
             foreach ($mvc->updateQueue as $id) {
                 $mvc->updateMaster($id);
             }
@@ -920,7 +920,7 @@ class core_Master extends core_Manager
         
         $url = $this->getSingleUrlArray($id);
         
-        if (count($url)) {
+        if (countR($url)) {
             $masterTitle = ht::createLink($masterTitle, $url, null, array('ef_icon' => $this->singleIcon, 'class' => 'linkInTitle'));
         }
         

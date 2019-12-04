@@ -128,7 +128,7 @@ class core_Interfaces extends core_Manager
         
         $result = array();
         
-        if (count($list)) {
+        if (countR($list)) {
             // Вземаме инстанция на core_Interfaces
             foreach ($list as $intf => $impl) {
                 // Добавяме id в списъка

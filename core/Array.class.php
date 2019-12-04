@@ -43,7 +43,7 @@ class core_Array
         
         $args = func_get_args();
         
-        if (count($args)) {
+        if (countR($args)) {
             foreach ($args as $a) {
                 if (!is_array($a)) {
                     $a = arr::make($a, true);
@@ -104,7 +104,7 @@ class core_Array
             $mixed = explode($sep, $mixed);
             $p = array();
             
-            if (count($mixed) > 0) {
+            if (countR($mixed) > 0) {
                 foreach ($mixed as $index => $value) {
                     $value = str_replace(static::$rand, $sep, $value);
                     
@@ -119,7 +119,7 @@ class core_Array
         }
         
         // Ако е необходимо, махаме числовите индекси
-        if ($noIntKeys && count($p) > 0) {
+        if ($noIntKeys && countR($p) > 0) {
             foreach ($p as $k => $v) {
                 if (is_int($k)) {
                     $p1[$v] = $v;
@@ -144,7 +144,7 @@ class core_Array
         $arr1 = arr::make($arr1, true);
         $arr2 = arr::make($arr2, true);
         
-        if ((count($arr1) == 0) || (count($arr2) == 0)) {
+        if ((countR($arr1) == 0) || (countR($arr2) == 0)) {
             
             return true;
         }
@@ -172,7 +172,7 @@ class core_Array
      */
     public static function getMaxValueKey($arr)
     {
-        if (count($arr)) {
+        if (countR($arr)) {
             
             return array_search(max($arr), $arr);
         }
@@ -263,13 +263,13 @@ class core_Array
         $str = '';
         
         // Ако има елементи в масива
-        if (count($array)) {
+        if (countR($array)) {
             
             // Ако е зададено полето
             if ($field !== false) {
                 
                 // Ако има елементи в подмасива със съответните елементи
-                if (count($array[$field])) {
+                if (countR($array[$field])) {
                     
                     // Обхождаме подмасива
                     foreach ($array[$field] as $key => $value) {
@@ -295,7 +295,7 @@ class core_Array
                 foreach ($array as $key => $value) {
                     
                     // Ако има елементи в подмасива със съответните елементи
-                    if (count($array[$key])) {
+                    if (countR($array[$key])) {
                         
                         // Обхождаме подмасива
                         foreach ($array[$key] as $keyV => $val) {
@@ -575,7 +575,7 @@ class core_Array
             return (is_object($obj)) ? $obj->{$field} : $obj[$field];
         }, $arr));
         $result = array_values($result);
-        if (count($result)) {
+        if (countR($result)) {
             $result = array_combine($result, $result);
         }
         
@@ -594,7 +594,7 @@ class core_Array
     public static function extractSubArray($arr, $fields)
     {
         $fields = arr::make($fields, true);
-        expect(count($fields));
+        expect(countR($fields));
         $res = array_values(array_map(function ($obj) use ($fields) {
             $res = new stdClass();
             foreach ($fields as $fld) {
@@ -622,7 +622,7 @@ class core_Array
         $a = (array) $array1;
         $b = (array) $array2;
         
-        $res = (is_array($a) && is_array($b) && count($a) == count($b) && array_diff($a, $b) === array_diff($b, $a));
+        $res = (is_array($a) && is_array($b) && countR($a) == countR($b) && array_diff($a, $b) === array_diff($b, $a));
         
         return $res;
     }
@@ -720,6 +720,6 @@ class core_Array
             }
         });
         
-        return (count($arr)) ? $res : false;
+        return (countR($arr)) ? $res : false;
     }
 }

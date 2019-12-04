@@ -317,7 +317,7 @@ function logHitState($debugCode = '200', $state = array())
         
         // Ако броя на дебъг времената е над допустимите оставяме тези в края и в началото
         $debugTimeArr = (array)core_Debug::$debugTime;
-        $debugTimeCnt = count(core_Debug::$debugTime);
+        $debugTimeCnt = countR(core_Debug::$debugTime);
         if ($debugTimeCnt > $maxDebugTimeCnt) {
             
             $half = (int) ($maxDebugTimeCnt/2);
@@ -815,5 +815,5 @@ function countR($arr)
 {
     expect(is_array($arr) || empty($arr), $arr);
 
-    return empty($arr) ? 0 : count($arr);
+    return empty($arr) ? 0 : countR($arr);
 }

@@ -201,7 +201,7 @@ class core_Html
      */
     public static function groupOptions($options, $div = '»')
     {
-        if (count($options) > 1) {
+        if (countR($options) > 1) {
             $groups = $newOptions = array();
             
             // За всяка опция
@@ -231,7 +231,7 @@ class core_Html
             }
             
             // Ако има поне една намерена OPTGROUP на класовете, Иначе не правим нищо
-            if (count($groups)) {
+            if (countR($groups)) {
                 if (isset($groups[''])) {
                     asort($groups['']);
                     $newOptions += $groups[''];
@@ -350,7 +350,7 @@ class core_Html
     {
         $cnt = 0;
         
-        if (count($options)) {
+        if (countR($options)) {
             foreach ($options as $opt) {
                 if (!is_object($opt) || !$opt->group) {
                     $cnt++;
@@ -440,7 +440,7 @@ class core_Html
             // Когато броя на опциите са по-малко
             
             // Определяме броя на колоните, ако не са зададени.
-            if (count($options) != $optionsCnt) {
+            if (countR($options) != $optionsCnt) {
                 $col = 1;
             } else {
                 $col = $columns ? $columns :
@@ -527,7 +527,7 @@ class core_Html
         
         $tpl = new ET();
         
-        if (is_array($hiddens) && count($hiddens)) {
+        if (is_array($hiddens) && countR($hiddens)) {
             Request::doProtect($hiddens);
             
             foreach ($hiddens as $name => $value) {
@@ -653,7 +653,7 @@ class core_Html
         self::addAccessKey($attr, $title);
         
         // Ако URL-то е празно - забраняваме бутона
-        if ((is_array($url) && count($url) == 0) || !$url) {
+        if ((is_array($url) && countR($url) == 0) || !$url) {
             $attr['disabled'] = 'disabled';
         }
         
@@ -844,7 +844,7 @@ class core_Html
         }
         
         if (is_array($url)) {
-            if (count($url)) {
+            if (countR($url)) {
                 try {
                     $url = toUrl($url);
                 } catch (core_exception_Expect $e) {
@@ -924,7 +924,7 @@ class core_Html
             unset($attr['ef_icon']);
         }
         
-        if ($url !== false && (is_string($url) || (is_array($url) && count($url)))) {
+        if ($url !== false && (is_string($url) || (is_array($url) && countR($url)))) {
             $imgSrc = isset($attr['ef_icon']) ? $attr['ef_icon'] : 'img/16/anchor-image.png';
             $arrowImg = ht::createElement('img', array('src' => sbf($imgSrc, '')));
             $link = self::createLink("<span class='anchor-arrow'>{$arrowImg}</span>", $url, $warning, $attr);
@@ -939,7 +939,7 @@ class core_Html
      */
     public static function createSelectMenu($options, $selected, $maxRadio = 0, $attr = array())
     {
-        if (count($options) < $maxRadio) {
+        if (countR($options) < $maxRadio) {
             self::setUniqId($attr);
             $i = 0;
             $selectMenu = new ET('<div class="selectMenu">[#selectMenu#]</div>');
@@ -1066,7 +1066,7 @@ class core_Html
         
         // Ако има атрибути за целия елемент, задават се в span
         $elementArr = arr::make($elementArr, true);
-        if (count($elementArr)) {
+        if (countR($elementArr)) {
             $span = ht::createElement('span', $elementArr);
             $elementTpl->prepend($span);
             $elementTpl->append('</span>');
@@ -1213,7 +1213,7 @@ class core_Html
                 } while ($class = get_parent_class($class));
             }
             
-            if (count($res)) {
+            if (countR($res)) {
                 foreach ($res as $name => $vR) {
                     if (!isset($scopeArr[$name])) {
                         $scopeArr[$name] = $scope;
@@ -1237,7 +1237,7 @@ class core_Html
                 $style = '';
             }
             
-            if (count($o)) {
+            if (countR($o)) {
                 foreach ($o as $name => $value) {
                     $attr = array('class' => '', 'title' => '', 'style' => '');
                     
@@ -1249,7 +1249,7 @@ class core_Html
                     if ($name === 'dbPass') {
                         $html .= "\n    <li>" . self::createElement('span', $attr, "${name} : ******")  . '</li>';
                     } else {
-                        if (is_scalar($value) || $value === null || (is_array($value) && count($value) == 0)) {
+                        if (is_scalar($value) || $value === null || (is_array($value) && countR($value) == 0)) {
                             $html .= "\n    <li>" . self::createElement('span', $attr, htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8')) . ' : ' .
                                 self::mixedToHtml($value, $hideLevel, $maxLevel) . '</li>';
                         } else {
