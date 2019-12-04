@@ -296,7 +296,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
         
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
-        $data->summBottomVer->colspan = countR($data->listFields);
+        $data->summBottomVer->colspan = count($data->listFields);
         if ($data->summBottom) {
             $data->summBottomVer->colspan -= 3;
             if ($data->summBottomVer->colspan != 0 && countR($data->rows)) {

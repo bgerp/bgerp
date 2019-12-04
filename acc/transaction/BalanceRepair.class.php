@@ -68,7 +68,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
                 
                 // Взимаме и записите
                 $entries = $this->getEntries($dRec, $result->totalAmount, $pRec);
-                if (countR($entries)) {
+                if (count($entries)) {
                     
                     // Обединяваме тези записи с общите
                     $result->entries = array_merge($result->entries, $entries);

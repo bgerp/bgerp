@@ -119,7 +119,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             }
             
             // Добавяме поле за групиране ако има по какво
-            if (countR($sets)) {
+            if (count($sets)) {
                 $i = 1;
                 foreach ($sets as $listId => $caption) {
                     $form->FLD("feat{$i}", 'varchar', "caption=|*{$caption}->|Свойства|*,placeholder=Без показване,class=w100");
@@ -267,7 +267,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         // Обработваме обобщената информация
         $this->prepareSummary($data);
         
-        if (countR($data->recsNew) || countR($data->recs)) {
+        if (count($data->recsNew) || count($data->recs)) {
             foreach ($data->recs as $id => $r) {
                 if (!array_key_exists($id, $data->recsAll)) {
                     $data->recsAll[$id] =
@@ -383,7 +383,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         }
         
         // Ако има намерени записи
-        if (countR($res)) {
+        if (count($res)) {
             
             // За всеки запис
             foreach ($res as &$rec) {
@@ -416,7 +416,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         }
         
         // Ако не се групира по размерна сметка, не показваме количества
-        if (countR($data->groupBy)) {
+        if (count($data->groupBy)) {
             $data->hasDimensional = false;
             foreach ($data->groupBy as $grId) {
                 if (acc_Lists::fetchField($grId, 'isDimensional') == 'yes') {
@@ -437,7 +437,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         $recs = array();
         
         // Ако има намерени записи
-        if (countR($data->recs)) {
+        if (count($data->recs)) {
             
             // Ако има избрано поле за сортиране, сортираме по него
             //arr::sortObjects($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
@@ -447,7 +447,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             }
             
             if ($mvc->innerForm->compare != 'no') {
-                if (countR($data->recsAll)) {
+                if (count($data->recsAll)) {
                     foreach ($data->recsAll as $recsAll) {
                         $recs[] = $recsAll;
                     }
@@ -457,13 +457,13 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             }
             
             
-            if (countR($recs)) {
+            if (count($recs)) {
                 if (!Mode::is('printing')) {
                     // Подготвяме страницирането
                     $pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
                     $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
                     $data->Pager = $pager;
-                    $data->Pager->itemsCount = countR($recs);
+                    $data->Pager->itemsCount = count($recs);
                 }
                 
                 // За всеки запис
@@ -826,7 +826,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             }
         }
         
-        if (countR($newFields)) {
+        if (count($newFields)) {
             $fields = $newFields + $fields;
         }
         
@@ -879,7 +879,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     public function hidePriceFields()
     {
         $innerState = &$this->innerState;
-        if (countR($innerState->rows)) {
+        if (count($innerState->rows)) {
             foreach ($innerState->rows as $row) {
                 foreach (array('debitAmount', 'debitQuantity','creditAmount', 'creditQuantity', 'blQuantity', 'blAmount') as $fld) {
                     unset($row->{$fld});
@@ -911,7 +911,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     {
         $conf = core_Packs::getConfig('core');
         
-        if (countR($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+        if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
             redirect(array($this), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
         }
         
@@ -923,7 +923,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         
         $rows = $this->prepareEmbeddedData()->rows;
         $dataRecs = array();
-        if (countR($this->innerState->recs)) {
+        if (count($this->innerState->recs)) {
             foreach ($this->innerState->recs as $id => $rec) {
                 $dataRecs[$id] = $this->getVerbalRec($rec, $data);
                 foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'plus', 'minus','quantity','sum','amountSelf') as $fld) {
@@ -1319,7 +1319,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         }
         
         // броя на елементите в получения масив
-        $cntData = countR($data);
+        $cntData = count($data);
         
         // ако, числото което сме определили за новия масив
         // е по-малко от общия брой елементи
@@ -1332,7 +1332,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 // Вербалното представяне на перата
                 $t = explode('|', $rec->title);
                 $titleV = '';
-                for ($i = 0; $i <= countR($t) - 1; $i++) {
+                for ($i = 0; $i <= count($t) - 1; $i++) {
                     $titleV .= acc_Items::getVerbal($t[$i], 'title'). '|';
                 }
                 $titleV = substr($titleV, 0, strlen($titleV) - 1);
@@ -1349,7 +1349,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 // Вербалното представяне на перата
                 $t = explode('|', $newArr[$k]->title);
                 $titleV = '';
-                for ($i = 0; $i <= countR($t) - 1; $i++) {
+                for ($i = 0; $i <= count($t) - 1; $i++) {
                     $titleV .= acc_Items::getVerbal($t[$i], 'title'). '|';
                 }
                 $titleV = substr($titleV, 0, strlen($titleV) - 1);

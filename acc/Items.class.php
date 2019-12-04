@@ -293,7 +293,7 @@ class acc_Items extends core_Manager
      */
     protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
-        if (countR($query->_listsForUpdate)) {
+        if (count($query->_listsForUpdate)) {
             foreach ($query->_listsForUpdate as $listId) {
                 $mvc->Lists->updateSummary($listId);
             }
@@ -411,7 +411,7 @@ class acc_Items extends core_Manager
                 
                 // Ако е само един наличния мениджър и той има 'autoList' с тази
                 // номенклатура, не може да се добавя перо от тук.
-                if (countR($options) == 1) {
+                if (count($options) == 1) {
                     $Class = cls::get(reset($options));
                     
                     if (isset($Class->autoList) && $Class->autoList == $listRec->systemId) {
@@ -664,8 +664,8 @@ class acc_Items extends core_Manager
      */
     public function flushTouched()
     {
-        if (countR($this->touched)) {
-            $timeLimit = countR($this->touched) * 2;
+        if (count($this->touched)) {
+            $timeLimit = count($this->touched) * 2;
             core_App::setTimeLimit($timeLimit);
             
             foreach ($this->touched as $rec) {
@@ -722,7 +722,7 @@ class acc_Items extends core_Manager
             
             // Ако има избрани обекти, те се добавят към номенклатурата
             $items = keylist::toArray($form->rec->objects);
-            if (countR($items)) {
+            if (count($items)) {
                 foreach ($items as $id) {
                     acc_Lists::addItem($listId, $Class->className, $id);
                     $count++;
@@ -771,7 +771,7 @@ class acc_Items extends core_Manager
         // Поле за избор на клас
         $form->FLD('classId', 'int', 'caption=Мениджър,mandatory,silent,removeAndRefreshForm=objects');
         
-        if (countR($options) > 1) {
+        if (count($options) > 1) {
             $options = array('' => '') + $options;
         }
         
@@ -779,7 +779,7 @@ class acc_Items extends core_Manager
         $form->setOptions('classId', $options);
         
         // Ако е само една опцията, тя е избрана по дефолт
-        if (countR($options) == 1) {
+        if (count($options) == 1) {
             $form->setDefault('classId', key($options));
         }
         
@@ -801,14 +801,14 @@ class acc_Items extends core_Manager
             
             // Пропускат се оттеглените и затворените обекти, както и тези които вече са в номенклатурата
             $query->where("#state != 'rejected' AND #state != 'closed'");
-            if (countR($items)) {
+            if (count($items)) {
                 $query->notIn('id', $items);
             }
             
             // Дали е документ
             $isDoc = cls::haveInterface('doc_DocumentIntf', $Class);
             
-            $count = $query->countR();
+            $count = $query->count();
             if ($count > 500) {
                 core_App::setTimeLimit($count * 0.015);
             }
@@ -995,7 +995,7 @@ class acc_Items extends core_Manager
      */
     public function getCachedItems()
     {
-        if (!countR($this->cache)) {
+        if (!count($this->cache)) {
             $query = $this->getQuery();
             $query->show('title,num,classId,objectId,lists,state,closedOn');
             while ($rec = $query->fetch()) {

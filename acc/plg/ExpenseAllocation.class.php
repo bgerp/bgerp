@@ -201,7 +201,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $rows = &$data->rows;
-        if (!countR($rows)) {
+        if (!count($rows)) {
             
             return;
         }

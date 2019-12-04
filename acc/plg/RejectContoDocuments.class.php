@@ -58,17 +58,17 @@ class acc_plg_RejectContoDocuments extends core_Plugin
         }
         
         // Ако има пера за игнориране, игнорираме ги
-        if (countR($ignoreArr)) {
+        if (count($ignoreArr)) {
             foreach ($ignoreArr as $ignore) {
                 unset($closedItems[$ignore]);
             }
         }
         
         // Ако има затворено перо в транзакциите или документа е използван като перо в документ от друг тред
-        if (countR($closedItems) || (isset($mvc->usedIn) && is_array($mvc->usedIn))) {
+        if (count($closedItems) || (isset($mvc->usedIn) && is_array($mvc->usedIn))) {
             
             // Ако има затворени пера, показваме съобщение и връщаме FALSE
-            if (countR($closedItems)) {
+            if (count($closedItems)) {
                 $msg = tr('Документа не може да бъде оттеглен/възстановен докато перата:');
                 
                 foreach ($closedItems as $itemId) {
@@ -80,7 +80,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
             }
             
             // Ако документа е използван в контировката на документ от друг тред, показваме съобщение и връщаме FALSE
-            if (countR($mvc->usedIn)) {
+            if (count($mvc->usedIn)) {
                 foreach ($mvc->usedIn as $itemId => $used) {
                     $itemName = acc_Items::getVerbal($itemId, 'title');
                     $msg = tr("|Документа |* \"{$itemName}\" |не може да бъде оттеглен/възстановен докато е контиран от следните документи извън нишката|*:");

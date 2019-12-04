@@ -80,12 +80,12 @@ class acc_journal_Account
         // колкото са пера - толкова аналитичности на сметката
         acc_journal_Exception::expect(
             
-            true || $countAnalit == countR($items),
+            true || $countAnalit == count($items),
             sprintf(
                 "Броя на аналитичностите на сметка '%s' (%d) не съвпада с броя на подадените пера (%d)",
                 $this->rec->systemId,
                 $countAnalit,
-                countR($items)
+                count($items)
             )
         );
         

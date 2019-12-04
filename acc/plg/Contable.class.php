@@ -609,7 +609,7 @@ class acc_plg_Contable extends core_Plugin
         if (!$res) {
             if (!empty($rec->id) && $rec->state != 'draft' && $rec->state != 'pending') {
                 $res = false;
-            } elseif (countR($mvc->details)) {
+            } elseif (count($mvc->details)) {
                 $hasDetail = false;
                 
                 // Ако класа има поне един запис в детаил, той може да се активира
@@ -763,7 +763,7 @@ class acc_plg_Contable extends core_Plugin
      */
     private static function notifyCreatorsForPostedDocument($userArr, $mvc, $rec)
     {
-        if (!countR($userArr)) {
+        if (!count($userArr)) {
             
             return;
         }
@@ -827,7 +827,7 @@ class acc_plg_Contable extends core_Plugin
      */
     private static function removeCreatorsNotificationOnReject($userArr, $mvc, $rec)
     {
-        if (!countR($userArr)) {
+        if (!count($userArr)) {
             
             return;
         }

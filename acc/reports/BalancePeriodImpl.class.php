@@ -207,10 +207,10 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
         $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
         $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
         
-        $pager->itemsCount = countR($data->recs);
+        $pager->itemsCount = count($data->recs);
         $data->pager = $pager;
         
-        if (countR($data->recs)) {
+        if (count($data->recs)) {
             foreach ($data->recs as $id => $rec) {
                 if (!$pager->isOnPage()) {
                     continue;
@@ -545,7 +545,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     {
         $conf = core_Packs::getConfig('core');
         
-        if (countR($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+        if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
             redirect(array($this), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
         }
         

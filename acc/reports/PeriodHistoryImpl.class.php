@@ -95,7 +95,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
         // За всеки ден от периода намираме какви са салдата и движенията по аналитичната сметка
         $periods = self::getDatesByPeriod($data->rec->fromDate, $data->rec->toDate, $data->rec->step);
         
-        if (countR($periods) == 1) {
+        if (count($periods) == 1) {
             $data->isHistory = true;
             
             $balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->rec->fromDate, $data->rec->toDate, $data->rec->ent1Id, $data->rec->ent2Id, $data->rec->ent3Id);
@@ -130,7 +130,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
                 $balance = $Balance->getBalance($accSysId);
                 
                 // Ако има баланс
-                if (countR($balance)) {
+                if (count($balance)) {
                     foreach ($balance as $b) {
                         
                         // И в нея да участват перата
@@ -354,7 +354,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
      */
     public static function on_AfterPrepareEmbeddedData($mvc, &$data)
     {
-        if (countR($data->recs)) {
+        if (count($data->recs)) {
             $data->recs = array_reverse($data->recs, true);
         }
         
@@ -373,7 +373,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
         }
         
         // Ако има намерени записи
-        if (countR($data->recs)) {
+        if (count($data->recs)) {
             if (!Mode::is('printing')) {
                 // Подготвяме страницирането
                 $pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
@@ -381,7 +381,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
                 $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
                 $data->Pager = $pager;
                 
-                $data->Pager->itemsCount = countR($data->recs);
+                $data->Pager->itemsCount = count($data->recs);
             }
             
             // За всеки запис

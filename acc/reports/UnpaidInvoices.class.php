@@ -335,11 +335,11 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         $rec->purchaseTotalOverDue = $purchaseTotalOverDue;
         
-        if (countR($sRecs)) {
+        if (count($sRecs)) {
             arr::sortObjects($sRecs, 'invoiceDate', 'asc', 'stri');
         }
         
-        if (countR($pRecs)) {
+        if (count($pRecs)) {
             arr::sortObjects($sRecs, 'invoiceDate', 'asc', 'stri');
         }
         

@@ -71,7 +71,7 @@ class acc_type_Item extends type_Key
             );
             
             // Създаваме <OPTGROUP> елемента (само ако листваме повече от една номенклатура)
-            if (countR($lists) > 1) {
+            if (count($lists) > 1) {
                 $this->options["x{$listRec->id}"] = (object) array(
                     'title' => $listRec->caption,
                     'group' => true,
@@ -79,7 +79,7 @@ class acc_type_Item extends type_Key
             }
             
             $closedOptions = array();
-            $oneList = (countR($lists) == 1);
+            $oneList = (count($lists) == 1);
             if ($oneList === true) {
                 $closedOptions["c{$listRec->id}"] = (object) array('title' => tr('Затворени'), 'group' => true,);
             }
@@ -112,7 +112,7 @@ class acc_type_Item extends type_Key
             $where .= ($query->where) ? $query->getWhereAndHaving()->w : ' ';
         }
         
-        if (countR($closedOptions) && countR($closedOptions) != 1) {
+        if (count($closedOptions) && count($closedOptions) != 1) {
             $this->options += $closedOptions;
         }
         
@@ -152,7 +152,7 @@ class acc_type_Item extends type_Key
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        if (!is_array($this->options) || !countR($this->options)) {
+        if (!is_array($this->options) || !count($this->options)) {
             $this->prepareOptions();
         }
         

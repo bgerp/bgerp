@@ -146,7 +146,7 @@ class acc_reports_SaleArticles extends acc_reports_BalanceImpl
         $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
         $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
         
-        $pager->itemsCount = countR($data->recs);
+        $pager->itemsCount = count($data->recs);
         $data->pager = $pager;
         
         $start = $data->pager->rangeStart;
@@ -154,7 +154,7 @@ class acc_reports_SaleArticles extends acc_reports_BalanceImpl
         
         $data->summary = new stdClass();
         
-        if (countR($data->recs)) {
+        if (count($data->recs)) {
             $count = 0;
             foreach ($data->recs as $id => $rec) {
                 
@@ -262,7 +262,7 @@ class acc_reports_SaleArticles extends acc_reports_BalanceImpl
         
         $tpl->append($table->get($data->rows, $data->listFields), 'DETAILS');
         
-        $data->summary->colspan = countR($data->listFields);
+        $data->summary->colspan = count($data->listFields);
         
         if ($data->bShowQuantities) {
             $data->summary->colspan -= 4;

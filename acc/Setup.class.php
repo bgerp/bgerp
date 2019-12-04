@@ -541,7 +541,7 @@ class acc_Setup extends core_ProtoSetup
         $Features = cls::get('acc_Features');
         $Features->setupMvc();
         
-        if(!acc_Features::countR()) return;
+        if(!acc_Features::count()) return;
         core_App::setTimeLimit(700);
         
         $titleToSave = array();
@@ -550,7 +550,7 @@ class acc_Setup extends core_ProtoSetup
         $tQuery->show('title');
         while($tRec = $tQuery->fetch()){
             $exploded = explode('||', $tRec->title);
-            if(countR($exploded) == 2){
+            if(count($exploded) == 2){
                 $tRec->title = $exploded[0];
                 $titleToSave[$tRec->id] = $tRec;
             }
@@ -563,17 +563,17 @@ class acc_Setup extends core_ProtoSetup
         
         while($fRec = $fQuery->fetch()){
             $exploded = explode('||', $fRec->value);
-            if(countR($exploded) == 2){
+            if(count($exploded) == 2){
                 $fRec->value = $exploded[0];
                 $valuesToSave[$fRec->id] = $fRec;
             }
         }
         
-        if(countR($titleToSave)){
+        if(count($titleToSave)){
             $FeatureTitles->saveArray($titleToSave, 'id,title');
         }
         
-        if(countR($valuesToSave)){
+        if(count($valuesToSave)){
             $Features->saveArray($valuesToSave, 'id,value');
         }
     }

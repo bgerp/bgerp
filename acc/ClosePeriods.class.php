@@ -404,7 +404,7 @@ class acc_ClosePeriods extends core_Master
             $accounts[$dRec->creditAccId] = $dRec->creditAccId;
         }
         
-        if (!countR($accounts)) {
+        if (!count($accounts)) {
             
             return;
         }

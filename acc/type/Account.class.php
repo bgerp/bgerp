@@ -95,7 +95,7 @@ class acc_type_Account extends type_Key
         
         if (!is_array($res)) {
             $arr = explode('|', $list);
-            expect(countR($arr) <= 3, 'Най-много могат да са зададени 3 интерфейса');
+            expect(count($arr) <= 3, 'Най-много могат да са зададени 3 интерфейса');
             
             foreach ($arr as $index => $el) {
                 if ($el == 'none') {
@@ -104,7 +104,7 @@ class acc_type_Account extends type_Key
                 expect($arr[$index] = core_Interfaces::fetchField("#name = '{$el}'", 'id'), "Няма интерфейс '{$el}'");
             }
             
-            if (countR($suggestions)) {
+            if (count($suggestions)) {
                 
                 // За всяка сметка
                 foreach ($suggestions as $id => $sug) {

@@ -133,7 +133,7 @@ class acc_JournalDetails extends core_Detail
         $rows = &$res->rows;
         $recs = &$res->recs;
         
-        if (countR($recs)) {
+        if (count($recs)) {
             foreach ($recs as $id => $rec) {
                 $row = &$rows[$id];
                 
@@ -199,7 +199,7 @@ class acc_JournalDetails extends core_Detail
         
         // Филтър по документ при нужда
         $documents = arr::make($documents, true);
-        if(countR($documents)){
+        if(count($documents)){
             $docTypes = array();
             foreach ($documents as $doc){
                 $docTypes[] = cls::get($doc)->getClassId();
@@ -217,7 +217,7 @@ class acc_JournalDetails extends core_Detail
         $itemsAll = arr::make($itemsAll);
         
         // Ако само се филтрират по сметки UNION по сметките, за бързодействие
-        if (countR($accounts) && !countR($itemsAll) && empty($items1) && empty($items2) && empty($items3)) {
+        if (count($accounts) && !count($itemsAll) && empty($items1) && empty($items2) && empty($items3)) {
             
             // Прави се UNION на сметките
             foreach ($accounts as $sysId) {
@@ -230,7 +230,7 @@ class acc_JournalDetails extends core_Detail
         }
         
         // Ако само се търсят пера на всяка позиция, UNION за бързодействие
-        if (countR($itemsAll) && !countR($accounts) && empty($items1) && empty($items2) && empty($items3)) {
+        if (count($itemsAll) && !count($accounts) && empty($items1) && empty($items2) && empty($items3)) {
             foreach ($itemsAll as $itemId) {
                 
                 // Ако няма сметки се прави обикновен юнион на всичките варианти, на които може да е перото
@@ -245,7 +245,7 @@ class acc_JournalDetails extends core_Detail
             return;
         }
         
-        if (countR($accounts) >= 1) {
+        if (count($accounts) >= 1) {
             foreach ($accounts as $sysId) {
                 $acc = acc_Accounts::getRecBySystemId($sysId);
                 $query->where("#debitAccId = {$acc->id}");
@@ -256,7 +256,7 @@ class acc_JournalDetails extends core_Detail
         // Перата които може да са на произволна позиция
         $itemsAll = arr::make($itemsAll);
         
-        if (countR($itemsAll)) {
+        if (count($itemsAll)) {
             foreach ($itemsAll as $itemId) {
                 
                 // Трябва да инт число

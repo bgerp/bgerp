@@ -117,12 +117,12 @@ class acc_journal_Transaction
      */
     public function check()
     {
-        if(Mode::is('saveTransaction') && countR($this->entries)){
+        if(Mode::is('saveTransaction') && count($this->entries)){
             acc_journal_Exception::expect($this->rec->valior, 'Няма вальор');
         }
         
         /* @var $entry acc_journal_Entry */
-        if (countR($this->entries)) {
+        if (count($this->entries)) {
             foreach ($this->entries as $entry) {
                 try {
                     $entry->check();
@@ -181,7 +181,7 @@ class acc_journal_Transaction
         }
         
         try {
-            if (countR($this->entries)) {
+            if (count($this->entries)) {
                 $recsToSave = array();
                 foreach ($this->entries as $entry) {
                     $recsToSave[] = $entry->getRec($this->rec->id);

@@ -118,7 +118,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         
         $productArr = $query->fetchAll();
         
-        $maxTimeLimit = 15 * countR($productArr);
+        $maxTimeLimit = 15 * count($productArr);
         $maxTimeLimit = max(array($maxTimeLimit, 300));
         
         // задаваме лимит пропорционален на бр. извадени продукти
@@ -170,7 +170,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         
         $recs = array();
         
-        log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);
+        log_System::add(get_called_class(), 'jRecsCnt: ' . count($jRecs) . ', producsCnt: ' . count($productArr), null, 'debug', 1);
         
         // за всеки един продукт, се изчисляват търсените количествата
         foreach ($productArr as $productRec) {
@@ -253,7 +253,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $ordered = array();
         
         $groups = keylist::toArray($group);
-        if (!countR($groups)) {
+        if (!count($groups)) {
             $groups = array('total' => 'Общо');
         } else {
             cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(&$groups));
@@ -280,7 +280,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 return false;
             });
             
-            if (countR($res)) {
+            if (count($res)) {
                 arr::sortObjects($res, 'code', 'asc', 'stri');
                 $ordered += $res;
             }

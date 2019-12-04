@@ -114,7 +114,7 @@ class acc_journal_EntrySide
         
         // Приемаме, че всичко останало в $d е пера.
         acc_journal_Exception::expect(
-            countR($d) <= 3,
+            count($d) <= 3,
             "{$this->type}: Макс 3 пера",
             array('data' => $transactionData)
         );
@@ -326,7 +326,7 @@ class acc_journal_EntrySide
         $closedItems = array();
         
         // Ако има пера, обхождаме ги
-        if (countR($this->items)) {
+        if (count($this->items)) {
             foreach ($this->items as $item) {
                 
                 // Запомняме затворените пера

@@ -161,7 +161,7 @@ class acc_Journal extends core_Master
                     
                     $chain = $doc->getDescendants();
                     
-                    if (countR($chain)) {
+                    if (count($chain)) {
                         foreach ($chain as $desc) {
                             $data->query->orWhere("#docType = '{$desc->getClassId()}' AND #docId = '{$desc->that}'");
                         }
@@ -189,7 +189,7 @@ class acc_Journal extends core_Master
                 $foundIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'journalId');
                 
                 // Само записите, в чиито детайли участват избраните сметки
-                if (countR($foundIds)) {
+                if (count($foundIds)) {
                     $foundIds = implode(',', $foundIds);
                     $data->query->where("#id IN ({$foundIds})");
                 } else {
@@ -618,7 +618,7 @@ class acc_Journal extends core_Master
         $jQuery->where("#createdOn BETWEEN '{$itemRec->createdOn}' AND '{$now}'");
         $jQuery->orderBy('#id', 'ASC');
         
-        if (countR($jIds)) {
+        if (count($jIds)) {
             $jQuery->in('journalId', $jIds);
             
             return $jQuery->fetchAll();
@@ -635,10 +635,10 @@ class acc_Journal extends core_Master
     public static function on_Shutdown($mvc)
     {
         // Всяко афектирано перо, задейства ивент в мениджъра си
-        if (countR($mvc->affectedItems)) {
+        if (count($mvc->affectedItems)) {
             
             // Увеличаваме времето за изпълнение според броя афектирани пера
-            $timeLimit = countR($mvc->affectedItems) * 10;
+            $timeLimit = count($mvc->affectedItems) * 10;
             core_App::setTimeLimit($timeLimit);
             
             foreach ($mvc->affectedItems as $rec) {
@@ -712,7 +712,7 @@ class acc_Journal extends core_Master
             $query->where("#debitAccId = {$acc->id} OR #creditAccId = {$acc->id}", $or);
         }
         
-        if (countR($types)) {
+        if (count($types)) {
             $query->in('docType', $types);
         }
         
@@ -723,7 +723,7 @@ class acc_Journal extends core_Master
         $recs = $query->fetchAll();
         
         // За всеки запис ако има
-        if (countR($recs)) {
+        if (count($recs)) {
             foreach ($recs as $rec) {
                 
                 // Ако е в затворен период, пропускаме го
@@ -753,7 +753,7 @@ class acc_Journal extends core_Master
         }
         
         // Засегнатите документи
-        return countR($recs);
+        return count($recs);
     }
     
     
@@ -855,7 +855,7 @@ class acc_Journal extends core_Master
         
         // Ако има зададени пера, допълваме ограниченията на заявката
         $itemsArr = arr::make($items, true);
-        if (countR($itemsArr)) {
+        if (count($itemsArr)) {
             foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $el) {
                 if (isset($itemsArr[$el])) {
                     $dQuery->where("#{$el} = {$itemsArr[$el]}");

@@ -157,7 +157,7 @@ class acc_ArticleDetails extends doc_Detail
         $rows = &$res->rows;
         $recs = &$res->recs;
         
-        if (countR($recs)) {
+        if (count($recs)) {
             foreach ($recs as $id => $rec) {
                 $row = &$rows[$id];
                 

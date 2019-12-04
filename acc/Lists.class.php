@@ -269,7 +269,7 @@ class acc_Lists extends core_Manager
         $itemsQuery->where("#lists LIKE '%|{$id}|%'");
         
         // Обновяваме броя на перата в номенклатурата
-        $rec->itemsCnt = $itemsQuery->countR();
+        $rec->itemsCnt = $itemsQuery->count();
         
         // Намираме кога последно е използвано перо от номенклатурата
         $itemsQuery->XPR('lastused', 'datetime', 'max(#lastUseOn)');
@@ -308,7 +308,7 @@ class acc_Lists extends core_Manager
         
         $listIds = acc_Items::fetchField("#classId = {$classId} AND #objectId = {$objectId}", 'lists');
         
-        if (countR($listIds = keylist::toArray($listIds))) {
+        if (count($listIds = keylist::toArray($listIds))) {
             foreach ($listIds as $listId) {
                 $rec = self::fetch($listId);
                 $result[$listId] = self::getVerbal($rec, 'title');
@@ -343,7 +343,7 @@ class acc_Lists extends core_Manager
             // Ако има клас проверяваме за тези номенклатури, чийто интерфейс е поддържан от класа
             $ifaceIds = array_keys(core_Interfaces::getInterfaceIds($class));
             
-            if (countR($ifaceIds)) {
+            if (count($ifaceIds)) {
                 $query = static::getQuery();
                 $query->where('#regInterfaceId IN (' . implode(',', $ifaceIds) . ')');
             }
@@ -419,7 +419,7 @@ class acc_Lists extends core_Manager
             }
         }
         
-        if (countR($lists)) {
+        if (count($lists)) {
             $lists = array_combine($lists, $lists);
         }
         
@@ -681,6 +681,6 @@ class acc_Lists extends core_Manager
         $iQuery->like('lists', "|{$listId}|");
         $iQuery->show('id');
         
-        return $iQuery->countR();
+        return $iQuery->count();
     }
 }

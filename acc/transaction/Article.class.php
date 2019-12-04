@@ -71,7 +71,7 @@ class acc_transaction_Article extends acc_DocumentTransactionSource
                 );
                 
                 if (!empty($entry->reason)) {
-                    $result->entries[countR($result->entries) - 1]['reason'] = $entry->reason;
+                    $result->entries[count($result->entries) - 1]['reason'] = $entry->reason;
                 }
                 
                 // Проверка дали трябва да се сума на движението
@@ -80,12 +80,12 @@ class acc_transaction_Article extends acc_DocumentTransactionSource
                 
                 // Ако трябва да е само количество, премахваме нулевата сума
                 if ($quantityOnly) {
-                    unset($result->entries[countR($result->entries) - 1]['amount']);
+                    unset($result->entries[count($result->entries) - 1]['amount']);
                 }
                 
                 //Добавяме сумата (ако я има) към общото
-                if (isset($result->entries[countR($result->entries) - 1]['amount'])) {
-                    $totalAmount += $result->entries[countR($result->entries) - 1]['amount'];
+                if (isset($result->entries[count($result->entries) - 1]['amount'])) {
+                    $totalAmount += $result->entries[count($result->entries) - 1]['amount'];
                 }
             }
         }

@@ -142,7 +142,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
             }
         }
         
-        $rec->counter = countR($recs);
+        $rec->counter = count($recs);
         
         $number = 1;
         
