@@ -160,11 +160,14 @@ function posActions() {
 	    	if(!url){
 	    		return;
 	    	}
-
+	    	
 	    	resObj = new Object();
 			resObj['url'] = url;
 			
-			getEfae().process(resObj, {string:value});
+			var selectedElement = $(".highlighted");
+			var selectedRecId = selectedElement.attr("data-id");
+			
+			getEfae().process(resObj, {string:value,recId:selectedRecId});
 	    }
 	});
 
