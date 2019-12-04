@@ -84,7 +84,7 @@ class auto_handler_CreateQuotationFromInquiry
         }
         
         // За всяко
-        if (count($quantities)) {
+        if (countR($quantities)) {
             
             // Създаване на оферта към артикула
             core_Users::forceSystemUser();
