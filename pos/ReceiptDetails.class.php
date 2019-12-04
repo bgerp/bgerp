@@ -497,7 +497,7 @@ class pos_ReceiptDetails extends core_Detail
         $row->code = $Varchar->toVerbal($productRec->code);
         
         if ($rec->value) {
-            $packaging = cat_UoM::getTitleById($rec->value);
+            $packaging = cat_UoM::getVerbal($rec->value, 'name');
             $packaging = str::getPlural($rec->quantity, $packaging, true);
             $row->value = tr($packaging);
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
