@@ -317,7 +317,7 @@ class cat_UoM extends core_Manager
             $options[$op->id] = $cap;
         }
         
-        if (count($options)) {
+        if (countR($options)) {
             $options = array('' => '') + $options;
         }
         
@@ -526,7 +526,7 @@ class cat_UoM extends core_Manager
             $sameMeasures[$typeUom->id] = $typeUom->name;
         }
         
-        if (count($sameMeasures) == 1) {
+        if (countR($sameMeasures) == 1) {
             
             // Ако мярката няма сродни мерки, сумата се конвертира в нея и се връща
             $val = cat_UoM::convertFromBaseUnit($val, $typeUom->id);
