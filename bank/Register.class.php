@@ -534,7 +534,7 @@ class bank_Register extends core_Manager
         
         $res1 = array_merge($res, $cachedFolders);
         
-        if (count($res)) {
+        if (countR($res)) {
             core_Cache::set('BANK', 'ACTIVE_FOLDERS', $res1, 24 * 60);
         }
         
