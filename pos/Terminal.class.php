@@ -347,36 +347,36 @@ class pos_Terminal extends peripheral_Terminal
         switch($currOperation){
             case 'add':
                 if(isset($rec->revertId)){
-                    $res = $this->getProductResultTable($rec, $string, $rec->revertId);
+                    $res = $this->getAddResultTable($rec, $string, $rec->revertId);
                 } else {
-                    $res = (empty($string)) ? $this->getFavouritesBtns($rec) : $this->getProductResultTable($rec, $string);
+                    $res = (empty($string)) ? $this->getFavouritesBtns($rec) : $this->getAddResultTable($rec, $string);
                 }
                 
                 break;
             case 'receipts':
-                $res = $this->renderDraftsTab($rec);
+                $res = $this->renderReceiptsResult($rec);
                 break;
             case 'quantity':
-                $res = $this->renderPackagingTable($rec, $string, $selectedRecId);
+                $res = $this->renderResultQuantity($rec, $string, $selectedRecId);
                 break;
             case 'discount':
-                $res = $this->renderDiscountTable($rec, $string, $selectedRecId);
+                $res = $this->renderResultDiscount($rec, $string, $selectedRecId);
                 break;
             case 'text':
-                $res = $this->renderTextTable($rec, $string, $selectedRecId);
+                $res = $this->renderResultText($rec, $string, $selectedRecId);
                 break;
             case 'price':
-                $res = $this->renderLastPriceTable($rec, $string, $selectedRecId);
+                $res = $this->renderResultPrice($rec, $string, $selectedRecId);
                 break;
                 break;
             case 'payment':
-                $res = $this->renderPaymentTabs($rec, $string, $selectedRecId);
+                $res = $this->renderResultPayment($rec, $string, $selectedRecId);
                 break;
             case 'revert':
-                $res = $this->renderRevertTable($rec, $string, $selectedRecId);
+                $res = $this->renderResultRevert($rec, $string, $selectedRecId);
                 break;
             case 'contragent':
-                $res = $this->renderContragentTable($rec, $string, $selectedRecId);
+                $res = $this->renderResultContragent($rec, $string, $selectedRecId);
                 break;
             default:
                 $res = "{$currOperation} '$string' {$selectedRecId} @TODO";
@@ -396,7 +396,7 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return core_ET
      */
-    private function renderTextTable($rec, $string, $selectedRecId)
+    private function renderResultText($rec, $string, $selectedRecId)
     {
         $tpl = new core_ET("");
         
@@ -433,7 +433,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @return core_ET
      */
-    private function renderDiscountTable($rec, $string, $selectedRecId)
+    private function renderResultDiscount($rec, $string, $selectedRecId)
     {
         $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
         
@@ -471,7 +471,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @return core_ET
      */
-    private function renderContragentTable($rec, $string, $selectedRecId)
+    private function renderResultContragent($rec, $string, $selectedRecId)
     {
         $tpl = new core_ET("");
         if(empty($string)){
@@ -547,7 +547,7 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return core_ET
      */
-    private function renderRevertTable($rec, $string, $selectedRecId)
+    private function renderResultRevert($rec, $string, $selectedRecId)
     {
         $Receipts = cls::get('pos_Receipts');
         $string = plg_Search::normalizeText($string);
@@ -592,7 +592,7 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return core_ET
      */
-    private function renderPaymentTabs($rec, $string, $selectedRecId)
+    private function renderResultPayment($rec, $string, $selectedRecId)
     {
         $Receipts = cls::get('pos_Receipts');
         $tpl = new core_ET("");
@@ -635,7 +635,7 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return core_ET
      */
-    private function renderPackagingTable($rec, $string, $selectedRecId)
+    private function renderResultQuantity($rec, $string, $selectedRecId)
     {
         $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
         $measureId = cat_Products::fetchField($selectedRec->productId, 'measureId');
@@ -702,7 +702,7 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return core_ET
      */
-    private function renderLastPriceTable($rec, $string, $selectedRecId)
+    private function renderResultPrice($rec, $string, $selectedRecId)
     {
         $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
@@ -884,7 +884,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @return core_ET
      */
-    private function getProductResultTable($rec, $string, $revertReceiptId = null)
+    private function getAddResultTable($rec, $string, $revertReceiptId = null)
     {
         $searchString = plg_Search::normalizeText($string);
         $data = new stdClass();
@@ -1077,7 +1077,7 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return core_ET $block - шаблон
      */
-    private function renderDraftsTab($id)
+    private function renderResultReceipt($id)
     {
         $rec = $this->fetchRec($id);
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('DRAFTS');
@@ -1168,6 +1168,10 @@ class pos_Terminal extends peripheral_Terminal
                 $resObj->arg = array('id' => 'receipt-table', 'html' => $receiptTpl->getContent(), 'replace' => true);
                 $res[] = $resObj;
             }
+            
+            $resObj = new stdClass();
+            $resObj->func = 'calculateWidth';
+            $res[] = $resObj;
         }
         
         // Показване веднага на чакащите статуси
