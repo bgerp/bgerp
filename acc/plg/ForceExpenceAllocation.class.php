@@ -89,7 +89,7 @@ class acc_plg_ForceExpenceAllocation extends core_Plugin
                     $costRec->productsData = $intersected;
                     
                     // Ако вече няма артикули за преразпределяне, сменя се режима на автоматично
-                    if(!count($intersected) || is_null($intersected)){
+                    if(!countR($intersected) || is_null($intersected)){
                         $costRec->allocationBy = 'auto';
                     }
                     

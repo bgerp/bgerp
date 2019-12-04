@@ -97,7 +97,7 @@ class acc_transaction_BalanceTransfer extends acc_DocumentTransactionSource
         $toAccountRec = acc_Accounts::fetch($rec->toAccount);
         
         // Ако има намерен баланс
-        if (count($this->Balance)) {
+        if (countR($this->Balance)) {
             
             // За всеки запис
             foreach ($this->Balance as $b) {

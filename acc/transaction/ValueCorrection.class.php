@@ -37,7 +37,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
         );
         
         $entries = $this->getEntries($rec, $result->totalAmount);
-        if (count($entries)) {
+        if (countR($entries)) {
             $result->entries = $entries;
         }
         
@@ -370,7 +370,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                     $storesArr[$storeId] = $obj;
                 }
                 
-                if (count($storesArr) > 1) {
+                if (countR($storesArr) > 1) {
                     $errorMsg2 = acc_ValueCorrections::allocateAmount($storesArr, $p->allocated, $allocateBy);
                     if (!empty($errorMsg2)) {
                         

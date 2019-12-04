@@ -640,7 +640,7 @@ class acc_Balances extends core_Master
         $newAccArr = $corespondingAccArr = array();
         $accArr = arr::make($accs);
         $fromArr = arr::make($accFrom);
-        expect(count($accArr));
+        expect(countR($accArr));
         
         // Намираме ид-та на сметките
         foreach ($accArr as $accSysId) {
@@ -657,12 +657,12 @@ class acc_Balances extends core_Master
         foreach ($jRecs as $rec) {
             
             // Ако има кореспондираща сметка и тя не участва в записа, пропускаме го
-            if (count($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) {
+            if (countR($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) {
                 continue;
             }
             
             // Ако има посочени задължителни пера
-            if (count($items) > 0) {
+            if (countR($items) > 0) {
                 $skip = false;
                 
                 // За всяко
@@ -780,7 +780,7 @@ class acc_Balances extends core_Master
         $newAccArr = $corespondingAccArr = array();
         $accArr = arr::make($accs);
         $fromArr = arr::make($accFrom);
-        expect(count($accArr));
+        expect(countR($accArr));
         
         // Намираме ид-та на сметките
         foreach ($accArr as $accSysId) {
@@ -799,12 +799,12 @@ class acc_Balances extends core_Master
             $add = false;
             
             // Ако има кореспондираща сметка и тя не участва в записа, пропускаме го
-            if (count($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) {
+            if (countR($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) {
                 continue;
             }
             
             // Ако има посочени задължителни пера
-            if (count($items) > 0) {
+            if (countR($items) > 0) {
                 $skipDebit = $skipCredit = false;
                 
                 // За всяко
