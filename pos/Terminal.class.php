@@ -859,7 +859,7 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->push('pos/tpl/css/styles.css', 'CSS');
         if (!Mode::is('printing')) {
             $tpl->push('pos/js/scripts.js', 'JS');
-            $tpl->push('pos/js/naviboard.js', 'JS');
+            $tpl->push('pos/js/jquery.keynav.js', 'JS');
             jquery_Jquery::run($tpl, 'posActions();');
         }
 
@@ -1022,10 +1022,7 @@ class pos_Terminal extends peripheral_Terminal
             $data->rows[$id]->CLASS = ' pos-add-res-btn navigable';
             $data->rows[$id]->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', $obj)) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $data->rec->id), 'local') : null;
             $data->rows[$id]->id = $pRec->id;
-            
-            if($count == 0){
-                $data->rows[$id]->CLASS .= ' selected';
-            }
+
             $count++;
         }
     }
