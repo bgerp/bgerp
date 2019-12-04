@@ -284,7 +284,7 @@ class blogm_Articles extends core_Master
         
         $categories = blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent());
         
-        if (!count($categories)) {
+        if (!countR($categories)) {
             redirect(array('blogm_Categories'), false, '|Моля въведете категории за статиите в блога');
         }
         $data->listFilter->setOptions('category', $categories);
@@ -641,7 +641,7 @@ class blogm_Articles extends core_Master
         } else {
             // Добавка, ако няма избрана категория, резултатите да се филтрират само по категориите, които са от текущия език
             $categories = blogm_Categories::getCategoriesByDomain();
-            if (!is_array($categories) || !count($categories)) {
+            if (!is_array($categories) || !countR($categories)) {
                 $categories = array('99999999' => 'Няма категории на съответния език');
             }
             $data->query->likeKeylist('categories', keylist::fromArray($categories));
@@ -679,7 +679,7 @@ class blogm_Articles extends core_Master
             
             $txt = explode("\n", $rec->body, 2);
             
-            if (count($txt) > 1) {
+            if (countR($txt) > 1) {
                 $rec->body = trim($txt[0]);
                 $rec->body .= ' [link=' . toUrl(self::getUrl($rec), 'absolute') . '][' . tr('още') . '][/link]';
             }
@@ -866,7 +866,7 @@ class blogm_Articles extends core_Master
         
         // Филтриране по категориите на съответния език
         $categories = blogm_Categories::getCategoriesByDomain();
-        if (!is_array($categories) || !count($categories)) {
+        if (!is_array($categories) || !countR($categories)) {
             $categories = array('99999999' => 'Няма категории на съответния език');
         }
         $query->likeKeylist('categories', keylist::fromArray($categories));
@@ -882,7 +882,7 @@ class blogm_Articles extends core_Master
      */
     public function renderArchive_(&$data)
     {
-        if (count($data->archiveArr)) {
+        if (countR($data->archiveArr)) {
             
             // Шаблон, който ще представлява списъка от хиперлинкове към месеците от архива
             $tpl = new ET();
@@ -970,7 +970,7 @@ class blogm_Articles extends core_Master
                 
                 // Извличаме описанието на статията, като съкръщаваме тялото и
                 $desc = explode("\n", $rec->body);
-                if (count($desc) > 1) {
+                if (countR($desc) > 1) {
                     $rec->body = ht::extractText($richText->toHtml($desc[0]));
                     $rec->body .= '[...]';
                 }
@@ -1100,7 +1100,7 @@ class blogm_Articles extends core_Master
             $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
         }
         
-        if (count($res) < $maxResults) {
+        if (countR($res) < $maxResults) {
             $query = clone($queryM);
             plg_Search::applySearch($q, $query, null, 9);
             while ($r = $query->fetch()) {
@@ -1112,7 +1112,7 @@ class blogm_Articles extends core_Master
             }
         }
         
-        if (count($res) < $maxResults) {
+        if (countR($res) < $maxResults) {
             $query = clone($queryM);
             plg_Search::applySearch($q, $query, null, 3);
             while ($r = $query->fetch()) {
