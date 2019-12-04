@@ -218,7 +218,7 @@ class cms_Domains extends core_Embedder
         $query = self::getQuery();
         $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", $domain));
         
-        if (!$domainRecs || count($domainRecs) == 0) {
+        if (!$domainRecs || countR($domainRecs) == 0) {
             
             // Намираме и алтернативния домейн
             if (strpos($domain, 'www.') === 0) {
@@ -231,7 +231,7 @@ class cms_Domains extends core_Embedder
             $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", $altDomain));
         }
         
-        if (!$domainRecs || count($domainRecs) == 0) {
+        if (!$domainRecs || countR($domainRecs) == 0) {
             $query = self::getQuery();
             $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", 'localhost'));
         }
@@ -268,7 +268,7 @@ class cms_Domains extends core_Embedder
             }
             
             // Определяме домейна, който отговаря на езика
-            $domainRecsCnt = count($domainRecs);
+            $domainRecsCnt = countR($domainRecs);
             foreach ($domainRecs as $dRec) {
                 if ($dRec->lang == $lang || !$domainRec || ($domainRecsCnt == 1)) {
                     $domainRec = $dRec;
@@ -364,7 +364,7 @@ class cms_Domains extends core_Embedder
     public static function detectLang($cmsLangs)
     {
         // Ако имаме само един език - избираме него
-        if (is_array($cmsLangs) && count($cmsLangs) == 1) {
+        if (is_array($cmsLangs) && countR($cmsLangs) == 1) {
             
             return key($cmsLangs);
         }
@@ -383,7 +383,7 @@ class cms_Domains extends core_Embedder
         $langs = $langParse[1]; // M1 - First part of language
         $quals = $langParse[4]; // M4 - Quality Factor
         
-        $numLanguages = count($langs);
+        $numLanguages = countR($langs);
         $langArr = array();
         
         for ($num = 0; $num < $numLanguages; $num++) {
@@ -400,7 +400,7 @@ class cms_Domains extends core_Embedder
         if ($countryCode2 = drdata_IpToCountry::get()) {
             $langsInCountry = arr::make(drdata_Countries::fetchField("#letterCode2 = '{$countryCode2}'", 'languages'));
             
-            if (count($langsInCountry)) {
+            if (countR($langsInCountry)) {
                 foreach ($langsInCountry as $lg) {
                     $langArr[$lg]++;
                 }
@@ -593,7 +593,7 @@ class cms_Domains extends core_Embedder
         // Инвалидираме сесийния кеш
         Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, null);
         
-        if(is_array($rec->toRemove) && count($rec->toRemove)) {
+        if(is_array($rec->toRemove) && countR($rec->toRemove)) {
             foreach($rec->toRemove as $filename) {
                 core_Webroot::remove($filename, $id);
             }
@@ -630,7 +630,7 @@ class cms_Domains extends core_Embedder
             
             $entries = $inst->getEntries();
             
-            if(is_array($entries) && count($entries)) {
+            if(is_array($entries) && countR($entries)) {
                 foreach($entries as $i => $e) {
                     if(preg_match("/[a-z0-9\\-\\_\\.]+/i", $e->path)) {
                         $fh = $inst->getFile($i);
@@ -663,7 +663,7 @@ class cms_Domains extends core_Embedder
             $rec->toRemove[$e->path] = $e->path;
         }
         
-        if(count($rec->toRemove)) {
+        if(countR($rec->toRemove)) {
             $mvc->save_($rec, 'toRemove');
         }
         

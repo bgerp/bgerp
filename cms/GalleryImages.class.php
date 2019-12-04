@@ -530,7 +530,7 @@ class cms_GalleryImages extends core_Manager
         Request::setProtected('callback');
         
         // Ако има записи
-        if ($data->recs && count($data->recs)) {
+        if ($data->recs && countR($data->recs)) {
             
             // Обхождаме записите
             foreach ($data->recs as $id => $rec) {
