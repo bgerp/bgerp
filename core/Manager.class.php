@@ -452,14 +452,14 @@ class core_Manager extends core_Mvc
             // Използваме за колони, всички полета, които не са означени с column = 'none'
             $fields = $this->selectFields("#column != 'none'");
             
-            if (count($fields)) {
+            if (countR($fields)) {
                 foreach ($fields as $name => $fld) {
                     $data->listFields[$name] = $fld->caption;
                 }
             }
         }
         
-        if (count($data->listFields)) {
+        if (countR($data->listFields)) {
             
             // Ако титлата съвпада с името на полето, вадим името от caption
             foreach ($data->listFields as $field => $caption) {
@@ -834,7 +834,7 @@ class core_Manager extends core_Mvc
         }
         
         $data->listFilter->showFields = isset($data->listFilter->showFields) ? arr::make($data->listFilter->showFields, true) : array();
-        if (count($data->listFilter->showFields)) {
+        if (countR($data->listFilter->showFields)) {
             $tpl = new ET("<div class='listFilter'>[#1#]</div>", $data->listFilter->renderHtml(null, $data->listFilter->rec));
             core_Form::preventDoubleSubmission($tpl, $data->listFilter);
             
@@ -1031,7 +1031,7 @@ class core_Manager extends core_Mvc
         }
         
         // Приключваме, ако класът не представлява модел
-        if (count($this->fields) <= 1) {
+        if (countR($this->fields) <= 1) {
             
             return array(
                 'error' => 'Този клас не е модел: ' . $this->title
@@ -1212,7 +1212,7 @@ class core_Manager extends core_Mvc
         $res = parent::action_($act);
         
         // Ако заявката не е по AJAX и няма нищо записано в лога, записваме екшъна
-        if (!Request::get('ajax_mode') && !count(log_Data::$toAdd)) {
+        if (!Request::get('ajax_mode') && !countR(log_Data::$toAdd)) {
             if (Request::$vars['_POST']) {
                 self::logWrite(ucfirst($act), Request::get('id'), 180);
             } else {

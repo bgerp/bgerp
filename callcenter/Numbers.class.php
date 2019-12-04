@@ -448,7 +448,7 @@ class callcenter_Numbers extends core_Manager
     public function on_Shutdown($mvc)
     {
         // Ако имаме променини или добавени номера
-        if (count((array) $mvc->savedItems)) {
+        if (countR((array) $mvc->savedItems)) {
             
             // Обхождаме масива
             foreach ((array) $mvc->savedItems as $id) {
@@ -475,7 +475,7 @@ class callcenter_Numbers extends core_Manager
         }
         
         // Ако имаме изтрити номера
-        if (count((array) $mvc->deletedItems)) {
+        if (countR((array) $mvc->deletedItems)) {
             
             // Обхождаме масива
             foreach ((array) $mvc->deletedItems as $id => $rec) {

@@ -808,7 +808,7 @@ class acc_Items extends core_Manager
             // Дали е документ
             $isDoc = cls::haveInterface('doc_DocumentIntf', $Class);
             
-            $count = $query->countR();
+            $count = $query->count();
             if ($count > 500) {
                 core_App::setTimeLimit($count * 0.015);
             }

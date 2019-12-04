@@ -128,7 +128,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 $protos[$cloneRec->productId] = cat_Products::getTitleById($cloneRec->productId, false);
             }
             
-            if (count($protos)) {
+            if (countR($protos)) {
                 $form->setOptions('proto', $protos);
                 $form->setField('proto', 'input');
             }
@@ -238,11 +238,11 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     $cover = doc_Folders::getCover($form->rec->folderId);
                     
                     $defMetas = $Driver->getDefaultMetas();
-                    if (!count($defMetas)) {
+                    if (!countR($defMetas)) {
                         $defMetas = $cover->getDefaultMeta();
                     }
                     
-                    if (count($defMetas)) {
+                    if (countR($defMetas)) {
                         $form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
                     }
                     
@@ -317,7 +317,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 
                 unset($protoType->options[$cloneRec->productId], $form->rec->proto);
                 
-                if (!count($protoType->options)) {
+                if (!countR($protoType->options)) {
                     $form->setField('proto', 'input=none');
                 }
                 
@@ -363,7 +363,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                         }
                     }
                     
-                    if (count($ids)) {
+                    if (countR($ids)) {
                         $pQuery = cat_Products::getQuery();
                         $pQuery->where('#id IN (' . implode(',', $ids) . ')');
                         $pQuery->where("#innerClass = {$rec->innerClass}");

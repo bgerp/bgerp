@@ -199,7 +199,7 @@ class core_Debug
         
         $html = '';
         
-        if (count(self::$debugTime)) {
+        if (countR(self::$debugTime)) {
             self::log('Край ' . core_DateTime::now());
             
             $html .= "\n<div class='debug_block' style=''>" .
@@ -234,7 +234,7 @@ class core_Debug
             $timers = self::$timers;
         }
         $display = Mode::get('screenMode', 'wide') ? 'table' : 'block';
-        if (count($timers)) {
+        if (countR($timers)) {
             $html .= "\n<div style='padding:5px; margin:10px; border:solid 1px #777; background-color:#FFFF99; display:{$display};color:black;'>" .
             "\n<div style='background-color:#FFFF33; padding:5px;color:black;'>Timers info</div><ol>";
             
@@ -495,7 +495,7 @@ class core_Debug
         $lines = explode("\n", $source);
         
         $from = max($line - $range - 1, 0);
-        $to = min($line + $range, count($lines));
+        $to = min($line + $range, countR($lines));
         $padding = strlen($to);
         for ($i = $from; $i < $to; $i++) {
             $l = str_pad($i + 1, $padding, ' ', STR_PAD_LEFT);

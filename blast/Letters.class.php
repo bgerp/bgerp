@@ -753,7 +753,7 @@ class blast_Letters extends core_Master
                 }
             }
             
-            $cntAllNewId = count($allNewId);
+            $cntAllNewId = countR($allNewId);
             
             // Ако имаме поне един нов запис
             if ($cntAllNewId) {
@@ -1385,7 +1385,7 @@ class blast_Letters extends core_Master
         foreach ((array) $data as $name => $value) {
             $attachedDocs = (array) doc_RichTextPlg::getAttachedDocs($value);
             
-            if (count($attachedDocs)) {
+            if (countR($attachedDocs)) {
                 $attachedDocs = array_keys($attachedDocs);
                 $attachedDocs = array_combine($attachedDocs, $attachedDocs);
                 

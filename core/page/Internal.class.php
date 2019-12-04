@@ -166,7 +166,7 @@ class core_page_Internal extends core_page_Active
             
             $tpl->append($menuLink, 'MENU_ROW');
             
-            if (count($menus)) {
+            if (countR($menus)) {
                 foreach ($menus as $key => $rec) {
                     if ($rec->state == 3) {
                         $tpl->append('&nbsp;»&nbsp;', 'MENU_ROW');
@@ -176,7 +176,7 @@ class core_page_Internal extends core_page_Active
                 }
             }
             
-            if (count($subMenus)) {
+            if (countR($subMenus)) {
                 $notFirst = false;
                 
                 foreach ($subMenus as $key => $rec) {
@@ -191,7 +191,7 @@ class core_page_Internal extends core_page_Active
         } else {
             // Ако сме в широк формат
             // Отпечатваме менютата
-            if (count($menus)) {
+            if (countR($menus)) {
                 foreach ($menus as $key => $rec) {
                     $link = bgerp_Menu::createLink($rec->menuTr, $rec, true);
                     $row = 'MENU_ROW' . $rec->row;
@@ -208,7 +208,7 @@ class core_page_Internal extends core_page_Active
                 }
             }
             
-            if (count($subMenus)) {
+            if (countR($subMenus)) {
                 foreach ($subMenus as $key => $rec) {
                     $link = bgerp_Menu::createLink($rec->subMenuTr, $rec);
                     $tpl->append('&nbsp;', 'SUB_MENU');
@@ -322,7 +322,7 @@ class core_page_Internal extends core_page_Active
         $cl = core_Lg::getCurrent();
         unset($langArr[$cl]);
         
-        if (count($langArr)) {
+        if (countR($langArr)) {
             foreach ($langArr as $lg => $title) {
                 $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => true));
                 $attr = array('href' => $url, 'title' => $title);

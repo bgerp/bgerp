@@ -90,7 +90,7 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
         
         $jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
         if ($jRec) {
-            $jCount = acc_JournalDetails::countR("#journalId = {$jRec->id}");
+            $jCount = acc_JournalDetails::count("#journalId = {$jRec->id}");
             
             // При оттегляне вдигаме времето за изпълнение спрямо записите в журнала
             $timeLimit = ceil($jCount / 3000) * 30;

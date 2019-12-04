@@ -318,7 +318,7 @@ class acc_Limits extends core_Manager
                 $query->like('sharedUsers', "|{$userId}|");
                 
                 // Ако няма той няма достъп до лист изгледа
-                if (!$query->countR()) {
+                if (!$query->count()) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -398,7 +398,7 @@ class acc_Limits extends core_Manager
         }
         
         // Ако няма записи не правим нищо
-        if (!acc_Limits::countR()) {
+        if (!acc_Limits::count()) {
             
             return;
         }

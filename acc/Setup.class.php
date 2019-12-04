@@ -541,7 +541,7 @@ class acc_Setup extends core_ProtoSetup
         $Features = cls::get('acc_Features');
         $Features->setupMvc();
         
-        if(!acc_Features::countR()) return;
+        if(!acc_Features::count()) return;
         core_App::setTimeLimit(700);
         
         $titleToSave = array();

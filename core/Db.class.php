@@ -682,7 +682,7 @@ class core_Db
             return;
         }
         
-        if (count($fieldsList)) {
+        if (countR($fieldsList)) {
             foreach ($fieldsList as $f) {
                 list($name, $len) = explode('(', $f);
                 
@@ -789,7 +789,7 @@ class core_Db
             $link = $this->connect();
         }
         
-        if (is_array($link->error_list) && count($link->error_list) > 0) {
+        if (is_array($link->error_list) && countR($link->error_list) > 0) {
             if (!$link->errno) {
                 $link->errno = $link->error_list[0]['errno'];
             }

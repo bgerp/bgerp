@@ -83,7 +83,7 @@ class catering_Companies extends core_Manager
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             $res = new ET('За да използвате услугата "Кетъринг" е необходимо да има дефинирана поне една компания за доставка на храна.<br/><br/>');
             
             return false;
@@ -201,7 +201,7 @@ class catering_Companies extends core_Manager
      */
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             $data->toolbar->removeBtn('btnPrint');
         }
     }

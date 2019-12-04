@@ -53,7 +53,7 @@ class compactor_Plugin extends core_Plugin
         $configFilesArr = arr::make($configFilesArr, true);
         
         // Не правим нищо, ако конфигурационните файлове и текущите нямат сечение
-        if (!count(array_intersect_key($filesArr, $configFilesArr))) {
+        if (!countR(array_intersect_key($filesArr, $configFilesArr))) {
             
             return $filesArr;
         }

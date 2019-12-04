@@ -157,7 +157,7 @@ class cal_TaskConditions extends core_Detail
             $taskArr[$recTask->id] = $recTask->id. '. ' .$recTask->title;
         }
         
-        if (count($taskArr) >= 2) {
+        if (countR($taskArr) >= 2) {
             $data->form->setOptions('dependId', $taskArr);
         } else {
             
@@ -190,7 +190,7 @@ class cal_TaskConditions extends core_Detail
     
     public function renderDetail($data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }

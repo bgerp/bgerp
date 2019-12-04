@@ -108,7 +108,7 @@ class bgerp_plg_Export extends core_Plugin
                     $recs = $query->fetchAll();
                 }
                 
-                core_App::setTimeLimit(count($recs) / 10);
+                core_App::setTimeLimit(countR($recs) / 10);
                 
                 $cu = core_Users::getCurrent();
                 core_Cache::set($mvc->className, "exportRecs{$cu}", $recs, 20);
@@ -127,9 +127,9 @@ class bgerp_plg_Export extends core_Plugin
             $form->FNC('driver', 'class(interface=bgerp_ExportIntf,allowEmpty,select=title)', 'input,caption=Формат,mandatory,silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit()')));
             
             // Ако има опции за избор на драйвър слагаме ги, иначе правим полето readOnly
-            if (count($options)) {
+            if (countR($options)) {
                 $form->setOptions('driver', array('' => '') + $options);
-                if (count($options) == 1) {
+                if (countR($options) == 1) {
                     $form->setDefault('driver', key($options));
                 }
             } else {

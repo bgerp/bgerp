@@ -240,7 +240,7 @@ class cms_DefaultTheme extends core_ProtoInner
                     }
                 }
                 
-                if (count($imgs) > 1) {
+                if (countR($imgs) > 1) {
                     $conf = core_Packs::getConfig('core');
                     
                     $banner = '';
@@ -279,14 +279,14 @@ class cms_DefaultTheme extends core_ProtoInner
             }
         }
         
-        $imgsCnt = count($imgs);
+        $imgsCnt = countR($imgs);
         
         if ($imgsCnt) {
             
             // Ключа да започава от 1 до броя
             $imgs = array_combine(range(1, $imgsCnt), array_values($imgs));
             
-            $img = $imgs[rand(1, count($imgs))];
+            $img = $imgs[rand(1, countR($imgs))];
             
             if ($img) {
                 if (!Mode::is('screenMode', 'narrow')) {

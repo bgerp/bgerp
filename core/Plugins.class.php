@@ -211,13 +211,13 @@ class core_Plugins extends core_Manager
             }
         }
         
-        if (count($this->attachedPlugins)) {
+        if (countR($this->attachedPlugins)) {
             // Какъв е класът на този обект?
             $objClass = strtolower(get_class($obj));
             $cover = 'private';
             
             do {
-                if (isset($this->attachedPlugins[$objClass][$cover]) && count($arr = $this->attachedPlugins[$objClass][$cover])) {
+                if (isset($this->attachedPlugins[$objClass][$cover]) && countR($arr = $this->attachedPlugins[$objClass][$cover])) {
                     foreach ($arr as $name => $plugin) {
                         if (cls::load($plugin, true)) {
                             $obj->loadSingle($name, $plugin);

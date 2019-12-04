@@ -1023,7 +1023,7 @@ class callcenter_Talks extends core_Master
         $id = 0;
         $uniqId = '';
         
-        if (count($uniqIdArr) > 1) {
+        if (countR($uniqIdArr) > 1) {
             $id = array_pop($uniqIdArr);
         }
         
@@ -1071,7 +1071,7 @@ class callcenter_Talks extends core_Master
     {
         $uniqIdArr = explode(self::$callUniqIdDelimiter, $uniqId);
         
-        if (count($uniqIdArr) > 1) {
+        if (countR($uniqIdArr) > 1) {
             $id = array_pop($uniqIdArr);
         }
         
@@ -1279,7 +1279,7 @@ class callcenter_Talks extends core_Master
         $allowedIpArr = arr::make($conf->CALLCENTER_ALLOWED_IP_ADDRESS, true);
         
         // Ако е зададено
-        if (count($allowedIpArr)) {
+        if (countR($allowedIpArr)) {
             
             // Вземаме IP' то на извикщия
             $ip = core_Users::getRealIpAddr();
@@ -1406,7 +1406,7 @@ class callcenter_Talks extends core_Master
             }
             
             // Броят на позвъняващите хора/номера
-            $arrCnt = count($CallerArr);
+            $arrCnt = countR($CallerArr);
             
             foreach ($CallerArr as $name => $cnt) {
                 
@@ -1561,7 +1561,7 @@ class callcenter_Talks extends core_Master
                     $numbersArr = callcenter_Numbers::getInternalNumbersForUsers($usersArr);
                     
                     // Ако има такива номера
-                    if (count((array) $numbersArr)) {
+                    if (countR((array) $numbersArr)) {
                         
                         // Показваме обажданията към и от тях
                         $data->query->orWhereArr('internalNum', $numbersArr);
@@ -1622,7 +1622,7 @@ class callcenter_Talks extends core_Master
             }
             
             // Ако има от и до
-            if (count($dateRange) == 2) {
+            if (countR($dateRange) == 2) {
                 
                 // Подреждаме масива
                 sort($dateRange);
@@ -2113,7 +2113,7 @@ class callcenter_Talks extends core_Master
             if ($changedTalksArr) {
                 
                 // Броя на променените разговори
-                $cnt = count($changedTalksArr);
+                $cnt = countR($changedTalksArr);
                 
                 if ($cnt == 1) {
                     $word = 'разговор';
@@ -2189,7 +2189,7 @@ class callcenter_Talks extends core_Master
         if ($nChangedTalksArr) {
             
             // Броя на променените разговори
-            $cnt = count($nChangedTalksArr);
+            $cnt = countR($nChangedTalksArr);
             
             if ($cnt == 1) {
                 $word = 'разговор';

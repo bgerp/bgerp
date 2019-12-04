@@ -290,10 +290,10 @@ class backup_Start extends core_Manager
         // Взимаме мета данните
         $metaArr = self::getMETA();
         
-        if (count($metaArr['backup']) > self::$conf->BACKUP_CLEAN_KEEP) {
+        if (countR($metaArr['backup']) > self::$conf->BACKUP_CLEAN_KEEP) {
             // Има нужда от почистване
-            $garbage = array_slice($metaArr['backup'], 0, count($metaArr['backup']) - self::$conf->BACKUP_CLEAN_KEEP);
-            $keeped['backup'] = array_slice($metaArr['backup'], count($metaArr['backup']) - self::$conf->BACKUP_CLEAN_KEEP, count($metaArr['backup']));
+            $garbage = array_slice($metaArr['backup'], 0, countR($metaArr['backup']) - self::$conf->BACKUP_CLEAN_KEEP);
+            $keeped['backup'] = array_slice($metaArr['backup'], countR($metaArr['backup']) - self::$conf->BACKUP_CLEAN_KEEP, countR($metaArr['backup']));
             $keeped['logNames'] = $metaArr['logNames'];
             $keeped['backupInfo'] = $metaArr['backupInfo'];
             file_put_contents(EF_TEMP_PATH . '/' . self::$metaFileName, serialize($keeped));

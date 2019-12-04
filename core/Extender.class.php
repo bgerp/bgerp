@@ -177,7 +177,7 @@ abstract class core_Extender extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         $addUrl = $mvc->getListAddUrl();
-        if(count($addUrl) && !Request::get('Rejected', 'int')){
+        if(countR($addUrl) && !Request::get('Rejected', 'int')){
             $data->toolbar->addBtn('Нов запис', $addUrl, false, "ef_icon = img/16/star_2.png,title=Добавяне на нов {$mvc->singleTitle}");
         }
     }
@@ -189,7 +189,7 @@ abstract class core_Extender extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $editUrl = $mvc->getEditUrl($data->rec);
-        if(count($editUrl)){
+        if(countR($editUrl)){
             $data->toolbar->addBtn('Редакция', $editUrl, 'id=btnEdit', 'ef_icon = img/16/edit-icon.png,title=Редактиране на записа');
         }
     }

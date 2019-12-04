@@ -93,7 +93,7 @@ class core_ObjectConfiguration extends core_BaseClass
      */
     public function getConstCnt()
     {
-        return count($this->_description);
+        return countR($this->_description);
     }
     
     
@@ -103,7 +103,7 @@ class core_ObjectConfiguration extends core_BaseClass
     public function haveErrors()
     {
         $cnt = 0;
-        if (count($this->_description)) {
+        if (countR($this->_description)) {
             foreach ($this->_description as $name => $descr) {
                 $params = arr::make($descr[1], true);
                 if (!$params['mandatory']) {
