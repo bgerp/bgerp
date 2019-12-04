@@ -160,7 +160,7 @@ class acc_ActiveShortBalance
     {
         $arr = arr::make($accs);
         
-        expect(count($arr));
+        expect(countR($arr));
         
         $res = 0;
         
@@ -301,11 +301,11 @@ class acc_ActiveShortBalance
         $this->calcBalance($all, $newBalance);
         
         // Оставяме само тези, които са на избраната сметка
-        if (count($newBalance)) {
+        if (countR($newBalance)) {
             foreach ($newBalance as $index => &$r) {
                 $r = (object) $r;
                 
-                if (count($accArr) && !in_array($r->accountId, $accArr)) {
+                if (countR($accArr) && !in_array($r->accountId, $accArr)) {
                     unset($newBalance[$index]);
                 }
             }
@@ -379,7 +379,7 @@ class acc_ActiveShortBalance
         $history = array();
         
         // Обхождаме всички записи и натрупваме сумите им към крайното салдо
-        if (count($entriesInPeriod)) {
+        if (countR($entriesInPeriod)) {
             foreach ($entriesInPeriod as $jRec) {
                 $entry = array('id' => $jRec->id,
                     'docType' => $jRec->docType,
@@ -452,7 +452,7 @@ class acc_ActiveShortBalance
             }
             
             // Правим групиране на записите
-            if (count($history) && $groupByDocument === true) {
+            if (countR($history) && $groupByDocument === true) {
                 $groupedRecs = array();
                 
                 // Групираме всички записи от журнала по документи
@@ -491,7 +491,7 @@ class acc_ActiveShortBalance
         }
         
         $debitQuantity = $debitAmount = $creditQuantity = $creditAmount = 0;
-        if (count($history)) {
+        if (countR($history)) {
             foreach ($history as $arr) {
                 foreach (array('debitQuantity', 'debitAmount', 'creditAmount', 'creditQuantity') as $fld) {
                     if (isset($arr[$fld])) {
@@ -502,8 +502,8 @@ class acc_ActiveShortBalance
         }
         
         $lastArr = end($history);
-        $blQuantity = (count($history)) ? $lastArr['blQuantity'] : $calcedBalance[$indexArr]['blQuantity'];
-        $blAmount = (count($history)) ? $lastArr['blAmount'] : $calcedBalance[$indexArr]['blAmount'];
+        $blQuantity = (countR($history)) ? $lastArr['blQuantity'] : $calcedBalance[$indexArr]['blQuantity'];
+        $blAmount = (countR($history)) ? $lastArr['blAmount'] : $calcedBalance[$indexArr]['blAmount'];
         
         $summary = array('baseQuantity' => $calcedBalance[$indexArr]['baseQuantity'],
             'baseAmount' => $calcedBalance[$indexArr]['baseAmount'],

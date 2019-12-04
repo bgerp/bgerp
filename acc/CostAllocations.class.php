@@ -329,7 +329,7 @@ class acc_CostAllocations extends core_Manager
                 // Проверка на избраните артикули
                 if (isset($rec->allocationBy)) {
                     if(!in_array($rec->allocationBy, array('no', 'auto'))){
-                        if (!count($form->allProducts)) {
+                        if (!countR($form->allProducts)) {
                             $form->setError('allocationBy', 'В избраната сделка няма експедирани/заскладени артикули');
                         }
                     }
@@ -384,7 +384,7 @@ class acc_CostAllocations extends core_Manager
         $Register = new core_ObjectReference($iRec->classId, $iRec->objectId);
         if (method_exists($Register->getInstance(), 'getSingleUrlArray_') && !Mode::isReadOnly()) {
             $singleUrl = $Register->getSingleUrlArray();
-            if(count($singleUrl)){
+            if(countR($singleUrl)){
                 $singleUrl['Sid'] = $Register->fetchField('containerId');
                 $eItem = ht::createLink($eItem, $singleUrl);
                 if ($iRec->state == 'closed') {
@@ -626,11 +626,11 @@ class acc_CostAllocations extends core_Manager
         $allocatedAmount = 0;
         
         // Ако са намерени записи
-        if (is_array($dRecs) && count($dRecs)) {
+        if (is_array($dRecs) && countR($dRecs)) {
             $dRecs = array_values($dRecs);
             
             // За всеки запис
-            for ($i = 0; $i <= count($dRecs) - 1; $i++) {
+            for ($i = 0; $i <= countR($dRecs) - 1; $i++) {
                 $dRec = $dRecs[$i];
                 $nextRec = $dRecs[$i + 1];
                 
@@ -752,7 +752,7 @@ class acc_CostAllocations extends core_Manager
             $obj->reason = 'Приети услуги и нескладируеми консумативи за производството';
         } else {
             $dRecs = self::getRecsWithAllocatedAmount($docClassId, $docRecId, $productId, $quantity, $amount);
-            if (count($dRecs)) {
+            if (countR($dRecs)) {
                 
                 return $dRecs;
             }
@@ -900,7 +900,7 @@ class acc_CostAllocations extends core_Manager
         $eQuery = self::getQuery();
         
         $containers = self::getLastModifiedContainers($timeline);
-        if (!count($containers)) {
+        if (!countR($containers)) {
             
             return $eQuery;
         }
