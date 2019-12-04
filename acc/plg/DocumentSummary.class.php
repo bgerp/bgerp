@@ -181,7 +181,8 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         $dateFields = arr::make($mvc->filterDateField, true);
         $userFields = arr::make($mvc->filterFieldUsers, true);
-        if(count($userFields) && isset($mvc->fields['createdBy'])){
+        $userFields = (count($userFields) && array_key_exists('createdBy', $userFields)) ? array() : $userFields;
+        if(count($userFields) && isset($mvc->fields['createdBy']) && !array_key_exists('createdBy', $userFields)){
             $userFields['createdBy'] = 'createdBy';
         }
         
