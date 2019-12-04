@@ -305,7 +305,6 @@ class pos_Terminal extends peripheral_Terminal
         expect($rec = pos_Receipts::fetch($id));
         expect($operation = Request::get('operation', "enum(" . self::$operationsArr . ")"));
         $refreshPanel = Request::get('refreshPanel', 'varchar');
-        
         $refreshPanel = ($refreshPanel == 'no') ? false : true;
         $selectedRecId = Request::get('recId', 'int');
        
@@ -370,7 +369,7 @@ class pos_Terminal extends peripheral_Terminal
                 $res = $this->renderResultContragent($rec, $string, $selectedRecId);
                 break;
             default:
-                $res = "{$currOperation} '$string' {$selectedRecId} @TODO";
+                $res = " ";
                 break;
         }
         
@@ -542,12 +541,9 @@ class pos_Terminal extends peripheral_Terminal
     {
         $Receipts = cls::get('pos_Receipts');
         $string = plg_Search::normalizeText($string);
-        
-        
         $query = $Receipts->getQuery();
         $query->where("#revertId IS NULL AND #state != 'draft' AND #pointId = {$rec->pointId}");
         
-       
         //$foundArr = $Receipts->findReceiptByNumber($string, true);
         
         if (is_object($foundArr['rec'])) {
@@ -911,8 +907,8 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function prepareProductTable(&$data)
     {
-        $data->rows = array();
         $count = 0;
+        $data->rows = array();
         $conf = core_Packs::getConfig('pos');
         $data->showParams = $conf->POS_RESULT_PRODUCT_PARAMS;
         
@@ -1161,7 +1157,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $resObj = new stdClass();
             $resObj->func = 'calculateWidth';
-            $res[] = $resObj;
+            //$res[] = $resObj;
         }
         
         // Показване веднага на чакащите статуси

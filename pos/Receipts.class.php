@@ -226,6 +226,7 @@ class pos_Receipts extends core_Master
     {
         $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
         $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
+        $row->changeCurrency = $row->currency;
         if(!($defaultContragentId == $rec->contragentObjectId && crm_Persons::getClassId() == $rec->contragentClass)){
             $Contragent = new core_ObjectReference($rec->contragentClass, $rec->contragentObjectId);
             $contragentFolderId = $Contragent->fetchField('folderId');
@@ -243,7 +244,7 @@ class pos_Receipts extends core_Master
             if ($rec->transferedIn) {
                 $row->transferedIn = sales_Sales::getHyperlink($rec->transferedIn, true);
             }
-            
+           
             if ($rec->state == 'closed' || $rec->state == 'rejected') {
                 $reportQuery = pos_Reports::getQuery();
                 $reportQuery->where("#state = 'active'");
@@ -277,10 +278,14 @@ class pos_Receipts extends core_Master
             $row->CHANGE_CAPTION = tr("Остатък");
             $rec->change = abs($rec->change);
             $row->change = $mvc->getFieldType('change')->toVerbal(abs($rec->change));
+        } elseif($rec->change == 0){
+            unset($row->CHANGE_CAPTION, $row->change, $row->changeCurrency);
         }
         
         foreach (array('total', 'paid', 'change') as $fld) {
-            $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
+            if(isset($row->{$fld})){
+                $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
+            }
         }
         
         if (isset($rec->revertId)) {
@@ -444,11 +449,6 @@ class pos_Receipts extends core_Master
             }
         }
         
-        // Никой не може да редактира бележка
-        if ($action == 'edit') {
-            $res = 'no_one';
-        }
-        
         // Никой не може да оттегли затворена бележка
         if ($action == 'reject' && isset($rec)) {
             $period = acc_Periods::fetchByDate($rec->valior);
@@ -515,13 +515,11 @@ class pos_Receipts extends core_Master
         expect($contragentId = Request::get('contragentId', 'int'));
         expect($contragentClass = cls::get($contragentClassId));
         expect($contragentClass->fetch($contragentId));
-        
         $this->requireRightFor('transfer', $rec);
         
         // Подготвяме масива с данните на новата продажба, подаваме склада и касата на точката
         $posRec = pos_Points::fetch($rec->pointId);
         $fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId, 'receiptId' => $rec->id);
-        
         $products = $this->getProducts($rec->id);
         
         // Опитваме се да създадем чернова на нова продажба породена от бележката
@@ -570,15 +568,6 @@ class pos_Receipts extends core_Master
     
     
     /**
-     * Имплементиране на интерфейсен метод ( @see acc_TransactionSourceIntf )
-     */
-    public static function getLink($id)
-    {
-        return static::recToVerbal(static::fetchRec($id), 'id,title,-list')->title;
-    }
-    
-    
-    /**
      * Проверка на количеството
      *
      * @param stdClass $rec
@@ -603,7 +592,7 @@ class pos_Receipts extends core_Master
         $quantityInStock -= $rec->quantity * $quantityInPack;
         
         if ($quantityInStock < 0) {
-            $error = 'Желаното количество не е налично';
+            $error = 'Количеството не е налично';
             
             return false;
         }
