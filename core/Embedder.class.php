@@ -141,7 +141,7 @@ class core_Embedder extends core_Master
         
         // Извличаме класовете с посочения интерфейс
         $interfaces = core_Classes::getOptionsByInterface($mvc->innerObjectInterface, 'title');
-        if (count($interfaces)) {
+        if (countr($interfaces)) {
             foreach ($interfaces as $id => $int) {
                 if (!cls::load($id, true)) {
                     continue;
@@ -157,13 +157,13 @@ class core_Embedder extends core_Master
         }
         
         // Ако няма достъпни драйвери полето е readOnly иначе оставяме за избор само достъпните такива
-        if (!count($interfaces)) {
+        if (!countR($interfaces)) {
             $form->setReadOnly($mvc->innerClassField);
         } else {
             $form->setOptions($mvc->innerClassField, $interfaces);
             
             // Ако е възможен точно един драйвер, задаваме го по подразбиране да е избран
-            if (count($interfaces) == 1) {
+            if (countR($interfaces) == 1) {
                 $form->setDefault($mvc->innerClassField, key($interfaces));
                 $form->setReadOnly($mvc->innerClassField);
             }

@@ -308,7 +308,7 @@ class core_Cls
     {
         $call = explode('->', $name);
         
-        if (count($call) == 2) {
+        if (countR($call) == 2) {
             $call[0] = cls::get($call[0]);
         } else {
             $call = explode('::', $name);
@@ -459,7 +459,7 @@ class core_Cls
      */
     public static function shutdown()
     {
-        if (count(core_Cls::$singletons)) {
+        if (countR(core_Cls::$singletons)) {
             core_Debug::log('Начало на shutdown');
             core_Debug::startTimer('shutdown');
             foreach (core_Cls::$singletons as $name => $instance) {
@@ -480,7 +480,7 @@ class core_Cls
      */
     public static function afterSessionClose()
     {
-        if (count(core_Cls::$singletons)) {
+        if (countR(core_Cls::$singletons)) {
             core_Debug::log('Начало на afterSessionClose');
             core_Debug::startTimer('afterSessionClose');
             foreach (core_Cls::$singletons as $name => $instance) {
@@ -535,7 +535,7 @@ class core_Cls
         if (is_a($classObj, 'core_BaseClass')) {
             $plugins = $classObj->getPlugins();
             
-            if (count($plugins)) {
+            if (countR($plugins)) {
                 foreach ($plugins as $name) {
                     if (method_exists($name, "on_After{$methodName}")) {
                         
@@ -574,7 +574,7 @@ class core_Cls
         $methodsArr = $Ref->getMethods($refMet);
         
         // Нормализиране на името на методите
-        if (count($methodsArr)) {
+        if (countR($methodsArr)) {
             foreach ($methodsArr as $m) {
                 $name = str_replace('on_Before', '', $m->name);
                 $name = str_replace('on_After', '', $name);
@@ -587,7 +587,7 @@ class core_Cls
         // За всеки закачен плъгин (ако има) рекурсивно се извиква ф-ята
         if (method_exists($Class, 'getPlugins')) {
             $plugins = $Class->getPlugins();
-            if (count($plugins)) {
+            if (countR($plugins)) {
                 foreach ($plugins as $name => $Plugin) {
                     $plgMethodsArr = static::getAccessibleMethods($Plugin, $onlyStatic);
                     
@@ -606,7 +606,7 @@ class core_Cls
      */
     public static function getSingletons()
     {
-        return count(self::$singletons) ? self::$singletons : null;
+        return countR(self::$singletons) ? self::$singletons : null;
     }
 }
 
