@@ -384,6 +384,8 @@ class pos_ReceiptDetails extends core_Detail
             expect(!(!empty($revertId) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|*|* {$originProductRec->quantity}");
             $this->save($rec);
             $success = true;
+            $this->Master->logInAct('Добавяне на артикул', $rec->receiptId);
+            
         } catch(core_exception_Expect $e){
             $dump = $e->dump;
             $dump1 = $dump[0];
