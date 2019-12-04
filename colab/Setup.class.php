@@ -183,7 +183,7 @@ class colab_Setup extends core_ProtoSetup
         }
         
         // Записват се ид-та на документите, които могат да се създават от контрактори
-        if (count($arr)) {
+        if (countR($arr)) {
             core_Packs::setConfig('colab', array('COLAB_CREATABLE_DOCUMENTS_LIST' => keylist::fromArray($arr)));
             $res = "<li style='color:green'>Задаване на дефолт документи, които могат да се създават от партньори";
         }
