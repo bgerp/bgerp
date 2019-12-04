@@ -345,7 +345,7 @@ class pos_Terminal extends peripheral_Terminal
                 }
                 break;
             case 'receipts':
-                $res = $this->renderReceiptsResult($rec);
+                $res = $this->renderResultReceipt($rec);
                 break;
             case 'quantity':
                 $res = $this->renderResultQuantity($rec, $string, $selectedRecId);
@@ -1079,7 +1079,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         if (pos_Receipts::haveRightFor('add')) {
-            $addBtn = ht::createLink(tr('Нова'), array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes posBtns navigable selected');
+            $addBtn = ht::createLink("+", array('pos_Receipts', 'new', 'forced' => true), null, 'class=pos-notes posBtns navigable selected');
             $block->prepend($addBtn);
         }
         
