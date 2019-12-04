@@ -96,8 +96,16 @@ class pos_Terminal extends peripheral_Terminal
      */
     public function act_Open()
     {
-        $Receipts = cls::get('pos_Receipts');
+        if(Request::get('opened', 'int')){
+            $redirectUrl = getCurrentUrl();
+            unset($redirectUrl['opened']);
+            
+            Mode::setPermanent("currentOperation", 'add');
+            Mode::setPermanent("currentSearchString", null);
+            redirect($redirectUrl);
+        }
         
+        $Receipts = cls::get('pos_Receipts');
         $Receipts->requireRightFor('terminal');
         expect($id = Request::get('receiptId', 'int'));
         expect($rec = $Receipts->fetch($id));
@@ -1078,7 +1086,7 @@ class pos_Terminal extends peripheral_Terminal
         $query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$rec->id}");
         while ($rec = $query->fetch()) {
             $class = isset($rec->revertId) ? 'revert-receipt' : '';
-            $row = ht::createLink(self::getReceiptTitle($rec), array('pos_Terminal', 'open', 'receiptId' => $rec->id), null, array('id' => "receipt{$rec->id}", 'class' => "pos-notes posBtns navigable {$class}", 'title' => 'Преглед на бележката'));
+            $row = ht::createLink(self::getReceiptTitle($rec), array('pos_Terminal', 'open', 'receiptId' => $rec->id, 'opened' => true), null, array('id' => "receipt{$rec->id}", 'class' => "pos-notes posBtns navigable {$class}", 'title' => 'Преглед на бележката'));
             $block->append($row);
         }
         
