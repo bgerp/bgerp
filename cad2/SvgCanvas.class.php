@@ -209,7 +209,7 @@ class cad2_SvgCanvas extends cad2_Canvas
      */
     protected function getCurrentPath()
     {
-        $path = $this->content[count($this->content) - 1];
+        $path = $this->content[countR($this->content) - 1];
         
         if ($path->name == 'path') {
             
@@ -643,11 +643,11 @@ class cad2_SvgCanvas extends cad2_Canvas
                         $cmd[6] += $aY;
                     }
                     
-                    if (count($cmd) == 7) {
+                    if (countR($cmd) == 7) {
                         $tag->attr['d'] .= " {$cmdName}{$cmd[1]},{$cmd[2]} {$cmd[3]},{$cmd[4]} {$cmd[5]},{$cmd[6]}";
-                    } elseif (count($cmd) == 3) {
+                    } elseif (countR($cmd) == 3) {
                         $tag->attr['d'] .= " {$cmdName}{$cmd[1]},{$cmd[2]}";
-                    } elseif (count($cmd) == 1) {
+                    } elseif (countR($cmd) == 1) {
                         $tag->attr['d'] .= " {$cmdName}";
                     }
                 }
@@ -725,7 +725,7 @@ class cad2_SvgCanvas extends cad2_Canvas
             }
             
             
-            if ($tag->attr && count($tag->attr)) {
+            if ($tag->attr && countR($tag->attr)) {
                 foreach ($tag->attr as $name => $val) {
                     if (strlen($val) == 0) {
                         continue;
