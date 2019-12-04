@@ -283,7 +283,7 @@ class blast_Lists extends core_Master
     
     public static function on_Shutdown($mvc)
     {
-        if (count($mvc->mustUpdate)) {
+        if (countR($mvc->mustUpdate)) {
             foreach ($mvc->mustUpdate as $id => $detailMvc) {
                 $rec = $mvc->fetch($id);
                 $dQuery = $detailMvc->getQuery();

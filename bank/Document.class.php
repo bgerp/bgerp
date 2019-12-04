@@ -417,7 +417,7 @@ abstract class bank_Document extends deals_PaymentDocument
             $operations = $firstDoc->getPaymentOperations();
             $options = static::getOperations($operations);
             
-            return count($options) ? true : false;
+            return countR($options) ? true : false;
         }
         
         return false;
@@ -580,7 +580,7 @@ abstract class bank_Document extends deals_PaymentDocument
         $pOperations = $dealInfo->get('allowedPaymentOperations');
         $defaultOperation = $dealInfo->get('defaultBankOperation');
         $options = static::getOperations($pOperations);
-        expect(count($options));
+        expect(countR($options));
         
         if ($expectedPayment = $dealInfo->get('expectedPayment')) {
             if (isset($form->rec->originId, $form->rec->amountDeal)) {

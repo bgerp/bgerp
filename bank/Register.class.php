@@ -264,7 +264,7 @@ class bank_Register extends core_Manager
         
         $timeLine = dt::addSecs(-1 * 24 * 60 * 60);
         
-        if (is_array($ids) && count($ids)) {
+        if (is_array($ids) && countR($ids)) {
             $ids = implode(',', $ids);
             $query->where("#id IN ({$ids}),");
         } else {
@@ -277,7 +277,7 @@ class bank_Register extends core_Manager
             // Вадим номерата от основанието
             $matches = array();
             preg_match_all('/([1-9][0-9]+)/', $rec->reason, $matches);
-            if (count($matches[0])) {
+            if (countR($matches[0])) {
                 $numbers = array_flip($matches[0]);
             } else {
                 $numbers = array();
@@ -534,7 +534,7 @@ class bank_Register extends core_Manager
         
         $res1 = array_merge($res, $cachedFolders);
         
-        if (count($res)) {
+        if (countR($res)) {
             core_Cache::set('BANK', 'ACTIVE_FOLDERS', $res1, 24 * 60);
         }
         
@@ -715,7 +715,7 @@ class bank_Register extends core_Manager
             $s += $m;
         }
         
-        $res = $s / count($s1Arr);
+        $res = $s / countR($s1Arr);
         
         return $res;
     }

@@ -886,7 +886,7 @@ class bgerp_Portal extends embed_Manager
         
         $html = "<datalist id='{$mvc->className}'>\n";
         
-        if (count($suggestions)) {
+        if (countR($suggestions)) {
             foreach ($suggestions as $string) {
                 $html .= "<option value='{$string}'>\n";
             }

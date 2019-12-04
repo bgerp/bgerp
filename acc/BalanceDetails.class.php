@@ -171,7 +171,7 @@ class acc_BalanceDetails extends core_Detail
                 }
             }
             
-            if (!count($data->recs)) {
+            if (!countR($data->recs)) {
                 
                 return;
             }
@@ -189,7 +189,7 @@ class acc_BalanceDetails extends core_Detail
             
             $count = 0;
             $Pager = cls::get('core_Pager', array('itemsPerPage' => $conf->ACC_DETAILED_BALANCE_ROWS));
-            $Pager->itemsCount = count($data->recs);
+            $Pager->itemsCount = countR($data->recs);
             $Pager->calc();
             $data->pager = $Pager;
             
@@ -223,7 +223,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         // Извличаме им еднократно кодовете
-        if (count($usedItems)) {
+        if (countR($usedItems)) {
             $iQuery = acc_Items::getQuery();
             $iQuery->show('num');
             $iQuery->in('id', $usedItems);
@@ -313,7 +313,7 @@ class acc_BalanceDetails extends core_Detail
      */
     private function prepareSummary(&$data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
@@ -410,7 +410,7 @@ class acc_BalanceDetails extends core_Detail
      */
     public static function filterRecs(&$recs, $item1 = null, $item2 = null, $item3 = null, $feat1 = null, $feat2 = null, $feat3 = null)
     {
-        if (!count($recs)) {
+        if (!countR($recs)) {
             
             return;
         }
@@ -471,7 +471,7 @@ class acc_BalanceDetails extends core_Detail
      */
     public static function groupRecs(&$recs, $item1 = null, $item2 = null, $item3 = null, $feat1 = null, $feat2 = null, $feat3 = null)
     {
-        if (!count($recs)) {
+        if (!countR($recs)) {
             
             return;
         }
@@ -801,7 +801,7 @@ class acc_BalanceDetails extends core_Detail
     {
         $form->formAttr['id'] = 'groupForm';
         
-        if (count($options)) {
+        if (countR($options)) {
             $nOptions = array();
             $iQuery = acc_Items::getQuery();
             $iQuery->in('id', $options);
@@ -814,7 +814,7 @@ class acc_BalanceDetails extends core_Detail
             $options = $nOptions;
         }
         
-        if (!count($options)) {
+        if (!countR($options)) {
             $options = array();
         }
         
@@ -825,7 +825,7 @@ class acc_BalanceDetails extends core_Detail
         $form->fieldsLayout->replace($listName, "caption{$i}");
         $form->FNC("grouping{$i}", 'key(mvc=acc_Items,allowEmpty,select=title)', "silent,caption={$listName},width=330px,input,class=balance-grouping");
         $form->FNC("feat{$i}", 'varchar', "silent,caption={$listName}->Свойства,width=330px,input,class=balance-feat");
-        if (count($options)) {
+        if (countR($options)) {
             $form->setOptions("grouping{$i}", $options);
         } else {
             $form->setReadOnly("grouping{$i}");
@@ -886,7 +886,7 @@ class acc_BalanceDetails extends core_Detail
     {
         $toSave = array();
         $toDelete = array();
-        if (count($this->balance)) {
+        if (countR($this->balance)) {
             foreach ($this->balance as $accId => $l0) {
                 foreach ($l0 as $ent1 => $l1) {
                     foreach ($l1 as $ent2 => $l2) {
@@ -950,15 +950,15 @@ class acc_BalanceDetails extends core_Detail
         $res = false;
         
         // Записваме новите данни
-        if (count($toSave)) {
-            $this->logInfo('Save balance details: ' . count($toSave));
+        if (countR($toSave)) {
+            $this->logInfo('Save balance details: ' . countR($toSave));
             $this->saveArray($toSave);
             $res = true;
         }
         
         // Изтриваме старите записи, които не се срещат в новия
-        if (count($toDelete)) {
-            $this->logInfo('Delete balance details: ' . count($toDelete));
+        if (countR($toDelete)) {
+            $this->logInfo('Delete balance details: ' . countR($toDelete));
             $idList = implode(',', $toDelete);
             $this->delete("#id IN ({$idList})");
             $res = true;
@@ -1071,7 +1071,7 @@ class acc_BalanceDetails extends core_Detail
         $recs = $query->fetchAll();
         
         // Дигаме времето за изпълнение на скрипта пропорционално на извлечените записи
-        $timeLimit = ceil(count($recs) / 3000) * 180;
+        $timeLimit = ceil(countR($recs) / 3000) * 180;
         if ($timeLimit != 0) {
             core_App::setTimeLimit($timeLimit);
         }
@@ -1079,7 +1079,7 @@ class acc_BalanceDetails extends core_Detail
         // Слагаме флага да не преизчислява баланса
         $hasUpdatedJournal = false;
         
-        if (count($recs)) {
+        if (countR($recs)) {
             if ($isMiddleBalance === true) {
                 
                 // Ако зареждаме данните от журнала, които са в междинния баланс
@@ -1430,7 +1430,7 @@ class acc_BalanceDetails extends core_Detail
         // Трябва да има поне една зададена сметка
         $accounts = arr::make($accs);
         
-        if (count($accounts) >= 1) {
+        if (countR($accounts) >= 1) {
             foreach ($accounts as $sysId) {
                 $accId = acc_Accounts::fetchField("#systemId = '{$sysId}'", 'id');
                 
@@ -1446,7 +1446,7 @@ class acc_BalanceDetails extends core_Detail
         // Перата които може да са на произволна позиция
         $itemsAll = arr::make($itemsAll);
         
-        if (count($itemsAll)) {
+        if (countR($itemsAll)) {
             $itemsAll = array_values($itemsAll);
             foreach ($itemsAll as $indexAll => $itemId) {
                 

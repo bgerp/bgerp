@@ -162,7 +162,7 @@ class acc_BalanceTransfers extends core_Master
             $accInfo = acc_Accounts::getAccountInfo($rec->fromAccount);
             
             // Показваме аналитичностите и
-            if (count($accInfo->groups)) {
+            if (countR($accInfo->groups)) {
                 foreach ($accInfo->groups as $i => $gr) {
                     if ($gr->rec->regInterfaceId) {
                         $interfaces[] = core_Interfaces::fetchField($gr->rec->regInterfaceId, 'name');
@@ -175,7 +175,7 @@ class acc_BalanceTransfers extends core_Master
             }
             
             // Задаваме на другата сметка да използва същите аналитичности
-            $interfaces = count($interfaces) ? implode('|', $interfaces) : 'none';
+            $interfaces = countR($interfaces) ? implode('|', $interfaces) : 'none';
             $form->fromAccountInterfaces = $interfaces;
             $form->setFieldTypeParams('toAccount', array('regInterfaces' => $interfaces));
         }
@@ -183,7 +183,7 @@ class acc_BalanceTransfers extends core_Master
         // Ако е избрана дестинационна сметка, показваме и аналитичностите
         if (isset($rec->toAccount)) {
             $accInfo1 = acc_Accounts::getAccountInfo($rec->toAccount);
-            if (count($accInfo1->groups)) {
+            if (countR($accInfo1->groups)) {
                 foreach ($accInfo1->groups as $i => $gr) {
                     $form->setField("toEnt{$i}Id", "input,caption=Към->{$gr->rec->name}");
                     $form->setFieldTypeParams("toEnt{$i}Id", array('lists' => $gr->rec->num));

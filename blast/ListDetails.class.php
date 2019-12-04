@@ -634,7 +634,7 @@ class blast_ListDetails extends doc_Detail
                 unset($csvRows[0]);
             }
             
-            $time = round(count($csvRows) / 5) + 10;
+            $time = round(countR($csvRows) / 5) + 10;
             
             core_App::setTimeLimit($time);
             
@@ -642,7 +642,7 @@ class blast_ListDetails extends doc_Detail
             
             $errLinesArr = array();
             
-            if (count($csvRows)) {
+            if (countR($csvRows)) {
                 foreach ($csvRows as $row) {
                     $rowArr = str_getcsv($row, $delimiter, $enclosure);
                     $rec = new stdClass();
@@ -663,7 +663,7 @@ class blast_ListDetails extends doc_Detail
                     $key = $rec->{$keyField};
                     
                     // Ако ключа е празен, скипваме текущия ред
-                    if (empty($key) || count($err)) {
+                    if (empty($key) || countR($err)) {
                         $errLinesArr[] = $row;
                         
                         if (empty($key)) {
@@ -869,17 +869,17 @@ class blast_ListDetails extends doc_Detail
             }
         }
         
-        if (count($rows) === 0) {
+        if (countR($rows) === 0) {
             
             return array();
         }
         
         $rowArr = str_getcsv($rows[0], $delimiter, $enclosure);
         
-        if (count($rows) > 1) {
+        if (countR($rows) > 1) {
             $rowArr1 = str_getcsv($rows[1], $delimiter, $enclosure);
             
-            if (count($rowArr) != count($rowArr1)) {
+            if (countR($rowArr) != countR($rowArr1)) {
                 
                 return array();
             }
@@ -894,7 +894,7 @@ class blast_ListDetails extends doc_Detail
             }
         }
         
-        if (!count($rowArr)) {
+        if (!countR($rowArr)) {
             
             return array();
         }

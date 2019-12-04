@@ -181,14 +181,14 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         $dateFields = arr::make($mvc->filterDateField, true);
         $userFields = arr::make($mvc->filterFieldUsers, true);
-        $userFields = (count($userFields) && array_key_exists('createdBy', $userFields)) ? array() : $userFields;
-        if(count($userFields) && isset($mvc->fields['createdBy']) && !array_key_exists('createdBy', $userFields)){
+        $userFields = (countR($userFields) && array_key_exists('createdBy', $userFields)) ? array() : $userFields;
+        if(countR($userFields) && isset($mvc->fields['createdBy']) && !array_key_exists('createdBy', $userFields)){
             $userFields['createdBy'] = 'createdBy';
         }
         
         $flds = $dateFields + $userFields;
         
-        if (count($flds)) {
+        if (countR($flds)) {
             $opt = array();
             $defaultFilterDateField = null;
             foreach ($flds as $f) {
@@ -321,7 +321,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $dateRange[1] = $filter->to;
             }
             
-            if (count($dateRange) == 2) {
+            if (countR($dateRange) == 2) {
                 sort($dateRange);
             }
             
@@ -445,7 +445,7 @@ class acc_plg_DocumentSummary extends core_Plugin
      */
     private static function prepareSummary($mvc, $fieldsArr, $rec, &$res, $currencyCode)
     {
-        if (count($fieldsArr) == 0) {
+        if (countR($fieldsArr) == 0) {
             
             return;
         }
@@ -454,7 +454,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             if (!array_key_exists($fld->name, $res)) {
                 $captionValue = (isset($fld->summaryCaption)) ? $fld->summaryCaption : $fld->caption;
                 $captionArr = explode('->', $captionValue);
-                $caption = (count($captionArr) == 2) ? tr($captionArr[0]) . ': ' . tr($captionArr[1]) : tr($captionValue);
+                $caption = (countR($captionArr) == 2) ? tr($captionArr[0]) . ': ' . tr($captionArr[1]) : tr($captionValue);
                 $res[$fld->name] = (object) array('caption' => $caption, 'measure' => '', 'number' => 0);
             }
             
@@ -493,7 +493,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $tpl = new ET(tr('|*' . getFileContent('acc/plg/tpl/Summary.shtml')));
         $rowTpl = $tpl->getBlock('ROW');
         
-        if (count($res)) {
+        if (countR($res)) {
             foreach ($res as $rec) {
                 $row = new stdClass();
                 $row->measure = $rec->measure;

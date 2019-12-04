@@ -39,7 +39,7 @@ class acc_journal_Item
     public function __construct($classId, $objectId = null)
     {
         if (isset($classId) && is_array($classId)) {
-            acc_journal_Exception::expect(count($classId) == 2, 'Масива трябва да е от два елемента');
+            acc_journal_Exception::expect(countR($classId) == 2, 'Масива трябва да е от два елемента');
             list($classId, $objectId) = $classId;
             acc_journal_Exception::expect($classId, 'Не е подаден клас');
             $classId = core_Classes::getId($classId);

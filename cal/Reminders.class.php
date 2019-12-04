@@ -802,7 +802,7 @@ class cal_Reminders extends core_Master
         $rec->customUrl = array('cal_Reminders', 'single',  $rec->id);
         
         $subscribedArr = keylist::toArray($rec->sharedUsers);
-        if (count($subscribedArr)) {
+        if (countR($subscribedArr)) {
             foreach ($subscribedArr as $userId) {
                 if ($userId > 0 && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
                     switch ($rec->action) {
