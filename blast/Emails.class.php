@@ -836,7 +836,7 @@ class blast_Emails extends core_Master
                 //Вземаме манупулаторите на файловете
                 $attFhArr = $this->getAttachments($rec);
                 
-                if (count($attFhArr)) {
+                if (countR($attFhArr)) {
                     // Манипулаторите да са и в стойноситите им
                     $attFhArr = array_keys($attFhArr);
                     $attFhArr = array_combine($attFhArr, $attFhArr);
@@ -2274,7 +2274,7 @@ class blast_Emails extends core_Master
         core_Users::exitSudo();
         
         // Ако има прикачени документи
-        if (count($attachedDocs)) {
+        if (countR($attachedDocs)) {
             $attachedDocs = array_keys($attachedDocs);
             $attachedDocs = array_combine($attachedDocs, $attachedDocs);
             
