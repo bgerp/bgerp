@@ -1458,7 +1458,7 @@ class bgerp_Notifications extends core_Manager
                     $usersArr = type_Keylist::toArray($filter->usersSearch);
                     
                     // Ако има избрани потребители
-                    if (count((array) $usersArr)) {
+                    if (countR((array) $usersArr)) {
                         
                         // Показваме всички потребители
                         $data->query->orWhereArr('userId', $usersArr);

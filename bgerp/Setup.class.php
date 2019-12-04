@@ -330,7 +330,7 @@ class bgerp_Setup extends core_ProtoSetup
             
             $packArr = arr::make($packs);
             
-            $packCnt = count($packArr);
+            $packCnt = countR($packArr);
             $i = 1;
             
             // Извършваме инициализирането на всички включени в списъка пакети
@@ -473,7 +473,7 @@ class bgerp_Setup extends core_ProtoSetup
         
         $packArr = arr::make($packs);
         
-        $packCnt = count($packArr);
+        $packCnt = countR($packArr);
         $i = 1;
         
         // Извършваме инициализирането на всички включени в списъка пакети
