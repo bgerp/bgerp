@@ -368,7 +368,6 @@ class pos_Terminal extends peripheral_Terminal
             case 'price':
                 $res = $this->renderResultPrice($rec, $string, $selectedRecId);
                 break;
-                break;
             case 'payment':
                 $res = $this->renderResultPayment($rec, $string, $selectedRecId);
                 break;
