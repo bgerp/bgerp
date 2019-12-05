@@ -872,6 +872,8 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.css', 'CSS');
         $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.js', 'JS');
         jquery_Jquery::run($tpl, "$('a.fancybox').fancybox();", true);
+        jquery_Jquery::run($tpl, "render_prepareResult()");
+        
         jqueryui_Ui::enable($tpl);
         
         //@TODO да се добавят стилове от тема $rec->theme
