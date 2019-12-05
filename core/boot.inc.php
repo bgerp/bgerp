@@ -813,7 +813,10 @@ function setupKey($efSalt = null, $i = 0)
  */
 function countR($arr)
 {
-    expect(is_array($arr) || empty($arr), $arr);
+    if(!is_array($arr) && !empty($arr)) {
+        print_r($arr);
+        die('countR - this is not an array');
+    }
 
-    return empty($arr) ? 0 : countR($arr);
+    return empty($arr) ? 0 : count($arr);
 }
