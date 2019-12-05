@@ -705,6 +705,15 @@ function render_prepareResult() {
 		}
 		$('#result-holder .navigable').keynav();
 	}
+	
+	// Бутона за увеличение да се дисейбва ако няма избран селектиран ред
+	if($('.enlargeProductBtn').length){
+		if($('.navigable').length){
+			$('.enlargeProductBtn').removeClass('disabledBtn');
+		} else {
+			$('.enlargeProductBtn').addClass('disabledBtn');
+		}
+	}
 }
 
 function render_calculateWidth(){

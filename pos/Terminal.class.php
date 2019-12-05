@@ -186,10 +186,6 @@ class pos_Terminal extends peripheral_Terminal
         $resObj->func = 'html';
         $resObj->arg = array('id' => 'productInfo', 'html' => $docHtml->getContent(), 'replace' => true);
         $res[] = $resObj;
-
-        $resObj = new stdClass();
-        $resObj->func = 'fancybox';
-        $res[] = $resObj;
         
         return $res;
     }
