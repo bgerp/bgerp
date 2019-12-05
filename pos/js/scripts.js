@@ -275,6 +275,7 @@ function posActions() {
 	});
 
 	if($('.navigable').length) {
+		$('#result-holder .navigable').keynav();
 		var focused = sessionStorage.getItem('focused');
 		if (focused && document.getElementById(focused)) {
 			$('.selected').removeClass('selected');
@@ -319,8 +320,6 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		sessionStorage.removeItem("focused");
-		
 		getEfae().process(resObj, {operation:operation,recId:selectedRecId});
 	});
 	
@@ -336,8 +335,6 @@ function posActions() {
 		var url = $(this).attr("data-url");
 		resObj = new Object();
 		resObj['url'] = url;
-		
-		sessionStorage.removeItem("focused");
 		
 		getEfae().process(resObj, {operation:operation,recId:selectedRecId});
 	});
@@ -605,24 +602,13 @@ function getSelectedOperation()
 }
 
 function render_prepareResult() {
-	console.log('love');
 	if($('.navigable').length) {
+		$('#result-holder .navigable').keynav();
 		var focused = sessionStorage.getItem('focused');
-		console.log("currentFocused: " + focused);
-		
 		if (focused && document.getElementById(focused)) {
 			$('.selected').removeClass('selected');
 			$('#' + focused).addClass('selected');
 			$('#result-holder .navigable').keynav();
-		} else {
-			var firstNavigable = $('.navigable').first();
-			console.log(firstNavigable);
-			
-			if(firstNavigable.length){
-				sessionStorage.setItem('focused', $(firstNavigable).attr('id'));
-			}
-			
-			console.log("Focues first: " + $(firstNavigable).attr('id'));
 		}
 	}
 }
