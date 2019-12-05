@@ -428,7 +428,7 @@ class pos_ReceiptDetails extends core_Detail
         $res = new stdClass();
         $query = $this->getQuery();
         $query->where("#receiptId = '{$receiptId}'");
-        $query->orderBy('id', 'asc');
+        $query->orderBy('modifiedOn', 'asc');
         
         while ($rec = $query->fetch()) {
             $res->recs[$rec->id] = $rec;
