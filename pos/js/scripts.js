@@ -63,6 +63,7 @@ function posActions() {
 		
 		var selectedElement = $(".highlighted");
 		var selectedRecId = selectedElement.attr("data-id");
+		console.log(selectedRecId);
 		
 		getEfae().process(resObj, {recId:selectedRecId});
 	});
@@ -383,7 +384,10 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		getEfae().process(resObj);
+		var selectedElement = $(".highlighted");
+		var selectedRecId = selectedElement.attr("data-id");
+		
+		getEfae().process(resObj, {recId:selectedRecId});
 	});
 
 	// При отваряне на нова бележка маха се фокусирания елемент
@@ -408,7 +412,10 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		getEfae().process(resObj, {string:string});
+		var selectedElement = $(".highlighted");
+		var selectedRecId = selectedElement.attr("data-id");
+		
+		getEfae().process(resObj, {string:string,recId:selectedRecId});
 	});
 	
 	$(document.body).on('click', ".enlargeProductBtn", function(e){
