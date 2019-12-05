@@ -299,7 +299,7 @@ class core_FieldSet extends core_BaseClass
                     }
                 }
                 
-                if (countR($before) || countR($after)) {
+                if (count($before) || count($after)) {
                     $me = array($name => $this->fields[$name]);
                     $this->fields = $firstArr + $before + $me + $after + $secondArr;
                 }
@@ -426,7 +426,7 @@ class core_FieldSet extends core_BaseClass
      */
     public function appendSuggestions($name, $suggestions)
     {
-        if (countR($suggestions)) {
+        if (count($suggestions)) {
             foreach ($suggestions as $key => $value) {
                 $this->fields[$name]->type->suggestions[$key] = $value;
             }
@@ -440,7 +440,7 @@ class core_FieldSet extends core_BaseClass
     public function prependSuggestions($name, $suggestions)
     {
         $getSuggestions = $this->getSuggestions($name);
-        if (countR($getSuggestions)) {
+        if (count($getSuggestions)) {
             foreach ($getSuggestions as $key => $value) {
                 $suggestions[$key] = $value;
             }
@@ -473,7 +473,7 @@ class core_FieldSet extends core_BaseClass
      */
     public function appendOptions($name, $options)
     {
-        if (countR($options)) {
+        if (count($options)) {
             foreach ($options as $key => $value) {
                 $this->fields[$name]->options[$key] = $value;
             }
@@ -486,7 +486,7 @@ class core_FieldSet extends core_BaseClass
      */
     public function prependOptions($name, $options)
     {
-        if (countR($this->fields[$name]->options)) {
+        if (count($this->fields[$name]->options)) {
             foreach ($this->fields[$name]->options as $key => $value) {
                 $options[$key] = $value;
             }
@@ -689,7 +689,7 @@ class core_FieldSet extends core_BaseClass
         
         $fieldType = $this->getFieldType($name);
         
-        if (countR($params)) {
+        if (count($params)) {
             foreach ($params as $param => $value) {
                 $fieldType->params[$param] = $value;
             }

@@ -150,7 +150,7 @@ class core_App
             $vUrl = explode('/', $_GET['virtual_url']);
                
             // Премахваме последният елемент
-            $cnt = countR($vUrl);
+            $cnt = count($vUrl);
             
             if (!strlen($vUrl[$cnt - 1])) {
                 unset($vUrl[$cnt - 1]);
@@ -206,7 +206,7 @@ class core_App
                     continue;
                 }
                 
-                if ((countR($vUrl) - $id) % 2 || floor($prm) > 0) {
+                if ((count($vUrl) - $id) % 2 || floor($prm) > 0) {
                     if (!isset($q['id']) && !$name) {
                         $q['id'] = decodeUrl($prm);
                     } else {
@@ -763,9 +763,9 @@ class core_App
             $get['Act'] = $arr[2];
             $begin = 3;
             
-            $cnt = countR($arr);
+            $cnt = count($arr);
             
-            if (countR($arr) % 2 == (($begin - 1) % 2)) {
+            if (count($arr) % 2 == (($begin - 1) % 2)) {
                 $get['id'] = $arr[$begin];
                 $begin++;
             }
@@ -776,9 +776,9 @@ class core_App
                 $value = decodeUrl($value);
                 $key = explode(',', $key);
                 
-                if (countR($key) == 1) {
+                if (count($key) == 1) {
                     $get[$key[0]] = $value;
-                } elseif (countR($key) == 2) {
+                } elseif (count($key) == 2) {
                     $get[$key[0]][$key[1]] = $value;
                 } else {
                     // Повече от едномерен масив в URL-то не се поддържа
@@ -1048,7 +1048,7 @@ class core_App
             unset($params['#']);
         }
         
-        if (countR($params)) {
+        if (count($params)) {
             $urlQuery = http_build_query($params);
         }
         
@@ -1199,7 +1199,7 @@ class core_App
             
             return trim($value) !== '';
         });
-        $cntBranches = countR($branchArr);
+        $cntBranches = count($branchArr);
         
         $res = array();
         foreach ($pathArr as $i => $line) {
@@ -1280,7 +1280,7 @@ class core_App
             $new = $args[$i];
             
             if (is_array($p1)) {
-                if (!countR($new)) {
+                if (!count($new)) {
                     continue;
                 }
                 

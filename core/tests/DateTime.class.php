@@ -374,7 +374,7 @@ class core_tests_DateTime extends unit_Class
             $s = '^([0-9]{1,2})-([0-9]{1,2})-([0-9]{2,4})^';
             preg_match($s, $verbDate, $out);
             
-            if (countR($out) > 0) {
+            if (count($out) > 0) {
                 $day = $out[1];
                 $month = $out[2];
                 $year = $out[3];
@@ -382,7 +382,7 @@ class core_tests_DateTime extends unit_Class
                 $s = '^([0-9]{1,2})-([0-9]{1,2})^';
                 preg_match($s, $verbDate, $out);
                 
-                if (countR($out) > 0) {
+                if (count($out) > 0) {
                     $day = $out[1];
                     $month = $out[2];
                     $year = date('Y', time());
@@ -423,7 +423,7 @@ class core_tests_DateTime extends unit_Class
             $s = '^([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})^';
             preg_match($s, $verbDate, $out);
             
-            if (countR($out) > 0) {
+            if (count($out) > 0) {
                 $hours = $out[1];
                 $minutes = $out[2];
                 $seconds = $out[3];
@@ -431,7 +431,7 @@ class core_tests_DateTime extends unit_Class
                 $s = '^([0-9]{1,2}):([0-9]{1,2})^';
                 preg_match($s, $verbDate, $out);
                 
-                if (countR($out) > 0) {
+                if (count($out) > 0) {
                     $hours = $out[1];
                     $minutes = $out[2];
                     $seconds = 0;

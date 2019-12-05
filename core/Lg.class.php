@@ -222,12 +222,12 @@ class core_Lg extends core_Manager
             // Разбиваме стринга на участъци, който са разделени със символа '|'
             $strArr = explode('|', $kstring);
             
-            if (countR($strArr) > 1) {
+            if (count($strArr) > 1) {
                 $translated = array();
                 
                 // Ако последната или първата фраза са празни - махаме ги
-                if ($strArr[countR($strArr) - 1] == '') {
-                    unset($strArr[countR($strArr) - 1]);
+                if ($strArr[count($strArr) - 1] == '') {
+                    unset($strArr[count($strArr) - 1]);
                 }
                 
                 if ($strArr[0] == '') {

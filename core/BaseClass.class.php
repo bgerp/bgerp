@@ -183,7 +183,7 @@ class core_BaseClass
             $this->_listenerCache[$method] = array();
             
             // Проверяваме дали имаме плъгин(и), който да обработва това събитие
-            if (countR($this->_plugins)) {
+            if (count($this->_plugins)) {
                 $plugins = array_reverse($this->_plugins);
                 foreach ($plugins as $plg) {
                     if (method_exists($plg, $method)) {
@@ -210,7 +210,7 @@ class core_BaseClass
         // Използваме кеша за извикаване на обработвачите
         if (countR($this->_listenerCache[$method])) {
             $args1 = array(&$this);
-            $cntArgs = countR($args);
+            $cntArgs = count($args);
             for ($i = 0; $i < $cntArgs; $i++) {
                 $args1[] = & $args[$i];
             }
@@ -239,7 +239,7 @@ class core_BaseClass
         $argsHnd = array(&$res);
         $argsMtd = array();
         
-        $cntArgs = countR($args);
+        $cntArgs = count($args);
         for ($i = 0; $i < $cntArgs; $i++) {
             $argsHnd[] = & $args[$i];
             $argsMtd[] = & $args[$i];
