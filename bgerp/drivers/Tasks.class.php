@@ -205,7 +205,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
             $addBtn = ht::createLink(' ', $addUrl, null, array('ef_icon' => 'img/16/task-add.png', 'class' => 'addTask', 'title' => 'Добавяне на нова Задача'));
             $data->tpl->append($addBtn, 'ADD_BTN');
             
-            $sRetUrl = array('Portal', 'Show2');
+            $sRetUrl = array('Portal', 'Show');
             
             if (Mode::is('screenMode', 'narrow')) {
                 $sRetUrl['#'] = 'taskPortal';
