@@ -451,7 +451,7 @@ function posActions() {
 		dialog.dialog( "open" );
 	});
 
-	hotkeys('alt+d,alt+a,alt+k,alt+p,alt+z,alt+t,alt+,alt+c,alt+r,alt+b', function (event, handler){
+	hotkeys('alt+d,alt+a,alt+k,alt+p,alt+z,alt+t,alt+5,alt+c,alt+r,alt+b', function (event, handler){
 		switch (handler.key) {
 			case 'alt+d': deleteElement();
 				break;
