@@ -403,7 +403,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultText($rec, $string, $selectedRecId)
     {
-        $tpl = new core_ET("<div class='displayFlex'>");
+        $tpl = new core_ET("");
         
         $count = 0;
         $query = pos_ReceiptDetails::getQuery();
@@ -424,7 +424,7 @@ class pos_Terminal extends peripheral_Terminal
             $tpl->append($element);
             $count++;
         }
-        $tpl->append("</div>");
+        $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
     }
@@ -455,7 +455,7 @@ class pos_Terminal extends peripheral_Terminal
             $currentDiscount = round($discountInputed/100, 2);
         }
         
-        $tpl = new core_ET("<div class='displayFlex'>");
+        $tpl = new core_ET("");
         foreach ($discountsArr as $discAmount){
             $url = toUrl(array('pos_ReceiptDetails', 'updateRec', 'receiptId' => $rec->id, 'action' => 'setdiscount', 'string' => "{$discAmount}"), 'local');
             
@@ -463,7 +463,7 @@ class pos_Terminal extends peripheral_Terminal
             $element = ht::createElement("div", array('id' => "discount{$discAmount}", 'class' => $class, 'data-url' => $url), "{$discAmount} %", true);
             $tpl->append($element);
         }
-        $tpl->append("</div>");
+        $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
     }
@@ -582,6 +582,7 @@ class pos_Terminal extends peripheral_Terminal
         foreach ($buttons as $btn){
             $tpl->append($btn);
         }
+        $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
     }
@@ -599,7 +600,7 @@ class pos_Terminal extends peripheral_Terminal
     private function renderResultPayment($rec, $string, $selectedRecId)
     {
         $Receipts = cls::get('pos_Receipts');
-        $tpl = new core_ET("<div class='displayFlex'>");
+        $tpl = new core_ET("");
         
         $payUrl = (pos_Receipts::haveRightFor('pay', $rec)) ? toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local') : null;
         $disClass = ($payUrl) ? '' : 'disabledBtn';
@@ -624,7 +625,8 @@ class pos_Terminal extends peripheral_Terminal
         foreach ($buttons as $btn){
             $tpl->append($btn);
         }
-        $tpl->append("</div></div>");
+        $tpl->append("</div>");
+        $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
     }
@@ -688,11 +690,11 @@ class pos_Terminal extends peripheral_Terminal
             $buttons["{$productRec->packagingId}|{$productRec->quantity}"] = ht::createElement("div", array('id' => "packaging{$packagingId}{$productRec->quantity}{$selectedRec->productId}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packagingId, 'data-url' => $dataUrl), $btnCaption, true);
         }
         
-        $tpl = new core_ET("<div class='displayFlex'>");
+        $tpl = new core_ET("");
         foreach ($buttons as $btn){
             $tpl->append($btn);
         }
-        $tpl->append("</div>");
+        $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
     }
@@ -740,11 +742,11 @@ class pos_Terminal extends peripheral_Terminal
             $buttons[$dRec->price] = ht::createElement("div", array('id' => "price{$cnt}",'class' => $class, 'data-url' => $dataUrl), tr($btnName), true);
         }
         
-        $tpl = new core_ET("<div class='displayFlex'>");
+        $tpl = new core_ET("");
         foreach ($buttons as $btn){
             $tpl->append($btn);
         }
-        $tpl->append("</div>");
+        $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
     }
@@ -1081,8 +1083,13 @@ class pos_Terminal extends peripheral_Terminal
     {
         $rec = $this->fetchRec($id);
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('DRAFTS');
-        $block->prepend("<div class='displayFlex'>");
+        $block->prepend("");
         $pointId = pos_Points::getCurrent('id');
+        
+        if (pos_Receipts::haveRightFor('add')) {
+            $addBtn = ht::createLink("+", array('pos_Receipts', 'new', 'forced' => true), null, 'id=newreceipt,class=pos-notes posBtns openNoteBtn navigable selected');
+            $block->append($addBtn);
+        }
         
         // Намираме всички чернови бележки и ги добавяме като линк
         $query = pos_Receipts::getQuery();
@@ -1093,11 +1100,7 @@ class pos_Terminal extends peripheral_Terminal
             $block->append($row);
         }
         
-        if (pos_Receipts::haveRightFor('add')) {
-            $addBtn = ht::createLink("+", array('pos_Receipts', 'new', 'forced' => true), null, 'id=newreceipt,class=pos-notes posBtns openNoteBtn navigable selected');
-            $block->prepend($addBtn);
-        }
-        $block->append("</div>");
+        $block = ht::createElement('div', array('class' => 'displayFlex'), $block, true);
         
         return $block;
     }
