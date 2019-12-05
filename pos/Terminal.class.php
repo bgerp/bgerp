@@ -859,6 +859,7 @@ class pos_Terminal extends peripheral_Terminal
         if (!Mode::is('printing')) {
             $tpl->push('pos/js/scripts.js', 'JS');
             $tpl->push('pos/js/jquery.keynav.js', 'JS');
+            $tpl->push('pos/js/hotkeys.js', 'JS');
             jquery_Jquery::run($tpl, 'posActions();');
         }
         

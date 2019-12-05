@@ -248,7 +248,9 @@ function posActions() {
 		closestSearch.trigger(e);
 	});
 
+
 	document.addEventListener("keydown", function(event) {
+		console.log(event.key);
 		if(event.key == "ArrowUp"){
 			arrowUp();
 		}
@@ -448,7 +450,70 @@ function posActions() {
 
 		dialog.dialog( "open" );
 	});
-	
+
+	hotkeys('alt+d,alt+a,alt+k,alt+p,alt+z,alt+t,alt+,alt+c,alt+r,alt+b', function (event, handler){
+		switch (handler.key) {
+			case 'alt+d': deleteElement();
+				break;
+			case 'alt+a': openProducts();
+				break;
+			case 'alt+k': openQuantity();
+				break;
+			case 'alt+p': openPayment();
+				break;
+			case 'alt+z': openPrice();
+				break;
+			case 'alt+t': openText();
+				break;
+			case 'alt+5': event.preventDefault(); openDiscount();
+				break;
+			case 'alt+c': openClient();
+				break;
+			case 'alt+b': openReceipt();
+				break;
+			case 'alt+r': openRevert();
+				break;
+		}
+	});
+}
+function openReceipt() {
+	$('.operationBtn[data-value="receipts"]').click();
+}
+function openRevert() {
+	$('.operationBtn[data-value="revert"]').click();
+}
+function openClient() {
+	$('.operationBtn[data-value="contragent"]').click();
+}
+function openDiscount() {
+	if ($('.operationBtn[data-value="discount"]').length) {
+		$('.operationBtn[data-value="discount"]').click();
+	}
+}
+function openText() {
+	if ($('.operationBtn[data-value="text"]').length) {
+		$('.operationBtn[data-value="text"]').click();
+	}
+}
+function openPrice() {
+	if ($('.operationBtn[data-value="price"]').length) {
+		$('.operationBtn[data-value="price"]').click();
+	}
+}
+function openProducts() {
+	$('.operationBtn[data-value="add"]').click();
+}
+
+function openQuantity() {
+	if ($('.operationBtn[data-value="quantity"]').length) {
+		$('.operationBtn[data-value="quantity"]').click();
+	}
+}
+
+function openPayment() {
+	if ($('.operationBtn[data-value="payment"]').length) {
+		$('.operationBtn[data-value="payment"]').click();
+	}
 }
 
 // Калкулира ширината
@@ -607,6 +672,11 @@ function getSelectedOperation()
 	return operation;
 }
 
+function deleteElement() {
+	if($('.receiptRow.highlighted').length) {
+		$('.receiptRow.highlighted').find('.pos-del-btn').click();
+	}
+}
 function render_prepareResult() {
 	if($('.navigable').length) {
 		var focused = sessionStorage.getItem('focused');
