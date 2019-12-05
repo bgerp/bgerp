@@ -960,9 +960,8 @@ if ($step == 'setup') {
 
     // Освобождава манипулатора на сесията. Ако трябва да се правят
     // записи в сесията, то те трябва да се направят преди shutdown()
-   // core_Session::pause();
-
-
+    core_Session::pause();
+    
     set_time_limit(1000);
 
     $calibrate = 1000;
