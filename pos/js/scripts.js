@@ -419,8 +419,7 @@ function posActions() {
 			return;
 		}
 		
-		var focused = sessionStorage.getItem('focused');
-		var selectedElement = $('#' + focused);
+		var selectedElement = $('.selected');
 		var productId = selectedElement.attr("data-productid");
 		productId = (productId) ? productId : selectedElement.attr("data-id");
 		if(!productId) {
@@ -648,9 +647,6 @@ function enter() {
 
 		if(element != undefined){
 
-			//console.log(element);
-			
-			//return;
 			// Вика се клик
 			var event = jQuery.Event("click");
 			element.trigger(event);
