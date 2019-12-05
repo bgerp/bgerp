@@ -902,6 +902,9 @@ class pos_Terminal extends peripheral_Terminal
         $tpl = new core_ET(" ");
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PRODUCTS_RESULT');
         foreach ($data->rows as $row){
+            if(!empty($data->rec->paid)){
+                $row->CLASS = 'disabledBtn';
+            }
             $row->elementId = "product{$row->id}";
             $bTpl = clone $block;
             $bTpl->placeObject($row);

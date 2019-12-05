@@ -284,7 +284,7 @@ class pos_Favourites extends core_Manager
     {
         $products = $data->arr;
         $blockTpl = $tpl->getBlock('ITEM');
-       
+      
         $cnt = 0;
         foreach ($products as $row) {
             $row->url = toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $data->rec->id), 'local');
@@ -294,6 +294,10 @@ class pos_Favourites extends core_Manager
                 $img = new thumb_Img(array($row->image, 80, 80, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
                 $imageURL = $img->getUrl('forced');
                 $row->image = ht::createElement('img', array('src' => $imageURL, 'width' => '120px', 'height' => '120px'));
+            }
+            
+            if(!empty($data->rec->paid)){
+                $row->CLASS = 'disabledBtn';
             }
             
             if($cnt == 0){
