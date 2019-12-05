@@ -77,6 +77,8 @@ class bgerp_drivers_Tasks extends core_BaseClass
             $resData->data->query->likeKeylist('assign', $userId);
         }
         
+        $cloneQuery = clone $resData->data->query;
+        
         $resData->data->query->where("#state = 'active'");
         $resData->data->query->orWhere("#state = 'wakeup'");
         $resData->data->query->orWhere("#state = 'waiting'");
@@ -84,8 +86,6 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         $resData->data->query->where('#timeStart IS NULL');
         $resData->data->query->where('#timeEnd IS NULL');
-        
-        $cloneQuery = clone $resData->data->query;
         
         $cloneQuery->orderBy('modifiedOn', 'DESC');
         $cloneQuery->limit(1);
