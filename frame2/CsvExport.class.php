@@ -87,7 +87,7 @@ class frame2_CsvExport extends core_Mvc
         
         $params = (array)$form->rec;
         if (isset($params['newLineDelimiter'])) {
-            $params['newLineDelimiter'] = ($params['newLineDelimiter'] == 1) ? "\n" : (($params['newLineDelimiter'] == 2) ? "\r\n" : "\n");
+            $params['newLineDelimiter'] = ($params['newLineDelimiter'] == 3) ? "\r" : (($params['newLineDelimiter'] == 2) ? "\r\n" : "\n");
         }
         
         unset($params['type']);
