@@ -275,12 +275,13 @@ function posActions() {
 	});
 
 	if($('.navigable').length) {
-		$('#result-holder .navigable').keynav();
+
 		var focused = sessionStorage.getItem('focused');
 		if (focused && document.getElementById(focused)) {
 			$('.selected').removeClass('selected');
 			$('#' + focused).addClass('selected');
 		}
+		$('#result-holder .navigable').keynav();
 	}
 
 	$(document.body).on('click', ".navigable", function(e){
@@ -602,12 +603,12 @@ function getSelectedOperation()
 
 function render_prepareResult() {
 	if($('.navigable').length) {
-		$('#result-holder .navigable').keynav();
 		var focused = sessionStorage.getItem('focused');
 		if (focused && document.getElementById(focused)) {
 			$('.selected').removeClass('selected');
 			$('#' + focused).addClass('selected');
 		}
+		$('#result-holder .navigable').keynav();
 	}
 }
 
