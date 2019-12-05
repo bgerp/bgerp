@@ -86,8 +86,14 @@ class frame2_CsvExport extends core_Mvc
         }
         
         $params = (array)$form->rec;
-        $params['newLineDelimiter'] = ($params['newLineDelimiter'] == 1) ? "\n" : (($params['newLineDelimiter'] == 2) ? "\r\n" : "\r");
+        if (isset($params['newLineDelimiter'])) {
+            $params['newLineDelimiter'] = ($params['newLineDelimiter'] == 1) ? "\n" : (($params['newLineDelimiter'] == 2) ? "\r\n" : "\n");
+        }
+        
         unset($params['type']);
+        
+        setIfNot($params['encoding'], 'UTF-8');
+        setIfNot($params['extension'], 'csv');
         
         // Подготовка на данните
         $lang = null;
@@ -107,7 +113,6 @@ class frame2_CsvExport extends core_Mvc
             
             // Създаване на csv-то
             $csv = csv_Lib::createCsv($csvRecs, $fields, null, $params);
-            $csv .= $params['newLineDelimiter'];
             
             if(isset($lang)){
                 core_Lg::pop();
