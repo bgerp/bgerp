@@ -615,7 +615,6 @@ function render_prepareResult() {
 
 function render_calculateWidth(){
 	calculateWidth();
-
 }
 
 function enter() {
