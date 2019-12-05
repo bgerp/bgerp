@@ -47,7 +47,7 @@ class core_NT extends core_BaseClass
         // плейсхолдери с имена [#1#], [#2#] ...
         $args = func_get_args();
         
-        if (countR($args) > 1) {
+        if (count($args) > 1) {
             array_unshift($args);
             $this->render($args, null, 'replaceArray');
         }

@@ -488,7 +488,7 @@ class core_ProtoSetup
      */
     protected function setCron()
     {
-        if (is_array($this->cronSettings) && countR($this->cronSettings)) {
+        if (is_array($this->cronSettings) && count($this->cronSettings)) {
             if (!is_array($this->cronSettings[0])) {
                 $this->cronSettings = array($this->cronSettings);
             }
@@ -511,7 +511,7 @@ class core_ProtoSetup
     {
         $res = '';
         
-        if (countR($this->menuItems)) {
+        if (count($this->menuItems)) {
             $conf = $this->getConfig();
             
             // Името на пакета

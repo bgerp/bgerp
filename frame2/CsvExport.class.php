@@ -86,8 +86,27 @@ class frame2_CsvExport extends core_Mvc
         }
         
         $params = (array)$form->rec;
-        $params['newLineDelimiter'] = ($params['newLineDelimiter'] == 1) ? "\n" : (($params['newLineDelimiter'] == 2) ? "\r\n" : "\r");
+        if (isset($params['newLineDelimiter'])) {
+            switch($params['newLineDelimiter']){
+                case 2:
+                    $params['newLineDelimiter'] = "\r\n";
+                    break;
+                case 3:
+                    $params['newLineDelimiter'] = "\r";
+                    break;
+                case 4:
+                    $params['newLineDelimiter'] = "\n\r";
+                    break;
+                default:
+                    $params['newLineDelimiter'] = "\n";
+                    break;
+            }
+        }
+        
         unset($params['type']);
+        
+        setIfNot($params['encoding'], 'UTF-8');
+        setIfNot($params['extension'], 'csv');
         
         // Подготовка на данните
         $lang = null;
@@ -107,7 +126,6 @@ class frame2_CsvExport extends core_Mvc
             
             // Създаване на csv-то
             $csv = csv_Lib::createCsv($csvRecs, $fields, null, $params);
-            $csv .= $params['newLineDelimiter'];
             
             if(isset($lang)){
                 core_Lg::pop();
@@ -193,7 +211,7 @@ class frame2_CsvExport extends core_Mvc
         setIfNot($datetimeFormat, csv_Setup::get('DATE_TIME_MASK'), 'd.m.y H:i');
         $form->setDefault('datetimeFormat', $datetimeFormat);
         
-        $form->setOptions('newLineDelimiter', array('1' => '\n', '2' => '\r\n', '3' => '\r'));
+        $form->setOptions('newLineDelimiter', array('1' => '\n', '2' => '\r\n', '3' => '\r', '4' => '\n\r'));
         $form->setOptions('delimiter', array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
         $form->setOptions('enclosure', array('"' => '"', '\'' => '\''));
         $form->setOptions('decPoint', array('.' => '.', ',' => ','));

@@ -97,7 +97,7 @@ class core_ET extends core_BaseClass
             $this->setRemovableBlocks($rmPlaces);
             
             // Взема началните плейсхолдери, за да могат непопълнените да бъдат изтрити
-            if (countR($rmPlaces)) {
+            if (count($rmPlaces)) {
                 foreach ($rmPlaces as $place) {
                     $this->removablePlaces[$place] = $place;
                 }
@@ -108,7 +108,7 @@ class core_ET extends core_BaseClass
         // плейсхолдери с имена [#1#], [#2#] ...
         $args = func_get_args();
         
-        if (($n = countR($args)) > 1) {
+        if (($n = count($args)) > 1) {
             for ($i = 1; $i < $n; $i++) {
                 $this->replace($args[$i], $i);
             }
@@ -241,7 +241,7 @@ class core_ET extends core_BaseClass
      */
     public function setRemovableBlocks($places)
     {
-        if (countR($places)) {
+        if (count($places)) {
             foreach ($places as $b) {
                 $mp = $this->getMarkerPos($b);
                 
@@ -263,7 +263,7 @@ class core_ET extends core_BaseClass
      */
     public function removeBlocks()
     {
-        if (countR($this->removableBlocks)) {
+        if (count($this->removableBlocks)) {
             foreach ($this->removableBlocks as $blockName => $md5) {
                 $mp = $this->getMarkerPos($blockName);
                 
@@ -463,7 +463,7 @@ class core_ET extends core_BaseClass
     {
         $res = array();
         
-        if (countR($this->pending)) {
+        if (count($this->pending)) {
             foreach ($this->pending as $sub) {
                 if ($sub->place == $place && (!$mode || $sub->mode == $mode)) {
                     if ($sub->once) {

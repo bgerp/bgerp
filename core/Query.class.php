@@ -175,7 +175,7 @@ class core_Query extends core_FieldSet
                 $cond = "#id = {$cond}";
             }
             
-            $lastCondKey = countR($this->where) - 1;
+            $lastCondKey = count($this->where) - 1;
             
             if ($or && ($lastCondKey >= 0)) {
                 $lastCond = & $this->where[$lastCondKey];
@@ -277,7 +277,7 @@ class core_Query extends core_FieldSet
         
         $cond = '';
         
-        if (countR($keylistArr)) {
+        if (count($keylistArr)) {
             foreach ($keylistArr as $key => $value) {
                 $cond .= ($cond ? ' OR ' : '') . "LOCATE('|{$key}|', #{$field})";
             }
@@ -301,7 +301,7 @@ class core_Query extends core_FieldSet
         $keylistArr = keylist::toArray($keylist);
         
         $cond = '';
-        if (countR($keylistArr)) {
+        if (count($keylistArr)) {
             foreach ($keylistArr as $key) {
                 $cond .= ($cond ? ' AND ' : '') . "LOCATE('|{$key}|', #{$field}) = 0";
             }
@@ -428,7 +428,7 @@ class core_Query extends core_FieldSet
      */
     public function getGroupBy()
     {
-        if (countR($this->groupBy) > 0) {
+        if (count($this->groupBy) > 0) {
             foreach ($this->groupBy as $f => $true) {
                 $groupBy .= ($groupBy ? ', ' : '') . $f;
             }
@@ -512,7 +512,7 @@ class core_Query extends core_FieldSet
                 $order->direction = $d;
             }
             
-            $order->priority = -$priority + countR($this->orderBy) / 100;
+            $order->priority = -$priority + count($this->orderBy) / 100;
             
             if ($order->field{0} != '#') {
                 $order->field = '#' . $order->field;
@@ -643,7 +643,7 @@ class core_Query extends core_FieldSet
     public function buildQuery()
     {
         if (countR($this->unions)) {
-            $count = countR($this->unions);
+            $count = count($this->unions);
             
             foreach ($this->unions as $cond) {
                 $q = clone($this);
@@ -715,7 +715,7 @@ class core_Query extends core_FieldSet
         }
         
         $query = "SELECT {$options}\n   count(*) AS `_count`";
-        if (countR($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
+        if (count($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
             $fields = $temp->getShowFields();
             $query .= ($fields ? ',' : '') . $fields;
         }
@@ -838,7 +838,7 @@ class core_Query extends core_FieldSet
             $rec = new stdClass();
             
             if ($arr) {
-                if (countR($arr) > 0) {
+                if (count($arr) > 0) {
                     foreach ($arr as $fld => $val) {
                         if (is_object($this->fields[$fld]->type)) {
                             $rec->{$fld} = $this->fields[$fld]->type->fromMysql($val);
@@ -848,7 +848,7 @@ class core_Query extends core_FieldSet
                     }
                 }
                 
-                if (countR($this->virtualFields) > 0) {
+                if (count($this->virtualFields) > 0) {
                     $virtualFields = array_intersect($this->virtualFields, array_keys($this->show));
                     
                     foreach ($virtualFields as $fld) {
@@ -967,7 +967,7 @@ class core_Query extends core_FieldSet
         
         // Начало на добавка
         // Добавка за връзване по външен ключ
-        if (countR($external = $this->selectFields("#kind == 'EXT'"))) {
+        if (count($external = $this->selectFields("#kind == 'EXT'"))) {
             foreach ($external as $name => $fieldRec) {
                 $externalFieldName = $fieldRec->externalFieldName ? $fieldRec->externalFieldName : 'id';
                 $externalFieldName = str::phpToMysqlName($externalFieldName);
@@ -985,8 +985,8 @@ class core_Query extends core_FieldSet
             }
         }
         
-        if (countR($this->where) > 0) {
-            if (countR($this->where) > 1) {
+        if (count($this->where) > 0) {
+            if (count($this->where) > 1) {
                 foreach ($this->where as $cl) {
                     $nw[$cl] = (stripos($cl, 'locate(') !== false) + (stripos($cl, 'search_keywords') !== false) + (stripos($cl, 'in (') !== false);
                 }
@@ -1045,7 +1045,7 @@ class core_Query extends core_FieldSet
     {
         // Ако нямаме зададени полета, слагаме всички от модела,
         // без виртуалните и чуждестранните
-        if (!countR($this->show) || $this->show['*']) {
+        if (!count($this->show) || $this->show['*']) {
             $this->show = $this->selectFields('');
         }
         
@@ -1234,7 +1234,7 @@ class core_Query extends core_FieldSet
         
         $exp = $arr[0];
         
-        $cntArr = countR($arr);
+        $cntArr = count($arr);
         for ($i = 1; $i < $cntArr; $i++) {
             $a[] = "[#{$i}#]";
             $b[] = "[#{$i}{$key}#]";
@@ -1311,7 +1311,7 @@ class core_Query extends core_FieldSet
                 }
             }
             
-            if (countR($conditions) > 1) {
+            if (count($conditions) > 1) {
                 $conditions = '(' . implode(") {$op} (", $conditions) . ')';
             } else {
                 $conditions = reset($conditions);
@@ -1382,7 +1382,7 @@ class core_Query extends core_FieldSet
     {
         $res = '';
         
-        if (countR($this->indexes)) {
+        if (count($this->indexes)) {
             $res = "\nUSE INDEX(" . implode(',', array_keys($this->indexes)) . ')';
         }
         
