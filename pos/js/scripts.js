@@ -385,6 +385,11 @@ function posActions() {
 		getEfae().process(resObj);
 	});
 
+	// При отваряне на нова бележка маха се фокусирания елемент
+	$(document.body).on('click', ".openNoteBtn, .revert-receipt", function(e){
+		sessionStorage.removeItem("focused");
+	});
+	
 	$(document.body).on('click', "div.resultPack", function(e){
 		var url = $(this).attr("data-url");
 		if(!url) return;

@@ -1093,7 +1093,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         if (pos_Receipts::haveRightFor('add')) {
-            $addBtn = ht::createLink("+", array('pos_Receipts', 'new', 'forced' => true), null, 'id=newreceipt,class=pos-notes posBtns navigable selected');
+            $addBtn = ht::createLink("+", array('pos_Receipts', 'new', 'forced' => true), null, 'id=newreceipt,class=pos-notes posBtns openNoteBtn navigable selected');
             $block->prepend($addBtn);
         }
         
