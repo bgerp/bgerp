@@ -105,6 +105,13 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $agendaStateQuery->limit(1);
         $lastAgendaEventRec = serialize($agendaStateQuery->fetch());
         
+        $cQuery = cal_Tasks::getQuery();
+        $cQuery->where(array("#createdBy = '[#1#]'", $userId));
+        $cQuery->orderBy('modifiedOn', 'DESC');
+        $cQuery->limit(1);
+        $cQuery->show('modifiedOn, id');
+        $cRec = $cQuery->fetch();
+        
         // Съдържание на клетките на календара
         $Calendar = cls::get('cal_Calendar');
         
@@ -112,7 +119,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->pages . '_' . $userId . '_' . Mode::get('screenMode') . 
                         '_' . $resData->month . '_' . $resData->year . '_' . Request::get($Calendar->searchInputField) . '_' . core_Lg::getCurrent() . '_' .
-                        Request::get($tPageVar) . '_' . $lastCalendarEventRec. '_' . $lastAgendaEventRec . '_' . dt::now(false));
+                        Request::get($tPageVar) . '_' . $lastCalendarEventRec. '_' . $lastAgendaEventRec . '_' . dt::now(false) . '_' . $cRec->modifiedOn);
         $resData->cacheType = 'Calendar';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
