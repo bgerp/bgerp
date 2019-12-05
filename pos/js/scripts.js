@@ -280,7 +280,6 @@ function posActions() {
 		if (focused && document.getElementById(focused)) {
 			$('.selected').removeClass('selected');
 			$('#' + focused).addClass('selected');
-			$('#result-holder .navigable').keynav();
 		}
 	}
 
@@ -608,7 +607,6 @@ function render_prepareResult() {
 		if (focused && document.getElementById(focused)) {
 			$('.selected').removeClass('selected');
 			$('#' + focused).addClass('selected');
-			$('#result-holder .navigable').keynav();
 		}
 	}
 }
