@@ -368,10 +368,13 @@ function posActions() {
 		getEfae().process(resObj);
 	});
 
-	// сменяне на селектирания ред от бележките при клик
+	// Сменяне на селектирания ред от бележките при клик
 	$(document.body).on('click', ".receiptRow", function(e){
 		$('.highlighted').removeClass('highlighted');
 		$(this).closest('.receiptRow').addClass('highlighted');
+		
+		var operation = getSelectedOperation();
+		refreshResultByOperation(operation);
 	});
 
 
@@ -379,6 +382,7 @@ function posActions() {
 	var timeout1;
 
 
+	// При натискане на бутона за задаване на цена
 	$(document.body).on('click', "div.resultPrice", function(e){
 		var url = $(this).attr("data-url");
 		if(!url) return;
@@ -397,6 +401,7 @@ function posActions() {
 		sessionStorage.removeItem("focused");
 	});
 	
+	// При натискане на бутона за задаване на количество/опаковка
 	$(document.body).on('click', "div.resultPack", function(e){
 		var url = $(this).attr("data-url");
 		if(!url) return;
@@ -420,6 +425,7 @@ function posActions() {
 		getEfae().process(resObj, {string:string,recId:selectedRecId});
 	});
 	
+	// При натискане на бутона за показване на подробна информация за артикула
 	$(document.body).on('click', ".enlargeProductBtn", function(e){
 		var url = $(this).attr("data-url");
 		var operation = getSelectedOperation();
@@ -476,6 +482,7 @@ function posActions() {
 		}
 	});
 }
+
 function openReceipt() {
 	$('.operationBtn[data-value="receipts"]').click();
 }
@@ -586,6 +593,7 @@ function showFavouriteButtons(element, value){
 	}
 }
 
+// При натискане на pageUp
 function pageUp(){
 	console.log('pageUp')
 
@@ -600,6 +608,7 @@ function pageUp(){
 	}
 }
 
+// При натискане на pageDown
 function pageDown(){
 	var current = $('#receipt-table .receiptRow.highlighted');
 	if(current.length && $(current).next('.receiptRow').length) {
@@ -612,6 +621,7 @@ function pageDown(){
 	console.log('pageDOwn')
 }
 
+// При селектиране на текущ елемент
 function getCurrentElementFromSelectedRow(element){
 	var operation = getSelectedOperation();
 	
@@ -631,8 +641,15 @@ function getCurrentElementFromSelectedRow(element){
 			$("input[name=ean]").val(price);
 		}
 	}
+	
+	refreshResultByOperation(operation);
 }
 
+function refreshResultByOperation(operation){
+	if(operation == 'price' || operation == 'discount' || operation == 'quantity'){
+		$('.operationBtn[data-value="' + operation+ '"]').click();
+	}
+}
 
 function arrowDown(){
 	console.log('arrowDOwn')
@@ -661,6 +678,7 @@ function arrowLeft(){
 	console.log('arrowLeft')
 }
 
+// Коя е текущо селектираната операция
 function getSelectedOperation()
 {
 	if($("select[name=operation]").length){
@@ -672,6 +690,7 @@ function getSelectedOperation()
 	return operation;
 }
 
+// Изтриване на елемент
 function deleteElement() {
 	if($('.receiptRow.highlighted').length) {
 		$('.receiptRow.highlighted').find('.pos-del-btn').click();
@@ -740,7 +759,6 @@ function enter() {
 	resObj['url'] = url;
 
 	console.log(url);
-	//return;
 	
 	var selectedElement = $(".highlighted");
 	var selectedRecId = selectedElement.attr("data-id");
