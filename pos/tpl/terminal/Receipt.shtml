@@ -17,6 +17,7 @@
 	<!--ET_BEGIN PAYMENT_TAB-->
 	<div class="paymentRow">[#PAID_CAPTION#]: <b>[#paid#]</b> <small>[#currency#]</small></div>
 	<!--ET_BEGIN CHANGE_TAB-->
+	[#CHANGE_TAB#]
 	<div class="paymentRow">[#CHANGE_CAPTION#]: [#change#] <small>[#changeCurrency#]</small></div>
 	<!--ET_END CHANGE_TAB-->
 	<!--ET_END PAYMENT_TAB-->
