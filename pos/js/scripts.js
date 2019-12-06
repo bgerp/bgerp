@@ -707,10 +707,6 @@ function render_calculateWidth(){
 
 function render_afterload()
 {
-	//console.log('aaaaaa');
-	
-	
-	
 	var element = $(".highlighted");
 	var operation = getSelectedOperation();
 	
@@ -778,8 +774,6 @@ function enter() {
 
 	resObj = new Object();
 	resObj['url'] = url;
-
-	console.log(url);
 	
 	var selectedElement = $(".highlighted");
 	var selectedRecId = selectedElement.attr("data-id");
