@@ -1,0 +1,34 @@
+<div class=''>
+	<div id='pos-producy-categories'>
+	  <div class="pos-product-category active"  title="|Показване на всички артикули от тази категория|*">
+                <span class="pos-span-name">
+                   |всички|*
+                </span>
+            </div>
+		<!--ET_BEGIN CAT-->
+			<div class='pos-product-category' data-id='[#id#]' title='|Показване на всички артикули от тази категория|*'>
+			 	<span class='pos-span-name'>
+					[#name#]
+				</span>
+			</div>
+		<!--ET_END CAT-->
+		<div class='clearfix21'></div>
+	</div>
+	<div id='pos-products' class='scrolling-holder'>
+	<div>
+	 
+		<!--ET_BEGIN ITEM-->
+		[#ITEM#]
+			<div class='pos-product' data-id='[#productId#]' data-pack='[#packagingId#]' data-url = '[#url#]' data-cat='[#catId#]' title='Добавяне на "[#name#]"'>
+				<!--ET_BEGIN image-->
+					[#image#]
+				<!--ET_END image-->
+				<span class='pos-product-title'>[#name#]</span>
+				<span class='pos-product-price'>[#price#] 
+				</span>
+			</div>
+		<!--ET_END ITEM-->
+		<div class='clearfix21'></div>
+	</div>
+	</div>
+</div>
