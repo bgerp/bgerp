@@ -70,13 +70,14 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         // Подготвяме полетата за показване
         $resData->data->listFields = 'groupDate,title,progress';
-        $cloneQuery = clone $resData->data->query;
         
         if (Mode::is('listTasks', 'by')) {
             $resData->data->query->where(array("#createdBy = '[#1#]'", $userId));
         } else {
             $resData->data->query->likeKeylist('assign', $userId);
         }
+        
+        $cloneQuery = clone $resData->data->query;
         
         $resData->data->query->where("#state = 'active'");
         $resData->data->query->orWhere("#state = 'wakeup'");
@@ -91,7 +92,9 @@ class bgerp_drivers_Tasks extends core_BaseClass
         $cloneQuery->show('modifiedOn, id');
         $cRec = $cloneQuery->fetch();
         
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->perPage . '_' . $userId . '_' . Mode::get('screenMode') . '_' . Request::get($pageVar) . '_' . core_Lg::getCurrent() . '_' . $cRec->id . '_' . $cRec->modifiedOn . '_' . Mode::get('listTasks') . '_' . dt::now(false) . '_' . Mode::is('listTasks', 'by'));
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->perPage . '_' . $userId . '_' . Mode::get('screenMode') . '_' .
+            Request::get($pageVar) . '_' . core_Lg::getCurrent() . '_' . $cRec->id . '_' . $cRec->modifiedOn . '_' . Mode::get('listTasks') . '_' .
+            dt::now(false) . '_' . Mode::is('listTasks', 'by'));
         $resData->cacheType = 'Tasks';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
@@ -204,7 +207,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
             $addBtn = ht::createLink(' ', $addUrl, null, array('ef_icon' => 'img/16/task-add.png', 'class' => 'addTask', 'title' => 'Добавяне на нова Задача'));
             $data->tpl->append($addBtn, 'ADD_BTN');
             
-            $sRetUrl = array('Portal', 'Show2');
+            $sRetUrl = array('Portal', 'Show');
             
             if (Mode::is('screenMode', 'narrow')) {
                 $sRetUrl['#'] = 'taskPortal';

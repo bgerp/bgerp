@@ -946,8 +946,7 @@ class bgerp_Notifications extends core_Manager
             return new Redirect(array('Portal', 'show'), "|Успешно {$msg} нотификацията|*{$notifyMsg}");
         }
         
-        // @todo Remove
-        if (stripos(Request::get('parentUrl'), 'show2') !== false) {
+        if (bgerp_Setup::get('PORTAL_VIEW') == 'customized') {
             $res = cls::get('bgerp_Portal')->getPortalBlockForAJAX();
         } else {
             $res = $this->action('render');

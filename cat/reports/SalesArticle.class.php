@@ -212,7 +212,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
             $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
             $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
             
-            $pager->itemsCount = countR($data->articleCnt, COUNT_RECURSIVE);
+            $pager->itemsCount = count($data->articleCnt, COUNT_RECURSIVE);
             $pager->calc();
             $data->pager = $pager;
         }

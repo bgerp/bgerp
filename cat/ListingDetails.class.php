@@ -373,7 +373,7 @@ class cat_ListingDetails extends doc_Detail
             }
             
             // Ако има намерени продукти показват се в друго поле за избор, чекнати по подразбиране
-            if (isset($products) && countR($products)) {
+            if (isset($products) && count($products)) {
                 $set = cls::get('type_Set', array('suggestions' => $products));
                 $form->FLD('selected', 'varchar', 'caption=Артикули,mandatory');
                 $form->setFieldType('selected', $set);
@@ -387,7 +387,7 @@ class cat_ListingDetails extends doc_Detail
         // Ако е събмитната формата
         if ($form->isSubmitted()) {
             $products = type_Set::toArray($form->rec->selected);
-            expect(countR($products));
+            expect(count($products));
             
             $error = $toSave = array();
             
@@ -410,7 +410,7 @@ class cat_ListingDetails extends doc_Detail
             }
             
             // Ако има грешки
-            if (countR($error)) {
+            if (count($error)) {
                 $error = 'Артикулите|* <b>' . implode(', ', $error) . '</b> |нямат баркод на тяхната основна опаковка/мярка|*';
                 $form->setError('selected', $error);
             } else {

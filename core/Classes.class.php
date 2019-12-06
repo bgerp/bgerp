@@ -218,7 +218,7 @@ class core_Classes extends core_Manager
                     $interfaceCondArr[] = "#interfaces LIKE '%|{$interfaceId}|%'";
                 }
                 
-                if (countR($interfaceCondArr)) {
+                if (count($interfaceCondArr)) {
                     $interfaceCond = ' AND ' . '(' . implode(' OR ', $interfaceCondArr) . ')';
                 }
             }
@@ -246,7 +246,7 @@ class core_Classes extends core_Manager
     public static function translateClassName($name)
     {
         $exp = explode('»', $name);
-        if (countR($exp) == 2) {
+        if (count($exp) == 2) {
             $name = tr(trim($exp[0])) . ' » ' . tr(trim($exp[1]));
         } else {
             $name = tr($name);
@@ -303,7 +303,7 @@ class core_Classes extends core_Manager
                 $className = $class;
             }
             
-            if (!countR(self::$classes)) {
+            if (!count(self::$classes)) {
                 self::loadClasses();
             }
             
@@ -324,7 +324,7 @@ class core_Classes extends core_Manager
         expect(is_numeric($classId));
         
         // Зареждаме кеша на класовете
-        if (!countR(self::$classes)) {
+        if (!count(self::$classes)) {
             self::loadClasses();
         }
         
@@ -470,7 +470,7 @@ class core_Classes extends core_Manager
         $ClassMethods = cls::getAccessibleMethods($rec->name);
         $intArray = keylist::toArray($rec->interfaces);
         
-        if (countR($intArray)) {
+        if (count($intArray)) {
             foreach ($intArray as $id) {
                 $intName = core_Interfaces::fetchField($id, 'name');
                 if (!self::$interfaceMehods[$intName]) {
@@ -491,7 +491,7 @@ class core_Classes extends core_Manager
                     $hint = implode(', ', self::$staticInterfaceMehods[$intName]);
                     $hint = 'Статични методи: ' . $hint;
                     $verbalInterfaces .= ' ' . ht::createHint("<span class='interface-container not-implemented' style='color:red;'>{$intName}</span>", $hint, 'error');
-                } elseif (!countR($notImplemented)) {
+                } elseif (!count($notImplemented)) {
                     $verbalInterfaces .= " <span class='interface-container not-implemented' style='color:green;'>{$intName}</span>";
                 } else {
                     $hint = 'Не са имплементирани: ' . implode(', ', $notImplemented);

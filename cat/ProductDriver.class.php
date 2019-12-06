@@ -100,7 +100,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         $fields = $form->selectFields();
         
         // Ако има полета
-        if (countR($fields)) {
+        if (count($fields)) {
             
             // За всички полета
             $fields = array_keys($fields);
@@ -846,7 +846,7 @@ abstract class cat_ProductDriver extends core_BaseClass
     public static function on_AfterGetSearchKeywords(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, $rec)
     {
         $searchFields = arr::make($Driver->searchFields, true);
-        if(countR($searchFields)){
+        if(count($searchFields)){
             $fieldRows = $Embedder->recToVerbal($rec, $searchFields);
             
             foreach ($searchFields as $field){

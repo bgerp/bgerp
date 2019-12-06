@@ -187,7 +187,7 @@ class core_Locks extends core_Manager
      */
     public static function on_Shutdown($mvc)
     {
-        if (countR($mvc->locks)) {
+        if (count($mvc->locks)) {
             foreach ($mvc->locks as $rec) {
                 
                 // Дали да се изтрие преди излизане от хита - за асинхронни процеси

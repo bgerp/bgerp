@@ -124,12 +124,20 @@ class core_ProtoSetup
     
     
     /**
+     * Дали на текущия хинт инициализираме базата данни
+     */
+    public static $dbInit;
+    
+    
+    /**
      * Инсталиране на пакета
      */
     public function install()
     {
-        if (!Mode::get('dbInit')) {
-            Mode::set('dbInit', core_Packs::isFirstSetup() ? 'first' : 'update');
+        cls::get('core_Session');
+
+        if (!core_ProtoSetup::$dbInit) {
+            core_ProtoSetup::$dbInit = core_Packs::isFirstSetup() ? 'first' : 'update';
         }
         
         // Взимаме името на пакета
@@ -194,7 +202,7 @@ class core_ProtoSetup
         
         if (!core_Packs::getConfigKey('core', $key)) {
             try {
-                if (Mode::is('dbInit', 'update')) {
+                if (core_ProtoSetup::$dbInit == 'update') {
                     $res = call_user_func(array($this, $method));
                 } else {
                     $res = "<li class='debug-info'>Миграцията {$packName}::{$method} е пропусната, защото се инициализира празна база</li>";
@@ -488,7 +496,7 @@ class core_ProtoSetup
      */
     protected function setCron()
     {
-        if (is_array($this->cronSettings) && countR($this->cronSettings)) {
+        if (is_array($this->cronSettings) && count($this->cronSettings)) {
             if (!is_array($this->cronSettings[0])) {
                 $this->cronSettings = array($this->cronSettings);
             }
@@ -511,7 +519,7 @@ class core_ProtoSetup
     {
         $res = '';
         
-        if (countR($this->menuItems)) {
+        if (count($this->menuItems)) {
             $conf = $this->getConfig();
             
             // Името на пакета

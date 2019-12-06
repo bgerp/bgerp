@@ -111,7 +111,7 @@ class core_Form extends core_FieldSet
     {
         parent::init($params);
         
-        if (isset($this->mvc) && countR($this->mvc->fields)) {
+        if (isset($this->mvc) && count($this->mvc->fields)) {
             foreach ($this->mvc->fields as $key => $value) {
                 $this->fields[$key] = clone($this->mvc->fields[$key]);
             }
@@ -142,7 +142,7 @@ class core_Form extends core_FieldSet
             
             // Ако е изпратена от HTML бутон, то вземаме
             // командата като ключ от масив
-            if (countR($cmd) > 1) {
+            if (count($cmd) > 1) {
                 unset($cmd['default']);
             }
             $this->cmd = key($cmd);
@@ -184,7 +184,7 @@ class core_Form extends core_FieldSet
             $fields = $this->selectFields("#input != 'none'");
         }
         
-        if (!countR($fields)) {
+        if (!count($fields)) {
             
             return false;
         }
@@ -328,7 +328,7 @@ class core_Form extends core_FieldSet
             }
         }
         
-        if (!countR($fields)) {
+        if (!count($fields)) {
             
             return false;
         }
@@ -367,7 +367,7 @@ class core_Form extends core_FieldSet
             $options = $field->options;
             
             // Ако във формата има опции, те отиват в типа
-            if (countR($options)) {
+            if (count($options)) {
                 $type->options = $options;
             }
             
@@ -534,7 +534,7 @@ class core_Form extends core_FieldSet
             }
         }
         
-        if (countR($this->styles)) {
+        if (count($this->styles)) {
             foreach ($this->styles as $selector => $style) {
                 $this->layout->appendOnce("\n#" . $this->formAttr['id'] . " {$selector} {{$style}}", 'STYLES');
             }
@@ -663,7 +663,7 @@ class core_Form extends core_FieldSet
             $fields = $this->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none' && #input != 'hidden')");
         }
         
-        if (countR($fields)) {
+        if (count($fields)) {
             if ($this->defOrder) {
                 $this->orderField();
                 $newFields = array();
@@ -693,7 +693,7 @@ class core_Form extends core_FieldSet
                     }
                     
                     $captionArr = explode('->', $field->caption);
-                    if (countR($captionArr) == 2) {
+                    if (count($captionArr) == 2) {
                         $field->caption = $captionArr[1];
                     }
                 }
@@ -712,9 +712,9 @@ class core_Form extends core_FieldSet
                         $options = $field->type->getOptions();
                     }
                     
-                    if ((isset($options) && countR($options) == 1)) {
+                    if ((isset($options) && count($options) == 1)) {
                         unset($fields[$name]);
-                    } elseif (isset($field->type->options) && countR($field->type->options) == 1) {
+                    } elseif (isset($field->type->options) && count($field->type->options) == 1) {
                         unset($fields[$name]);
                     }
                 }
@@ -956,8 +956,8 @@ class core_Form extends core_FieldSet
                 expect($field->kind, $name, 'Липсващо поле');
                 
                 $captionArr = explode('->', ltrim($field->caption, '@'));
-                $captionArrCount = countR($captionArr);
-                $emptyRow = countR($lastCaptionArr) - $captionArrCount;
+                $captionArrCount = count($captionArr);
+                $emptyRow = count($lastCaptionArr) - $captionArrCount;
                 $headerRow = $space = '';
                 
                 foreach ($captionArr as $id => $c) {
@@ -1070,7 +1070,7 @@ class core_Form extends core_FieldSet
         $vars = arr::make($params);
         $rec = arr::make($this->rec);
         
-        if (countR($this->fields)) {
+        if (count($this->fields)) {
             foreach ($this->fields as $name => $field) {
                 if (!array_key_exists($field->name, $vars)) {
                     $vars[$field->name] = isset($rec[$field->name]) ? $rec[$field->name] : null;
@@ -1115,7 +1115,7 @@ class core_Form extends core_FieldSet
         
         // Определяме скритите полета
         
-        if (countR($this->fields)) {
+        if (count($this->fields)) {
             foreach ($this->fields as $field) {
                 if ($field->input == 'hidden') {
                     $hiddens[$field->name] = $vars[$field->name];
@@ -1342,7 +1342,7 @@ class core_Form extends core_FieldSet
     {
         $arr = arr::make($defaults);
         
-        if (countR($arr)) {
+        if (count($arr)) {
             foreach ($arr as $name => $value) {
                 if (!$this->rec->{$name}) {
                     $this->rec->{$name} = $value;

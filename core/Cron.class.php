@@ -275,7 +275,7 @@ class core_Cron extends core_Manager
      */
     public function act_Cron()
     {
-        if(!Request::get('forced')) {
+        if (!Request::get('forced')) {
             core_App::flushAndClose(false);
         }
         
@@ -903,7 +903,11 @@ class core_Cron extends core_Manager
             
             // Ако има пуснати процеси, преди по-малко или равно на 10 секунди,
             // излизаме, защото някой друг се грижи
-            $lastStartBefore = time() - dt::mysql2timestamp(self::getLastStartTime());
+            $lastStart = self::getLastStartTime();
+            if (!$lastStart) {
+                $lastStart = '2000-01-01';
+            }
+            $lastStartBefore = time() - dt::mysql2timestamp($lastStart);
             if ($lastStartBefore <= 10) {
                 $okTrays++;
                 $this->logInfo('Пропускаме, защото има скорошни пускания');

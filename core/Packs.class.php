@@ -278,19 +278,19 @@ class core_Packs extends core_Manager
             }
         }
         
-        if (countR($migrations)) {
+        if (count($migrations)) {
             $form->setSuggestions('migrations', $migrations);
         } else {
             $form->setField('migrations', 'input=none');
         }
         
-        if (countR($nonValid)) {
+        if (count($nonValid)) {
             $form->setSuggestions('nonValid', $nonValid);
         } else {
             $form->setField('nonValid', 'input=none');
         }
         
-        if (countR($migrations) || countR($nonValid)) {
+        if (count($migrations) || count($nonValid)) {
             $form->toolbar->addSbBtn('Инвалидирай');
         } else {
             $form->info = 'Все още няма минали миграции';
@@ -423,7 +423,7 @@ class core_Packs extends core_Manager
         $reposArr = core_App::getRepos();
         foreach (array_keys($reposArr) as $dir) {
             $appDirs = $this->getSubDirs($dir);
-            if (countR($appDirs)) {
+            if (count($appDirs)) {
                 foreach ($appDirs as $subDir => $dummy) {
                     $path = rtrim($dir, '/\\') . '/' . $subDir . '/' . 'Setup.class.php';
                     if (file_exists($path)) {
@@ -1166,7 +1166,7 @@ class core_Packs extends core_Manager
             $exData = array();
         }
         
-        if (countR($data)) {
+        if (count($data)) {
             foreach ($data as $key => $value) {
                 $exData[$key] = $value;
             }

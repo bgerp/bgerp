@@ -79,7 +79,7 @@ class core_Mode
     {
         do {
             expect($rec = array_shift(self::$stack));
-        } while ($force && $rec->name != $name && countR(self::$stack));
+        } while ($force && $rec->name != $name && count(self::$stack));
         
         
         if ($name) {
