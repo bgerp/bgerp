@@ -346,6 +346,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $string = trim($string);
+        $selectedRec = isset($selectedRecId) ? pos_ReceiptDetails::fetchRec($selectedRecId) : null;
         
         switch($currOperation){
             case 'add':
@@ -359,25 +360,25 @@ class pos_Terminal extends peripheral_Terminal
                 $res = $this->renderResultReceipt($rec);
                 break;
             case 'quantity':
-                $res = $this->renderResultQuantity($rec, $string, $selectedRecId);
+                $res = $this->renderResultQuantity($rec, $string, $selectedRec);
                 break;
             case 'discount':
-                $res = $this->renderResultDiscount($rec, $string, $selectedRecId);
+                $res = $this->renderResultDiscount($rec, $string, $selectedRec);
                 break;
             case 'text':
-                $res = $this->renderResultText($rec, $string, $selectedRecId);
+                $res = $this->renderResultText($rec, $string, $selectedRec);
                 break;
             case 'price':
-                $res = $this->renderResultPrice($rec, $string, $selectedRecId);
+                $res = $this->renderResultPrice($rec, $string, $selectedRec);
                 break;
             case 'payment':
-                $res = $this->renderResultPayment($rec, $string, $selectedRecId);
+                $res = $this->renderResultPayment($rec, $string, $selectedRec);
                 break;
             case 'revert':
-                $res = $this->renderResultRevert($rec, $string, $selectedRecId);
+                $res = $this->renderResultRevert($rec, $string, $selectedRec);
                 break;
             case 'contragent':
-                $res = $this->renderResultContragent($rec, $string, $selectedRecId);
+                $res = $this->renderResultContragent($rec, $string, $selectedRec);
                 break;
             default:
                 $res = " ";
@@ -393,11 +394,11 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @param stdClass $rec - записа на бележката
      * @param string $string - въведения стринг за търсене
-     * @param int $selectedRecId - селектирания ред (ако има)
+     * @param stdClass|null $selectedRec - селектирания ред (ако има)
      *
      * @return core_ET
      */
-    private function renderResultText($rec, $string, $selectedRecId)
+    private function renderResultText($rec, $string, $selectedRec)
     {
         $tpl = new core_ET("");
         
@@ -430,14 +431,12 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @param stdClass $rec - записа на бележката
      * @param string $string - въведения стринг за търсене
-     * @param int $selectedRecId - селектирания ред (ако има)
+     * @param stdClass|null $selectedRec - селектирания ред (ако има)
      * 
      * @return core_ET
      */
-    private function renderResultDiscount($rec, $string, $selectedRecId)
+    private function renderResultDiscount($rec, $string, $selectedRec)
     {
-        $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
-        
         $discountsArr = array('0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100');
         $string = trim(str_replace('%', '', $string));
         $discountInputed = core_Type::getByName('double')->fromVerbal($string);
@@ -464,11 +463,11 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @param stdClass $rec - записа на бележката
      * @param string $string - въведения стринг за търсене
-     * @param int $selectedRecId - селектирания ред (ако има)
+     * @param stdClass|null $selectedRec - селектирания ред (ако има)
      * 
      * @return core_ET
      */
-    private function renderResultContragent($rec, $string, $selectedRecId)
+    private function renderResultContragent($rec, $string, $selectedRec)
     {
         $tpl = new core_ET("");
         if(empty($string)){
@@ -539,11 +538,11 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @param stdClass $rec - записа на бележката
      * @param string $string - въведения стринг за търсене
-     * @param int $selectedRecId - селектирания ред (ако има)
+     * @param stdClass|null $selectedRec - селектирания ред (ако има)
      *
      * @return core_ET
      */
-    private function renderResultRevert($rec, $string, $selectedRecId)
+    private function renderResultRevert($rec, $string, $selectedRec)
     {
         $Receipts = cls::get('pos_Receipts');
         $string = plg_Search::normalizeText($string);
@@ -580,11 +579,11 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @param stdClass $rec - записа на бележката
      * @param string $string - въведения стринг за търсене
-     * @param int $selectedRecId - селектирания ред (ако има)
+     * @param stdClass|null $selectedRec - селектирания ред (ако има)
      *
      * @return core_ET
      */
-    private function renderResultPayment($rec, $string, $selectedRecId)
+    private function renderResultPayment($rec, $string, $selectedRec)
     {
         $Receipts = cls::get('pos_Receipts');
         $tpl = new core_ET("");
@@ -624,13 +623,12 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @param stdClass $rec - записа на бележката
      * @param string $string - въведения стринг за търсене
-     * @param int $selectedRecId - селектирания ред (ако има)
+     * @param stdClass|null $selectedRec - селектирания ред (ако има)
      *
      * @return core_ET
      */
-    private function renderResultQuantity($rec, $string, $selectedRecId)
+    private function renderResultQuantity($rec, $string, $selectedRec)
     {
-        $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
         $measureId = cat_Products::fetchField($selectedRec->productId, 'measureId');
         
         $packs = cat_Products::getPacks($selectedRec->productId);
@@ -690,13 +688,12 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @param stdClass $rec - записа на бележката
      * @param string $string - въведения стринг за търсене
-     * @param int $selectedRecId - селектирания ред (ако има)
+     * @param stdClass|null $selectedRec - селектирания ред (ако има)
      *
      * @return core_ET
      */
-    private function renderResultPrice($rec, $string, $selectedRecId)
+    private function renderResultPrice($rec, $string, $selectedRec)
     {
-        $selectedRec = pos_ReceiptDetails::fetch($selectedRecId);
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
         $buttons = array();
         
