@@ -134,6 +134,8 @@ class core_ProtoSetup
      */
     public function install()
     {
+        cls::get('core_Session');
+
         if (!core_ProtoSetup::$dbInit) {
             core_ProtoSetup::$dbInit = core_Packs::isFirstSetup() ? 'first' : 'update';
         }
