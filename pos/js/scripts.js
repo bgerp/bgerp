@@ -457,9 +457,9 @@ function posActions() {
 		dialog.dialog( "open" );
 	});
 
-	hotkeys('alt+d,alt+a,alt+k,alt+p,alt+z,alt+t,alt+5,alt+c,alt+r,alt+b', function (event, handler){
+	hotkeys('alt+d,alt+a,alt+k,alt+p,alt+z,alt+t,alt+5,alt+c,alt+r,alt+b,alt+f', function (event, handler){
 		switch (handler.key) {
-			case 'alt+d': deleteElement();
+			case 'alt+d': event.preventDefault(); deleteElement();
 				break;
 			case 'alt+a': openProducts();
 				break;
@@ -478,6 +478,8 @@ function posActions() {
 			case 'alt+b': openReceipt();
 				break;
 			case 'alt+r': openRevert();
+				break;
+			case 'alt+f': event.preventDefault(); $('.large-field.select-input-pos').focus();
 				break;
 		}
 	});
