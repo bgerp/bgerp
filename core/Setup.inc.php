@@ -930,8 +930,6 @@ if ($step == 4) {
 }
 
 if ($step == 5) {
-    $sess = new core_Session();
-
     // Първоначално изтриване на Log-a
     file_put_contents(EF_SETUP_LOG_PATH, '');
     $texts['body'] .= "<iframe src='{$selfUrl}&step=setup' name='init' id='init'></iframe>";
@@ -962,8 +960,9 @@ if ($step == 'setup') {
 
     // Освобождава манипулатора на сесията. Ако трябва да се правят
     // записи в сесията, то те трябва да се направят преди shutdown()
-    $sess = new core_Session();
-    
+   // core_Session::pause();
+
+
     set_time_limit(1000);
 
     $calibrate = 1000;

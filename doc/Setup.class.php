@@ -472,14 +472,14 @@ class doc_Setup extends core_ProtoSetup
         $res = parent::loadSetupData($itr);
         
         // За да може да мине миграцията при нова инсталация
-        $dbUpdate = Mode::get('dbInit');
-        Mode::set('dbInit', 'update');
+        $dbUpdate = core_ProtoSetup::$dbInit;
+        core_ProtoSetup::$dbInit = 'update';
         
         $res .= cls::get('bgerp_Setup')->loadSetupData();
         
         $res .= $this->callMigrate('addBlockToPortal46193', 'doc');
         
-        Mode::set('dbInit', $dbUpdate);
+        core_ProtoSetup::$dbInit = $dbUpdate;
         
         return $res;
     }
