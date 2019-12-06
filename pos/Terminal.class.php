@@ -1170,8 +1170,8 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             $resObj = new stdClass();
-            $resObj->func = 'calculateWidth';
-            //$res[] = $resObj;
+            $resObj->func = 'afterload';
+            $res[] = $resObj;
         }
         
         // Показване веднага на чакащите статуси

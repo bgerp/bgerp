@@ -627,28 +627,11 @@ function pageDown(){
 function getCurrentElementFromSelectedRow(element){
 	var operation = getSelectedOperation();
 	
-	if(operation == 'text'){
-		var textElement = element.find('.subText');
-		
-		if(textElement.length){
-			var text = textElement.text();
-			if(text.length){
-				$("input[name=ean]").val(text);
-			}
-		}
-	} else if(operation == 'price'){
-		var priceElement = element.find('.priceText');
-		var price = priceElement.text();
-		if(price.length){
-			$("input[name=ean]").val(price);
-		}
-	}
-	
 	refreshResultByOperation(operation);
 }
 
 function refreshResultByOperation(operation){
-	if(operation == 'price' || operation == 'discount' || operation == 'quantity'){
+	if(operation == 'price' || operation == 'discount' || operation == 'quantity' || operation == 'text'){
 		$('.operationBtn[data-value="' + operation+ '"]').click();
 	}
 }
@@ -722,6 +705,33 @@ function render_calculateWidth(){
 	calculateWidth();
 }
 
+function render_afterload()
+{
+	//console.log('aaaaaa');
+	
+	
+	
+	var element = $(".highlighted");
+	var operation = getSelectedOperation();
+	
+	if(operation == 'text'){
+		var textElement = element.find('.subText');
+		
+		if(textElement.length){
+			var text = textElement.text();
+			if(text.length){
+				$("input[name=ean]").val(text);
+			}
+		}
+	} else if(operation == 'price'){
+		var priceElement = element.find('.priceText');
+		var price = priceElement.text();
+		if(price.length){
+			$("input[name=ean]").val(price);
+		}
+	}
+}
+
 function enter() {
 	var value = $("input[name=ean]").val();
 	var url = $("input[name=ean]").attr("data-url");
@@ -776,5 +786,4 @@ function enter() {
 
 
 	getEfae().process(resObj, {string:value,recId:selectedRecId});
-
 }
