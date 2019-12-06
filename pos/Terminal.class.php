@@ -143,7 +143,7 @@ class pos_Terminal extends peripheral_Terminal
                 $tpl->replace($toolsTpl, 'TAB_TOOLS');
                 
                 // Добавяне на табовете показващи се в широк изглед отстрани
-                $lastRecId = pos_ReceiptDetails::getLastProductRecId($rec->id);
+                $lastRecId = pos_ReceiptDetails::getLastRec($rec->id, 'sale')->id;
                 $resultTabHtml = $this->renderResult($rec, $defaultOperation, $defaultSearchString, $lastRecId);
                 $tpl->append($resultTabHtml, 'SEARCH_RESULT');
             }
@@ -828,8 +828,14 @@ class pos_Terminal extends peripheral_Terminal
         $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink', 'title' => 'Към портала'));
         $tpl->append($logo, 'LOGO');
         
-        if($lastRecId = pos_ReceiptDetails::getLastProductRecId($data->rec->id)){
+        if($lastRecId = pos_ReceiptDetails::getLastRec($data->rec->id, 'sale')->id){
             $data->receiptDetails->rows[$lastRecId]->CLASS = 'highlighted';
+        }
+        
+        if($lastRec = pos_ReceiptDetails::getLastRec($data->rec->id)){
+            if(strpos($lastRec->action, 'payment') !== false){
+                $data->receiptDetails->rows[$lastRec->id]->CLASS = 'paymentMade';
+            }
         }
         
         // Слагане на детайлите на бележката

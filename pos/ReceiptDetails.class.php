@@ -209,7 +209,7 @@ class pos_ReceiptDetails extends core_Detail
        
         try{
             $id = Request::get('recId', 'int');
-            $id = isset($id) ? $id : self::getLastProductRecId($receiptId);
+            $id = isset($id) ? $id : self::getLastRec($receiptId, 'sale')->id;
             expect($rec = self::fetch($id), 'Не е избран ред');
             $this->requireRightFor('edit', $rec);
            
@@ -781,14 +781,18 @@ class pos_ReceiptDetails extends core_Detail
      * @param int $receiptId
      * @return int|null
      */
-    public static function getLastProductRecId($receiptId)
+    public static function getLastRec($receiptId, $type = null)
     {
         $query = pos_ReceiptDetails::getQuery();
-        $query->where("#receiptId = {$receiptId} AND #action = 'sale|code'");
+        $query->where("#receiptId = {$receiptId}");
+        if(isset($type)){
+            $query->where("#action LIKE '%{$type}%'");
+        }
+        
         $query->orderBy("modifiedOn", 'DESC');
         $query->limit(1);
         $rec = $query->fetch();
         
-        return is_object($rec) ? $rec->id : null;
+        return is_object($rec) ? $rec : null;
     }
 }
