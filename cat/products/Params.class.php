@@ -159,7 +159,7 @@ class cat_products_Params extends doc_Detail
             $form->setField('paramId', array('removeAndRefreshForm' => 'paramValue|paramValue[lP]|paramValue[rP]'));
             $options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id);
             
-            if (!countR($options)) {
+            if (!count($options)) {
                 
                 return followRetUrl(null, 'Няма параметри за добавяне', 'warning');
             }
@@ -167,7 +167,7 @@ class cat_products_Params extends doc_Detail
             $form->setOptions('paramId', array('' => '') + $options);
             $form->paramOptions = $options;
             
-            if (countR($options) == 1) {
+            if (count($options) == 1) {
                 $form->setDefault('paramId', key($options));
                 $form->setReadOnly('paramId');
             }
@@ -236,7 +236,7 @@ class cat_products_Params extends doc_Detail
             $data->form->title = core_Detail::getEditTitle($rec->classId, $rec->productId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
         }
         
-        if (isset($data->form->paramOptions) && countR($data->form->paramOptions) <= 1) {
+        if (isset($data->form->paramOptions) && count($data->form->paramOptions) <= 1) {
             $data->form->toolbar->removeBtn('saveAndNew');
         }
     }
@@ -272,7 +272,7 @@ class cat_products_Params extends doc_Detail
         }
         
         $where = '';
-        if (countR($ids)) {
+        if (count($ids)) {
             $ids = implode(',', $ids);
             $where = "#id NOT IN ({$ids})";
         }

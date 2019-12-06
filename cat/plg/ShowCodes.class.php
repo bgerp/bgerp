@@ -42,7 +42,7 @@ class cat_plg_ShowCodes extends core_Plugin
      */
     public static function on_AfterPrepareListRows($mvc, $data)
     {
-        if (!countR($data->recs)) {
+        if (!count($data->recs)) {
             
             return;
         }

@@ -265,14 +265,14 @@ class cat_Setup extends core_ProtoSetup
         $query->show('name,nameEn');
         while ($rec = $query->fetch()) {
             $exploded = explode('||', $rec->name);
-            if (countR($exploded) == 2) {
+            if (count($exploded) == 2) {
                 $rec->name = $exploded[0];
                 $rec->nameEn = $exploded[1];
                 $toSave[$rec->id] = $rec;
             }
         }
         
-        if (countR($toSave)) {
+        if (count($toSave)) {
             $Products->saveArray($toSave, 'id,name,nameEn');
         }
     }
@@ -295,7 +295,7 @@ class cat_Setup extends core_ProtoSetup
             $toSave[] = $pRec;
         }
         
-        if(countR($toSave)){
+        if(count($toSave)){
             $Products->saveArray($toSave, 'id,brState');
         }
     }
