@@ -92,7 +92,9 @@ class bgerp_drivers_Tasks extends core_BaseClass
         $cloneQuery->show('modifiedOn, id');
         $cRec = $cloneQuery->fetch();
         
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->perPage . '_' . $userId . '_' . Mode::get('screenMode') . '_' . Request::get($pageVar) . '_' . core_Lg::getCurrent() . '_' . $cRec->id . '_' . $cRec->modifiedOn . '_' . Mode::get('listTasks') . '_' . dt::now(false) . '_' . Mode::is('listTasks', 'by'));
+        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->perPage . '_' . $userId . '_' . Mode::get('screenMode') . '_' .
+            Request::get($pageVar) . '_' . core_Lg::getCurrent() . '_' . $cRec->id . '_' . $cRec->modifiedOn . '_' . Mode::get('listTasks') . '_' .
+            dt::now(false) . '_' . Mode::is('listTasks', 'by'));
         $resData->cacheType = 'Tasks';
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
