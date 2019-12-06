@@ -1077,7 +1077,13 @@ class cal_Tasks extends embed_Manager
         }
         
         if ($action == 'edit' && $rec->state == 'pending') {
-            $requiredRoles = 'no_one';
+            $oState = null;
+            if ($rec->id) {
+                $oState = $mvc->fetchField($rec->id, 'state');
+            }
+            if (!isset($oState) || ($oState == 'pending')) {
+                $requiredRoles = 'no_one';
+            }
         }
     }
     
@@ -2612,7 +2618,7 @@ class cal_Tasks extends embed_Manager
                 
                 // взимаме и началното време на текущата задача,
                 // ако има такова
-                $timeStart = self::fetchField($rec->id, 'timeStart');
+                $timeStart = $rec->timeStart;
                 
                 if ($timeStart != null) {
                     // прибавяме го към масива
@@ -2632,9 +2638,9 @@ class cal_Tasks extends embed_Manager
                 
                 // задачата не е зависима от други задачи
             }
-            $timeStart = self::fetchField($rec->id, 'timeStart');
-            $timeEnd = self::fetchField($rec->id, 'timeEnd');
-            $timeDuration = self::fetchField($rec->id, 'timeDuration');
+            $timeStart = $rec->timeStart;
+            $timeEnd = $rec->timeEnd;
+            $timeDuration = $rec->timeDuration;
             
             if ($timeStart != null) {
                 // времето за стартиране е времето оказано от потребителя
