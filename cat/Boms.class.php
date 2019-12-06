@@ -488,7 +488,7 @@ class cat_Boms extends core_Master
         if ($action == 'activate' && empty($rec->id)) {
             $res = 'no_one';
         } elseif ($action == 'activate' && isset($rec->id)) {
-            if (!countR(cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id'))) {
+            if (!count(cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id'))) {
                 $res = 'no_one';
             }
         }
@@ -663,7 +663,7 @@ class cat_Boms extends core_Master
         }
         
         // Ако има данни за детайли, проверяваме дали са валидни
-        if (countR($details)) {
+        if (count($details)) {
             foreach ($details as &$d) {
                 expect($d->resourceId);
                 expect(cat_Products::fetch($d->resourceId));
@@ -682,7 +682,7 @@ class cat_Boms extends core_Master
         $id = self::save($rec);
         
         // За всеки детайл, добавяме го към рецептата
-        if (countR($details)) {
+        if (count($details)) {
             foreach ($details as $d1) {
                 $d1->bomId = $id;
                 $fields = array();
@@ -771,7 +771,7 @@ class cat_Boms extends core_Master
             }
             
             // Ако някой от артикулите липсва, не създаваме нищо
-            if (countR($error)) {
+            if (count($error)) {
                 $string = implode(',', $error);
                 $error = "Базовата рецепта не може да бъде създадена|*, |защото материалите с кодове|*: <b>{$string}</b> |не са въведени в системата|*";
                 expect(false, $error);
@@ -966,7 +966,7 @@ class cat_Boms extends core_Master
             }
         }
         
-        if (countR($res)) {
+        if (count($res)) {
             
             return array($productId => $res);
         }
@@ -985,7 +985,7 @@ class cat_Boms extends core_Master
      */
     public static function pushParams(&$array, $params)
     {
-        if (is_array($params) && countR($params)) {
+        if (is_array($params) && count($params)) {
             $array = $params + $array;
         }
     }
@@ -1568,7 +1568,7 @@ class cat_Boms extends core_Master
     {
         $res = array();
         $bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now());
-        if (!countR($bomInfo['resources'])) {
+        if (!count($bomInfo['resources'])) {
             
             return $res;
         }

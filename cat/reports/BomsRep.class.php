@@ -209,7 +209,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }
         }
         
-        if (countR($mArr) >= 1) {
+        if (count($mArr) >= 1) {
             foreach ($mArr as $id => $val) {
                 $data->recs[$id]->materials = array();
                 $data->recs[$id]->mCnt = array();
@@ -225,7 +225,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
         if (is_array($data->recs)) {
             foreach ($data->recs as $i => $r) {
                 if (isset($fRec->groupId)) {
-                    if (is_array($r->materials) && countR($r->materials) != 0) {
+                    if (is_array($r->materials) && count($r->materials) != 0) {
                         $materialsArr = implode(',', $r->materials);
                         
                         $queryProduct = cat_Products::getQuery();
@@ -274,14 +274,14 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
         $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
         $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
-        $pager->itemsCount = countR($data->recs);
+        $pager->itemsCount = count($data->recs);
         $data->pager = $pager;
         
         $recs = array();
         foreach ($data->recs as $rec) {
             $recs[] = $rec;
         }
-        if (countR($recs)) {
+        if (count($recs)) {
             foreach ($recs as $id => $r) {
                 $r->num = $id + 1;
                 if (!$pager->isOnPage()) {

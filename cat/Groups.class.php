@@ -248,7 +248,7 @@ class cat_Groups extends core_Manager
         $kList = '';
         $sysIds = arr::make($sysIds);
         
-        if (!countR($sysIds)) {
+        if (!count($sysIds)) {
             
             return $kList;
         }
@@ -330,7 +330,7 @@ class cat_Groups extends core_Manager
     {
         $res = array();
         $groups = (is_array($keylist)) ? $keylist : keylist::toArray($keylist);
-        if (!countR($groups)) {
+        if (!count($groups)) {
             
             return $res;
         }
@@ -361,7 +361,7 @@ class cat_Groups extends core_Manager
     public static function checkForNestedGroups($groupList)
     {
         $groups = (is_array($groupList)) ? $groupList : keylist::toArray($groupList);
-        if (!countR($groups)) {
+        if (!count($groups)) {
             
             return false;
         }

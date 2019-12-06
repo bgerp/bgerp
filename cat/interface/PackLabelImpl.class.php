@@ -177,7 +177,7 @@ class cat_interface_PackLabelImpl
                 $res['CATALOG_CURRENCY'] = $currencyCode;
             }
             
-            if (countR($params)) {
+            if (count($params)) {
                 $res = array_merge($res, $params);
             }
             
@@ -190,7 +190,7 @@ class cat_interface_PackLabelImpl
             }
             
             if (is_object($Driver)) {
-                if (countR($additionalFields)) {
+                if (count($additionalFields)) {
                     $res = $additionalFields + $res;
                 }
                 

@@ -278,7 +278,7 @@ class cat_products_Packagings extends core_Detail
         }
         
         if ($action == 'add' && isset($rec->productId)) {
-            if (!countR($mvc::getRemainingOptions($rec->productId))) {
+            if (!count($mvc::getRemainingOptions($rec->productId))) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -320,7 +320,7 @@ class cat_products_Packagings extends core_Detail
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
-        if (!(countR($mvc::getRemainingOptions($data->form->rec->productId)) - 1)) {
+        if (!(count($mvc::getRemainingOptions($data->form->rec->productId)) - 1)) {
             $data->form->toolbar->removeBtn('saveAndNew');
         }
     }
@@ -353,11 +353,11 @@ class cat_products_Packagings extends core_Detail
         
         // Групираме опциите, ако има такива
         $options = array();
-        if (countR($packArr)) {
+        if (count($packArr)) {
             $options = array('p' => (object) array('group' => true, 'title' => tr('Опаковки'))) + $packArr;
         }
         
-        if (countR($uomArr)) {
+        if (count($uomArr)) {
             $options += array('u' => (object) array('group' => true, 'title' => tr('Мерки'))) + $uomArr;
         }
         
@@ -380,7 +380,7 @@ class cat_products_Packagings extends core_Detail
         if ($Driver = cat_Products::getDriver($rec->productId)) {
             $defaults = $Driver->getDefaultPackagings($rec);
             
-            if (countR($defaults)) {
+            if (count($defaults)) {
                 foreach ($defaults as $def) {
                     if (isset($options[$def->packagingId])) {
                         $form->setDefault('packagingId', $def->packagingId);
@@ -397,7 +397,7 @@ class cat_products_Packagings extends core_Detail
                 $packTemplateOptions = cat_PackParams::getTemplates($rec->packagingId);
                 $form->setOptions('templateId', array('' => '') + $packTemplateOptions);
                 
-                if (countR($packTemplateOptions)) {
+                if (count($packTemplateOptions)) {
                     // Зареждане на дефолтите от шаблоните
                     if (isset($rec->templateId)) {
                         $pRec = cat_PackParams::fetch($rec->templateId);
@@ -517,7 +517,7 @@ class cat_products_Packagings extends core_Detail
      */
     public function renderPackagings($data)
     {
-        if ($data->notStorable === true && !countR($data->recs)) {
+        if ($data->notStorable === true && !count($data->recs)) {
             
             return;
         }
@@ -757,7 +757,7 @@ class cat_products_Packagings extends core_Detail
         
         // Има ли последно посещавани нишки от текущия потребител?
         $threadIds = bgerp_Recently::getLastThreadsId(null, null, 3600);
-        if (!countR($threadIds)) {
+        if (!count($threadIds)) {
             
             return $resArr;
         }
@@ -776,7 +776,7 @@ class cat_products_Packagings extends core_Detail
         $cQuery->in('docClass', $DocumentIds);
         $cQuery->show('id,folderId');
         $containers = $cQuery->fetchAll();
-        if (!countR($containers)) {
+        if (!count($containers)) {
             
             return $resArr;
         }
@@ -827,7 +827,7 @@ class cat_products_Packagings extends core_Detail
                 }
                 
                 // Ако артикула е достъпен само към избрани папки, документа трябва да е в тях
-                if (countR($onlyInFolders) && !($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))) {
+                if (count($onlyInFolders) && !($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))) {
                     $folderId = $Doc->fetchField('folderId');
                     if (!array_key_exists($folderId, $onlyInFolders)) {
                         continue;
@@ -881,7 +881,7 @@ class cat_products_Packagings extends core_Detail
             }
         }
         
-        if (countR($documentRows)) {
+        if (count($documentRows)) {
             $fieldset = new core_FieldSet();
             $fieldset->FLD('addLink', 'varchar', 'tdClass=centered');
             $fieldset->FLD('free', 'varchar', 'smartCenter');
