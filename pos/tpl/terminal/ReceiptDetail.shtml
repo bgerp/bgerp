@@ -10,5 +10,5 @@
 <!--ET_END sale-->
 
 <!--ET_BEGIN payment-->
-<div class="receiptPayment">[#paymentCaption#] [#actionValue#]: [#DEL_BTN#]&nbsp; <div class="fright">[#amount#] </div></div>
+<div class="receiptPayment [#CLASS#]">[#paymentCaption#] [#actionValue#]: [#DEL_BTN#]&nbsp; <div class="fright">[#amount#] </div></div>
 <!--ET_END payment-->
