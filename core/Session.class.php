@@ -17,6 +17,13 @@
  */
 class core_Session
 {
+
+    /**
+     * Флаг, дали глобално да се заглуши сесията
+     */
+    static $mute;
+
+
     /**
      * @var array
      * @access private
@@ -80,6 +87,8 @@ class core_Session
      */
     public function __construct($name = 'SID')
     {
+        if(self::$mute) return;
+
         if (!headers_sent()) {
             ini_set('session.gc_maxlifetime', 7200);
         }
@@ -154,7 +163,9 @@ class core_Session
      * @return mixed
      */
     public static function get($varName, $part = null)
-    {
+    {   
+        if(self::$mute) return;
+
         $Session = cls::get('core_Session');
         
         if ($Session->_started) {
