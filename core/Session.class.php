@@ -89,9 +89,7 @@ class core_Session
     {
         if(self::$mute) return;
 
-        if (!headers_sent()) {
-            ini_set('session.gc_maxlifetime', 7200);
-        }
+        ini_set('session.gc_maxlifetime', 7200);
         
         $this->sid = $_COOKIE[session_name()];
         
