@@ -519,7 +519,7 @@ class core_ProtoSetup
     {
         $res = '';
         
-        if (count($this->menuItems)) {
+        if (is_array($this->menuItems) && count($this->menuItems)) {
             $conf = $this->getConfig();
             
             // Името на пакета
