@@ -183,7 +183,7 @@ class core_Debug
 
         if(self::$maxEventCnt === 0) return;
 
-        if(self::$maxEventCnt > 0) self::$maxEvents--;
+        if(self::$maxEventCnt > 0) self::$maxEventCnt--;
 
         self::init();
         
