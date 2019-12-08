@@ -43,8 +43,8 @@ class type_Password extends type_Varchar
             $value = '';
         }
         
-        if ($value || $this->params['autocomplete'] == 'off') {
-            $attr['autocomplete'] = 'off';
+        if ($value || $this->params['autocomplete'] == 'off' || $this->params['autocomplete'] == 'new-password') {
+            $attr['autocomplete'] = 'new-password';
         }
         
         $this->params['noTrim'] = 'noTrim';
