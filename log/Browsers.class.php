@@ -484,7 +484,7 @@ class log_Browsers extends core_Master
 
         $cArr['domain'] = $domain;
    
-        log_System::add('log_Browser', "BRID: {$bridHash}, domain:" . $cArr['domain'] . ', headers_sent: ' . headers_sent());
+        log_System::add('log_Browser', "BRID: {$bridHash}, domain:" . $cArr['domain'] . ', headers_sent: ' . headers_sent() . ', PHP:' . PHP_VERSION_ID . ', Json:' . json_encode($cArr));
         
         if (PHP_VERSION_ID >= 70300) {
             setcookie(self::BRID_NAME, $bridHash, $cArr);
