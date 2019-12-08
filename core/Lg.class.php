@@ -350,6 +350,11 @@ class core_Lg extends core_Manager
         $lg = Mode::get('lg');
         
         if (!$lg) {
+            // Връщаме дефолтния език, ако сесията е подтисната
+            if (core_Session::$mute) {
+                
+                return self::getDefaultLang();
+            }
             if (!haveRole('user')) {
                 try {
                     $lg = cms_Content::getLang();
