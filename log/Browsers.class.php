@@ -500,6 +500,8 @@ class log_Browsers extends core_Master
                 $cArr['domain'] = BRID_DOMAIN_NAME;
             }
         }
+
+        log_System::add('log_Browser', "BRID: {$bridHash}, domain:" . $cArr['domain'] . ', headers_sent: ' . headers_sent());
         
         if (PHP_VERSION_ID >= 70300) {
             setcookie(self::BRID_NAME, $bridHash, $cArr);
