@@ -291,6 +291,11 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
+        $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id) : null;
+        $disClass = ($contoUrl) ? '' : 'disabledBtn';
+        $closeBtn = ht::createBtn('Приключи', $contoUrl, 'Желаете ли да приключите бележката|*?', false, "class=operationBtn button closeBtn {$disClass}");
+        $block->append($closeBtn, 'INPUT_FLD');
+        
         if($currentOperation == 'add'){
             $enlargeBtn = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => 'operationBtn enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
             $block->append($enlargeBtn, 'INPUT_FLD');
@@ -603,12 +608,6 @@ class pos_Terminal extends peripheral_Terminal
         
         // Добавяне на бутон за приключване на бележката
         $buttons = array();
-        $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id) : null;
-        $disClass = ($payUrl) ? '' : 'disabledBtn';
-        
-        $closeLink = ht::createElement("div", array('id' => "closeBtn", 'class' => "{$disClass} navigable posBtns payment"), 'Приключи', true);
-        $buttons[] = ht::createLink($closeLink, $contoUrl);
-        
         $Receipts->invoke('BeforeGetPaymentTabBtns', array(&$buttons, $rec));
         foreach ($buttons as $btn){
             $tpl->append($btn);
