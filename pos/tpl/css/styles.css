@@ -45,6 +45,9 @@
   .receipt-header .contragentRow {
     margin-top: 3; }
 
+.noResult {
+  padding: 10px; }
+
 .narrow #receipt-title {
   font-size: 1.1em; }
 

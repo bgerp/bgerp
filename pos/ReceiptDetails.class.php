@@ -134,7 +134,7 @@ class pos_ReceiptDetails extends core_Detail
                 }
             }
         } else {
-            $tpl->append(new ET("<tr><td colspan='3' class='receipt-sale'>" . tr('Няма записи') . '</td></tr>'));
+            $tpl->append(new ET("<tr><td colspan='3' class='receipt-sale'><div class='noResult'>" . tr('Няма записи') . '</div></td></tr>'));
         }
         
         return $tpl;
