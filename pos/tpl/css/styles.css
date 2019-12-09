@@ -225,6 +225,10 @@
   color: white !important;
   background: #b163cc; }
 
+.disabledBtn.posBtns {
+  background: #999999 !important;
+  color: #cccccc !important; }
+
 .posResultContragent {
   display: inline-block;
   vertical-align: top;
