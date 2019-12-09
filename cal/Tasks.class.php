@@ -506,7 +506,22 @@ class cal_Tasks extends embed_Manager
                 $bold = 'font-weight:bold;';
             }
         }
-        $row->progress = "<span class='progress' style='color:{$grey};{$bold}'>{$row->progress}</span>";
+        
+        $progressStr = $row->progress;
+        
+        if (($rec->state == 'waiting') || ($rec->state == 'pending') || ($rec->state == 'wakeup')) {
+            if ($rec->progress) {
+                $progressStr = "[{$progressStr}]";
+            } else {
+                $progressStr = '[]';
+            }
+        }
+        
+        if (($rec->state == 'stopped') || ($rec->state == 'closed')) {
+            $progressStr = "[{$progressStr}]";
+        }
+        
+        $row->progress = "<span class='progress' style='color:{$grey};{$bold}'>{$progressStr}</span>";
         
         // Ако имаме само начална дата на задачата
         if ($rec->timeStart && !$rec->timeEnd) {

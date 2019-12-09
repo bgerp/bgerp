@@ -165,6 +165,19 @@ class blast_ListDetails extends doc_Detail
     
     
     /**
+     * След порготвяне на формата за филтриране
+     *
+     * @param blast_Emails $mvc
+     * @param object       $data
+     */
+    public static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('createdOn', 'DESC');
+        $data->query->orderBy('id', 'DESC');
+    }
+    
+    
+    /**
      * Преди подготвяне на едит формата
      */
     public static function on_BeforePrepareEditForm($mvc, &$res, $data)
