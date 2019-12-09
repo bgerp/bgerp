@@ -605,7 +605,9 @@ class pos_Terminal extends peripheral_Terminal
         $buttons = array();
         $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id) : null;
         $disClass = ($payUrl) ? '' : 'disabledBtn';
-        $buttons[] = ht::createBtn('Приключи', $contoUrl, '', '', array('id' => 'closeBtn', 'class' => "navigable posBtns payment closeBtn"));
+        
+        $closeLink = ht::createElement("div", array('id' => "closeBtn", 'class' => "{$disClass} navigable posBtns payment"), 'Приключи', true);
+        $buttons[] = ht::createLink($closeLink, $contoUrl);
         
         $Receipts->invoke('BeforeGetPaymentTabBtns', array(&$buttons, $rec));
         foreach ($buttons as $btn){
