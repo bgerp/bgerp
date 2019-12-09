@@ -353,6 +353,19 @@ class blast_Lists extends core_Master
     
     
     /**
+     * След порготвяне на формата за филтриране
+     *
+     * @param blast_Emails $mvc
+     * @param object       $data
+     */
+    public static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('modifiedOn', 'DESC');
+        $data->query->orderBy('id', 'DESC');
+    }
+    
+    
+    /**
      * След подготовка на тулбара на единичен изглед.
      *
      * @param core_Mvc $mvc

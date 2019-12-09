@@ -1942,10 +1942,12 @@ class blast_Emails extends core_Master
             if ($mvc->haveRightFor('activate', $rec->rec)) {
                 $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $rec->id), 'ef_icon = img/16/lightning.png, title=Активирай документа');
             }
-        } else {
+        }
+        
+        if ($state != 'stopped') {
             
             // Добавяме бутона Спри, ако състоянието е активно или изчакване
-            if (($state == 'waiting') || ($state == 'active')) {
+            if (($state == 'waiting') || ($state == 'active') || ($state == 'draft')) {
                 if ($mvc->haveRightFor('stop', $rec->rec)) {
                     $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $rec->id), 'ef_icon = img/16/gray-close.png, title=Прекратяване на действието');
                 }
