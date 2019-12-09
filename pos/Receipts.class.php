@@ -227,10 +227,12 @@ class pos_Receipts extends core_Master
         $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
         $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         $row->changeCurrency = $row->currency;
+        
+        $Contragent = new core_ObjectReference($rec->contragentClass, $rec->contragentObjectId);
+        $contragentFolderId = $Contragent->fetchField('folderId');
+        $row->contragentObjectId = (isset($contragentFolderId)) ? doc_Folders::recToVerbal($contragentFolderId)->title : $Contragent->getHyperlink(true);
         if(!($defaultContragentId == $rec->contragentObjectId && crm_Persons::getClassId() == $rec->contragentClass)){
-            $Contragent = new core_ObjectReference($rec->contragentClass, $rec->contragentObjectId);
-            $contragentFolderId = $Contragent->fetchField('folderId');
-            $row->contragentId = (isset($contragentFolderId)) ? doc_Folders::recToVerbal($contragentFolderId)->title : $Contragent->getHyperlink(true);
+            $row->contragentId = $row->contragentObjectId;
         }
         
         if ($fields['-list']) {
