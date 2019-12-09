@@ -101,8 +101,20 @@ class core_Debug
     public function _Singleton()
     {
     }
+
+
+    /**
+     * Път до файл в който да се записва дебъг лога
+     */
+    static $filePath;
     
+
+    /**
+     * Колко на брой ивенти максимално да се запишат
+     */
+    static $maxEventCnt;
     
+
     /**
      * Инициализираме таймерите
      */
@@ -168,14 +180,33 @@ class core_Debug
             
             return ;
         }
-        
+
+        if(self::$maxEventCnt === 0) return;
+
+        if(self::$maxEventCnt > 0) self::$maxEventCnt--;
+
         self::init();
         
         $rec = new stdClass();
         $rec->start = core_DateTime::getMicrotime() - self::$startMicroTime;
         $rec->name = $name;
         
-        self::$debugTime[] = $rec;
+        if(self::$filePath) {
+            file_put_contents(self::$filePath, "{$rec->start}: {$name}\n", FILE_APPEND);
+        } else {
+            self::$debugTime[] = $rec;
+        }
+    }
+
+
+    /**
+     * Задава запис на дебъг информацията във файл
+     */
+    public static function setFile($filePath, $maxEventCnt = null)
+    {   
+        file_put_contents($filePath, "");
+        self::$filePath = $filePath;
+        self::$maxEventCnt = $maxEventCnt;
     }
     
     

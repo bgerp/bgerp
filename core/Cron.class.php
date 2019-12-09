@@ -277,6 +277,8 @@ class core_Cron extends core_Manager
     {
         if (!Request::get('forced')) {
             core_App::flushAndClose(false);
+            // Подтиска използването на сесията на сесията.
+            core_Session::$mute = true;
         }
         
         $whitelist = array(
@@ -359,6 +361,9 @@ class core_Cron extends core_Manager
      */
     public function act_ProcessRun()
     {
+        // Подтиска използването на сесията на сесията.
+        core_Session::$mute = true;
+
         $this->logInfo('Процес:::: ' . Request::get('id'));
         
         // Затваряме връзката създадена от httpTimer, ако извикването не е форсирано
@@ -889,6 +894,9 @@ class core_Cron extends core_Manager
         set_time_limit(90);
         core_App::flushAndClose(false);
         
+        // Подтиска използването на сесията на сесията.
+        core_Session::$mute = true;
+
         // Пробваме да вземем lock за този процес, за 65 секунди
         while (core_Locks::get('core_Cron::Watchdog', 80)) {
             set_time_limit(120);

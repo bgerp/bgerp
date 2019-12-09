@@ -8,11 +8,16 @@ function loginFormSubmit(form, passSalt, hashFactor, nickType)
 	} else {
 		var nick = form.nick.value;
 	}
-	var passwordHash = encodePwd(form.pass.value, nick, passSalt, hashFactor);
-	
-	form.time.value = parseInt(form.time.value) + Math.round((new Date().getTime() - scriptStart)/1000 ); 
-	form.hash.value = applyChallenge(passwordHash, form.time.value);
-	form.pass.value = '';
+    var pass = form.pass.value;
+ 
+    if(pass != '') { 
+        form.pass.value = '';
+        form.pass.type = 'text'
+        var passwordHash = encodePwd(pass, nick, passSalt, hashFactor);
+        
+        form.time.value = parseInt(form.time.value) + Math.round((new Date().getTime() - scriptStart)/1000 ); 
+        form.hash.value = applyChallenge(passwordHash, form.time.value);
+    }
 
 	return true;
 }

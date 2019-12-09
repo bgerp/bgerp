@@ -579,7 +579,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             }
             
             $orderH .= ' ' . ++$i;
-            $rr[] = $rec;
+            
             if ($pArr['search'] || $rec->type == 'working-travel' || $rec->type == 'leaves' || $rec->type == 'sick') {
                 $cRec = $Calendar->recToVerbal($rec, 'title');
                 $rArrNow[$orderDate][$orderH] = (object) array('title' => $cRec->event);
