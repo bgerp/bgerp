@@ -1157,6 +1157,9 @@ if ($step == 'start') {
     ob_implicit_flush();
     ob_end_flush();
     flush();
+    
+    // Подтиска използването на сесията на сесията.
+    core_Session::$mute = true;
 
 
     if(function_exists('fastcgi_finish_request')) {
