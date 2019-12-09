@@ -142,7 +142,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
             $Threads->prepareListRows($data);
             
             foreach ($data->rows as $row) {
-                $at = "<td><div style='float:right'><small>{$row->author}, {$row->last}</small></div></td>";
+                $at = "<td><small>{$row->author} <div class='nowrap'>{$row->last}</div></small></td>";
                 if (is_string($row->title)) {
                     $row->title .= $at;
                 } elseif ($row->title instanceof core_Et) {
