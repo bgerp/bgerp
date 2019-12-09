@@ -205,6 +205,7 @@ class pos_Terminal extends peripheral_Terminal
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('TAB_TOOLS');
         $operation = Mode::get("currentOperation");
         $keyupUrl = null;
+        $buttons = array();
         
         switch($operation){
             case 'add':
@@ -268,16 +269,11 @@ class pos_Terminal extends peripheral_Terminal
         // Показване на възможните операции
         $currentOperation = Mode::get("currentOperation");
         if(Mode::is('screenMode', 'narrow')){
-            $operationSelectFld = ht::createSelect('operation', $operations, $currentOperation, array('class' => '', 'data-url' => $searchUrl));
-            $block->append($operationSelectFld, 'INPUT_FLD');
+            $buttons['selectOperation'] = ht::createSelect('operation', $operations, $currentOperation, array('class' => '', 'data-url' => $searchUrl));
         } else {
             foreach ($operations as $operation => $operationCaption){
-                $class = 'operationBtn';
-                if($operation == $currentOperation){
-                    $class .= " active";
-                }
-                $btn = ht::createFnBtn($operationCaption, '', '', array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation));
-                $block->append($btn, 'INPUT_FLD');
+                $class = ($operation == $currentOperation) ? 'operationBtn active' : 'operationBtn';
+                $buttons["operation-{$operation}"] = ht::createFnBtn($operationCaption, '', '', array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation));
             }
         }
         
@@ -286,21 +282,26 @@ class pos_Terminal extends peripheral_Terminal
             $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
             if(!($defaultContragentId == $rec->contragentObjectId && $rec->contragentClass == crm_Persons::getClassId())){
                 $transferUrl = array('pos_Receipts', 'transfer', $rec->id, 'contragentClassId' => $rec->contragentClass, 'contragentId' => $rec->contragentObjectId);
-                $transferBtn = ht::createBtn('Прехвърли', $transferUrl, 'Наистина ли желаете да прехвърлите бележката към папката на контрагента|*?', false, 'class=operationBtn button');
-                $block->append($transferBtn, 'INPUT_FLD');
+                $buttons["transfer"] = ht::createBtn('Прехвърли', $transferUrl, 'Наистина ли желаете да прехвърлите бележката към папката на контрагента|*?', false, 'class=operationBtn button');
             }
         }
         
+        // Бутон за приключване
         $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id) : null;
         $disClass = ($contoUrl) ? '' : 'disabledBtn';
-        $closeBtn = ht::createBtn('Приключи', $contoUrl, 'Желаете ли да приключите бележката|*?', false, "class=operationBtn button closeBtn {$disClass}");
-        $block->append($closeBtn, 'INPUT_FLD');
+        $buttons["close"] = ht::createBtn('Приключи', $contoUrl, 'Желаете ли да приключите бележката|*?', false, "class=operationBtn button closeBtn {$disClass}");
         
+        // Бутон за увеличение на избрания артикул
         if($currentOperation == 'add'){
-            $enlargeBtn = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => 'operationBtn enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
-            $block->append($enlargeBtn, 'INPUT_FLD');
+            $buttons["enlarge"] = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => 'operationBtn enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
         }
 
+        // Добавяне на бутон за приключване на бележката
+        $Receipts->invoke('BeforeGetPaymentTabBtns', array(&$buttons, $rec));
+        foreach ($buttons as $btn){
+            $block->append($btn, 'INPUT_FLD');
+        }
+        
         $input = ht::createElement('input', $params);
         $holder = ht::createElement('div', array('class' => 'inputHolder'), $input, true);
         $block->append($holder, 'INPUT_FLD');
@@ -590,7 +591,6 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultPayment($rec, $string, $selectedRec)
     {
-        $Receipts = cls::get('pos_Receipts');
         $tpl = new core_ET("");
         
         $payUrl = (pos_Receipts::haveRightFor('pay', $rec)) ? toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local') : null;
@@ -605,13 +605,6 @@ class pos_Terminal extends peripheral_Terminal
             $tpl->append($element);
         }
         $tpl->append("<div class='clearfix21'></div>");
-        
-        // Добавяне на бутон за приключване на бележката
-        $buttons = array();
-        $Receipts->invoke('BeforeGetPaymentTabBtns', array(&$buttons, $rec));
-        foreach ($buttons as $btn){
-            $tpl->append($btn);
-        }
         $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
