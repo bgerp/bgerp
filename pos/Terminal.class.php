@@ -599,7 +599,7 @@ class pos_Terminal extends peripheral_Terminal
             $element = ht::createElement("div", array('id' => "payment{$paymentId}", 'class' => "{$disClass} navigable posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl), tr($paymentTitle), true);
             $tpl->append($element);
         }
-        $tpl->append("<div class='clearfix21'></div><div class='actionBnts'>");
+        $tpl->append("<div class='clearfix21'></div>");
         
         // Добавяне на бутон за приключване на бележката
         $buttons = array();
@@ -613,7 +613,6 @@ class pos_Terminal extends peripheral_Terminal
         foreach ($buttons as $btn){
             $tpl->append($btn);
         }
-        $tpl->append("</div>");
         $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
