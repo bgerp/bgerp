@@ -418,7 +418,6 @@ class pos_ReceiptDetails extends core_Detail
         $this->requireRightFor('delete', $id);
         
         $this->delete($rec->id);
-        $this->Master->updateReceipt($rec->receiptId);
         $this->Master->logInAct('Изтриване на ред', $rec->receiptId);
         
         return pos_Terminal::returnAjaxResponse($rec->receiptId, null, true, true);
@@ -640,15 +639,6 @@ class pos_ReceiptDetails extends core_Detail
     
     
     /**
-     * След като създадем елемент, ъпдейтваме Бележката
-     */
-    protected static function on_AfterSave($mvc, &$id, $rec, $fieldsList = null)
-    {
-        $mvc->Master->updateReceipt($rec->receiptId);
-    }
-    
-    
-    /**
      * Модификация на ролите, които могат да видят избраната тема
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
@@ -764,7 +754,6 @@ class pos_ReceiptDetails extends core_Detail
             $this->save($rec);
         }
         
-        $this->Master->updateReceipt($receiptId);
         $this->Master->logInAct('Зареждане на всичко от сторнираната бележка', $receiptId);
         
         followRetUrl();

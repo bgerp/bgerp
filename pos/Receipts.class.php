@@ -380,13 +380,15 @@ class pos_Receipts extends core_Master
     
     
     /**
-     * Ъпдейтване на бележката
+     * Обновява данни в мастъра
      *
-     * @param int $id - на бележката
+     * @param int $id първичен ключ на статия
+     *
+     * @return int $id ид-то на обновения запис
      */
-    public function updateReceipt($id)
+    public function updateMaster_($id)
     {
-        expect($rec = $this->fetch($id));
+        expect($rec = $this->fetchRec($id));
         $rec->change = $rec->total = $rec->paid = 0;
         
         $dQuery = $this->pos_ReceiptDetails->getQuery();
@@ -414,7 +416,7 @@ class pos_Receipts extends core_Master
         $rec->change = $diff;
         $rec->total = $rec->total;
         
-        $this->save($rec);
+        $this->save($rec, 'total,change,paid');
     }
     
     
