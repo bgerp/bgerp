@@ -120,7 +120,10 @@ class pos_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'pos';
+    public $roles = array(
+        array('pos'),
+        array('posMaster', 'pos'),
+    );
     
     
     /**
@@ -141,12 +144,6 @@ class pos_Setup extends core_ProtoSetup
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
-        
-        // Добавяме класа връщащ темата в core_Classes
-        $html .= core_Classes::add('pos_DefaultTheme');
-        
-        // Добавяне на роля за старши пос
-        $html .= core_Roles::addOnce('posMaster', 'pos');
         
         return $html;
     }
