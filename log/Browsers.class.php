@@ -123,6 +123,18 @@ class log_Browsers extends core_Master
     
     
     /**
+     * Името на типа за кеширане
+     */
+    protected static $bridCacheType = 'BRID';
+    
+    
+    /**
+     * Времето за кеширане
+     */
+    protected static $bridCacheKeepMinutes = 10;
+    
+    
+    /**
      * Полета на модела
      */
     public function description()
@@ -222,6 +234,12 @@ class log_Browsers extends core_Master
             $brid = str::checkHash($bridC, self::HASH_LENGTH, $bridSalt);
             
             if ($brid) {
+                
+                // На случаен принцип обновяваме живота на кукито
+                if (rand(1, 20) == 16) {
+                    self::updateBridCookieLifetime($brid);
+                }
+                
                 // Добавяме в модела
                 self::add($brid);
                 
@@ -235,8 +253,13 @@ class log_Browsers extends core_Master
         // Ако е зададено да се генерира brid
         if ($generate && !self::$stopGenerating && !headers_sent()) {
             
-            // Генерира brid
-            $brid = self::generateBrid();
+            // Ако в кеша имаме brid, използваме него
+            $brid = self::getBridFromCache();
+            
+            if (!$brid) {
+                // Генерира brid
+                $brid = self::generateBrid();
+            }
             
             // Записваме кукито
             self::setBridCookie($brid);
@@ -506,15 +529,19 @@ class log_Browsers extends core_Master
         $_COOKIE[self::BRID_NAME] = $bridHash;
         
         $flag = true;
+        
+        self::saveBridToCache($brid);
     }
     
     
     /**
      * Обновява времето до когато ще е активен brid
      */
-    public static function updateBridCookieLifetime()
+    public static function updateBridCookieLifetime($brid = null)
     {
-        $brid = self::getBrid(false);
+        if (!isset($brid)) {
+            $brid = self::getBrid(false);
+        }
         
         if (!$brid) {
             
@@ -1033,5 +1060,42 @@ class log_Browsers extends core_Master
         
         // Сортиране на записите по създаване
         $data->query->orderBy('createdOn', 'DESC');
+    }
+    
+    
+    /**
+     * Помощна функция за записване на brid в кеша
+     * 
+     * @param string $brid
+     */
+    protected static function saveBridToCache($brid)
+    {
+        $bHash = self::getBridHashName();
+        
+        core_Cache::set(self::$bridCacheType, $bHash, $brid, self::$bridCacheKeepMinutes);
+    }
+    
+    
+    /**
+     * Връща брида от хеша
+     * 
+     * @return false|string
+     */
+    protected static function getBridFromCache()
+    {
+        $bHash = self::getBridHashName();
+        
+        return core_Cache::get(self::$bridCacheType, $bHash, self::$bridCacheKeepMinutes);
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на хеша за кеша
+     * 
+     * @return string
+     */
+    protected static function getBridHashName()
+    {
+        return md5(log_Browsers::getUserAgent() . '|' . core_Users::getRealIpAddr());
     }
 }
