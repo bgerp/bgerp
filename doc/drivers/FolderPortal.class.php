@@ -217,12 +217,15 @@ class doc_drivers_FolderPortal extends core_BaseClass
     
     
     /**
-     * Връща типа на блока за портала
+     * Връща заглавието за таба на съответния блок
      *
-     * @return string - other, tasks, notifications, calendar, recently
+     * @param stdClass $dRec
+     *
+     * @return string
      */
-    public function getBlockType()
+    public function getBlockTabName($dRec)
     {
-        return 'other';
+        
+        return tr('Папка') . ' ' . doc_Folders::getLink($dRec->folderId, 16);
     }
 }

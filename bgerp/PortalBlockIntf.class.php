@@ -51,14 +51,17 @@ class bgerp_PortalBlockIntf extends embed_DriverIntf
     }
     
     
+    
     /**
-     * Връща типа на блока за портала
-     * 
-     * @return string - other, tasks, notifications, calendar, recently
+     * Връща заглавието за таба на съответния блок
+     *
+     * @param stdClass $dRec
+     *
+     * @return string
      */
-    public function getBlockType()
+    public function getBlockTabName($dRec)
     {
         
-        return $this->class->getBlockType();
+        return $this->class->getBlockTabName($dRec);
     }
 }

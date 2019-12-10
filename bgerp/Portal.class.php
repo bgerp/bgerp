@@ -162,21 +162,19 @@ class bgerp_Portal extends embed_Manager
         $isNarrow = Mode::is('screenMode', 'narrow');
         
         if ($isNarrow) {
-            $tpl = new ET(tr("|*
-                          	<ul class='portalTabs'>
-                                <!--ET_BEGIN NOTIFICATIONS_COLOR_TAB--><li class='tab-link [#NOTIFICATIONS_COLOR_TAB#]' data-tab='notificationsPortal'>|Известия|*</li><!--ET_END NOTIFICATIONS_COLOR_TAB-->
-                                <!--ET_BEGIN CALENDAR_COLOR_TAB--><li class='tab-link [#CALENDAR_COLOR_TAB#]' data-tab='calendarPortal'>|Календар|*</li><!--ET_END CALENDAR_COLOR_TAB-->
-                                <!--ET_BEGIN TASKS_COLOR_TAB--><li class='tab-link [#TASKS_COLOR_TAB#]' data-tab='taskPortal'>|Задачи|*</li><!--ET_END TASKS_COLOR_TAB-->
-                                <!--ET_BEGIN RECENTLY_COLOR_TAB--><li class='tab-link [#RECENTLY_COLOR_TAB#]' data-tab='recentlyPortal'>|Последно|*</li><!--ET_END RECENTLY_COLOR_TAB-->
-                            </ul>
-                            <div class='portalContent'>
-                                <div class='narrowPortalBlocks' id='notificationsPortal'>[#NOTIFICATIONS_COLUMN#]</div>
-                                <div class='narrowPortalBlocks' id='calendarPortal'>[#CALENDAR_COLUMN#]</div>
-                                <div class='narrowPortalBlocks' id='taskPortal'>[#TASK_COLUMN#]</div>
-                                <div class='narrowPortalBlocks' id='recentlyPortal'>[#RECENTLY_COLUMN#]</div>
-                                <div class='narrowPortalOther' id='recentlyPortal'>[#OTHER#]</div>
+            $tpl = new ET("
+                            <div class='sub-header'>
+                                <div class='swipe-tabs'>
+                                    <!--ET_BEGIN TAB_NAME--><div class='swipe-tab [#PORTAL_CLASS#]'>[#TAB_NAME#]</div><!--ET_END TAB_NAME-->
+                                </div>
                             </div>
-                            "));
+                            
+                            <div class='main-container'>
+                                <div class='swipe-tabs-container'>
+                                    <!--ET_BEGIN TAB_CONTENT--><div class='swipe-tab-content'>[#TAB_CONTENT#]</div><!--ET_END TAB_CONTENT-->
+                                </div>
+                            </div>
+                            ");
         } else {
             $tpl = new ET("
                 <table style='width:100%' class='top-table large-spacing'>
@@ -215,41 +213,18 @@ class bgerp_Portal extends embed_Manager
             if ($isNarrow) {
                 $intf = cls::getInterface('bgerp_PortalBlockIntf', $r->{$this->driverClassField});
                 
-                $blockType = $intf->getBlockType();
+                $blockTabName = $intf->getBlockTabName($r);
                 
-                if ($intf->getBlockType() == 'other') {
-                    $tpl->append($res, 'OTHER');
-                } else {
-                    switch ($blockType) {
-                        case 'tasks':
-                            $blockName = 'TASK_COLUMN';
-                            $tabColorName = 'TASKS_COLOR_TAB';
-                        break;
-                        
-                        case 'notifications':
-                            $blockName = 'NOTIFICATIONS_COLUMN';
-                            $tabColorName = 'NOTIFICATIONS_COLOR_TAB';
-                        break;
-                        
-                        case 'calendar':
-                            $blockName = 'CALENDAR_COLUMN';
-                            $tabColorName = 'CALENDAR_COLOR_TAB';
-                        break;
-                        
-                        case 'recently':
-                            $blockName = 'RECENTLY_COLUMN';
-                            $tabColorName = 'RECENTLY_COLOR_TAB';
-                        break;
-                        
-                        default:
-                            expect(false, $blockName);
-                        break;
-                    }
-                    
-                    $tpl->replace($pClass, $tabColorName);
-                    
-                    $tpl->append($res, $blockName);
-                }
+                $blockTabNameTpl = $tpl->getBlock('TAB_NAME');
+                $blockTabNameTpl->replace($blockTabName, 'TAB_NAME');
+                $blockTabNameTpl->replace($pClass, 'PORTAL_CLASS');
+                $blockTabNameTpl->removeBlocks();
+                $blockTabNameTpl->append2master();
+                
+                $blockTabContentTpl = $tpl->getBlock('TAB_CONTENT');
+                $blockTabContentTpl->replace($res, 'TAB_CONTENT');
+                $blockTabContentTpl->removeBlocks();
+                $blockTabContentTpl->append2master();
             } else {
                 $tpl->append($res, $columnMap[$r->column]);
             }
@@ -259,9 +234,9 @@ class bgerp_Portal extends embed_Manager
             }
         }
         
-        if ($isNarrow) {
-            jquery_Jquery::run($tpl, "openCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime(core_Users::getCurrent())) . "'); ");
-        }
+//         if ($isNarrow) {
+//             jquery_Jquery::run($tpl, "openCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime(core_Users::getCurrent())) . "'); ");
+//         }
         
         bgerp_LastTouch::set('portal');
         
