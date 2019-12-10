@@ -205,6 +205,7 @@ class pos_ReceiptDetails extends core_Detail
     {
         $this->requireRightFor('edit');
         expect($receiptId = Request::get('receiptId', 'int'));
+        expect($receiptRec = pos_Receipts::fetch($receiptId));
         $success = true;
        
         try{
@@ -222,6 +223,10 @@ class pos_ReceiptDetails extends core_Detail
             } else {
                 $string = str::removeWhiteSpace(trim($string), " ");
                 list($firstValue, $secondValue) = explode(" ", $string, 2);
+            }
+            
+            if($operation != 'settext'){
+                expect(empty($receiptRec->paid), 'Не може да се променя информацията, ако има направено плащане|*!');
             }
             
             switch($operation){
@@ -446,8 +451,9 @@ class pos_ReceiptDetails extends core_Detail
     {
         $Double = cls::get('type_Double');
         $Double->params['smartRound'] = true;
-        $receiptRec = $mvc->Master->fetch($rec->receiptId, 'createdOn,revertId');
+        $receiptRec = $mvc->Master->fetch($rec->receiptId, 'createdOn,revertId,paid');
         $row->currency = acc_Periods::getBaseCurrencyCode($receiptRec->createdOn);
+        $canDelete = ($mvc->haveRightFor('delete', $rec) && !Mode::is('printing'));
         
         $action = $mvc->getAction($rec->action);
         switch ($action->type) {
@@ -469,7 +475,7 @@ class pos_ReceiptDetails extends core_Detail
         }
         
         // Ако може да изтриваме ред и не сме в режим принтиране
-        if ($mvc->haveRightFor('delete', $rec) && !Mode::is('printing')) {
+        if ($canDelete) {
             $delUrl = toUrl(array($mvc->className, 'deleteRec'), 'local');
             $row->DEL_BTN = ht::createElement('img', array('src' => sbf('img/16/deletered.png', ''),
                 'class' => 'pos-del-btn', 'data-recId' => $rec->id,
@@ -649,7 +655,7 @@ class pos_ReceiptDetails extends core_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if (($action == 'add' || $action == 'delete') && isset($rec->receiptId)) {
-            $masterRec = pos_Receipts::fetch($rec->receiptId, 'revertId,state');
+            $masterRec = pos_Receipts::fetch($rec->receiptId, 'revertId,state,paid');
             
             if ($masterRec->state != 'draft') {
                 $res = 'no_one';
