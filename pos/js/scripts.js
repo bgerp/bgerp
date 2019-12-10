@@ -319,6 +319,9 @@ function posActions() {
 		var selectedRecId = selectedElement.attr("data-id");
 		
 		var url = $(this).attr("data-url");
+		if(!url){
+			return;
+		}
 		
 		resObj = new Object();
 		resObj['url'] = url;
