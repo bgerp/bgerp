@@ -87,7 +87,13 @@ class pos_ReceiptDetails extends core_Detail
      */
     public $loadList = 'plg_Modified,plg_Created';
         
-        
+     
+    /**
+     * Поле за забележките
+     */
+    public $notesFld = 'text';
+    
+    
     /**
      * Описание на модела (таблицата)
      */

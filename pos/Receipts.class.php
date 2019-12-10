@@ -25,7 +25,7 @@ class pos_Receipts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing,plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,plg_Modified';
+    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing,plg_State, pos_Wrapper,cat_plg_AddSearchKeywords, plg_Search, plg_Sorting,plg_Modified';
     
     
     /**
@@ -119,12 +119,6 @@ class pos_Receipts extends core_Master
     
     
     /**
-     *  Полета по които ще се търси
-     */
-    public $searchFields = 'contragentName';
-    
-    
-    /**
      * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'pos/tpl/SingleLayoutReceipt.shtml';
@@ -140,6 +134,12 @@ class pos_Receipts extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, valior, modifiedOn';
+    
+    
+    /**
+     *  Полета по които ще се търси
+     */
+    public $searchFields = 'pointId, contragentName';
     
     
     /**
@@ -416,7 +416,7 @@ class pos_Receipts extends core_Master
         $rec->change = $diff;
         $rec->total = $rec->total;
         
-        $this->save($rec, 'total,change,paid');
+        $this->save($rec);
     }
     
     
@@ -806,7 +806,7 @@ class pos_Receipts extends core_Master
         expect($rec->contragentObjectId = Request::get('contragentId', 'int'));
         
         $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
-        $this->save($rec, 'contragentObjectId,contragentClass');
+        $this->save($rec, 'contragentObjectId,contragentClass,contragentName');
         $this->logWrite('Задаване на контрагент', $id);
         
         followRetUrl();
@@ -834,5 +834,27 @@ class pos_Receipts extends core_Master
         }
         
         return $rows;
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        // Добавяне на използваните платежни методи към ключовите думи
+        $detailsKeywords = '';
+        $dQuery = pos_ReceiptDetails::getQuery();
+        $dQuery->where("#receiptId = '{$rec->id}' AND #action != 'sale|code'");
+        while ($dRec = $dQuery->fetch()) {
+            $action = cls::get('pos_ReceiptDetails')->getAction($dRec->action);
+            $payment = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr('В брой');
+            $detailsKeywords .= ' ' . plg_Search::normalizeText($payment);
+        }
+        
+        // Ако има нови ключови думи, добавят се
+        if (!empty($detailsKeywords)) {
+            $res = ' ' . $res . ' ' . $detailsKeywords;
+        }
     }
 }
