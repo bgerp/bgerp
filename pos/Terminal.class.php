@@ -332,7 +332,7 @@ class pos_Terminal extends peripheral_Terminal
         Mode::setPermanent("currentOperation{$id}", $operation);
         Mode::setPermanent("currentSearchString{$id}", $string);
         
-        return static::returnAjaxResponse($rec, $selectedRecId, true, false, $refreshPanel);
+        return static::returnAjaxResponse($rec->id, $selectedRecId, true, false, $refreshPanel);
     }
     
     
@@ -1122,7 +1122,11 @@ class pos_Terminal extends peripheral_Terminal
     {
         $me = cls::get(get_called_class());
         $Receipts = cls::get('pos_Receipts');
-        $rec = $Receipts->fetchRec($receiptId);
+        
+        // Форсиране на обновяването на мастъра, за да е сигурно че данните в бележката са актуални
+        $Receipts->flushUpdateQueue($receiptId);
+        $rec = $Receipts->fetch($receiptId, '*', false);
+        
         $operation = Mode::get("currentOperation{$rec->id}");
         $string = Mode::get("currentSearchString{$rec->id}");
         $res = array();
@@ -1152,7 +1156,7 @@ class pos_Terminal extends peripheral_Terminal
             
             if($refreshTable === true){
                 $receiptTpl = $me->getReceipt($rec);
-
+                
                 $resObj = new stdClass();
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'receipt-table', 'html' => $receiptTpl->getContent(), 'replace' => true);
