@@ -845,7 +845,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Вкарване на css и js файлове
      */
-    public function pushTerminalFiles_(&$tpl, $rec)
+    public function pushTerminalFiles(&$tpl, $rec)
     {
         $tpl->push('css/Application.css', 'CSS');
         $tpl->push('css/default-theme.css', 'CSS');
@@ -858,8 +858,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         jqueryui_Ui::enable($tpl);
-        
-        //@TODO да се добавят стилове от тема $rec->theme
+        cls::get('pos_Receipts')->invoke('AfterPushTerminalFiles', array(&$tpl, $rec));
     }
     
     
