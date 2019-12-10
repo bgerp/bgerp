@@ -893,11 +893,13 @@ class core_Master extends core_Manager
     
     /**
      * Флъшва ъпдейтването на мастъра, да не го чака на shutdown
+     * премахва го и от стека, да не се вика повторно обновяването
      * 
-     * @param int $id
+     * @param mixed $id
      */
     public function flushUpdateQueue($id)
     {
+        $id = is_object($id->id) ? $id->id : $id;
         unset($this->updateQueue[$id]);
         $this->updateMaster($id);
     }
