@@ -269,6 +269,11 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
+        // Ако записаната операция в сесията я няма, то се избира първата възможна автоматично
+        if(!array_key_exists($operation, $operations)){
+            Mode::setPermanent("currentOperation{$rec->id}", key($operations));
+        }
+        
         // Показване на възможните операции
         $currentOperation = Mode::get("currentOperation{$rec->id}");
         if(Mode::is('screenMode', 'narrow')){
