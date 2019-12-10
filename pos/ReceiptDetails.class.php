@@ -449,8 +449,7 @@ class pos_ReceiptDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $Double = cls::get('type_Double');
-        $Double->params['smartRound'] = true;
+        $Double = core_Type::getByName('double(smartRound)');
         $receiptRec = $mvc->Master->fetch($rec->receiptId, 'createdOn,revertId,paid');
         $row->currency = acc_Periods::getBaseCurrencyCode($receiptRec->createdOn);
         $canDelete = ($mvc->haveRightFor('delete', $rec) && !Mode::is('printing'));
@@ -469,7 +468,7 @@ class pos_ReceiptDetails extends core_Detail
                 
                 if ($fields['-list']) {
                     $row->productId = tr('Плащане') . ': ' . $row->actionValue;
-                    unset($row->quantity,$row->value);
+                    unset($row->quantity, $row->value);
                 }
                 break;
         }
@@ -480,7 +479,7 @@ class pos_ReceiptDetails extends core_Detail
             $row->DEL_BTN = ht::createElement('img', array('src' => sbf('img/16/deletered.png', ''),
                 'class' => 'pos-del-btn', 'data-recId' => $rec->id,
                 'title' => 'Изтриване на реда',
-                'data-warning' => tr('|Наистина ли искате да изтриете записа|*?'),
+                'data-warning' => tr('|Наистина ли искате да изтриете реда|*?'),
                 'data-url' => $delUrl));
         }
     }
@@ -734,15 +733,6 @@ class pos_ReceiptDetails extends core_Detail
         }
         
         return $result;
-    }
-    
-    
-    /**
-     * След подготовка на лист тулбара
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, $data)
-    {
-        unset($data->toolbar->buttons['btnAdd']);
     }
     
     

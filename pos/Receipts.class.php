@@ -472,13 +472,6 @@ class pos_Receipts extends core_Master
             }
         }
         
-        // Не могат да се възстановяват пранзи бележки
-        if ($action == 'restore' && isset($rec)) {
-            if ($rec->total == 0) {
-                $res = 'no_one';
-            }
-        }
-        
         // Може ли да бъде направено плащане по бележката
         if ($action == 'pay' && isset($rec)) {
             if (!$rec->total || ($rec->total && abs($rec->paid) >= abs($rec->total))) {
@@ -563,7 +556,7 @@ class pos_Receipts extends core_Master
         doc_ThreadUsers::addShared($sRec->threadId, $sRec->containerId, $cu);
         
         // Редирект към новата бележка
-        return new Redirect(array('sales_Sales', 'single', $sId), '|Успешно прехвърляне на бележката');
+        return new Redirect(array('sales_Sales', 'single', $sId), 'Успешно прехвърляне на бележката');
     }
     
     
@@ -660,7 +653,7 @@ class pos_Receipts extends core_Master
                 if ($this->haveRightFor('terminal', $rec)) {
                     $num = ht::createLink($num, array('pos_Terminal', 'open', 'receiptId' => $rec->id), false, 'title=Довършване на бележката,ef_icon=img/16/cash-register.png');
                 } elseif ($this->haveRightFor('single', $rec)) {
-                    $num = ht::createLink($num, array($this, 'single', $rec->id), false, "title=Преглед на бележка №{$rec->id},ef_icon=img/16/view.png");
+                    $num = ht::createLink($num, array($this, 'single', $rec->id), false, "title=Отваряне на бележка №{$rec->id},ef_icon=img/16/view.png");
                 }
             }
             
