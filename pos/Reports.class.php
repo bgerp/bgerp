@@ -707,13 +707,13 @@ class pos_Reports extends core_Master
     public static function canMakeReport($pointId)
     {
         // Ако няма нито една активна бележка за посочената каса и касиер, не може да се създаде отчет
-        if (!pos_Receipts::fetch("#pointId = {$pointId} AND #state = 'waiting'")) {
+        if (!pos_Receipts::fetchField("#pointId = {$pointId} AND #state = 'waiting'")) {
             
             return false;
         }
         
         // Ако има неприключена започната бележка в тачката от касиера, също не може да се направи отчет
-        if (pos_Receipts::fetch("#pointId = {$pointId} AND #total != 0 AND #state = 'draft'")) {
+        if (pos_Receipts::fetchField("#pointId = {$pointId} AND #total != 0 AND #state = 'draft'")) {
             
             return false;
         }
