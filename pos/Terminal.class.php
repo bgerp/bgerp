@@ -96,18 +96,19 @@ class pos_Terminal extends peripheral_Terminal
      */
     public function act_Open()
     {
+        $Receipts = cls::get('pos_Receipts');
+        $Receipts->requireRightFor('terminal');
+        expect($id = Request::get('receiptId', 'int'));
+        
         if(Request::get('opened', 'int')){
             $redirectUrl = getCurrentUrl();
             unset($redirectUrl['opened']);
             
-            Mode::setPermanent("currentOperation", 'add');
-            Mode::setPermanent("currentSearchString", null);
+            Mode::setPermanent("currentOperation{$id}", 'add');
+            Mode::setPermanent("currentSearchString{$id}", null);
             redirect($redirectUrl);
         }
         
-        $Receipts = cls::get('pos_Receipts');
-        $Receipts->requireRightFor('terminal');
-        expect($id = Request::get('receiptId', 'int'));
         expect($rec = $Receipts->fetch($id));
         
         // Имаме ли достъп до терминала
@@ -137,8 +138,8 @@ class pos_Terminal extends peripheral_Terminal
             // Ако сме чернова, добавяме пултовете
             if ($rec->state == 'draft') {
                 
-                $defaultOperation = Mode::get("currentOperation") ? Mode::get("currentOperation") : 'add';
-                $defaultSearchString = Mode::get("currentSearchString");
+                $defaultOperation = Mode::get("currentOperation{$rec->id}") ? Mode::get("currentOperation{$rec->id}") : 'add';
+                $defaultSearchString = Mode::get("currentSearchString{$rec->id}");
                 
                 // Добавяне на табовете под бележката
                 $toolsTpl = $this->getCommandPanel($rec, $defaultOperation);
@@ -205,7 +206,7 @@ class pos_Terminal extends peripheral_Terminal
         expect($rec = $Receipts->fetchRec($rec));
         
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('TAB_TOOLS');
-        $operation = Mode::get("currentOperation");
+        $operation = Mode::get("currentOperation{$rec->id}");
         $keyupUrl = null;
         $buttons = array();
         
@@ -247,7 +248,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $value = round(abs($rec->total) - abs($rec->paid), 2);
         $value = ($value > 0) ? $value : null;
-        $inputValue = ($operation == 'payment') ? $value : Mode::get("currentSearchString");
+        $inputValue = ($operation == 'payment') ? $value : Mode::get("currentSearchString{$rec->id}");
         
         $searchUrl = toUrl(array($this, 'displayOperation', 'receiptId' => $rec->id), 'local');
         $params = array('name' => 'ean', 'value' => $inputValue, 'type' => 'text', 'class'=> 'large-field select-input-pos', 'data-url' => $inputUrl, 'data-keyupurl' => $keyupUrl, 'title' => 'Въвеждане', 'list' => 'suggestions');
@@ -269,7 +270,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         // Показване на възможните операции
-        $currentOperation = Mode::get("currentOperation");
+        $currentOperation = Mode::get("currentOperation{$rec->id}");
         if(Mode::is('screenMode', 'narrow')){
             $buttons['selectOperation'] = ht::createSelect('operation', $operations, $currentOperation, array('class' => '', 'data-url' => $searchUrl));
         } else {
@@ -328,8 +329,8 @@ class pos_Terminal extends peripheral_Terminal
         $selectedRecId = Request::get('recId', 'int');
        
         $string = Request::get('search', 'varchar');
-        Mode::setPermanent("currentOperation", $operation);
-        Mode::setPermanent("currentSearchString", $string);
+        Mode::setPermanent("currentOperation{$id}", $operation);
+        Mode::setPermanent("currentSearchString{$id}", $string);
         
         return static::returnAjaxResponse($rec, $selectedRecId, true, false, $refreshPanel);
     }
@@ -1123,8 +1124,8 @@ class pos_Terminal extends peripheral_Terminal
         $me = cls::get(get_called_class());
         $Receipts = cls::get('pos_Receipts');
         $rec = $Receipts->fetchRec($receiptId);
-        $operation = Mode::get("currentOperation");
-        $string = Mode::get("currentSearchString");
+        $operation = Mode::get("currentOperation{$rec->id}");
+        $string = Mode::get("currentSearchString{$rec->id}");
         $res = array();
        
         if($success === true){

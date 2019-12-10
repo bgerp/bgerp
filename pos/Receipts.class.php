@@ -189,8 +189,8 @@ class pos_Receipts extends core_Master
         }
         
         // Записваме, че потребителя е разглеждал този списък
-        Mode::setPermanent("currentOperation", 'add');
-        Mode::setPermanent("currentSearchString", null);
+        Mode::setPermanent("currentOperation{$id}", 'add');
+        Mode::setPermanent("currentSearchString{$id}", null);
         
         return new Redirect(array('pos_Terminal', 'open', 'receiptId' => $id));
     }
@@ -742,8 +742,8 @@ class pos_Receipts extends core_Master
         $newReceiptId = $this->createNew($id);
         $this->logWrite('Създаване на сторнираща бележка', $id);
         
-        Mode::setPermanent("currentOperation", 'add');
-        Mode::setPermanent("currentSearchString", null);
+        Mode::setPermanent("currentOperation{$newReceiptId}", 'add');
+        Mode::setPermanent("currentSearchString{$newReceiptId}", null);
         
         return new Redirect(array('pos_Terminal', 'open', "receiptId" => $newReceiptId));
     }
