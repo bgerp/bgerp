@@ -283,6 +283,12 @@ function reportException($e, $update = null, $supressShowing = true)
 }
 
 
+function getRandomString($length = 15)
+{
+    return substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, $length);
+}
+
+
 /**
  * Записва стейта на хита в съответния файл
  * 
@@ -790,6 +796,30 @@ function getTplFromFile($file)
 
 
 /**
+ * Връща стойност за EF_SALT
+ *
+ * @return string
+ */
+function getEF_SALT()
+{
+    if (defined('EF_SALT')) {
+        
+        return EF_SALT;
+    }
+    $parse = parse_url(getSelfURL());
+    $fileName = md5($parse['host']);
+    if (file_exists("/tmp/". $fileName)) {
+        
+        return @file_get_contents("/tmp/". $fileName);
+    }
+    $rndStr = getRandomString();
+    @file_put_contents("/tmp/". $fileName, $rndStr);
+    
+    return $rndStr;
+}
+
+
+/**
  * Връща валиден ключ за оторизация в Setup-а
  *
  * @return string
@@ -797,7 +827,7 @@ function getTplFromFile($file)
 function setupKey($efSalt = null, $i = 0)
 {
     // Сетъп ключ, ако не е зададен
-    $salt = ($efSalt)?($efSalt):('*9fbaknc');
+    $salt = ($efSalt)?($efSalt):(getEF_SALT());
     
     $key = md5($salt . '*9fbaknc');
     

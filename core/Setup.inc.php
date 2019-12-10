@@ -825,7 +825,7 @@ if ($step == 3) {
     
     // Обща сол
     if (!defined('EF_SALT')) {
-        $efSaltGenerated = $consts['EF_SALT'] = getRandomString();
+        $efSaltGenerated = $consts['EF_SALT'] = getEF_SALT();
     }
     
     // Препоръчителна стойност между 200 и 500
@@ -1610,12 +1610,6 @@ function dataBaseStat()
     $tables = $DB->fetchObject($tablesRes);
     
     return array($tables->TABLES, $rows->RECS);
-}
-
-
-function getRandomString($length = 15)
-{
-    return substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, $length);
 }
 
 

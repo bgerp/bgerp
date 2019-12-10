@@ -247,12 +247,19 @@ class bgerp_drivers_Tasks extends core_BaseClass
     
     
     /**
-     * Връща типа на блока за портала
+     * Връща заглавието за таба на съответния блок
      *
-     * @return string - other, tasks, notifications, calendar, recently
+     * @param stdClass $dRec
+     *
+     * @return string
      */
-    public function getBlockType()
+    public function getBlockTabName($dRec)
     {
-        return 'tasks';
+        if (Mode::is('listTasks', 'by')) {
+            
+            return tr('Задачи от мен');
+        }
+        
+        return tr('Задачи към мен');
     }
 }

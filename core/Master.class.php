@@ -892,6 +892,18 @@ class core_Master extends core_Manager
     
     
     /**
+     * Флъшва ъпдейтването на мастъра, да не го чака на shutdown
+     * 
+     * @param int $id
+     */
+    public function flushUpdateQueue($id)
+    {
+        unset($this->updateQueue[$id]);
+        $this->updateMaster($id);
+    }
+    
+    
+    /**
      * Обновява данни в мастъра
      *
      * @param int $id първичен ключ на статия
