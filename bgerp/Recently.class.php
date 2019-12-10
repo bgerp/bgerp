@@ -196,6 +196,11 @@ class bgerp_Recently extends core_Manager
                 
                 $attr = array();
                 $attr['class'] .= "state-{$state}";
+                
+                if ($docRec->modifiedOn > $mvc->getLastDocumentSee($docRec->containerId, null, false)) {
+                    $attr['class'] .= " tUnsighted";
+                }
+                
                 $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon($docRec->id));
                 
                 if (mb_strlen($docRow->title) > self::maxLenTitle) {
