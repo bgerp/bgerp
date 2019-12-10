@@ -8,7 +8,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -40,15 +40,17 @@ class cat_plg_AddSearchKeywords extends core_Plugin
             
             // За всеки запис
             while ($dRec = $dQuery->fetch()) {
-                
-                // Ключовите думи на артикулите се добавят към тези от продажбата
-                $pRec = cat_Products::fetch($dRec->{$Detail->productFld});
-                $productSearchKeywords = $Products->getSearchKeywords($pRec);
-                $detailsKeywords .= ' ' . $productSearchKeywords;
-                
-                // Ако има забележки, и те се добавят към ключовите думи
-                if (!empty($dRec->{$Detail->notesFld})) {
-                    $detailsKeywords .= ' ' . plg_Search::normalizeText($dRec->{$Detail->notesFld});
+                if(!empty($dRec->{$Detail->productFld})){
+                    
+                    // Ключовите думи на артикулите се добавят към тези от продажбата
+                    $pRec = cat_Products::fetch($dRec->{$Detail->productFld});
+                    $productSearchKeywords = $Products->getSearchKeywords($pRec);
+                    $detailsKeywords .= ' ' . $productSearchKeywords;
+                    
+                    // Ако има забележки, и те се добавят към ключовите думи
+                    if (!empty($dRec->{$Detail->notesFld})) {
+                        $detailsKeywords .= ' ' . plg_Search::normalizeText($dRec->{$Detail->notesFld});
+                    }
                 }
             }
             
