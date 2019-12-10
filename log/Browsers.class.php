@@ -486,12 +486,8 @@ class log_Browsers extends core_Master
         $cArr['domain'] = null;
         
         if (defined('BRID_DOMAIN_NAME') && BRID_DOMAIN_NAME !== false) {
-            $domain = BRID_DOMAIN_NAME;
-        } else {
-            list($domain, $protocol) = explode(':', $_SERVER['HTTP_HOST']);
+            $cArr['domain'] = BRID_DOMAIN_NAME;
         }
-        
-        $cArr['domain'] = $domain;
         
         if (PHP_VERSION_ID >= 70300) {
             setcookie(self::BRID_NAME, $bridHash, $cArr);

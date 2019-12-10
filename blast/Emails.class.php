@@ -208,7 +208,7 @@ class blast_Emails extends core_Master
     protected function description()
     {
         $this->FLD('perSrcClassId', 'class(interface=bgerp_PersonalizationSourceIntf)', 'caption=Източник на данни->Клас, silent, input=hidden');
-        $this->FLD('perSrcObjectId', 'varchar(16)', 'caption=Списък->Източник, mandatory, silent, removeAndRefreshForm=unsubscribe|lg');
+        $this->FLD('perSrcObjectId', 'varchar(16)', 'caption=Списък->Източник, mandatory, silent, removeAndRefreshForm=unsubscribe|lg, changable');
         
         $this->FLD('negativeList', 'keylist(mvc=blast_Lists, select=title, where=#state !\\= \\\'rejected\\\')', 'caption=Списък->Игнориране');
         
@@ -1478,41 +1478,63 @@ class blast_Emails extends core_Master
         // id на обекта на персонализация
         $perSrcObjId = $data->form->rec->perSrcObjectId;
         
-        $perOptArr = array();
+        $pFingerPrint = array();
         
-        if (isset($perSrcObjId) && $form->cmd != 'refresh') {
+        $perOptArr = $perClsInst->getPersonalizationOptionsForId($cover->that);
+        
+        // Обхождаме всички опции
+        foreach ((array) $perOptArr as $id => $name) {
             
-            // Очакваме да може да персонализира, ако не се редактира записа
-            if (!$form->rec->id) {
-                expect($perClsInst->canUsePersonalization($perSrcObjId));
+            // Проверяваме дали може да се персонализира
+            // Тряба да се проверява в getPersonalizationOptions()
+//            if (!$perClsInst->canUsePersonalization($id)) continue;
+            
+            // Описание на полетата
+            $descArr = $perClsInst->getPersonalizationDescr($id);
+            
+            if (!empty($descArr)) {
+                asort($descArr);
+                $dKeys = array_keys($descArr);
+                $pFingerPrint[$id] = md5(implode('|', $dKeys));
+            }
+            
+            // Ако няма полета за имейл
+            if (!self::getEmailFields($descArr)) {
+                
+                // Премахваме от опциите
+                unset($perOptArr[$id]);
+            }
+        }
+        
+        if (isset($perSrcObjId)) {
+            
+            if ($form->cmd != 'refresh') {
+                // Очакваме да може да персонализира, ако не се редактира записа
+                if (!$form->rec->id) {
+                    expect($perClsInst->canUsePersonalization($perSrcObjId));
+                }
             }
             
             // Заглавието за персонализация
             $perTitle = $perClsInst->getPersonalizationTitle($perSrcObjId, false);
             
+            $oHash = $pFingerPrint[$perSrcObjId];
+            
+            if ($oHash) {
+                foreach ($pFingerPrint as $id => $hash) {
+                    if ($hash != $oHash) {
+                        unset($perOptArr[$id]);
+                    }
+                }
+            } else {
+                $perOptArr = array();
+            }
+            
             // Да може да се избере само подадения обект
             $perOptArr[$perSrcObjId] = $perTitle;
             $form->setOptions('perSrcObjectId', $perOptArr);
         } else {
-            $perOptArr = $perClsInst->getPersonalizationOptionsForId($cover->that);
             
-            // Обхождаме всички опции
-            foreach ((array) $perOptArr as $id => $name) {
-                
-                // Проверяваме дали може да се персонализира
-                // Тряба да се проверява в getPersonalizationOptions()
-                //                    if (!$perClsInst->canUsePersonalization($id)) continue;
-                
-                // Описание на полетата
-                $descArr = $perClsInst->getPersonalizationDescr($id);
-                
-                // Ако няма полета за имейл
-                if (!self::getEmailFields($descArr)) {
-                    
-                    // Премахваме от опциите
-                    unset($perOptArr[$id]);
-                }
-            }
             
             if (!$perOptArr) {
                 $msg = '|Няма източник, който да може да се използва за персонализация';
@@ -1586,6 +1608,8 @@ class blast_Emails extends core_Master
             $form->layout = new ET($data->form->renderLayout());
             
             jquery_Jquery::run($form->layout, 'prepareLangBtn(' . $jsonData . ');');
+        } else {
+            $form->fields['perSrcObjectId']->removeAndRefreshForm = 'lg';
         }
         
         try {

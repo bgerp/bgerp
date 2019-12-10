@@ -27,8 +27,12 @@ class fileman_webdrv_Json extends fileman_webdrv_Code
         // Вземаме съдържанието на файла
         $content = fileman_Files::getContent($fRec->fileHnd);
         
-        $content = json_encode(json_decode($content), JSON_PRETTY_PRINT); 
-
+        $dContent = json_decode($content);
+        
+        if (isset($dContent)) {
+            $content = json_encode($dContent, JSON_PRETTY_PRINT); 
+        }
+        
         // Вземаме разширението на файла, като тип
         $type = strtolower(fileman_Files::getExt($fRec->name));
         
