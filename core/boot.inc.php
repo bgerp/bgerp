@@ -283,9 +283,9 @@ function reportException($e, $update = null, $supressShowing = true)
 }
 
 
-function getRandomString($length = 15)
+function getRandomString($length = 14)
 {
-    return substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, $length);
+    return  bin2hex(openssl_random_pseudo_bytes($length));
 }
 
 
