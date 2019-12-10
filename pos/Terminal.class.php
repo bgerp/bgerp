@@ -1068,13 +1068,12 @@ class pos_Terminal extends peripheral_Terminal
     private function renderResultReceipt($id)
     {
         $rec = $this->fetchRec($id);
-        $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('DRAFTS');
-        $block->prepend("");
+        $tpl = new core_ET("");
         $pointId = pos_Points::getCurrent('id');
         
         if (pos_Receipts::haveRightFor('add')) {
             $addBtn = ht::createLink("+", array('pos_Receipts', 'new', 'forced' => true), null, 'id=newreceipt,class=pos-notes posBtns openNoteBtn navigable');
-            $block->append($addBtn);
+            $tpl->append($addBtn);
         }
         
         // Намираме всички чернови бележки и ги добавяме като линк
@@ -1082,13 +1081,13 @@ class pos_Terminal extends peripheral_Terminal
         $query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$rec->id}");
         while ($rec = $query->fetch()) {
             $class = isset($rec->revertId) ? 'revert-receipt' : '';
-            $row = ht::createLink(self::getReceiptTitle($rec), array('pos_Terminal', 'open', 'receiptId' => $rec->id, 'opened' => true), null, array('id' => "receipt{$rec->id}", 'class' => "pos-notes posBtns navigable {$class}", 'title' => 'Преглед на бележката'));
-            $block->append($row);
+            $row = ht::createLink(self::getReceiptTitle($rec), array('pos_Terminal', 'open', 'receiptId' => $rec->id, 'opened' => true), null, array('id' => "receipt{$rec->id}", 'class' => "pos-notes posBtns navigable {$class}", 'title' => 'Отваряне на бележката'));
+            $tpl->append($row);
         }
         
-        $block = ht::createElement('div', array('class' => 'displayFlex'), $block, true);
+        $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
-        return $block;
+        return $tpl;
     }
     
     

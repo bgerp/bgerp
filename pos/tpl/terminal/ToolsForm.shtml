@@ -1,37 +1,10 @@
 <!--ET_BEGIN TAB_TOOLS-->
-
 	<div class='buttonRow'>[#FIRST_TOOLS_ROW#]</div>
     [#INPUT_FLD#]
     [#INPUT_DATA_LIST#]
 	<div class='keyboard-holder'>[#KEYBOARDS#]</div>
 <div class='clearfix21'></div>
-
 <!--ET_END TAB_TOOLS-->
-
-<!--ET_BEGIN CHOOSE_DIV-->
-<div id='pos-choose-buttons'>[#CHOOSE_DIV#]</div>
-<div id='pos-search-result-table' class='pos-table'></div>
-<!--ET_END CHOOSE_DIV-->
-
-
-<!--ET_BEGIN PAYMENTS_BLOCK-->
-<div class='colum-btn flex'>
-    [#PAYMENT_TYPE#] [#CLOSE_BTNS#]
-</div>
-
-<div class='input-field '>[#INPUT_PAYMENT#]</div>
-<div class='keyboard-holder'>[#KEYBOARDS#]</div>
-<!--ET_END PAYMENTS_BLOCK-->
-
-<!--ET_BEGIN DRAFTS-->
-[#DRAFTS#]
-<!--ET_END DRAFTS-->
-
-<!--ET_BEGIN TRANSFERS_BLOCK-->
-<div class='flex'>[#TRANSFERS_BLOCK#][#BTNS#]</div>
-
-<div id='result_contragents'></div>
-<!--ET_END TRANSFERS_BLOCK-->
 
 <!--ET_BEGIN PRODUCTS_RESULT-->
 <div id = '[#elementId#]' class='element [#CLASS#]' data-url='[#DATA_URL#]' data-productId = '[#id#]'>
