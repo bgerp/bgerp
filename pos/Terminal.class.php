@@ -116,6 +116,8 @@ class pos_Terminal extends peripheral_Terminal
             return new Redirect(array($Receipts, 'new'));
         }
         
+        // Автоматично избиране на касата на бележката за текуща
+        pos_Points::selectCurrent($rec->pointId);
         $tpl = getTplFromFile('pos/tpl/terminal/Layout2.shtml');
         $tpl->replace(pos_Points::getTitleById($rec->pointId), 'PAGE_TITLE');
         $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/cash-register.png', '"', true) . '>', 'HEAD');
@@ -135,7 +137,7 @@ class pos_Terminal extends peripheral_Terminal
             // Ако сме чернова, добавяме пултовете
             if ($rec->state == 'draft') {
                 
-                $defaultOperation = Mode::get("currentOperation") ? Mode::get("currentOperation") : 'quantity';
+                $defaultOperation = Mode::get("currentOperation") ? Mode::get("currentOperation") : 'add';
                 $defaultSearchString = Mode::get("currentSearchString");
                 
                 // Добавяне на табовете под бележката
