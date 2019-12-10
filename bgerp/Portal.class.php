@@ -535,7 +535,7 @@ class bgerp_Portal extends embed_Manager
         
         // Премахваме от масива блоковете, които да не се показват
         foreach ($resArr as $rId => $rRec) {
-            if ($rRec->show == 'no') {
+            if ($rRec->state == 'no') {
                 unset($resArr[$rId]);
             }
         }

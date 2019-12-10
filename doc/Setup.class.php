@@ -521,7 +521,7 @@ class doc_Setup extends core_ProtoSetup
             $rec->folderId = $fId;
             $rec->fOrder = 'open';
             $rec->color = 'lightgreen';
-            $rec->show = 'yes';
+            $rec->state = 'yes';
             
             $Portal->save($rec);
         }
