@@ -825,7 +825,7 @@ if ($step == 3) {
     
     // Обща сол
     if (!defined('EF_SALT')) {
-        $efSaltGenerated = $consts['EF_SALT'] = getRandomString();
+        $efSaltGenerated = $consts['EF_SALT'] = getEF_SALT();
     }
     
     // Препоръчителна стойност между 200 и 500

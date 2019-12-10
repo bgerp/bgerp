@@ -293,9 +293,7 @@ class core_Session
         if (!$prefix) {
             $prefix = strtolower(str_replace('www.', '', $_SERVER['HTTP_HOST']));
             
-            if (!defined('EF_SALT')) define('EF_SALT', ''); // При първи сетъп не е дефинирана
-            
-            $prefix = md5($prefix . EF_APP_NAME . EF_DB_NAME . EF_SALT);
+            $prefix = md5($prefix . EF_APP_NAME . EF_DB_NAME . getEF_SALT());
             $prefix = substr($prefix, 0, 10);
         }
         
