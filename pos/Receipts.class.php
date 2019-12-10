@@ -843,18 +843,20 @@ class pos_Receipts extends core_Master
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         // Добавяне на използваните платежни методи към ключовите думи
-        $detailsKeywords = '';
-        $dQuery = pos_ReceiptDetails::getQuery();
-        $dQuery->where("#receiptId = '{$rec->id}' AND #action != 'sale|code'");
-        while ($dRec = $dQuery->fetch()) {
-            $action = cls::get('pos_ReceiptDetails')->getAction($dRec->action);
-            $payment = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr('В брой');
-            $detailsKeywords .= ' ' . plg_Search::normalizeText($payment);
-        }
-        
-        // Ако има нови ключови думи, добавят се
-        if (!empty($detailsKeywords)) {
-            $res = ' ' . $res . ' ' . $detailsKeywords;
+        if(isset($rec->id)){
+            $detailsKeywords = '';
+            $dQuery = pos_ReceiptDetails::getQuery();
+            $dQuery->where("#receiptId = '{$rec->id}' AND #action != 'sale|code'");
+            while ($dRec = $dQuery->fetch()) {
+                $action = cls::get('pos_ReceiptDetails')->getAction($dRec->action);
+                $payment = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr('В брой');
+                $detailsKeywords .= ' ' . plg_Search::normalizeText($payment);
+            }
+            
+            // Ако има нови ключови думи, добавят се
+            if (!empty($detailsKeywords)) {
+                $res = ' ' . $res . ' ' . $detailsKeywords;
+            }
         }
     }
 }

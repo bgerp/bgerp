@@ -454,7 +454,6 @@ class pos_ReceiptDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $Double = core_Type::getByName('double(smartRound)');
         $receiptRec = $mvc->Master->fetch($rec->receiptId, 'createdOn,revertId,paid');
         $row->currency = acc_Periods::getBaseCurrencyCode($receiptRec->createdOn);
         $canDelete = ($mvc->haveRightFor('delete', $rec) && !Mode::is('printing'));
