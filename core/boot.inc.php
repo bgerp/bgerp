@@ -283,6 +283,12 @@ function reportException($e, $update = null, $supressShowing = true)
 }
 
 
+function getRandomString($length = 15)
+{
+    return substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, $length);
+}
+
+
 /**
  * Записва стейта на хита в съответния файл
  * 
@@ -800,7 +806,8 @@ function getEF_SALT()
         
         return EF_SALT;
     }
-    $fileName = md5(getSelfURL());
+    $parse = parse_url(getSelfURL());
+    $fileName = md5($parse['host']);
     if (file_exists("/tmp/". $fileName)) {
         
         return @file_get_contents("/tmp/". $fileName);
