@@ -70,6 +70,12 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
+     * Кои операции са забранени за сторниращите бележки
+     */
+    protected static $forbiddenOperationOnRevertReceipts = array('discount', 'price');
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -304,6 +310,9 @@ class pos_Terminal extends peripheral_Terminal
             if(!empty($rec->paid)){
                 $operations = array_diff_key($operations, arr::make(self::$forbiddenOperationOnReceiptsWithPayment, true));
             }
+            if(isset($rec->revertId)){
+                $operations = array_diff_key($operations, arr::make(self::$forbiddenOperationOnRevertReceipts, true));
+            }
             
             $buttons['selectOperation'] = ht::createSelect('operation', $operations, $currentOperation, array('class' => '', 'data-url' => $searchUrl));
         } else {
@@ -311,8 +320,8 @@ class pos_Terminal extends peripheral_Terminal
                 $class = ($operation == $currentOperation) ? 'operationBtn active' : 'operationBtn';
                 
                 $attr = array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation);
-                if(!empty($rec->paid) && in_array($operation, self::$forbiddenOperationOnReceiptsWithPayment)){
-                    $attr['data-url'] = null;
+                if((!empty($rec->paid) && in_array($operation, self::$forbiddenOperationOnReceiptsWithPayment)) || (isset($rec->revertId) && in_array($operation, self::$forbiddenOperationOnRevertReceipts))){
+                   $attr['data-url'] = null;
                     $attr['class'] .= ' disabledBtn';
                     $attr['disabled'] = 'disabled';
                 }

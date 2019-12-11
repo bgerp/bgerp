@@ -223,6 +223,9 @@ class pos_ReceiptDetails extends core_Detail
             expect($operation = Request::get('action', 'enum(setquantity,setdiscount,settext,setprice)'), 'Невалидна операция');
             $string = Request::get('string', 'varchar');
             expect(isset($string), 'Проблем при разчитане на операцията');
+            if(isset($receiptRec->revertId) && in_array($operation, array('setdiscount', 'setprice'))){
+                expect(false, 'Невалидна операция');
+            }
             
             if($operation == 'settext' || $operation == 'setprice'){
                 $firstValue = trim($string);
@@ -248,6 +251,13 @@ class pos_ReceiptDetails extends core_Detail
                         expect(array_key_exists($packagingId, $packs), 'Опаковката/мярка не е налична за въпросния артикул');
                         $rec->value = $packagingId;
                     }
+                    
+                    if(isset($receiptRec->revertId)){
+                        $originProductRec = $this->findSale($rec->productId, $receiptRec->revertId, $rec->value);
+                        expect(abs($rec->quantity) <= abs($originProductRec->quantity), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
+                        $rec->quantity *= -1;
+                    }
+                    
                     $sucessMsg = 'Количеството на реда е променено|*!';
                     break;
                case 'setdiscount':
@@ -392,7 +402,7 @@ class pos_ReceiptDetails extends core_Detail
             if (!pos_Receipts::checkQuantity($rec, $error)) {
                 expect(false, $error);
             }
-            expect(!(!empty($revertId) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|*|* {$originProductRec->quantity}");
+            expect(!(!empty($revertId) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
             $this->save($rec);
             $success = true;
             $this->Master->logInAct('Добавяне на артикул', $rec->receiptId);
@@ -469,6 +479,7 @@ class pos_ReceiptDetails extends core_Detail
             case 'payment':
                 $row->actionValue = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr('В брой');
                 $row->paymentCaption = (empty($receiptRec->revertId)) ? tr('Плащане') : tr('Връщане');
+                $row->amount = ht::styleNumber($row->amount, $rec->amount);
                 
                 if ($fields['-list']) {
                     $row->productId = tr('Плащане') . ': ' . $row->actionValue;
