@@ -1147,7 +1147,7 @@ class pos_Terminal extends peripheral_Terminal
         $dateBlock = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('RECEIPT_RESULT');
         $arr = array("{$today}" => clone $dateBlock);
         $arr[$today]->replace(dt::mysql2verbal($today, 'smartDate'), 'groupName');
-        $addBtn = ht::createLink("+", $addUrl, null, "id=newreceipt,class=pos-notes posBtns openNoteBtn navigable {$disabledClass}");
+        $addBtn = ht::createLink("+", $addUrl, null, "class=pos-notes posBtns openNewNoteBtn navigable {$disabledClass}");
         $arr[$today]->append($addBtn, 'element');
         
         // Групиране на записите по дата
@@ -1157,7 +1157,7 @@ class pos_Terminal extends peripheral_Terminal
                 $arr[$rec->createdDate]->replace(dt::mysql2verbal($rec->createdDate, 'smartDate'), 'groupName');
             }
             
-            $class = isset($rec->revertId) ? 'revert-receipt' : '';
+            $class = isset($rec->revertId) ? 'revertReceipt' : '';
             $openUrl = (pos_Receipts::haveRightFor('terminal', $rec->id)) ? array('pos_Terminal', 'open', 'receiptId' => $rec->id, 'opened' => true) : array();
             $class .= (count($openUrl)) ? '' : ' disabledBtn';
             
@@ -1188,7 +1188,7 @@ class pos_Terminal extends peripheral_Terminal
         $mask = ($fullDate) ? 'd.m. h:i' : 'h:i';
         $date = dt::mysql2verbal($rec->createdOn, $mask);
         $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
-        $title = "{$rec->id} / {$date} </ b> {$amountVerbal}";
+        $title = "{$rec->id} / {$date} </br> {$amountVerbal}";
         
         return $title;
     }

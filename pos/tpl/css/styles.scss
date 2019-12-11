@@ -241,11 +241,15 @@
 	}
 }
 
+.openNewNoteBtn {
+	font-size:1.6em;
+}
+
 .pos-notes{
     background:rgba(70,135,51,1);
 
-	&.revert-receipt {
-		background: #c51f10;
+	&.revertReceipt {
+		color: #8a0d0d !important;
 	}
 }
 

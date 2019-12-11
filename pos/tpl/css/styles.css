@@ -208,10 +208,13 @@
     background: #b7e2f3;
     color: #333333 !important; }
 
+.openNewNoteBtn {
+  font-size: 1.6em; }
+
 .pos-notes {
   background: #468733; }
-  .pos-notes.revert-receipt {
-    background: #c51f10; }
+  .pos-notes.revertReceipt {
+    color: #8a0d0d !important; }
 
 .resultPack {
   background: #feff6b;

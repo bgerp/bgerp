@@ -438,7 +438,7 @@ class pos_ReceiptDetails extends core_Detail
         $res = new stdClass();
         $query = $this->getQuery();
         $query->where("#receiptId = '{$receiptId}'");
-        $query->orderBy('modifiedOn', 'asc');
+        $query->orderBy('modifiedOn,id', 'ASC');
         
         while ($rec = $query->fetch()) {
             $res->recs[$rec->id] = $rec;
@@ -759,6 +759,10 @@ class pos_ReceiptDetails extends core_Detail
             $this->save($rec);
         }
         
+        $this->Master->flushUpdateQueue($receiptId);
+        $paid = $this->Master->fetchField($receiptId, 'paid', false);
+        
+        Mode::setPermanent("currentOperation{$receiptId}", (empty($paid)) ? 'add' : 'payment');
         $this->Master->logInAct('Зареждане на всичко от сторнираната бележка', $receiptId);
         
         followRetUrl();

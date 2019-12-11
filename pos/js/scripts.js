@@ -400,7 +400,7 @@ function posActions() {
 	});
 
 	// При отваряне на нова бележка маха се фокусирания елемент
-	$(document.body).on('click', ".openNoteBtn, .revert-receipt", function(e){
+	$(document.body).on('click', ".openNoteBtn, .revertReceipt", function(e){
 		sessionStorage.removeItem("focused");
 	});
 	
