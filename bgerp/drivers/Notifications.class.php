@@ -21,12 +21,6 @@ class bgerp_drivers_Notifications extends core_BaseClass
     
     
     /**
-     * Името на стойността за кеша
-     */
-    protected $cacheTypeName = 'Notifications';
-    
-    
-    /**
      * Колко време да се показват в началото, вече отворените известия
      */
     protected $showOpenTopTime = 180;
@@ -77,7 +71,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
         $Notifications = cls::get('bgerp_Notifications');
         
         $resData->cacheKey = $this->getCacheKey($dRec, $userId);
-        $resData->cacheType = $this->cacheTypeName;
+        $resData->cacheType = $this->getCacheTypeName($userId);
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
@@ -336,5 +330,22 @@ class bgerp_drivers_Notifications extends core_BaseClass
     {
         
         return 'P_' . get_called_class() . '_' . $oIdCalc;
+    }
+    
+    
+    /**
+     * Името на стойността за кеша
+     *
+     * @param integer $oIdCalc
+     *
+     * @return string
+     */
+    protected function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        return 'Portal_Notifications_' . $userId;
     }
 }

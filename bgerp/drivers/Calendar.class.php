@@ -21,12 +21,6 @@ class bgerp_drivers_Calendar extends core_BaseClass
     
     
     /**
-     * Името на стойността за кеша
-     */
-    protected $cacheTypeName = 'Calendar';
-    
-    
-    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -102,7 +96,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $sInputField = bgerp_Portal::getPortalSearchInputFieldName($Calendar->searchInputField, $dRec->originIdCalc);
         $resData->cacheKey = $this->getCacheKey($dRec, $userId);
-        $resData->cacheType = $this->cacheTypeName;
+        $resData->cacheType = $this->getCacheTypeName($userId);
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
@@ -693,5 +687,22 @@ class bgerp_drivers_Calendar extends core_BaseClass
     {
         
         return 'P_Cal_Tasks_Future_' . $oIdCalc;
+    }
+    
+    
+    /**
+     * Името на стойността за кеша
+     *
+     * @param integer $oIdCalc
+     *
+     * @return string
+     */
+    protected function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        return 'Portal_Calendar_' . $userId;
     }
 }

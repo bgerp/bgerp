@@ -21,12 +21,6 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
     
     
     /**
-     * Името на стойността за кеша
-     */
-    protected $cacheTypeName = 'TotalRepPortal';
-    
-    
-    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -117,7 +111,7 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
         $deltaId = acc_reports_TotalRep::getDeltaId();
         
         $resData->cacheKey = $this->getCacheKey($dRec, $userId);
-        $resData->cacheType = $this->cacheTypeName;
+        $resData->cacheType = $this->getCacheTypeName($userId);
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
@@ -217,5 +211,22 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
         }
         
         return md5(implode('|', $cArr));
+    }
+    
+    
+    /**
+     * Името на стойността за кеша
+     *
+     * @param integer $oIdCalc
+     *
+     * @return string
+     */
+    protected function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        return 'Portal_TotalRep_' . $userId;
     }
 }
