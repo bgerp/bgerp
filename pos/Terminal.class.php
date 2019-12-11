@@ -58,6 +58,12 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
+     * Кои операции са забранени за бележки с направено плащане
+     */
+    protected static $forbiddenOperationOnReceiptsWithPayment = array('discount', 'price', 'quantity', 'add');
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -105,17 +111,16 @@ class pos_Terminal extends peripheral_Terminal
         $Receipts = cls::get('pos_Receipts');
         $Receipts->requireRightFor('terminal');
         expect($id = Request::get('receiptId', 'int'));
+        expect($rec = $Receipts->fetch($id));
         
         if(Request::get('opened', 'int')){
             $redirectUrl = getCurrentUrl();
             unset($redirectUrl['opened']);
             
-            Mode::setPermanent("currentOperation{$id}", 'add');
+            Mode::setPermanent("currentOperation{$id}", (empty($rec->paid)) ? 'add' : 'payment');
             Mode::setPermanent("currentSearchString{$id}", null);
             redirect($redirectUrl);
         }
-        
-        expect($rec = $Receipts->fetch($id));
         
         // Имаме ли достъп до терминала
         if (!$Receipts->haveRightFor('terminal', $rec)) {
@@ -284,12 +289,24 @@ class pos_Terminal extends peripheral_Terminal
         
         // Показване на възможните операции
         $currentOperation = Mode::get("currentOperation{$rec->id}");
-        if(Mode::is('screenMode', 'narrow')){
+        if(!Mode::is('screenMode', 'narrow')){
+            if(!empty($rec->paid)){
+                $operations = array_diff_key($operations, arr::make(self::$forbiddenOperationOnReceiptsWithPayment, true));
+            }
+            
             $buttons['selectOperation'] = ht::createSelect('operation', $operations, $currentOperation, array('class' => '', 'data-url' => $searchUrl));
         } else {
             foreach ($operations as $operation => $operationCaption){
                 $class = ($operation == $currentOperation) ? 'operationBtn active' : 'operationBtn';
-                $buttons["operation-{$operation}"] = ht::createFnBtn($operationCaption, '', '', array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation));
+                
+                $attr = array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation);
+                if(!empty($rec->paid) && in_array($operation, self::$forbiddenOperationOnReceiptsWithPayment)){
+                    $attr['data-url'] = null;
+                    $attr['class'] .= ' disabledBtn';
+                    $attr['disabled'] = 'disabled';
+                }
+                
+                $buttons["operation-{$operation}"] = ht::createFnBtn($operationCaption, '', '', $attr);
             }
         }
         
