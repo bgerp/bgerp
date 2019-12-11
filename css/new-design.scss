@@ -1271,6 +1271,17 @@ form[method="post"] input[type="submit"] {
 }
 
 // slipe на табовете в мобилен
+.sub-header {
+    height: 44px;
+}
+.swipe-tab-content {
+    display: none;
+    transition: all 0.5s;
+}
+.swipe-tab {
+    display: none;
+    transition: all 0.5s;
+}
 $swipe-tab-color: #757575;
 $swipe-active-tab-color: #000;
 .slick-initialized {
@@ -1310,10 +1321,6 @@ $swipe-active-tab-color: #000;
         }
 
     }
-}
-
-
-.main-container {
 }
 
 .narrow .pages a {

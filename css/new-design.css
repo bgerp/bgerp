@@ -1144,6 +1144,17 @@ form[method="post"] input[type="submit"] {
   .pages a:last-child {
     border-radius: 0 5px 5px 0 !important; }
 
+.sub-header {
+  height: 44px; }
+
+.swipe-tab-content {
+  display: none;
+  transition: all 0.5s; }
+
+.swipe-tab {
+  display: none;
+  transition: all 0.5s; }
+
   .slick-initialized .swipe-tab-content {
     position: relative;
     min-height: 365px; }
@@ -1171,7 +1182,6 @@ form[method="post"] input[type="submit"] {
       border-bottom-color: black;
       color: black;
       font-weight: bold; }
-
 
 .narrow .pages a {
   margin: 0;
