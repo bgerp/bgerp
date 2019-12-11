@@ -760,13 +760,10 @@ class pos_Receipts extends core_Master
         }
         
         if (is_object($res['rec'])) {
-            if ($res['rec']->pointId != pos_Points::getCurrent()) {
-                $res['notFoundError'] = '|Може да бъде сторнира само бележка от същия POS|*!';
-                $res['rec'] = false;
-            } elseif ($forRevert === true) {
+            if ($forRevert === true) {
                 if (self::fetchField("#revertId = {$res['rec']->id}")) {
-                    $res['notFoundError'] = '|Има вече създадена бележка, сторнираща търсената|*!';
-                    $res['rec'] = false;
+                    //$res['notFoundError'] = '|Има вече създадена бележка, сторнираща търсената|*!';
+                   // $res['rec'] = false;
                 } elseif (self::fetchField("#id = {$res['rec']->id} AND #revertId IS NOT NULL")) {
                     $res['notFoundError'] = '|Не може да сторнирате сторнираща бележка|*!';
                     $res['rec'] = false;

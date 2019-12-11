@@ -566,29 +566,42 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultRevertReceipts($rec, $string, $selectedRec)
     {
+        $arr = array();
         $Receipts = cls::get('pos_Receipts');
         $string = plg_Search::normalizeText($string);
+        
         $query = $Receipts->getQuery();
         $query->where("#revertId IS NULL AND #state != 'draft'");
+        $query->XPR('orderField', 'int', "(CASE WHEN #pointId = {$rec->pointId} THEN 1 ELSE 2 END)");
+        $query->orderBy('#orderField', 'ASC');
+        $query->limit(self::$maxSearchReceipts);
         
-        //$foundArr = $Receipts->findReceiptByNumber($string, true);
-        
-        if (is_object($foundArr['rec'])) {
-            $query->where(array("#id = {$foundArr['rec']->id}"));
-        } else {
-            $query->where(array("#searchKeywords LIKE '%[#1#]%'", $string));
+        if(!empty($string)){
+            $foundArr = $Receipts->findReceiptByNumber($string, true);
+            if (is_object($foundArr['rec'])) {
+                $query->where(array("#id = {$foundArr['rec']->id}"));
+            }
         }
         
-        $buttons = array();
+        $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('RECEIPT_RESULT');
         $cnt = 0;
         while($receiptRec = $query->fetch()){
-            $buttons[] = ht::createLink(self::getReceiptTitle($receiptRec), array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true), 'Наистина ли желаете да сторнирате бележката|*?', "title=Сторниране на бележката,class=navigable posBtns pos-notes,id=revert{$cnt}");
+            if(!array_key_exists($receiptRec->pointId, $arr)){
+                $arr[$receiptRec->pointId] = clone $block;
+                $arr[$receiptRec->pointId]->replace(pos_Points::getTitleById($receiptRec->pointId), 'groupName');
+            }
+            
+            $linkUrl = (pos_Receipts::haveRightFor('revert')) ? array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true) : array();
+            $disClass = ($linkUrl) ? '' : 'disabledBtn';
+            $btn = ht::createLink(self::getReceiptTitle($receiptRec), $linkUrl, 'Наистина ли желаете да сторнирате бележката|*?', "title=Сторниране на бележката,class=navigable posBtns pos-notes {$disClass},id=revert{$cnt}");
+            $arr[$receiptRec->pointId]->append($btn, 'element');
             $cnt++;
         }
         
         $tpl = new core_ET("");
-        foreach ($buttons as $btn){
-            $tpl->append($btn);
+        foreach ($arr as $element){
+            $element->removeBlocksAndPlaces();
+            $tpl->append($element);
         }
         $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
@@ -1125,6 +1138,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         foreach ($arr as $blockTpl){
+            $blockTpl->removeBlocksAndPlaces();
             $tpl->append($blockTpl);
         }
         $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
