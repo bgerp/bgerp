@@ -1270,6 +1270,52 @@ form[method="post"] input[type="submit"] {
     }
 }
 
+// slipe на табовете в мобилен
+$swipe-tab-color: #757575;
+$swipe-active-tab-color: #000;
+.slick-initialized {
+    .swipe-tab-content {
+        position: relative;
+        min-height: 365px;
+
+        @media screen and (min-width: 767px) {
+            min-height: 500px;
+        }
+    }
+
+    .swipe-tab {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 42px;
+        vertical-align: baseline;
+        overflow-y: hidden;
+        background: none;
+        border: 0;
+        color: $swipe-tab-color;
+        cursor: pointer;
+        text-align: center;
+        border-bottom: 2px solid rgba($swipe-active-tab-color, 0);
+        transition: all 0.5s;
+        text-overflow: ellipsis;
+
+        &:hover {
+            color: $swipe-active-tab-color;
+        }
+
+        &.active-tab {
+            border-bottom-color: $swipe-active-tab-color;
+            color: $swipe-active-tab-color;
+            font-weight: bold;
+        }
+
+    }
+}
+
+
+.main-container {
+}
+
 .narrow .pages a {
 	margin: 0;
 	font-size: 0.9em;

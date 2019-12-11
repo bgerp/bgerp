@@ -1144,6 +1144,35 @@ form[method="post"] input[type="submit"] {
   .pages a:last-child {
     border-radius: 0 5px 5px 0 !important; }
 
+  .slick-initialized .swipe-tab-content {
+    position: relative;
+    min-height: 365px; }
+    @media screen and (min-width: 767px) {
+      .slick-initialized .swipe-tab-content {
+    min-height: 500px; } }
+  .slick-initialized .swipe-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px;
+    vertical-align: baseline;
+    overflow-y: hidden;
+    background: none;
+    border: 0;
+    color: #757575;
+    cursor: pointer;
+    text-align: center;
+    border-bottom: 2px solid rgba(0, 0, 0, 0);
+    transition: all 0.5s;
+    text-overflow: ellipsis; }
+    .slick-initialized .swipe-tab:hover {
+      color: black; }
+    .slick-initialized .swipe-tab.active-tab {
+      border-bottom-color: black;
+      color: black;
+      font-weight: bold; }
+
+
 .narrow .pages a {
   margin: 0;
   font-size: 0.9em; }

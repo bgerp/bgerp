@@ -160,12 +160,13 @@ class bgerp_Portal extends embed_Manager
         $cu = core_Users::getCurrent();
         
         $isNarrow = Mode::is('screenMode', 'narrow');
-        
+
+
         if ($isNarrow) {
             $tpl = new ET("
                             <div class='sub-header'>
                                 <div class='swipe-tabs'>
-                                    <!--ET_BEGIN TAB_NAME--><div class='swipe-tab [#PORTAL_CLASS#]'>[#TAB_NAME#]</div><!--ET_END TAB_NAME-->
+                                    <!--ET_BEGIN TAB_NAME--><span class='swipe-tab'>[#TAB_NAME#]</span><!--ET_END TAB_NAME-->
                                 </div>
                             </div>
                             
@@ -175,6 +176,15 @@ class bgerp_Portal extends embed_Manager
                                 </div>
                             </div>
                             ");
+
+            // Включваме необходимия JS
+            $tpl->push("slick/1.8/js/slick.js", 'JS');
+
+            // Включваме необходимия CSS
+            $tpl->push("slick/1.8/css/slick.css", 'CSS');
+            $tpl->push("slick/1.8/css/slick-theme.css", 'CSS');
+
+            jquery_Jquery::run($tpl, 'prepareTabs();');
         } else {
             $tpl = new ET("
                 <table style='width:100%' class='top-table large-spacing'>
