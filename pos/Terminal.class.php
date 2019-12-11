@@ -289,7 +289,7 @@ class pos_Terminal extends peripheral_Terminal
         
         // Показване на възможните операции
         $currentOperation = Mode::get("currentOperation{$rec->id}");
-        if(!Mode::is('screenMode', 'narrow')){
+        if(Mode::is('screenMode', 'narrow')){
             if(!empty($rec->paid)){
                 $operations = array_diff_key($operations, arr::make(self::$forbiddenOperationOnReceiptsWithPayment, true));
             }
