@@ -58,7 +58,7 @@ class cond_type_Int extends cond_type_abstract_Proto
             $params['max'] = $rec->max;
         }
         
-        if (count($params)) {
+        if (countR($params)) {
             $Type = cls::get($Type, array('params' => $params));
         }
         

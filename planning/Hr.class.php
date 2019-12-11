@@ -106,6 +106,7 @@ class planning_Hr extends core_Master
     {
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory,caption=Оператор');
         $this->FLD('code', 'varchar', 'caption=Код');
+        $this->FNC('centers', 'keylist(mvc=doc_Folders,select=title)', 'mandatory, input, caption=Центрове на дейност');
         
         // TODO - ще се премахне след като минат миграциите
         $this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments, input=none, column=none, single=none');
@@ -126,6 +127,21 @@ class planning_Hr extends core_Master
         if (empty($rec->personId)) {
             $form->setField('personId', 'input');
             $form->setOptions('personId', array('' => '') + crm_Persons::getEmployeesOptions(true, false));
+        }
+        
+        $allowedCenterSuggestions = doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf');
+        $form->setSuggestions('centers', $allowedCenterSuggestions);
+        
+        if(isset($rec->id)){
+            
+            // Показват се всички центрове за избрани където е включен
+            $assetQuery = planning_AssetResourceFolders::getQuery();
+            $assetQuery->where("#classId = {$mvc->getClassId()} AND #objectId = {$rec->id}");
+            $alreadyIn = arr::extractValuesFromArray($assetQuery->fetchAll(), 'folderId');
+            $form->setDefault('centers', $alreadyIn);
+        } else {
+            $defaultCenterFolderId = keylist::addKey('', planning_Centers::getUndefinedFolderId());
+            $form->setDefault('centers', $defaultCenterFolderId);
         }
     }
     
@@ -223,7 +239,7 @@ class planning_Hr extends core_Master
             $fodlerQuery->where("#classId={$this->getClassId()} AND #objectId = {$data->rec->id}");
             $fodlerQuery->show('folderId');
             $folders = arr::extractValuesFromArray($fodlerQuery->fetchAll(), 'folderId');
-            $data->row->folders = core_Type::getByName('keylist(mvc=doc_Folders,select=title)')->toVerbal(keylist::fromArray($folders));
+            $data->row->centers = core_Type::getByName('keylist(mvc=doc_Folders,select=title)')->toVerbal(keylist::fromArray($folders));
         } else {
             if ($this->haveRightFor('add', (object) array('personId' => $data->masterId))) {
                 $data->addExtUrl = array($this, 'add', 'personId' => $data->masterId, 'ret_url' => true);
@@ -370,11 +386,47 @@ class planning_Hr extends core_Master
     
     
     /**
-     * Изпълнява се след създаване на нов запис
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Първичния ключ на направения запис
+     * @param stdClass     $rec     Всички полета, които току-що са били записани
+     * @param string|array $fields  Имена на полетата, които sa записани
+     * @param string       $mode    Режим на записа: replace, ignore
      */
-    protected static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        planning_AssetResourceFolders::addDefaultFolder($mvc->getClassId(), $rec->id);
+        $syncFolders = keylist::toArray($rec->centers);
+        if(count($syncFolders)){
+            $AssetFolders = cls::get('planning_AssetResourceFolders');
+            
+            // Досегашните записи
+            $aQuery = $AssetFolders->getQuery();
+            $aQuery->where("#classId = {$mvc->getClassId()} AND #objectId = {$rec->id}");
+            $aQuery->show('folderId');
+            $alreadyIn = array();
+            while($aRec = $aQuery->fetch()){
+                $alreadyIn[$aRec->folderId] = $aRec->id;
+            }
+           
+            // Обновяват се
+            foreach ($syncFolders as $folderId){
+                $dRec = (object) array('classId' => $mvc->getClassId(), 'objectId' => $rec->id, 'folderId' => $folderId);
+                $fields = $exRec = null;
+                if ($AssetFolders->isUnique($dRec, $fields, $exRec)) {
+                    $AssetFolders->save($dRec);
+                }
+                
+                unset($alreadyIn[$folderId]);
+            }
+            
+            // Тези, които не са се обновили се изтриват
+            if(count($alreadyIn)){
+                foreach ($alreadyIn as $id){
+                    $AssetFolders->delete($id);
+                }
+            }
+        }
     }
     
     

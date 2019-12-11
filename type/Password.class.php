@@ -26,7 +26,11 @@ class type_Password extends type_Varchar
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        $attr['type'] = 'password';
+        if(strlen($value)) {
+            $attr['type'] = 'password';
+        } else {
+            $attr['type'] = 'text';
+        }
         
         // Само за дебъг
         // !isDebug() || $attr['title'] = $value;
@@ -35,16 +39,13 @@ class type_Password extends type_Varchar
             $attr['style'] = ';color:#ccc; text-shadow: 0px 0px 5px #444;';
         } elseif ($value && !$this->params['allowEmpty']) {
             $value = self::EF_PASS_NO_CHANGE;
-            $attr['onfocus'] = "if(this.value == '" . self::EF_PASS_NO_CHANGE . "') this.select();";
+            $attr['onfocus'] = "this.type='password'; if(this.value == '" . self::EF_PASS_NO_CHANGE . "') this.select();";
         } else {
+            $attr['onfocus'] = "this.type='password';";
             if ($value) {
                 $attr['placeholder'] = html_entity_decode('&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;');
             }
             $value = '';
-        }
-        
-        if ($value || $this->params['autocomplete'] == 'off') {
-            $attr['autocomplete'] = 'off';
         }
         
         $this->params['noTrim'] = 'noTrim';

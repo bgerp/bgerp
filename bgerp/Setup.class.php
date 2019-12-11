@@ -330,7 +330,7 @@ class bgerp_Setup extends core_ProtoSetup
             
             $packArr = arr::make($packs);
             
-            $packCnt = count($packArr);
+            $packCnt = countR($packArr);
             $i = 1;
             
             // Извършваме инициализирането на всички включени в списъка пакети
@@ -473,7 +473,7 @@ class bgerp_Setup extends core_ProtoSetup
         
         $packArr = arr::make($packs);
         
-        $packCnt = count($packArr);
+        $packCnt = countR($packArr);
         $i = 1;
         
         // Извършваме инициализирането на всички включени в списъка пакети
@@ -583,7 +583,7 @@ class bgerp_Setup extends core_ProtoSetup
             $rec->userOrRole = type_UserOrRole::getAllSysTeamId();
             
             setIfNot($rec->color, 'lightgray');
-            $rec->show = 'yes';
+            $rec->state = 'yes';
             
             $Portal->save($rec);
         }
@@ -598,12 +598,12 @@ class bgerp_Setup extends core_ProtoSetup
         $res = parent::loadSetupData($itr);
         
         // За да може да мине миграцията при нова инсталация
-        $dbUpdate = Mode::get('dbInit');
-        Mode::set('dbInit', 'update');
+        $dbUpdate = core_ProtoSetup::$dbInit;
+        core_ProtoSetup::$dbInit = 'update';
         
         $res .= $this->callMigrate('setNewPortal46193', 'bgerp');
         
-        Mode::set('dbInit', $dbUpdate);
+        core_ProtoSetup::$dbInit = $dbUpdate;
         
         return $res;
     }

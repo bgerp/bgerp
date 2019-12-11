@@ -268,12 +268,15 @@ class bgerp_drivers_Notifications extends core_BaseClass
     
     
     /**
-     * Връща типа на блока за портала
+     * Връща заглавието за таба на съответния блок
      *
-     * @return string - other, tasks, notifications, calendar, recently
+     * @param stdClass $dRec
+     *
+     * @return string
      */
-    public function getBlockType()
+    public function getBlockTabName($dRec)
     {
-        return 'notifications';
+        
+        return tr('Известия');
     }
 }

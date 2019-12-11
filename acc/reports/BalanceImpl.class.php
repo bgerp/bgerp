@@ -91,7 +91,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
                 // Показваме номенкалтурите на сметката като предложения за селектиране
                 $options = array();
                 
-                if (count($accInfo->groups)) {
+                if (countR($accInfo->groups)) {
                     foreach ($accInfo->groups as $i => $gr) {
                         $options["ent{$i}Id"] .= $gr->rec->name;
                     }
@@ -202,7 +202,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
         $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
         
-        $pager->itemsCount = count($data->recs);
+        $pager->itemsCount = countR($data->recs);
         $pager->calc();
         $data->pager = $pager;
         
@@ -212,7 +212,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $data->summaryRec = new stdClass();
         $data->summary = new stdClass();
         
-        if (count($data->recs)) {
+        if (countR($data->recs)) {
             $count = 0;
             
             foreach ($data->recs as $id => $rec) {
@@ -300,7 +300,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $table = cls::get('core_TableView', array('mvc' => $f));
         $tpl->append($table->get($data->rows, $data->listFields), 'DETAILS');
         
-        $data->summary->colspan = count($data->listFields);
+        $data->summary->colspan = countR($data->listFields);
         
         if (!$data->bShowQuantities || $data->rec->action === 'group') {
             $data->summary->colspan -= 4;
@@ -483,7 +483,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         if ($rec->mark) {
             $arrMark = keylist::toArray($rec->mark);
             foreach ($arrMark as $mark) {
-                if (count($arrMark) > 1) {
+                if (countR($arrMark) > 1) {
                     $row->mark .= cat_Groups::fetchField($mark, 'name') . ', ';
                 } else {
                     $row->mark = cat_Groups::fetchField($mark, 'name');
@@ -553,13 +553,13 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $conf = core_Packs::getConfig('core');
         $summary = new stdClass();
         
-        if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+        if (countR($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
             redirect(array($this), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
         }
         
         $exportFields = $this->innerState->listFields;
         
-        $summary->colspan = count($exportFields);
+        $summary->colspan = countR($exportFields);
         
         if (!$this->innerState->bShowQuantities || $this->innerState->rec->action === 'group') {
             $summary->colspan -= 4;
@@ -567,7 +567,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
             $summary->colspan -= 8;
         }
         
-        if (count($this->innerState->recs)) {
+        if (countR($this->innerState->recs)) {
             $afterRow = 'ОБЩО';
             
             $rec = $this->prepareEmbeddedData($this->innerState->recs)->summaryRec;
@@ -646,7 +646,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $items = cls::get('acc_Items')->makeArray4Select('title', "#lists LIKE '%|{$listId}|%'", 'id');
         $form->setOptions("grouping{$i}", $items);
         
-        if (count($items)) {
+        if (countR($items)) {
             $form->setOptions("grouping{$i}", $items);
         } else {
             $form->setReadOnly("grouping{$i}");

@@ -112,7 +112,7 @@ class colab_Folders extends core_Manager
      */
     public function prepareListRows_(&$data)
     {
-        if (count($data->recs)) {
+        if (countR($data->recs)) {
             foreach ($data->recs as $id => $rec) {
                 $title = $this->Folders->getVerbal($rec, 'title');
                 $row = $this->Folders->recToVerbal($rec, $this->listFields);
@@ -174,7 +174,7 @@ class colab_Folders extends core_Manager
         if ($action == 'list') {
             $sharedFolders = self::getSharedFolders($userId);
             
-            if (count($sharedFolders) <= 1) {
+            if (countR($sharedFolders) <= 1) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -279,7 +279,7 @@ class colab_Folders extends core_Manager
         
         // Това е броя на споделените папки към контрактора
         $sharedFolders = static::getSharedFolders($cu);
-        $count = count($sharedFolders);
+        $count = countR($sharedFolders);
         
         return $count;
     }

@@ -55,7 +55,7 @@ abstract class cond_type_abstract_Listings extends cond_type_abstract_Proto
         }
         
         $Type = core_Type::getByName('key(mvc=cat_Listings,select=title,makeLink)');
-        $options = count($options) ? array('' => '') + $options : $options;
+        $options = countR($options) ? array('' => '') + $options : $options;
         $Type->options = $options;
         
         return $Type;

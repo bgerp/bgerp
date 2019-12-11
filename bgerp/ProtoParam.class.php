@@ -134,7 +134,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
         $query = $mvc->getQuery();
         $query->where("#group != '' AND #group IS NOT NULL");
         $params = array_map(create_function('$o', 'return $o->group;'), $query->fetchAll());
-        if (count($params)) {
+        if (countR($params)) {
             $params = arr::make($params, true);
         }
         
@@ -187,7 +187,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
                 
                 // Махане на гръпата от името
                 $exploded = explode(' » ', $value);
-                $value = (count($exploded) == 2) ? $exploded[1] : $value;
+                $value = (countR($exploded) == 2) ? $exploded[1] : $value;
                 
                 $newOptions[$id] = $value;
             }
@@ -263,7 +263,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
         // Импортиране и на ролите
         if (!empty($rec->csv_roles)) {
             $rolesArr = arr::make($rec->csv_roles);
-            if (count($rolesArr)) {
+            if (countR($rolesArr)) {
                 foreach ($rolesArr as $role) {
                     if (!core_Roles::fetchByName($role)) {
                         core_Roles::addOnce($role);

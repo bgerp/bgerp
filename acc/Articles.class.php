@@ -422,7 +422,7 @@ class acc_Articles extends core_Master
         }
         
         // Попълваме детайлите само ако са под допустимата стойност
-        if (count($entries) <= static::$maxDefaultEntriesForReverseArticle) {
+        if (countR($entries) <= static::$maxDefaultEntriesForReverseArticle) {
             foreach ($entries as $entry) {
                 $articleDetailRec = array(
                     'articleId' => $articleId,
@@ -574,7 +574,7 @@ class acc_Articles extends core_Master
         expect($masterRec->state == 'draft', 'Мемориалния ордер трябва не е чернова');
         
         expect(is_array($debitArr));
-        expect(count($debitArr) == 5);
+        expect(countR($debitArr) == 5);
         
         expect($debitAccRec = acc_Accounts::getRecBySystemId($debitArr[0]), "Няма сметка с това sysId '{$debitArr[0]}'");
         expect($creditAccRec = acc_Accounts::getRecBySystemId($creditArr[0]), "Няма сметка с това sysId '{$creditArr[0]}'");
@@ -600,7 +600,7 @@ class acc_Articles extends core_Master
                     
                     // И перото е масив форсира се, ако може
                     if (is_array($item)) {
-                        expect(count($item) == 2, 'Масива трябва да е точно с 2 елемента');
+                        expect(countR($item) == 2, 'Масива трябва да е точно с 2 елемента');
                         expect($Class = cls::get($item[0]), 'Невалиден клас');
                         expect($Class->fetch($item[1]), 'Няма такъв запис');
                         

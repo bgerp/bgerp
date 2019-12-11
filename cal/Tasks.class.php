@@ -506,7 +506,22 @@ class cal_Tasks extends embed_Manager
                 $bold = 'font-weight:bold;';
             }
         }
-        $row->progress = "<span class='progress' style='color:{$grey};{$bold}'>{$row->progress}</span>";
+        
+        $progressStr = $row->progress;
+        
+        if (($rec->state == 'waiting') || ($rec->state == 'pending') || ($rec->state == 'wakeup')) {
+            if ($rec->progress) {
+                $progressStr = "[{$progressStr}]";
+            } else {
+                $progressStr = '[]';
+            }
+        }
+        
+        if (($rec->state == 'stopped') || ($rec->state == 'closed')) {
+            $progressStr = "[{$progressStr}]";
+        }
+        
+        $row->progress = "<span class='progress' style='color:{$grey};{$bold}'>{$progressStr}</span>";
         
         // Ако имаме само начална дата на задачата
         if ($rec->timeStart && !$rec->timeEnd) {
@@ -1077,7 +1092,13 @@ class cal_Tasks extends embed_Manager
         }
         
         if ($action == 'edit' && $rec->state == 'pending') {
-            $requiredRoles = 'no_one';
+            $oState = null;
+            if ($rec->id) {
+                $oState = $mvc->fetchField($rec->id, 'state');
+            }
+            if (!isset($oState) || ($oState == 'pending')) {
+                $requiredRoles = 'no_one';
+            }
         }
     }
     
@@ -1244,7 +1265,7 @@ class cal_Tasks extends embed_Manager
             $dateRange[1] = $data->listFilter->rec->to;
         }
         
-        if (count($dateRange) == 2) {
+        if (countR($dateRange) == 2) {
             sort($dateRange);
         }
         
@@ -1683,7 +1704,7 @@ class cal_Tasks extends embed_Manager
         if (!empty($usersArr)) {
             $subTitleMaxUsersCnt = 3;
             $othersStr = '';
-            if (count($usersArr) > $subTitleMaxUsersCnt) {
+            if (countR($usersArr) > $subTitleMaxUsersCnt) {
                 $usersArr = array_slice($usersArr, 0, $subTitleMaxUsersCnt, true);
                 $othersStr = ' ' . tr('и др.');
             }
@@ -2020,7 +2041,7 @@ class cal_Tasks extends embed_Manager
                 }
             }
             
-            $cntResTask = count($resTask);
+            $cntResTask = countR($resTask);
             
             // правим помощен масив = на "rowId" от "resTasks"
             for ($i = 0; $i < $cntResTask; $i++) {
@@ -2131,7 +2152,7 @@ class cal_Tasks extends embed_Manager
         // следващия ще е с индекс текущия +1
         $next = $curIndex + 1;
         
-        if ($next <= count(self::$view)) {
+        if ($next <= countR(self::$view)) {
             $nextType = array_search($next, self::$view);
             $currUrl['View'] = $nextType;
             
@@ -2536,7 +2557,7 @@ class cal_Tasks extends embed_Manager
             }
         }
         
-        if (count($start) >= 2 && count($end) >= 2) {
+        if (countR($start) >= 2 && countR($end) >= 2) {
             $startTime = min($start);
             $endTime = max($end);
         } else {
@@ -2612,7 +2633,7 @@ class cal_Tasks extends embed_Manager
                 
                 // взимаме и началното време на текущата задача,
                 // ако има такова
-                $timeStart = self::fetchField($rec->id, 'timeStart');
+                $timeStart = $rec->timeStart;
                 
                 if ($timeStart != null) {
                     // прибавяме го към масива
@@ -2632,9 +2653,9 @@ class cal_Tasks extends embed_Manager
                 
                 // задачата не е зависима от други задачи
             }
-            $timeStart = self::fetchField($rec->id, 'timeStart');
-            $timeEnd = self::fetchField($rec->id, 'timeEnd');
-            $timeDuration = self::fetchField($rec->id, 'timeDuration');
+            $timeStart = $rec->timeStart;
+            $timeEnd = $rec->timeEnd;
+            $timeDuration = $rec->timeDuration;
             
             if ($timeStart != null) {
                 // времето за стартиране е времето оказано от потребителя
@@ -3176,7 +3197,7 @@ class cal_Tasks extends embed_Manager
         $form->setOptions($this->driverClassField, $interfaces);
         
         // Ако е наличен само един драйвер избираме него
-        if ((count($interfaces) == 1) || $isReportFromStream) {
+        if ((countR($interfaces) == 1) || $isReportFromStream) {
             $intfKey = key($interfaces);
             $form->setDefault($this->driverClassField, $intfKey);
             $form->setReadOnly($this->driverClassField);
@@ -3245,7 +3266,7 @@ class cal_Tasks extends embed_Manager
         $form->title = str::mbUcfirst($sTitle) . ' към екипа за поддръжка на|* ' . '"|' . support_Systems::getTitleById($systemId) . '|*"';
         
         $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
-        if (count(getRetUrl())) {
+        if (countR(getRetUrl())) {
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ');
         }
         $tpl = $form->renderHtml();
@@ -3362,7 +3383,7 @@ class cal_Tasks extends embed_Manager
         
         // Ако няма задачи в папката, няма какво да се клонира
         $containers = arr::extractValuesFromArray($tQuery->fetchAll(), 'firstContainerId');
-        if (!count($containers)) {
+        if (!countR($containers)) {
             
             return;
         }

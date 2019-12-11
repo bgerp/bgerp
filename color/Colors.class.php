@@ -291,7 +291,7 @@ class color_Colors
      */
     public function toRGB()
     {
-        expect(count($this->values));
+        expect(countR($this->values));
         switch ($this->type) {
             case 'rgb':
                 $this->values = array('r' => $this->values['r'],

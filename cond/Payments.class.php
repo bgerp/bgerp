@@ -118,7 +118,7 @@ class cond_Payments extends core_Manager
             if(!empty($rec->synonym)){
                 $arr = explode('|', $rec->synonym);
                 array_walk($arr, function(&$a){$a = plg_Search::normalizeText($a);});
-                $rec->synonym = (count($arr) == 1) ? "|" . $arr[0] . "|" : implode('|', $arr);
+                $rec->synonym = (countR($arr) == 1) ? "|" . $arr[0] . "|" : implode('|', $arr);
             }
             
             $titleNorm = plg_Search::normalizeText($rec->title);

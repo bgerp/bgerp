@@ -116,7 +116,7 @@ class change_Plugin extends core_Plugin
         $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields);
         
         // Очакваме да има зададени полета, които ще се променят
-        expect(count($allowedFieldsArr));
+        expect(countR($allowedFieldsArr));
         
         // Полетата, които ще записваме в лога
         $fieldsArrLogSave = $allowedFieldsArr;

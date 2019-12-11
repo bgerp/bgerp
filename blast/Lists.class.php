@@ -283,7 +283,7 @@ class blast_Lists extends core_Master
     
     public static function on_Shutdown($mvc)
     {
-        if (count($mvc->mustUpdate)) {
+        if (countR($mvc->mustUpdate)) {
             foreach ($mvc->mustUpdate as $id => $detailMvc) {
                 $rec = $mvc->fetch($id);
                 $dQuery = $detailMvc->getQuery();
@@ -349,6 +349,19 @@ class blast_Lists extends core_Master
         } else {
             $data->form->setSuggestions('negativeList', $lists);
         }
+    }
+    
+    
+    /**
+     * След порготвяне на формата за филтриране
+     *
+     * @param blast_Emails $mvc
+     * @param object       $data
+     */
+    public static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('modifiedOn', 'DESC');
+        $data->query->orderBy('id', 'DESC');
     }
     
     

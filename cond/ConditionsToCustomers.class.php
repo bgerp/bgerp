@@ -98,7 +98,7 @@ class cond_ConditionsToCustomers extends core_Manager
         if (!$form->rec->id) {
             $options = static::getRemainingOptions($rec->cClass, $rec->cId);
             $form->setOptions('conditionId', array('' => '') + $options);
-            if (count($options) == 1) {
+            if (countR($options) == 1) {
                 $form->setDefault('conditionId', key($options));
                 $form->setReadOnly('conditionId');
             }
@@ -129,7 +129,7 @@ class cond_ConditionsToCustomers extends core_Manager
         $data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id, 'за');
         
         // Маха се бутона запис и нов, ако е само едно търговското условие
-        if (count($data->form->conditionOptions) <= 1) {
+        if (countR($data->form->conditionOptions) <= 1) {
             $data->form->toolbar->removeBtn('saveAndNew');
         }
     }
@@ -148,7 +148,7 @@ class cond_ConditionsToCustomers extends core_Manager
         $ids = array_map(create_function('$o', 'return $o->conditionId;'), $query->fetchAll());
         
         $where = '';
-        if (count($ids)) {
+        if (countR($ids)) {
             $ids = array_combine($ids, $ids);
             $ids = implode(',', $ids);
             $where = "#id NOT IN ({$ids})";
@@ -194,7 +194,7 @@ class cond_ConditionsToCustomers extends core_Manager
         $defQuery->orderBy('country', 'DESC');
         
         $conditionsArr = array_keys($data->recs);
-        if (count($conditionsArr)) {
+        if (countR($conditionsArr)) {
             $defQuery->notIn('conditionId', $conditionsArr);
         }
         
@@ -374,7 +374,7 @@ class cond_ConditionsToCustomers extends core_Manager
         
         if ($action == 'add' && isset($rec->cClass, $rec->cId)) {
             if ($res != 'no_one') {
-                if (!count($mvc::getRemainingOptions($rec->cClass, $rec->cId))) {
+                if (!countR($mvc::getRemainingOptions($rec->cClass, $rec->cId))) {
                     $res = 'no_one';
                 }
             }

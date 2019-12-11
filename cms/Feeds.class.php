@@ -332,7 +332,7 @@ class cms_Feeds extends core_Manager
         $query = static::getQuery();
         $domainId = cms_Domains::getPublicDomain('id');
         $feeds = $query->fetchAll("#domainId = ${domainId}");
-        if (!count($feeds)) {
+        if (!countR($feeds)) {
             
             return;
         }
@@ -390,7 +390,7 @@ class cms_Feeds extends core_Manager
     {
         if ($form->isSubmitted()) {
             $fld = $form->selectFields('#fromSource');
-            if (!count($fld)) {
+            if (!countR($fld)) {
                 
                 return;
             }

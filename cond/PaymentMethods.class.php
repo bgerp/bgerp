@@ -318,7 +318,7 @@ class cond_PaymentMethods extends embed_Manager
     {
         $planArr = self::getPaymentPlan($pmId, $amount, $invoiceDate);
         
-        if (count($planArr)) {
+        if (countR($planArr)) {
             $Double = cls::get('type_Double');
             $Double->params['decimals'] = 2;
             $Date = cls::get('type_Date');

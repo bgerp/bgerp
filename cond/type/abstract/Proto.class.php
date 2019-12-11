@@ -111,7 +111,7 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
     public static function options2text($options)
     {
         $options = arr::make($options);
-        expect(count($options));
+        expect(countR($options));
         
         $opts = '';
         foreach ($options as $k => $v) {

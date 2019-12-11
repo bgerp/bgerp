@@ -130,7 +130,7 @@ class cond_Colors extends core_Manager
         $query->orderBy('name', 'ASC');
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }

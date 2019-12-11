@@ -137,7 +137,7 @@ class cad2_PdfCanvas extends cad2_Canvas
         $this->setAttr($attr);
         $e = (object) array('tag' => 'path', 'attr' => $this->attr, 'data' => array());
         $this->contents[] = $e;
-        $this->currentPath = count($this->contents) - 1;
+        $this->currentPath = countR($this->contents) - 1;
     }
     
     
@@ -469,7 +469,7 @@ class cad2_PdfCanvas extends cad2_Canvas
         foreach ($e->data as &$d) {
             $d[1] += $this->addX;
             $d[2] += $this->addY;
-            if (count($d) > 3) {
+            if (countR($d) > 3) {
                 $d[3] += $this->addX;
                 $d[4] += $this->addY;
                 $d[5] += $this->addX;

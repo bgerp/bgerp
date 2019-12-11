@@ -8,31 +8,33 @@
 	<!--ET_END header-->
 	
 		<table class='report-info'>
+			<!--ET_BEGIN ADDITIONAL_BLOCK-->
+			[#ADDITIONAL_BLOCK#]
+			<tr>
+				<td>[#ADDITIONAL_CAPTION#]</td>
+				<td><b>[#ADDITIONAL_VALUE#]</b></td>
+			</tr>
+			<!--ET_END ADDITIONAL_BLOCK-->
 			<tr>
 				<td>|Създаване|*</td>
-				<td></td>
 				<td>[#createdOn#] |от|* [#createdBy#]</td>
 			</tr>
 			<tr>
 				<td>|Точка на продажба|*:</td>
-				<td></td>
 				<td>[#pointId#]</td>
 			</tr>
 			<tr>
 				<td>|Каса|*:</td>
-				<td></td>
 				<td>[#caseId#]</td>
 			</tr>
 			<tr>
 				<td>|Склад|*:</td>
-				<td></td>
 				<td>[#storeId#]</td>
 			</tr>
 			
 			<!--ET_BEGIN revertId-->
 			<tr>
 				<td>|Сторно на|*:</td>
-				<td></td>
 				<td><b>[#revertId#]</b></td>
 			</tr>
 			<!--ET_END revertId-->
@@ -40,7 +42,6 @@
 			<!--ET_BEGIN transferedIn-->
 			<tr>
 				<td>|Прехвълено към|*:</td>
-				<td></td>
 				<td><b>[#transferedIn#]</b></td>
 			</tr>
 			<!--ET_END transferedIn-->
@@ -48,25 +49,20 @@
 			<!--ET_BEGIN inReport-->
 			<tr>
 				<td>|Приключено с|*:</td>
-				<td></td>
 				<td>[#inReport#]</td>
 			</tr>
 			<!--ET_END inReport-->
-			
 			<tr>
 				<td>|Продадено|*:</td>
-				<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
-				<td class = 'summary-right'><b>[#total#]</b></td>
+				<td class = 'summary-right'><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span> <b>[#total#]</b></td>
 			</tr>
 			<tr>
 				<td>|Платено|*:</td>
-				<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
-				<td class = 'summary-right'><b>[#paid#]</b></td>
+				<td class = 'summary-right'><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span> <b>[#paid#]</b></td>
 			</tr>
 			<tr>
 				<td>|Ресто|*:</td>
-				<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
-				<td class = 'summary-right'><b>[#change#]</b></td>
+				<td class = 'summary-right'><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span> <b>[#change#]</b></td>
 			</tr>
 		</table>
 	<br /><br />

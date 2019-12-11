@@ -429,7 +429,7 @@ class bgerp_Bookmark extends core_Manager
             
             $delimiter = ' « ';
             $titleArr = explode($delimiter, $data->form->rec->title);
-            if (count($titleArr) > 1) {
+            if (countR($titleArr) > 1) {
                 array_pop($titleArr);
             }
             

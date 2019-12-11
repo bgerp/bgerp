@@ -495,7 +495,7 @@ class barcode_Generator extends core_Manager
                 break;
             
             case 'datamatrix':
-                $width = count(BarcodeDatamatrix::getDigit($text, false));
+                $width = countR(BarcodeDatamatrix::getDigit($text, false));
                 $height = &$width;
                 break;
             

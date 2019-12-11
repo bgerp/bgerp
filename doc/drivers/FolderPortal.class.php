@@ -101,7 +101,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
-        if ($resData->tpl === false) {
+        if (!$resData->tpl) {
             $resData->data = new stdClass();
             
             $dQuery = doc_Threads::getQuery();
@@ -142,10 +142,11 @@ class doc_drivers_FolderPortal extends core_BaseClass
             $Threads->prepareListRows($data);
             
             foreach ($data->rows as $row) {
+                $at = "<td><small>{$row->author} <div class='nowrap'>{$row->last}</div></small></td>";
                 if (is_string($row->title)) {
-                    $row->title .= "<div style='float:right'><small>{$row->author}, {$row->last}</small></div>";
+                    $row->title .= $at;
                 } elseif ($row->title instanceof core_Et) {
-                    $row->title->append("<div style='float:right'><small>{$row->author}, {$row->last}</small></div>");
+                    $row->title->append($at);
                 }
             }
             
@@ -216,12 +217,15 @@ class doc_drivers_FolderPortal extends core_BaseClass
     
     
     /**
-     * Връща типа на блока за портала
+     * Връща заглавието за таба на съответния блок
      *
-     * @return string - other, tasks, notifications, calendar, recently
+     * @param stdClass $dRec
+     *
+     * @return string
      */
-    public function getBlockType()
+    public function getBlockTabName($dRec)
     {
-        return 'other';
+        
+        return tr('Папка') . ' ' . doc_Folders::getLink($dRec->folderId, 16);
     }
 }

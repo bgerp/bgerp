@@ -196,6 +196,11 @@ class bgerp_Recently extends core_Manager
                 
                 $attr = array();
                 $attr['class'] .= "state-{$state}";
+                
+                if ($docRec->modifiedOn > $mvc->getLastDocumentSee($docRec->containerId, null, false)) {
+                    $attr['class'] .= " tUnsighted";
+                }
+                
                 $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon($docRec->id));
                 
                 if (mb_strlen($docRow->title) > self::maxLenTitle) {
@@ -494,7 +499,7 @@ class bgerp_Recently extends core_Manager
                     $usersArr = type_Keylist::toArray($filter->usersSearch);
                     
                     // Ако има избрани потребители
-                    if (count((array) $usersArr)) {
+                    if (countR((array) $usersArr)) {
                         
                         // Показваме всички потребители
                         $data->query->orWhereArr('userId', $usersArr);

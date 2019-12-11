@@ -191,7 +191,7 @@ class cms_VerbalIdPlg extends core_Plugin
                 $searchKeywords = plg_Search::getKeywords($mvc, $rec);
             }
             
-            if ($searchKeywords && count($synArr)) {
+            if ($searchKeywords && countR($synArr)) {
                 foreach ($synArr as $group) {
                     foreach ($group as $word) {
                         if (strpos($searchKeywords, $word) !== false) {

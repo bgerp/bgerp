@@ -825,7 +825,7 @@ if ($step == 3) {
     
     // Обща сол
     if (!defined('EF_SALT')) {
-        $efSaltGenerated = $consts['EF_SALT'] = getRandomString();
+        $efSaltGenerated = $consts['EF_SALT'] = getEF_SALT();
     }
     
     // Препоръчителна стойност между 200 и 500
@@ -958,10 +958,8 @@ if ($step == 5) {
  **********************************/
 if ($step == 'setup') {
 
-    // Освобождава манипулатора на сесията. Ако трябва да се правят
-    // записи в сесията, то те трябва да се направят преди shutdown()
-   // core_Session::pause();
-
+    // Подтиска използването на сесията на сесията.
+    core_Session::$mute = true;
 
     set_time_limit(1000);
 
@@ -1159,6 +1157,9 @@ if ($step == 'start') {
     ob_implicit_flush();
     ob_end_flush();
     flush();
+    
+    // Подтиска използването на сесията на сесията.
+    core_Session::$mute = true;
 
 
     if(function_exists('fastcgi_finish_request')) {
@@ -1609,12 +1610,6 @@ function dataBaseStat()
     $tables = $DB->fetchObject($tablesRes);
     
     return array($tables->TABLES, $rows->RECS);
-}
-
-
-function getRandomString($length = 15)
-{
-    return substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, $length);
 }
 
 

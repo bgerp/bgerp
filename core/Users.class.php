@@ -195,7 +195,7 @@ class core_Users extends core_Manager
             $this->FLD('nick', 'email(link=no, ci)', 'caption=Ник,notNull, input=none');
         } else {
             //Ако не използвам никовете, тогава полето трябва да е задължително
-            $this->FLD('nick', 'nick(64, ci)', 'caption=Ник,notNull,mandatory,width=100%');
+            $this->FLD('nick', 'nick(64, ci,autocomplete=off)', 'caption=Ник,notNull,mandatory,width=100%');
         }
         
         $this->FLD(
@@ -901,8 +901,14 @@ class core_Users extends core_Manager
             'name' => 'login'
         ));
         
+        $submit = "loginFormSubmit(this.form, '" .
+                                 EF_USERS_PASS_SALT . "', '" .
+                                 EF_USERS_HASH_FACTOR . "', '" .
+                                 (EF_USSERS_EMAIL_AS_NICK ? 'email' : 'nick') .
+                                 "');" . 'this.form.submit();';
+
         // Парола за ауторизация (логване)
-        $form->FNC('pass', 'password(allowEmpty)', 'caption=Парола,input,width=100%');
+        $form->FNC('pass', 'password(allowEmpty,autocomplete=off)', 'caption=Парола,input,width=100%', array('attr' => array('onkeypress' => "if(event.keyCode == 13) {" . $submit ."}")));
         
         if (Request::get('popup')) {
             $form->setHidden('ret_url', toUrl(array('log_Browsers', 'close'), 'local'));
@@ -912,10 +918,15 @@ class core_Users extends core_Manager
         $form->setHidden('time', time());
         $form->setHidden('hash', '');
         $form->setHidden('loadTime', '');
-        
+        $form->setHidden('Cmd[default]', '1');
+
         $form->addAttr('nick,pass,email', array('style' => 'min-width:14em;'));
         
-        $form->toolbar->addSbBtn('Вход', 'default', null, array('class' => 'noicon'));
+        if (defined('SECURITY_LOGIN')) {
+            $form->toolbar->addFnBtn('Вход',  $submit, array('class' => 'noicon'));
+        } else {
+            $form->toolbar->addSbBtn('Вход',  'default', array('class' => 'noicon'));
+        }
         
         $httpUrl = core_App::getSelfURL();
         $httpsUrl = str_replace('http', 'https', $httpUrl);
