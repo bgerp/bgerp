@@ -108,7 +108,7 @@ class bgerp_Menu extends core_Manager
         
         // Ако няма нито един запис в Менюто, но имаме права за администратор,
         // и текущия контролер не е core_*, редирекваме към core_Packs
-        if (!count($menuObj) && (strpos(Request::get('Ctr'), 'core_') === false)) {
+        if (!countR($menuObj) && (strpos(Request::get('Ctr'), 'core_') === false)) {
             redirect(array('core_Packs'));
         }
         
@@ -190,7 +190,7 @@ class bgerp_Menu extends core_Manager
         $bestW = 0;
         $bestKey = null;
         
-        if (($menuObj) && (count($menuObj))) {
+        if (($menuObj) && (countR($menuObj))) {
             foreach ($menuObj as $key => $rec) {
                 if ($rec->ctr == $ctr && $rec->act == $act) {
                     
@@ -236,7 +236,7 @@ class bgerp_Menu extends core_Manager
     {
         $activeArr = explode(':', $active);
         
-        if (($menuObj) && (count($menuObj))) {
+        if (($menuObj) && (countR($menuObj))) {
             foreach ($menuObj as $key => $rec) {
                 
                 // state: 3 - active, 2 - normal, 1 - disabled, 0 - hidden
@@ -367,7 +367,7 @@ class bgerp_Menu extends core_Manager
             $url = haveRole($rec->accessByRoles) ?  array($rec->ctr, $rec->act) : array();
             $class = 'mainMenu';
             
-            if (!count($url)) {
+            if (!countR($url)) {
                 $class .= ' btn-disabled';
             }
             $link = ht::createLink($rec->menuTr, $url, null, array('class' => $class));
@@ -379,7 +379,7 @@ class bgerp_Menu extends core_Manager
                 $url = haveRole($subRec->accessByRoles) ?  array($subRec->ctr, $subRec->act) : array();
                 $class = 'subMenu';
                 
-                if (!count($url)) {
+                if (!countR($url)) {
                     $class .= ' btn-disabled';
                 }
                 
@@ -422,12 +422,12 @@ class bgerp_Menu extends core_Manager
         $manager = cls::get($ctr);
         
         $plugins = arr::make($manager->loadList, true);
-        if (count($plugins)) {
+        if (countR($plugins)) {
             foreach ($plugins as $plg) {
                 $plg = cls::get($plg);
                 if ($plg instanceof plg_ProtoWrapper && !($plg instanceof cms_ExternalWrapper)) {
                     $plg->description();
-                    if (count($plg->tabs)) {
+                    if (countR($plg->tabs)) {
                         foreach ($plg->tabs as $caption => $obj) {
                             if ($obj->roles == 'user') {
                                 if ($obj->url['Ctr'] && ($obj->url['Act'] == 'list' || $obj->url['Act'] == 'default' || $obj->url['Act'] == '')) {
@@ -443,7 +443,7 @@ class bgerp_Menu extends core_Manager
                                     $obj->roles == 'ceo';
                                 }
                             }
-                            if ((count($obj->url) == 1 || count($obj->url) == 2) && haveRole($obj->roles)) {
+                            if ((countR($obj->url) == 1 || countR($obj->url) == 2) && haveRole($obj->roles)) {
                                 $ctr = $obj->url['Ctr'];
                                 $act = $obj->url['Act'];
                                 $roles = $obj->roles;

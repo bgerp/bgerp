@@ -70,7 +70,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             
             // Добавяне на поле за избор на съществуваща партида
             $form->FNC('batchEx', 'varchar', 'caption=Партида');
-            $autohide = count($quantities) ? 'autohide' : '';
+            $autohide = countR($quantities) ? 'autohide' : '';
             $caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
             $form->FNC('batchNew', 'varchar', "caption=Установена нова партида->{$caption},input,placeholder={$Def->placeholder}");
             
@@ -81,12 +81,12 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $form->setField('batchNew', 'caption=Серийни номера');
                 $autohide = '';
                 
-                if (count($selected)) {
+                if (countR($selected)) {
                     $batches = implode(' ', $selected);
                     $form->setDefault('batchNew', $batches);
                 }
                 
-                if (count($quantities)) {
+                if (countR($quantities)) {
                     $suggestions = array_combine(array_keys($quantities), array_keys($quantities));
                     $form->setSuggestions('batchNew', $suggestions);
                 }
@@ -95,7 +95,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 // Иначе се добавя полето за нова партида
                 $form->setFieldType('batchNew', $Def->getBatchClassType());
                 
-                if (count($quantities)) {
+                if (countR($quantities)) {
                     $options = array();
                     foreach ($quantities as $k => $v) {
                         $options[$k] = strip_tags($Def->toVerbal($k));
@@ -140,7 +140,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             if (!isset($rec->quantity)) {
                 $b = $BatchClass->normalize($rec->batchNew);
                 $b = $BatchClass->makeArray($b);
-                $rec->quantity = count($b);
+                $rec->quantity = countR($b);
             }
             
             if (!empty($rec->batchNew)) {
@@ -210,7 +210,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             }
         }
         
-        if (count($batches) > 1) {
+        if (countR($batches) > 1) {
             $row->batch = implode('<br>', $batches);
         } else {
             $row->batch = $batches[key($batches)];
@@ -249,7 +249,7 @@ class batch_plg_InventoryNotes extends core_Plugin
         while ($rec = $query->fetch()) {
             if (!empty($rec->batch)) {
                 $batches = $Def->makeArray($rec->batch);
-                $quantity = $rec->quantity / count($batches);
+                $quantity = $rec->quantity / countR($batches);
             } else {
                 if ($count == 1 && $alwaysShowBatches !== true) {
                     
@@ -269,7 +269,7 @@ class batch_plg_InventoryNotes extends core_Plugin
         
         // Засичане на очакваните колчества с въведените
         if ($alwaysShowBatches !== true) {
-            if (!count($batchesInDetail)) {
+            if (!countR($batchesInDetail)) {
                 
                 return false;
             }
@@ -310,7 +310,7 @@ class batch_plg_InventoryNotes extends core_Plugin
      */
     public static function on_ExpandRows($mvc, &$summaryRecs, &$summaryRows, $masterRec)
     {
-        if (!count($summaryRows)) {
+        if (!countR($summaryRows)) {
             
             return;
         }

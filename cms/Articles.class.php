@@ -154,7 +154,7 @@ class cms_Articles extends core_Master
         
         $form->setField('menuId', 'refreshForm');
         
-        if (count($opt) == 0) {
+        if (countR($opt) == 0) {
             redirect(array('cms_Content'), false, '|Моля въведете поне един елемент от менюто');
         }
         
@@ -644,7 +644,7 @@ class cms_Articles extends core_Master
             $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
         }
         
-        if (count($res) < $maxResults) {
+        if (countR($res) < $maxResults) {
             $query = clone($queryM);
             plg_Search::applySearch($q, $query, null, 9);
             
@@ -662,7 +662,7 @@ class cms_Articles extends core_Master
         }
         
         
-        if (count($res) < $maxResults) {
+        if (countR($res) < $maxResults) {
             $query = clone($queryM);
             plg_Search::applySearch($q, $query, null, 3);
             
@@ -891,7 +891,7 @@ class cms_Articles extends core_Master
             $links[] = $link->getContent();
         }
         
-        if (!count($links)) {
+        if (!countR($links)) {
             
             return new core_ET('');
         }

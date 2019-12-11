@@ -143,7 +143,7 @@ class acc_reports_SaleContractors extends acc_reports_BalanceImpl
         $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
         $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
         
-        $pager->itemsCount = count($data->recs, COUNT_RECURSIVE);
+        $pager->itemsCount = countR($data->recs, COUNT_RECURSIVE);
         $data->pager = $pager;
         
         $start = $data->pager->rangeStart;
@@ -151,7 +151,7 @@ class acc_reports_SaleContractors extends acc_reports_BalanceImpl
         
         $data->summary = new stdClass();
         
-        if (count($data->recs)) {
+        if (countR($data->recs)) {
             $count = 0;
             foreach ($data->recs as $id => $rec) {
                 

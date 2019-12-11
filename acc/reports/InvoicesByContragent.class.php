@@ -701,11 +701,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         
         
         //Подрежда се по дата на фактура
-        if (count($sRecs)) {
+        if (countR($sRecs)) {
             arr::sortObjects($sRecs, 'invoiceDate', 'asc', 'stri');
         }
         
-        if (count($pRecs)) {
+        if (countR($pRecs)) {
             arr::sortObjects($pRecs, 'invoiceDate', 'asc', 'stri');
         }
         

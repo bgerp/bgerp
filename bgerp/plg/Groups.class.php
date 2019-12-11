@@ -80,7 +80,7 @@ class bgerp_plg_Groups extends core_Plugin
                 }
             }
             
-            $selArrCnt = count($selArr);
+            $selArrCnt = countR($selArr);
             
             expect($selArrCnt);
             
@@ -99,7 +99,7 @@ class bgerp_plg_Groups extends core_Plugin
             } else {
                 $form->title = 'Групиране на |*' . $selArrCnt . '| ' . mb_strtolower($mvc->title);
                 
-                if (count($canAddGroups)) {
+                if (countR($canAddGroups)) {
                     $addType = cls::get('type_Set');
                     
                     foreach ($canAddGroups as $g => $cnt) {
@@ -108,7 +108,7 @@ class bgerp_plg_Groups extends core_Plugin
                     $form->FNC('addGroups', $addType, 'caption=Добавяне към->Групи,input');
                 }
                 
-                if (count($canDelGroups)) {
+                if (countR($canDelGroups)) {
                     $delType = cls::get('type_Set');
                     
                     foreach ($canDelGroups as $g => $cnt) {
@@ -121,7 +121,7 @@ class bgerp_plg_Groups extends core_Plugin
             $form->toolbar->addSbBtn('Запис');
             $retUrl = getRetUrl();
             
-            if (!count($retUrl)) {
+            if (!countR($retUrl)) {
                 if ($selArrCnt == 1) {
                     $retUrl = array($mvc, 'single', $selArr[$selOneKey]);
                 } else {

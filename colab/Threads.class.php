@@ -173,7 +173,7 @@ class colab_Threads extends core_Manager
         }
         
         // Вербализираме записите
-        if (count($data->recs)) {
+        if (countR($data->recs)) {
             doc_HiddenContainers::prepareDocsForHide($data->recs);
             foreach ($data->recs as $id => $rec) {
                 $data->rows[$id] = $this->Containers->recToVerbal($rec, arr::combine($data->listFields, '-list'));
@@ -280,7 +280,7 @@ class colab_Threads extends core_Manager
      */
     public function prepareListRows_(&$data)
     {
-        if (count($data->recs)) {
+        if (countR($data->recs)) {
             foreach ($data->recs as $id => $rec) {
                 $row = $this->Threads->recToVerbal($rec);
                 
@@ -344,7 +344,7 @@ class colab_Threads extends core_Manager
         $data->listFilter->input(null, 'silent');
         
         $documentsInThreadOptions = doc_Threads::getDocumentTypesOptionsByFolder($data->listFilter->rec->folderId, true);
-        if (count($documentsInThreadOptions)) {
+        if (countR($documentsInThreadOptions)) {
             $documentsInThreadOptions = array_map('tr', $documentsInThreadOptions);
             $data->listFilter->setOptions('documentClassId', $documentsInThreadOptions);
         } else {

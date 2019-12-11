@@ -308,7 +308,7 @@ class acc_Lists extends core_Manager
         
         $listIds = acc_Items::fetchField("#classId = {$classId} AND #objectId = {$objectId}", 'lists');
         
-        if (count($listIds = keylist::toArray($listIds))) {
+        if (countR($listIds = keylist::toArray($listIds))) {
             foreach ($listIds as $listId) {
                 $rec = self::fetch($listId);
                 $result[$listId] = self::getVerbal($rec, 'title');
@@ -343,7 +343,7 @@ class acc_Lists extends core_Manager
             // Ако има клас проверяваме за тези номенклатури, чийто интерфейс е поддържан от класа
             $ifaceIds = array_keys(core_Interfaces::getInterfaceIds($class));
             
-            if (count($ifaceIds)) {
+            if (countR($ifaceIds)) {
                 $query = static::getQuery();
                 $query->where('#regInterfaceId IN (' . implode(',', $ifaceIds) . ')');
             }
@@ -419,7 +419,7 @@ class acc_Lists extends core_Manager
             }
         }
         
-        if (count($lists)) {
+        if (countR($lists)) {
             $lists = array_combine($lists, $lists);
         }
         

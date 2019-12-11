@@ -197,7 +197,7 @@ class acc_Features extends core_Manager
         $now = dt::now();
         
         // За всяко свойство
-        if (count($features)) {
+        if (countR($features)) {
             $fields = array();
             
             foreach ($features as $feat => $value) {
@@ -252,7 +252,7 @@ class acc_Features extends core_Manager
         $query = $this->getQuery();
         $query->where("#itemId = {$itemId}");
         
-        if (count($updated)) {
+        if (countR($updated)) {
             $query->notIn('id', $updated);
         }
         
@@ -293,7 +293,7 @@ class acc_Features extends core_Manager
         $query = static::getQuery();
         $query->where("#state = 'active'");
         
-        if (count($array)) {
+        if (countR($array)) {
             $query->in('itemId', $array);
         }
         
@@ -347,7 +347,7 @@ class acc_Features extends core_Manager
         $query = self::getQuery();
         $query->where("#state = 'active'");
         
-        if (count($itemsArr)) {
+        if (countR($itemsArr)) {
             $query->in('itemId', $itemsArr);
         }
         
@@ -418,7 +418,7 @@ class acc_Features extends core_Manager
         }
         
         // Ако има пера
-        if (count($items)) {
+        if (countR($items)) {
             foreach ($items as $itemId) {
                 
                 // За всяко перо синхронизираме свойствата му

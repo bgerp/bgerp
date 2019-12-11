@@ -105,7 +105,7 @@ class cond_plg_DefaultValues extends core_Plugin
             self::getFolderId($rec);
             
             // Ако има зададени дефолт стратегии
-            if (isset($mvc::$defaultStrategies) && count($mvc::$defaultStrategies)) {
+            if (isset($mvc::$defaultStrategies) && countR($mvc::$defaultStrategies)) {
                 
                 // За всяко поле със стратегия, му се намира стойността
                 foreach ($mvc::$defaultStrategies as $name => $strat) {
@@ -126,7 +126,7 @@ class cond_plg_DefaultValues extends core_Plugin
     private static function getDefValue(core_Mvc $mvc, $rec, $name, $strat)
     {
         $strat = keylist::toArray($strat);
-        if (count($strat)) {
+        if (countR($strat)) {
             
             // За всяка от стратегиите
             foreach ($strat as $str) {
@@ -380,7 +380,7 @@ class cond_plg_DefaultValues extends core_Plugin
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = array())
     {
         if ($rec->folderId) {
-            if (isset($mvc::$updateContragentdataField) && count($mvc::$updateContragentdataField) && ($mvc::$defaultStrategies) && count($mvc::$defaultStrategies)) {
+            if (isset($mvc::$updateContragentdataField) && countR($mvc::$updateContragentdataField) && ($mvc::$defaultStrategies) && countR($mvc::$defaultStrategies)) {
                 $fRec = doc_Folders::fetch($rec->folderId);
                 
                 if ($fRec && $fRec->coverClass && $fRec->coverId) {

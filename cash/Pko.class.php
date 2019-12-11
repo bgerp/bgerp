@@ -160,14 +160,14 @@ class cash_Pko extends cash_Document
         }
         
         // Ъпдейт на нужните записи
-        if (count($update)) {
+        if (countR($update)) {
             cls::get('cash_NonCashPaymentDetails')->saveArray_($update);
         }
         
         // Изтриване на старите записи
         if(is_array($rec->exPayments)){
             $delete = array_filter($rec->exPayments, function ($a) use ($notDelete) { return !array_key_exists($a->paymentId, $notDelete);});
-            if (count($delete)) {
+            if (countR($delete)) {
                 foreach ($delete as $obj) {
                     cash_NonCashPaymentDetails::delete($obj->id);
                 }

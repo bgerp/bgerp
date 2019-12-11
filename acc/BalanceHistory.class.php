@@ -134,21 +134,21 @@ class acc_BalanceHistory extends core_Manager
         
         if (!Mode::is('printing')) {
             $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listHistoryItemsPerPage));
-            $Pager->itemsCount = count($data->recs);
+            $Pager->itemsCount = countR($data->recs);
             $Pager->calc();
             $data->pager = $Pager;
             
             $start = $data->pager->rangeStart;
             $end = $data->pager->rangeEnd - 1;
             
-            if (count($data->recs)) {
+            if (countR($data->recs)) {
                 $data->recs = array_reverse($data->recs, true);
             }
             
             // Махаме тези записи които не са в диапазона на страницирането
             $count = 0;
             
-            if (count($data->recs)) {
+            if (countR($data->recs)) {
                 foreach ($data->recs as $id => $dRec) {
                     if (!($count >= $start && $count <= $end)) {
                         unset($data->recs[$id]);
@@ -160,7 +160,7 @@ class acc_BalanceHistory extends core_Manager
             if ($data->pager->page == 1) {
                 if(is_array($data->lastRec)){
                     // Добавяне на последния ред
-                    if (count($data->recs)) {
+                    if (countR($data->recs)) {
                         array_unshift($data->recs, $data->lastRec);
                     } else {
                         $data->recs = array($data->lastRec);
@@ -176,7 +176,7 @@ class acc_BalanceHistory extends core_Manager
             }
         } else {
             // Подготвя средното салдо
-            if (!count($data->allRecs)) {
+            if (!countR($data->allRecs)) {
                 $data->allRecs = array();
             }
             
@@ -192,7 +192,7 @@ class acc_BalanceHistory extends core_Manager
         }
         
         // Подготвя средното салдо
-        if (!count($data->allRecs)) {
+        if (!countR($data->allRecs)) {
             $data->allRecs = array();
         }
         
@@ -209,7 +209,7 @@ class acc_BalanceHistory extends core_Manager
         $this->prepareMiddleBalance($data);
         
         // За всеки запис, обръщаме го във вербален вид
-        if (count($data->recs)) {
+        if (countR($data->recs)) {
             foreach ($data->recs as $jRec) {
                 $data->rows[] = $this->getVerbalHistoryRow($jRec);
             }
@@ -573,7 +573,7 @@ class acc_BalanceHistory extends core_Manager
         
         // Създаваме масив с ключ вальора на документа, така имаме списък с
         // последните записи за всяка дата
-        if (count($recs)) {
+        if (countR($recs)) {
             foreach ($recs as $rec) {
                 
                 // Ако няма друг запис за тази дата добавяме го
@@ -593,13 +593,13 @@ class acc_BalanceHistory extends core_Manager
         // Нулираме му ключовете за по-лесно обхождане
         $tmpArray = array_values($tmpArray);
         
-        if (count($tmpArray)) {
+        if (countR($tmpArray)) {
             
             // За всеки запис
             foreach ($tmpArray as $id => $arr) {
                 
                 // Ако не е последния елемент
-                if ($id != count($tmpArray) - 1) {
+                if ($id != countR($tmpArray) - 1) {
                     
                     // Взимаме дните между следващата дата и текущата от записа
                     $value = dt::daysBetween($tmpArray[$id + 1]['valior'], $arr['valior']);

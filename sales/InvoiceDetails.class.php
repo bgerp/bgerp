@@ -116,13 +116,17 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
             $cQuery->show('id');
             $ids = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
             if (!count($ids)) {
-                retun;
+                return;
             }
             
             // Намират се всички партиди в документите от нишката на фактурата
             $bQuery = batch_BatchesInDocuments::getQuery();
             $bQuery->in('containerId', $ids);
             $bQuery->where("#productId = {$rec->productId}");
+            if(isset($rec-> _batches)){
+                $bQuery->in("id", $rec-> _batches);
+            }
+            
             $bQuery->show('batch');
             $batches = arr::extractValuesFromArray($bQuery->fetchAll(), 'batch');
             

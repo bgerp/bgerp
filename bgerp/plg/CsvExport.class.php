@@ -119,7 +119,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
     {
         $cu = core_Users::getCurrent();
         $recs = core_Cache::get($this->mvc->className, "exportRecs{$cu}");
-        core_App::setTimeLimit(count($recs) / 10);
+        core_App::setTimeLimit(countR($recs) / 10);
         
         $retUrl = getRetUrl();
         
@@ -136,7 +136,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
         }
         
         $maxCnt = core_Setup::get('EF_MAX_EXPORT_CNT', true);
-        if (count($recs) > $maxCnt) {
+        if (countR($recs) > $maxCnt) {
             redirect($retUrl, false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $maxCnt, 'error');
         }
         
@@ -155,7 +155,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
                     if ($field != 'ExternalLink') {
                         $value = $fieldSet->getFieldParam($field, 'caption');
                         $valueArr = explode('->', $value);
-                        if (count($valueArr) == 1) {
+                        if (countR($valueArr) == 1) {
                             $value = $valueArr[0];
                         } else {
                             $value = $valueArr[1];

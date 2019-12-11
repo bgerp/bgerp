@@ -147,7 +147,7 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
      */
     public function render($data)
     {
-        if (!$data->tpl && $data->speed) {
+        if (!$data->tpl) {
             $scaleArr = array('title' => "" , 'colorPlate' => 'transparent');
             
             if ($data->gaugeType == 'linear') {
@@ -176,13 +176,15 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
     
     
     /**
-     * Връща типа на блока за портала
+     * Връща заглавието за таба на съответния блок
      *
-     * @return string - other, tasks, notifications, calendar, recently
+     * @param stdClass $dRec
+     *
+     * @return string
      */
-    public function getBlockType()
+    public function getBlockTabName($dRec)
     {
         
-        return 'other';
+        return tr('Общи цели');
     }
 }

@@ -250,7 +250,7 @@ class bgerp_L extends core_Manager
                 if (email_Setup::get('SHOW_THREAD_IN_EXTERNAL') == 'yes') {
                     // Ако има повече от един имейл в нишката
                     $tEmailArr = $this->getThreadEmails($cid, $mid, true);
-                    if (count($tEmailArr) > 1) {
+                    if (countR($tEmailArr) > 1) {
                         $html->append(ht::createLink(tr('Цялата нишка'), array($this, 'T', $cid, 'm' => $mid, '#' => $doc->getHandle()), null, array('class' => 'hideLink', 'ef_icon' => 'img/16/chat.png')) . "<span>|</span>");
                     }
                 }
@@ -317,7 +317,7 @@ class bgerp_L extends core_Manager
             if ($doc) {
                 $urlArray = $doc->getSingleUrlArray();
                 
-                if (is_array($urlArray) && count($urlArray)) {
+                if (is_array($urlArray) && countR($urlArray)) {
                     
                     return new Redirect($urlArray);
                 }
@@ -496,7 +496,7 @@ class bgerp_L extends core_Manager
             if ($doc) {
                 $urlArray = $doc->getSingleUrlArray();
                 
-                if (is_array($urlArray) && count($urlArray)) {
+                if (is_array($urlArray) && countR($urlArray)) {
                     
                     return new Redirect($urlArray);
                 }
@@ -640,7 +640,7 @@ class bgerp_L extends core_Manager
             
             // Ако само се проверява дали има имейли
             if ($onlyCheck) {
-                if (count($resArr) > 1) {
+                if (countR($resArr) > 1) {
                     
                     return $resArr;
                 }
@@ -693,7 +693,7 @@ class bgerp_L extends core_Manager
             if ($doc) {
                 $urlArray = $doc->getSingleUrlArray();
                 
-                if (is_array($urlArray) && count($urlArray)) {
+                if (is_array($urlArray) && countR($urlArray)) {
                     
                     return new Redirect($urlArray);
                 }

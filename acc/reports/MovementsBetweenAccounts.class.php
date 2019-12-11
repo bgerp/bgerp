@@ -326,7 +326,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         }
         
         if ($formRec->{$actPart} == 'group' || $formRec->{$actPart} == 'groupItems') {
-            if (count($vArr) && !$vArr[abs($res)]) {
+            if (countR($vArr) && !$vArr[abs($res)]) {
                 $res = '0';
             }
             
@@ -336,7 +336,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         } else {
             expect($formRec->{$actPart} == 'filter', $formRec, $actPart);
             
-            if (count($vArr) && !$vArr[abs($res)]) {
+            if (countR($vArr) && !$vArr[abs($res)]) {
                 $res = false;
             } else {
                 $res = '';
@@ -485,13 +485,13 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     public static function on_AfterPrepareEmbeddedData($mvc, &$data)
     {
         // Ако има намерени записи
-        if (count($data->recs)) {
+        if (countR($data->recs)) {
             
             // Подготвяме страницирането
             $pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
             $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
             $data->Pager = $pager;
-            $data->Pager->itemsCount = count($data->recs);
+            $data->Pager->itemsCount = countR($data->recs);
             
             // Ако има избрано поле за сортиране, сортираме по него
             arr::sortObjects($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
@@ -848,7 +848,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             }
         }
         
-        if (count($newFields)) {
+        if (countR($newFields)) {
             $fields = $newFields + $fields;
         }
         
@@ -904,7 +904,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             }
         }
         
-        if (count($newFields)) {
+        if (countR($newFields)) {
             $fields = $newFields + $fields;
         }
         
@@ -927,7 +927,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     public function hidePriceFields()
     {
         $innerState = &$this->innerState;
-        if (count($innerState->rows)) {
+        if (countR($innerState->rows)) {
             foreach ($innerState->rows as $row) {
                 foreach (array('debitAmount', 'debitQuantity','creditAmount', 'creditQuantity', 'blQuantity', 'blAmount') as $fld) {
                     unset($row->{$fld});
@@ -959,7 +959,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     {
         $conf = core_Packs::getConfig('core');
         
-        if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+        if (countR($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
             redirect(array($this), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
         }
         
@@ -971,7 +971,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         
         $rows = $this->prepareEmbeddedData()->rows;
         
-        if (count($this->innerState->recs)) {
+        if (countR($this->innerState->recs)) {
             foreach ($this->innerState->recs as $id => $rec) {
                 $dataRecs[] = $this->getVerbalRec($rec, $data);
                 foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'plus', 'minus','quantity','sum') as $fld) {
@@ -1312,7 +1312,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         }
         
         // броя на елементите в получения масив
-        $cntData = count($data);
+        $cntData = countR($data);
         
         // ако, числото което сме определили за новия масив
         // е по-малко от общия брой елементи
@@ -1325,7 +1325,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
                 // Вербалното представяне на перата
                 $t = explode('|', $rec->title);
                 $titleV = '';
-                for ($i = 0; $i <= count($t) - 1; $i++) {
+                for ($i = 0; $i <= countR($t) - 1; $i++) {
                     $titleV .= acc_Items::getVerbal($t[$i], 'title'). '|';
                 }
                 $titleV = substr($titleV, 0, strlen($titleV) - 1);
@@ -1345,7 +1345,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
                 // Вербалното представяне на перата
             $t = explode('|', $newArr[$k]->title);
             $titleV = '';
-            for ($i = 0; $i <= count($t) - 1; $i++) {
+            for ($i = 0; $i <= countR($t) - 1; $i++) {
                 $titleV .= acc_Items::getVerbal($t[$i], 'title'). '|';
             }
             $titleV = substr($titleV, 0, strlen($titleV) - 1);

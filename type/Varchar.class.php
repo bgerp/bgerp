@@ -51,6 +51,10 @@ class type_Varchar extends core_Type
             $attr['type'] = $this->inputType;
         }
         
+        if ($this->params['autocomplete']) {
+            $attr['autocomplete'] = $this->params['autocomplete'];
+        }
+
         if ($this->params['readonly']) {
             $attr['readonly'] = 'readonly';
         }
