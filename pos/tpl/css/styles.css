@@ -164,6 +164,9 @@
   font-weight: normal; }
   .operationBtn.button.active {
     background-color: #f7f749; }
+  .operationBtn.button.disabledBtn {
+    color: #888888;
+    pointer-events: none; }
 
 .narrow .num-keyboard {
   min-width: 176px !important; }
