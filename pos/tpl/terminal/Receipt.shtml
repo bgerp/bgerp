@@ -1,7 +1,7 @@
 <div class="scrolling-vertical">
 	<div class='receipt-header'>
 		<!--ET_BEGIN EXIT_TERMINAL--> <span class="logout">[#EXIT_TERMINAL#]</span><!--ET_END EXIT_TERMINAL-->
-		<div class="receipt-title">[#RECEIPT_CAPTION#] [#id#]/[#valior#] [#rejectBtn#]</div>
+		<div class="receipt-title">[#RECEIPT_CAPTION#] № [#id#]/[#valior#] [#rejectBtn#]</div>
 		<div class='secondRow'><!--ET_BEGIN SUB_TITLE--><span class='terminal-receipt-subtitle'>[#SUB_TITLE#] &#124; </span><!--ET_END SUB_TITLE-->[#createdBy#] &#124;[#LOGO#]<span class='newLine'>[#pointId#]</span><!--ET_BEGIN revertId-->  &#124;<span class='terminal-revert-id newLine'>[#revertId#]</span>[#loadUrl#]<!--ET_END revertId--></div>
 		<!--ET_BEGIN contragentId-->
 		<div class='contragentRow'>[#contragentId#]</div>
@@ -15,7 +15,7 @@
 	<div class="paymentRow "> <span class="totalLabel">|Общо|*: [#total#] [#currency#]</span></div>
 	
 	<!--ET_BEGIN PAYMENT_NOT_REQUIRED-->
-	<div class="paymentRow "><span class="paymentNotRequiredLabel">[#PAYMENT_NOT_REQUIRED#]</span></div>
+	<div class="paymentRow "><div class="paymentNotRequiredLabel">[#PAYMENT_NOT_REQUIRED#]</div></div>
 	<!--ET_END PAYMENT_NOT_REQUIRED-->
 	
 	<!--ET_BEGIN PAYMENT_TAB-->

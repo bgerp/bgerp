@@ -290,10 +290,11 @@ class pos_Receipts extends core_Master
         }
         
         if (isset($rec->revertId)) {
+            $row->RECEIPT_CAPTION = tr('Сторно бележка');
             $row->PAID_CAPTION = tr('Върнато');
             $row->REVERT_CLASS = 'is-reverted';
             $row->revertId = pos_Receipts::getHyperlink($rec->revertId, true);
-            if (isset($fields['-terminal'])) {
+            if (isset($fields['-terminal']) && !Mode::is('printing')) {
                 $row->loadUrl = ht::createLink('', array('pos_ReceiptDetails', 'load', 'receiptId' => $rec->id, 'from' => $rec->revertId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Зареждане на всички данни от бележката, class=load-btn');
             }
         }

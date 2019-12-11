@@ -330,19 +330,19 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
+        // Бутон за увеличение на избрания артикул
+        if($currentOperation == 'add'){
+            $buttons["enlarge"] = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => 'operationBtn enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
+        }
+        
+        // Бутон за увеличение на избрания артикул
+        $buttons["print"] = ht::createBtn(' ', array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true) , false, true, array('class' => 'operationBtn printBtn', 'ef_icon' => 'img/32/printer.png'));
+        
         // Бутон за приключване
         $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id) : null;
         $disClass = ($contoUrl) ? '' : 'disabledBtn';
         $buttons["close"] = ht::createBtn('Приключи', $contoUrl, 'Желаете ли да приключите бележката|*?', false, "class=operationBtn button closeBtn {$disClass}");
         
-        // Бутон за увеличение на избрания артикул
-        if($currentOperation == 'add'){
-            $buttons["enlarge"] = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => 'operationBtn enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
-        }
-
-        // Бутон за увеличение на избрания артикул
-        $buttons["print"] = ht::createBtn(' ', array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true) , false, true, array('class' => 'operationBtn printBtn', 'ef_icon' => 'img/32/printer.png'));
-       
         // Добавяне на бутон за приключване на бележката
         $Receipts->invoke('BeforeGetPaymentTabBtns', array(&$buttons, $rec));
         foreach ($buttons as $btn){
