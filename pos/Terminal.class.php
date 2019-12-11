@@ -620,7 +620,7 @@ class pos_Terminal extends peripheral_Terminal
         $query = $Receipts->getQuery();
         $query->where("#revertId IS NULL AND #state != 'draft'");
         $query->XPR('orderField', 'int', "(CASE WHEN #pointId = {$rec->pointId} THEN 1 ELSE 2 END)");
-        $query->orderBy('#orderField', 'ASC');
+        $query->orderBy('#orderField=ASC,#id=DESC');
         $query->limit(self::$maxSearchReceipts);
         
         if(!empty($string)){
