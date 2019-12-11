@@ -336,7 +336,9 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         // Бутон за увеличение на избрания артикул
-        $buttons["print"] = ht::createBtn(' ', array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true) , false, true, array('class' => 'operationBtn printBtn', 'ef_icon' => 'img/32/printer.png'));
+        if(!empty($rec->total)){
+            $buttons["print"] = ht::createBtn(' ', array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true) , false, true, array('class' => 'operationBtn printBtn', 'ef_icon' => 'img/32/printer.png'));
+        }
         
         // Бутон за приключване
         $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id) : null;
@@ -614,8 +616,9 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('RECEIPT_RESULT');
         $cnt = 0;
+        $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('RECEIPT_RESULT');
+        
         while($receiptRec = $query->fetch()){
             if(!array_key_exists($receiptRec->pointId, $arr)){
                 $arr[$receiptRec->pointId] = clone $block;
@@ -624,7 +627,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $linkUrl = (pos_Receipts::haveRightFor('revert')) ? array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true) : array();
             $disClass = ($linkUrl) ? '' : 'disabledBtn';
-            $btn = ht::createLink(self::getReceiptTitle($receiptRec), $linkUrl, 'Наистина ли желаете да сторнирате бележката|*?', "title=Сторниране на бележката,class=navigable posBtns pos-notes {$disClass},id=revert{$cnt}");
+            $btn = ht::createLink(self::getReceiptTitle($receiptRec), $linkUrl, 'Наистина ли желаете да сторнирате бележката|*?', "title=Сторниране на бележката,class=navigable posBtns pos-notes {$disClass} state-{$receiptRec->state},id=revert{$cnt}");
             $arr[$receiptRec->pointId]->append($btn, 'element');
             $cnt++;
         }
@@ -1161,7 +1164,7 @@ class pos_Terminal extends peripheral_Terminal
             $openUrl = (pos_Receipts::haveRightFor('terminal', $rec->id)) ? array('pos_Terminal', 'open', 'receiptId' => $rec->id, 'opened' => true) : array();
             $class .= (count($openUrl)) ? '' : ' disabledBtn';
             
-            $row = ht::createLink(self::getReceiptTitle($rec, false), $openUrl, null, array('id' => "receipt{$rec->id}", 'class' => "pos-notes posBtns navigable {$class}", 'title' => 'Отваряне на бележката'));
+            $row = ht::createLink(self::getReceiptTitle($rec, false), $openUrl, null, array('id' => "receipt{$rec->id}", 'class' => "pos-notes posBtns navigable {$class} state-{$rec->state}", 'title' => 'Отваряне на бележката'));
             $arr[$rec->createdDate]->append($row, 'element');
         }
         
