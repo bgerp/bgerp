@@ -14,3 +14,8 @@
 	<span class='pos-stock-field'>[#stock#]</span>
 </div>
 <!--ET_END PRODUCTS_RESULT-->
+
+
+<!--ET_BEGIN RECEIPT_RESULT-->
+<fieldset class='receiptDateBlock'><legend class='receiptDateBlockLegend'>[#dateGroup#]</legend>[#element#]</fieldset>
+<!--ET_END RECEIPT_RESULT-->

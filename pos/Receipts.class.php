@@ -139,7 +139,7 @@ class pos_Receipts extends core_Master
     /**
      *  Полета по които ще се търси
      */
-    public $searchFields = 'pointId, contragentName';
+    public $searchFields = 'pointId, contragentName, valior';
     
     
     /**

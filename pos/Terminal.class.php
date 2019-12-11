@@ -34,6 +34,12 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
+     * При търсене на бележки до колко да се показват
+     */
+    protected static $maxSearchReceipts = 100;
+    
+    
+    /**
      * Полета
      */
     protected $fieldArr = array('payments', 'policyId', 'caseId', 'storeId');
@@ -207,34 +213,36 @@ class pos_Terminal extends peripheral_Terminal
         
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('TAB_TOOLS');
         $operation = Mode::get("currentOperation{$rec->id}");
-        $keyupUrl = null;
+        $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id, 'refreshPanel' => 'no');
         $buttons = array();
         
         switch($operation){
             case 'add':
                 $inputUrl = array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id);
-                $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id, 'refreshPanel' => 'no');
                 break;
             case 'quantity':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity');
+                $keyupUrl = null;
                 break;
             case 'discount':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setdiscount');
-                $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id, 'refreshPanel' => 'no');
                 break;
             case 'price':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice');
+                $keyupUrl = null;
                 break;
             case 'text':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'settext');
+                $keyupUrl = null;
                 break;
-            case 'payment';
+            case 'payment':
+                $keyupUrl = null;
                 break;
-            case 'contragent';
-                $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id, 'refreshPanel' => 'no');
+            case 'contragent':
                 break;
             case 'revert';
-            $keyupUrl = array($this, 'displayOperation', 'receiptId' => $rec->id, 'refreshPanel' => 'no');
+                break;
+            case 'receipts':
                 break;
         }
         
@@ -371,7 +379,7 @@ class pos_Terminal extends peripheral_Terminal
                 }
                 break;
             case 'receipts':
-                $res = $this->renderResultReceipt($rec);
+                $res = $this->renderResultReceipts($rec, $string, $selectedRec);
                 break;
             case 'quantity':
                 $res = $this->renderResultQuantity($rec, $string, $selectedRec);
@@ -631,7 +639,6 @@ class pos_Terminal extends peripheral_Terminal
     private function renderResultQuantity($rec, $string, $selectedRec)
     {
         $measureId = cat_Products::fetchField($selectedRec->productId, 'measureId');
-        
         $packs = cat_Products::getPacks($selectedRec->productId);
         $basePackagingId = key($packs);
         
@@ -947,7 +954,6 @@ class pos_Terminal extends peripheral_Terminal
             $pQuery = cat_Products::getQuery();
             $pQuery->where("#canSell = 'yes' AND #state = 'active'");
             $pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
-            
             plg_Search::applySearch($data->searchString, $pQuery);
             
             $pQuery->show('id,name,isPublic,nameEn,code');
@@ -1066,30 +1072,61 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Рендиране на таба с черновите
      *
-     * @param int $id -ид на бележка
+     * @param stdClass $rec - записа на бележката
+     * @param string $string - въведения стринг за търсене
+     * @param stdClass|null $selectedRec - селектирания ред (ако има)
      *
      * @return core_ET $block - шаблон
      */
-    private function renderResultReceipt($id)
+    private function renderResultReceipts($rec, $string, $selectedRec)
     {
-        $rec = $this->fetchRec($id);
+        $rec = $this->fetchRec($rec );
         $tpl = new core_ET("");
-        $pointId = pos_Points::getCurrent('id');
+        $today = dt::today();
         
-        if (pos_Receipts::haveRightFor('add')) {
-            $addBtn = ht::createLink("+", array('pos_Receipts', 'new', 'forced' => true), null, 'id=newreceipt,class=pos-notes posBtns openNoteBtn navigable');
-            $tpl->append($addBtn);
-        }
+        $pointId = pos_Points::getCurrent('id');
+        $string = plg_Search::normalizeText($string);
+        $addUrl = (pos_Receipts::haveRightFor('add')) ? array('pos_Receipts', 'new', 'forced' => true) : array();
+        $disabledClass = (pos_Receipts::haveRightFor('add')) ? '' : 'disabledBtn';
         
         // Намираме всички чернови бележки и ги добавяме като линк
         $query = pos_Receipts::getQuery();
+        $query->XPR('createdDate', 'date', 'DATE(#createdOn)');
         $query->where("#state = 'draft' AND #pointId = '{$pointId}' AND #id != {$rec->id}");
-        while ($rec = $query->fetch()) {
-            $class = isset($rec->revertId) ? 'revert-receipt' : '';
-            $row = ht::createLink(self::getReceiptTitle($rec), array('pos_Terminal', 'open', 'receiptId' => $rec->id, 'opened' => true), null, array('id' => "receipt{$rec->id}", 'class' => "pos-notes posBtns navigable {$class}", 'title' => 'Отваряне на бележката'));
-            $tpl->append($row);
+        $query->orderBy("#createdDate", 'DESC');
+        $query->limit(self::$maxSearchReceipts);
+        
+        if(!empty($string)){
+            plg_Search::applySearch($string, $query);
+        } else {
+            $query->where("#createdOn >= '{$today}'");
         }
         
+        // Добавяне на бутона за нова бележка да е в блока 'Днес'
+        $dateBlock = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('RECEIPT_RESULT');
+        $arr = array("{$today}" => clone $dateBlock);
+        $arr[$today]->replace(dt::mysql2verbal($today, 'smartDate'), 'dateGroup');
+        $addBtn = ht::createLink("+", $addUrl, null, "id=newreceipt,class=pos-notes posBtns openNoteBtn navigable {$disabledClass}");
+        $arr[$today]->append($addBtn, 'element');
+        
+        // Групиране на записите по дата
+        while ($rec = $query->fetch()) {
+            if(!array_key_exists($rec->createdDate, $arr)){
+                $arr[$rec->createdDate] = clone $dateBlock;
+                $arr[$rec->createdDate]->replace(dt::mysql2verbal($rec->createdDate, 'smartDate'), 'dateGroup');
+            }
+            
+            $class = isset($rec->revertId) ? 'revert-receipt' : '';
+            $openUrl = (pos_Receipts::haveRightFor('terminal', $rec->id)) ? array('pos_Terminal', 'open', 'receiptId' => $rec->id, 'opened' => true) : array();
+            $class .= (count($openUrl)) ? '' : ' disabledBtn';
+            
+            $row = ht::createLink(self::getReceiptTitle($rec, false), $openUrl, null, array('id' => "receipt{$rec->id}", 'class' => "pos-notes posBtns navigable {$class}", 'title' => 'Отваряне на бележката'));
+            $arr[$rec->createdDate]->append($row, 'element');
+        }
+        
+        foreach ($arr as $blockTpl){
+            $tpl->append($blockTpl);
+        }
         $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
@@ -1100,13 +1137,16 @@ class pos_Terminal extends peripheral_Terminal
      * Как ще се показва бележката
      * 
      * @param stdClass $rec
+     * @param boolean $fullDate
+     * 
      * @return string $title
      */
-    private static function getReceiptTitle($rec)
+    private static function getReceiptTitle($rec, $fullDate = true)
     {
-        $date = dt::mysql2verbal($rec->createdOn, 'd.m. h:i');
+        $mask = ($fullDate) ? 'd.m. h:i' : 'h:i';
+        $date = dt::mysql2verbal($rec->createdOn, $mask);
         $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
-        $title = "{$rec->id} / {$amountVerbal} <br> {$date}";
+        $title = "{$rec->id} / {$date} </ b> {$amountVerbal}";
         
         return $title;
     }
