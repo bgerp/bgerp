@@ -28,6 +28,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('perPage', 'int(min=1, max=50)', 'caption=Редове, mandatory');
+        $fieldset->FLD('from', 'enum(,toMe=За мен,fromMe=От мен)', 'caption=Задачи');
     }
     
     
@@ -70,7 +71,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         // Подготвяме полетата за показване
         $resData->data->listFields = 'groupDate,title,progress';
         
-        if (Mode::is('listTasks', 'by')) {
+        if ($this->isFromMe($dRec->from)) {
             $resData->data->query->where(array("#createdBy = '[#1#]'", $userId));
         } else {
             $resData->data->query->likeKeylist('assign', $userId);
@@ -86,6 +87,8 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         $resData->cacheKey = $this->getCacheKey($dRec, $userId);
         $resData->cacheType = $this->getCacheTypeName($userId);
+        
+        $resData->dRecForm = $dRec->from;
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
@@ -166,7 +169,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         if (!$data->tpl) {
             $data->tpl = new ET('
                                 <div class="clearfix21 portal" style="margin-bottom:25px;">
-                                <div class="legend">[#taskTitle#]&nbsp;[#profile#]&nbsp;[#SWITCH_BTN#]&nbsp;[#ADD_BTN#]&nbsp;[#REM_BTN#]</div>
+                                <div class="legend">[#taskTitle#]&nbsp;[#profile#]<!--ET_BEGIN SWITCH_BTN-->&nbsp;[#SWITCH_BTN#]<!--ET_END SWITCH_BTN-->&nbsp;[#ADD_BTN#]&nbsp;[#REM_BTN#]</div>
                                 [#PortalTable#]
                             	[#PortalPagerBottom#]
                                 </div>
@@ -184,13 +187,19 @@ class bgerp_drivers_Tasks extends core_BaseClass
             $data->tpl->append(cal_Tasks::renderListTable($data->data), 'PortalTable');
             $data->tpl->append(cal_Tasks::renderListPager($data->data), 'PortalPagerBottom');
             
+            $switchTitle = '';
+            
             // Задачи
-            if (Mode::is('listTasks', 'by')) {
+            if ($this->isFromMe($data->dRecForm)) {
                 $taskTitle = tr('Задачи от');
-                $switchTitle = tr('Задачи към') . ' ' . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
+                if (!$data->dRecForm) {
+                    $switchTitle = tr('Задачи към') . ' ' . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
+                }
             } else {
                 $taskTitle = tr('Задачи към');
-                $switchTitle = tr('Задачи от') . ' ' . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
+                if (!$data->dRecForm) {
+                    $switchTitle = tr('Задачи от') . ' ' . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
+                }
             }
             
             $taskTitle = str_replace(' ', '&nbsp;', $taskTitle);
@@ -209,10 +218,12 @@ class bgerp_drivers_Tasks extends core_BaseClass
                 $sRetUrl['#'] = 'taskPortal';
             }
             
-            // Бутон за смяна от <-> към
-            $addUrl = array('cal_Tasks', 'SwitchByTo', 'ret_url' => $sRetUrl);
-            $addBtn = ht::createLink(' ', $addUrl, null, array('ef_icon' => 'img/16/arrow_switch.png', 'class' => 'addTask', 'title' => '|*' . $switchTitle, 'id' => 'switchTasks'));
-            $data->tpl->append($addBtn, 'SWITCH_BTN');
+            if ($switchTitle) {
+                // Бутон за смяна от <-> към
+                $addUrl = array('cal_Tasks', 'SwitchByTo', 'ret_url' => $sRetUrl);
+                $addBtn = ht::createLink(' ', $addUrl, null, array('ef_icon' => 'img/16/arrow_switch.png', 'class' => 'addTask', 'title' => '|*' . $switchTitle, 'id' => 'switchTasks'));
+                $data->tpl->append($addBtn, 'SWITCH_BTN');
+            }
             
             // Бутон за смяна от <-> към
             $addUrl = array('cal_Reminders', 'add', 'ret_url' => true);
@@ -251,14 +262,14 @@ class bgerp_drivers_Tasks extends core_BaseClass
      */
     public function getBlockTabName($dRec)
     {
-        if (Mode::is('listTasks', 'by')) {
+        if ($this->isFromMe($dRec->from)) {
             
             return tr('Задачи от мен');
         }
         
         return tr('Задачи към мен');
     }
-//                      . '_' .  . '_' . $cRec->id . '_' . $cRec->modifiedOn . '_' .  . '_' .
+    
     
     /**
      * Помощна функция за вземане на ключа за кеша
@@ -274,9 +285,10 @@ class bgerp_drivers_Tasks extends core_BaseClass
             $userId = core_Users::getCurrent();
         }
         
+        $isFromMe = $this->isFromMe($dRec->from);
+        
         $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
-        $cArr[] = Mode::get('listTasks');
-        $cArr[] = Mode::is('listTasks', 'by');
+        $cArr[] = $isFromMe;
         
         $pageVar = $this->getPageVar($dRec->originIdCalc);
         $pageVarVal = Request::get($pageVar);
@@ -285,7 +297,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         $cloneQuery = cal_Tasks::getQuery();
         
-        if (Mode::is('listTasks', 'by')) {
+        if ($isFromMe) {
             $cloneQuery->where(array("#createdBy = '[#1#]'", $userId));
         } else {
             $cloneQuery->likeKeylist('assign', $userId);
@@ -329,5 +341,29 @@ class bgerp_drivers_Tasks extends core_BaseClass
         }
         
         return 'Portal_Tasks_' . $userId;
+    }
+    
+    /**
+     * Помощна фунцкия за проверка дали задачата е от или към текущия потребител
+     * 
+     * @param string $from
+     * 
+     * @return boolean
+     */
+    protected function isFromMe($from)
+    {
+        if ($from) {
+            if ($from == 'fromMe') {
+                
+                return true;
+            }
+        } else {
+            if (Mode::get('listTasks') == 'by') {
+                
+                return true;
+            }
+        }
+        
+        return false;
     }
 }
