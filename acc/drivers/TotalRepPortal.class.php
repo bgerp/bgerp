@@ -21,6 +21,12 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
     
     
     /**
+     * Името на стойността за кеша
+     */
+    protected $cacheTypeName = 'TotalRepPortal';
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -107,27 +113,16 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
         
         $from = date('Y-m-01');
         $to = dt::getLastDayOfMonth($from);
-        $target = $dRec->target;
         
-        $query = hr_Indicators::getQuery();
         $deltaId = acc_reports_TotalRep::getDeltaId();
-        $query->where(array("(#date >= '[#1#]' AND #date <= '[#2#]') AND #indicatorId = [#3#]", $from, $to, $deltaId));
         
-        $query->limit(1);
-        
-        $query->orderBy('id', 'DESC');
-        
-        $query->show('id, value');
-        
-        $iRec = $query->fetch();
-        
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->target . '_' . $userId . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent() . '_' . $iRec->id . '_' . $iRec->value . '_' . dt::now(false));
-        $resData->cacheType = 'TotalRepPortal';
+        $resData->cacheKey = $this->getCacheKey($dRec, $userId);
+        $resData->cacheType = $this->cacheTypeName;
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
-            $resData->speed = acc_reports_TotalRep::getDeltaSpeed($from, $to, $target, $deltaId);
+            $resData->speed = acc_reports_TotalRep::getDeltaSpeed($from, $to, $dRec->target, $deltaId);
         }
         
         $resData->gaugeType = $dRec->gaugeType ? $dRec->gaugeType : 'radial';
@@ -186,5 +181,41 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
     {
         
         return tr('Общи цели');
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на ключа за кеша
+     *
+     * @param stdClass $dRec
+     * @param null|integer $userId
+     *
+     * @return string
+     */
+    protected function getCacheKey($dRec, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        
+        $from = date('Y-m-01');
+        $to = dt::getLastDayOfMonth($from);
+        $deltaId = acc_reports_TotalRep::getDeltaId();
+        
+        $query = hr_Indicators::getQuery();
+        $query->where(array("(#date >= '[#1#]' AND #date <= '[#2#]') AND #indicatorId = [#3#]", $from, $to, $deltaId));
+        $query->limit(1);
+        $query->orderBy('id', 'DESC');
+        $query->show('id, value');
+        $iRec = $query->fetch();
+        
+        if ($iRec) {
+            $cArr[] = $iRec->id;
+            $cArr[] = $iRec->value;
+        }
+        
+        return md5(implode('|', $cArr));
     }
 }

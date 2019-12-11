@@ -21,6 +21,12 @@ class bgerp_drivers_Recently extends core_BaseClass
     
     
     /**
+     * Името на стойността за кеша
+     */
+    protected $cacheTypeName = 'RecentDoc';
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -60,25 +66,17 @@ class bgerp_drivers_Recently extends core_BaseClass
             expect($userId = core_Users::getCurrent());
         }
         
-        $Recently = cls::get('bgerp_Recently');
-        
-        $Recently->searchInputField .= '_' . $dRec->originIdCalc;
-        
-        $pageVar = 'P_' . get_called_class() . '_' . $dRec->originIdCalc;
-        
-        // Намираме времето на последния запис
-        $query = $Recently->getQuery();
-        $query->where(array("#userId = '[#1#]'", $userId));
-        $query->limit(1);
-        $query->orderBy('#last', 'DESC');
-        
-        $lastRec = $query->fetch();
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->perPage . '_' . $userId . '_' . Mode::get('screenMode') . '_' . Request::get($pageVar) . '_' . Request::get($Recently->searchInputField) . '_' . core_Lg::getCurrent() . '_' . $lastRec->last . '_' . dt::now(false));
-        $resData->cacheType = 'RecentDoc';
+        $resData->cacheKey = $this->getCacheKey($dRec, $userId);
+        $resData->cacheType = $this->cacheTypeName;
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
+            
+            $Recently = cls::get('bgerp_Recently');
+            
+            $Recently->searchInputField = bgerp_Portal::getPortalSearchInputFieldName($Recently->searchInputField, $dRec->originIdCalc);
+            
             // Създаваме обекта $data
             $data = new stdClass();
             
@@ -104,7 +102,7 @@ class bgerp_drivers_Recently extends core_BaseClass
             // Подготвяме навигацията по страници
             $Recently->prepareListPager($data);
             
-            $data->pager->pageVar = $pageVar;
+            $data->pager->pageVar = $this->getPageVar($dRec->originIdCalc);
             
             // Подготвяме записите за таблицата
             $Recently->prepareListRecs($data);
@@ -218,5 +216,62 @@ class bgerp_drivers_Recently extends core_BaseClass
     {
         
         return tr('Последно');
+    }
+    
+    
+//     $resData->cacheKey = '_' . Request::get($Recently->searchInputField) );
+    /**
+     * Помощна функция за вземане на ключа за кеша
+     *
+     * @param stdClass $dRec
+     * @param null|integer $userId
+     *
+     * @return string
+     */
+    protected function getCacheKey($dRec, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $Recently = cls::get('bgerp_Recently');
+        
+        $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        
+        // Намираме времето на последния запис
+        $query = $Recently->getQuery();
+        $query->where(array("#userId = '[#1#]'", $userId));
+        $query->limit(1);
+        $query->orderBy('#last', 'DESC');
+        $query->show('last');
+        $lastRec = $query->fetch();
+        if ($lastRec) {
+            $cArr[] = $lastRec->last;
+        }
+        
+        $pageVar = $this->getPageVar($dRec->originIdCalc);
+        $pageVarVal = Request::get($pageVar);
+        $pageVarVal = isset($pageVarVal) ? $pageVarVal : 1;
+        $cArr[] = $pageVarVal;
+        
+        $sVal = bgerp_Portal::getPortalSearchInputFieldName($Recently->searchInputField, $dRec->originIdCalc);
+        $nSearchVal = Request::get($sVal);
+        $nSearchVal = isset($nSearchVal) ? $nSearchVal : '';
+        $cArr[] = $nSearchVal;
+        
+        return md5(implode('|', $cArr));
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на името за страниране
+     *
+     * @param integer $oIdCalc
+     * @return string
+     */
+    protected function getPageVar($oIdCalc)
+    {
+        
+        return 'P_' . get_called_class() . '_' . $oIdCalc;
     }
 }

@@ -894,4 +894,45 @@ class bgerp_Portal extends embed_Manager
             $row->color = "<span class='color-{$rec->color}'>{$row->color}</span>";
         }
     }
+    
+    
+    /**
+     * Помощна функция за вземане на част от ключа за кеша за драйверите
+     *
+     * @param stdClass $rec
+     * @param null|integer $userId
+     *
+     * @return array
+     */
+    public static function getPortalCacheKey($rec, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $cArr = array();
+        $cArr[] = $rec->id;
+        $cArr[] = $rec->modifiedOn;
+        $cArr[] = $userId;
+        $cArr[] = dt::now(false);
+        $cArr[] = core_Lg::getCurrent();
+        $cArr[] = Mode::get('screenMode');
+        
+        return $cArr;
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на името за страниране за търсене в портала
+     *
+     * @param string $searchInputFields
+     * @param integer $oIdCalc
+     *
+     * @return string
+     */
+    public static function getPortalSearchInputFieldName($searchInputFields, $oIdCalc)
+    {
+        
+        return $searchInputFields . '_' . $oIdCalc;
+    }
 }

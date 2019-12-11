@@ -21,6 +21,12 @@ class doc_drivers_FolderPortal extends core_BaseClass
     
     
     /**
+     * Името на стойността за кеша
+     */
+    protected $cacheTypeName = 'FolderPortal';
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -94,10 +100,8 @@ class doc_drivers_FolderPortal extends core_BaseClass
             return $resData;
         }
         
-        $pageVar = 'P_' . get_called_class() . '_' . $dRec->originIdCalc;
-        
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $fRec->last . '_' . serialize($fRec->statistic) . '_' . $userId . '_' . Request::get($pageVar) . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent() . '_' . dt::now(false));
-        $resData->cacheType = 'FolderPortal';
+        $resData->cacheKey = $this->getCacheKey($dRec, $userId);
+        $resData->cacheType = $this->cacheTypeName;
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
@@ -133,7 +137,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
             // Подготвяме навигацията по страници
             $Threads->prepareListPager($data);
             
-            $data->pager->pageVar = $pageVar;
+            $data->pager->pageVar = $this->getPageVar($dRec->originIdCalc);
             
             // Подготвяме записите за таблицата
             $Threads->prepareListRecs($data);
@@ -247,5 +251,47 @@ class doc_drivers_FolderPortal extends core_BaseClass
         }
         
         return doc_Folders::getLink($dRec->folderId, 42, $attrArr);
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на ключа за кеша
+     *
+     * @param stdClass $dRec
+     * @param null|integer $userId
+     *
+     * @return string
+     */
+    protected function getCacheKey($dRec, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        
+        $fRec = doc_Folders::fetch($dRec->folderId);
+        $cArr[] = $fRec->last;
+        $cArr[] = serialize($fRec->statistic);
+        
+        $pageVar = $this->getPageVar($dRec->originIdCalc);
+        $pageVarVal = Request::get($pageVar);
+        $pageVarVal = isset($pageVarVal) ? $pageVarVal : 1;
+        $cArr[] = $pageVarVal;
+        
+        return md5(implode('|', $cArr));
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на името за страниране
+     *
+     * @param integer $oIdCalc
+     * @return string
+     */
+    protected function getPageVar($oIdCalc)
+    {
+        
+        return 'P_' . get_called_class() . '_' . $oIdCalc;
     }
 }

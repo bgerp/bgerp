@@ -21,6 +21,12 @@ class bgerp_drivers_Tasks extends core_BaseClass
     
     
     /**
+     * Името на стойността за кеша
+     */
+    protected $cacheTypeName = 'Tasks';
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -61,7 +67,6 @@ class bgerp_drivers_Tasks extends core_BaseClass
         }
         
         $Tasks = cls::get('cal_Tasks');
-        $pageVar = 'P_' . get_called_class() . '_' . $dRec->originIdCalc;
         
         $resData->data = new stdClass();
         
@@ -77,8 +82,6 @@ class bgerp_drivers_Tasks extends core_BaseClass
             $resData->data->query->likeKeylist('assign', $userId);
         }
         
-        $cloneQuery = clone $resData->data->query;
-        
         $resData->data->query->where("#state = 'active'");
         $resData->data->query->orWhere("#state = 'wakeup'");
         $resData->data->query->orWhere("#state = 'waiting'");
@@ -87,15 +90,8 @@ class bgerp_drivers_Tasks extends core_BaseClass
         $resData->data->query->where('#timeStart IS NULL');
         $resData->data->query->where('#timeEnd IS NULL');
         
-        $cloneQuery->orderBy('modifiedOn', 'DESC');
-        $cloneQuery->limit(1);
-        $cloneQuery->show('modifiedOn, id');
-        $cRec = $cloneQuery->fetch();
-        
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->perPage . '_' . $userId . '_' . Mode::get('screenMode') . '_' .
-            Request::get($pageVar) . '_' . core_Lg::getCurrent() . '_' . $cRec->id . '_' . $cRec->modifiedOn . '_' . Mode::get('listTasks') . '_' .
-            dt::now(false) . '_' . Mode::is('listTasks', 'by'));
-        $resData->cacheType = 'Tasks';
+        $resData->cacheKey = $this->getCacheKey($dRec, $userId);
+        $resData->cacheType = $this->cacheTypeName;
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
@@ -113,7 +109,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
             // Подготвяме навигацията по страници
             $Tasks->prepareListPager($resData->data);
             
-            $resData->data->pager->pageVar = $pageVar;
+            $resData->data->pager->pageVar = $this->getPageVar($dRec->originIdCalc);
             
             // Подготвяме филтър формата
             $Tasks->prepareListFilter($resData->data);
@@ -267,5 +263,60 @@ class bgerp_drivers_Tasks extends core_BaseClass
         }
         
         return tr('Задачи към мен');
+    }
+//                      . '_' .  . '_' . $cRec->id . '_' . $cRec->modifiedOn . '_' .  . '_' .
+    
+    /**
+     * Помощна функция за вземане на ключа за кеша
+     *
+     * @param stdClass $dRec
+     * @param null|integer $userId
+     *
+     * @return string
+     */
+    protected function getCacheKey($dRec, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        $cArr[] = Mode::get('listTasks');
+        $cArr[] = Mode::is('listTasks', 'by');
+        
+        $pageVar = $this->getPageVar($dRec->originIdCalc);
+        $pageVarVal = Request::get($pageVar);
+        $pageVarVal = isset($pageVarVal) ? $pageVarVal : 1;
+        $cArr[] = $pageVarVal;
+        
+        $cloneQuery = cal_Tasks::getQuery();
+        
+        if (Mode::is('listTasks', 'by')) {
+            $cloneQuery->where(array("#createdBy = '[#1#]'", $userId));
+        } else {
+            $cloneQuery->likeKeylist('assign', $userId);
+        }
+        
+        $cloneQuery->orderBy('modifiedOn', 'DESC');
+        $cloneQuery->limit(1);
+        $cloneQuery->show('modifiedOn, id');
+        $cRec = $cloneQuery->fetch();
+        $cArr[] = $cRec->modifiedOn;
+        $cArr[] = $cRec->id;
+        
+        return md5(implode('|', $cArr));
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на името за страниране
+     *
+     * @param integer $oIdCalc
+     * @return string
+     */
+    protected function getPageVar($oIdCalc)
+    {
+        
+        return 'P_' . get_called_class() . '_' . $oIdCalc;
     }
 }
