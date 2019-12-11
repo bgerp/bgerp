@@ -40,7 +40,7 @@ class slick_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-        'SLICK_VERSION' => array('enum(1.9)', 'mandatory, caption=Версията на програмата->Версия')
+        'SLICK_VERSION' => array('enum(1.8,1.9)', 'mandatory, caption=Версията на програмата->Версия')
     
     );
 }
