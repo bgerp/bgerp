@@ -84,6 +84,12 @@ class label_Counters extends core_Master
     
     
     /**
+     * Необходими роли за възстановяване на документа
+     */
+    public $canRestore = 'labelMaster, admin, ceo';
+    
+    
+    /**
      * Кой има право да го изтрие?
      */
     public $canDelete = 'no_one';
