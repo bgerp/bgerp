@@ -255,7 +255,6 @@ class pos_Terminal extends peripheral_Terminal
                 break;
             case 'text':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'settext');
-                $keyupUrl = null;
                 break;
             case 'payment':
                 $keyupUrl = null;
@@ -466,7 +465,6 @@ class pos_Terminal extends peripheral_Terminal
     {
         $tpl = new core_ET("");
         
-        $count = 0;
         $query = pos_ReceiptDetails::getQuery();
         $query->where("#action = 'sale|code' AND #text IS NOT NULL AND #text != ''");
         $query->XPR('orderBy', 'int', "(CASE #receiptId WHEN '{$rec->id}' THEN 1 ELSE 2 END)");
@@ -476,6 +474,13 @@ class pos_Terminal extends peripheral_Terminal
         
         $texts = arr::extractValuesFromArray($query->fetchAll(), 'text');
         
+        // Добавяне на търсения стринг да е първи в списъка
+        if(!empty($string)){
+            $string = str::removeWhiteSpace($string, ' ');
+            $texts = array("{$string}" => $string) + $texts;
+        }
+        
+        $count = 0;
         foreach ($texts as $text){
             $dataUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'settext', 'string' => $text);
             $dataUrl = toUrl($dataUrl, 'local');
