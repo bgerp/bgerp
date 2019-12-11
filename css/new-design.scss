@@ -1276,11 +1276,9 @@ form[method="post"] input[type="submit"] {
 }
 .swipe-tab-content {
     display: none;
-    transition: all 0.5s;
 }
 .swipe-tab {
     display: none;
-    transition: all 0.5s;
 }
 $swipe-tab-color: #757575;
 $swipe-active-tab-color: #000;
@@ -1295,6 +1293,7 @@ $swipe-active-tab-color: #000;
     }
 
     .swipe-tab {
+        outline: none;
         display: flex;
         align-items: center;
         justify-content: center;

@@ -1148,12 +1148,10 @@ form[method="post"] input[type="submit"] {
   height: 44px; }
 
 .swipe-tab-content {
-  display: none;
-  transition: all 0.5s; }
+  display: none; }
 
 .swipe-tab {
-  display: none;
-  transition: all 0.5s; }
+  display: none; }
 
   .slick-initialized .swipe-tab-content {
     position: relative;
@@ -1162,6 +1160,7 @@ form[method="post"] input[type="submit"] {
       .slick-initialized .swipe-tab-content {
     min-height: 500px; } }
   .slick-initialized .swipe-tab {
+    outline: none;
     display: flex;
     align-items: center;
     justify-content: center;
