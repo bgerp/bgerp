@@ -160,13 +160,12 @@ class bgerp_Portal extends embed_Manager
         $cu = core_Users::getCurrent();
         
         $isNarrow = Mode::is('screenMode', 'narrow');
-
-
+        
         if ($isNarrow) {
             $tpl = new ET("
                             <div class='sub-header'>
                                 <div class='swipe-tabs'>
-                                    <!--ET_BEGIN TAB_NAME--><span class='swipe-tab'>[#TAB_NAME#]</span><!--ET_END TAB_NAME-->
+                                    <!--ET_BEGIN TAB_NAME--><span class='swipe-tab' id='[#TAB_ID#]' data-tab='[#DATA_TAB#]'>[#TAB_NAME#]</span><!--ET_END TAB_NAME-->
                                 </div>
                             </div>
                             
@@ -228,6 +227,8 @@ class bgerp_Portal extends embed_Manager
                 $blockTabNameTpl = $tpl->getBlock('TAB_NAME');
                 $blockTabNameTpl->replace($blockTabName, 'TAB_NAME');
                 $blockTabNameTpl->replace($pClass, 'PORTAL_CLASS');
+                $blockTabNameTpl->replace('tab_' . $pId, 'TAB_ID');
+                $blockTabNameTpl->replace($pId, 'DATA_TAB');
                 $blockTabNameTpl->removeBlocks();
                 $blockTabNameTpl->append2master();
                 
