@@ -1,4 +1,3 @@
-
 <div class="scrolling-vertical">
 	<div class='receipt-header'>
 		<!--ET_BEGIN EXIT_TERMINAL--> <span class="logout">[#EXIT_TERMINAL#]</span><!--ET_END EXIT_TERMINAL-->
@@ -14,6 +13,11 @@
 </div>
 <div class='paymentBlock' >
 	<div class="paymentRow "> <span class="totalLabel">|Общо|*: [#total#] [#currency#]</span></div>
+	
+	<!--ET_BEGIN PAYMENT_NOT_REQUIRED-->
+	<div class="paymentRow "><span class="paymentNotRequiredLabel">[#PAYMENT_NOT_REQUIRED#]</span></div>
+	<!--ET_END PAYMENT_NOT_REQUIRED-->
+	
 	<!--ET_BEGIN PAYMENT_TAB-->
 	<div class="paymentRow">[#PAID_CAPTION#]: <b>[#paid#]</b> <small>[#currency#]</small></div>
 	<!--ET_BEGIN CHANGE_TAB-->

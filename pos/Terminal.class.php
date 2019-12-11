@@ -22,6 +22,12 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'plg_Printing';
+    
+    
+    /**
      * Име на източника
      */
     protected $clsName = 'pos_Points';
@@ -138,10 +144,10 @@ class pos_Terminal extends peripheral_Terminal
         // Добавяме бележката в изгледа
         $receiptTpl = $this->getReceipt($rec);
         $tpl->replace($receiptTpl, 'RECEIPT');
-        $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
         
         // Ако не сме в принтиране, сменяме обвивквата и рендираме табовете
         if (!Mode::is('printing')) {
+            $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
             
             // Задаване на празна обвивка
             Mode::set('wrapper', 'page_Empty');
@@ -152,15 +158,20 @@ class pos_Terminal extends peripheral_Terminal
                 $defaultOperation = Mode::get("currentOperation{$rec->id}") ? Mode::get("currentOperation{$rec->id}") : 'add';
                 $defaultSearchString = Mode::get("currentSearchString{$rec->id}");
                 
-                // Добавяне на табовете под бележката
-                $toolsTpl = $this->getCommandPanel($rec, $defaultOperation);
-                $tpl->replace($toolsTpl, 'TAB_TOOLS');
-                
-                // Добавяне на табовете показващи се в широк изглед отстрани
-                $lastRecId = pos_ReceiptDetails::getLastRec($rec->id, 'sale')->id;
-                $resultTabHtml = $this->renderResult($rec, $defaultOperation, $defaultSearchString, $lastRecId);
-                $tpl->append($resultTabHtml, 'SEARCH_RESULT');
+                if(!Mode::is('printing')){
+                    
+                    // Добавяне на табовете под бележката
+                    $toolsTpl = $this->getCommandPanel($rec, $defaultOperation);
+                    $tpl->replace($toolsTpl, 'TAB_TOOLS');
+                    
+                    // Добавяне на табовете показващи се в широк изглед отстрани
+                    $lastRecId = pos_ReceiptDetails::getLastRec($rec->id, 'sale')->id;
+                    $resultTabHtml = $this->renderResult($rec, $defaultOperation, $defaultSearchString, $lastRecId);
+                    $tpl->append($resultTabHtml, 'SEARCH_RESULT');
+                }
             }
+        } else {
+            $tpl->append('не се дължи плащане', 'PAYMENT_NOT_REQUIRED');
         }
         
         $data = (object) array('rec' => $rec);
@@ -329,6 +340,9 @@ class pos_Terminal extends peripheral_Terminal
             $buttons["enlarge"] = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => 'operationBtn enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
         }
 
+        // Бутон за увеличение на избрания артикул
+        $buttons["print"] = ht::createBtn(' ', array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true) , false, true, array('class' => 'operationBtn printBtn', 'ef_icon' => 'img/32/printer.png'));
+       
         // Добавяне на бутон за приключване на бележката
         $Receipts->invoke('BeforeGetPaymentTabBtns', array(&$buttons, $rec));
         foreach ($buttons as $btn){
@@ -850,18 +864,15 @@ class pos_Terminal extends peripheral_Terminal
     private function renderReceipt($data)
     {
         $Receipt = cls::get('pos_Receipts');
-        
-        // Слагане на мастър данните
-        if (!Mode::is('printing')) {
-            $tpl = getTplFromFile('pos/tpl/terminal/Receipt.shtml');
-        } else {
-            $tpl = getTplFromFile('pos/tpl/terminal/ReceiptPrint.shtml');
-        }
+        $tpl = getTplFromFile('pos/tpl/terminal/Receipt.shtml');
         
         $tpl->placeObject($data->row);
-        $img = ht::createElement('img', array('src' => sbf('pos/img/bgerp.png', '')));
-        $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink', 'title' => 'Към портала'));
-        $tpl->append($logo, 'LOGO');
+        
+        if(!Mode::is('printing')){
+            $img = ht::createElement('img', array('src' => sbf('pos/img/bgerp.png', '')));
+            $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink', 'title' => 'Към портала'));
+            $tpl->append($logo, 'LOGO');
+        }
         
         if($lastRecId = pos_ReceiptDetails::getLastRec($data->rec->id, 'sale')->id){
             $data->receiptDetails->rows[$lastRecId]->CLASS = 'highlighted';
