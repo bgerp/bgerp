@@ -152,23 +152,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
             
             $resData->data = $data;
             
-            $attrArr = array();
-            if (doc_Folders::haveRightFor('single', $dRec->folderId)) {
-                $attrArr['url'] = array('doc_Threads', 'list', 'folderId' => $dRec->folderId);
-                if ($dRec->search) {
-                    $attrArr['url']['search'] = $dRec->search;
-                }
-                if ($dRec->fOrder) {
-                    $attrArr['url']['order'] = $dRec->fOrder;
-                }
-                if ($dRec->documentClassId) {
-                    $attrArr['url']['documentClassId'] = $dRec->documentClassId;
-                }
-            } else {
-                $attrArr['url'] = array();
-            }
-            
-            $resData->folderTitle = doc_Folders::getLink($dRec->folderId, 42, $attrArr);
+            $resData->folderTitle = $this->getFolderLink($dRec, 42);
             
             $dRec->search = trim($dRec->search);
             if ($dRec->search) {
@@ -225,7 +209,43 @@ class doc_drivers_FolderPortal extends core_BaseClass
      */
     public function getBlockTabName($dRec)
     {
+        $fTitle = doc_Folders::fetchField($dRec->folderId, 'title');
         
-        return tr('Папка') . ' ' . doc_Folders::getLink($dRec->folderId, 16);
+        $maxLength = 42;
+        
+        $fTitle = str::limitLen($fTitle, $maxLength, (int) ($maxLength/2));
+        
+        return type_Varchar::escape($fTitle);
+        
+    }
+    
+    
+    /**
+     * Помощна фунцкия за вземана на линк към папката със сътоветния филтър
+     * 
+     * @param stdClass $dRec
+     * @param integer $len
+     * 
+     * @return core_ET
+     */
+    protected function getFolderLink($dRec, $len = 42)
+    {
+        $attrArr = array();
+        if (doc_Folders::haveRightFor('single', $dRec->folderId)) {
+            $attrArr['url'] = array('doc_Threads', 'list', 'folderId' => $dRec->folderId);
+            if ($dRec->search) {
+                $attrArr['url']['search'] = $dRec->search;
+            }
+            if ($dRec->fOrder) {
+                $attrArr['url']['order'] = $dRec->fOrder;
+            }
+            if ($dRec->documentClassId) {
+                $attrArr['url']['documentClassId'] = $dRec->documentClassId;
+            }
+        } else {
+            $attrArr['url'] = array();
+        }
+        
+        return doc_Folders::getLink($dRec->folderId, 42, $attrArr);
     }
 }

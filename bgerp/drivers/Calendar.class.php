@@ -428,7 +428,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         while ($rec = $query->fetch()) {
             list($orderDate, $orderH) = explode(' ', $rec->expectationTimeOrder);
             $orderH .= ' ' . ++$i;
-            $resArr['now'][$orderDate][$orderH] = $this->getRowForTask($rec);
+            $resArr['now'][$orderDate][$orderH] = $this->getRowForTask($rec, $pArr['_userId']);
         }
         
         $Tasks = cls::get('cal_Tasks');
@@ -451,6 +451,10 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $Tasks->prepareListRecs($fTasks);
         $Tasks->prepareListRows($fTasks);
         
+        foreach ($fTasks->recs as $id => $fRec) {
+            $fTasks->rows[$id] = $this->getRowForTask($fRec, $pArr['_userId']);
+        }
+        
         if ($fTasks->recs) {
             $fTpl = new ET('[#table#][#pager#]');
             $fTpl->replace($Tasks->renderListTable($fTasks), 'table');
@@ -466,10 +470,11 @@ class bgerp_drivers_Calendar extends core_BaseClass
      * Помощна функция за вземане на вербалните стойности на запис за задача
      *
      * @param stdClass $rec
+     * @param null|integer $userId
      *
      * @return stdClass
      */
-    protected function getRowForTask($rec)
+    protected function getRowForTask($rec, $userId = null)
     {
         $Tasks = cls::get('cal_Tasks');
         
@@ -482,7 +487,15 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $subTitle = "<span class='threadSubTitle'> {$subTitle}</span>";
         
         $title = str::limitLen(type_Varchar::escape($rec->title), 60, 30, ' ... ', true);
-        $rToVerb->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, array('ef_icon' => $Tasks->getIcon($rec->id)));
+        
+        $linkArr = array('ef_icon' => $Tasks->getIcon($rec->id));
+        
+        // Добавяме стил, ако има промяна след последното разглеждане
+        if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->containerId, $userId, false)) {
+            $linkArr['class'] = 'tUnsighted';
+        }
+        
+        $rToVerb->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, $linkArr);
         
         $rToVerb->title->append(' ' . $rToVerb->progress);
         
@@ -523,7 +536,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $query->orderBy('startTimeOrder', 'ASC');
         
-        $query->show('title,state');
+        $query->show('title,state,modifiedOn,containerId');
         
         $i = 1000;
         while ($rec = $query->fetch()) {
@@ -533,7 +546,14 @@ class bgerp_drivers_Calendar extends core_BaseClass
             if ($Reminders->haveRightFor('single', $rec)) {
                 $tRec->title = ' ' . dt::mysql2verbal($rec->startTimeOrder, 'H:i', null, true) . ' ' . $tRec->title;
                 
-                $title = ht::createLink($tRec->title, $Reminders->getSingleUrlArray($rec->id), null, array('ef_icon' => $Reminders->getIcon($rec->id)));
+                $linkArr = array('ef_icon' => $Reminders->getIcon($rec->id));
+                
+                // Добавяме стил, ако има промяна след последното разглеждане
+                if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->containerId, $userId, false)) {
+                    $linkArr['class'] = 'tUnsighted';
+                }
+                
+                $title = ht::createLink($tRec->title, $Reminders->getSingleUrlArray($rec->id), null, $linkArr);
             }
             
             $rArrNow[$orderDate][$orderH] = (object) array('title' => $title);

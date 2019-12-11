@@ -137,8 +137,14 @@ class bgerp_drivers_Tasks extends core_BaseClass
                     
                     $title = str::limitLen(type_Varchar::escape($rec->title), cal_Tasks::maxLenTitle, 20, ' ... ', true);
                     
+                    $linkArr = array('ef_icon' => $Tasks->getIcon($rec->id));
+                    
+                    if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->containerId, $userId, false)) {
+                        $linkArr['class'] = 'tUnsighted';
+                    }
+                    
                     // Документа да е линк към single' а на документа
-                    $row->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, array('ef_icon' => $Tasks->getIcon($rec->id)));
+                    $row->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, $linkArr);
                     
                     if ($row->title instanceof core_ET) {
                         $row->title->append($row->subTitleDiv);
@@ -148,7 +154,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
                     
                     if ($rec->savedState) {
                         $sState = $rec->savedState;
-                        $row->title = "<div class='state-{$sState}-link'><strong>{$row->title}</strong></div>";
+                        $row->title = "<div class='state-{$sState}-link'>{$row->title}</div>";
                     }
                 }
             }

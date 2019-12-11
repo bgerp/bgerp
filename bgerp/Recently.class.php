@@ -174,7 +174,13 @@ class bgerp_Recently extends core_Manager
             try {
                 $folderRec = doc_Folders::fetch($rec->objectId);
                 $folderRow = doc_Folders::recToVerbal($folderRec);
-                $row->title = $folderRow->title;
+                
+                $attr = array();
+                if ($folderRec->last > $mvc->getLastFolderSee($folderRec->id, null, false)) {
+                    $attr['class'] .= " tUnsighted";
+                }
+                
+                $row->title = doc_Folders::getFolderTitle($folderRec, null, $attr);
                 $state = $folderRec->state;
             } catch (core_exception_Expect $ex) {
                 $row->title = tr("Проблемна папка|* № {$rec->objectId}");
@@ -196,6 +202,17 @@ class bgerp_Recently extends core_Manager
                 
                 $attr = array();
                 $attr['class'] .= "state-{$state}";
+                
+                $modOn = $docRec->modifiedOn;
+                if ($docRec->threadId) {
+                    $tRec = doc_Threads::fetch($docRec->threadId);
+                    $modOn = max(array($modOn, $tRec->last));
+                }
+                
+                if ($modOn > $mvc->getLastDocumentSee($docRec->containerId, null, false)) {
+                    $attr['class'] .= " tUnsighted";
+                }
+                
                 $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon($docRec->id));
                 
                 if (mb_strlen($docRow->title) > self::maxLenTitle) {
@@ -292,6 +309,26 @@ class bgerp_Recently extends core_Manager
         if ($fid && $userId) {
             $lastTime = bgerp_Recently::fetchField("#type = 'document' AND #objectId = {$fid} AND #userId = {$userId}", 'last');
         }
+        
+        return $lastTime;
+    }
+    
+	
+    /**
+     * Връща кога за последен път потребителя е виждал този документ
+     * 
+     * @param integer $folderId
+     * @param null|integer $userId
+     * 
+     * @return string
+     */
+    public static function getLastFolderSee($folderId, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $lastTime = bgerp_Recently::fetchField(array("#type = 'folder' AND #objectId = '[#1#]' AND #userId = '[#2#]'", $folderId, $userId), 'last');
         
         return $lastTime;
     }

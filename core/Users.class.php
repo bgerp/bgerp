@@ -922,8 +922,12 @@ class core_Users extends core_Manager
 
         $form->addAttr('nick,pass,email', array('style' => 'min-width:14em;'));
         
-        $form->toolbar->addFnBtn('Вход',  $submit, array('class' => 'noicon'));
-
+        if (defined('SECURITY_LOGIN')) {
+            $form->toolbar->addFnBtn('Вход',  $submit, array('class' => 'noicon'));
+        } else {
+            $form->toolbar->addSbBtn('Вход',  'default', array('class' => 'noicon'));
+        }
+        
         $httpUrl = core_App::getSelfURL();
         $httpsUrl = str_replace('http', 'https', $httpUrl);
         

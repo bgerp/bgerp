@@ -165,7 +165,7 @@ class bgerp_Portal extends embed_Manager
             $tpl = new ET("
                             <div class='sub-header'>
                                 <div class='swipe-tabs'>
-                                    <!--ET_BEGIN TAB_NAME--><div class='swipe-tab [#PORTAL_CLASS#]'>[#TAB_NAME#]</div><!--ET_END TAB_NAME-->
+                                    <!--ET_BEGIN TAB_NAME--><span class='swipe-tab' id='[#TAB_ID#]' data-tab='[#DATA_TAB#]'>[#TAB_NAME#]</span><!--ET_END TAB_NAME-->
                                 </div>
                             </div>
                             
@@ -175,6 +175,15 @@ class bgerp_Portal extends embed_Manager
                                 </div>
                             </div>
                             ");
+
+            // Включваме необходимия JS
+            $tpl->push("slick/1.8/js/slick.js", 'JS');
+
+            // Включваме необходимия CSS
+            $tpl->push("slick/1.8/css/slick.css", 'CSS');
+            $tpl->push("slick/1.8/css/slick-theme.css", 'CSS');
+
+            jquery_Jquery::run($tpl, 'prepareTabs();');
         } else {
             $tpl = new ET("
                 <table style='width:100%' class='top-table large-spacing'>
@@ -218,6 +227,8 @@ class bgerp_Portal extends embed_Manager
                 $blockTabNameTpl = $tpl->getBlock('TAB_NAME');
                 $blockTabNameTpl->replace($blockTabName, 'TAB_NAME');
                 $blockTabNameTpl->replace($pClass, 'PORTAL_CLASS');
+                $blockTabNameTpl->replace('tab_' . $pId, 'TAB_ID');
+                $blockTabNameTpl->replace($pId, 'DATA_TAB');
                 $blockTabNameTpl->removeBlocks();
                 $blockTabNameTpl->append2master();
                 
