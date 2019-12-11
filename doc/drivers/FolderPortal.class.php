@@ -209,8 +209,14 @@ class doc_drivers_FolderPortal extends core_BaseClass
      */
     public function getBlockTabName($dRec)
     {
+        $fTitle = doc_Folders::fetchField($dRec->folderId, 'title');
         
-        return $this->getFolderLink($dRec);
+        $maxLength = 42;
+        
+        $fTitle = str::limitLen($fTitle, $maxLength, (int) ($maxLength/2));
+        
+        return type_Varchar::escape($fTitle);
+        
     }
     
     
