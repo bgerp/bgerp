@@ -397,7 +397,7 @@ class pos_Terminal extends peripheral_Terminal
                 $res = $this->renderResultPayment($rec, $string, $selectedRec);
                 break;
             case 'revert':
-                $res = $this->renderResultRevert($rec, $string, $selectedRec);
+                $res = $this->renderResultRevertReceipts($rec, $string, $selectedRec);
                 break;
             case 'contragent':
                 $res = $this->renderResultContragent($rec, $string, $selectedRec);
@@ -564,12 +564,12 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return core_ET
      */
-    private function renderResultRevert($rec, $string, $selectedRec)
+    private function renderResultRevertReceipts($rec, $string, $selectedRec)
     {
         $Receipts = cls::get('pos_Receipts');
         $string = plg_Search::normalizeText($string);
         $query = $Receipts->getQuery();
-        $query->where("#revertId IS NULL AND #state != 'draft' AND #pointId = {$rec->pointId}");
+        $query->where("#revertId IS NULL AND #state != 'draft'");
         
         //$foundArr = $Receipts->findReceiptByNumber($string, true);
         
@@ -582,7 +582,7 @@ class pos_Terminal extends peripheral_Terminal
         $buttons = array();
         $cnt = 0;
         while($receiptRec = $query->fetch()){
-            $buttons[] = ht::createLink(self::getReceiptTitle($receiptRec), array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true), 'Наистина ли желаете да сторнирате бележката|*?', "title=Сторниране на бележката,class=navigable posBtns pos-notes revert-receipt,id=revert{$cnt}");
+            $buttons[] = ht::createLink(self::getReceiptTitle($receiptRec), array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true), 'Наистина ли желаете да сторнирате бележката|*?', "title=Сторниране на бележката,class=navigable posBtns pos-notes,id=revert{$cnt}");
             $cnt++;
         }
         
@@ -1105,7 +1105,7 @@ class pos_Terminal extends peripheral_Terminal
         // Добавяне на бутона за нова бележка да е в блока 'Днес'
         $dateBlock = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('RECEIPT_RESULT');
         $arr = array("{$today}" => clone $dateBlock);
-        $arr[$today]->replace(dt::mysql2verbal($today, 'smartDate'), 'dateGroup');
+        $arr[$today]->replace(dt::mysql2verbal($today, 'smartDate'), 'groupName');
         $addBtn = ht::createLink("+", $addUrl, null, "id=newreceipt,class=pos-notes posBtns openNoteBtn navigable {$disabledClass}");
         $arr[$today]->append($addBtn, 'element');
         
@@ -1113,7 +1113,7 @@ class pos_Terminal extends peripheral_Terminal
         while ($rec = $query->fetch()) {
             if(!array_key_exists($rec->createdDate, $arr)){
                 $arr[$rec->createdDate] = clone $dateBlock;
-                $arr[$rec->createdDate]->replace(dt::mysql2verbal($rec->createdDate, 'smartDate'), 'dateGroup');
+                $arr[$rec->createdDate]->replace(dt::mysql2verbal($rec->createdDate, 'smartDate'), 'groupName');
             }
             
             $class = isset($rec->revertId) ? 'revert-receipt' : '';

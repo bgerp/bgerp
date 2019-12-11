@@ -17,5 +17,5 @@
 
 
 <!--ET_BEGIN RECEIPT_RESULT-->
-<fieldset class='receiptDateBlock'><legend class='receiptDateBlockLegend'>[#dateGroup#]</legend>[#element#]</fieldset>
+<fieldset class='receiptDateBlock'><legend class='receiptDateBlockLegend'>[#groupName#]</legend>[#element#]</fieldset>
 <!--ET_END RECEIPT_RESULT-->
