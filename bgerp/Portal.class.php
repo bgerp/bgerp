@@ -165,7 +165,7 @@ class bgerp_Portal extends embed_Manager
             $tpl = new ET("
                             <div class='sub-header'>
                                 <div class='swipe-tabs'>
-                                    <!--ET_BEGIN TAB_NAME--><span class='swipe-tab' id='[#TAB_ID#]' data-tab='[#DATA_TAB#]'>[#TAB_NAME#]</span><!--ET_END TAB_NAME-->
+                                    <!--ET_BEGIN TAB_NAME--><span class='swipe-tab [#PORTAL_CLASS#]' id='[#TAB_ID#]' data-tab='[#DATA_TAB#]'>[#TAB_NAME#]</span><!--ET_END TAB_NAME-->
                                 </div>
                             </div>
                             
@@ -257,6 +257,48 @@ class bgerp_Portal extends embed_Manager
         core_Ajax::subscribe($tpl, getCurrentUrl(), $this->className . '_AJAX_REFRESH', 5000);
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param bgerp_Portal $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        if ($data->action != 'clone' && !$data->form->rec->id) {
+            $optArr = $data->form->fields[$mvc->driverClassField]->type->prepareOptions();
+            
+            $recsArr = $mvc->getRecsForUser(null, false);
+            
+            $dArr = array();
+            
+            foreach ($recsArr as $r) {
+                $dArr[$r->{$mvc->driverClassField}]++;
+            }
+            
+            if (!empty($dArr)) {
+                foreach ($optArr as $clsId => $title) {
+                    if (!cls::load($clsId, true)) {
+                        continue;
+                    }
+                    
+                    $inst = cls::getInterface($mvc->driverInterface, $clsId);
+                    
+                    $maxCnt = $inst->class->maxCnt;
+                    
+                    if (isset($maxCnt)) {
+                        if ($maxCnt >= $dArr[$clsId]) {
+                            unset($optArr[$clsId]);
+                        }
+                    }
+                }
+            }
+            
+            $data->form->setOptions($mvc->driverClassField, $optArr);
+        }
     }
     
     
@@ -497,11 +539,12 @@ class bgerp_Portal extends embed_Manager
      * Помощна функция за вземане на записите в модела
      *
      * @param null|int $userId
+     * @param boolean  $removeHidden
      * @param string   $roleType
      *
      * @return array
      */
-    protected function getRecsForUser($userId = null, $roleType = 'team')
+    protected function getRecsForUser($userId = null, $removeHidden = true, $roleType = 'team')
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -544,10 +587,12 @@ class bgerp_Portal extends embed_Manager
             $resArr[$rec->originIdCalc] = $rec;
         }
         
-        // Премахваме от масива блоковете, които да не се показват
-        foreach ($resArr as $rId => $rRec) {
-            if ($rRec->state == 'no') {
-                unset($resArr[$rId]);
+        if ($removeHidden) {
+            // Премахваме от масива блоковете, които да не се показват
+            foreach ($resArr as $rId => $rRec) {
+                if ($rRec->state == 'no') {
+                    unset($resArr[$rId]);
+                }
             }
         }
         
@@ -893,5 +938,46 @@ class bgerp_Portal extends embed_Manager
         if ($rec->color) {
             $row->color = "<span class='color-{$rec->color}'>{$row->color}</span>";
         }
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на част от ключа за кеша за драйверите
+     *
+     * @param stdClass $rec
+     * @param null|integer $userId
+     *
+     * @return array
+     */
+    public static function getPortalCacheKey($rec, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $cArr = array();
+        $cArr[] = $rec->id;
+        $cArr[] = $rec->modifiedOn;
+        $cArr[] = $userId;
+        $cArr[] = dt::now(false);
+        $cArr[] = core_Lg::getCurrent();
+        $cArr[] = Mode::get('screenMode');
+        
+        return $cArr;
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на името за страниране за търсене в портала
+     *
+     * @param string $searchInputFields
+     * @param integer $oIdCalc
+     *
+     * @return string
+     */
+    public static function getPortalSearchInputFieldName($searchInputFields, $oIdCalc)
+    {
+        
+        return $searchInputFields . '_' . $oIdCalc;
     }
 }

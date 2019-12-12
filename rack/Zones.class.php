@@ -582,7 +582,9 @@ class rack_Zones extends core_Master
         }
         
         if (($action == 'delete' || $action == 'changestate') && isset($rec)) {
-            if (rack_ZoneDetails::fetchField("#zoneId = {$rec->id}")) {
+            
+            // Ако в зоната има редове или е използвана в движение, не може да се изтрива
+            if (rack_ZoneDetails::fetchField("#zoneId = {$rec->id}") || rack_Movements::fetchField("LOCATE('|{$rec->id}|', #zoneList)")) {
                 $requiredRoles = 'no_one';
             }
         }

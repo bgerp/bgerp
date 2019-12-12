@@ -17,8 +17,21 @@
  */
 class bgerp_drivers_Calendar extends core_BaseClass
 {
+    
+    /**
+     * Максимален брой блокове, които да могат да се поакзват в портала
+     */
+    public $maxCnt = 1;
+    
+    
     public $interfaces = 'bgerp_PortalBlockIntf';
     
+    protected $priorityMap = array(
+            'low' => 'low|normal|high|critical',
+            'normal' => 'normal|high|critical',
+            'high' => 'high|critical',
+            'critical' => 'critical',
+    );
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -29,6 +42,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
     {
         $fieldset->FLD('fTasksPerPage', 'int(min=1, max=50)', 'caption=Показване на задачите в бъдеще->Редове, mandatory');
         $fieldset->FLD('fTasksDays', 'time(suggestions=1 месец|3 месеца|6 месеца)', 'caption=Показване на задачите в бъдеще->Дни, mandatory');
+        $fieldset->FLD('taskPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Задачи');
+        $fieldset->FLD('remPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Напомняния');
     }
     
     
@@ -61,8 +76,6 @@ class bgerp_drivers_Calendar extends core_BaseClass
             expect($userId = core_Users::getCurrent());
         }
         
-        $tPageVar = 'P_Cal_Tasks_Future_' . $dRec->originIdCalc;
-        
         $resData->month = Request::get('cal_month', 'int');
         $resData->month = str_pad($resData->month, 2, '0', STR_PAD_LEFT);
         $resData->year = Request::get('cal_year', 'int');
@@ -89,42 +102,22 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $resData->calendarState->query->orLikeKeylist('users', $userId);
         $resData->calendarState->query->where(array("#time >= '[#1#]' AND #time <= '[#2#]'", $from, $to));
         
-        // Последния запис в модела - за деактивиране на кеша
-        $calendarStateQueryClone = clone $resData->calendarState->query;
-        $calendarStateQueryClone->orderBy('createdOn', 'DESC');
-        $calendarStateQueryClone->limit(1);
-        $lastCalendarEventRec = serialize($calendarStateQueryClone->fetch());
-        
         // Само бележки за текущия потребител или за всички потребители
         // Последния запис в модела - за деактивиране на кеша
         $resData->agendaData = new stdClass();
-        $agendaStateQuery = cal_Calendar::getQuery();
-        $agendaStateQuery->where("#users IS NULL OR #users = ''");
-        $agendaStateQuery->orLikeKeylist('users', $userId);
-        $agendaStateQuery->orderBy('createdOn', 'DESC');
-        $agendaStateQuery->limit(1);
-        $lastAgendaEventRec = serialize($agendaStateQuery->fetch());
-        
-        $cQuery = cal_Tasks::getQuery();
-        $cQuery->where(array("#createdBy = '[#1#]'", $userId));
-        $cQuery->orderBy('modifiedOn', 'DESC');
-        $cQuery->limit(1);
-        $cQuery->show('modifiedOn, id');
-        $cRec = $cQuery->fetch();
         
         // Съдържание на клетките на календара
         $Calendar = cls::get('cal_Calendar');
         
-        $Calendar->searchInputField .= '_' . $dRec->originIdCalc;
-        
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->pages . '_' . $userId . '_' . Mode::get('screenMode') . 
-                        '_' . $resData->month . '_' . $resData->year . '_' . Request::get($Calendar->searchInputField) . '_' . core_Lg::getCurrent() . '_' .
-                        Request::get($tPageVar) . '_' . $lastCalendarEventRec. '_' . $lastAgendaEventRec . '_' . dt::now(false) . '_' . $cRec->modifiedOn);
-        $resData->cacheType = 'Calendar';
+        $sInputField = bgerp_Portal::getPortalSearchInputFieldName($Calendar->searchInputField, $dRec->originIdCalc);
+        $resData->cacheKey = $this->getCacheKey($dRec, $userId);
+        $resData->cacheType = $this->getCacheTypeName($userId);
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
+            $Calendar->searchInputField = bgerp_Portal::getPortalSearchInputFieldName($Notifications->searchInputField, $dRec->originIdCalc);
+            
             $Calendar->prepareListRecs($resData->calendarState);
             if (is_array($resData->calendarState->recs)) {
                 $resData->cData = array();
@@ -182,19 +175,20 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $afterTwoDays = mktime(0, 0, -1, date('m'), date('j') + 3, date('Y'));
             $to = dt::timestamp2mysql($afterTwoDays);
             
-            // Подготвяме данните за бележника
-            $Calendar = cls::get('cal_Calendar');
-            if (Request::get($Calendar->searchInputField)) {
+            if (Request::get($sInputField)) {
                 $from = dt::addDays(-30, $from);
                 $to = dt::addDays(360, $to);
             }
         }
         
         $pArr = array();
-        $pArr['tPageVar'] = $tPageVar;
-        $pArr['search'] = Request::get($Calendar->searchInputField);
+        $pArr['tPageVar'] = $this->getPageVar($dRec->originIdCalc);
+        $pArr['search'] = Request::get($sInputField);
         $pArr['tPerPage'] = $dRec->fTasksPerPage ? $dRec->fTasksPerPage : 5;
         $pArr['fTasksDays'] = $dRec->fTasksDays ? $dRec->fTasksDays : core_DateTime::SECONDS_IN_MONTH;
+        $pArr['taskPriority'] = $dRec->taskPriority;
+        $pArr['remPriority'] = $dRec->remPriority;
+        
         $resData->EventsData = $this->prepareCalendarEvents($userId, $pArr);
         
         return $resData;
@@ -395,6 +389,12 @@ class bgerp_drivers_Calendar extends core_BaseClass
     {
         $query = cal_Tasks::getQuery();
         
+        if ($pArr['taskPriority']) {
+            expect($this->priorityMap[$pArr['taskPriority']]);
+            $priorityArr = explode('|', $this->priorityMap[$pArr['taskPriority']]);
+            $query->orWhereArr('priority', $priorityArr);
+        }
+        
         if ($pArr['search']) {
             plg_Search::applySearch($pArr['search'], $query);
         }
@@ -518,6 +518,12 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $Reminders = cls::get('cal_Reminders');
         $query = $Reminders->getQuery();
         
+        if ($pArr['remPriority']) {
+            expect($this->priorityMap[$pArr['remPriority']]);
+            $priorityArr = explode('|', $this->priorityMap[$pArr['remPriority']]);
+            $query->orWhereArr('priority', $priorityArr);
+        }
+        
         if ($pArr['search']) {
             plg_Search::applySearch($pArr['search'], $query);
         }
@@ -626,5 +632,107 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $rArrNow[$orderDate]['events'] = $iconStr;
             }
         }
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на ключа за кеша
+     *
+     * @param stdClass $dRec
+     * @param null|integer $userId
+     *
+     * @return string
+     */
+    protected function getCacheKey($dRec, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        
+        $Calendar = cls::get('cal_Calendar');
+        
+        $sInputField = bgerp_Portal::getPortalSearchInputFieldName($Calendar->searchInputField, $dRec->originIdCalc);
+        
+        $cSearchVal = Request::get($sInputField);
+        $cSearchVal = isset($cSearchVal) ? $cSearchVal : '';
+        $cArr[] = $cSearchVal;
+        
+        $month = Request::get('cal_month', 'int');
+        $month = $month ? $month : date('m');
+        $cArr[] = $month;
+        
+        $year = Request::get('cal_year', 'int');
+        $year = $year ? $year : date('Y');
+        $cArr[] = $year;
+        
+        $tPagaVar = $this->getPageVar($dRec->originIdCalc);
+        $tPageVal = Request::get($tPagaVar);
+        $tPageVal = isset($tPageVal) ? $tPageVal : 1;
+        $cArr[] = $tPageVal;
+        
+        $cQuery = cal_Tasks::getQuery();
+        $cQuery->where(array("#createdBy = '[#1#]'", $userId));
+        $cQuery->orderBy('modifiedOn', 'DESC');
+        $cQuery->limit(1);
+        $cQuery->show('modifiedOn, id');
+        $cRec = $cQuery->fetch();
+        if ($cRec) {
+            $cArr[] = $cRec->modifiedOn;
+        }
+        
+        $agendaStateQuery = cal_Calendar::getQuery();
+        $agendaStateQuery->where("#users IS NULL OR #users = ''");
+        $agendaStateQuery->orLikeKeylist('users', $userId);
+        $agendaStateQuery->orderBy('createdOn', 'DESC');
+        $agendaStateQuery->limit(1);
+        $lastAgendaEventRec = serialize($agendaStateQuery->fetch());
+        $cArr[] = $lastAgendaEventRec;
+        
+        $from = "{$year}-{$month}-01 00:00:00";
+        $lastDay = date('d', mktime(12, 59, 59, $month + 1, 0, $year));
+        $to = "{$year}-{$month}-{$lastDay} 23:59:59";
+        $calendarStateQueryClone = cal_Calendar::getQuery();
+        $calendarStateQueryClone->where("#users IS NULL OR #users = ''");
+        $calendarStateQueryClone->orLikeKeylist('users', $userId);
+        $calendarStateQueryClone->where(array("#time >= '[#1#]' AND #time <= '[#2#]'", $from, $to));
+        $calendarStateQueryClone->orderBy('createdOn', 'DESC');
+        $calendarStateQueryClone->limit(1);
+        $lastCalendarEventRec = serialize($calendarStateQueryClone->fetch());
+        $cArr[] = $lastCalendarEventRec;
+        
+        return md5(implode('|', $cArr));
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на името за страниране за задачите
+     *
+     * @param integer $oIdCalc
+     * 
+     * @return string
+     */
+    protected function getPageVar($oIdCalc)
+    {
+        
+        return 'P_Cal_Tasks_Future_' . $oIdCalc;
+    }
+    
+    
+    /**
+     * Името на стойността за кеша
+     *
+     * @param integer $oIdCalc
+     *
+     * @return string
+     */
+    protected function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        return 'Portal_Calendar_' . $userId;
     }
 }

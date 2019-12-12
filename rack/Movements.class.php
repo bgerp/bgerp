@@ -740,12 +740,19 @@ class rack_Movements extends core_Manager
             Mode::push('shortZoneName', true);
             foreach ($zones as $zoneRec) {
                 $class = ($rec->state == 'active') ? "class='movement-position-notice'" : "";
+               
+                if(rack_Zones::fetchField($zoneRec->zone)){
+                    $zoneTitle = rack_Zones::getRecTitle($zoneRec->zone);
+                    $zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
+                } else {
+                    $zoneTitle = ht::createHint($zoneRec->zone, 'Зоната вече не съществува', 'warning');
+                }
                 
-                $zoneTitle = rack_Zones::getRecTitle($zoneRec->zone);
-                $zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
                 $zoneQuantity = $Double->toVerbal($zoneRec->quantity);
                 $zoneQuantity = ht::styleIfNegative($zoneQuantity, $zoneRec->quantity);
                 $movementArr[] = "<span {$class}>{$zoneTitle} ({$zoneQuantity})</span>";
+                
+                
             }
             Mode::pop('shortZoneName');
         }
