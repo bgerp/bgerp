@@ -76,6 +76,12 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
+     * Кои операции са забранени за сторниращите бележки
+     */
+    protected static $operationsForNonDraftReceipts = 'receipts=Бележки,revert=Сторно';
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -129,8 +135,9 @@ class pos_Terminal extends peripheral_Terminal
         if(Request::get('opened', 'int')){
             $redirectUrl = getCurrentUrl();
             unset($redirectUrl['opened']);
+            $defaultOperation = ($rec->state != 'draft') ? 'receipts' : (empty($rec->paid) ? 'add' : 'payment');
+            Mode::setPermanent("currentOperation{$id}", $defaultOperation);
             
-            Mode::setPermanent("currentOperation{$id}", (empty($rec->paid)) ? 'add' : 'payment');
             Mode::setPermanent("currentSearchString{$id}", null);
             redirect($redirectUrl);
         }
@@ -159,7 +166,7 @@ class pos_Terminal extends peripheral_Terminal
             // Задаване на празна обвивка
             Mode::set('wrapper', 'page_Empty');
             
-            $defaultOperation = Mode::get("currentOperation{$rec->id}") ? Mode::get("currentOperation{$rec->id}") : 'add';
+            $defaultOperation = Mode::get("currentOperation{$rec->id}") ? Mode::get("currentOperation{$rec->id}") : (($rec->state == 'draft') ? 'add' : 'receipts');
             $defaultSearchString = Mode::get("currentSearchString{$rec->id}");
             if(!Mode::is('printing')){
                 
@@ -281,8 +288,9 @@ class pos_Terminal extends peripheral_Terminal
             $params['readonly'] = 'readonly';
         }
         
+        $operations = ($rec->state == 'draft') ? arr::make(self::$operationsArr) : arr::make(self::$operationsForNonDraftReceipts);
+        
         // Може ли да се задава отстъпка?
-        $operations = arr::make(self::$operationsArr);
         if (pos_Setup::get('SHOW_DISCOUNT_BTN') != 'yes') {
             unset($operations['discount']);
         }
