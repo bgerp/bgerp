@@ -1152,10 +1152,9 @@ class pos_Terminal extends peripheral_Terminal
         // Намираме всички чернови бележки и ги добавяме като линк
         $query = pos_Receipts::getQuery();
         $query->XPR('createdDate', 'date', 'DATE(#createdOn)');
-        $query->where("#state = 'draft' AND #id != {$rec->id}");
+        $query->where("#state != 'rejected' AND #id != {$rec->id}");
         $query->orderBy("#createdDate", 'DESC');
         $query->limit(self::$maxSearchReceipts);
-        
         if(!empty($string)){
             plg_Search::applySearch($string, $query);
         } else {

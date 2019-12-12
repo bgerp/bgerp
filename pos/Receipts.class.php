@@ -451,7 +451,7 @@ class pos_Receipts extends core_Master
     {
         // Само черновите бележки могат да се редактират в терминала
         if ($action == 'terminal' && isset($rec)) {
-            if ($rec->state != 'draft') {
+            if ($rec->state == 'rejected') {
                 $res = 'no_one';
             } elseif (!pos_Points::haveRightFor('select', $rec->pointId)) {
                 $res = 'no_one';
