@@ -207,8 +207,8 @@
 	width: 23% !important;
 	margin: 0;
 }
+
 .navigable {
-	box-sizing: border-box;
 	&:focus, &.selected {
 		box-shadow: 1px 1px 5px #0b5b98 !important;
 		border: 2px solid #0b5b98;
@@ -217,6 +217,7 @@
 }
 
 .posBtns {
+	box-sizing: border-box;
 	padding: 0.4em 1em 0.3em;
 	width: 198px;
 	height: 50px !important;
@@ -245,7 +246,7 @@
 }
 
 .openNewNoteBtn {
-	font-size:1.6em;
+	font-size:1.8em;
 }
 
 .pos-notes{

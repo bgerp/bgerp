@@ -619,7 +619,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $query = $Receipts->getQuery();
         $query->XPR('toReturn', 'double', 'ROUND(#total - COALESCE(#returnedTotal, 0), 2)');
-        $query->where("#revertId IS NULL AND (#state = 'waiting' || #state = 'closed') AND #toReturn > 0");
+        $query->where("#revertId IS NULL AND (#state = 'waiting' || #state = 'closed')");// AND #toReturn > 0
         $query->XPR('orderField', 'int', "(CASE WHEN #pointId = {$rec->pointId} THEN 1 ELSE 2 END)");
         $query->orderBy('#orderField=ASC,#id=DESC');
         $query->limit(self::$maxSearchReceipts);
@@ -641,9 +641,9 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             $linkUrl = (pos_Receipts::haveRightFor('revert', $receiptRec->id)) ? array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true) : array();
-            $disClass = ($linkUrl) ? '' : 'disabledBtn';
+            $disClass = ($linkUrl) ? 'navigable' : 'disabledBtn';
             $warning = ($linkUrl) ? 'Наистина ли желаете да сторнирате бележката|*?' : false;
-            $btn = ht::createLink(self::getReceiptTitle($receiptRec), $linkUrl, $warning, "title=Сторниране на бележката,class=navigable posBtns pos-notes {$disClass} state-{$receiptRec->state},id=revert{$cnt}");
+            $btn = ht::createLink(self::getReceiptTitle($receiptRec), $linkUrl, $warning, "title=Сторниране на бележката,class=posBtns pos-notes {$disClass} state-{$receiptRec->state},id=revert{$cnt}");
             $arr[$receiptRec->pointId]->append($btn, 'element');
             $cnt++;
         }
@@ -673,14 +673,14 @@ class pos_Terminal extends peripheral_Terminal
         $tpl = new core_ET("");
         
         $payUrl = (pos_Receipts::haveRightFor('pay', $rec)) ? toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local') : null;
-        $disClass = ($payUrl) ? '' : 'disabledBtn';
+        $disClass = ($payUrl) ? 'navigable' : 'disabledBtn';
         
-        $element = ht::createElement("div", array('id' => "payment-1", 'class' => "{$disClass} navigable posBtns payment", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true);
+        $element = ht::createElement("div", array('id' => "payment-1", 'class' => "{$disClass} posBtns payment", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true);
         $tpl->append($element);
         
         $payments = pos_Points::fetchSelected($rec->pointId);
         foreach ($payments as $paymentId => $paymentTitle){
-            $element = ht::createElement("div", array('id' => "payment{$paymentId}", 'class' => "{$disClass} navigable posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl), tr($paymentTitle), true);
+            $element = ht::createElement("div", array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl), tr($paymentTitle), true);
             $tpl->append($element);
         }
         $tpl->append("<div class='clearfix21'></div>");
@@ -1147,7 +1147,7 @@ class pos_Terminal extends peripheral_Terminal
         $pointId = pos_Points::getCurrent('id');
         $string = plg_Search::normalizeText($string);
         $addUrl = (pos_Receipts::haveRightFor('add')) ? array('pos_Receipts', 'new', 'forced' => true) : array();
-        $disabledClass = (pos_Receipts::haveRightFor('add')) ? '' : 'disabledBtn';
+        $disabledClass = (pos_Receipts::haveRightFor('add')) ? 'navigable' : 'disabledBtn';
         
         // Намираме всички чернови бележки и ги добавяме като линк
         $query = pos_Receipts::getQuery();
@@ -1166,7 +1166,7 @@ class pos_Terminal extends peripheral_Terminal
         $dateBlock = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('RECEIPT_RESULT');
         $arr = array("{$today}" => clone $dateBlock);
         $arr[$today]->replace(dt::mysql2verbal($today, 'smartDate'), 'groupName');
-        $addBtn = ht::createLink("+", $addUrl, null, "class=pos-notes posBtns openNewNoteBtn navigable {$disabledClass}");
+        $addBtn = ht::createLink("+", $addUrl, null, "class=pos-notes posBtns openNewNoteBtn {$disabledClass}");
         $arr[$today]->append($addBtn, 'element');
         
         // Групиране на записите по дата
@@ -1178,9 +1178,9 @@ class pos_Terminal extends peripheral_Terminal
             
             $class = isset($rec->revertId) ? 'revertReceipt' : '';
             $openUrl = (pos_Receipts::haveRightFor('terminal', $rec->id)) ? array('pos_Terminal', 'open', 'receiptId' => $rec->id, 'opened' => true) : array();
-            $class .= (count($openUrl)) ? '' : ' disabledBtn';
+            $class .= (count($openUrl)) ? ' navigable' : ' disabledBtn';
             
-            $row = ht::createLink(self::getReceiptTitle($rec, false), $openUrl, null, array('id' => "receipt{$rec->id}", 'class' => "pos-notes posBtns navigable {$class} state-{$rec->state}", 'title' => 'Отваряне на бележката'));
+            $row = ht::createLink(self::getReceiptTitle($rec, false), $openUrl, null, array('id' => "receipt{$rec->id}", 'class' => "pos-notes posBtns {$class} state-{$rec->state}", 'title' => 'Отваряне на бележката'));
             $arr[$rec->createdDate]->append($row, 'element');
         }
         
