@@ -155,16 +155,19 @@
     background: #505050 !important;
     box-shadow: inset 0 0 50px #444444 !important; }
 
-.operationBtn.button {
+.operationBtn.button,
+.printReceiptBtn.button {
   height: 41px;
   padding: 0 10px;
   margin: 5px;
   text-align: center;
   font-size: 1em !important;
   font-weight: normal; }
-  .operationBtn.button.active {
+  .operationBtn.button.active,
+  .printReceiptBtn.button.active {
     background-color: #f7f749; }
-  .operationBtn.button.disabledBtn {
+  .operationBtn.button.disabledBtn,
+  .printReceiptBtn.button.disabledBtn {
     color: #888888;
     pointer-events: none; }
 
