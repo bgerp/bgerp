@@ -165,7 +165,7 @@ class bgerp_Portal extends embed_Manager
             $tpl = new ET("
                             <div class='sub-header'>
                                 <div class='swipe-tabs'>
-                                    <!--ET_BEGIN TAB_NAME--><span class='swipe-tab [#PORTAL_CLASS#]' id='[#TAB_ID#]' data-tab='[#DATA_TAB#]' data-index='[#DATA_INDEX#]'>[#TAB_NAME#]</span><!--ET_END TAB_NAME-->
+                                    <!--ET_BEGIN TAB_NAME--><span class='swipe-tab [#PORTAL_CLASS#]' id='[#TAB_ID#]' data-index='[#DATA_INDEX#]'>[#TAB_NAME#]</span><!--ET_END TAB_NAME-->
                                 </div>
                             </div>
                             
@@ -183,7 +183,7 @@ class bgerp_Portal extends embed_Manager
             $tpl->push("slick/1.8/css/slick.css", 'CSS');
             $tpl->push("slick/1.8/css/slick-theme.css", 'CSS');
 
-            jquery_Jquery::run($tpl, 'prepareTabs();');
+            jquery_Jquery::run($tpl, "openNewCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime(core_Users::getCurrent())) . "'); ");
         } else {
             $tpl = new ET("
                 <table style='width:100%' class='top-table large-spacing'>
