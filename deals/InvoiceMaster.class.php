@@ -362,7 +362,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 if (count($cache->vats) == 1) {
                     $form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
                     $form->setField('changeAmount', 'input,caption=Задаване на увеличение/намаление на фактура->Промяна');
-                    $form->setField('dcReason', 'input,caption=Задаване на увеличение/намаление на фактура->Основание');
+                    $form->setField('dcReason', 'input,caption=Задаване на увеличение/намаление на фактура->Пояснение');
                     $form->rec->changeAmountVat = key($cache->vats);
                     
                     $min = $invArr['dealValue'] / (($invArr['displayRate']) ? $invArr['displayRate'] : $invArr['rate']);
@@ -375,7 +375,7 @@ abstract class deals_InvoiceMaster extends core_Master
                         // Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
                         $form->setField('dcReason', 'input');
                         $form->setField('changeAmount', "caption=Промяна на авансово плащане|*->|Аванс|*,mandatory");
-                        $form->setField('dcReason', 'input,caption=Промяна на авансово плащане|*->Основание');
+                        $form->setField('dcReason', 'input,caption=Промяна на авансово плащане|*->Пояснение');
                     }
                 }
             }

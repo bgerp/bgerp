@@ -29,7 +29,7 @@ class deals_plg_DpInvoice extends core_Plugin
             
             // Операция с авансовото плащане начисляване/намаляване
             $mvc->FLD('dpOperation', 'enum(accrued=Начисляване, deducted=Приспадане, none=Няма)', 'caption=Авансово плащане->Операция,input=none,before=contragentName');
-            $mvc->FLD('dpReason', 'richtext(rows=2)', 'caption=Аванс->Основание,after=amountDeducted,autohide,input=none');
+            $mvc->FLD('dpReason', 'richtext(rows=2)', 'caption=Аванс->Пояснение,after=amountDeducted,autohide,input=none');
         }
     }
     
