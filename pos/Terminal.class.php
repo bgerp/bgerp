@@ -618,7 +618,8 @@ class pos_Terminal extends peripheral_Terminal
         $string = plg_Search::normalizeText($string);
         
         $query = $Receipts->getQuery();
-        $query->where("#revertId IS NULL AND (#state = 'waiting' || #state = 'closed')");
+        $query->XPR('toReturn', 'double', 'ROUND(#total - COALESCE(#returnedTotal, 0), 2)');
+        $query->where("#revertId IS NULL AND (#state = 'waiting' || #state = 'closed') AND #toReturn > 0");
         $query->XPR('orderField', 'int', "(CASE WHEN #pointId = {$rec->pointId} THEN 1 ELSE 2 END)");
         $query->orderBy('#orderField=ASC,#id=DESC');
         $query->limit(self::$maxSearchReceipts);
