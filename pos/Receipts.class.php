@@ -506,7 +506,7 @@ class pos_Receipts extends core_Master
         }
         
         if ($action == 'revert' && isset($rec)) {
-            if(!empty($rec->returnedTotal) && round($rec->total - $rec->returnedTotal, 2) <= 0){
+            if(isset($rec->revertId) || (!empty($rec->returnedTotal) && round($rec->total - $rec->returnedTotal, 2) <= 0)){
                 $res = 'no_one';
             }
         }
