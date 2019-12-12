@@ -19,6 +19,12 @@ class bgerp_drivers_Tasks extends core_BaseClass
 {
     public $interfaces = 'bgerp_PortalBlockIntf';
     
+    protected $priorityMap = array(
+                                    'low' => 'low|normal|high|critical',
+                                    'normal' => 'normal|high|critical',
+                                    'high' => 'high|critical',
+                                    'critical' => 'critical',
+                                    );
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -29,6 +35,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
     {
         $fieldset->FLD('perPage', 'int(min=1, max=50)', 'caption=Редове, mandatory');
         $fieldset->FLD('from', 'enum(,toMe=За мен,fromMe=От мен)', 'caption=Задачи от/към');
+        $fieldset->FLD('taskPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Задачи');
     }
     
     
@@ -67,6 +74,12 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         // Създаваме заявката
         $resData->data->query = cal_Tasks::getQuery();
+        
+        if ($dRec->taskPriority) {
+            expect($this->priorityMap[$dRec->taskPriority]);
+            $priorityArr = explode('|', $this->priorityMap[$dRec->taskPriority]);
+            $resData->data->query->orWhereArr('priority', $priorityArr);
+        }
         
         // Подготвяме полетата за показване
         $resData->data->listFields = 'groupDate,title,progress';

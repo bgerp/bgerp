@@ -19,6 +19,12 @@ class bgerp_drivers_Calendar extends core_BaseClass
 {
     public $interfaces = 'bgerp_PortalBlockIntf';
     
+    protected $priorityMap = array(
+            'low' => 'low|normal|high|critical',
+            'normal' => 'normal|high|critical',
+            'high' => 'high|critical',
+            'critical' => 'critical',
+    );
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -29,6 +35,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
     {
         $fieldset->FLD('fTasksPerPage', 'int(min=1, max=50)', 'caption=Показване на задачите в бъдеще->Редове, mandatory');
         $fieldset->FLD('fTasksDays', 'time(suggestions=1 месец|3 месеца|6 месеца)', 'caption=Показване на задачите в бъдеще->Дни, mandatory');
+        $fieldset->FLD('taskPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Задачи');
+        $fieldset->FLD('remPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Напомнения');
     }
     
     
@@ -171,6 +179,9 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $pArr['search'] = Request::get($sInputField);
         $pArr['tPerPage'] = $dRec->fTasksPerPage ? $dRec->fTasksPerPage : 5;
         $pArr['fTasksDays'] = $dRec->fTasksDays ? $dRec->fTasksDays : core_DateTime::SECONDS_IN_MONTH;
+        $pArr['taskPriority'] = $dRec->taskPriority;
+        $pArr['remPriority'] = $dRec->remPriority;
+        
         $resData->EventsData = $this->prepareCalendarEvents($userId, $pArr);
         
         return $resData;
@@ -371,6 +382,12 @@ class bgerp_drivers_Calendar extends core_BaseClass
     {
         $query = cal_Tasks::getQuery();
         
+        if ($pArr['taskPriority']) {
+            expect($this->priorityMap[$pArr['taskPriority']]);
+            $priorityArr = explode('|', $this->priorityMap[$pArr['taskPriority']]);
+            $query->orWhereArr('priority', $priorityArr);
+        }
+        
         if ($pArr['search']) {
             plg_Search::applySearch($pArr['search'], $query);
         }
@@ -493,6 +510,12 @@ class bgerp_drivers_Calendar extends core_BaseClass
     {
         $Reminders = cls::get('cal_Reminders');
         $query = $Reminders->getQuery();
+        
+        if ($pArr['remPriority']) {
+            expect($this->priorityMap[$pArr['remPriority']]);
+            $priorityArr = explode('|', $this->priorityMap[$pArr['remPriority']]);
+            $query->orWhereArr('priority', $priorityArr);
+        }
         
         if ($pArr['search']) {
             plg_Search::applySearch($pArr['search'], $query);
