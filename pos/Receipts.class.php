@@ -37,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentName, total, paid, change, state, revertId, returnedTotal';
+    public $listFields = 'id,createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentName, total, paid, change, state, revertId, returnedTotal, searchKeywords';
     
     
     /**
@@ -158,8 +158,8 @@ class pos_Receipts extends core_Master
         $this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,waiting=Чакащ,pending)', 'caption=Статус, input=none');
         $this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
-        $this->FLD('revertId', 'key(mvc=pos_Receipts)', 'input=none');
-        $this->FLD('returnedTotal', 'double(decimals=2)', 'caption=Общо върнато, input=none');
+        $this->FLD('revertId', 'key(mvc=pos_Receipts)', 'input=none,caption=Сторнира');
+        $this->FLD('returnedTotal', 'double(decimals=2)', 'caption=Сторно, input=none');
         
         $this->setDbIndex('valior');
     }
