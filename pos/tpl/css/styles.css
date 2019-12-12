@@ -37,8 +37,7 @@
   overflow-x: hidden; }
 
 .receipt-header {
-  padding: 10px;
-  background: #f1f1f1; }
+  padding: 10px; }
   .receipt-header .receipt-title {
     font-size: 1.5em;
     font-weight: bold; }
