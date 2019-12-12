@@ -543,3 +543,10 @@ only screen and (max-width: 360px) {
       width: 73px !important;
       height: 73px !important; } }
 
+@media print {
+  .red {
+    color: black !important; }
+
+  .discountText {
+    color: black !important; } }
+

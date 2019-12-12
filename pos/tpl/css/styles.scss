@@ -608,3 +608,14 @@
 		}
 	}
 }
+
+@media print {
+	.red {
+		color:black !important;
+	}
+	
+	.discountText {
+		color:black !important;
+	}
+}
+
