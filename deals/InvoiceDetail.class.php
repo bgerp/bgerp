@@ -370,8 +370,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
                 
                 if(!empty($masterRec->dcReason)){
-                    $dcReason = core_Type::getByName('text')->toVerbal($masterRec->dcReason);
-                    $reason .= "|* <div class='richtext'>{$dcReason}</div>";
+                    $dcReason = core_Type::getByName('richtext')->toVerbal($masterRec->dcReason);
+                    $reason .= "|* {$dcReason}";
                 }
                 
                 $data->recs['advance'] = (object) array('amount' => $masterRec->dealValue / $masterRec->rate, 'changedAmount' => true);

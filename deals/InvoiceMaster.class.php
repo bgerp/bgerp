@@ -104,7 +104,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Контрагент->Град,class=contactData,contragentDataField=place');
         $mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес,class=contactData,contragentDataField=address');
         $mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
-        $mvc->FLD('dcReason', 'text(rows=2)', 'input=none');
+        $mvc->FLD('dcReason', 'richtext(rows=2)', 'input=none');
         $mvc->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
         
         $mvc->FLD('dueTime', 'time(suggestions=3 дена|5 дена|7 дена|14 дена|30 дена|45 дена|60 дена)', 'caption=Плащане->Срок');

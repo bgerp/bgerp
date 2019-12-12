@@ -29,7 +29,7 @@ class deals_plg_DpInvoice extends core_Plugin
             
             // Операция с авансовото плащане начисляване/намаляване
             $mvc->FLD('dpOperation', 'enum(accrued=Начисляване, deducted=Приспадане, none=Няма)', 'caption=Авансово плащане->Операция,input=none,before=contragentName');
-            $mvc->FLD('dpReason', 'text(rows=2)', 'caption=Аванс->Основание,after=amountDeducted,autohide,input=none');
+            $mvc->FLD('dpReason', 'richtext(rows=2)', 'caption=Аванс->Основание,after=amountDeducted,autohide,input=none');
         }
     }
     
@@ -437,8 +437,8 @@ class deals_plg_DpInvoice extends core_Plugin
             $tpl->removeBlock('NO_ROWS');
         }
         
-        $reason = (!empty($data->masterData->rec->dpReason)) ? core_Type::getByName('text')->toVerbal($data->masterData->rec->dpReason) : ht::createHint(self::getReasonText($data->masterData->rec, $data->dpInfo->dpOperation), 'Основанието ще бъде записано при контиране');
-        $reason = !empty($reason) ? "</br><div class='richtext'>" . $reason . "</div>" : '';
+        $reason = (!empty($data->masterData->rec->dpReason)) ? core_Type::getByName('richtext')->toVerbal($data->masterData->rec->dpReason) : ht::createHint(self::getReasonText($data->masterData->rec, $data->dpInfo->dpOperation), 'Основанието ще бъде записано при контиране');
+        $reason = !empty($reason) ? "</br>" . $reason : '';
         
         if ($data->dpInfo->dpOperation == 'accrued') {
             $colspan = count($data->listFields) - 1;
