@@ -888,8 +888,8 @@ class pos_Terminal extends peripheral_Terminal
     {
         $Receipt = cls::get('pos_Receipts');
         $tpl = getTplFromFile('pos/tpl/terminal/Receipt.shtml');
-        if($data->rec->state != 'draft'){
-            $data->row->STATE_CLASS = $data->rec->state;
+        if($data->rec->state == 'draft'){
+            unset($data->row->STATE_CLASS);
         }
         $tpl->placeObject($data->row);
         
