@@ -165,7 +165,7 @@ class bgerp_Portal extends embed_Manager
             $tpl = new ET("
                             <div class='sub-header'>
                                 <div class='swipe-tabs'>
-                                    <!--ET_BEGIN TAB_NAME--><span class='swipe-tab [#PORTAL_CLASS#]' id='[#TAB_ID#]' data-tab='[#DATA_TAB#]'>[#TAB_NAME#]</span><!--ET_END TAB_NAME-->
+                                    <!--ET_BEGIN TAB_NAME--><span class='swipe-tab [#PORTAL_CLASS#]' id='[#TAB_ID#]' data-tab='[#DATA_TAB#]' data-index='[#DATA_INDEX#]'>[#TAB_NAME#]</span><!--ET_END TAB_NAME-->
                                 </div>
                             </div>
                             
@@ -225,11 +225,14 @@ class bgerp_Portal extends embed_Manager
                 
                 $blockTabName = $intf->getBlockTabName($r);
                 
+                $dIndex = 0;
+                
                 $blockTabNameTpl = $tpl->getBlock('TAB_NAME');
                 $blockTabNameTpl->replace($blockTabName, 'TAB_NAME');
                 $blockTabNameTpl->replace($pClass, 'PORTAL_CLASS');
                 $blockTabNameTpl->replace('tab_' . $pId, 'TAB_ID');
                 $blockTabNameTpl->replace($pId, 'DATA_TAB');
+                $blockTabNameTpl->replace($dIndex++, 'DATA_INDEX');
                 $blockTabNameTpl->removeBlocks();
                 $blockTabNameTpl->append2master();
                 
