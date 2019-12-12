@@ -198,6 +198,8 @@ class bgerp_Portal extends embed_Manager
         
         $columnMap = array('left' => 'LEFT_COLUMN', 'center' => 'MIDDLE_COLUMN', 'right' => 'RIGHT_COLUMN');
         
+        $dIndex = 0;
+        
         foreach ($recArr as $r) {
             $rData = new stdClass();
             
@@ -224,8 +226,6 @@ class bgerp_Portal extends embed_Manager
                 $intf = cls::getInterface('bgerp_PortalBlockIntf', $r->{$this->driverClassField});
                 
                 $blockTabName = $intf->getBlockTabName($r);
-                
-                $dIndex = 0;
                 
                 $blockTabNameTpl = $tpl->getBlock('TAB_NAME');
                 $blockTabNameTpl->replace($blockTabName, 'TAB_NAME');
