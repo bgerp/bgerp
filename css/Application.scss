@@ -2672,7 +2672,8 @@ table.mc-calendar {
 		padding-top: 1px;
 		padding: 2px;
 		display: block;
-		span {
+		white-space: nowrap;
+		span, a {
 			display: inline-block;
 		}
 	}

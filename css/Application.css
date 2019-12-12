@@ -2290,8 +2290,10 @@ table.mc-calendar {
   .portal-cal-day .title {
     padding-top: 1px;
     padding: 2px;
-    display: block; }
-    .portal-cal-day .title span {
+    display: block;
+    white-space: nowrap; }
+    .portal-cal-day .title span,
+    .portal-cal-day .title a {
       display: inline-block; }
   .portal-cal-day .progress {
     float: right;
