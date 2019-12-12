@@ -66,7 +66,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
     {
         $serials = $this->normalize($value);
         $serials = $this->makeArray($serials);
-        $count = countR($serials);
+        $count = count($serials);
         
         if ($count != $quantity) {
             $mMsg = ($count != 1) ? 'серийни номера' : 'сериен номер';
@@ -153,7 +153,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
             $start = $serial;
         }
         
-        if (countR($res)) {
+        if (count($res)) {
             $res = array($oldFrom => $oldFrom) + $res;
             
             return $res;
@@ -177,7 +177,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
         $value = explode('|', $value);
         foreach ($value as &$v) {
             $vArr = explode(':', $v);
-            if (countR($vArr) == 2) {
+            if (count($vArr) == 2) {
                 $rangeArr = $this->getByRange($vArr[0], $vArr[1]);
                 
                 if (is_array($rangeArr)) {

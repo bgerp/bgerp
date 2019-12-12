@@ -29,7 +29,7 @@ class deals_plg_DpInvoice extends core_Plugin
             
             // Операция с авансовото плащане начисляване/намаляване
             $mvc->FLD('dpOperation', 'enum(accrued=Начисляване, deducted=Приспадане, none=Няма)', 'caption=Авансово плащане->Операция,input=none,before=contragentName');
-            $mvc->FLD('dpReason', 'text(rows=2)', 'caption=Аванс->Основание,after=amountDeducted,autohide');
+            $mvc->FLD('dpReason', 'richtext(rows=2)', 'caption=Аванс->Пояснение,after=amountDeducted,autohide,input=none');
         }
     }
     
@@ -67,6 +67,7 @@ class deals_plg_DpInvoice extends core_Plugin
         
         $form->FNC('amountAccrued', 'double', "caption=Аванс->Начисляване,input,autohide,before=dpAmount,unit=|*{$rec->currencyId} |{$unit}|*");
         $form->FNC('amountDeducted', 'double', "caption=Аванс->Приспадане,input,autohide,before=dpAmount,unit=|*{$rec->currencyId} |{$unit}|*");
+        $form->setField('dpReason', 'input');
         
         if (empty($form->rec->id)) {
             
@@ -295,6 +296,12 @@ class deals_plg_DpInvoice extends core_Plugin
                 return;
             }
             
+            if(!empty($rec->dpReason) && (empty($rec->amountAccrued) && empty($rec->amountDeducted))){
+                $form->setError('dpReason,amountAccrued,amountDeducted', 'Не може да е попълнено основание за аванс, без да е въведена сума');
+                
+                return;
+            }
+            
             $rec->dpAmount = ($rec->amountAccrued) ? $rec->amountAccrued : $rec->amountDeducted;
             $rec->dpOperation = 'none';
             $warningUnit = ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') ? 'без ДДС' : 'с ДДС';
@@ -430,11 +437,12 @@ class deals_plg_DpInvoice extends core_Plugin
             $tpl->removeBlock('NO_ROWS');
         }
         
-        $reason = (!empty($data->masterData->rec->dpReason)) ? $data->masterData->rec->dpReason : ht::createHint(self::getReasonText($data->masterData->rec, $data->dpInfo->dpOperation), 'Основанието ще бъде записано при контиране');
+        $reason = (!empty($data->masterData->rec->dpReason)) ? core_Type::getByName('richtext')->toVerbal($data->masterData->rec->dpReason) : ht::createHint(self::getReasonText($data->masterData->rec, $data->dpInfo->dpOperation), 'Основанието ще бъде записано при контиране');
+        $reason = !empty($reason) ? "</br>" . $reason : '';
         
         if ($data->dpInfo->dpOperation == 'accrued') {
             $colspan = count($data->listFields) - 1;
-            $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . ' ' . $reason . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+            $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . ' <span' . $reason . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
         } else {
             $fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
             
