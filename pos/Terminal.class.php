@@ -341,7 +341,7 @@ class pos_Terminal extends peripheral_Terminal
         
         // Бутон за увеличение на избрания артикул
         if(!empty($rec->total)){
-            $buttons["print"] = ht::createBtn(' ', array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true) , false, true, array('class' => 'operationBtn printBtn', 'ef_icon' => 'img/32/printer.png'));
+            $buttons["print"] = ht::createBtn(' ', array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true) , false, true, array('class' => 'operationBtn printBtn', 'ef_icon' => 'img/24/printer.png'));
         }
         
         // Бутон за приключване

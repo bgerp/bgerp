@@ -475,7 +475,8 @@
   background: rgba(0, 0, 0, 0.5) !important;
   opacity: 1 !important; }
 
-.enlargeProductBtn {
+.enlargeProductBtn,
+.printBtn {
   background-position: center; }
 
 /*
