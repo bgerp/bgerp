@@ -250,7 +250,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             
             ksort($tArr['now']);
             
-            $noEvent = '<small style="vertical-align:text-top">&nbsp;' . tr('Няма събития') . '</small>';
+            $noEvent = '<small style="vertical-align:text-top">' . tr('Няма събития') . '</small>';
             
             $lastKey = null;
             
@@ -314,12 +314,12 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $dBlock->replace($nowClassName, 'NOW_CLASS_NAME');
                 
                 if ($tRowArr['events']) {
-                    $dBlock->append('<span class="title"><small style="vertical-align:text-top">&nbsp;' . tr('Празнуваме||Celebrate') . ':</small>' . $tRowArr['events'] . '</span>', 'NOW');
+                    $dBlock->append('<span class="subTitle"><small style="vertical-align:text-top">' . tr('Празнуваме||Celebrate') . ':</small>' . $tRowArr['events'] . '</span>', 'NOW');
                     unset($tRowArr['events']);
                 }
                 
                 foreach ($tRowArr as $tRow) {
-                    $dBlock->append('<div class="task">' . $tRow->title . '</div>', 'NOW');
+                    $dBlock->append('<div class="subTitle">' . $tRow->title . '</div>', 'NOW');
                 }
                 
                 $dBlock->removeBlocks();

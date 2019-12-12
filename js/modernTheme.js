@@ -20,15 +20,15 @@ function initElements() {
 	if($('.narrow .vertical .formTable').length) {
 		$('#main-container').addClass('unbeddedHeader');
 	}
-	
+
 	var viewportWidth = $(window).width();
-	
+
 	if(viewportWidth > 600){
 		 $('.btn-sidemenu').jPushMenu({closeOnClickOutside: false, closeOnClickInside: false});
 	} else {
 		$('.btn-sidemenu').jPushMenu();
 	}
-	
+
     if($('#main-container > .tab-control > .tab-row').length == 0) {
         $('#framecontentTop').css('border-bottom', '1px solid #ccc');
     }
@@ -120,7 +120,7 @@ function setViewportWidth(viewportWidth) {
  */
 function setMenuCookie(){
 	var menuState = $(window).width() + ":";
-	
+
 	if($('.sidemenu-left').hasClass('sidemenu-open')){
 		menuState += 'l';
 	}
@@ -135,7 +135,7 @@ function setMenuCookie(){
 			if ($(this).attr('data-menuid') != 'undefined')
 				openMenus += $(this).attr('data-menuId') + ",";
 		});
-		
+
 		var verticalOffset = $('#nav-panel').scrollTop();
 		menuState += " " + openMenus +  ":"  + verticalOffset;
 	}
@@ -320,8 +320,38 @@ function sidebarBookmarkActions() {
 		setBookmarkCookie();
 	});
 }
+
+
+function openNewCurrentTab(lastNotifyTime){
+	if(!$('body').hasClass('modern-theme') || $('body').hasClass('wide')) return;
+	var current;
+	// взимаме данните за портала в бисквитката
+	var portalTabs = getCookie('newPortalTabs');
+	var lastLoggedNotification = getCookie('notifyTime');
+
+	if(typeof lastLoggedNotification !== 'undefined' && lastLoggedNotification < lastNotifyTime) {
+		current = $(".bgerp_drivers_Notifications").first();
+	} else if($("#" +  portalTabs).length) {
+		current = $("#" + portalTabs );
+	}  else {
+		// първия таб да е активен
+		current = $('.narrow .swipe-tabs').first();
+	}
+	if(current.hasClass('bgerp_drivers_Notifications')) {
+		setCookie('notifyTime', lastNotifyTime);
+	}
+
+	var id = $(current).attr('id');
+	setCookie('newPortalTabs', id);
+
+	prepareTabs(current, lastNotifyTime);
+}
+
+
+
 // подготвя табовете в мобилен
-function prepareTabs(){
+function prepareTabs(currentTab, lastNotifyTime){
+
 	var $swipeTabsContainer = $('.swipe-tabs'),
 		$swipeTabs = $('.swipe-tab'),
 		$swipeTabsContentContainer = $('.swipe-tabs-container'),
@@ -337,13 +367,16 @@ function prepareTabs(){
 		$('.swipe-tab[data-slick-index=' + currentIndex + ']').addClass(activeTabClassName);
 	});
 
+	var indexNum = parseInt(currentTab.attr('data-index'));
+
 	$swipeTabsContainer.slick({
 		slidesToShow: 2.4,
 		slidesToScroll: 1,
 		arrows: false,
 		infinite: false,
 		swipeToSlide: true,
-		touchThreshold: 10
+		touchThreshold: 10,
+		initialSlide: indexNum
 	});
 
 	$swipeTabsContentContainer.slick({
@@ -354,7 +387,8 @@ function prepareTabs(){
 		infinite: false,
 		swipeToSlide: true,
 		draggable: false,
-		touchThreshold: 10
+		touchThreshold: 10,
+		initialSlide: indexNum
 	});
 
 
@@ -372,6 +406,19 @@ function prepareTabs(){
 		currentIndex = $(this).slick('slickCurrentSlide');
 		$swipeTabs.removeClass(activeTabClassName);
 		$('.swipe-tab[data-slick-index=' + currentIndex + ']').addClass(activeTabClassName);
+
+
+	});
+
+	// след смяна на таба да запишем в бискритката последния таб
+	$swipeTabsContentContainer.on('afterChange', function(event, slick, direction) {
+		currentIndex = $(this).slick('slickCurrentSlide');
+
+		var el = $(".swipe-tab[data-index='" + currentIndex + "']");
+		if(el.hasClass('bgerp_drivers_Notifications')) {
+			setCookie('notifyTime', lastNotifyTime);
+		}
+		setCookie('newPortalTabs', el.attr('id'));
 	});
 }
 
@@ -423,7 +470,7 @@ function disableScale() {
 
 
 /**
- * 
+ *
  * @param obj
  * @param inputClassName
  * @param fieldName
@@ -432,14 +479,14 @@ function searchInLink(obj, inputClassName, fieldName, haveGet)
 {
 	var inputVal = $('.' + inputClassName).val();
 	if (inputVal) {
-		
+
 		var amp = '&';
 		if (!haveGet) {
 			amp = '?';
 		}
-		
+
 		window.location.href = obj.href + amp + fieldName + '=' + encodeURIComponent(inputVal);
-		
+
 		return false;
 	}
 }
@@ -447,7 +494,7 @@ function searchInLink(obj, inputClassName, fieldName, haveGet)
 
 /**
  * При натискане на ентер симулира натискане на линка
- * 
+ *
  * @param obj
  */
 function onSearchEnter(obj, id, inp)
