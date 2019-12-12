@@ -1158,8 +1158,8 @@ class pos_Terminal extends peripheral_Terminal
         // Намираме всички чернови бележки и ги добавяме като линк
         $query = pos_Receipts::getQuery();
         $query->XPR('createdDate', 'date', 'DATE(#createdOn)');
-        $query->where("#state != 'rejected' AND #id != {$rec->id}");
-        $query->orderBy("#createdDate", 'DESC');
+        $query->where("#state != 'rejected'");
+        $query->orderBy("#createdDate,#id", 'DESC');
         $query->limit(self::$maxSearchReceipts);
         if(!empty($string)){
             plg_Search::applySearch($string, $query);
@@ -1175,18 +1175,19 @@ class pos_Terminal extends peripheral_Terminal
         $arr[$today]->append($addBtn, 'element');
         
         // Групиране на записите по дата
-        while ($rec = $query->fetch()) {
-            if(!array_key_exists($rec->createdDate, $arr)){
-                $arr[$rec->createdDate] = clone $dateBlock;
-                $arr[$rec->createdDate]->replace(dt::mysql2verbal($rec->createdDate, 'smartDate'), 'groupName');
+        while ($receiptRec = $query->fetch()) {
+            if(!array_key_exists($receiptRec->createdDate, $arr)){
+                $arr[$receiptRec->createdDate] = clone $dateBlock;
+                $arr[$receiptRec->createdDate]->replace(dt::mysql2verbal($receiptRec->createdDate, 'smartDate'), 'groupName');
             }
             
-            $class = isset($rec->revertId) ? 'revertReceipt' : '';
-            $openUrl = (pos_Receipts::haveRightFor('terminal', $rec->id)) ? array('pos_Terminal', 'open', 'receiptId' => $rec->id, 'opened' => true) : array();
+            $class = isset($receiptRec->revertId) ? 'revertReceipt' : '';
+            $openUrl = (pos_Receipts::haveRightFor('terminal', $receiptRec->id)) ? array('pos_Terminal', 'open', 'receiptId' => $receiptRec->id, 'opened' => true) : array();
             $class .= (count($openUrl)) ? ' navigable' : ' disabledBtn';
+            $class .= ($receiptRec->id == $rec->id) ? ' currentReceipt' : '';
             
-            $row = ht::createLink(self::getReceiptTitle($rec, false), $openUrl, null, array('id' => "receipt{$rec->id}", 'class' => "pos-notes posBtns {$class} state-{$rec->state}", 'title' => 'Отваряне на бележката'));
-            $arr[$rec->createdDate]->append($row, 'element');
+            $row = ht::createLink(self::getReceiptTitle($receiptRec, false), $openUrl, null, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state}", 'title' => 'Отваряне на бележката'));
+            $arr[$receiptRec->createdDate]->append($row, 'element');
         }
         
         foreach ($arr as $blockTpl){
