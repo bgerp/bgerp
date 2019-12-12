@@ -219,12 +219,12 @@
 .posBtns {
 	box-sizing: border-box;
 	padding: 0.4em 1em 0.3em;
-	width: 198px;
-	height: 50px !important;
+	width: 220px;
+	height: 56px !important;
 	margin: 10px ;
 	color:#fff;
 	font-family: Arial;
-	font-size:1em;
+	font-size:1.1em;
 	text-align:center;
 	display: flex;
 	float: left;
@@ -262,9 +262,6 @@
 	}
 	&.state-draft {
 		background-color: rgba(187, 255, 255, 0.7);
-	}
-	&.revertReceipt {
-		color: red;
 	}
 }
 

@@ -189,12 +189,12 @@
 .posBtns {
   box-sizing: border-box;
   padding: 0.4em 1em 0.3em;
-  width: 198px;
-  height: 50px !important;
+  width: 220px;
+  height: 56px !important;
   margin: 10px;
   color: white;
   font-family: Arial;
-  font-size: 1em;
+  font-size: 1.1em;
   text-align: center;
   display: flex;
   float: left;
@@ -226,8 +226,6 @@
     background-color: rgba(230, 230, 230, 0.7); }
   .pos-notes.state-draft {
     background-color: rgba(187, 255, 255, 0.7); }
-  .pos-notes.revertReceipt {
-    color: red; }
 
 .resultPack {
   background: #feff6b;
