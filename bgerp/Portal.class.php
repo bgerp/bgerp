@@ -165,7 +165,7 @@ class bgerp_Portal extends embed_Manager
             $tpl = new ET("
                             <div class='sub-header'>
                                 <div class='swipe-tabs'>
-                                    <!--ET_BEGIN TAB_NAME--><span class='swipe-tab [#PORTAL_CLASS#]' id='[#TAB_ID#]' data-tab='[#DATA_TAB#]'>[#TAB_NAME#]</span><!--ET_END TAB_NAME-->
+                                    <!--ET_BEGIN TAB_NAME--><span class='swipe-tab [#PORTAL_CLASS#]' id='[#TAB_ID#]' data-tab='[#DATA_TAB#]' data-index='[#DATA_INDEX#]'>[#TAB_NAME#]</span><!--ET_END TAB_NAME-->
                                 </div>
                             </div>
                             
@@ -198,6 +198,8 @@ class bgerp_Portal extends embed_Manager
         
         $columnMap = array('left' => 'LEFT_COLUMN', 'center' => 'MIDDLE_COLUMN', 'right' => 'RIGHT_COLUMN');
         
+        $dIndex = 0;
+        
         foreach ($recArr as $r) {
             $rData = new stdClass();
             
@@ -214,6 +216,7 @@ class bgerp_Portal extends embed_Manager
             }
             
             $pClass = $this->getPortalClass($r->color);
+            $pClass .= ' ' . core_Classes::getName($r->{$this->driverClassField});
             $pId = $this->getPortalId($r->originIdCalc);
             
             $res->prepend("<div id='{$pId}' class='{$pClass}'>");
@@ -229,6 +232,7 @@ class bgerp_Portal extends embed_Manager
                 $blockTabNameTpl->replace($pClass, 'PORTAL_CLASS');
                 $blockTabNameTpl->replace('tab_' . $pId, 'TAB_ID');
                 $blockTabNameTpl->replace($pId, 'DATA_TAB');
+                $blockTabNameTpl->replace($dIndex++, 'DATA_INDEX');
                 $blockTabNameTpl->removeBlocks();
                 $blockTabNameTpl->append2master();
                 

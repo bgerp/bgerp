@@ -248,9 +248,41 @@ class bgerp_drivers_Calendar extends core_BaseClass
             
             $format = Mode::is('screenMode', 'narrow') ? 'd-M-year, D': 'd M-year, D';
             
+            ksort($tArr['now']);
+            
+            $noEvent = '<small style="vertical-align:text-top">&nbsp;' . tr('Няма събития') . '</small>';
+            
+            $lastKey = null;
+            
+            if (!empty($tArr['now'])) {
+                end($tArr['now']);
+                $lastKey = key($tArr['now']);
+            }
+            
+            if ((!isset($lastKey)) || ($lastKey == $today) || ($lastKey == $tomorrow)) {
+                $lastKey = $nextDay;
+            }
+            
+            $dCnt = 0;
+            while (true) {
+                $d = dt::addDays($dCnt, $today, false);
+                if ($d == $lastKey) {
+                    break;
+                }
+                    
+                if ($dCnt++ > 10) {
+                    break;
+                }
+                
+                if (!$tArr['now'][$d]) {
+                    $tArr['now'][$d][] = (object)array('title' => $noEvent);
+                }
+            }
+            
+            ksort($tArr['now']);
+            
             // Показваме събитията близките дни
             foreach ((array) $tArr['now'] as $tDate => $tRowArr) {
-                ksort($tRowArr);
                 
                 $dStr = dt::mysql2verbal($tDate, $format, null, null, false);
                 
