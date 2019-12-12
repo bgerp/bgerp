@@ -420,9 +420,10 @@ class refactor_Formater extends core_Manager
                 if($tokens[$i][0] == 346){ 
                     // 382 == T_WHITESPACE
                     if($tokens[$i+1][0] == 382  && $tokens[$i+3][0] == "("){
-                        if($tokens[$i+2][0] == 319 && $tokens[$i+2][1] == 'description'){
-                           // bp($tokens[$i+19]);
-                        }
+                       /* if($tokens[$i+2][0] == 319 && $tokens[$i+2][1] == 'description'){
+                            //378 == docComent
+                            bp($tokens[$i-5]);
+                        }*/
                      
                         // 319 == string
                         if($tokens[$i+2][0] == 319) { 
@@ -449,18 +450,19 @@ class refactor_Formater extends core_Manager
                         }
                     }
                 }
-            }
-            
-            // Създаваме масива с тоукъни
-            /*foreach ($tokens as $token) {bp($token);
-                if (is_array($token)) {
-                    $t->tokenArr[] = new refactor_Token($token[0], $t->tConstArr[$token[0]], $token[1]);
-                    bp( $t->tokenArr);
-                } else {
-                    $t->tokenArr[] = new refactor_Token($token, $token, $token);
+                // 346 == T_FUNCTION
+                if($tokens[$i][0] == 346){
+                    // 382 == T_WHITESPACE
+                    if($tokens[$i+1][0] == 382  && $tokens[$i+3][0] == "("){
+                        if($tokens[$i+2][0] == 319 && $tokens[$i+2][1] == 'description'){
+                            //378 == docComent
+                            while($tokens[$i][0] != 378){
+                                bp($tokens[$i-2]);
+                            }
+                        }
+                    }
                 }
-                
-            } ;*/ 
+            }
         } 
        
         //bp($functionArr);

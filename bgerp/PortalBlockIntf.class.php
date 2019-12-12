@@ -23,6 +23,12 @@ class bgerp_PortalBlockIntf extends embed_DriverIntf
     
     
     /**
+     * Максимален брой блокове, които да могат да се поакзват в портала
+     */
+    public $maxCnt;
+    
+    
+    /**
      * Подготвя данните
      * 
      * @param stdClass $dRec
