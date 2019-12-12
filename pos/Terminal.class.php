@@ -1209,7 +1209,7 @@ class pos_Terminal extends peripheral_Terminal
         $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
         if(isset($rec->returnedTotal)){
             $returnedTotalVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->returnedTotal);
-            $amountVerbal .= " (<span class='receiptResultReturnedAmount'>-{$returnedTotalVerbal}</span>)";
+            $amountVerbal .= " <span class='receiptResultReturnedAmount'>(-{$returnedTotalVerbal})</span>";
         }
         $title = "{$rec->id} / {$date} </br> <span class='receiptResultAmount'>{$amountVerbal}</span>";
         

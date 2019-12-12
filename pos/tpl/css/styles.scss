@@ -48,7 +48,7 @@
 		font-weight:bold;
 	}
 	.contragentRow {
-		margin-top: 3x;
+		margin-top: 3px;
 	}
 }
 
@@ -250,10 +250,21 @@
 }
 
 .pos-notes{
-    background:rgba(70,135,51,1);
-
+	color: #333 !important;
+	&.openNewNoteBtn {
+		background-color: rgba(187, 255, 255, 0.7);
+	}
+	&.state-waiting {
+		background-color: rgba(210, 255, 120, 0.6);
+	}
+	&.state-closed {
+		background-color: rgba(230, 230, 230, 0.7);
+	}
+	&.state-draft {
+		background-color: rgba(187, 255, 255, 0.7);
+	}
 	&.revertReceipt {
-		color: #8a0d0d !important;
+		color: red;
 	}
 }
 
@@ -278,6 +289,17 @@
 .disabledBtn.posBtns {
 	background: #999 !important;
 	color: #ccc !important
+}
+.receiptDateBlock {
+	display: block;
+	clear: both;
+	float: left;
+	width: 100%;
+	margin-bottom: 20px;
+}
+
+.receiptDateBlockLegend {
+	margin: 0 0 0 10px;
 }
 
 .posResultContragent {
