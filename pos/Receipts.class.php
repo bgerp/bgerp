@@ -227,7 +227,10 @@ class pos_Receipts extends core_Master
     {
         $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
         $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-        $row->changeCurrency = $row->currency;
+        if(!empty($rec->returnedTotal) && empty($rec->revertId)){
+            $row->returnedTotal = ht::styleIfNegative("-{$row->returnedTotal}", -1 * $rec->returnedTotal);
+            $row->returnedCurrency = $row->currency;
+        }
         
         $Contragent = new core_ObjectReference($rec->contragentClass, $rec->contragentObjectId);
         $contragentFolderId = $Contragent->fetchField('folderId');
@@ -269,6 +272,8 @@ class pos_Receipts extends core_Master
                 }
             }
         }
+        
+        $row->changeCurrency = $row->currency;
         
         if(isset($fields['-terminal'])){
             $row->id = ht::createLink($row->id, pos_Receipts::getSingleUrlArray($rec->id));
@@ -456,7 +461,7 @@ class pos_Receipts extends core_Master
         // Никой не може да оттегли затворена бележка
         if ($action == 'reject' && isset($rec)) {
             $period = acc_Periods::fetchByDate($rec->valior);
-            if ($rec->state == 'closed' || $period->state == 'closed') {
+            if ($rec->state == 'closed') {
                 $res = 'no_one';
             }
         }
@@ -498,6 +503,12 @@ class pos_Receipts extends core_Master
         
         if($action == 'edit' && isset($rec) && $rec->state == 'waiting'){
             $res = 'no_one';
+        }
+        
+        if ($action == 'revert' && isset($rec)) {
+            if(!empty($rec->returnedTotal) && round($rec->total - $rec->returnedTotal, 2) <= 0){
+                $res = 'no_one';
+            }
         }
     }
     
@@ -617,6 +628,14 @@ class pos_Receipts extends core_Master
         
         $this->requireRightFor('close', $rec);
         
+        // Ако е сторно бележка, проверява се може ли да се контира
+        if(isset($rec->revertId)){
+            $error = null;
+            if(!static::canCloseRevertReceipt($rec, $error)){
+                followRetUrl(null, $error, 'error');
+            }
+        }
+        
         $rec->state = 'waiting';
         $rec->__closed = true;
         if ($this->save($rec)) {
@@ -735,6 +754,7 @@ class pos_Receipts extends core_Master
     {
         $this->requireRightFor('revert');
         expect($id = Request::get('id', 'int'));
+        $this->requireRightFor('revert', $id);
         
         //$foundArr = $this->findReceiptByNumber($id, true);
         if (!is_object($foundArr['rec'])) {
@@ -882,7 +902,30 @@ class pos_Receipts extends core_Master
         $query->show('returnedTotalCalc');
         $tRec = $query->fetch();
         
-        $rec->returnedTotal = ($tRec->returnedTotalCalc) ? $tRec->returnedTotalCalc : null;
+        $rec->returnedTotal = ($tRec->returnedTotalCalc) ? -1 * $tRec->returnedTotalCalc : null;
         $this->save_($rec, 'returnedTotal');
+    }
+    
+    
+    /**
+     * Може ли да се приключи сторниращата бележка ?
+     * 
+     * @param mixed $rec
+     * @param null|string $error
+     * @return boolean
+     */
+    public static function canCloseRevertReceipt($rec, &$error = null)
+    {
+        $rec = static::fetchRec($rec);
+        expect($toRevertRec = static::fetch($rec->revertId));
+        $rest = round(($toRevertRec->total - $toRevertRec->returnedTotal), 2);
+        
+        if(round(abs($rec->total), 2) > $rest){
+            $restVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rest);
+            $error = "Не може да се сторнира по-голяма сума от очакваната|* <b>{$restVerbal}</b> !";
+            return false;
+        }
+        
+        return true;
     }
 }

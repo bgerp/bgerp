@@ -349,7 +349,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         // Бутон за приключване
-        $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id) : null;
+        $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id, 'ret_url' => true) : null;
         $disClass = ($contoUrl) ? '' : 'disabledBtn';
         $buttons["close"] = ht::createBtn('Приключи', $contoUrl, 'Желаете ли да приключите бележката|*?', false, "class=operationBtn button closeBtn {$disClass}");
         
@@ -639,9 +639,10 @@ class pos_Terminal extends peripheral_Terminal
                 $arr[$receiptRec->pointId]->replace(pos_Points::getTitleById($receiptRec->pointId), 'groupName');
             }
             
-            $linkUrl = (pos_Receipts::haveRightFor('revert')) ? array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true) : array();
+            $linkUrl = (pos_Receipts::haveRightFor('revert', $receiptRec->id)) ? array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true) : array();
             $disClass = ($linkUrl) ? '' : 'disabledBtn';
-            $btn = ht::createLink(self::getReceiptTitle($receiptRec), $linkUrl, 'Наистина ли желаете да сторнирате бележката|*?', "title=Сторниране на бележката,class=navigable posBtns pos-notes {$disClass} state-{$receiptRec->state},id=revert{$cnt}");
+            $warning = ($linkUrl) ? 'Наистина ли желаете да сторнирате бележката|*?' : false;
+            $btn = ht::createLink(self::getReceiptTitle($receiptRec), $linkUrl, $warning, "title=Сторниране на бележката,class=navigable posBtns pos-notes {$disClass} state-{$receiptRec->state},id=revert{$cnt}");
             $arr[$receiptRec->pointId]->append($btn, 'element');
             $cnt++;
         }
@@ -1207,7 +1208,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
         if(isset($rec->returnedTotal)){
-            $returnedTotalVerbal = core_Type::getByName('double(decimals=2)')->toVerbal(-1 * $rec->returnedTotal);
+            $returnedTotalVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->returnedTotal);
             $amountVerbal .= " (<span class='receiptResultReturnedAmount'>-{$returnedTotalVerbal}</span>)";
         }
         $title = "{$rec->id} / {$date} </br> <span class='receiptResultAmount'>{$amountVerbal}</span>";
