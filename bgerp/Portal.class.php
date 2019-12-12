@@ -261,6 +261,48 @@ class bgerp_Portal extends embed_Manager
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param bgerp_Portal $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        if ($data->action != 'clone' && !$data->form->rec->id) {
+            $optArr = $data->form->fields[$mvc->driverClassField]->type->prepareOptions();
+            
+            $recsArr = $mvc->getRecsForUser(null, false);
+            
+            $dArr = array();
+            
+            foreach ($recsArr as $r) {
+                $dArr[$r->{$mvc->driverClassField}]++;
+            }
+            
+            if (!empty($dArr)) {
+                foreach ($optArr as $clsId => $title) {
+                    if (!cls::load($clsId, true)) {
+                        continue;
+                    }
+                    
+                    $inst = cls::getInterface($mvc->driverInterface, $clsId);
+                    
+                    $maxCnt = $inst->class->maxCnt;
+                    
+                    if (isset($maxCnt)) {
+                        if ($maxCnt >= $dArr[$clsId]) {
+                            unset($optArr[$clsId]);
+                        }
+                    }
+                }
+            }
+            
+            $data->form->setOptions($mvc->driverClassField, $optArr);
+        }
+    }
+    
+    
+    /**
      * Връща блоковете в портала за AJAX
      *
      * @return array
@@ -497,11 +539,12 @@ class bgerp_Portal extends embed_Manager
      * Помощна функция за вземане на записите в модела
      *
      * @param null|int $userId
+     * @param boolean  $removeHidden
      * @param string   $roleType
      *
      * @return array
      */
-    protected function getRecsForUser($userId = null, $roleType = 'team')
+    protected function getRecsForUser($userId = null, $removeHidden = true, $roleType = 'team')
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -544,10 +587,12 @@ class bgerp_Portal extends embed_Manager
             $resArr[$rec->originIdCalc] = $rec;
         }
         
-        // Премахваме от масива блоковете, които да не се показват
-        foreach ($resArr as $rId => $rRec) {
-            if ($rRec->state == 'no') {
-                unset($resArr[$rId]);
+        if ($removeHidden) {
+            // Премахваме от масива блоковете, които да не се показват
+            foreach ($resArr as $rId => $rRec) {
+                if ($rRec->state == 'no') {
+                    unset($resArr[$rId]);
+                }
             }
         }
         

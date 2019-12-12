@@ -17,6 +17,13 @@
  */
 class bgerp_drivers_Calendar extends core_BaseClass
 {
+    
+    /**
+     * Максимален брой блокове, които да могат да се поакзват в портала
+     */
+    public $maxCnt = 1;
+    
+    
     public $interfaces = 'bgerp_PortalBlockIntf';
     
     protected $priorityMap = array(
@@ -36,7 +43,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $fieldset->FLD('fTasksPerPage', 'int(min=1, max=50)', 'caption=Показване на задачите в бъдеще->Редове, mandatory');
         $fieldset->FLD('fTasksDays', 'time(suggestions=1 месец|3 месеца|6 месеца)', 'caption=Показване на задачите в бъдеще->Дни, mandatory');
         $fieldset->FLD('taskPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Задачи');
-        $fieldset->FLD('remPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Напомнения');
+        $fieldset->FLD('remPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Напомняния');
     }
     
     

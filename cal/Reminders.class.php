@@ -178,7 +178,7 @@ class cal_Reminders extends core_Master
     
     
     /**
-     * Масив с id на напомненията, които отварят нишки в този хит
+     * Масив с id на напомнянията, които отварят нишки в този хит
      */
     public static $opened = array();
     

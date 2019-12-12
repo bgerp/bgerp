@@ -17,6 +17,13 @@
  */
 class acc_drivers_TotalRepPortal extends core_BaseClass
 {
+    
+    /**
+     * Максимален брой блокове, които да могат да се поакзват в портала
+     */
+    public $maxCnt;
+    
+    
     public $interfaces = 'bgerp_PortalBlockIntf';
     
     

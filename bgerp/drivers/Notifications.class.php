@@ -17,6 +17,13 @@
  */
 class bgerp_drivers_Notifications extends core_BaseClass
 {
+    
+    /**
+     * Максимален брой блокове, които да могат да се поакзват в портала
+     */
+    public $maxCnt = 1;
+    
+    
     public $interfaces = 'bgerp_PortalBlockIntf';
     
     
