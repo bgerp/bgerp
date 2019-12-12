@@ -2673,9 +2673,6 @@ table.mc-calendar {
 		padding: 2px;
 		display: block;
 		white-space: nowrap;
-		span, a {
-			display: inline-block;
-		}
 	}
 
 	.progress {
@@ -2688,8 +2685,14 @@ table.mc-calendar {
 		clear: both;
 		font-size: 0.9em;
 	}
-	.task {
+	.subTitle {
 		padding: 4px;
+		small {
+			padding-left: 7px;
+		}
+		span, a {
+			display: inline-block;
+		}
 	}
 	&.portal-cal-today {
 		background-color: rgba(225, 251, 162, 1);
