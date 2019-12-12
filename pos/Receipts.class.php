@@ -460,7 +460,6 @@ class pos_Receipts extends core_Master
         
         // Никой не може да оттегли затворена бележка
         if ($action == 'reject' && isset($rec)) {
-            $period = acc_Periods::fetchByDate($rec->valior);
             if ($rec->state == 'closed') {
                 $res = 'no_one';
             }

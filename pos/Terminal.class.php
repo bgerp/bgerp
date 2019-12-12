@@ -125,6 +125,7 @@ class pos_Terminal extends peripheral_Terminal
         expect($id = Request::get('receiptId', 'int'));
         expect($rec = $Receipts->fetch($id));
         
+        // Ако се отваря нова бележка нулира се в сесията запомненото
         if(Request::get('opened', 'int')){
             $redirectUrl = getCurrentUrl();
             unset($redirectUrl['opened']);
@@ -158,23 +159,18 @@ class pos_Terminal extends peripheral_Terminal
             // Задаване на празна обвивка
             Mode::set('wrapper', 'page_Empty');
             
-            // Ако сме чернова, добавяме пултовете
-            if ($rec->state == 'draft') {
+            $defaultOperation = Mode::get("currentOperation{$rec->id}") ? Mode::get("currentOperation{$rec->id}") : 'add';
+            $defaultSearchString = Mode::get("currentSearchString{$rec->id}");
+            if(!Mode::is('printing')){
                 
-                $defaultOperation = Mode::get("currentOperation{$rec->id}") ? Mode::get("currentOperation{$rec->id}") : 'add';
-                $defaultSearchString = Mode::get("currentSearchString{$rec->id}");
+                // Добавяне на табовете под бележката
+                $toolsTpl = $this->getCommandPanel($rec, $defaultOperation);
+                $tpl->replace($toolsTpl, 'TAB_TOOLS');
                 
-                if(!Mode::is('printing')){
-                    
-                    // Добавяне на табовете под бележката
-                    $toolsTpl = $this->getCommandPanel($rec, $defaultOperation);
-                    $tpl->replace($toolsTpl, 'TAB_TOOLS');
-                    
-                    // Добавяне на табовете показващи се в широк изглед отстрани
-                    $lastRecId = pos_ReceiptDetails::getLastRec($rec->id, 'sale')->id;
-                    $resultTabHtml = $this->renderResult($rec, $defaultOperation, $defaultSearchString, $lastRecId);
-                    $tpl->append($resultTabHtml, 'SEARCH_RESULT');
-                }
+                // Добавяне на табовете показващи се в широк изглед отстрани
+                $lastRecId = pos_ReceiptDetails::getLastRec($rec->id, 'sale')->id;
+                $resultTabHtml = $this->renderResult($rec, $defaultOperation, $defaultSearchString, $lastRecId);
+                $tpl->append($resultTabHtml, 'SEARCH_RESULT');
             }
         } else {
             $tpl->append('не се дължи плащане', 'PAYMENT_NOT_REQUIRED');
