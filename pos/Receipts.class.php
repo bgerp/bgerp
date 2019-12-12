@@ -885,12 +885,4 @@ class pos_Receipts extends core_Master
         $rec->returnedTotal = ($tRec->returnedTotalCalc) ? $tRec->returnedTotalCalc : null;
         $this->save_($rec, 'returnedTotal');
     }
-    
-    
-    public static function getReceiptInfoForRevert($id)
-    {
-        
-        
-        //$res = array();
-    }
 }

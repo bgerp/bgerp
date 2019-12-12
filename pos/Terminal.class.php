@@ -1204,8 +1204,13 @@ class pos_Terminal extends peripheral_Terminal
     {
         $mask = ($fullDate) ? 'd.m. h:i' : 'h:i';
         $date = dt::mysql2verbal($rec->createdOn, $mask);
+        
         $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
-        $title = "{$rec->id} / {$date} </br> {$amountVerbal}";
+        if(isset($rec->returnedTotal)){
+            $returnedTotalVerbal = core_Type::getByName('double(decimals=2)')->toVerbal(-1 * $rec->returnedTotal);
+            $amountVerbal .= " (<span class='receiptResultReturnedAmount'>-{$returnedTotalVerbal}</span>)";
+        }
+        $title = "{$rec->id} / {$date} </br> <span class='receiptResultAmount'>{$amountVerbal}</span>";
         
         return $title;
     }
