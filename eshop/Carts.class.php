@@ -43,8 +43,8 @@ class eshop_Carts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,ip,brid,domainId,state,createdOn=Създаване,activatedOn=Активиране';
-    
+    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,ip,brid,createdOn=Създаване,activatedOn=Активиране';
+    //,domainId,state
     
     /**
      * Наименование на единичния обект
@@ -220,13 +220,13 @@ class eshop_Carts extends core_Master
     {
         $data->listFilter->FNC('domain', 'key(mvc=cms_Domains,select=titleExt)', 'caption=Домейн,input,silent');
         $data->listFilter->FNC('type', 'enum(all=Всички,draft=Чернови,active=Активни,empty=Празни,users=От потребител,anonymous=Без потребител,pendingSales=С чакащи продажби)', 'caption=Вид,input,silent');
-        $data->listFilter->input();
         
         $data->listFilter->setDefault('type', 'all');
         $data->listFilter->setDefault('domain', cms_Domains::getCurrent('id', false));
         
         $data->listFilter->showFields .= ',domain,type';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
         
         if ($filter = $data->listFilter->rec) {
             if (!empty($filter->domain)) {
