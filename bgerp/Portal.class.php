@@ -26,7 +26,7 @@ class bgerp_Portal extends embed_Manager
     public $canClonesysdata = 'powerUser';
     public $canCloneuserdata = 'powerUser';
     public $canClonerec = 'powerUser';
-
+    
     public $canList = 'powerUser';
     public $canSingle = 'powerUser';
     public $canAdd = 'powerUser';
@@ -64,11 +64,13 @@ class bgerp_Portal extends embed_Manager
     public $activeState = 'yes';
     public $closedState = 'no';
     
+    
     /**
      * Брой записи на страница
      */
     public $listItemsPerPage = 100;
-
+    
+    
     /**
      * Описание на модела
      */
@@ -81,6 +83,52 @@ class bgerp_Portal extends embed_Manager
         $this->FLD('state', 'enum(yes=Да,no=Не)', 'caption=Показване, notNull,oldFieldName=show,smartCenter');
         
         $this->FNC('originIdCalc', 'key(mvc=bgerp_Portal, allowEmpty)', 'caption=Източник,input=none');
+    }
+    
+    
+    /**
+     * Инвалидиране на кеша за блока
+     * 
+     * @param null|integer $userId
+     * @param mixed $driver
+     * @param stdClass $rec
+     */
+    public static function invalidateCache($userId = null, $driver = null, $rec = null)
+    {
+        if (bgerp_Setup::get('PORTAL_VIEW') != 'customized') {
+            
+            return ;
+        }
+        
+        expect($driver || $rec);
+        
+        $me = cls::get(get_called_class());
+        
+        if ($rec) {
+            $rec = self::fetchRec($rec);
+        }
+        
+        if ($rec->{$me->driverClassField}) {
+            $driver = $rec->{$me->driverClassField};
+        }
+        
+        expect($driver);
+        
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $intf = cls::getInterface('bgerp_PortalBlockIntf', $driver);
+        
+        $typeName = $intf->getCacheTypeName($userId);
+        
+        if ($rec) {
+            $cacheKey = $intf->getCacheKey($rec, $userId);
+            
+            core_Cache::remove($typeName, $cacheKey);
+        } else {
+            core_Cache::removeByType($typeName);
+        }
     }
     
     
@@ -98,9 +146,8 @@ class bgerp_Portal extends embed_Manager
             $rec->originIdCalc = $rec->id;
         }
     }
-
-
-
+    
+    
     /**
      * Преди подготвяне на едит формата
      */
@@ -175,14 +222,14 @@ class bgerp_Portal extends embed_Manager
                                 </div>
                             </div>
                             ");
-
+            
             // Включваме необходимия JS
             $tpl->push("slick/1.8/js/slick.js", 'JS');
-
+            
             // Включваме необходимия CSS
             $tpl->push("slick/1.8/css/slick.css", 'CSS');
             $tpl->push("slick/1.8/css/slick-theme.css", 'CSS');
-
+            
             jquery_Jquery::run($tpl, "openNewCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime(core_Users::getCurrent())) . "'); ");
         } else {
             $tpl = new ET("
@@ -248,7 +295,7 @@ class bgerp_Portal extends embed_Manager
                 break;
             }
         }
-        
+
 //         if ($isNarrow) {
 //             jquery_Jquery::run($tpl, "openCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime(core_Users::getCurrent())) . "'); ");
 //         }
@@ -476,12 +523,6 @@ class bgerp_Portal extends embed_Manager
      */
     protected function saveAJAXCache($res, $rData, $rec)
     {
-        $cKey = $rData->cacheKey;
-        
-        if (!$cKey) {
-            $cKey = md5($res);
-        }
-        
         $newCache = $this->getCacheVal($res, $rData);
         
         $cName = $this->getCacheName($rec);
@@ -510,11 +551,17 @@ class bgerp_Portal extends embed_Manager
     {
         $cKey = $rData->cacheKey;
         
-        if (!$cKey) {
-            $cKey = md5($res);
+        // Добавяме и резултата към AJAX, за да може при промяна, да се обнови
+        if (is_object($res)) {
+            $content = $res->getContent();
+        } else {
+            $content = $res;
         }
         
-        $cKey .= '|' . core_Users::getCurrent();
+        // Премахваме оцветяванията, за да не предизвикват чести обновявания
+        $content = preg_replace('/color\s*\:\s*\#[a-z0-9]{3,6}\;?/i', '', $content);
+        
+        $cKey .= '|' . $content . '|' . core_Users::getCurrent();
         
         $cKey = md5($cKey);
         
@@ -681,6 +728,7 @@ class bgerp_Portal extends embed_Manager
         $data->query->orderBy('createdBy', 'DESC');
     }
     
+    
     /**
      * След извличане на записите от БД
      * Премахва клонираните редове
@@ -697,7 +745,7 @@ class bgerp_Portal extends embed_Manager
             }
         }
     }
-
+    
     
     /**
      * Показва портала
@@ -981,7 +1029,6 @@ class bgerp_Portal extends embed_Manager
      */
     public static function getPortalSearchInputFieldName($searchInputFields, $oIdCalc)
     {
-        
         return $searchInputFields . '_' . $oIdCalc;
     }
 }
