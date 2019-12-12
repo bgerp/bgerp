@@ -17,7 +17,6 @@
  */
 class bgerp_drivers_Tasks extends core_BaseClass
 {
-    
     /**
      * Максимален брой блокове, които да могат да се поакзват в портала
      */
@@ -32,6 +31,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
                                     'high' => 'high|critical',
                                     'critical' => 'critical',
                                     );
+    
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -292,6 +292,23 @@ class bgerp_drivers_Tasks extends core_BaseClass
     
     
     /**
+     * Името на стойността за кеша
+     *
+     * @param integer $userId
+     *
+     * @return string
+     */
+    public function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        return 'Portal_Tasks_' . $userId;
+    }
+    
+    
+    /**
      * Помощна функция за вземане на ключа за кеша
      *
      * @param stdClass $dRec
@@ -299,7 +316,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
      *
      * @return string
      */
-    protected function getCacheKey($dRec, $userId = null)
+    public function getCacheKey($dRec, $userId = null)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -342,26 +359,9 @@ class bgerp_drivers_Tasks extends core_BaseClass
      */
     protected function getPageVar($oIdCalc)
     {
-        
         return 'P_' . get_called_class() . '_' . $oIdCalc;
     }
     
-    
-    /**
-     * Името на стойността за кеша
-     *
-     * @param integer $oIdCalc
-     *
-     * @return string
-     */
-    protected function getCacheTypeName($userId = null)
-    {
-        if (!isset($userId)) {
-            $userId = core_Users::getCurrent();
-        }
-        
-        return 'Portal_Tasks_' . $userId;
-    }
     
     /**
      * Помощна фунцкия за проверка дали задачата е от или към текущия потребител

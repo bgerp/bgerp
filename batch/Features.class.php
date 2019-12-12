@@ -99,7 +99,7 @@ class batch_Features extends core_Manager
         // Какви са свойствата
         $features = $Def->getFeatures($itemRec->batch);
         expect(is_array($features));
-        expect(countR($features));
+        expect(count($features));
         
         // Подготовка на записите
         $self = cls::get(get_called_class());

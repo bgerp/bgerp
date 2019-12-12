@@ -17,7 +17,6 @@
  */
 class acc_drivers_TotalRepPortal extends core_BaseClass
 {
-    
     /**
      * Максимален брой блокове, които да могат да се поакзват в портала
      */
@@ -180,8 +179,24 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
      */
     public function getBlockTabName($dRec)
     {
-        
         return tr('Общи цели');
+    }
+    
+    
+    /**
+     * Името на стойността за кеша
+     *
+     * @param integer $userId
+     *
+     * @return string
+     */
+    public function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        return 'Portal_TotalRep_' . $userId;
     }
     
     
@@ -193,7 +208,7 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
      *
      * @return string
      */
-    protected function getCacheKey($dRec, $userId = null)
+    public function getCacheKey($dRec, $userId = null)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -218,22 +233,5 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
         }
         
         return md5(implode('|', $cArr));
-    }
-    
-    
-    /**
-     * Името на стойността за кеша
-     *
-     * @param integer $oIdCalc
-     *
-     * @return string
-     */
-    protected function getCacheTypeName($userId = null)
-    {
-        if (!isset($userId)) {
-            $userId = core_Users::getCurrent();
-        }
-        
-        return 'Portal_TotalRep_' . $userId;
     }
 }

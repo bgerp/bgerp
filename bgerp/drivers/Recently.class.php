@@ -17,8 +17,6 @@
  */
 class bgerp_drivers_Recently extends core_BaseClass
 {
-    
-	
     /**
      * Максимален брой блокове, които да могат да се поакзват в портала
      */
@@ -216,12 +214,27 @@ class bgerp_drivers_Recently extends core_BaseClass
      */
     public function getBlockTabName($dRec)
     {
-        
         return tr('Последно');
     }
     
     
-//     $resData->cacheKey = '_' . Request::get($Recently->searchInputField) );
+    /**
+     * Името на стойността за кеша
+     *
+     * @param integer $userId
+     *
+     * @return string
+     */
+    public function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        return 'Portal_RecentDoc_' . $userId;
+    }
+    
+    
     /**
      * Помощна функция за вземане на ключа за кеша
      *
@@ -230,7 +243,7 @@ class bgerp_drivers_Recently extends core_BaseClass
      *
      * @return string
      */
-    protected function getCacheKey($dRec, $userId = null)
+    public function getCacheKey($dRec, $userId = null)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -273,24 +286,6 @@ class bgerp_drivers_Recently extends core_BaseClass
      */
     protected function getPageVar($oIdCalc)
     {
-        
         return 'P_' . get_called_class() . '_' . $oIdCalc;
-    }
-    
-    
-    /**
-     * Името на стойността за кеша
-     *
-     * @param integer $oIdCalc
-     *
-     * @return string
-     */
-    protected function getCacheTypeName($userId = null)
-    {
-        if (!isset($userId)) {
-            $userId = core_Users::getCurrent();
-        }
-        
-        return 'Portal_RecentDoc_' . $userId;
     }
 }
