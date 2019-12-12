@@ -44,7 +44,7 @@ class eshop_Carts extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,ip,brid,createdOn=Създаване,activatedOn=Активиране';
-    //,domainId,state
+    
     
     /**
      * Наименование на единичния обект
