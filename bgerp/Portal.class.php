@@ -214,6 +214,7 @@ class bgerp_Portal extends embed_Manager
             }
             
             $pClass = $this->getPortalClass($r->color);
+            $pClass .= ' ' . core_Classes::getName($r->{$this->driverClassField});
             $pId = $this->getPortalId($r->originIdCalc);
             
             $res->prepend("<div id='{$pId}' class='{$pClass}'>");
