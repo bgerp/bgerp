@@ -1965,7 +1965,7 @@ pre.document {
     padding-bottom: 4px; }
 
 .line-through {
-  text-decoration: line-through; }
+  text-decoration: line-through !important; }
 
 .innerTable {
   border-collapse: collapse; }
