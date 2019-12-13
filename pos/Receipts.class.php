@@ -647,7 +647,7 @@ class pos_Receipts extends core_Master
         $rec->state = 'waiting';
         $rec->__closed = true;
         if ($this->save($rec)) {
-            if(isset($rec->revertId)){
+            if(isset($rec->revertId) && $rec->revertId != static::DEFAULT_REVERT_RECEIPT){
                 $this->calcRevertedTotal($rec->revertId);
             }
             
