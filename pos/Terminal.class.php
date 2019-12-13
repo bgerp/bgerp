@@ -82,6 +82,12 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
+     * Шорткъти за бутоните в терминала
+     */
+    protected static $operationShortcuts = 'operation-add=A,operation-payment=A,operation-quantity=A,operation-price=A,operation-discount=A,operation-text=A,operation-contragent=A,operation-receipts=A,operation-revert=A,enlarge=A,print=A,close=A,batch=A';
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -359,10 +365,16 @@ class pos_Terminal extends peripheral_Terminal
         
         // Добавяне на бутон за приключване на бележката
         $Receipts->invoke('BeforeGetPaymentTabBtns', array(&$buttons, $rec));
-        foreach ($buttons as $btn){
+        
+        // Добавяне на бутоните за операции + шорткътите към тях
+        $shortCuts = arr::make(static::$operationShortcuts);
+        foreach ($buttons as $key => $btn){
+            $btn->append("<span class='buttonOverlay'>{$shortCuts[$key]}</span>");
+            $btn = ht::createElement('div', array('class' => 'operationHolder'), $btn, true);
             $block->append($btn, 'INPUT_FLD');
         }
         
+        // Добавяне на полето за търсене и клавиатурата
         $input = ht::createElement('input', $params);
         $holder = ht::createElement('div', array('class' => 'inputHolder'), $input, true);
         $block->append($holder, 'INPUT_FLD');
