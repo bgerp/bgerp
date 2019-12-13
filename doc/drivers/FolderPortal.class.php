@@ -119,6 +119,9 @@ class doc_drivers_FolderPortal extends core_BaseClass
             doc_Threads::applyFilter($filter, $dQuery);
             
             $Threads = cls::get('doc_Threads');
+            $Threads->addRowClass = false;
+            $Threads->addThreadStateClassToLink = true;
+            
             $Threads->loadList = arr::make($Threads->loadList, true);
             unset($Threads->loadList['plg_RefreshRows']);
             unset($Threads->_plugins['plg_RefreshRows']);

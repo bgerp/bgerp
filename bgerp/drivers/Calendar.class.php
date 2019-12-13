@@ -526,6 +526,14 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $linkArr['class'] = 'tUnsighted';
         }
         
+        if ($rec->state == 'closed') {
+            $linkArr['class'] .= ' line-through';
+        }
+        
+        if (doc_Threads::fetchField($rec->threadId, 'state') == 'opened') {
+            $linkArr['class'] .= ' state-opened';
+        }
+        
         $rToVerb->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, $linkArr);
         
         $rToVerb->title->append(' ' . $rToVerb->progress);

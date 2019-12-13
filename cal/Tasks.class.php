@@ -508,7 +508,6 @@ class cal_Tasks extends embed_Manager
         }
         
         $progressStr = $row->progress;
-        
         if (($rec->state == 'waiting') || ($rec->state == 'pending') || ($rec->state == 'wakeup')) {
             if ($rec->progress) {
                 $progressStr = "[{$progressStr}]";
@@ -521,7 +520,13 @@ class cal_Tasks extends embed_Manager
             $progressStr = "[{$progressStr}]";
         }
         
-        $row->progress = "<span class='progress' style='color:{$grey};{$bold}'>{$progressStr}</span>";
+        $lineTh = '';
+        if ($rec->state == 'stopped') {
+            $lineTh = 'text-decoration: line-through;';
+        }
+        
+        
+        $row->progress = "<span class='progress' style='color:{$grey};{$bold}{$lineTh}'>{$progressStr}</span>";
         
         // Ако имаме само начална дата на задачата
         if ($rec->timeStart && !$rec->timeEnd) {
