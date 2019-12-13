@@ -469,7 +469,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $Tasks->listItemsPerPage = $pArr['tPerPage'];
         $fTasks->usePortalArrange = false;
-        $fTasks->listFields = 'title,progress';
+        $fTasks->listFields = 'title';
         
         $Tasks->prepareListPager($fTasks);
         
