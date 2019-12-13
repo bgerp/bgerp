@@ -169,11 +169,11 @@ class batch_BatchesInDocuments extends core_Manager
             
             $caption = $batchDef->getFieldCaption();
             $label = (!empty($caption)) ? tr($caption) . ':' : 'lot:';
-            $batch1 = $batch;
             $batch = implode(', ', $batch);
             
+            
             // Вербализацията на к-то ако е нужно
-            if (countR($batch1) == 1 && (!($batchDef instanceof batch_definitions_Serial))) {
+            if (countR($batch) == 1 && (!($batchDef instanceof batch_definitions_Serial))) {
                 $quantityInPack = empty($rInfo->quantityInPack) ? 1 : $rInfo->quantityInPack;
                 $q = $rec->quantity / $quantityInPack;
                 $quantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($q);
