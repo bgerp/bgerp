@@ -645,9 +645,10 @@ class pos_Terminal extends peripheral_Terminal
         
         while($receiptRec = $query->fetch()){
             $linkUrl = (pos_Receipts::haveRightFor('revert', $receiptRec->id)) ? array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true) : array();
-            $disClass = ($linkUrl) ? 'navigable' : 'disabledBtn';
+            $class = ($rec->pointId != $receiptRec->pointId) ? 'differentPosBtn' : '';
+            $class .= ($linkUrl) ? ' navigable' : ' disabledBtn';
             $warning = ($linkUrl) ? 'Наистина ли желаете да сторнирате бележката|*?' : false;
-            $btn = ht::createLink(self::getReceiptTitle($receiptRec), $linkUrl, $warning, "title=Сторниране на бележката,class=posBtns pos-notes {$disClass} state-{$receiptRec->state},id=revert{$cnt}");
+            $btn = ht::createLink(self::getReceiptTitle($receiptRec), $linkUrl, $warning, "title=Сторниране на бележката,class=posBtns pos-notes {$class} state-{$receiptRec->state},id=revert{$cnt}");
             $tpl->append($btn);
             $cnt++;
         }
@@ -1148,7 +1149,7 @@ class pos_Terminal extends peripheral_Terminal
         // Намираме всички чернови бележки и ги добавяме като линк
         $query = pos_Receipts::getQuery();
         $query->XPR('createdDate', 'date', 'DATE(#createdOn)');
-        $query->where("#state != 'rejected'");
+        $query->where("#state != 'rejected' AND #pointId = {$rec->pointId}");
         $query->orderBy("#createdDate,#id", 'DESC');
         $query->limit(self::$maxSearchReceipts);
         if(!empty($string)){
@@ -1206,7 +1207,7 @@ class pos_Terminal extends peripheral_Terminal
             $returnedTotalVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->returnedTotal);
             $amountVerbal .= " <span class='receiptResultReturnedAmount'>(-{$returnedTotalVerbal})</span>";
         }
-        $title = "{$rec->id} / {$date} </br> <span class='receiptResultAmount'>{$amountVerbal}</span>";
+        $title = "{$rec->id}/ {$date}</br> <span class='receiptResultAmount'>{$amountVerbal}</span>";
         
         return $title;
     }

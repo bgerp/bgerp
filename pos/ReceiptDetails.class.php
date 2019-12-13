@@ -682,7 +682,7 @@ class pos_ReceiptDetails extends core_Detail
         
         if($action == 'load' && isset($rec)){
             $masterRec = pos_Receipts::fetch($rec->receiptId, 'revertId,state');
-            if(empty($masterRec->revertId) || $masterRec->state != 'draft'){
+            if(empty($masterRec->revertId) || $masterRec->state != 'draft' || $masterRec->revertId == pos_Receipts::DEFAULT_REVERT_RECEIPT){
                 $res = 'no_one';
             }
         }
