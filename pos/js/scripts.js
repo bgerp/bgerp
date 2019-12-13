@@ -250,7 +250,8 @@ function posActions() {
 
 
 	document.addEventListener("keydown", function(event) {
-		console.log(event.key);
+		//console.log(event.key);
+		//console.log(event.key);
 		if(event.key == "ArrowUp"){
 			arrowUp();
 		}
@@ -268,12 +269,21 @@ function posActions() {
 		if(event.key == "PageDown"){
 			pageDown();
 		}
+		if(event.key == "Alt") {
+			showHints();
+		}
 		if(event.key == "PageUp"){
 			pageUp();
 		}
 
 		if(event.key == "Enter"){
 			enter();
+		}
+	});
+
+	document.addEventListener("keyup", function(event) {
+		if(event.key == "Alt") {
+			hideHints();
 		}
 	});
 
@@ -486,6 +496,14 @@ function posActions() {
 				break;
 		}
 	});
+}
+
+function showHints(){
+	$('.buttonOverlay').fadeIn();
+}
+
+function hideHints(){
+	$('.buttonOverlay').fadeOut();
 }
 
 function openReceipt() {

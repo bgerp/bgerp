@@ -180,13 +180,31 @@
 		box-shadow: inset 0 0 50px #444 !important;
 	}
 }
-
-.operationBtn.button, .printReceiptBtn.button {
-	height: 41px;
-	padding: 0 10px;
+.operationHolder {
+	display: inline-block;
+	position: relative;
 	margin: 5px;
+	.buttonOverlay {
+		display: none;
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		left: 0;
+		top:0;
+		background: rgba(0,0,0,0.9);
+		color: #fff;
+		text-align: center;
+		font-size: 1.5em !important;
+		font-weight: bold;
+		line-height: 48px;
+	}
+}
+.operationBtn.button, .printReceiptBtn.button {
+	height: 48px;
+	padding: 0 10px;
+	margin:0;
     text-align: center;
-    font-size: 1em !important;
+    font-size: 1.2em !important;
     font-weight: normal;
 	&.active {
 		background-color: #f7f749;
