@@ -37,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentName, total, paid, change, state, revertId, returnedTotal, searchKeywords';
+    public $listFields = 'id,createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentName, total, paid, change, state, revertId, returnedTotal';
     
     
     /**
@@ -143,6 +143,12 @@ class pos_Receipts extends core_Master
     
     
     /**
+     *  Служебно ид на дефолтна рецепта за сторниране
+     */
+    const DEFAULT_REVERT_RECEIPT = -1;
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -158,7 +164,7 @@ class pos_Receipts extends core_Master
         $this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,waiting=Чакащ,pending)', 'caption=Статус, input=none');
         $this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
-        $this->FLD('revertId', 'key(mvc=pos_Receipts)', 'input=none,caption=Сторнира');
+        $this->FLD('revertId', 'int', 'input=none,caption=Сторнира');
         $this->FLD('returnedTotal', 'double(decimals=2)', 'caption=Сторно, input=none');
         
         $this->setDbIndex('valior');
@@ -299,7 +305,8 @@ class pos_Receipts extends core_Master
             $row->RECEIPT_CAPTION = tr('Сторно бележка');
             $row->PAID_CAPTION = tr('Върнато');
             $row->REVERT_CLASS = 'is-reverted';
-            $row->revertId = pos_Receipts::getHyperlink($rec->revertId, true);
+            
+            $row->revertId = ($rec->revertId != self::DEFAULT_REVERT_RECEIPT) ? pos_Receipts::getHyperlink($rec->revertId, true) : ht::createHint(' ', 'Произволна сторнираща бележка', 'warning');
             if (isset($fields['-terminal']) && !Mode::is('printing')) {
                 if(pos_ReceiptDetails::haveRightFor('load', (object)array('receiptId' => $rec->id))){
                     $row->loadUrl = ht::createLink('', array('pos_ReceiptDetails', 'load', 'receiptId' => $rec->id, 'from' => $rec->revertId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Зареждане на всички данни от бележката, class=load-btn');
@@ -918,13 +925,15 @@ class pos_Receipts extends core_Master
     public static function canCloseRevertReceipt($rec, &$error = null)
     {
         $rec = static::fetchRec($rec);
-        expect($toRevertRec = static::fetch($rec->revertId));
-        $rest = round(($toRevertRec->total - $toRevertRec->returnedTotal), 2);
-        
-        if(round(abs($rec->total), 2) > $rest){
-            $restVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rest);
-            $error = "Не може да се сторнира по-голяма сума от очакваната|* <b>{$restVerbal}</b> !";
-            return false;
+        if($rec->revertId != static::DEFAULT_REVERT_RECEIPT){
+            expect($toRevertRec = static::fetch($rec->revertId));
+            $rest = round(($toRevertRec->total - $toRevertRec->returnedTotal), 2);
+            
+            if(round(abs($rec->total), 2) > $rest){
+                $restVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rest);
+                $error = "Не може да се сторнира по-голяма сума от очакваната|* <b>{$restVerbal}</b> !";
+                return false;
+            }
         }
         
         return true;

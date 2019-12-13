@@ -223,7 +223,7 @@ class pos_ReceiptDetails extends core_Detail
             expect($operation = Request::get('action', 'enum(setquantity,setdiscount,settext,setprice)'), 'Невалидна операция');
             $string = Request::get('string', 'varchar');
             expect(isset($string), 'Проблем при разчитане на операцията');
-            if(isset($receiptRec->revertId) && in_array($operation, array('setdiscount', 'setprice'))){
+            if(isset($receiptRec->revertId) && $receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT && in_array($operation, array('setdiscount', 'setprice'))){
                 expect(false, 'Невалидна операция');
             }
             
@@ -253,8 +253,11 @@ class pos_ReceiptDetails extends core_Detail
                     }
                     
                     if(isset($receiptRec->revertId)){
-                        $originProductRec = $this->findSale($rec->productId, $receiptRec->revertId, $rec->value);
-                        expect(abs($rec->quantity) <= abs($originProductRec->quantity), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
+                        if($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
+                            $originProductRec = $this->findSale($rec->productId, $receiptRec->revertId, $rec->value);
+                            expect(abs($rec->quantity) <= abs($originProductRec->quantity), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
+                        }
+                        
                         $rec->quantity *= -1;
                     }
                     
@@ -382,8 +385,10 @@ class pos_ReceiptDetails extends core_Detail
             
             $revertId = pos_Receipts::fetchField($receiptId, 'revertId');
             if (!empty($revertId)) {
+                if($revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
+                    expect($originProductRec = $this->findSale($rec->productId, $revertId, $rec->value), 'Артикулът го няма в оригиналната бележка|*!');
+                }
                 $rec->quantity *= -1;
-                expect($originProductRec = $this->findSale($rec->productId, $revertId, $rec->value), 'Артикулът го няма в оригиналната бележка|*!');
             }
             
             // Намираме дали този проект го има въведен
@@ -402,7 +407,7 @@ class pos_ReceiptDetails extends core_Detail
             if (!pos_Receipts::checkQuantity($rec, $error)) {
                 expect(false, $error);
             }
-            expect(!(!empty($revertId) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
+            expect(!(!empty($revertId) && ($revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
             $this->save($rec);
             $success = true;
             $this->Master->logInAct('Добавяне на артикул', $rec->receiptId);
