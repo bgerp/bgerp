@@ -244,13 +244,13 @@
 	}
 }
 
-.openNewNoteBtn {
+.newNoteBtn {
 	font-size:1.8em;
 }
 
 .pos-notes{
 	color: #333 !important;
-	&.openNewNoteBtn {
+	&.newNoteBtn {
 		background-color: rgba(187, 255, 255, 0.7);
 	}
 	&.state-waiting {

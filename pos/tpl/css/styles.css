@@ -212,12 +212,12 @@
     background: #b7e2f3;
     color: #333333 !important; }
 
-.openNewNoteBtn {
+.newNoteBtn {
   font-size: 1.8em; }
 
 .pos-notes {
   color: #333333 !important; }
-  .pos-notes.openNewNoteBtn {
+  .pos-notes.newNoteBtn {
     background-color: rgba(187, 255, 255, 0.7); }
   .pos-notes.state-waiting {
     background-color: rgba(210, 255, 120, 0.6); }
