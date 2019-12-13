@@ -469,7 +469,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $Tasks->listItemsPerPage = $pArr['tPerPage'];
         $fTasks->usePortalArrange = false;
-        $fTasks->listFields = 'title';
+        $fTasks->listFields = 'title, progress';
         
         $Tasks->prepareListPager($fTasks);
         
@@ -483,7 +483,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $Tasks->prepareListRows($fTasks);
         
         foreach ($fTasks->recs as $id => $fRec) {
-            $fTasks->rows[$id] = $this->getRowForTask($fRec, $pArr['_userId']);
+            $fTasks->rows[$id] = $this->getRowForTask($fRec, $pArr['_userId'], false);
         }
         
         if ($fTasks->recs) {
@@ -505,7 +505,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
      *
      * @return stdClass
      */
-    protected function getRowForTask($rec, $userId = null)
+    protected function getRowForTask($rec, $userId = null, $appendProgress = true)
     {
         $Tasks = cls::get('cal_Tasks');
         
@@ -536,7 +536,9 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $rToVerb->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, $linkArr);
         
-        $rToVerb->title->append(' ' . $rToVerb->progress);
+        if ($appendProgress) {
+            $rToVerb->title->append(' ' . $rToVerb->progress);
+        }
         
         $rToVerb->title->append($subTitle);
         
