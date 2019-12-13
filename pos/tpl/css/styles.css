@@ -416,7 +416,8 @@
 .paymentNotRequiredLabel {
   text-transform: uppercase;
   padding-top: 5px;
-  padding-bottom: 5px; }
+  padding-bottom: 5px;
+  font-size: 2.2em; }
 
 .pos-product-title {
   border-radius: 0 0 3px 3px;
