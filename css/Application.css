@@ -1964,6 +1964,9 @@ pre.document {
   .topCell .cellRow {
     padding-bottom: 4px; }
 
+.line-through {
+  text-decoration: line-through; }
+
 .innerTable {
   border-collapse: collapse; }
   .innerTable > tbody > tr > td {

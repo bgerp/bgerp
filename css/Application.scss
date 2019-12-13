@@ -2237,6 +2237,7 @@ pre.document {
 	padding: 2px;
 	padding-bottom: 0;
 	color: #353;
+
 }
 
 .narrow .block_title {
@@ -2288,6 +2289,10 @@ pre.document {
 	.cellRow{
 	   padding-bottom: 4px;
 	}
+}
+
+.line-through {
+	text-decoration: line-through;
 }
 
 .innerTable {
