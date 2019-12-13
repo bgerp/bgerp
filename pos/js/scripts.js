@@ -191,7 +191,7 @@ function posActions() {
 			
 			return false; 
 		} else {
-			
+			$(this).closest('.receiptRow').css('border', '1px solid red');
 			resObj = new Object();
 			resObj['url'] = url;
 			
