@@ -178,7 +178,7 @@ class pos_Receipts extends core_Master
     public function act_New()
     {
         $cu = core_Users::getCurrent();
-        $posId = pos_Points::getCurrent();
+        $pointId = pos_Points::getCurrent();
         $forced = Request::get('forced', 'int');
         
         // Ако форсираме, винаги създаваме нова бележка
@@ -189,7 +189,11 @@ class pos_Receipts extends core_Master
             
             // Ако има чернова бележка от същия ден, не създаваме нова
             $today = dt::today();
-            if (!$id = $this->fetchField("#valior = '{$today}' AND #createdBy = {$cu} AND #pointId = {$posId} AND #state = 'draft'", 'id')) {
+            $query = $this->getQuery();
+            $query->where("#valior = '{$today}' AND #createdBy = {$cu} AND #pointId = {$pointId} AND #state = 'draft'");
+            $query->orderBy('id', 'DESC');
+            
+            if (!$id = $query->fetch()->id) {
                 $id = $this->createNew();
                 $this->logWrite('Създаване на нова бележка', $id);
             }
