@@ -130,7 +130,7 @@ class batch_BatchesInDocuments extends core_Manager
         $Class = cls::get($detailClassId);
         $detailClassId = $Class->getClassId();
         $rInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
-        if (!countR($rInfo->operation)) {
+        if (!count($rInfo->operation)) {
             
             return;
         }
@@ -173,7 +173,7 @@ class batch_BatchesInDocuments extends core_Manager
             
             
             // Вербализацията на к-то ако е нужно
-            if (countR($batch) == 1 && (!($batchDef instanceof batch_definitions_Serial))) {
+            if (count($batch) == 1 && (!($batchDef instanceof batch_definitions_Serial))) {
                 $quantityInPack = empty($rInfo->quantityInPack) ? 1 : $rInfo->quantityInPack;
                 $q = $rec->quantity / $quantityInPack;
                 $quantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($q);
@@ -303,7 +303,7 @@ class batch_BatchesInDocuments extends core_Manager
                 
                 // Проверяваме имали дублирани
                 $intersectArr = array_intersect($oSerials, $serials);
-                $intersect = countR($intersectArr);
+                $intersect = count($intersectArr);
                 
                 // Ако има казваме, кои се повтарят
                 // един сериен номер не може да е на повече от един ред
@@ -392,7 +392,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $form->FLD('serials', "set({$suggestions})", 'caption=Партиди,maxRadio=2,class=batch-quantity-fields');
             }
             
-            if (countR($foundBatches)) {
+            if (count($foundBatches)) {
                 $foundArr = array();
                 foreach ($foundBatches as $f => $q) {
                     $fArray = $Def->makeArray($f);
@@ -408,7 +408,7 @@ class batch_BatchesInDocuments extends core_Manager
             Mode::push('htmlEntity', 'none');
             $i = $j = 0;
             $tableRec = $exTableRec = array();
-            $batchesCount = countR($batches);
+            $batchesCount = count($batches);
             foreach ($batches as $batch => $quantityInStore) {
                 $vBatch = $Def->toVerbal($batch);
                 $suggestions[] = strip_tags($vBatch);
@@ -436,7 +436,7 @@ class batch_BatchesInDocuments extends core_Manager
         $columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
         $captions = ($Def instanceof batch_definitions_Serial) ? 'Номер' : 'Номер|Количество';
         $noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
-        $hideTable = (($Def instanceof batch_definitions_Serial) && !empty($btnoff)) || (!empty($btnoff) && !countR($suggestions) && !($Def instanceof batch_definitions_Serial));
+        $hideTable = (($Def instanceof batch_definitions_Serial) && !empty($btnoff)) || (!empty($btnoff) && !count($suggestions) && !($Def instanceof batch_definitions_Serial));
         
         if($hideTable === false){
             $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
@@ -462,7 +462,7 @@ class batch_BatchesInDocuments extends core_Manager
             
             if (!empty($r->newArray)) {
                 $newBatches = (array) @json_decode($r->newArray);
-                $bCount = countR($newBatches['batch']);
+                $bCount = count($newBatches['batch']);
                 
                 for ($i = 0; $i <= $bCount - 1; $i++) {
                     if (empty($newBatches['batch'][$i])) {
@@ -497,7 +497,7 @@ class batch_BatchesInDocuments extends core_Manager
             
             if ($Def instanceof batch_definitions_Serial) {
                 $batches = type_Set::toArray($r->serials);
-                if (countR($batches) > $recInfo->quantity) {
+                if (count($batches) > $recInfo->quantity) {
                     if ($form->cmd != 'updateQuantity') {
                         $form->setError('serials', 'Серийните номера са повече от цялото количество');
                     }
@@ -528,19 +528,19 @@ class batch_BatchesInDocuments extends core_Manager
             
             if (!$form->gotErrors()) {
                 if ($form->cmd == 'auto') {
-                    $old = (countR($foundBatches)) ? $foundBatches : array();
+                    $old = (count($foundBatches)) ? $foundBatches : array();
                     $saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $Detail, $detailRecId, $recInfo->date);
                     $intersect = array_diff_key($old, $saveBatches);
-                    $delete = (countR($intersect)) ? array_keys($intersect) : array();
+                    $delete = (count($intersect)) ? array_keys($intersect) : array();
                 }
                 
                 // Ъпдейт/добавяне на записите, които трябва
-                if (countR($saveBatches)) {
+                if (count($saveBatches)) {
                     self::saveBatches($detailClassId, $detailRecId, $saveBatches);
                 }
                 
                 // Изтриване
-                if (countR($delete)) {
+                if (count($delete)) {
                     foreach ($delete as $b) {
                         $b = $Def->normalize($b);
                         self::delete("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId} AND #batch = '{$b}'");
@@ -651,12 +651,12 @@ class batch_BatchesInDocuments extends core_Manager
             }
         }
         
-        if (countR($error)) {
+        if (count($error)) {
             $error = implode('<li>', $error);
             $res['error'] = $error;
         }
         
-        if (countR($errorFields)) {
+        if (count($errorFields)) {
             $res['errorFields'] = $errorFields;
         }
         
@@ -725,7 +725,7 @@ class batch_BatchesInDocuments extends core_Manager
         }
         
         // Запис
-        if (countR($update)) {
+        if (count($update)) {
             cls::get(get_called_class())->saveArray($update);
         }
     }
@@ -766,7 +766,7 @@ class batch_BatchesInDocuments extends core_Manager
     public static function displayBatchesForInvoice($productId, $batches)
     {
         $batches = explode(',', $batches);
-        if (!countR($batches)) {
+        if (!count($batches)) {
             
             return;
         }
@@ -774,7 +774,7 @@ class batch_BatchesInDocuments extends core_Manager
         
         foreach ($batches as $b) {
             $batch = batch_Defs::getBatchArray($productId, $b);
-            if (countR($batch)) {
+            if (count($batch)) {
                 foreach ($batch as $k => &$b) {
                     if (!Mode::isReadOnly() && haveRole('powerUser')) {
                         if (!haveRole('batch,ceo')) {
@@ -814,7 +814,7 @@ class batch_BatchesInDocuments extends core_Manager
         }
         $tQuery->show('id');
         $templates = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
-        if (!countR($templates)) {
+        if (!count($templates)) {
             
             return array();
         }
@@ -822,7 +822,7 @@ class batch_BatchesInDocuments extends core_Manager
         $bQuery = batch_BatchesInDocuments::getQuery();
         $bQuery->EXT('templateId', 'batch_Defs', 'externalName=templateId,remoteKey=productId,externalFieldName=productId');
         $bQuery->in('templateId', $templates);
-        if (countR($fields)) {
+        if (count($fields)) {
             $fields = arr::make($fields, true);
             $bQuery->show($fields);
         }
