@@ -1985,6 +1985,9 @@ pre.document {
 .document .paddingCells > tbody > tr > td {
   padding: 5px; }
 
+.doc_drivers_FolderPortal .threadSubTitle {
+  display: inline; }
+
 #invoice-info {
   border-left: 1px solid #bbbbbb; }
 
