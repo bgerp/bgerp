@@ -119,6 +119,9 @@ class doc_drivers_FolderPortal extends core_BaseClass
             doc_Threads::applyFilter($filter, $dQuery);
             
             $Threads = cls::get('doc_Threads');
+            $Threads->addRowClass = false;
+            $Threads->addThreadStateClassToLink = true;
+            
             $Threads->loadList = arr::make($Threads->loadList, true);
             unset($Threads->loadList['plg_RefreshRows']);
             unset($Threads->_plugins['plg_RefreshRows']);
@@ -146,11 +149,10 @@ class doc_drivers_FolderPortal extends core_BaseClass
             $Threads->prepareListRows($data);
             
             foreach ($data->rows as $row) {
-                $at = "<td><small>{$row->author} <div class='nowrap'>{$row->last}</div></small></td>";
                 if (is_string($row->title)) {
-                    $row->title .= $at;
+                    $row->title .= "<div style='float:right'><small>{$row->author}, {$row->last}</small></div>";
                 } elseif ($row->title instanceof core_Et) {
-                    $row->title->append($at);
+                    $row->title->append("<div style='float:right'><small>{$row->author}, {$row->last}</small></div>");
                 }
             }
             
