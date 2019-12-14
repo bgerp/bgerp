@@ -2237,6 +2237,7 @@ pre.document {
 	padding: 2px;
 	padding-bottom: 0;
 	color: #353;
+
 }
 
 .narrow .block_title {
@@ -2290,6 +2291,10 @@ pre.document {
 	}
 }
 
+.line-through {
+	text-decoration: line-through !important;
+}
+
 .innerTable {
 	border-collapse: collapse;
 	> tbody > tr > td{
@@ -2312,6 +2317,10 @@ pre.document {
 
 .document .paddingCells > tbody > tr > td{
 	padding: 5px;
+}
+
+.doc_drivers_FolderPortal .threadSubTitle {
+	display: inline;
 }
 
 #invoice-info {
