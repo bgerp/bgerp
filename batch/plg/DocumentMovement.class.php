@@ -127,13 +127,13 @@ class batch_plg_DocumentMovement extends core_Plugin
         }
         
         // Ако има артикули, с задължителни партидности, които не са посочени няма да може да се контира
-        if(countR($productsWithoutBatchesArr) || countR($productsWithNotExistingBatchesArr)){
-            if(countR($productsWithoutBatchesArr)){
+        if(count($productsWithoutBatchesArr) || count($productsWithNotExistingBatchesArr)){
+            if(count($productsWithoutBatchesArr)){
                 $productMsg = implode(', ', $productsWithoutBatchesArr);
                 core_Statuses::newStatus("Следните артикули, не могат да са без партида|*: {$productMsg}", 'error');
             }
             
-            if(countR($productsWithNotExistingBatchesArr)){
+            if(count($productsWithNotExistingBatchesArr)){
                 $productMsg = implode(', ', $productsWithNotExistingBatchesArr);
                 core_Statuses::newStatus("Следните артикули, са с неналични партиди|*: {$productMsg}", 'error');
             }

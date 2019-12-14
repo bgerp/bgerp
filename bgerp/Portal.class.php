@@ -26,7 +26,7 @@ class bgerp_Portal extends embed_Manager
     public $canClonesysdata = 'powerUser';
     public $canCloneuserdata = 'powerUser';
     public $canClonerec = 'powerUser';
-
+    
     public $canList = 'powerUser';
     public $canSingle = 'powerUser';
     public $canAdd = 'powerUser';
@@ -64,11 +64,13 @@ class bgerp_Portal extends embed_Manager
     public $activeState = 'yes';
     public $closedState = 'no';
     
+    
     /**
      * Брой записи на страница
      */
     public $listItemsPerPage = 100;
-
+    
+    
     /**
      * Описание на модела
      */
@@ -81,6 +83,52 @@ class bgerp_Portal extends embed_Manager
         $this->FLD('state', 'enum(yes=Да,no=Не)', 'caption=Показване, notNull,oldFieldName=show,smartCenter');
         
         $this->FNC('originIdCalc', 'key(mvc=bgerp_Portal, allowEmpty)', 'caption=Източник,input=none');
+    }
+    
+    
+    /**
+     * Инвалидиране на кеша за блока
+     * 
+     * @param null|integer $userId
+     * @param mixed $driver
+     * @param stdClass $rec
+     */
+    public static function invalidateCache($userId = null, $driver = null, $rec = null)
+    {
+        if (bgerp_Setup::get('PORTAL_VIEW') != 'customized') {
+            
+            return ;
+        }
+        
+        expect($driver || $rec);
+        
+        $me = cls::get(get_called_class());
+        
+        if ($rec) {
+            $rec = self::fetchRec($rec);
+        }
+        
+        if ($rec->{$me->driverClassField}) {
+            $driver = $rec->{$me->driverClassField};
+        }
+        
+        expect($driver);
+        
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $intf = cls::getInterface('bgerp_PortalBlockIntf', $driver);
+        
+        $typeName = $intf->getCacheTypeName($userId);
+        
+        if ($rec) {
+            $cacheKey = $intf->getCacheKey($rec, $userId);
+            
+            core_Cache::remove($typeName, $cacheKey);
+        } else {
+            core_Cache::removeByType($typeName);
+        }
     }
     
     
@@ -98,9 +146,8 @@ class bgerp_Portal extends embed_Manager
             $rec->originIdCalc = $rec->id;
         }
     }
-
-
-
+    
+    
     /**
      * Преди подготвяне на едит формата
      */
@@ -165,7 +212,7 @@ class bgerp_Portal extends embed_Manager
             $tpl = new ET("
                             <div class='sub-header'>
                                 <div class='swipe-tabs'>
-                                    <!--ET_BEGIN TAB_NAME--><span class='swipe-tab' id='[#TAB_ID#]' data-tab='[#DATA_TAB#]'>[#TAB_NAME#]</span><!--ET_END TAB_NAME-->
+                                    <!--ET_BEGIN TAB_NAME--><span class='swipe-tab [#PORTAL_CLASS#]' id='[#TAB_ID#]' data-index='[#DATA_INDEX#]'>[#TAB_NAME#]</span><!--ET_END TAB_NAME-->
                                 </div>
                             </div>
                             
@@ -175,15 +222,15 @@ class bgerp_Portal extends embed_Manager
                                 </div>
                             </div>
                             ");
-
+            
             // Включваме необходимия JS
             $tpl->push("slick/1.8/js/slick.js", 'JS');
-
+            
             // Включваме необходимия CSS
             $tpl->push("slick/1.8/css/slick.css", 'CSS');
             $tpl->push("slick/1.8/css/slick-theme.css", 'CSS');
-
-            jquery_Jquery::run($tpl, 'prepareTabs();');
+            
+            jquery_Jquery::run($tpl, "openNewCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime(core_Users::getCurrent())) . "'); ");
         } else {
             $tpl = new ET("
                 <table style='width:100%' class='top-table large-spacing'>
@@ -197,6 +244,8 @@ class bgerp_Portal extends embed_Manager
         }
         
         $columnMap = array('left' => 'LEFT_COLUMN', 'center' => 'MIDDLE_COLUMN', 'right' => 'RIGHT_COLUMN');
+        
+        $dIndex = 0;
         
         foreach ($recArr as $r) {
             $rData = new stdClass();
@@ -214,6 +263,7 @@ class bgerp_Portal extends embed_Manager
             }
             
             $pClass = $this->getPortalClass($r->color);
+            $pClass .= ' ' . core_Classes::getName($r->{$this->driverClassField});
             $pId = $this->getPortalId($r->originIdCalc);
             
             $res->prepend("<div id='{$pId}' class='{$pClass}'>");
@@ -229,6 +279,7 @@ class bgerp_Portal extends embed_Manager
                 $blockTabNameTpl->replace($pClass, 'PORTAL_CLASS');
                 $blockTabNameTpl->replace('tab_' . $pId, 'TAB_ID');
                 $blockTabNameTpl->replace($pId, 'DATA_TAB');
+                $blockTabNameTpl->replace($dIndex++, 'DATA_INDEX');
                 $blockTabNameTpl->removeBlocks();
                 $blockTabNameTpl->append2master();
                 
@@ -244,7 +295,7 @@ class bgerp_Portal extends embed_Manager
                 break;
             }
         }
-        
+
 //         if ($isNarrow) {
 //             jquery_Jquery::run($tpl, "openCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime(core_Users::getCurrent())) . "'); ");
 //         }
@@ -257,6 +308,48 @@ class bgerp_Portal extends embed_Manager
         core_Ajax::subscribe($tpl, getCurrentUrl(), $this->className . '_AJAX_REFRESH', 5000);
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param bgerp_Portal $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        if ($data->action != 'clone' && !$data->form->rec->id) {
+            $optArr = $data->form->fields[$mvc->driverClassField]->type->prepareOptions();
+            
+            $recsArr = $mvc->getRecsForUser(null, false);
+            
+            $dArr = array();
+            
+            foreach ($recsArr as $r) {
+                $dArr[$r->{$mvc->driverClassField}]++;
+            }
+            
+            if (!empty($dArr)) {
+                foreach ($optArr as $clsId => $title) {
+                    if (!cls::load($clsId, true)) {
+                        continue;
+                    }
+                    
+                    $inst = cls::getInterface($mvc->driverInterface, $clsId);
+                    
+                    $maxCnt = $inst->class->maxCnt;
+                    
+                    if (isset($maxCnt)) {
+                        if ($maxCnt >= $dArr[$clsId]) {
+                            unset($optArr[$clsId]);
+                        }
+                    }
+                }
+            }
+            
+            $data->form->setOptions($mvc->driverClassField, $optArr);
+        }
     }
     
     
@@ -430,12 +523,6 @@ class bgerp_Portal extends embed_Manager
      */
     protected function saveAJAXCache($res, $rData, $rec)
     {
-        $cKey = $rData->cacheKey;
-        
-        if (!$cKey) {
-            $cKey = md5($res);
-        }
-        
         $newCache = $this->getCacheVal($res, $rData);
         
         $cName = $this->getCacheName($rec);
@@ -464,11 +551,17 @@ class bgerp_Portal extends embed_Manager
     {
         $cKey = $rData->cacheKey;
         
-        if (!$cKey) {
-            $cKey = md5($res);
+        // Добавяме и резултата към AJAX, за да може при промяна, да се обнови
+        if (is_object($res)) {
+            $content = $res->getContent();
+        } else {
+            $content = $res;
         }
         
-        $cKey .= '|' . core_Users::getCurrent();
+        // Премахваме оцветяванията, за да не предизвикват чести обновявания
+        $content = preg_replace('/color\s*\:\s*\#[a-z0-9]{3,6}\;?/i', '', $content);
+        
+        $cKey .= '|' . $content . '|' . core_Users::getCurrent();
         
         $cKey = md5($cKey);
         
@@ -497,11 +590,12 @@ class bgerp_Portal extends embed_Manager
      * Помощна функция за вземане на записите в модела
      *
      * @param null|int $userId
+     * @param boolean  $removeHidden
      * @param string   $roleType
      *
      * @return array
      */
-    protected function getRecsForUser($userId = null, $roleType = 'team')
+    protected function getRecsForUser($userId = null, $removeHidden = true, $roleType = 'team')
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -544,10 +638,12 @@ class bgerp_Portal extends embed_Manager
             $resArr[$rec->originIdCalc] = $rec;
         }
         
-        // Премахваме от масива блоковете, които да не се показват
-        foreach ($resArr as $rId => $rRec) {
-            if ($rRec->state == 'no') {
-                unset($resArr[$rId]);
+        if ($removeHidden) {
+            // Премахваме от масива блоковете, които да не се показват
+            foreach ($resArr as $rId => $rRec) {
+                if ($rRec->state == 'no') {
+                    unset($resArr[$rId]);
+                }
             }
         }
         
@@ -632,6 +728,7 @@ class bgerp_Portal extends embed_Manager
         $data->query->orderBy('createdBy', 'DESC');
     }
     
+    
     /**
      * След извличане на записите от БД
      * Премахва клонираните редове
@@ -648,7 +745,7 @@ class bgerp_Portal extends embed_Manager
             }
         }
     }
-
+    
     
     /**
      * Показва портала
@@ -893,5 +990,45 @@ class bgerp_Portal extends embed_Manager
         if ($rec->color) {
             $row->color = "<span class='color-{$rec->color}'>{$row->color}</span>";
         }
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на част от ключа за кеша за драйверите
+     *
+     * @param stdClass $rec
+     * @param null|integer $userId
+     *
+     * @return array
+     */
+    public static function getPortalCacheKey($rec, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $cArr = array();
+        $cArr[] = $rec->id;
+        $cArr[] = $rec->modifiedOn;
+        $cArr[] = $userId;
+        $cArr[] = dt::now(false);
+        $cArr[] = core_Lg::getCurrent();
+        $cArr[] = Mode::get('screenMode');
+        
+        return $cArr;
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на името за страниране за търсене в портала
+     *
+     * @param string $searchInputFields
+     * @param integer $oIdCalc
+     *
+     * @return string
+     */
+    public static function getPortalSearchInputFieldName($searchInputFields, $oIdCalc)
+    {
+        return $searchInputFields . '_' . $oIdCalc;
     }
 }

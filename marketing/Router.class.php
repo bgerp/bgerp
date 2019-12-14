@@ -398,7 +398,7 @@ class marketing_Router
     {
         $Class = cls::get($class);
         expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
-        if($id = $Class->fetchField(array("#{$field} = '[#1#]'", $vatId))){
+        if($id = $Class->fetchField(array("#{$field} = '[#1#]' AND #state != 'rejected'", $vatId))){
             return $Class->forceCoverAndFolder((object) array('id' => $id, 'inCharge' => $inCharge));
         }
         

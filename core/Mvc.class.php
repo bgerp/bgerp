@@ -713,6 +713,8 @@ class core_Mvc extends core_FieldSet
         
         $query->show('id,' . $titleFld);
         
+        $res = array();
+        
         while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec->{$titleFld};
         }

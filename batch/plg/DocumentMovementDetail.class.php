@@ -73,7 +73,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 // Ако има налични партиди в склада да се показват като предложения
                 $exBatches = batch_Items::getBatchQuantitiesInStore($rec->{$mvc->productFieldName}, $storeId);
                 
-                if (countR($exBatches)) {
+                if (count($exBatches)) {
                     $suggestions = array();
                     foreach ($exBatches as $b => $q) {
                         $verbal = strip_tags($BatchClass->toVerbal($b));
@@ -177,7 +177,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             }
             
             $info = $mvc->getRowInfo($rec->id);
-            if (countR($info->operation)) {
+            if (count($info->operation)) {
                 $batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->operation['out'], $mvc, $rec->id, $info->date);
                 batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $batches);
             }
@@ -407,7 +407,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             $info = $mvc->getRowInfo($rec);
             $storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
             
-            if (!$storeId || !countR($info->operation)) {
+            if (!$storeId || !count($info->operation)) {
                 $res = 'no_one';
             } else {
                 $res = $mvc->getRequiredRoles('edit', $rec);

@@ -77,7 +77,9 @@ class plg_State extends core_Plugin
      */
     public static function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
     {
-        $row->ROW_ATTR['class'] .= " state-{$rec->state}";
+        if ($invoker->addRowClass !== false) {
+            $row->ROW_ATTR['class'] .= " state-{$rec->state}";
+        }
         $row->STATE_CLASS .= " state-{$rec->state}";
     }
     

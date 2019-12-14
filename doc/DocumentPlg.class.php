@@ -620,7 +620,9 @@ class doc_DocumentPlg extends core_Plugin
      */
     public function on_AfterRecToVerbal(&$invoker, &$row, &$rec, $fields = array())
     {
-        $row->ROW_ATTR['class'] .= " state-{$rec->state}";
+        if ($invoker->addRowClass !== false) {
+            $row->ROW_ATTR['class'] .= " state-{$rec->state}";
+        }
         $row->STATE_CLASS .= " state-{$rec->state}";
         
         $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd.m.Y');

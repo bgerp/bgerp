@@ -1964,6 +1964,9 @@ pre.document {
   .topCell .cellRow {
     padding-bottom: 4px; }
 
+.line-through {
+  text-decoration: line-through !important; }
+
 .innerTable {
   border-collapse: collapse; }
   .innerTable > tbody > tr > td {
@@ -1981,6 +1984,9 @@ pre.document {
 
 .document .paddingCells > tbody > tr > td {
   padding: 5px; }
+
+.doc_drivers_FolderPortal .threadSubTitle {
+  display: inline; }
 
 #invoice-info {
   border-left: 1px solid #bbbbbb; }
@@ -2290,9 +2296,8 @@ table.mc-calendar {
   .portal-cal-day .title {
     padding-top: 1px;
     padding: 2px;
-    display: block; }
-    .portal-cal-day .title span {
-      display: inline-block; }
+    display: block;
+    white-space: nowrap; }
   .portal-cal-day .progress {
     float: right;
     display: inline-block;
@@ -2301,8 +2306,13 @@ table.mc-calendar {
     display: inline-block;
     clear: both;
     font-size: 0.9em; }
-  .portal-cal-day .task {
+  .portal-cal-day .subTitle {
     padding: 4px; }
+    .portal-cal-day .subTitle small {
+      padding-left: 7px; }
+    .portal-cal-day .subTitle span,
+    .portal-cal-day .subTitle a {
+      display: inline-block; }
   .portal-cal-day.portal-cal-today {
     background-color: #e1fba2; }
   .portal-cal-day.portal-cal-tomorrow {

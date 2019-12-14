@@ -17,7 +17,20 @@
  */
 class bgerp_drivers_Tasks extends core_BaseClass
 {
+    /**
+     * Максимален брой блокове, които да могат да се поакзват в портала
+     */
+    public $maxCnt;
+    
+    
     public $interfaces = 'bgerp_PortalBlockIntf';
+    
+    protected $priorityMap = array(
+                                    'low' => 'low|normal|high|critical',
+                                    'normal' => 'normal|high|critical',
+                                    'high' => 'high|critical',
+                                    'critical' => 'critical',
+                                    );
     
     
     /**
@@ -28,6 +41,8 @@ class bgerp_drivers_Tasks extends core_BaseClass
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('perPage', 'int(min=1, max=50)', 'caption=Редове, mandatory');
+        $fieldset->FLD('from', 'enum(,toMe=За мен,fromMe=От мен)', 'caption=Задачи от/към');
+        $fieldset->FLD('taskPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Задачи');
     }
     
     
@@ -61,41 +76,53 @@ class bgerp_drivers_Tasks extends core_BaseClass
         }
         
         $Tasks = cls::get('cal_Tasks');
-        $pageVar = 'P_' . get_called_class() . '_' . $dRec->originIdCalc;
+        
+        $Tasks->addRowClass = false;
         
         $resData->data = new stdClass();
         
         // Създаваме заявката
         $resData->data->query = cal_Tasks::getQuery();
         
+        if ($dRec->taskPriority) {
+            expect($this->priorityMap[$dRec->taskPriority]);
+            $priorityArr = explode('|', $this->priorityMap[$dRec->taskPriority]);
+            $resData->data->query->orWhereArr('priority', $priorityArr);
+        }
+        
         // Подготвяме полетата за показване
         $resData->data->listFields = 'groupDate,title,progress';
         
-        if (Mode::is('listTasks', 'by')) {
+        if ($this->isFromMe($dRec->from)) {
             $resData->data->query->where(array("#createdBy = '[#1#]'", $userId));
         } else {
             $resData->data->query->likeKeylist('assign', $userId);
         }
-        
-        $cloneQuery = clone $resData->data->query;
         
         $resData->data->query->where("#state = 'active'");
         $resData->data->query->orWhere("#state = 'wakeup'");
         $resData->data->query->orWhere("#state = 'waiting'");
         $resData->data->query->orWhere("#state = 'pending'");
         
+        
+        // Вадим 3 работни дни
+        $now = dt::now();
+        
+        $before = $after = dt::now(false);
+        $before = cal_Calendar::nextWorkingDay($before, null, -1 * cal_Tasks::$taskShowPeriod);
+        $after = cal_Calendar::nextWorkingDay($after, null, cal_Tasks::$taskShowPeriod);
+        $before .= ' 00:00:00';
+        $after .= ' 23:59:59';
+        
+        $resData->data->query->orWhere(array("(#state = 'closed' OR #state = 'stopped') AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
+        
         $resData->data->query->where('#timeStart IS NULL');
         $resData->data->query->where('#timeEnd IS NULL');
         
-        $cloneQuery->orderBy('modifiedOn', 'DESC');
-        $cloneQuery->limit(1);
-        $cloneQuery->show('modifiedOn, id');
-        $cRec = $cloneQuery->fetch();
+        $resData->cacheKey = $this->getCacheKey($dRec, $userId);
+        $resData->cacheType = $this->getCacheTypeName($userId);
         
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->perPage . '_' . $userId . '_' . Mode::get('screenMode') . '_' .
-            Request::get($pageVar) . '_' . core_Lg::getCurrent() . '_' . $cRec->id . '_' . $cRec->modifiedOn . '_' . Mode::get('listTasks') . '_' .
-            dt::now(false) . '_' . Mode::is('listTasks', 'by'));
-        $resData->cacheType = 'Tasks';
+        $resData->dRecForm = $dRec->from;
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
@@ -113,20 +140,13 @@ class bgerp_drivers_Tasks extends core_BaseClass
             // Подготвяме навигацията по страници
             $Tasks->prepareListPager($resData->data);
             
-            $resData->data->pager->pageVar = $pageVar;
+            $resData->data->pager->pageVar = $this->getPageVar($dRec->originIdCalc);
             
             // Подготвяме филтър формата
             $Tasks->prepareListFilter($resData->data);
             
             // Подготвяме записите за таблицата
             $Tasks->prepareListRecs($resData->data);
-            
-            if (is_array($resData->data->recs)) {
-                foreach ($resData->data->recs as &$rec) {
-                    $rec->savedState = $rec->state;
-                    $rec->state = '';
-                }
-            }
             
             // Подготвяме редовете на таблицата
             $Tasks->prepareListRows($resData->data);
@@ -143,6 +163,14 @@ class bgerp_drivers_Tasks extends core_BaseClass
                         $linkArr['class'] = 'tUnsighted';
                     }
                     
+                    if ($rec->state == 'closed') {
+                        $linkArr['class'] .= ' line-through';
+                    }
+                    
+                    if (doc_Threads::fetchField($rec->threadId, 'state') == 'opened') {
+                        $linkArr['class'] .= ' state-opened';
+                    }
+                    
                     // Документа да е линк към single' а на документа
                     $row->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, $linkArr);
                     
@@ -152,8 +180,8 @@ class bgerp_drivers_Tasks extends core_BaseClass
                         $row->title .= $row->subTitleDiv;
                     }
                     
-                    if ($rec->savedState) {
-                        $sState = $rec->savedState;
+                    if ($rec->state) {
+                        $sState = $rec->state;
                         $row->title = "<div class='state-{$sState}-link'>{$row->title}</div>";
                     }
                 }
@@ -176,7 +204,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         if (!$data->tpl) {
             $data->tpl = new ET('
                                 <div class="clearfix21 portal" style="margin-bottom:25px;">
-                                <div class="legend">[#taskTitle#]&nbsp;[#profile#]&nbsp;[#SWITCH_BTN#]&nbsp;[#ADD_BTN#]&nbsp;[#REM_BTN#]</div>
+                                <div class="legend">[#taskTitle#]&nbsp;[#profile#]<!--ET_BEGIN SWITCH_BTN-->&nbsp;[#SWITCH_BTN#]<!--ET_END SWITCH_BTN-->&nbsp;[#ADD_BTN#]&nbsp;[#REM_BTN#]</div>
                                 [#PortalTable#]
                             	[#PortalPagerBottom#]
                                 </div>
@@ -194,13 +222,19 @@ class bgerp_drivers_Tasks extends core_BaseClass
             $data->tpl->append(cal_Tasks::renderListTable($data->data), 'PortalTable');
             $data->tpl->append(cal_Tasks::renderListPager($data->data), 'PortalPagerBottom');
             
+            $switchTitle = '';
+            
             // Задачи
-            if (Mode::is('listTasks', 'by')) {
+            if ($this->isFromMe($data->dRecForm)) {
                 $taskTitle = tr('Задачи от');
-                $switchTitle = tr('Задачи към') . ' ' . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
+                if (!$data->dRecForm) {
+                    $switchTitle = tr('Задачи към') . ' ' . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
+                }
             } else {
                 $taskTitle = tr('Задачи към');
-                $switchTitle = tr('Задачи от') . ' ' . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
+                if (!$data->dRecForm) {
+                    $switchTitle = tr('Задачи от') . ' ' . crm_Profiles::getUserTitle(core_Users::getCurrent('nick'));
+                }
             }
             
             $taskTitle = str_replace(' ', '&nbsp;', $taskTitle);
@@ -219,10 +253,12 @@ class bgerp_drivers_Tasks extends core_BaseClass
                 $sRetUrl['#'] = 'taskPortal';
             }
             
-            // Бутон за смяна от <-> към
-            $addUrl = array('cal_Tasks', 'SwitchByTo', 'ret_url' => $sRetUrl);
-            $addBtn = ht::createLink(' ', $addUrl, null, array('ef_icon' => 'img/16/arrow_switch.png', 'class' => 'addTask', 'title' => '|*' . $switchTitle, 'id' => 'switchTasks'));
-            $data->tpl->append($addBtn, 'SWITCH_BTN');
+            if ($switchTitle) {
+                // Бутон за смяна от <-> към
+                $addUrl = array('cal_Tasks', 'SwitchByTo', 'ret_url' => $sRetUrl);
+                $addBtn = ht::createLink(' ', $addUrl, null, array('ef_icon' => 'img/16/arrow_switch.png', 'class' => 'addTask', 'title' => '|*' . $switchTitle, 'id' => 'switchTasks'));
+                $data->tpl->append($addBtn, 'SWITCH_BTN');
+            }
             
             // Бутон за смяна от <-> към
             $addUrl = array('cal_Reminders', 'add', 'ret_url' => true);
@@ -261,11 +297,108 @@ class bgerp_drivers_Tasks extends core_BaseClass
      */
     public function getBlockTabName($dRec)
     {
-        if (Mode::is('listTasks', 'by')) {
+        if ($this->isFromMe($dRec->from)) {
             
             return tr('Задачи от мен');
         }
         
         return tr('Задачи към мен');
+    }
+    
+    
+    /**
+     * Името на стойността за кеша
+     *
+     * @param integer $userId
+     *
+     * @return string
+     */
+    public function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        return 'Portal_Tasks_' . $userId;
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на ключа за кеша
+     *
+     * @param stdClass $dRec
+     * @param null|integer $userId
+     *
+     * @return string
+     */
+    public function getCacheKey($dRec, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $isFromMe = $this->isFromMe($dRec->from);
+        
+        $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        $cArr[] = $isFromMe;
+        
+        $pageVar = $this->getPageVar($dRec->originIdCalc);
+        $pageVarVal = Request::get($pageVar);
+        $pageVarVal = isset($pageVarVal) ? $pageVarVal : 1;
+        $cArr[] = $pageVarVal;
+        
+        $cloneQuery = cal_Tasks::getQuery();
+        
+        if ($isFromMe) {
+            $cloneQuery->where(array("#createdBy = '[#1#]'", $userId));
+        } else {
+            $cloneQuery->likeKeylist('assign', $userId);
+        }
+        
+        $cloneQuery->orderBy('modifiedOn', 'DESC');
+        $cloneQuery->limit(1);
+        $cloneQuery->show('modifiedOn, id');
+        $cRec = $cloneQuery->fetch();
+        $cArr[] = $cRec->modifiedOn;
+        $cArr[] = $cRec->id;
+        
+        return md5(implode('|', $cArr));
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на името за страниране
+     *
+     * @param integer $oIdCalc
+     * @return string
+     */
+    protected function getPageVar($oIdCalc)
+    {
+        return 'P_' . get_called_class() . '_' . $oIdCalc;
+    }
+    
+    
+    /**
+     * Помощна фунцкия за проверка дали задачата е от или към текущия потребител
+     * 
+     * @param string $from
+     * 
+     * @return boolean
+     */
+    protected function isFromMe($from)
+    {
+        if ($from) {
+            if ($from == 'fromMe') {
+                
+                return true;
+            }
+        } else {
+            if (Mode::get('listTasks') == 'by') {
+                
+                return true;
+            }
+        }
+        
+        return false;
     }
 }

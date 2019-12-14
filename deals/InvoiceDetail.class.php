@@ -369,6 +369,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
                     $reason = ($amount > 0) ? 'Увеличаване на стойност' : 'Намаляване на стойност';
                 }
                 
+                if(!empty($masterRec->dcReason)){
+                    $dcReason = core_Type::getByName('richtext')->toVerbal($masterRec->dcReason);
+                    $reason .= "|* {$dcReason}";
+                }
+                
                 $data->recs['advance'] = (object) array('amount' => $masterRec->dealValue / $masterRec->rate, 'changedAmount' => true);
                 
                 core_Lg::push($masterRec->tplLang);

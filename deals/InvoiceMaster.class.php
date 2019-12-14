@@ -104,6 +104,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Контрагент->Град,class=contactData,contragentDataField=place');
         $mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес,class=contactData,contragentDataField=address');
         $mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
+        $mvc->FLD('dcReason', 'richtext(rows=2)', 'input=none');
         $mvc->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
         
         $mvc->FLD('dueTime', 'time(suggestions=3 дена|5 дена|7 дена|14 дена|30 дена|45 дена|60 дена)', 'caption=Плащане->Срок');
@@ -361,6 +362,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 if (count($cache->vats) == 1) {
                     $form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
                     $form->setField('changeAmount', 'input,caption=Задаване на увеличение/намаление на фактура->Промяна');
+                    $form->setField('dcReason', 'input,caption=Задаване на увеличение/намаление на фактура->Пояснение');
                     $form->rec->changeAmountVat = key($cache->vats);
                     
                     $min = $invArr['dealValue'] / (($invArr['displayRate']) ? $invArr['displayRate'] : $invArr['rate']);
@@ -371,8 +373,9 @@ abstract class deals_InvoiceMaster extends core_Master
                     if ($invArr['dpOperation'] == 'accrued') {
                         
                         // Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
-                        $caption = '|Промяна на авансово плащане|*';
-                        $form->setField('changeAmount', "caption={$caption}->|Аванс|*,mandatory");
+                        $form->setField('dcReason', 'input');
+                        $form->setField('changeAmount', "caption=Промяна на авансово плащане|*->|Аванс|*,mandatory");
+                        $form->setField('dcReason', 'input,caption=Промяна на авансово плащане|*->Пояснение');
                     }
                 }
             }
@@ -797,6 +800,10 @@ abstract class deals_InvoiceMaster extends core_Master
                         
                         return;
                     }
+                }
+                
+                if(empty($rec->changeAmount) && !empty($rec->dcReason)){
+                    $form->setError('changeAmount,dcReason', 'Не може да се зададе основание за увеличение/намаление ако не е посочена сума');
                 }
                 
                 if (isset($rec->changeAmountVat)) {

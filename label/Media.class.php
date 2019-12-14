@@ -63,9 +63,21 @@ class label_Media extends core_Manager
     
     
     /**
+     * Кой има право да го изтрие?
+     */
+    public $canReject = 'labelMaster, admin, ceo';
+    
+    
+    /**
+     * Кой има право да го изтрие?
+     */
+    public $canRestore = 'labelMaster, admin, ceo';
+    
+    
+    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'label_Wrapper, plg_RowTools2, plg_Created, plg_State';
+    public $loadList = 'label_Wrapper, plg_RowTools2, plg_Created, plg_State, plg_Rejected';
     
     
     /**
@@ -308,7 +320,7 @@ class label_Media extends core_Manager
     {
         // Активните записи да не може да се редактират или изтриват
         if ($rec && ($action == 'edit' || $action == 'delete')) {
-            if ($rec->state == 'active') {
+            if (($rec->state == 'active') || ($rec->state == 'rejected') || ($rec->state == 'restore')) {
                 $requiredRoles = 'no_one';
             }
         }

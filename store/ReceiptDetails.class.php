@@ -163,7 +163,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         $date = ($data->masterData->rec->state == 'draft') ? null : $data->masterData->rec->modifiedOn;
-        if (countR($data->rows)) {
+        if (count($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
                 

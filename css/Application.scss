@@ -2237,6 +2237,7 @@ pre.document {
 	padding: 2px;
 	padding-bottom: 0;
 	color: #353;
+
 }
 
 .narrow .block_title {
@@ -2290,6 +2291,10 @@ pre.document {
 	}
 }
 
+.line-through {
+	text-decoration: line-through !important;
+}
+
 .innerTable {
 	border-collapse: collapse;
 	> tbody > tr > td{
@@ -2312,6 +2317,10 @@ pre.document {
 
 .document .paddingCells > tbody > tr > td{
 	padding: 5px;
+}
+
+.doc_drivers_FolderPortal .threadSubTitle {
+	display: inline;
 }
 
 #invoice-info {
@@ -2672,9 +2681,7 @@ table.mc-calendar {
 		padding-top: 1px;
 		padding: 2px;
 		display: block;
-		span {
-			display: inline-block;
-		}
+		white-space: nowrap;
 	}
 
 	.progress {
@@ -2687,8 +2694,14 @@ table.mc-calendar {
 		clear: both;
 		font-size: 0.9em;
 	}
-	.task {
+	.subTitle {
 		padding: 4px;
+		small {
+			padding-left: 7px;
+		}
+		span, a {
+			display: inline-block;
+		}
 	}
 	&.portal-cal-today {
 		background-color: rgba(225, 251, 162, 1);

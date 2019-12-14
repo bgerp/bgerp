@@ -23,6 +23,12 @@ class bgerp_PortalBlockIntf extends embed_DriverIntf
     
     
     /**
+     * Максимален брой блокове, които да могат да се поакзват в портала
+     */
+    public $maxCnt;
+    
+    
+    /**
      * Подготвя данните
      * 
      * @param stdClass $dRec
@@ -32,7 +38,6 @@ class bgerp_PortalBlockIntf extends embed_DriverIntf
      */
     public function prepare($dRec, $userId = null)
     {
-        
         return $this->class->prepare($dRec, $userId);
     }
     
@@ -46,10 +51,8 @@ class bgerp_PortalBlockIntf extends embed_DriverIntf
      */
     public function render($data)
     {
-        
         return $this->class->render($data);
     }
-    
     
     
     /**
@@ -61,7 +64,33 @@ class bgerp_PortalBlockIntf extends embed_DriverIntf
      */
     public function getBlockTabName($dRec)
     {
-        
         return $this->class->getBlockTabName($dRec);
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на ключа за кеша
+     *
+     * @param stdClass $dRec
+     * @param null|integer $userId
+     *
+     * @return string
+     */
+    public function getCacheKey($dRec, $userId = null)
+    {
+        return $this->class->getCacheKey($dRec, $userId);
+    }
+    
+    
+    /**
+     * Името на стойността за кеша
+     *
+     * @param integer $userId
+     *
+     * @return string
+     */
+    public function getCacheTypeName($userId = null)
+    {
+        return $this->class->getCacheTypeName($userId);
     }
 }
