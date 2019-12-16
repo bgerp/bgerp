@@ -256,6 +256,10 @@
 .resultPrice {
   background: #499bc0; }
 
+.subBatch {
+  font-weight: bold;
+  font-style: italic; }
+
 .resultBatch {
   background: green; }
 

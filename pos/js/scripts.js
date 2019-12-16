@@ -52,7 +52,21 @@ function posActions() {
 		}
 	});
 
-
+	// Добавяне на партида
+	$(document.body).on('click', ".resultBatch", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		var selectedElement = $(".highlighted");
+		var selectedRecId = selectedElement.attr("data-id");
+		console.log(selectedRecId);
+		
+		getEfae().process(resObj, {recId:selectedRecId});
+	});
+	
 	// Добавяне 
 	$(document.body).on('click', ".textResult", function(e){
 		var url = $(this).attr("data-url");

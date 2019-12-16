@@ -67,7 +67,7 @@ class pos_ReceiptDetails extends core_Detail
     /**
      * Полета за листов изглед
      */
-    public $listFields = 'productId,value,quantity,price,discountPercent,amount';
+    public $listFields = 'id,productId,value,quantity,price,discountPercent,amount';
     
     
     /**
@@ -221,7 +221,7 @@ class pos_ReceiptDetails extends core_Detail
             expect($rec = self::fetch($id), 'Не е избран ред');
             $this->requireRightFor('edit', $rec);
            
-            expect($operation = Request::get('action', 'enum(setquantity,setdiscount,settext,setprice)'), 'Невалидна операция');
+            expect($operation = Request::get('action', 'enum(setquantity,setdiscount,settext,setprice,setbatch)'), 'Невалидна операция');
             $string = Request::get('string', 'varchar');
             expect(isset($string), 'Проблем при разчитане на операцията');
             if(isset($receiptRec->revertId) && $receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT && in_array($operation, array('setdiscount', 'setprice'))){
@@ -276,13 +276,25 @@ class pos_ReceiptDetails extends core_Detail
                    $price /= 1 + $rec->param;
                    $rec->price = $price;
                    $sucessMsg = 'Цената на реда е променена|*!';
-                   
                    break;
                case 'settext':
                    $text = core_Type::getByName('text')->fromVerbal($firstValue);
                    expect(isset($text), 'Не е зададено пояснение');
                    $rec->text = (!empty($text)) ? $text : null;
                    $sucessMsg = 'Променено пояснение на реда|*!';
+                   break;
+               case 'setbatch':
+                   $batchDef = batch_Defs::getBatchDef($rec->productId);
+                   expect($batchDef, 'Артикулът няма партидност');
+                   if(!empty($string)){
+                       $batechErrorMsg = null;
+                       if(!$batchDef->isValid($string, $rec->quantity, $batechErrorMsg)){
+                           expect(false, $batechErrorMsg);
+                       }
+                       $rec->batch = $batchDef->normalize($string);
+                   } else {
+                       $rec->batch = null;
+                   }
                    
                    break;
             }
@@ -442,6 +454,9 @@ class pos_ReceiptDetails extends core_Detail
         $this->delete($rec->id);
         $this->Master->logInAct('Изтриване на ред', $rec->receiptId);
         
+        Mode::setPermanent("currentOperation{$rec->receiptId}", 'add');
+        Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
+        
         return pos_Terminal::returnAjaxResponse($rec->receiptId, null, true, true);
     }
     
@@ -521,6 +536,16 @@ class pos_ReceiptDetails extends core_Detail
         $row->amount = ht::styleNumber($row->amount, $price * $rec->quantity);
         if ($rec->discountPercent < 0) {
             $row->discountPercent = '+' . trim($row->discountPercent, '-');
+        }
+        
+        if(core_Packs::isInstalled('batch')){
+            if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
+                if(!empty($rec->batch)){
+                    $row->batch = $BatchDef->toVerbal($rec->batch);
+                } elseif(isset($fields['-list'])){
+                    $row->batch = "<span class='quiet'>" . tr('Без партида') . "</span>";
+                }
+            }
         }
         
         $row->code = $Varchar->toVerbal($productRec->code);
@@ -805,5 +830,16 @@ class pos_ReceiptDetails extends core_Detail
         $rec = $query->fetch();
         
         return is_object($rec) ? $rec : null;
+    }
+    
+    
+    /**
+     * Преди подготовката на полетата за листовия изглед
+     */
+    protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+        if(core_Packs::isInstalled('batch')){
+            arr::placeInAssocArray($data->listFields, array('batch' => 'Партида'), 'quantity');
+        }
     }
 }

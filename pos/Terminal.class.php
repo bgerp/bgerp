@@ -494,7 +494,8 @@ class pos_Terminal extends peripheral_Terminal
             $batchesInStore = batch_Items::getBatchQuantitiesInStore($receiptRec->productId, $storeId, $rec->valior);
             foreach ($batchesInStore as $batch => $quantity){
                 $cnt++;
-                $dataUrl['string'] = $batch;
+                $dataUrl['string'] = urlencode($batch);
+                
                 $batchVerbal = $Def->toVerbal($batch);
                 $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'data-url' => toUrl($dataUrl, 'local')), $batchVerbal, true);
                 $tpl->append($btn);
@@ -976,6 +977,7 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->push('css/Application.css', 'CSS');
         $tpl->push('css/default-theme.css', 'CSS');
         $tpl->push('pos/tpl/css/styles.css', 'CSS');
+        //$tpl->push('js/efCommon.js', 'JS');
         if (!Mode::is('printing')) {
             $tpl->push('pos/js/scripts.js', 'JS');
             $tpl->push('pos/js/jquery.keynav.js', 'JS');
@@ -1289,13 +1291,6 @@ class pos_Terminal extends peripheral_Terminal
         $res = array();
        
         if($success === true){
-            $resultTpl = $me->renderResult($rec, $operation, $string, $selectedRecId);
-            
-            // Ще се реплейсват резултатите
-            $resObj = new stdClass();
-            $resObj->func = 'html';
-            $resObj->arg = array('id' => 'result-holder', 'html' => $resultTpl->getContent(), 'replace' => true);
-            $res[] = $resObj;
             
             if($refreshPanel === true){
                 $toolsTpl = $me->getCommandPanel($rec, $operation, $string);
@@ -1323,6 +1318,13 @@ class pos_Terminal extends peripheral_Terminal
                 $resObj->func = 'calculateWidth';
                 $res[] = $resObj;
             }
+            
+            // Ще се реплейсват резултатите
+            $resultTpl = $me->renderResult($rec, $operation, $string, $selectedRecId);
+            $resObj = new stdClass();
+            $resObj->func = 'html';
+            $resObj->arg = array('id' => 'result-holder', 'html' => $resultTpl->getContent(), 'replace' => true);
+            $res[] = $resObj;
             
             $resObj = new stdClass();
             $resObj->func = 'afterload';
