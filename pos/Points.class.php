@@ -207,8 +207,8 @@ class pos_Points extends core_Master
         $rec = $data->rec;
         
         if ($mvc->haveRightFor('select', $rec->id) && pos_Receipts::haveRightFor('terminal')) {
-            $urlArr = array('pos_Terminal', 'open', 'receiptId' => $rec->id);
-            $data->toolbar->addBtn('Терминал', $urlArr, null, 'title=Отваряне на терминала за POS продажби,class=pos-open-btn,ef_icon=img/16/forward16.png,target=_blank');
+            $urlArr = array('pos_Receipts', 'new', "pointId" => $rec->id);
+            $data->toolbar->addBtn('Отвори', $urlArr, null, 'title=Отваряне на терминала за POS продажби,class=pos-open-btn,ef_icon=img/16/forward16.png,target=_blank');
         }
         
         $reportUrl = array();
@@ -219,20 +219,6 @@ class pos_Points extends core_Master
         $title = (count($reportUrl)) ? 'Направи отчет' : 'Не може да се генерира отчет. Възможна причина - неприключени бележки.';
         
         $data->toolbar->addBtn('Отчет', $reportUrl, null, "title={$title},ef_icon=img/16/report.png");
-    }
-    
-    
-    /**
-     * Екшън форсиращ избирането на точката и отваряне на терминала
-     */
-    public function act_OpenTerminal()
-    {
-        expect($pointId = Request::get('id', 'int'));
-        
-        $this->requireRightFor('select', $pointId);
-        $this->selectCurrent($pointId);
-        
-        return new Redirect(array('pos_Receipts', 'new'));
     }
     
     
@@ -248,7 +234,7 @@ class pos_Points extends core_Master
         
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')) {
             if ($mvc->haveRightFor('select', $rec->id) && pos_Receipts::haveRightFor('terminal')) {
-                $urlArr = array('pos_Points', 'OpenTerminal', $rec->id);
+                $urlArr = array('pos_Receipts', 'new', "pointId" => $rec->id);
                 $row->currentPlg = ht::createBtn('Отвори', $urlArr, null, true, 'title=Отваряне на терминала за POS продажби,class=pos-open-btn,ef_icon=img/16/forward16.png');
             }
         }

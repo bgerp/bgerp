@@ -178,7 +178,15 @@ class pos_Receipts extends core_Master
     public function act_New()
     {
         $cu = core_Users::getCurrent();
-        $pointId = pos_Points::getCurrent();
+        $pointId = Request::get('pointId', 'int');
+        
+        if(!isset($pointId)){
+            $pointId = pos_Points::getCurrent();
+        } else {
+            pos_Points::selectCurrent($pointId);
+        }
+        
+        pos_Points::requireRightFor('select', $pointId);
         $forced = Request::get('forced', 'int');
         
         // Ако форсираме, винаги създаваме нова бележка
@@ -192,7 +200,6 @@ class pos_Receipts extends core_Master
             $query = $this->getQuery();
             $query->where("#valior = '{$today}' AND #createdBy = {$cu} AND #pointId = {$pointId} AND #state = 'draft'");
             $query->orderBy('id', 'DESC');
-            
             if (!$id = $query->fetch()->id) {
                 $id = $this->createNew();
                 $this->logWrite('Създаване на нова бележка', $id);
@@ -802,10 +809,7 @@ class pos_Receipts extends core_Master
         
         if (is_object($res['rec'])) {
             if ($forRevert === true) {
-                if (self::fetchField("#revertId = {$res['rec']->id}")) {
-                    //$res['notFoundError'] = '|Има вече създадена бележка, сторнираща търсената|*!';
-                   // $res['rec'] = false;
-                } elseif (self::fetchField("#id = {$res['rec']->id} AND #revertId IS NOT NULL")) {
+                if (self::fetchField("#id = {$res['rec']->id} AND #revertId IS NOT NULL")) {
                     $res['notFoundError'] = '|Не може да сторнирате сторнираща бележка|*!';
                     $res['rec'] = false;
                 }
