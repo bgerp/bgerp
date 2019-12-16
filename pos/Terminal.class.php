@@ -537,6 +537,12 @@ class pos_Terminal extends peripheral_Terminal
             $texts = array("{$string}" => $string) + $texts;
         }
         
+        // Добавяне на търсения стринг да е първи в списъка
+        if(!empty($selectedRec->text)){
+            $string = str::removeWhiteSpace($selectedRec->text, ' ');
+            $texts = array("{$string}" => $string) + $texts;
+        }
+        
         $count = 0;
         foreach ($texts as $text){
             $dataUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'settext', 'string' => $text);

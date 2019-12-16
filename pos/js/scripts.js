@@ -118,7 +118,7 @@ function posActions() {
 
 		var selectedElement = $(".highlighted");
 		var selectedRecId = selectedElement.attr("data-id");
-
+		
 		// Правим Ajax заявката като изтече време за изчакване
 		timeout = setTimeout(function(){
 			resObj = new Object();
@@ -666,12 +666,14 @@ function pageDown(){
 // При селектиране на текущ елемент
 function getCurrentElementFromSelectedRow(element){
 	var operation = getSelectedOperation();
+	sessionStorage.removeItem("focused");
 	
 	refreshResultByOperation(element, operation);
 	disableOrEnableBatch();
 }
 
 function refreshResultByOperation(element, operation){
+	sessionStorage.removeItem("focused");
 	
 	// Ако операцията е партидност и реда няма такава прехвърля се към артикул
 	var click = operation;
