@@ -699,6 +699,25 @@ class doc_Linked extends core_Manager
                 }
             }
         }
+        
+        // При създаване на имейл, по подразбиране да е папката на контрагента
+        if ($form->rec->linkDocType && !$form->rec->linkFolderId && $type == 'doc' && $originFId ) {
+            $docType = cls::get($form->rec->linkDocType);
+            
+            if ($docType instanceof email_Outgoings) {
+                $cRec = doc_Containers::fetch($originFId);
+                if ($cRec->folderId) {
+                    $cover = doc_Folders::getCover($cRec->folderId);
+                    if ($cover->that && ($cover->instance instanceof doc_UnsortedFolders)) {
+                        $cFolderId = $cover->instance->fetchField($cover->that, 'contragentFolderId');
+                        
+                        if ($cFolderId && doc_Folders::haveRightFor('single', $cFolderId)) {
+                            $form->setDefault('linkFolderId', $cFolderId);
+                        }
+                    }
+                }
+            }
+        }
     }
     
     
