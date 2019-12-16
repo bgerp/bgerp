@@ -761,10 +761,8 @@ function disableOrEnableBatch()
 	if(batchBtn.length){
 		if(element.hasClass('noBatch')){
 			batchBtn.addClass('disabledBtn');
-			console.log('have');
 		} else {
 			batchBtn.removeClass('disabledBtn');
-			console.log('notHave');
 		}
 	}
 }
