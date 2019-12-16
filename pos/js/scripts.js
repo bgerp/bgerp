@@ -201,10 +201,13 @@ function posActions() {
 		var warning = $(this).attr("data-warning");
 		var url = $(this).attr("data-url");
 		var recId = $(this).attr("data-recId");
+		e.stopPropagation();
+		
 		if (!confirm(warning)){
 			
 			return false; 
 		} else {
+			
 			$(this).closest('.receiptRow').css('border', '1px solid red');
 			resObj = new Object();
 			resObj['url'] = url;

@@ -403,7 +403,10 @@ class pos_Terminal extends peripheral_Terminal
         $refreshPanel = Request::get('refreshPanel', 'varchar');
         $refreshPanel = ($refreshPanel == 'no') ? false : true;
         $selectedRecId = Request::get('recId', 'int');
-       
+        if(!pos_ReceiptDetails::fetch($selectedRecId, '*', false)){
+            $selectedRecId = pos_ReceiptDetails::getLastRec($id, 'sale')->id;
+        }
+        
         $string = Request::get('search', 'varchar');
         Mode::setPermanent("currentOperation{$id}", $operation);
         Mode::setPermanent("currentSearchString{$id}", $string);
@@ -1289,7 +1292,7 @@ class pos_Terminal extends peripheral_Terminal
         $operation = Mode::get("currentOperation{$rec->id}");
         $string = Mode::get("currentSearchString{$rec->id}");
         $res = array();
-       
+        
         if($success === true){
             
             if($refreshPanel === true){
