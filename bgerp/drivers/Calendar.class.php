@@ -17,7 +17,6 @@
  */
 class bgerp_drivers_Calendar extends core_BaseClass
 {
-    
     /**
      * Максимален брой блокове, които да могат да се поакзват в портала
      */
@@ -32,6 +31,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             'high' => 'high|critical',
             'critical' => 'critical',
     );
+    
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -116,7 +116,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
-            $Calendar->searchInputField = bgerp_Portal::getPortalSearchInputFieldName($Notifications->searchInputField, $dRec->originIdCalc);
+            $Calendar->searchInputField = bgerp_Portal::getPortalSearchInputFieldName($Calendar->searchInputField, $dRec->originIdCalc);
             
             $Calendar->prepareListRecs($resData->calendarState);
             if (is_array($resData->calendarState->recs)) {
@@ -269,7 +269,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 if ($d == $lastKey) {
                     break;
                 }
-                    
+                
                 if ($dCnt++ > 10) {
                     break;
                 }
@@ -363,7 +363,6 @@ class bgerp_drivers_Calendar extends core_BaseClass
      */
     public function getBlockTabName($dRec)
     {
-        
         return tr('Календар');
     }
     
@@ -470,7 +469,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $Tasks->listItemsPerPage = $pArr['tPerPage'];
         $fTasks->usePortalArrange = false;
-        $fTasks->listFields = 'title,progress';
+        $fTasks->listFields = 'title, progress';
         
         $Tasks->prepareListPager($fTasks);
         
@@ -484,7 +483,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $Tasks->prepareListRows($fTasks);
         
         foreach ($fTasks->recs as $id => $fRec) {
-            $fTasks->rows[$id] = $this->getRowForTask($fRec, $pArr['_userId']);
+            $fTasks->rows[$id] = $this->getRowForTask($fRec, $pArr['_userId'], false);
         }
         
         if ($fTasks->recs) {
@@ -506,7 +505,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
      *
      * @return stdClass
      */
-    protected function getRowForTask($rec, $userId = null)
+    protected function getRowForTask($rec, $userId = null, $appendProgress = true)
     {
         $Tasks = cls::get('cal_Tasks');
         
@@ -527,9 +526,19 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $linkArr['class'] = 'tUnsighted';
         }
         
+        if ($rec->state == 'closed') {
+            $linkArr['class'] .= ' line-through';
+        }
+        
+        if (doc_Threads::fetchField($rec->threadId, 'state') == 'opened') {
+            $linkArr['class'] .= ' state-opened';
+        }
+        
         $rToVerb->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, $linkArr);
         
-        $rToVerb->title->append(' ' . $rToVerb->progress);
+        if ($appendProgress) {
+            $rToVerb->title->append(' ' . $rToVerb->progress);
+        }
         
         $rToVerb->title->append($subTitle);
         
@@ -668,6 +677,23 @@ class bgerp_drivers_Calendar extends core_BaseClass
     
     
     /**
+     * Името на стойността за кеша
+     *
+     * @param integer $userId
+     *
+     * @return string
+     */
+    public function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        return 'Portal_Calendar_' . $userId;
+    }
+    
+    
+    /**
      * Помощна функция за вземане на ключа за кеша
      *
      * @param stdClass $dRec
@@ -675,7 +701,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
      *
      * @return string
      */
-    protected function getCacheKey($dRec, $userId = null)
+    public function getCacheKey($dRec, $userId = null)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -747,24 +773,6 @@ class bgerp_drivers_Calendar extends core_BaseClass
      */
     protected function getPageVar($oIdCalc)
     {
-        
         return 'P_Cal_Tasks_Future_' . $oIdCalc;
-    }
-    
-    
-    /**
-     * Името на стойността за кеша
-     *
-     * @param integer $oIdCalc
-     *
-     * @return string
-     */
-    protected function getCacheTypeName($userId = null)
-    {
-        if (!isset($userId)) {
-            $userId = core_Users::getCurrent();
-        }
-        
-        return 'Portal_Calendar_' . $userId;
     }
 }

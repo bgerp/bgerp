@@ -459,7 +459,7 @@ class batch_Items extends core_Master
         // Подготвяме страницирането
         $pager = cls::get('core_Pager', array('itemsPerPage' => 10));
         $pager->setPageVar($data->masterMvc->className, $data->masterId);
-        $pager->itemsCount = countR($data->recs);
+        $pager->itemsCount = count($data->recs);
         $data->pager = $pager;
         
         // Обръщаме записите във вербален вид
@@ -585,7 +585,7 @@ class batch_Items extends core_Master
         $query->show('batch,quantity,operation,date,docType,docId');
         $query->where("#productId = {$productId} AND #storeId = {$storeId}");
         
-        if (countR($except) == 2) {
+        if (count($except) == 2) {
             $docType = cls::get($except[0])->getClassId();
             $docId = $except[1];
         }
@@ -599,7 +599,7 @@ class batch_Items extends core_Master
         
         // Сумиране на к-то към датата
         while ($rec = $query->fetch()) {
-            if (countR($except) == 2) {
+            if (count($except) == 2) {
                 if ($rec->docType == $docType && $rec->docId == $docId) {
                     continue;
                 }

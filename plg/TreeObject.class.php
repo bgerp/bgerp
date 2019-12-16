@@ -141,17 +141,17 @@ class plg_TreeObject extends core_Plugin
             foreach ($options as $id => &$title) {
                 $title = $mvc->getVerbal($id, $mvc->nameField);
             }
-        }
-        
-        // Сортираме опциите
-        uasort($options, function ($a, $b) {
-            if ($a == $b) {
-                
-                return 0;
-            }
             
-            return (strnatcasecmp($a, $b) < 0) ? -1 : 1;
-        });
+            // Сортираме опциите
+            uasort($options, function ($a, $b) {
+                if ($a == $b) {
+                    
+                    return 0;
+                }
+                
+                return (strnatcasecmp($a, $b) < 0) ? -1 : 1;
+            });
+        }
     }
     
     

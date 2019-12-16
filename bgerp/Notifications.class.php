@@ -252,6 +252,9 @@ class bgerp_Notifications extends core_Manager
         }
         
         bgerp_Notifications::save($rec);
+        
+        // Инвалидиране на кеша
+        bgerp_Portal::invalidateCache($userId, 'bgerp_drivers_Notifications');
     }
     
     

@@ -184,7 +184,7 @@ class batch_Movements extends core_Detail
             $documentSuggestions[$handle] = $handle;
         }
         
-        if (countR($documentSuggestions)) {
+        if (count($documentSuggestions)) {
             $data->listFilter->setSuggestions('document', array('' => '') + $documentSuggestions);
         }
         
@@ -265,7 +265,7 @@ class batch_Movements extends core_Detail
         // За всяка
         while ($jRec = $jQuery->fetch()) {
             $batches = batch_Defs::getBatchArray($jRec->productId, $jRec->batch);
-            $quantity = (countR($batches) == 1) ? $jRec->quantity : $jRec->quantity / countR($batches);
+            $quantity = (count($batches) == 1) ? $jRec->quantity : $jRec->quantity / count($batches);
             
             // Записва се движението и
             foreach ($batches as $key => $b) {
@@ -355,7 +355,7 @@ class batch_Movements extends core_Detail
             }
         }
         
-        if (countR($titles)) {
+        if (count($titles)) {
             $data->title .= ' |*' . implode(' <b>,</b> ', $titles);
         }
     }

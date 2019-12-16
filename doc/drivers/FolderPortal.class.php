@@ -17,8 +17,6 @@
  */
 class doc_drivers_FolderPortal extends core_BaseClass
 {
-    
-    
     /**
      * Максимален брой блокове, които да могат да се поакзват в портала
      */
@@ -121,6 +119,9 @@ class doc_drivers_FolderPortal extends core_BaseClass
             doc_Threads::applyFilter($filter, $dQuery);
             
             $Threads = cls::get('doc_Threads');
+            $Threads->addRowClass = false;
+            $Threads->addThreadStateClassToLink = true;
+            
             $Threads->loadList = arr::make($Threads->loadList, true);
             unset($Threads->loadList['plg_RefreshRows']);
             unset($Threads->_plugins['plg_RefreshRows']);
@@ -148,11 +149,10 @@ class doc_drivers_FolderPortal extends core_BaseClass
             $Threads->prepareListRows($data);
             
             foreach ($data->rows as $row) {
-                $at = "<td><small>{$row->author} <div class='nowrap'>{$row->last}</div></small></td>";
                 if (is_string($row->title)) {
-                    $row->title .= $at;
+                    $row->title .= "<div style='float:right'><small>{$row->author}, {$row->last}</small></div>";
                 } elseif ($row->title instanceof core_Et) {
-                    $row->title->append($at);
+                    $row->title->append("<div style='float:right'><small>{$row->author}, {$row->last}</small></div>");
                 }
             }
             
@@ -222,7 +222,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
         $fTitle = str::limitLen($fTitle, $maxLength, (int) ($maxLength/2));
         
         return type_Varchar::escape($fTitle);
-        
+    
     }
     
     
@@ -257,6 +257,23 @@ class doc_drivers_FolderPortal extends core_BaseClass
     
     
     /**
+     * Името на стойността за кеша
+     *
+     * @param integer $userId
+     *
+     * @return string
+     */
+    public function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        return 'Portal_Folder_' . $userId;
+    }
+    
+    
+    /**
      * Помощна функция за вземане на ключа за кеша
      *
      * @param stdClass $dRec
@@ -264,7 +281,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
      *
      * @return string
      */
-    protected function getCacheKey($dRec, $userId = null)
+    public function getCacheKey($dRec, $userId = null)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -293,24 +310,6 @@ class doc_drivers_FolderPortal extends core_BaseClass
      */
     protected function getPageVar($oIdCalc)
     {
-        
         return 'P_' . get_called_class() . '_' . $oIdCalc;
-    }
-    
-    
-    /**
-     * Името на стойността за кеша
-     *
-     * @param integer $oIdCalc
-     * 
-     * @return string
-     */
-    protected function getCacheTypeName($userId = null)
-    {
-        if (!isset($userId)) {
-            $userId = core_Users::getCurrent();
-        }
-        
-        return 'Portal_Folder_' . $userId;
     }
 }

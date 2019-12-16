@@ -17,7 +17,6 @@
  */
 class bgerp_drivers_Tasks extends core_BaseClass
 {
-    
     /**
      * Максимален брой блокове, които да могат да се поакзват в портала
      */
@@ -32,6 +31,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
                                     'high' => 'high|critical',
                                     'critical' => 'critical',
                                     );
+    
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -77,6 +77,8 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         $Tasks = cls::get('cal_Tasks');
         
+        $Tasks->addRowClass = false;
+        
         $resData->data = new stdClass();
         
         // Създаваме заявката
@@ -101,6 +103,18 @@ class bgerp_drivers_Tasks extends core_BaseClass
         $resData->data->query->orWhere("#state = 'wakeup'");
         $resData->data->query->orWhere("#state = 'waiting'");
         $resData->data->query->orWhere("#state = 'pending'");
+        
+        
+        // Вадим 3 работни дни
+        $now = dt::now();
+        
+        $before = $after = dt::now(false);
+        $before = cal_Calendar::nextWorkingDay($before, null, -1 * cal_Tasks::$taskShowPeriod);
+        $after = cal_Calendar::nextWorkingDay($after, null, cal_Tasks::$taskShowPeriod);
+        $before .= ' 00:00:00';
+        $after .= ' 23:59:59';
+        
+        $resData->data->query->orWhere(array("(#state = 'closed' OR #state = 'stopped') AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
         
         $resData->data->query->where('#timeStart IS NULL');
         $resData->data->query->where('#timeEnd IS NULL');
@@ -134,13 +148,6 @@ class bgerp_drivers_Tasks extends core_BaseClass
             // Подготвяме записите за таблицата
             $Tasks->prepareListRecs($resData->data);
             
-            if (is_array($resData->data->recs)) {
-                foreach ($resData->data->recs as &$rec) {
-                    $rec->savedState = $rec->state;
-                    $rec->state = '';
-                }
-            }
-            
             // Подготвяме редовете на таблицата
             $Tasks->prepareListRows($resData->data);
             
@@ -156,6 +163,14 @@ class bgerp_drivers_Tasks extends core_BaseClass
                         $linkArr['class'] = 'tUnsighted';
                     }
                     
+                    if ($rec->state == 'closed') {
+                        $linkArr['class'] .= ' line-through';
+                    }
+                    
+                    if (doc_Threads::fetchField($rec->threadId, 'state') == 'opened') {
+                        $linkArr['class'] .= ' state-opened';
+                    }
+                    
                     // Документа да е линк към single' а на документа
                     $row->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, $linkArr);
                     
@@ -165,8 +180,8 @@ class bgerp_drivers_Tasks extends core_BaseClass
                         $row->title .= $row->subTitleDiv;
                     }
                     
-                    if ($rec->savedState) {
-                        $sState = $rec->savedState;
+                    if ($rec->state) {
+                        $sState = $rec->state;
                         $row->title = "<div class='state-{$sState}-link'>{$row->title}</div>";
                     }
                 }
@@ -292,6 +307,23 @@ class bgerp_drivers_Tasks extends core_BaseClass
     
     
     /**
+     * Името на стойността за кеша
+     *
+     * @param integer $userId
+     *
+     * @return string
+     */
+    public function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        return 'Portal_Tasks_' . $userId;
+    }
+    
+    
+    /**
      * Помощна функция за вземане на ключа за кеша
      *
      * @param stdClass $dRec
@@ -299,7 +331,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
      *
      * @return string
      */
-    protected function getCacheKey($dRec, $userId = null)
+    public function getCacheKey($dRec, $userId = null)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -342,26 +374,9 @@ class bgerp_drivers_Tasks extends core_BaseClass
      */
     protected function getPageVar($oIdCalc)
     {
-        
         return 'P_' . get_called_class() . '_' . $oIdCalc;
     }
     
-    
-    /**
-     * Името на стойността за кеша
-     *
-     * @param integer $oIdCalc
-     *
-     * @return string
-     */
-    protected function getCacheTypeName($userId = null)
-    {
-        if (!isset($userId)) {
-            $userId = core_Users::getCurrent();
-        }
-        
-        return 'Portal_Tasks_' . $userId;
-    }
     
     /**
      * Помощна фунцкия за проверка дали задачата е от или към текущия потребител

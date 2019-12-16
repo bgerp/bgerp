@@ -1,6 +1,8 @@
 <?php
 
+
 defIfNot('BGERP_DOCUMENT_SLEEP_TIME', 0);
+
 
 /**
  * Клас 'doc_Containers' - Контейнери за документи
@@ -504,6 +506,9 @@ class doc_Containers extends core_Manager
                 // Нищо не се прави
             }
         }
+        
+        // Инвалидиране на кеша
+        bgerp_Portal::invalidateCache(null, 'doc_drivers_FolderPortal');
     }
     
     
