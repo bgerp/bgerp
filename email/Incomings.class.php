@@ -324,10 +324,6 @@ class email_Incomings extends core_Master
         
         $startTime = time();
         
-        if (($deadline - $startTime) < 6) {
-            $deadline = 15;
-        }
-        
         $doExpunge = false;
         
         if ($firstUnreadMsgNo > 0) {
