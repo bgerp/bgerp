@@ -509,11 +509,7 @@ class cal_Tasks extends embed_Manager
         
         $progressStr = $row->progress;
         if (($rec->state == 'waiting') || ($rec->state == 'pending') || ($rec->state == 'wakeup')) {
-            if ($rec->progress) {
-                $progressStr = "[{$progressStr}]";
-            } else {
-                $progressStr = '[]';
-            }
+            $progressStr = "[{$progressStr}]";
         }
         
         if (($rec->state == 'stopped') || ($rec->state == 'closed')) {
