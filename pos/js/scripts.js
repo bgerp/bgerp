@@ -405,6 +405,8 @@ function posActions() {
 		
 		var operation = getSelectedOperation();
 		refreshResultByOperation($(this), operation);
+		
+		disableOrEnableBatch();
 	});
 
 
@@ -666,6 +668,7 @@ function getCurrentElementFromSelectedRow(element){
 	var operation = getSelectedOperation();
 	
 	refreshResultByOperation(element, operation);
+	disableOrEnableBatch();
 }
 
 function refreshResultByOperation(element, operation){
@@ -750,10 +753,29 @@ function render_calculateWidth(){
 	calculateWidth();
 }
 
+function disableOrEnableBatch()
+{
+	var element = $(".highlighted");
+	
+	var batchBtn = $('.operationBtn[data-value="batch"]');
+	if(batchBtn.length){
+		if(element.hasClass('noBatch')){
+			batchBtn.addClass('disabledBtn');
+			console.log('have');
+		} else {
+			batchBtn.removeClass('disabledBtn');
+			console.log('notHave');
+		}
+	}
+}
+
 function render_afterload()
 {
 	var element = $(".highlighted");
 	var operation = getSelectedOperation();
+	
+	console.log('load');
+	disableOrEnableBatch();
 	
 	if(operation == 'text'){
 		var textElement = element.find('.subText');

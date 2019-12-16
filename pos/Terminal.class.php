@@ -336,7 +336,7 @@ class pos_Terminal extends peripheral_Terminal
                 
                 $attr = array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation);
                 if((!empty($rec->paid) && in_array($operation, self::$forbiddenOperationOnReceiptsWithPayment)) || (isset($rec->revertId) && $rec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT && in_array($operation, self::$forbiddenOperationOnRevertReceipts))){
-                   $attr['data-url'] = null;
+                    $attr['data-url'] = null;
                     $attr['class'] .= ' disabledBtn';
                     $attr['disabled'] = 'disabled';
                 }
