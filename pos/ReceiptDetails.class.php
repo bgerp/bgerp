@@ -284,6 +284,7 @@ class pos_ReceiptDetails extends core_Detail
                    $sucessMsg = 'Променено пояснение на реда|*!';
                    break;
                case 'setbatch':
+                   expect(core_Packs::isInstalled('batch'), 'Пакета за партидности не е инсталиран');
                    $batchDef = batch_Defs::getBatchDef($rec->productId);
                    expect($batchDef, 'Артикулът няма партидност');
                    if(!empty($string)){
@@ -294,6 +295,11 @@ class pos_ReceiptDetails extends core_Detail
                        $rec->batch = $batchDef->normalize($string);
                    } else {
                        $rec->batch = null;
+                   }
+                   
+                   $foundRec = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
+                   if(isset($foundRec->id) && $foundRec->id != $rec->id){
+                       expect(false, 'Партидата е вече зададена на друг ред');
                    }
                    
                    break;
@@ -405,7 +411,7 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             // Намираме дали този проект го има въведен
-            $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value);
+            $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
             if ($sameProduct) {
                 
                 // Ако цената и опаковката му е същата като на текущия продукт,
@@ -554,9 +560,11 @@ class pos_ReceiptDetails extends core_Detail
             } else {
                 $row->CLASS .= 'noBatch';
             }
+        } else {
+            unset($row->batch);
         }
-        $row->code = $Varchar->toVerbal($productRec->code);
         
+        $row->code = $Varchar->toVerbal($productRec->code);
         if ($rec->value) {
             $packaging = cat_UoM::getVerbal($rec->value, 'name');
             $packaging = str::getPlural($rec->quantity, $packaging, true);
@@ -670,7 +678,7 @@ class pos_ReceiptDetails extends core_Detail
      *
      *  @return mixed $rec/FALSE - Последния запис или FALSE ако няма
      */
-    public function findSale($productId, $receiptId, $packId)
+    public function findSale($productId, $receiptId, $packId, $batch = null)
     {
         $query = $this->getQuery();
         $query->where(array('#productId = [#1#]', $productId));
@@ -679,6 +687,14 @@ class pos_ReceiptDetails extends core_Detail
             $query->where(array('#value = [#1#]', $packId));
         } else {
             $query->where('#value IS NULL');
+        }
+        
+        if(core_Packs::isInstalled('batch')){
+            if(isset($batch)){
+                $query->where("#batch = '{$batch}'");
+            } else {
+                $query->where("#batch IS NULL OR #batch = ''");
+            }
         }
         
         $query->orderBy('#id', 'DESC');
