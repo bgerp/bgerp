@@ -260,7 +260,7 @@ class core_Backup extends core_Mvc
      */
     public function act_Restore()
     {
-        require_role('debug');
+        requireRole('debug');
 
         core_App::setTimeLimit(120);
          
