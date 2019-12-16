@@ -1308,10 +1308,6 @@ class pos_Terminal extends peripheral_Terminal
                 $res[] = $resObj;
             }
             
-            $resObj = new stdClass();
-            $resObj->func = 'prepareResult';
-            $res[] = $resObj;
-            
             if($refreshTable === true){
                 $receiptTpl = $me->getReceipt($rec);
                 
@@ -1334,6 +1330,10 @@ class pos_Terminal extends peripheral_Terminal
             
             $resObj = new stdClass();
             $resObj->func = 'afterload';
+            $res[] = $resObj;
+            
+            $resObj = new stdClass();
+            $resObj->func = 'prepareResult';
             $res[] = $resObj;
         }
         
