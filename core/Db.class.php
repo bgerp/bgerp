@@ -108,9 +108,6 @@ class core_Db
     public static $links = array();
     
     
-    public $lastRes;
-    
-    
     /**
      * Номер на mySQL код за грешка при липсваща таблица
      */
@@ -262,6 +259,34 @@ class core_Db
         }
         
         return $dbRes;
+    }
+    
+    
+    /**
+     * Изпълнява многоредова заявка
+     */
+    public function multyQuery($sqlQueries, $silent = false)
+    {
+        $res = array();
+        $link = $this->connect();
+        $this->query = $sqlQueries;
+        if ($link->multi_query($sqlQueries)) {
+            do {
+                if ($result = $link->store_result()) {
+                    while ($row = $result->fetch_row()) {
+                        $res = $row;
+                    }
+                    $result->free();
+                }
+                if (!$link->more_results()) {
+                    break;
+                }
+            } while ($link->next_result());
+        }
+        
+        $this->checkForErrors('изпълняване на заявка', $silent, $link);
+        
+        return $res;
     }
     
     
@@ -447,6 +472,7 @@ class core_Db
             
             $dbRes = $this->query("SHOW TABLE STATUS LIKE '{$tableName}'", true);
             $tableParams = $dbRes->fetch_array(MYSQLI_ASSOC);
+            expect(is_array($tableParams), $tableParams);
             foreach ($tableParams as $key => $value) {
                 $key = strtoupper($key);
                 if (isset($params[$key]) && strtoupper($params[$key]) != strtoupper($value)) {
