@@ -260,6 +260,8 @@ class core_Backup extends core_Mvc
      */
     public function act_Restore()
     {
+        require_role('debug');
+
         core_App::setTimeLimit(120);
          
         $path = BGERP_BACKUP_PATH . '/current/';
