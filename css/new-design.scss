@@ -1316,6 +1316,9 @@ form[method="post"] input[type="submit"] {
 .swipe-tab {
     display: none;
 }
+.swipe-tabs-container, .swipe-tab-content {
+    outline: none !important;
+}
 $swipe-tab-color: #757575;
 $swipe-active-tab-color: #000;
 .slick-initialized {
