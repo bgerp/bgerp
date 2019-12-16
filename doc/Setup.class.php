@@ -492,6 +492,24 @@ class doc_Setup extends core_ProtoSetup
     {
         $Portal = cls::get('bgerp_Portal');
         
+        $data = core_Packs::getConfig('core')->_data;
+        
+        $force = false;
+        if (!$data['migration_doc_addBlockToPortal46193']) {
+            $force = true;
+        }
+        
+        if (!$force) {
+            if (!bgerp_Portal::fetch("#createdBy > 0")) {
+                $force = true;
+            }
+        }
+        
+        if (!$force) {
+            
+            return ;
+        }
+        
         $uArr = core_Users::getByRole('powerUser');
         
         foreach ($uArr as $uId) {

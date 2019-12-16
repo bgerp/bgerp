@@ -559,7 +559,26 @@ class bgerp_Setup extends core_ProtoSetup
     public function setNewPortal46194()
     {
         $Portal = cls::get('bgerp_Portal');
-        $bQuery = bgerp_Portal::getQuery();
+        
+        $data = core_Packs::getConfig('core')->_data;
+        
+        $force = false;
+        if (!$data['migration_bgerp_setNewPortal46193']) {
+            $force = true;
+        }
+        
+        if (!$force) {
+            if (!bgerp_Portal::fetch("#createdBy > 0")) {
+                $force = true;
+            }
+        }
+        
+        if (!$force) {
+            
+            return ;
+        }
+        
+        $bQuery = $Portal->getQuery();
         $bQuery->delete('1=1');
         
         $iArr = array('bgerp_drivers_Notifications' => array('perPage' => 15, 'column' => 'left', 'order' => 500, 'color' => 'lightblue'),
