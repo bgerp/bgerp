@@ -404,7 +404,7 @@ function posActions() {
 		$(this).closest('.receiptRow').addClass('highlighted');
 		
 		var operation = getSelectedOperation();
-		refreshResultByOperation(operation);
+		refreshResultByOperation($(this), operation);
 	});
 
 
@@ -665,12 +665,19 @@ function pageDown(){
 function getCurrentElementFromSelectedRow(element){
 	var operation = getSelectedOperation();
 	
-	refreshResultByOperation(operation);
+	refreshResultByOperation(element, operation);
 }
 
-function refreshResultByOperation(operation){
+function refreshResultByOperation(element, operation){
+	
+	// Ако операцията е партидност и реда няма такава прехвърля се към артикул
+	var click = operation;
+	if(operation == 'batch' && element.hasClass('noBatch')){
+		click = 'add';
+	}
+	
 	if(operation == 'price' || operation == 'discount' || operation == 'quantity' || operation == 'text' || operation == 'batch'){
-		$('.operationBtn[data-value="' + operation+ '"]').click();
+		$('.operationBtn[data-value="' + click+ '"]').click();
 	}
 }
 
