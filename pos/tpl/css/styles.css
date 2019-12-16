@@ -256,6 +256,9 @@
 .resultPrice {
   background: #499bc0; }
 
+.resultBatch {
+  background: green; }
+
 .discountBtn {
   background: #ff9c3a;
   color: #333333 !important; }

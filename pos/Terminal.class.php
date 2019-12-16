@@ -54,19 +54,19 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Кои са разрешените операции
      */
-    protected static $operationsArr = "add=Артикул,payment=Плащане,quantity=К-во,price=Цена,discount=Отстъпка,text=Текст,contragent=Клиент,receipts=Бележки,revert=Сторно";
+    protected static $operationsArr = "add=Артикул,payment=Плащане,quantity=К-во,batch=Партида,price=Цена,discount=Отстъпка,text=Текст,contragent=Клиент,receipts=Бележки,revert=Сторно";
     
     
     /**
      * Кои операции са забранени за нови бележки
      */
-    protected static $forbiddenOperationOnEmptyReceipts = array('discount', 'price', 'text', 'quantity', 'payment');
+    protected static $forbiddenOperationOnEmptyReceipts = array('discount', 'price', 'text', 'quantity', 'payment', 'batch');
     
     
     /**
      * Кои операции са забранени за бележки с направено плащане
      */
-    protected static $forbiddenOperationOnReceiptsWithPayment = array('discount', 'price', 'quantity', 'add');
+    protected static $forbiddenOperationOnReceiptsWithPayment = array('discount', 'price', 'quantity', 'add', 'batch');
     
     
     /**
@@ -268,6 +268,9 @@ class pos_Terminal extends peripheral_Terminal
             case 'payment':
                 $keyupUrl = null;
                 break;
+            case 'batch':
+                $keyupUrl = null;
+                break;
             case 'contragent':
                 break;
             case 'revert';
@@ -295,6 +298,9 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $operations = ($rec->state == 'draft') ? arr::make(self::$operationsArr) : arr::make(self::$operationsForNonDraftReceipts);
+        if(!core_Packs::isInstalled('batch')){
+            unset($operations['batch']);
+        }
         
         // Може ли да се задава отстъпка?
         if (pos_Setup::get('SHOW_DISCOUNT_BTN') != 'yes') {
@@ -459,12 +465,45 @@ class pos_Terminal extends peripheral_Terminal
             case 'contragent':
                 $res = $this->renderResultContragent($rec, $string, $selectedRec);
                 break;
+            case 'batch':
+                $res = $this->renderResultBatches($rec, $string, $selectedRec);
+                break;
             default:
                 $res = " ";
                 break;
         }
         
         return new core_ET($res);
+    }
+    
+    private function renderResultBatches($rec, $string, $selectedRec)
+    {
+        expect(core_Packs::isInstalled('batch'));
+        $receiptRec = pos_ReceiptDetails::fetchRec($selectedRec);
+        //$batches = array(' ' => '');
+        
+        $tpl = new core_ET(" ");
+        if($Def = batch_Defs::getBatchDef($receiptRec->productId)){
+            $storeId = pos_Points::fetchField($rec->pointId, 'storeId');
+            $dataUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setbatch');
+            
+            $cnt = 0;
+            $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
+            $tpl->append($btn);
+            
+            $batchesInStore = batch_Items::getBatchQuantitiesInStore($receiptRec->productId, $storeId, $rec->valior);
+            foreach ($batchesInStore as $batch => $quantity){
+                $cnt++;
+                $dataUrl['string'] = $batch;
+                $batchVerbal = $Def->toVerbal($batch);
+                $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'data-url' => toUrl($dataUrl, 'local')), $batchVerbal, true);
+                $tpl->append($btn);
+            }
+        } else {
+            $tpl->append(tr('Нямат партидност'));
+        }
+        
+        return $tpl;
     }
     
     

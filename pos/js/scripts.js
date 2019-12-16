@@ -652,7 +652,7 @@ function getCurrentElementFromSelectedRow(element){
 }
 
 function refreshResultByOperation(operation){
-	if(operation == 'price' || operation == 'discount' || operation == 'quantity' || operation == 'text'){
+	if(operation == 'price' || operation == 'discount' || operation == 'quantity' || operation == 'text' || operation == 'batch'){
 		$('.operationBtn[data-value="' + operation+ '"]').click();
 	}
 }
