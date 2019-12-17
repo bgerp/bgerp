@@ -208,9 +208,11 @@ class email_Spam extends email_ServiceEmails
      */
     public static function callback_RepairSpamScore()
     {
+        $clsName = get_called_class();
+        
         $pKey = $clsName . '|RepairSpamScore';
         
-        $clsInst = cls::get(get_called_class());
+        $clsInst = cls::get($clsName);
         
         $maxTime = dt::addSecs(40);
         
