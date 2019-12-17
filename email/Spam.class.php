@@ -267,7 +267,7 @@ class email_Spam extends email_ServiceEmails
                     if (preg_match("/{$header}\s*:\s*([0-9\.]+)/i", $data, $matches)) {
                         $score = $matches[1];
                     } else {
-                        if (preg_match("/{$header}\s*:\s*score\s*=\s*([0-9\.]+)(\s|\n|[^0-9])/i", $data, $matches)) {
+                        if (preg_match("/{$header}\s*:\s*[\w|\W]*score\s*=\s*([0-9\.]+)(\s|\n|[^0-9])/i", $data, $matches)) {
                             $score = $matches[1];
                         }
                     }
