@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Включена ли е бекъп функционалността?
  */
@@ -63,17 +64,20 @@ class core_Backup extends core_Mvc
      */
     public function cron_Create()
     {
-        if(!BGERP_BACKUP_ENABLED) return;
-
+        if (!BGERP_BACKUP_ENABLED) {
+            
+            return;
+        }
+        
         core_App::setTimeLimit(120);
         
         // Парола за създаване на архивните файлове
         $pass = BGERP_BACKUP_PASS;
-
+        
         // Форсираме директориите
         core_Os::forceDir($curPath = BGERP_BACKUP_PATH . '/current');
         core_Os::forceDir($pastPath = BGERP_BACKUP_PATH . '/past');
-                
+        
         // Определяме всички mvc класове, на които ще правим бекъп
         $mvcArr = core_Classes::getOptionsByInterface('core_ManagerIntf');
         $instArr = array();
@@ -102,7 +106,7 @@ class core_Backup extends core_Mvc
         
         // Флъшваме всичко, каквото има от SQL лога
         self::cron_FlushSqlLog();
-
+        
         // Ако в `current` има нещо - преместваме го в `past`
         if (!self::isDirEmpty($curPath)) {
             // Изтриваме директорията past
@@ -114,7 +118,7 @@ class core_Backup extends core_Mvc
         
         // Създаваме празна текуща директория
         core_Os::forceDir($curPath = BGERP_BACKUP_PATH . '/current');
-
+        
         foreach ($instArr as $table => $inst) {
             core_App::setTimeLimit(120);
             
@@ -163,7 +167,7 @@ class core_Backup extends core_Mvc
         $dbStructure = '';
         
         // Запазваме структурата на базата
-        debug::log("Генериране SQL за структурата на базата");
+        debug::log('Генериране SQL за структурата на базата');
         foreach ($instArr as $table => $inst) {
             $query = "SHOW CREATE TABLE `{$table}`";
             $dbRes = $this->db->query($query);
@@ -180,7 +184,7 @@ class core_Backup extends core_Mvc
                 unlink($dest);
             }
             file_put_contents($path, $dbStructure);
-            debug::log("Компресиране на " . basename($dest));
+            debug::log('Компресиране на ' . basename($dest));
             archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
         }
         
@@ -188,7 +192,7 @@ class core_Backup extends core_Mvc
             if (file_exists($dest)) {
                 unlink($dest);
             }
-            debug::log("Компресиране на " . basename($dest));
+            debug::log('Компресиране на ' . basename($dest));
             archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
         }
         
@@ -223,7 +227,7 @@ class core_Backup extends core_Mvc
         }
     }
     
-
+    
     /**
      * Флъшване на SQL лога към текущата бекъп директория
      */
@@ -231,8 +235,12 @@ class core_Backup extends core_Mvc
     {
         if (BGERP_BACKUP_ENABLED) {
             $path = self::getSqlLogPath();
+            
             // Не може да се флъшва, а бекъпът е зададен
-            if(!file_exists($path) || !is_readable($path) || !filesize($path)) return;
+            if (!file_exists($path) || !is_readable($path) || !filesize($path)) {
+                
+                return;
+            }
             $file = basename($path);
             $newFile = date('Y-m-d_H-i-s') . '.log.sql';
             $newPath = str_replace("/{$file}", "/{$newFile}", $path);
@@ -242,80 +250,77 @@ class core_Backup extends core_Mvc
             archive_Adapter::compressFile($newPath, $dest, BGERP_BACKUP_PASS, '-sdel');
         }
     }
-
-
-
+    
+    
     /**
      * Връща пътя до SLQ лога за текущата база
      */
     public static function getSqlLogPath()
     {
         static $path;
-        if(!$path) {
+        if (!$path) {
             core_Os::forceDir($wDir = BGERP_BACKUP_WORK_DIR);
             $path = $wDir . '/' . EF_DB_NAME . '.log.sql';
         }
-
+        
         return $path;
     }
-
-
+    
+    
     /**
      * Възстановява системата от направен бекъп
      */
-    public function act_Restore()
+    public function restore(&$log)
     {
-        requireRole('debug');
-
         core_App::setTimeLimit(120);
-         
-        $path = BGERP_BACKUP_PATH . '/current/';
-        $dbName = 'alpha';
-        $dbUser = 'root';
-        $dbPass = '';
+        
+        // Път от където да възстановяваме
+        $path = BGERP_BACKUP_RESTORE_PATH;
         
         // Парола за разархивиране
-        $pass = '';
+        $pass = defined('BGERP_BACKUP_RESTORE_PASS') ? BGERP_BACKUP_RESTORE_PASS : '';
         
-        $db = cls::get(
-            'core_Db',
-            array('dbName' => $dbName,
-                'dbUser' => $dbUser,
-                'dbPass' => $dbPass,
-            )
-        );
+        // Вземаме манипулатора на базата данни
+        $db = cls::get('core_Db');
         
         // Първо очакваме празна база. Ако в нея има нещо - излизаме
-        $dbRes = $db->query("SELECT count(*) AS tablesCnt FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{$dbName}'");
+        $dbRes = $db->query("SELECT count(*) AS tablesCnt FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{$db->dbName}'");
         $res = $db->fetchArray($dbRes);
         
-        
         if (array_values($res)[0] > 0) {
+            $log[] = 'err: Базата не е празна. Преди възстановяване от бекъп в нея не трябва да има нито една таблица.';
             
-            return 'The database is not empty.';
+            return false;
         }
         
         // Подготвяме структурата на базата данни
+        $path = rtrim($path, '\//') . '/';
         $dbStructZip = $path . 'db_structure.sql.zip';
         $dbStructSql = $path . 'db_structure.sql';
-        expect(file_exists($dbStructZip));
+        expect(file_exists($dbStructZip), $dbStructZip);
         @unlink($dbStructSql);
-        archive_Adapter::uncompress($dbStructZip, $path, BGERP_BACKUP_PASS);
+        $log[] = 'msg: Разкомпресиране на структурата на таблиците';
+        archive_Adapter::uncompress($dbStructZip, $path, $pass);
         expect(file_exists($dbStructSql));
         $sql = file_get_contents($dbStructSql);
         unlink($dbStructSql);
+        
+        $log[] = 'msg: Създаване на структурата на таблиците';
         $db->multyQuery($sql);
         
         // Наливаме съдържанието от всички налични CSV файлове
         // Извличаме от CSV последователно всички таблици
         $files = glob($path . '*.csv.zip');
         foreach ($files as $src) {
+            $src = str_replace('\\', '/', $src);
             core_App::setTimeLimit(120);
             $dest = substr($src, 0, -4);
             $table = substr(basename($src), 0, -8);
             @unlink($dest);
-            archive_Adapter::uncompress($src, $path, BGERP_BACKUP_PASS);
+            $log[] = 'msg: Разкомпресиране на ' . $src;
+            archive_Adapter::uncompress($src, $path, $pass);
             expect(file_exists($dest));
+            $log[] = 'msg: Импортиране на ' . $table;
             $sql = "LOAD DATA INFILE '{$dest}' INTO TABLE `{$table}` FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n'";
             $db->query($sql);
             unlink($dest);
@@ -324,20 +329,26 @@ class core_Backup extends core_Mvc
         // Наливане на наличните SQL логове
         $files = glob($path . '*.log.sql.zip');
         asort($files);
-
+        
         foreach ($files as $src) {
+            $src = str_replace('\\', '/', $src);
             core_App::setTimeLimit(120);
             $dest = substr($src, 0, -4);
             @unlink($dest);
-            archive_Adapter::uncompress($src, $path, BGERP_BACKUP_PASS);
+            $log[] = 'msg: Разкомпресиране на ' . $src;
+            archive_Adapter::uncompress($src, $path, $pass);
             expect(file_exists($dest));
             $sql = file_get_contents($dest);
+            $log[] = 'msg: Импортиране на ' . $src;
             $db->multyQuery($sql);
             unlink($dest);
         }
+        
+        $log[] = 'msg: Възстановяването завърши успешно';
+        
+        return true;
     }
-
-
+    
     
     /**
      * Изтриване на директория
