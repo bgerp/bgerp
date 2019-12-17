@@ -826,7 +826,6 @@ class core_Db
         }
         
         if ($link->errno) {
-            
             // Грешка в базата данни
             $dump = array('query' => $this->query, 'mysqlErrCode' => $link->errno, 'mysqlErrMsg' => $link->error, 'dbLink' => $link);
             throw new core_exception_Db("500 @Грешка при {$action}", 'DB Грешка', $dump);
