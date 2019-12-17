@@ -477,7 +477,7 @@ class doc_Setup extends core_ProtoSetup
         
         $res .= cls::get('bgerp_Setup')->loadSetupData();
         
-        $res .= $this->callMigrate('addBlockToPortal46193', 'doc');
+        $res .= $this->callMigrate('addBlockToPortal46194', 'doc');
         
         core_ProtoSetup::$dbInit = $dbUpdate;
         
@@ -488,9 +488,27 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Добавя блок в портала за всеки powerUser с пощенската му кутия
      */
-    public function addBlockToPortal46193()
+    public function addBlockToPortal46194()
     {
         $Portal = cls::get('bgerp_Portal');
+        
+        $data = core_Packs::getConfig('core')->_data;
+        
+        $force = false;
+        if (!$data['migration_doc_addBlockToPortal46193']) {
+            $force = true;
+        }
+        
+        if (!$force) {
+            if (!bgerp_Portal::fetch("#createdBy > 0")) {
+                $force = true;
+            }
+        }
+        
+        if (!$force) {
+            
+            return ;
+        }
         
         $uArr = core_Users::getByRole('powerUser');
         

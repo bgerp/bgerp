@@ -43,7 +43,7 @@ class eshop_Carts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,ip,brid,createdOn=Създаване,activatedOn=Активиране';
+    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,ip,brid,createdOn=Създаване,activatedOn=Активиране,domainId';
     
     
     /**
@@ -218,7 +218,7 @@ class eshop_Carts extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->FNC('domain', 'key(mvc=cms_Domains,select=titleExt)', 'caption=Домейн,input,silent,refreshForm');
+        $data->listFilter->FNC('domain', 'key(mvc=cms_Domains,select=titleExt,allowEmpty)', 'caption=Домейн,input,refreshForm,placeholder=Всички');
         $data->listFilter->FNC('type', 'enum(all=Всички,draft=Чернови,active=Активни,empty=Празни,users=От потребител,anonymous=Без потребител,pendingSales=С чакащи продажби)', 'caption=Вид,input,silent,refreshForm');
         
         $data->listFilter->setDefault('type', 'all');
@@ -230,6 +230,7 @@ class eshop_Carts extends core_Master
         
         if ($filter = $data->listFilter->rec) {
             if (!empty($filter->domain)) {
+                unset($data->listFields['domainId']);
                 $data->query->where("#domainId = {$filter->domain}");
             }
             
@@ -617,12 +618,18 @@ class eshop_Carts extends core_Master
      */
     public function act_Finalize()
     {
+        $retUrl = getRetUrl();
+        
         Request::setProtected('description,accountId');
         $this->requireRightFor('finalize');
         expect($id = Request::get('id', 'int'));
         expect($rec = self::fetch($id));
         $msg = '|Благодарим за поръчката|*!';
         if ($rec->state == 'active') {
+            if(countR($retUrl)){
+                
+                return new Redirect($retUrl, 'Има вече такава поръчка');
+            }
             
             return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), $msg);
         }
@@ -639,6 +646,11 @@ class eshop_Carts extends core_Master
         if (empty($saleRec)) {
             $this->logErr('Проблем при генериране на онлайн продажба', $rec->id);
             $errorMs = 'Опитайте пак! Имаше проблем при завършването на поръчката! Ако все още имате проблем, свържете се с нас.';
+            
+            if(countR($retUrl)){
+                
+                return new Redirect($retUrl, $errorMs, 'error');
+            }
             
             return new Redirect(array('eshop_Carts', 'view', $rec->id), $errorMs, 'error');
         }
@@ -678,6 +690,11 @@ class eshop_Carts extends core_Master
                 
                 return $afterPaymentDisplay;
             }
+        }
+        
+        if(countR($retUrl)){
+            
+            return new Redirect($retUrl, 'Поръчката е активирана успешно');
         }
         
         return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), $msg);
@@ -1658,9 +1675,10 @@ class eshop_Carts extends core_Master
             }
         }
         
-        if (in_array($action, array('addtocart', 'checkout', 'finalize'))) {
-            if (!$mvc->haveRightFor('viewexternal', $rec)) {
-                $requiredRoles = 'no_one';
+        if (in_array($action, array('addtocart', 'checkout', 'finalize')) && isset($rec)) {
+            $singleRoles = $mvc->getRequiredRoles('single', $rec, $userId);
+            if(!haveRole($singleRoles, $userId)){
+                $requiredRoles = $mvc->getRequiredRoles('viewexternal', $rec, $userId);
             }
         }
         
@@ -1671,7 +1689,9 @@ class eshop_Carts extends core_Master
         }
         
         if ($action == 'finalize' && isset($rec)) {
-            if (empty($rec->personNames) || empty($rec->productCount)) {
+            if($rec->state != 'draft'){
+                $requiredRoles = 'no_one';
+            } elseif (empty($rec->personNames) || empty($rec->productCount)) {
                 $requiredRoles = 'no_one';
             } elseif ($rec->deliveryNoVat < 0) {
                 $requiredRoles = 'no_one';
@@ -1768,7 +1788,7 @@ class eshop_Carts extends core_Master
         
         if (isset($rec->saleId)) {
             $saleState = sales_Sales::fetchField($rec->saleId, 'state');
-            $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+            $row->saleId = sales_Sales::getHyperlink($rec->saleId, true);
             $row->saleId = "<span class='state-{$saleState} document-handler'>{$row->saleId}</span>";
         }
         
@@ -2007,6 +2027,7 @@ class eshop_Carts extends core_Master
                 $this->save($rec);
                 $this->updateMaster($rec);
                 core_Lg::pop();
+                eshop_Carts::logWrite("Попълване на данни за поръчката от външната част", $rec->id);
                 
                 return followRetUrl();
             }
@@ -2434,6 +2455,14 @@ class eshop_Carts extends core_Master
         
         if (self::haveRightFor('makenewsale', $rec)) {
             $data->toolbar->addBtn('Нова продажба', array($mvc, 'makenewsale', 'id' => $rec->id, 'ret_url' => true, ''), null, 'ef_icon=img/16/cart_go.png,title=Създаване на нова продажба към количката');
+        }
+        
+        if (log_System::haveRightFor('list')) {
+            $data->toolbar->addBtn('Системен лог', array('log_System', 'list', 'search' => $mvc->className, 'objectId' => $data->rec->id), 'ef_icon=img/16/bug.png, title=Разглеждане на логовете на документа, order=20, row=3');
+        }
+        
+        if ($mvc->haveRightFor('finalize', $rec)) {
+            $data->toolbar->addBtn('Финализиране', array($mvc, 'finalize', $rec->id, 'ret_url' => true), 'ef_icon=img/16/bug.png, title=Ръчно финализиране на количката');
         }
     }
     

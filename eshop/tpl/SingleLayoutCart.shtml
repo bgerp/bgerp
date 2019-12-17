@@ -1,5 +1,3 @@
-
-
 <div class="singleView">
    [#SingleToolbar#]
    <h2 class="block_title [#STATE_CLASS#]" style='padding:5px'>[#SingleIcon#] |Кошница|* <b style="color:green;display:inline-block;word-break:break-all">№[#id#]</b></h2>
@@ -19,6 +17,14 @@
                <td>[#brid#]</td>
             </tr>
             <!--ET_END brid-->
+            
+            <!--ET_BEGIN domainId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Домейн|*:</td>
+               <td>[#domainId#]</td>
+            </tr>
+            <!--ET_END domainId-->
+            
             <!--ET_BEGIN userId-->
             <tr>
                <td class="title-style" style='width:150px'>|Потребител|*:</td>

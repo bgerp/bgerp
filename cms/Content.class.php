@@ -825,7 +825,7 @@ class cms_Content extends core_Manager
                         }
                     }
                     
-                    $html .= "<h2 style='font-size:0.9em;'>Резултати в <strong style='color:green'>" . type_Varchar::escape($rec->title ? $rec->title : $rec->menu) . $domainName . '</strong></h2>';
+                    $html .= "<h2><strong style='color:green'>" . type_Varchar::escape($rec->title ? $rec->title : $rec->menu) . $domainName . '</strong></h2>';
                     $html .= '<ul>';
                     foreach ($res as $o) {
                         $html .= "<li style='font-size:1.2em; margin:5px;' >" . ht::createLink($o->title, $o->url) . '</li>';

@@ -463,6 +463,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         }
         
         $Tasks = cls::get('cal_Tasks');
+        $Tasks->addRowClass = false;
         
         $fTasks = new stdClass();
         $fTasks->query = $fQuery;

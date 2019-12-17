@@ -1177,6 +1177,10 @@ form[method="post"] input[type="submit"] {
 .swipe-tab {
   display: none; }
 
+.swipe-tabs-container,
+.swipe-tab-content {
+  outline: none !important; }
+
   .slick-initialized .swipe-tab-content {
     position: relative;
     min-height: 365px; }
