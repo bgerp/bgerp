@@ -79,6 +79,22 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             unset($rec->details);
         }
         
+        // Проверка на артикулите преди контиране
+        if (Mode::get('saveTransaction')) {
+            $productsArr = array_filter($rec->details['receiptDetails'], function($a){return $a->action == 'sale';});
+            $productsArr = arr::extractValuesFromArray($productsArr, 'value');
+            $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canSell');
+            
+            // Проверка на артикулите
+            $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canConvert,canStore');
+            if(count($productCheck['notActive'])){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
+            } elseif($productCheck['metasError']){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са складируеми и вложими|*!");
+            }
+        }
+        
+        
         return $transaction;
     }
     
@@ -100,7 +116,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     protected function getTakingPart($rec, $products, &$totalVat, $posRec)
     {
         $entries = array();
-        
+      
         foreach ($products as $product) {
             $product->totalQuantity = round($product->quantity * $product->quantityInPack, 2);
             $totalAmount = currency_Currencies::round($product->amount);
