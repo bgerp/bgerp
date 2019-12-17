@@ -421,7 +421,7 @@ class core_Cron extends core_Manager
         $this->currentRec = clone($rec);
         
         // Изчакваме преди началото на процеса, ако е зададено
-        if ($rec->delay > 0) {
+        if ($rec->delay > 0 && !$forced) {
             core_App::setTimeLimit(30 + $rec->delay);
             sleep($rec->delay);
             Debug::log("Sleep {$rec->delay} sec. in " . __CLASS__);

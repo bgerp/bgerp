@@ -539,6 +539,11 @@ class log_Browsers extends core_Master
      */
     public static function updateBridCookieLifetime($brid = null)
     {
+        if (headers_sent()) {
+            
+            return false;
+        }
+        
         if (!isset($brid)) {
             $brid = self::getBrid(false);
         }
