@@ -73,18 +73,7 @@ class core_Backup extends core_Mvc
         // Форсираме директориите
         core_Os::forceDir($curPath = BGERP_BACKUP_PATH . '/current');
         core_Os::forceDir($pastPath = BGERP_BACKUP_PATH . '/past');
-        
-        if (!self::isDirEmpty($curPath)) {
-            // Изтриваме директорията past
-            self::deleteDirectory($pastPath);
-            
-            // Преименуваме текущата директория на past
-            rename($curPath, $pastPath);
-        }
-        
-        // Създаваме празна текуща директория
-        core_Os::forceDir($curPath = BGERP_BACKUP_PATH . '/current');
-        
+                
         // Определяме всички mvc класове, на които ще правим бекъп
         $mvcArr = core_Classes::getOptionsByInterface('core_ManagerIntf');
         $instArr = array();
@@ -114,6 +103,18 @@ class core_Backup extends core_Mvc
         // Флъшваме всичко, каквото има от SQL лога
         self::cron_FlushSqlLog();
 
+        // Ако в `current` има нещо - преместваме го в `past`
+        if (!self::isDirEmpty($curPath)) {
+            // Изтриваме директорията past
+            self::deleteDirectory($pastPath);
+            
+            // Преименуваме текущата директория на past
+            rename($curPath, $pastPath);
+        }
+        
+        // Създаваме празна текуща директория
+        core_Os::forceDir($curPath = BGERP_BACKUP_PATH . '/current');
+
         foreach ($instArr as $table => $inst) {
             core_App::setTimeLimit(120);
             
@@ -137,6 +138,7 @@ class core_Backup extends core_Mvc
                 
                 // Таблицата не е променяна, нама да променяме и ZIP файла
                 if ($lmtTable < filemtime($past)) {
+                    debug::log("Таблица `{$table}` е баз промени");
                     copy($past, $dest);
                     continue;
                 }
@@ -147,7 +149,7 @@ class core_Backup extends core_Mvc
                       FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"'
                       LINES TERMINATED BY '\n'
                       FROM `{$table}` WHERE id > 0";
-            
+            debug::log("Експорт в CSV на таблица `{$table}`");
             $this->db->query($query);
             $files[$path] = $dest;
         }
@@ -161,6 +163,7 @@ class core_Backup extends core_Mvc
         $dbStructure = '';
         
         // Запазваме структурата на базата
+        debug::log("Генериране SQL за структурата на базата");
         foreach ($instArr as $table => $inst) {
             $query = "SHOW CREATE TABLE `{$table}`";
             $dbRes = $this->db->query($query);
@@ -177,6 +180,7 @@ class core_Backup extends core_Mvc
                 unlink($dest);
             }
             file_put_contents($path, $dbStructure);
+            debug::log("Компресиране на " . basename($dest));
             archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
         }
         
@@ -184,6 +188,7 @@ class core_Backup extends core_Mvc
             if (file_exists($dest)) {
                 unlink($dest);
             }
+            debug::log("Компресиране на " . basename($dest));
             archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
         }
         
@@ -295,7 +300,7 @@ class core_Backup extends core_Mvc
         $dbStructSql = $path . 'db_structure.sql';
         expect(file_exists($dbStructZip));
         @unlink($dbStructSql);
-        archive_Adapter::uncompress($dbStructZip, $path, $pass);
+        archive_Adapter::uncompress($dbStructZip, $path, BGERP_BACKUP_PASS);
         expect(file_exists($dbStructSql));
         $sql = file_get_contents($dbStructSql);
         unlink($dbStructSql);
@@ -309,7 +314,7 @@ class core_Backup extends core_Mvc
             $dest = substr($src, 0, -4);
             $table = substr(basename($src), 0, -8);
             @unlink($dest);
-            archive_Adapter::uncompress($src, $path, $pass);
+            archive_Adapter::uncompress($src, $path, BGERP_BACKUP_PASS);
             expect(file_exists($dest));
             $sql = "LOAD DATA INFILE '{$dest}' INTO TABLE `{$table}` FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n'";
             $db->query($sql);
@@ -324,7 +329,7 @@ class core_Backup extends core_Mvc
             core_App::setTimeLimit(120);
             $dest = substr($src, 0, -4);
             @unlink($dest);
-            archive_Adapter::uncompress($src, $path, $pass);
+            archive_Adapter::uncompress($src, $path, BGERP_BACKUP_PASS);
             expect(file_exists($dest));
             $sql = file_get_contents($dest);
             $db->multyQuery($sql);

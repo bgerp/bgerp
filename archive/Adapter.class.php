@@ -315,7 +315,7 @@ class archive_Adapter
         $src = escapeshellarg($src);
         $dest = escapeshellarg($dest);
         
-        $cmd = archive_Setup::get_ARCHIVE_7Z_PATH() . " a {$p}-tzip {$options} {$dest} {$src}";
+        $cmd = archive_Setup::get_ARCHIVE_7Z_PATH() . " a {$p}-tzip -y {$options} {$dest} {$src}";
         
         exec($cmd, $output, $return);
         
@@ -346,7 +346,7 @@ class archive_Adapter
         $dir = escapeshellarg($dir);
         
         
-        $cmd = archive_Setup::get_ARCHIVE_7Z_PATH() . " e {$src} -o{$dir} {$p}-tzip {$options}";
+        $cmd = archive_Setup::get_ARCHIVE_7Z_PATH() . " e {$src} -o{$dir} {$p}-tzip -y {$options}";
         
         exec($cmd, $output, $return);
         
