@@ -258,11 +258,6 @@ class email_Spam extends email_ServiceEmails
             
             $maxId = $rec->id;
             
-            if (isset($score)) {
-                
-                continue;
-            }
-            
             try {
                 $data = $rec->data;
                 
