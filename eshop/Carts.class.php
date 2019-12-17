@@ -2026,6 +2026,7 @@ class eshop_Carts extends core_Master
                 $this->save($rec);
                 $this->updateMaster($rec);
                 core_Lg::pop();
+                eshop_Carts::logWrite("Попълване на данни за поръчката от външната част", $rec->id);
                 
                 return followRetUrl();
             }
