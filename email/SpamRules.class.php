@@ -154,11 +154,13 @@ class email_SpamRules extends core_Manager
      *
      * @param object $rec
      */
-    public static function getSystemId($rec)
+    public static function getSystemId($rec, $force = false)
     {
-        if ($rec->systemId) {
-            
-            return $rec->systemId;
+        if (!$force) {
+            if ($rec->systemId) {
+                
+                return $rec->systemId;
+            }
         }
         
         $str = trim($rec->email) . '|' . trim($rec->subject) . '|' . trim($rec->body);
@@ -176,11 +178,24 @@ class email_SpamRules extends core_Manager
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
+        $fArr = array('email', 'subject', 'body');
+        
         if ($form->isSubmitted()) {
-            $systemId = $mvc->getSystemId($form->rec);
+            $systemId = $mvc->getSystemId($form->rec, true);
             $oRec = $mvc->fetch(array("#systemId = '[#1#]'", $systemId));
             if ($oRec && ($oRec->id != $form->rec->id)) {
-                $form->setError('email, subject, body', 'Вече съществува запис със същите данни');
+                $form->setError($fArr, 'Вече съществува запис със същите данни');
+            }
+        }
+        
+        if ($form->isSubmitted()) {
+            foreach ($fArr as $fName) {
+                if (strlen(trim($form->rec->{$fName}, '*')) && strlen(trim($form->rec->{$fName}))) {
+                    $haveVal = true;
+                }
+            }
+            if (!$haveVal) {
+                $form->setError($fArr, 'Едно от полетата трябва да има стойност');
             }
         }
     }
