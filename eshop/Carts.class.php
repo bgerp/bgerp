@@ -1675,9 +1675,9 @@ class eshop_Carts extends core_Master
         }
         
         if (in_array($action, array('addtocart', 'checkout', 'finalize')) && isset($rec)) {
-            $singleRoles = $mvc->getRequiredRoles('single', $rec);
+            $singleRoles = $mvc->getRequiredRoles('single', $rec, $userId);
             if(!haveRole($singleRoles, $userId)){
-                $requiredRoles = $mvc->getRequiredRoles('viewexternal', $rec);
+                $requiredRoles = $mvc->getRequiredRoles('viewexternal', $rec, $userId);
             }
         }
         
