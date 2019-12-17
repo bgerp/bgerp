@@ -400,8 +400,11 @@ class pos_Terminal extends peripheral_Terminal
         expect($operation = Request::get('operation', "enum(" . self::$operationsArr . ")"));
         $refreshPanel = Request::get('refreshPanel', 'varchar');
         $refreshPanel = ($refreshPanel == 'no') ? false : true;
-        $selectedRecId = Request::get('recId', 'int');
-        if(!pos_ReceiptDetails::fetch($selectedRecId, '*', false)){
+        if($selectedRecId = Request::get('recId', 'int')){
+            $selectedRec = pos_ReceiptDetails::fetch($selectedRecId, '*', false);
+        }
+        
+        if(!is_object($selectedRec)){
             $selectedRecId = pos_ReceiptDetails::getLastRec($id, 'sale')->id;
         }
         
