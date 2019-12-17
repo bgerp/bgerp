@@ -617,12 +617,18 @@ class eshop_Carts extends core_Master
      */
     public function act_Finalize()
     {
+        $retUrl = getRetUrl();
+        
         Request::setProtected('description,accountId');
         $this->requireRightFor('finalize');
         expect($id = Request::get('id', 'int'));
         expect($rec = self::fetch($id));
         $msg = '|Благодарим за поръчката|*!';
         if ($rec->state == 'active') {
+            if(countR($retUrl)){
+                
+                return new Redirect($retUrl, 'Има вече такава поръчка');
+            }
             
             return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), $msg);
         }
@@ -639,6 +645,11 @@ class eshop_Carts extends core_Master
         if (empty($saleRec)) {
             $this->logErr('Проблем при генериране на онлайн продажба', $rec->id);
             $errorMs = 'Опитайте пак! Имаше проблем при завършването на поръчката! Ако все още имате проблем, свържете се с нас.';
+            
+            if(countR($retUrl)){
+                
+                return new Redirect($retUrl, $errorMs, 'error');
+            }
             
             return new Redirect(array('eshop_Carts', 'view', $rec->id), $errorMs, 'error');
         }
@@ -678,6 +689,11 @@ class eshop_Carts extends core_Master
                 
                 return $afterPaymentDisplay;
             }
+        }
+        
+        if(countR($retUrl)){
+            
+            return new Redirect($retUrl, 'Поръчката е активирана успешно');
         }
         
         return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), $msg);
@@ -1771,7 +1787,7 @@ class eshop_Carts extends core_Master
         
         if (isset($rec->saleId)) {
             $saleState = sales_Sales::fetchField($rec->saleId, 'state');
-            $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+            $row->saleId = sales_Sales::getHyperlink($rec->saleId, true);
             $row->saleId = "<span class='state-{$saleState} document-handler'>{$row->saleId}</span>";
         }
         
@@ -2444,7 +2460,7 @@ class eshop_Carts extends core_Master
         }
         
         if ($mvc->haveRightFor('finalize', $rec)) {
-            $data->toolbar->addBtn('Финализиране', array($mvc, 'finalize', $rec->id), 'ef_icon=img/16/bug.png, title=Ръчно финализиране на количката');
+            $data->toolbar->addBtn('Финализиране', array($mvc, 'finalize', $rec->id, 'ret_url' => true), 'ef_icon=img/16/bug.png, title=Ръчно финализиране на количката');
         }
     }
     
