@@ -413,6 +413,18 @@ class pos_Reports extends core_Master
             
             $row->value = cat_Products::getHyperlink($obj->value, true);
             $obj->amount *= 1 + $obj->param;
+            
+            if(core_Packs::isInstalled('batch')){
+                $batchDef = batch_Defs::getBatchDef($obj->value);
+                if(is_object($batchDef)){
+                    if(!empty($obj->batch)){
+                        $batch = batch_Movements::getLinkArr($obj->value, $obj->batch);
+                        $row->value .= "<br><span class='richtext'>" . $batch[$obj->batch] . "</span>";
+                    } else {
+                        $row->value .= "<br><span class='richtext quiet'>" . tr("Без партида") . "</span>";
+                    }
+                }
+            }
         } else {
             
             // Ако детайла е плащане
@@ -505,13 +517,18 @@ class pos_Reports extends core_Master
             $data = pos_ReceiptDetails::fetchReportData($rec->id);
             
             foreach ($data as $obj) {
-                $index = implode('|', array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value));
+                $indexArr = array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value);
+                if(core_Packs::isInstalled('batch')){
+                    $indexArr[] = str_replace('|', '>', $obj->batch);
+                }
+                
+                $index = implode('|', $indexArr);
                 if (!array_key_exists($index, $results)) {
                     $results[$index] = $obj;
                 } else {
                     $results[$index]->quantity += $obj->quantity;
                     $results[$index]->amount += $obj->amount;
-                }
+                }   
             }
         }
     }
@@ -526,6 +543,7 @@ class pos_Reports extends core_Master
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
         if ($rec->state == 'active' && $rec->brState != 'closed') {
+            
             // Ако няма записани детайли извличаме актуалните
             $mvc->extractData($rec);
         }
