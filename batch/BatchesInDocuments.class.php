@@ -444,7 +444,7 @@ class batch_BatchesInDocuments extends core_Manager
             $form->setFieldTypeParams('newArray', array('batchDefinition' => $Def));
             $form->setDefault('newArray', $tableRec);
         } else {
-            $form->info->append("<br>" . tr('В документа, може да се използват само, вече създадени партиди'));
+            $form->info->append("<br>" . tr('В документа може да се използват само вече създадени партиди'));
         }
         
         // Какви са наличните партиди
