@@ -238,6 +238,19 @@ class email_Spam extends email_ServiceEmails
         $headersNames = email_Setup::get('CHECK_SPAM_SCORE_HEADERS');
         $headersNamesArr = type_Set::toArray($headersNames);
         
+        $nHeadersArr = array();
+        foreach ($headersNamesArr as $key => $header) {
+            $header = trim($header);
+            
+            if (!$header) {
+                continue;
+            }
+            
+            $header = preg_quote($header, '/');
+            
+            $nHeadersArr[$key] = $header;
+        }
+        
         while ($rec = $query->fetch()) {
             if (dt::now() >= $maxTime) {
                 break;
@@ -255,14 +268,7 @@ class email_Spam extends email_ServiceEmails
                 
                 $score = null;
                 
-                foreach ($headersNamesArr as $header) {
-                    $header = trim($header);
-                    
-                    if (!$header) {
-                        continue;
-                    }
-                    
-                    $header = preg_quote($header, '/');
+                foreach ($nHeadersArr as $header) {
                     
                     if (preg_match("/{$header}\s*:\s*([0-9\.]+)/i", $data, $matches)) {
                         $score = $matches[1];
