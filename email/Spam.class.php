@@ -42,7 +42,7 @@ class email_Spam extends email_ServiceEmails
     public function description()
     {
         $this->addFields();
-        $this->FLD('spamScore', 'double(smartRound, maxDecimals=2)', 'caption=Спам рейтинг');
+        $this->FLD('spamScore', 'double(smartRound, maxDecimals=1)', 'caption=Спам рейтинг');
     }
     
     
