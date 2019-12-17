@@ -385,6 +385,7 @@ function prepareTabs(currentTab, lastNotifyTime){
 		slidesToScroll: 1,
 		arrows: false,
 		infinite: false,
+		adaptiveHeight: true,
 		swipeToSlide: true,
 		draggable: false,
 		touchThreshold: 10,
