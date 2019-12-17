@@ -1658,9 +1658,10 @@ class eshop_Carts extends core_Master
             }
         }
         
-        if (in_array($action, array('addtocart', 'checkout', 'finalize'))) {
-            if (!$mvc->haveRightFor('viewexternal', $rec)) {
-                $requiredRoles = 'no_one';
+        if (in_array($action, array('addtocart', 'checkout', 'finalize')) && isset($rec)) {
+            $singleRoles = $mvc->getRequiredRoles('single', $rec);
+            if(!haveRole($singleRoles, $userId)){
+                $requiredRoles = $mvc->getRequiredRoles('viewexternal', $rec);
             }
         }
         
@@ -1671,7 +1672,9 @@ class eshop_Carts extends core_Master
         }
         
         if ($action == 'finalize' && isset($rec)) {
-            if (empty($rec->personNames) || empty($rec->productCount)) {
+            if($rec->state != 'draft'){
+                $requiredRoles = 'no_one';
+            } elseif (empty($rec->personNames) || empty($rec->productCount)) {
                 $requiredRoles = 'no_one';
             } elseif ($rec->deliveryNoVat < 0) {
                 $requiredRoles = 'no_one';
@@ -2434,6 +2437,14 @@ class eshop_Carts extends core_Master
         
         if (self::haveRightFor('makenewsale', $rec)) {
             $data->toolbar->addBtn('Нова продажба', array($mvc, 'makenewsale', 'id' => $rec->id, 'ret_url' => true, ''), null, 'ef_icon=img/16/cart_go.png,title=Създаване на нова продажба към количката');
+        }
+        
+        if (log_System::haveRightFor('list')) {
+            $data->toolbar->addBtn('Системен лог', array('log_System', 'list', 'search' => $mvc->className, 'objectId' => $data->rec->id), 'ef_icon=img/16/bug.png, title=Разглеждане на логовете на документа, order=20, row=3');
+        }
+        
+        if ($mvc->haveRightFor('finalize', $rec)) {
+            $data->toolbar->addBtn('Финализиране', array($mvc, 'finalize', $rec->id), 'ef_icon=img/16/bug.png, title=Ръчно финализиране на количката');
         }
     }
     
