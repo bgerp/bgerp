@@ -179,7 +179,7 @@ class bgerp_Portal extends embed_Manager
             
             $resArr = $this->getPortalBlockForAJAX();
             
-            return core_App::outputJson($resArr);
+            return $resArr;
         }
         
         // Ако е инсталиран пакета за партньори
