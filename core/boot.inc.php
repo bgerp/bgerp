@@ -844,8 +844,12 @@ function setupKey($efSalt = null, $i = 0)
 function countR($arr)
 {
     if(!is_array($arr) && !empty($arr)) {
-        print_r($arr);
-        die('countR - this is not an array');
+        
+        if(BGERP_GIT_BRANCH == 'dev') {
+            print_r($arr);
+            bp();
+            die('countR - this is not an array');
+        } else return 1;
     }
 
     return empty($arr) ? 0 : count($arr);
