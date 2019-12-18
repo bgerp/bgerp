@@ -598,7 +598,7 @@ class crm_Companies extends core_Master
                 $similarCompany .= '</li>';
             }
             
-            $sledniteFirmi = (count($similarsArr) == 1) ? 'следната фирма' : 'следните фирми';
+            $sledniteFirmi = (countR($similarsArr) == 1) ? 'следната фирма' : 'следните фирми';
             
             $resStr = "Възможно е дублиране със {$sledniteFirmi}|*: <ul>{$similarCompany}</ul>";
         }
@@ -1203,7 +1203,7 @@ class crm_Companies extends core_Master
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }
@@ -1717,7 +1717,7 @@ class crm_Companies extends core_Master
     {
         $options = crm_Persons::makeArray4Select('name', "#buzCompanyId = {$id}");
         
-        if (count($options)) {
+        if (countR($options)) {
             if (!$intKeys) {
                 $options = array_combine($options, $options);
             }
@@ -2008,7 +2008,7 @@ class crm_Companies extends core_Master
             $cEmailArr = type_Emails::toArray($contrData->email);
             
             // Ако има имейли
-            if (count($oEmailArr) && count($cEmailArr)) {
+            if (countR($oEmailArr) && countR($cEmailArr)) {
                 
                 // Ключа на масивите е същата със стойността
                 $oEmailArr = array_combine($oEmailArr, $oEmailArr);
@@ -2038,7 +2038,7 @@ class crm_Companies extends core_Master
                 $oEmailArr = type_Emails::toArray($ownCompany->email);
                 
                 // Ако има стойнност
-                if (count($oEmailArr)) {
+                if (countR($oEmailArr)) {
                     
                     // Ключовете да са равни със стойностите
                     $oEmailArr = array_combine($oEmailArr, $oEmailArr);
@@ -2049,7 +2049,7 @@ class crm_Companies extends core_Master
             $cGroupEmailArr = type_Emails::toArray($contrData->groupEmails);
             
             // Ако има стойности в масива
-            if (count($cGroupEmailArr)) {
+            if (countR($cGroupEmailArr)) {
                 
                 // Ключовете да са равни със стойностите
                 $cGroupEmailArr = array_combine($cGroupEmailArr, $cGroupEmailArr);
@@ -2069,7 +2069,7 @@ class crm_Companies extends core_Master
         }
         
         // Ако сме премахнали имейлите и има имейли в групите
-        if (!$contrData->email && count($cGroupEmailArr)) {
+        if (!$contrData->email && countR($cGroupEmailArr)) {
             
             // Добавяме първия в имейлите
             $contrData->email = key($cGroupEmailArr);
@@ -2504,7 +2504,7 @@ class crm_Companies extends core_Master
         }
         
         // Ако има полета за обновяване
-        if (count($saveFields)) {
+        if (countR($saveFields)) {
             self::save($rec, $saveFields);
         }
     }
