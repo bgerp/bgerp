@@ -13,9 +13,15 @@
 								<td>[#caseId#]</td>
 							</tr>
 							<tr>
-								<td class='dt'>|Склад|*:</td>
+								<td class='dt'>|Основен склад|*:</td>
 								<td>[#storeId#]</td>
 							</tr>
+							
+							<tr>
+								<td class='dt'>|Други складове|*:</td>
+								<td>[#otherStores#]</td>
+							</tr>
+							
 							<tr>
 								<td class='dt'>|Контрагент|*:</td>
 								<td>[#contragent#]</td>

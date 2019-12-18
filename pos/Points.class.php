@@ -119,13 +119,31 @@ class pos_Points extends core_Master
     {
         $this->FLD('name', 'varchar(16)', 'caption=Наименование, mandatory,oldFieldName=title');
         $this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
-        $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад, mandatory');
-        $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory');
+        $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Ценова политика, silent, mandatory');
+        $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Складове->Основен, mandatory');
+        $this->FLD('otherStores', 'keylist(mvc=store_Stores, select=name)', 'caption=Складове->Други');
         $this->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Безналични налични на плащане->Позволени,placeholder=Всички');
         $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Тема,notNull,value=default');
-    }
+     }
     
     
+     /**
+      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+      *
+      * @param core_Mvc  $mvc
+      * @param core_Form $form
+      */
+     protected static function on_AfterInputEditForm($mvc, &$form)
+     {
+         $rec = &$form->rec;
+         if($form->isSubmitted()){
+             if(!empty($rec->otherStores) && keylist::isIn($rec->storeId, $rec->otherStores)){
+                 $form->setError('otherStores', 'Основният склад не може да е избран');
+             }
+         }
+     }
+     
+     
     /**
      * Разрешените начини за плащане на ПОС-а
      *
@@ -229,6 +247,10 @@ class pos_Points extends core_Master
         unset($row->currentPlg);
         if (empty($rec->payments)) {
             $row->payments = tr('Всички');
+        }
+        
+        if(empty($rec->otherStores)){
+            $row->otherStores = tr('Няма');
         }
         
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')) {
