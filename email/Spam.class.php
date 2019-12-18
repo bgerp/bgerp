@@ -42,7 +42,7 @@ class email_Spam extends email_ServiceEmails
     public function description()
     {
         $this->addFields();
-        $this->FLD('spamScore', 'double', 'caption=Спам рейтинг');
+        $this->FLD('spamScore', 'double(maxDecimals=1)', 'caption=Спам рейтинг');
     }
     
     
@@ -208,9 +208,11 @@ class email_Spam extends email_ServiceEmails
      */
     public static function callback_RepairSpamScore()
     {
-        $pKey = $clsName . '|repairSearchKeywords';
+        $clsName = get_called_class();
         
-        $clsInst = cls::get(get_called_class());
+        $pKey = $clsName . '|RepairSpamScore';
+        
+        $clsInst = cls::get($clsName);
         
         $maxTime = dt::addSecs(40);
         
@@ -238,6 +240,19 @@ class email_Spam extends email_ServiceEmails
         $headersNames = email_Setup::get('CHECK_SPAM_SCORE_HEADERS');
         $headersNamesArr = type_Set::toArray($headersNames);
         
+        $nHeadersArr = array();
+        foreach ($headersNamesArr as $key => $header) {
+            $header = trim($header);
+            
+            if (!$header) {
+                continue;
+            }
+            
+            $header = preg_quote($header, '/');
+            
+            $nHeadersArr[$key] = $header;
+        }
+        
         while ($rec = $query->fetch()) {
             if (dt::now() >= $maxTime) {
                 break;
@@ -245,29 +260,17 @@ class email_Spam extends email_ServiceEmails
             
             $maxId = $rec->id;
             
-            if (isset($score)) {
-                
-                continue;
-            }
-            
             try {
                 $data = $rec->data;
                 
                 $score = null;
                 
-                foreach ($headersNamesArr as $header) {
-                    $header = trim($header);
-                    
-                    if (!$header) {
-                        continue;
-                    }
-                    
-                    $header = preg_quote($header, '/');
+                foreach ($nHeadersArr as $header) {
                     
                     if (preg_match("/{$header}\s*:\s*([0-9\.]+)/i", $data, $matches)) {
                         $score = $matches[1];
                     } else {
-                        if (preg_match("/{$header}\s*:\s*score\s*=\s*([0-9\.]+)(\s|\n|[^0-9])/i", $data, $matches)) {
+                        if (preg_match("/{$header}\s*:\s*[\w|\W]*score\s*=\s*([0-9\.]+)(\s|\n|[^0-9])/i", $data, $matches)) {
                             $score = $matches[1];
                         }
                     }
