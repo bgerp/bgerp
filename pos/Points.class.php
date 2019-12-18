@@ -286,11 +286,6 @@ class pos_Points extends core_Master
         if ($res && $part == 'id') {
             $rec = $mvc->fetchRec($res);
             
-            // .. и имаме право да изберем склада и, логваме се в него
-            if (store_Stores::haveRightFor('select', $rec->storeId)) {
-                store_Stores::selectCurrent($rec->storeId);
-            }
-            
             // .. и имаме право да изберем касата и, логваме се в нея
             if (cash_Cases::haveRightFor('select', $rec->caseId)) {
                 cash_Cases::selectCurrent($rec->caseId);
