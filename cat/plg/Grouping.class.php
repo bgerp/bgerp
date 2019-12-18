@@ -76,7 +76,7 @@ class cat_plg_Grouping extends core_Plugin
                 }
             }
             
-            $selArrCnt = count($selArr);
+            $selArrCnt = countR($selArr);
             expect($selArrCnt);
             reset($selArr);
             
@@ -94,7 +94,7 @@ class cat_plg_Grouping extends core_Plugin
             } else {
                 $form->title = 'Промяна на свойствата на |*' . $selArrCnt . '| ' . mb_strtolower($mvc->title);
                 
-                if (count($canAddMetas)) {
+                if (countR($canAddMetas)) {
                     $addType = cls::get('type_Set');
                     
                     foreach ($canAddMetas as $g => $cnt) {
@@ -103,7 +103,7 @@ class cat_plg_Grouping extends core_Plugin
                     $form->FNC('addMetas', $addType, 'caption=Добавяне->Свойства,input');
                 }
                 
-                if (count($canDelMetas)) {
+                if (countR($canDelMetas)) {
                     $delType = cls::get('type_Set');
                     foreach ($canDelMetas as $g => $cnt) {
                         $delType->suggestions[$g] = $metas[$g] . " ({$cnt})";
