@@ -310,7 +310,7 @@ class batch_plg_InventoryNotes extends core_Plugin
      */
     public static function on_ExpandRows($mvc, &$summaryRecs, &$summaryRows, $masterRec)
     {
-        if (!count<r($summaryRows)) {
+        if (!countR($summaryRows)) {
             
             return;
         }
