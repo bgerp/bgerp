@@ -218,8 +218,6 @@ body {
 
   .color-lightgray .portal {
     background-color: white; }
-  .color-lightgray.swipe-tab.active-tab {
-    border-color: #f1f1f1 !important; }
   .color-lightgray .legend,
   span.color-lightgray,
   li.color-lightgray {
@@ -232,8 +230,6 @@ body {
 
   .color-darkgray .portal {
     background-color: #e1e1e1; }
-  .color-darkgray.swipe-tab.active-tab {
-    border-color: #333333 !important; }
   .color-darkgray .legend,
   span.color-darkgray,
   li.color-darkgray {
@@ -246,8 +242,6 @@ body {
 
   .color-lightgreen .portal {
     background-color: #e6f4e0; }
-  .color-lightgreen.swipe-tab.active-tab {
-    border-color: #7ac15b !important; }
   .color-lightgreen .legend,
   span.color-lightgreen,
   li.color-lightgreen {
@@ -260,8 +254,6 @@ body {
 
   .color-darkgreen .portal {
     background-color: #dae6d5; }
-  .color-darkgreen.swipe-tab.active-tab {
-    border-color: #375d26 !important; }
   .color-darkgreen .legend,
   span.color-darkgreen,
   li.color-darkgreen {
@@ -274,8 +266,6 @@ body {
 
   .color-darkblue .portal {
     background-color: #eceaf9; }
-  .color-darkblue.swipe-tab.active-tab {
-    border-color: #261e75 !important; }
   .color-darkblue .legend,
   span.color-darkblue,
   li.color-darkblue {
@@ -288,8 +278,6 @@ body {
 
   .color-lightblue .portal {
     background-color: #dbedf9; }
-  .color-lightblue.swipe-tab.active-tab {
-    border-color: #2085ca !important; }
   .color-lightblue .legend,
   span.color-lightblue,
   li.color-lightblue {
@@ -302,8 +290,6 @@ body {
 
   .color-lightred .portal {
     background-color: #fce8e8; }
-  .color-lightred.swipe-tab.active-tab {
-    border-color: #ea5757 !important; }
   .color-lightred .legend,
   span.color-lightred,
   li.color-lightred {
@@ -316,8 +302,6 @@ body {
 
   .color-darkred .portal {
     background-color: #f4dbdb; }
-  .color-darkred.swipe-tab.active-tab {
-    border-color: #6b1e1e !important; }
   .color-darkred .legend,
   span.color-darkred,
   li.color-darkred {
@@ -330,8 +314,6 @@ body {
 
   .color-purple .portal {
     background-color: #ecdff1; }
-  .color-purple.swipe-tab.active-tab {
-    border-color: #6d417b !important; }
   .color-purple .legend,
   span.color-purple,
   li.color-purple {
@@ -344,8 +326,6 @@ body {
 
   .color-pink .portal {
     background-color: #f5daf0; }
-  .color-pink.swipe-tab.active-tab {
-    border-color: #c147aa !important; }
   .color-pink .legend,
   span.color-pink,
   li.color-pink {
@@ -358,8 +338,6 @@ body {
 
   .color-yellow .portal {
     background-color: #f8f7e2; }
-  .color-yellow.swipe-tab.active-tab {
-    border-color: #eaea6b !important; }
   .color-yellow .legend,
   span.color-yellow,
   li.color-yellow {
@@ -372,8 +350,6 @@ body {
 
   .color-orange .portal {
     background-color: #fbefe3; }
-  .color-orange.swipe-tab.active-tab {
-    border-color: #e48027 !important; }
   .color-orange .legend,
   span.color-orange,
   li.color-orange {
@@ -1168,11 +1144,15 @@ form[method="post"] input[type="submit"] {
   .pages a:last-child {
     border-radius: 0 5px 5px 0 !important; }
 
+.portal table.listTable {
+  transform: translate3d(0, 0, 0); }
+
 .sub-header {
   height: 44px; }
 
 .swipe-tab-content {
-  display: none; }
+  display: none;
+  z-index: 100; }
 
 .swipe-tab {
   display: none; }
@@ -1187,9 +1167,14 @@ form[method="post"] input[type="submit"] {
     @media screen and (min-width: 767px) {
       .slick-initialized .swipe-tab-content {
     min-height: 500px; } }
+  .slick-initialized .portal {
+    margin-top: 0 !important;
+    box-shadow: none;
+    border: none !important;
+    border-radius: 0 !important; }
   .slick-initialized .swipe-tab {
     outline: none;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     height: 42px;

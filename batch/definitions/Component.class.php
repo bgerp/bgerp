@@ -58,7 +58,7 @@ class batch_definitions_Component extends batch_definitions_Proto
         
         $delimiter = html_entity_decode($this->rec->delimiter);
         $parts = explode($delimiter, $value);
-        if (count($parts) != 2) {
+        if (countR($parts) != 2) {
             $msg = "Партидата трябва да съдържа '{$delimiter}'";
             
             return false;

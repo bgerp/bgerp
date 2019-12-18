@@ -73,7 +73,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 // Ако има налични партиди в склада да се показват като предложения
                 $exBatches = batch_Items::getBatchQuantitiesInStore($rec->{$mvc->productFieldName}, $storeId);
                 
-                if (count($exBatches)) {
+                if (countR($exBatches)) {
                     $suggestions = array();
                     foreach ($exBatches as $b => $q) {
                         $verbal = strip_tags($BatchClass->toVerbal($b));

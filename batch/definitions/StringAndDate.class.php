@@ -90,7 +90,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         $normalized = array();
         foreach ($existingBatches as $batch) {
             $exploded = explode($delimiter, $batch);
-            if(count($exploded) == 2){
+            if(countR($exploded) == 2){
                 $normalized[] = str_replace($this->rec->prefix, '', $exploded[0]);
             }
         }
@@ -214,7 +214,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         $date = batch_definitions_ExpirationDate::displayExpiryDate($date, $this->rec->format, $this->rec->time);
         $string = core_Type::getByName('varchar')->toVerbal($string);
         
-        $value = "{$string}{$delimiter}{$date}";
+        $value = "<span>{$string}{$delimiter}{$date}</span>";
         
         return $value;
     }

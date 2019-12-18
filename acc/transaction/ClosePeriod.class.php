@@ -259,12 +259,6 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     {
         $entries = array();
         
-        // Приходи от продажби по артикули
-        if (!countR($this->balanceId)) {
-            
-            return $entries;
-        }
-        
         $bQuery = acc_BalanceDetails::getQuery();
         acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '701,706,703,700');
         $bQuery->where('#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL');
