@@ -514,7 +514,7 @@ class pos_Terminal extends peripheral_Terminal
                 $quantity = cat_UoM::round($measureId, $quantity);
                 $measureName = str::getPlural($quantity, cat_UoM::getShortName($measureId), true);
                 $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
-                $batchVerbal = $Def->toVerbal($batch) . "<br>{$quantityVerbal} {$measureName}";
+                $batchVerbal = $Def->toVerbal($batch) . "<span>{$quantityVerbal} {$measureName}</span>";
                 
                 $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'data-url' => toUrl($dataUrl, 'local')), $batchVerbal, true);
                 $tpl->append($btn);
@@ -1007,12 +1007,13 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->push('css/Application.css', 'CSS');
         $tpl->push('css/default-theme.css', 'CSS');
         $tpl->push('pos/tpl/css/styles.css', 'CSS');
-        //$tpl->push('js/efCommon.js', 'JS');
+        
         if (!Mode::is('printing')) {
             $tpl->push('pos/js/scripts.js', 'JS');
             $tpl->push('pos/js/jquery.keynav.js', 'JS');
             $tpl->push('pos/js/hotkeys.js', 'JS');
             jquery_Jquery::run($tpl, 'posActions();');
+            jquery_Jquery::run($tpl, 'disableOrEnableBatch();');
         }
         
         jqueryui_Ui::enable($tpl);
