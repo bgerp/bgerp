@@ -629,7 +629,8 @@ class core_Packs extends core_Manager
             if (cls::load($cls, true)) {
                 $setup = cls::get($cls);
                 if (method_exists($setup, 'checkConfig') && ($errMsg = $setup->checkConfig())) {
-                    $row->config = ht::createHint($row->config, $errMsg, 'error');
+                    $row->config = ht::createLink(tr('Настройки'), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => true), null, array('id' => $rec->name.'-config', 'style' => 'background:red;color:white'));
+                    $row->config = ht::createHint("<span style='color:red;'>" . $row->config . "</b>", $errMsg, 'noicon');
                 }
             }
         }
