@@ -73,7 +73,7 @@ class sens2_DataLogs extends core_Manager
     /**
      * Без броене на редовете, по време на страницирането
      */
-    public $simplePaging = true;
+    // public $simplePaging = true;
 
 
     /**
