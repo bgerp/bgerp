@@ -43,6 +43,14 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     
     
     /**
+     * Кои полета от листовия изглед да може да се сортират
+     *
+     * @var int
+     */
+    protected $sortableListFields = 'indicatorId,value';
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
