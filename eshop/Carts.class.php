@@ -43,7 +43,7 @@ class eshop_Carts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,ip,brid,createdOn=Създаване,activatedOn=Активиране';
+    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,ip,brid,createdOn=Създаване,activatedOn=Активиране,domainId';
     
     
     /**
@@ -218,7 +218,7 @@ class eshop_Carts extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->FNC('domain', 'key(mvc=cms_Domains,select=titleExt)', 'caption=Домейн,input,silent,refreshForm');
+        $data->listFilter->FNC('domain', 'key(mvc=cms_Domains,select=titleExt,allowEmpty)', 'caption=Домейн,input,refreshForm,placeholder=Всички');
         $data->listFilter->FNC('type', 'enum(all=Всички,draft=Чернови,active=Активни,empty=Празни,users=От потребител,anonymous=Без потребител,pendingSales=С чакащи продажби)', 'caption=Вид,input,silent,refreshForm');
         
         $data->listFilter->setDefault('type', 'all');
@@ -230,6 +230,7 @@ class eshop_Carts extends core_Master
         
         if ($filter = $data->listFilter->rec) {
             if (!empty($filter->domain)) {
+                unset($data->listFields['domainId']);
                 $data->query->where("#domainId = {$filter->domain}");
             }
             
@@ -1675,9 +1676,9 @@ class eshop_Carts extends core_Master
         }
         
         if (in_array($action, array('addtocart', 'checkout', 'finalize')) && isset($rec)) {
-            $singleRoles = $mvc->getRequiredRoles('single', $rec);
+            $singleRoles = $mvc->getRequiredRoles('single', $rec, $userId);
             if(!haveRole($singleRoles, $userId)){
-                $requiredRoles = $mvc->getRequiredRoles('viewexternal', $rec);
+                $requiredRoles = $mvc->getRequiredRoles('viewexternal', $rec, $userId);
             }
         }
         
@@ -2026,6 +2027,7 @@ class eshop_Carts extends core_Master
                 $this->save($rec);
                 $this->updateMaster($rec);
                 core_Lg::pop();
+                eshop_Carts::logWrite("Попълване на данни за поръчката от външната част", $rec->id);
                 
                 return followRetUrl();
             }

@@ -232,9 +232,6 @@ body {
     .portal {
         background-color: #fff;
     }
-    &.swipe-tab.active-tab {
-        border-color: #f1f1f1 !important;
-    }
     span&, .legend, li& {
         background: #f1f1f1;
         color: #000;
@@ -247,9 +244,6 @@ body {
 .color-darkgray {
     .portal {
         background-color: #e1e1e1;
-    }
-    &.swipe-tab.active-tab {
-        border-color: #333 !important;
     }
     span&, .legend, li& {
         background-color: #333;
@@ -264,9 +258,6 @@ body {
     .portal {
         background-color: #e6f4e0;
     }
-    &.swipe-tab.active-tab {
-        border-color: #7ac15b !important;
-    }
     span&, .legend, li& {
         background-color: #7ac15b;
         color: #222;
@@ -279,9 +270,6 @@ body {
 .color-darkgreen {
     .portal {
         background-color: #dae6d5;
-    }
-    &.swipe-tab.active-tab {
-        border-color: #375d26 !important;
     }
     span&, .legend, li& {
         background-color: #375d26;
@@ -296,9 +284,6 @@ body {
     .portal {
         background-color: #eceaf9;
     }
-    &.swipe-tab.active-tab {
-        border-color: #261e75 !important;
-    }
     span&, .legend, li& {
         background-color: #261e75;
         color: #FFF;
@@ -311,9 +296,6 @@ body {
 .color-lightblue {
     .portal {
         background-color: #dbedf9;
-    }
-    &.swipe-tab.active-tab {
-        border-color: #2085ca !important;
     }
     span&, .legend, li& {
         background-color: #2085ca;
@@ -328,9 +310,6 @@ body {
     .portal {
         background-color: #fce8e8;
     }
-    &.swipe-tab.active-tab {
-        border-color: #ea5757 !important;
-    }
     span&, .legend, li& {
         background-color: #ea5757;
         color: #FFF;
@@ -343,9 +322,6 @@ body {
 .color-darkred {
     .portal {
         background-color: #f4dbdb;
-    }
-    &.swipe-tab.active-tab {
-        border-color: #6b1e1e !important;
     }
     span&, .legend, li& {
         background-color: #6b1e1e;
@@ -360,9 +336,6 @@ body {
     .portal {
         background-color: #ecdff1;
     }
-    &.swipe-tab.active-tab {
-        border-color: #6d417b !important;
-    }
     span&, .legend, li& {
         background-color: #6d417b;
         color: #FFF;
@@ -375,9 +348,6 @@ body {
 .color-pink {
     .portal {
         background-color: #f5daf0;
-    }
-    &.swipe-tab.active-tab {
-        border-color: #c147aa !important;
     }
     span&, .legend, li& {
         background-color: #c147aa;
@@ -392,9 +362,6 @@ body {
     .portal {
         background-color: #f8f7e2;
     }
-    &.swipe-tab.active-tab {
-        border-color: #eaea6b !important;
-    }
     span&, .legend, li& {
         background-color: #eaea6b;
         color: #333;
@@ -407,9 +374,6 @@ body {
 .color-orange {
     .portal {
         background-color: #fbefe3;
-    }
-    &.swipe-tab.active-tab {
-        border-color: #E48027 !important;
     }
     span&, .legend, li& {
         background-color: #E48027;
@@ -1307,11 +1271,17 @@ form[method="post"] input[type="submit"] {
 }
 
 // slipe на табовете в мобилен
+
+.portal table.listTable {
+    transform: translate3d(0, 0, 0);
+}
+
 .sub-header {
     height: 44px;
 }
 .swipe-tab-content {
     display: none;
+    z-index: 100;
 }
 .swipe-tab {
     display: none;
@@ -1330,10 +1300,15 @@ $swipe-active-tab-color: #000;
             min-height: 500px;
         }
     }
-
+    .portal {
+        margin-top: 0 !important;
+        box-shadow: none;
+        border: none !important;
+        border-radius: 0 !important;
+    }
     .swipe-tab {
         outline: none;
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: center;
         height: 42px;

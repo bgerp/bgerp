@@ -270,7 +270,7 @@ class core_Backup extends core_Mvc
     /**
      * Възстановява системата от направен бекъп
      */
-    public function restore(&$log)
+    public static function restore(&$log)
     {
         core_App::setTimeLimit(120);
         
