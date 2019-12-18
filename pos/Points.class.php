@@ -25,8 +25,7 @@ class pos_Points extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_Rejected, doc_FolderPlg,
-                     pos_Wrapper, plg_Sorting, plg_Printing, plg_Current,plg_State, plg_Modified';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Rejected, doc_FolderPlg,pos_Wrapper, plg_Printing, plg_Current, plg_State, plg_Modified';
     
     
     /**
@@ -305,9 +304,8 @@ class pos_Points extends core_Master
         $userId = (isset($userId)) ? $userId : core_Users::getCurrent();
         
         $rec = static::fetchRec($rec);
-        $canActivateStore = bgerp_plg_FLB::canUse('store_Stores', $rec->storeId, $userId);
         $canActivateCase = bgerp_plg_FLB::canUse('cash_Cases', $rec->caseId, $userId);
-        $res = ($canActivateStore === true && $canActivateCase === true);
+        $res = ($canActivateCase === true);
         
         return $res;
     }
