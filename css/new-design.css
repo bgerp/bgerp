@@ -201,7 +201,7 @@ body {
     box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.1);
     margin-bottom: 20px; }
   .portal .pages a {
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.3);
     border-color: #bbbbbb; }
 
   .defaultPortal .tab-link {
@@ -1143,6 +1143,57 @@ form[method="post"] input[type="submit"] {
     border-radius: 5px 0 0 5px !important; }
   .pages a:last-child {
     border-radius: 0 5px 5px 0 !important; }
+
+.swipe-tab-content .portal table.listTable {
+  transform: translate3d(0, 0, 0); }
+
+.sub-header {
+  height: 44px; }
+
+.swipe-tab-content {
+  display: none;
+  z-index: 100; }
+
+.swipe-tab {
+  display: none; }
+
+.swipe-tabs-container,
+.swipe-tab-content {
+  outline: none !important; }
+
+  .slick-initialized .swipe-tab-content {
+    position: relative;
+    min-height: 365px; }
+    @media screen and (min-width: 767px) {
+      .slick-initialized .swipe-tab-content {
+    min-height: 500px; } }
+  .slick-initialized .portal {
+    margin-top: 0 !important;
+    box-shadow: none;
+    border: none !important;
+    border-radius: 0 !important; }
+  .slick-initialized .swipe-tab {
+    outline: none;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    height: 42px;
+    vertical-align: baseline;
+    overflow-y: hidden;
+    background: none;
+    border: 0;
+    color: #757575;
+    cursor: pointer;
+    text-align: center;
+    border-bottom: 2px solid rgba(0, 0, 0, 0);
+    transition: all 0.5s;
+    text-overflow: ellipsis; }
+    .slick-initialized .swipe-tab:hover {
+      color: black; }
+    .slick-initialized .swipe-tab.active-tab {
+      border-bottom-color: black;
+      color: black;
+      font-weight: bold; }
 
 .narrow .pages a {
   margin: 0;

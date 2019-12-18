@@ -183,10 +183,14 @@ abstract class deals_InvoiceDetail extends doc_Detail
         
         // За всеки артикул от договора, копира се 1:1
         if (is_array($dealInfo->dealProducts)) {
+            
             foreach ($dealInfo->dealProducts as $det) {
                 $det->{$this->masterKey} = $id;
                 $det->amount = $det->price * $det->quantity;
                 $det->quantity /= $det->quantityInPack;
+                if(is_array($det->batches) && count($det->batches)){
+                    $det->_batches = array_keys($det->batches);
+                }
                 unset($det->batches);
                 
                 $this->save($det);
@@ -271,7 +275,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }
@@ -345,7 +349,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $masterRec = $data->masterData->rec;
         
         if (isset($masterRec->type)) {
-            if ($masterRec->type == 'debit_note' || $masterRec->type == 'credit_note' || ($masterRec->type == 'dc_note' && isset($masterRec->changeAmount) && !count($data->rows))) {
+            if ($masterRec->type == 'debit_note' || $masterRec->type == 'credit_note' || ($masterRec->type == 'dc_note' && isset($masterRec->changeAmount) && !countR($data->rows))) {
                 // При дебитни и кредитни известия показваме основанието
                 $data->listFields = array();
                 $data->listFields['RowNumb'] = '№';
@@ -363,6 +367,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
                     $reason = ($amount > 0) ? 'Увеличаване на авансово плащане' : 'Намаляване на авансово плащане';
                 } else {
                     $reason = ($amount > 0) ? 'Увеличаване на стойност' : 'Намаляване на стойност';
+                }
+                
+                if(!empty($masterRec->dcReason)){
+                    $dcReason = core_Type::getByName('richtext')->toVerbal($masterRec->dcReason);
+                    $reason .= "|* {$dcReason}";
                 }
                 
                 $data->recs['advance'] = (object) array('amount' => $masterRec->dealValue / $masterRec->rate, 'changedAmount' => true);

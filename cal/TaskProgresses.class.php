@@ -267,7 +267,7 @@ class cal_TaskProgresses extends core_Detail
      */
     public function renderDetail($data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
@@ -294,7 +294,7 @@ class cal_TaskProgresses extends core_Detail
      */
     public static function on_AfterRenderListTable($mvc, &$res, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }

@@ -140,7 +140,7 @@ class unipi_Evoc
 
         foreach ($this->json_data as $field)
         {
-            if(strpos($field['circuit'], $circuit) === 0) {
+            if(is_array($field) && strpos($field['circuit'], $circuit) === 0) {
                 
                 $res[(int) str_replace($circuit, '', $field['circuit'])] = $field['value'];
             }
@@ -161,11 +161,13 @@ class unipi_Evoc
 
         foreach ($this->json_data as $field)
         { 
-            if(strpos($field['circuit'], $circuit) !== 0) continue;
-            if($dev && $dev != $field['dev']) continue;
-           
-            $key = (int) str_replace($circuit, '', $field['circuit']);
-            $res[$key] = $field['value'];
+            if(is_array($field)) {
+                if(strpos($field['circuit'], $circuit) !== 0) continue;
+                if($dev && $dev != $field['dev']) continue;
+               
+                $key = (int) str_replace($circuit, '', $field['circuit']);
+                $res[$key] = $field['value'];
+            }
         }
       
         ksort($res);

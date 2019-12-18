@@ -165,7 +165,7 @@ class rack_ZoneDetails extends core_Detail
      */
     protected static function on_AfterPrepareDetail($mvc, $res, &$data)
     {
-        if(!count($data->rows)) return;
+        if(!countR($data->rows)) return;
         setIfNot($data->inlineDetail, false);
         setIfNot($data->masterData->rec->_isSingle, !$data->inlineDetail);
         $requestedProductId = Request::get('productId', 'int');
@@ -393,8 +393,8 @@ class rack_ZoneDetails extends core_Detail
        
         // Рендиране на таблицата
         $tpl = new core_ET('');
-        if (count($data->rows) || $masterRec->_isSingle === true) {
-            $tableClass = ($masterRec->_isSingle === true && count($data->rows)) ? 'listTable' : 'simpleTable';
+        if (countR($data->rows) || $masterRec->_isSingle === true) {
+            $tableClass = ($masterRec->_isSingle === true && countR($data->rows)) ? 'listTable' : 'simpleTable';
             $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => $tableClass, 'thHide' => true));
             $Movements->invoke('BeforeRenderListTable', array($tpl, &$data));
             

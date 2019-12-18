@@ -256,7 +256,7 @@ class cms_Feeds extends core_Manager
         // Поставяме иконка и заглавие
         $layout->append(tr('Нашите емисии'), 'HEADER');
         
-        if (count($data->rows) > 0) {
+        if (countR($data->rows) > 0) {
             foreach ($data->rows as $row) {
                 $feedTpl = $layout->getBlock('ROW');
                 $feedTpl->placeObject($row);
@@ -332,7 +332,7 @@ class cms_Feeds extends core_Manager
         $query = static::getQuery();
         $domainId = cms_Domains::getPublicDomain('id');
         $feeds = $query->fetchAll("#domainId = ${domainId}");
-        if (!count($feeds)) {
+        if (!countR($feeds)) {
             
             return;
         }
@@ -390,7 +390,7 @@ class cms_Feeds extends core_Manager
     {
         if ($form->isSubmitted()) {
             $fld = $form->selectFields('#fromSource');
-            if (!count($fld)) {
+            if (!countR($fld)) {
                 
                 return;
             }

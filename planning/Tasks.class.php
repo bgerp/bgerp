@@ -426,9 +426,11 @@ class planning_Tasks extends core_Master
             $row->productDescription = cat_Products::getAutoProductDesc($rec->productId, null, 'detailed', 'job');
             $row->tId = $rec->id;
             
-            if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
-                if($BatchDef instanceof batch_definitions_Job){
-                    $row->batch = $BatchDef->getDefaultBatchName($origin->that);
+            if(core_Packs::isInstalled('batch')){
+                if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
+                    if($BatchDef instanceof batch_definitions_Job){
+                        $row->batch = $BatchDef->getDefaultBatchName($origin->that);
+                    }
                 }
             }
         }

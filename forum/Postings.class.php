@@ -847,7 +847,7 @@ class forum_Postings extends core_Detail
         $openIcon = $data->ForumTheme->getImage('unlocked.png', '32');
         $lockedIcon = $data->ForumTheme->getImage('locked.png', '32');
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             foreach ($data->rows as $row) {
                 $themeTpl = clone $tableTpl;
                 $row->ICON = ($row->locked == 'заключена') ? $lockedIcon : $openIcon;

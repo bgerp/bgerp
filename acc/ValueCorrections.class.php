@@ -227,7 +227,7 @@ class acc_ValueCorrections extends core_Master
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        if (!count($data->rec->productsData)) {
+        if (!countR($data->rec->productsData)) {
             
             return;
         }
@@ -268,7 +268,7 @@ class acc_ValueCorrections extends core_Master
         $details = $table->get($productRows, $listFields);
         
         // Показваме под таблицата обобщената информация
-        $colspan = count($listFields) - 1;
+        $colspan = countR($listFields) - 1;
         $lastRowTpl = new core_ET(tr("|*<tr style='background-color: #eee'><td colspan='[#colspan#]' style='text-align:right'>|Общо|*</td><td style='text-align:right'><b>[#amount#]</b></td></tr>"));
         $lastRowTpl->replace($colspan, 'colspan');
         
@@ -298,7 +298,7 @@ class acc_ValueCorrections extends core_Master
         $products = $origin->getCorrectableProducts();
         $form->allProducts = $products;
         
-        if (count($products)) {
+        if (countR($products)) {
             
             // Добавяме всички възможни артикули като опции в SET поле
             $nProducts = array();
@@ -480,7 +480,7 @@ class acc_ValueCorrections extends core_Master
                 }
                 
                 // Ако има повече от една мярка
-                if (count($measures) != 1) {
+                if (countR($measures) != 1) {
                     $errorArr = array(1 => true);
                 }
                 break;
@@ -509,7 +509,7 @@ class acc_ValueCorrections extends core_Master
         }
         
         // Ако има намерени артикули без транспортен обем, тегло или к-во, при съответното разпределяне
-        if (count($errorArr)) {
+        if (countR($errorArr)) {
             if ($allocateBy == 'quantity') {
                 $msg = 'Не може да се избере разпределяне по количество, защото артикулите са в различни мерки';
             } elseif ($allocateBy == 'value') {
@@ -527,7 +527,7 @@ class acc_ValueCorrections extends core_Master
         
         $values = array_values($products);
         $restAmount = $amount;
-        $count = count($values);
+        $count = countR($values);
         
         // Обхождане на артикулите
         for ($i = 0; $i <= $count - 1; $i++) {
@@ -593,7 +593,7 @@ class acc_ValueCorrections extends core_Master
                     $requiredRoles = 'no_one';
                 } else {
                     $products = $firstDoc->getCorrectableProducts();
-                    if (!count($products)) {
+                    if (!countR($products)) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -646,7 +646,7 @@ class acc_ValueCorrections extends core_Master
      */
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        if (count($rec->productsData)) {
+        if (countR($rec->productsData)) {
             $detailsKeywords = '';
             foreach ($rec->productsData as $product) {
                 $detailsKeywords .= ' ' . plg_Search::normalizeText($product->name);

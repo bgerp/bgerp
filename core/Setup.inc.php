@@ -825,7 +825,7 @@ if ($step == 3) {
     
     // Обща сол
     if (!defined('EF_SALT')) {
-        $efSaltGenerated = $consts['EF_SALT'] = getRandomString();
+        $efSaltGenerated = $consts['EF_SALT'] = getEF_SALT();
     }
     
     // Препоръчителна стойност между 200 и 500
@@ -903,7 +903,6 @@ if ($step == 3) {
 
     // Статистика за различните класове съобщения
     $stat = array();
-
     $texts['body'] .= logToHtml($log, $stat);
     
     if ($stat['err']) {
@@ -923,10 +922,48 @@ if ($step == 3) {
 
 // Ако се намираме на етапа на инициализиране, по-долу стартираме setup-а
 if ($step == 4) {
+    $stat = $log = array();
     $texts['body'] .= linksToHtml(array("new|{$selfUrl}&step=5| Стартиране инициализация »"));
-    if (strtolower(BGERP_GIT_BRANCH) == 'dev') {
-        $texts['body'] .= linksToHtml(array("new|{$selfUrl}&cancel| Стартирай bgERP »"));
+
+    // Ако базата не е празна и се намираме в dev бранча - даваме възможност за директно стартиране
+    if(getDbRows() > 0) {
+        if (strtolower(BGERP_GIT_BRANCH) == 'dev') {
+            $texts['body'] .= linksToHtml(array("new|{$selfUrl}&cancel| Стартирай bgERP »"));
+        }
+    } elseif(getDbRows() === 0) {
+        if(defined('BGERP_BACKUP_RESTORE_PATH')) {
+            if(!is_dir(BGERP_BACKUP_RESTORE_PATH)) {
+                $log[] .= "err: Не е директория `" . BGERP_BACKUP_RESTORE_PATH . "`";
+            } elseif(!is_readable(BGERP_BACKUP_RESTORE_PATH)) {
+                $log[] .= "err: Няма права за четене в `" . BGERP_BACKUP_RESTORE_PATH . "`";
+            } elseif(file_exists(BGERP_BACKUP_RESTORE_PATH . 'app.cfg.php.zip')) {
+                $log[] .= "err: Липсва файла `" . BGERP_BACKUP_RESTORE_PATH . "/app.cfg.php.zip`";
+            } else {
+                $texts['body'] .= linksToHtml(array("new|{$selfUrl}&step=restore| Възстановяване от BACKUP »"));
+            }
+        }
+    } else {
+        $texts['body'] .= "<h2 style='color:red;'>Има проблем с връзката са базата данни</h2>";
     }
+
+    // Статистика за различните класове съобщения
+    
+    $texts['body'] .= logToHtml($log, $stat);
+}
+
+if($step == 'restore') {
+    $log = array();
+    $res = core_Backup::restore($log); 
+    if($res) {
+        $texts['body'] .= linksToHtml(array("new|{$selfUrl}&cancel| Стартирай bgERP »"));
+    } else {
+        $log[] .= "err: Неуспешно възстановяване от backup";
+    }
+
+    // Статистика за различните класове съобщения
+    $stat = array();
+    $texts['body'] .= logToHtml($log, $stat);
+
 }
 
 if ($step == 5) {
@@ -958,10 +995,8 @@ if ($step == 5) {
  **********************************/
 if ($step == 'setup') {
 
-    // Освобождава манипулатора на сесията. Ако трябва да се правят
-    // записи в сесията, то те трябва да се направят преди shutdown()
-   // core_Session::pause();
-
+    // Подтиска използването на сесията на сесията.
+    core_Session::$mute = true;
 
     set_time_limit(1000);
 
@@ -1159,6 +1194,9 @@ if ($step == 'start') {
     ob_implicit_flush();
     ob_end_flush();
     flush();
+    
+    // Подтиска използването на сесията на сесията.
+    core_Session::$mute = true;
 
 
     if(function_exists('fastcgi_finish_request')) {
@@ -1592,6 +1630,20 @@ function setupKeyValid()
 
 
 /**
+ * Връща броя на записите в базата данни
+ */
+function getDbRows()
+{
+    // При празна база връща валиден setup ключ
+    $db = new core_Db();
+    $dbRes = $db->query("SELECT count(*) AS tablesCnt FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" . $db->dbName . "'");
+    $res = $db->fetchArray($dbRes);
+        
+    return (int) array_values($res)[0]; 
+}
+
+
+/**
  * Връща броя на таблиците и редовете в базата
  *
  * @return array
@@ -1609,12 +1661,6 @@ function dataBaseStat()
     $tables = $DB->fetchObject($tablesRes);
     
     return array($tables->TABLES, $rows->RECS);
-}
-
-
-function getRandomString($length = 15)
-{
-    return substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, $length);
 }
 
 

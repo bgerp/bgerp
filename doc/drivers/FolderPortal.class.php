@@ -17,6 +17,12 @@
  */
 class doc_drivers_FolderPortal extends core_BaseClass
 {
+    /**
+     * Максимален брой блокове, които да могат да се поакзват в портала
+     */
+    public $maxCnt;
+    
+    
     public $interfaces = 'bgerp_PortalBlockIntf';
     
     
@@ -73,7 +79,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
      * Подготвя данните
      *
      * @param stdClass $dRec
-     * @param null|integer $userId
+     * @param null|int $userId
      *
      * @return stdClass
      */
@@ -94,14 +100,12 @@ class doc_drivers_FolderPortal extends core_BaseClass
             return $resData;
         }
         
-        $pageVar = 'P_' . get_called_class() . '_' . $dRec->originIdCalc;
-        
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $fRec->last . '_' . serialize($fRec->statistic) . '_' . $userId . '_' . Request::get($pageVar) . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent() . '_' . dt::now(false));
-        $resData->cacheType = 'FolderPortal';
+        $resData->cacheKey = $this->getCacheKey($dRec, $userId);
+        $resData->cacheType = $this->getCacheTypeName($userId);
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
-        if ($resData->tpl === false) {
+        if (!$resData->tpl) {
             $resData->data = new stdClass();
             
             $dQuery = doc_Threads::getQuery();
@@ -115,6 +119,9 @@ class doc_drivers_FolderPortal extends core_BaseClass
             doc_Threads::applyFilter($filter, $dQuery);
             
             $Threads = cls::get('doc_Threads');
+            $Threads->addRowClass = false;
+            $Threads->addThreadStateClassToLink = true;
+            
             $Threads->loadList = arr::make($Threads->loadList, true);
             unset($Threads->loadList['plg_RefreshRows']);
             unset($Threads->_plugins['plg_RefreshRows']);
@@ -133,7 +140,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
             // Подготвяме навигацията по страници
             $Threads->prepareListPager($data);
             
-            $data->pager->pageVar = $pageVar;
+            $data->pager->pageVar = $this->getPageVar($dRec->originIdCalc);
             
             // Подготвяме записите за таблицата
             $Threads->prepareListRecs($data);
@@ -141,25 +148,17 @@ class doc_drivers_FolderPortal extends core_BaseClass
             // Подготвяме редовете на таблицата
             $Threads->prepareListRows($data);
             
-            $resData->data = $data;
-            
-            $attrArr = array();
-            if (doc_Folders::haveRightFor('single', $dRec->folderId)) {
-                $attrArr['url'] = array('doc_Threads', 'list', 'folderId' => $dRec->folderId);
-                if ($dRec->search) {
-                    $attrArr['url']['search'] = $dRec->search;
+            foreach ($data->rows as $row) {
+                if (is_string($row->title)) {
+                    $row->title .= "<div style='float:right'><small>{$row->author}, {$row->last}</small></div>";
+                } elseif ($row->title instanceof core_Et) {
+                    $row->title->append("<div style='float:right'><small>{$row->author}, {$row->last}</small></div>");
                 }
-                if ($dRec->fOrder) {
-                    $attrArr['url']['order'] = $dRec->fOrder;
-                }
-                if ($dRec->documentClassId) {
-                    $attrArr['url']['documentClassId'] = $dRec->documentClassId;
-                }
-            } else {
-                $attrArr['url'] = array();
             }
             
-            $resData->folderTitle = doc_Folders::getLink($dRec->folderId, 42, $attrArr);
+            $resData->data = $data;
+            
+            $resData->folderTitle = $this->getFolderLink($dRec, 42);
             
             $dRec->search = trim($dRec->search);
             if ($dRec->search) {
@@ -183,14 +182,16 @@ class doc_drivers_FolderPortal extends core_BaseClass
         if (!$data->tpl && $data->data) {
             $data->tpl = new ET('<div class="clearfix21 portal" style="margin-bottom:25px;">
                                 <div class="legend">[#folderTitle#]</div>
-                                [#PortalPagerTop#]
                                 [#PortalTable#]
                             	[#PortalPagerBottom#]
                                 </div>
                               ');
             
             $Threads = cls::get('doc_Threads');
-            $data->tpl->append($Threads->renderListPager($data->data), 'PortalPagerTop');
+            
+            
+            $data->data->listFields = array('title' => 'Заглавие');
+            
             $data->tpl->append($Threads->renderListTable($data->data), 'PortalTable');
             $data->tpl->append($Threads->renderListPager($data->data), 'PortalPagerBottom');
             
@@ -206,12 +207,109 @@ class doc_drivers_FolderPortal extends core_BaseClass
     
     
     /**
-     * Връща типа на блока за портала
+     * Връща заглавието за таба на съответния блок
      *
-     * @return string - other, tasks, notifications, calendar, recently
+     * @param stdClass $dRec
+     *
+     * @return string
      */
-    public function getBlockType()
+    public function getBlockTabName($dRec)
     {
-        return 'other';
+        $fTitle = doc_Folders::fetchField($dRec->folderId, 'title');
+        
+        $maxLength = 42;
+        
+        $fTitle = str::limitLen($fTitle, $maxLength, (int) ($maxLength/2));
+        
+        return type_Varchar::escape($fTitle);
+    
+    }
+    
+    
+    /**
+     * Помощна фунцкия за вземана на линк към папката със сътоветния филтър
+     * 
+     * @param stdClass $dRec
+     * @param integer $len
+     * 
+     * @return core_ET
+     */
+    protected function getFolderLink($dRec, $len = 42)
+    {
+        $attrArr = array();
+        if (doc_Folders::haveRightFor('single', $dRec->folderId)) {
+            $attrArr['url'] = array('doc_Threads', 'list', 'folderId' => $dRec->folderId);
+            if ($dRec->search) {
+                $attrArr['url']['search'] = $dRec->search;
+            }
+            if ($dRec->fOrder) {
+                $attrArr['url']['order'] = $dRec->fOrder;
+            }
+            if ($dRec->documentClassId) {
+                $attrArr['url']['documentClassId'] = $dRec->documentClassId;
+            }
+        } else {
+            $attrArr['url'] = array();
+        }
+        
+        return doc_Folders::getLink($dRec->folderId, 42, $attrArr);
+    }
+    
+    
+    /**
+     * Името на стойността за кеша
+     *
+     * @param integer $userId
+     *
+     * @return string
+     */
+    public function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        return 'Portal_Folder_' . $userId;
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на ключа за кеша
+     *
+     * @param stdClass $dRec
+     * @param null|integer $userId
+     *
+     * @return string
+     */
+    public function getCacheKey($dRec, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        
+        $fRec = doc_Folders::fetch($dRec->folderId);
+        $cArr[] = $fRec->last;
+        $cArr[] = serialize($fRec->statistic);
+        
+        $pageVar = $this->getPageVar($dRec->originIdCalc);
+        $pageVarVal = Request::get($pageVar);
+        $pageVarVal = isset($pageVarVal) ? $pageVarVal : 1;
+        $cArr[] = $pageVarVal;
+        
+        return md5(implode('|', $cArr));
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на името за страниране
+     *
+     * @param integer $oIdCalc
+     * @return string
+     */
+    protected function getPageVar($oIdCalc)
+    {
+        return 'P_' . get_called_class() . '_' . $oIdCalc;
     }
 }

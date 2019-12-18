@@ -423,7 +423,6 @@ class cal_Tasks extends embed_Manager
         if (!$form->rec->{$mvc->driverClassField}) {
             $driverClass = Request::get('driverClass');
             if ($driverClass && cls::load($driverClass, true)) {
-                
                 if (!isset($form->rec)) {
                     $form->rec = new stdClass();
                 }
@@ -507,7 +506,23 @@ class cal_Tasks extends embed_Manager
                 $bold = 'font-weight:bold;';
             }
         }
-        $row->progress = "<span style='color:{$grey};{$bold}'>{$row->progress}</span>";
+        
+        $progressStr = $row->progress;
+        if (($rec->state == 'waiting') || ($rec->state == 'pending') || ($rec->state == 'wakeup')) {
+            $progressStr = "[{$progressStr}]";
+        }
+        
+        if (($rec->state == 'stopped') || ($rec->state == 'closed')) {
+            $progressStr = "[{$progressStr}]";
+        }
+        
+        $lineTh = '';
+        if ($rec->state == 'stopped') {
+            $lineTh = 'text-decoration: line-through;';
+        }
+        
+        
+        $row->progress = "<span class='progress' style='color:{$grey};{$bold}{$lineTh}'>{$progressStr}</span>";
         
         // Ако имаме само начална дата на задачата
         if ($rec->timeStart && !$rec->timeEnd) {
@@ -530,6 +545,7 @@ class cal_Tasks extends embed_Manager
     
     /**
      * Показване на задачите в портала
+     *
      * @deprecated
      */
     public static function renderPortal($userId = null)
@@ -640,7 +656,6 @@ class cal_Tasks extends embed_Manager
         }
         
         $tpl = new ET('
-            [#PortalPagerTop#]
             [#PortalTable#]
         	[#PortalPagerBottom#]
           ');
@@ -654,7 +669,6 @@ class cal_Tasks extends embed_Manager
             $tpl->append($formTpl, 'ListFilter');
         }
         
-        $tpl->append(self::renderListPager($data), 'PortalPagerTop');
         $tpl->append(self::renderListTable($data), 'PortalTable');
         $tpl->append(self::renderListPager($data), 'PortalPagerBottom');
         
@@ -940,7 +954,7 @@ class cal_Tasks extends embed_Manager
     protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if ($mvc->canAddProgress($data->rec)) {
-            $data->toolbar->addBtn('Прогрес', array('doc_Comments', 'add', 'originId' => $data->rec->containerId, cls::get('doc_Comments')->driverClassField => cal_Progresses::getClassId(), 'ret_url' => true), 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '"), ef_icon=img/16/progressbar.png', "title=Добавяне на прогрес към задачата, row=1");
+            $data->toolbar->addBtn('Прогрес', array('doc_Comments', 'add', 'originId' => $data->rec->containerId, cls::get('doc_Comments')->driverClassField => cal_Progresses::getClassId(), 'ret_url' => true), 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '"), ef_icon=img/16/progressbar.png', 'title=Добавяне на прогрес към задачата, row=1');
         }
         
         if (cal_TaskConditions::haveRightFor('add', (object) array('baseId' => $data->rec->id))) {
@@ -1079,7 +1093,13 @@ class cal_Tasks extends embed_Manager
         }
         
         if ($action == 'edit' && $rec->state == 'pending') {
-            $requiredRoles = 'no_one';
+            $oState = null;
+            if ($rec->id) {
+                $oState = $mvc->fetchField($rec->id, 'state');
+            }
+            if (!isset($oState) || ($oState == 'pending')) {
+                $requiredRoles = 'no_one';
+            }
         }
     }
     
@@ -1246,7 +1266,7 @@ class cal_Tasks extends embed_Manager
             $dateRange[1] = $data->listFilter->rec->to;
         }
         
-        if (count($dateRange) == 2) {
+        if (countR($dateRange) == 2) {
             sort($dateRange);
         }
         
@@ -1685,7 +1705,7 @@ class cal_Tasks extends embed_Manager
         if (!empty($usersArr)) {
             $subTitleMaxUsersCnt = 3;
             $othersStr = '';
-            if (count($usersArr) > $subTitleMaxUsersCnt) {
+            if (countR($usersArr) > $subTitleMaxUsersCnt) {
                 $usersArr = array_slice($usersArr, 0, $subTitleMaxUsersCnt, true);
                 $othersStr = ' ' . tr('и др.');
             }
@@ -2022,7 +2042,7 @@ class cal_Tasks extends embed_Manager
                 }
             }
             
-            $cntResTask = count($resTask);
+            $cntResTask = countR($resTask);
             
             // правим помощен масив = на "rowId" от "resTasks"
             for ($i = 0; $i < $cntResTask; $i++) {
@@ -2133,7 +2153,7 @@ class cal_Tasks extends embed_Manager
         // следващия ще е с индекс текущия +1
         $next = $curIndex + 1;
         
-        if ($next <= count(self::$view)) {
+        if ($next <= countR(self::$view)) {
             $nextType = array_search($next, self::$view);
             $currUrl['View'] = $nextType;
             
@@ -2538,7 +2558,7 @@ class cal_Tasks extends embed_Manager
             }
         }
         
-        if (count($start) >= 2 && count($end) >= 2) {
+        if (countR($start) >= 2 && countR($end) >= 2) {
             $startTime = min($start);
             $endTime = max($end);
         } else {
@@ -2614,7 +2634,7 @@ class cal_Tasks extends embed_Manager
                 
                 // взимаме и началното време на текущата задача,
                 // ако има такова
-                $timeStart = self::fetchField($rec->id, 'timeStart');
+                $timeStart = $rec->timeStart;
                 
                 if ($timeStart != null) {
                     // прибавяме го към масива
@@ -2634,9 +2654,9 @@ class cal_Tasks extends embed_Manager
                 
                 // задачата не е зависима от други задачи
             }
-            $timeStart = self::fetchField($rec->id, 'timeStart');
-            $timeEnd = self::fetchField($rec->id, 'timeEnd');
-            $timeDuration = self::fetchField($rec->id, 'timeDuration');
+            $timeStart = $rec->timeStart;
+            $timeEnd = $rec->timeEnd;
+            $timeDuration = $rec->timeDuration;
             
             if ($timeStart != null) {
                 // времето за стартиране е времето оказано от потребителя
@@ -3178,7 +3198,7 @@ class cal_Tasks extends embed_Manager
         $form->setOptions($this->driverClassField, $interfaces);
         
         // Ако е наличен само един драйвер избираме него
-        if ((count($interfaces) == 1) || $isReportFromStream) {
+        if ((countR($interfaces) == 1) || $isReportFromStream) {
             $intfKey = key($interfaces);
             $form->setDefault($this->driverClassField, $intfKey);
             $form->setReadOnly($this->driverClassField);
@@ -3247,7 +3267,7 @@ class cal_Tasks extends embed_Manager
         $form->title = str::mbUcfirst($sTitle) . ' към екипа за поддръжка на|* ' . '"|' . support_Systems::getTitleById($systemId) . '|*"';
         
         $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
-        if (count(getRetUrl())) {
+        if (countR(getRetUrl())) {
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ');
         }
         $tpl = $form->renderHtml();
@@ -3348,9 +3368,9 @@ class cal_Tasks extends embed_Manager
     
     /**
      * Клониране на задачите от една папка в друга, с транслиране на времената
-     * 
-     * @param int $fromFolderId
-     * @param int $toFolderId
+     *
+     * @param int    $fromFolderId
+     * @param int    $toFolderId
      * @param string $newStartDate
      * @param string $cloneInState
      */
@@ -3364,21 +3384,24 @@ class cal_Tasks extends embed_Manager
         
         // Ако няма задачи в папката, няма какво да се клонира
         $containers = arr::extractValuesFromArray($tQuery->fetchAll(), 'firstContainerId');
-        if(!count($containers)) return;
+        if (!countR($containers)) {
+            
+            return;
+        }
         
         $taskQuery = cal_Tasks::getQuery();
-        $taskQuery->in("containerId", $containers);
+        $taskQuery->in('containerId', $containers);
         $taskQuery->where("#state != 'closed' AND #state != 'rejected'");
         $tasks = $taskQuery->fetchAll();
         
         $minDate = null;
-        array_walk($tasks, function ($a) use (&$minDate){
+        array_walk($tasks, function ($a) use (&$minDate) {
             $startTime = !empty($a->timeStart) ? $a->timeStart : (isset($a->timeDuration, $a->timeEnd) ? dt::addSecs(-1 * $a->timeDuration, $a->timeEnd) : null);
-            if(!empty($startTime)){
-                if(empty($minDate)){
+            if (!empty($startTime)) {
+                if (empty($minDate)) {
                     $minDate = $startTime;
                 } else {
-                    if($startTime < $minDate){
+                    if ($startTime < $minDate) {
                         $minDate = $startTime;
                     }
                 }
@@ -3387,20 +3410,20 @@ class cal_Tasks extends embed_Manager
         
         $dateDiff = dt::secsBetween($newStartDate, $minDate);
         
-        foreach ($tasks as $taskRec){
+        foreach ($tasks as $taskRec) {
             $cloneTask = clone $taskRec;
             plg_Clone::unsetFieldsNotToClone($Tasks, $cloneTask, $taskRec);
             unset($cloneTask->id, $cloneTask->folderId, $cloneTask->threadId, $cloneTask->containerId, $cloneTask->createdOn, $cloneTask->createdBy, $cloneTask->modifiedOn, $cloneTask->modifiedBy);
             $cloneTask->folderId = $toFolderId;
             $cloneTask->state = $cloneInState;
             
-            if($cloneInState == 'active'){
+            if ($cloneInState == 'active') {
                 $sharedUsersArr = keylist::toArray($cloneTask->sharedUsers);
                 if ($cloneTask->assign) {
                     $sharedUsersArr += type_Keylist::toArray($cloneTask->assign);
                 }
                 
-                if(empty($sharedUsersArr)){
+                if (empty($sharedUsersArr)) {
                     $cloneTask->state = 'pending';
                 }
             }
@@ -3409,19 +3432,19 @@ class cal_Tasks extends embed_Manager
             $startTime = isset($taskRec->timeStart) ? $taskRec->timeStart : (isset($taskRec->timeDuration, $taskRec->timeEnd) ? dt::addSecs(-1 * $taskRec->timeDuration, $taskRec->timeEnd) : null);
             $duration = isset($taskRec->timeDuration) ? $taskRec->timeDuration : (isset($taskRec->timeStart, $taskRec->timeEnd) ? (strtotime($taskRec->timeEnd) - strtotime($taskRec->timeStart)) : null);
             $newStart = dt::addSecs($dateDiff, $startTime);
-            if(isset($taskRec->timeDuration)){
+            if (isset($taskRec->timeDuration)) {
                 $cloneTask->timeDuration = $duration;
             }
-            if(isset($taskRec->timeStart)){
+            if (isset($taskRec->timeStart)) {
                 $cloneTask->timeStart = $newStart;
             }
-            if(isset($taskRec->timeEnd)){
+            if (isset($taskRec->timeEnd)) {
                 $cloneTask->timeEnd = dt::addSecs($duration, $newStart);
             }
             
             $Tasks->route($cloneTask);
             $Tasks->save($cloneTask);
-            $Tasks->logWrite("Създаване при клониране на проект", $cloneTask->id);
+            $Tasks->logWrite('Създаване при клониране на проект', $cloneTask->id);
         }
     }
 }

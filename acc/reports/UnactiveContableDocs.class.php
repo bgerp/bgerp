@@ -135,7 +135,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
             
             $query->in('createdBy', $dealers);
             
-            if (count($dealers) > 1) {
+            if (countR($dealers) > 1) {
                 $query->orderBy('createdBy', 'ASC');
             }
         }
@@ -176,7 +176,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
             $documentsArr[] = $contDoc;
         }
         
-        if (count($recs)) {
+        if (countR($recs)) {
             arr::sortObjects($recs, 'documentType', 'asc', 'stri');
         }
         
@@ -204,7 +204,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
             $fld->FLD('valior', 'date', 'caption=Дата,smartCenter');
             $fld->FLD('handle', 'varchar', 'caption=Документ,smartCenter');
             $fld->FLD('documentFolder', 'varchar', 'caption=Папка,smartCenter');
-            if (count(type_Keylist::toArray($rec->dealerId)) > 1 || ! $rec->dealerId) {
+            if (countR(type_Keylist::toArray($rec->dealerId)) > 1 || ! $rec->dealerId) {
                 $fld->FLD('dealerId', 'varchar', 'caption=Търговец,smartCenter');
             }
         }

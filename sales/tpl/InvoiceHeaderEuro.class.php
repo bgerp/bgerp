@@ -61,7 +61,7 @@ class sales_tpl_InvoiceHeaderEuro extends doc_TplScript
         arr::placeInAssocArray($data->listFields, 'priceEuro=Ед. цена в EUR', 'packPrice');
         $data->listFields['packPrice'] = 'Ед. цена ' . $data->masterData->rec->currencyId;
         
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }

@@ -99,7 +99,9 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         setIfNot($mvc->filterDateField, 'valior');
         setIfNot($mvc->filterCurrencyField, 'currencyId');
-        setIfNot($mvc->filterFieldUsers, 'createdBy');
+        if(isset($mvc->fields['createdBy'])) {
+            setIfNot($mvc->filterFieldUsers, 'createdBy');
+        }
         setIfNot($mvc->termDateFld, null);
         setIfNot($mvc->showNullDateFields, false);
         
@@ -167,7 +169,6 @@ class acc_plg_DocumentSummary extends core_Plugin
         return true;
     }
     
-    
     /**
      * Подготовка на филтър формата
      */
@@ -178,9 +179,17 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
         $data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
         
-        if (is_array($mvc->filterDateField) || strpos($mvc->filterDateField, ',')) {
+        $dateFields = arr::make($mvc->filterDateField, true);
+        $userFields = arr::make($mvc->filterFieldUsers, true);
+        $userFields = (countR($userFields) && array_key_exists('createdBy', $userFields)) ? array() : $userFields;
+        if(countR($userFields) && isset($mvc->fields['createdBy']) && !array_key_exists('createdBy', $userFields)){
+            $userFields['createdBy'] = 'createdBy';
+        }
+        
+        $flds = $dateFields + $userFields;
+        
+        if (countR($flds)) {
             $opt = array();
-            $flds = arr::make($mvc->filterDateField);
             $defaultFilterDateField = null;
             foreach ($flds as $f) {
                 if (!$defaultFilterDateField) {
@@ -281,12 +290,23 @@ class acc_plg_DocumentSummary extends core_Plugin
                 // Ако не се търси по всички
                 if (!$userIds[-1]) {
                     $userArr = implode(',', $userIds);
-                    
-                    $data->query->where("#{$mvc->filterFieldUsers} IN ({$userArr})");
-                    
-                    // Ако полето за филтриране по потребител нее създателя, добавяме и към него
-                    if ($mvc->filterFieldUsers != 'createdBy') {
-                        $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
+                   
+                    if(in_array($filter->filterDateField, $userFields)){
+                        $data->query->where("#{$filter->filterDateField} IN ({$userArr})");
+                    } else {
+                        
+                        if(isset($mvc->filterFieldUsers)){
+                            $data->query->where("#{$mvc->filterFieldUsers} IN ({$userArr})");
+                        }
+                        
+                        // Ако полето за филтриране по потребител нее създателя, добавяме и към него
+                        if(isset($mvc->fields['createdBy'])){
+                            if (isset($mvc->filterFieldUsers) && $mvc->filterFieldUsers != 'createdBy') {
+                                $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
+                            } elseif(!isset($mvc->filterFieldUsers)){
+                                $data->query->where("#createdBy IN ({$userArr})");
+                            }
+                        }
                     }
                 }
             }
@@ -301,12 +321,16 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $dateRange[1] = $filter->to;
             }
             
-            if (count($dateRange) == 2) {
+            if (countR($dateRange) == 2) {
                 sort($dateRange);
             }
             
             if ($showFilterDateField) {
                 $fromField = $filter->filterDateField ? $filter->filterDateField : $defaultFilterDateField;
+                if(in_array($fromField, $userFields)){
+                    $fromField = $defaultFilterDateField;
+                }
+                
                 $toField = $fromField;
                 $data->query->orderBy($fromField, 'DESC');
             } else {
@@ -421,7 +445,7 @@ class acc_plg_DocumentSummary extends core_Plugin
      */
     private static function prepareSummary($mvc, $fieldsArr, $rec, &$res, $currencyCode)
     {
-        if (count($fieldsArr) == 0) {
+        if (countR($fieldsArr) == 0) {
             
             return;
         }
@@ -430,7 +454,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             if (!array_key_exists($fld->name, $res)) {
                 $captionValue = (isset($fld->summaryCaption)) ? $fld->summaryCaption : $fld->caption;
                 $captionArr = explode('->', $captionValue);
-                $caption = (count($captionArr) == 2) ? tr($captionArr[0]) . ': ' . tr($captionArr[1]) : tr($captionValue);
+                $caption = (countR($captionArr) == 2) ? tr($captionArr[0]) . ': ' . tr($captionArr[1]) : tr($captionValue);
                 $res[$fld->name] = (object) array('caption' => $caption, 'measure' => '', 'number' => 0);
             }
             
@@ -469,7 +493,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $tpl = new ET(tr('|*' . getFileContent('acc/plg/tpl/Summary.shtml')));
         $rowTpl = $tpl->getBlock('ROW');
         
-        if (count($res)) {
+        if (countR($res)) {
             foreach ($res as $rec) {
                 $row = new stdClass();
                 $row->measure = $rec->measure;

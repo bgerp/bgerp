@@ -252,6 +252,9 @@ class bgerp_Notifications extends core_Manager
         }
         
         bgerp_Notifications::save($rec);
+        
+        // Инвалидиране на кеша
+        bgerp_Portal::invalidateCache($userId, 'bgerp_drivers_Notifications');
     }
     
     
@@ -946,8 +949,7 @@ class bgerp_Notifications extends core_Manager
             return new Redirect(array('Portal', 'show'), "|Успешно {$msg} нотификацията|*{$notifyMsg}");
         }
         
-        // @todo Remove
-        if (stripos(Request::get('parentUrl'), 'show2') !== false) {
+        if (bgerp_Setup::get('PORTAL_VIEW') == 'customized') {
             $res = cls::get('bgerp_Portal')->getPortalBlockForAJAX();
         } else {
             $res = $this->action('render');
@@ -1150,7 +1152,7 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Екшън за рендиране блок с нотификации за текущия
-     * 
+     *
      * @deprecated
      */
     public function act_Render()
@@ -1165,6 +1167,7 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Рендира блок с нотификации за текущия или посочения потребител
+     *
      * @deprecated
      */
     public static function render_($userId = null)
@@ -1350,7 +1353,7 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Рендира портала
-     * 
+     *
      * @deprecated
      */
     public function renderPortal($data)
@@ -1365,7 +1368,6 @@ class bgerp_Notifications extends core_Manager
                 <div class='clearfix21 portal'>
                 <div class='legend'><div style='float:left'>[#PortalTitle#]</div>
                 [#ListFilter#]<div class='clearfix21'></div></div>
-                [#PortalPagerTop#]
                 
                 <div id='{$divId}'>
                     <!--ET_BEGIN PortalTable-->
@@ -1381,9 +1383,6 @@ class bgerp_Notifications extends core_Manager
             if (!Mode::is('screenMode', 'narrow')) {
                 $tpl->append($data->title, 'PortalTitle');
             }
-            
-            // Попълваме горния страньор
-            $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
             
             if ($data->listFilter) {
                 $formTpl = $data->listFilter->renderHtml();
@@ -1461,7 +1460,7 @@ class bgerp_Notifications extends core_Manager
                     $usersArr = type_Keylist::toArray($filter->usersSearch);
                     
                     // Ако има избрани потребители
-                    if (count((array) $usersArr)) {
+                    if (countR((array) $usersArr)) {
                         
                         // Показваме всички потребители
                         $data->query->orWhereArr('userId', $usersArr);
@@ -1612,7 +1611,7 @@ class bgerp_Notifications extends core_Manager
             
             $res = array('cnt' => $res, 'priority' => $priority);
             
-            if(isset($msgRec)) {
+            if (isset($msgRec)) {
                 $res['msg'] = $msgRec->msg;
             }
         }
@@ -1625,7 +1624,7 @@ class bgerp_Notifications extends core_Manager
      * Връща id, което ще се използва за обграждащия div на таблицата, който ще се замества по AJAX
      *
      * @return string
-     * 
+     *
      * @deprecated
      */
     public function getDivId()

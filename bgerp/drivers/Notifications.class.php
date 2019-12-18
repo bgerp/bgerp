@@ -13,11 +13,23 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Нотификации
+ * @title     Известия
  */
 class bgerp_drivers_Notifications extends core_BaseClass
 {
+    /**
+     * Максимален брой блокове, които да могат да се поакзват в портала
+     */
+    public $maxCnt = 1;
+    
+    
     public $interfaces = 'bgerp_PortalBlockIntf';
+    
+    
+    /**
+     * Колко време да се показват в началото, вече отворените известия
+     */
+    protected $showOpenTopTime = 180;
     
     
     /**
@@ -48,7 +60,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
      * Подготвя данните
      *
      * @param stdClass $dRec
-     * @param null|integer $userId
+     * @param null|int $userId
      *
      * @return stdClass
      */
@@ -60,64 +72,18 @@ class bgerp_drivers_Notifications extends core_BaseClass
         
         $resData = new stdClass();
         
-        $now = dt::now();
-        
         $Notifications = cls::get('bgerp_Notifications');
         
-        $Notifications->searchInputField .= '_' . $dRec->originIdCalc;
-        
-        $pageVar = 'P_' . get_called_class() . '_' . $dRec->originIdCalc;
-        
-        // Намираме времето на последния запис
-        $query = $Notifications->getQuery();
-        $query->where("#userId = ${userId}");
-        $query->limit(1);
-        
-        $cQuery = clone $query;
-        
-        $query->XPR('modifiedOnTop', 'datetime', 'IF((#modifiedOn > #lastTime), #modifiedOn, #lastTime)');
-        $query->orderBy('#modifiedOnTop', 'DESC');
-        
-        $lastRec = $query->fetch();
-        $lRecModifiedOnTop = $lastRec->modifiedOnTop;
-        
-        // Ако времето на промяна съвпада с текущото
-        if ($lRecModifiedOnTop >= $now) {
-            $lRecModifiedOnTop = dt::subtractSecs(5, $now);
-        }
-        
-        $resData->lastModifiedOnKey = $lRecModifiedOnTop;
-        $resData->lastModifiedOnKey .= '|' . $lastRec->id;
-        
-        // Инвалидиране на кеша след 5 минути
-        $resData->lastModifiedOnKey .= '|' . (int) (dt::mysql2timestamp($lRecModifiedOnTop) / 300);
-        
-        $modifiedBefore = dt::subtractSecs(180);
-        
-        // Инвалидиране на кеша след запазване на подредбата - да не стои запазено до следващото инвалидиране
-        $cQuery->where(array("#modifiedOn > '[#1#]'", $modifiedBefore));
-        $cQuery->orWhere(array("#lastTime > '[#1#]'", $modifiedBefore));
-        $cQuery->limit(1);
-        $cQuery->orderBy('modifiedOn', 'DESC');
-        $cQuery->orderBy('lastTime', 'DESC');
-        if ($cLastRec = $cQuery->fetch()) {
-            $lRecLastTime = $lastRec->lastTime;
-            
-            // Ако времето на промяна съвпада с текущото
-            if ($lRecLastTime >= $now) {
-                $lRecLastTime = dt::subtractSecs(5, $now);
-            }
-            
-            $resData->lastModifiedOnKey .= '|' . $lRecLastTime;
-            $resData->lastModifiedOnKey .= '|' . $cLastRec->id;
-        }
-        
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $userId . '_' . Mode::get('screenMode') . '_' . Request::get($Notifications->searchInputField) . '_' . Request::get($pageVar) . '_' . core_Lg::getCurrent() . '_' . $resData->lastModifiedOnKey . '_' . dt::now(false));
-        $resData->cacheType = 'Notifications';
+        $resData->cacheKey = $this->getCacheKey($dRec, $userId);
+        $resData->cacheType = $this->getCacheTypeName($userId);
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
+            
+            $modifiedBefore = dt::subtractSecs($this->showOpenTopTime);
+            
+            $Notifications->searchInputField = bgerp_Portal::getPortalSearchInputFieldName($Notifications->searchInputField, $dRec->originIdCalc);
             
             // Създаваме обекта $data
             $data = new stdClass();
@@ -156,7 +122,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
             // Подготвяме навигацията по страници
             $Notifications->prepareListPager($data);
             
-            $data->pager->pageVar = $pageVar;
+            $data->pager->pageVar = $this->getPageVar($dRec->originIdCalc);
             
             // Подготвяме записите за таблицата
             $Notifications->prepareListRecs($data);
@@ -187,7 +153,6 @@ class bgerp_drivers_Notifications extends core_BaseClass
     public function render($data)
     {
         if (!$data->tpl) {
-            
             $Notifications = cls::get('bgerp_Notifications');
             
             // Рендираме изгледа
@@ -220,7 +185,6 @@ class bgerp_drivers_Notifications extends core_BaseClass
             <div class='clearfix21 portal'>
             <div class='legend'><div style='float:left'>[#PortalTitle#]</div>
             [#ListFilter#]<div class='clearfix21'></div></div>
-            [#PortalPagerTop#]
                         
             <div>
                 <!--ET_BEGIN PortalTable-->
@@ -236,9 +200,6 @@ class bgerp_drivers_Notifications extends core_BaseClass
         if (!Mode::is('screenMode', 'narrow')) {
             $tpl->append($data->title, 'PortalTitle');
         }
-        
-        // Попълваме горния страньор
-        $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
         
         if ($data->listFilter) {
             $formTpl = $data->listFilter->renderHtml();
@@ -262,9 +223,9 @@ class bgerp_drivers_Notifications extends core_BaseClass
      * Преди показване на форма за добавяне/промяна.
      *
      * @param bgerp_drivers_Recently $Driver
-     *                                      $Driver
-     * @param embed_Manager       $Embedder
-     * @param stdClass            $data
+     *                                         $Driver
+     * @param embed_Manager          $Embedder
+     * @param stdClass               $data
      */
     protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
     {
@@ -273,12 +234,122 @@ class bgerp_drivers_Notifications extends core_BaseClass
     
     
     /**
-     * Връща типа на блока за портала
+     * Връща заглавието за таба на съответния блок
      *
-     * @return string - other, tasks, notifications, calendar, recently
+     * @param stdClass $dRec
+     *
+     * @return string
      */
-    public function getBlockType()
+    public function getBlockTabName($dRec)
     {
-        return 'notifications';
+        return tr('Известия');
+    }
+    
+    
+    /**
+     * Името на стойността за кеша
+     *
+     * @param integer $userId
+     *
+     * @return string
+     */
+    public function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        return 'Portal_Notifications_' . $userId;
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на ключа за кеша
+     *
+     * @param stdClass $dRec
+     * @param null|integer $userId
+     *
+     * @return string
+     */
+    public function getCacheKey($dRec, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        
+        $pageVar = $this->getPageVar($dRec->originIdCalc);
+        $pageVarVal = Request::get($pageVar);
+        $pageVarVal = isset($pageVarVal) ? $pageVarVal : 1;
+        $cArr[] = $pageVarVal;
+        
+        $Notifications = cls::get('bgerp_Notifications');
+        $sVal = bgerp_Portal::getPortalSearchInputFieldName($Notifications->searchInputField, $dRec->originIdCalc);
+        $nSearchVal = Request::get($sVal);
+        $nSearchVal = isset($nSearchVal) ? $nSearchVal : '';
+        $cArr[] = $nSearchVal;
+        
+        // Намираме времето на последния запис
+        $query = bgerp_Notifications::getQuery();
+        $query->where("#userId = ${userId}");
+        $query->limit(1);
+        
+        $cQuery = clone $query;
+        
+        $query->XPR('modifiedOnTop', 'datetime', 'IF((#modifiedOn > #lastTime), #modifiedOn, #lastTime)');
+        $query->orderBy('#modifiedOnTop', 'DESC');
+        
+        $lastRec = $query->fetch();
+        $lRecModifiedOnTop = $lastRec->modifiedOnTop;
+        
+        $now = dt::now();
+        
+        // Ако времето на промяна съвпада с текущото
+        if ($lRecModifiedOnTop >= $now) {
+            $lRecModifiedOnTop = dt::subtractSecs(5, $now);
+        }
+        
+        $lastModifiedOnKey = $lRecModifiedOnTop;
+        $lastModifiedOnKey .= '|' . $lastRec->id;
+        
+        // Инвалидиране на кеша след 5 минути
+        $lastModifiedOnKey .= '|' . (int) (dt::mysql2timestamp($lRecModifiedOnTop) / 300);
+        
+        $modifiedBefore = dt::subtractSecs($this->showOpenTopTime);
+        
+        // Инвалидиране на кеша след запазване на подредбата - да не стои запазено до следващото инвалидиране
+        $cQuery->where(array("#modifiedOn > '[#1#]'", $modifiedBefore));
+        $cQuery->orWhere(array("#lastTime > '[#1#]'", $modifiedBefore));
+        $cQuery->limit(1);
+        $cQuery->orderBy('modifiedOn', 'DESC');
+        $cQuery->orderBy('lastTime', 'DESC');
+        if ($cLastRec = $cQuery->fetch()) {
+            $lRecLastTime = $lastRec->lastTime;
+            
+            // Ако времето на промяна съвпада с текущото
+            if ($lRecLastTime >= $now) {
+                $lRecLastTime = dt::subtractSecs(5, $now);
+            }
+            
+            $lastModifiedOnKey .= '|' . $lRecLastTime;
+            $lastModifiedOnKey .= '|' . $cLastRec->id;
+        }
+        
+        $cArr[] = $lastModifiedOnKey;
+        
+        return md5(implode('|', $cArr));
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на името за страниране
+     *
+     * @param integer $oIdCalc
+     * @return string
+     */
+    protected function getPageVar($oIdCalc)
+    {
+        return 'P_' . get_called_class() . '_' . $oIdCalc;
     }
 }

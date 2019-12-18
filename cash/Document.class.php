@@ -236,7 +236,7 @@ abstract class cash_Document extends deals_PaymentDocument
         $pOperations = $dealInfo->get('allowedPaymentOperations');
         
         $options = $mvc->getOperations($pOperations);
-        expect(count($options));
+        expect(countR($options));
         
         $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
         $form->setDefault('dealCurrencyId', $cId);
@@ -429,7 +429,7 @@ abstract class cash_Document extends deals_PaymentDocument
             $operations = $firstDoc->getPaymentOperations();
             $options = static::getOperations($operations);
             
-            return count($options) ? true : false;
+            return countR($options) ? true : false;
         }
         
         return false;

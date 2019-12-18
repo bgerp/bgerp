@@ -225,7 +225,7 @@ class accda_Da extends core_Master
         // Показваме само локациите на нашата фирма за ибзор
         $ownCompany = crm_Companies::fetchOurCompany();
         $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id);
-        if (count($ourLocations)) {
+        if (countR($ourLocations)) {
             $form->setOptions('location', array('' => '') + $ourLocations);
         } else {
             $form->setReadOnly('location');
@@ -417,7 +417,7 @@ class accda_Da extends core_Master
     {
         $ownCompany = crm_Companies::fetchOurCompany();
         $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id);
-        if (count($ourLocations)) {
+        if (countR($ourLocations)) {
             $data->listFilter->addAttr('location', array('formOrder' => 11));
             $data->listFilter->fields['location']->formOrder = 11;
             $data->listFilter->setOptions('location', array('' => '') + $ourLocations);

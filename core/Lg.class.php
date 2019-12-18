@@ -204,7 +204,7 @@ class core_Lg extends core_Manager
         }
         
         // Когато се извършва начална инсталация - също не се превежда
-        if (Mode::is('dbInit')) {
+        if (core_ProtoSetup::$dbInit) {
             $kstring = str_replace(array('|*', '|'), array('', ''), $kstring);
             
             return $kstring;
@@ -350,6 +350,11 @@ class core_Lg extends core_Manager
         $lg = Mode::get('lg');
         
         if (!$lg) {
+            // Връщаме дефолтния език, ако сесията е подтисната
+            if (core_Session::$mute) {
+                
+                return self::getDefaultLang();
+            }
             if (!haveRole('user')) {
                 try {
                     $lg = cms_Content::getLang();

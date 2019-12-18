@@ -756,7 +756,7 @@ class rack_Racks extends core_Master
      */
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
-        if (!count($data->rows) || empty($data->listSummary->query)) {
+        if (!countR($data->rows) || empty($data->listSummary->query)) {
             
             return;
         }

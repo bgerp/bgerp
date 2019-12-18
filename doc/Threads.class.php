@@ -1053,6 +1053,10 @@ class doc_Threads extends core_Manager
                 }
             }
             
+            if ($mvc->addThreadStateClassToLink) {
+                $attr['class'] .= " state-{$rec->state}";
+            }
+            
             $row->onlyTitle = $row->title = ht::createLink(
                 
                 str::limitLenAndHyphen($docRow->title, self::maxLenTitle),

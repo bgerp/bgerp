@@ -283,6 +283,12 @@ function reportException($e, $update = null, $supressShowing = true)
 }
 
 
+function getRandomString($length = 14)
+{
+    return  bin2hex(openssl_random_pseudo_bytes($length));
+}
+
+
 /**
  * Записва стейта на хита в съответния файл
  * 
@@ -317,7 +323,7 @@ function logHitState($debugCode = '200', $state = array())
         
         // Ако броя на дебъг времената е над допустимите оставяме тези в края и в началото
         $debugTimeArr = (array)core_Debug::$debugTime;
-        $debugTimeCnt = count(core_Debug::$debugTime);
+        $debugTimeCnt = countR(core_Debug::$debugTime);
         if ($debugTimeCnt > $maxDebugTimeCnt) {
             
             $half = (int) ($maxDebugTimeCnt/2);
@@ -790,6 +796,30 @@ function getTplFromFile($file)
 
 
 /**
+ * Връща стойност за EF_SALT
+ *
+ * @return string
+ */
+function getEF_SALT()
+{
+    if (defined('EF_SALT')) {
+        
+        return EF_SALT;
+    }
+    $parse = parse_url(getSelfURL());
+    $fileName = md5($parse['host']);
+    if (file_exists("/tmp/". $fileName)) {
+        
+        return @file_get_contents("/tmp/". $fileName);
+    }
+    $rndStr = getRandomString();
+    @file_put_contents("/tmp/". $fileName, $rndStr);
+    
+    return $rndStr;
+}
+
+
+/**
  * Връща валиден ключ за оторизация в Setup-а
  *
  * @return string
@@ -797,7 +827,7 @@ function getTplFromFile($file)
 function setupKey($efSalt = null, $i = 0)
 {
     // Сетъп ключ, ако не е зададен
-    $salt = ($efSalt)?($efSalt):(EF_SALT);
+    $salt = ($efSalt)?($efSalt):(getEF_SALT());
     
     $key = md5($salt . '*9fbaknc');
     
@@ -813,7 +843,14 @@ function setupKey($efSalt = null, $i = 0)
  */
 function countR($arr)
 {
-    expect(is_array($arr) || empty($arr), $arr);
+    if(!is_array($arr) && !empty($arr)) {
+        
+        if(BGERP_GIT_BRANCH == 'dev') {
+            print_r($arr);
+            bp();
+            die('countR - this is not an array');
+        } else return 1;
+    }
 
     return empty($arr) ? 0 : count($arr);
 }

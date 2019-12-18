@@ -26,7 +26,7 @@ class sales_tpl_InvoiceAccView extends doc_TplScript
      */
     public function modifyDetailData(core_Mvc $detail, &$data)
     {
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }

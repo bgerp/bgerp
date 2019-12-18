@@ -321,7 +321,7 @@ class eshop_ProductDetails extends core_Detail
             }
         }
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             uasort($data->rows, function ($obj1, $obj2) {
                 if ($obj1->orderCode == $obj2->orderCode) {
                     

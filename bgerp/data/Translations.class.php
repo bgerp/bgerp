@@ -56,7 +56,7 @@ class bgerp_data_Translations extends core_MVC
         unset($langArr['bg']);
         
         // Ако няма повече езици, не се изпълянва
-        if (!count($langArr)) {
+        if (!countR($langArr)) {
             
             return ;
         }

@@ -200,7 +200,7 @@ class acc_ReportDetails extends core_Manager
                 }
                 
                 // Ако има повече от едно перо, несе показва това на мениджъра
-                if (count($row) > 1) {
+                if (countR($row) > 1) {
                     unset($row["ent{$gPos}Id"]);
                 }
                 
@@ -335,12 +335,12 @@ class acc_ReportDetails extends core_Manager
                 }
                 
                 // Ако има записи показваме таблицата
-                if (count($rows)) {
+                if (countR($rows)) {
                     $fields = core_TableView::filterEmptyColumns($rows, $fields, 'tools');
                     $tableHtml = $table->get($rows, $fields);
                     
                     if ($data->canSeePrices !== false) {
-                        $colspan = count($fields) - 1;
+                        $colspan = countR($fields) - 1;
                         $totalRow = $Double->toVerbal($total);
                         $totalRow = ($total < 0) ? "<span style='color:red'>{$totalRow}</span>" : $totalRow;
                         $totalHtml = "<tr><th colspan='{$colspan}' style='text-align:right'>" . tr('Общо') . ":</th><th style='padding-right: 4px; font-weight:bold'><span class='maxwidth totalCol accCell'>{$totalRow}</th></th></tr>";

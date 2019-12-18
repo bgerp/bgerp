@@ -442,7 +442,6 @@ class core_Setup extends core_ProtoSetup
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
         
-        
         // Нагласяване на Крон да се проверява за нови версии
         $rec = new stdClass();
         $rec->systemId = 'CheckForCodeUpdates';
@@ -466,6 +465,37 @@ class core_Setup extends core_ProtoSetup
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
+        
+        cls::load('core_Backup');
+        if(BGERP_BACKUP_ENABLED) {
+            // Нагласяване Крон да прави пълен бекъп
+            $rec = new stdClass();
+            $rec->systemId = 'Backup_Create';
+            $rec->description = 'Създаване на бекъп';
+            $rec->controller = 'core_Backup';
+            $rec->action = 'Create';
+            $rec->period = BGERP_BACKUP_CREATE_FULL_PERIOD;
+            $rec->offset = BGERP_BACKUP_CREATE_FULL_OFFSET;
+            $rec->delay = 20;
+            $rec->timeLimit = 1800;
+            $html .= core_Cron::addOnce($rec);
+
+            // Нагласяване Крон да се флъшва sql лога
+            $rec = new stdClass();
+            $rec->systemId = 'Sql_Log_Flush';
+            $rec->description = 'Флъшване на SQL лога';
+            $rec->controller = 'core_Backup';
+            $rec->action = 'FlushSqlLog';
+            $rec->period = BGERP_BACKUP_SQL_LOG_FLUSH_PERIOD;
+            $rec->offset = 0;
+            $rec->delay = 2;
+            $rec->timeLimit = 20;
+            $html .= core_Cron::addOnce($rec);
+        } else {
+            core_Cron::delete("#systemId = 'Backup_Create'");
+            core_Cron::delete("#systemId = 'Sql_Log_Flush'");
+        }
+
         
         // Регистрираме класовете, които не може да се регистрират автоматично
         $html .= core_Classes::add('core_Classes');

@@ -1964,6 +1964,9 @@ pre.document {
   .topCell .cellRow {
     padding-bottom: 4px; }
 
+.line-through {
+  text-decoration: line-through !important; }
+
 .innerTable {
   border-collapse: collapse; }
   .innerTable > tbody > tr > td {
@@ -1981,6 +1984,9 @@ pre.document {
 
 .document .paddingCells > tbody > tr > td {
   padding: 5px; }
+
+.doc_drivers_FolderPortal .threadSubTitle {
+  display: inline; }
 
 #invoice-info {
   border-left: 1px solid #bbbbbb; }
@@ -2255,14 +2261,14 @@ table.mc-calendar {
     width: 13%;
     text-align: right;
     border: none;
-    background-color: #e8efe8;
+    background-color: rgba(200, 200, 200, 0.2);
     border: solid 2px #e8efe8;
     padding: 1px;
     font-weight: bold;
     cursor: pointer;
     white-space: nowrap; }
     table.mc-calendar td.mc-day:hover {
-      background-color: #ffff66; }
+      background-color: rgba(0, 0, 0, 0.3); }
   table.mc-calendar td.mc-week-nb {
     border: none;
     padding: 3px;
@@ -2278,6 +2284,51 @@ table.mc-calendar {
     border: solid 2px red; }
   table.mc-calendar td.mc-holiday {
     color: red; }
+
+.portal-cal-day {
+  color: #5f1f3e;
+  font-size: 0.9em;
+  padding-top: 3px;
+  padding-left: 3px;
+  border-top: 1px solid #cccccc; }
+  .portal-cal-day:first-child {
+    border-top: none !important; }
+  .portal-cal-day .title {
+    padding-top: 1px;
+    padding: 2px;
+    display: block;
+    white-space: nowrap; }
+  .portal-cal-day .progress {
+    float: right;
+    display: inline-block;
+    padding-left: 5px; }
+  .portal-cal-day .threadSubTitle {
+    display: inline-block;
+    clear: both;
+    font-size: 0.9em; }
+  .portal-cal-day .subTitle {
+    padding: 4px; }
+    .portal-cal-day .subTitle small {
+      padding-left: 7px; }
+    .portal-cal-day .subTitle span,
+    .portal-cal-day .subTitle a {
+      display: inline-block; }
+  .portal-cal-day.portal-cal-today {
+    background-color: #e1fba2; }
+  .portal-cal-day.portal-cal-tomorrow {
+    background-color: rgba(225, 251, 162, 0.66); }
+  .portal-cal-day.portal-cal-nextday {
+    background-color: rgba(225, 251, 162, 0.33); }
+  .portal-cal-day.portal-cal-after {
+    background-color: rgba(225, 251, 162, 0); }
+
+  .portal.newCalendar .mc-calendar {
+    margin: 10px 0; }
+  .portal.newCalendar .threadSubTitle {
+    padding: 2px;
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 0.9em; }
 
 table.mc-header a {
   color: #999999; }

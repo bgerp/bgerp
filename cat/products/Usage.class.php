@@ -162,7 +162,7 @@ class cat_products_Usage extends core_Manager
      */
     private function renderDocuments($data, $evenIfEmpty = false)
     {
-        if (!count($data->rows) && $evenIfEmpty === false) {
+        if (!countR($data->rows) && $evenIfEmpty === false) {
             
             return;
         }
@@ -272,7 +272,7 @@ class cat_products_Usage extends core_Manager
             $data->notManifacturable = true;
         }
         
-        if (!haveRole('ceo,planning,job') || ($data->notManifacturable === true && !count($data->rows)) || $masterRec->state == 'template' || $masterRec->brState == 'template') {
+        if (!haveRole('ceo,planning,job') || ($data->notManifacturable === true && !countR($data->rows)) || $masterRec->state == 'template' || $masterRec->brState == 'template') {
             $data->hide = true;
             
             return;

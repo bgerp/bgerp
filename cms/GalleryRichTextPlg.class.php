@@ -164,7 +164,7 @@ class cms_GalleryRichTextPlg extends core_Plugin
         
         $imagesArr = array();
         
-        if (count($matches['title'])) {
+        if (countR($matches['title'])) {
             foreach ($matches['title'] as $name) {
                 $imagesArr[$name] = $name;
             }

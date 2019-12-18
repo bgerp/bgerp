@@ -80,7 +80,7 @@ class bgerp_BaseImporter extends core_Manager
         $onExist = Mode::get('onExist');
         
         // Увеличаваме времето, ако е необходимо
-        $rCnt = count($rows);
+        $rCnt = countR($rows);
         $time = ceil($rCnt / 10);
         if ($time > ini_get('max_execution_time')) {
             core_App::setTimeLimit($time);
@@ -152,7 +152,7 @@ class bgerp_BaseImporter extends core_Manager
             
             $fh = fileman::absorbStr($nCsv, 'exportCsv', 'ImportErr.csv');
             
-            $errCnt = count($errArr);
+            $errCnt = countR($errArr);
             if ($errCnt == 1) {
                 $errCntW = '1 |запис|. |Записан е в|*: ';
             } else {

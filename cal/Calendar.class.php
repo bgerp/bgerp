@@ -209,7 +209,7 @@ class cal_Calendar extends core_Master
             );
         
         // Обновяваме информацията за новопостъпилите събития
-        if(count($events)) {
+        if(countR($events)) {
             foreach($events as $e) {
                 
                 if(!trim($e->users)) {
@@ -508,7 +508,7 @@ class cal_Calendar extends core_Master
                     $rec->type == 'sick' ||
                     $rec->type == 'birthday';
         
-        if(count(keylist::toArray($rec->users))>1 && $condType  && $condUrl){
+        if(countR(keylist::toArray($rec->users))>1 && $condType  && $condUrl){
             
             $users='';
             foreach (keylist::toArray($rec->users) as $v){

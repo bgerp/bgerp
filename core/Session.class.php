@@ -17,6 +17,13 @@
  */
 class core_Session
 {
+
+    /**
+     * Флаг, дали глобално да се заглуши сесията
+     */
+    static $mute;
+
+
     /**
      * @var array
      * @access private
@@ -47,7 +54,8 @@ class core_Session
     
     /**
      * Флаг - дали е спряна сесията
-     * @var boolean
+     *
+     * @var bool
      */
     public $pause;
     
@@ -79,10 +87,12 @@ class core_Session
      */
     public function __construct($name = 'SID')
     {
+        if(self::$mute) return;
+
         ini_set('session.gc_maxlifetime', 7200);
         
         $this->sid = $_COOKIE[session_name()];
-
+        
         session_name($name);
         
         $this->_start();
@@ -151,7 +161,9 @@ class core_Session
      * @return mixed
      */
     public static function get($varName, $part = null)
-    {
+    {   
+        if(self::$mute) return;
+
         $Session = cls::get('core_Session');
         
         if ($Session->_started) {
@@ -242,7 +254,7 @@ class core_Session
     public function _start($forced = false)
     {
         if (!$this->_started || $this->pause) {
-            if(!headers_sent()) {
+            if (!headers_sent()) {
                 @session_cache_limiter('nocache');
                 @session_set_cookie_params(0);
                 ini_set('session.cookie_httponly', 1);
@@ -251,11 +263,11 @@ class core_Session
                     ini_set('session.cookie_secure', 1);
                 }
             }
-            if($this->sid) {
+            if ($this->sid) {
                 session_id($this->sid);
             }
         }
-
+        
         if (!$this->_started || $forced) {
             @session_start();
             $this->_started = true;
@@ -281,7 +293,7 @@ class core_Session
         if (!$prefix) {
             $prefix = strtolower(str_replace('www.', '', $_SERVER['HTTP_HOST']));
             
-            $prefix = md5($prefix . EF_APP_NAME . EF_DB_NAME . EF_SALT);
+            $prefix = md5($prefix . EF_APP_NAME . EF_DB_NAME . getEF_SALT());
             $prefix = substr($prefix, 0, 10);
         }
         

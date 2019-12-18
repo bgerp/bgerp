@@ -16,9 +16,24 @@
 class email_Spam extends email_ServiceEmails
 {
     /**
+     * Плъгини за работа
+     */
+    public $loadList = 'email_Wrapper, plg_Sorting, plg_Search';
+    
+    public $searchFields = 'spamScore, accountId, uid, createdOn, data';
+    
+    public $fillSearchKeywordsOnSetup = false;
+    
+    /**
      * Заглавие на таблицата
      */
     public $title = 'Твърд спам';
+    
+    
+    /**
+     * Кои полета да се показват в листовия изглед
+     */
+    public $listFields = 'id,msg=Имейл,spamScore';
     
     
     /**
@@ -27,6 +42,7 @@ class email_Spam extends email_ServiceEmails
     public function description()
     {
         $this->addFields();
+        $this->FLD('spamScore', 'double(maxDecimals=1)', 'caption=Спам рейтинг');
     }
     
     
@@ -44,6 +60,7 @@ class email_Spam extends email_ServiceEmails
             $rec->accountId = $accId;
             $rec->uid = $uid;
             $rec->createdOn = dt::verbal2mysql();
+            $rec->spamScore = self::getSpamScore($mime->parts[1]->headersArr, null, $mime);
             
             self::save($rec);
             
@@ -92,7 +109,7 @@ class email_Spam extends email_ServiceEmails
         // TODO
         
         // Гледаме спам рейтинга
-        $score = self::getSpamScore($mime->parts[1]->headersArr, true, $mime, $rec);
+        $score = self::getSpamScore($mime->parts[1]->headersArr, true, $mime);
         if (isset($score) && ($score >= email_Setup::get('HARD_SPAM_SCORE'))) {
             $isSpam = true;
         }
@@ -167,5 +184,112 @@ class email_Spam extends email_ServiceEmails
         }
         
         return $score;
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param bgerp_Bookmark $mvc
+     * @param object         $data
+     */
+    public static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->showFields = 'search';
+    }
+    
+    
+    /**
+     * Функция, която се вика по крон по разписание
+     * Добавя spamScore към записа
+     */
+    public static function callback_RepairSpamScore()
+    {
+        $clsName = get_called_class();
+        
+        $pKey = $clsName . '|RepairSpamScore';
+        
+        $clsInst = cls::get($clsName);
+        
+        $maxTime = dt::addSecs(40);
+        
+        $kVal = core_Permanent::get($pKey);
+        
+        $query = $clsInst->getQuery();
+        
+        if (isset($kVal)) {
+            $query->where(array("#id > '[#1#]'", $kVal));
+        }
+        
+        if (!$query->count()) {
+            core_Permanent::remove($pKey);
+            
+            $clsInst->logDebug('Приключи поправката на СПАМ точките');
+            
+            return ;
+        }
+        
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('email_Spam', 'RepairSpamScore', null, $callOn);
+        
+        $query->orderBy('id', 'ASC');
+        
+        $headersNames = email_Setup::get('CHECK_SPAM_SCORE_HEADERS');
+        $headersNamesArr = type_Set::toArray($headersNames);
+        
+        $nHeadersArr = array();
+        foreach ($headersNamesArr as $key => $header) {
+            $header = trim($header);
+            
+            if (!$header) {
+                continue;
+            }
+            
+            $header = preg_quote($header, '/');
+            
+            $nHeadersArr[$key] = $header;
+        }
+        
+        while ($rec = $query->fetch()) {
+            if (dt::now() >= $maxTime) {
+                break;
+            }
+            
+            $maxId = $rec->id;
+            
+            try {
+                $data = $rec->data;
+                
+                $score = null;
+                
+                foreach ($nHeadersArr as $header) {
+                    
+                    if (preg_match("/{$header}\s*:\s*([0-9\.]+)/i", $data, $matches)) {
+                        $score = $matches[1];
+                    } else {
+                        if (preg_match("/{$header}\s*:\s*[\w|\W]*score\s*=\s*([0-9\.]+)(\s|\n|[^0-9])/i", $data, $matches)) {
+                            $score = $matches[1];
+                        }
+                    }
+                    
+                    if (isset($score) && is_numeric($score)) {
+                        break;
+                    }
+                }
+                
+                $rec->spamScore = $score;
+                
+                $clsInst->save($rec, 'spamScore');
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+            }
+        }
+        
+        $clsInst->logDebug('Поправка на СПАМ точки до id=' . $maxId);
+        
+        core_Permanent::set($pKey, $maxId, 100000);
     }
 }

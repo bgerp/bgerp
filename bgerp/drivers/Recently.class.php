@@ -13,10 +13,16 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Последни документи и папки
+ * @title     Последно
  */
 class bgerp_drivers_Recently extends core_BaseClass
 {
+    /**
+     * Максимален брой блокове, които да могат да се поакзват в портала
+     */
+    public $maxCnt = 1;
+    
+    
     public $interfaces = 'bgerp_PortalBlockIntf';
     
     
@@ -48,7 +54,7 @@ class bgerp_drivers_Recently extends core_BaseClass
      * Подготвя данните
      *
      * @param stdClass $dRec
-     * @param null|integer $userId
+     * @param null|int $userId
      *
      * @return stdClass
      */
@@ -60,25 +66,17 @@ class bgerp_drivers_Recently extends core_BaseClass
             expect($userId = core_Users::getCurrent());
         }
         
-        $Recently = cls::get('bgerp_Recently');
-        
-        $Recently->searchInputField .= '_' . $dRec->originIdCalc;
-        
-        $pageVar = 'P_' . get_called_class() . '_' . $dRec->originIdCalc;
-        
-        // Намираме времето на последния запис
-        $query = $Recently->getQuery();
-        $query->where(array("#userId = '[#1#]'", $userId));
-        $query->limit(1);
-        $query->orderBy('#last', 'DESC');
-        
-        $lastRec = $query->fetch();
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->perPage . '_' . $userId . '_' . Mode::get('screenMode') . '_' . Request::get($pageVar) . '_' . Request::get($Recently->searchInputField) . '_' . core_Lg::getCurrent() . '_' . $lastRec->last . '_' . dt::now(false));
-        $resData->cacheType = 'RecentDoc';
+        $resData->cacheKey = $this->getCacheKey($dRec, $userId);
+        $resData->cacheType = $this->getCacheTypeName($userId);
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
+            
+            $Recently = cls::get('bgerp_Recently');
+            
+            $Recently->searchInputField = bgerp_Portal::getPortalSearchInputFieldName($Recently->searchInputField, $dRec->originIdCalc);
+            
             // Създаваме обекта $data
             $data = new stdClass();
             
@@ -104,7 +102,7 @@ class bgerp_drivers_Recently extends core_BaseClass
             // Подготвяме навигацията по страници
             $Recently->prepareListPager($data);
             
-            $data->pager->pageVar = $pageVar;
+            $data->pager->pageVar = $this->getPageVar($dRec->originIdCalc);
             
             // Подготвяме записите за таблицата
             $Recently->prepareListRecs($data);
@@ -124,7 +122,6 @@ class bgerp_drivers_Recently extends core_BaseClass
         }
         
         return $resData;
-    
     }
     
     
@@ -166,7 +163,6 @@ class bgerp_drivers_Recently extends core_BaseClass
             <div class='clearfix21 portal'>
             <div class='legend'><div style='float:left'>[#PortalTitle#]</div>
             [#ListFilter#]<div class='clearfix21'></div></div>
-            [#PortalPagerTop#]
                         
             <div>
                 <!--ET_BEGIN PortalTable-->
@@ -180,9 +176,6 @@ class bgerp_drivers_Recently extends core_BaseClass
         
         // Попълваме титлата
         $tpl->append($data->title, 'PortalTitle');
-        
-        // Попълваме горния страньор
-        $tpl->append($Recently->renderListPager($data), 'PortalPagerTop');
         
         if ($data->listFilter) {
             $tpl->append($data->listFilter->renderHtml(), 'ListFilter');
@@ -202,9 +195,9 @@ class bgerp_drivers_Recently extends core_BaseClass
      * Преди показване на форма за добавяне/промяна.
      *
      * @param bgerp_drivers_Recently $Driver
-     *                                      $Driver
-     * @param embed_Manager       $Embedder
-     * @param stdClass            $data
+     *                                         $Driver
+     * @param embed_Manager          $Embedder
+     * @param stdClass               $data
      */
     protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
     {
@@ -213,13 +206,86 @@ class bgerp_drivers_Recently extends core_BaseClass
     
     
     /**
-     * Връща типа на блока за портала
+     * Връща заглавието за таба на съответния блок
      *
-     * @return string - other, tasks, notifications, calendar, recently
+     * @param stdClass $dRec
+     *
+     * @return string
      */
-    public function getBlockType()
+    public function getBlockTabName($dRec)
     {
+        return tr('Последно');
+    }
+    
+    
+    /**
+     * Името на стойността за кеша
+     *
+     * @param integer $userId
+     *
+     * @return string
+     */
+    public function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
         
-        return 'recently';
+        return 'Portal_RecentDoc_' . $userId;
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на ключа за кеша
+     *
+     * @param stdClass $dRec
+     * @param null|integer $userId
+     *
+     * @return string
+     */
+    public function getCacheKey($dRec, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $Recently = cls::get('bgerp_Recently');
+        
+        $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        
+        // Намираме времето на последния запис
+        $query = $Recently->getQuery();
+        $query->where(array("#userId = '[#1#]'", $userId));
+        $query->limit(1);
+        $query->orderBy('#last', 'DESC');
+        $query->show('last');
+        $lastRec = $query->fetch();
+        if ($lastRec) {
+            $cArr[] = $lastRec->last;
+        }
+        
+        $pageVar = $this->getPageVar($dRec->originIdCalc);
+        $pageVarVal = Request::get($pageVar);
+        $pageVarVal = isset($pageVarVal) ? $pageVarVal : 1;
+        $cArr[] = $pageVarVal;
+        
+        $sVal = bgerp_Portal::getPortalSearchInputFieldName($Recently->searchInputField, $dRec->originIdCalc);
+        $nSearchVal = Request::get($sVal);
+        $nSearchVal = isset($nSearchVal) ? $nSearchVal : '';
+        $cArr[] = $nSearchVal;
+        
+        return md5(implode('|', $cArr));
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на името за страниране
+     *
+     * @param integer $oIdCalc
+     * @return string
+     */
+    protected function getPageVar($oIdCalc)
+    {
+        return 'P_' . get_called_class() . '_' . $oIdCalc;
     }
 }

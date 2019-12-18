@@ -2867,8 +2867,8 @@ class email_Outgoings extends core_Master
             $faxAndEmailsArr = static::explodeEmailsAndFax($data->rec->email);
             
             // Броя на факсовете
-            $faxCount = count($faxAndEmailsArr['fax']);
-            $emailCount = count($faxAndEmailsArr['email']);
+            $faxCount = countR($faxAndEmailsArr['fax']);
+            $emailCount = countR($faxAndEmailsArr['email']);
             
             // Ако има факс номер и имаме права за изпращане на факс
             if ((email_FaxSent::haveRightFor('send') && (($faxCount) || ($data->rec->fax && !$emailCount)))) {

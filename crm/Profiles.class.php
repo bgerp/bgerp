@@ -474,7 +474,7 @@ class crm_Profiles extends core_Master
             core_Settings::addBtn($data->toolbar, $key, 'crm_Profiles', $data->rec->userId, 'Персонализиране');
         }
         
-        if (bgerp_Portal::haveRightFor('list')) {
+        if (bgerp_Portal::haveRightFor('list') && bgerp_Setup::get('PORTAL_VIEW') == 'customized') {
             $data->toolbar->addBtn('Портал', array('bgerp_Portal', 'list'), 'ef_icon=img/16/application_home.png');
         }
     }
@@ -1324,7 +1324,7 @@ class crm_Profiles extends core_Master
         $rows = &$data->rows;
         $recs = &$data->recs;
         
-        if (count($rows)) {
+        if (countR($rows)) {
             foreach ($rows as $i => &$row) {
                 $rec = &$recs[$i];
                 

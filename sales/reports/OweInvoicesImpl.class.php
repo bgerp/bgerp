@@ -533,7 +533,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             $afterRow->placeObject($data->summary);
         }
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             $tpl->append($afterRow, 'ROW_AFTER');
         }
         

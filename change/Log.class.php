@@ -424,7 +424,7 @@ class change_Log extends core_Manager
         if ($rec->value) {
             
             // Връщаме броя
-            return count($rec->value);
+            return countR($rec->value);
         }
     }
     
@@ -835,7 +835,7 @@ class change_Log extends core_Manager
         $versionArr = (array) static::getSelectedVersionsArr($docClass, $docId);
         
         // Броя на избраните версии
-        $cntVers = count($versionArr);
+        $cntVers = countR($versionArr);
         
         // Ако няма избрана версии, връщаме
         if (!$cntVers) {

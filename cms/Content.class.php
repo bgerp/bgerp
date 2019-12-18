@@ -316,7 +316,7 @@ class cms_Content extends core_Manager
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
         $usedLangsArr = cms_Domains::getCmsLangs();
         
-        if (count($usedLangsArr) == 2) {
+        if (countR($usedLangsArr) == 2) {
             
             // Премахваме текущия език
             $lang = self::getLang();
@@ -341,7 +341,7 @@ class cms_Content extends core_Manager
                 
                 $tpl->append(ht::createLink($img, $url, null, $attr));
             }
-        } elseif (count($usedLangsArr) > 1) {
+        } elseif (countR($usedLangsArr) > 1) {
             $attr['class'] = 'selectLang langIcon';
             $attr['title'] = implode(', ', $usedLangsArr);
             if (Request::get('Ctr') == 'cms_Content' && Request::get('Act') == 'selectLang') {
@@ -814,7 +814,7 @@ class cms_Content extends core_Manager
             
             if (cls::existsMethod($cls, 'getSearchResults')) {
                 $res = $cls->getSearchResults($rec->id, $q);
-                if (count($res)) {
+                if (countR($res)) {
                     $domainName = '';
                     if ($rec->domainId != $domainId) {
                         $domainHost = cms_Domains::fetch($rec->domainId)->domain;
@@ -825,7 +825,7 @@ class cms_Content extends core_Manager
                         }
                     }
                     
-                    $html .= "<h2>Резултати в <strong style='color:green'>" . type_Varchar::escape($rec->menu) . $domainName . '</strong></h2>';
+                    $html .= "<h2><strong style='color:green'>" . type_Varchar::escape($rec->title ? $rec->title : $rec->menu) . $domainName . '</strong></h2>';
                     $html .= '<ul>';
                     foreach ($res as $o) {
                         $html .= "<li style='font-size:1.2em; margin:5px;' >" . ht::createLink($o->title, $o->url) . '</li>';
@@ -885,7 +885,7 @@ class cms_Content extends core_Manager
             }
             $entries = $source->getSitemapEntries($rec->id);
             
-            if (is_array($entries) && count($entries)) {
+            if (is_array($entries) && countR($entries)) {
                 foreach ($entries as $eRec) {
                     $res .= "\n<url>";
                     

@@ -29,15 +29,21 @@ class eshop_Carts extends core_Master
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'orderDate,activatedOn,createdOn';
+    
+    
+    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_Rejected, plg_Modified,plg_Sorting';
+    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_Rejected, plg_Modified,acc_plg_DocumentSummary,plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,ip,brid,domainId,state,createdOn=Създаване,activatedOn=Активиране';
+    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,ip,brid,createdOn=Създаване,activatedOn=Активиране,domainId';
     
     
     /**
@@ -122,19 +128,20 @@ class eshop_Carts extends core_Master
      * Детайла, на модела
      */
     public $details = 'eshop_CartDetails';
-
-
+    
+    
     /**
      * Нов темплейт за показване
      */
     public $singleLayoutFile = 'eshop/tpl/SingleLayoutCart.shtml';
-
+    
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'sales,eshop,ceo';
-
+    
+    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
@@ -157,12 +164,12 @@ class eshop_Carts extends core_Master
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,input=hidden,silent');
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
         $this->FLD('freeDelivery', 'enum(yes=Да,no=Не)', 'caption=Безплатна доставка,input=none,notNull,value=no');
-        $this->FLD('deliveryNoVat', 'double(decimals=2)', 'caption=Общи данни->Доставка без ДДС,input=none');
+        $this->FLD('deliveryNoVat', 'double(decimals=2)', 'caption=Общи данни->Доставка без ДДС,input=none, summary=amount');
         $this->FLD('deliveryTime', 'time', 'caption=Общи данни->Срок на доставка,input=none');
         $this->FLD('total', 'double(decimals=2)', 'caption=Общи данни->Стойност,input=none');
-        $this->FLD('totalNoVat', 'double(decimals=2)', 'caption=Общи данни->Стойност без ДДС,input=none');
+        $this->FLD('totalNoVat', 'double(decimals=2)', 'caption=Общи данни->Стойност без ДДС,input=none, summary=amount');
         $this->FLD('paidOnline', 'enum(no=Не,yes=Да)', 'caption=Общи данни->Платено,input=none,notNull,value=no');
-        $this->FLD('productCount', 'int', 'caption=Общи данни->Брой,input=none');
+        $this->FLD('productCount', 'int', 'caption=Общи данни->Брой,input=none, summary=quantity');
         
         $this->FLD('personNames', 'varchar(255)', 'caption=Имена,class=contactData,hint=Вашето име||Your name,mandatory,silent');
         $this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Имейл,hint=Вашият имейл||Your email,mandatory');
@@ -198,6 +205,8 @@ class eshop_Carts extends core_Master
         $this->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране||Activated->На,input=none');
         $this->FLD('haveOnlyServices', 'enum(no=Не,yes=Да)', 'caption=Само услуги,input=none,notNull,value=no');
         
+        $this->XPR('orderDate', 'datetime', 'COALESCE(#activatedOn, #createdOn)', 'caption=Дата');
+        
         $this->setDbIndex('brid');
         $this->setDbIndex('userId');
         $this->setDbIndex('domainId');
@@ -209,36 +218,36 @@ class eshop_Carts extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->query->orderBy('createdOn', 'DESC');
-        $data->listFilter->FNC('domain', 'key(mvc=cms_Domains,select=titleExt)', 'caption=Домейн,input,silent');
-        $data->listFilter->FNC('type', 'enum(all=Всички,draft=Чернови,active=Активни,empty=Празни,users=От потребител,anonymous=Без потребител,pendingSales=С чакащи продажби)', 'caption=Вид,input,silent');
-        $data->listFilter->input();
+        $data->listFilter->FNC('domain', 'key(mvc=cms_Domains,select=titleExt,allowEmpty)', 'caption=Домейн,input,refreshForm,placeholder=Всички');
+        $data->listFilter->FNC('type', 'enum(all=Всички,draft=Чернови,active=Активни,empty=Празни,users=От потребител,anonymous=Без потребител,pendingSales=С чакащи продажби)', 'caption=Вид,input,silent,refreshForm');
         
         $data->listFilter->setDefault('type', 'all');
         $data->listFilter->setDefault('domain', cms_Domains::getCurrent('id', false));
-        $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'domain,type';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        if($filter = $data->listFilter->rec){
-            if(!empty($filter->domain)){
+        $data->listFilter->showFields .= ',domain,type';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+        
+        if ($filter = $data->listFilter->rec) {
+            if (!empty($filter->domain)) {
+                unset($data->listFields['domainId']);
                 $data->query->where("#domainId = {$filter->domain}");
             }
             
-            if(!empty($filter->type)){
-                switch($filter->type){
+            if (!empty($filter->type)) {
+                switch ($filter->type) {
                     case 'active':
                     case 'draft':
                         $data->query->where("#state = '{$filter->type}'");
                         break;
                     case 'empty':
-                        $data->query->where("#productCount = 0 OR #productCount IS NULL");
+                        $data->query->where('#productCount = 0 OR #productCount IS NULL');
                         break;
                     case 'users':
                         $data->query->where("#userId IS NOT NULL OR (#email IS NOT NULL OR #email != '')");
                         break;
                     case 'anonymous':
-                        $data->query->where("#userId IS NULL AND #email IS NULL");
+                        $data->query->where('#userId IS NULL AND #email IS NULL');
                         break;
                     case 'pendingSales':
                         $data->query->EXT('saleState', 'sales_Sales', 'externalName=state,externalKey=saleId');
@@ -248,7 +257,7 @@ class eshop_Carts extends core_Master
             }
         }
     }
-
+    
     
     /**
      * Екшън за добавяне на артикул в кошницата
@@ -322,7 +331,7 @@ class eshop_Carts extends core_Master
                 $addText = new core_ET($settings->addProductText);
                 
                 $cartName = self::getCartDisplayName();
-                $cartName = ht::createLink($cartName, array('eshop_Carts', 'view', $cartId), false, "class=eshop-card-add-item-status");
+                $cartName = ht::createLink($cartName, array('eshop_Carts', 'view', $cartId), false, 'class=eshop-card-add-item-status');
                 
                 $addText->append($cartName, 'cartName');
                 $addText->append($packagingName, 'packagingId');
@@ -347,7 +356,7 @@ class eshop_Carts extends core_Master
             $resObj = new stdClass();
             $resObj->func = 'html';
             $resObj->arg = array('id' => 'cart-external-status', 'html' => self::getStatus($cartId)->getContent(), 'replace' => true);
-            if($success === true) {
+            if ($success === true) {
                 $resObj2 = new stdClass();
                 $resObj2->func = 'Sound';
                 $resObj2->arg = array('soundOgg' => sbf('sounds/bell.ogg', ''), 'soundMp3' => sbf('sounds/bell.mp3', ''),);
@@ -404,7 +413,7 @@ class eshop_Carts extends core_Master
             $rec = (object) array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'state' => 'draft', 'productCount' => 0);
             self::save($rec);
             
-            vislog_History::add("Създаване на количка");
+            vislog_History::add('Създаване на количка');
         }
         
         return $rec->id;
@@ -461,9 +470,10 @@ class eshop_Carts extends core_Master
         $dRecs = $dQuery->fetchAll();
         
         $haveOnlyServices = 'yes';
-        array_walk($dRecs, function ($a) use (&$haveOnlyServices){
-            if($a->canStore == 'yes'){
+        array_walk($dRecs, function ($a) use (&$haveOnlyServices) {
+            if ($a->canStore == 'yes') {
                 $haveOnlyServices = 'no';
+                
                 //break;
             }
         });
@@ -492,7 +502,7 @@ class eshop_Carts extends core_Master
         if ($count) {
             $TransCalc = null;
             if ($delivery = eshop_CartDetails::getDeliveryInfo($rec, $TransCalc)) {
-                if(is_object($TransCalc)){
+                if (is_object($TransCalc)) {
                     $TransCalc->onUpdateCartMaster($rec);
                 }
                 
@@ -502,7 +512,7 @@ class eshop_Carts extends core_Master
                     
                     // Ако има сума за безплатна доставка и доставката е над нея, тя не се начислява
                     $deliveryNoVat = $rec->deliveryNoVat;
-                    if ($rec->freeDelivery == 'yes'){
+                    if ($rec->freeDelivery == 'yes') {
                         $delivery = $deliveryNoVat = 0;
                     }
                     
@@ -526,7 +536,7 @@ class eshop_Carts extends core_Master
     
     /**
      * Име на кошницата във външната част
-     * 
+     *
      * @return string $cartName
      */
     public static function getCartDisplayName()
@@ -589,7 +599,7 @@ class eshop_Carts extends core_Master
         
         $currentTab = Mode::get('currentExternalTab');
         $className = ($currentTab == 'eshop_Carts') ? 'selected-external-tab' : ' ';
-        $className .= $count ? " cardLink" : "";
+        $className .= $count ? ' cardLink' : '';
         $url = ($currentTab != 'eshop_Carts') ? $url : array();
         
         $tpl = ht::createLink($tpl, $url, false, "title={$hint}, ef_icon=img/16/cart-black.png,class={$className},rel=nofollow");
@@ -608,12 +618,19 @@ class eshop_Carts extends core_Master
      */
     public function act_Finalize()
     {
+        $retUrl = getRetUrl();
+        
         Request::setProtected('description,accountId');
         $this->requireRightFor('finalize');
         expect($id = Request::get('id', 'int'));
         expect($rec = self::fetch($id));
         $msg = '|Благодарим за поръчката|*!';
-        if($rec->state == 'active'){
+        if ($rec->state == 'active') {
+            if(countR($retUrl)){
+                
+                return new Redirect($retUrl, 'Има вече такава поръчка');
+            }
+            
             return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), $msg);
         }
         
@@ -626,9 +643,14 @@ class eshop_Carts extends core_Master
         Mode::set('currentExternalTab', 'eshop_Carts');
         
         $saleRec = self::forceSale($rec);
-        if(empty($saleRec)){
+        if (empty($saleRec)) {
             $this->logErr('Проблем при генериране на онлайн продажба', $rec->id);
             $errorMs = 'Опитайте пак! Имаше проблем при завършването на поръчката! Ако все още имате проблем, свържете се с нас.';
+            
+            if(countR($retUrl)){
+                
+                return new Redirect($retUrl, $errorMs, 'error');
+            }
             
             return new Redirect(array('eshop_Carts', 'view', $rec->id), $errorMs, 'error');
         }
@@ -644,13 +666,13 @@ class eshop_Carts extends core_Master
         }
         
         // Ако има основание, се форсира ново ПБД
-        if(!empty($description)){
+        if (!empty($description)) {
             self::forceBankIncomeDocument($description, $saleRec, $accountId);
         }
         
-        vislog_History::add("Финализиране на количка");
-        if($saleRec->_paymentInstructionsSend === true){
-            $msg .= " |Изпратихме Ви имейл с инструкции за плащането|*.";
+        vislog_History::add('Финализиране на количка');
+        if ($saleRec->_paymentInstructionsSend === true) {
+            $msg .= ' |Изпратихме Ви имейл с инструкции за плащането|*.';
         }
         
         if (is_array($colabUrl) && count($colabUrl)) {
@@ -659,15 +681,20 @@ class eshop_Carts extends core_Master
         }
         
         // Ако ще се показва страница за след плащането
-        if($Driver = cond_PaymentMethods::getDriver($rec->paymentId)){
+        if ($Driver = cond_PaymentMethods::getDriver($rec->paymentId)) {
             $afterPaymentDisplay = $Driver->displayHtmlAfterPayment($rec->paymentId, $rec);
-            if(isset($afterPaymentDisplay) && $afterPaymentDisplay instanceof core_ET){
+            if (isset($afterPaymentDisplay) && $afterPaymentDisplay instanceof core_ET) {
                 Mode::set('wrapper', 'cms_page_External');
                 core_Statuses::newStatus($msg);
-                vislog_History::add("Показване на информация за плащането");
+                vislog_History::add('Показване на информация за плащането');
                 
                 return $afterPaymentDisplay;
             }
+        }
+        
+        if(countR($retUrl)){
+            
+            return new Redirect($retUrl, 'Поръчката е активирана успешно');
         }
         
         return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), $msg);
@@ -678,11 +705,12 @@ class eshop_Carts extends core_Master
      * Форсира нов ПБД към продажбата на количката с подаденото основание.
      * Ако има ПБД с това основание, нищо не се прави. Ако няма се създава
      * нов ПБД и се контира ако е подадена сума
-     * 
-     * @param string $reason      - основание за ПБД
-     * @param stdClass $saleRec   - към коя продажба
-     * @param int $accountId      - ид на наша сметка
-     * @param double|null $amount  - сума на ПБД-то, ако няма е тази от продажбата
+     *
+     * @param string     $reason    - основание за ПБД
+     * @param stdClass   $saleRec   - към коя продажба
+     * @param int        $accountId - ид на наша сметка
+     * @param float|null $amount    - сума на ПБД-то, ако няма е тази от продажбата
+     *
      * @return stdClass $bRec     - запис на форсираното ПБД
      */
     public static function forceBankIncomeDocument($reason, $saleRec, $accountId, $amount = null)
@@ -692,8 +720,8 @@ class eshop_Carts extends core_Master
         // Ако има контиран ПБД с това основания, не се създава нов
         $bQuery = bank_IncomeDocuments::getQuery();
         $bQuery->where("#threadId = {$saleRec->threadId} AND #state IN ('active')");
-        while($bRec = $bQuery->fetch()){
-            if($bRec->reason == $reason) {
+        while ($bRec = $bQuery->fetch()) {
+            if ($bRec->reason == $reason) {
                 
                 return $bRec;
             }
@@ -703,8 +731,8 @@ class eshop_Carts extends core_Master
         $bankRec = null;
         $bQuery2 = bank_IncomeDocuments::getQuery();
         $bQuery2->where("#threadId = {$saleRec->threadId} AND #state IN ('draft', 'pending')");
-        while($bRec = $bQuery2->fetch()){
-            if($bRec->reason == $reason){
+        while ($bRec = $bQuery2->fetch()) {
+            if ($bRec->reason == $reason) {
                 $bankRec = $bRec;
                 break;
             }
@@ -713,7 +741,7 @@ class eshop_Carts extends core_Master
         // Ако няма чернова се създава нов ПБД
         core_Users::forceSystemUser();
         $cu = core_Users::getCurrent('id', false);
-        if(empty($bankRec)){
+        if (empty($bankRec)) {
             $incomeFields = array('reason' => $reason, 'termDate' => dt::today(), 'operation' => 'customer2bank', 'ownAccountId' => $accountId);
             $bankRec = bank_IncomeDocuments::create($saleRec->threadId, $incomeFields, true);
             
@@ -721,7 +749,7 @@ class eshop_Carts extends core_Master
         }
         
         // Ако има сума, то сумата на ПБД-то се подменя с тази от пристигналото плащане
-        if(isset($amount)){
+        if (isset($amount)) {
             $fromCurrencyCode = (isset($accountId)) ? bank_OwnAccounts::getOwnAccountInfo($accountId)->currencyCode : $saleRec->currencyId;
             $amountDeal = currency_CurrencyRates::convertAmount($amount, null, $fromCurrencyCode, $saleRec->currencyId);
             $bankRec->amount = $amount;
@@ -737,19 +765,22 @@ class eshop_Carts extends core_Master
     
     /**
      * Форсира продажба към количката
-     * 
+     *
      * @param mixed $id
-     * @param boolean $force
-     * @param boolean $sendEmailIfNecessary
-     * 
+     * @param bool  $force
+     * @param bool  $sendEmailIfNecessary
+     *
      * @return stdClass $saleRec
      */
     public static function forceSale($id, $force = false, $sendEmailIfNecessary = true)
     {
         $rec = static::fetchRec($id);
         
-        if($force === false){
-            if(isset($rec->saleId)) return sales_Sales::fetch($rec->saleId);
+        if ($force === false) {
+            if (isset($rec->saleId)) {
+                
+                return sales_Sales::fetch($rec->saleId);
+            }
         }
         
         Mode::push('eshopFinalize', true);
@@ -770,7 +801,7 @@ class eshop_Carts extends core_Master
             $folderId = $rec->saleFolderId;
         } else {
             $country = isset($rec->invoiceCountry) ? $rec->invoiceCountry : (isset($rec->deliveryCountry) ? $rec->deliveryCountry : $rec->country);
-            if(!empty($rec->invoicePCode) || !empty($rec->invoicePlace) || !empty($rec->invoiceAddress)){
+            if (!empty($rec->invoicePCode) || !empty($rec->invoicePlace) || !empty($rec->invoiceAddress)) {
                 $pCode = $rec->invoicePCode;
                 $place = $rec->invoicePlace;
                 $address = $rec->invoiceAddress;
@@ -812,21 +843,21 @@ class eshop_Carts extends core_Master
         );
         
         $folderIncharge = doc_Folders::fetchField($folderId, 'inCharge');
-        if(haveRole('sales', $folderIncharge)){
+        if (haveRole('sales', $folderIncharge)) {
             $fields['dealerId'] = $folderIncharge;
-        } elseif(!empty($settings->dealerId)){
+        } elseif (!empty($settings->dealerId)) {
             $fields['dealerId'] = $settings->dealerId;
         }
         
         // Създаване на продажба по количката
         $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
-        if(empty($saleId)){
+        if (empty($saleId)) {
             
             return false;
         }
         
         sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId, 360, $cu);
-        if(!empty($routerExplanation)){
+        if (!empty($routerExplanation)) {
             sales_Sales::logDebug($routerExplanation, $saleId, 7);
         }
         eshop_Carts::logDebug("Създаване на продажба #Sal{$saleId} към онлайн поръчка", $rec->id);
@@ -857,7 +888,7 @@ class eshop_Carts extends core_Master
         }
         
         // Ако е платено онлайн
-        if($rec->paidOnline == 'yes'){
+        if ($rec->paidOnline == 'yes') {
             
             // Продажбата се активира
             $saleRec = sales_Sales::fetchRec($saleId);
@@ -878,10 +909,10 @@ class eshop_Carts extends core_Master
         
         doc_Threads::doUpdateThread($saleRec->threadId);
         if (!(core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu))) {
-            if($sendEmailIfNecessary === true){
+            if ($sendEmailIfNecessary === true) {
                 self::sendEmail($rec, $saleRec);
                 doc_Threads::doUpdateThread($saleRec->threadId);
-                eshop_Carts::logDebug("Изпращане на имейл за продажба от онлайн поръчка", $rec->id);
+                eshop_Carts::logDebug('Изпращане на имейл за продажба от онлайн поръчка', $rec->id);
             }
         }
         
@@ -935,15 +966,15 @@ class eshop_Carts extends core_Master
         $rec->saleId = $saleId;
         
         $isActivatedNow = false;
-        if($rec->state != 'active'){
+        if ($rec->state != 'active') {
             $rec->state = 'active';
             $rec->activatedOn = dt::now();
             $isActivatedNow = true;
         }
         
         self::save($rec, 'state,saleId,activatedOn');
-        if($isActivatedNow === true){
-            eshop_Carts::logDebug("Активиране на количката", $rec->id);
+        if ($isActivatedNow === true) {
+            eshop_Carts::logDebug('Активиране на количката', $rec->id);
         }
     }
     
@@ -976,9 +1007,9 @@ class eshop_Carts extends core_Master
         $body->replace($makeInvoice, 'MAKE_INVOICE');
         
         // Показване на информацията за доставка
-        if(isset($rec->termId)){
+        if (isset($rec->termId)) {
             $termName = cond_DeliveryTerms::getVerbal($rec->termId, 'term');
-            if(empty($termName)){
+            if (empty($termName)) {
                 $termName = cond_DeliveryTerms::getVerbal($rec->termId, 'codeName');
             }
             
@@ -990,10 +1021,10 @@ class eshop_Carts extends core_Master
             $place = (!empty($pCode)) ? "{$pCode} {$place}" : $place;
             $deliveryAddress = core_Type::getByName('varchar')->toVerbal($rec->deliveryAddress);
             $body->replace($countryName, 'DELIVERY_COUNTRY');
-            if(!empty($place)){
+            if (!empty($place)) {
                 $body->replace($place, 'PLACE');
             }
-            if(!empty($rec->deliveryAddress)){
+            if (!empty($rec->deliveryAddress)) {
                 $body->replace($deliveryAddress, 'ADDRESS');
             }
         }
@@ -1008,11 +1039,11 @@ class eshop_Carts extends core_Master
             $paymentMethod = tr(cond_PaymentMethods::getTitleById($rec->paymentId));
             $body->append($paymentMethod, 'PAYMENT_NAME');
             
-            if($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)){
+            if ($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)) {
                 Mode::push('text', 'plain');
                 $paymentText = $PaymentDriver->getText4Email($rec->paymentId, $rec);
                 Mode::pop('text');
-                if(!empty($paymentText)){
+                if (!empty($paymentText)) {
                     $body->replace($paymentText, 'PAYMENT_TEXT');
                     $saleRec->_paymentInstructionsSend = true;
                 }
@@ -1025,7 +1056,7 @@ class eshop_Carts extends core_Master
         }
         
         $Cover = doc_Folders::getCover($saleRec->folderId);
-        if($threadCount == 1){
+        if ($threadCount == 1) {
             $url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => (int) $Cover->that, 'email' => $rec->email, 'rand' => str::getRand(), 'className' => $Cover->className, 'userNames' => $rec->personNames), 604800);
             $url = "[link={$url}]" . tr('връзка||link') . '[/link]';
             $body->replace($url, 'REGISTER_LINK');
@@ -1064,14 +1095,14 @@ class eshop_Carts extends core_Master
         
         // Прикачване на прикачените файлове
         $files = cls::get('email_Outgoings')->getAttachments($emailRec);
-        if(is_array($files) && count($files)){
+        if (is_array($files) && count($files)) {
             $options->attachmentsSet = implode(',', array_keys($files));
         }
         
         // Прикачване на прикачените документи
-        if(is_array($documents)){
+        if (is_array($documents)) {
             $attachedDocs = array();
-            foreach ($documents as $name => $doc){
+            foreach ($documents as $name => $doc) {
                 $attachedDocs[$name] = "{$name}.pdf";
             }
             $options->documentsSet = implode(',', $attachedDocs);
@@ -1129,7 +1160,7 @@ class eshop_Carts extends core_Master
         }
         
         $cartInfo = tr('Всички цени са')  . ' ' . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
-        $tpl->replace($cartInfo . ".", 'VAT_STATUS');
+        $tpl->replace($cartInfo . '.', 'VAT_STATUS');
         
         // Ако има последно активирана кошница да се показва като съобщение
         if ($lastCart = self::getLastActivatedCart()) {
@@ -1148,18 +1179,18 @@ class eshop_Carts extends core_Master
     
     /**
      * Ако количката вече е активна да се прави автоматичен рефреш на страницата
-     * 
+     *
      * @return array
      */
     public function act_refreshOnChangedState()
     {
         $id = Request::get('id', 'int');
         if (Request::get('ajax_mode')) {
-            if(!empty($id)){
+            if (!empty($id)) {
                 $state = self::fetchField($id, 'state');
                 
                 // Ако състоянието на количката не е чернова, се редиректва
-                if($state != 'draft'){
+                if ($state != 'draft') {
                     $resObj = new stdClass();
                     $resObj->func = 'redirect';
                     $resObj->arg = array('url' => toUrl(cls::get('eshop_Groups')->getUrlByMenuId(null)));
@@ -1198,8 +1229,8 @@ class eshop_Carts extends core_Master
         }
         
         // Ако има нова текуща количка, редирект към нея
-        if($newCartId = self::force($rec->domainId, null, false)){
-            if($rec->id != $newCartId){
+        if ($newCartId = self::force($rec->domainId, null, false)) {
+            if ($rec->id != $newCartId) {
                 redirect(array($this, 'view', $newCartId));
             }
         }
@@ -1212,34 +1243,34 @@ class eshop_Carts extends core_Master
         
         // Ако има токен за достъп
         $accessToken = Request::get('accessToken');
-        if(!empty($accessToken)){
+        if (!empty($accessToken)) {
             
             // И токена е валиден
             expect($token = str::checkHash($accessToken, 6, eshop_Setup::get('CART_ACCESS_SALT')), 'Невалиден токен за достъп');
             expect($token == "cart{$id}");
             
             // Ако количката няма потребител
-            if(empty($rec->userId)){
+            if (empty($rec->userId)) {
                 $oldBrid = $rec->brid;
                 
                 // Ако новия брид е различен от стария обновява се
                 $newBrid = log_Browsers::getBrid();
                 $updateFields = array();
-                if($rec->brid != $newBrid){
+                if ($rec->brid != $newBrid) {
                     $rec->brid = $newBrid;
                     $updateFields[] = 'brid';
                 }
                 
                 // Kоличката се присвоява на текущия потребител, само ако не е powerUser
-                if($cu = core_Users::getCurrent('id', false)){
-                    if(!core_Users::isPowerUser($cu)){
+                if ($cu = core_Users::getCurrent('id', false)) {
+                    if (!core_Users::isPowerUser($cu)) {
                         $rec->userId = $cu;
                         $updateFields[] = 'userId';
                     }
                 }
                 
                 // Така потребителя вече има достъп до количката
-                if(count($updateFields)){
+                if (count($updateFields)) {
                     $this->save($rec, $updateFields);
                     log_System::add('eshop_Carts', "Присвоена количка:BRID {$oldBrid} -> {$rec->brid}/ #userId = '{$rec->userId}'", $rec->id);
                 }
@@ -1256,7 +1287,7 @@ class eshop_Carts extends core_Master
         Mode::set('wrapper', 'cms_page_External');
         $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
         
-        vislog_History::add("Разглеждане на количка");
+        vislog_History::add('Разглеждане на количка');
         
         return $tpl;
     }
@@ -1320,7 +1351,7 @@ class eshop_Carts extends core_Master
         }
         
         // Ако няма потребител и има клиентски карти, ще се показва бутон за въвеждане на карта
-        if(crm_ext_Cards::haveRightFor('checkcard', (object)array('domainId' => $rec->domainId))){
+        if (crm_ext_Cards::haveRightFor('checkcard', (object) array('domainId' => $rec->domainId))) {
             $tpl->replace(ht::createLink(tr('тук'), array('crm_ext_Cards', 'CheckCard', 'ret_url' => true), false, 'ef_icon=img/16/client-card.png '), 'CARD_LINK');
         }
         
@@ -1342,7 +1373,7 @@ class eshop_Carts extends core_Master
             $tpl->append($editBtn, 'editBtn');
         }
         
-        if(!empty($rec->personNames)){
+        if (!empty($rec->personNames)) {
             $tpl->append('borderTop', 'BORDER_CLASS');
         }
         
@@ -1362,7 +1393,10 @@ class eshop_Carts extends core_Master
     {
         $Double = core_Type::getByName('double(decimals=2)');
         $rec = self::fetchRec($id, '*', false);
-        if(empty($rec->productCount) && empty($rec->personNames)) return;
+        if (empty($rec->productCount) && empty($rec->personNames)) {
+            
+            return;
+        }
         $fields = cls::get('eshop_Carts')->selectFields();
         $fields['-external'] = true;
         
@@ -1377,23 +1411,23 @@ class eshop_Carts extends core_Master
         $amountWithoutDelivery = ($settings->chargeVat == 'yes') ? $total : $totalNoVat;
         $row->total = $Double->toVerbal($total);
         $row->currencyId = $settings->currencyId;
-       
+        
         // Ако има доставка се показва и нея
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
             $row->deliveryCaption = tr('Доставка||Shipping');
             $row->deliveryCurrencyId = $row->currencyId;
-           
-            if($rec->freeDelivery != 'no'){
-                $row->deliveryAmount = "<span style='text-transform: uppercase;color:green';>" . tr('Безплатна') . "</span>";
+            
+            if ($rec->freeDelivery != 'no') {
+                $row->deliveryAmount = "<span style='text-transform: uppercase;color:green';>" . tr('Безплатна') . '</span>';
                 unset($row->deliveryCurrencyId);
-                $row->deliveryColspan = "colspan=2";
-            } else { 
-               if($settings->chargeVat == 'yes'){
+                $row->deliveryColspan = 'colspan=2';
+            } else {
+                if ($settings->chargeVat == 'yes') {
                     $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
                     $transportVat = cat_Products::getVat($transportId);
                     
                     $deliveryAmount = $rec->deliveryNoVat * (1 + $transportVat);
-                    $amountWithoutDelivery -=  $deliveryNoVat * (1 + $transportVat);
+                    $amountWithoutDelivery -= $deliveryNoVat * (1 + $transportVat);
                 } else {
                     $deliveryAmount = $rec->deliveryNoVat;
                 }
@@ -1409,7 +1443,7 @@ class eshop_Carts extends core_Master
         $row->amount = $Double->toVerbal($amountWithoutDelivery);
         $row->amountCurrencyId = $row->currencyId;
         
-        if($settings->chargeVat != 'yes'){
+        if ($settings->chargeVat != 'yes') {
             $row->vatCurrencyId = $row->currencyId;
             $row->totalVat = $Double->toVerbal($vatAmount);
         }
@@ -1418,11 +1452,11 @@ class eshop_Carts extends core_Master
         unset($row->invoiceVatNo);
         $tpl->placeObject($row);
         
-        if(isset($rec->paymentId)){
+        if (isset($rec->paymentId)) {
             cond_PaymentMethods::addToCartView($rec->paymentId, $rec, $row, $tpl);
         }
         
-        if(isset($rec->termId)){
+        if (isset($rec->termId)) {
             cond_DeliveryTerms::addToCartView($rec->termId, $rec, $row, $tpl);
         }
         
@@ -1461,30 +1495,30 @@ class eshop_Carts extends core_Master
         
         $checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array('eshop_Carts', 'order', $rec->id, 'ret_url' => true) : array();
         if (empty($rec->personNames) && count($checkoutUrl)) {
-            $btn = ht::createBtn(tr('Направете поръчка') . ' »', $checkoutUrl, null, null, "title=Поръчване на артикулите,class=order-btn eshop-btn,rel=nofollow");
+            $btn = ht::createBtn(tr('Направете поръчка') . ' »', $checkoutUrl, null, null, 'title=Поръчване на артикулите,class=order-btn eshop-btn,rel=nofollow');
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
         }
         
         // Ако се изисква онлайн плащане добавя се бутон към него
         if (isset($rec->paymentId)) {
-
+            
             // Ако самия метод на плащане, добавяв текст показва се
             $paymentRec = cond_PaymentMethods::fetch($rec->paymentId);
-            if(!empty($paymentRec->onlinePaymentText)){
+            if (!empty($paymentRec->onlinePaymentText)) {
                 $onlinePaymentText = core_Type::getByName('text')->toVerbal($paymentRec->onlinePaymentText);
                 $tpl->append($onlinePaymentText . '<br>', 'PAYMENT_TEXT_RIGHT');
             }
             
-            if($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)){
-
+            if ($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)) {
+                
                 // Ако драйвера на метода на плащане добавя текст, показва се и той
                 $paymentDriverText = $PaymentDriver->getDisplayHtml($paymentRec);
-                if(!empty($paymentDriverText)){
-                    $tpl->append($paymentDriverText , 'PAYMENT_TEXT_RIGHT');
+                if (!empty($paymentDriverText)) {
+                    $tpl->append($paymentDriverText, 'PAYMENT_TEXT_RIGHT');
                 }
                 
                 // Ако има поне един артикул, показва се бутона за онлайн плащане
-                if(!empty($rec->productCount)){
+                if (!empty($rec->productCount)) {
                     $cancelUrl = array('eshop_Carts', 'abort', $rec->id);
                     $okUrl = array('eshop_Carts', 'confirm', $rec->id);
                     $settings = cms_Domains::getSettings();
@@ -1495,10 +1529,10 @@ class eshop_Carts extends core_Master
         }
         
         if (eshop_Carts::haveRightFor('finalize', $rec)) {
-            $btn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да направите поръчката|*!', null, "title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow");
+            $btn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да направите поръчката|*!', null, 'title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow');
             
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
-            if($rec->productCount > 3){
+            if ($rec->productCount > 3) {
                 $tpl->append($btn, 'CART_TOOLBAR_TOP_RIGHT');
             }
         }
@@ -1601,14 +1635,14 @@ class eshop_Carts extends core_Master
         $data->listTableMvc->FNC('code', 'varchar', 'smartCenter');
         $data->listTableMvc->setFieldType('quantity', core_Type::getByName('varchar'));
         $data->listTableMvc->setField('quantity', 'tdClass=quantity-input-column');
-        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => 'optionsTable', 'tableId' => 'cart-view-table'));        
-
+        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => 'optionsTable', 'tableId' => 'cart-view-table'));
+        
         if (Mode::is('screenMode', 'narrow')) {
             $data->listTableMvc->commonRowClass = 'ecartCommonRow';
-            $data->listTableMvc->tableRowTpl = "<tbody>[#ADD_ROWS#][#ROW#]</tbody>\n";;
+            $data->listTableMvc->tableRowTpl = "<tbody>[#ADD_ROWS#][#ROW#]</tbody>\n";
             $data->listFields['productId'] = '@Артикул';
         }
-
+        
         plg_RowTools2::on_BeforeRenderListTable($data->listTableMvc, $tpl, $data);
         $tpl->replace($table->get($data->rows, $data->listFields));
         
@@ -1641,26 +1675,29 @@ class eshop_Carts extends core_Master
             }
         }
         
-        if (in_array($action, array('addtocart', 'checkout', 'finalize'))) {
-            if (!$mvc->haveRightFor('viewexternal', $rec)) {
-                $requiredRoles = 'no_one';
+        if (in_array($action, array('addtocart', 'checkout', 'finalize')) && isset($rec)) {
+            $singleRoles = $mvc->getRequiredRoles('single', $rec, $userId);
+            if(!haveRole($singleRoles, $userId)){
+                $requiredRoles = $mvc->getRequiredRoles('viewexternal', $rec, $userId);
             }
         }
         
-        if($action == 'checkout' && isset($rec)){
-            if(empty($rec->productCount) && empty($rec->personNames)){
+        if ($action == 'checkout' && isset($rec)) {
+            if (empty($rec->productCount) && empty($rec->personNames)) {
                 $requiredRoles = 'no_one';
             }
         }
         
         if ($action == 'finalize' && isset($rec)) {
-            if (empty($rec->personNames) || empty($rec->productCount)) {
+            if($rec->state != 'draft'){
+                $requiredRoles = 'no_one';
+            } elseif (empty($rec->personNames) || empty($rec->productCount)) {
                 $requiredRoles = 'no_one';
             } elseif ($rec->deliveryNoVat < 0) {
                 $requiredRoles = 'no_one';
-            } elseif($rec->paidOnline != 'yes') {
-                if($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)){
-                    if($PaymentDriver->isPaymentMandatory($rec->paymentId, $mvc, $rec->id)){
+            } elseif ($rec->paidOnline != 'yes') {
+                if ($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)) {
+                    if ($PaymentDriver->isPaymentMandatory($rec->paymentId, $mvc, $rec->id)) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -1668,21 +1705,21 @@ class eshop_Carts extends core_Master
         }
         
         if ($action == 'delete' && isset($rec)) {
-            if($rec->state != 'draft'){
+            if ($rec->state != 'draft') {
                 $requiredRoles = 'no_one';
             } else {
                 $compareDate = dt::addSecs($rec->createdOn, 60 * 60 * 24 * 2);
-                if($compareDate >= dt::now()){
+                if ($compareDate >= dt::now()) {
                     $requiredRoles = 'no_one';
                 }
             }
         }
         
-        if($action == 'makenewsale' && isset($rec)){
-            if($rec->state != 'active'){
+        if ($action == 'makenewsale' && isset($rec)) {
+            if ($rec->state != 'active') {
                 $requiredRoles = 'no_one';
-            } elseif(isset($rec->saleId)){
-                if(sales_Sales::fetchField($rec->saleId, 'state') == 'active'){
+            } elseif (isset($rec->saleId)) {
+                if (sales_Sales::fetchField($rec->saleId, 'state') == 'active') {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -1691,7 +1728,7 @@ class eshop_Carts extends core_Master
         // Ако няма начин за плащане, и няма драйвер за онлайн плащане, екшъна за отказано плащане е недостъпен
         if (in_array($action, array('abortpayment', 'confirmpayment')) && isset($rec)) {
             if ($rec->state != 'draft' || !isset($rec->paymentId) || !cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId) || empty($rec->productCount)) {
-                 $requiredRoles = 'no_one';
+                $requiredRoles = 'no_one';
             }
         }
     }
@@ -1708,13 +1745,13 @@ class eshop_Carts extends core_Master
         $row->STATE_CLASS = $row->ROW_ATTR['class'];
         $row->domainId = cms_Domains::getHyperlink($rec->domainId);
         
-        if($fields['-single']){
-            if($rec->state == 'draft'){
+        if ($fields['-single']) {
+            if ($rec->state == 'draft') {
                 $delitionTime = self::getDeletionTime($rec);
                 $row->delitionTime = core_Type::getByName('datetime(format=smartTime)')->toVerbal($delitionTime);
                 
                 // Кога ще се изпраща имейл за нотифициране
-                if(!empty($rec->email)){
+                if (!empty($rec->email)) {
                     $settings = cms_Domains::getSettings($rec->domainId);
                     $timeToNotifyBeforeDeletion = dt::addSecs(-1 * $settings->timeBeforeDelete, $delitionTime);
                     $row->timeToNotifyBeforeDeletion = core_Type::getByName('datetime(format=smartTime)')->toVerbal($timeToNotifyBeforeDeletion);
@@ -1728,39 +1765,39 @@ class eshop_Carts extends core_Master
         $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
         $rec->vatAmount = $rec->total - $rec->totalNoVat;
         
-        if($rec->freeDelivery != 'yes'){
+        if ($rec->freeDelivery != 'yes') {
             $rec->totalNoVat = $rec->totalNoVat - $rec->deliveryNoVat;
-        } 
+        }
         
-        foreach (array('total', 'totalNoVat', 'deliveryNoVat', 'vatAmount') as $fld){
-            if(isset($rec->{$fld})){
+        foreach (array('total', 'totalNoVat', 'deliveryNoVat', 'vatAmount') as $fld) {
+            if (isset($rec->{$fld})) {
                 ${$fld} = currency_CurrencyRates::convertAmount($rec->{$fld}, null, null, $currencyCode);
                 $row->{$fld} = $mvc->getFieldType('total')->toVerbal(${$fld}) . " <span class='cCode'>{$currencyCode}</span>";
             }
         }
         
-        if($rec->freeDelivery == 'yes'){
-            $row->deliveryNoVat = "<span style='text-transform: uppercase;color:green;font-weight:bold';>" . tr('Безплатна') . "</span>";
+        if ($rec->freeDelivery == 'yes') {
+            $row->deliveryNoVat = "<span style='text-transform: uppercase;color:green;font-weight:bold';>" . tr('Безплатна') . '</span>';
         }
         
-        if(isset($fields['-list'])){
-            if(!empty($rec->email) && $rec->state == 'draft'){
+        if (isset($fields['-list'])) {
+            if (!empty($rec->email) && $rec->state == 'draft') {
                 $row->productCount = ht::createHint($row->productCount, 'Има попълнени данни за поръчка|*!', 'notice', false);
             }
         }
         
         if (isset($rec->saleId)) {
             $saleState = sales_Sales::fetchField($rec->saleId, 'state');
-            $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+            $row->saleId = sales_Sales::getHyperlink($rec->saleId, true);
             $row->saleId = "<span class='state-{$saleState} document-handler'>{$row->saleId}</span>";
-        } 
+        }
         
         if (isset($rec->termId) && !isset($fields['-external'])) {
-           $row->termId = cond_DeliveryTerms::getHyperlink($rec->termId, true);
+            $row->termId = cond_DeliveryTerms::getHyperlink($rec->termId, true);
         }
         
         if (isset($rec->paymentId) && !isset($fields['-external'])) {
-           $row->paymentId = cond_PaymentMethods::getHyperlink($rec->paymentId, true);
+            $row->paymentId = cond_PaymentMethods::getHyperlink($rec->paymentId, true);
         }
     }
     
@@ -1779,7 +1816,7 @@ class eshop_Carts extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = self::fetch($id));
         $this->requireRightFor('checkout', $rec);
-        vislog_History::add("Въвеждане на данни за количка");
+        vislog_History::add('Въвеждане на данни за количка');
         
         $settings = cms_Domains::getSettings();
         $countries = keylist::toArray($settings->countries);
@@ -1803,7 +1840,7 @@ class eshop_Carts extends core_Master
         self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
         
         $form->setOptions('country', drdata_Countries::getOptionsArr($form->countries));
-        if(count($form->countries) == 1){
+        if (count($form->countries) == 1) {
             $form->setDefault('country', key($form->countries));
             $form->setField('country', 'input=hidden');
         } else {
@@ -1813,7 +1850,7 @@ class eshop_Carts extends core_Master
         $cu = core_Users::getCurrent('id', false);
         if (isset($cu) && $form->rec->makeInvoice != 'none') {
             $profileRec = crm_Profiles::getProfile($cu);
-            if (isset($form->rec->saleFolderId)){
+            if (isset($form->rec->saleFolderId)) {
                 $form->rec->makeInvoice = ($form->rec->saleFolderId == $profileRec->folderId) ? 'person' : 'company';
             }
         }
@@ -1835,16 +1872,16 @@ class eshop_Carts extends core_Master
             }
         }
         
-        if(!empty($form->rec->deliveryCountry)){
+        if (!empty($form->rec->deliveryCountry)) {
             $form->countries[$form->rec->deliveryCountry] = $form->rec->deliveryCountry;
         }
         
         $isDeliveryCountryReadOnly = $form->getFieldTypeParam('deliveryCountry', 'isReadOnly');
-        if($isDeliveryCountryReadOnly !== true){
+        if ($isDeliveryCountryReadOnly !== true) {
             $form->setOptions('deliveryCountry', drdata_Countries::getOptionsArr($form->countries));
         }
         
-        if(count($form->countries) == 1){
+        if (count($form->countries) == 1) {
             $form->setDefault('deliveryCountry', key($form->countries));
             $form->setReadOnly('deliveryCountry');
         }
@@ -1872,11 +1909,11 @@ class eshop_Carts extends core_Master
             $form->setFieldAttr('deliveryPlace', 'data-updateonchange=invoicePlace,class=updateonchange');
             $form->setFieldAttr('deliveryAddress', 'data-updateonchange=invoiceAddress,class=updateonchange');
             
-            if(!empty($form->rec->invoiceCountry)){
+            if (!empty($form->rec->invoiceCountry)) {
                 $form->countries[$form->rec->invoiceCountry] = $form->rec->invoiceCountry;
             }
             $form->setOptions('invoiceCountry', drdata_Countries::getOptionsArr($form->countries));
-            if(count($form->countries) == 1){
+            if (count($form->countries) == 1) {
                 $form->setDefault('invoiceCountry', key($form->countries));
                 $form->setReadOnly('invoiceCountry');
             }
@@ -1902,23 +1939,23 @@ class eshop_Carts extends core_Master
             $rec = $form->rec;
             
             // Проверка на имената да са поне две с поне 2 букви
-            if(!core_Users::checkNames($rec->personNames)){
+            if (!core_Users::checkNames($rec->personNames)) {
                 $form->setError('personNames', 'Невалидни имена');
             }
             
             // Проверка на имената на лицето на фактурата, ако тя е за лице да са поне две с поне 2 букви
-            if($rec->makeInvoice == 'person'){
-                if(!core_Users::checkNames($rec->invoiceNames)){
+            if ($rec->makeInvoice == 'person') {
+                if (!core_Users::checkNames($rec->invoiceNames)) {
                     $form->setError('invoiceNames', 'Невалидни имена');
                 }
             }
             
-            if($rec->makeInvoice != 'none' && empty($rec->invoiceVatNo) && empty($rec->invoiceUicNo)){
+            if ($rec->makeInvoice != 'none' && empty($rec->invoiceVatNo) && empty($rec->invoiceUicNo)) {
                 $form->setError('invoiceVatNo,invoiceUicNo', 'Поне едно от полетата трябва да бъде въведено');
             }
             
-            if(!empty($rec->invoiceNames) && $rec->makeInvoice != 'none'){
-                if(!preg_match("/[a-zа-я0-9]+.*[a-zа-я0-9]+.*[a-zа-я0-9]+/iu", $rec->invoiceNames)){
+            if (!empty($rec->invoiceNames) && $rec->makeInvoice != 'none') {
+                if (!preg_match('/[a-zа-я0-9]+.*[a-zа-я0-9]+.*[a-zа-я0-9]+/iu', $rec->invoiceNames)) {
                     $form->setError('invoiceNames', 'Неправилен формат');
                 }
             }
@@ -1931,7 +1968,7 @@ class eshop_Carts extends core_Master
             $arr = array('invoiceCountry' => 'deliveryCountry', 'invoicePCode' => 'deliveryPCode', 'invoicePlace' => 'deliveryPlace', 'invoiceAddress' => 'deliveryAddress');
             $emptyFields = array();
             
-            if ($rec->makeInvoice != 'none'){
+            if ($rec->makeInvoice != 'none') {
                 foreach ($arr as $invField => $delField) {
                     $rec->{$invField} = !empty($rec->{$invField}) ? $rec->{$invField} : $rec->{$delField};
                     if (empty($rec->{$invField})) {
@@ -1939,9 +1976,9 @@ class eshop_Carts extends core_Master
                     }
                 }
             } else {
-                $rec->invoiceCountry = $rec->invoicePCode = $rec->invoicePlace = $rec->invoiceAddress = $rec->invoiceUicNo = $rec->invoiceNames = $rec->invoiceVatNo = NULL;
+                $rec->invoiceCountry = $rec->invoicePCode = $rec->invoicePlace = $rec->invoiceAddress = $rec->invoiceUicNo = $rec->invoiceNames = $rec->invoiceVatNo = null;
             }
-           
+            
             if (count($emptyFields)) {
                 $form->setError($emptyFields, 'Липсват данните за фактуриране');
             }
@@ -1975,7 +2012,7 @@ class eshop_Carts extends core_Master
                         $contragentClassId = crm_Persons::getClassId();
                         $contragentId = crm_Profiles::getProfile($cu)->id;
                     }
-                   
+                    
                     // Ако има въведени адресни данни
                     if (!empty($rec->deliveryCountry) || !empty($rec->deliveryPCode) || !empty($rec->deliveryPlace) || !empty($rec->deliveryAddress)) {
                         $rec->locationId = crm_Locations::update($contragentClassId, $contragentId, $rec->deliveryCountry, 'За получаване на пратки', $rec->deliveryPCode, $rec->deliveryPlace, $rec->deliveryAddress, $rec->locationId);
@@ -1990,6 +2027,7 @@ class eshop_Carts extends core_Master
                 $this->save($rec);
                 $this->updateMaster($rec);
                 core_Lg::pop();
+                eshop_Carts::logWrite("Попълване на данни за поръчката от външната част", $rec->id);
                 
                 return followRetUrl();
             }
@@ -2006,6 +2044,7 @@ class eshop_Carts extends core_Master
             
             if ($form->layout) {
                 jquery_Jquery::run($form->layout, 'copyValToPlaceholder();');
+                
                 //jquery_Jquery::run($form->layout, 'refreshInvoiceFields();');
             }
         }
@@ -2017,6 +2056,7 @@ class eshop_Carts extends core_Master
         // Рефрешване на формата ако потребителя се логне докато е в нея
         cms_Helper::setRefreshFormIfNeeded($tpl);
         jquery_Jquery::run($tpl, 'runOnLoad(copyValToPlaceholder);');
+        
         //jquery_Jquery::run($tpl, 'runOnLoad(refreshInvoiceFields);');
         $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
         
@@ -2035,17 +2075,21 @@ class eshop_Carts extends core_Master
     {
         $cu = core_Users::getCurrent('id', false);
         $defaultTermId = $defaultPaymentId = null;
-      
+        
         $deliveryTerms = eshop_Settings::getDeliveryTermOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
         $paymentMethods = eshop_Settings::getPaymentMethodOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
         
         if ($cu) {
             $options = array();
-            if(core_Packs::isInstalled('colab')){
+            if (core_Packs::isInstalled('colab')) {
                 $options = colab_Folders::getSharedFolders($cu, true, 'crm_ContragentAccRegIntf', false);
             }
             
             $profileRec = crm_Profiles::getProfile($cu);
+            if(empty($profileRec)){
+                wp($profileRec, $cu);
+            }
+            
             $form->setDefault('personNames', $profileRec->name);
             $emails = type_Emails::toArray($profileRec->email);
             $form->setDefault('email', $emails[0]);
@@ -2116,8 +2160,6 @@ class eshop_Carts extends core_Master
         // Ако има избрана папка се записват контрагент данните
         if (isset($folderId)) {
             if ($contragentData = doc_Folders::getContragentData($folderId)) {
-                
-                
                 $form->setDefault('invoiceNames', $contragentData->company);
                 $form->setDefault('invoiceVatNo', $contragentData->vatNo);
                 $form->setDefault('invoiceUicNo', $contragentData->uicId);
@@ -2153,8 +2195,7 @@ class eshop_Carts extends core_Master
             }
         }
         
-        if(isset($cu)){
-            
+        if (isset($cu)) {
             $cQuery = eshop_Carts::getQuery();
             $cQuery->where("#userId = {$cu} AND #state = 'active' AND #domainId = {$rec->domainId}");
             $cQuery->orderBy('activatedOn', 'DESC');
@@ -2198,15 +2239,16 @@ class eshop_Carts extends core_Master
     
     /**
      * Кога количката ще бъде изтрита
-     * 
+     *
      * @param stdClass $rec
+     *
      * @return string
      */
     private static function getDeletionTime($rec)
     {
         // Колко е очаквания и 'живот'
         $settings = cms_Domains::getSettings($rec->domainId);
-        if(empty($rec->productCount)){
+        if (empty($rec->productCount)) {
             $lifetime = $settings->lifetimeForEmptyDraftCarts;
         } else {
             
@@ -2233,14 +2275,13 @@ class eshop_Carts extends core_Master
         
         // За всяка
         while ($rec = $query->fetch()) {
-            
             $settings = cms_Domains::getSettings($rec->domainId);
             $endOfLife = self::getDeletionTime($rec);
             $timeToNotifyBeforeDeletion = dt::addSecs(-1 * $settings->timeBeforeDelete, $endOfLife);
             
             if ($endOfLife <= $now) {
                 self::delete($rec->id);
-            } elseif(!empty($rec->email) && $timeToNotifyBeforeDeletion <= $now){
+            } elseif (!empty($rec->email) && $timeToNotifyBeforeDeletion <= $now) {
                 
                 // Ако не е изпращан нотифициращ имейл за забравена поръчка, изпраща се
                 $isNotified = core_Permanent::get("eshopCartsNotify{$rec->id}");
@@ -2256,7 +2297,7 @@ class eshop_Carts extends core_Master
     /**
      * Екшън към който се редиректва при отказване на онлайн плащане
      */
-    function act_Abort()
+    public function act_Abort()
     {
         // Проверка дали наистина е отказано плащане
         expect($id = Request::get('id', 'int'));
@@ -2271,7 +2312,7 @@ class eshop_Carts extends core_Master
     /**
      * Екшън към който се редиректва при отказване на онлайн плащане
      */
-    function act_Confirm()
+    public function act_Confirm()
     {
         Request::setProtected('description,accountId');
         
@@ -2294,40 +2335,43 @@ class eshop_Carts extends core_Master
     /**
      * Приемане на плащане към инциаторът (@see eshop_InitiatorPaymentIntf)
      *
-     * @param int $objId             - ид на обекта
-     * @param string $reason         - основания за плащане
-     * @param string|null $payer     - име на наредителя
-     * @param double|null $amount    - сума за нареждане
-     * @param string $currencyCode   - валута за нареждане
-     * @param int|NULL $accountId    - ид на наша сметка, или NULL ако няма
-     * @param int $linkedContainerId - свързан контейнер
+     * @param int         $objId             - ид на обекта
+     * @param string      $reason            - основания за плащане
+     * @param string|null $payer             - име на наредителя
+     * @param float|null  $amount            - сума за нареждане
+     * @param string      $currencyCode      - валута за нареждане
+     * @param int|NULL    $accountId         - ид на наша сметка, или NULL ако няма
+     * @param int         $linkedContainerId - свързан контейнер
      *
      * @return void
      */
-    public function receivePayment($objId, $reason, $payer, $amount, $currencyCode, $accountId = NULL, $linkedContainerId = null)
+    public function receivePayment($objId, $reason, $payer, $amount, $currencyCode, $accountId = null, $linkedContainerId = null)
     {
         $rec = self::fetch($objId);
         $rec->paidOnline = 'yes';
         self::save($rec, 'paidOnline');
         
-        try{
+        try {
             $saleRec = self::forceSale($rec);
-        } catch(core_exception_Expect $e){
+        } catch (core_exception_Expect $e) {
             reportException($e);
         }
         
-        if(!is_object($saleRec)) return;
+        if (!is_object($saleRec)) {
+            
+            return;
+        }
         
-        try{
+        try {
             $bankRec = self::forceBankIncomeDocument($reason, $saleRec, $accountId, $amount);
             bank_IncomeDocuments::conto($bankRec->id);
             bank_IncomeDocuments::logWrite('Автоматично контиране на пристигнало плащане', $bankRec->id, 360, core_Users::SYSTEM_USER);
             
-            if(isset($linkedContainerId)){
+            if (isset($linkedContainerId)) {
                 doc_Linked::add($linkedContainerId, $bankRec->containerId, 'doc', 'doc', 'Получено плащане от ePay.bg');
             }
-        } catch(core_exception_Expect $e){
-           reportException($e);
+        } catch (core_exception_Expect $e) {
+            reportException($e);
         }
     }
     
@@ -2361,19 +2405,19 @@ class eshop_Carts extends core_Master
         $companyName = tr(crm_Companies::fetchOwnCompany()->company);
         $body = new stdClass();
         
-        foreach (array('html' => 'xhtml', 'text' => 'plain') as $var => $mode){
+        foreach (array('html' => 'xhtml', 'text' => 'plain') as $var => $mode) {
             Mode::push('text', $mode);
             
             $file = ($var == 'html') ? $file : $fileTxt;
             $tpl = getTplFromFile($file);
             $tpl->replace(new core_ET($settings->emailBodyIntroduction), 'INTRODUCTION');
-            $settings->emailBodyFooter = str_replace("\n", "<br>", $settings->emailBodyFooter);
+            $settings->emailBodyFooter = str_replace("\n", '<br>', $settings->emailBodyFooter);
             
             $tpl->replace(new core_ET($settings->emailBodyFooter), 'FOOTER');
             $body->{$var} = $tpl;
             
             $link = ht::createLink($domainName, $cartUrl)->getContent();
-            if($mode == 'plain'){
+            if ($mode == 'plain') {
                 $link = html2text_Converter::toRichText($link);
                 $link = cls::get('type_Richtext')->toVerbal($link);
             }
@@ -2389,7 +2433,7 @@ class eshop_Carts extends core_Master
         }
         
         $options = array('encoding' => 'utf-8', 'no_thread_hnd' => true, 'no_return_path' => 'no_return_path', 'no_return_receipt' => 'no_return_receipt');
-        $subject = tr("Незавършена поръчка в") . " {$domainName}";
+        $subject = tr('Незавършена поръчка в') . " {$domainName}";
         
         // Опит за изпращане на имейл-а
         $error = null;
@@ -2406,7 +2450,6 @@ class eshop_Carts extends core_Master
     }
     
     
-    
     /**
      * След подготовка на тулбара за единичния изглед
      */
@@ -2416,6 +2459,14 @@ class eshop_Carts extends core_Master
         
         if (self::haveRightFor('makenewsale', $rec)) {
             $data->toolbar->addBtn('Нова продажба', array($mvc, 'makenewsale', 'id' => $rec->id, 'ret_url' => true, ''), null, 'ef_icon=img/16/cart_go.png,title=Създаване на нова продажба към количката');
+        }
+        
+        if (log_System::haveRightFor('list')) {
+            $data->toolbar->addBtn('Системен лог', array('log_System', 'list', 'search' => $mvc->className, 'objectId' => $data->rec->id), 'ef_icon=img/16/bug.png, title=Разглеждане на логовете на документа, order=20, row=3');
+        }
+        
+        if ($mvc->haveRightFor('finalize', $rec)) {
+            $data->toolbar->addBtn('Финализиране', array($mvc, 'finalize', $rec->id, 'ret_url' => true), 'ef_icon=img/16/bug.png, title=Ръчно финализиране на количката');
         }
     }
     
@@ -2436,13 +2487,13 @@ class eshop_Carts extends core_Master
         $form->FLD('folderId', 'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,mandatory,single=none,after=title,mandatory');
         $form->input();
         
-        if($form->isSubmitted()){
-            if(isset($rec->saleId)){
+        if ($form->isSubmitted()) {
+            if (isset($rec->saleId)) {
                 $form->setWarning('folderId', 'Към количката има създадена вече продажба|*. |Наистина ли искате да продължите|*');
             }
             
             // Ако няма грешки
-            if(!$form->gotErrors()){
+            if (!$form->gotErrors()) {
                 
                 // Създава се нова продажба и количката се свързва към нея
                 $fRec = $form->rec;
@@ -2450,7 +2501,7 @@ class eshop_Carts extends core_Master
                 $newSaleRec = self::forceSale($rec, true, false);
                 sales_Sales::logWrite('Форсирана нова продажба към количка', $newSaleRec->id);
                 
-                if(isset($rec->saleId)){
+                if (isset($rec->saleId)) {
                     $oldContainerId = sales_Sales::fetchField($rec->saleId, 'containerId');
                     doc_Linked::add($oldContainerId, $newSaleRec->containerId);
                     sales_Sales::logWrite('Продажбата е откачена от количката', $rec->saleId);
@@ -2473,8 +2524,9 @@ class eshop_Carts extends core_Master
     /**
      * Връща защите урл присвояващо количка без потребител към текущия брид
      * или ако има нова количка към този брид редирект към нея
-     * 
+     *
      * @param int $id
+     *
      * @return string $url
      */
     public static function getGrantAccessUrl($id)

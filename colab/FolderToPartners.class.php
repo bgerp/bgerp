@@ -171,8 +171,8 @@ class colab_FolderToPartners extends core_Manager
         $query->show('folderId');
         $fIds = arr::extractValuesFromArray($query->fetchAll(), 'folderId');
         
-        if (count($fIds)) {
-            if (count($fIds) == 1) {
+        if (countR($fIds)) {
+            if (countR($fIds) == 1) {
                 $folderId = key($fIds);
             } else {
                 if (!$folderId) {
@@ -395,7 +395,7 @@ class colab_FolderToPartners extends core_Manager
                     $requiredRoles = 'no_one';
                 } else {
                     $emailsFrom = email_Inboxes::getAllowedFromEmailOptions(null);
-                    if (!count($emailsFrom)) {
+                    if (!countR($emailsFrom)) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -647,7 +647,7 @@ class colab_FolderToPartners extends core_Manager
         $files = fileman_RichTextPlg::getFiles($rec->body);
         
         // Ако има прикачени файлове, добавяме ги
-        if (count($files)) {
+        if (countR($files)) {
             foreach ($files as $fh => $name) {
                 $name = fileman_Files::fetchByFh($fh, 'name');
                 $path = fileman_Files::fetchByFh($fh, 'path');
@@ -729,7 +729,7 @@ class colab_FolderToPartners extends core_Manager
                     $pOpt[$pRec->id] = $pRec->name;
                 }
             }
-            if (count($pOpt)) {
+            if (countR($pOpt)) {
                 $form->FNC('personId', 'key(mvc=crm_Persons,allowEmpty)', 'caption=Лице,before=nick,input,silent,removeAndRefreshForm=names|email');
                 $form->setOptions('personId', $pOpt);
             }

@@ -35,7 +35,7 @@ class acc_Wrapper extends plg_ProtoWrapper
             $histUrl = getCurrentUrl();
         }
         
-        if (!count($histUrl)) {
+        if (!countR($histUrl)) {
             
             // Ако няма хрон. справка извличаме я от сесията
             if (empty($histUrl)) {

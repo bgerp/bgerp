@@ -17,7 +17,20 @@
  */
 class bgerp_drivers_Calendar extends core_BaseClass
 {
+    /**
+     * Максимален брой блокове, които да могат да се поакзват в портала
+     */
+    public $maxCnt = 1;
+    
+    
     public $interfaces = 'bgerp_PortalBlockIntf';
+    
+    protected $priorityMap = array(
+            'low' => 'low|normal|high|critical',
+            'normal' => 'normal|high|critical',
+            'high' => 'high|critical',
+            'critical' => 'critical',
+    );
     
     
     /**
@@ -29,6 +42,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
     {
         $fieldset->FLD('fTasksPerPage', 'int(min=1, max=50)', 'caption=Показване на задачите в бъдеще->Редове, mandatory');
         $fieldset->FLD('fTasksDays', 'time(suggestions=1 месец|3 месеца|6 месеца)', 'caption=Показване на задачите в бъдеще->Дни, mandatory');
+        $fieldset->FLD('taskPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Задачи');
+        $fieldset->FLD('remPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Напомняния');
     }
     
     
@@ -49,7 +64,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
      * Подготвя данните
      *
      * @param stdClass $dRec
-     * @param null|integer $userId
+     * @param null|int $userId
      *
      * @return stdClass
      */
@@ -61,13 +76,11 @@ class bgerp_drivers_Calendar extends core_BaseClass
             expect($userId = core_Users::getCurrent());
         }
         
-        $tPageVar = 'P_Cal_Tasks_Future_' . $dRec->originIdCalc;
-        
         $resData->month = Request::get('cal_month', 'int');
         $resData->month = str_pad($resData->month, 2, '0', STR_PAD_LEFT);
-        $resData->year  = Request::get('cal_year', 'int');
+        $resData->year = Request::get('cal_year', 'int');
         
-        if(!$resData->month || $resData->month < 1 || $resData->month > 12 || !$resData->year || $resData->year < 1970 || $resData->year > 2038) {
+        if (!$resData->month || $resData->month < 1 || $resData->month > 12 || !$resData->year || $resData->year < 1970 || $resData->year > 2038) {
             $resData->year = date('Y');
             $resData->month = date('m');
         }
@@ -89,106 +102,93 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $resData->calendarState->query->orLikeKeylist('users', $userId);
         $resData->calendarState->query->where(array("#time >= '[#1#]' AND #time <= '[#2#]'", $from, $to));
         
-        // Последния запис в модела - за деактивиране на кеша
-        $calendarStateQueryClone = clone $resData->calendarState->query;
-        $calendarStateQueryClone->orderBy('createdOn', 'DESC');
-        $calendarStateQueryClone->limit(1);
-        $lastCalendarEventRec = serialize($calendarStateQueryClone->fetch());
-        
         // Само бележки за текущия потребител или за всички потребители
         // Последния запис в модела - за деактивиране на кеша
         $resData->agendaData = new stdClass();
-        $agendaStateQuery = cal_Calendar::getQuery();
-        $agendaStateQuery->where("#users IS NULL OR #users = ''");
-        $agendaStateQuery->orLikeKeylist('users', $userId);
-        $agendaStateQuery->orderBy('createdOn', 'DESC');
-        $agendaStateQuery->limit(1);
-        $lastAgendaEventRec = serialize($agendaStateQuery->fetch());
         
         // Съдържание на клетките на календара
         $Calendar = cls::get('cal_Calendar');
         
-        $Calendar->searchInputField .= '_' . $dRec->originIdCalc;
-        
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->pages . '_' . $userId . '_' . Mode::get('screenMode') . '_' . $resData->month . '_' . $resData->year . '_' . Request::get($Calendar->searchInputField) . '_' . core_Lg::getCurrent() . '_' . $lastCalendarEventRec. '_' . $lastAgendaEventRec . '_' . dt::now(false));
-        $resData->cacheType = 'Calendar';
+        $sInputField = bgerp_Portal::getPortalSearchInputFieldName($Calendar->searchInputField, $dRec->originIdCalc);
+        $resData->cacheKey = $this->getCacheKey($dRec, $userId);
+        $resData->cacheType = $this->getCacheTypeName($userId);
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
+            $Calendar->searchInputField = bgerp_Portal::getPortalSearchInputFieldName($Calendar->searchInputField, $dRec->originIdCalc);
             
             $Calendar->prepareListRecs($resData->calendarState);
             if (is_array($resData->calendarState->recs)) {
                 $resData->cData = array();
-                foreach($resData->calendarState->recs as $id => $rec) {
-                    
+                foreach ($resData->calendarState->recs as $id => $rec) {
                     $time = dt::mysql2timestamp($rec->time);
                     $i = (int) date('j', $time);
                     
-                    if(!isset($resData->cData[$i])) {
+                    if (!isset($resData->cData[$i])) {
                         $resData->cData[$i] = new stdClass();
                     }
                     
-                    list ($d, $t) = explode(" ", $rec->time);
+                    list($d, $t) = explode(' ', $rec->time);
                     
-                    if($rec->type == 'holiday' || $rec->type == 'non-working' || $rec->type == 'workday') {
+                    if ($rec->type == 'holiday' || $rec->type == 'non-working' || $rec->type == 'workday') {
                         $time = dt::mysql2timestamp($rec->time);
                         $i = (int) date('j', $time);
-                        if(!isset($resData->cData[$i])) {
+                        if (!isset($resData->cData[$i])) {
                             $resData->cData[$i] = new stdClass();
                         }
                         $resData->cData[$i]->type = $rec->type;
-                    
-                    } elseif($rec->type == 'working-travel') {
-                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/working-travel.png') .">&nbsp;";
-                    } elseif($rec->type == 'leaves') {
-                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/leaves.png') .">&nbsp;";
-                    } elseif($rec->type == 'sick') {
-                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/sick.png') .">&nbsp;";
-                    } elseif($rec->type == 'workday') {
+                    } elseif ($rec->type == 'working-travel') {
+                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/working-travel.png') .'>&nbsp;';
+                    } elseif ($rec->type == 'leaves') {
+                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/leaves.png') .'>&nbsp;';
+                    } elseif ($rec->type == 'sick') {
+                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/sick.png') .'>&nbsp;';
+                    } elseif ($rec->type == 'workday') {
                         // Нищо не се прави
-                    } elseif($rec->type == 'task' || $rec->type == 'reminder'){
+                    } elseif ($rec->type == 'task' || $rec->type == 'reminder') {
                         if ($arr[$d] != 'active') {
-                            if($rec->state == 'active' || $rec->state == 'waiting') {
-                                $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .">&nbsp;";
+                            if ($rec->state == 'active' || $rec->state == 'waiting') {
+                                $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .'>&nbsp;';
                             } else {
-                                $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .">&nbsp;";
+                                $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .'>&nbsp;';
                             }
                         }
                     }
                 }
             }
             
-            for($i = 1; $i <= 31; $i++) {
-                if(!isset($resData->cData[$i])) {
+            for ($i = 1; $i <= 31; $i++) {
+                if (!isset($resData->cData[$i])) {
                     $resData->cData[$i] = new stdClass();
                 }
-                $resData->cData[$i]->url = toUrl(array('cal_Calendar', 'day', 'from' => "{$i}.{$resData->month}.{$resData->year}"));;
+                $resData->cData[$i]->url = toUrl(array('cal_Calendar', 'day', 'from' => "{$i}.{$resData->month}.{$resData->year}"));
             }
             
             // Съдържание на списъка със събития
             
             // От вчера
-            $previousDayTms = mktime(0, 0, 0, date('m'), date('j')-1, date('Y'));
+            $previousDayTms = mktime(0, 0, 0, date('m'), date('j') - 1, date('Y'));
             $from = dt::timestamp2mysql($previousDayTms);
             
             // До вдругиден
-            $afterTwoDays = mktime(0, 0, -1, date('m'), date('j')+3, date('Y'));
+            $afterTwoDays = mktime(0, 0, -1, date('m'), date('j') + 3, date('Y'));
             $to = dt::timestamp2mysql($afterTwoDays);
             
-            // Подготвяме данните за бележника
-            $Calendar = cls::get('cal_Calendar');
-            if (Request::get($Calendar->searchInputField)) {
+            if (Request::get($sInputField)) {
                 $from = dt::addDays(-30, $from);
                 $to = dt::addDays(360, $to);
             }
         }
         
         $pArr = array();
-        $pArr['tPageVar'] = $tPageVar;
-        $pArr['search'] = Request::get($Calendar->searchInputField);
+        $pArr['tPageVar'] = $this->getPageVar($dRec->originIdCalc);
+        $pArr['search'] = Request::get($sInputField);
         $pArr['tPerPage'] = $dRec->fTasksPerPage ? $dRec->fTasksPerPage : 5;
         $pArr['fTasksDays'] = $dRec->fTasksDays ? $dRec->fTasksDays : core_DateTime::SECONDS_IN_MONTH;
+        $pArr['taskPriority'] = $dRec->taskPriority;
+        $pArr['remPriority'] = $dRec->remPriority;
+        
         $resData->EventsData = $this->prepareCalendarEvents($userId, $pArr);
         
         return $resData;
@@ -206,7 +206,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
     {
         if (!$data->tpl) {
             $Calendar = cls::get('cal_Calendar');
-            $select = ht::createSelect('dropdown-cal', $data->monthOptions->opt, $data->monthOptions->currentM, array('onchange' => "javascript:location.href = this.value;", 'class' => 'portal-select'));
+            $select = ht::createSelect('dropdown-cal', $data->monthOptions->opt, $data->monthOptions->currentM, array('onchange' => 'javascript:location.href = this.value;', 'class' => 'portal-select'));
             
             $header = "<table class='mc-header' style='width:100%'>
                     <tr>
@@ -219,24 +219,24 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $searchForm = $Calendar->getForm();
             bgerp_Portal::prepareSearchForm($Calendar, $searchForm);
             
-            $data->tpl = new ET(tr('|*<div class="clearfix21 portal">
+            $data->tpl = new ET(tr(
+                
+                '|*<div class="clearfix21 portal newCalendar">
                                         <div class="legend" id="calendarPortal">[#CAL_TITLE#]
                                             [#SEARCH_FORM#]
                                         </div>
-                                        
+                                        <div>
                                         <!--ET_BEGIN NOW-->
-                                            <div style="font-size: 0.9em">
-                                                <div style="color:#5f1f3e; font-style: italic; background-color:#ffc;">
-                                                    [#NOW_DATE#]
-                                                    [#NOW#]
-                                                </div>
+                                        
+                                            <div class="[#NOW_CLASS_NAME#] portal-cal-day">
+                                                <span class="title [#NOW_DATE_CLASS#]">[#NOW_DATE#]</span>
+                                                [#NOW#]
                                             </div>
                                         <!--ET_END NOW-->    
-                                        
-
+                                        </div>
                                         [#MONTH_CALENDAR#]
-
-                                        <!--ET_BEGIN FUTURE--><div>[#FUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
+                                        
+                                        <!--ET_BEGIN FUTURE--><div class="portal-cal-day" style="padding: 5px; border-top: none">[#FUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
                                     </div>'
                                     ));
             
@@ -246,45 +246,83 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $tomorrow = dt::addDays(1, $today, false);
             $nextDay = dt::addDays(2, $today, false);
             
-            $format = Mode::is('screenMode', 'narrow') ? 'd-M-year, D': 'd F-YEAR, l';
+            $format = Mode::is('screenMode', 'narrow') ? 'd-M-year, D': 'd M-year, D';
+            
+            ksort($tArr['now']);
+            
+            $noEvent = '<small style="vertical-align:text-top">' . tr('Няма събития') . '</small>';
+            
+            $lastKey = null;
+            
+            if (!empty($tArr['now'])) {
+                end($tArr['now']);
+                $lastKey = key($tArr['now']);
+            }
+            
+            if ((!isset($lastKey)) || ($lastKey == $today) || ($lastKey == $tomorrow)) {
+                $lastKey = $nextDay;
+            }
+            
+            $dCnt = 0;
+            while (true) {
+                $d = dt::addDays($dCnt, $today, false);
+                if ($d == $lastKey) {
+                    break;
+                }
+                
+                if ($dCnt++ > 10) {
+                    break;
+                }
+                
+                if (!$tArr['now'][$d]) {
+                    $tArr['now'][$d][] = (object)array('title' => $noEvent);
+                }
+            }
+            
+            ksort($tArr['now']);
             
             // Показваме събитията близките дни
-            foreach ((array)$tArr['now'] as $tDate => $tRowArr) {
+            foreach ((array) $tArr['now'] as $tDate => $tRowArr) {
                 
-                ksort($tRowArr);
-                
-                $dStr = dt::mysql2verbal($tDate, $format, null, false);
+                $dStr = dt::mysql2verbal($tDate, $format, null, null, false);
                 
                 if ($today == $tDate) {
                     $dVerb = tr('Днес');
+                    $nowClassName = 'portal-cal-today';
                 } elseif ($tDate == $tomorrow) {
                     $dVerb = tr('Утре');
-                }elseif ($tDate == $nextDay) {
+                    $nowClassName = 'portal-cal-tomorrow';
+                } elseif ($tDate == $nextDay) {
                     $dVerb = tr('Вдругиден');
+                    $nowClassName = 'portal-cal-nextday';
                 } else {
                     $dVerb = '';
+                    $nowClassName = 'portal-cal-after';
                 }
+                
+                $nowDateClass = cal_Calendar::isHoliday($tDate) ? 'portal-cal-title-holiday' : 'portal-cal-title-workingday';
                 
                 $dVerb .= $dVerb ? ', ' : '';
                 $dVerb .= $dStr;
                 
-                $res = (object)array('day' => $dVerb);
+                $res = (object) array('day' => $dVerb);
                 $Calendar->invoke('AfterPrepareGroupDate', array(&$res, $tDate));
                 
                 $dVerb = $res->day;
                 
-                $this->invoke('AfterPrepareDateName', array(&$dVerb, $tDate));
-                
                 $dBlock = $data->tpl->getBlock('NOW');
                 
+                $dBlock->replace($dVerb, 'NOW_DATE');
+                $dBlock->replace($nowDateClass, 'NOW_DATE_CLASS');
+                $dBlock->replace($nowClassName, 'NOW_CLASS_NAME');
+                
                 if ($tRowArr['events']) {
-                    $dVerb .= $tRowArr['events'];
+                    $dBlock->append('<span class="subTitle"><small style="vertical-align:text-top">' . tr('Празнуваме||Celebrate') . ':</small>' . $tRowArr['events'] . '</span>', 'NOW');
+                    unset($tRowArr['events']);
                 }
                 
-                $dBlock->replace($dVerb, 'NOW_DATE');
-                
                 foreach ($tRowArr as $tRow) {
-                    $dBlock->append('<div>' . $tRow->title . '</div>', 'NOW');
+                    $dBlock->append('<div class="subTitle">' . $tRow->title . '</div>', 'NOW');
                 }
                 
                 $dBlock->removeBlocks();
@@ -292,8 +330,10 @@ class bgerp_drivers_Calendar extends core_BaseClass
             }
             
             // Показваме събитията за в бъдеще
-            $data->tpl->append($tArr['future'], 'FUTURE');
-            $data->tpl->replace(tr('По-нататък'), 'FUTURE_DATE');
+            if ($tArr['future']) {
+                $data->tpl->append($tArr['future'], 'FUTURE');
+                $data->tpl->replace(tr('По-нататък'), 'FUTURE_DATE');
+            }
             
             if (!Mode::is('screenMode', 'narrow')) {
                 $data->tpl->replace(tr('Календар'), 'CAL_TITLE');
@@ -318,22 +358,24 @@ class bgerp_drivers_Calendar extends core_BaseClass
     
     
     /**
-     * Връща типа на блока за портала
+     * Връща заглавието за таба на съответния блок
      *
-     * @return string - other, tasks, notifications, calendar, recently
+     * @param stdClass $dRec
+     *
+     * @return string
      */
-    public function getBlockType()
+    public function getBlockTabName($dRec)
     {
-        return 'calendar';
+        return tr('Календар');
     }
     
     
     /**
      * Помощна функция за вземане на събитията за съответни дни
-     * 
-     * @param null|integer $userId
-     * @param array $pArr
-     * 
+     *
+     * @param null|int $userId
+     * @param array    $pArr
+     *
      * @return array
      */
     protected function prepareCalendarEvents($userId = null, $pArr = array())
@@ -347,9 +389,9 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $pArr['_todayF'] = $today . ' 00:00:00';
         
         // Намираме работните дни, така че да останат 3 работни дни винаги
-        $nWorkDay = cal_Calendar::nextWorkingDay(dt::addDays(-1, $today, false), null, 1);
+        $nWorkDay = cal_Calendar::nextWorkingDay(dt::addDays(-1, $today, false), $userId, 1);
         $endWorkingDayCnt = (dt::daysBetween($nWorkDay, $today)) ? 3 : 2;
-        $pArr['_endWorkingDay'] = cal_Calendar::nextWorkingDay($today, null, $endWorkingDayCnt);
+        $pArr['_endWorkingDay'] = cal_Calendar::nextWorkingDay($today, $userId, $endWorkingDayCnt);
         $pArr['_endWorkingDay'] .= ' 23:59:59';
         $pArr['fTasksDays'] = dt::addSecs($pArr['fTasksDays'], $pArr['_endWorkingDay']);
         
@@ -361,20 +403,31 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $this->prepareHolidaysCalendarEvents($pArr, $resArr['now']);
         
+        if (!is_array($resArr['now'])) {
+            $resArr['now'] = array();
+        }
+        ksort($resArr['now']);
+        
         return $resArr;
     }
     
     
     /**
      * Помощна функция за вземане на всички задачи за съответния период
-     * 
+     *
      * @param array $pArr
-     * 
+     *
      * @return array
      */
     protected function prepareTasksCalendarEvents($pArr)
     {
         $query = cal_Tasks::getQuery();
+        
+        if ($pArr['taskPriority']) {
+            expect($this->priorityMap[$pArr['taskPriority']]);
+            $priorityArr = explode('|', $this->priorityMap[$pArr['taskPriority']]);
+            $query->orWhereArr('priority', $priorityArr);
+        }
         
         if ($pArr['search']) {
             plg_Search::applySearch($pArr['search'], $query);
@@ -385,8 +438,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $query->likeKeylist('assign', $pArr['_userId']);
         
-        $query->where("#timeStart IS NOT NULL");
-        $query->orWhere("#timeEnd IS NOT NULL");
+        $query->where('#timeStart IS NOT NULL');
+        $query->orWhere('#timeEnd IS NOT NULL');
         
         $todayF = $pArr['_todayF'];
         $query->where(array("#expectationTimeStart >= '[#1#]'", $todayF));
@@ -409,17 +462,18 @@ class bgerp_drivers_Calendar extends core_BaseClass
         while ($rec = $query->fetch()) {
             list($orderDate, $orderH) = explode(' ', $rec->expectationTimeOrder);
             $orderH .= ' ' . ++$i;
-            $resArr['now'][$orderDate][$orderH] = $this->getRowForTask($rec);
+            $resArr['now'][$orderDate][$orderH] = $this->getRowForTask($rec, $pArr['_userId']);
         }
         
         $Tasks = cls::get('cal_Tasks');
+        $Tasks->addRowClass = false;
         
         $fTasks = new stdClass();
         $fTasks->query = $fQuery;
         
         $Tasks->listItemsPerPage = $pArr['tPerPage'];
         $fTasks->usePortalArrange = false;
-        $fTasks->listFields = 'title,progress';
+        $fTasks->listFields = 'title, progress';
         
         $Tasks->prepareListPager($fTasks);
         
@@ -432,8 +486,12 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $Tasks->prepareListRecs($fTasks);
         $Tasks->prepareListRows($fTasks);
         
+        foreach ($fTasks->recs as $id => $fRec) {
+            $fTasks->rows[$id] = $this->getRowForTask($fRec, $pArr['_userId'], false);
+        }
+        
         if ($fTasks->recs) {
-            $fTpl = new ET("[#table#][#pager#]");
+            $fTpl = new ET('[#table#][#pager#]');
             $fTpl->replace($Tasks->renderListTable($fTasks), 'table');
             $fTpl->replace($Tasks->renderListPager($fTasks), 'pager');
             $resArr['future'] = $fTpl;
@@ -445,12 +503,13 @@ class bgerp_drivers_Calendar extends core_BaseClass
     
     /**
      * Помощна функция за вземане на вербалните стойности на запис за задача
-     * 
+     *
      * @param stdClass $rec
-     * 
+     * @param null|integer $userId
+     *
      * @return stdClass
      */
-    protected function getRowForTask($rec)
+    protected function getRowForTask($rec, $userId = null, $appendProgress = true)
     {
         $Tasks = cls::get('cal_Tasks');
         
@@ -460,12 +519,30 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $rToVerb = cal_Tasks::recToVerbal($rec, $f);
         
         $subTitle = $Tasks->getDocumentRow($rec->id)->subTitle;
-        $subTitle = "<div class='threadSubTitle'>{$subTitle}</div>";
+        $subTitle = "<span class='threadSubTitle'> {$subTitle}</span>";
         
         $title = str::limitLen(type_Varchar::escape($rec->title), 60, 30, ' ... ', true);
-        $rToVerb->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, array('ef_icon' => $Tasks->getIcon($rec->id)));
         
-        $rToVerb->title->append(' ' . $rToVerb->progress);
+        $linkArr = array('ef_icon' => $Tasks->getIcon($rec->id));
+        
+        // Добавяме стил, ако има промяна след последното разглеждане
+        if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->containerId, $userId, false)) {
+            $linkArr['class'] = 'tUnsighted';
+        }
+        
+        if ($rec->state == 'closed') {
+            $linkArr['class'] .= ' line-through';
+        }
+        
+        if (doc_Threads::fetchField($rec->threadId, 'state') == 'opened') {
+            $linkArr['class'] .= ' state-opened';
+        }
+        
+        $rToVerb->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, $linkArr);
+        
+        if ($appendProgress) {
+            $rToVerb->title->append(' ' . $rToVerb->progress);
+        }
         
         $rToVerb->title->append($subTitle);
         
@@ -486,6 +563,12 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $Reminders = cls::get('cal_Reminders');
         $query = $Reminders->getQuery();
         
+        if ($pArr['remPriority']) {
+            expect($this->priorityMap[$pArr['remPriority']]);
+            $priorityArr = explode('|', $this->priorityMap[$pArr['remPriority']]);
+            $query->orWhereArr('priority', $priorityArr);
+        }
+        
         if ($pArr['search']) {
             plg_Search::applySearch($pArr['search'], $query);
         }
@@ -504,7 +587,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $query->orderBy('startTimeOrder', 'ASC');
         
-        $query->show('title,state');
+        $query->show('title,state,modifiedOn,containerId');
         
         $i = 1000;
         while ($rec = $query->fetch()) {
@@ -512,13 +595,19 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $orderH .= ' ' . ++$i;
             $tRec = $Reminders->recToVerbal($rec, 'title');
             if ($Reminders->haveRightFor('single', $rec)) {
+                $tRec->title = ' ' . dt::mysql2verbal($rec->startTimeOrder, 'H:i', null, true) . ' ' . $tRec->title;
                 
-                $tRec->title = ' ' . dt::mysql2verbal($rec->startTimeOrder, 'H:i', null, false) . ' ' . $tRec->title;
+                $linkArr = array('ef_icon' => $Reminders->getIcon($rec->id));
                 
-                $title = ht::createLink($tRec->title, $Reminders->getSingleUrlArray($rec->id), null, array('ef_icon' => $Reminders->getIcon($rec->id)));
+                // Добавяме стил, ако има промяна след последното разглеждане
+                if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->containerId, $userId, false)) {
+                    $linkArr['class'] = 'tUnsighted';
+                }
+                
+                $title = ht::createLink($tRec->title, $Reminders->getSingleUrlArray($rec->id), null, $linkArr);
             }
             
-            $rArrNow[$orderDate][$orderH] = (object)array('title' => $title);
+            $rArrNow[$orderDate][$orderH] = (object) array('title' => $title);
         }
     }
     
@@ -564,17 +653,12 @@ class bgerp_drivers_Calendar extends core_BaseClass
             
             $orderH .= ' ' . ++$i;
             
-            if ($pArr['search']) {
+            if ($pArr['search'] || $rec->type == 'working-travel' || $rec->type == 'leaves' || $rec->type == 'sick') {
                 $cRec = $Calendar->recToVerbal($rec, 'title');
-                $rArrNow[$orderDate][$orderH] = (object)array('title' => $cRec->event);
+                $rArrNow[$orderDate][$orderH] = (object) array('title' => $cRec->event);
             } else {
                 $type = strtolower($rec->type);
-                
-                $cUrl = array();
-                if (cal_Calendar::haveRightFor('day')) {
-                    $cUrl = array('cal_Calendar', 'day', 'from' => $orderDate);
-                }
-                
+                $cUrl = parseLocalUrl($rec->url, false);
                 $cEventsTypeArr[$orderDate][$orderH] = ht::createLink(ht::createImg(array('path' => "img/16/{$type}.png")), $cUrl, false, array('title' => $rec->title));
             }
         }
@@ -586,10 +670,113 @@ class bgerp_drivers_Calendar extends core_BaseClass
                     $iconStr .= ' ' . $icon;
                 }
                 
-                if (!$iconStr) continue;
+                if (!$iconStr) {
+                    continue;
+                }
                 
                 $rArrNow[$orderDate]['events'] = $iconStr;
             }
         }
+    }
+    
+    
+    /**
+     * Името на стойността за кеша
+     *
+     * @param integer $userId
+     *
+     * @return string
+     */
+    public function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        return 'Portal_Calendar_' . $userId;
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на ключа за кеша
+     *
+     * @param stdClass $dRec
+     * @param null|integer $userId
+     *
+     * @return string
+     */
+    public function getCacheKey($dRec, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        
+        $Calendar = cls::get('cal_Calendar');
+        
+        $sInputField = bgerp_Portal::getPortalSearchInputFieldName($Calendar->searchInputField, $dRec->originIdCalc);
+        
+        $cSearchVal = Request::get($sInputField);
+        $cSearchVal = isset($cSearchVal) ? $cSearchVal : '';
+        $cArr[] = $cSearchVal;
+        
+        $month = Request::get('cal_month', 'int');
+        $month = $month ? $month : date('m');
+        $cArr[] = $month;
+        
+        $year = Request::get('cal_year', 'int');
+        $year = $year ? $year : date('Y');
+        $cArr[] = $year;
+        
+        $tPagaVar = $this->getPageVar($dRec->originIdCalc);
+        $tPageVal = Request::get($tPagaVar);
+        $tPageVal = isset($tPageVal) ? $tPageVal : 1;
+        $cArr[] = $tPageVal;
+        
+        $cQuery = cal_Tasks::getQuery();
+        $cQuery->where(array("#createdBy = '[#1#]'", $userId));
+        $cQuery->orderBy('modifiedOn', 'DESC');
+        $cQuery->limit(1);
+        $cQuery->show('modifiedOn, id');
+        $cRec = $cQuery->fetch();
+        if ($cRec) {
+            $cArr[] = $cRec->modifiedOn;
+        }
+        
+        $agendaStateQuery = cal_Calendar::getQuery();
+        $agendaStateQuery->where("#users IS NULL OR #users = ''");
+        $agendaStateQuery->orLikeKeylist('users', $userId);
+        $agendaStateQuery->orderBy('createdOn', 'DESC');
+        $agendaStateQuery->limit(1);
+        $lastAgendaEventRec = serialize($agendaStateQuery->fetch());
+        $cArr[] = $lastAgendaEventRec;
+        
+        $from = "{$year}-{$month}-01 00:00:00";
+        $lastDay = date('d', mktime(12, 59, 59, $month + 1, 0, $year));
+        $to = "{$year}-{$month}-{$lastDay} 23:59:59";
+        $calendarStateQueryClone = cal_Calendar::getQuery();
+        $calendarStateQueryClone->where("#users IS NULL OR #users = ''");
+        $calendarStateQueryClone->orLikeKeylist('users', $userId);
+        $calendarStateQueryClone->where(array("#time >= '[#1#]' AND #time <= '[#2#]'", $from, $to));
+        $calendarStateQueryClone->orderBy('createdOn', 'DESC');
+        $calendarStateQueryClone->limit(1);
+        $lastCalendarEventRec = serialize($calendarStateQueryClone->fetch());
+        $cArr[] = $lastCalendarEventRec;
+        
+        return md5(implode('|', $cArr));
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на името за страниране за задачите
+     *
+     * @param integer $oIdCalc
+     * 
+     * @return string
+     */
+    protected function getPageVar($oIdCalc)
+    {
+        return 'P_Cal_Tasks_Future_' . $oIdCalc;
     }
 }

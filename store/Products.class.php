@@ -455,7 +455,7 @@ class store_Products extends core_Detail
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
         $data->listTableMvc->setField('expectedQuantityTotal', 'tdClass=expectedTotalCol');
         
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }
@@ -944,7 +944,7 @@ class store_Products extends core_Detail
                     // Колко е готовността, тя е 1 - сумата на липсващото к-во/ общата сума на ЕН-то (За МСТ е от липсващото общо к-во)
                     $missingAmount = round($missingAmount, 6);
                     $totalValue = round($totalValue, 6);
-                    $storeReadiness = 1 - round($missingAmount / $totalValue, 2);
+                    $storeReadiness = !empty($totalValue) ? (1 - round($missingAmount / $totalValue, 2)) : 0;
                     $storeReadiness = ($storeReadiness < 0) ? 0 : $storeReadiness;
                     $storeReadiness = ($storeReadiness > 1) ? 1 : $storeReadiness;
                     $rec->storeReadiness = round($storeReadiness, 2);

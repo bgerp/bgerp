@@ -5522,6 +5522,13 @@ function render_clearStatuses(data)
 }
 
 
+// Рендира fancybox-а
+function render_fancybox()
+{
+	$('a.fancybox').fancybox();
+}
+
+
 /**
  * Кокусиране върху заглавията, при дабъклик върху H2 заглавие
  */

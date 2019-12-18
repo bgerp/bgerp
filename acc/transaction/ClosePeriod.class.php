@@ -83,27 +83,27 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         $incomeRes = array();
         
         $entries3 = $this->transferVat($result->totalAmount, $rec);
-        if (count($entries3)) {
+        if (countR($entries3)) {
             $result->entries = array_merge($result->entries, $entries3);
         }
         
         $entries4 = $this->transferCurrencyDiffs($result->totalAmount, $rec);
-        if (count($entries4)) {
+        if (countR($entries4)) {
             $result->entries = array_merge($result->entries, $entries4);
         }
         
         $entries5 = $this->transferCosts($result->totalAmount, $rec, $incomeRes);
-        if (count($entries5)) {
+        if (countR($entries5)) {
             $result->entries = array_merge($result->entries, $entries5);
         }
         
         $entries1 = $this->transferIncome($result->totalAmount, $incomeRes);
-        if (count($entries1)) {
+        if (countR($entries1)) {
             $result->entries = array_merge($result->entries, $entries1);
         }
         
         $entries2 = $this->transferIncomeToYear($result->totalAmount, $incomeRes);
-        if (count($entries2)) {
+        if (countR($entries2)) {
             $result->entries = array_merge($result->entries, $entries2);
         }
         
@@ -259,12 +259,6 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     {
         $entries = array();
         
-        // Приходи от продажби по артикули
-        if (!count($this->balanceId)) {
-            
-            return $entries;
-        }
-        
         $bQuery = acc_BalanceDetails::getQuery();
         acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '701,706,703,700');
         $bQuery->where('#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL');
@@ -280,7 +274,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
             $dealPosition[$accId] = "ent{$dealPosition[$accId]}Id";
         }
         
-        if (count($balanceArr)) {
+        if (countR($balanceArr)) {
             foreach ($balanceArr as $rec) {
                 if ($accIds[$rec->accountId] != '700') {
                     if ($rec->blQuantity < 0) {
@@ -458,7 +452,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         }
         
         // Ако има записи в масива с извънредни разходи
-        if (count($arr6912)) {
+        if (countR($arr6912)) {
             
             // За всеки запис
             foreach ($arr6912 as $index => &$dRec2) {
@@ -483,7 +477,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         }
         
         // Отнасяме извънредните разходи по покупки към сметка 123
-        if (count($arr6912)) {
+        if (countR($arr6912)) {
             foreach ($arr6912 as $index1 => $dRec3) {
                 if ($dRec3->blAmount == 0) {
                     continue;
@@ -499,7 +493,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         }
         
         // Отнасяме извънредните приходи по покупки към сметка 123
-        if (count($arr7912)) {
+        if (countR($arr7912)) {
             foreach ($arr7912 as $index2 => $dRec4) {
                 if ($dRec4->blAmount == 0) {
                     continue;

@@ -47,7 +47,7 @@ class crm_PersonsDetails extends core_Manager
         
         while ($eRec = $eQuery->fetch()) {
             $keys = keylist::toArray($eRec->departments);
-            if (count($keys) == 1) {
+            if (countR($keys) == 1) {
                 foreach ($keys as $key) {
                     $data->Cycles = cls::get('hr_WorkingCycles');
                     $data->Cycles->masterId = $key;

@@ -134,7 +134,7 @@ class acc_Limits extends core_Manager
             $Class = cls::get($rec->classId);
             $accounts = $Class->getLimitAccounts($rec->objectId);
             
-            if (count($accounts)) {
+            if (countR($accounts)) {
                 $options = array();
                 foreach ($accounts as $sysId) {
                     $accId = acc_Accounts::fetchField("#systemId = '{$sysId}'", 'id');
@@ -142,7 +142,7 @@ class acc_Limits extends core_Manager
                 }
                 
                 $form->setOptions('accountId', $options);
-                if (count($options) == 1) {
+                if (countR($options) == 1) {
                     $form->setDefault('accountId', key($options));
                     $form->setReadOnly('accountId');
                 }
@@ -414,7 +414,7 @@ class acc_Limits extends core_Manager
         }
         
         // Ако няма зададени лимити не правим нищо
-        if (!count($limitedAccounts)) {
+        if (!countR($limitedAccounts)) {
             
             return;
         }
@@ -452,7 +452,7 @@ class acc_Limits extends core_Manager
             $groupedRec->blQuantity = $groupedRec->blAmount = 0;
             
             // За всеки запис от баланса
-            if (count($balanceArr)) {
+            if (countR($balanceArr)) {
                 foreach ($balanceArr as $bRec) {
                     
                     // Ако сметката е различна, пропускаме
@@ -540,10 +540,10 @@ class acc_Limits extends core_Manager
         }
         
         // На всеки потребител, който трябва да се нотифицира, нотифицираме го
-        if (count($sendNotificationsTo)) {
+        if (countR($sendNotificationsTo)) {
             foreach ($sendNotificationsTo as $userId => $items) {
                 $msg = '|Има надвишаване на ограничения|*';
-                if (count($items)) {
+                if (countR($items)) {
                     $msg .= " |в|* '" . implode(', ', $items) . " ... '";
                 }
                 

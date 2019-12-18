@@ -472,14 +472,14 @@ class doc_Setup extends core_ProtoSetup
         $res = parent::loadSetupData($itr);
         
         // За да може да мине миграцията при нова инсталация
-        $dbUpdate = Mode::get('dbInit');
-        Mode::set('dbInit', 'update');
+        $dbUpdate = core_ProtoSetup::$dbInit;
+        core_ProtoSetup::$dbInit = 'update';
         
         $res .= cls::get('bgerp_Setup')->loadSetupData();
         
-        $res .= $this->callMigrate('addBlockToPortal46193', 'doc');
+        $res .= $this->callMigrate('addBlockToPortal46194', 'doc');
         
-        Mode::set('dbInit', $dbUpdate);
+        core_ProtoSetup::$dbInit = $dbUpdate;
         
         return $res;
     }
@@ -488,9 +488,27 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Добавя блок в портала за всеки powerUser с пощенската му кутия
      */
-    public function addBlockToPortal46193()
+    public function addBlockToPortal46194()
     {
         $Portal = cls::get('bgerp_Portal');
+        
+        $data = core_Packs::getConfig('core')->_data;
+        
+        $force = false;
+        if (!$data['migration_doc_addBlockToPortal46193']) {
+            $force = true;
+        }
+        
+        if (!$force) {
+            if (!bgerp_Portal::fetch("#createdBy > 0")) {
+                $force = true;
+            }
+        }
+        
+        if (!$force) {
+            
+            return ;
+        }
         
         $uArr = core_Users::getByRole('powerUser');
         
@@ -508,18 +526,20 @@ class doc_Setup extends core_ProtoSetup
             
             $fId = email_Inboxes::forceCoverAndFolder($iRec);
             
-            if (!$fId) continue;
+            if (!$fId) {
+                continue;
+            }
             
             $rec = new stdClass();
             $rec->{$Portal->driverClassField} = doc_drivers_FolderPortal::getClassId();
-            $rec->column = 'center';
-            $rec->order = 200;
+            $rec->column = 'right';
+            $rec->order = 800;
             $rec->perPage = 5;
             $rec->userOrRole = $uId;
             $rec->folderId = $fId;
             $rec->fOrder = 'open';
-            $rec->color = 'lightgray';
-            $rec->show = 'yes';
+            $rec->color = 'lightgreen';
+            $rec->state = 'yes';
             
             $Portal->save($rec);
         }

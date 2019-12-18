@@ -73,7 +73,7 @@ class sens2_DataLogs extends core_Manager
     /**
      * Без броене на редовете, по време на страницирането
      */
-    public $simplePaging = true;
+    // public $simplePaging = true;
 
 
     /**
@@ -86,8 +86,8 @@ class sens2_DataLogs extends core_Manager
         $this->FLD('time', 'datetime', 'caption=Към момент,chart=ax');
         $this->FNC('groupBy', 'enum(all=Без осредняване,howr=По часове,day=По дни,dayMax=Макс. дневни,dayMin=Мин. дневни, week=По седмици)', 'caption=Осредняване,input=silent,autoFilter');
 
-        $this->setDbUnique('indicatorId,time');
         $this->setDbIndex('time');
+        $this->setDbIndex('indicatorId');
     }
     
     

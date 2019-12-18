@@ -230,7 +230,7 @@ class cms_FancyTheme extends core_ProtoInner
                     }
                 }
                 
-                if (count($imgs) >= 1) {
+                if (countR($imgs) >= 1) {
                     $conf = core_Packs::getConfig('core');
                     
                     $banner = '';
@@ -249,7 +249,7 @@ class cms_FancyTheme extends core_ProtoInner
                     $fadeTransition = $this->innerForm->fadeTransition ? $this->innerForm->fadeTransition : 1500;
                     $fadeDelay = $this->innerForm->fadeDelay ? $this->innerForm->fadeDelay : 5000;
                     
-                    if(count($imgs) > 1){
+                    if(countR($imgs) > 1){
                         $banner->append('.fadein { position:relative; display:block;} .fadein img {position:relative; left:0; top:0;}', 'STYLES');
                         jquery_Jquery::run($banner, "fadeImages({$fadeTransition}, {$fadeDelay});", true);
                     }
@@ -265,14 +265,14 @@ class cms_FancyTheme extends core_ProtoInner
             }
         }
         
-        $imgsCnt = count($imgs);
+        $imgsCnt = countR($imgs);
         
         if ($imgsCnt) {
             
             // Ключа да започава от 1 до броя
             $imgs = array_combine(range(1, $imgsCnt), array_values($imgs));
             
-            $img = $imgs[rand(1, count($imgs))];
+            $img = $imgs[rand(1, countR($imgs))];
             
             if ($img) {
                 if (!Mode::is('screenMode', 'narrow')) {

@@ -93,7 +93,7 @@ class cash_NonCashPaymentDetails extends core_Manager
             $restAmount -= $amount;
         }
         
-        if ($restAmount > 0 && count($data->recs)) {
+        if ($restAmount > 0 && countR($data->recs)) {
             $r = (object) array('documentId' => $data->masterId, 'amount' => $restAmount, 'paymentId' => -1);
             $data->recs[] = $r;
             $row = $this->recToVerbal($r);
@@ -134,7 +134,7 @@ class cash_NonCashPaymentDetails extends core_Manager
         $tpl = new core_ET('');
         $block = getTplFromFile('cash/tpl/NonCashPayments.shtml');
         
-        if (count($data->rows)) {
+        if (countR($data->rows)) {
             foreach ($data->rows as $row) {
                 $clone = clone $block;
                 $clone->placeObject($row);
@@ -222,12 +222,12 @@ class cash_NonCashPaymentDetails extends core_Manager
             }
         }
         
-        if (count($error)) {
+        if (countR($error)) {
             $error = implode('|*<li>|', $error);
             $res['error'] = $error;
         }
         
-        if (count($errorFields)) {
+        if (countR($errorFields)) {
             $res['errorFields'] = $errorFields;
         }
         

@@ -331,7 +331,7 @@ class email_Incomings extends core_Master
             
             // Правим цикъл по всички съобщения в пощенската кутия
             // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
-            for ($i = $firstUnreadMsgNo; $i <= $numMsg && ($deadline - 5 > time()); $i++) {
+            for ($i = $firstUnreadMsgNo; $i <= $numMsg && (($deadline - 5 > time()) || ($i == $firstUnreadMsgNo)); $i++) {
                 $status = self::processMsg($i, $imapConn, $accRec, $doExpunge);
                 $statusSum[$status]++;
             }
@@ -774,7 +774,7 @@ class email_Incomings extends core_Master
     public function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
     {
         if (Mode::is('externalThreadView')) {
-            $mvc->singleLayoutFile =  Mode::get('screenMode') == "wide" ? 'email/tpl/ExternalThreadViewSingleIncomings.shtml' : 'email/tpl/ExternalThreadViewSingleIncomingsNarrow.shtml';
+            $mvc->singleLayoutFile = Mode::get('screenMode') == 'wide' ? 'email/tpl/ExternalThreadViewSingleIncomings.shtml' : 'email/tpl/ExternalThreadViewSingleIncomingsNarrow.shtml';
             
             $data->row->ExternalThreadViewAvatar = avatar_Plugin::getImg(null, $data->rec->fromEml);
         }
@@ -1887,7 +1887,7 @@ class email_Incomings extends core_Master
      *
      *
      * @param stdClass $rec
-     * @param double $tolerance
+     * @param float    $tolerance
      */
     protected static function checkSpamLevelAndReject($rec, $tolerance = 0)
     {
@@ -2457,7 +2457,7 @@ class email_Incomings extends core_Master
         $contragentData->email = email_Mime::getAllEmailsFromStr($msg->fromEml);
         
         // Държавата
-        if(!$contragentData->countryId) {
+        if (!$contragentData->countryId) {
             $contragentData->countryId = $msg->country;
         }
         
@@ -2870,9 +2870,9 @@ class email_Incomings extends core_Master
     
     /**
      * Връща иконата на документа
-     * 
+     *
      * @param int|null $id
-     * 
+     *
      * @return string|null
      */
     public function getIcon_($id = null)

@@ -64,8 +64,11 @@ class core_ObjectConfiguration extends core_BaseClass
      */
     public function __get($name)
     {
-        if (!self::$stopInvoke) {
-            $this->invoke('BeforeGetConfConst', array(&$value, $name));
+        if (!self::$stopInvoke && isset($this->_description[$name][1])) {
+            if ((is_string($this->_description[$name][1]) && strpos($this->_description[$name][1], 'customizeBy') !== false) ||
+                (is_array($this->_description[$name][1]) && isset($this->_description[$name][1]['customizeBy'])) ) {
+                $this->invoke('BeforeGetConfConst', array(&$value, $name));
+            }
         }
         
         // Търси константата в данните въведени през уеб-интерфейса

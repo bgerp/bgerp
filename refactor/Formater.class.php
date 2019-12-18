@@ -4,7 +4,7 @@
 /**
  * Обща директория на bgerp, vendors, ef. Използва се за едновременно форматиране на трите пакета.
  */
-defIfNot('EF_ALL_PATH', EF_ROOT_PATH . '/all');
+defIfNot('EF_ALL_PATH', EF_ROOT_PATH . '/bgerp');
 
 
 /**
@@ -367,5 +367,147 @@ class refactor_Formater extends core_Manager
         }
         
         return $files['files'];
+    }
+    
+    public function act_Test()
+    {
+        ini_set('memory_limit', '256M');
+        $allFiles = refactor_Formater::readAllFiles(EF_ALL_PATH);
+        
+        // Филтрираме само файловете, които ни интересуват
+        $includePtr = '/\\.class\\.php/';
+        $files = array_filter($allFiles, function ($file) use ($includePtr, $excludePtr) {
+            
+            return preg_match($includePtr, $file);
+        });
+        
+        // Подготвя масива с тоукън константите
+        $tConstTxt = getFileContent('refactor/data/php_tokens.txt');
+        $tConstLines = explode("\n", $tConstTxt);
+        $tConstArr = array();
+        $t = new stdClass();
+        
+        foreach ($tConstLines as $tConst) {
+            $tConst = trim($tConst);
+            
+            if (defined($tConst)) {
+                $t->tConstArr[constant($tConst)] = $tConst;
+            }
+        }
+        
+        $functionArr = array();
+        $fArr = array();
+        
+        foreach ($files as $f) {
+            $fileStr = getFileContent($f);
+            
+            // Зареждаме кода
+            $t->code = $fileStr;
+            $t->lines = explode("\n", $fileStr);
+            
+            // Парсираме кода
+            $tokens = token_get_all($fileStr);
+            expect(is_array($tokens));  //bp($tokens);
+            
+            $class = '';
+            for ($i = 0; $i <= count($tokens); $i++) {
+                // 361 == T_CLASS && 382 == T_WHITESPACE
+                if ($tokens[$i][0] == 361 && $tokens[$i + 1][0] == 382) {
+                    $class = $tokens[$i + 2][1];
+                }
+                
+                // 346 == T_FUNCTION
+                if ($tokens[$i][0] == 346) {
+                    // 382 == T_WHITESPACE
+                    if ($tokens[$i + 1][0] == 382 && $tokens[$i + 3][0] == '(') {
+                        /* if($tokens[$i+2][0] == 319 && $tokens[$i+2][1] == 'description'){
+                             //378 == docComent
+                             bp($tokens[$i-5]);
+                         }*/
+                        
+                        // 319 == string
+                        if ($tokens[$i + 2][0] == 319) {
+                            $name = $tokens[$i + 2][1];
+                            $after = 'on_After' . strtoupper(substr($name, 0, 1)) . substr($name, 1, -1);
+                            $before = 'on_Before' . strtoupper(substr($name, 0, 1)) . substr($name, 1, -1);
+                            
+                            //if(strrchr($name, "_")) {
+                            if (substr($name, -1) == '_') {
+                                //$fArr[$class][][$name] = $name;
+                                $fArr[$class][$i][$after] = $name;
+                                $fArr[$class][$i][$before] = $name;
+                                if (!array_key_exists($class, $functionArr)) {
+                                    $functionArr[$class] =
+                                    (object) array('function' => $name);
+                                } else {
+                                    $obj = &$functionArr[$class];
+                                    $obj->function .= ','.$name;
+                                }
+                                
+                                //$functionArr[$name] = $name;
+                            }
+                        }
+                    }
+                }
+                
+                // 346 == T_FUNCTION
+                if ($tokens[$i][0] == 346) {
+                    // 382 == T_WHITESPACE
+                    if ($tokens[$i + 1][0] == 382 && $tokens[$i + 3][0] == '(') {
+                        if ($tokens[$i + 2][0] == 319 && $tokens[$i + 2][1] == 'description') {
+                            //378 == docComent
+                            while ($tokens[$i][0] != 378) {
+                                bp($tokens[$i - 2]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        //bp($functionArr);
+        bp($fArr);
+    }
+    
+    
+    /**
+     * Показва, кои полета от базата не се използват (няма ги в моделите)
+     */
+    public function act_Fields()
+    {
+        requireRole('debug');
+        
+        $mvcArr = core_Classes::getOptionsByInterface('core_ManagerIntf');
+        $extra = array();
+        
+        foreach ($mvcArr as $classId => $className) {
+            $inst = null;
+            $inst = cls::get($className);
+            
+            if (!$inst->dbTableName || !$this->db->tableexists($inst->dbTableName)) {
+                continue;
+            }
+            
+            $fields = $this->db->getFields($inst->dbTableName);
+            
+            $model = array();
+            foreach ($inst->fields as $name => $obj) {
+                if ($obj->kind != 'FLD') {
+                    continue;
+                }
+                $f = str::phpToMysqlName($name);
+                $model[$f] = $f;
+            }
+            
+            foreach ($fields as $name => $object) {
+                $f = str::phpToMysqlName($name);
+                
+                if (!$model[$f]) {
+                    $extra[$inst->dbTableName . '::' . $f] = 1;
+                }
+            }
+        }
+        
+        bp($extra);
     }
 }

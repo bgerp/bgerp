@@ -92,10 +92,10 @@ class bgerp_Recently extends core_Manager
     /**
      * Добавя известие за настъпило събитие
      *
-     * @param string      $type     - folder,document
-     * @param int         $objectId
-     * @param int|NULL    $userId
-     * @param string      $hidden   - yes/no
+     * @param string   $type     - folder,document
+     * @param int      $objectId
+     * @param int|NULL $userId
+     * @param string   $hidden   - yes/no
      * @param int|NULL $threadId
      */
     public static function add($type, $objectId, $userId = null, $hidden = 'no', $threadId = null)
@@ -174,7 +174,13 @@ class bgerp_Recently extends core_Manager
             try {
                 $folderRec = doc_Folders::fetch($rec->objectId);
                 $folderRow = doc_Folders::recToVerbal($folderRec);
-                $row->title = $folderRow->title;
+                
+                $attr = array();
+                if ($folderRec->last > $mvc->getLastFolderSee($folderRec->id, null, false)) {
+                    $attr['class'] .= " tUnsighted";
+                }
+                
+                $row->title = doc_Folders::getFolderTitle($folderRec, null, $attr);
                 $state = $folderRec->state;
             } catch (core_exception_Expect $ex) {
                 $row->title = tr("Проблемна папка|* № {$rec->objectId}");
@@ -196,6 +202,17 @@ class bgerp_Recently extends core_Manager
                 
                 $attr = array();
                 $attr['class'] .= "state-{$state}";
+                
+                $modOn = $docRec->modifiedOn;
+                if ($docRec->threadId) {
+                    $tRec = doc_Threads::fetch($docRec->threadId);
+                    $modOn = max(array($modOn, $tRec->last));
+                }
+                
+                if ($modOn > $mvc->getLastDocumentSee($docRec->containerId, null, false)) {
+                    $attr['class'] .= " tUnsighted";
+                }
+                
                 $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon($docRec->id));
                 
                 if (mb_strlen($docRow->title) > self::maxLenTitle) {
@@ -296,6 +313,26 @@ class bgerp_Recently extends core_Manager
         return $lastTime;
     }
     
+	
+    /**
+     * Връща кога за последен път потребителя е виждал този документ
+     * 
+     * @param integer $folderId
+     * @param null|integer $userId
+     * 
+     * @return string
+     */
+    public static function getLastFolderSee($folderId, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $lastTime = bgerp_Recently::fetchField(array("#type = 'folder' AND #objectId = '[#1#]' AND #userId = '[#2#]'", $folderId, $userId), 'last');
+        
+        return $lastTime;
+    }
+    
     
     /**
      * Екшън за рендиране блок с последни за текущия
@@ -312,6 +349,7 @@ class bgerp_Recently extends core_Manager
     
     /**
      * Рендира блок с последните документи и папки, посетени от даден потребител
+     *
      * @deprecated
      */
     public static function render_($userId = null)
@@ -377,7 +415,7 @@ class bgerp_Recently extends core_Manager
     
     /**
      * Рендира блок в портала с последните документи и папки, посетени от даден потребител
-     * 
+     *
      * @deprecated
      */
     public function renderPortal($data)
@@ -392,7 +430,6 @@ class bgerp_Recently extends core_Manager
                 <div class='clearfix21 portal'>
                 <div class='legend'><div style='float:left'>[#PortalTitle#]</div>
                 [#ListFilter#]<div class='clearfix21'></div></div>
-                [#PortalPagerTop#]
                 
                 <div id='{$divId}'>
                     <!--ET_BEGIN PortalTable-->
@@ -406,9 +443,6 @@ class bgerp_Recently extends core_Manager
             
             // Попълваме титлата
             $tpl->append($data->title, 'PortalTitle');
-            
-            // Попълваме горния страньор
-            $tpl->append($Recently->renderListPager($data), 'PortalPagerTop');
             
             if ($data->listFilter) {
                 $tpl->append($data->listFilter->renderHtml(), 'ListFilter');
@@ -497,7 +531,7 @@ class bgerp_Recently extends core_Manager
                     $usersArr = type_Keylist::toArray($filter->usersSearch);
                     
                     // Ако има избрани потребители
-                    if (count((array) $usersArr)) {
+                    if (countR((array) $usersArr)) {
                         
                         // Показваме всички потребители
                         $data->query->orWhereArr('userId', $usersArr);
@@ -568,7 +602,7 @@ class bgerp_Recently extends core_Manager
         $query->where("#type = 'document'");
         $query->orderBy('last', 'DESC');
         
-        if(isset($lastSeconds)){
+        if (isset($lastSeconds)) {
             $fromDate = dt::addSecs(-1 * $lastSeconds);
             $query->where("#last >= '{$fromDate}'");
         }
@@ -662,7 +696,7 @@ class bgerp_Recently extends core_Manager
      * Връща id, което ще се използва за обграждащия div на таблицата, който ще се замества по AJAX
      *
      * @return string
-     * 
+     *
      * @deprecated
      */
     public function getDivId()

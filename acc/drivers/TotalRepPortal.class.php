@@ -17,6 +17,12 @@
  */
 class acc_drivers_TotalRepPortal extends core_BaseClass
 {
+    /**
+     * Максимален брой блокове, които да могат да се поакзват в портала
+     */
+    public $maxCnt;
+    
+    
     public $interfaces = 'bgerp_PortalBlockIntf';
     
     
@@ -107,27 +113,16 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
         
         $from = date('Y-m-01');
         $to = dt::getLastDayOfMonth($from);
-        $target = $dRec->target;
         
-        $query = hr_Indicators::getQuery();
         $deltaId = acc_reports_TotalRep::getDeltaId();
-        $query->where(array("(#date >= '[#1#]' AND #date <= '[#2#]') AND #indicatorId = [#3#]", $from, $to, $deltaId));
         
-        $query->limit(1);
-        
-        $query->orderBy('id', 'DESC');
-        
-        $query->show('id, value');
-        
-        $iRec = $query->fetch();
-        
-        $resData->cacheKey = md5($dRec->id . '_' . $dRec->modifiedOn . '_' . $dRec->target . '_' . $userId . '_' . Mode::get('screenMode') . '_' . core_Lg::getCurrent() . '_' . $iRec->id . '_' . $iRec->value . '_' . dt::now(false));
-        $resData->cacheType = 'TotalRepPortal';
+        $resData->cacheKey = $this->getCacheKey($dRec, $userId);
+        $resData->cacheType = $this->getCacheTypeName($userId);
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
-            $resData->speed = acc_reports_TotalRep::getDeltaSpeed($from, $to, $target, $deltaId);
+            $resData->speed = acc_reports_TotalRep::getDeltaSpeed($from, $to, $dRec->target, $deltaId);
         }
         
         $resData->gaugeType = $dRec->gaugeType ? $dRec->gaugeType : 'radial';
@@ -147,7 +142,7 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
      */
     public function render($data)
     {
-        if (!$data->tpl && $data->speed) {
+        if (!$data->tpl) {
             $scaleArr = array('title' => "" , 'colorPlate' => 'transparent');
             
             if ($data->gaugeType == 'linear') {
@@ -176,13 +171,67 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
     
     
     /**
-     * Връща типа на блока за портала
+     * Връща заглавието за таба на съответния блок
      *
-     * @return string - other, tasks, notifications, calendar, recently
+     * @param stdClass $dRec
+     *
+     * @return string
      */
-    public function getBlockType()
+    public function getBlockTabName($dRec)
     {
+        return tr('Общи цели');
+    }
+    
+    
+    /**
+     * Името на стойността за кеша
+     *
+     * @param integer $userId
+     *
+     * @return string
+     */
+    public function getCacheTypeName($userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
         
-        return 'other';
+        return 'Portal_TotalRep_' . $userId;
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на ключа за кеша
+     *
+     * @param stdClass $dRec
+     * @param null|integer $userId
+     *
+     * @return string
+     */
+    public function getCacheKey($dRec, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        
+        $from = date('Y-m-01');
+        $to = dt::getLastDayOfMonth($from);
+        $deltaId = acc_reports_TotalRep::getDeltaId();
+        
+        $query = hr_Indicators::getQuery();
+        $query->where(array("(#date >= '[#1#]' AND #date <= '[#2#]') AND #indicatorId = [#3#]", $from, $to, $deltaId));
+        $query->limit(1);
+        $query->orderBy('id', 'DESC');
+        $query->show('id, value');
+        $iRec = $query->fetch();
+        
+        if ($iRec) {
+            $cArr[] = $iRec->id;
+            $cArr[] = $iRec->value;
+        }
+        
+        return md5(implode('|', $cArr));
     }
 }

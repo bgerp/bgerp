@@ -37,7 +37,7 @@ class cat_Boms extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'showInProduct';
+    public $changableFields = 'showInProduct, expenses';
     
     
     /**
@@ -181,7 +181,7 @@ class cat_Boms extends core_Master
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,mandatory');
         $this->FLD('type', 'enum(sales=Търговска,production=Работна,instant=Моментна)', 'caption=Вид,input=hidden,silent');
         $this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Забележки');
-        $this->FLD('expenses', 'percent(Min=0)', 'caption=Общи режийни');
+        $this->FLD('expenses', 'percent(Min=0)', 'caption=Общи режийни,changeable');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
         $this->FLD('showInProduct', 'enum(,auto=Автоматично,product=В артикула,job=В заданието,yes=Навсякъде,no=Никъде)', 'caption=Показване в артикула,changeable');
@@ -843,7 +843,7 @@ class cat_Boms extends core_Master
             $data->notManifacturable = true;
         }
         
-        if (!haveRole('ceo,sales,cat,planning') || ($data->notManifacturable === true && !count($data->rows))) {
+        if (!haveRole('ceo,sales,cat,planning') || ($data->notManifacturable === true && !countR($data->rows))) {
             $data->hide = true;
             
             return;
