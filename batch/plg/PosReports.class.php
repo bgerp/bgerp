@@ -69,6 +69,7 @@ class batch_plg_PosReports extends core_Plugin
         $date = dt::verbal2mysql($rec->createdOn, false);
         $docType = pos_Reports::getClassId();
         $toSave = array();
+        $cu = core_Users::getCurrent();
         
         if(is_array($details)){
             foreach ($details as $detRec){
@@ -86,6 +87,8 @@ class batch_plg_PosReports extends core_Plugin
                         'docType' => $docType,
                         'docId' => $rec->id,
                         'date' => $date,
+                        'createdOn' => $date,
+                        'createdBy' => $cu,
                     );
                     
                     $toSave[] = $mRec;
