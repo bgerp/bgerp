@@ -459,7 +459,7 @@ class batch_Items extends core_Master
         // Подготвяме страницирането
         $pager = cls::get('core_Pager', array('itemsPerPage' => 10));
         $pager->setPageVar($data->masterMvc->className, $data->masterId);
-        $pager->itemsCount = count($data->recs);
+        $pager->itemsCount = countR($data->recs);
         $data->pager = $pager;
         
         // Обръщаме записите във вербален вид
