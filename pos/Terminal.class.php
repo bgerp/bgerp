@@ -480,11 +480,21 @@ class pos_Terminal extends peripheral_Terminal
         return new core_ET($res);
     }
     
+    
+    /**
+     * Рендира таба с партиди
+     * 
+     * @param stdClass $rec
+     * @param string $currOperation
+     * @param string $string
+     * @param int|null $selectedRecId
+     * 
+     * @return core_ET
+     */
     private function renderResultBatches($rec, $string, $selectedRec)
     {
         expect(core_Packs::isInstalled('batch'));
         $receiptRec = pos_ReceiptDetails::fetchRec($selectedRec);
-        //$batches = array(' ' => '');
         
         $tpl = new core_ET(" ");
         if($Def = batch_Defs::getBatchDef($receiptRec->productId)){
@@ -500,7 +510,12 @@ class pos_Terminal extends peripheral_Terminal
                 $cnt++;
                 $dataUrl['string'] = urlencode($batch);
                 
-                $batchVerbal = $Def->toVerbal($batch);
+                $measureId = cat_Products::fetchField($receiptRec->productId, 'measureId');
+                $quantity = cat_UoM::round($measureId, $quantity);
+                $measureName = str::getPlural($quantity, cat_UoM::getShortName($measureId), true);
+                $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
+                $batchVerbal = $Def->toVerbal($batch) . "<br>{$quantityVerbal} {$measureName}";
+                
                 $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'data-url' => toUrl($dataUrl, 'local')), $batchVerbal, true);
                 $tpl->append($btn);
             }
