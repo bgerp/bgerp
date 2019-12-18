@@ -30,7 +30,7 @@ class store_plg_RequestDetail extends core_Plugin
         setIfNot($mvc->packQuantityFld, 'packQuantity');
         
         // Добавяне на поле за заявено количество
-        $mvc->FLD($mvc->requestQuantityFieldName, 'double(decimals=2)', 'caption=Заявено,input=none,forceField,smartCenter');
+        $mvc->FLD($mvc->requestQuantityFieldName, 'double', 'caption=Заявено,input=none,forceField,smartCenter');
     }
     
     
