@@ -1324,7 +1324,7 @@ class crm_Profiles extends core_Master
         $rows = &$data->rows;
         $recs = &$data->recs;
         
-        if (count($rows)) {
+        if (countR($rows)) {
             foreach ($rows as $i => &$row) {
                 $rec = &$recs[$i];
                 
