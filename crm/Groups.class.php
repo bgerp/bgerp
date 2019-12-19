@@ -991,7 +991,7 @@ class crm_Groups extends core_Master
         $redirectTo = array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($this), 'ret_url' => true);
         
         // Ако има само един възможен избор, редиректваме към създаването
-        if (count($groupChoiceArr) == 1) {
+        if (countR($groupChoiceArr) == 1) {
             $redirectTo['perSrcObjectId'] = key($groupChoiceArr);
             
             return new Redirect($redirectTo);

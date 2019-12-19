@@ -1031,7 +1031,7 @@ class crm_Persons extends core_Master
             
             // Добавяме свойствата от групите, ако има такива
             $groupFeatures = crm_Groups::getFeaturesArray($rec->groupList);
-            if (count($groupFeatures)) {
+            if (countR($groupFeatures)) {
                 $result->features += $groupFeatures;
             }
             
@@ -1181,7 +1181,7 @@ class crm_Persons extends core_Master
      */
     public static function prepareNamedays(&$data)
     {
-        if (!count($data->namesArr)) {
+        if (!countR($data->namesArr)) {
             
             return;
         }
@@ -2353,7 +2353,7 @@ class crm_Persons extends core_Master
                 $similarPersons .= '</li>';
             }
             
-            $sledniteLica = (count($similarsArr) == 1) ? 'следното лице' : 'следните лица';
+            $sledniteLica = (countR($similarsArr) == 1) ? 'следното лице' : 'следните лица';
             
             $resStr = "Възможно е дублиране със {$sledniteLica}|*: <ul>{$similarPersons}</ul>";
         }
@@ -2970,7 +2970,7 @@ class crm_Persons extends core_Master
             $options[$rec->id] = self::getVerbal($rec, 'name') . " ({$rec->id})";
         }
         
-        if (count($options)) {
+        if (countR($options)) {
             $options = array('e' => (object) array('group' => true, 'title' => tr('Служители'))) + $options;
         }
         
@@ -3017,7 +3017,7 @@ class crm_Persons extends core_Master
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }
@@ -3179,7 +3179,7 @@ class crm_Persons extends core_Master
         }
         
         // Ако има полета за обновяване
-        if (count($saveFields)) {
+        if (countR($saveFields)) {
             self::save($rec, $saveFields);
         }
     }
