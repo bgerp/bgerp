@@ -153,7 +153,6 @@ class unit_MinkInv extends core_Manager
         $browser->setValue('options', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \'[#title#]');
         $browser->setValue('default', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \'[#title#]');
         
-        //bp($browser->gettext());
         $browser->press('Запис');
         
         if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
@@ -192,7 +191,6 @@ class unit_MinkInv extends core_Manager
         //if(strpos($browser->gettext(), $Company)  && 0) {  - не намира съществуваща фирма
         //if(strpos($browser->gettext(), $Company)) { намира фирмата, но дава грешка при търсене на несъществуваща, заради търсенето
         if (strpos($browser->gettext(), $Company)) {
-            //bp($browser->gettext());
             //има такава фирма - редакция
             $browser->click($Company);
             $browser->press('Редакция');
@@ -200,7 +198,7 @@ class unit_MinkInv extends core_Manager
             
             // Създаване на нова фирма
             $browser->press('Нова фирма');
-            bp($browser->getText());
+            expect(false, $browser->getText());
             
             //$browser->hasText('Добавяне на запис');
             //$browser->hasText('Фирма');
