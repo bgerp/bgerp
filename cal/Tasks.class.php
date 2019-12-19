@@ -925,8 +925,8 @@ class cal_Tasks extends embed_Manager
             $tpl->append($tplx, 'DETAILS');
         }
         
-        bgerp_Portal::invalidateCache($userId, 'bgerp_drivers_Tasks');
-        bgerp_Portal::invalidateCache($userId, 'bgerp_drivers_Calendar');
+        bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Tasks');
+        bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Calendar');
     }
     
     
