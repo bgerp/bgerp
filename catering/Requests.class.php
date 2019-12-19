@@ -149,7 +149,7 @@ class catering_Requests extends core_Master
      * @param stdClass $rec
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
-    {bp();
+    {
         // Ако потребителя не е 'admin' или 'catering' ще вижда сумата само на неговите поръчки за деня
         if (!haveRole('admin,catering')) {
             $personId = $mvc->EmployeesList->getPersonIdForCurrentUser();
@@ -235,7 +235,7 @@ class catering_Requests extends core_Master
      * @param int $requestId
      */
     public function calcTotal($requestId)
-    { bp();
+    {
         $queryRequestDetails = catering_RequestDetails::getQuery();
         $where = "#requestId = {$requestId}";
         
