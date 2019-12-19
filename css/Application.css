@@ -2298,6 +2298,14 @@ table.mc-calendar {
     padding: 2px;
     display: block;
     white-space: nowrap; }
+    .portal-cal-day .title.workday {
+      color: #222222; }
+    .portal-cal-day .title.holiday {
+      color: red; }
+    .portal-cal-day .title.sunday {
+      color: green; }
+    .portal-cal-day .title.saturday {
+      color: #006030; }
   .portal-cal-day .progress {
     float: right;
     display: inline-block;
