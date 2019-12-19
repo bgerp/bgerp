@@ -743,7 +743,9 @@ class bgerp_drivers_Calendar extends core_BaseClass
         if ($cRec) {
             $cArr[] = $cRec->modifiedOn;
         }
-        $cArr[] = bgerp_Recently::getLastDocumentSee($cRec->containerId, $userId, false);
+        if ($cRec->containerId) {
+            $cArr[] = bgerp_Recently::getLastDocumentSee($cRec->containerId, $userId, false);
+        }
         
         $agendaStateQuery = cal_Calendar::getQuery();
         $agendaStateQuery->where("#users IS NULL OR #users = ''");
