@@ -91,8 +91,6 @@ class unit_MinkPTcost extends core_Manager
         //$browser->click('Активирай');
         if (strpos($browser->gettext(), 'Активирай')) {
             $browser->open('http://localhost/core_Packs/install/?pack=Tcost');
-            
-            //echo $browser->getHtml();
         }
     }
     
