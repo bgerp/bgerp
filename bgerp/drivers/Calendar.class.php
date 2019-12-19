@@ -300,7 +300,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
                     $nowClassName = 'portal-cal-after';
                 }
                 
-                $nowDateClass = cal_Calendar::isHoliday($tDate) ? 'portal-cal-title-holiday' : 'portal-cal-title-workingday';
+                $nowDateClass = cal_Calendar::getColorOfDay($tDate. " 00:00:00");
+                $nowDateClass = $nowDateClass ? $nowDateClass : 'workday';
                 
                 $dVerb .= $dVerb ? ', ' : '';
                 $dVerb .= $dStr;
