@@ -924,6 +924,9 @@ class cal_Tasks extends embed_Manager
             
             $tpl->append($tplx, 'DETAILS');
         }
+        
+        bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Tasks');
+        bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Calendar');
     }
     
     
@@ -3413,7 +3416,7 @@ class cal_Tasks extends embed_Manager
         foreach ($tasks as $taskRec) {
             $cloneTask = clone $taskRec;
             plg_Clone::unsetFieldsNotToClone($Tasks, $cloneTask, $taskRec);
-            unset($cloneTask->id, $cloneTask->folderId, $cloneTask->threadId, $cloneTask->containerId, $cloneTask->createdOn, $cloneTask->createdBy, $cloneTask->modifiedOn, $cloneTask->modifiedBy);
+            unset($cloneTask->id, $cloneTask->folderId, $cloneTask->threadId, $cloneTask->containerId, $cloneTask->createdOn, $cloneTask->createdBy, $cloneTask->modifiedOn, $cloneTask->modifiedBy, $cloneTask->assignedOn, $cloneTask->assignedBy);
             $cloneTask->folderId = $toFolderId;
             $cloneTask->state = $cloneInState;
             
@@ -3443,11 +3446,10 @@ class cal_Tasks extends embed_Manager
             }
             
             $Tasks->route($cloneTask);
-            $Tasks->save($cloneTask);
-            if(!empty($cloneTask->assign)){
-                $cloneTask->assignedOn = $cloneTask->createdOn;
-                $Tasks->save_($cloneTask, 'assignedOn');
+            if ($cloneTask->state != 'draft' &&  $cloneTask->state != 'rejected') {
+                self::calculateExpectationTime($cloneTask);
             }
+            $Tasks->save($cloneTask);
             
             $Tasks->logWrite('Създаване при клониране на проект', $cloneTask->id);
         }

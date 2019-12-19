@@ -357,10 +357,13 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         $cloneQuery->orderBy('modifiedOn', 'DESC');
         $cloneQuery->limit(1);
-        $cloneQuery->show('modifiedOn, id');
+        $cloneQuery->show('modifiedOn, id, containerId');
         $cRec = $cloneQuery->fetch();
         $cArr[] = $cRec->modifiedOn;
         $cArr[] = $cRec->id;
+        if ($cRec->containerId) {
+            $cArr[] = bgerp_Recently::getLastDocumentSee($cRec->containerId, $userId, false);
+        }
         
         return md5(implode('|', $cArr));
     }
