@@ -1,8 +1,6 @@
 <?php
 
 
-use function GuzzleHttp\json_encode;
-
 /**
  * Модел "Складови наличности", Показва текущите наличности на продукта в склада на точката.
  * Синхронизира данните извлечени от счетоводството с тези на неотчетените бележки да показва приблизително
@@ -247,6 +245,22 @@ class pos_Stocks extends core_Manager
     {
         $row->storeId = store_Stores::getHyperLink($rec->storeId, true);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        
+        if(core_Packs::isInstalled('batch') && isset($rec->batches)){
+            $masureName = tr(cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId')));
+            $Def = batch_Defs::getBatchDef($rec->productId);
+            $bacthes = unserialize($rec->batches);
+            if(is_array($bacthes) && is_object($Def)){
+                $subTextArr = array();
+                foreach ($bacthes as $batch => $quantity){
+                    $subTextArr[] = $Def->toVerbal($batch) . ": " . ht::styleNumber(core_Type::getByName('double(smartRound)')->toVerbal($quantity), $quantity) . " {$masureName}";
+                }
+                
+                if(count($subTextArr)){
+                    $row->productId .= "<div class='small'>" . implode('<br>', $subTextArr) . "</div>";
+                }
+            }
+        }
     }
     
     
@@ -256,10 +270,6 @@ class pos_Stocks extends core_Manager
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
         $data->query->orderBy('state', 'ASC');
-        
-        if(core_Packs::isInstalled('batch')){
-            arr::placeInAssocArray($data->listFields, array('batches' => 'Партида'), 'state');
-        }
     }
     
     
