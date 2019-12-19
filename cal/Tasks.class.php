@@ -3413,7 +3413,7 @@ class cal_Tasks extends embed_Manager
         foreach ($tasks as $taskRec) {
             $cloneTask = clone $taskRec;
             plg_Clone::unsetFieldsNotToClone($Tasks, $cloneTask, $taskRec);
-            unset($cloneTask->id, $cloneTask->folderId, $cloneTask->threadId, $cloneTask->containerId, $cloneTask->createdOn, $cloneTask->createdBy, $cloneTask->modifiedOn, $cloneTask->modifiedBy);
+            unset($cloneTask->id, $cloneTask->folderId, $cloneTask->threadId, $cloneTask->containerId, $cloneTask->createdOn, $cloneTask->createdBy, $cloneTask->modifiedOn, $cloneTask->modifiedBy, $cloneTask->assignedOn, $cloneTask->assignedBy);
             $cloneTask->folderId = $toFolderId;
             $cloneTask->state = $cloneInState;
             
@@ -3447,10 +3447,6 @@ class cal_Tasks extends embed_Manager
                 self::calculateExpectationTime($cloneTask);
             }
             $Tasks->save($cloneTask);
-            if(!empty($cloneTask->assign)){
-                $cloneTask->assignedOn = $cloneTask->createdOn;
-                $Tasks->save_($cloneTask, 'assignedOn');
-            }
             
             $Tasks->logWrite('Създаване при клониране на проект', $cloneTask->id);
         }
