@@ -1742,7 +1742,7 @@ class eshop_Carts extends core_Master
       
         if ($rec->userId){
             
-            $row->userId = core_Users::getNick($rec->userId);
+            $row->userId = core_Users::getNick($rec->userId)."</br>";
         }
         $row->userId .=type_Ip::decorateIp($rec->ip, $rec->createdOn)."</br>"
                        .log_Browsers::getLink($rec->brid);
