@@ -76,12 +76,6 @@ defIfNot('SALE_CLOSE_OLDER_NUM', 50);
 /**
  * Кой да е по подразбиране драйвера за фискален принтер
  */
-defIfNot('SALE_FISC_PRINTER_DRIVER', '');
-
-
-/**
- * Кой да е по подразбиране драйвера за фискален принтер
- */
 defIfNot('SALE_INV_VAT_DISPLAY', 'no');
 
 
@@ -223,10 +217,6 @@ class sales_Setup extends core_ProtoSetup
         'SALE_CLOSE_OLDER_NUM' => array(
             'int',
             'caption=По колко продажби да се приключват автоматично на опит->Брой'
-        ),
-        'SALE_FISC_PRINTER_DRIVER' => array(
-            'class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)',
-            'caption=Фискален принтер->Драйвър'
         ),
         'SALE_INV_VAT_DISPLAY' => array(
             'enum(no=Не,yes=Да)',

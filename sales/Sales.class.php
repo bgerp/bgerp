@@ -490,28 +490,7 @@ class sales_Sales extends deals_DealMaster
             if (bank_IncomeDocuments::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
                 $data->toolbar->addBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ');
             }
-            
-            if (!Mode::is('printing') && !Mode::is('text', 'xhtml') && $mvc->haveRightFor('printFiscReceipt', $rec)) {
-                $data->toolbar->addBtn('КБ', array($mvc, 'printReceipt', $rec->id), null, 'ef_icon=img/16/cash-receipt.png,warning=Искате ли да издадете нова касова бележка ?,title=Издаване на касова бележка', array('class' => 'actionBtn', 'target' => 'iframe_a'));
-            }
         }
-    }
-    
-    
-    /**
-     * Принтиране на касова бележка
-     */
-    public function act_PrintReceipt()
-    {
-        expect($id = Request::get('id', 'int'));
-        expect($rec = $this->fetchRec($id));
-        $this->requireRightFor('printFiscReceipt', $rec);
-        
-        $conf = core_Packs::getConfig('sales');
-        $Driver = cls::get($conf->SALE_FISC_PRINTER_DRIVER);
-        $driverData = $this->prepareFiscPrinterData($rec);
-        
-        return $Driver->createFile($driverData);
     }
     
     
@@ -834,12 +813,7 @@ class sales_Sales extends deals_DealMaster
             $actions = type_Set::toArray($rec->contoActions);
             
             if ($actions['ship'] && $actions['pay']) {
-                $conf = core_Packs::getConfig('sales');
                 
-                // Ако няма избран драйвер за принтер или той е деинсталиран никой не може да издава касова бележка
-                if ($conf->SALE_FISC_PRINTER_DRIVER == '' || core_Classes::fetchField($conf->SALE_FISC_PRINTER_DRIVER, 'state') == 'closed') {
-                    $res = 'no_one';
-                }
             } else {
                 $res = 'no_one';
             }
