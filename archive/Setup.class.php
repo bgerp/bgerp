@@ -70,7 +70,7 @@ class archive_Setup extends core_ProtoSetup
             if(is_executable($z7)) {
                 $cli = "\"{$z7}\"";
             } else {
-                $z7 = getenv('ProgramFiles(86)') . '/7-Zip/7z.exe'; bp($z7);
+                $z7 = getenv('ProgramFiles(86)') . '/7-Zip/7z.exe';
                 if(is_executable($z7)) {
                     $cli = "\"{$z7}\"";
                 }
