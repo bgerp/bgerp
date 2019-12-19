@@ -723,9 +723,11 @@ class pos_Terminal extends peripheral_Terminal
         while($receiptRec = $query->fetch()){
             $linkUrl = (pos_Receipts::haveRightFor('revert', $receiptRec->id)) ? array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true) : array();
             $class = ($rec->pointId != $receiptRec->pointId) ? 'differentPosBtn' : '';
+            $btnTitle = ($rec->pointId != $receiptRec->pointId) ? ht::createHint(self::getReceiptTitle($receiptRec), "Бележката е от друг POS") : self::getReceiptTitle($receiptRec);
             $class .= ($linkUrl) ? ' navigable' : ' disabledBtn';
             $warning = ($linkUrl) ? 'Наистина ли желаете да сторнирате бележката|*?' : false;
-            $btn = ht::createLink(self::getReceiptTitle($receiptRec), $linkUrl, $warning, "title=Сторниране на бележката,class=posBtns pos-notes {$class} state-{$receiptRec->state},id=revert{$cnt}");
+            
+            $btn = ht::createLink($btnTitle, $linkUrl, $warning, "title=Сторниране на бележката,class=posBtns pos-notes {$class} state-{$receiptRec->state},id=revert{$cnt}");
             $tpl->append($btn);
             $cnt++;
         }
