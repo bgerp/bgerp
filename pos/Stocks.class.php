@@ -252,6 +252,23 @@ class pos_Stocks extends core_Manager
     
     
     /**
+     * Връща количеството на даден продукт, в даден склад
+     *
+     * @param int $productId - ид на продукт
+     * @param int $pointId   - ид на точка
+     *
+     * @return float - количеството на продукта в склада на точката
+     */
+    public static function getQuantityByStore($productId, $storeId)
+    {
+        $quantity = static::fetchField("#storeId = '{$storeId}' AND #productId = '{$productId}'", 'quantity');
+        $quantity = ($quantity) ? $quantity : 0;
+        
+        return $quantity;
+    }
+    
+    
+    /**
      * Изчиства записите в наличностите в поса
      */
     public function act_Truncate()

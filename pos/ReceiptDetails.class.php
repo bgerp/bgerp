@@ -67,7 +67,7 @@ class pos_ReceiptDetails extends core_Detail
     /**
      * Полета за листов изглед
      */
-    public $listFields = 'id,productId,value,quantity,price,discountPercent,amount';
+    public $listFields = 'id,productId,value,quantity,storeId,price,discountPercent,amount';
     
     
     /**
@@ -222,18 +222,20 @@ class pos_ReceiptDetails extends core_Detail
             expect($rec = self::fetch($id), 'Не е избран ред');
             $this->requireRightFor('edit', $rec);
            
-            expect($operation = Request::get('action', 'enum(setquantity,setdiscount,settext,setprice,setbatch)'), 'Невалидна операция');
+            expect($operation = Request::get('action', 'enum(setquantity,setdiscount,settext,setprice,setbatch,setstore)'), 'Невалидна операция');
             $string = Request::get('string', 'varchar');
             expect(isset($string), 'Проблем при разчитане на операцията');
             if(isset($receiptRec->revertId) && $receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT && in_array($operation, array('setdiscount', 'setprice'))){
                 expect(false, 'Невалидна операция');
             }
             
-            if($operation == 'settext' || $operation == 'setprice'){
+            if($operation == 'settext' || $operation == 'setprice'|| $operation == 'setstore'){
                 $firstValue = trim($string);
             } else {
                 $string = str::removeWhiteSpace(trim($string), " ");
                 list($firstValue, $secondValue) = explode(" ", $string, 2);
+                $firstValue = trim($firstValue);
+                $secondValue = trim($secondValue);
             }
             
             if($operation != 'settext'){
@@ -302,6 +304,14 @@ class pos_ReceiptDetails extends core_Detail
                    if(isset($foundRec->id) && $foundRec->id != $rec->id){
                        expect(false, 'Партидата е вече зададена на друг ред');
                    }
+                   
+                   break;
+               case 'setstore':
+                   $pointRec = pos_Points::fetch($receiptRec->pointId, 'otherStores,storeId');
+                   $stores = keylist::toArray($pointRec->otherStores);
+                   $stores[$pointRec->storeId] = $pointRec->storeId;
+                   expect(in_array($firstValue, $stores), 'Невъзможен склад за избор');
+                   $rec->storeId = $firstValue;
                    
                    break;
             }
@@ -595,6 +605,14 @@ class pos_ReceiptDetails extends core_Detail
         }
         
         $row->productId = ($fields['-list']) ? cat_Products::getHyperLink($rec->productId, true) : cat_Products::getTitleById($rec->productId, true);
+    
+        // Показване на склада, само ако е различен от дефолтния
+        $defaultStoreId = pos_Points::fetchField(pos_Receipts::fetchField($rec->receiptId, 'pointId'), 'storeId');
+        if(isset($fields['-list'])){
+            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+        } elseif($rec->storeId == $defaultStoreId) {
+            unset($row->storeId);
+        }
     }
     
     

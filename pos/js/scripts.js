@@ -457,6 +457,22 @@ function posActions() {
 		getEfae().process(resObj, {string:string,recId:selectedRecId});
 	});
 	
+	// При натискане на бутона за задаване на количество/опаковка
+	$(document.body).on('click', "div.chooseStoreBtn", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		var storeId = $(this).attr("data-storeid");
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		var selectedElement = $(".highlighted");
+		var selectedRecId = selectedElement.attr("data-id");
+		
+		getEfae().process(resObj, {string:storeId,recId:selectedRecId});
+	});
+	
 	// При натискане на бутона за показване на подробна информация за артикула
 	$(document.body).on('click', ".enlargeProductBtn", function(e){
 		var url = $(this).attr("data-url");

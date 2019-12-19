@@ -785,14 +785,15 @@ class pos_Terminal extends peripheral_Terminal
         $baseClass = "resultPack navigable posBtns";
         $basePackName = cat_UoM::getVerbal($measureId, 'name');
         $dataUrl = (pos_ReceiptDetails::haveRightFor('edit', $selectedRec)) ? toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity'), 'local') : null;
+        $dataChangeStoreUrl = (pos_ReceiptDetails::haveRightFor('edit', $selectedRec)) ? toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setstore'), 'local') : null;
         
         $buttons = array();
         $buttons[$measureId] = ht::createElement("div", array('id' => "packaging{$basePackName}", 'class' => $baseClass, 'data-pack' => $basePackName, 'data-url' => $dataUrl), tr($basePackName), true);
        
+        // Добавяне на бутони за продуктовите опаковки
         $packQuery = cat_products_Packagings::getQuery();
         $packQuery->where("#productId = {$selectedRec->productId}");
         while ($packRec = $packQuery->fetch()) {
-            
             $packagingId = cat_UoM::getVerbal($packRec->packagingId, 'name');
             $baseMeasureId = $measureId;
             $packRec->quantity = cat_Uom::round($baseMeasureId, $packRec->quantity);
@@ -811,8 +812,8 @@ class pos_Terminal extends peripheral_Terminal
         $query->groupBy("quantity,value");
         $query->limit(10);
         
+        // Добавяне на бутони за последните количества, в които е продаван
         while ($productRec = $query->fetch()) {
-            
             $packagingId = cat_UoM::getVerbal($productRec->value, 'name');
             Mode::push('text', 'plain');
             $quantity = core_Type::getByName('double(smartRound)')->toVerbal($productRec->quantity);
@@ -820,6 +821,24 @@ class pos_Terminal extends peripheral_Terminal
             $btnCaption =  "{$quantity} " .tr(str::getPlural($productRec->quantity, $packagingId, true));
             $buttons["{$productRec->packagingId}|{$productRec->quantity}"] = ht::createElement("div", array('id' => "packaging{$packagingId}{$productRec->quantity}{$selectedRec->productId}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packagingId, 'data-url' => $dataUrl), $btnCaption, true);
         }
+        
+        // Добавяне на бутони за смяна на склада
+        $pointRec = pos_Points::fetch($rec->pointId, 'otherStores,storeId');
+        if(!empty($pointRec->otherStores)){
+            $stores = keylist::toArray($pointRec->otherStores);
+            $stores[$pointRec->storeId] = $pointRec->storeId;
+            
+            foreach ($stores as $storeId){
+                $btnClass = ($storeId == $selectedRec->storeId) ? 'disabledBtn' : 'navigable';
+                
+                $quantity = pos_Stocks::getQuantityByStore($selectedRec->productId, $storeId);
+                $quantityInStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
+                $storeName = store_Stores::getTitleById($storeId);
+                $storeCaption = "<span><div class='storeNameInBtn'>{$storeName}</div> <div class='storeQuantityInStock'>({$quantityInStockVerbal} " . cat_UoM::getShortName($measureId). ")</div></span>";
+                $buttons[] = ht::createElement("div", array('id' => "changeStore{$storeId}", 'class' => "{$btnClass} posBtns chooseStoreBtn", 'data-url' => $dataChangeStoreUrl, 'data-storeid' => $storeId), $storeCaption, true);
+            }
+        }
+        
         
         $tpl = new core_ET("");
         foreach ($buttons as $btn){
