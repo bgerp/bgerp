@@ -717,7 +717,7 @@ class pos_Terminal extends peripheral_Terminal
         $linkUrl = (pos_Receipts::haveRightFor('revert', pos_Receipts::DEFAULT_REVERT_RECEIPT)) ? array('pos_Receipts', 'revert', pos_Receipts::DEFAULT_REVERT_RECEIPT, 'ret_url' => true) : array();
         $disClass = ($linkUrl) ? 'navigable' : 'disabledBtn';
         $warning = ($linkUrl) ? 'Наистина ли желаете да създадете нова сторнираща бележка|*?' : null;
-        $addBtn = ht::createLink("+", $linkUrl, $warning, "class=pos-notes posBtns newNoteBtn {$disClass}");
+        $addBtn = ht::createLink("+", $linkUrl, $warning, "class=pos-notes posBtns newNoteBtn {$disClass}, title=Създаване на нова сторно бележка");
         $tpl->append($addBtn);
         
         while($receiptRec = $query->fetch()){
@@ -1261,7 +1261,7 @@ class pos_Terminal extends peripheral_Terminal
         $dateBlock = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('RECEIPT_RESULT');
         $arr = array("{$today}" => clone $dateBlock);
         $arr[$today]->replace(dt::mysql2verbal($today, 'smartDate'), 'groupName');
-        $addBtn = ht::createLink("+", $addUrl, null, "class=pos-notes posBtns newNoteBtn {$disabledClass}");
+        $addBtn = ht::createLink("+", $addUrl, null, "class=pos-notes posBtns newNoteBtn {$disabledClass},title=Създаване на нова бележка");
         $arr[$today]->append($addBtn, 'element');
         
         // Групиране на записите по дата
