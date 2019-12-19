@@ -504,7 +504,7 @@ function posActions() {
 
 		dialog.dialog( "open" );
 	});
-
+/*
 
 	$("body").setShortcutKey( ALT , D ,function() {
 		 deleteElement();
@@ -548,8 +548,10 @@ function posActions() {
 	$("body").setShortcutKey( ALT , F ,function() {
 		$('.large-field.select-input-pos').focus();
 	});
-}
 
+*/
+
+}
 function showHints(){
 	$('.buttonOverlay').fadeIn();
 }
