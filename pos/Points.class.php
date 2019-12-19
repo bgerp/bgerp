@@ -348,4 +348,13 @@ class pos_Points extends core_Master
             }
         }
     }
+    
+    public static function getStores($pointId)
+    {
+        $pointRec = static::fetch($pointId, 'otherStores,storeId');
+        $stores = array($pointRec->storeId => $pointRec->storeId);
+        $stores += keylist::toArray($pointRec->otherStores);
+        
+        return $stores;
+    }
 }

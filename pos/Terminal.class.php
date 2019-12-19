@@ -822,23 +822,19 @@ class pos_Terminal extends peripheral_Terminal
             $buttons["{$productRec->packagingId}|{$productRec->quantity}"] = ht::createElement("div", array('id' => "packaging{$packagingId}{$productRec->quantity}{$selectedRec->productId}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packagingId, 'data-url' => $dataUrl), $btnCaption, true);
         }
         
-        // Добавяне на бутони за смяна на склада
-        $pointRec = pos_Points::fetch($rec->pointId, 'otherStores,storeId');
-        if(!empty($pointRec->otherStores)){
-            $stores = keylist::toArray($pointRec->otherStores);
-            $stores[$pointRec->storeId] = $pointRec->storeId;
-            
+        $stores = pos_Points::getStores($rec->pointId);
+        if(countR($stores) > 1 && empty($rec->revertId)){
             foreach ($stores as $storeId){
                 $btnClass = ($storeId == $selectedRec->storeId) ? 'disabledBtn' : 'navigable';
                 
                 $quantity = pos_Stocks::getQuantityByStore($selectedRec->productId, $storeId);
                 $quantityInStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
+                $quantityInStockVerbal = ht::styleNumber($quantityInStockVerbal, $quantity);
                 $storeName = store_Stores::getTitleById($storeId);
                 $storeCaption = "<span><div class='storeNameInBtn'>{$storeName}</div> <div class='storeQuantityInStock'>({$quantityInStockVerbal} " . cat_UoM::getShortName($measureId). ")</div></span>";
                 $buttons[] = ht::createElement("div", array('id' => "changeStore{$storeId}", 'class' => "{$btnClass} posBtns chooseStoreBtn", 'data-url' => $dataChangeStoreUrl, 'data-storeid' => $storeId), $storeCaption, true);
             }
         }
-        
         
         $tpl = new core_ET("");
         foreach ($buttons as $btn){

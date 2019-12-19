@@ -102,7 +102,6 @@ class pos_ReceiptDetails extends core_Detail
         $this->FLD('receiptId', 'key(mvc=pos_Receipts)', 'caption=Бележка, input=hidden, silent');
         $this->FLD('action', 'varchar(32)', 'caption=Действие,width=7em;top:1px;position:relative');
         $this->FLD('param', 'varchar(32)', 'caption=Параметри,width=7em,input=none');
-        $this->FNC('ean', 'varchar(32)', 'caption=ЕАН, input, class=ean-text');
         $this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,input=none');
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
         $this->FLD('quantity', 'double(smartRound)', 'caption=К-во,placeholder=К-во,width=4em');
@@ -263,6 +262,13 @@ class pos_ReceiptDetails extends core_Detail
                         }
                         
                         $rec->quantity *= -1;
+                    } else {
+                        
+                        // Проверка дали количеството е допустимо
+                        $errorQuantity = null;
+                        if (!pos_Receipts::checkQuantity($rec, $errorQuantity)) {
+                            expect(false, $errorQuantity);
+                        }
                     }
                     
                     $sucessMsg = 'Количеството на реда е променено|*!';
@@ -307,11 +313,15 @@ class pos_ReceiptDetails extends core_Detail
                    
                    break;
                case 'setstore':
-                   $pointRec = pos_Points::fetch($receiptRec->pointId, 'otherStores,storeId');
-                   $stores = keylist::toArray($pointRec->otherStores);
-                   $stores[$pointRec->storeId] = $pointRec->storeId;
+                   $stores = pos_Points::getStores($receiptRec->pointId);
                    expect(in_array($firstValue, $stores), 'Невъзможен склад за избор');
                    $rec->storeId = $firstValue;
+                   
+                   // Проверка дали количеството е допустимо
+                   $errorQuantity = null;
+                   if (!pos_Receipts::checkQuantity($rec, $errorQuantity)) {
+                       expect(false, $errorQuantity);
+                   }
                    
                    break;
             }
@@ -429,8 +439,13 @@ class pos_ReceiptDetails extends core_Detail
                 // не добавяме нов запис а ъпдейтваме стария
                 $newQuantity = $rec->quantity + $sameProduct->quantity;
                 $rec->quantity = $newQuantity;
+                $rec->storeId = $sameProduct->storeId;
                 $rec->amount += $sameProduct->amount;
                 $rec->id = $sameProduct->id;
+            }
+            
+            if(empty($rec->storeId)){
+                $rec->storeId = static::getDefaultStoreId($rec->productId, $rec->quantity, $receiptRec->pointId);
             }
             
             $error = '';
@@ -884,5 +899,30 @@ class pos_ReceiptDetails extends core_Detail
         if(core_Packs::isInstalled('batch')){
             arr::placeInAssocArray($data->listFields, array('batch' => 'Партида'), 'quantity');
         }
+    }
+    
+    
+    /**
+     * Връща дефолтния склад, от който ще се експедира артикула
+     * 
+     * @param int $productId
+     * @param double $quantity
+     * @param int $pointId
+     * 
+     * @return int
+     */
+    public static function getDefaultStoreId($productId, $quantity, $pointId)
+    {
+        // Ако в някой от складовете има достатъчно количество, връща се първия склад
+        $stores = pos_Points::getStores($pointId);
+        foreach ($stores as $storeId){
+            $inStock = pos_Stocks::getQuantityByStore($productId, $storeId);
+            if($quantity <= $inStock){
+                
+                return $storeId;
+            }
+        }
+        
+        return key($stores);
     }
 }

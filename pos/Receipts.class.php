@@ -615,15 +615,13 @@ class pos_Receipts extends core_Master
             return true;
         }
         
-        $pointId = self::fetchField($rec->receiptId, 'pointId');
-        $quantityInStock = pos_Stocks::getQuantity($rec->productId, $pointId);
-        
         $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
+        $quantityInStock = pos_Stocks::getQuantityByStore($rec->productId, $rec->storeId);
         $quantityInPack = ($pRec) ? $pRec->quantity : 1;
         $quantityInStock -= $rec->quantity * $quantityInPack;
         
         if ($quantityInStock < 0) {
-            $error = 'Количеството не е налично';
+            $error = 'Количеството не е налично в склад|*: ' . store_Stores::getTitleById($rec->storeId);
             
             return false;
         }
