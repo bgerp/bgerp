@@ -96,7 +96,7 @@ class cal_Tasks extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, assign=Потребители->Възложени, sharedUsers=Потребители->Споделени';
+    public $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, assign=Потребители->Възложени, sharedUsers=Потребители->Споделени,assignedOn';
     
     
     /**
@@ -3444,6 +3444,11 @@ class cal_Tasks extends embed_Manager
             
             $Tasks->route($cloneTask);
             $Tasks->save($cloneTask);
+            if(!empty($cloneTask->assign)){
+                $cloneTask->assignedOn = $cloneTask->createdOn;
+                $Tasks->save_($cloneTask, 'assignedOn');
+            }
+            
             $Tasks->logWrite('Създаване при клониране на проект', $cloneTask->id);
         }
     }
