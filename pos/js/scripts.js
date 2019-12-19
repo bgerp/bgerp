@@ -505,31 +505,48 @@ function posActions() {
 		dialog.dialog( "open" );
 	});
 
-	hotkeys('alt+d,alt+a,alt+k,alt+p,alt+z,alt+t,alt+5,alt+c,alt+r,alt+b,alt+f', function (event, handler){
-		switch (handler.key) {
-			case 'alt+d': event.preventDefault(); deleteElement();
-				break;
-			case 'alt+a': openProducts();
-				break;
-			case 'alt+k': openQuantity();
-				break;
-			case 'alt+p': openPayment();
-				break;
-			case 'alt+z': openPrice();
-				break;
-			case 'alt+t': openText();
-				break;
-			case 'alt+5': event.preventDefault(); openDiscount();
-				break;
-			case 'alt+c': openClient();
-				break;
-			case 'alt+b': openReceipt();
-				break;
-			case 'alt+r': openRevert();
-				break;
-			case 'alt+f': event.preventDefault(); $('.large-field.select-input-pos').focus();
-				break;
-		}
+
+	$("body").setShortcutKey( ALT , D ,function() {
+		 deleteElement();
+	});
+
+	$("body").setShortcutKey( ALT , A ,function() {
+		openProducts();
+	});
+
+	$("body").setShortcutKey( ALT , K ,function() {
+		openQuantity();
+	});
+
+	$("body").setShortcutKey( ALT , P ,function() {
+		openPayment();
+	});
+
+	$("body").setShortcutKey( ALT , Z ,function() {
+		openPrice();
+	});
+
+	$("body").setShortcutKey( ALT , T ,function() {
+		openText();
+	});
+	$("body").setShortcutKey( ALT , N5 ,function() {
+		openDiscount();
+	});
+
+	$("body").setShortcutKey( ALT , C ,function() {
+		openClient();
+	});
+
+	$("body").setShortcutKey( ALT , B ,function() {
+		openReceipt();
+	});
+
+	$("body").setShortcutKey( ALT , R ,function() {
+		openRevert();
+	});
+
+	$("body").setShortcutKey( ALT , F ,function() {
+		$('.large-field.select-input-pos').focus();
 	});
 }
 
@@ -550,6 +567,7 @@ function openRevert() {
 function openClient() {
 	$('.operationBtn[data-value="contragent"]').click();
 }
+
 function openDiscount() {
 	if ($('.operationBtn[data-value="discount"]').length) {
 		$('.operationBtn[data-value="discount"]').click();
