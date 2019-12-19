@@ -171,7 +171,6 @@ class rack_MovementGenerator extends core_Manager
                         }
                     }
                     
-                    //bp($p, $o, $quantityPerPallet);
                     // Търси палет на първия ред, който има най-малко бройки
                     foreach ($p as $pI => $pQ) {
                         if (stripos($pI, 'a')) {
@@ -348,7 +347,6 @@ class rack_MovementGenerator extends core_Manager
     {
         foreach ($combi ? $combi : array(0 => '|') as $mK => $m) {
             foreach ($arr as $k => $qK) {
-                //bp( $m,  '|'. $k . '|');
                 if (strpos($m, '|'. $k . '|') === false) {
                     $qnt = $mK + $qK;
                     if (!$combi[$qnt]) {
