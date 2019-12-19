@@ -35,7 +35,6 @@ class prosody_Test extends core_Manager
         $res .= '<br>';
         $res .= '<pre>' . print_r(prosody_RestApi::getConnectedUsers(), true) . '</pre>';
         
-        //bp($res);
         return ($res);
     }
 }
