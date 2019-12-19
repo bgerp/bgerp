@@ -107,7 +107,8 @@ class pos_Setup extends core_ProtoSetup
         'pos_FavouritesCategories',
         'pos_Reports',
         'pos_Stocks',
-        'migrate::migrateCronSettings'
+        'migrate::migrateCronSettings',
+        'migrate::updateStoreIdInReceipts'
     );
     
     
@@ -190,6 +191,34 @@ class pos_Setup extends core_ProtoSetup
                 $cronRec->offset = 1380;
                 core_Cron::save($cronRec, 'offset');
             }
+        }
+    }
+    
+    
+    /**
+     * Добавя склада към реда
+     */
+    public function updateStoreIdInReceipts()
+    {
+        cls::get('pos_Points')->setupMvc();
+        $Details = cls::get('pos_ReceiptDetails');
+        $Details->setupMvc();
+        cls::get('pos_Receipts')->setupMvc();
+        
+        if(!pos_ReceiptDetails::count()) return;
+        
+        $toSave = array();
+        $query = pos_ReceiptDetails::getQuery();
+        $query->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
+        $query->where("#storeId IS NULL AND #action = 'sale|code'");
+        $query->show('id,pointId,storeId');
+        while($rec = $query->fetch()){
+            $rec->storeId = pos_Points::fetchField($rec->pointId, 'storeId');
+            $toSave[] = $rec;
+        }
+        
+        if(countR($toSave)){
+            $Details->saveArray($toSave, 'storeId,id');
         }
     }
 }

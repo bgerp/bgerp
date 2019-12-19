@@ -25,7 +25,7 @@ class pos_Receipts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing,plg_State, pos_Wrapper,cat_plg_AddSearchKeywords, plg_Search, plg_Sorting,plg_Modified';
+    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing, plg_State, pos_Wrapper, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, plg_Modified';
     
     
     /**
@@ -37,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentName, total, paid, change, state, revertId, returnedTotal';
+    public $listFields = 'id, createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentName, total, paid, change, state, revertId, returnedTotal';
     
     
     /**
@@ -115,7 +115,7 @@ class pos_Receipts extends core_Master
     /**
      * Кой може да променя?
      */
-    public $canEdit = 'pos, ceo';
+    public $canEdit = 'pos,ceo';
     
     
     /**
