@@ -133,7 +133,7 @@ class rack_MovementGenerator extends core_Manager
             $i++;
             if ($i > 100) {
                 // Ременна защита срещу безкраен цикъл;
-                bp($res);
+                expect(false, $res);
             }
         } while (count($res) > 0);
         
