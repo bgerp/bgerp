@@ -318,8 +318,6 @@ class tracking_Log extends core_Master
         $len = strlen($dataTracking);
         for ($i = 0; $i < $len; $i++) {
             $crc ^= ord($dataTracking[$i]);
-            
-            //echo ("<li>$dataTracking[$i]  --  " . $crc . "  ------ " . dechex($crc));
         }
         
         return dechex($crc);

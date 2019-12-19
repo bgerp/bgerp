@@ -83,8 +83,6 @@ class teracom_TCW121 extends sens2_ProtoDriver
         $url->placeArray($config);
         $url = $url->getContent();
         
-        // echo "<li> $url";
-        
         // Извличаме XML-a
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);

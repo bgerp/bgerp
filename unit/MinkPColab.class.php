@@ -95,8 +95,6 @@ class unit_MinkPColab extends core_Manager
         
         //$browser->click('Активирай');
         $browser->open('http://localhost/core_Packs/install/?pack=colab');
-        
-        //echo $browser->getHtml();
     }
     
     
@@ -115,8 +113,6 @@ class unit_MinkPColab extends core_Manager
         $browser->click('Настройки');
         $browser->setValue('distributor', true);
         $browser->press('Запис');
-        
-        //echo $browser->getHtml();
     }
     
     

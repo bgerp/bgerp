@@ -221,7 +221,7 @@ class acc_drivers_TotalRepPortal extends core_BaseClass
         $deltaId = acc_reports_TotalRep::getDeltaId();
         
         $query = hr_Indicators::getQuery();
-        $query->where(array("(#date >= '[#1#]' AND #date <= '[#2#]') AND #indicatorId = [#3#]", $from, $to, $deltaId));
+        $query->where(array("(#date >= '[#1#]' AND #date <= '[#2#]') AND #indicatorId = '[#3#]'", $from, $to, $deltaId));
         $query->limit(1);
         $query->orderBy('id', 'DESC');
         $query->show('id, value');
