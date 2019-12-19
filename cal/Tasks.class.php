@@ -3443,6 +3443,7 @@ class cal_Tasks extends embed_Manager
             }
             
             $Tasks->route($cloneTask);
+            self::calculateExpectationTime($cloneTask);
             $Tasks->save($cloneTask);
             if(!empty($cloneTask->assign)){
                 $cloneTask->assignedOn = $cloneTask->createdOn;
