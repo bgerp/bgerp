@@ -1166,4 +1166,17 @@ class cal_Reminders extends core_Master
         
         return 'closed';
     }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param core_Manager $mvc
+     * @param core_ET      $tpl
+     * @param stdClass     $data
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Calendar');
+    }
 }
