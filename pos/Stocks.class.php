@@ -1,6 +1,8 @@
 <?php
 
 
+use function GuzzleHttp\json_encode;
+
 /**
  * Модел "Складови наличности", Показва текущите наличности на продукта в склада на точката.
  * Синхронизира данните извлечени от счетоводството с тези на неотчетените бележки да показва приблизително
@@ -75,6 +77,7 @@ class pos_Stocks extends core_Manager
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
         $this->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
         $this->FLD('state', 'enum(active=Активирано,closed=Затворено)', 'caption=Състояние,input=none');
+        $this->FLD('batches', 'blob', 'input=none,caption=Партиди');
         
         $this->setDbUnique('productId, storeId');
     }
@@ -90,29 +93,50 @@ class pos_Stocks extends core_Manager
     public static function sync($all)
     {
         // Извличаме всичкис кладове групирани в ПОС-а
-        $posStoresQuery = pos_Points::getQuery();
-        $posStoresQuery->groupBy('storeId');
-        $posStoresQuery->show('storeId');
         $usedStores = array();
-        while ($pRec = $posStoresQuery->fetch()) {
-            $usedStores[$pRec->storeId] = $pRec->storeId;
+        $pointQuery = pos_Points::getQuery();
+        $pointQuery->where("#state != 'rejected'");
+        $pointQuery->show('storeId,otherStores');
+        while($pointRec = $pointQuery->fetch()){
+            $usedStores[$pointRec->storeId] = $pointRec->storeId;
+            if(!empty($pointRec->otherStores)){
+                $usedStores += keylist::toArray($pointRec->otherStores);
+            }
+        }
+        
+        $batchArr = null;
+        if(core_Packs::isInstalled('batch')){
+            $bQuery = batch_Items::getQuery();
+            $bQuery->in('storeId', $usedStores);
+            $bQuery->show('productId,quantity,storeId,batch');
+            $bQuery->where("#state != 'closed'");
+            while($batchRec = $bQuery->fetch()){
+                $batchArr["{$batchRec->productId}|{$batchRec->storeId}"]["{$batchRec->batch}"] = $batchRec->quantity;
+            }
         }
         
         $productsClsId = cat_Products::getClassId();
         
         // Махаме записите за складовете, които не участват в ПОС-а
         if (is_array($all)) {
-            foreach ($all as $index => $bRec) {
+            foreach ($all as $index => &$bRec) {
                 if (!in_array($bRec->storeId, $usedStores) || $bRec->classId != $productsClsId) {
                     unset($all[$index]);
                 }
+                
+                if(!is_null($batchArr)){
+                    $bRec->batches = null;
+                    if(is_array($batchArr["{$bRec->productId}|{$bRec->storeId}"])){
+                        $bRec->batches = serialize($batchArr["{$bRec->productId}|{$bRec->storeId}"]);
+                    }
+                }
             }
         }
-        
+       
         $stockQuery = pos_Stocks::getQuery();
         $oldRecs = $stockQuery->fetchAll();
-        
-        $arrRes = arr::syncArrays($all, $oldRecs, 'productId,storeId', 'quantity');
+        $valueFields = (is_null($batchArr)) ? 'quantity' : 'quantity,batches';
+        $arrRes = arr::syncArrays($all, $oldRecs, 'productId,storeId', $valueFields);
         
         $self = cls::get(get_called_class());
         $self->saveArray($arrRes['insert']);
@@ -219,16 +243,23 @@ class pos_Stocks extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $row->storeId = store_Stores::getHyperLink($rec->storeId, true);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
     }
     
     
-    public static function on_AfterPrepareListFields($mvc, $data)
+    /**
+     * Преди подготовката на полетата за листовия изглед
+     */
+    protected static function on_AfterPrepareListFields($mvc, $data)
     {
         $data->query->orderBy('state', 'ASC');
+        
+        if(core_Packs::isInstalled('batch')){
+            arr::placeInAssocArray($data->listFields, array('batches' => 'Партида'), 'state');
+        }
     }
     
     
@@ -288,7 +319,7 @@ class pos_Stocks extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if (haveRole('admin,debug')) {
             $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата, ef_icon=img/16/sport_shuttlecock.png, title=Изтриване на таблицата с продукти');
