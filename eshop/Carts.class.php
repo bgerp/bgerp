@@ -43,7 +43,7 @@ class eshop_Carts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,ip,brid,createdOn=Създаване,activatedOn=Активиране,domainId';
+    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,createdOn=Създаване,activatedOn=Активиране,domainId';
     
     
     /**
@@ -164,12 +164,12 @@ class eshop_Carts extends core_Master
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,input=hidden,silent');
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
         $this->FLD('freeDelivery', 'enum(yes=Да,no=Не)', 'caption=Безплатна доставка,input=none,notNull,value=no');
-        $this->FLD('deliveryNoVat', 'double(decimals=2)', 'caption=Общи данни->Доставка без ДДС,input=none, summary=amount');
+        $this->FLD('totalNoVat', 'double(decimals=2)', 'caption=Общи данни->Стойност без ДДС,input=none,summaryCaption= Сума (без ДДС), summary=amount');
+        $this->FLD('deliveryNoVat', 'double(decimals=2)', 'caption=Общи данни->Доставка без ДДС,input=none,summaryCaption= Транспорт (без ДДС) , summary=amount');
         $this->FLD('deliveryTime', 'time', 'caption=Общи данни->Срок на доставка,input=none');
         $this->FLD('total', 'double(decimals=2)', 'caption=Общи данни->Стойност,input=none');
-        $this->FLD('totalNoVat', 'double(decimals=2)', 'caption=Общи данни->Стойност без ДДС,input=none, summary=amount');
         $this->FLD('paidOnline', 'enum(no=Не,yes=Да)', 'caption=Общи данни->Платено,input=none,notNull,value=no');
-        $this->FLD('productCount', 'int', 'caption=Общи данни->Брой,input=none, summary=quantity');
+        $this->FLD('productCount', 'int', 'caption=Общи данни->Брой,input=none, summary=quantity,summaryCaption=  Брой артикули');
         
         $this->FLD('personNames', 'varchar(255)', 'caption=Имена,class=contactData,hint=Вашето име||Your name,mandatory,silent');
         $this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Имейл,hint=Вашият имейл||Your email,mandatory');
@@ -1739,8 +1739,13 @@ class eshop_Carts extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
-        $row->brid = log_Browsers::getLink($rec->brid);
+      
+        if ($rec->userId){
+            
+            $row->userId = core_Users::getNick($rec->userId)."</br>";
+        }
+        $row->userId .=type_Ip::decorateIp($rec->ip, $rec->createdOn)."</br>"
+                       .log_Browsers::getLink($rec->brid);
         $row->ROW_ATTR['class'] = "state-{$rec->state}";
         $row->STATE_CLASS = $row->ROW_ATTR['class'];
         $row->domainId = cms_Domains::getHyperlink($rec->domainId);

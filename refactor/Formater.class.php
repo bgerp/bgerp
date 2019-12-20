@@ -371,6 +371,8 @@ class refactor_Formater extends core_Manager
     
     public function act_Test()
     {
+        requireRole('debug');
+        
         ini_set('memory_limit', '256M');
         $allFiles = refactor_Formater::readAllFiles(EF_ALL_PATH);
         
@@ -407,7 +409,7 @@ class refactor_Formater extends core_Manager
             
             // Парсираме кода
             $tokens = token_get_all($fileStr);
-            expect(is_array($tokens));  //bp($tokens);
+            expect(is_array($tokens), $tokens);
             
             $class = '';
             for ($i = 0; $i <= count($tokens); $i++) {
@@ -422,7 +424,6 @@ class refactor_Formater extends core_Manager
                     if ($tokens[$i + 1][0] == 382 && $tokens[$i + 3][0] == '(') {
                         /* if($tokens[$i+2][0] == 319 && $tokens[$i+2][1] == 'description'){
                              //378 == docComent
-                             bp($tokens[$i-5]);
                          }*/
                         
                         // 319 == string
@@ -457,7 +458,7 @@ class refactor_Formater extends core_Manager
                         if ($tokens[$i + 2][0] == 319 && $tokens[$i + 2][1] == 'description') {
                             //378 == docComent
                             while ($tokens[$i][0] != 378) {
-                                bp($tokens[$i - 2]);
+                                expect(false, $tokens[$i - 2]);
                             }
                         }
                     }
@@ -465,8 +466,7 @@ class refactor_Formater extends core_Manager
             }
         }
         
-        //bp($functionArr);
-        bp($fArr);
+        expect(false, $fArr);
     }
     
     
@@ -508,6 +508,6 @@ class refactor_Formater extends core_Manager
             }
         }
         
-        bp($extra);
+        expect(false, $extra);
     }
 }

@@ -186,7 +186,7 @@ class cal_Calendar extends core_Master
      *      о ['updated'] броя на обновените събития
      * 
      */
-    public static function updateEvents($events, $fromDate, $toDate, $prefix)
+    public static function updateEvents($events, $fromDate, $toDate, $prefix, $onlyDel = false)
     {
         $query    = self::getQuery();
         
@@ -208,25 +208,27 @@ class cal_Calendar extends core_Master
             'deleted' => 0
             );
         
-        // Обновяваме информацията за новопостъпилите събития
-        if(countR($events)) {
-            foreach($events as $e) {
-                
-                if(!trim($e->users)) {
-                    unset($e->users);
+        if (!$onlyDel) {
+            // Обновяваме информацията за новопостъпилите събития
+            if(countR($events)) {
+                foreach($events as $e) {
+                    
+                    if(!trim($e->users)) {
+                        unset($e->users);
+                    }
+                    if(($e->id = $exEvents[$e->key]->id) ||
+                                    ($e->id = self::fetchField(array("#key = '[#1#]'", $e->key), 'id')) ) {
+                                        unset($exEvents[$e->key]);
+                                        $res['updated']++;
+                                    } else {
+                                        $res['new']++;
+                                    }
+                                    
+                                    // Ако ->url е масив, от него правим локално url без протекция
+                                    $e->url = toUrl($e->url, 'local', FALSE);
+                                    
+                                    self::save($e);
                 }
-                if(($e->id = $exEvents[$e->key]->id) ||
-                   ($e->id = self::fetchField(array("#key = '[#1#]'", $e->key), 'id')) ) {
-                    unset($exEvents[$e->key]);
-                    $res['updated']++;
-                } else {
-                    $res['new']++;
-                }
-                
-                // Ако ->url е масив, от него правим локално url без протекция
-                $e->url = toUrl($e->url, 'local', FALSE);
-                
-                self::save($e);
             }
         }
         

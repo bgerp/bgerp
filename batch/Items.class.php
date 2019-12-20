@@ -473,13 +473,14 @@ class batch_Items extends core_Master
             // Вербално представяне на записа
             $row = $this->recToVerbal($rec);
             $row->batch = "<span style='float:left'>{$row->batch}</span>";
+            $row->quantity = ht::styleNumber($row->quantity, $rec->quantity);
             
             // Линк към историята защитена
             Request::setProtected('batch,productId,storeId');
             $histUrl = array('batch_Movements', 'list', 'batch' => $rec->batch, 'productId' => $rec->productId, 'storeId' => $rec->storeId);
             $row->icon = ht::createLink('', $histUrl, null, $attr);
             Request::removeProtected('batch,productId,storeId');
-            
+             
             $data->rows[$rec->id] = $row;
         }
     }
