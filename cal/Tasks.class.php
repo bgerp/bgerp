@@ -1461,6 +1461,13 @@ class cal_Tasks extends embed_Manager
     {
         $rec = static::fetch($id);
         
+        $onlyDel = false;
+        
+        if (!$rec->timeStart && !$rec->timeEnd) {
+            
+            $onlyDel = true;
+        }
+        
         $events = array();
         
         // Годината на датата от преди 30 дни е начална
@@ -1616,7 +1623,7 @@ class cal_Tasks extends embed_Manager
             }
         }
         
-        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix, $onlyDel);
     }
     
     

@@ -24,7 +24,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('infoInt', 'richtext(rows=4, bucket=Notes)', 'caption=Допълнително->Описание международно,autohide');
+        $fieldset->FLD('infoInt', 'richtext(rows=4, bucket=Notes)', 'caption=Подробно->Описание международно,autohide');
         if (!$fieldset->getField('photo', false)) {
             $fieldset->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Изображение');
         } else {
