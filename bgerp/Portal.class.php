@@ -631,11 +631,27 @@ class bgerp_Portal extends embed_Manager
         
         $resArr = array();
         while ($rec = $query->fetch()) {
-            if ($resArr[$rec->originIdCalc]) {
+            
+            // За originId приемаме най-стария родител
+            $nRec = clone $rec;
+            $oIdCalc = $nRec->originIdCalc;
+            while (true) {
+                if (!$nRec->originIdCalc) break;
+                
+                if ($nRec->id == $nRec->originIdCalc) break;
+                
+                if ($mCnt++ > 100) break;
+                
+                $nRec = $this->fetch($nRec->originIdCalc);
+                
+                $oIdCalc = $nRec->originIdCalc;
+            }
+            
+            if ($resArr[$oIdCalc]) {
                 continue;
             }
             
-            $resArr[$rec->originIdCalc] = $rec;
+            $resArr[$oIdCalc] = $rec;
         }
         
         if ($removeHidden) {
@@ -989,6 +1005,12 @@ class bgerp_Portal extends embed_Manager
     {
         if ($rec->color) {
             $row->color = "<span class='color-{$rec->color}'>{$row->color}</span>";
+        }
+        
+        if ($rec->state == 'no') {
+            $row->ROW_ATTR['class'] = 'state-closed';
+        } elseif ($rec->state == 'yes') {
+            $row->ROW_ATTR['class'] = 'state-active';
         }
     }
     
