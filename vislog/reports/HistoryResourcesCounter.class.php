@@ -53,7 +53,7 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
     {
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none');
-        $fieldset->FLD('text', 'varchar', 'caption=Текст,single=none,after=to');
+        $fieldset->FLD('text', 'varchar', 'caption=Текст,single=none,after=to,mandatory');
     }
     
     
