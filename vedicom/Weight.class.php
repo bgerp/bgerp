@@ -42,8 +42,6 @@ class vedicom_Weight extends core_Manager
         $precision = 1;
         
         while (false !== ($c = fgetc($fp)) && $result !== true) {
-            // $res .= $c;
-            // echo ("$res <br>"); flush;
             if (preg_match(STABLE_EXP, $res, $matches)) {
                 $match = substr($matches[0], 2);
                 if ($prev != $match) {
@@ -55,11 +53,8 @@ class vedicom_Weight extends core_Manager
                     $result = true;
                 }
             }
-            
-            //echo ($i++ .' - $res ->'.$res." : ". strlen($res)."<br>"); flush();
         }
         
-        // echo ($match . "<--->" . $precision);
         if ($result) {
             
             return $match;

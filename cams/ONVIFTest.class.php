@@ -4,6 +4,8 @@ class cams_ONVIFTest extends core_Manager
 {
     public function act_ponvif()
     {
+        requireRole('debug');
+        
         // require_once ('/home/mitko/git/ponvif/lib/class.ponvif.php');
         require_once (EF_ROOT_PATH . '/' . EF_APP_CODE_NAME . '/cams/ponvif/lib/class.ponvif.php');
         $onvif = new Ponvif(); 
@@ -107,6 +109,7 @@ class cams_ONVIFTest extends core_Manager
     
     public function act_Test()
     {
+        requireRole('debug');
         ini_set('default_socket_timeout', 600);
         
         $header_security = array(
@@ -228,6 +231,7 @@ class cams_ONVIFTest extends core_Manager
     
     public function act_Test1()
     {
+        requireRole('debug');
         try {
             $HeaderSecurity = array(
                 "UsernameToken" => array(

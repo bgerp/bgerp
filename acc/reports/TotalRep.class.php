@@ -105,7 +105,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         
         $query = hr_Indicators::getQuery();
         
-        $query->where(array("(#date >= '[#1#]' AND #date <= '[#2#]') AND #indicatorId = [#3#]", $from, $to, $deltaId));
+        $query->where(array("(#date >= '[#1#]' AND #date <= '[#2#]') AND #indicatorId = '[#3#]'", $from, $to, $deltaId));
         
         $delta = 0;
         

@@ -300,7 +300,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
                     $nowClassName = 'portal-cal-after';
                 }
                 
-                $nowDateClass = cal_Calendar::isHoliday($tDate) ? 'portal-cal-title-holiday' : 'portal-cal-title-workingday';
+                $nowDateClass = cal_Calendar::getColorOfDay($tDate. " 00:00:00");
+                $nowDateClass = $nowDateClass ? $nowDateClass : 'workday';
                 
                 $dVerb .= $dVerb ? ', ' : '';
                 $dVerb .= $dStr;
@@ -394,6 +395,11 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $pArr['_endWorkingDay'] = cal_Calendar::nextWorkingDay($today, $userId, $endWorkingDayCnt);
         $pArr['_endWorkingDay'] .= ' 23:59:59';
         $pArr['fTasksDays'] = dt::addSecs($pArr['fTasksDays'], $pArr['_endWorkingDay']);
+        
+        $dDif = dt::daysBetween($pArr['_endWorkingDay'], $today);	
+        if ($dDif > 4) {
+            $pArr['_endWorkingDay'] = dt::addDays(4, $today . ' 23:59:59');
+        }
         
         $resArr = $this->prepareTasksCalendarEvents($pArr);
         
@@ -738,10 +744,13 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $cQuery->where(array("#createdBy = '[#1#]'", $userId));
         $cQuery->orderBy('modifiedOn', 'DESC');
         $cQuery->limit(1);
-        $cQuery->show('modifiedOn, id');
+        $cQuery->show('modifiedOn, id, containerId');
         $cRec = $cQuery->fetch();
         if ($cRec) {
             $cArr[] = $cRec->modifiedOn;
+        }
+        if ($cRec->containerId) {
+            $cArr[] = bgerp_Recently::getLastDocumentSee($cRec->containerId, $userId, false);
         }
         
         $agendaStateQuery = cal_Calendar::getQuery();

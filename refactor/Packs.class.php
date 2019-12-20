@@ -189,8 +189,6 @@ class refactor_Packs extends core_Manager
         
         return $html;
         
-        bp($bad, $debug, $ptr, $res);
-        
         // Добавяме масива с пакети към текущия пакет $depends[$pack] += $packs
     }
     

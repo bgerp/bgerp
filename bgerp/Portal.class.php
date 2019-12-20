@@ -95,7 +95,11 @@ class bgerp_Portal extends embed_Manager
      */
     public static function invalidateCache($userId = null, $driver = null, $rec = null)
     {
-        if (bgerp_Setup::get('PORTAL_VIEW') != 'customized') {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        if (bgerp_Setup::get('PORTAL_VIEW', false, $userId) != 'customized') {
             
             return ;
         }
@@ -113,10 +117,6 @@ class bgerp_Portal extends embed_Manager
         }
         
         expect($driver);
-        
-        if (!isset($userId)) {
-            $userId = core_Users::getCurrent();
-        }
         
         $intf = cls::getInterface('bgerp_PortalBlockIntf', $driver);
         

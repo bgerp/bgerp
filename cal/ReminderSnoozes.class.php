@@ -220,7 +220,7 @@ class cal_ReminderSnoozes extends core_Detail
      */
     public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
     {
-        $remRec = cal_Reminders::fetch($rec->remId, 'timeStart, state, title, threadId, createdBy');
+        $remRec = cal_Reminders::fetch($rec->remId);
         $now = dt::now();
         
         // Определяне на времето за отлагане
@@ -228,6 +228,9 @@ class cal_ReminderSnoozes extends core_Detail
             $time = dt::mysql2timestamp($remRec->timeStart) + $rec->timeStart;
             $remRec->timeStart = dt::timestamp2Mysql($time);
             $remRec->state = 'active';
+            if ($remRec->notifySent == 'yes') {
+                $remRec->notifySent = 'no';
+            }
         }
         
         cal_Reminders::save($remRec);
