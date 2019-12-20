@@ -471,7 +471,7 @@ class docarch_Movements extends core_Master
             if (!$className::fetch($id)) {
                 $row->documentId .= $title.'(Изтрит)';
             } else {
-                $row->documentId .= $className::getHyperlink($id);//bp($rec,$className,$id,$className::fetch($id));
+                $row->documentId .= $className::getHyperlink($id);
             }
             $row->position = '';
         }
@@ -486,7 +486,7 @@ class docarch_Movements extends core_Master
             if (!$className::fetch($id)) {
                 $row->documentId .= $title.'(Изтрит)';
             } else {
-                $row->documentId .= $className::getHyperlink($id);//bp($rec,$className,$id,$className::fetch($id));
+                $row->documentId .= $className::getHyperlink($id);
             }
             $row->position = '';
         }

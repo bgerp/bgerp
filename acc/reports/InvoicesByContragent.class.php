@@ -777,7 +777,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $rec->totalInvoiceOverPaidAll += $v -> totalInvoiceOverPaid;
             $rec->totalInvoiceOverDueAll += $v -> totalInvoiceOverDue;
         }
-     //   bp($recs);
+        
         return $recs;
     }
     

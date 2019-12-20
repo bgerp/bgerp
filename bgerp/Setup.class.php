@@ -108,7 +108,7 @@ Conto,Реконтиране = K
 /**
  * Изглед на портала на системата
  */
-defIfNot('BGERP_PORTAL_VIEW', 'standard');
+defIfNot('BGERP_PORTAL_VIEW', 'customized');
 
 
 /**
