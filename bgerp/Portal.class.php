@@ -631,11 +631,27 @@ class bgerp_Portal extends embed_Manager
         
         $resArr = array();
         while ($rec = $query->fetch()) {
-            if ($resArr[$rec->originIdCalc]) {
+            
+            // За originId приемаме най-стария родител
+            $nRec = clone $rec;
+            $oIdCalc = $nRec->originIdCalc;
+            while (true) {
+                if (!$nRec->originIdCalc) break;
+                
+                if ($nRec->id == $nRec->originIdCalc) break;
+                
+                if ($mCnt++ > 100) break;
+                
+                $nRec = $this->fetch($nRec->originIdCalc);
+                
+                $oIdCalc = $nRec->originIdCalc;
+            }
+            
+            if ($resArr[$oIdCalc]) {
                 continue;
             }
             
-            $resArr[$rec->originIdCalc] = $rec;
+            $resArr[$oIdCalc] = $rec;
         }
         
         if ($removeHidden) {
