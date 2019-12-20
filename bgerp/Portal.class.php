@@ -990,6 +990,12 @@ class bgerp_Portal extends embed_Manager
         if ($rec->color) {
             $row->color = "<span class='color-{$rec->color}'>{$row->color}</span>";
         }
+        
+        if ($rec->state == 'no') {
+            $row->ROW_ATTR['class'] = 'state-closed';
+        } elseif ($rec->state == 'yes') {
+            $row->ROW_ATTR['class'] = 'state-active';
+        }
     }
     
     
