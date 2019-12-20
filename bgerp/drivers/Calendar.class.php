@@ -396,6 +396,11 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $pArr['_endWorkingDay'] .= ' 23:59:59';
         $pArr['fTasksDays'] = dt::addSecs($pArr['fTasksDays'], $pArr['_endWorkingDay']);
         
+        $dDif = dt::daysBetween($pArr['_endWorkingDay'], $today);	
+        if ($dDif > 4) {
+            $pArr['_endWorkingDay'] = dt::addDays(4, $today . ' 23:59:59');
+        }
+        
         $resArr = $this->prepareTasksCalendarEvents($pArr);
         
         setIfNot($resArr['now'], array());
