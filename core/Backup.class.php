@@ -45,6 +45,7 @@ class core_Backup extends core_Mvc
         $lockTables = '';
 
         foreach ($mvcArr as $classId => $className) {
+            if(!cls::load($className, true)) continue;
             $mvc = cls::get($className);
             if ($mvc->dbTableName && $this->db->tableExists($mvc->dbTableName) && !isset($instArr[$mvc->dbTableName])) {
                 $instArr[$mvc->dbTableName] = null;
@@ -223,7 +224,7 @@ class core_Backup extends core_Mvc
      */
     public static function addSqlLog($sql)
     {
-        if (core_Setup::get('BACKUP_ENABLED') == 'yes') {
+        if (defined('CORE_BACKUP_ENABLED') && CORE_BACKUP_ENABLED == 'yes') {
             $path = self::getSqlLogPath();
             @file_put_contents($path, $sql . ";\n\r", FILE_APPEND);
         }

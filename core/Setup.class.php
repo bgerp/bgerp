@@ -453,7 +453,10 @@ class core_Setup extends core_ProtoSetup
      * Инсталиране на пакета
      */
     public function install()
-    {
+    {   
+        // Спираме SQL лога, ако има такъв
+        core_Db::$sqlLogEnebled = false;
+
         $html .= parent::install();
         
         if (CORE_OVERWRITE_HTAACCESS) {
@@ -520,9 +523,8 @@ class core_Setup extends core_ProtoSetup
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
-        
-        cls::load('core_Backup');
-        if(BGERP_BACKUP_ENABLED) {
+
+        if(CORE_BACKUP_ENABLED) {
             // Нагласяване Крон да прави пълен бекъп
             $rec = new stdClass();
             $rec->systemId = 'Backup_Create';

@@ -246,6 +246,9 @@ class bgerp_Setup extends core_ProtoSetup
         
         // Блокираме други процеси
         core_SystemLock::block('Prepare bgERP installation...');
+
+        // Спираме SQL лога, ако има такъв
+        core_Db::$sqlLogEnebled = false;
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
