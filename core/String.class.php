@@ -1225,7 +1225,7 @@ class core_String
                 if (!$res && ($last1 == 'А' || $last1 == 'Я')) {
                     $res = mb_substr($word, 0, $len - 1) . 'И';
                 }
-                if (!$res && (preg_match('/[бвгдйклмнпрстфхчцшщ]/u', $last1))) {bp($word);
+                if (!$res && (preg_match('/[бвгдйклмнпрстфхчцшщ]/u', $last1))) {
                     $res = $word . 'а';
                 }
                 if (!$res && (preg_match('/[БВГДЙКЛМНПРСТФХЧЦШЩ]/u', $last1))) {
