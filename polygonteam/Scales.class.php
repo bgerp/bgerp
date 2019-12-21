@@ -72,7 +72,7 @@ class polygonteam_Scales extends peripheral_DeviceDriver
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param tremol_FiscPrinterDriverWeb $Driver
+     * @param peripheral_DeviceDriver    $Driver
      * @param peripheral_Devices          $Embedder
      * @param stdClass                    $data
      */

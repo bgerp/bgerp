@@ -96,7 +96,7 @@ class cal_Tasks extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, assign=Потребители->Възложени, sharedUsers=Потребители->Споделени';
+    public $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, assign=Потребители->Възложени, sharedUsers=Потребители->Споделени,assignedOn';
     
     
     /**
@@ -924,6 +924,9 @@ class cal_Tasks extends embed_Manager
             
             $tpl->append($tplx, 'DETAILS');
         }
+        
+        bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Tasks');
+        bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Calendar');
     }
     
     
@@ -1458,6 +1461,13 @@ class cal_Tasks extends embed_Manager
     {
         $rec = static::fetch($id);
         
+        $onlyDel = false;
+        
+        if (!$rec->timeStart && !$rec->timeEnd) {
+            
+            $onlyDel = true;
+        }
+        
         $events = array();
         
         // Годината на датата от преди 30 дни е начална
@@ -1613,7 +1623,7 @@ class cal_Tasks extends embed_Manager
             }
         }
         
-        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix, $onlyDel);
     }
     
     
@@ -3413,7 +3423,7 @@ class cal_Tasks extends embed_Manager
         foreach ($tasks as $taskRec) {
             $cloneTask = clone $taskRec;
             plg_Clone::unsetFieldsNotToClone($Tasks, $cloneTask, $taskRec);
-            unset($cloneTask->id, $cloneTask->folderId, $cloneTask->threadId, $cloneTask->containerId, $cloneTask->createdOn, $cloneTask->createdBy, $cloneTask->modifiedOn, $cloneTask->modifiedBy);
+            unset($cloneTask->id, $cloneTask->folderId, $cloneTask->threadId, $cloneTask->containerId, $cloneTask->createdOn, $cloneTask->createdBy, $cloneTask->modifiedOn, $cloneTask->modifiedBy, $cloneTask->assignedOn, $cloneTask->assignedBy);
             $cloneTask->folderId = $toFolderId;
             $cloneTask->state = $cloneInState;
             
@@ -3443,7 +3453,11 @@ class cal_Tasks extends embed_Manager
             }
             
             $Tasks->route($cloneTask);
+            if ($cloneTask->state != 'draft' &&  $cloneTask->state != 'rejected') {
+                self::calculateExpectationTime($cloneTask);
+            }
             $Tasks->save($cloneTask);
+            
             $Tasks->logWrite('Създаване при клониране на проект', $cloneTask->id);
         }
     }

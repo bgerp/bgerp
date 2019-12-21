@@ -231,7 +231,7 @@ class cat_Products extends embed_Manager
      *
      * @var string
      */
-    public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code-->';
+    public $recTitleTpl = '[[#code#]] [#name#]';
     
     
     /**
@@ -2165,13 +2165,13 @@ class cat_Products extends embed_Manager
         $subTitle = (is_array($fullTitle)) ? $fullTitle['subTitle'] : null;
         
         if ($showCode === true) {
-            $titleTpl = new core_ET('[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code-->');
+            $titleTpl = new core_ET('<!--ET_BEGIN code-->[[#code#]] <!--ET_END code-->[#name#]');
             $titleTpl->replace($title, 'name');
             
             
             if (!empty($rec->code)) {
                 $code = core_Type::getByName('varchar')->toVerbal($rec->code);
-                if (!mb_strpos($title, "({$code})")) {
+                if (!mb_strpos($title, "[{$code}]")) {
                     $titleTpl->replace($code, 'code');
                 }
             }
@@ -2179,11 +2179,11 @@ class cat_Products extends embed_Manager
             
             if ($rec->isPublic == 'no' && empty($rec->code)) {
                 $count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'", 2);
-                $title .= " (Art{$rec->id})";
+                $title = "[Art{$rec->id}] {$title}";
                 
                 if ($count > 1) {
                     $vNumber = "/<small class='versionNumber'>v{$count}</small>";
-                    $title = str::replaceLastOccurence($title, ')', $vNumber . ')');
+                    $title = str::replaceLastOccurence($title, ']', $vNumber . ']');
                 }
             }
         }

@@ -2682,6 +2682,18 @@ table.mc-calendar {
 		padding: 2px;
 		display: block;
 		white-space: nowrap;
+		&.workday {
+			color: #222;
+		}
+		&.holiday {
+			color: red;
+		}
+		&.sunday {
+			color: green;
+		}
+		&.saturday {
+			color: #006030;
+		}
 	}
 
 	.progress {

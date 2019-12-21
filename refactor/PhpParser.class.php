@@ -115,8 +115,6 @@ class refactor_PhpParser
                 if ($matches[1]{0} == 'n' && strpos($l, '\\' . $matches[1]) !== false) {
                     continue;
                 }
-                
-                bp($l, $matches);
             }
         }
     }

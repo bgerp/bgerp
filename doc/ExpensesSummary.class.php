@@ -74,7 +74,7 @@ class doc_ExpensesSummary extends core_Manager
             $actionTitle = 'Показване на разходите към документа';
             $document = doc_Containers::getDocument($containerId);
             
-            if (haveRole('ceo, acc, purchase') && $document->haveRightFor('single')) {
+            if (haveRole('ceo, acc, purchase, sales') && $document->haveRightFor('single')) {
                 $linkArr = array($document->getInstance(), 'single', $document->that, 'Sid' => $containerId);
             }
             $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr, false, array('title' => $actionTitle));
@@ -103,7 +103,7 @@ class doc_ExpensesSummary extends core_Manager
         $render = true;
         if ($masterRec->containerId != $cid) {
             $render = false;
-        } elseif (!haveRole('ceo, acc, purchase')) {
+        } elseif (!haveRole('ceo, acc, purchase, sales')) {
             $render = false;
         } elseif (!$rec) {
             $render = false;

@@ -229,7 +229,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
                                         <!--ET_BEGIN NOW-->
                                         
                                             <div class="[#NOW_CLASS_NAME#] portal-cal-day">
-                                                <span class="title">[#NOW_DATE#]</span>
+                                                <span class="title [#NOW_DATE_CLASS#]">[#NOW_DATE#]</span>
                                                 [#NOW#]
                                             </div>
                                         <!--ET_END NOW-->    
@@ -300,6 +300,9 @@ class bgerp_drivers_Calendar extends core_BaseClass
                     $nowClassName = 'portal-cal-after';
                 }
                 
+                $nowDateClass = cal_Calendar::getColorOfDay($tDate. " 00:00:00");
+                $nowDateClass = $nowDateClass ? $nowDateClass : 'workday';
+                
                 $dVerb .= $dVerb ? ', ' : '';
                 $dVerb .= $dStr;
                 
@@ -311,6 +314,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $dBlock = $data->tpl->getBlock('NOW');
                 
                 $dBlock->replace($dVerb, 'NOW_DATE');
+                $dBlock->replace($nowDateClass, 'NOW_DATE_CLASS');
                 $dBlock->replace($nowClassName, 'NOW_CLASS_NAME');
                 
                 if ($tRowArr['events']) {
@@ -386,11 +390,16 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $pArr['_todayF'] = $today . ' 00:00:00';
         
         // Намираме работните дни, така че да останат 3 работни дни винаги
-        $nWorkDay = cal_Calendar::nextWorkingDay(dt::addDays(-1, $today, false), null, 1);
+        $nWorkDay = cal_Calendar::nextWorkingDay(dt::addDays(-1, $today, false), $userId, 1);
         $endWorkingDayCnt = (dt::daysBetween($nWorkDay, $today)) ? 3 : 2;
-        $pArr['_endWorkingDay'] = cal_Calendar::nextWorkingDay($today, null, $endWorkingDayCnt);
+        $pArr['_endWorkingDay'] = cal_Calendar::nextWorkingDay($today, $userId, $endWorkingDayCnt);
         $pArr['_endWorkingDay'] .= ' 23:59:59';
         $pArr['fTasksDays'] = dt::addSecs($pArr['fTasksDays'], $pArr['_endWorkingDay']);
+        
+        $dDif = dt::daysBetween($pArr['_endWorkingDay'], $today);	
+        if ($dDif > 4) {
+            $pArr['_endWorkingDay'] = dt::addDays(4, $today . ' 23:59:59');
+        }
         
         $resArr = $this->prepareTasksCalendarEvents($pArr);
         
@@ -735,10 +744,13 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $cQuery->where(array("#createdBy = '[#1#]'", $userId));
         $cQuery->orderBy('modifiedOn', 'DESC');
         $cQuery->limit(1);
-        $cQuery->show('modifiedOn, id');
+        $cQuery->show('modifiedOn, id, containerId');
         $cRec = $cQuery->fetch();
         if ($cRec) {
             $cArr[] = $cRec->modifiedOn;
+        }
+        if ($cRec->containerId) {
+            $cArr[] = bgerp_Recently::getLastDocumentSee($cRec->containerId, $userId, false);
         }
         
         $agendaStateQuery = cal_Calendar::getQuery();

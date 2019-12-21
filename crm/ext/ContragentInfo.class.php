@@ -329,9 +329,9 @@ class crm_ext_ContragentInfo extends core_manager
                 $total = is_array($sales[$cRec->id]['total']) ? $sales[$cRec->id]['total'] : array();
                 $overdues = is_array($sales[$cRec->id]['overdue']) ? $sales[$cRec->id]['overdue'] : array();
                 
-                $r->overdueSales = count($overdues) ? 'yes' : null;
-                $r->totalDeals = count($total) ? $total : null;
-                $r->overdueDeals = count($overdues) ? $overdues : null;
+                $r->overdueSales = countR($overdues) ? 'yes' : null;
+                $r->totalDeals = countR($total) ? $total : null;
+                $r->overdueDeals = countR($overdues) ? $overdues : null;
                 
                 //..и е стар запис създаден от системата
                 if (array_key_exists($cRec->id, $exRecs)) {
@@ -346,7 +346,7 @@ class crm_ext_ContragentInfo extends core_manager
             }
             
             // Запис на новите данни
-            if (count($saveArray)) {
+            if (countR($saveArray)) {
                 $this->saveArray($saveArray);
             }
         }

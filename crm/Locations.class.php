@@ -173,7 +173,7 @@ class crm_Locations extends core_Master
         }
         
         // Ако има други параметри и са от допустимите се добавят
-        if (count($otherParams)) {
+        if (countR($otherParams)) {
             $otherFields = arr::make(array('mol', 'gln', 'email', 'tel', 'gpsCoords', 'comment', 'title'), true);
             $otherFields = array_intersect_key($otherParams, $otherFields);
             $newRec = (array) $newRec + $otherFields;
@@ -306,7 +306,7 @@ class crm_Locations extends core_Master
     {
         $f = arr::make($fields, true);
         
-        if (!count($f) || isset($f['title'], $f['countryId'])) {
+        if (!countR($f) || isset($f['title'], $f['countryId'])) {
             if (empty($rec->title)) {
                 $lQuery = crm_Locations::getQuery();
                 $lQuery->where("#type = '{$rec->type}' AND #contragentCls = '{$rec->contragentCls}' AND #contragentId = '{$rec->contragentId}'");
@@ -566,7 +566,7 @@ class crm_Locations extends core_Master
         $query = static::getQuery();
         $query->where("#contragentCls = {$contragentClassId} AND #contragentId = {$contragentId}");
         $query->where("#state != 'rejected'");
-        if(count($countries)){
+        if(countR($countries)){
             $query->in('countryId', $countries);
         }
         
@@ -597,7 +597,7 @@ class crm_Locations extends core_Master
             $rec = static::getTitleById($rec->id, false);
         }
         
-        if (!$intKeys && count($locationRecs)) {
+        if (!$intKeys && countR($locationRecs)) {
             $locationRecs = array_combine($locationRecs, $locationRecs);
         }
         

@@ -1144,7 +1144,7 @@ form[method="post"] input[type="submit"] {
   .pages a:last-child {
     border-radius: 0 5px 5px 0 !important; }
 
-.portal table.listTable {
+.swipe-tab-content .portal table.listTable {
   transform: translate3d(0, 0, 0); }
 
 .sub-header {

@@ -590,7 +590,6 @@ class docarch_Volumes extends core_Master
      */
     public static function getIncludedVolumes($rec, $escaped = true)
     {
-        //bp($rec);
         $includedVolumes = array();
         
         $volRec = docarch_Volumes::getQuery();

@@ -173,7 +173,7 @@ class crm_ext_IdCards extends core_Detail
             }
         }
         
-        if (count($url)) {
+        if (countR($url)) {
             $link = ht::createLink('', $url, false, "title=Промяна на лична карта,ef_icon={$efIcon}");
             $tpl->append($link, 'idCardTitle');
         }
