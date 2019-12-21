@@ -197,7 +197,7 @@ class core_Backup extends core_Mvc
             return self::normDir(core_Setup::get('BACKUP_WORK_DIR'));
         }
 
-        if($mysqlCsvPath != 'NULL' && is_dir($mysqlCsvPath) && is_readable() && is_writable()) {
+        if($mysqlCsvPath != 'NULL' && is_dir($mysqlCsvPath) && is_readable($mysqlCsvPath) && is_writable($mysqlCsvPath)) {
 
             return self::normDir($mysqlCsvPath);
         }
@@ -453,7 +453,7 @@ class core_Backup extends core_Mvc
             return false;
         }
 
-        return (count(scandir($dir)) <= 2);
+        return (countR(scandir($dir)) <= 2);
     }
 
 
