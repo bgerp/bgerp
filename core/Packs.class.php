@@ -1059,7 +1059,11 @@ class core_Packs extends core_Manager
                 Mode::push('text', 'plain');
                 $defVal = $typeInst->toVerbal(constant($field));
                 Mode::pop('text');
-                $params['hint'] .= ($params['hint'] ? "\n" : '') . 'Стойност по подразбиране|*: "' . $defVal . '"';
+                if ($params['readOnly']) {
+                    $params['hint'] = "Тази стойност може да бъде променена във файла \n`" . EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php' . '`';
+                } else {
+                    $params['hint'] .= ($params['hint'] ? "\n" : '') . 'Стойност по подразбиране|*: "' . $defVal . '"';
+                }
             }
             
             $form->FNC($field, $type, $params);
