@@ -107,7 +107,13 @@ class core_Db
      */
     public static $links = array();
     
-    
+
+    /**
+     * Разрешен ли е SQL лога?
+     */
+    public static $sqlLogEnebled = true;
+
+
     /**
      * Номер на mySQL код за грешка при липсваща таблица
      */
@@ -252,7 +258,7 @@ class core_Db
         $this->checkForErrors('изпълняване на заявка', $silent, $link);
         DEBUG::stopTimer('DB::query()');
         
-        if ($replication) {
+        if ($replication && self::$sqlLogEnebled) {
             if ($link->affected_rows > 0 || stripos($sqlQuery, 'truncate') !== false) {
                 core_Backup::addSqlLog($sqlQuery);
             }

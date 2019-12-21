@@ -215,6 +215,48 @@ define('CORE_CODE_VERSION', '19.51-Vezhen');
 
 
 /**
+ * Включена ли е бекъп функционалността?
+ */
+defIfNot('CORE_BACKUP_ENABLED', false);
+
+
+/**
+ * Парола за архиви
+ */
+defIfNot('CORE_BACKUP_PASS', '');
+
+
+/**
+ * Работна директория за бекъпите
+ */
+defIfNot('CORE_BACKUP_WORK_DIR', EF_TEMP_PATH . '/backup_work');
+
+
+/**
+ * Път до текущия и миналия бекъп
+ */
+defIfNot('CORE_BACKUP_PATH', EF_UPLOADS_PATH . '/backup');
+
+
+/**
+ * Колко минути е периода за флъшване на SQL лога
+ */
+defIfNot('CORE_BACKUP_SQL_LOG_FLUSH_PERIOD', 60*60);
+
+
+/**
+ * Колко колко минути е периода за пълен бекъп?
+ */
+defIfNot('CORE_BACKUP_CREATE_FULL_PERIOD', (60 * 24) * 60);
+
+
+/**
+ * В колко минути след периода да започва пълният бекъп?
+ */
+defIfNot('CORE_BACKUP_CREATE_FULL_OFFSET', (60 * 3 + 50)*60);
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -331,7 +373,20 @@ class core_Setup extends core_ProtoSetup
         'CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM' => array('enum(yes=Да, no=Не)', 'caption=Дали да може да се регистрират нови потребители от логин формата->Избор'),
         
         'CORE_RESET_PASSWORD_FROM_LOGIN_FORM' => array('enum(yes=Да, no=Не)', 'caption=Дали да може да се ресетват пароли от логин формата->Избор'),
-    
+
+        'CORE_BACKUP_ENABLED' => array('enum(no=Не, yes=Да)', 'caption=Настройки за бекъп->Включен бекъп'),
+        
+        'CORE_BACKUP_PASS' => array('password', 'caption=Настройки за бекъп->Ключ за криптиране'),
+
+        'CORE_BACKUP_SQL_LOG_FLUSH_PERIOD' => array('time', 'caption=Настройки за бекъп->Запис на SQL лог през'),
+        
+        'CORE_BACKUP_CREATE_FULL_PERIOD' => array('time', 'caption=Настройки за бекъп->Пълен бекъп през'),
+
+        'CORE_BACKUP_CREATE_FULL_OFFSET' => array('time', 'caption=Настройки за бекъп->Изместване'),
+        
+        'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
+
+        'CORE_BACKUP_WORK_DIR' => array('varchar', 'caption=Настройки за бекъп->Работна директория,readOnly'),
     );
     
     
@@ -398,7 +453,10 @@ class core_Setup extends core_ProtoSetup
      * Инсталиране на пакета
      */
     public function install()
-    {
+    {   
+        // Спираме SQL лога, ако има такъв
+        core_Db::$sqlLogEnebled = false;
+
         $html .= parent::install();
         
         if (CORE_OVERWRITE_HTAACCESS) {
@@ -465,17 +523,16 @@ class core_Setup extends core_ProtoSetup
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
-        
-        cls::load('core_Backup');
-        if(BGERP_BACKUP_ENABLED) {
+
+        if(CORE_BACKUP_ENABLED) {
             // Нагласяване Крон да прави пълен бекъп
             $rec = new stdClass();
             $rec->systemId = 'Backup_Create';
             $rec->description = 'Създаване на бекъп';
             $rec->controller = 'core_Backup';
             $rec->action = 'Create';
-            $rec->period = BGERP_BACKUP_CREATE_FULL_PERIOD;
-            $rec->offset = BGERP_BACKUP_CREATE_FULL_OFFSET;
+            $rec->period = round(core_Setup::get('BACKUP_CREATE_FULL_PERIOD')/60);
+            $rec->offset = round(core_Setup::get('BACKUP_CREATE_FULL_OFFSET')/60);
             $rec->delay = 20;
             $rec->timeLimit = 1800;
             $html .= core_Cron::addOnce($rec);
@@ -486,7 +543,7 @@ class core_Setup extends core_ProtoSetup
             $rec->description = 'Флъшване на SQL лога';
             $rec->controller = 'core_Backup';
             $rec->action = 'FlushSqlLog';
-            $rec->period = BGERP_BACKUP_SQL_LOG_FLUSH_PERIOD;
+            $rec->period = round(core_Setup::get('BACKUP_SQL_LOG_FLUSH_PERIOD')/60);
             $rec->offset = 0;
             $rec->delay = 2;
             $rec->timeLimit = 20;
@@ -559,6 +616,16 @@ class core_Setup extends core_ProtoSetup
     public function getCommonCss()
     {
         return $res;
+    }
+
+
+
+    /**
+     * Поверява дали конфига е добре настроен
+     */
+    public function checkConfig()
+    {
+        return core_Backup::checkConfig();
     }
     
     
