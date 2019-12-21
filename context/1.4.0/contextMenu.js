@@ -343,9 +343,13 @@
                 //check conditions
                 cntWin = cntnmnt == window,
                 btChck = option.baseTrigger.index(trigger) == -1;
-
-            var el = trigger.parent().find('.modal-toolbar');
-
+            
+            if($(this).is('[data-id]')) {
+                var el = $('#' + $(this).attr('data-id')).first(); 
+            } else {
+                var el = trigger.parent().find('.modal-toolbar');
+            }
+ 
             var isHidden;
             if(el.css('display') == 'none'){
                 isHidden = true;

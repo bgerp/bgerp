@@ -1192,7 +1192,7 @@ class core_String
                 $last1 = mb_substr($word, -1);
                 $len = mb_strlen($word);
                 
-                if (!$res && ($last1 == 'о')) {
+                if (!$res && ($last1 == 'о')) {bp();
                     $res = mb_substr($word, 0, $len - 1) . 'а';
                 }
                 if (!$res && ($last1 == 'О')) {
@@ -1209,13 +1209,23 @@ class core_String
                     $res = $word . 'ТА';
                 }
                 
+                if (!$res && ($last1 == 'й')) {
+                    $word = rtrim($word, 'й');
+                    $res = $word . 'я';
+                }
+                
+                if (!$res && ($last1 == 'Й')) {
+                    $word = rtrim($word, 'Й');
+                    $res = $word . 'Я';
+                }
+                
                 if (!$res && ($last1 == 'а' || $last1 == 'я')) {
                     $res = mb_substr($word, 0, $len - 1) . 'и';
                 }
                 if (!$res && ($last1 == 'А' || $last1 == 'Я')) {
                     $res = mb_substr($word, 0, $len - 1) . 'И';
                 }
-                if (!$res && (preg_match('/[бвгдйклмнпрстфхчцшщ]/u', $last1))) {
+                if (!$res && (preg_match('/[бвгдйклмнпрстфхчцшщ]/u', $last1))) {bp($word);
                     $res = $word . 'а';
                 }
                 if (!$res && (preg_match('/[БВГДЙКЛМНПРСТФХЧЦШЩ]/u', $last1))) {
