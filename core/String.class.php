@@ -1192,7 +1192,7 @@ class core_String
                 $last1 = mb_substr($word, -1);
                 $len = mb_strlen($word);
                 
-                if (!$res && ($last1 == 'о')) {bp();
+                if (!$res && ($last1 == 'о')) {
                     $res = mb_substr($word, 0, $len - 1) . 'а';
                 }
                 if (!$res && ($last1 == 'О')) {
