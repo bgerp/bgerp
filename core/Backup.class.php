@@ -33,10 +33,10 @@ class core_Backup extends core_Mvc
         $pass = core_Setup::get('BACKUP_PASS');
         
         // Форсираме директориите
-        $curDir = self::getDir('current');
-        $pastDir = self::getDir('past');
+        $curDir = $this->getDir('current');
+        $pastDir = $this->getDir('past');
         $workDir = core_Setup::get('BACKUP_WORK_DIR');
-        $sqlDir = self::getExportCsvDir();
+        $sqlDir = $this->getExportCsvDir();
         
         // Определяме всички mvc класове, на които ще правим бекъп
         $mvcArr = core_Classes::getOptionsByInterface('core_ManagerIntf');
@@ -69,12 +69,12 @@ class core_Backup extends core_Mvc
         $this->db->query("LOCK TABLES {$lockTables}");
         
         // Флъшваме всичко, каквото има от SQL лога
-        self::cron_FlushSqlLog();
+        $this->cron_FlushSqlLog();
         
         // Ако в `current` има нещо - преместваме го в `past`
-        if (!self::isDirEmpty($curDir)) {
+        if (!$this->isDirEmpty($curDir)) {
             // Изтриваме директорията past
-            self::deleteDirectory($pastDir);
+            $this->deleteDirectory($pastDir);
             
             // Преименуваме текущата директория на past
             rename($curDir, $pastDir);
@@ -129,7 +129,7 @@ class core_Backup extends core_Mvc
                     $query->where($where = ('id BETWEEN ' . ($i + 1) . ' AND ' . ($i + $inst->backupMaxRows)));
                     $query->show('crc32backup');
                     $rec = $query->fetch();
-                    self::backupTable($table, abs($rec->crc32backup), $sqlDir, $workDir, $curDir, $pastDir, $where, $files);
+                    $this->backupTable($table, abs($rec->crc32backup), $sqlDir, $workDir, $curDir, $pastDir, $where, $files);
                 }
             } else {
                 $query = "SELECT * 
