@@ -26,10 +26,10 @@ class type_Password extends type_Varchar
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        if(strlen($value)) {
-            $attr['type'] = 'password';
-        } else {
+        if (!strlen($value) && core_Setup::get('ALLOW_PASS_SAVE') == 'no') {
             $attr['type'] = 'text';
+        } else {
+            $attr['type'] = 'password';
         }
         
         // Само за дебъг
@@ -41,7 +41,9 @@ class type_Password extends type_Varchar
             $value = self::EF_PASS_NO_CHANGE;
             $attr['onfocus'] = "this.type='password'; if(this.value == '" . self::EF_PASS_NO_CHANGE . "') this.select();";
         } else {
-            $attr['onfocus'] = "this.type='password';";
+            if ($attr['type'] == 'text') {
+                $attr['onfocus'] = "this.type='password';";
+            }
             if ($value) {
                 $attr['placeholder'] = html_entity_decode('&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;');
             }
@@ -50,7 +52,7 @@ class type_Password extends type_Varchar
         
         $this->params['noTrim'] = 'noTrim';
         
-        if($attr['size'] < 32) {
+        if ($attr['size'] < 32) {
             $this->maxFieldSize = 10;
         }
         
