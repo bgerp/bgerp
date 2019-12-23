@@ -800,7 +800,10 @@ function disableOrEnableBatch()
 		if(element.hasClass('noBatch')){
 			batchBtn.addClass('disabledBtn');
 		} else {
-			batchBtn.removeClass('disabledBtn');
+			var addBtn = $('.operationBtn[data-value="add"]');
+			if(!addBtn.hasClass('disabledBtn')){
+				batchBtn.removeClass('disabledBtn');
+			}
 		}
 	}
 }
