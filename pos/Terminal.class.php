@@ -168,7 +168,7 @@ class pos_Terminal extends peripheral_Terminal
         if (!Mode::is('printing')) {
             
             // Задаване на празна обвивка
-            Mode::set('wrapper', 'page_Empty');
+            Mode::set('wrapper', 'pos_tpl_terminal_Empty');
             
             $defaultOperation = Mode::get("currentOperation{$rec->id}") ? Mode::get("currentOperation{$rec->id}") : (($rec->state == 'draft') ? 'add' : 'receipts');
             $defaultSearchString = Mode::get("currentSearchString{$rec->id}");
@@ -1378,6 +1378,10 @@ class pos_Terminal extends peripheral_Terminal
             
             $resObj = new stdClass();
             $resObj->func = 'prepareResult';
+            $res[] = $resObj;
+            
+            $resObj = new stdClass();
+            $resObj->func = 'makeTooltipFromTitle';
             $res[] = $resObj;
         }
         
