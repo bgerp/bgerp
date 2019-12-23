@@ -786,7 +786,6 @@ class pos_ReceiptDetails extends core_Detail
     public static function fetchReportData($receiptId)
     {
         expect($masterRec = pos_Receipts::fetch($receiptId));
-        $storeId = pos_Points::fetchField($masterRec->pointId, 'storeId');
         $caseId = pos_Points::fetchField($masterRec->pointId, 'caseId');
         
         $result = array();
@@ -805,7 +804,7 @@ class pos_ReceiptDetails extends core_Detail
                 $obj->quantityInPack = ($pInfo->packagings[$obj->pack]) ? $pInfo->packagings[$obj->pack]->quantity : 1;
                 
                 $obj->value = $rec->productId;
-                $obj->storeId = $storeId;
+                $obj->storeId = $rec->storeId;
                 $obj->param = $rec->param;
                 $obj->batch = $rec->batch;
             } else {

@@ -195,7 +195,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             
             'credit' => array(
                 $creditAccId,
-                array('store_Stores', $posRec->storeId),
+                array('store_Stores', $product->storeId),
                 array('cat_Products', $product->value),
                 'quantity' => $product->totalQuantity),
         );
