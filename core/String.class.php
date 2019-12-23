@@ -1209,6 +1209,16 @@ class core_String
                     $res = $word . 'ТА';
                 }
                 
+                if (!$res && ($last1 == 'й')) {
+                    $word = rtrim($word, 'й');
+                    $res = $word . 'я';
+                }
+                
+                if (!$res && ($last1 == 'Й')) {
+                    $word = rtrim($word, 'Й');
+                    $res = $word . 'Я';
+                }
+                
                 if (!$res && ($last1 == 'а' || $last1 == 'я')) {
                     $res = mb_substr($word, 0, $len - 1) . 'и';
                 }

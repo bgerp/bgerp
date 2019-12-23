@@ -2504,11 +2504,11 @@ function prepareContextHtmlFromAjax() {
         $(holder).addClass('modal-toolbar');
         $(holder).attr('id', $(this).attr("data-id"));
         $(holder).attr('data-sizestyle', 'context');
-        $(holder).css('min-height', '120px');
+        $(holder).css('min-height', '60px');
         $(holder).css('min-width', '140px');
 
 
-        $(this).parent().append(holder);
+        $(holder).appendTo('body');
     });
 }
 
@@ -2535,7 +2535,7 @@ function getContextMenuFromAjax() {
 
     $('.ajaxContext').each(function(){
         var el = $(this);
-        el.contextMenu(el.siblings('.modal-toolbar'),{triggerOn:'contextmenu', 'sizeStyle': 'context', 'displayAround': 'cursor'});
+        el.contextMenu('#' + el.attr('data-id'),{triggerOn:'contextmenu', 'sizeStyle': 'context', 'displayAround': 'cursor'});
     });
 }
 

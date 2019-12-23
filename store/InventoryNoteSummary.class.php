@@ -288,7 +288,7 @@ class store_InventoryNoteSummary extends doc_Detail
         }
         
         // Ако можем добавяме към името на раздела бутон за принтиране на бланка само за артикулите с въпросната група
-        if (count($blankUrl)) {
+        if (countR($blankUrl)) {
             $title = "Принтиране на бланка за|* '{$groupName}'";
             $link = ht::createLink('', $blankUrl, false, "target=_blank,title={$title},ef_icon=img/16/print_go.png");
             $res .= " <span style='margin-left:7px'>{$link}</span>";
@@ -419,7 +419,7 @@ class store_InventoryNoteSummary extends doc_Detail
                 $row->charge = static::renderCharge($rec);
                 
                 // Рендиране на заявките, в които участва артикула
-                if (count($pendingDocuments[$rec->productId]) && !Mode::isReadOnly()) {
+                if (countR($pendingDocuments[$rec->productId]) && !Mode::isReadOnly()) {
                     $btn = ht::createFnBtn('', null, null, array('class' => 'more-btn linkWithIcon warningContextMenu', 'title' => 'Заявки, в които е избран артикула'));
                     $bodyLayout = new ET("<div class='clearfix21 modal-toolbar'>[#LI#]</div>");
                     foreach ($pendingDocuments[$rec->productId] as $link) {
@@ -561,7 +561,7 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
@@ -696,7 +696,7 @@ class store_InventoryNoteSummary extends doc_Detail
                 });
                
                 // Ако има намерени резултати
-                if (count($res) && is_array($res)) {
+                if (countR($res) && is_array($res)) {
                     
                     // От $recs се премахват отделените записи, да не се обхождат отново
                     // добавяме артикулите към подредените
@@ -721,7 +721,7 @@ class store_InventoryNoteSummary extends doc_Detail
         
         // В $recs трябва да са останали несортираните
         $rest = $recs;
-        if (count($rest) && is_array($rest)) {
+        if (countR($rest) && is_array($rest)) {
             
             // Ще ги показваме в маркер 'Други'
             foreach ($rest as &$r1) {

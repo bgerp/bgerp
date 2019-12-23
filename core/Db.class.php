@@ -109,6 +109,12 @@ class core_Db
     
     
     /**
+     * Разрешен ли е SQL лога?
+     */
+    public static $sqlLogEnebled = true;
+    
+    
+    /**
      * Номер на mySQL код за грешка при липсваща таблица
      */
     const MYSQLI_MISSING_TABLE = 1146;
@@ -252,7 +258,7 @@ class core_Db
         $this->checkForErrors('изпълняване на заявка', $silent, $link);
         DEBUG::stopTimer('DB::query()');
         
-        if ($replication) {
+        if ($replication && self::$sqlLogEnebled) {
             if ($link->affected_rows > 0 || stripos($sqlQuery, 'truncate') !== false) {
                 core_Backup::addSqlLog($sqlQuery);
             }
@@ -517,6 +523,27 @@ class core_Db
         $res = $this->fetchObject($dbRes);
         
         return $res->Value;
+    }
+    
+    
+    /**
+     * Връща следващото id за дадения модел
+     */
+    public function getNextId($tableName)
+    {
+        $query = "SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = '{$this->dbName}' AND TABLE_NAME = '{$tableName}'";
+        
+        $dbRes = $this->query($query);
+        
+        if (!$dbRes) {
+            
+            return false;
+        }
+        
+        // Извличаме резултата
+        $res = $this->fetchObject($dbRes);
+        
+        return $res->AUTO_INCREMENT;
     }
     
     

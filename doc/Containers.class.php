@@ -105,7 +105,19 @@ class doc_Containers extends core_Manager
     /**
      * Шаблон за реда в листовия изглед
      */
-    public $tableRowTpl = "[#ROW#][#ADD_ROWS#]";
+    public $tableRowTpl = '[#ROW#][#ADD_ROWS#]';
+    
+    
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 500000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'modifiedOn,state';
     
     
     /**
@@ -1391,9 +1403,9 @@ class doc_Containers extends core_Manager
     /**
      * Проверява дали има документ в нишката след подадената дата от съответния клас
      *
-     * @param int  $threadId
+     * @param int      $threadId
      * @param datetime $date
-     * @param int  $classId
+     * @param int      $classId
      */
     public static function haveDocsAfter($threadId, $date = null, $classId = null)
     {
@@ -2922,7 +2934,7 @@ class doc_Containers extends core_Manager
      * Изпълнява се след създаването на модела
      *
      * @param core_Mvc $mvc
-     * @param mixed $res
+     * @param mixed    $res
      */
     public static function on_AfterSetupMVC($mvc, &$res)
     {
