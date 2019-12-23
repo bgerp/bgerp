@@ -556,6 +556,11 @@
  	font-size:0.9em;
  	background: pink;
 	color: #333 !important;
+	
+	&.currentStore {
+		background-color: aqua;
+		cursor:auto;
+	}
  }
  
 .pos-product-price {

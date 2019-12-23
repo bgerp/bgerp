@@ -486,6 +486,9 @@
   font-size: 0.9em;
   background: pink;
   color: #333333 !important; }
+  .chooseStoreBtn.currentStore {
+    background-color: cyan;
+    cursor: auto; }
 
 .pos-product-price {
   position: absolute;
