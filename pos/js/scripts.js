@@ -478,22 +478,18 @@ function posActions() {
 		var url = $(this).attr("data-url");
 		var operation = getSelectedOperation();
 		
-		if(operation != 'add' || !url){
+		if(!url){
 			return;
 		}
 		
-		var selectedElement = $('.selected');
-		var productId = selectedElement.attr("data-productid");
-		productId = (productId) ? productId : selectedElement.attr("data-id");
-		if(!productId) {
-			
-			return
-		}
+		var selectedElement = $(".highlighted");
+		var selectedRecId = selectedElement.attr("data-id");
+		if(!selectedRecId) return;
 		
 		resObj = new Object();
 		resObj['url'] = url;
 		console.log(url);
-		getEfae().process(resObj, {productId:productId});
+		getEfae().process(resObj, {recId:selectedRecId});
 
 		dialog = $("#productInfo").dialog({
 			autoOpen: false,

@@ -205,13 +205,14 @@ class pos_Terminal extends peripheral_Terminal
      */
     public function act_EnlargeProduct()
     {
-        $productId = Request::get('productId', 'int');
-        if(empty($productId)) {
+        $id = Request::get('recId', 'int');
+        $rec = pos_ReceiptDetails::fetch($id);
+        if(empty($rec->id)) {
             
             return array();
         }
         
-        $document = doc_Containers::getDocument(cat_Products::fetchField($productId, 'containerId'));
+        $document = doc_Containers::getDocument(cat_Products::fetchField($rec->productId, 'containerId'));
         
         // Рендиране на изгледа на артикула
         Mode::push('noBlank', true);
@@ -353,9 +354,9 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         // Бутон за увеличение на избрания артикул
-        if($currentOperation == 'add'){
+        //if($currentOperation == 'add'){
             $buttons["enlarge"] = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => 'operationBtn enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
-        }
+        //}
         
         // Бутон за увеличение на избрания артикул
         if(!empty($rec->total)){
@@ -498,11 +499,10 @@ class pos_Terminal extends peripheral_Terminal
         
         $tpl = new core_ET(" ");
         if($Def = batch_Defs::getBatchDef($receiptRec->productId)){
-            $storeId = pos_Points::fetchField($rec->pointId, 'storeId');
             $dataUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setbatch');
             
             $cnt = 0;
-            $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
+            $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Артикулът да е без партида', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
             $tpl->append($btn);
             
             $batchesInStore = batch_Items::getBatchQuantitiesInStore($receiptRec->productId, $receiptRec->storeId, $rec->valior);
@@ -515,9 +515,10 @@ class pos_Terminal extends peripheral_Terminal
                 $measureName = tr(cat_UoM::getSmartName($measureId, $quantity));
                 
                 $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
-                $batchVerbal = $Def->toVerbal($batch) . "<span>{$quantityVerbal} {$measureName}</span>";
+                $quantityVerbal = ht::styleIfNegative($quantityVerbal, $quantity);
+                $batchVerbal = $Def->toVerbal($batch) . "<span class='small'>({$quantityVerbal} {$measureName})</span>";
                 
-                $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'data-url' => toUrl($dataUrl, 'local')), $batchVerbal, true);
+                $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Избор на партидата', 'data-url' => toUrl($dataUrl, 'local')), $batchVerbal, true);
                 $tpl->append($btn);
             }
         } else {
