@@ -906,9 +906,13 @@ class core_Users extends core_Manager
                                  EF_USERS_HASH_FACTOR . "', '" .
                                  (EF_USSERS_EMAIL_AS_NICK ? 'email' : 'nick') .
                                  "');" . 'this.form.submit();';
-
+        
         // Парола за ауторизация (логване)
-        $form->FNC('pass', 'password(allowEmpty,autocomplete=off)', 'caption=Парола,input,width=100%', array('attr' => array('onkeypress' => "if(event.keyCode == 13) {" . $submit ."}")));
+        $attr = array();
+        if (core_Setup::get('ALLOW_PASS_SAVE') == 'no') {
+            $attr = array('attr' => array('onkeypress' => 'if(event.keyCode == 13) {' . $submit .'}'));
+        }
+        $form->FNC('pass', 'password(allowEmpty,autocomplete=off)', 'caption=Парола,input,width=100%', $attr);
         
         if (Request::get('popup')) {
             $form->setHidden('ret_url', toUrl(array('log_Browsers', 'close'), 'local'));
@@ -919,13 +923,13 @@ class core_Users extends core_Manager
         $form->setHidden('hash', '');
         $form->setHidden('loadTime', '');
         $form->setHidden('Cmd[default]', '1');
-
+        
         $form->addAttr('nick,pass,email', array('style' => 'min-width:14em;'));
         
-        if (defined('SECURITY_LOGIN')) {
-            $form->toolbar->addFnBtn('Вход',  $submit, array('class' => 'noicon'));
+        if (core_Setup::get('ALLOW_PASS_SAVE') == 'no') {
+            $form->toolbar->addFnBtn('Вход', $submit, array('class' => 'noicon'));
         } else {
-            $form->toolbar->addSbBtn('Вход',  'default', array('class' => 'noicon'));
+            $form->toolbar->addSbBtn('Вход', 'default', array('class' => 'noicon'));
         }
         
         $httpUrl = core_App::getSelfURL();
@@ -2692,8 +2696,8 @@ class core_Users extends core_Manager
      * Проверява имената дали са валидни - поне две думи с поне по две букви
      *
      * @param string $names
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
     public static function checkNames($names)
     {
