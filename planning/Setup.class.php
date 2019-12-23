@@ -167,7 +167,7 @@ class planning_Setup extends core_ProtoSetup
     public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,
                           planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
                           planning_interface_ImportFromLastBom,planning_interface_StageDriver,planning_reports_Workflows,planning_Terminal,
-                          planning_reports_ArticlesProduced';
+                          planning_reports_ArticlesProduced, planning_reports_InvestedItemsByJobs';
     
     
     /**
@@ -315,14 +315,14 @@ class planning_Setup extends core_ProtoSetup
     {
         $res = parent::loadSetupData($itr);
         
-        if(core_Packs::isInstalled('label') && core_Packs::isInstalled('escpos')){
+        if (core_Packs::isInstalled('label') && core_Packs::isInstalled('escpos')) {
             core_Classes::add('escpos_printer_TD2120N');
-           
+            
             core_Users::forceSystemUser();
-            if(label_Templates::addFromFile('Етикет за прогрес на производствена операция', 'planning/tpl/DefaultTaskProgressLabel.shtml', 'defaultEscposTaskRec', array('100', '72'), 'bg', planning_ProductionTaskDetails::getClassId(), escpos_printer_TD2120N::getClassId())){
+            if (label_Templates::addFromFile('Етикет за прогрес на производствена операция', 'planning/tpl/DefaultTaskProgressLabel.shtml', 'defaultEscposTaskRec', array('100', '72'), 'bg', planning_ProductionTaskDetails::getClassId(), escpos_printer_TD2120N::getClassId())) {
                 $res = "<li class='green'>Обновен шаблон за етикети на прогреса на производствената операция";
             } else {
-                $res = "<li>Пропуснато обновяване на шаблон за прогреса на производствената операция</li>";
+                $res = '<li>Пропуснато обновяване на шаблон за прогреса на производствената операция</li>';
             }
             core_Users::cancelSystemUser();
         }
