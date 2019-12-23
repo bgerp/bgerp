@@ -583,8 +583,7 @@ class pos_ReceiptDetails extends core_Detail
                 } elseif(isset($fields['-list'])){
                     $row->batch = "<span class='quiet'>" . tr('Без партида') . "</span>";
                 } else {
-                    $storeId = pos_Points::fetchField(pos_Receipts::fetchField($rec->receiptId, 'pointId'), 'storeId');
-                    $batchesInStore = batch_Items::getBatchQuantitiesInStore($rec->productId, $storeId, $receiptDate);
+                    $batchesInStore = batch_Items::getBatchQuantitiesInStore($rec->productId, $rec->storeId, $receiptDate);
                     if(!count($batchesInStore)){
                         $row->CLASS .= 'noBatch';
                     }

@@ -505,7 +505,7 @@ class pos_Terminal extends peripheral_Terminal
             $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
             $tpl->append($btn);
             
-            $batchesInStore = batch_Items::getBatchQuantitiesInStore($receiptRec->productId, $storeId, $rec->valior);
+            $batchesInStore = batch_Items::getBatchQuantitiesInStore($receiptRec->productId, $receiptRec->storeId, $rec->valior);
             foreach ($batchesInStore as $batch => $quantity){
                 $cnt++;
                 $dataUrl['string'] = urlencode($batch);
