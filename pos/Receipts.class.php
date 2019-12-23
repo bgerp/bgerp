@@ -616,7 +616,7 @@ class pos_Receipts extends core_Master
         }
         
         $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
-        $quantityInStock = pos_Stocks::getQuantityByStore($rec->productId, $rec->storeId);
+        $quantityInStock = pos_Stocks::getQuantityByStore($rec->productId, $rec->storeId, $rec->batch);
         $quantityInPack = ($pRec) ? $pRec->quantity : 1;
         $quantityInStock -= $rec->quantity * $quantityInPack;
         

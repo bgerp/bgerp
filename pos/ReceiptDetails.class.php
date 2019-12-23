@@ -311,6 +311,12 @@ class pos_ReceiptDetails extends core_Detail
                        expect(false, 'Партидата е вече зададена на друг ред');
                    }
                    
+                   // Проверка дали количеството е допустимо
+                   $errorQuantity = null;
+                   if (!pos_Receipts::checkQuantity($rec, $errorQuantity)) {
+                       expect(false, $errorQuantity);
+                   }
+                   
                    break;
                case 'setstore':
                    $stores = pos_Points::getStores($receiptRec->pointId);

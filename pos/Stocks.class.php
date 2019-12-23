@@ -320,14 +320,27 @@ class pos_Stocks extends core_Manager
      * Връща количеството на даден продукт, в даден склад
      *
      * @param int $productId - ид на продукт
-     * @param int $pointId   - ид на точка
-     *
+     * @param int $storeId   - ид на склад
+     * @param string|null $batch   - партида, но само ако пакета е инсталиран
+     * 
      * @return float - количеството на продукта в склада на точката
      */
-    public static function getQuantityByStore($productId, $storeId)
+    public static function getQuantityByStore($productId, $storeId, $batch = null)
     {
-        $quantity = static::fetchField("#storeId = '{$storeId}' AND #productId = '{$productId}'", 'quantity');
-        $quantity = ($quantity) ? $quantity : 0;
+        $stockRec = static::fetch("#storeId = '{$storeId}' AND #productId = '{$productId}'", 'quantity,batches');
+        $quantity = ($stockRec->quantity) ? $stockRec->quantity : 0;
+        
+        // Ако е инсталиран пакета за партиди
+        if(core_Packs::isInstalled('batch')){
+            $batches = (array)json_decode($stockRec->batches);
+            if(!empty($batch)){
+                $quantity = $batches["{$batch}"];
+            } else {
+                $quantityOnBatches = 0;
+                array_walk($batches, function($a) use(&$quantityOnBatches){ if($a > 0) {$quantityOnBatches += $a;}});
+                $quantity = round($quantity - $quantityOnBatches, 4);
+            }
+        }
         
         return $quantity;
     }
