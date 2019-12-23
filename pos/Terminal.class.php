@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   pos
  *
- * @author    Yusein Yuseinov <yyuseinov@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg> 
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg> 
  * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
@@ -512,7 +512,8 @@ class pos_Terminal extends peripheral_Terminal
                 
                 $measureId = cat_Products::fetchField($receiptRec->productId, 'measureId');
                 $quantity = cat_UoM::round($measureId, $quantity);
-                $measureName = str::getPlural($quantity, cat_UoM::getShortName($measureId), true);
+                $measureName = tr(cat_UoM::getSmartName($measureId, $quantity));
+                
                 $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
                 $batchVerbal = $Def->toVerbal($batch) . "<span>{$quantityVerbal} {$measureName}</span>";
                 
@@ -799,11 +800,11 @@ class pos_Terminal extends peripheral_Terminal
             $packagingId = cat_UoM::getVerbal($packRec->packagingId, 'name');
             $baseMeasureId = $measureId;
             $packRec->quantity = cat_Uom::round($baseMeasureId, $packRec->quantity);
-            $packaging = "|{$packagingId}|*</br> <small>" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . cat_UoM::getVerbal($baseMeasureId, 'name') . "</small>";
-            
+            $packaging = "|{$packagingId}|*</br> <small>" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . tr(cat_UoM::getSmartName($baseMeasureId, $packRec->quantity)) . "</small>";
             $buttons[$packRec->packagingId] = ht::createElement("div", array('id' => "packaging{$packagingId}{$selectedRec->productId}", 'class' => $baseClass, 'data-pack' => $packagingId, 'data-url' => $dataUrl), tr($packaging), true);
         }
         
+        // Основната мярка/опаковка винаги е на първа позиция
         $firstBtn = $buttons[$basePackagingId];
         unset($buttons[$basePackagingId]);
         $buttons = array($basePackagingId => $firstBtn) + $buttons;
@@ -816,11 +817,11 @@ class pos_Terminal extends peripheral_Terminal
         
         // Добавяне на бутони за последните количества, в които е продаван
         while ($productRec = $query->fetch()) {
-            $packagingId = cat_UoM::getVerbal($productRec->value, 'name');
             Mode::push('text', 'plain');
             $quantity = core_Type::getByName('double(smartRound)')->toVerbal($productRec->quantity);
             Mode::pop('text', 'plain');
-            $btnCaption =  "{$quantity} " .tr(str::getPlural($productRec->quantity, $packagingId, true));
+            
+            $btnCaption =  "{$quantity} " . tr(cat_UoM::getSmartName($productRec->value, $productRec->quantity));
             $buttons["{$productRec->packagingId}|{$productRec->quantity}"] = ht::createElement("div", array('id' => "packaging{$packagingId}{$productRec->quantity}{$selectedRec->productId}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packagingId, 'data-url' => $dataUrl), $btnCaption, true);
         }
         
