@@ -418,6 +418,28 @@ class cat_UoM extends core_Manager
     
     
     /**
+     * Връща умното наименование на мярката спрямо количеството. Ако е мярка се връща
+     * краткото наименование, ако е опаковка се връща името на опаковката съгласувано с количеството
+     * 
+     * @param mixed $id
+     * @param int|null $count
+     * @return string
+     */
+    public static function getSmartName($id, $count = null)
+    {
+        $rec = static::fetchRec($id);
+        if($rec->type == 'uom'){
+            
+            return static::getShortName($rec->id);
+        }
+        
+        $name = static::getVerbal($rec, 'name');
+        
+        return (isset($count)) ? str::getPlural($count, $name, true) : $name;
+    }
+    
+    
+    /**
      * Изпълнява се преди запис
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
