@@ -11,7 +11,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -125,7 +125,7 @@ class pos_Stocks extends core_Manager
                 if(!is_null($batchArr)){
                     $bRec->batches = null;
                     if(is_array($batchArr["{$bRec->productId}|{$bRec->storeId}"])){
-                        $bRec->batches = serialize($batchArr["{$bRec->productId}|{$bRec->storeId}"]);
+                        $bRec->batches = json_encode($batchArr["{$bRec->productId}|{$bRec->storeId}"]);
                     }
                 }
             }
@@ -154,14 +154,14 @@ class pos_Stocks extends core_Manager
         }
         
         // Приспада количествата от не-отчетените бележки
-        self::applyPosStocks();
+        $self->applyPosStocks();
     }
     
     
     /**
      * След взимане на количествата от баланса, отчитаме всички не-отчетени бележки
      */
-    private static function applyPosStocks()
+    private function applyPosStocks()
     {
         // Намираме всички активирани бележки
         $activeReceipts = array();
@@ -171,8 +171,8 @@ class pos_Stocks extends core_Manager
         $receiptDetailsQuery->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
         $receiptDetailsQuery->where("#state = 'waiting'");
         $receiptDetailsQuery->where("#action LIKE '%sale%'");
-        $receiptDetailsQuery->show('state,productId,pointId,quantity,value,receiptId');
-        
+        $receiptDetailsQuery->show('state,productId,pointId,quantity,value,receiptId,batch');
+      
         // За всяка активирана бележка, трупаме я в масив
         while ($dRec = $receiptDetailsQuery->fetch()) {
             $dRec->storeId = pos_Points::fetchField($dRec->pointId, 'storeId');
@@ -192,8 +192,22 @@ class pos_Stocks extends core_Manager
         }
         
         // За всеки запис, форсираме го
+        $toAdd = $toUpdate = array();
         foreach ($activeReceipts as $receiptRec) {
-            self::forceRec($receiptRec);
+            $updateRec = self::forceRec($receiptRec);
+            if(isset($updateRec->id)){
+                $toUpdate[] = $updateRec;
+            } else {
+                $toAdd[] = $updateRec;
+            }
+        }
+        
+        if(count($toAdd)){
+            $this->saveArray($toAdd);
+        }
+        
+        if(count($toUpdate)){
+            $this->saveArray($toUpdate, 'id,batches,quantity,state');
         }
     }
     
@@ -209,11 +223,21 @@ class pos_Stocks extends core_Manager
             $rec->storeId = $receiptRec->storeId;
             $rec->productId = $receiptRec->productId;
         }
-        
-        $rec->quantity -= $receiptRec->quantity * $receiptRec->quantityInPack;
+       
+        $quantity = $receiptRec->quantity * $receiptRec->quantityInPack;
+        $rec->quantity -= $quantity;
         $rec->state = ($rec->quantity) ? 'active' : 'closed';
+        if(isset($receiptRec->batch)){
+            $batches = array();
+            if(!empty($rec->batches)){
+                $batches = (array)json_decode($rec->batches);
+            }
+            
+            $batches[$receiptRec->batch] -= $quantity;
+            $rec->batches = json_encode($batches);
+        }
         
-        static::save($rec);
+        return $rec;
     }
     
     
@@ -249,7 +273,7 @@ class pos_Stocks extends core_Manager
         if(core_Packs::isInstalled('batch') && isset($rec->batches)){
             $masureName = tr(cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId')));
             $Def = batch_Defs::getBatchDef($rec->productId);
-            $bacthes = unserialize($rec->batches);
+            $bacthes = (array)json_decode($rec->batches);
             if(is_array($bacthes) && is_object($Def)){
                 $subTextArr = array();
                 foreach ($bacthes as $batch => $quantity){
