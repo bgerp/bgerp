@@ -107,13 +107,13 @@ class core_Db
      */
     public static $links = array();
     
-
+    
     /**
      * Разрешен ли е SQL лога?
      */
     public static $sqlLogEnebled = true;
-
-
+    
+    
     /**
      * Номер на mySQL код за грешка при липсваща таблица
      */
@@ -523,6 +523,27 @@ class core_Db
         $res = $this->fetchObject($dbRes);
         
         return $res->Value;
+    }
+    
+    
+    /**
+     * Връща следващото id за дадения модел
+     */
+    public function getNextId($tableName)
+    {
+        $query = "SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = '{$this->dbName}' AND TABLE_NAME = '{$tableName}'";
+        
+        $dbRes = $this->query($query);
+        
+        if (!$dbRes) {
+            
+            return false;
+        }
+        
+        // Извличаме резултата
+        $res = $this->fetchObject($dbRes);
+        
+        return $res->AUTO_INCREMENT;
     }
     
     

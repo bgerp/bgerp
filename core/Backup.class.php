@@ -23,7 +23,7 @@ class core_Backup extends core_Mvc
     public function cron_Create()
     {
         if (core_Setup::get('BACKUP_ENABLED') != 'yes') {
-
+            
             return;
         }
         
@@ -33,9 +33,9 @@ class core_Backup extends core_Mvc
         $pass = core_Setup::get('BACKUP_PASS');
         
         // Форсираме директориите
-        $curDir  = self::getDir('current');
+        $curDir = self::getDir('current');
         $pastDir = self::getDir('past');
-        $workDir  = core_Setup::get('BACKUP_WORK_DIR');
+        $workDir = core_Setup::get('BACKUP_WORK_DIR');
         $sqlDir = self::getExportCsvDir();
         
         // Определяме всички mvc класове, на които ще правим бекъп
@@ -43,9 +43,11 @@ class core_Backup extends core_Mvc
         $instArr = array();
         $files = array();
         $lockTables = '';
-
+        
         foreach ($mvcArr as $classId => $className) {
-            if(!cls::load($className, true)) continue;
+            if (!cls::load($className, true)) {
+                continue;
+            }
             $mvc = cls::get($className);
             if ($mvc->dbTableName && $this->db->tableExists($mvc->dbTableName) && !isset($instArr[$mvc->dbTableName])) {
                 $instArr[$mvc->dbTableName] = null;
@@ -111,17 +113,37 @@ class core_Backup extends core_Mvc
                 }
             }
             
-            $query = "SELECT * 
-                      INTO OUTFILE '{$sqlPath}'
-                      FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"'
-                      LINES TERMINATED BY '\n'
-                      FROM `{$table}` WHERE id > 0";
-            debug::log("Експорт в CSV на таблица `{$table}`");
-            $this->db->query($query);
-            if($sqlPath != $path) {
-                rename($sqlPath, $path);
+            if (isset($inst->backupMaxRows, $inst->backupDiffFields)) {
+                $maxId = $this->db->getNextId($table);
+                
+                $diffFields = arr::make($inst->backupDiffFields);
+                $expr = '';
+                foreach ($diffFields as $fld) {
+                    $expr .= " + crc32(#${fld})";
+                }
+                $crc = 'SUM(' . trim($expr, ' +') . ')';
+                
+                for ($i = 0; $i <= $maxId; $i += $inst->backupMaxRows) {
+                    $query = $inst->getQuery();
+                    $query->XPR('crc32backup', 'int', $crc);
+                    $query->where($where = ('id BETWEEN ' . ($i + 1) . ' AND ' . ($i + $inst->backupMaxRows)));
+                    $query->show('crc32backup');
+                    $rec = $query->fetch();
+                    self::backupTable($table, abs($rec->crc32backup), $sqlDir, $workDir, $curDir, $pastDir, $where, $files);
+                }
+            } else {
+                $query = "SELECT * 
+                          INTO OUTFILE '{$sqlPath}'
+                          FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"'
+                          LINES TERMINATED BY '\n'
+                          FROM `{$table}` WHERE id > 0";
+                debug::log("Експорт в CSV на таблица `{$table}`");
+                $this->db->query($query);
+                if ($sqlPath != $path) {
+                    rename($sqlPath, $path);
+                }
+                $files[$path] = $dest;
             }
-            $files[$path] = $dest;
         }
         
         // Освеобождаваме LOCK-а на таблиците
@@ -180,45 +202,91 @@ class core_Backup extends core_Mvc
         }
         archive_Adapter::compressFile($appCfg, $appZip, $pass);
     }
-
-
+    
+    
+    public function backupTable($table, $suffix, $sqlDir, $workDir, $curDir, $pastDir, $where, &$files)
+    {
+        if (!$where) {
+            $where = '1=1';
+        }
+        
+        $fileName = $suffix ? "{$table}.{$suffix}" : $table;
+        
+        $path = $workDir . '/' . $fileName . '.csv';
+        $sqlPath = $sqlDir . '/' . $fileName . '.csv';
+        $dest = $curDir . '/' . $fileName . '.csv.zip';
+        $past = $pastDir . '/' . $fileName . '.csv.zip';
+        
+        if (file_exists($path)) {
+            unlink($path);
+        }
+        if (file_exists($dest)) {
+            unlink($dest);
+        }
+        
+        if (file_exists($past)) {
+            $lmtTable = $this->db->getLMT($table);
+            
+            // Таблицата не е променяна, нама да променяме и ZIP файла
+            if ($lmtTable < filemtime($past) || strlen($suffix)) {
+                debug::log("Таблица `{$fileName}` е баз промени");
+                copy($past, $dest);
+                
+                return;
+            }
+        }
+        
+        $query = "SELECT * 
+                    INTO OUTFILE '{$sqlPath}'
+                    FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"'
+                    LINES TERMINATED BY '\n'
+                    FROM `{$table}` 
+                    WHERE {$where}";
+        debug::log("Експорт в CSV на таблица `{$fileName}`");
+        $this->db->query($query);
+        if ($sqlPath != $path) {
+            rename($sqlPath, $path);
+        }
+        $files[$path] = $dest;
+    }
+    
+    
     /**
      * Връща пътя за експортиране на CSV файлове
      */
     public static function getExportCsvDir()
-    {   
+    {
         // Вземаме манипулатора на базата данни
         $db = cls::get('core_Db');
-
+        
         $mysqlCsvPath = $db->getVariable('secure_file_priv');
-
-        if($mysqlCsvPath === '') {
-
+        
+        if ($mysqlCsvPath === '') {
+            
             return self::normDir(core_Setup::get('BACKUP_WORK_DIR'));
         }
-
-        if($mysqlCsvPath != 'NULL' && is_dir($mysqlCsvPath) && is_readable() && is_writable()) {
-
+        
+        if ($mysqlCsvPath != 'NULL' && is_dir($mysqlCsvPath) && is_readable($mysqlCsvPath) && is_writable($mysqlCsvPath)) {
+            
             return self::normDir($mysqlCsvPath);
         }
     }
-
-
+    
+    
     /**
      * Връща посочената директория за бекъп
      */
     public static function getDir($subDir)
     {
         $dir = self::normDir(core_Setup::get('BACKUP_PATH')) . '/' . $subDir;
-
-        if(core_Os::forceDir($dir)) {
-
+        
+        if (core_Os::forceDir($dir)) {
+            
             return $dir;
         }
     }
-   
     
-
+    
     /**
      * Добавя mySQL заявките в SQL лога
      */
@@ -274,7 +342,7 @@ class core_Backup extends core_Mvc
      * Възстановява системата от направен бекъп
      */
     public static function restore(&$log)
-    {   
+    {
         try {
             core_App::setTimeLimit(120);
             
@@ -320,6 +388,7 @@ class core_Backup extends core_Mvc
                 core_App::setTimeLimit(120);
                 $dest = substr($src, 0, -4);
                 $table = substr(basename($src), 0, -8);
+                list($table, $suffix) = explode('.', $table);
                 @unlink($dest);
                 $log[] = 'msg: Разкомпресиране на ' . $src;
                 archive_Adapter::uncompress($src, $path, $pass);
@@ -351,60 +420,59 @@ class core_Backup extends core_Mvc
             $log[] = 'msg: Възстановяването завърши успешно';
             
             return true;
-        } catch(core_exception_Expect $e) {
-
+        } catch (core_exception_Expect $e) {
             echo $e->getMessage();
             echo $e->getTraceAsString();
             die;
         }
     }
-
-
+    
+    
     /**
      * Поверява дали конфига е добре настроен
      */
     public static function checkConfig()
     {
         if (core_Setup::get('BACKUP_ENABLED') != 'yes') {
-
+            
             return;
         }
-
+        
         $csvDir = self::getExportCsvDir();
         $res .= self::checkPath($csvDir, 'Директорията за CSV екпорт');
-
-        $workDir  = core_Setup::get('BACKUP_WORK_DIR');
+        
+        $workDir = core_Setup::get('BACKUP_WORK_DIR');
         $res .= self::checkPath($workDir, 'Работната директория');
         
         $res .= self::checkPath(core_Setup::get('BACKUP_PATH'), 'Директорията за backup');
         
         return $res;
     }
-
-
+    
+    
     /**
      * Прави проверка на даден път
      */
-    static function checkPath($dir, $title, $features = 'dir,readable,writable')
+    public static function checkPath($dir, $title, $features = 'dir,readable,writable')
     {
         $features = arr::make($features);
         
-        if(empty($dir)) {
+        if (empty($dir)) {
             $res = "Директорията {$title} не е определена * ";
-
+            
             return $res;
         }
-        foreach($features as $f) {
-            if($f == 'dir') {
-                if(!is_dir($dir)) {
+        foreach ($features as $f) {
+            if ($f == 'dir') {
+                if (!is_dir($dir)) {
                     
                     return "Директорията `{$dir}` не е директория * ";
                 }
-                if(!is_readable($dir)) {
+                if (!is_readable($dir)) {
                     
                     return "Директорията `{$dir}` не е четима * ";
                 }
-                if(!is_writable($dir)) {
+                if (!is_writable($dir)) {
                     
                     return "Директорията `{$dir}` не е записваема * ";
                 }
@@ -452,11 +520,11 @@ class core_Backup extends core_Mvc
             
             return false;
         }
-
-        return (count(scandir($dir)) <= 2);
+        
+        return (countR(scandir($dir)) <= 2);
     }
-
-
+    
+    
     /**
      * Нормализиране на път до директория
      */
