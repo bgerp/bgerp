@@ -1,28 +1,27 @@
 <?php
 
 
-
 /**
  * Описва местоположението на документ в документната система
  *
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_Location
 {
-    
-    
     /**
      * Папка на документа - key(mvc=doc_Folders)
      *
      * @var int
      */
-    var $folderId;
+    public $folderId;
     
     
     /**
@@ -30,7 +29,7 @@ class doc_Location
      *
      * @var int
      */
-    var $threadId;
+    public $threadId;
     
     
     /**
@@ -39,5 +38,5 @@ class doc_Location
      *
      * @var string
      */
-    var $routeRule;
+    public $routeRule;
 }

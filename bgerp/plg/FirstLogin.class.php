@@ -1,29 +1,32 @@
 <?php
 
 
-
 /**
  * Плъгин за прихващане на първото логване на потребител в системата
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_plg_FirstLogin extends core_Plugin
 {
-    
     /**
      * Прихващаме всяко логване в системата
      */
-    function on_AfterLogin($mvc, $userRec, $inputs, $refresh)
+    public function on_AfterLogin($mvc, $userRec, $inputs, $refresh)
     {
         // Ако не се логва, а се рефрешва потребителя
-        if ($refresh) return ;
+        if ($refresh) {
+            
+            return ;
+        }
         
-        if(!$userRec->lastLoginTime && haveRole('admin') && core_Users::count('1=1') == 1) {
+        if (!$userRec->lastLoginTime && haveRole('admin') && core_Users::count('1=1') == 1) {
             
             //Зарежда данните за "Моята фирма"
             crm_Companies::loadData();
@@ -38,32 +41,37 @@ class bgerp_plg_FirstLogin extends core_Plugin
             core_CallOnTime::setOnce('bgerp_plg_FirstLogin', 'welcomeNote', $userRec->id, $callOn);
             
             $callOn = dt::addSecs(60);
-            core_CallOnTime::setOnce('bgerp_plg_FirstLogin', 'retrieveCurrencyRates', NULL, $callOn);
+            core_CallOnTime::setOnce('bgerp_plg_FirstLogin', 'retrieveCurrencyRates', null, $callOn);
         }
     }
     
     
     /**
      * Извиква се от core_CallOnTime
+     *
      * @see core_CallOnTime
      */
     public static function callback_retrieveCurrencyRates()
     {
-    	$Rates = cls::get('currency_CurrencyRates');
-    	$Rates->retrieveCurrenciesFromEcb();
+        $Rates = cls::get('currency_CurrencyRates');
+        $Rates->retrieveCurrenciesFromEcb();
     }
     
     
     /**
      * Извиква се от core_CallOnTime
+     *
      * @see core_CallOnTime
-     * 
-     * @param integer $userId
+     *
+     * @param int $userId
      */
     public static function callback_welcomeNote($userId)
     {
         // Очакваме да е подаден валиден потребител
-        if ($userId <= 0) return ;
+        if ($userId <= 0) {
+            
+            return ;
+        }
         
         // Форсираме правата на потребителя
         core_Users::sudo($userId);
@@ -101,7 +109,7 @@ class bgerp_plg_FirstLogin extends core_Plugin
         // Превеждаме заглавието
         $subject = tr('Първи стъпки с bgERP');
         
-        // Спираме 
+        // Спираме
         core_Users::exitSudo();
         
         // Папката на потребителя

@@ -1,0 +1,60 @@
+
+<!--ET_BEGIN ExternalThreadViewAvatar-->
+<div class="fright avatar"><span></span>[#ExternalThreadViewAvatar#]</div>
+<!--ET_END ExternalThreadViewAvatar-->
+
+<div class='document'>
+    <div  class='clearfix21 antetka'>
+        <div class="em-holder" style='float:left;margin-right:10px;'>
+            <div class="small">
+                <table class='top-table'>
+                    <!--ET_BEGIN fromEml-->          
+                    <tr>
+                        <td  class='aright' style='vertical-align:top'>|От|*:</td>
+                        <td><b>[#fromEml#]</b></td>
+                    </tr>
+                    <!--ET_END fromEml-->
+                    <!--ET_BEGIN AllTo-->          
+                    <tr>
+                        <td  class='aright'>|До|*:</td>
+                        <td><b>[#AllTo#]</b></td>
+                    </tr>
+                    <!--ET_END AllTo-->
+                    <!--ET_BEGIN AllCc-->          
+                    <tr>
+                        <td  class='aright'>|Кп|*:</td>
+                        <td><b>[#AllCc#]</b></td>
+                    </tr>
+                    <!--ET_END AllCc-->
+                    <!--ET_BEGIN date-->          
+                    <tr>
+                        <td class='aright'>|На|*:</td>
+                        <td><b>[#date#]</b></td>
+                    </tr>
+                    <!--ET_END date-->
+                </table>
+            </div>
+        </div>
+        <!--ET_BEGIN files-->
+        <div class="sm-att" >
+            <div class='attachments small'>
+                <div class="aHeader">|Прикачени файлове|*:</div>
+                <div style='display:block; margin:5px 0; max-height: 198px; overflow-y: auto;'>[#files#]</div>
+            </div>
+        </div>
+        <!--ET_END files--> 
+        <div class="clearfix21"></div>
+    </div>
+    <div style='clear: both;'></div>
+
+   
+    <div style='padding:6px 10px 10px;'>
+        <!--ET_BEGIN subject-->          
+        <h3 class='richtext-title'>|Относно|*: [#subject#]</h3>
+        <!--ET_END subject-->
+        <!--ET_BEGIN textPart--> 
+        <div>[#textPart#]</div>
+        <!--ET_END textPart--> 
+    </div>
+    <div class="clearfix21"></div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

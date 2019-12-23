@@ -75,7 +75,7 @@
 .select2-results__option, .select2-container--default .select2-results__group {
     padding: 0;
 }
-.select2-results__option span{
+.select2-results__option  span{
     padding: 4px 6px;
     display: block;
 }
@@ -148,7 +148,7 @@ span.all-users{
 }
 
 .select2-container--default .select2-results__option--highlighted[aria-selected],
-.select2-container--default .select2-results__option--highlighted[aria-selected] span {
+.select2-container--default .select2-results__option--highlighted[aria-selected] span:not(.expand-collapse, .non-leaf) {
     background-color: #5897fb !important;
     color: #fff;
 }
@@ -189,7 +189,29 @@ span.all-users{
 .wide .select2-container--default .select2-results>.select2-results__options {
     max-height: 300px;
 }
-@-moz-document url-prefix() { 
+
+/* select2ToTree */
+.s2-to-tree.select2-container .select2-results__option--highlighted[aria-selected] > span.item-label {
+       background-color: #5897fb !important;
+}
+.s2-to-tree .expand-collapse {
+    font-size: 1.3em;
+    top: -3px;
+    position: relative;
+}
+.select2-results__option.l2, .select2-results__option.l3, .select2-results__option.l4 {
+    font-size: 1em !important;
+}
+.s2-to-tree  .select2-results__option--highlighted,  .s2-to-tree  .select2-results__option--highlighted:hover,.s2-to-tree  .expand-collapse{
+    background: none !important;
+}
+.s2-to-tree .select2-results__option  span{
+    padding: 0px ;
+}
+.s2-to-tree .select2-results__option  span.item-label{
+    padding: 3px ;
+}
+@-moz-document url-prefix() {
 	.narrow .color-preview {
 		vertical-align: -2px;
 	}

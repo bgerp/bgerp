@@ -1,0 +1,42 @@
+<div class = "cms-row">
+<div style="display: inline-block; padding: 0 2%">
+    <h2 style='margin-top: 5px;'>|Поръчката е направена успешно|*</h2>
+    <p>|Информация за плащането|*:<p>
+
+    <div class="summary-block" style="display: inline-block; float: none; border: 1px solid #bbb;">
+        <table>
+            <tr>
+                <td class='aright' style="padding-right: 10px;">IBAN:</td>
+                <td><b>[#IBAN#]</b></td>
+            </tr>
+            <tr>
+                <td class='aright' style="padding-right: 10px;">|Банка|*:</td>
+                <td>[#BANK#], BIC: [#BIC#]</td>
+            </tr>
+
+            <tr>
+                <td class='aright' style="padding-right: 10px;">|Сума|*:</td>
+                <td><b>[#AMOUNT#]</b></td>
+            </tr>
+            <tr>
+                <td class='aright' style="padding-right: 10px;">|Основание|*:</td>
+                <td><b>[#REASON#]</b></td>
+            </tr>
+            <tr>
+                <td class='aright' style="padding-right: 10px;">|Титуляр|*:</td>
+                <td>[#MyCompany#]</td>
+            </tr>
+        </table>
+    </div>
+    <p>|Може да свалите попълнено платежно нареждане|*: [#PO_LINK#].</p>
+
+    <p>|Поръчката ще бъде изпълнена след получаване на плащането|*.</p>
+
+    <p>[#BACK_BTN#]</p>
+
+
+</div>
+
+
+
+</div>

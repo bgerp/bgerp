@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'core_SearchMysql' - Генератор на MySQL заявка за пълнотекстово търсене
  *
@@ -12,23 +11,23 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>, SStefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_SearchMysql extends core_BaseClass
 {
-    
-    
     /**
      * Парсираната заявка.
      *
      * Асоциативен масив - индексите са думите от заявката, стойностите са
      * техните тегла при определяне на рейтинга.
      */
-    var $_query;
+    public $_query;
     
     
     /**
@@ -42,7 +41,7 @@ class core_SearchMysql extends core_BaseClass
      *
      * @param string $str Заявката, както я пише потребителя
      */
-    function init($params = array())
+    public function init($params = array())
     {
         parent::init($params);
         
@@ -55,7 +54,8 @@ class core_SearchMysql extends core_BaseClass
         $this->_query = array();
         
         // Разбиваме заявката на думи
-        if (!preg_match_all("/[a-zа-я0-9]+|\"|\^[a-zа-я0-9]+/", $str, $matches)) {
+        if (!preg_match_all("/[a-zа-я0-9]+|\"|\^[a-zа-я0-9]+/u", $str, $matches)) {
+            
             return;
         }
         
@@ -101,7 +101,7 @@ class core_SearchMysql extends core_BaseClass
     /**
      * Генерира SQL WHERE клауза, отговаряща на заявката за търсене.
      */
-    function prepareSql($prefix = '')
+    public function prepareSql($prefix = '')
     {
         $sqlRating = '0';
         
@@ -109,9 +109,9 @@ class core_SearchMysql extends core_BaseClass
             $prefix = "`{$prefix}`.";
         }
         
-        if ($this->_query["notitle"]) {
+        if ($this->_query['notitle']) {
             foreach ($this->_query as $word => $weight) {
-                if ($word != "notitle") {
+                if ($word != 'notitle') {
                     $sqlRating .= "+ {$weight}*(CONCAT(' ', {$prefix}`searchD`, ' ') LIKE binary('% {$word}%'))";
                 }
             }
@@ -122,7 +122,7 @@ class core_SearchMysql extends core_BaseClass
         }
         
         foreach ($this->_excludedWords as $word) {
-            $sqlWhere .= ($sqlWhere ? " AND " : "") . "CONCAT(' ', {$prefix}`searchD`, ' ') NOT LIKE binary('% {$word} %') AND CONCAT(' ', {$prefix}`searchT`, ' ') NOT LIKE binary('% {$word} %')\n";
+            $sqlWhere .= ($sqlWhere ? ' AND ' : '') . "CONCAT(' ', {$prefix}`searchD`, ' ') NOT LIKE binary('% {$word} %') AND CONCAT(' ', {$prefix}`searchT`, ' ') NOT LIKE binary('% {$word} %')\n";
         }
         
         return array(
@@ -136,11 +136,12 @@ class core_SearchMysql extends core_BaseClass
      * Проверява дали думата е изцяло съставена от букви на латиница
      *
      * @param string $word
+     *
      * @return bool
      */
-    function isLatin($word)
+    public function isLatin($word)
     {
-        return preg_match("/^[a-z]+$/i", $word);
+        return preg_match('/^[a-z]+$/i', $word);
     }
     
     
@@ -148,11 +149,12 @@ class core_SearchMysql extends core_BaseClass
      * Проверява дали думата е изцяло съставена от букви на кирилица
      *
      * @param string $word
+     *
      * @return bool
      */
-    function isCyrillic($word)
+    public function isCyrillic($word)
     {
-        return preg_match("/^[а-я]+$/i", $word);
+        return preg_match('/^[а-я]+$/i', $word);
     }
     
     
@@ -161,12 +163,12 @@ class core_SearchMysql extends core_BaseClass
      *
      * @return bool
      */
-    function isLatinBg()
+    public function isLatinBg()
     {
         /*
-        
+
         Detect na bulgarski na latinica.
-        
+
         SELECT *
         FROM `q_log`
         WHERE query
@@ -181,14 +183,14 @@ class core_SearchMysql extends core_BaseClass
         LIKE "% w %" OR query
         LIKE "% v %" OR query
         LIKE "% vav %"
-        
+
         */
         
         /**
          * TODO: ...
          */
         
-        return FALSE;
+        return false;
     }
     
     
@@ -206,9 +208,10 @@ class core_SearchMysql extends core_BaseClass
      * определят какви резултати връща този метод.
      *
      * @param string $word
+     *
      * @return float
      */
-    function getWordWeight($word)
+    public function getWordWeight($word)
     {
         $weights = array(
             'за' => 0,
@@ -220,14 +223,24 @@ class core_SearchMysql extends core_BaseClass
         );
         
         if (isset($weights[$word])) {
+            
             return $weights[$word];
         }
         
-        if (strlen($word) < 3) return 0.4;
+        if (strlen($word) < 3) {
+            
+            return 0.4;
+        }
         
-        if (strlen($word) < 4) return 0.6;
+        if (strlen($word) < 4) {
+            
+            return 0.6;
+        }
         
-        if (strlen($word) < 6) return 0.8;
+        if (strlen($word) < 6) {
+            
+            return 0.8;
+        }
         
         return 1;
     }
@@ -240,9 +253,10 @@ class core_SearchMysql extends core_BaseClass
      * и прави всички букви в долен регистър (lower case).
      *
      * @param string $str
+     *
      * @return string
      */
-    static function normalizeText($str)
+    public static function normalizeText($str)
     {
         $str = str::utf2ascii($str);
         $str = strtolower($str);
@@ -255,14 +269,14 @@ class core_SearchMysql extends core_BaseClass
     /**
      * @todo Чака за документация...
      */
-    function getHiliteRegexp()
+    public function getHiliteRegexp()
     {
         if (!isset($this->_hiliteRegexp)) {
-            $this->_hiliteRegexp = "";
+            $this->_hiliteRegexp = '';
             
             foreach ($this->_query as $word => $_) {
                 $this->_hiliteRegexp .= $pipe . trim($word);
-                $pipe = "|";
+                $pipe = '|';
             }
             $this->_hiliteRegexp = str_replace('_', '[a-zа-я0-9]', $this->_hiliteRegexp);
             $this->_hiliteRegexp = str_replace(' ', '[^a-zа-я0-9]+', $this->_hiliteRegexp);
@@ -276,7 +290,7 @@ class core_SearchMysql extends core_BaseClass
     /**
      * @todo Чака за документация...
      */
-    function hiliteText($str, $prefix, $suffix)
+    public function hiliteText($str, $prefix, $suffix)
     {
         if ($this->_query) {
             $str = substr(preg_replace($this->getHiliteRegexp(), "{$prefix}\\1{$suffix}", " {$str} "), 1, -1);
@@ -287,9 +301,9 @@ class core_SearchMysql extends core_BaseClass
         foreach ($this->_query as $word => $dd) {
             $word = str_replace('_', '.', trim($word));
             
-            if (!$used[$word] && strpos(' ', $word) === FALSE) {
-                $str = preg_replace("/([^a-zа-я0-9])({$word})([^a-zа-я0-9])/i", "\\1{$prefix}\\2{$suffix}\\3", $str);
-                $used[$word] = TRUE;
+            if (!$used[$word] && strpos(' ', $word) === false) {
+                $str = preg_replace("/([^a-zа-я0-9])({$word})([^a-zа-я0-9])/iu", "\\1{$prefix}\\2{$suffix}\\3", $str);
+                $used[$word] = true;
             }
         }
         
@@ -300,20 +314,22 @@ class core_SearchMysql extends core_BaseClass
     /**
      * @todo Чака за документация...
      */
-    function hiliteHtml($html, $prefix, $suffix)
+    public function hiliteHtml($html, $prefix, $suffix)
     {
         // Извличаме от HTML кода парчета прост текст
-        $textChunks = preg_split("/\s*?(<script.*>.*<\/script>|<textarea.*>.*<\/textarea>|" .
+        $textChunks = preg_split(
+            "/\s*?(<script.*>.*<\/script>|<textarea.*>.*<\/textarea>|" .
             "<style.*>.*<\/style>|<.*>|&[a-z]{2,};)\s*?/Usi",
             $html,
             -1,
-            PREG_SPLIT_NO_EMPTY | PREG_SPLIT_OFFSET_CAPTURE);
+            PREG_SPLIT_NO_EMPTY | PREG_SPLIT_OFFSET_CAPTURE
+        );
+        
         
         /**
          * $textChunk[$i][0] - фрагмент чист текст
          * $textChunk[$i][1] - началото на фрагмента в оригиналния текст
          */
-        
         $offset = 0;
         
         $textChunksCnt = count($textChunks);
@@ -338,9 +354,12 @@ class core_SearchMysql extends core_BaseClass
     /**
      * @todo Чака за документация...
      */
-    function getChar($str, $pos)
+    public function getChar($str, $pos)
     {
-        if ($pos < 0 || $pos >= strlen($str)) return "";
+        if ($pos < 0 || $pos >= strlen($str)) {
+            
+            return '';
+        }
         
         return substr($str, $pos, 1);
     }
@@ -349,18 +368,22 @@ class core_SearchMysql extends core_BaseClass
     /**
      * @todo Чака за документация...
      */
-    function getSubStr($str, $begin, $end)
+    public function getSubStr($str, $begin, $end)
     {
         $len = strlen($str);
         
-        if ($begin < 0)
-        $begin = 0;
+        if ($begin < 0) {
+            $begin = 0;
+        }
         
-        if ($end >= $len)
-        $end = $len - 1;
+        if ($end >= $len) {
+            $end = $len - 1;
+        }
         
-        if ($begin >= $end)
-        return "";
+        if ($begin >= $end) {
+            
+            return '';
+        }
         
         return substr($str, $begin, $end - $begin + 1);
     }
@@ -369,7 +392,7 @@ class core_SearchMysql extends core_BaseClass
     /**
      * @todo Чака за документация...
      */
-    function hiliteHtml1($html, $prefix, $suffix, $maxLen = 0)
+    public function hiliteHtml1($html, $prefix, $suffix, $maxLen = 0)
     {
         $lenHtml = strlen($html);
         
@@ -382,35 +405,35 @@ class core_SearchMysql extends core_BaseClass
             $c = $html{$i};
             
             //Начало на ХТМЛ или край на текста
-            if ($c == "<") {
+            if ($c == '<') {
                 $startHtml = $i;
                 $endText = $i - 1;
                 
                 $c5 = strtolower($this->getSubStr($html, $i + 1, $i + 6));
                 
-                if ($c5 == "scrip") {
+                if ($c5 == 'scrip') {
                     $paragraphBegin = $i;
                     
-                    for (; $i < $lenHtml && (strtolower($this->getSubStr($html, $i + 1, $i + 10)) != "</script>"); $i++);
+                    for (; $i < $lenHtml && (strtolower($this->getSubStr($html, $i + 1, $i + 10)) != '</script>'); $i++);
                     $i = $i + 9;
                 }
                 
-                if ($c5 == "texta") {
+                if ($c5 == 'texta') {
                     $paragraphBegin = $i;
                     
-                    for (; $i < $lenHtml && (strtolower($this->getSubStr($html, $i + 1, $i + 12)) != "</textarea>"); $i++);
+                    for (; $i < $lenHtml && (strtolower($this->getSubStr($html, $i + 1, $i + 12)) != '</textarea>'); $i++);
                     $i = $i + 11;
                 }
                 
-                if ($c5 == "style") {
+                if ($c5 == 'style') {
                     $paragraphBegin = $i;
                     
-                    for (; $i < $lenHtml && (strtolower($this->getSubStr($html, $i + 1, $i + 9)) != "</style>"); $i++);
+                    for (; $i < $lenHtml && (strtolower($this->getSubStr($html, $i + 1, $i + 9)) != '</style>'); $i++);
                     $i = $i + 8;
                 }
             }
             
-            if ($c == ">") {
+            if ($c == '>') {
                 $endHtml = $i;
                 $startText = $i + 1;
             }
@@ -442,7 +465,7 @@ class core_SearchMysql extends core_BaseClass
     /**
      * @todo Чака за документация...
      */
-    function translateGoogleQuery($str)
+    public function translateGoogleQuery($str)
     {
         $search = array(
             '/\s-([^\s])/'

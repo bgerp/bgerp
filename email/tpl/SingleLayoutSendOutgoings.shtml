@@ -6,47 +6,83 @@
         <div class='display-table'>
             <div class='antetka'>
                 <div class="small">
-                    <div style='width: 50%; display: inline-block; vertical-align: top; text-align: left;'>
-                        <!--ET_BEGIN handle-->
-                        <div>|Реф.|*: [#handle#]</div>
-                        <!--ET_END handle-->
-                        <!--ET_BEGIN createdDate-->
-                        <div>
-                            |Дата|*: [#createdDate#]<!--ET_BEGIN _resending--> <span style='color: red;'>([#_resending#])</span><!--ET_END _resending-->
-                        </div>
-                        <!--ET_END createdDate-->
-                        <!--ET_BEGIN recipient-->
-                        <div>
-                            |До|*: [#recipient#]<!--ET_BEGIN firmCountry--> - [#firmCountry#]<!--ET_END firmCountry--><!--ET_BEGIN recipientEmail-->[#recipientEmail#]<!--ET_END recipientEmail-->
-                        </div>
-                        <!--ET_END recipient-->
-                        <!--ET_BEGIN attn-->
-                        <div>|Към|*: [#attn#]</div>
-                        <!--ET_END attn-->
-                        <!--ET_BEGIN emailLeft-->
-                        <div>|Имейл|*: <b>[#emailLeft#]</b></div>
-                        <!--ET_END emailLeft-->
-                        <!--ET_BEGIN emailCcLeft-->
-                        <div>|Копие|*: <b>[#emailCcLeft#]</b></div>
-                        <!--ET_END emailCcLeft-->
-                    </div>
-                    <div style='width: 49%; display: inline-block; text-align: right; vertical-align: top;'>
-                        <!--ET_BEGIN email-->
-                        <div>|Имейл|*: <b>[#email#]</b></div>
-                        <!--ET_END email-->
-                        <!--ET_BEGIN emailCc-->
-                        <div>|Копие|*: <b>[#emailCc#]</b></div>
-                        <!--ET_END emailCc-->
-                        <!--ET_BEGIN fax-->
-                        <div>|Факс|*: [#fax#]</div>
-                        <!--ET_END fax-->
-                    </div>
+                    <table style="width: 100%">
+                        <tr>
+                            <td style="vertical-align: top;">
+                                <table class='top-table'>
+                                    <!--ET_BEGIN handle-->
+                                    <tr>
+                                        <td class='aright' style='vertical-align:top'>|Реф.|*:</td>
+                                        <td><b>[#handle#]</b></td>
+                                    </tr>
+                                    <!--ET_END handle-->
+                                    <!--ET_BEGIN createdDate-->
+                                    <tr>
+                                        <td  class='aright'>|Дата|*:</td>
+                                        <td><b>[#createdDate#]<!--ET_BEGIN _resending--> <span style='color: red;'>([#_resending#])</span><!--ET_END _resending--></b></td>
+                                    </tr>
+                                    <!--ET_END createdDate-->
+                                    <!--ET_BEGIN recipient-->
+                                    <tr>
+                                        <td  class='aright'>|До|*:</td>
+                                        <td><b>[#recipient#]<!--ET_BEGIN firmCountry--> - [#firmCountry#]<!--ET_END firmCountry--><!--ET_BEGIN recipientEmail--><b>[#recipientEmail#]</b><!--ET_END recipientEmail--></b></td>
+                                    </tr>
+                                    <!--ET_END recipient-->
+                                    <!--ET_BEGIN attn-->
+                                    <tr>
+                                        <td class='aright'>|Към|*:</td>
+                                        <td><b>[#attn#]</b></td>
+                                    </tr>
+                                    <!--ET_END attn-->
+                                    <!--ET_BEGIN emailLeft-->
+                                    <tr>
+                                        <td class='aright'>|Имейл|*:</td>
+                                        <td><b>[#emailLeft#]</b></td>
+                                    </tr>
+                                    <!--ET_END emailLeft-->
+
+                                    <!--ET_BEGIN emailCcLeft-->
+                                    <tr>
+                                        <td class='aright'>|Кп|*:</td>
+                                        <td><b>[#emailCcLeft#]</b></td>
+                                    </tr>
+                                    <!--ET_END emailCcLeft-->
+                                </table>
+                            </td>
+                            <!--ET_BEGIN LEFT_GROUP-->
+                            [#LEFT_GROUP#]
+                            <td style="width: 48%; vertical-align: top;">
+                                <table class='top-table'>
+                                    <!--ET_BEGIN email-->
+                                    <tr>
+                                        <td  class='aright' style='vertical-align:top'>|Имейл|*:</td>
+                                        <td><b>[#email#]</b></td>
+                                    </tr>
+                                    <!--ET_END email-->
+                                    <!--ET_BEGIN emailCc-->
+                                    <tr>
+                                        <td  class='aright'>|Кп|*:</td>
+                                        <td><b>[#emailCc#]</b></td>
+                                    </tr>
+                                    <!--ET_END emailCc-->
+                                    <!--ET_BEGIN fax-->
+                                    <tr>
+                                        <td  class='aright'>|Факс|*:</td>
+                                        <td><b>[#fax#]</b></td>
+                                    </tr>
+                                    <!--ET_END fax-->
+                                </table>
+                            </td>
+                            <!--ET_END LEFT_GROUP-->
+                        </tr>
+                    </table>
+
                 </div>
             </div>
         </div>
     </div>
     <!--ET_BEGIN subject--> 
-   <!--ET_BEGIN subject--><h3 class='richtext-title' style='padding-top: 10px;'>[#subject#]</h3><!--ET_END subject-->
+    <h3 class='richtext-title' style='padding-top: 10px;'>[#subject#]</h3>
     <!--ET_END subject--> 
     <!--ET_BEGIN body--> 
     <div>[#body#]</div>

@@ -25,6 +25,8 @@ function spr(sel, refresh) {
 
 }
 
+
+
 /**
  * Опитваме се да репортнем JS грешките
  */
@@ -75,7 +77,7 @@ function showTooltip() {
     if (!($('.tooltip-arrow-link').length)) {
         return;
     }
-    // Aко има тултипи
+    // Ако има тултипи
     var element;
 
     var cachedArr = new Array();
@@ -1018,10 +1020,8 @@ function colorByLen(input, maxLen, blur) {
     var rest = maxLen - input.value.length;
     var color = 'white';
     if (rest < 0) color = 'red';
-    if (rest == 0 && input.value.length > 3 && !blur) color = '#ff9999';
-    if (rest == 1 && input.value.length > 3 && !blur) color = '#ffbbbb';
-    if (rest == 2 && input.value.length > 3 && !blur) color = '#ffdddd';
-    if (rest >= 3) color = '#ffffff';
+    if (rest == 0 && input.value.length > 0 && !blur) color = '#ddffdd';
+    if (rest >= 1) color = '#ffffff';
     input.style.backgroundColor = color;
 }
 
@@ -1156,7 +1156,56 @@ function toggleDisplay(id) {
     $("#" + id).fadeToggle("slow");
     elem.toggleClass('show-btn');
 }
+function saveChecked(ul){
+    var text = "";
+    $('#' + ul).find('input[type=checkbox]:checked').each(function () {
+        text += "<span class='group-link'>" + $(this).siblings('label').text() + "</span> ";
+    });
 
+    return text;
+}
+
+// Задейства елементите, които могат да скриват/показват части
+function setTrigger() {
+    $('.trigger').click(function(event) {
+         var obj = $(this).parent().next();
+         var sp = $(this);
+         if (!($(obj).hasClass('hidden'))) {
+             $(obj).slideUp(400);
+             sp.html('►'); $(obj).addClass('hidden');
+         } else {
+             $(obj).slideDown(400);
+             sp.html('▼'); $(obj).removeClass('hidden');
+         }
+         event.stopPropagation();
+    });
+    $('.treelist .verbal').on('click', function(){
+        $(this).siblings('.more-btn').click();
+    });
+
+    $('.treelist .more-btn').on('click', function(){
+        var btn = $(this);
+        $(btn).parent().toggleClass("closed");
+        $(btn).toggleClass("plus-icon");
+        $(btn).toggleClass("minus-icon");
+        var verbal = $(btn).siblings('.verbal').attr('id');
+        var ul = $(btn).siblings('ul').attr('id');
+        $(btn).siblings('.verbal').html(saveChecked(ul));
+        toggleDisplay( verbal );
+        toggleDisplay(ul);
+    });
+
+    $('.treelist .toggleCheck').click(function(event) {
+        if($(this).siblings('.trigger').html() ==  '▼') {
+            var forAttr = $(this).attr("for");
+            var newStage = !$('#' + forAttr).is(':checked');
+            $('#' + 'ul_' + forAttr).find(':checkbox').each(  function(){ $(this).prop('checked', newStage) });
+            document.getSelection().removeAllRanges();
+            event.stopPropagation();
+        }
+
+    });
+}
 
 // Скрива групите бутони от ричедита при клик някъде
 function hideRichtextEditGroups() {
@@ -1577,6 +1626,9 @@ function setMinHeightExt() {
             }
         }
     }
+    $('.toggleLink').on('click', function(){
+        $('.narrowNav').slideToggle();
+    });
 }
 function getWindowWidth() {
 	var winWidth = parseInt($(window).width());
@@ -1593,7 +1645,7 @@ function getCalculatedElementWidth() {
     // разстояние около формата
 	var outsideWidth = 42;
     var menuSize = 0;
-	if($('#all').length) {
+	if($('.externalPage').length) {
 		outsideWidth = 30;
 		if($('#login-form input').length) {
 			outsideWidth = parseInt($('#login-form input').offset().left * 2  + 2);
@@ -1651,23 +1703,27 @@ function setFormElementsWidth() {
         if (formElWidth > preferredSizeInPx) formElWidth = preferredSizeInPx;
 
         $('.formTable label').each(function() {
-            var colsInRow = parseInt($(this).attr('data-colsInRow'));
-            if (!colsInRow) {
-                colsInRow = 1;
+            if(!$(this).closest('.treelist').length)  {
+                var colsInRow = parseInt($(this).attr('data-colsInRow'));
+                if (!colsInRow) {
+                    colsInRow = 1;
+                }
+                $(this).parent().css('maxWidth', parseInt((formElWidth - 10) / colsInRow));
+                $(this).parent().css('overflow-x', 'hidden');
+
+                $(this).attr('title', $(this).text());
             }
-
-            $(this).parent().css('maxWidth', parseInt((formElWidth - 10) / colsInRow));
-        	$(this).parent().css('overflow-x', 'hidden');
-
-            $(this).attr('title', $(this).text());
         });
 
         $('.staticFormView .formFieldValue').css('max-width', formElWidth - 5);
 
         $('.vertical .formTitle').css('min-width', formElWidth -10);
         $('.formTable textarea').css('width', formElWidth);
+        $('.formTable .treelist').css('width', formElWidth - 10);
         $('.formTable .chzn-container').css('maxWidth', formElWidth);
         $('.formTable .select2-container').css('maxWidth', formElWidth);
+        $('.vFormField .select2-container').css('maxWidth', formElWidth + 20);
+
         $('.formTable select').css('maxWidth', formElWidth);
 
         $('.formTable .scrolling-holder').css('maxWidth', formElWidth);
@@ -1689,8 +1745,8 @@ function setFormElementsWidth() {
         $('.formTable .hiddenFormRow select.w100').css('width', "100%");
         $('.formTable .hiddenFormRow select.w25').css('width', "25%");
 
-        var tempWidth = $('#all .formTable input.w100').last().width() > 200 ? $('#all .formTable input.w100').last().width() : 400;
-        $('#all .formTable textarea').css('min-width', tempWidth);
+        var tempWidth = $('.externalPage .formTable input.w100').last().width() > 200 ? $('.externalPage .formTable input.w100').last().width() : 400;
+        $('.externalPage .formTable textarea').css('min-width', tempWidth);
 
     	 $('.formTable label').each(function() {
     		 if($(this).parent().is('td')){
@@ -1729,7 +1785,18 @@ function setThreadElemWidth() {
     $('#main-container .doc_Containers table.listTable.listAction > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.background-holder .doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.doc_Containers .scrolling-holder').css('maxWidth', threadWidth + 10);
+
 }
+
+
+/**
+ * Задава ширина на таблицата за резултатите на баркодовете в мобилен
+ */
+function setBarcodeHolderWidth(){
+    var scrollWidth = parseInt($(window).width()) - 20;
+    $('.barcodeSearchHolder .scrolling-holder').css('maxWidth', scrollWidth);
+}
+
 
 function checkForElementWidthChange() {
     $(window).resize(function(){
@@ -1763,28 +1830,6 @@ function  live_disableFieldsAfterLoad(el){
     }, 1000);
 }
 
-
-// функция, която взема елементите в контекстното меню от ajax
-function dropMenu(data) {
-    var ajaxFlag = 0;
-    var id = data[0];
-    var height = data[1];
-    var url = data[2];
-
-    var numId = id.match(/\d+/)[0];
-    $('#' + id).parent().css('position', 'relative');
-    $('#' + id).parent().append("<div class='modal-toolbar' data-sizestyle='context' id='contextHolder" + numId + "' data-height='" + height + "'>");
-
-    $("#" + id).hover(function() {
-        if(ajaxFlag == 1) return;
-        var resObj = new Object();
-        resObj['url'] = url;
-        getEfae().process(resObj);
-        ajaxFlag = 1;
-    });
-
-    prepareContextMenu();
-}
 
 /**
  * Задава ширината на текстареата спрямо ширината на клетката, в която се намира
@@ -1988,31 +2033,30 @@ function appendQuote(id, line) {
 
     // Ако вече е нагласен или не е изтекъл
 	if ((!quoteText) && (selTime > now)) {
-
+		
         // Вземаме текста
         text = sessionStorage.getItem('selText');
 
         if (text) {
-
-            // Вземаме манипулатора на документа
-            selHandle = sessionStorage.getItem('selHandle');
-
-            // Стринга, който ще добавим
-            quoteText = "[bQuote";
-
-            // Ако има манипулато, го добавяме
-            if (selHandle && (typeof selHandle != "undefined") && (selHandle != 'undefined')) {
-            	quoteText += "=" + selHandle + "]";
-            } else {
-            	quoteText += "]";
-            }
-            quoteText += text + "[/bQuote]";
-        }
+			// Вземаме манипулатора на документа
+			selHandle = sessionStorage.getItem('selHandle');
+			
+			// Стринга, който ще добавим
+			quoteText = "[bQuote";
+			
+			// Ако има манипулато, го добавяме
+			if (selHandle && (typeof selHandle != "undefined") && (selHandle != 'undefined')) {
+				quoteText += "=" + selHandle + "]";
+			} else {
+				quoteText += "]";
+			}
+			quoteText += text + "[/bQuote]";
+		}
 	}
-
+	
     if (quoteText) {
         var textVal = get$(id).value;
-
+    	
         // Добавяме към данните
         if (textVal && line) {
         	var splited = textVal.split("\n");
@@ -2078,7 +2122,7 @@ function getType (val) {
  * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
  */
 function refreshForm(form, removeFields) {
-
+	
 	// Добавяме команда за рефрешване на формата
 	addCmdRefresh(form);
 
@@ -2115,8 +2159,13 @@ function refreshForm(form, removeFields) {
 
 	var serialized = $.param(filteredParams);
 
-//    form.submit(); return;
+	// Ако изрично е указано да се събмитва формата, да се събмитва нормално
+	if(frm.attr('submitFormOnRefresh')){
+		form.submit(); return;
+	}
 
+//	form.submit(); return;
+	
 	$.ajax({
 		type: frm.attr('method'),
 		url: frm.attr('action'),
@@ -2135,6 +2184,55 @@ function refreshForm(form, removeFields) {
 	}).fail(function(res) {
 		getEO().log('Грешка при извличане на данни по AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
 	});
+}
+
+
+/**
+ * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
+ */
+function updateTab(bodyId, url) {
+
+    $.ajax({
+        url: url,
+        headers: {
+            'Ajax-Mode':'yes',
+            'Html-Part-Id':bodyId
+        },
+        method: 'GET',
+        cache: false,
+        dataType: 'json',
+        success: function(data) {
+                        for (cssFile in data.css) {
+                            console.log("start: " + cssFile);
+                            console.log($("link[href*='" + cssFile + "']"));
+                            if($("link[href*='" + cssFile + "']").length == 0) {
+                                console.log("load: " + cssFile);
+                                $('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', cssFile) );
+                            }
+                        }
+                        for (jsFile in data.js) {
+                            console.log("start: " + jsFile);
+                            console.log($("script[src*='" + jsFile + "']"));
+                            if($("script[src*='" + jsFile + "']").length == 0) {
+                                console.log("load: " + jsFile);
+                                jQuery.ajax({
+                                                type: "GET",
+                                                url: jsFile,
+                                                async: false,
+                                                dataType: "script",
+                                                cache: true
+                                        });
+                            }
+                        }
+                        var head = $('#head-' + bodyId);
+                        head.html(data.head);
+                        var body = $('#' + bodyId);
+                        body.html(data.body);
+                        // Пушваме ново URL
+                        history.pushState(null, null, url);
+                }
+        }
+   );
 }
 
 
@@ -2406,11 +2504,11 @@ function prepareContextHtmlFromAjax() {
         $(holder).addClass('modal-toolbar');
         $(holder).attr('id', $(this).attr("data-id"));
         $(holder).attr('data-sizestyle', 'context');
-        $(holder).css('min-height', '120px');
+        $(holder).css('min-height', '60px');
         $(holder).css('min-width', '140px');
 
 
-        $(this).parent().append(holder);
+        $(holder).appendTo('body');
     });
 }
 
@@ -2421,19 +2519,28 @@ function prepareContextHtmlFromAjax() {
  * Подготовка за контекстно меню по ajax
  */
 function getContextMenuFromAjax() {
+    if($('body').hasClass('narrow')) {
+        document.body.addEventListener('touchstart', function () { });
+    }
     prepareContextHtmlFromAjax();
 
+    var data = [];
     $('.ajaxContext').on('mousedown touchstart', function(e) {
-        openAjaxMenu(this);
+        var id = $(this).attr('data-id');
+        if(!data[id]) {
+            openAjaxMenu(this);
+            data[id] = true;
+        }
     });
 
     $('.ajaxContext').each(function(){
         var el = $(this);
-        el.contextMenu(el.siblings('.modal-toolbar'),{triggerOn:'contextmenu', 'sizeStyle': 'context', 'displayAround': 'cursor'});
+        el.contextMenu('#' + el.attr('data-id'),{triggerOn:'contextmenu', 'sizeStyle': 'context', 'displayAround': 'cursor'});
     });
 }
 
 function openAjaxMenu(el) {
+	getEfae().preventRequest = 0;
 
     var url = $(el).attr("data-url");
     if(!url) return;
@@ -2565,7 +2672,8 @@ function createObject(name) {
  * @param id: id на формата
  */
 function preventDoubleSubmission(id) {
-    var form = '#' + id;
+    if (!id) return;
+    var form = "#" + id;
     var lastSubmitStr, submitStr, lastSubmitTime, timeSinceSubmit;
 
     jQuery(form).bind('submit', function(event, data) {
@@ -2638,6 +2746,7 @@ function smartCenter() {
 
         var smartCenterWidth = [];
     	$("span.maxwidth").css('display', 'inline-block');
+        $("span.maxwidth").css('white-space', "nowrap");
 		$("span.maxwidth").each(function() {
             if($(this).hasClass('totalCol') ){
                 var dataCol = $(this).closest('table').find('tr td:last').find('.maxwidth').attr('data-col');
@@ -2654,7 +2763,8 @@ function smartCenter() {
 
         $("span.maxwidth:not('.notcentered')").css('display', "block");
         $("span.maxwidth:not('.notcentered')").css('margin', "0 auto");
-        $("span.maxwidth:not('.notcentered')").css('white-space', "nowrap");
+        $("span.maxwidth:not('.notcentered')").css('text-align', "right");
+
 }
 
 
@@ -3102,13 +3212,20 @@ function render_google(){
  */
 function efae() {
     var efaeInst = this;
-
+    
+    // Флак за спиране на заявките
+    Experta.prototype.preventRequest = 0;
+    
     // Добавяме ивенти за ресетване при действие
     getEO().addEvent(document, 'mousemove', function() {
-        efaeInst.resetTimeout()
+    	efaeInst.resetTimeout()
     });
     getEO().addEvent(document, 'keypress', function() {
         efaeInst.resetTimeout()
+    });
+    
+    getEO().addEvent(window, 'beforeunload', function() {
+		efaeInst.preventRequest = 5;
     });
     
     getEO().addEvent(document, 'beforeunload', function() {
@@ -3167,9 +3284,6 @@ function efae() {
     // Флаг, който указва дали все още се чака резултат от предишна AJAX заявка
     Experta.prototype.isWaitingResponse = false;
     
-    // Флак за спиране на заявките
-    Experta.prototype.preventRequest = 0;
-	
     // Флаг, който указва колко време да не може да се прави AJAX заявки по часовник
     efae.prototype.waitPeriodicAjaxCall = 0;
 }
@@ -3348,10 +3462,9 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
             data: dataObj,
             dataType: 'json'
         }).done(function(res) {
-            
             // Ако са спрени заявките - нищо не правим
-            if (this.preventRequest > 0) {
-                this.preventRequest--;
+            if (thisEfaeInst.preventRequest > 0) {
+            	thisEfaeInst.preventRequest--;
                 return;
             }
 
@@ -3591,7 +3704,7 @@ efae.prototype.setUrl = function(url) {
 /**
  * Връща локалното URL, което да се извика
  *
- * @return - Локолното URL, което да се извикa по AJAX
+ * @return - Локолното URL, което да се извика по AJAX
  */
 efae.prototype.getUrl = function() {
 
@@ -3612,7 +3725,7 @@ efae.prototype.setParentUrl = function(parentUrl) {
 /**
  * Връща URL-то, от което се вика AJAX-а
  *
- * @return - Локолното URL, което да се извикa по AJAX
+ * @return - Локолното URL, което да се извика по AJAX
  */
 efae.prototype.getParentUrl = function() {
 
@@ -3913,15 +4026,6 @@ function render_editCopiedTextBeforePaste() {
 
 
 /**
-* Функция, която извиква подготвянето на editCopiedTextBeforePaste
-* Може да се комбинира с efae
-*/
-function render_removeNarrowScroll() {
-	removeNarrowScroll();
-}
-
-
-/**
 * Функция, която извиква подготвянето на показването на тоолтипове
 * Може да се комбинира с efae
  */
@@ -3960,6 +4064,18 @@ function runHljs() {
 	if (typeof hljs != 'undefined') {
 		hljs.tabReplace = '    ';
   		hljs.initHighlightingOnLoad();
+	}
+}
+
+
+/**
+ * Евалюиране на javaScript
+ */
+function render_js(data)
+{
+	// Евалюиране на скрипт
+	if(data.js){
+		eval(data.js);
 	}
 }
 
@@ -4714,47 +4830,70 @@ Experta.prototype.log = function(txt) {
  * Записва id-то на body в сесията на браузъра
  */
 Experta.prototype.saveBodyId = function() {
-	// Ако не е дефиниран
+    // Ако не е дефиниран
     if (typeof sessionStorage == "undefined") return ;
 
     var bodyId = $('body').attr('id');
 
     if (!bodyId) return ;
 
-    var bodyIds = sessionStorage.getItem(this.bodyIdSessName);
+    var bodyIds = sessionStorage.getItem('bodyIdHit');
 
     if (bodyIds) {
-    	bodyIds =  $.parseJSON(bodyIds);
+        bodyIds =  JSON.parse(bodyIds);
     } else {
-    	bodyIds = new Array();
+        bodyIds = {};
     }
 
-    if ($.inArray(bodyId, bodyIds) == -1) {
-    	bodyIds.push(bodyId);
-    }
-
-    sessionStorage.setItem(this.bodyIdSessName, JSON.stringify(bodyIds));
+    bodyIds[bodyId] = 'ajaxRefresh';
+    sessionStorage.setItem('bodyIdHit', JSON.stringify(bodyIds));
 };
+
+
+/**
+ * Определя състоянието на страницата - дали е първо посещение, дали е след рефреш или след рефреш по ajax
+ *
+ * return firstTime, refresh, ajaxRefresh
+ */
+function getHitState(bodyId) {
+    var res;
+    if (typeof sessionStorage == "undefined") return 'firstTime';
+
+    if(typeof (this.state) === 'undefined') {
+        if(typeof (bodyId) === 'undefined') {
+            var bodyId = $('body').attr('id');
+        }
+
+        if (!bodyId) return 'firstTime';
+        var bodyIds = sessionStorage.getItem('bodyIdHit');
+
+        if (typeof (bodyIds) !== 'undefined' && bodyIds) {
+            bodyIds = JSON.parse(bodyIds);
+            if(bodyIds[bodyId]) {
+                this.state = bodyIds[bodyId];
+                return this.state;
+            }
+        } else {
+            bodyIds = {};
+        }
+        res = 'firstTime';
+        this.state = 'firstTime';
+        bodyIds[bodyId] = 'refresh';
+
+        sessionStorage.setItem('bodyIdHit',  JSON.stringify(bodyIds));
+    } else {
+        res = this.state;
+    }
+    return res;
+}
 
 
 /**
  * Проверява дали id-то на body се съдържа в сесията на браузъра
  */
 Experta.prototype.checkBodyId = function(bodyId) {
-	if (!bodyId || typeof bodyId == 'undefined') {
-		bodyId = $('body').attr('id');
-	}
 
-	var bodyIds = sessionStorage.getItem(this.bodyIdSessName);
-	
-	if (!bodyIds) return ;
-
-	bodyIds =  $.parseJSON(bodyIds);
-
-	if ($.inArray(bodyId, bodyIds) != -1) {
-
-		return true;
-    }
+    return  (getHitState() == 'ajaxRefresh') ;
 };
 
 
@@ -4964,8 +5103,15 @@ function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 	
 	addBugReportInput(form, 'title', title);
 	addBugReportInput(form, 'url', url);
-	addBugReportInput(form, 'email', user + '@' + domain);
-	addBugReportInput(form, 'name', name);
+	
+	if (user && domain) {
+		addBugReportInput(form, 'email', user + '@' + domain);
+	}
+	
+	if (name) {
+		addBugReportInput(form, 'name', name);
+	}
+	
 	addBugReportInput(form, 'width', width);
 	addBugReportInput(form, 'height', height);
 	addBugReportInput(form, 'browser', browser);
@@ -4993,13 +5139,30 @@ function detectScrollAndWp() {
     }
 }
 
+/**
+ * Определяне на височината на елементите в дебъг лога
+ */
+function debugLayout() {
+    var leftMenuHeight = $(window).height() - $('.headerLine').outerHeight();
+    $('.wide .debugList, .wide .debugPreview').css('height', leftMenuHeight);
 
-function removeNarrowScroll() {
-	if($('body').hasClass('narrow-scroll') && !checkNativeSupport()){
-		$('body').removeClass('narrow-scroll');
-	}
+    if ($('body').hasClass('narrow')) {
+        $('.linksGroup').scrollTop($('.debugLink.current').offset().top - $('.linksGroup').height() -10);
+    }
+    $('.search-fields input').on('click', function(){
+        $('.other-fileds').slideDown();
+
+        $('.other-fileds').find('input.combo').each(function(){
+            var idComboBox = $(this).attr('id');
+            if(!comboBoxInited[idComboBox]){
+                comboBoxInit(idComboBox, idComboBox + "_cs");
+                comboBoxInited[idComboBox] = true;
+            }
+        });
+    });
+
+
 }
-
 
 
 /**
@@ -5037,9 +5200,9 @@ function mailServerSettings() {
 		    	server.value = "pop3.abv.bg:995";
 			    protocol.value = "pop3";
 			    security.value = "ssl";
-			    cert.value = "validate";
+			    cert.value = "noValidate";
 			    smtpServer.value = "smtp.abv.bg:465";
-			    smtpSecure.value = "tls";
+			    smtpSecure.value = "ssl";
 			    smtpAuth.value = "LOGIN";
 			    user.value = email.value;
 			    smtpUser.value = email.value;
@@ -5082,7 +5245,7 @@ function mailServerSettings() {
 		    	protocol.value = "imap";
 		    	security.value = "tls";
 		    	cert.value = "validate";
-		    	smtpServer.value = "smtp.mail.bg:25";
+		    	smtpServer.value = "smtp.mail.bg:465";
 		    	smtpSecure.value = "tls";
 		    	smtpAuth.value = "LOGIN";
 		    	user.value = email.value;
@@ -5105,7 +5268,7 @@ function mailServerSettings() {
 
 
 /**
- * Вика url-то w data-url на линка и спира норматлноното му действие
+ * Вика url-то в data-url на линка и спира норматлноното му действие
  *
  * @param event
  * @param stopOnClick
@@ -5162,6 +5325,16 @@ function onBeforeUnload()
 
 
 /**
+ * Изчиства съдържанието на localStorage
+ */
+function clearLocalStorage(){
+    if (typeof localStorage !== 'undefined' && localStorage.length) {
+        localStorage.clear();
+    }
+}
+
+
+/**
  * Добавя текущото URL И титлата към url-то
  */
 function addParamsToBookmarkBtn(obj, parentUrl, localUrl)
@@ -5194,6 +5367,43 @@ function copyFileToLast(fh)
     // Затваряме прозореца
     if ($('.iw-mTrigger').contextMenu) {
     	$('.iw-mTrigger').contextMenu('close');
+    }
+}
+
+/**
+ * Извиква функцията за изчисляване при зареждане и смяна на размери на прозореца
+ */
+function setFilemanPreviewSize()
+{
+    calcFilemanSize();
+    $( window ).resize(function() {
+        calcFilemanSize();
+    });
+}
+
+
+/**
+ * Изчисляване на размерите на привюто на файловете
+ */
+function calcFilemanSize(){
+    if (!$('.wide .webdrvFieldset').length) return;
+
+    var currentHeight = $('.webdrvFieldset').height();
+    var sidemenuWidth = $('.sidemenu-open').length  ? $('.sidemenu-open').length * ($('.sidemenu-open').width() + 10) : 0;
+    var width = $(window).outerWidth() - sidemenuWidth - 60  ;
+    var offset = $('.webdrvFieldset').offset();
+    var height = $(window).outerHeight() - parseInt(offset.top, 10) - 45;
+
+    if (currentHeight < height) {
+        $('.webdrvFieldset').css('height', height);
+        $('.webdrvFieldset').css('overflow-y', 'auto');
+        $('.webdrvIframe').css('min-height', height - 5);
+        $("#imgIframe").on('load', function() {
+            $("#imgIframe").contents().find("#imgBg").css("height", height - 15);
+        });
+    }
+    if ( $('.webdrvFieldset').width() < width) {
+        $('.webdrvFieldset').css('width', width);
     }
 }
 
@@ -5270,6 +5480,67 @@ JSON.stringify = JSON.stringify || function (obj) {
 
 
 /**
+ * Дали елемента е видим във viewport
+ */
+$.fn.isInViewport = function() {
+	if (typeof($(this).offset()) == 'undefined') return ;
+	
+	var elementTop = $(this).offset().top;
+    
+    var elementBottom = elementTop + $(this).outerHeight();
+
+    var viewportTop = $(window).scrollTop();
+    var viewportBottom = viewportTop + $(window).height();
+
+    return elementBottom > viewportTop && elementTop < viewportBottom;
+};
+
+
+/**
+ * Фокусира еднократно върху посоченото id пи зададения rand
+ */
+function focusOnce(id) {
+    getEO().checkBodyId();
+
+    if(this.state && this.state == 'firstTime' && $(id).isInViewport && $(id).isInViewport()) {
+        $(id).focus();
+    }
+}
+
+
+/**
+ * Изчистване на статусите от посочен тип
+ */
+function render_clearStatuses(data)
+{
+	var type = data.type;
+	var elementClass = ".toast-type-" + type;
+	
+	if ($(elementClass).length) {
+	    $(elementClass).remove();
+	}
+}
+
+
+// Рендира fancybox-а
+function render_fancybox()
+{
+	$('a.fancybox').fancybox();
+}
+
+
+/**
+ * Кокусиране върху заглавията, при дабъклик върху H2 заглавие
+ */
+function focusOnHeader() {
+    $("h2").dblclick(function(e) {
+        window.location.hash = $(this).attr("id");
+        e.preventDefault();
+    });
+}
+
+
+/**
  * Fix за IE7
  * implement JSON.parse de-serialization
  *
@@ -5282,20 +5553,16 @@ JSON.parse = JSON.parse || function (str) {
 };
 
 
-
-/**
- * Фокусира еднократно върху посоченото id пи зададения rand
- */
-function focusOnce(id, rand) {
-    if (typeof(Storage) !== "undefined") {
-        if(localStorage.getItem(rand) !== null) {
-            return;
-        }
-        localStorage.setItem(rand, 1);
+function unregisterServiceWorker() {
+    if($('#main-container').length && !$('link[rel="manifest"]').length && !isIE() && typeof navigator.serviceWorker !== 'undefined' && navigator.serviceWorker.getRegistrations) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            eval("for(var registration of registrations) {registration.unregister();}");
+        });
     }
-    $(id).focus();
 }
+
 
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
+runOnLoad(focusOnHeader);

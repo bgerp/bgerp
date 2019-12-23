@@ -12,6 +12,8 @@ $('ul.answers input[type=radio]').click(function vote() {
     }
    
     var selected = $(this);
+    console.log(selected);
+    
     $.ajax({
     	     type: "GET",
     	     url: url,
@@ -28,7 +30,7 @@ $('ul.answers input[type=radio]').click(function vote() {
     	     },
     	     error: function()
     	     {
-    	    	 
+    	    	 $("[data-alternativeId=" + alternativeId + "]").attr("checked", false);
     	     }
     	   });
 });

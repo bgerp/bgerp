@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
- * Клас 'uiext_Setup' 
+ * Клас 'uiext_Setup'
  *
  *
  * @category  bgerp
  * @package   uiext
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class uiext_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -38,42 +37,65 @@ class uiext_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = "Разширения на потребителския интерфейс";
+    public $info = 'Разширения на потребителския интерфейс';
     
     
     /**
      * Роли за достъп до модула
      */
     public $roles = 'uiext';
-    
-    
-    /**
-     * Връзки от менюто, сочещи към модула
-     */
-    public $menuItems = array(
-    		array(1.9999, 'Система', 'Инструменти', 'uiext_Labels', 'default', "uiext, admin, ceo"),
-    );
-    
+        
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'uiext_Labels',
-            'uiext_DocumentLabels',
-        );
+        'uiext_Labels',
+        'uiext_ObjectLabels',
+        'migrate::replaceContainerId',
+    );
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
+        $html = parent::install();
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Добавяне на тагове към редовете на транспортните линии', 'uiext_plg_DetailLabels', 'trans_LineDetails', 'private');
+        
+        if(core_Packs::isInstalled('rack')){
+            $html .= $Plugins->installPlugin('Добавяне на тагове към детайлите на зоните в палетния склад', 'uiext_plg_DetailLabels', 'rack_ZoneDetails', 'private');
+        }
+        
+        return $html;
+    }
     
-    	$Plugins = cls::get('core_Plugins');
-    	$html .= $Plugins->installPlugin('Добавяне на тагове към редовете на транспортните линии', 'uiext_plg_DetailLabels', 'trans_LineDetails', 'private');
     
-    	return $html;
+    public function replaceContainerId()
+    {
+       $Class = cls::get('uiext_ObjectLabels');
+       $Class->setupMvc();
+        
+       $update = array();
+       $query = $Class->getQuery();
+       $db = $query->mvc->db;
+       if ($db->isFieldExists($query->mvc->dbTableName, 'containerId')) {
+           $query->FLD('containerId', 'key(mvc=doc_Containers)');
+           $query->where("#containerId IS NOT NULL");
+           while($rec = $query->fetch()){
+               try{
+                   $Document = doc_Containers::getDocument($rec->containerId);
+                   $update[$rec->id] = (object)array('id' => $rec->id, 'classId' => $Document->getClassId(), 'objectId' => $Document->that);
+               } catch(core_exception_Expect $e){
+                   reportException($e);
+               }
+           }
+           
+           if(count($update)){
+               $Class->saveArray($update, 'id,classId,objectId');
+           }
+       }
     }
 }

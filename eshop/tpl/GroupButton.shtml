@@ -2,7 +2,7 @@
     <div class='eshop-group-button-img'>
         [#img#]
     </div>
-    <div class='eshop-group-button-title'>
+    <h2 class='eshop-group-button-title'>
         [#name#]
-    </div>
+    </h2>
 </div>

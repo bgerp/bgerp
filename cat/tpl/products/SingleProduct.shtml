@@ -1,8 +1,8 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <h2 style='line-height:26px; margin-bottom: 3px;'><b style="color:green;">[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code--></b></h2>
+    <h2 style='line-height:26px; margin-bottom: 3px;'><b style="color:green;"><!--ET_BEGIN code-->[[#code#]] <!--ET_END code-->[#name#]</b></h2>
     <!--ET_BEGIN proto--><div class='quiet'><small>|Базирано на|*: [#proto#]</small></div><!--ET_END proto--> 
     <!--ET_BEGIN originId--><small style="font-style: italic" class='quiet'>|Генериран от|* [#originId#]</small> <!--ET_END originId-->
-    
+    [#ADDITIONAL_TOP_BLOCK#]
     <fieldset class="detail-info">
     <legend class="groupTitle">|Описание|*</legend>
      [#innerState#]
@@ -15,7 +15,7 @@
      [#PARAMETERS#]
     </fieldset>
     <!--ET_END PARAMETERS-->
-    
+    [#ADDITIONAL_BOTTOM_BLOCK#]
     <!--ET_BEGIN groupsInput-->
     <fieldset class="detail-info">
          <legend class="groupTitle nowrap">|Групи|* [#editGroupBtn#]</legend>

@@ -26,6 +26,36 @@ defIfNot('ESHOP_NOT_IN_STOCK_TEXT', 'Няма наличност');
 
 
 /**
+ * Дефолтен шаблон за онлайн продажби на български
+ */
+defIfNot('ESHOP_SALE_DEFAULT_TPL_BG', '');
+
+
+/**
+ * Дефолтен шаблон за онлайн продажби на английски
+ */
+defIfNot('ESHOP_SALE_DEFAULT_TPL_EN', '');
+
+
+/**
+ * Кое поле да е задължително при изпращане на запитване или поръчка във външната част
+ */
+defIfNot('ESHOP_MANDATORY_CONTACT_FIELDS', 'person');
+
+
+/**
+ * Сол за даване на достъп до кошница
+ */
+defIfNot('ESHOP_CART_ACCESS_SALT', '');
+
+
+/**
+ * Брой артикули на страница
+ */
+defIfNot('ESHOP_PRODUCTS_PER_PAGE', '20');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -34,99 +64,116 @@ defIfNot('ESHOP_NOT_IN_STOCK_TEXT', 'Няма наличност');
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class eshop_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'eshop_Groups';
+    public $startCtr = 'eshop_Groups';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Уеб каталог с продукти и услуги за сайта";
+    public $info = 'Уеб магазин';
+    
+    
+    /**
+     * Необходими пакети
+     */
+    public $depends = 'cms=0.1';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
-            'eshop_Groups',
-            'eshop_Products',
-    		'eshop_Settings',
-    		'eshop_ProductDetails',
-    		'eshop_Carts',
-    		'eshop_CartDetails',
-            'migrate::migrateProductOrdering',
-            'migrate::migrateGroupOrdering',
-        );
-
-        
+    public $managers = array(
+        'eshop_Groups',
+        'eshop_Products',
+        'eshop_Settings',
+        'eshop_ProductDetails',
+        'eshop_Carts',
+        'eshop_CartDetails',
+        'migrate::updateContactData',
+        'migrate::updateProductStates2'
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'eshop';
- 
+    public $roles = 'eshop';
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.55, 'Сайт', 'Е-маг', 'eshop_Groups', 'default', "ceo, eshop"),
-        );
+    public $menuItems = array(
+        array(3.55, 'Сайт', 'Е-маг', 'eshop_Groups', 'default', 'ceo, eshop'),
+    );
     
     
     /**
-	 * Описание на конфигурационните константи
-	 */
-	var $configDescription = array(
-         'ESHOP_BROWSER_CACHE_EXPIRES' => array ('time', 'caption=Кеширане в браузъра->Време'),
-         'ESHOP_MIN_GROUPS_FOR_NAVIGATION' => array ('int', 'caption=Минимален брой групи за навигация->Брой'),
-	     'ESHOP_CART_EXTERNAL_NAME' => array ('varchar', 'caption=Стрингове във външната част->Кошница'),
-		 'ESHOP_NOT_IN_STOCK_TEXT' => array ('varchar', 'caption=Стрингове във външната част->Липса на наличност'),
-	);
-	
-	
-	/**
-	 * Настройки за Cron
-	 */
-	public $cronSettings = array(
-			array(
-					'systemId' => "Delete Carts",
-					'description' => "Изтриване на старите колички",
-					'controller' => "eshop_Carts",
-					'action' => "DeleteDraftCarts",
-					'period' => 1440,
-					'offset' => 60,
-					'timeLimit' => 100
-			),
-	);
-
-
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'ESHOP_BROWSER_CACHE_EXPIRES' => array('time', 'caption=Кеширане в браузъра->Време'),
+        'ESHOP_MIN_GROUPS_FOR_NAVIGATION' => array('int', 'caption=Минимален брой групи за навигация->Брой'),
+        'ESHOP_CART_EXTERNAL_NAME' => array('varchar', 'caption=Стрингове във външната част->Кошница'),
+        'ESHOP_NOT_IN_STOCK_TEXT' => array('varchar', 'caption=Стрингове във външната част->Липса на наличност'),
+        'ESHOP_SALE_DEFAULT_TPL_BG' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
+        'ESHOP_SALE_DEFAULT_TPL_EN' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
+        'ESHOP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни за количката->Поле'),
+        'ESHOP_CART_ACCESS_SALT' => array('varchar', 'caption=Даване на достъп за присвояване на количка->Сол'),
+        'ESHOP_PRODUCTS_PER_PAGE' => array('int(Min=0)', 'caption=Брой артикули на страница в групата->Брой'),
+    );
+    
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'eshop_driver_BankPayment';
+    
+    
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'Delete Carts',
+            'description' => 'Изтриване на старите колички',
+            'controller' => 'eshop_Carts',
+            'action' => 'DeleteDraftCarts',
+            'period' => 60,
+            'offset' => 30,
+            'timeLimit' => 100
+        ),
+    );
+    
+    
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
         
@@ -137,71 +184,62 @@ class eshop_Setup extends core_ProtoSetup
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Разширяване на външната част за онлайн магазина', 'eshop_plg_External', 'cms_page_External', 'private');
         $html .= $Plugins->installPlugin('Разширяване на потребителите свързана с външната част', 'eshop_plg_Users', 'core_Users', 'private');
+        $html .= $Plugins->installPlugin('Разширяване на артикулите вързани с онлайн магазина', 'eshop_plg_ProductSync', 'cat_Products', 'private');
         
         return $html;
     }
     
-           
+    
     /**
-     * Де-инсталиране на пакета
+     * Извиква се след SetUp-а на таблицата за модела
      */
-    function deinstall()
+    public function loadSetupData($itr = '')
     {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
+        $res = parent::loadSetupData($itr);
+        $config = core_Packs::getConfig('eshop');
+        
+        $tplArr = array();
+        $tplArr[] = array('name' => 'Online sale', 'content' => 'eshop/tpl/OnlineSaleEn.shtml', 'lang' => 'en');
+        $tplArr[] = array('name' => 'Онлайн продажба', 'content' => 'eshop/tpl/OnlineSaleBg.shtml', 'lang' => 'bg');
+        $res .= doc_TplManager::addOnce('sales_Sales', $tplArr);
+        
+        // Поставяне на първия намерен шаблон на английски за дефолтен на продажбата
+        if (strlen($config->ESHOP_SALE_DEFAULT_TPL_BG) === 0) {
+            $templateBgId = doc_TplManager::fetchField("#name = 'Онлайн продажба'");
+            core_Packs::setConfig('eshop', array('ESHOP_SALE_DEFAULT_TPL_BG' => $templateBgId));
+        }
+        
+        // Поставяне на първия намерен шаблон на английски за дефолтен на продажбата
+        if (strlen($config->ESHOP_SALE_DEFAULT_TPL_EN) === 0) {
+            $templateEnId = doc_TplManager::fetchField("#name = 'Online sale'");
+            core_Packs::setConfig('eshop', array('ESHOP_SALE_DEFAULT_TPL_EN' => $templateEnId));
+        }
         
         return $res;
     }
-
+    
+    
     /**
-     * Миграция за подредбата на продуктите
+     * Миграция на уеб константа
      */
-    public static function migrateProductOrdering()
+    public function updateContactData()
     {
-        $mvc = cls::get('eshop_Products');
-
-        $query = $mvc->getQuery();
-        $query->FLD('order', 'int', 'caption=Подредба');
-
-        $query->orderBy("#order,#code");
-         
-        $i = array();
-        $cnt = 0;
-        while($rec = $query->fetch()) {
-            if(!isset($i[$rec->groupId])) {
-                $i[$rec->groupId] = 1;
-            }
-            $rec->saoOrder = $i[$rec->groupId]++;
-            $rec->saoLevel = 1;
-            $mvc->save_($rec, 'saoOrder, saoLevel');
-            $cnt++;
-        }
- 
-        return "<li>Мигрирана подредбата на eshop продукти: " . $cnt;    
-    }
-
-    /**
-     * Миграция за подредбата на продуктите
-     */
-    public static function migrateGroupOrdering()
-    {
-        $mvc = cls::get('eshop_Groups');
-
-        $query = $mvc->getQuery();
+        $conf = core_Packs::getConfig('bgerp');
+        $value = $conf->_data['BGERP_MANDATORY_CONTACT_FIELDS'];
+        $exValue = eshop_Setup::get('MANDATORY_CONTACT_FIELDS');
         
-        $i = array();
-        $cnt = 0;
-        while($rec = $query->fetch()) {
-            if(!isset($i[$rec->menuId])) {
-                $i[$rec->menuId] = 1;
-            }
-            $rec->saoOrder = $i[$rec->menuId]++;
-            $rec->saoLevel = 1;
-            $mvc->save_($rec, 'saoOrder, saoLevel');
-            $cnt++;
+        if (!empty($value) && $exValue != $value && in_array($value, array('company', 'person', 'both'))) {
+            core_Packs::setConfig('eshop', array('ESHOP_MANDATORY_CONTACT_FIELDS' => $value));
         }
- 
-        return "<li>Мигрирана подредбата на eshop групи: " . $cnt;
     }
-
+    
+    
+    /**
+     * Миграция на уеб константа
+     */
+    public function updateProductStates2()
+    {
+        core_App::setTimeLimit(500);
+        eshop_ProductDetails::syncStatesByProductId();
+    }
 }

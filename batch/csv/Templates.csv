@@ -5,6 +5,7 @@
 Срок на годност(yyyymmdd),batch_definitions_ExpirationDate,active,"format=Ymd"
 Дата на доставка,batch_definitions_DeliveryDate,active,"format=Ymd"
 Дата на производство,batch_definitions_ProductionDate,active,"format=Ymd"
-Символи/цифри,batch_definitions_Component,active,"delimiter=/,numberLetters=2"
-Номер/Срок на годност,batch_definitions_StringAndDate,active,"delimiter=/,format=m.Y,length=10"
-Цифри(255),batch_definitions_Digits,active,"length=255"
+Символи/цифри,batch_definitions_Component,active,"delimiter=&#47;,numberLetters=2"
+Номер/Срок на годност,batch_definitions_StringAndDate,active,"delimiter=&#47;,format=m.Y,length=10,autoValue=yes"
+Цифри(255),batch_definitions_Digits,active,"length=255,autoValue=yes"
+Задание за производство,batch_definitions_Job,active,

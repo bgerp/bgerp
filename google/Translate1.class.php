@@ -8,15 +8,15 @@
  *
  * @category  vendors
  * @package   google
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class google_Translate1 
+class google_Translate1
 {
-    
-    
     /**
      * JavaScript фунцкията за превеждане
      */
@@ -79,12 +79,12 @@ class google_Translate1
     
     /**
      * Връща JAVASCRIPT функцията за превеждане
-     * 
-     * @param boolean $escaped - Дали да се ескейпва
-     * 
+     *
+     * @param bool $escaped - Дали да се ескейпва
+     *
      * @return string $initJs
      */
-    static function getInitJs($escaped=FALSE)
+    public static function getInitJs($escaped = false)
     {
         // Вземаме скрипта
         $initJs = static::$initJs;
@@ -102,13 +102,13 @@ class google_Translate1
     
     /**
      * Връща линка за превеждане на текста
-     * 
-     * @param string $lg - Езика, на който да се превежда
-     * @param boolean $escaped - Дали да се ескейпва
-     * 
+     *
+     * @param string $lg      - Езика, на който да се превежда
+     * @param bool   $escaped - Дали да се ескейпва
+     *
      * @return string $jsUrl
      */
-    static function getElementJsUrl($lg=FALSE, $escaped=FALSE)
+    public static function getElementJsUrl($lg = false, $escaped = false)
     {
         // Ако не е подаден език
         if (!$lg) {
@@ -116,7 +116,7 @@ class google_Translate1
             // Вземаме текущия език
             $lg = core_Lg::getCurrent();
         }
-
+        
         // Вземаме URL' тп
         $jsUrl = static::$elementJsUrl;
         
@@ -136,13 +136,13 @@ class google_Translate1
     
     /**
      * Връща шаблона, в който ще се съдържа текста за превод
-     * 
-     * @param string $text - Текста, който ще се превежда
-     * @param boolean $escaped - Дали да се ескейпва
-     * 
+     *
+     * @param string $text    - Текста, който ще се превежда
+     * @param bool   $escaped - Дали да се ескейпва
+     *
      * @return string $markup
      */
-    static function getMarkupTpl($text='', $escaped=FALSE)
+    public static function getMarkupTpl($text = '', $escaped = false)
     {
         // Вземаме шаблона, в който ще се намира стринга за превеждане
         $markup = static::$markupTpl;
@@ -164,12 +164,12 @@ class google_Translate1
     
     /**
      * Връща CSS' а
-     * 
-     * @param boolean $escaped - Дали да се ескейпва
-     * 
+     *
+     * @param bool $escaped - Дали да се ескейпва
+     *
      * @return string $css
      */
-    static function getCss($escaped=FALSE)
+    public static function getCss($escaped = false)
     {
         // Вземаме CSS' а
         $css = static::$css;
@@ -187,14 +187,14 @@ class google_Translate1
     
     /**
      * Превръщаме HTML текста в JS текст, който да може да се използва в променлива
-     * 
+     *
      * @param string $html
-     * 
+     *
      * @return string $initJs
      */
-    static function htmlToJsText($html)
+    public static function htmlToJsText($html)
     {
-        $jsHtml = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($html));
+        $jsHtml = preg_replace(array("/\r?\n/", "/\//"), array('\\n', "\/"), addslashes($html));
         
         return $jsHtml;
     }

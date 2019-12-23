@@ -1,26 +1,25 @@
 <?php
 
 
-
 /**
  * Покупки - опаковка
  *
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sales_Wrapper extends plg_ProtoWrapper
 {
-    
-    
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('sales_Sales', 'Продажби', 'ceo,sales,acc');
         $this->TAB('sales_Quotations', 'Оферти', 'ceo,sales');
@@ -32,9 +31,10 @@ class sales_Wrapper extends plg_ProtoWrapper
         $this->TAB('dec_Materials', 'Декларации->Материали', 'ceo,dec');
         $this->TAB('sales_ClosedDeals', 'Приключвания', 'ceo,sales');
         $this->TAB('sales_Routes', 'Маршрути', 'ceo,sales');
-        $this->TAB('sales_PrimeCostByDocument', 'Делти', 'admin,ceo,debug');
-        $this->TAB('sales_TransportValues', 'Изчисления', 'debug');
-        
+        $this->TAB('sales_PrimeCostByDocument', 'Дебъг->Делти', 'admin,ceo,debug');
+        $this->TAB('sales_TransportValues', 'Дебъг->Навла', 'debug');
+        $this->TAB('sales_ProductRelations', 'Дебъг->Сходни продукти', 'debug');
+
         $this->title = 'Продажби « Търговия';
         Mode::set('menuPage', 'Търговия:Продажби');
     }

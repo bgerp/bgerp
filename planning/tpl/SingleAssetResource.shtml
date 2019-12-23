@@ -1,45 +1,108 @@
 <div class="singleView">
     [#SingleToolbar#]
     <div class="info-table">
-        <h2 style='line-height:30px' class='[#STATE_CLASS#]'>|Оборудване|* <b style="color:green;">[#name#]</b></h2>
-        <fieldset class="detail-info">
-            <legend class="groupTitle">|Информация|*</legend>
-            <ul>
-                <li class="info">
-                    <span class="gray-title">|Вид|*: </span>[#groupId#]
-                </li>
-                
-                <!--ET_BEGIN protocolId-->
-                <li class="info">
-                    <span class="gray-title">|ДА|*: </span> [#protocolId#]
-                </li>
-                <!--ET_END protocolId-->
-                
-                <!--ET_BEGIN quantity-->
-                <li class="info">
-                    <span class="gray-title">|Количество|*: </span> [#quantity#]
-                </li>
-                <!--ET_END quantity-->
-            </ul>
-        </fieldset>
+        <h3 style='padding: 5px; color:green;' class='[#STATE_CLASS#]'><b>[#codeAndName#]</b></h3>
         
         <fieldset class="detail-info">
-            <legend class="groupTitle">|Създаване|*</legend>
-            <ul>
-                <li class="info">
-                    <span class="gray-title">|Създаване на|* [#createdOn#] |от|* [#createdBy#]</span>
-                </li>
-            </ul>
+            <legend class="groupTitle">|Общи данни|*</legend>
+            <!--ET_BEGIN image-->
+            <div class="fright">[#image#]</div>
+            <!--ET_END image-->
+            <table>
+                <!--ET_BEGIN groupId-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Вид|*:
+                    </td>
+                    <td>[#groupId#]</td>
+                </tr>
+                <!--ET_END groupId-->
+                <!--ET_BEGIN simultaneity-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Едновременност|*:
+                    </td>
+                    <td>[#simultaneity#]</td>
+                </tr>
+                <!--ET_END simultaneity-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Създаване|*:
+                    </td>
+                    <td>|от|* [#createdBy#] |на|* [#createdOn#]</td>
+                </tr>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Модифициране|*:
+                    </td>
+                    <td>|от|* [#modifiedBy#] |на|* [#modifiedOn#]</td>
+                </tr>
+                <!--ET_BEGIN description-->
+                <tr>
+                    <td colspan = "2">[#description#]</td>
+                </tr>
+                <!--ET_END description-->
+            </table>
         </fieldset>
+        
+        <!--ET_BEGIN jobs-->
+        <fieldset class="detail-info" style="margin-top: 20px; line-height: 120%">
+            <legend class="groupTitle">|Използване|*</legend>
+            <ul>
+	            <!--ET_BEGIN assetFolderId-->
+	            <li class="info">
+	                [#assetFolderId#]
+	            </li>
+	            <!--ET_END assetFolderId-->
+           </ul>
+        </fieldset>
+        [#jobs#]
+        <!--ET_END jobs-->
+        
+        <!--ET_BEGIN issues-->
+        <fieldset class="detail-info" style="margin-top: 20px; line-height: 120%">
+            <legend class="groupTitle">|Поддръжка|*</legend>
+            <table>
+                <!--ET_BEGIN systemFolderId-->
+                <tr>
+                    <td colspan="2">[#systemFolderId#]</td>
+                </tr>
+                <!--ET_END systemFolderId-->
+            </table>
+        </fieldset>
+        [#issues#]
+        <!--ET_END issues-->
+       
+        <!--ET_BEGIN sensors-->
+        <div class="scrolling-holder">
+            <fieldset class="detail-info" style="margin-top: 20px; display: block;">
+                <legend class="groupTitle">|Сензори|*</legend>
+                    [#sensors#]
+            </fieldset>
+        </div>
+        <!--ET_END sensors-->
+       
+        <!--ET_BEGIN cams-->
+        <fieldset class="detail-info" style="margin-top: 20px;">
+            <legend class="groupTitle">|Камери|*</legend>
+            [#cams#]
+        </fieldset>
+        <!--ET_END cams-->
+        
+        <!--ET_BEGIN tracking-->
+        <fieldset class="detail-info" style="margin-top: 20px;">
+            <legend class="groupTitle">|Проследяване|*</legend>
+            [#tracking#]
+        </fieldset>
+        <!--ET_END tracking-->
+
+        <div class="scrolling-holder">
+            <fieldset class="detail-info" style="margin-top: 20px;">
+                <legend class="groupTitle">|Норми|*</legend>
+                <div class="scrolling-holder">
+                    [#planning_AssetResourcesNorms#]
+                </div>
+            </fieldset>
+        </div>
     </div>
-    <fieldset class="detail-info">
-        <legend class="groupTitle">|Папки|*</legend>
-           [#planning_AssetResourceFolders#]
-    </fieldset>
-    <fieldset class="detail-info">
-        <legend class="groupTitle">|Норми|*</legend>
-           [#planning_AssetResourcesNorms#]
-    </fieldset>
-    </div>
-    [#DETAILS#]
 </div>

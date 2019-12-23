@@ -36,14 +36,14 @@
         	<tr>
         	    <!--ET_BEGIN compensationEmployer-->
                 <br><p><b>|Заплащане|*:</b></p>
-        		<th>|Oт работодателя|*</th>
+        		<th>|От работодателя|*</th>
                 <td class="centered">[#paidByEmployer#]</td>
                 <!--ET_END compensationEmployer-->
             </tr>
 
             <tr>  
                 <!--ET_BEGIN compensationHI-->
-            	<th>|Oт НЗК|*</th>
+            	<th>|От НЗК|*</th>
 	            <td class="centered">[#paidByHI#]</td>
 	            <!--ET_END compensationHI-->
 	        </tr>

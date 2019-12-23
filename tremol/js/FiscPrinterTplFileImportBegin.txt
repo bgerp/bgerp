@@ -1,0 +1,16 @@
+// Какво е състоянието на кеша - за да го върнем същото после
+var ajaxCacheVal = $.ajaxSetup()['cache'];
+if (ajaxCacheVal == undefined) {
+    ajaxCacheVal = false
+};
+
+// За да се кешират JS файловете
+$.ajaxSetup({ cache: true });
+
+// Добавяме необходимите JS файлове
+// След добавянето извикваме функциите
+$.getScript([#FP_CORE_JS#]).done(function() {
+    $.getScript([#FP_JS#]).done(function() {
+        $.getScript([#FISC_PRINT_JS#]).done(function() {
+            // Връщаме старата стойност за кеширането
+            $.ajaxSetup({ cache: ajaxCacheVal });

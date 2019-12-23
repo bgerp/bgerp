@@ -1,42 +1,42 @@
 <?php 
 
-
 /**
  * Мениджира детайлите на менюто (Details)
  *
  *
  * @category  bgerp
  * @package   catering
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class catering_MenuDetails extends core_Detail
 {
-    
-    
     /**
      * Заглавие
      */
-    var $title = "Детайли на меню";
+    public $title = 'Детайли на меню';
+    
     
     /**
      * Заглавие в единично число
      */
-    var $singleTitle = "Детайл на меню";
+    public $singleTitle = 'Детайл на меню';
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Кетъринг";
+    public $pageMenu = 'Кетъринг';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, 
+    public $loadList = 'plg_Created, plg_RowTools2, 
                      catering_Wrapper, plg_Sorting, 
                      Menu=catering_Menu, 
                      EmployeesList=catering_EmployeesList, 
@@ -47,55 +47,55 @@ class catering_MenuDetails extends core_Detail
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'menuId';
+    public $masterKey = 'menuId';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num, food, price';
+    public $listFields = 'num, food, price';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'num';
+    public $rowToolsField = 'num';
     
     
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
      */
-    var $tabName = "catering_Menu";
+    public $tabName = 'catering_Menu';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo, catering';
+    public $canRead = 'ceo, catering';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo, catering';
+    public $canEdit = 'ceo, catering';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo, catering';
+    public $canAdd = 'ceo, catering';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo, catering';
+    public $canDelete = 'ceo, catering';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FNC('num', 'int', 'caption=№, notSorting');
         $this->FLD('menuId', 'key(mvc=catering_Menu)', 'caption=Меню, input=hidden');
@@ -111,11 +111,11 @@ class catering_MenuDetails extends core_Detail
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Prpare 'Num'
         static $num;
-        $num += 1;
+        ++$num;
         $row->num .= $num;
     }
     
@@ -127,7 +127,7 @@ class catering_MenuDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $companyId = $mvc->Menu->fetchField($data->form->rec->menuId, 'companyId');
         $companyIdCrmCompanies = $mvc->Companies->fetchField($companyId, 'companyId');

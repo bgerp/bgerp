@@ -1,35 +1,32 @@
 <?php
 
 
-
-
-
 /**
  * SMS-и през Мобио
  *
  *
  * @category  vendors
  * @package   mobio
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     SMS
  */
 class mobio_SmsPlugin extends core_Plugin
 {
-    
-    
     /**
      * Изпраща SMS
      */
-    function on_BeforeSend($mvc, &$res, $number, $message, $sender)
+    public function on_BeforeSend($mvc, &$res, $number, $message, $sender)
     {
-    	$conf = core_Packs::getConfig('mobio');
-    	
+        $conf = core_Packs::getConfig('mobio');
+        
         // Записваме в модела данните за SMS-а
         $rec = new stdClass();
-        $rec->gateway = "Mobio";
+        $rec->gateway = 'Mobio';
         $rec->number = $number;
         $rec->message = $message;
         $rec->sender = $sender;
@@ -37,7 +34,10 @@ class mobio_SmsPlugin extends core_Plugin
         $rec->time = dt::verbal2mysql();
         
         // Ако константата за УРЛ-то не е зададена връщаме TRUE за да се пробва да бъде изпратен от друг плъгин
-        if ($conf->MOBIO_URL == '') return TRUE;
+        if ($conf->MOBIO_URL == '') {
+            
+            return true;
+        }
         
         $tpl = new ET($conf->MOBIO_URL);
         
@@ -55,12 +55,12 @@ class mobio_SmsPlugin extends core_Plugin
             $rec->status = 'sendError';
             $mvc->save($rec);
             
-            return TRUE;
+            return true;
         }
         $rec->status = 'sended';
         $rec->uid = $res[1];
         $mvc->save($rec);
         
-        return FALSE;
+        return false;
     }
 }

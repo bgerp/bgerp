@@ -4,18 +4,18 @@
         <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
             <tr>
                 <td class = 'sum-th'>
-                    |Планирано|* ([#measureId#])
-                </td>
-                <td class = 'sum-th'>
-                    |Остатък|* ([#measureId#])
+                   <b> |Планирано|* ([#measureId#])</b>
                 </td>
                 <!--ET_BEGIN quantityFromTasksCaption-->
                 <td class = 'sum-th'>
-                    [#quantityFromTasksCaption#] ([#measureId2#])
+                    <b>[#quantityFromTasksCaption#] ([#measureId2#])</b>
                 </td>
                 <!--ET_END quantityFromTasksCaption-->
                 <td class = 'sum-th'>
-                    [#captionProduced#] ([#measureId#])
+                    <b>[#captionProduced#] ([#measureId#])</b>
+                </td>
+                <td class = 'sum-th'>
+                    |Очаквано още|* ([#measureId#])
                 </td>
                 <!--ET_BEGIN captionNotStored-->
                 <td class = 'sum-th'>
@@ -25,11 +25,11 @@
             </tr>
             <tr>
                 <td class = 'nowrap'>[#packQuantity#]</td>
-                <td class = 'nowrap'>[#quantityToProduce#]</td>
                 <!--ET_BEGIN quantityFromTasks-->
                 <td class = 'nowrap'>[#quantityFromTasks#] </td>
                 <!--ET_END quantityFromTasks-->
                 <td class = 'nowrap'>[#quantityProduced#]</td>
+                <td class = 'nowrap'>[#quantityToProduce#]</td>
                 <!--ET_BEGIN quantityNotStored-->
                 <td class = 'nowrap'>[#quantityNotStored#]</td>
                 <!--ET_END quantityNotStored-->
@@ -92,6 +92,14 @@
                         <td>[#sBomId#]</td>
                     </tr>
                     <!--ET_END sBomId-->
+                    
+                    <!--ET_BEGIN iBomId-->
+                    <tr>
+                        <td class='quiet' style='text-align: left; white-space: nowrap;'>|Моментна рецепта|*:</td>
+                        <td>[#iBomId#]</td>
+                    </tr>
+                    <!--ET_END iBomId-->
+                    
                     <!--ET_BEGIN pBomId-->
                     <tr>
                         <td class='quiet' style='text-align: left;white-space: nowrap;'>|Работна рецепта|*:</td>
@@ -119,7 +127,7 @@
                     <!--ET_BEGIN HISTORY_ROW-->
                     [#HISTORY_ROW#]
                     <div class='[#stateclass#]' style='font-size: 0.85em'>
-                        <div>[#date#] : [#user#] -> [#action#]</div>
+                        <div>[#date#] : [#user#] » [#action#]</div>
                         <!--ET_BEGIN hint-->
                         <div class='history-reason'>[#reason#]</div>
                         <!--ET_END hint-->
@@ -230,5 +238,7 @@
             <div style='margin-top:6px'>[#btnTasks#]</div>
         </div>
     </div>
+
     <!--ET_END Tasks-->
+</div>
     [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

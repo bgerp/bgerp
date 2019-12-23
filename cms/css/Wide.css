@@ -7,10 +7,6 @@ body{
     color: white;
 }
 
-#all #cmsTop, #cmsTop img {
-    background-color:#6C72B1 !important;
-}
-
 #all {
     border: solid 1px #777;
 }

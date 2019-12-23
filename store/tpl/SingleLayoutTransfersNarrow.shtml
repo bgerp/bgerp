@@ -14,6 +14,14 @@
                   <span class="bigData">[#valior#]</span>
                   </span>
                </div>
+
+               <!--ET_BEGIN storeReadiness-->
+               <div class="document-block"><span class='block-caption'>Налично в склад</span>: <span class='block-instock'>[#storeReadiness#]</span></div>
+               <!--ET_END storeReadiness-->
+
+               <!--ET_BEGIN zoneReadiness-->
+               <div class="document-block"><span class='block-caption'>В зона [#zoneId#]</span>: <span class='block-readiness'>[#zoneReadiness#]</span></div>
+               <!--ET_END zoneReadiness-->
             </td>
          </tr>
          <tr>
@@ -67,26 +75,25 @@
                   <td>[#lineId#]</td>
                </tr>
                <!--ET_END lineId--> 
-               <!--ET_BEGIN note-->
-               <tr>
-                  <td colspan=2 >
-                     <hr>
-                     [#note#]
-                  </td>
-               </tr>
-               <!--ET_END note-->
-               <!--ET_BEGIN logisticInfo-->
+               
+               <!--ET_BEGIN lineNotes-->
                   <tr>
-                     <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*</span></td>
+                     <td class='nowrap' colspan=2><span class="quiet">|Забележки|*:</span> [#lineNotes#]</td>
                   </tr>
-                  <tr>
-                  	<td colspan="2" >[#logisticInfo#]</td>
-                  </tr>
-               <!--ET_END logisticInfo-->
+                  <!--ET_END lineNotes-->
+                  <!--ET_BEGIN logisticInfo-->
+                     <tr>
+                        <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*</span>: [#logisticInfo#]</td>
+                     </tr>
+                  <!--ET_END logisticInfo-->
             </table>
          </td>
          <!--ET_END leftColum-->
          <td>
+            <!--ET_BEGIN note-->
+            [#note#]
+            <hr>
+            <!--ET_END note-->
             <div>
                |Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b>  <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; |Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput-->
             </div>

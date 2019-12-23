@@ -6,7 +6,7 @@
 Обем,cond_type_Double,л,volumel,,,no,active,"min=0",yes
 Плътност,cond_type_Double,кг/м3,density,,,no,active,,no
 Цвят,cond_type_Varchar,,color,,,yes,active,,yes
-Митнически номер,cond_type_Varchar,,customsTariffNumber,,,no,active,,no
+Тарифен код,cond_type_Varchar,,customsTariffNumber,,,no,active,,no
 Транспортен обем,cond_type_Double,л,transportVolume,,,no,active,"min=0",no
 Транспортно тегло,cond_type_Double,кг,transportWeight,,,no,active,"min=0",no
 Толеранс,cond_type_Percent,,tolerance,,,no,active,,no
@@ -19,3 +19,4 @@
 Условия към продажба,cond_type_Text,,commonConditionSale,,,no,active,,no
 Условия към покупка,cond_type_Text,,commonConditionPur,,,no,active,,no
 Тегло,cond_type_Double,гр,weight,,,no,active,"min=0",yes
+Срок на годност,cond_type_Time,,expiryTime,,,no,active,,no

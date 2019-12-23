@@ -4,14 +4,14 @@
 /**
  * Вербално заглавие на приложението
  */
-DEFINE('EF_APP_TITLE', 'Application Title');
+defIfNot('EF_APP_TITLE', 'Application Title');
 
 
 /**
  * Дали да се презаписват .htaccess файловете?
  * Може да се зададе друга стойност в конфигурационния файл (напр. conf/bgerp.cfg.php)
  */
-defIfNot('CORE_OVERWRITE_HTAACCESS', TRUE);
+defIfNot('CORE_OVERWRITE_HTAACCESS', true);
 
 
 /**
@@ -69,7 +69,7 @@ defIfNot('PLG_SEACH_MAX_TEXT_LEN', 64000);
 
 
 /**
- * Максималното отклоненение в таймстампа при логване в системата
+ * Максималното отклонение в таймстампа при логване в системата
  * 1 час и 30 мин.
  */
 defIfNot('CORE_LOGIN_TIMESTAMP_DEVIATION', 5400);
@@ -88,12 +88,24 @@ defIfNot('CORE_SUCCESS_LOGIN_AUTOCOMPLETE', 3);
 defIfNot('CORE_LOGIN_LOG_FETCH_DAYS_LIMIT', 3888000);
 
 
-
 /**
  * Колко време назад да се търси в лога за first_login
  * 14 дни
  */
 defIfNot('CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT', 1209600);
+
+
+/**
+ *
+ * 30 дни
+ */
+defIfNot('CORE_STOP_BLOCKING_LOGIN_PERIOD', 2592000);
+
+
+/**
+ * Колко време назад да се търси в лога за first_login
+ */
+defIfNot('CORE_STOP_BLOCKING_LOGIN_COUNT', 10);
 
 
 /**
@@ -131,7 +143,7 @@ defIfNot('EF_USER_LANG', '');
 /**
  * HTML който се показва като информация във формата за логин
  */
-defIfNot('CORE_LOGIN_INFO', "|*(|само за администраторите на сайта|*)");
+defIfNot('CORE_LOGIN_INFO', '|*(|само за администраторите на сайта|*)');
 
 
 /**
@@ -140,12 +152,10 @@ defIfNot('CORE_LOGIN_INFO', "|*(|само за администраторите 
 defIfNot('CORE_PAGE_WRAPPER', 'core_page_InternalModern');
 
 
-
 /**
  * Дали да може да се регистрират нови потребители от логин формата
  */
 defIfNot('CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM', 'no');
-
 
 
 /**
@@ -188,8 +198,14 @@ defIfNot('CORE_MAX_ROWS_FOR_PRINTING', 1000);
 
 
 /**
+ * Забрана за записване на паролата
+ */
+defIfNot('CORE_ALLOW_PASS_SAVE', 'yes');
+
+
+/**
  * Версия на кода, към която са актуални данните в базата
- * По дефолт, стойността е равна на версия "Ореляк" - последната, 
+ * По дефолт, стойността е равна на версия "Ореляк" - последната,
  * която носи всички миграции. Тази константа не трябва да се
  * променя при по-нови версии
  */
@@ -201,7 +217,49 @@ define('CORE_LAST_DB_VERSION', '18.25-Shabran');
  * Тази константа не трябва да се ползва с core_Setup::getConfig(),
  * а само с: core_setup::CURRENT_VERSION
  */
-define('CORE_CODE_VERSION', '18.25-Shabran');
+define('CORE_CODE_VERSION', '19.51-Vezhen');
+
+
+/**
+ * Включена ли е бекъп функционалността?
+ */
+defIfNot('CORE_BACKUP_ENABLED', false);
+
+
+/**
+ * Парола за архиви
+ */
+defIfNot('CORE_BACKUP_PASS', '');
+
+
+/**
+ * Работна директория за бекъпите
+ */
+defIfNot('CORE_BACKUP_WORK_DIR', EF_TEMP_PATH . '/backup_work');
+
+
+/**
+ * Път до текущия и миналия бекъп
+ */
+defIfNot('CORE_BACKUP_PATH', EF_UPLOADS_PATH . '/backup');
+
+
+/**
+ * Колко минути е периода за флъшване на SQL лога
+ */
+defIfNot('CORE_BACKUP_SQL_LOG_FLUSH_PERIOD', 60 * 60);
+
+
+/**
+ * Колко колко минути е периода за пълен бекъп?
+ */
+defIfNot('CORE_BACKUP_CREATE_FULL_PERIOD', (60 * 24) * 60);
+
+
+/**
+ * В колко минути след периода да започва пълният бекъп?
+ */
+defIfNot('CORE_BACKUP_CREATE_FULL_OFFSET', (60 * 3 + 50) * 60);
 
 
 /**
@@ -210,42 +268,44 @@ define('CORE_CODE_VERSION', '18.25-Shabran');
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
-class core_Setup extends core_ProtoSetup {
-    
+class core_Setup extends core_ProtoSetup
+{
     /**
      * Последна стабилна версия на цялата система
      */
     const CURRENT_VERSION = CORE_CODE_VERSION;
     
-
+    
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'core_Packs';
+    public $startCtr = 'core_Packs';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Администриране на системата";
+    public $info = 'Администриране на системата';
     
     
     /**
@@ -257,72 +317,91 @@ class core_Setup extends core_ProtoSetup {
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
-           'CORE_LAST_DB_VERSION' => array('varchar(32)', 'caption=Версия на системата->База данни,readOnly'),
-            
-           'CORE_CODE_VERSION' => array('varchar(32)', 'caption=Версия на системата->Код,readOnly'),
-
-           'EF_DATE_FORMAT'   => array ('enum(d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', 'caption=Формат по подразбиране за датата->Десктоп, customizeBy=user'),
-           
-           'EF_DATE_NARROW_FORMAT'   => array ('enum(d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99, d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999)', 'caption=Формат по подразбиране за датата->Мобилен, customizeBy=user'),
-           
-           'EF_DATE_USE_TIMEOFFSET'   => array ('enum(yes=Да, no=Не)', 'caption=Дали да се използва времевата зона на потребителя->Избор, customizeBy=user'),
-            
-           'EF_NUMBER_THOUSANDS_SEP' => array( 'enum(&#x20;=Интервал,\'=Апостроф,`=Обратен апостроф)', 'caption=Форматиране на числа->Разделител, customizeBy=user'),
-            
-           'EF_NUMBER_DEC_POINT' => array( 'enum(.=Точка,&#44;=Запетая)', 'caption=Форматиране на числа->Дробен знак, customizeBy=user'),
-            
-           'EF_USER_LANG' => array( "enum()", 'caption=Език на интерфейса след логване->Език, customizeBy=user, optionsFunc=core_Lg::getLangOptions'),
-            
-           'TYPE_KEY_MAX_SUGGESTIONS'   => array ('int', 'caption=Критичен брой опции|*&comma;| над които търсенето става по ajax->Опции'), 
-           
-           'CORE_MAX_OPT_FOR_OPEN_GROUPS'   => array ('int', 'caption=Критичен брой опции|*&comma;| под който се отварят групите->Опции'), 
-           
-           'CORE_AUTOHIDE_SHARED_USERS' => array ('int(min=0)', 'caption=Свиване на секцията за споделяне->При над,unit=потребителя'),
-
-           'EF_APP_TITLE'   => array ('varchar(16)', 'caption=Наименование на приложението->Име'),
-            
-           'CORE_SYSTEM_NICK'   => array ('varchar(16)', 'caption=Системен потребител->Ник'),
-
-           'CORE_SYSTEM_NAME'   => array ('varchar(16)', 'caption=Системен потребител->Име'),
-
-           'CORE_FIRST_ADMIN'   => array ('user(roles=admin, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Главен администратор на системата->Потребител'),
-       
-           'CORE_LOGIN_INFO'   => array ('varchar', 'caption=Информация във формата за логване->Текст'),
-      
-           'EF_MAX_EXPORT_CNT' => array ('int', 'caption=Възможен максимален брой записи при експорт->Брой записи'),
-           
-           'CORE_MAX_ROWS_FOR_PRINTING' => array ('int', 'caption=Размер на страницата при печат->Брой редове'),
-           
-           'PLG_SEACH_MAX_TEXT_LEN' => array ('int', 'caption=Максимален брой символи за генериране на ключови думи->Брой символи'),
-           
-           'CORE_LOGIN_TIMESTAMP_DEVIATION' => array ('time(suggestions=30 мин|1 час|90 мин|2 часа)', 'caption=Максималното отклоненение в таймстампа при логване в системата->Време'),
-           
-           'CORE_SUCCESS_LOGIN_AUTOCOMPLETE' => array ('int', 'caption=Запомняне на потребителя при логване от един браузър->Брой логвания'),
-           
-           'CORE_LOGIN_LOG_FETCH_DAYS_LIMIT' => array ('time(suggestions=1 месец|45 дни|2 месеца|3 месеца)', 'caption=Колко време назад да се търси в лога->Време'),
-           
-           'CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT' => array ('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Колко време назад да се търси в лога за first_login->Време'),
-           
-           'CORE_COOKIE_LIFETIME' => array ('time(suggestions=1 месец|2 месеца|3 месеца|1 година)', 'caption=Време на живот на кукитата->Време'),
-           
-           'CORE_TEMP_PATH_MAX_AGE' => array ('time(suggestions=3 ден|5 дни|10 дни|1 месец)', 'caption=Колко дълго да се пазят файловете в EF_TEMP_PATH директорията->Време'),
-            
-           'CORE_PAGE_WRAPPER' => array ('class(interface=core_page_WrapperIntf,select=title, allowEmpty)', 'caption=Вътрешен изглед->Страница, customizeBy=powerUser, placeholder=Автоматично'),
-
-           'CORE_PORTAL_ARRANGE' => array ('enum(notifyTaskRecentlyCal=Известия - Задачи - Последно и Календар,notifyTaskCalRecently=Известия - Задачи - Календар и Последно,recentlyNotifyTaskCal=Последно - Известия - Задачи и Календар,taskNotifyRecentlyCal=Задачи - Известия - Последно и Календар)', 'caption=Вътрешен изглед->Портал, customizeBy=powerUser'),
-
-           'CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се регистрират нови потребители от логин формата->Избор'),
-           
-           'CORE_RESET_PASSWORD_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се ресетват пароли от логин формата->Избор'),
-              
+    public $configDescription = array(
+        'CORE_LAST_DB_VERSION' => array('varchar(32)', 'caption=Версия на системата->База данни,readOnly'),
+        
+        'CORE_CODE_VERSION' => array('varchar(32)', 'caption=Версия на системата->Код,readOnly'),
+        
+        'EF_DATE_FORMAT' => array('enum(d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', 'caption=Формат по подразбиране за датата->Десктоп, customizeBy=user'),
+        
+        'EF_DATE_NARROW_FORMAT' => array('enum(d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99, d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999)', 'caption=Формат по подразбиране за датата->Мобилен, customizeBy=user'),
+        
+        'EF_DATE_USE_TIMEOFFSET' => array('enum(yes=Да, no=Не)', 'caption=Дали да се използва времевата зона на потребителя->Избор, customizeBy=user'),
+        
+        'EF_NUMBER_THOUSANDS_SEP' => array('enum(&#x20;=Интервал,\'=Апостроф,`=Обратен апостроф)', 'caption=Форматиране на числа->Разделител, customizeBy=user'),
+        
+        'EF_NUMBER_DEC_POINT' => array('enum(.=Точка,&#44;=Запетая)', 'caption=Форматиране на числа->Дробен знак, customizeBy=user'),
+        
+        'EF_USER_LANG' => array('enum()', 'caption=Език на интерфейса след логване->Език, customizeBy=user, optionsFunc=core_Lg::getLangOptions'),
+        
+        'TYPE_KEY_MAX_SUGGESTIONS' => array('int', 'caption=Критичен брой опции|*&comma;| над които търсенето става по ajax->Опции'),
+        
+        'CORE_MAX_OPT_FOR_OPEN_GROUPS' => array('int', 'caption=Критичен брой опции|*&comma;| под който се отварят групите->Опции'),
+        
+        'CORE_AUTOHIDE_SHARED_USERS' => array('int(min=0)', 'caption=Свиване на секцията за споделяне->При над,unit=потребителя'),
+        
+        'EF_APP_TITLE' => array('varchar(16)', 'caption=Наименование на приложението->Име'),
+        
+        'CORE_SYSTEM_NICK' => array('varchar(16)', 'caption=Системен потребител->Ник'),
+        
+        'CORE_SYSTEM_NAME' => array('varchar(16)', 'caption=Системен потребител->Име'),
+        
+        'CORE_FIRST_ADMIN' => array('user(roles=admin, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Главен администратор на системата->Потребител'),
+        
+        'CORE_LOGIN_INFO' => array('varchar', 'caption=Информация във формата за логване->Текст'),
+        
+        'EF_MAX_EXPORT_CNT' => array('int', 'caption=Възможен максимален брой записи при експорт->Брой записи'),
+        
+        'CORE_MAX_ROWS_FOR_PRINTING' => array('int', 'caption=Размер на страницата при печат->Брой редове'),
+        
+        'PLG_SEACH_MAX_TEXT_LEN' => array('int', 'caption=Максимален брой символи за генериране на ключови думи->Брой символи'),
+        
+        'CORE_LOGIN_TIMESTAMP_DEVIATION' => array('time(suggestions=30 мин|1 час|90 мин|2 часа)', 'caption=Максималното отклонение в таймстампа при логване в системата->Време'),
+        
+        'CORE_SUCCESS_LOGIN_AUTOCOMPLETE' => array('int', 'caption=Запомняне на потребителя при логване от един браузър->Брой логвания'),
+        
+        'CORE_ALLOW_PASS_SAVE' => array('enum(yes=Да,no=Не)', 'caption=Запомняне в бразузъра на паролата за логин->Разрешено'),
+        
+        'CORE_LOGIN_LOG_FETCH_DAYS_LIMIT' => array('time(suggestions=1 месец|45 дни|2 месеца|3 месеца)', 'caption=Колко време назад да се търси в лога->Време'),
+        
+        'CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT' => array('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Колко време назад да се търси в лога за first_login->Време'),
+        
+        'CORE_STOP_BLOCKING_LOGIN_PERIOD' => array('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Спиране на блокирането|*&#44; |ако има дублиране от различни устройсва->Време'),
+        
+        'CORE_STOP_BLOCKING_LOGIN_COUNT' => array('int', 'caption=Спиране на блокирането|*&#44; |ако има дублиране от различни устройсва->Брой'),
+        
+        'CORE_COOKIE_LIFETIME' => array('time(suggestions=1 месец|2 месеца|3 месеца|1 година)', 'caption=Време на живот на кукитата->Време'),
+        
+        'CORE_TEMP_PATH_MAX_AGE' => array('time(suggestions=3 ден|5 дни|10 дни|1 месец)', 'caption=Колко дълго да се пазят файловете в EF_TEMP_PATH директорията->Време'),
+        
+        'CORE_PAGE_WRAPPER' => array('class(interface=core_page_WrapperIntf,select=title, allowEmpty)', 'caption=Вътрешен изглед->Страница, customizeBy=powerUser, placeholder=Автоматично'),
+        
+        'CORE_PORTAL_ARRANGE' => array('enum(notifyTaskRecentlyCal=Известия - Задачи - Последно и Календар,notifyTaskCalRecently=Известия - Задачи - Календар и Последно,recentlyNotifyTaskCal=Последно - Известия - Задачи и Календар,taskNotifyRecentlyCal=Задачи - Известия - Последно и Календар)', 'caption=Вътрешен изглед->Портал, customizeBy=powerUser'),
+        
+        'CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM' => array('enum(yes=Да, no=Не)', 'caption=Дали да може да се регистрират нови потребители от логин формата->Избор'),
+        
+        'CORE_RESET_PASSWORD_FROM_LOGIN_FORM' => array('enum(yes=Да, no=Не)', 'caption=Дали да може да се ресетват пароли от логин формата->Избор'),
+        
+        'CORE_BACKUP_ENABLED' => array('enum(no=Не, yes=Да)', 'caption=Настройки за бекъп->Включен бекъп'),
+        
+        'CORE_BACKUP_PASS' => array('password', 'caption=Настройки за бекъп->Ключ за криптиране'),
+        
+        'CORE_BACKUP_SQL_LOG_FLUSH_PERIOD' => array('time', 'caption=Настройки за бекъп->Запис на SQL лог през'),
+        
+        'CORE_BACKUP_CREATE_FULL_PERIOD' => array('time', 'caption=Настройки за бекъп->Пълен бекъп през'),
+        
+        'CORE_BACKUP_CREATE_FULL_OFFSET' => array('time', 'caption=Настройки за бекъп->Изместване'),
+        
+        'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
+        
+        'CORE_BACKUP_WORK_DIR' => array('varchar', 'caption=Настройки за бекъп->Работна директория,readOnly'),
     );
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
         'core_Classes',
         'core_Interfaces',
         'core_Cache',
@@ -332,90 +411,77 @@ class core_Setup extends core_ProtoSetup {
         'core_CallOnTime',
         'log_System',
         'core_Lg',
+        'core_UserTranslates',
         'core_Roles',
+        'core_RoleLogs',
         'core_Users',
         'core_Locks',
         'core_LoginLog',
-        'migrate::loginLogTruncate',
         'core_Settings',
         'core_Forwards',
         'core_Updates',
-    	'core_Permanent',
-        'migrate::settigsDataFromCustomToCore',
-        'migrate::movePersonalizationData',
-        'migrate::repairUsersRolesInput',
-        'migrate::removeFalseTranslate',
-        'migrate::repairSearchKeywords'
+        'core_Permanent',
     );
     
     
     /**
      * Дали пакета е системен
      */
-    public $isSystem = TRUE;
+    public $isSystem = true;
     
     
     /**
      * Папки, които трябва да бъдат създадени
      */
     protected $folders = array(
-            EF_SBF_PATH => 'за уеб ресурси', // sbf root за приложението
-            EF_TEMP_PATH => 'за временни файлове', // временни файлове
-            EF_UPLOADS_PATH => 'за качени файлове',// файлове на потребители
-        );
+        EF_SBF_PATH => 'за уеб ресурси', // sbf root за приложението
+        EF_TEMP_PATH => 'за временни файлове', // временни файлове
+        EF_UPLOADS_PATH => 'за качени файлове',// файлове на потребители
+    );
     
     
     /**
      * Описание на системните действия
      */
-    var $systemActions = array(
-        array('title' => 'Миграции', 'url' => array ('core_Packs', 'InvalidateMigrations', 'ret_url' => TRUE), 'params' => array('title' => 'Преглед и инвалидиране на миграциите')),
-        array('title' => 'Преводи', 'url' => array ('core_Lg', 'DeleteUsersTr', 'ret_url' => TRUE), 'params' => array('title' => 'Изтриване на преводите направени от различни потребители'))
+    public $systemActions = array(
+        array('title' => 'Миграции', 'url' => array('core_Packs', 'InvalidateMigrations', 'ret_url' => true), 'params' => array('title' => 'Преглед и инвалидиране на миграциите')),
+        array('title' => 'Преводи', 'url' => array('core_Lg', 'DeleteUsersTr', 'ret_url' => true), 'params' => array('title' => 'Изтриване на преводите направени от различни потребители'))
     );
     
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
+    public $menuItems = array(
         array(1.62, 'Система', 'Админ', 'core_Packs', 'default', 'admin'),
     );
-
-
+    
+    
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
+        // Спираме SQL лога, ако има такъв
+        core_Db::$sqlLogEnebled = false;
+        
         $html .= parent::install();
         
-        if( CORE_OVERWRITE_HTAACCESS ) {
+        if (CORE_OVERWRITE_HTAACCESS) {
             $filesToCopy = array(
                 EF_APP_PATH . '/_docs/tpl/htaccessSBF.txt' => EF_SBF_PATH . '/.htaccess',
                 EF_APP_PATH . '/_docs/tpl/htaccessIND.txt' => EF_INDEX_PATH . '/.htaccess'
             );
             
-            foreach($filesToCopy as $src => $dest) {
+            foreach ($filesToCopy as $src => $dest) {
                 $html .= self::addUniqLines($src, $dest);
             }
         }
-
-        // Иконата
-        $dest = EF_INDEX_PATH . '/favicon.ico';
-        if(!file_exists($dest)) {
-            $src = getFullPath('img/favicon.ico');
-            if(copy($src, $dest)) {
-                $html .= "<li class=\"green\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
-            } else {
-                $html .= "<li class=\"red\">Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
-            }
-        }
-
         
         // Изтриване на старите файлове от sbf директорията
-        $delCnt = core_Os::deleteOldFiles(EF_SBF_PATH, 2*30*24*60*60, "#^_[a-z0-9\-\/_]+#i");
-        if($delCnt) {
-            $html .= "<li class=\"green\">Изтрити са $delCnt файла в " . EF_SBF_PATH . "/</li>";
+        $delCnt = core_Os::deleteOldFiles(EF_SBF_PATH, 2 * 30 * 24 * 60 * 60, "#^_[a-z0-9\-\/_]+#i");
+        if ($delCnt) {
+            $html .= "<li class=\"green\">Изтрити са ${delCnt} файла в " . EF_SBF_PATH . '/</li>';
         }
         
         // Нагласяване на Крон да почиства кеша
@@ -429,7 +495,7 @@ class core_Setup extends core_ProtoSetup {
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
-
+        
         // Нагласяване на Крон да почиства core_Forwards
         $rec = new stdClass();
         $rec->systemId = 'ClearForwards';
@@ -437,11 +503,10 @@ class core_Setup extends core_ProtoSetup {
         $rec->controller = 'core_Forwards';
         $rec->action = 'DeleteExpiredLinks';
         $rec->period = 60;
-        $rec->offset = mt_rand(0,40);
+        $rec->offset = mt_rand(0, 40);
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
-        
         
         // Нагласяване на Крон да се проверява за нови версии
         $rec = new stdClass();
@@ -449,8 +514,8 @@ class core_Setup extends core_ProtoSetup {
         $rec->description = 'Проверка за нови версии';
         $rec->controller = 'core_Updates';
         $rec->action = 'checkForUpdates';
-        $rec->period = 24*60;
-        $rec->offset = mt_rand(8*60, 12*60);
+        $rec->period = 24 * 60;
+        $rec->offset = mt_rand(8 * 60, 12 * 60);
         $rec->delay = 0;
         $rec->timeLimit = 300;
         $html .= core_Cron::addOnce($rec);
@@ -467,13 +532,43 @@ class core_Setup extends core_ProtoSetup {
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
         
-        $html .= core_Classes::add('core_page_Internal');        
+        if (CORE_BACKUP_ENABLED) {
+            // Нагласяване Крон да прави пълен бекъп
+            $rec = new stdClass();
+            $rec->systemId = 'Backup_Create';
+            $rec->description = 'Създаване на бекъп';
+            $rec->controller = 'core_Backup';
+            $rec->action = 'Create';
+            $rec->period = round(core_Setup::get('BACKUP_CREATE_FULL_PERIOD') / 60);
+            $rec->offset = round(core_Setup::get('BACKUP_CREATE_FULL_OFFSET') / 60);
+            $rec->delay = 20;
+            $rec->timeLimit = 1800;
+            $html .= core_Cron::addOnce($rec);
+            
+            // Нагласяване Крон да се флъшва sql лога
+            $rec = new stdClass();
+            $rec->systemId = 'Sql_Log_Flush';
+            $rec->description = 'Флъшване на SQL лога';
+            $rec->controller = 'core_Backup';
+            $rec->action = 'FlushSqlLog';
+            $rec->period = round(core_Setup::get('BACKUP_SQL_LOG_FLUSH_PERIOD') / 60);
+            $rec->offset = 0;
+            $rec->delay = 2;
+            $rec->timeLimit = 20;
+            $html .= core_Cron::addOnce($rec);
+        } else {
+            core_Cron::delete("#systemId = 'Backup_Create'");
+            core_Cron::delete("#systemId = 'Sql_Log_Flush'");
+        }
+        
+        
+        // Регистрираме класовете, които не може да се регистрират автоматично
+        $html .= core_Classes::add('core_Classes');
+        $html .= core_Classes::add('core_Interfaces');
+        
+        $html .= core_Classes::add('core_page_Internal');
         $html .= core_Classes::add('core_page_InternalModern');
-
-
-        $html .= core_Classes::rebuild();
-		
-        $html .= core_Cron::cleanRecords();
+        
         
         $html .= static::addCronToDelOldTempFiles();
         
@@ -483,10 +578,10 @@ class core_Setup extends core_ProtoSetup {
     
     /**
      * Добавя в крон таблицата, функция за изтриване на старите временни файлове
-     * 
+     *
      * @return string
      */
-    static function addCronToDelOldTempFiles()
+    public static function addCronToDelOldTempFiles()
     {
         // Нагласяване на Крон
         $rec = new stdClass();
@@ -495,148 +590,22 @@ class core_Setup extends core_ProtoSetup {
         $rec->controller = 'core_Os';
         $rec->action = 'clearOldFiles';
         $rec->period = 60;
-        $rec->offset = mt_rand(0,40);
+        $rec->offset = mt_rand(0, 40);
         $rec->delay = 0;
         $rec->timeLimit = 120;
         $res .= core_Cron::addOnce($rec);
-
+        
         return $res;
     }
     
     
-    /**
-     * Миграция, която изтрива съдържанието на таблицата core_LoginLog
-     */
-    function loginLogTruncate()
-    {
-        $loginLog = cls::get('core_LoginLog');
-        $loginLog->db->query("TRUNCATE TABLE `{$loginLog->dbTableName}`");
-    }
-    
-    
-    /**
-     * Миграция за прехвъраляне на данните от `custom_Settings` в `core_Settings`
-     */
-    static function settigsDataFromCustomToCore()
-    {
-        if (!cls::load('custom_Settings', TRUE)) return ;
-        
-        $inst = cls::get('custom_Settings');
-        
-        if (!$inst->db->tableExists($inst->dbTableName)) return ;
-        
-        $dataArr = array();
-        
-        // Взема всички записи и общите ги обядинява в един
-        $cQuery = custom_Settings::getQuery();
-        while ($cRec = $cQuery->fetch()) {
-            if (!cls::load($cRec->classId, TRUE)) continue;
-            $classInst = cls::get($cRec->classId);
-            if (!method_exists($classInst, 'getSettingsKey')) continue;
-            
-            $key = $classInst->getSettingsKey($cRec->objectId);
-            
-            $userId = $cRec->userId;
-            if ($userId == -1) {
-                $userId = type_UserOrRole::getAllSysTeamId();
-            }
-            
-            $dataArr[$key][$userId][$cRec->property] = $cRec->value;
-        }
-        
-        // Обикаля по получения резултат и добавя в новия модел
-        foreach ((array)$dataArr as $key => $dataUserArr) {
-            foreach ((array)$dataUserArr as $userId => $valArr) {
-                if (!$valArr) continue;
-                core_Settings::setValues($key, $valArr, $userId);
-            }
-        }
-    }
-    
-    
-    /**
-     * Фунцкия за миграция
-     * Премества персонализационните данни за потребителя от core_Users в core_Settings
-     */
-    static function movePersonalizationData()
-    {
-        $userInst = cls::get('core_Users');
-        
-        $userInst->db->connect();
-        
-        $confData = str::phpToMysqlName('configData');
-        
-        // Ако в модела в MySQL липсва колоната, няма нужда от миграция
-        if (!$userInst->db->isFieldExists($userInst->dbTableName, $confData)) return ;
-        
-        $userInst->FLD('configData', 'blob(serialize,compress)', 'caption=Конфигурационни данни,input=none');
-        
-        // Преместваме всикчи данни от полето в core_Settings
-        $userQuery = core_Users::getQuery();
-        $userQuery->where("#configData IS NOT NULL");
-        while ($rec = $userQuery->fetch()) {
-            $key = core_Users::getSettingsKey($rec->id);
-            
-            core_Settings::setValues($key, $rec->configData, $rec->id);
-        }
-    }
-    
-    
-    /**
-     * Поправя потребителите с празни rolesInput
-     */
-    static function repairUsersRolesInput()
-    {
-        $query = core_Users::getQuery();
-        $query->where("#rolesInput IS NULL");
-        $query->orWhere("#rolesInput = ''");
-        $query->orWhere("#rolesInput = '|'");
-        
-        while ($rec = $query->fetch()) {
-            $rec->rolesInput = $rec->roles;
-            
-            core_Users::save($rec, 'rolesInput');
-        }
-    }
-    
-    
-    /**
-     * Премахва ненужните преводи, добавени по погрешка
-     */
-    static function removeFalseTranslate()
-    {
-        $query = core_Lg::getQuery();
-        $query->where("1=1");
-        
-        $deleteArr = array();
-        
-        // Ако намери стрингкове, които не са преведени, ги премахваме от модела
-        while ($rec = $query->fetch()) {
-            $translated = str_ireplace(array("\n\r", "\r\n", "\n", "\r"), '<br />', $rec->translated);
-        
-            $translated = core_Lg::prepareKey($translated);
-            
-            if ($translated == $rec->kstring) {
-                $deleteArr[$rec->id] = $rec->id;
-            }
-        }
-        
-        if (!empty($deleteArr)) {
-            $in = implode(', ', $deleteArr);
-            $delCnt = core_Lg::delete("#id IN ({$in})");
-            
-            core_Lg::logNotice("Изтрити {$delCnt} брой ненужни записи");
-        }
-    }
-    
-
     /**
      * Връща JS файлове, които са подходящи за компактиране
      */
     public function getCommonJs()
     {
         $conf = core_Packs::getConfig('core');
-
+        
         $intTheme = cls::get($conf->CORE_PAGE_WRAPPER);
         
         if (method_exists($intTheme, 'getCommonJs')) {
@@ -659,171 +628,66 @@ class core_Setup extends core_ProtoSetup {
     
     
     /**
-     * Премахва всички * от полетата за търсене
+     * Поверява дали конфига е добре настроен
      */
-    public static function repairSearchKeywords()
+    public function checkConfig()
     {
-        // Вземаме инстанция на core_Interfaces
-        $Interfaces = cls::get('core_Interfaces');
-    
-        // id' то на интерфейса
-        $interfaceId = $Interfaces->fetchByName('core_ManagerIntf');
-        
-        $query = core_Classes::getQuery();
-        $query->where("#state = 'active' AND #interfaces LIKE '%|{$interfaceId}|%'");
-        
-        while ($rec = $query->fetch()) {
-            
-            if (!cls::load($rec->name, TRUE)) continue;
-            
-            $Inst = cls::get($rec->name);
-            
-            // Ако няма таблица
-            if (!$Inst || !$Inst->db) continue;
-            
-            // Ако таблицата не съществува в модела
-            if (!$Inst->db->tableExists($Inst->dbTableName)) continue ;
-            
-            // Ако полето не съществува в таблицата
-            $sk = str::phpToMysqlName('searchKeywords');
-            if (!$Inst->db->isFieldExists($Inst->dbTableName, $sk)) continue ;
-            
-            $plugins = arr::make($Inst->loadList, TRUE);
-            
-            if (!isset($plugins['plg_Search']) && !$Inst->fields['searchKeywords']) continue;
-            
-            $searchField = str::phpToMysqlName('searchKeywords');
-            
-            $Inst->db->query("UPDATE {$Inst->dbTableName} SET {$searchField} = REPLACE({$searchField}, '*', '')");
-        }
+        return core_Backup::checkConfig();
     }
-
-
+    
+    
     /**
      * Копира линиите от файла $src в $dest, които не се съдържат в него
      */
     public static function addUniqLines($src, $dest)
     {
-        $emptyDest = FALSE;
-        if(!file_exists($dest)) {
-            if(file_put_contents($dest, '') === FALSE) {
+        $emptyDest = false;
+        if (!file_exists($dest)) {
+            if (file_put_contents($dest, '') === false) {
+                
                 return "<li class=\"debug-error\">Не може да бъде създаден файла: <b>{$dest}</b></li>";
             }
-            $emptyDest = TRUE;
+            $emptyDest = true;
         }
-        if(!is_writable($dest)) {
+        if (!is_writable($dest)) {
+            
             return "<li class=\"debug-error\">Не може да се записва във файла: <b>{$dest}</b></li>";
         }
-
-        if(!is_readable($src)) {
+        
+        if (!is_readable($src)) {
+            
             return "<li class=\"debug-error\">Не може да бъде прочетен файла: <b>{$src}</b></li>";
         }
         
-        if(!is_readable($dest)) {
+        if (!is_readable($dest)) {
+            
             return "<li class=\"debug-error\">Не може да бъде прочетен файла: <b>{$dest}</b></li>";
         }
-     
+        
         $exFile = file_get_contents($dest);
-
+        
         $lines = file_get_contents($src);
-
+        
         $lines = explode("\n", $lines);
         
-        $flagChange = FALSE;
+        $flagChange = false;
         $newLines = 0;
-        foreach($lines as $l) {
+        foreach ($lines as $l) {
             $l = rtrim($l);
-            if((strlen($l) == 0 && $flagChange) || (strlen($l) > 0 && stripos($exFile, $l) === FALSE)) {
+            if ((strlen($l) == 0 && $flagChange) || (strlen($l) > 0 && stripos($exFile, $l) === false)) {
                 file_put_contents($dest, ($emptyDest ? '' : "\n") . $l, FILE_APPEND);
-                $flagChange = TRUE;
-                $emptyDest  = FALSE;
+                $flagChange = true;
+                $emptyDest = false;
                 $newLines++;
             }
         }
-
-        if($newLines > 0) {
+        
+        if ($newLines > 0) {
             $res = "<li class=\"debug-new\">Във файла <b>{$dest}</b> са копирани {$newLines} линии от файла <b>{$src}</b></li>";
         } else {
             $res = "<li class=\"debug-info\">Във файла <b>{$dest}</b> не са копирани линии от файла <b>{$src}</b></li>";
         }
-
-        return $res;
-    }
-    
-    
-    /**
-     * Зареждане на данни
-     */
-    function loadSetupData($itr = '')
-    {
-        $res = parent::loadSetupData($itr);
-        
-        $res .= $this->callMigrate('addObjectIdFromKey', 'core');
         
         return $res;
-    }
-    
-    
-    /**
-     * Миграция за добавяне на objectId от ключа
-     */
-    public static function addObjectIdFromKey()
-    {
-        $cQuery = core_Settings::getQuery();
-        $cQuery->where("#objectId IS NULL");
-        $cQuery->where("#key LIKE 'doc_Folders%'");
-        $cQuery->orWhere("#key LIKE 'doc_Threads%'");
-        
-        $maxArr = array();
-        
-        $dFolders = doc_Folders::getQuery();
-        $dFolders->XPR('max', 'int', "MAX(#id)");
-        $dFolders->show('max');
-        $fRec = $dFolders->fetch();
-        $maxArr['doc_Folders'] = $fRec->max;
-        
-        $dThreads = doc_Threads::getQuery();
-        $dThreads->XPR('max', 'int', "MAX(#id)");
-        $dThreads->show('max');
-        $tRec = $dThreads->fetch();
-        $maxArr['doc_Threads'] = $tRec->max;
-        
-        $fKeyArr = array();
-        
-        while ($cRec = $cQuery->fetch()) {
-            
-            $kStr = 'doc_Threads';
-            if (stripos($cRec->key, 'doc_Folders') === 0) {
-                $kStr = 'doc_Folders';
-            }
-            
-            if (strpos($cRec->key, '::')) {
-                list(, $fId) = explode('::', $cRec->key);
-                $fKeyArr[$kStr][$fId] = $cRec->key;
-            } else {
-                $fId = 1000;
-            }
-            
-            while (TRUE) {
-                if (!isset($fKeyArr[$kStr][$fId])) {
-                    $fKeyArr[$kStr][$fId] = core_Settings::prepareKey("{$kStr}::" . $fId);
-                }
-                
-                if ($fKeyArr[$kStr][$fId] == $cRec->key) {
-                    
-                    $cRec->objectId = $fId;
-                    
-                    try {
-                        core_Settings::save($cRec, 'objectId');
-                    } catch (core_exception_Expect $e) {
-                        reportException($e);
-                        continue;
-                    }
-                    break;
-                }
-                
-                if ($fId++ > $maxArr[$kStr]) break;
-            }
-        }
     }
 }

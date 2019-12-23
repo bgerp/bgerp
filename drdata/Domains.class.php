@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на домейни (TLD)
  *
@@ -10,56 +9,56 @@
  *
  * @category  vendors
  * @package   drdata
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see       https://github.com/bgerp/bgerp/issues/156
  */
 class drdata_Domains extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State, drdata_Wrapper, plg_Sorting';
+    public $loadList = 'plg_Created, plg_State, drdata_Wrapper, plg_Sorting';
     
     
     /**
      * Заглавие
      */
-    var $title = "Домейни на публични имейл услуги";
+    public $title = 'Домейни на публични имейл услуги';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, domain, isPublicMail, state';
+    public $listFields = 'id, domain, isPublicMail, state';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой  може да пише?
      */
-    var $canWrite = 'admin';
+    public $canWrite = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, debug';
+    public $canList = 'admin, debug';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('domain', 'varchar(255)', 'caption=Домейн,mandatory');
         $this->FLD('isPublicMail', 'enum(no=Не, static=По дефиниция, cron=По данни)', 'caption=Публичност,mandatory');
@@ -71,14 +70,14 @@ class drdata_Domains extends core_Manager
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         // Подготвяме пътя до файла с данните
-        $file = "drdata/data/publicdomains.csv";
-             
+        $file = 'drdata/data/publicdomains.csv';
+        
         // Кои колонки ще вкарваме
         $fields = array(
-            0 => "domain",
+            0 => 'domain',
         );
         
         $defaults = array(
@@ -86,7 +85,7 @@ class drdata_Domains extends core_Manager
             'state' => 'active',
         );
         
-        // Импортираме данните от CSV файла. 
+        // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields, $defaults);
         
@@ -99,22 +98,22 @@ class drdata_Domains extends core_Manager
      * Проверка дали един домейн е публичен имейл доставчик или не
      *
      * @param string $domain
-     * @return boolean TRUE - публичен, FALSE - не е публичен
+     *
+     * @return bool TRUE - публичен, FALSE - не е публичен
      */
-    static function isPublic($domain)
+    public static function isPublic($domain)
     {
-        if(strpos($domain, '@')) {
+        if (strpos($domain, '@')) {
             list($left, $domain) = explode('@', $domain);
         }
-
+        
         $domain = strtolower(trim($domain));
-
-        return (boolean)static::fetch(array(
+        
+        return (boolean) static::fetch(array(
             "#domain = '[#1#]'"
             . " AND #state = 'active'"
             . " AND #isPublicMail != 'no'"
-            . " AND #isPublicMail IS NOT NULL"
-        , $domain));
+            . ' AND #isPublicMail IS NOT NULL', $domain));
     }
     
     
@@ -125,7 +124,9 @@ class drdata_Domains extends core_Manager
      * масива от домейни $domains
      *
      * @param array $domains масив от домейни; (обикновено) се генерира в
+     *
      * @link email_Incomings::scanForPublicDomains().
+     *
      * @return array масив с следните елементи:
      *
      * o [added]        - броя успешно добавени домейни
@@ -133,12 +134,12 @@ class drdata_Domains extends core_Manager
      * o [removed]      - броя успешно изтрити домейни
      * o [removeErrors] - броя домейни, за които е възникнала грешка при изтриване
      */
-    static function resetPublicDomains($domains)
+    public static function resetPublicDomains($domains)
     {
         $stats = array(
-            'added'        => 0,
-            'addErrors'    => 0,
-            'removed'      => 0,
+            'added' => 0,
+            'addErrors' => 0,
+            'removed' => 0,
             'removeErrors' => 0,
         );
         
@@ -157,21 +158,25 @@ class drdata_Domains extends core_Manager
             }
         }
         
-        // Тъй като от масива $domains махнахме домейните, които вече са в БД, в него сега 
+        // Тъй като от масива $domains махнахме домейните, които вече са в БД, в него сега
         // останаха само публични домейни, които все още не са в БД. Добавяме ги.
         $domaninKeys = array_keys($domains);
         foreach ($domaninKeys as $domain) {
             $success = static::save(
-                (object)array(
-                    'domain'       => $domain,
+                (object) array(
+                    'domain' => $domain,
                     'isPublicMail' => 'cron'
-                )
-            , NULL, 'IGNORE');
+                ),
+                null,
+                'IGNORE'
+            );
             
             if (!$success) {
                 
                 // Дублираните да не се броят за грешка
-                if (self::fetch(array("#domain = '[#1#]'", $domain))) continue;
+                if (self::fetch(array("#domain = '[#1#]'", $domain))) {
+                    continue;
+                }
             }
             
             $stats[$success ? 'added' : 'addErrors']++;

@@ -1,5 +1,6 @@
 <?php
 
+
 cls::load('acc_strategy_Strategy');
 
 
@@ -9,27 +10,31 @@ cls::load('acc_strategy_Strategy');
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_strategy_LIFO extends acc_strategy_Strategy
 {
-    
-    
     /**
      * Извличане на паричната стойност на зададено количество.
-     * @param double $quantity
-     * @return double
+     *
+     * @param float $quantity
+     *
+     * @return float
      */
-    function consume($quantity)
+    public function consume($quantity)
     {
         if ($quantity == 0) {
+            
             return 0;
         }
         
         if (empty($this->data)) {
+            
             return false;
         }
         
@@ -39,7 +44,7 @@ class acc_strategy_LIFO extends acc_strategy_Strategy
             list($q, $a) = array_pop($this->data);
             $quantity -= $q;
             $amount += $a;
-        };
+        }
         
         // Изчисляваме остатъка и коригираме с него общата стойност.
         $a = ($a / $q) * $quantity;

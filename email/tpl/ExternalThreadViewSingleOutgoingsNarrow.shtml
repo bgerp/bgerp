@@ -1,0 +1,52 @@
+    <div class='document' style="margin-bottom: 20px;">
+
+        <div class='scrolling-holder'>
+            <div class='display-table'>
+                <div class='antetka'>
+                    <div class="small fleft">
+                        <table class='top-table'>
+                            <!--ET_BEGIN ExternalThreadViewFrom-->
+                            <tr>
+                                <td class='aright' style='vertical-align:top'>|От|*:</td>
+                                <td><b>[#ExternalThreadViewFrom#]</b></td>
+                            </tr>
+                            <!--ET_END ExternalThreadViewFrom-->
+                            <!--ET_BEGIN ExternalThreadViewTo-->
+                            <tr>
+                                <td  class='aright'>|До|*:</td>
+                                <td><b>[#ExternalThreadViewTo#]</b></td>
+                            </tr>
+                            <!--ET_END ExternalThreadViewTo-->
+
+                            <!--ET_BEGIN ExternalThreadViewCc-->
+                            <tr>
+                                <td  class='aright'>|Кп|*:</td>
+                                <td><b>[#ExternalThreadViewCc#]</b></td>
+                            </tr>
+                            <!--ET_END ExternalThreadViewCc-->
+
+                            <!--ET_BEGIN ExternalThreadViewDate-->
+                            <tr>
+                                <td class='aright'>|На|*:</td>
+                                <td><b>[#ExternalThreadViewDate#]</b></td>
+                            </tr>
+                            <!--ET_END ExternalThreadViewDate-->
+                        </table>
+                    </div>
+                    <div class="avatar fright" style="position: relative; top: 2px; right: 2px;">[#ExternalThreadViewAvatar#]</div>
+                    <div class="clearfix21"></div>
+                </div>
+            </div>
+        </div>
+        <!--ET_BEGIN subject-->
+        <!--ET_BEGIN subject--><h3 class='richtext-title' style='padding-top: 10px;'>[#subject#]</h3><!--ET_END subject-->
+        <!--ET_END subject-->
+        <!--ET_BEGIN body-->
+        <div>[#body#]</div>
+        <!--ET_END body-->
+        <div style='clear: both;'></div>
+        <div class='clear_l f_left block_subtitle mt_50px'>
+        </div>
+        <div style='clear: both;'></div>
+    </div>
+    <div style='clear: both;'></div>

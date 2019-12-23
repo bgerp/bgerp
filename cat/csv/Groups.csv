@@ -1,15 +1,16 @@
-"Суровини и материали","materials",
-"Труд","labor",
-"Външни услуги","externalServices",
-"Консумативи","consumables",
-"Резервни части","replacements",
-"Стоки","goods",
-"Продукти","products",
-"Заготовки","prefabrications",
-"Услуги","services",
-"Дълготрайни активи","fixedAssets",
-"Ценова група","priceGroup",
-"0","group0","Ценова група"
-"A","groupA","Ценова група"
-"B","groupB","Ценова група"
-"Отговорно пазене","packagings",
+"Суровини и материали","materials",,"Goods and materials"
+"Труд","labor",,"Labor"
+"Външни услуги","externalServices",,"External services"
+"Консумативи","consumables",,"Consumables"
+"Резервни части","replacements",,"Replacements"
+"Стоки","goods",,"Goods"
+"Продукти","products",,"Products"
+"Заготовки","prefabrications",,"Prefabrications"
+"Услуги","services",,"Services"
+"Дълготрайни активи","fixedAssets",,"Fixed assets"
+"Ценова група","priceGroup",,"Price group"
+"0","group0","Ценова група",
+"A","groupA","Ценова група",
+"B","groupB","Ценова група",
+"Отговорно пазене","packagings",,"Packagings"
+Отпадъци,waste,"Суровини и материали",Waste

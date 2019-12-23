@@ -1,15 +1,18 @@
 <div class='eshop-product-list'>
-    <table>
+    <table style="width: 100%;">
         <tr>
-            <td class="vtop">
+            <td class="vtop" style="width: 130px;">
                 [#image#]
             </td>
             <td class="vtop">
-                <div class='eshop-product-list-name'>[#name#] [#editLink#]</div>
+                <h2 class='eshop-product-list-name'>[#name#] [#singleLink#][#editLink#]</h2>
                 <div class='eshop-product-labels'>
-                    <!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code--> <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#] <!--ET_BEGIN singlePrice--><span>|Цена|*: <b>[#singlePrice#]</b> [#singleCurrencyId#] [#chargeVat#] |за|* [#measureId#]</span> [#addBtn#]<!--ET_END singlePrice-->
+                    <!--ET_BEGIN code--><span>|Код|*: <b>[#code#]</b></span><!--ET_END code--> <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]<!--ET_BEGIN catalogPrice--><span>|Цена|*: <b>[#catalogPrice#]</b> [#singleCurrencyId#] [#chargeVat#] |за|* [#packagingId#]</span> <!--ET_END catalogPrice-->[#btn#]
                 </div>
                 [#info#]
+                <!--ET_BEGIN commonParams-->
+                <div class='small'>[#commonParams#]</div>
+                <!--ET_END commonParams-->
             </td>
         </tr>
     </table>

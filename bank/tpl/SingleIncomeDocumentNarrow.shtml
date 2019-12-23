@@ -45,7 +45,7 @@
          <div class='scrolling-holder'>
                  <table  class='border-table'>
                      <tr>
-                         <td class='aleft' style='padding-left:10px;width:65%'>
+                         <td class='aleft'>
                              <table class='no-border'>
                                 <!--ET_BEGIN contragentIban-->
                                  <tr>
@@ -65,31 +65,32 @@
                                   <!--ET_END reason-->
                                  <!--ET_BEGIN termDate-->
                                     <tr>
-                                        <td>|Очаквано на|*: </td>
+                                        <td class="nowrap">|Очаквано на|*: </td>
                                         <td>[#termDate#]</td>
                                     </tr>
                                     <!--ET_END termDate-->
                              </table>
                          
                          </td>
+                     </tr>
+                     <tr>
                          <td>
-                         
-                         <table class='no-border' style='width:98%'>
-                            <tr>
-                                <td>|Сума|*: </td>
-                                <td  style='text-align:right'><span><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b style='font-size:1.2em'>[#amount#]</b></span></td>
-                            </tr>
-                            <!--ET_BEGIN amountDeal-->
-                            <tr  style='font-size: 0.9em'>
-                                <td class='nowrap'>|Платени по сделката|*: </td>
-                                <td style='text-align:right'><span class='cCode'>[#dealCurrencyId#]</span>&nbsp;&nbsp;<b>[#amountDeal#]</b></td>
-                            </tr>
-                            <tr  style='font-size: 0.9em'>
-                            		<td>|Курс|*:</td>
-                            		<td  style='text-align:right;white-space: nowrap;'><b>[#rate#]</b> <i>[#rateFromCurrencyId#]</i> |за|* 1 <i>[#rateToCurrencyId#]</i><br></td>
-                            </tr>
-                             <!--ET_END amountDeal-->
-                         </table>
+                             <table class='no-border' style='width:98%'>
+                                 <tr>
+                                     <td>|Сума|*: </td>
+                                     <td  style='text-align:right'><span><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b style='font-size:1.2em'>[#amount#]</b></span></td>
+                                 </tr>
+                                 <!--ET_BEGIN amountDeal-->
+                                 <tr  style='font-size: 0.9em'>
+                                     <td class='nowrap'>|Платени по сделката|*: </td>
+                                     <td style='text-align:right'><span class='cCode'>[#dealCurrencyId#]</span>&nbsp;&nbsp;<b>[#amountDeal#]</b></td>
+                                 </tr>
+                                 <tr  style='font-size: 0.9em'>
+                                     <td>|Курс|*:</td>
+                                     <td  style='text-align:right;white-space: nowrap;'><b>[#rate#]</b> <i>[#rateFromCurrencyId#]</i> |за|* 1 <i>[#rateToCurrencyId#]</i><br></td>
+                                 </tr>
+                                 <!--ET_END amountDeal-->
+                             </table>
                          </td>
                      </tr>
                  </table>

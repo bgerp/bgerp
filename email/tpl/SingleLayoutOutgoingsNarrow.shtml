@@ -28,7 +28,7 @@
                                     <tr>
                                         <td class='aright'>|До|*:</td>
                                         <td>
-                                            [#recipient#]<!--ET_BEGIN firmCountry--> - [#firmCountry#]<!--ET_END firmCountry--><!--ET_BEGIN recipientEmail-->[#recipientEmail#]<!--ET_END recipientEmail-->
+                                            [#recipient#]<!--ET_BEGIN firmCountry--> - [#firmCountry#]<!--ET_END firmCountry--><!--ET_BEGIN recipientEmail--><b>[#recipientEmail#]</b><!--ET_END recipientEmail-->
                                         </td>
                                     </tr>
                                     <!--ET_END recipient-->
@@ -46,8 +46,8 @@
                                     <!--ET_END emailLeft-->
                                     <!--ET_BEGIN emailCcLeft-->          
                                     <tr>
-                                        <td class='aright'>|Копие|*:</td>
-                                        <td>[#emailCcLeft#]</td>
+                                        <td class='aright'>|Кп|*:</td>
+                                        <td><b>[#emailCcLeft#]</b></td>
                                     </tr>
                                     <!--ET_END emailCcLeft-->
                                     <!--ET_BEGIN email-->
@@ -58,7 +58,7 @@
                                     <!--ET_END email-->
                                     <!--ET_BEGIN emailCc-->
                                     <tr>
-                                        <td class='aright'>|Копие|*:</td>
+                                        <td class='aright'>|Кп|*:</td>
                                         <td><b>[#emailCc#]</b></td>
                                     </tr>
                                     <!--ET_END emailCc-->

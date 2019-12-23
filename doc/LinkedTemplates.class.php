@@ -2,21 +2,21 @@
 
 
 /**
- * 
+ *
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_LinkedTemplates extends core_Master
 {
-    
-    
     /**
-     * 
+     *
      * @var string
      */
     public $interfaces = 'doc_LinkedIntf';
@@ -25,13 +25,13 @@ class doc_LinkedTemplates extends core_Master
     /**
      * Заглавие
      */
-    public $title = "Шаблони за връзки между документи";
+    public $title = 'Шаблони за връзки между документи';
     
     
     /**
      * Сингъл заглавие
      */
-    public $singleTitle = "Шаблон за връзки между документи";
+    public $singleTitle = 'Шаблон за връзки между документи';
     
     
     /**
@@ -56,13 +56,13 @@ class doc_LinkedTemplates extends core_Master
      * Кой има право да изтрива?
      */
     public $canDelete = 'no_one';
-	
-	
+    
+    
     /**
      * Кой има право да оттегле?
      */
     public $canReject = 'admin';
-	
+    
     
     /**
      * Кой има право да възстановява?
@@ -79,7 +79,7 @@ class doc_LinkedTemplates extends core_Master
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('title', 'varchar', 'caption=Заглавие, class=w100, mandatory');
         $this->FLD('docType', 'keylist(mvc=core_Classes,select=title,allowEmpty)', 'caption=Вид, placeholder=Вид на изходящия документ, class=w100');
@@ -102,7 +102,7 @@ class doc_LinkedTemplates extends core_Master
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
@@ -118,7 +118,7 @@ class doc_LinkedTemplates extends core_Master
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
-     * @param core_Mvc $mvc
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
     public static function on_AfterInputEditForm($mvc, &$form)
@@ -162,28 +162,37 @@ class doc_LinkedTemplates extends core_Master
     /**
      * Връща дейности, които са за дадения документ
      *
-     * @param integer $cId
+     * @param int $cId
      *
      * @return array
      */
-    function getActivitiesForDocument($cId)
+    public function getActivitiesForDocument($cId)
     {
         $res = array();
         
-        if (!$cId) return $res;
+        if (!$cId) {
+            
+            return $res;
+        }
         
         $document = doc_Containers::getDocument($cId);
         
-        if (!$document) return $res;
+        if (!$document) {
+            
+            return $res;
+        }
         
         $clsId = $document->instance->getClassId();
         
-        if (!$clsId) return $res;
+        if (!$clsId) {
+            
+            return $res;
+        }
         
         $query = self::getQuery();
         
         $query->likeKeylist('docType', $clsId);
-        $query->orWhere("#docType IS NULL");
+        $query->orWhere('#docType IS NULL');
         
         $res = $this->getResForActivities($query);
         
@@ -194,19 +203,25 @@ class doc_LinkedTemplates extends core_Master
     /**
      * Връща дейности, които са за дадения файл
      *
-     * @param integer $cId
+     * @param int $cId
      *
      * @return array
      */
-    function getActivitiesForFile($cId)
+    public function getActivitiesForFile($cId)
     {
         $res = array();
         
-        if (!$cId) return $res;
+        if (!$cId) {
+            
+            return $res;
+        }
         
         $fRec = fileman_Files::fetch($cId);
         
-        if (!$fRec) return $res;
+        if (!$fRec) {
+            
+            return $res;
+        }
         
         $query = self::getQuery();
         
@@ -224,22 +239,25 @@ class doc_LinkedTemplates extends core_Master
             }
         }
         
-        if (array_search($ext, $extArr) === FALSE) {
+        if (array_search($ext, $extArr) === false) {
             $extArr[] = $ext;
         }
         
-        $query->where("#fileType IS NULL");
+        $query->where('#fileType IS NULL');
         $query->orWhere("#fileType = ''");
         
         foreach ($extArr as $ext) {
-            
             $ext = trim($ext);
             
-            if (!$ext) continue;
+            if (!$ext) {
+                continue;
+            }
             
             $ext = strtolower($ext);
             
-            if (preg_match('/[^a-z]/', $ext)) continue;
+            if (preg_match('/[^a-z]/', $ext)) {
+                continue;
+            }
             
             $query->orWhere("#fileType REGEXP '(([^a-z])|\s|^)+{$ext}(([^a-z])|\s|$)+'");
         }
@@ -254,12 +272,11 @@ class doc_LinkedTemplates extends core_Master
      * Подготвяне на формата за документ
      *
      * @param core_Form $form
-     * @param integer $cId
-     * @param string $activity
+     * @param int       $cId
+     * @param string    $activity
      */
-    function prepareFormForDocument(&$form, $cId, $activity)
+    public function prepareFormForDocument(&$form, $cId, $activity)
     {
-        
         return $this->prepareFormFor($form, $cId, $activity);
     }
     
@@ -268,12 +285,11 @@ class doc_LinkedTemplates extends core_Master
      * Подготвяне на формата за файл
      *
      * @param core_Form $form
-     * @param integer $cId
-     * @param string $activity
+     * @param int       $cId
+     * @param string    $activity
      */
-    function prepareFormForFile(&$form, $cId, $activity)
+    public function prepareFormForFile(&$form, $cId, $activity)
     {
-        
         return $this->prepareFormFor($form, $cId, $activity, 'file');
     }
     
@@ -282,14 +298,13 @@ class doc_LinkedTemplates extends core_Master
      * След субмитване на формата за документ
      *
      * @param core_Form $form
-     * @param integer $cId
-     * @param string $activity
-     * 
+     * @param int       $cId
+     * @param string    $activity
+     *
      * @return mixed
      */
-    function doActivityForDocument(&$form, $cId, $activity)
+    public function doActivityForDocument(&$form, $cId, $activity)
     {
-        
         return $this->doActivity($form, $cId, $activity, 'doc');
     }
     
@@ -298,27 +313,26 @@ class doc_LinkedTemplates extends core_Master
      * След субмитване на формата за файл
      *
      * @param core_Form $form
-     * @param integer $cId
-     * @param string $activity
-     * 
+     * @param int       $cId
+     * @param string    $activity
+     *
      * @return mixed
      */
-    function doActivityForFile(&$form, $cId, $activity)
+    public function doActivityForFile(&$form, $cId, $activity)
     {
-        
         return $this->doActivity($form, $cId, $activity, 'file');
     }
     
     
     /**
      * Помощна функция за вземане на шаблоните
-     * 
+     *
      * @param core_Query $query
-     * @param NULL|integer $userId
-     * 
+     * @param NULL|int   $userId
+     *
      * @return array
      */
-    protected function getResForActivities(&$query, $userId = NULL)
+    protected function getResForActivities(&$query, $userId = null)
     {
         $res = array();
         
@@ -332,7 +346,7 @@ class doc_LinkedTemplates extends core_Master
         
         $query->likeKeylist('users', $userId);
         $query->orLikeKeylist('users', -1);
-        $query->orWhere("#users IS NULL");
+        $query->orWhere('#users IS NULL');
         
         $query->orLikeKeylist('roles', $rolesArr);
         
@@ -340,7 +354,9 @@ class doc_LinkedTemplates extends core_Master
             
             // Ако няма права за сингъла на папката, да не се праща автоматично там - за добавяне
             if ($rec->formAct == 'newDoc' && $rec->formDocType && $rec->submit == 'auto') {
-                if ($rec->formFolder && !doc_Folders::haveRightFor('single', $rec->formFolder)) continue ;
+                if ($rec->formFolder && !doc_Folders::haveRightFor('single', $rec->formFolder)) {
+                    continue ;
+                }
             }
             
             $res[get_called_class() . '|' . $rec->id] = $rec->title;
@@ -355,23 +371,38 @@ class doc_LinkedTemplates extends core_Master
      *
      * @param string $activity
      *
-     * @return  NULL|stdClass
+     * @return NULL|stdClass
      */
     protected function getRecForActivity($activity)
     {
-        if (!$activity) return ;
+        if (!$activity) {
+            
+            return ;
+        }
         
         $actArr = explode('|', $activity);
         
-        if ($actArr[0] != get_called_class()) return ;
+        if ($actArr[0] != get_called_class()) {
+            
+            return ;
+        }
         
-        if (!$actArr[1]) return ;
+        if (!$actArr[1]) {
+            
+            return ;
+        }
         
-        if (!is_numeric($actArr[1])) return ;
+        if (!is_numeric($actArr[1])) {
+            
+            return ;
+        }
         
         $rec = $this->fetch($actArr[1]);
         
-        if (!$rec) return ;
+        if (!$rec) {
+            
+            return ;
+        }
         
         return $rec;
     }
@@ -381,8 +412,8 @@ class doc_LinkedTemplates extends core_Master
      * Подготвяне на формата за документ
      *
      * @param core_Form $form
-     * @param integer $cId
-     * @param string $activity
+     * @param int       $cId
+     * @param string    $activity
      */
     protected function prepareFormFor(&$form, $cId, $activity, $type = 'doc')
     {
@@ -390,13 +421,19 @@ class doc_LinkedTemplates extends core_Master
         
         static $preparedArr = array();
         
-        if ($preparedArr[$key]) return ;
+        if ($preparedArr[$key]) {
+            
+            return ;
+        }
         
         $rec = $this->getRecForActivity($activity);
         
-        if (!$rec) return ;
+        if (!$rec) {
+            
+            return ;
+        }
         
-        $preparedArr[$key] = TRUE;
+        $preparedArr[$key] = true;
         
         if ($rec->formDocType) {
             $form->setDefault('linkDocType', $rec->formDocType);
@@ -418,21 +455,27 @@ class doc_LinkedTemplates extends core_Master
     
     /**
      * Помощна функця за след субмитване на формата
-     * 
+     *
      * @param core_Form $form
-     * @param integer $cId
-     * @param string $activity
-     * @param string $type
-     * 
+     * @param int       $cId
+     * @param string    $activity
+     * @param string    $type
+     *
      * @return mixed
      */
     protected function doActivity(&$form, $cId, $activity, $type = 'doc')
     {
         $rec = $this->getRecForActivity($activity);
         
-        if (!$rec) return ;
+        if (!$rec) {
+            
+            return ;
+        }
         
-        if (!$form->isSubmitted() && $rec->submit != 'auto') return ;
+        if (!$form->isSubmitted() && $rec->submit != 'auto') {
+            
+            return ;
+        }
         
         $linkedInst = cls::get('doc_Linked');
         

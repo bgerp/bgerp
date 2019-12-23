@@ -41,12 +41,28 @@
                 <tr>
                      <td class='aleft' style='padding-left:10px;padding-top: 10px;width:67%;'>
                      <!--ET_BEGIN fromContainerId-->
-                     <span class='quiet nowrap'>|Към фактура|*</span>:&nbsp;&nbsp;&nbsp;[#fromContainerId#]
+                     <span class='quiet nowrap'>|Към|* [#fromContainerName#]</span>:&nbsp;&nbsp;&nbsp;[#fromContainerId#]
                      <!--ET_END fromContainerId-->
                      <!--ET_BEGIN termDate-->
                      <div class='richtext-holder'><span class='quiet'>|Очаквано на|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
                      <!--ET_END termDate-->
-                     
+
+                    <!--ET_BEGIN pkoRow-->
+                    [#pkoRow#]
+                        <!--ET_BEGIN reason-->
+                            <span class='quiet'>|Основание|*:</span> &nbsp;&nbsp;&nbsp;[#reason#]
+                        <!--ET_END reason-->
+                        <!--ET_BEGIN amountDeal-->
+                        <div class ='misc' style='float:right'>
+                            <div style='margin-top:7px;'>
+                                <span class='labels'>|Платени по сделката|*:</span>
+                                <span class='cCode'>[#dealCurrencyId#]</span>&nbsp;&nbsp;<b>[#amountDeal#]</b>
+                            </div>
+                            <span class='labels'>|Курс|*: <b>[#rate#]</b> <i>[#rateFromCurrencyId#]</i> |за|* 1 <i>[#rateToCurrencyId#]</i><br></span>
+                        </div>
+                        <!--ET_END amountDeal-->
+                    <!--ET_END pkoRow-->
+
                      </td>
                     <td style='padding-left:10px; padding-top: 10px;'>
                         <div><span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span></div>
@@ -63,32 +79,6 @@
                 </tr>
             </table>
             <table class="pko-notes border-table">
-                <!--ET_BEGIN pkoRow-->
-                [#pkoRow#]
-                <tr>
-                    <td colspan='2'>
-                        <table style='width:100%' class="no-border">
-                            <tr>
-                                <!--ET_BEGIN reason-->
-                                <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
-                                	<span class='quiet'>|Основание|*:</span> &nbsp;&nbsp;&nbsp;[#reason#]
-                                </td>
-                                <!--ET_END reason-->
-                                <!--ET_BEGIN amountDeal-->
-                                <td style='vertical-align:middle !important'>
-                                    <div class ='misc' style='float:right'>
-                                        <div style='margin-top:7px;'>
-                                            <span class='labels'>|Платени по сделката|*:</span>
-                                            <span class='cCode'>[#dealCurrencyId#]</span>&nbsp;&nbsp;<b>[#amountDeal#]</b>
-                                        </div>
-                                         <span class='labels'>|Курс|*: <b>[#rate#]</b> <i>[#rateFromCurrencyId#]</i> |за|* 1 <i>[#rateToCurrencyId#]</i><br></span>
-                                    </div>
-                                </td>
-                                <!--ET_END amountDeal-->
-                            </tr>
-                        </table>
-                </tr>
-                <!--ET_END pkoRow-->
                 <tr>
                     <td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
                         <table class='signature-table'>
@@ -112,9 +102,9 @@
                                 <td></td>
                                 <td>
                                 <span class='sign_names nowrap'>
-                                <!--ET_BEGIN activatedBy-->
-                                ([#activatedBy#] )
-                                <!--ET_END activatedBy-->
+                                <!--ET_BEGIN issuer-->
+                                ([#issuer#] )
+                                <!--ET_END issuer-->
                                 </span>
                                 </td>
                             </tr>

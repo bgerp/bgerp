@@ -1,0 +1,55 @@
+.nmpd-wrapper {
+    display: none;
+
+
+}
+.nmpd-target {cursor: pointer;}
+.nmpd-grid {
+    background-color: #eee;
+    position:absolute;
+    left:50px;
+    top:50px;
+    z-index:5000;
+    -khtml-user-select: none;
+    padding:10px !important;
+    width: initial;
+    border: 1px solid #ccc;
+    -webkit-box-shadow: 0 5px 5px -5px rgba(0,0,0,.2);
+    -moz-box-shadow: 0 5px 5px -5px rgba(0,0,0,.2);
+    box-shadow: 0 5px 5px -5px rgba(0,0,0,.2);
+
+}
+.holder table td {
+    padding: 4px !important;
+}
+.nmpd-overlay {z-index:4999;}
+input.nmpd-display {
+    text-align: right;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    height: 30px;
+}
+.nmpd-grid button {
+    display: block;
+    width: 100%;
+    padding: 6px 12px;
+    color: #555;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+    -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+    -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+
+.nmpd-overlay {
+    background-color: rgba(0,0,0,0.2);
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}

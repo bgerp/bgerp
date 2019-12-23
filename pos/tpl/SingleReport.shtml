@@ -1,51 +1,41 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-	<table class='report-info'>
-		<tr>
-			<td>|Точка на продажба|*:</td>
-			<td></td>
-			<td><b>[#pointId#]</b></td>
-		</tr>
-		<tr>
-			<td>|Каса|*:</td>
-			<td></td>
-			<td><b>[#caseId#]</b></td>
-		</tr>
-		<tr>
-			<td>|Склад|*:</td>
-			<td></td>
-			<td><b>[#storeId#]</b></td>
-		</tr>
-		<tr>
-			<td>|Продадено|*:</td>
-			<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
-			<td class = 'summary-right'><b>[#total#]</b></td>
-		</tr>
-		<tr>
-			<td>|Платено|*:</td>
-			<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
-			<td class = 'summary-right'><b>[#paid#]</b></td>
-		</tr>
-		<tr>
-			<td>|Период|*:</td>
-			<td colspan='2'><span>[#period#]</span></td>
-		</tr>
-		<!--ET_BEGIN STATISTIC-->
-		<tr>
-        [#STATISTIC#]
-            <th colspan='3'></th>
-        </tr>
-		<!--ET_BEGIN ROW-->
-		[#ROW#]
-		<tr>
-		  <td>  -  [#receiptBy#]: </td>
-		  <td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
-		  <td>[#receiptTotal#]</td>
-		</tr>
-		<!--ET_END ROW-->
-	    <!--ET_END STATISTIC-->
-	</table>
-	<span>|Създаден на|* <b>[#createdDate#]</b> |от|* <b>[#createdBy#]</b></span>
-	<div class='overflow-scroll' style='margin: 15px 0;'>
+<div class="sale-summary">
+                <table class='paddingCells' style='width:100%;margin-bottom:10px'>
+                    <tr>
+                    	<td class = 'sum-th' style="width: 25%">
+                            |Информация|*
+                        </td>
+                        <td class = 'sum-th'>
+                            |Обобщение|*
+                        </td>
+                    </tr>
+                    <tr>
+                    	<td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left;font-weight: normal'>
+                        	|От|*: [#from#]
+                        	<br>|До|*: [#to#]
+                        	<br>|Точка|*: [#pointId#]
+                        	<br>|Каса|*: [#caseId#]
+                        	<br>|Склад|*: [#storeId#]
+                        	<br>|Търговец|*: [#dealerId#]
+                        	<!--ET_BEGIN baseAccountId-->
+                        	<br>|Начално салдо|*: [#baseAmountType#] <b>[#baseAmount#]</b> <span class='cCode'>[#bCurrencyId#]</span>
+		        			<br>|От|*: [#baseAccountId#]
+                            <!--ET_END baseAccountId-->
+							<hr>
+                            <div style="font-size: 1.2em;">|Продадено|*, [#baseCurrency#]: <b>[#total#]</b>
+                                <br>|Платено|*, [#baseCurrency#]: <b>[#paid#]</b> </div>
+
+                        </td>
+                        <td style='font-size:0.8em;vertical-align:top;text-align:left'>
+						     <!--ET_BEGIN ROW-->
+								[#ROW#]
+						     	<span style='font-weight:normal'>[#receiptBy#]: [#receiptTotal#] <span class='cCode'>[#baseCurrency#]</span></span>
+						     <!--ET_END ROW-->
+						     <div style='font-weight:normal'><hr></div><div style='font-weight:normal;font-size: 0.9em;'>[#receiptIds#]</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
 		[#SALES#]
 	<!--ET_BEGIN SALE_PAGINATOR-->
 		[#SALE_PAGINATOR#]

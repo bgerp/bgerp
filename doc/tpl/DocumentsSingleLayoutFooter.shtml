@@ -14,10 +14,12 @@
 		<!--ET_END shareLog-->
 
 		<!--ET_BEGIN Expenses-->
-		<fieldset class='top-tab-content' style='margin-top:10px'>
-			<legend class="groupTitle">|Отнесени разходи|* (|и разпределяне|*)</legend>
-			[#Expenses#]
-		</fieldset>
+		<div class="scrolling-holder">
+			<fieldset class='top-tab-content' style='margin-top:10px'>
+				<legend class="groupTitle">|Отнесени разходи|* (|и разпределяне|*)</legend>
+				[#Expenses#]
+			</fieldset>
+		</div>
 		<!--ET_END Expenses-->
 	<div style='clear: both;'></div>
 </div>

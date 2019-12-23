@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   rtac
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class rtac_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Шаблон за намиране на потребителите
      */
@@ -22,19 +22,22 @@ class rtac_Plugin extends core_Plugin
     
     
     /**
-     * Масив с всички потребители, споделени в 
-     * 
+     * Масив с всички потребители, споделени в
+     *
      * @param string $text
-     * 
+     *
      * @return array
      */
-    static function getNicksArr($text)
+    public static function getNicksArr($text)
     {
         preg_match_all(static::$pattern, $text, $matches);
         
         $nickArr = array();
         
-        if (!$matches['nick']) return $nickArr;
+        if (!$matches['nick']) {
+            
+            return $nickArr;
+        }
         
         // Масив с никовете на всички потребители
         $userArr = core_Users::getUsersArr();
@@ -43,29 +46,32 @@ class rtac_Plugin extends core_Plugin
         
         // Обхождаме всички открити никове и, ако има такива потребители добавяме в масива
         foreach ((array) $matches['nick'] as $nick) {
-            
-            if (!$nick) continue;
+            if (!$nick) {
+                continue;
+            }
             $nick = strtolower($nick);
             
-            if (!$userArr[$nick]) continue;
+            if (!$userArr[$nick]) {
+                continue;
+            }
             $nickArr[$nick] = $nick;
         }
         
         return $nickArr;
     }
-
-
+    
+    
     /**
-     * 
+     *
      * Изпълнява се преди рендирането на input
-     * 
+     *
      * @param core_Mvc $invoker
-     * @param core_Et $tpl
-     * @param string $name
-     * @param string $value
-     * @param array $attr
+     * @param core_Et  $tpl
+     * @param string   $name
+     * @param string   $value
+     * @param array    $attr
      */
-    function on_BeforeRenderInput(&$mvc, &$ret, $name, $value, &$attr = array())
+    public function on_BeforeRenderInput(&$mvc, &$ret, $name, $value, &$attr = array())
     {
         // Задаваме уникално id
         ht::setUniqId($attr);
@@ -73,16 +79,16 @@ class rtac_Plugin extends core_Plugin
     
     
     /**
-     * 
+     *
      * Изпълнява се след рендирането на input
-     * 
+     *
      * @param core_Mvc $invoker
-     * @param core_Et $tpl
-     * @param string $name
-     * @param string $value
-     * @param array $attr
+     * @param core_Et  $tpl
+     * @param string   $name
+     * @param string   $value
+     * @param array    $attr
      */
-    function on_AfterRenderInput(&$mvc, &$tpl, $name, $value, $attr = array())
+    public function on_AfterRenderInput(&$mvc, &$tpl, $name, $value, $attr = array())
     {
         $conf = core_Packs::getConfig('rtac');
         
@@ -93,7 +99,7 @@ class rtac_Plugin extends core_Plugin
         $inst->loadPacks($tpl);
         
         // id на ричтекста
-        list ($id) = explode(' ', $attr['id']);
+        list($id) = explode(' ', $attr['id']);
         $id = trim($id);
         
         // Ако са подадени роли до които може да се споделя
@@ -102,11 +108,11 @@ class rtac_Plugin extends core_Plugin
         }
         
         // Масив с потребителите
-        $userRolesForShare = str_replace("|", ",", $userRolesForShare);
+        $userRolesForShare = str_replace('|', ',', $userRolesForShare);
         $userRolesForShareArr = arr::make($userRolesForShare);
         
         // Обект за данните
-        $tpl->appendOnce("var rtacObj = {};", 'SCRIPTS');
+        $tpl->appendOnce('var rtacObj = {};', 'SCRIPTS');
         
         // Ако потребителя име права да споделе
         if (core_Users::haveRole($userRolesForShareArr)) {
@@ -115,12 +121,12 @@ class rtac_Plugin extends core_Plugin
             if (! ($shareUsersRoles = $mvc->params['shareUsersRoles'])) {
                 $shareUsersRoles = $conf->RTAC_DEFAUL_SHARE_USER_ROLES;
             }
-            $shareUsersRoles = str_replace("|", ",", $shareUsersRoles);
+            $shareUsersRoles = str_replace('|', ',', $shareUsersRoles);
             
             // Обекти за данните
-            $tpl->appendOnce("rtacObj.shareUsersURL = {};", 'SCRIPTS');
-            $tpl->appendOnce("rtacObj.shareUserRoles = {};", 'SCRIPTS');
-            $tpl->appendOnce("rtacObj.sharedUsers = {};", 'SCRIPTS');
+            $tpl->appendOnce('rtacObj.shareUsersURL = {};', 'SCRIPTS');
+            $tpl->appendOnce('rtacObj.shareUserRoles = {};', 'SCRIPTS');
+            $tpl->appendOnce('rtacObj.sharedUsers = {};', 'SCRIPTS');
             
             // Добавяме потребителите, до които ще се споделя
             $tpl->appendOnce("rtacObj.shareUserRoles.{$id} = '{$shareUsersRoles}';", 'SCRIPTS');
@@ -144,7 +150,7 @@ class rtac_Plugin extends core_Plugin
     /**
      * Връща потребителите и имената им по AJAX
      */
-    function act_GetUsers()
+    public function act_GetUsers()
     {
         // Ако заявката е по ajax
         if (Request::get('ajax_mode')) {
@@ -157,7 +163,7 @@ class rtac_Plugin extends core_Plugin
             
             // Роли на потребителите
             $roles = Request::get('roles');
-            $roles = str_replace("|", ",", $roles);
+            $roles = str_replace('|', ',', $roles);
             
             $conf = core_Packs::getConfig('rtac');
             

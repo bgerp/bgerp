@@ -1,11 +1,15 @@
 <div class='cms-row'>
     <div class='eightcol cms-last searchContent' style='margin-right:2%;'>
-        [#PAGE_CONTENT#] 
+        [#TOP_CONTENT#]
+        [#PAGE_CONTENT#]
+        [#BOTTOM_CONTENT#]
     </div>
     <!--ET_BEGIN NAVIGATION-->
     <div class='fourcol' id='cmsNavigation' style='margin-left:2%'>
+        [#TOP_NAV#]
         [#NAVIGATION#]
         <div class='bulletin-link'></div>
+        [#BOTTOM_NAV#]
     </div>
     <!--ET_END NAVIGATION-->
 </div>

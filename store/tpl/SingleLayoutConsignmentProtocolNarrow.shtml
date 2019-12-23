@@ -11,6 +11,10 @@
                                     <span class="bigData">[#valior#]</span>
                                 </span>
                         </div>
+                        
+                        <!--ET_BEGIN zoneReadiness-->
+               			<div class="document-block"><span class='block-caption'>|В зона|* [#zoneId#]</span>: <span class='block-readiness'>[#zoneReadiness#]</span></div>
+               			<!--ET_END zoneReadiness-->
                     </td>
                 </tr>
                 <tr>
@@ -55,7 +59,7 @@
                         <td class="topCell first vtop" style='width:50%;'>
                             <table class='shipment-table' style='width:100%;'>
                                 <tr>
-                                    <td class='quiet nowrap aright'>|Валута|*:</td>
+                                    <td class='quiet nowrap aright' style="width:1%">|Валута|*:</td>
                                     <td>[#currencyId#]</td>
                                 </tr>
                                 <!--ET_BEGIN storeId-->
@@ -85,13 +89,20 @@
                                     <td>[#volume#]</td>
                                 </tr>
                                 <!--ET_END volume-->
-                                
-                                <!--ET_BEGIN palletCountInput-->
+                                 <!--ET_BEGIN lineNotes-->
                                 <tr>
-                                    <td class='quiet nowrap aright'>|Брой палети|*:</td>
-                                    <td>[#palletCountInput#]</td>
+                                    <td class='quiet nowrap' colspan=2>|Забележки|*: </td>
                                 </tr>
-                                <!--ET_END palletCountInput-->
+                                <tr>
+                                    <td colspan=2>[#lineNotes#]</td>
+                                </tr>
+                                <!--ET_END lineNotes-->
+                                <!--ET_BEGIN logisticInfo-->
+                  				<tr>
+                     				<td colspan="2" ><hr><span class='quiet'>|Логистични единици|*:</span> [#logisticInfo#]</td>
+
+                  				</tr>
+                  				<!--ET_END logisticInfo-->
                                
                                  <!--ET_BEGIN note-->
                                 <tr>

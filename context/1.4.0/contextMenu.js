@@ -67,7 +67,7 @@
         //callback
         onOpen: function (data, event) {getEfae().waitPeriodicAjaxCall = 60;},
         afterOpen: function (data, event) {getEfae().waitPeriodicAjaxCall = 60;},
-        onClose: function (data, event) {getEfae().waitPeriodicAjaxCall = 0;}
+        onClose: function (data, event) {getEfae().waitPeriodicAjaxCall = 0; getEfae().preventRequest = 0;}
     };
 
     var methods = {
@@ -343,9 +343,13 @@
                 //check conditions
                 cntWin = cntnmnt == window,
                 btChck = option.baseTrigger.index(trigger) == -1;
-
-            var el = trigger.parent().find('.modal-toolbar');
-
+            
+            if($(this).is('[data-id]')) {
+                var el = $('#' + $(this).attr('data-id')).first(); 
+            } else {
+                var el = trigger.parent().find('.modal-toolbar');
+            }
+ 
             var isHidden;
             if(el.css('display') == 'none'){
                 isHidden = true;

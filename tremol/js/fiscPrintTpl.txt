@@ -1,0 +1,184 @@
+/**
+ * Отпечатва фискалния бон
+ * 
+ * @param onSuccess - функция, която да се извика при успех
+ * @param onError - функция, която да се извика при грешка
+ */
+function printFiscalReceipt(onSuccess, onError) {
+    var isFiscIsOpen = false;
+    try {
+        [#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+            try {
+                var res = '';
+                
+                [#/tremol/js/FiscPrinterTplConnect.txt#]
+                
+                // Синхронизиране на времето
+                <!--ET_BEGIN DATE_TIME-->
+                    try {
+                        fpSetDateTime([#DATE_TIME#]);
+                    } catch(ex) {
+                        console.log('Не може да се синхронизира времето: ' + ex.message);
+                    }
+                <!--ET_END DATE_TIME-->
+                
+                // Проверка на серийния номер
+                <!--ET_BEGIN SERIAL_NUMBER-->
+                    fpCheckSerialNumber([#SERIAL_NUMBER#]);
+                <!--ET_END SERIAL_NUMBER-->
+                
+                // Проверка дали има отворена предишна бележка
+                <!--ET_BEGIN CHECK_AND_CANCEL_PREV_OPEN_RECEIPT-->
+                    [#CHECK_AND_CANCEL_PREV_OPEN_RECEIPT#]
+                    try {
+                        if (fpCheckOpenedFiscalReceipt()) {
+                            try {
+                                // Опитваме се да прекратим предишната бележка, ако има такава и да пуснем пак
+                                fpCancelFiscalReceipt();
+                                render_showToast({timeOut: 800, text: 'Прекратена предишна отворена бележка', isSticky: true, stayTime: 8000, type: 'notice'});
+                            } catch(ex) { 
+                                try {
+                                    // Няма друго какво да се направи и затово прекратяваме предишната бележка
+                                    fpCloseReceiptInCash();
+                                    render_showToast({timeOut: 800, text: 'Отпечатана предишна отворена бележка', isSticky: true, stayTime: 8000, type: 'notice'});
+                                } catch(ex) { }
+                            }
+                        }
+                    } catch(ex) {
+                        console.log('Грешка при проверка на предишна бележка: ' + ex.message);
+                    }
+                <!--ET_END CHECK_AND_CANCEL_PREV_OPEN_RECEIPT-->
+                
+                // Опитваме се да отворим бележка
+                try {
+                    <!--ET_BEGIN OPEN_FISC_RECEIPT_1-->
+                        [#OPEN_FISC_RECEIPT_1#]
+                        fpOpenFiscReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#RCP_NUM#]);
+                    <!--ET_END OPEN_FISC_RECEIPT_1-->
+                    
+                    <!--ET_BEGIN OPEN_STORNO_RECEIPT_1-->
+                        [#OPEN_STORNO_RECEIPT_1#]
+                        fpOpenStornoReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#STORNO_REASON#], [#RELATED_TO_RCP_NUM#], [#RELATED_TO_RCP_DATE_TIME#], [#FM_NUM#], [#RELATED_TO_URN#]);
+                    <!--ET_END OPEN_STORNO_RECEIPT_1-->
+                    
+                    <!--ET_BEGIN OPEN_CREDIT_NOTE_1-->
+                        [#OPEN_CREDIT_NOTE_1#]
+                        fpOpenCreditNoteWithFreeCustomerData([#OPER_NUM#], [#OPER_PASS#], [#PRINT_TYPE_STR#], [#RECIPIENT#], [#BUYER#], [#VAT_NUMBER#], [#UIC#], [#ADDRESS#], [#UIC_TYPE_STR#], [#STORNO_REASON#], [#RELATED_TO_INV_NUM#], [#RELATED_TO_INV_DATE_TIME#], [#RELATED_TO_RCP_NUM#], [#FM_NUM#], [#RELATED_TO_URN#]);
+                    <!--ET_END OPEN_CREDIT_NOTE_1-->
+                    
+                    isFiscIsOpen = true;
+                } catch(ex) {
+                    // Ако не може да се отвори бележка, прекратяваме предишната
+                    var canceled = false;
+                    try {
+                        // Опитваме се да прекратим предишната бележка, ако има такава и да пуснем пак
+                        fpCancelFiscalReceipt();
+                        
+                        canceled = true;
+                    } catch(ex) { }
+                    
+                    if (canceled) {
+                        render_showToast({timeOut: 800, text: 'Прекратена предишна бележка', isSticky: false, stayTime: 8000, type: 'notice'});
+                        <!--ET_BEGIN OPEN_FISC_RECEIPT_2-->
+                            [#OPEN_FISC_RECEIPT_2#]
+                            fpOpenFiscReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#RCP_NUM#]);
+                        <!--ET_END OPEN_FISC_RECEIPT_2-->
+                        
+                        <!--ET_BEGIN OPEN_STORNO_RECEIPT_2-->
+                            [#OPEN_STORNO_RECEIPT_2#]
+                            fpOpenStornoReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#STORNO_REASON#], [#RELATED_TO_RCP_NUM#], [#RELATED_TO_RCP_DATE_TIME#], [#FM_NUM#], [#RELATED_TO_URN#]);
+                        <!--ET_END OPEN_STORNO_RECEIPT_2-->
+                        
+                        <!--ET_BEGIN OPEN_CREDIT_NOTE_2-->
+                            [#OPEN_CREDIT_NOTE_2#]
+                            fpOpenCreditNoteWithFreeCustomerData([#OPER_NUM#], [#OPER_PASS#], [#PRINT_TYPE_STR#], [#RECIPIENT#], [#BUYER#], [#VAT_NUMBER#], [#UIC#], [#ADDRESS#], [#UIC_TYPE_STR#], [#STORNO_REASON#], [#RELATED_TO_INV_NUM#], [#RELATED_TO_INV_DATE_TIME#], [#RELATED_TO_RCP_NUM#], [#FM_NUM#], [#RELATED_TO_URN#]);
+                        <!--ET_END OPEN_CREDIT_NOTE_2-->
+                        
+                        isFiscIsOpen = true;
+                    } else {
+                        render_showToast({timeOut: 800, text: 'Неуспешен опит за прекратяване на предишната бележка', isSticky: true, stayTime: 8000, type: 'error'});
+                        throw ex;
+                    }
+                }
+                
+                <!--ET_BEGIN BEGIN_TEXT-->
+                    fpPrintText([#BEGIN_TEXT#]);
+                <!--ET_END BEGIN_TEXT-->
+                
+                // Добавяме артикул/продукт към бележката
+                <!--ET_BEGIN fpSalePLU-->
+                    <!--ET_BEGIN BEFORE_PLU_TEXT-->
+                        fpPrintText([#BEFORE_PLU_TEXT#]);
+                    <!--ET_END BEFORE_PLU_TEXT-->
+                    
+                    fpSalePLU([#PLU_NAME#], [#VAT_CLASS#], [#PRICE#], [#QTY#], [#DISC_ADD_P#], [#DISC_ADD_V#]);
+                    
+                    <!--ET_BEGIN AFTER_PLU_TEXT-->
+                        fpPrintText([#AFTER_PLU_TEXT#]);
+                    <!--ET_END AFTER_PLU_TEXT-->
+                <!--ET_END fpSalePLU-->
+                
+                <!--ET_BEGIN END_TEXT-->
+                    fpPrintText([#END_TEXT#]);
+                <!--ET_END END_TEXT-->
+                
+                <!--ET_BEGIN PAYMENT-->
+                    try {
+                        fpPayment([#PAYMENT_TYPE#], [#PAYMENT_CHANGE#], [#PAYMENT_AMOUNT#], [#PAYMENT_CHANGE_TYPE#]);
+                    } catch(ex) {
+                        render_showToast({timeOut: 800, text: 'Грешка при добавяне на вид плащане: ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
+                    }
+                <!--ET_END PAYMENT-->
+                
+                <!--ET_BEGIN PAY_EXACT_SUM_TYPE-->
+                    try {
+                        fpPayExactSum([#PAY_EXACT_SUM_TYPE#]);
+                    } catch(ex) {
+                        render_showToast({timeOut: 800, text: 'Грешка при добавяне на вид плащане: ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
+                    }
+                <!--ET_END PAY_EXACT_SUM_TYPE-->
+                
+                fpCloseReceiptInCash();
+                
+                try {
+                    res = fpReadLastReceiptQRcodeData();
+                    if (!res) {
+                        setTimeout(function(){ res = fpReadLastReceiptQRcodeData(); }, 1000);
+                    }
+                } catch(ex) {
+                    console.log('Грешка при прочитане на данните за последния ФБ: ' + ex.message);
+                    try {
+                        setTimeout(function(){ res = fpReadLastReceiptQRcodeData(); }, 1000);
+                    } catch(ex) {
+                        console.log('Грешка при повторно прочитане на данните за последния ФБ: ' + ex.message);
+                    }
+                }
+                
+                // Ако всичко мине добре - викаме функцията за успех
+                onSuccess(res);
+            } catch(ex) {
+                if (isFiscIsOpen) {
+                    try {
+                        // Опитваме се да прекратим предишната бележка, ако има такава и да пуснем пак
+                        fpCancelFiscalReceipt();
+                        render_showToast({timeOut: 800, text: 'Прекратена бележка', isSticky: false, stayTime: 8000, type: 'notice'});
+                    } catch(ex) { }
+                }
+                
+                onError(ex.message);
+            }
+        [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]
+    } catch(ex) {
+        if (isFiscIsOpen) {
+            try {
+                // Опитваме се да прекратим предишната бележка, ако има такава и да пуснем пак
+                fpCancelFiscalReceipt();
+                render_showToast({timeOut: 800, text: 'Прекратена бележка', isSticky: false, stayTime: 8000, type: 'notice'});
+            } catch(ex) { }
+        }
+        onError(ex.message);
+    }
+}
+
+// Стартираме горната функция
+printFiscalReceipt(fpOnSuccess, fpOnError);

@@ -446,6 +446,9 @@ input::-webkit-calendar-picker-indicator {
   border-radius: 5px;
   box-shadow: 1px 1px 0 rgba(60, 60, 60, 0.1); }
 
+.wide  #all #simpleSearch {
+  padding: 3px 2px 2px; }
+
 #simpleSearch.forumSearch .button {
   top: -1px; }
 
@@ -458,8 +461,6 @@ input::-webkit-calendar-picker-indicator {
 
 #simpleSearch input[type='text'],
 #simpleSearch #searchInput {
-  top: 0.1em;
-  position: absolute;
   display: inline-block;
   border: none !important;
   outline: none;
@@ -468,6 +469,11 @@ input::-webkit-calendar-picker-indicator {
   width: 90%;
   padding: 0px;
   padding-left: 0.2em; }
+
+.narrow #simpleSearch input[type='text'],
+.narrow #simpleSearch #searchInput {
+  top: 0.1em;
+  position: absolute; }
 
 #simpleSearch button,
 #simpleSearch .button {
@@ -795,6 +801,9 @@ input[type="button"].fright,
 input[type="submit"].fright,
 button.fright {
   margin: 1px 0 0 0.5em; }
+
+.toggle-movement {
+  cursor: pointer; }
 
 form[method=post] .toogleHolder {
   float: right;
@@ -1386,7 +1395,6 @@ table.listTable {
     line-height: normal;
     font-family: Arial, Verdana;
     vertical-align: middle;
-    max-width: 400px;
     word-wrap: break-word; }
   table.listTable .document h2 {
     margin-top: 3px; }
@@ -1394,6 +1402,13 @@ table.listTable {
     color: #990000; }
   table.listTable .rowNumColumn {
     width: 1%; }
+
+  .listAction table.listTable > tbody > tr > td,
+  table.listTable.listAction > tbody > tr > td {
+    max-width: 400px; }
+
+  .single-thread  table.listTable > tbody > tr > td {
+    max-width: none; }
 
 .detailNumbering {
   text-align: right;
@@ -1418,30 +1433,43 @@ table.listTable {
 .wide .singleView table.listTable {
   max-width: 915px !important; }
 
-table.listTable:not(.noHoverTable) > tbody > tr:hover {
+table.listTable:not(.noHoverTable) > tbody > tr:hover,
+table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
   background-color: #ffffcc; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-draft {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-draft,
+  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-draft {
     background-color: #88ffff; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-active {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-active,
+  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-active {
     background: rgba(247, 197, 139, 0.5); }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-opened {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-opened,
+  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-opened {
     background-color: #97ffb1; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-pending {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-pending,
+  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-pending {
     background-color: #e6b3ff; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-closed {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-closed,
+  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-closed {
     background-color: #e4e4e4; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-stopped,
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-blocked {
+  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-stopped,
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-blocked,
+  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-blocked {
     background-color: #f5a300; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-rejected {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-rejected,
+  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-rejected {
     background-color: #bf4040; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-free {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-free,
+  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-free {
     background-color: #0bbbea; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-hidden {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-hidden,
+  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-hidden {
     background-color: #ffe42b; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-revert {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-revert,
+  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-revert {
     background-color: #a37a29; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-wakeup {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-wakeup,
+  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-wakeup {
     background-color: #269b43; }
 
 .listTitle {
@@ -1508,6 +1536,17 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 .inputError {
   border: solid 1px red; }
 
+.formBottom {
+  margin-bottom: 15px;
+  padding: 5px;
+  margin: 10px -15px 0;
+  background: #a1bef9;
+  border: 1px solid #5c8ef4;
+  text-align: center; }
+  .formBottom.bottomErrorClass {
+    border: 1px solid #cc0000;
+    background-color: #ff6d6b !important; }
+
 .formFooter {
   font-size: 0.9em;
   padding-bottom: 10px; }
@@ -1542,6 +1581,10 @@ span.inputLackOfChoice {
   background-color: #dddddd;
   padding: 4px;
   border-radius: 2px; }
+
+.narrow span.inputLackOfChoice {
+  display: block;
+  white-space: normal; }
 
 span.inputLackOfChoiceMandatory {
   padding: 4px;
@@ -1812,6 +1855,7 @@ input:focus[type=button] {
   padding: 8px;
   vertical-align: middle !important;
   word-wrap: break-word;
+  box-sizing: border-box;
   -moz-border-radius: 5px 5px 0 0;
   -webkit-border-radius: 5px 5px 0 0;
   border-radius: 5px 5px 0 0; }
@@ -2287,6 +2331,25 @@ div.alphabet div.tab-page {
     .single-thread .document .docStatistic .detail-info .stateIndicator.state-closed {
       background-color: #dddddd; }
 
+.systemFlag {
+  border-radius: 5px;
+  font-weight: bold;
+  padding: 1px 3px 2px;
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
+  font-size: 0.9em; }
+  .systemFlag.critical_priority {
+    background: #ee0000;
+    color: white; }
+  .systemFlag.high_priority {
+    background: #ee701e;
+    color: white; }
+  .systemFlag.normal_priority {
+    background: #eecf2c;
+    color: black; }
+  .systemFlag.low_priority {
+    background: #999999;
+    color: black; }
+
 /*
  * вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки
  */
@@ -2677,6 +2740,13 @@ a.lang {
     border-style: outset;
     border: 1px solid #9999cc; }
 
+.narrow .richtext {
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  -ms-hyphens: auto;
+  hyphens: auto;
+  word-break: break-word; }
+
 @-moz-document url-prefix() {
     a.lang {
     padding: 2px !important; }
@@ -2897,7 +2967,7 @@ div.richtext ol {
   margin: 0; }
 
 div.richtext > ul {
-  padding-left: 0.5em; }
+  padding-left: 1.5em; }
 
 div.richtext ul {
   list-style-type: disc; }
@@ -2909,7 +2979,7 @@ div.richtext ul ul ul {
   list-style-type: square; }
 
 div.richtext > ol {
-  padding-left: 0.7em; }
+  padding-left: 0.5em; }
 
 div.richtext ol {
   list-style-type: decimal; }
@@ -3180,9 +3250,6 @@ div.statuses-message h2 {
 .debug-info {
   color: black; }
 
-.debug-notice {
-  color: #880000; }
-
 .debug-new {
   color: #00aa00; }
 
@@ -3345,6 +3412,10 @@ span.cng {
   .toast-container a:hover {
     text-decoration: underline; }
 
+.toast-item-wrapper .debug-notice {
+  color: #ff2828;
+  font-size: 0.85em; }
+
 .toast-item-wrapper p {
   max-height: 150px;
   overflow-y: auto;
@@ -3387,4 +3458,73 @@ td.leftColImportant {
 
 .dangerFile {
   color: #990000 !important; }
+
+.wide .treelist {
+  font-family: Consolas, Courier New, monospace; }
+
+.treelist {
+  font-size: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  max-height: 400px;
+  white-space: nowrap;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: relative;
+  border: solid 1px #bbbbbb;
+  border-radius: 3px;
+  background-color: white;
+  padding: 4px 20px 4px 4px;
+  min-height: 26px; }
+  .treelist ul {
+    list-style-type: none;
+    margin: 0;
+    margin-left: 17px;
+    padding: 0; }
+  .treelist li {
+    display: table;
+    padding: 0px;
+    border-collapse: separate; }
+    .treelist li.row {
+      padding: 2px; }
+  .treelist .trigger {
+    cursor: pointer;
+    font-style: normal; }
+  .treelist input {
+    position: relative;
+    top: 2px; }
+  .treelist i {
+    display: inline-block;
+    width: 14px;
+    text-align: center; }
+  .treelist .verbal {
+    white-space: normal; }
+    .treelist .verbal a,
+    .treelist .verbal span {
+      background-color: #e4e4e4;
+      border: 1px solid #aaaaaa;
+      border-radius: 4px;
+      display: inline-block;
+      font-size: 0.8em;
+      padding: 1px 3px;
+      color: black !important;
+      opacity: 1;
+      font-family: Helvetica, Arial, Verdana, Sans-serif; }
+    .treelist .verbal span:hover {
+      cursor: default !important; }
+  .treelist .underline {
+    border-bottom: 1px dashed #cccccc; }
+  .treelist .hidden {
+    display: none; }
+  .treelist .more-btn {
+    background-position: center;
+    background-repeat: no-repeat;
+    position: absolute;
+    right: 4px;
+    top: 6px;
+    cursor: pointer; }
+  .treelist .plus-icon {
+    background-image: url('../img/16/toggle1.png') !important; }
+  .treelist .minus-icon {
+    background-image: url('../img/16/toggle2.png') !important; }
 

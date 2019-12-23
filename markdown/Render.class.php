@@ -13,19 +13,19 @@ defIfNot('MARKDOWN_VERSION', 'extra-1.2.5');
  *
  * @category  vendors
  * @package   markdown
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class markdown_Render
 {
-    
-    
     /**
      * Конвертира посочени markdown текст в HTML формат
      */
-    static function Convert($html)
+    public static function Convert($html)
     {
         //Пътя до файла на markdown
         $filePath = MARKDOWN_VERSION . '/' . 'markdown.php';

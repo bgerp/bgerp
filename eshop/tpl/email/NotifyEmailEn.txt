@@ -1,0 +1,4 @@
+[#INTRODUCTION#]
+You have unfinished order from [#DATE#] in our online store [#LINK#]. 
+If you don't complete it, it will be deleted in [#DELETE_TIME#].
+[#FOOTER#]

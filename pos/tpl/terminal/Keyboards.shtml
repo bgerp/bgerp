@@ -61,7 +61,7 @@
 			<input class="keyboard-btn" type="button" value="9"/>
 			<input class="keyboard-btn" type="button" value="0"/>
 			<input class="keyboard-back-btn" type="button" value="«"/>
-			<input class="keyboard-btn keyboard-change-btn" data-klang='keyboard-ph' type="button" value="PH" />
+			<input class="keyboard-btn keyboard-change-btn" data-klang='keyboard-ph' type="button" value="PH" title='|Смяна на езика|*'/>
 		</div>
 		<div class='keyboard-row' style='padding-left:3em'>
 			<input class="keyboard-btn" type="button" value="Ы"/>

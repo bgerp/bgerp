@@ -1,16 +1,22 @@
 <div class='cms-row'>
     <!--ET_BEGIN NAVIGATION-->
     <div class='fourcol' id='cmsNavigation'  style='margin-left:2%'>
+        [#TOP_NAV#]
+        [#SEARCH_BOX#]
         [#NAVIGATION#]
+        [#BOTTOM_NAV#]
+        [#BEFORE_FOOTER_INFO#]
         <div class='bulletin-link'></div>
     </div>
     <!--ET_END NAVIGATION-->
     <div class='eightcol cms-last' style='margin-right:2%;'>
+        [#TOP_CONTENT#]
         [#PAGE_CONTENT#] 
         <!--ET_BEGIN SOCIAL-->
         <div class='clearfix21'></div>
         [#SOCIAL#]
         [#social_Sharings::getButtons#]
         <!--ET_END SOCIAL-->
+        [#BOTTOM_CONTENT#]
     </div>
 </div>

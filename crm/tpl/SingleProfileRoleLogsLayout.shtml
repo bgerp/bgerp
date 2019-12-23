@@ -1,0 +1,12 @@
+<div class="groupList" id="profileActionLog" style=' background: none;'>
+    <table style='min-width:440px; width: 100%;'>
+       <!--ET_BEGIN log-->
+       <tr class='[#logClass#]'>
+           <td class="large-field" style="white-space: normal; width: auto;">[#roles#]</td>
+           <td class="nowrap">[#createdOn#] <br>|от|* [#createdBy#]</td>
+       </tr>
+       <!--ET_END log-->
+   </table>
+   <!--ET_BEGIN pager--> [#pager#]<!--ET_END pager-->
+   <!--ET_BEGIN ActionLogLink--> [#actionLogLink#]<!--ET_END ActionLogLink-->
+</div>

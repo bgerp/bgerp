@@ -15,6 +15,13 @@
                <!--ET_BEGIN state-->
                <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                <!--ET_END state-->
+               <!--ET_BEGIN storeReadiness-->
+               <div class="document-block"><span class='block-caption'>Налично в склад</span>: <span class='block-instock'>[#storeReadiness#]</span></div>
+               <!--ET_END storeReadiness-->
+
+               <!--ET_BEGIN zoneReadiness-->
+               <div class="document-block"><span class='block-caption'>В зона [#zoneId#]</span>: <span class='block-readiness'>[#zoneReadiness#]</span></div>
+               <!--ET_END zoneReadiness-->
             </td>
             <td class="cell custom-header-bg"  style='width:35%;'><b>|Доставчик|*</b></td>
          </tr>
@@ -69,7 +76,7 @@
                   <!--ET_END deliveryTime-->
                   <!--ET_BEGIN fromContainerId-->
                   <tr>
-                     <td colspan='2'><span class='quiet'>|Към фактура|*:</span> [#fromContainerId#]</td>
+                     <td class='quiet aright'>|Към|*[#fromContainerName#]:</td><td>[#fromContainerId#]</td>
                   </tr>
                   <!--ET_END fromContainerId-->
                   <!--ET_BEGIN deliveryAddressBlock-->
@@ -87,20 +94,39 @@
                      <td>[#lineId#]</td>
                   </tr>
                   <!--ET_END lineId-->
+                  <!--ET_BEGIN lineNotes-->
+                  <tr>
+                     <td class='quiet nowrap aright'>|Забележки|*: </td>
+                     <td>[#lineNotes#]</td>
+                  </tr>
+                  <!--ET_END lineNotes-->
+                  <!--ET_BEGIN note-->
+                  <tr>
+                     <td colspan="2" >
+                        <hr>
+                        [#note#]
+                     </td>
+                  </tr>
+                  <!--ET_END note-->
+                  <tr>
+                     <td colspan="2" >
+                        <hr>
+                     </td>
+                  </tr>
+                  <!--ET_END deliveryTable-->
+                  <tr>
+                     <td colspan="2" >
+                        <div>
+                           <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span> <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
+                        </div>
+                     </td>
+                  </tr>
+                  <!--ET_BEGIN logisticInfo-->
+                  <tr>
+                     <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*:</span> [#logisticInfo#]</td>
+                  </tr>
+                  <!--ET_END logisticInfo-->
                </table>
-               <!--ET_BEGIN dimentions-->
-               [#dimentions#]
-               <hr>
-               <div class='clearfix21' style='margin-bottom: 5px;'>
-                 <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span> <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
-               </div>
-               <div class='clearfix21'>
-               <!--ET_BEGIN logisticInfo--></div><div style='margin-bottom:3px;margin-top:3px;'>|Логистични единици|*:&nbsp;[#logisticInfo#]</div><!--ET_END logisticInfo--> 
-               <!--ET_END dimentions-->
-               <!--ET_BEGIN note-->
-               <hr>
-               [#note#]
-               <!--ET_END note-->
             </td>
             <td class="topCell vtop">
                [#/deals/tpl/DocumentPiceInfo.shtml#]

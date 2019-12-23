@@ -14,6 +14,18 @@ defIfNot('PLANNING_TASK_LABEL_PREVIEW_WIDTH', 90);
 
 
 /**
+ * Допустим толеранс на тегллото при ПО
+ */
+defIfNot('PLANNING_TASK_WEIGHT_TOLERANCE_WARNING', 0.05);
+
+
+/**
+ * Отчитане на теглото в ПО->Режим
+ */
+defIfNot('PLANNING_TASK_WEIGHT_MODE', 'yes');
+
+
+/**
  * Височина на превюто на артикула в етикета
  */
 defIfNot('PLANNING_TASK_LABEL_PREVIEW_HEIGHT', 170);
@@ -43,529 +55,278 @@ defIfNot('PLANNING_UNDEFINED_CENTER_DISPLAY_NAME', 'Неопределен');
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Необходими пакети
      */
-    var $depends = 'cat=0.1';
+    public $depends = 'cat=0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'planning_Setup';
+    public $startCtr = 'planning_Wrapper';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'getStartCtr';
+    public $startAct = 'planning_DirectProductionNote';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Производствено планиране";
+    public $info = 'Производствено планиране';
     
     
     /**
      * Описание на конфигурационните константи за този модул
      */
-    var $configDescription = array(
-    		'PLANNING_TASK_SERIAL_COUNTER'           => array('int', 'caption=Производствени операции->Стартов сериен номер'),
-    		'PLANNING_TASK_LABEL_PREVIEW_WIDTH'      => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
-    		'PLANNING_TASK_LABEL_PREVIEW_HEIGHT'     => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
-    		'PLANNING_CONSUMPTION_USE_AS_RESOURCE'   => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
-    		'PLANNING_PRODUCTION_NOTE_REJECTION'     => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
-    		'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределенен център на дейност->Име'),
+    public $configDescription = array(
+        'PLANNING_TASK_SERIAL_COUNTER' => array('int', 'caption=Производствени операции->Стартов сериен номер'),
+        'PLANNING_TASK_LABEL_PREVIEW_WIDTH' => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
+        'PLANNING_TASK_LABEL_PREVIEW_HEIGHT' => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
+        'PLANNING_CONSUMPTION_USE_AS_RESOURCE' => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
+        'PLANNING_PRODUCTION_NOTE_REJECTION' => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
+        'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределен център на дейност->Име'),
+        'PLANNING_TASK_WEIGHT_TOLERANCE_WARNING' => array('percent', 'caption=Отчитане на теглото в ПО->Предупреждение'),
+        'PLANNING_TASK_WEIGHT_MODE' => array('enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото в ПО->Режим'),
     );
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
-    		'migrate::deleteTasks6',
-    		'planning_Jobs',
-    		'planning_ConsumptionNotes',
-    		'planning_ConsumptionNoteDetails',
-    		'planning_DirectProductionNote',
-    		'planning_DirectProductNoteDetails',
-    		'planning_ReturnNotes',
-    		'planning_ReturnNoteDetails',
-    		'planning_ObjectResources',
-    		'planning_Tasks',
-    		'planning_AssetResources',
-            'planning_AssetResourceFolders',
-    		'planning_ProductionTaskDetails',
-    		'planning_ProductionTaskProducts',
-    		'planning_AssetGroups',
-    		'planning_AssetResourcesNorms',
-    		'planning_Centers',
-    		'planning_Hr',
-    		'planning_FoldersWithResources',
-    		'migrate::deleteTaskCronUpdate',
-    		'migrate::deleteAssets',
-    		'migrate::deleteNorms',
-            'migrate::transferCenters',
-            'migrate::removeUnusedRole',
-            'migrate::folderToDetails'
-        );
-
-        
+    public $managers = array(
+        'planning_Jobs',
+        'planning_ConsumptionNotes',
+        'planning_ConsumptionNoteDetails',
+        'planning_DirectProductionNote',
+        'planning_DirectProductNoteDetails',
+        'planning_ReturnNotes',
+        'planning_ReturnNoteDetails',
+        'planning_ObjectResources',
+        'planning_Tasks',
+        'planning_AssetResources',
+        'planning_AssetResourceFolders',
+        'planning_ProductionTaskDetails',
+        'planning_ProductionTaskProducts',
+        'planning_AssetGroups',
+        'planning_AssetResourcesNorms',
+        'planning_Centers',
+        'planning_Hr',
+        'planning_FoldersWithResources',
+        'planning_Stages',
+        'planning_WorkCards',
+        'planning_Points',
+        'migrate::assetResourceFields',
+        'migrate::updateTasks',
+        'migrate::updateTasksPart2'
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
-    var $roles = array(
-    		array('production'),
-    		array('taskWorker'),
-    		array('taskPlanning', 'taskWorker'),
-    		array('planning', 'taskPlanning'),
-    		array('planningMaster', 'planning'),
-    		array('job')
+    public $roles = array(
+        array('production'),
+        array('taskWorker'),
+        array('taskPlanning', 'taskWorker'),
+        array('planning', 'taskPlanning'),
+        array('planningMaster', 'planning'),
+        array('job')
     );
-
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.21, 'Производство', 'Планиране', 'planning_Wrapper', 'getStartCtr', "planning, ceo, job, store, taskWorker, taskPlanning"),
-        );
+    public $menuItems = array(
+        array(3.21, 'Производство', 'Планиране', 'planning_DirectProductionNote', 'list', 'ceo,planning,store,production'),
+    );
     
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,planning_interface_ImportFromLastBom";
+    public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,
+                          planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
+                          planning_interface_ImportFromLastBom,planning_interface_StageDriver,planning_reports_Workflows,planning_Terminal,
+                          planning_reports_ArticlesProduced';
     
     
     /**
-     * Де-инсталиране на пакета
+     * Инсталиране на пакета
      */
-    function deinstall()
+    public function install()
     {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
+        $html = parent::install();
         
-        return $res;
-    }
-    
-    
-    /**
-     * Изтрива старите производствени операции
-     */
-    public static function deleteTasks6()
-    {
-    	$Details = cls::get('planning_ProductionTaskDetails');
-    	$Details->fillSearchKeywordsOnSetup = FALSE;
-    	$Details->setupMvc();
-    	$Details->truncate();
-    	
-    	$Tasks = cls::get('planning_Tasks');
-    	$Tasks->fillSearchKeywordsOnSetup = FALSE;
-    	$Tasks->setupMvc();
-    	if(!$Tasks->count()) return;
-    	
-    	$Product = cls::get('planning_ProductionTaskProducts');
-    	$Product->fillSearchKeywordsOnSetup = FALSE;
-    	$Product->setupMvc();
-    	$Product->truncate();
-    	
-    	$Tasks->truncate();
-    	$taskClassId = planning_Tasks::getClassId();
-    	$query = doc_Containers::getQuery();
-    	$query->where("#docClass = {$taskClassId}");
-    	$query->delete();
-    	
-    	$Assets = cls::get('planning_AssetResources');
-    	$Assets->fillSearchKeywordsOnSetup = FALSE;
-    	$Assets->setupMvc();
-    	$Assets->truncate();
-    }
-    
-    
-    /**
-     * Изтриване на крон метод
-     */
-    public function deleteTaskCronUpdate()
-    {
-    	core_Cron::delete("#systemId = 'Update Tasks States'");
-    }
-    
-    
-    /**
-     * Изтриване на стари задачи от операциите
-     */
-    public function deleteAssets()
-    {
-    	$query = planning_Tasks::getQuery();
-    	$query->where("#fixedAssets IS NOT NULL");
-    	while($tRec = $query->fetch()){
-    		$tRec->fixedAssets = NULL;
-    		planning_Tasks::save($tRec);
-    	}
-    	
-    	$query = planning_ProductionTaskDetails::getQuery();
-    	$query->where("#fixedAsset IS NOT NULL");
-    	while($tRec1 = $query->fetch()){
-    		$tRec1->fixedAsset = NULL;
-    		planning_ProductionTaskDetails::save($tRec1);
-    	}
-    }
-    
-    
-    /**
-     * Изчистване на нормите
-     */
-    public function deleteNorms()
-    {
-    	$Norms = cls::get('planning_AssetResourcesNorms');
-    	$Norms->setupMvc();
-    	$Norms->truncate();
-    }
-    
-    
-    /**
-     * Мигриране на центровете на дейност
-     */
-    public function transferCenters()
-    {
-    	$Deparments = cls::get('hr_Departments');
-    	$Deparments->setupMvc();
-    	$Unsorted = cls::get('doc_UnsortedFolders');
-    	
-    	core_Classes::add('planning_Centers');
-    	$Centers = cls::get('planning_Centers');
-    	$Centers->setupMvc();
-    	$Centers->loadSetupData();
-    	$centerClassId = planning_Centers::getClassId();
-    	$unsortedClassId = $Unsorted->getClassId();
-    	
-    	if(!$Deparments->count()) return;
-    	
-    	$Lists = cls::get('acc_Lists');
-    	$Lists->setupMvc();
-    	$Lists->loadSetupData();
-    	
-    	$Cust = cls::get('hr_CustomSchedules');
-    	$Cust->setupMvc();
-    	 
-    	$Econtr = cls::get('hr_EmployeeContracts');
-    	$Econtr->setupMvc();
-    	 
-    	$Jobs = cls::get('planning_Jobs');
-    	$Jobs->setupMvc();
-    	 
-    	$Cons = cls::get('planning_ConsumptionNotes');
-    	$Cons->setupMvc();
-    	 
-    	$Ret = cls::get('planning_ReturnNotes');
-    	$Ret->setupMvc();
-    	 
-    	$Assets = cls::get('planning_AssetResources');
-    	$Assets->setupMvc();
-    	 
-    	$Hr = cls::get('planning_Hr');
-    	$Hr->setupMvc();
-    	
-    	$now = dt::now();
-    	
-    	$toTransfer = $toUnsorted = array();
-    	$dQuery = hr_Departments::getQuery();
-    	$dQuery->FLD('folderId', 'key(mvc=doc_Folders)');
-    	$dQuery->FLD('type', 'enum(section,branch,office,affiliate,division,direction,department,plant,workshop,store,shop,unit,brigade,shift,organization)');
-    	$dQuery->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)');
-    	$dQuery->FLD('employmentTotal', 'int');
-    	$dQuery->FLD('employmentOccupied', 'int');
-    	$dQuery->FLD('startingOn', 'datetime');
-    	$dQuery->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)');
-    	$dQuery->FLD('inCharge' , 'user(role=powerUser, rolesForAll=executive)');
-    	$dQuery->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)');
-    	$dQuery->FLD('shared' , 'userList');
-    	$dQuery->where("#folderId IS NOT NULL");
-    	
-    	while($dRec = $dQuery->fetch()){
-    		if($dRec->type == 'workshop' || acc_Items::isItemInList('hr_Departments', $dRec->id, 'departments') || hr_EmployeeContracts::fetchField("#departmentId = {$dRec->id}") || planning_ConsumptionNotes::fetchField("#departmentId = {$dRec->id}") || planning_ReturnNotes::fetchField("#departmentId = {$dRec->id}")){
-    			
-    			$obj = (object)arr::getSubArray((object)$dRec, 'name,type,nkid,employmentTotal,schedule,folderId,startingOn,createdBy,inCharge,access,shared,state');
-    			$obj->departmentId = $dRec->parentId;
-    			if($cRec = $Centers->fetch("#name = '{$dRec->name}'")){
-    				$obj->type = 'workshop';
-    				$obj->id = $cRec->id;
-    			}
-    			
-    			$toTransfer[$dRec->id] = $obj;
-    		} elseif($dRec->folderId) {
-    			$threadsCount = doc_Folders::fetchField($dRec->folderId, 'allThreadsCnt');
-    			if($threadsCount){
-    				$obj = (object)arr::getSubArray((object)$dRec, 'name,folderId,createdBy,inCharge,access,shared,state');
-    				$obj->description = 'Мигриран от департамент';
-    				$toUnsorted[$dRec->id] = $obj;
-    			} else {
-    				doc_Folders::delete($dRec->folderId);
-    			}
-    		}
-    	}
-    	
-    	if(!count($toTransfer) && !count($toUnsorted)) return;
-    	$map = array();
-    	$deleted = array();
-    	
-    	foreach ($toTransfer as $objectId => $obj)
-    	{
-    		if(empty($obj->id)){
-    			while($Centers->fetchField("#name = '{$obj->name}'")){
-    				$obj->name .= " (1)";
-    				if(!$Centers->fetchField("#name = '{$obj->name}'")){
-    					break;
-    				}
-    			}
-    		}
-    		
-    		$obj->createdBy = empty($obj->createdBy) ? core_Users::SYSTEM_USER : $obj->createdBy;
-    		$obj->createdOn = $now;
-    		core_Users::sudo($obj->createdBy);
-    		
-    		$id = $Centers->save_($obj);
-    		core_Users::exitSudo($obj->createdBy);
-    		
-    		if($id){
-    			$map[$objectId] = $id;
-    			
-    			if($itemRec = acc_Items::fetchItem('hr_Departments', $objectId)){
-    				$itemRec->classId = $centerClassId;
-    				$itemRec->objectId = $id;
-    				acc_Items::save($itemRec);
-    				
-    				$register = core_Cls::getInterface('planning_ActivityCenterIntf', $centerClassId);
-    				acc_Items::syncItemRec($itemRec, $register, $id);
-    				acc_Items::save($itemRec);
-    			}
-    			
-    			if(isset($obj->folderId)){
-    				$folderRec = doc_Folders::fetch($obj->folderId);
-    				
-    				if($folderRec && $folderRec->coverClass != $centerClassId){
-    					$folderRec->coverClass = $centerClassId;
-    					$folderRec->coverId = $id;
-    					$folderRec->title = $obj->name;
-    					doc_Folders::save($folderRec, NULL, 'REPLACE');
-    				}
-    			}
-    			
-    			if(isset($obj->departmentId) || $obj->name == 'Неопределен'){
-    				$deleted[$objectId] = hr_Departments::fetch($objectId);
-    				hr_Departments::delete($objectId);
-    			}
-    		}
-    	}
-    	
-    	// Оправяне и на изтритите департаменти
-    	foreach ($deleted as $dId => $delRec){
-    		$q = $Centers->getQuery();
-    		$q->where("#departmentId = {$dId}");
-    		while($c1 = $q->fetch()){
-    			$c1->departmentId = $delRec->parentId;
-    			$Centers->save($c1);
-    		}
-    	}
-    	
-    	foreach ($toUnsorted as $objId => $uRec){
-    		if(empty($uRec->id)){
-    			while($Unsorted->fetchField("#name = '{$uRec->name}'")){
-    				$uRec->name .= " (1)";
-    				if(!$Unsorted->fetchField("#name = '{$uRec->name}'")){
-    					break;
-    				}
-    			}
-    		}
-    		
-    		core_Users::sudo($uRec->createdBy);
-    		if($cId = $Unsorted->fetchField("#name = '{$uRec->name}'")){
-    			$uRec->id = $cId;
-    		}
-    		$uRec->createdOn = $now;
-    		$uId = $Unsorted->save_($uRec);
-    		core_Users::exitSudo($uRec->createdBy);
-    		
-    		if($uId){
-    			$folderRec = doc_Folders::fetch($uRec->folderId);
-    			if($folderRec && $folderRec->coverClass != $unsortedClassId){
-    				$folderRec->coverClass = $unsortedClassId;
-    				$folderRec->coverId = $uId;
-    				$folderRec->title = $uRec->name;
-    				doc_Folders::save($folderRec, NULL, 'REPLACE');
-    			}
-    		}
-    	}
-    	
-    	$jQuery = $Jobs->getQuery();
-    	$jQuery->where("department IS NOT NULL");
-    	$jQuery->show('department');
-    	while($jRec = $jQuery->fetch()){
-    		$jRec->department = $map[$jRec->department];
-    		$Jobs->save_($jRec, 'department');
-    	}
-    	
-    	$aQuery = $Assets->getQuery();
-    	$aQuery->where("#folders IS NOT NULL");
-    	$aQuery->show('folders');
-    	while($aRec = $aQuery->fetch()){
-    		$aRec->folders = NULL;
-    		$Assets->save_($aRec);
-    	}
-    	 
-    	$cQuery = $Cons->getQuery();
-    	$cQuery->where("#departmentId IS NOT NULL");
-    	$cQuery->show('departmentId');
-    	while($cRec = $cQuery->fetch()){
-    		$cRec->departmentId = $map[$cRec->departmentId];
-    		$Cons->save_($cRec, 'departmentId');
-    	}
-    	 
-    	$rQuery = $Ret->getQuery();
-    	$rQuery->where("#departmentId IS NOT NULL");
-    	$rQuery->show('departmentId');
-    	while($rRec = $rQuery->fetch()){
-    		$rRec->departmentId = $map[$rRec->departmentId];
-    		$Ret->save_($rRec, 'departmentId');
-    	}
-    	
-    	$hQuery = $Hr->getQuery();
-    	$hQuery->where("#folders IS NOT NULL");
-    	$hQuery->show('folders');
-    	while($hRec = $hQuery->fetch()){
-    		$d = keylist::toArray($hRec->folders);
-    		$intersect = arr::make(array_intersect_key($map, $d), TRUE);
-    		
-    		$new = array();
-    		if(is_array($intersect)){
-	    		foreach ($intersect as $v){
-    				$v = planning_Centers::fetchField($v, 'folderId');
-    				$new[$v] = $v;
-	    		}
-    		}
-    		
-    		$hRec->folders = keylist::fromArray($new);
-    		$hRec->folders = empty($hRec->folders) ? NULL : $hRec->folders;
-    		$Hr->save_($hRec);
-    	}
-    	
-    	$eQuery = $Econtr->getQuery();
-    	$eQuery->where("#departmentId IS NOT NULL");
-    	$eQuery->show('departmentId');
-    	while($eRec = $eQuery->fetch()){
-    		$eRec->departmentId = $map[$eRec->departmentId];
-    		$eRec->departmentId = (empty($eRec->departmentId)) ? NULL : $eRec->departmentId;
-    		$Econtr->save_($eRec);
-    	}
-    	
-    	$cuQuery = $Cust->getQuery();
-    	$cuQuery->where("#departmenId IS NOT NULL");
-    	$cuQuery->show('departmenId');
-    	while($cuRec = $cuQuery->fetch()){
-    		$cuRec->departmenId = $map[$cuRec->departmenId];
-    		$cuRec->departmenId = (empty($cuRec->departmenId)) ? NULL : $cuRec->departmenId;
-    		$Cust->save_($cuRec);
-    	}
-    	
-    	$this->updateCenterExt();
-    }
-    
-    
-    /**
-     * Ъпдейт на центровете
-     */
-    function updateCenterExt()
-    {
-    	$Assets = cls::get('planning_AssetResources');
-    	$Assets->setupMvc();
-    	
-    	$aQuery = $Assets->getQuery();
-    	$aQuery->where("#folders IS NULL || #folders = ''");
-    	while($aRec = $aQuery->fetch()){
-    		$Assets->save($aRec, 'folders');
-    	}
-    	
-    	$Hr = cls::get('planning_Hr');
-    	$Hr->setupMvc();
-    	
-    	$hQuery = $Hr->getQuery();
-    	$hQuery->where("#folders IS NULL");
-    	while($hRec = $hQuery->fetch()){
-    		$Hr->save($hRec, 'folders');
-    	}
-    	
-    	$query = $Hr->getQuery();
-    	$query->where("#code IS NULL");
-    	while($rec = $query->fetch()){
-    		$rec->code = planning_Hr::getDefaultCode($rec->personId);
-    		$Hr->save($rec);
-    	}
-    	
-    	$hQuery = $Hr->getQuery();
-    	$hQuery->where("#folders IS NULL");
-    	while($hRec = $hQuery->fetch()){
-    		$Hr->save($hRec, 'folders');
-    	}
-    }
-    
-    
-    /**
-     * Миграция за премахване на ненужна роля
-     */
-    public static function removeUnusedRole()
-    {
-        $rId = core_Roles::fetchByName('jobMaster');
-        if ($rId) {
-            core_Roles::removeRoles(array($rId));
-        }
-    }
-    
-    
-    /**
-     * Миграция за прехвърляне на папките в детайл
-     */
-    public static function folderToDetails()
-    {
-        // Очаква предишната миграция да е била успешна
-        $mData = core_Packs::getConfig('core')->_data;
-        expect($mData['migration_planning_transferCenters'] === TRUE);
+        // Кофа за снимки
+        $html .= fileman_Buckets::createBucket('planningImages', 'Илюстрации в производство', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'every_one', 'powerUser');
         
-        foreach (array('planning_AssetResources', 'planning_Hr') as $clsName) {
-            $clsInst = cls::get($clsName);
-            $query = $clsInst->getQuery();
-            $query->where("#folders IS NOT NULL");
+        $html .= fileman_Buckets::createBucket('workCards', 'Работни карти', 'pdf,jpg,jpeg,png', '200MB', 'powerUser', 'powerUser');
+        
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StageDriver', 'private');
+        
+        return $html;
+    }
+    
+    
+    /**
+     * Мигация за поправка на key полетата към keylist в planning_AssetResources
+     */
+    public static function assetResourceFields()
+    {
+        $inst = cls::get('planning_AssetResources');
+        $query = $inst->getQuery();
+        while ($rec = $query->fetch()) {
+            if (!$rec->systemFolderId) {
+                $rec->systemFolderId = null;
+            }
             
-            while ($rec = $query->fetch()) {
-                $fArr = type_Keylist::toArray($rec->folders);
+            if (!$rec->assetFolderId) {
+                $rec->assetFolderId = null;
+            }
+            
+            // Взамем от папките
+            $fQuery = planning_AssetResourceFolders::getQuery();
+            $fQuery->where(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $inst->getClassId(), $rec->id));
+            $defOptArr = array();
+            while ($fRec = $fQuery->fetch()) {
+                if (!$fRec->folderId) {
+                    continue ;
+                }
                 
-                if (empty($fArr)) continue;
+                $cover = doc_Folders::getCover($fRec->folderId);
                 
-                foreach ($fArr as $fId) {
-                    $dRec = new stdClass();
-                    $dRec->objectId = $rec->id;
-                    $dRec->classId = $clsInst->getClassId();
-                    $dRec->folderId = $fId;
-                    
-                    planning_AssetResourceFolders::save($dRec, NULL, 'IGNORE');
+                $systemFolderName = 'assetFolderId';
+                
+                if ($cover->className == 'support_Systems') {
+                    $systemFolderName = 'systemFolderId';
+                }
+                
+                $defOptArr[$systemFolderName]['folders'][$fRec->folderId] = $fRec->folderId;
+                if ($fRec->users) {
+                    $defOptArr[$systemFolderName]['users'] = type_Keylist::merge($defOptArr[$systemFolderName]['users'], $fRec->users);
                 }
             }
+            
+            if ($defOptArr['systemFolderId']['folders']) {
+                $rec->systemFolderId = type_Keylist::fromArray($defOptArr['systemFolderId']['folders']);
+                $rec->systemUsers = $defOptArr['systemFolderId']['users'];
+            }
+            
+            if ($defOptArr['assetFolderId']['folders']) {
+                $rec->assetFolderId = type_Keylist::fromArray($defOptArr['assetFolderId']['folders']);
+                $rec->assetUsers = $defOptArr['assetFolderId']['users'];
+            }
+            
+            $inst->save($rec, 'systemFolderId, systemUsers, assetFolderId, assetUsers');
         }
+    }
+    
+    
+    /**
+     * Обновява новите полета на ПО
+     */
+    public static function updateTasks()
+    {
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+        
+        $TaskDetails = cls::get('planning_ProductionTaskDetails');
+        $TaskDetails->setupMvc();
+        
+        if (!count($Tasks)) {
+            
+            return;
+        }
+        
+        $updateArr = array();
+        $query = $Tasks->getQuery();
+        $query->where('#indPackagingId IS NULL');
+        $query->show('packagingId');
+        while ($rec = $query->fetch()) {
+            $rec->indPackagingId = $rec->packagingId;
+            $updateArr[$rec->id] = $rec;
+        }
+        
+        if (count($updateArr)) {
+            $Tasks->saveArray($updateArr, 'id,indPackagingId');
+        }
+    }
+    
+    
+    /**
+     * Обновява новите полета на ПО
+     */
+    public static function updateTasksPart2()
+    {
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+        
+        $TaskDetails = cls::get('planning_ProductionTaskDetails');
+        $TaskDetails->setupMvc();
+        
+        if (!count($Tasks)) {
+            
+            return;
+        }
+        
+        $updateArr = array();
+        $query = $Tasks->getQuery();
+        $query->where('#measureId IS NULL');
+        $query->show('measureId,quantityInPack,productId');
+        while ($rec = $query->fetch()) {
+            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+            $rec->measureId = $measureId;
+            $rec->quantityInPack = 1;
+            
+            $updateArr[] = $rec;
+        }
+        
+        if (count($updateArr)) {
+            $Tasks->saveArray($updateArr, 'id,measureId,quantityInPack');
+        }
+    }
+    
+    
+    /**
+     * След началното установяване на този мениджър
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        
+        if (core_Packs::isInstalled('label') && core_Packs::isInstalled('escpos')) {
+            core_Classes::add('escpos_printer_TD2120N');
+            
+            core_Users::forceSystemUser();
+            if (label_Templates::addFromFile('Етикет за прогрес на производствена операция', 'planning/tpl/DefaultTaskProgressLabel.shtml', 'defaultEscposTaskRec', array('100', '72'), 'bg', planning_ProductionTaskDetails::getClassId(), escpos_printer_TD2120N::getClassId())) {
+                $res = "<li class='green'>Обновен шаблон за етикети на прогреса на производствената операция";
+            } else {
+                $res = '<li>Пропуснато обновяване на шаблон за прогреса на производствената операция</li>';
+            }
+            core_Users::cancelSystemUser();
+        }
+        
+        return $res;
     }
 }

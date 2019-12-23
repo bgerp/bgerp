@@ -6,59 +6,59 @@
  *
  * @category  vendors
  * @package   apachetika
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class apachetika_Detect
 {
-    
-    
     /**
      * Извлича дадена информация от файла
      *
      * @param fileman_Files $fileHnd - Манипулатор на файла
-     * @param array $params - Други допълнителни параметри
-     * $params['type'] - Типа, на изходния файл
-     * $params['callBack'] - Класа и функцията, която ще се извикат след приключване на конвертирането
-     * $params['fileInfoId'] - id към bgerp_FileInfo
-     * $params['asynch'] - Дали скрипта да се стартира асинхронно или не
-     * 
+     * @param array         $params  - Други допълнителни параметри
+     *                               $params['type'] - Типа, на изходния файл
+     *                               $params['callBack'] - Класа и функцията, която ще се извикат след приключване на конвертирането
+     *                               $params['fileInfoId'] - id към bgerp_FileInfo
+     *                               $params['asynch'] - Дали скрипта да се стартира асинхронно или не
+     *
      * @return string
      */
-    static function extract($fileHnd, $params = array())
+    public static function extract($fileHnd, $params = array())
     {
         // В зависимост от типа на изходния файл
         switch (strtolower($params['type'])) {
             
             // Ако искаме да извлечем текста
-            case 'text' :
+            case 'text':
                 $file = 'text.txt';
                 $type = 'text';
                 break;
                 
                 // Ако искаме да извлечем HTML
-            case 'html' :
+            case 'html':
                 $file = 'html.html';
                 $type = 'html';
                 break;
                 
                 // Ако искаме да извлечем meta данните
-            case 'metadata' :
+            case 'metadata':
                 $file = 'metadata.txt';
                 $type = 'metadata';
                 break;
                 
                 // Ако искаме да извлечем xHTML съдържание
-            case 'xml' :
-            case 'xhtml' :
+            case 'xml':
+            case 'xhtml':
                 $file = 'xml.html';
                 $type = 'xml';
                 break;
             
-            default :
-            expect(FALSE, "{$params['type']} - Не е в допустимите");
+            default:
+            expect(false, "{$params['type']} - Не е в допустимите");
             break;
         }
         
@@ -78,7 +78,7 @@ class apachetika_Detect
         $apacheTikaPath = getFullPath('apachetika/' . $conf->APACHE_TIKA_VERSION . '/tika-app.jar');
         
         // Задаваме пътя, като параметър
-        $Script->setParam('APACHETIKA', $apacheTikaPath, TRUE);
+        $Script->setParam('APACHETIKA', $apacheTikaPath, true);
         
         // Добавяме към изпълнимия скрипт
         $lineExecStr = "java -jar [#APACHETIKA#] --{$type} [#INPUTF#] > [#OUTPUTF#]";
@@ -102,9 +102,9 @@ class apachetika_Detect
         }
         
         $Script->setCheckProgramsArr('java');
-        // Стартираме скрипта Aсинхронно
-        if ($Script->run($params['asynch']) === FALSE) {
-            
+        
+        // Стартираме скрипта асинхронно
+        if ($Script->run($params['asynch']) === false) {
             if (strtolower($params['type']) == 'metadata') {
                 $params['content'] = '';
                 fileman_Indexes::saveContent($params);
@@ -130,9 +130,9 @@ class apachetika_Detect
      *
      * @param fconv_Script $script - Парамтри
      *
-     * @return boolean
+     * @return bool
      */
-    static function afterExtract($script)
+    public static function afterExtract($script)
     {
         // Десериализираме параметрите
         $params = unserialize($script->params);
@@ -155,6 +155,6 @@ class apachetika_Detect
             return $result;
         }
         
-        return TRUE;
+        return true;
     }
 }

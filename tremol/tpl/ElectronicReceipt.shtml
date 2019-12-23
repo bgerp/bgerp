@@ -1,0 +1,24 @@
+<style>
+    body{
+        width: 380px;
+        overflow:hidden;
+    }
+    #qrImg {
+        width: 90px;
+        height: 90px;
+        margin: auto;
+        display: block;
+        -ms-interpolation-mode: nearest-neighbor;
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: -webkit-crisp-edges;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: -o-crisp-edges;
+        image-rendering: crisp-edges;
+        image-rendering: pixelated;
+    }
+</style>
+<div id="receiptPanel">
+    <pre id="recStartPre">[#REC_START#]</pre>
+    <img id="qrImg" src="[#QR_URL#]">
+    <pre id="recEndPre">[#REC_END#]</pre>
+</div>

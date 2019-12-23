@@ -1,1 +1,9 @@
-Borica,active,no,1
+Чек,no,1,,"|chek|"
+Талон,no,2,,"|talon|tal|"
+В.Талон,no,3,,"|v talon|v talo|v tal|"
+Амбалаж,no,4,,"|ambalaj|ambala|ambal|"
+Обслужване,no,5,,"|obslujvane|obsluj|obsl|"
+Повреди,no,6,,"|povredi|povred|povred|"
+Карта,no,7,,"|karta|"
+Банка,no,8,,"|banka|"
+EUR,no,9,EUR,"|eur|evro|"

@@ -8,21 +8,21 @@
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Детайли на протоколите за отговорни пазене-предадени';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -36,40 +36,62 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     
     
     /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canImport = 'ceo, store, distributor';
+    
+    
+    /**
+     * Кой може да създава артикул директно към документа?
+     *
+     * @var string|array
+     */
+    public $canCreateproduct = 'ceo, store';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
-                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy, plg_PrevAndNext,store_plg_TransportDataDetail';
+                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy,cat_plg_CreateProductFromDocument,deals_plg_ImportDealDetailProduct, plg_PrevAndNext,store_plg_TransportDataDetail';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, store';
+    public $canEdit = 'ceo, store, distributor';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, store';
+    public $canAdd = 'ceo, store, distributor';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, store';
+    public $canDelete = 'ceo, store, distributor';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId=Предадено на Клиент/Доставчик, packagingId, packQuantity, weight=Тегло,volume=Обем,packPrice, amount,transUnitId=ЛЕ';
-
     
-	/**
+    
+    /**
      * Полета свързани с цени
      */
     public $priceFields = 'price, amount, discount, packPrice';
+    
+    
+    /**
+     * Какви мета данни да изискват продуктите, които да се показват
+     */
+    public $metaProducts = 'canSell,canStore';
     
     
     /**
@@ -77,21 +99,9 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
      */
     public function description()
     {
-    	$this->FLD('protocolId', 'key(mvc=store_ConsignmentProtocols)', 'column=none,notNull,silent,hidden,mandatory');
-    	parent::setFields($this);
-    	$this->setDbUnique('protocolId,productId,packagingId');
-    }
-    
-    
-    /**
-     * Достъпните продукти
-     */
-    protected function getProducts($masterRec)
-    {
-    	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell,canStore');
-    	 
-    	return $products;
+        $this->FLD('protocolId', 'key(mvc=store_ConsignmentProtocols)', 'column=none,notNull,silent,hidden,mandatory');
+        parent::setFields($this);
+        $this->setDbUnique('protocolId,productId,packagingId');
     }
     
     
@@ -100,32 +110,30 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
-    	$rec = &$form->rec;
-    	
-    	if(isset($rec->productId)){
-    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
-    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
-    		$form->info = $storeInfo->formInfo;
-    	}
+        $rec = &$form->rec;
+        
+        if (isset($rec->productId)) {
+            $masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
+            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
+            $form->info = $storeInfo->formInfo;
+        }
     }
-
+    
     
     /**
      * След преобразуване на записа в четим за хора вид.
      */
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-    	$rows = &$data->rows;
-    	if(!count($data->recs)) return;
-    	
-    	$storeId = $data->masterData->rec->storeId;
-    	foreach ($data->rows as $id => $row){
-    		$rec = $data->recs[$id];
-    		
-    		$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
-    		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
-    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);
-    		}
-    	}
+        if (!count($data->recs)) {
+            
+            return;
+        }
+        
+        $storeId = $data->masterData->rec->storeId;
+        foreach ($data->rows as $id => $row) {
+            $rec = $data->recs[$id];
+            deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $storeId, $rec->quantity, $data->masterData->rec->state);
+        }
     }
 }

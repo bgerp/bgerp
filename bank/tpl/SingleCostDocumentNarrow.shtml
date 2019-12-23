@@ -45,7 +45,7 @@
          <div class='scrolling-holder'>
             <table class='border-table'>
                 <tr>
-                    <td  class='aleft' style='padding-left:10px; width:67%'>
+                    <td  class='aleft'>
                         <table class='no-border'>
                             <tr>
                                 <td style='width:98px' class='nowrap'>|От сметка|*: </td>
@@ -71,11 +71,13 @@
                             <!--ET_END termDate-->
                         </table>
                     </td>
+                </tr>
+                <tr>
                     <td>
                         <table class='no-border' style='width:98%'>
                             <tr>
-                               <td>|Сума|*: </td>
-                               <td  style='text-align:right'><span><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b style='font-size:1.2em'>[#amount#]</b></span></td>
+                                <td>|Сума|*: </td>
+                                <td  style='text-align:right'><span><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b style='font-size:1.2em'>[#amount#]</b></span></td>
                             </tr>
                             <!--ET_BEGIN amountDeal-->
                             <tr style='font-size: 0.9em'>
@@ -83,11 +85,11 @@
                                 <td style='text-align:right'><span class='cCode'>[#dealCurrencyId#]</span>&nbsp;&nbsp;<b>[#amountDeal#]</b></td>
                             </tr>
                             <tr style='font-size: 0.9em'>
-                               <td>|Курс|*:</td>
-                               <td  style='text-align:right;white-space: nowrap;'><b>[#rate#]</b> <i>[#rateFromCurrencyId#]</i> |за|* 1 <i>[#rateToCurrencyId#]</i><br></td>
+                                <td>|Курс|*:</td>
+                                <td  style='text-align:right;white-space: nowrap;'><b>[#rate#]</b> <i>[#rateFromCurrencyId#]</i> |за|* 1 <i>[#rateToCurrencyId#]</i><br></td>
                             </tr>
                             <!--ET_END amountDeal-->
-                       </table>
+                        </table>
                     </td>
                 </tr>
             </table>

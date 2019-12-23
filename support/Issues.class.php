@@ -1,177 +1,167 @@
 <?php 
 
-
 /**
  * Документ с който се сигнализара някакво несъответствие
  *
  * @category  bgerp
  * @package   support
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @deprecated
  */
 class support_Issues extends core_Master
 {
-    
-    
     /**
      * Флаг, който указва, че документа е партньорски
      */
-    public $visibleForPartners = TRUE;
+    public $visibleForPartners = true;
     
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    var $oldClassName = 'issue_Document';
+    public $oldClassName = 'issue_Document';
     
     
     /**
      * Заглавие на модела
      */
-    var $title = 'Сигнали';
+    public $title = 'Сигнали';
     
     
-    /**
-     * 
-     */
-    var $singleTitle = 'Сигнал';
+    public $singleTitle = 'Сигнал';
     
     
-    /**
-     * 
-     */
-    var $abbr = 'Sig';
+    public $abbr = 'Sig';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'powerUser';
+    public $canView = 'powerUser';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo, admin, support';
+    public $canList = 'ceo, admin, support';
     
     
     /**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'powerUser';
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'powerUser';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'admin, support';
+    public $canReject = 'admin, support';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Кой може да възлага задачата
      */
-    var $canAssign = 'support, admin, ceo';
+    public $canAssign = 'support, admin, ceo';
     
     
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
      * Кой може да променя активирани записи
      */
-    var $canChangerec = 'support, admin, ceo';
+    public $canChangerec = 'support, admin, ceo';
     
     
     /**
      * Кой може да добавя външен сигнал?
      */
-    var $canNew = 'every_one';
-
-
+    public $canNew = 'every_one';
+    
+    
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools2, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, 
+    public $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools2, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, 
     				doc_SharablePlg, doc_AssignPlg, plg_Sorting, change_Plugin, doc_plg_BusinessDoc, plg_Clone';
     
     
     /**
      * Дали може да бъде само в началото на нишка
      */
-    var $onlyFirstInThread = TRUE;
+    public $onlyFirstInThread = true;
     
     
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'support/tpl/SingleLayoutIssue.shtml';
+    public $singleLayoutFile = 'support/tpl/SingleLayoutIssue.shtml';
     
     
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/support.png';
-
+    public $singleIcon = 'img/16/support.png';
+    
     
     /**
      * Поле за търсене
      */
-    var $searchFields = 'componentId, typeId, description, title';
+    public $searchFields = 'componentId, typeId, description, title';
     
     
-    /**
-     * 
-     */
-    var $listFields = 'id, title, systemId, componentId, typeId, modifiedOn, modifiedBy';
+    public $listFields = 'id, title, systemId, componentId, typeId, modifiedOn, modifiedBy';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
     
     
     /**
      * Кой има право да клонира?
      */
     public $canClonerec = 'powerUser';
-	
+    
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "10.1|Поддръжка";
-	
+    public $newBtnGroup = '10.1|Поддръжка';
+    
     
     /**
      * Полетата, които могат да се променят с change_Plugin
@@ -182,18 +172,18 @@ class support_Issues extends core_Master
     /**
      * Да се показва антетка
      */
-    public $showLetterHead = TRUE;
+    public $showLetterHead = true;
     
     
-	/**
+    /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%, silent');
-        $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%,silent");
-        $this->FLD('description', 'richtext(rows=10,bucket=Support,shareUsersRoles=support,userRolesForShare=support)', "caption=Описание, mandatory");
-        $this->FLD('componentId', "key(mvc=support_Components,select=name,allowEmpty)", 'caption=Компонент');
+        $this->FLD('title', 'varchar', 'caption=Заглавие, mandatory, width=100%,silent');
+        $this->FLD('description', 'richtext(rows=10,bucket=Support,shareUsersRoles=support,userRolesForShare=support)', 'caption=Описание, mandatory');
+        $this->FLD('componentId', 'key(mvc=support_Components,select=name,allowEmpty)', 'caption=Компонент');
         
         $this->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, input=hidden, silent');
         
@@ -209,47 +199,45 @@ class support_Issues extends core_Master
         
         // Данни за компютъра на изпращача на сигнала
         $this->FLD('ip', 'ip', 'caption=Ип,input=none');
-    	$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
+        $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
     }
     
     
     /**
      * При добавяне на нов сигнал, да форвърдне към създаване на задача
-     * 
+     *
      * @see core_Manager::act_Add()
      */
-    function act_Add()
+    public function act_Add()
     {
-        
         return Request::forward(array('cal_Tasks', 'add'));
     }
-
-
+    
+    
     /**
      * Екшън за добавяне на запитване от нерегистрирани потребители
      */
-    function act_New()
+    public function act_New()
     {
-        
         return Request::forward(array('cal_Tasks', 'new'));
         
-    	$this->requireRightFor('new');
-
-        if($lg = Request::get('Lg')){
-    		cms_Content::setLang($lg);
-    		core_Lg::push($lg);
-    	}
-    	
+        $this->requireRightFor('new');
+        
+        if ($lg = Request::get('Lg')) {
+            cms_Content::setLang($lg);
+            core_Lg::push($lg);
+        }
+        
         // Подготовка на формата
         $form = $this->getForm();
-
+        
         // Правим едни полета да не се показват
         
         $form->setField('priority', 'input=none');
         $form->setField('componentId', 'input=none');
-
+        
         // А други полета правим да се показват
-        if(!haveRole('powerUser')) {
+        if (!haveRole('powerUser')) {
             $form->setField('email', 'input,silent');
             $form->setField('name', 'input,silent');
             $form->setField('folderId', 'input=hidden,silent');
@@ -262,10 +250,10 @@ class support_Issues extends core_Master
         $form->setField('title', 'input=hidden');
         
         $form->setDefault('title', '*Без заглавие*');
-    	
+        
         // Инпут на формата
-    	$form->input(NULL, 'silent');
-    	
+        $form->input(null, 'silent');
+        
         $rec = $form->rec;
         expect($rec->systemId);
         expect($sysRec = support_Systems::fetch($rec->systemId));
@@ -273,32 +261,32 @@ class support_Issues extends core_Master
         $allowedTypesArr = support_Systems::getAllowedFieldsArr($sysRec->id);
         
         $systemName = support_Systems::getTitleById($rec->systemId);
-
+        
         $form->title = "Сигнал към екипа за поддръжка на {$systemName}";
         
         $atOpt = array();
-        foreach($allowedTypesArr as $tId) {
+        foreach ($allowedTypesArr as $tId) {
             $tRec = support_IssueTypes::fetchField($tId);
-            $atOpt[$tId] =  support_IssueTypes::getVerbal($tRec, 'type');
+            $atOpt[$tId] = support_IssueTypes::getVerbal($tRec, 'type');
         }
         
         $form->setOptions('typeId', $atOpt);
-
+        
         $form->input();
         
         $rec = &$form->rec;
         
-        if(!haveRole('user')) {
-            $brid = log_Browsers::getBrid(FALSE);
-            if($brid) {
+        if (!haveRole('user')) {
+            $brid = log_Browsers::getBrid(false);
+            if ($brid) {
                 $query = $this->getQuery();
                 $query->limit = 1;
                 $query->orderBy('#createdOn', 'DESC');
                 $lastRec = $query->fetch(array("#brid = '[#1#]'", $brid));
-                if($lastRec && !$rec->name) {
+                if ($lastRec && !$rec->name) {
                     $rec->name = $lastRec->name;
                 }
-                if($lastRec && !$rec->email) {
+                if ($lastRec && !$rec->email) {
                     $rec->email = $lastRec->email;
                 }
             }
@@ -317,72 +305,80 @@ class support_Issues extends core_Master
             $form->setDefault('typeId', $defTypeId);
         }
         
-    	// След събмит на формата
-    	if($form->isSubmitted()){
-
-    		$rec->state = 'active';
+        // След събмит на формата
+        if ($form->isSubmitted()) {
+            $rec->state = 'active';
             
-            if(!haveRole('powerUser')) {
-                $rec->ip   = core_Users::getRealIpAddr();
+            if (!haveRole('powerUser')) {
+                $rec->ip = core_Users::getRealIpAddr();
                 $rec->brid = log_Browsers::getBrid();
             }
-    		
-    		if(empty($rec->folderId)){
+            
+            if (empty($rec->folderId)) {
                 $sysRec = support_Systems::fetch($rec->systemId);
-    			$rec->folderId = $sysRec->folderId;
-    		}
-    		
-    		// Запис и редирект
-    		if($this->haveRightFor('new')){
-    			$id = $this->save($rec);
-    			
-    			vislog_History::add('Изпращане на сигнал');
-    			
-    			$cu = core_Users::getCurrent('id', FALSE);
-    			
-    			// Ако няма потребител, записваме в бисквитка ид-то на последното запитване
-    			if(!$cu){
-    				$userData = array('name' => $rec->name, 'email' => $rec->email);
-    				log_Browsers::setVars($userData);
-    			}
-    			
-    			status_Messages::newStatus('|Благодарим Ви за сигнала', 'success');
-    			
-    			return followRetUrl();
-    		}
-    	}
-    	
-    	$form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
-        if(count(getRetUrl())) {
-            $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png,title=Oтказ');
+                $rec->folderId = $sysRec->folderId;
+            }
+            
+            // Запис и редирект
+            if ($this->haveRightFor('new')) {
+                $id = $this->save($rec);
+                
+                vislog_History::add('Изпращане на сигнал');
+                
+                $cu = core_Users::getCurrent('id', false);
+                
+                // Ако няма потребител, записваме в бисквитка ид-то на последното запитване
+                if (!$cu) {
+                    $userData = array('name' => $rec->name, 'email' => $rec->email);
+                    log_Browsers::setVars($userData);
+                }
+                
+                status_Messages::newStatus('|Благодарим Ви за сигнала', 'success');
+                
+                return followRetUrl();
+            }
+        }
+        
+        $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
+        if (count(getRetUrl())) {
+            $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ');
         }
         $tpl = $form->renderHtml();
-    	
+        
         // Поставяме шаблона за външен изглед
-		Mode::set('wrapper', 'cms_page_External');
-		
-		if($lg){
-			core_Lg::pop();
-		}
-		
-    	return $tpl;
+        Mode::set('wrapper', 'cms_page_External');
+        
+        if ($lg) {
+            core_Lg::pop();
+        }
+        
+        return $tpl;
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param stdClass $rec
      */
     public static function prepareBodyAndSubject($rec)
     {
-        if ($rec->id) return ;
+        if ($rec->id) {
+            
+            return ;
+        }
         
-        if (!$rec->threadId) return ;
+        if (!$rec->threadId) {
+            
+            return ;
+        }
         
         $clsId = core_Classes::getId(get_called_class());
         
-        if (!$clsId) return ;
+        if (!$clsId) {
+            
+            return ;
+        }
         
         $cid = doc_Containers::fetchField("#threadId = {$rec->threadId} AND #docClass = {$clsId}");
         
@@ -398,15 +394,15 @@ class support_Issues extends core_Master
     
     /**
      * Връща последно използвания тип от потребителя или от екипа му
-     * 
-     * @param integer $systemId
+     *
+     * @param int   $systemId
      * @param array $optionsArr
-     * 
-     * @return NULL|integer
+     *
+     * @return NULL|int
      */
     protected static function getDefaultTypeId($systemId, $optionsArr = array())
     {
-        $cu = core_Users::getCurrent('id', FALSE);
+        $cu = core_Users::getCurrent('id', false);
         $teamMates = core_Users::getTeammates($cu);
         $teamMates = trim($teamMates, '|');
         $teamMates = str_replace('|', ',', $teamMates);
@@ -426,20 +422,18 @@ class support_Issues extends core_Master
                 return $rec->typeId;
             }
         }
-        
-        return ;
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param support_Issues $mvc
-     * @param object $row
-     * @param object $rec
-     * @param array $fields
+     * @param object         $row
+     * @param object         $rec
+     * @param array          $fields
      */
-    static function on_AfterrecToVerbal($mvc, $row, $rec, $fields = array()) 
+    public static function on_AfterrecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->brid = log_Browsers::getLink($rec->brid);
     }
@@ -450,8 +444,8 @@ class support_Issues extends core_Master
      * посочената папка като начало на нишка
      *
      * @param int $folderId - id на папката
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
     public static function canAddToFolder($folderId)
     {
@@ -459,87 +453,79 @@ class support_Issues extends core_Master
         $coverClassName = doc_Folders::fetchCoverClassName($folderId);
         
         // Ако не support_systems, не може да се добави
-        if (strtolower($coverClassName) != 'support_systems') return FALSE;
+        if (strtolower($coverClassName) != 'support_systems') {
+            
+            return false;
+        }
         
-        return TRUE;
+        return true;
     }
     
     
-    /**
-     * 
-     */
-    function getSystemId($rec)
-    {   
-        $systemId = FALSE;
-  
+    public function getSystemId($rec)
+    {
+        $systemId = false;
+        
         if ($rec->systemId) {
-
             $systemId = $rec->systemId;
-
+        
         // Ако има компонент
-        } elseif($rec->componentId) {
+        } elseif ($rec->componentId) {
             
             // systemId на съответния компонент
-            $systemId = support_Components::fetchField($rec->componentId, 'systemId');   
-            
+            $systemId = support_Components::fetchField($rec->componentId, 'systemId');
         } elseif ($rec->folderId) {
             
             // Вземаме ковъра на папката
             $cover = doc_Folders::getCover($rec->folderId);
+            
             // Ако ковъра е support_Systems
             if ($cover->className == 'support_Systems') {
-             
+                
                 // Използваме id' то
                 $systemId = $cover->that;
             }
         }
- 
+        
         return $systemId;
     }
     
     
-    /**
-     * 
-     */
-    function on_AfterPrepareListRows($mvc, $res, $data) {
-        
+    public function on_AfterPrepareListRows($mvc, $res, $data)
+    {
         // Обхождаме записите
-        foreach ((array)$data->recs as $key => $rec) {
+        foreach ((array) $data->recs as $key => $rec) {
             
             // Ако има id на система
-             $rec->systemId = $mvc->getSystemId($rec);
-             
+            $rec->systemId = $mvc->getSystemId($rec);
+            
             // Вземаме id' то на папката
             $folderId = $rec->folderId;
-                
+            
             // Ако нямамем права за папката, прескачаме
             if (!doc_Folders::haveRightFor('single', $folderId)) {
                 continue;
             }
-                
+            
             // Линк към папката
             $folderLink = ht::createLink($mvc->getVerbal($rec, 'folderId'), array('doc_Threads', 'list', 'folderId' => $folderId));
-                 
+            
             // Заместваме името на системата с линк към папката
             $data->rows[$key]->systemId = $folderLink;
         }
     }
     
     
-	/**
+    /**
      * Реализация  на интерфейсния метод ::getThreadState()
      * Добавянето на сигнал отваря треда
      */
-    static function getThreadState($id)
+    public static function getThreadState($id)
     {
-        
         return 'opened';
     }
     
     
-    /**
-     * 
-     */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         // Нормален приоритет по подразбиране
@@ -550,7 +536,7 @@ class support_Issues extends core_Master
         
         // Опитваме се да вземеме return ult' то
         $retUrl = getRetUrl();
-
+        
         // Ако има systemId
         if ($systemId) {
             
@@ -558,15 +544,15 @@ class support_Issues extends core_Master
             $iRec = support_Systems::fetch($systemId);
             
             // Ако имаме права за single до папката
-            if ($iRec->folderId && doc_Folders::haveRightFor('single', $iRec->folderId)) {    
+            if ($iRec->folderId && doc_Folders::haveRightFor('single', $iRec->folderId)) {
                 
                 // Форсираме създаването на папката
                 $folderId = support_Systems::forceCoverAndFolder($iRec);
                 
                 // Задаваме id' то на папката
-                $data->form->rec->folderId = $folderId;    
+                $data->form->rec->folderId = $folderId;
             }
-        } 
+        }
         
         // Ако все още не сме определили папката
         if (!$folderId) {
@@ -583,7 +569,7 @@ class support_Issues extends core_Master
         
         // Всички системи, които наследяваме
         $allSystemsArr = support_Systems::getSystems($systemId);
-
+        
         // Премахваме текущатата
         unset($allSystemsArr[$systemId]);
         
@@ -607,7 +593,7 @@ class support_Issues extends core_Master
             // Създаваме масив с компонентите
             $components[$rec->id] = support_Components::getVerbal($rec, 'name');
         }
-
+        
         // Ако няма въведен компонент
         if (!$components) {
             
@@ -618,7 +604,7 @@ class support_Issues extends core_Master
             if (support_Components::haveRightFor('add')) {
                 
                 // Линк за препращаме към станицата за добавяне на компонент
-                $redirectArr = array('support_Components', 'add', 'systemId' => $systemId, 'ret_url' => $retUrl);    
+                $redirectArr = array('support_Components', 'add', 'systemId' => $systemId, 'ret_url' => $retUrl);
             } else {
                 
                 // Ако нямаме права, препащаме където сочи return URL' то
@@ -639,7 +625,7 @@ class support_Issues extends core_Master
         
         // Разрешените типове за съответната система
         $allowedTypesArr = support_Systems::getAllowedFieldsArr($systemId);
-
+        
         // Обхождаме масива с всички разрешени типове
         foreach ($allowedTypesArr as $allowedType) {
             
@@ -649,7 +635,7 @@ class support_Issues extends core_Master
         
         // Променяме съдържанието на полето тип с определения от нас масив, за да се показват само избраните
         $data->form->setOptions('typeId', $types);
-
+        
         // Ако няма роля support
         if (!haveRole('support')) {
             
@@ -661,7 +647,7 @@ class support_Issues extends core_Master
             $sysRec = support_Systems::fetch($systemId);
             
             $defTypeId = $sysRec->defaultType;
-        
+            
             if ($types && !$data->form->rec->id) {
                 if ($defTypeIdFromRec = self::getDefaultTypeId($systemId, $types)) {
                     $defTypeId = $defTypeIdFromRec;
@@ -698,12 +684,12 @@ class support_Issues extends core_Master
     
     /**
      * Затваря сигналите в даден тред
-     * 
+     *
      * @param doc_Threads $threadId - id на нишката
      */
-    static function closeIssue($threadId)
+    public static function closeIssue($threadId)
     {
-        // Вземаме всички сингнали от нишката 
+        // Вземаме всички сингнали от нишката
         // По сегашната логика трябва да е само един
         $query = static::getQuery();
         $query->where("#threadId = '{$threadId}'");
@@ -721,7 +707,7 @@ class support_Issues extends core_Master
     /**
      * Подготовка на форма за филтър на списъчен изглед
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         // Подреждаме сиганлите активните отпред, затворените отзад а другите по между им
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 3 ELSE 2 END)");
@@ -732,9 +718,9 @@ class support_Issues extends core_Master
         $data->query->orderBy('createdOn', 'DESC');
         
         // Задаваме на полета да имат възможност за задаване на празна стойност
-        $data->listFilter->getField('systemId')->type->params['allowEmpty'] = TRUE;
-        $data->listFilter->getField('componentId')->type->params['allowEmpty'] = TRUE;
-         
+        $data->listFilter->getField('systemId')->type->params['allowEmpty'] = true;
+        $data->listFilter->getField('componentId')->type->params['allowEmpty'] = true;
+        
         // Добавяме функционално поле за отговорници
         $data->listFilter->FNC('maintainers', 'type_Users(rolesForAll=support|ceo|admin)', 'caption=Отговорник,input,silent,autoFilter');
         $data->listFilter->FNC('activatedFrom', 'date', 'caption=От,input,silent,autoFilter,title=Активирани от');
@@ -754,11 +740,11 @@ class support_Issues extends core_Master
         
         // Задаваме стойността по подразбиране
         $data->listFilter->setDefault('maintainers', $default);
-
+        
         // Полетата да не са задължителни и да се субмитва формата при промяната им
-        $data->listFilter->setField('componentId', array('mandatory' => FALSE));
+        $data->listFilter->setField('componentId', array('mandatory' => false));
         $data->listFilter->fields['componentId']->autoFilter = 'autoFilter';
-        $data->listFilter->setField('systemId', array('mandatory' => FALSE));
+        $data->listFilter->setField('systemId', array('mandatory' => false));
         $data->listFilter->fields['systemId']->autoFilter = 'autoFilter';
         
         // Инпутваме
@@ -780,10 +766,10 @@ class support_Issues extends core_Master
         if (count($componentsArr)) {
             
             // Задаваме ги да се показват те
-            $data->listFilter->setOptions('componentId', $componentsArr);    
+            $data->listFilter->setOptions('componentId', $componentsArr);
         } else {
             
-            // Добавяме празен стринг, за да не се покажат всичките записи 
+            // Добавяме празен стринг, за да не се покажат всичките записи
             $data->listFilter->setOptions('componentId', array('' => ''));
         }
         
@@ -801,9 +787,9 @@ class support_Issues extends core_Master
                 
                 // Ако го има в избраните
                 if (isset($componentsArr[$sameVal])) {
-
+                    
                     // Добавяме във where
-                    $data->query->orWhereArr('componentId', $sameComponentsArr);  
+                    $data->query->orWhereArr('componentId', $sameComponentsArr);
                     
                     // Прекъсваме по нататъшното изпълнение
                     break;
@@ -813,28 +799,28 @@ class support_Issues extends core_Master
         
         // Отговорници
         $maintainers = $data->listFilter->rec->maintainers;
-
+        
         // Очакваме да има избран
-        expect($maintainers, 'Няма избран отговорник.');  
-            
+        expect($maintainers, 'Няма избран отговорник.');
+        
         // Ако не е избран всички потребители
         if ($maintainers != 'all_users') {
             
             // Ако не са избрани всички потребители
-            if (strpos($maintainers, '|-1|') === FALSE) {
+            if (strpos($maintainers, '|-1|') === false) {
                 
                 // Всички споделени потребители или присъединени(възложен на)
                 // Не търси по създадено от и възложено от
                 
                 // Търсим по споделените потребители
-                $data->query->likeKeylist("sharedUsers", $maintainers);
+                $data->query->likeKeylist('sharedUsers', $maintainers);
                 
                 // Масив с избрани потребители
                 $maintainersArr = type_Keylist::toArray($maintainers);
                 
                 // Търсим по възложените потребители
-                $data->query->likeKeylist("assign", $maintainersArr, TRUE);
-            }        
+                $data->query->likeKeylist('assign', $maintainersArr, true);
+            }
         }
         
         if ($data->listFilter->rec->activatedFrom) {
@@ -845,43 +831,43 @@ class support_Issues extends core_Master
             $data->query->where(array("#activatedOn <= '[#1#] 23:59:59'", $data->listFilter->rec->activatedTo));
         }
     }
-
     
-	/**
+    
+    /**
      * Интерфейсен метод на doc_DocumentInterface
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
-     
+        
         $row = new stdClass();
         
         // Типа
         $type = str::mbUcfirst(self::getVerbal($rec, 'typeId'));
-
+        
         // Компонента
         $component = self::getVerbal($rec, 'componentId');
         
         // Добавяме типа към заглавието
-        $row->title =  "{$type}: " . $this->getVerbal($rec, 'title');
+        $row->title = "{$type}: " . $this->getVerbal($rec, 'title');
         
         // Ако е възложено на някой
         if ($rec->assign) {
             
             // В заглавието добавяме потребителя
-            $row->subTitle = $this->getVerbal($rec, 'assign');   
+            $row->subTitle = $this->getVerbal($rec, 'assign');
         }
         
         if ($component) {
             if ($row->subTitle) {
-                $row->subTitle .= ", ";
+                $row->subTitle .= ', ';
             }
             $row->subTitle .= "{$component}";
         }
-
-        if($row->authorId = $rec->createdBy) {
+        
+        if ($row->authorId = $rec->createdBy) {
             $row->author = $this->getVerbal($rec, 'createdBy');
-        } elseif($rec->email && $rec->name) {
+        } elseif ($rec->email && $rec->name) {
             $row->authorEmail = $rec->email;
             $row->author = $this->getVerbal($rec, 'name');
         }
@@ -897,23 +883,29 @@ class support_Issues extends core_Master
     /**
      * Потребителя, на когото е възложена задачата
      */
-    function on_AfterGetShared($mvc, &$shared, $id)
+    public function on_AfterGetShared($mvc, &$shared, $id)
     {
         // Ако има споделени потребители връщамес
-        if ($shared) return ;
+        if ($shared) {
+            
+            return ;
+        }
         
         // Вземаме записа
         $rec = $mvc->fetch($id);
         
         // Ако не е активен, връщаме
-        if ($rec->state != 'active') return ;
+        if ($rec->state != 'active') {
+            
+            return ;
+        }
         
         // Ако има компонент
         if ($rec->componentId) {
             
             // Отговорниците на компонента
             $maintainers = support_Components::fetchField($rec->componentId, 'maintainers');
-
+            
             // Към отговорниците да не се показва създателя
             $maintainers = keylist::removeKey($maintainers, $rec->createdBy);
             
@@ -923,10 +915,7 @@ class support_Issues extends core_Master
     }
     
     
-    /**
-     * 
-     */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         // Вземаме запитване към системата
         $query = support_Systems::getQuery();
@@ -940,88 +929,91 @@ class support_Issues extends core_Master
     }
     
     
-	/**
+    /**
      * В кои корици може да се вкарва документа
-     * 
+     *
      * @return array - интерфейси, които трябва да имат кориците
      */
     public static function getCoversAndInterfacesForNewDoc()
     {
-        
-    	return array('support_IssueIntf');
+        return array('support_IssueIntf');
     }
     
     
-	/**
+    /**
      * След подготовка на тулбара на единичен изглед.
-	 * 
-	 * @param core_Mvc $mvc
-	 * @param object $data
-	 */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+     *
+     * @param core_Mvc $mvc
+     * @param object   $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         // Ако документа е активен
-    	if($data->rec->state == 'active'){
-    		
-    	    // URL за бутоните
-    	    $url = array(
-    	                    'Ctr' => $mvc,
-							'Act' => 'add',
-    						'threadId' => $data->rec->threadId,
-    						'ret_url' => TRUE);
-    	    
-    	    // Добавя бутон за добавяне на коригиращи действия
-    	    $Correction = cls::get('support_Corrections');
-    	    $url['Ctr'] = $Correction;
-    		if($Correction->haveRightFor('add')){
-    			$data->toolbar->addBtn('Корекция', $url, "ef_icon={$Correction->singleIcon}, row=2, title = Създаване на документ Коригиращи действия");
-    		}
-    		
-    		// Добавя бутон за добавяне на превантивни действия
-    	    $Prevention = cls::get('support_Preventions');
-    	    $url['Ctr'] = $Prevention;
-    	    if($Prevention->haveRightFor('add')){
-    			$data->toolbar->addBtn('Превенция', $url, "ef_icon={$Prevention->singleIcon}, row=2, title = Създаване на документ Превантивни действия");
-    		}
-    		
-    		// // Добавя бутон за добавяне на оценка на сигнала
-    		$Rating = cls::get('support_Ratings');
-    	    $url['Ctr'] = $Rating;
-    	    if($Rating->haveRightFor('add')){
-    			$data->toolbar->addBtn('Оценка', $url, "ef_icon={$Rating->singleIcon}, row=2, title = Създаване на документ Оценка на сигнал");
-    		}
+        if ($data->rec->state == 'active') {
             
-    		// Добавя бутон за добавяне на резолюция на сигнала
-    		$Resolution = cls::get('support_Resolutions');
-    	    $url['Ctr'] = $Resolution;
-    	    if($Resolution->haveRightFor('add')){
-    			$data->toolbar->addBtn('Резолюция', $url, "ef_icon={$Resolution->singleIcon}, row=2 , title = Създаване на документ Резолюция на сигнал");
-    		}
-    	}
-    	
+            // URL за бутоните
+            $url = array(
+                'Ctr' => $mvc,
+                'Act' => 'add',
+                'threadId' => $data->rec->threadId,
+                'ret_url' => true);
+            
+            // Добавя бутон за добавяне на коригиращи действия
+            $Correction = cls::get('support_Corrections');
+            $url['Ctr'] = $Correction;
+            if ($Correction->haveRightFor('add')) {
+                $data->toolbar->addBtn('Корекция', $url, "ef_icon={$Correction->singleIcon}, row=2, title = Създаване на документ Коригиращи действия");
+            }
+            
+            // Добавя бутон за добавяне на превантивни действия
+            $Prevention = cls::get('support_Preventions');
+            $url['Ctr'] = $Prevention;
+            if ($Prevention->haveRightFor('add')) {
+                $data->toolbar->addBtn('Превенция', $url, "ef_icon={$Prevention->singleIcon}, row=2, title = Създаване на документ Превантивни действия");
+            }
+            
+            // // Добавя бутон за добавяне на оценка на сигнала
+            $Rating = cls::get('support_Ratings');
+            $url['Ctr'] = $Rating;
+            if ($Rating->haveRightFor('add')) {
+                $data->toolbar->addBtn('Оценка', $url, "ef_icon={$Rating->singleIcon}, row=2, title = Създаване на документ Оценка на сигнал");
+            }
+            
+            // Добавя бутон за добавяне на резолюция на сигнала
+            $Resolution = cls::get('support_Resolutions');
+            $url['Ctr'] = $Resolution;
+            if ($Resolution->haveRightFor('add')) {
+                $data->toolbar->addBtn('Резолюция', $url, "ef_icon={$Resolution->singleIcon}, row=2 , title = Създаване на документ Резолюция на сигнал");
+            }
+        }
+        
         if ($data->rec->brid && email_Outgoings::haveRightFor('add')) {
             $data->toolbar->addBtn('Отговор', array(
-                    'email_Outgoings',
-                    'add',
-                    'threadId' => $data->rec->threadId,
-                    'originId' => $data->rec->containerId,
-                    'ret_url'=> TRUE
-                ),'ef_icon = img/16/email_edit.png,title=Отговор на сигнал чрез имейл', 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '");');
+                'email_Outgoings',
+                'add',
+                'threadId' => $data->rec->threadId,
+                'originId' => $data->rec->containerId,
+                'ret_url' => true
+            ), 'ef_icon = img/16/email_edit.png,title=Отговор на сигнал чрез имейл', 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '");');
         }
     }
     
     
     /**
      * Интерфейсен метод
-     * 
-     * @param integer $id
-     * 
+     *
+     * @param int $id
+     *
      * @return object
+     *
      * @see doc_ContragentDataIntf
      */
     public static function getContragentData($id)
     {
-        if (!$id) return ;
+        if (!$id) {
+            
+            return ;
+        }
         $rec = self::fetch($id);
         
         $contrData = new stdClass();
@@ -1037,13 +1029,13 @@ class support_Issues extends core_Master
         return $contrData;
     }
     
-
+    
     /**
      * Извиква се след успешен запис в модела
      *
      * @param support_Issues $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
+     * @param int            $id  първичния ключ на направения запис
+     * @param stdClass       $rec всички полета, които току-що са били записани
      */
     public static function on_AfterSave($mvc, &$id, $rec)
     {
@@ -1060,30 +1052,30 @@ class support_Issues extends core_Master
     
     /**
      * Добавя допълнителни полетата в антетката
-     * 
+     *
      * @param core_Master $mvc
-     * @param NULL|array $res
-     * @param object $rec
-     * @param object $row
+     * @param NULL|array  $res
+     * @param object      $rec
+     * @param object      $row
      */
     public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
         if ($row->systemId) {
-            $resArr['systemId'] =  array('name' => tr('Система'), 'val' =>"[#systemId#]");
+            $resArr['systemId'] = array('name' => tr('Система'), 'val' => '[#systemId#]');
         }
         
         if ($row->componentId) {
-            $resArr['componentId'] =  array('name' => tr('Компонент'), 'val' =>"[#componentId#]");
+            $resArr['componentId'] = array('name' => tr('Компонент'), 'val' => '[#componentId#]');
         }
         
-        $resArr['typeId'] =  array('name' => tr('Тип'), 'val' =>"[#typeId#]");
+        $resArr['typeId'] = array('name' => tr('Тип'), 'val' => '[#typeId#]');
         
         if ($row->priority) {
-            $resArr['priority'] =  array('name' => tr('Приоритет'), 'val' =>"[#priority#]");
+            $resArr['priority'] = array('name' => tr('Приоритет'), 'val' => '[#priority#]');
         }
         
         if ($row->assign) {
-            $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#] " . tr('от') . " [#assignedBy#] " . tr('в') . " [#assignedOn#]");
+            $resArr['assign'] = array('name' => tr('Възложено'), 'val' => tr('на') . ' [#assign#] ' . tr('от') . ' [#assignedBy#] ' . tr('в') . ' [#assignedOn#]');
         }
     }
 }

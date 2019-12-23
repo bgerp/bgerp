@@ -1,0 +1,52 @@
+<div class="scrolling-holder">
+    <div class="sale-summary">
+       <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
+          <tr>
+             <td class = 'sum-th'>
+                 |Планирано|*, [#measureId#]
+             </td>
+             <td class = 'sum-th'>
+                 |Произведено|*, [#measureId#]
+             </td>
+             <td class = 'sum-th'>
+                 |Бракувано|*, [#measureId#]
+             </td>
+             <td class = 'sum-th'>
+                 [#producedCaption#], [#measureId#]
+             </td>
+             
+             <td class = 'sum-th'>
+                 |Информация|*
+             </td>
+          </tr>
+          <tr>
+              <td class = 'nowrap'>[#plannedQuantity#]</td>
+              <td class = 'nowrap'>[#totalQuantity#] </td>
+              <td class = 'nowrap'>[#scrappedQuantity#]</td>
+              <td class = 'nowrap'>[#producedQuantity#]</td>
+              
+              <td rowspan = '2' class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left'>
+                  <span style='font-weight:normal'>|Артикул|*</span>: [#productId#]<br>
+                  <span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
+                  <!--ET_BEGIN batch-->
+                  <span style='font-weight:normal'>|Партида|*</span>: [#batch#]<br>
+                  <!--ET_END batch-->
+                  <!--ET_BEGIN inputInTask-->
+                  <span style='font-weight:normal'>|Влагане в|*</span>: [#inputInTask#]<br>
+                  <!--ET_END inputInTask-->
+                  <!--ET_BEGIN storeId-->
+                  <span style='font-weight:normal'>|От склад|*</span>: [#storeId#]<br>
+                  <!--ET_END storeId-->
+                  <!--ET_BEGIN fixedAssets-->
+                  <span style='font-weight:normal'>|Оборудване|*</span>: [#fixedAssets#]<br>
+                  <!--ET_END fixedAssets-->
+                  
+                  <!--ET_BEGIN employees-->
+                  <span style='font-weight:normal'>|Оператори|*</span>: [#employees#]<br>
+                  <!--ET_END employees-->
+    			</td>
+           </tr>
+           <tr><td colspan='4'>[#progressBar#] [#progress#]</td></tr>
+       </table>
+    </div>
+</div>

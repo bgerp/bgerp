@@ -3,7 +3,7 @@
     border: none;
     padding: 0;
 }
-#all .document{
+.externalPage  .document{
 	min-width:100%;
 }
 .document .survey-title {
@@ -152,4 +152,8 @@
 
 .survey-doc input[type=radio] + label, .survey-doc input[type=checkbox] + label {
     display: inline;
+}
+
+.after-vote {
+    background-color: #cfc;
 }

@@ -6,5 +6,6 @@
 		        [#content#]
 		    </div>
 	    </div>
+	    <!--ET_BEGIN toolbar--><div >[#toolbar#]</div><!--ET_END toolbar-->
 	</fieldset>
 </div>

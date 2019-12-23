@@ -9,6 +9,12 @@
                 [#detailBlock#]
                 <div class="groupList">
                     <table>
+                    <!--ET_BEGIN contragentFolderId-->
+                        <tr>
+                            <td class='dt'>|Контрагент|*:</td>
+                            <td>[#contragentFolderId#]</td>
+                        </tr>
+                        <!--ET_END contragentFolderId-->
                         <!--ET_BEGIN description-->
                         <tr>
                             <td class='dt'>|Описание|*:</td>
@@ -21,6 +27,12 @@
                             <td>|Автоматично след|* [#CloseTime#]</td>
                         </tr>
                         <!--ET_END CloseTime-->
+                        <!--ET_BEGIN ShowDocumentsAsButtons-->
+                        <tr>
+                            <td class='dt'>|Бързи бутони в папката|*:</td>
+                            <td>[#ShowDocumentsAsButtons#]</td>
+                        </tr>
+                        <!--ET_END ShowDocumentsAsButtons-->
                         <!--ET_BEGIN receiveEmail-->
                         <tr>
                             <td class='dt'>|Получаване на имейл|*:</td>
@@ -32,13 +44,6 @@
             </fieldset>
             <!--ET_END detailBlock-->
             
-            <!--ET_BEGIN showDocumentsAsButtons-->
-            <fieldset class="detail-info">
-                <legend class="groupTitle">|Бързи бутони в папката|*</legend>
-                [#showDocumentsAsButtons#]
-            </fieldset>
-            <!--ET_END showDocumentsAsButtons-->
-             
             <!--ET_BEGIN DETAILS-->
             [#DETAILS#]
             <!--ET_END DETAILS-->

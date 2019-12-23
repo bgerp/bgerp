@@ -37,5 +37,8 @@
         <!--ET_END info-->
         [#DETAILS#]
         <div style="margin-top: 15px"><span class="quiet">|Създаване|*: </span> [#createdBy#], [#createdOn#]</div>
+        <!--ET_BEGIN sysId-->
+        <div style="margin-top: 15px"><span class="quiet">System Id: </span> [#sysId#]</div>
+        <!--ET_END sysId-->
     </div>
 </div>

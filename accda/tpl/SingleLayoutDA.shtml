@@ -1,35 +1,125 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-        <h3 class="centered"><span style='text-transform:uppercase;letter-spacing:5px'>|протокол|*</span> &nbsp; № [#id#] / [#valior#]</h3>
-        <p class="centered">|За въвеждане в експлоатация на Дълготраен актив|*</p>
-        <br>
-        <p>|Днес|*, [#valior#], |комисия в състав|*:</p>
-        <p>1. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>
-        <p>2. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>
-        <p>3. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>
-        <br>
-        <p>|Въведе в експлоатация|* <b>[#title#]</b>, |с инвентарен|* № <b>[#num#]</b><!--ET_BEGIN serial--> |и сериен|* № <b>[#serial#]</b><!--ET_END serial-->.</p>
-        <!--ET_BEGIN info--><p>|Описание на актива|*: [#info#].</p><!--ET_END info-->
-        <!--ET_BEGIN origin--><p>|Произход на актива|*: [#origin#].</p><!--ET_END origin-->
-        <!--ET_BEGIN location--><p>|Активът се намира на следната локация|*: [#location#][#locationAddress#].</p><!--ET_END location-->
-        <p>|Годишна амортизационна норма|*: [#amortNorm#].</p>
-        <br>
-        <p>|Подписи на лицата въвели актива в експлоатация|*:</p>
-        <p>1. . . . . . . . . . . . . . . . . . . .</p>
-        <p>2. . . . . . . . . . . . . . . . . . . .</p>
-        <p>3. . . . . . . . . . . . . . . . . . . .</p>
-        <!--ET_BEGIN imgThumb--><p>[#imgThumb#]</p><!--ET_END imgThumb-->
-        <!--ET_BEGIN gpsCoords--><p>[#gpsCoords#]</p><!--ET_END gpsCoords-->
-        <br>
-        <div class="sign-holder">
-            <table>
-                <tr>
-                    <td>|Протоколът е създаден от|*: </td>
-                    <td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td><span class='sign_names nowrap'>/ [#createdByName#] /</span></td>
-                </tr>
-            </table>
-        </div>
+	<div style='padding-bottom:5px'><b>[#title#]</b></div>
+	<fieldset>
+	    <legend class='groupTitle'>|Обща информация|*</legend>
+        <table class='simpleTable'>
+        <tr>
+            <td class='quiet nowrap'>|Наш номер|*:</td>
+            <td>[#num#]</td>
+        </tr>
+        <!--ET_BEGIN serial-->
+        <tr>
+            <td class='quiet nowrap'>|Сериен номер|*:</td>
+            <td>[#serial#]</td>
+        </tr>
+        <!--ET_END serial-->
+        <!--ET_BEGIN info-->
+        <tr>
+            <td class='quiet'>|Описание|*:</td>
+            <td>[#info#]</td>
+        </tr>
+        <!--ET_END info-->
+        
+        <!--ET_BEGIN origin-->
+        <tr>
+            <td class='quiet'>|Произход|*:</td>
+            <td>[#origin#]</td>
+        </tr>
+        <!--ET_END origin-->
+        <!--ET_BEGIN image-->
+        <tr>
+            <td class='quiet'>|Снимка|*:</td>
+            <td>[#image#]</td>
+        </tr>
+        <!--ET_END image-->
+        <!--ET_BEGIN location-->
+        <tr>
+            <td class='quiet'>|Локация|*:</td>
+            <td>[#location#]</td>
+        </tr>
+        <!--ET_END location-->
+        
+		<!--ET_BEGIN gpsCoords-->
+        <tr>
+        	<td colspan='2'>[#gpsCoords#]</td>
+        </tr>
+        <!--ET_END gpsCoords-->
+        
+        </table>
+	</fieldset>
+	
+	<fieldset style='margin-top:10px'>
+	    <legend class='groupTitle'>|Счетоводство|*:</legend>
+	    <table class='simpleTable'>
+    	<tr>
+            <td class='quiet'>|Вальор|*:</td>
+            <td>[#valior#]</td>
+        </tr>
+        <tr>
+            <td class='quiet nowrap'>|Вид|*:</td>
+            <td>[#type#]</td>
+        </tr>
+        <tr>
+            <td class='quiet'>|Сметка|*:</td>
+            <td>[#accountId#]</td>
+        </tr>
+        <tr>
+            <td class='quiet'>|Артикул|*:</td>
+            <td>[#productId#]</td>
+        </tr>
+        <!--ET_BEGIN storeId-->
+        <tr>
+            <td class='quiet'>|Склад|*:</td>
+            <td>[#storeId#]</td>
+        </tr>
+        <!--ET_END storeId-->
+        <!--ET_BEGIN amortNorm-->
+        <tr>
+            <td class='quiet'>|ГАН|*:</td>
+            <td>[#amortNorm#]</td>
+        </tr>
+        <!--ET_END amortNorm-->
+        </table>
+    </fieldset>
+    
+    <!--ET_BEGIN ASSETS-->
+    [#ASSETS#]
+    <fieldset style='margin-top:10px'>
+    <legend class='groupTitle'>|Оборудване|*</legend>
+    	<table class='simpleTable'>
+	    <!--ET_BEGIN assetId-->
+        <tr>
+            <td class='quiet nowrap'>|Име|*:</td>
+            <td>[#assetId#]</td>
+        </tr>
+        <!--ET_END assetId-->
+	    
+	    
+        <!--ET_BEGIN assetCode-->
+        <tr>
+            <td class='quiet nowrap'>|Код|*:</td>
+            <td>[#assetCode#]</td>
+        </tr>
+        <!--ET_END assetCode-->
+        <!--ET_BEGIN assetGroupId-->
+        <tr>
+            <td class='quiet nowrap'>|Вид|*:</td>
+            <td>[#assetGroupId#]</td>
+        </tr>
+        <!--ET_END assetGroupId-->
+        <!--ET_BEGIN assetoResourceFolderId-->
+        <tr>
+            <td class='quiet nowrap'>|Папка|*:</td>
+            <td>[#assetoResourceFolderId#]</td>
+        </tr>
+        <!--ET_END assetoResourceFolderId-->
+        <!--ET_BEGIN assetSupportFolderId-->
+        <tr>
+            <td class='quiet nowrap'>|Поддръжка|*:</td>
+            <td>[#assetSupportFolderId#]</td>
+        </tr>
+        <!--ET_END assetSupportFolderId-->
+        </table>
+    </fieldset>
+    <!--ET_END ASSETS-->
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

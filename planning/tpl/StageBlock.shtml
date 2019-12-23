@@ -1,0 +1,23 @@
+<fieldset class="detail-info">
+    <legend class="groupTitle">|Производствен етап - параметри|*</legend>
+    <table>
+    	<tr>
+    		<td class='quiet'>|Наименование|*:</td>
+    		<td>[#planning_Stages_name#]</td>
+    	</tr>
+    	<tr>
+    		<td class='quiet'>|Центрове на дейност|*:</td>
+    		<td>[#planning_Stages_folders#]</td>
+    	</tr>
+    	<tr>
+    		<td class='quiet'>|Засклаждане|*:</td>
+    		<td>[#planning_Stages_canStore#]</td>
+    	</tr>
+    	<!--ET_BEGIN planning_Stages_norm-->
+    	<tr>
+    		<td class='quiet'>|Норма|*:</td>
+    		<td>[#planning_Stages_norm#]</td>
+    	</tr>
+    	<!--ET_END planning_Stages_norm-->
+    </table>
+</fieldset>

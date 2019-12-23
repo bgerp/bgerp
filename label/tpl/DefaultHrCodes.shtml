@@ -1,0 +1,32 @@
+<style>
+    .label-holder {
+        border-radius: 8px;
+        padding: 2mm;
+        position: relative;
+        width: 64mm;
+        box-sizing: border-box;
+        border: 1px transparent;
+    }
+    .label-holder table {
+        height: 30mm;
+        width: 62mm;
+        border-collapse: collapse;
+    }
+    .label-holder table tr > td {
+        padding: 0 1mm;
+        font-size: 15px;
+    }
+</style>
+<div class="label-holder">
+    <table cellpadding="0">
+        <tr>
+            <td class="no-border-left big-text" >
+                <div align="center"> [#QR_CODE#]</div>
+            </td>
+            <td valign="middle" class="no-border-left" style='font-size: 17px;'>
+                [#HR_CODE#]<br>
+                [#NAME#]
+            </td>
+        </tr>
+    </table>
+</div>

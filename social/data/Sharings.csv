@@ -1,4 +1,3 @@
-"Google Plus","https://plus.google.com/share?url=[#URL#]","","0","active"
 "Facebook","http://www.facebook.com/share.php?u=[#URL#]&title=[#TITLE#]","","0","active"
 "Twitter","http://twitter.com/home?status=[#TITLE#]+[#URL#]","","0","active"
 "Linkedin","http://www.linkedin.com/shareArticle?mini=true&url=[#URL#]&title=[#TITLE#]&source=[#SOURCE#]","","0","active"

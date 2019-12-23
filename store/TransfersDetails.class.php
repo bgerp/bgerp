@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'store_TransfersDetails'
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_TransfersDetails extends doc_Detail
 {
-	
-	
     /**
      * Заглавие
      */
     public $title = 'Детайли на междускладовите трансфери';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -71,11 +70,11 @@ class store_TransfersDetails extends doc_Detail
      */
     public $listFields = 'newProductId, packagingId, packQuantity, weight=Тегло, volume=Обем, transUnitId = ЛЕ';
     
-        
+    
     /**
      * Активен таб
      */
-    public $currentTab = 'Трансфери';
+    public $currentTab = 'Междускладови трансфери';
     
     
     /**
@@ -105,7 +104,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Да се показва ли кода като в отделна колона
      */
-    public $showCodeColumn = TRUE;
+    public $showCodeColumn = true;
     
     
     /**
@@ -122,8 +121,7 @@ class store_TransfersDetails extends doc_Detail
     public function description()
     {
         $this->FLD('transferId', 'key(mvc=store_Transfers)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('newProductId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
-        $this->FLD('productId', 'key(mvc=store_Products,select=productId)', 'caption=Продукт,input=none,mandatory,silent,refreshForm');
+        $this->FLD('newProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Продукт,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
@@ -136,16 +134,19 @@ class store_TransfersDetails extends doc_Detail
      */
     protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-        if (!isset($rec->quantity) || empty($rec->quantityInPack)) return;
+        if (!isset($rec->quantity) || empty($rec->quantityInPack)) {
+            
+            return;
+        }
         
         $rec->packQuantity = $rec->quantity / $rec->quantityInPack;
     }
-
-
+    
+    
     /**
      * Извиква се след успешен запис в модела
      */
-    protected static function on_AfterSave($mvc, &$id, $rec, $fieldsList = NULL)
+    protected static function on_AfterSave($mvc, &$id, $rec, $fieldsList = null)
     {
         // Подсигуряваме наличието на ключ към мастър записа
         if (empty($rec->{$mvc->masterKey})) {
@@ -157,12 +158,12 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
-        	if($mvc->Master->fetchField($rec->transferId, 'state') != 'draft'){
-        		$requiredRoles = 'no_one';
-        	}
+        if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)) {
+            if ($mvc->Master->fetchField($rec->transferId, 'state') != 'draft') {
+                $requiredRoles = 'no_one';
+            }
         }
     }
     
@@ -172,10 +173,7 @@ class store_TransfersDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
-        $rows = $data->rows;
-        
-        if(count($data->rows)) {
-        	
+        if (countR($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
                 
@@ -183,8 +181,8 @@ class store_TransfersDetails extends doc_Detail
                 $row->newProductId = cat_Products::getVerbal($rec->newProductId, 'name');
                 $row->newProductId = ht::createLinkRef($row->newProductId, $singleUrl);
                 
-                if(empty($rec->quantity) && !Mode::isReadOnly()){
-                	$row->ROW_ATTR['style'] = " background-color:#f1f1f1;color:#777";
+                if (empty($rec->quantity) && !Mode::isReadOnly()) {
+                    $row->ROW_ATTR['style'] = ' background-color:#f1f1f1;color:#777';
                 }
                 
                 // Показваме подробната информация за опаковката при нужда
@@ -192,24 +190,22 @@ class store_TransfersDetails extends doc_Detail
             }
         }
     }
-        
+    
     
     /**
      * След преобразуване на записа в четим за хора вид.
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-    	if(!count($data->recs)) return;
-    	 
-    	$storeId = $data->masterData->rec->storeId;
-    	foreach ($data->rows as $id => $row){
-    		$rec = $data->recs[$id];
-    		
-    		$warning = deals_Helper::getQuantityHint($rec->newProductId, $data->masterData->rec->fromStore, $rec->quantity);
-    		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
-    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);
-    		}
-    	}
+        if (!count($data->recs)) {
+            
+            return;
+        }
+        
+        foreach ($data->rows as $id => $row) {
+            $rec = $data->recs[$id];
+            deals_Helper::getQuantityHint($row->packQuantity, $rec->newProductId, $data->masterData->rec->fromStore, $rec->quantity, $data->masterData->rec->state);
+        }
     }
     
     
@@ -221,12 +217,12 @@ class store_TransfersDetails extends doc_Detail
         $form = &$data->form;
         $rec = &$form->rec;
         
-        if(empty($rec->id)){
-        	$products = cat_Products::getByProperty('canStore');
-        	expect(count($products));
-        	$form->setOptions('newProductId', array('' => '') + $products);
-        } else {
-        	$form->setReadOnly('newProductId');
+        if(empty($rec->newProductId)){
+            $form->setField('packagingId', 'input=none');
+        }
+        
+        if (isset($rec->id)) {
+            $form->setReadOnly('newProductId');
         }
     }
     
@@ -235,51 +231,49 @@ class store_TransfersDetails extends doc_Detail
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
     protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
-    { 
-    	$rec = &$form->rec;
-    	
-    	if($rec->newProductId){
-    		$fromStoreId = store_Transfers::fetchField($rec->transferId, 'fromStore');
-    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->newProductId, $rec->packagingId, $rec->packQuantity, $fromStoreId);
-    		$form->info = $storeInfo->formInfo;
-    		
-    		$packs = cat_Products::getPacks($rec->newProductId);
-    		$form->setField('packagingId', 'input');
-    		$form->setOptions('packagingId', $packs);
-    		$form->setDefault('packagingId', key($packs));
-    	}
-    	
-    	if ($form->isSubmitted()){
-    		
-    		// Проверка на к-то
-    		if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
-    			$form->setError('packQuantity', $warning);
-    		}
-    		
-    		$pInfo = cat_Products::getProductInfo($rec->newProductId);
-    		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
+    {
+        $rec = &$form->rec;
+        
+        if ($rec->newProductId) {
+            $fromStoreId = store_Transfers::fetchField($rec->transferId, 'fromStore');
+            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->newProductId, $rec->packagingId, $rec->packQuantity, $fromStoreId);
+            $form->info = $storeInfo->formInfo;
             
-    		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
-    	}
+            $packs = cat_Products::getPacks($rec->newProductId);
+            $form->setField('packagingId', 'input');
+            $form->setOptions('packagingId', $packs);
+            $form->setDefault('packagingId', key($packs));
+        }
+        
+        if ($form->isSubmitted()) {
+            
+            // Проверка на к-то
+            $warning = null;
+            if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
+                $form->setError('packQuantity', $warning);
+            }
+            
+            $pInfo = cat_Products::getProductInfo($rec->newProductId);
+            $rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
+            
+            $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+        }
     }
     
     
-	/**
+    /**
      * След подготовка на лист тулбара
      */
     protected static function on_AfterPrepareListToolbar($mvc, $data)
     {
-    	if (!empty($data->toolbar->buttons['btnAdd'])) {
-			unset($data->toolbar->buttons['btnAdd']);
-			$products = cat_Products::getByProperty('canStore', NULL, 1);
-			
-			if(!count($products)){
-				$error = "error=Няма складируеми артикули, ";
-			}
-	
-			$data->toolbar->addBtn('Артикул', array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => TRUE),
-					"id=btnAdd,{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
-		}
+        if (!empty($data->toolbar->buttons['btnAdd'])) {
+            unset($data->toolbar->buttons['btnAdd']);
+            $products = cat_Products::getByProperty('canStore', null, 1);
+            if (!count($products)) {
+                $error = 'error=Няма складируеми артикули, ';
+            }
+            $data->toolbar->addBtn('Артикул', array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => true), "id=btnAdd,{$error} order=10,title=Добавяне на артикул",'ef_icon = img/16/shopping.png');
+        }
     }
     
     
@@ -288,8 +282,8 @@ class store_TransfersDetails extends doc_Detail
      */
     protected static function on_AfterGetRowInfo($mvc, &$res, $rec)
     {
-    	$rec = $mvc->fetchRec($rec);
-    	$toStoreId = store_Transfers::fetchField($rec->transferId, 'toStore');
-    	$res->operation['in'] = $toStoreId;
+        $rec = $mvc->fetchRec($rec);
+        $toStoreId = store_Transfers::fetchField($rec->transferId, 'toStore');
+        $res->operation['in'] = $toStoreId;
     }
 }

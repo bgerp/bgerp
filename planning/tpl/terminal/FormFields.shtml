@@ -1,0 +1,44 @@
+
+    <!--ET_BEGIN FORM_ERROR-->
+    [#FORM_ERROR#]
+    <!--ET_END FORM_ERROR-->
+	<!--ET_BEGIN currentTaskId-->
+	<div class="formTitle">[#currentTaskId#]
+		<!--ET_BEGIN PROGRESS-->
+		<div class="progress">
+			[#PROGRESS#]
+		</div>
+		<!--ET_END PROGRESS-->
+	</div>
+	<!--ET_END currentTaskId-->
+
+    <div class='formContent'>
+	    <table>
+			<tr>
+				<td colspan='2'>[#action#]</td>
+			</tr>
+			<!--ET_BEGIN serial-->
+			<tr>
+				<td colspan='2'><div class="keyboardHolder">[#serial#] [#SERIAL_PAD_BTN#]</div></td>
+			</tr>
+			<!--ET_END serial-->
+			<tr>
+				<td><div class="keyboardHolder">[#quantity#] [#NUM_PAD_BTN#]</div></td>
+				<td><!--ET_BEGIN weight --><div class="keyboardHolder">[#weight#] [#WEIGHT_PAD_BTN#]</div> <!--ET_END weight --></td>
+			</tr>
+			<!--ET_BEGIN employees-->
+			<tr>
+				<td colspan='2'>[#employees#]</td>
+			</tr>
+			<!--ET_END employees-->
+			<!--ET_BEGIN fixedAsset-->
+			<tr>
+				<td colspan='2'>[#fixedAsset#]</td>
+			</tr>
+			<!--ET_END fixedAsset-->
+			<tr>
+				<td colspan='2'>[#SEND_BTN#]</td>
+			</tr>
+
+		</table>
+    </div>

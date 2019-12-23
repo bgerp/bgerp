@@ -4,7 +4,7 @@
             <tbody>
                 <tr>
                     <td class='centered'>
-                        <div class="document-title">|приемателен протoкол|*</div> 
+                        <div class="document-title">|приемателен протокол|*</div> 
                         <!--ET_BEGIN operationSysId-->
                         <small>( [#operationSysId#] )</small>
                         <!--ET_END operationSysId-->

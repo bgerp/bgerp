@@ -127,3 +127,6 @@
 .survey-doc input[type=checkbox] + label {
   display: inline; }
 
+.after-vote {
+  background-color: #ccffcc; }
+

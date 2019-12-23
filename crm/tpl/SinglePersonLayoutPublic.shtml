@@ -30,6 +30,9 @@
                 <!--ET_BEGIN tel-->
                 <div>|Тел.|*: <b>[#tel#]</b></div>
                 <!--ET_END tel-->
+                <!--ET_BEGIN vatId-->
+                <div>VAT: <b>[#vatId#]</b></div>
+                <!--ET_END vatId-->
                 <!--ET_BEGIN fax-->
                 <div>|Факс|*: <b>[#fax#]</b></div>
                 <!--ET_END fax--> 

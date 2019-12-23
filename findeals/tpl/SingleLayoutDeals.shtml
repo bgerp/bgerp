@@ -42,7 +42,6 @@
                         	<!--ET_BEGIN secondContragentId-->
                         	<br><span style='font-weight:normal'>|Втори контрагент|* : [#secondContragentId#]</span>
                         	<!--ET_END secondContragentId-->
-                        	
                         	<!--ET_BEGIN baseAccountId-->
                         	<br><span style='font-weight:normal'>|Начално салдо|*: [#baseAmountType#] <b>[#baseAmount#]</b> <span class='cCode'>[#bCurrencyId#]</span></span>
 		        			<br><span style='font-weight:normal'>|От|*: [#baseAccountId#]</span>
@@ -61,10 +60,6 @@
 		            <td>[#dealName#]</td>
 		        </tr>
 		        <!--ET_END dealName-->
-		        <tr>
-		            <td>|Сметка|*</td>
-		            <td>[#accountId#]</td>
-		        </tr>
 		        
 		        <!--ET_BEGIN currencyRate-->
 		        <tr>
@@ -86,6 +81,7 @@
 		        </tr>
 		        <!--ET_END closedDocuments-->
 		    </table>
+		    <div style='margin-bottom:5px'>[#accountId#]</div>
 		    <!--ET_BEGIN HISTORY-->
 		    [#HISTORY#]
 		    <!--ET_END HISTORY-->

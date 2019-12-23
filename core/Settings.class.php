@@ -6,19 +6,19 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_Settings extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
-    public $title = "Персонализиране";
+    public $title = 'Персонализиране';
     
     
     /**
@@ -44,7 +44,7 @@ class core_Settings extends core_Manager
      */
     protected $canDelete = 'no_one';
     
-
+    
     /**
      * Плъгини за зареждане
      */
@@ -70,24 +70,30 @@ class core_Settings extends core_Manager
     {
         $this->FLD('key', 'varchar(16)', 'caption=Ключ');
         $this->FLD('objectId', 'int', 'caption=Обект, input=none');
-        $this->FLD('userOrRole', 'userOrRole(rolesType=team)', 'caption=Потребител/и');
-        $this->FLD('data', 'blob(serialize, compress)', 'caption=Потребител/и');
+        $this->FLD('userOrRole', 'userOrRole(rolesType=team)', 'caption=Потребител/Роля');
+        $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни');
         
         $this->setDbUnique('key, objectId, userOrRole');
+        
+        $this->setDbIndex('key');
+        $this->setDbIndex('key, objectId');
+        $this->setDbIndex('key, userOrRole');
+        $this->setDbIndex('key, userOrRole, objectId');
+        $this->setDbIndex('userOrRole');
     }
     
     
     /**
      * Добавя бутон в тулбара, който отваря формата за персонализиране
-     * 
+     *
      * @param core_Toolbar $toolbar
-     * @param string $key
-     * @param string $className
-     * @param integer|NULL $userOrRole
-     * @param string $title
-     * @param array $params
+     * @param string       $key
+     * @param string       $className
+     * @param int|NULL     $userOrRole
+     * @param string       $title
+     * @param array        $params
      */
-    public static function addBtn(core_Toolbar $toolbar, $key, $className, $userOrRole = NULL, $title = 'Персонализиране', $params = array())
+    public static function addBtn(core_Toolbar $toolbar, $key, $className, $userOrRole = null, $title = 'Персонализиране', $params = array())
     {
         $url = self::getModifyUrl($key, $className, $userOrRole);
         
@@ -98,14 +104,14 @@ class core_Settings extends core_Manager
     
     /**
      * Връща URL, което сочи към модифициране на записа
-     * 
-     * @param string $key
-     * @param string $className
-     * @param integer|NULL $userOrRole
-     * 
+     *
+     * @param string   $key
+     * @param string   $className
+     * @param int|NULL $userOrRole
+     *
      * @return string
      */
-    public static function getModifyUrl($key, $className, $userOrRole = NULL)
+    public static function getModifyUrl($key, $className, $userOrRole = null)
     {
         $userOrRole = self::prepareUserOrRole($userOrRole);
         
@@ -114,7 +120,7 @@ class core_Settings extends core_Manager
         // Защитаваме get параметрите
         Request::setProtected(array('_key', '_className', '_userOrRole'));
         
-        $url = toUrl(array('core_Settings', 'modify', '_key' => $key, '_className' => $className, '_userOrRole' => $userOrRole, 'ret_url' => TRUE));
+        $url = toUrl(array('core_Settings', 'modify', '_key' => $key, '_className' => $className, '_userOrRole' => $userOrRole, 'ret_url' => true));
         
         return $url;
     }
@@ -123,35 +129,45 @@ class core_Settings extends core_Manager
     /**
      * Връща всички данни отговарящи за ключа, като ги мърджва.
      * С по-голям приоритет са данните въведени за текущия потребител
-     * 
-     * @param string $key - Ключа
-     * @param integer|NULL $userOrRole - Роля или потребител
-     * @param boolean $fetchForUser - Дали да се фечва и за потребителия
-     * @param string|NULL $type - Име на роля
-     * 
+     *
+     * @param string      $key          - Ключа
+     * @param int|NULL    $userOrRole   - Роля или потребител
+     * @param bool        $fetchForUser - Дали да се фечва и за потребителия
+     * @param string|NULL $type         - Име на роля
+     *
      * @return array
      */
-    public static function fetchKey($key, $userOrRole = NULL, $fetchForUser = TRUE, $type = NULL)
+    public static function fetchKey($key, $userOrRole = null, $fetchForUser = true, $type = null)
     {
         // Подготвяме ключа и потребителя/групата
         $userOrRole = self::prepareUserOrRole($userOrRole);
+        
+        list(, $objectId) = explode('::', $key);
+        
         $key = self::prepareKey($key);
         
         static $allResArr = array();
         
         // Ако стойността е извличана преди, връщаме я
-        $keyHash = md5($key . '|' . $userOrRole . '|' . $fetchForUser . '|' . $type);
-        if (isset($allResArr[$keyHash])) return $allResArr[$keyHash];
+        $keyHash = md5($key . '|' . $userOrRole . '|' . $fetchForUser . '|' . $type . '|' . $objectId);
+        if (isset($allResArr[$keyHash])) {
+            
+            return $allResArr[$keyHash];
+        }
         
         $allResArr[$keyHash] = array();
         
         $rolesArr = array();
         $rolesArrSysId = array();
-        $orToPrevious = FALSE;
+        $orToPrevious = false;
         
         $query = self::getQuery();
         
-        $query->where(array("#key = '[#1#]'", $key));
+        if (isset($objectId)) {
+            $query->where(array("#key = '[#1#]' AND #objectId = '[#2#]'", $key, $objectId));
+        } else {
+            $query->where(array("#key = '[#1#]'", $key));
+        }
         
         // Ако е потребител
         if ($userOrRole > 0) {
@@ -168,9 +184,9 @@ class core_Settings extends core_Manager
             if ($fetchForUser) {
                 // Също и текущия потребител
                 $query->where("#userOrRole = {$userOrRole}");
-                $orToPrevious = TRUE;
+                $orToPrevious = true;
             }
-        } else if ($userOrRole < 0) {
+        } elseif ($userOrRole < 0) {
             
             // Ако е група
             
@@ -188,7 +204,7 @@ class core_Settings extends core_Manager
         if ($rolesArr) {
             $rolesArrSysId = array_map(array('type_UserOrRole', 'getSysRoleId'), $rolesArr);
             
-            $uWhere = "#userOrRole IN (" . implode(',', $rolesArrSysId) . ")";
+            $uWhere = '#userOrRole IN (' . implode(',', $rolesArrSysId) . ')';
             
             if ($orToPrevious) {
                 $query->orWhere($uWhere);
@@ -201,10 +217,14 @@ class core_Settings extends core_Manager
         $query->orderBy('userOrRole', 'DESC');
         
         // Обхождаме всички записи и добавяме в масива
-        while($rec = $query->fetch()) {
-            if (!$rec->data) continue;
-            foreach ((array)$rec->data as $property => $val) {
-                if (isset($allResArr[$keyHash][$property])) continue;
+        while ($rec = $query->fetch()) {
+            if (!$rec->data) {
+                continue;
+            }
+            foreach ((array) $rec->data as $property => $val) {
+                if (isset($allResArr[$keyHash][$property])) {
+                    continue;
+                }
                 $allResArr[$keyHash][$property] = $val;
             }
         }
@@ -215,22 +235,27 @@ class core_Settings extends core_Manager
     
     /**
      * Връща данните за всички потребители, които имат някаква стойност
-     * 
+     *
      * @param string $key
      * @param string $property
      * @param string $value
-     * 
+     *
      * @return array
      */
-    public static function fetchUsers($key, $property = NULL, $value = NULL)
+    public static function fetchUsers($key, $property = null, $value = null)
     {
+        list(, $objectId) = explode('::', $key);
+        
         // Подготвяме ключа
         $key = self::prepareKey($key);
         
         // Ако данните са били извлечени, само ги връщаме
-        $hashStr = md5($key . '|' . $property . '|' . $value);
+        $hashStr = md5($key . '|' . $property . '|' . $value . '|' . $objectId);
         static $resArr = array();
-        if (isset($resArr[$hashStr])) return $resArr[$hashStr];
+        if (isset($resArr[$hashStr])) {
+            
+            return $resArr[$hashStr];
+        }
         
         // Вземаме всички роли и потребителите, които ги имат
         $userRolesArr = core_Users::getRolesWithUsers();
@@ -238,47 +263,62 @@ class core_Settings extends core_Manager
         $fetched = array();
         
         $query = self::getQuery();
-        $query->where(array("#key = '[#1#]'", $key));
+        
+        if (isset($objectId)) {
+            $query->where(array("#key = '[#1#]' AND #objectId = '[#2#]'", $key, $objectId));
+        } else {
+            $query->where(array("#key = '[#1#]'", $key));
+        }
         
         // С по-голям приоритет са данните въведени от потребителя
         $query->orderBy('userOrRole', 'DESC');
         
         while ($rec = $query->fetch()) {
-            if (!$rec->data) continue;
+            if (!$rec->data) {
+                continue;
+            }
             
             // Определяме потребителите
             if ($rec->userOrRole < 0) {
                 $roleId = type_UserOrRole::getRoleIdFromSys($rec->userOrRole);
                 $userArr = $userRolesArr[$roleId];
             } else {
-                $userArr = arr::make($rec->userOrRole, TRUE);
+                $userArr = arr::make($rec->userOrRole, true);
             }
             
             // Обхождаме резултатите
-            foreach ((array)$rec->data as $prop => $val) {
+            foreach ((array) $rec->data as $prop => $val) {
                 
                 // Ако е зададено точно определено свойство, извличаме само него
-                $use = TRUE;
+                $use = true;
                 if ($property) {
-                    if ($prop != $property) $use = FALSE;
+                    if ($prop != $property) {
+                        $use = false;
+                    }
                 }
                 
                 // Ако е зададено точно опретелена стойност, извличаме само него
                 if ($use && $value) {
-                    if ($val != $value) $use = FALSE;
+                    if ($val != $value) {
+                        $use = false;
+                    }
                 }
                 
                 // Обхождаме всички потребители и добавяме стойности и свойства за тях
-                foreach ((array)$userArr as $userId) {
+                foreach ((array) $userArr as $userId) {
                     
                     // Ако има стойност, да не се добавя повторно
-                    if (isset($fetched[$userId][$prop])) continue;
+                    if (isset($fetched[$userId][$prop])) {
+                        continue;
+                    }
                     
                     // Добавяме в масива с извлечените
                     $fetched[$userId][$prop] = $val;
                     
                     // Ако не трябва да се добавя
-                    if (!$use) continue;
+                    if (!$use) {
+                        continue;
+                    }
                     
                     // Добавяме към резултатния масив
                     $resArr[$hashStr][$userId][$prop] = $val;
@@ -292,26 +332,31 @@ class core_Settings extends core_Manager
     
     /**
      * Взема записите само за зададения потребител/роля
-     * 
-     * @param string $key
-     * @param integer|NULL $userOrRole
-     * 
+     *
+     * @param string   $key
+     * @param int|NULL $userOrRole
+     *
      * @return array
-     */   
-    public static function fetchKeyNoMerge($key, $userOrRole = NULL)
+     */
+    public static function fetchKeyNoMerge($key, $userOrRole = null)
     {
         $dataVal = array();
+        
+        list(, $objectId) = explode('::', $key);
         
         $key = self::prepareKey($key);
         
         $userOrRole = self::prepareUserOrRole($userOrRole);
         
-        // Вземаме записа
-        $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '{$userOrRole}'", $key));
+        if (isset($objectId)) {
+            $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]' AND #objectId = '[#3#]'", $key, $userOrRole, $objectId));
+        } else {
+            $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $key, $userOrRole));
+        }
         
         // Ако има запис връщаме масива с данните
         if ($rec) {
-            $dataVal = (array)$rec->data;
+            $dataVal = (array) $rec->data;
         }
         
         return $dataVal;
@@ -341,7 +386,7 @@ class core_Settings extends core_Manager
         $form->title = 'Персонализиране';
         
         // Добавяме необходимите полета
-        $form->FNC('_userOrRole', 'userOrRole(rolesType=team)', 'caption=Потребител, input=input, silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+        $form->FNC('_userOrRole', 'userOrRole(rolesType=team)', 'caption=Потребител, input=input, silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit()')));
         $form->FNC('_key', 'varchar', 'input=none, silent');
         $form->FNC('_className', 'varchar', 'input=none, silent');
         
@@ -354,7 +399,7 @@ class core_Settings extends core_Manager
         }
         
         // Инпутваме silent полетата, за да се попълнята
-        $form->input(NULL, 'silent');
+        $form->input(null, 'silent');
         
         // Очакваме да има права за модифициране на записа за съответния потребител
         expect($class->canModifySettings($key, $form->rec->_userOrRole));
@@ -370,15 +415,26 @@ class core_Settings extends core_Manager
         // Извикваме интерфейсната функция
         $class->prepareSettingsForm($form);
         
+        $currCu = core_Users::getCurrent();
+        
+        $cuForAll = null;
+        if (haveRole($form->fields['_userOrRole']->type->params['rolesForAllSysTeam'])) {
+            $cuForAll = $currCu;
+        }
+        
         // Ако в някое поле е зададено, че това е опция за всички потребители и кой може да го променя
         $uSettingForAllArr = array();
-        $sForAllFieldArr = $form->selectFields("#settingForAll");
+        $sForAllFieldArr = $form->selectFields('#settingForAll');
         foreach ($sForAllFieldArr as $fName => $fOpt) {
-            
-            if (!isset($fOpt->settingForAll)) continue;
+            if (!isset($fOpt->settingForAll)) {
+                continue;
+            }
             
             if (trim($fOpt->settingForAll) && ($fOpt->settingForAll != 'settingForAll')) {
                 $uSettingForAllArr[$fName] = type_Keylist::toArray($fOpt->settingForAll);
+                if ($cuForAll) {
+                    $uSettingForAllArr[$fName][$cuForAll] = $cuForAll;
+                }
             } else {
                 $uSettingForAllArr[$fName] = '*';
             }
@@ -389,20 +445,20 @@ class core_Settings extends core_Manager
         
         // Ако е избран потребител, а не роля
         if ($form->rec->_userOrRole > 0) {
-        
+            
             // Настройките по-подразбиране за потребителя, без неговите промени
-            $mergeValsArr = self::fetchKey($key, $form->rec->_userOrRole, FALSE, 'team');
+            $mergeValsArr = self::fetchKey($key, $form->rec->_userOrRole, false, 'team');
             
             if ($mergeValsArr) {
-                
                 $defaultStr = 'По подразбиране|*: ';
                 
                 // Ако сме в мобилен режим, да не е хинт
                 $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
                 
-                foreach ((array)$mergeValsArr as $valKey => $val) {
-                    
-                    if (!$form->fields[$valKey]->type) continue;
+                foreach ((array) $mergeValsArr as $valKey => $val) {
+                    if (!$form->fields[$valKey]->type) {
+                        continue;
+                    }
                     
                     $defVal = $form->fields[$valKey]->type->toVerbal($val);
                     
@@ -418,11 +474,11 @@ class core_Settings extends core_Manager
             // Вкарваме данните в рекуеста за да ги има в `$form->rec` след инпута
             
             // Вкарваме всички записи от стойностите на rec в рекуеста
-            $recsArr = (array)$form->rec;
-            unset($recsArr['_userOrRole']);            
-            unset($recsArr['_key']);            
-            unset($recsArr['_className']);            
-            Request::push((array)$recsArr);
+            $recsArr = (array) $form->rec;
+            unset($recsArr['_userOrRole']);
+            unset($recsArr['_key']);
+            unset($recsArr['_className']);
+            Request::push((array) $recsArr);
             
             // Ако има записани стойности, вкарваме и тях
             if ($valsArr) {
@@ -430,10 +486,8 @@ class core_Settings extends core_Manager
             }
         }
         
-        $currCu = core_Users::getCurrent();
-        
         // Стойностите да се инпутват с правата на избрания потребител
-        $sudo = FALSE;
+        $sudo = false;
         if (($form->rec->_userOrRole > 0) && ($form->rec->_userOrRole != core_Users::getCurrent())) {
             $sudo = core_Users::sudo($form->rec->_userOrRole);
         }
@@ -450,7 +504,6 @@ class core_Settings extends core_Manager
                 }
                 
                 if (is_array($users)) {
-                    
                     if (!$users[$sudoCu] && !$users[$currCu] && ($allSystemId != $form->rec->_userOrRole)) {
                         $form->setReadOnly($fName);
                     }
@@ -462,10 +515,9 @@ class core_Settings extends core_Manager
             // Инпутваме формата
             $form->input();
         } catch (core_exception_Expect $e) {
-            
             if ($sudo) {
                 core_Users::exitSudo();
-                $sudo = FALSE;
+                $sudo = false;
             }
         }
         
@@ -487,7 +539,7 @@ class core_Settings extends core_Manager
         if ($form->isSubmitted()) {
             
             // Масив с всички данни
-            $recArr = (array)$form->rec;
+            $recArr = (array) $form->rec;
             
             // Вземаме ключа и потребителя и премахваме необходимите стойности
             $key = $recArr['_key'];
@@ -496,10 +548,10 @@ class core_Settings extends core_Manager
             unset($recArr['_userOrRole']);
             unset($recArr['_className']);
             
-            $sForAllValArr = array();
+            $sForAllValArr = null;
             
             // Премахваме всички празни стойности или defaul от enum
-            foreach ((array)$recArr as $valKey => $value) {
+            foreach ((array) $recArr as $valKey => $value) {
                 
                 // Ако тази опция е за всички потребители
                 if (!empty($uSettingForAllArr) && $uSettingForAllArr[$valKey] && ($allSystemId != $form->rec->_userOrRole)) {
@@ -507,32 +559,35 @@ class core_Settings extends core_Manager
                     unset($recArr[$valKey]);
                 }
                 
-                $instanceOfEnum = (boolean)($form->fields[$valKey]->type instanceof type_Enum);
+                $instanceOfEnum = (boolean) ($form->fields[$valKey]->type instanceof type_Enum);
                 
                 // Ако няма стойност или стойността е default за enum поле, да се премахне от масива
                 if ((!$value && !$instanceOfEnum && ($value !== 0)) || ($value == 'default' && $instanceOfEnum)) {
-                    unset($sForAllValArr[$valKey]);
                     unset($recArr[$valKey]);
                 }
             }
             
             // Записваме данните
-            self::setValues($key, (array)$recArr, $userOrRole);
+            self::setValues($key, (array) $recArr, $userOrRole);
             
             // Записване данните, които се отнасят за всички потребители
-            if (!empty($sForAllValArr)) {
-                
+            if (isset($sForAllValArr)) {
                 $oldSArr = self::fetchKeyNoMerge($key, $allSystemId);
                 
                 foreach ($sForAllValArr as $k => $v) {
                     $oldSArr[$k] = $v;
                 }
                 
-                self::setValues($key, (array)$oldSArr, $allSystemId);
+                self::setValues($key, (array) $oldSArr, $allSystemId);
             }
             
+            list(, $objectId) = explode('::', $key);
             $pKey = self::prepareKey($key);
-            $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $pKey, $userOrRole));
+            if (isset($objectId)) {
+                $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]' AND #objectId = '[#3#]'", $pKey, $userOrRole, $objectId));
+            } else {
+                $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $pKey, $userOrRole));
+            }
             
             $this->logWrite('Промяна на настройките', $rec);
             
@@ -553,9 +608,9 @@ class core_Settings extends core_Manager
     
     /**
      * Подготвяме ключа, като ограничаваме дължината до 16 символа
-     * 
+     *
      * @param string $key
-     * 
+     *
      * @return string
      */
     public static function prepareKey($key)
@@ -568,26 +623,29 @@ class core_Settings extends core_Manager
     
     /**
      * Записва стойностите за ключа и потребителя/роля
-     * 
-     * @param string $key
-     * @param array $valArr
-     * @param integer|NULL $userOrRole
-     * @param boolean $mergeVals
+     *
+     * @param string   $key
+     * @param array    $valArr
+     * @param int|NULL $userOrRole
+     * @param bool     $mergeVals
      */
-    public static function setValues($key, $valArr, $userOrRole = NULL, $mergeVals = FALSE)
+    public static function setValues($key, $valArr, $userOrRole = null, $mergeVals = false)
     {
         $userOrRole = self::prepareUserOrRole($userOrRole);
         
         list(, $objectId) = explode('::', $key);
-        
+         
         // Ограничаваме дължината на ключа
         $key = self::prepareKey($key);
         
-        // Стария запис
-        $oldRec = static::fetch(array("#key = '[#1#]' AND #userOrRole = '{$userOrRole}'", $key));
+        if (isset($objectId)) {
+            $oldRec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]' AND #objectId = '[#3#]'", $key, $userOrRole, $objectId));
+        } else {
+            $oldRec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $key, $userOrRole));
+        }
         
         if ($mergeVals && $oldRec) {
-            $valArr = array_merge((array)$oldRec->data, (array)$valArr);
+            $valArr = array_merge((array) $oldRec->data, (array) $valArr);
         }
         
         // Ако няма стойности, изтриваме записа
@@ -612,7 +670,7 @@ class core_Settings extends core_Manager
         }
         
         $nRec->data = $valArr;
-        
+         
         // Записваме новите данни
         self::save($nRec);
     }
@@ -620,10 +678,10 @@ class core_Settings extends core_Manager
     
     /**
      * Подготвяме потребителя или ролята
-     * 
-     * @param integer|NULL $userOrRole
-     * 
-     * @return integer
+     *
+     * @param int|NULL $userOrRole
+     *
+     * @return int
      */
     protected static function prepareUserOrRole($userOrRole)
     {
@@ -640,29 +698,69 @@ class core_Settings extends core_Manager
         return $userOrRole;
     }
     
-
+    
     /**
      * Променяме wrapper' а да сочи към врапера на търсения клас
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param core_Et $res
-     * @param core_Et $tpl
-     * @param object $data
+     * @param core_Et  $res
+     * @param core_Et  $tpl
+     * @param object   $data
      */
-    function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data=NULL)
+    public function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = null)
     {
-        if (!$data->cClass) return ;
-       
-        // Ако текущия потребител е контрактор, показваме обвивката на външната част
-        if(core_Users::haveRole('partner')){
-        	plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
-        	$mvc->currentTab = 'Профил';
-        } else {
-        	// Рендираме изгледа
-        	$res = $data->cClass->renderWrapping($tpl, $data);
-        	
-        	// За да не се изпълнява по - нататък
-        	return FALSE;
+        if (!$data->cClass) {
+            
+            return ;
         }
+        
+        // Ако текущия потребител е контрактор, показваме обвивката на външната част
+        if (core_Users::haveRole('partner')) {
+            plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
+            $mvc->currentTab = 'Профил';
+        } else {
+            // Рендираме изгледа
+            $res = $data->cClass->renderWrapping($tpl, $data);
+            
+            // За да не се изпълнява по - нататък
+            return false;
+        }
+    }
+    
+    
+    /**
+     * Връща масив с всички перонализации за посочената константа
+     * Ключовете на масива са потребителите или ролите, а стойностите - стойностите на константата
+     *
+     * @param string $constName името на константата
+     * @param string $key
+     *
+     * @return array
+     */
+    public static function fetchPersonalConfig($constName, $key, $userOrRole = null)
+    {
+        $res = array();
+        $key = self::prepareKey($key); 
+        $query = self::getQuery();
+        $query->where(array("#key = '[#1#]'", $key));
+        
+       
+        $query->orderBy('userOrRole', 'DESC');
+        
+        if($userOrRole === null) {
+            $userOrRole = core_Users::getCurrent();
+        }
+
+        if(is_int($userOrRole)) {
+            $query->where("#userOrRole = {$userOrRole}");
+        }
+
+        while ($rec = $query->fetch()) {
+            if (isset($rec->data[$constName])) {
+                $res[$rec->userOrRole] = $rec->data[$constName];
+            }
+        }
+        
+        return $res;
     }
 }

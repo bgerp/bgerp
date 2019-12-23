@@ -1,0 +1,89 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <table>
+        <!--ET_BEGIN date-->
+        <tr>
+            <td>Date</td>
+            <td>[#date#]</td>
+        </tr>
+        <!--ET_END date-->
+        <!--ET_BEGIN policyId-->
+        <tr>
+            <td style='width:150px'>Price list</td>
+            <td>[#policyId#]</td>
+        </tr>
+        <!--ET_END policyId-->
+        <!--ET_BEGIN productGroups-->
+        <tr>
+            <td style='width:150px'>Groups of items</td>
+            <td>[#productGroups#]</td>
+        </tr>
+        <!--ET_END productGroups-->
+        <!--ET_BEGIN packagings-->
+        <tr>
+            <td>Packagings</td>
+            <td>[#packagings#]</td>
+        </tr>
+        <!--ET_END packagings-->
+        <!--ET_BEGIN round-->
+        <tr>
+            <td>Round price for base measure</td>
+            <td>[#round#]</td>
+        </tr>
+        <!--ET_END round-->
+        
+        <!--ET_BEGIN roundPack-->
+        <tr>
+            <td>Round price for packaging</td>
+            <td>[#roundPack#]</td>
+        </tr>
+        <!--ET_END roundPack-->
+        
+        <!--ET_BEGIN printHeader-->
+        <tr>
+            <td colspan = '2'><span class = 'print-header'>[#printHeader#]</span><br>
+                <span id = 'sub-title'>№[#number#] &nbsp; Date &nbsp;[#created#] &nbsp;&nbsp;Currency  &nbsp;[#currencyPrint#]&nbsp;&nbsp;[#vatPrint#]</span>
+            </td>
+        </tr>
+        <!--ET_END printHeader-->
+    </table>
+    
+    <!--ET_BEGIN currencyId-->
+    <div style='margin-top:10px;'>All the prices are in [#currencyId#], [#vat#]</div>
+    <!--ET_END currencyId-->
+    [#PAGER_TOP#]
+    <div class='overflow-scroll'>
+        <table class = 'norm-table' style='width:100%'>
+            <tr>
+            	<th>Code</th>
+                <th style='width:380px !important'>Item</th>
+                <th>Measure</th>
+                <th>Price</th>
+                <!--ET_BEGIN showEAN-->
+                <th>EAN[#showEAN#]</th>
+                <!--ET_END showEAN-->
+                <th>Packaging</th>
+                <th>Price</th>
+            </tr>
+            <!--ET_BEGIN GROUP-->
+            [#GROUP#]
+            <tr>
+                <td colspan = '7' class='pricelist-group-label'><b>[#GROUP_NAME#]</b></td>
+            </tr>
+            <!--ET_BEGIN ROW-->
+            <tr>
+            	<td class = 'product-code-style'>[#code#]</td>
+                <td>[#productId#]</td>
+                <td class='norm-row-cell'>[#measureId#]</td>
+                <td class='aright'>[#priceM#]</td>
+                <!--ET_BEGIN eanCode-->
+                <td class = 'product-code-style'>[#eanCode#]</td>
+                <!--ET_END eanCode-->
+                <td class='norm-row-cell'><span style = "font-size:0.9em">[#pack#]</span></td>
+                <td class='aright'>[#priceP#]</td>
+            </tr>
+            <!--ET_END ROW-->
+            <!--ET_END GROUP-->
+        </table>
+    </div>
+    [#PAGER#]
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

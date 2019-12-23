@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Версия на JS компонента
  */
@@ -26,84 +25,57 @@ defIfNot('AUTOSIZE_MAX_ROWS_NARROW', '400');
  *
  * @category  vendors
  * @package   autosize
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class autosize_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = '';
+    public $startAct = '';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Автоматично увеличаване на височината на полетата за въвеждане на текст";
+    public $info = 'Автоматично увеличаване на височината на полетата за въвеждане на текст';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
         
-        'AUTOSIZE_VERSION' => array ('enum(v1.18.4=v1.18.4,
+        'AUTOSIZE_VERSION' => array('enum(v1.18.4=v1.18.4,
                                                  v1.18.9=v1.18.9)', 'mandatory, caption=Версията на програмата->Версия'),
     );
     
     
     /**
-     * Инсталиране на пакета
+     * Плъгини, които трябва да се инсталират
      */
-    function install()
-    {
-        $html = parent::install();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Инсталираме клавиатурата към password полета
-        $html .= $Plugins->installPlugin('Редове на текст', 'autosize_Plugin', 'type_Richtext', 'private');
-        
-        return $html;
-    }
+    public $plugins = array(
+        array('Редове на текст', 'autosize_Plugin', 'type_Richtext', 'private'),
+    );
     
     
-    /**
-     * Де-инсталиране на пакета
-     */
-    function deinstall()
-    {
-        $html = parent::deinstall();
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Премахваме от type_Date полета
-        $Plugins->deinstallPlugin('autosize_Plugin');
-        $html .= "<li>Премахнати са всички инсталации на 'autosize_Plugin'";
-        
-        return $html;
-    }
-
-
     /**
      * Връща JS файлове, които са подходящи за компактиране
      */

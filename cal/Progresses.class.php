@@ -3,29 +3,25 @@
 
 /**
  * Коментар от тип прогрес
- * 
+ *
  * @category  bgerp
  * @package   cal
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cal_Progresses extends core_Mvc
 {
-    
-    
     /**
-     *
+     * Поддържани интерфейси
      */
-    public $interfaces = 'doc_ExpandCommentsIntf';
+    public $interfaces = 'doc_ExpandCommentsIntf,hr_IndicatorsSourceIntf';
     
     
-    /**
-     *
-     */
     public $title = 'Прогрес';
-    
     
     
     /**
@@ -43,32 +39,30 @@ class cal_Progresses extends core_Mvc
     /**
      * Може ли вградения обект да се избере
      *
-     * @param NULL|integer $userId
+     * @param NULL|int $userId
      *
-     * @return boolean
+     * @return bool
      */
-    public function canSelectDriver($userId = NULL)
+    public function canSelectDriver($userId = null)
     {
-        
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
-     * 
+     *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param stdClass $data
+     * @param doc_Comments   $mvc
+     * @param stdClass       $data
      */
-    static function on_AfterPrepareEditForm($Driver, $mvc, &$data)
+    public static function on_AfterPrepareEditForm($Driver, $mvc, &$data)
     {
         $data->singleTitle = 'Прогрес';
         
         $rec = $data->form->rec;
         
         if ($originId = $rec->originId) {
-            
             $doc = doc_Containers::getDocument($originId);
             $tRec = $doc->fetch();
             
@@ -111,32 +105,41 @@ class cal_Progresses extends core_Mvc
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param integer $id
-     * @param stdClass $rec
-     * @param NULL|array $saveFileds
+     * @param doc_Comments   $mvc
+     * @param int            $id
+     * @param stdClass       $rec
+     * @param NULL|array     $saveFileds
      */
-    static function on_AfterSave($Driver, $mvc, &$id, $rec, $saveFileds = NULL)
+    public static function on_AfterSave($Driver, $mvc, &$id, $rec, $saveFileds = null)
     {
-        $touchRec = FALSE;
         if ($rec->originId) {
             $tDoc = doc_Containers::getDocument($rec->originId);
-            if ($tDoc->instance instanceof cal_Tasks) {
-                $touchRec = TRUE;
+            if ($tDoc->isInstanceOf('cal_Tasks')) {
+                $tDoc->touchRec();
             }
         }
         
-		// При промяна на прогрес
+        // При промяна на прогрес
         if ($rec->__isBeingChanged) {
             $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
             $Driver->updateTaskProgress($rec, $lGoodProgress);
+            $Driver->updateTaskWorkingTime($rec);
         }
-        
+    }
+    
+    
+    /**
+     * Обновява отработеното време, ако коментара е към задача
+     * @param stdClass $rec
+     */
+    private function updateTaskWorkingTime($rec)
+    {
         // Променяме общото отработено време на задачата
         if ($rec->state != 'draft' && $rec->originId && $rec->workingTime) {
+            $tDoc = doc_Containers::getDocument($rec->originId);
             if ($tDoc->instance instanceof cal_Tasks) {
                 $tRec = $tDoc->fetch();
                 
@@ -149,7 +152,7 @@ class cal_Progresses extends core_Mvc
                     $query->where("#state != 'rejected'");
                     $query->XPR('workingTimeSum', 'int', 'sum(#workingTime)');
                     $query->show('workingTimeSum');
-                    $tRec->workingTime = (int)$query->fetch()->workingTimeSum;
+                    $tRec->workingTime = (int) $query->fetch()->workingTimeSum;
                 }
                 
                 // Да се вземе времената на новите прогреси
@@ -160,17 +163,15 @@ class cal_Progresses extends core_Mvc
                 $query->show('driverRec');
                 
                 while ($dRec = $query->fetch()) {
-                    if (!$dRec->driverRec['workingTime']) continue;
+                    if (!$dRec->driverRec['workingTime']) {
+                        continue;
+                    }
                     
                     $tRec->workingTime += $dRec->driverRec['workingTime'];
                 }
                 
                 $tDoc->instance->save($tRec, 'workingTime');
             }
-        }
-        
-        if ($touchRec) {
-            $tDoc->touchRec();
         }
     }
     
@@ -179,27 +180,27 @@ class cal_Progresses extends core_Mvc
      * Добавя допълнителни полетата в антетката
      *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param NULL|array $res
-     * @param object $rec
-     * @param object $row
+     * @param doc_Comments   $mvc
+     * @param NULL|array     $res
+     * @param object         $rec
+     * @param object         $row
      */
     public static function on_AfterGetFieldForLetterHead($Driver, $mvc, &$resArr, $rec, $row)
     {
         $resArr = arr::make($resArr);
         
         if ($row->progressBar || $row->progress) {
-            $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
+            $resArr['progressBar'] = array('name' => tr('Прогрес'), 'val' => '[#progressBar#] [#progress#]');
         }
         
         if ($row->workingTime) {
-            $resArr['workingTime'] =  array('name' => tr('Отработено време'), 'val' =>"[#workingTime#]");
+            $resArr['workingTime'] = array('name' => tr('Отработено време'), 'val' => '[#workingTime#]');
         }
         
         if ($rec->originId) {
             $tDoc = doc_Containers::getDocument($rec->originId);
             if ($tDoc->instance instanceof cal_Tasks) {
-                $resArr['originId'] =  array('name' => tr('Задача'), 'val' => $tDoc->getLinkToSingle());
+                $resArr['originId'] = array('name' => tr('Задача'), 'val' => $tDoc->getLinkToSingle());
             }
         }
     }
@@ -207,10 +208,10 @@ class cal_Progresses extends core_Mvc
     
     /**
      * Функция, която се извиква след активирането на документа
-     * 
+     *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param stdClass $rec
+     * @param doc_Comments   $mvc
+     * @param stdClass       $rec
      */
     public static function on_AfterActivation($Driver, $mvc, &$rec)
     {
@@ -218,10 +219,12 @@ class cal_Progresses extends core_Mvc
         
         if ($rec->originId) {
             $tDoc = doc_Containers::getDocument($rec->originId);
-            if ($tDoc->instance instanceof cal_Tasks) {
+            if ($tDoc->isInstanceOf('cal_Tasks')) {
                 $tDoc->touchRec();
             }
         }
+
+        $Driver->updateTaskWorkingTime($rec);
     }
     
     
@@ -229,9 +232,9 @@ class cal_Progresses extends core_Mvc
      * Възстановяване на оттеглен обект
      *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param mixed $res
-     * @param int|stdClass $id
+     * @param doc_Comments   $mvc
+     * @param mixed          $res
+     * @param int|stdClass   $id
      */
     public static function on_AfterRestore($Driver, $mvc, &$res, $id)
     {
@@ -239,9 +242,10 @@ class cal_Progresses extends core_Mvc
         
         if ($rec->originId) {
             $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
-            
             $Driver->updateTaskProgress($rec, $lGoodProgress);
         }
+        
+        $Driver->updateTaskWorkingTime($rec);
     }
     
     
@@ -249,9 +253,9 @@ class cal_Progresses extends core_Mvc
      * След оттегляне на обект
      *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param mixed $res
-     * @param int|stdClass $id
+     * @param doc_Comments   $mvc
+     * @param mixed          $res
+     * @param int|stdClass   $id
      */
     public static function on_AfterReject($Driver, $mvc, &$res, $id)
     {
@@ -259,9 +263,10 @@ class cal_Progresses extends core_Mvc
         
         if ($rec->originId) {
             $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
-            
             $Driver->updateTaskProgress($rec, $lGoodProgress);
         }
+        
+        $Driver->updateTaskWorkingTime($rec);
     }
     
     
@@ -269,12 +274,11 @@ class cal_Progresses extends core_Mvc
      * Обновява задачата след промяна на прогреса
      *
      * @param stdClass $rec
-     * @param NULL|integer $progress
+     * @param NULL|int $progress
      */
-    public static function updateTaskProgress($rec, $progress = NULL)
+    public static function updateTaskProgress($rec, $progress = null)
     {
         if ($rec->originId) {
-            
             $tDoc = doc_Containers::getDocument($rec->originId);
             
             $saveArr = array();
@@ -282,7 +286,6 @@ class cal_Progresses extends core_Mvc
             if ($tDoc->instance instanceof cal_Tasks && isset($progress)) {
                 $tRec = $tDoc->fetch();
                 $oldProgress = $tRec->progress;
-                $oldState = $tRec->state;
                 
                 // Ако има промяна в прогреса
                 if ($oldProgress != $progress) {
@@ -294,9 +297,11 @@ class cal_Progresses extends core_Mvc
                         
                         // Ако прогреса е 100%, тогава затваряме задачата
                         if ($tRec->progress == 1) {
+                            $tRec->brState = $tRec->state;
                             $tRec->state = 'closed';
                             
                             $saveArr['state'] = 'state';
+                            $saveArr['brState'] = 'state';
                             
                             $tRec->timeClosed = dt::now();
                             $saveArr['timeClosed'] = 'timeClosed';
@@ -304,8 +309,10 @@ class cal_Progresses extends core_Mvc
                         
                         // Ако връщаме прогреса - връщаме и предишното състояние
                         if ($oldProgress == 1) {
+                            $tRec->brState = $tRec->state;
                             $tRec->state = 'wakeup';
                             $saveArr['state'] = 'state';
+                            $saveArr['brState'] = 'state';
                         }
                     }
                     
@@ -320,14 +327,17 @@ class cal_Progresses extends core_Mvc
     
     /**
      * Връща най-новия активен прогрес
-     * 
-     * @param integer $originId
-     * 
-     * @return double
+     *
+     * @param int $originId
+     *
+     * @return float
      */
     protected static function getLastGoodProgress($originId)
     {
-        if (!$originId) return ;
+        if (!$originId) {
+            
+            return ;
+        }
         
         $query = doc_Comments::getQuery();
         $query->where(array("#originId = '[#1#]'", $originId));
@@ -339,28 +349,29 @@ class cal_Progresses extends core_Mvc
         
         $rec = $query->fetch();
         
-        if (!$rec) return 0;
+        if (!$rec) {
+            
+            return 0;
+        }
         
         return $rec->driverRec['progress'];
-        
     }
     
     
     /**
      * Подготвяне на вербалните стойности
-     * 
+     *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
+     * @param doc_Comments   $mvc
+     * @param stdClass       $row
+     * @param stdClass       $rec
      */
-    function on_AfterRecToVerbal($Driver, $mvc, $row, $rec)
+    public function on_AfterRecToVerbal($Driver, $mvc, $row, $rec)
     {
         $row->singleTitle = tr('Прогрес');
         
         // Показване на типа на прогреса
         if ($rec->originId) {
-            
             $doc = doc_Containers::getDocument($rec->originId);
             $tRec = $doc->fetch();
             
@@ -389,15 +400,15 @@ class cal_Progresses extends core_Mvc
      * Връща състоянието на нишката
      *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param string|NULL $res
-     * @param integer $id
+     * @param doc_Comments   $mvc
+     * @param string|NULL    $res
+     * @param int            $id
      *
      * @return string
      */
-    static function on_AfterGetThreadState($Driver, $mvc, &$res, $id)
+    public static function on_AfterGetThreadState($Driver, $mvc, &$res, $id)
     {
-        $res = NULL;
+        $res = null;
         
         $rec = $mvc->fetchRec($id);
         
@@ -417,5 +428,89 @@ class cal_Progresses extends core_Mvc
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Интерфейсен метод на hr_IndicatorsSourceIntf
+     *
+     * @return array $result
+     */
+    public static function getIndicatorNames()
+    {
+        $result = array();
+        
+        // Показател за делта на търговеца
+        $rec = hr_IndicatorNames::force('Отработено_време_по_задачи', __CLASS__, 1);
+        $result[$rec->id] = $rec->name;
+        
+        return $result;
+    }
+    
+    
+    /**
+     * Метод за вземане на резултатност на хората. За определена дата се изчислява
+     * успеваемостта на човека спрямо ресурса, които е изпозлвал
+     *
+     * @param datetime $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     *
+     * @return array $result  - масив с обекти
+     *
+     * 			o date        - дата на стайноста
+     * 		    o personId    - ид на лицето
+     *          o docId       - ид на документа
+     *          o docClass    - клас ид на документа
+     *          o indicatorId - ид на индикатора
+     *          o value       - стойноста на индикатора
+     *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
+     */
+    public static function getIndicatorValues($timeline)
+    {
+        $iRec = hr_IndicatorNames::force('Отработено_време_по_задачи', __CLASS__, 1);
+        $taskClassId = cal_Tasks::getClassId();
+        $self = cls::get(get_called_class());
+        $result = $persons = array();
+        
+        // Намиране на всички Коментари - Прогрес към модифицирани задачи след $timeline
+        $commentQuery = doc_Comments::getQuery();
+        $commentQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=originId');
+        $commentQuery->EXT('docId', 'doc_Containers', 'externalName=docId,externalKey=originId');
+        $commentQuery->EXT('taskState', 'doc_Containers', 'externalName=state,externalKey=originId');
+        $commentQuery->EXT('taskModifiedOn', 'doc_Containers', 'externalName=modifiedOn,externalKey=originId');
+        $commentQuery->where("#driverClass = {$self->getClassId()} AND #originId IS NOT NULL");
+        $commentQuery->where("#docClass = {$taskClassId} AND (#state = 'active' OR (#state = 'rejected' AND #brState = 'active'))");
+        $commentQuery->where("#taskModifiedOn >= '{$timeline}'");
+        $commentQuery->show('driverRec,state,brState,createdBy,activatedOn,docId,taskState,taskModifiedOn');
+        
+        // За всяка от тях
+        while($cRec = $commentQuery->fetch()){
+            
+            // Ако има отбелязано отработено време
+            $value = $cRec->driverRec['workingTime'];
+            if(empty($value)) continue;
+            
+            if(!array_key_exists($cRec->createdBy, $persons)){
+                $persons[$cRec->createdBy] = crm_Profiles::fetchField("#userId = {$cRec->createdBy}", 'personId');
+            }
+            
+            // Сумира се колко е отработил конкретния потребител
+            $date = dt::verbal2mysql($cRec->activatedOn, false);
+            $key = "{$persons[$cRec->createdBy]}|{$taskClassId}|{$cRec->docId}|{$cRec->taskState}|{$date}|{$iRec->id}";
+            if (!array_key_exists($key, $result)) {
+                $result[$key] = (object) array('date' => $date,
+                    'personId' => $persons[$cRec->createdBy],
+                    'docId' => $cRec->docId,
+                    'docClass' => $taskClassId,
+                    'indicatorId' => $iRec->id,
+                    'value' => 0,
+                    'isRejected' => ($cRec->taskState == 'rejected'));
+            }
+            
+            if($cRec->state == 'active'){
+                $result[$key]->value += $value;
+            }
+        }
+        
+        return $result;
     }
 }

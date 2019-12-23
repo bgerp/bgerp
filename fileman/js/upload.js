@@ -111,7 +111,7 @@ $(document).ready(function() {
 	                $('#add-error-info').append(data.res);
 					
 					$('#add-file-info').animate({
-				        scrollTop: $("#add-error-info").prop('scrollHeight') - $(".upload-еrror").prop('scrollHeight')
+				        scrollTop: $("#add-error-info").prop('scrollHeight') - $(".upload-error").prop('scrollHeight')
 				    }, 2000);
 	            }
 	            
@@ -125,7 +125,7 @@ $(document).ready(function() {
 	            
 	            showButtonsAfterUpload();
 	            
-	            $('#add-error-info').append('<div class="upload-еrror">' + uploadErrStr + '<div><b>' + this.fileName + '</b></div></div>');
+	            $('#add-error-info').append('<div class="upload-error">' + uploadErrStr + '<div><b>' + this.fileName + '</b></div></div>');
 	    	},
 	    	
 	    	// При натискане на бутона X за спиране на качването

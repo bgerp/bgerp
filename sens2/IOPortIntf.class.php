@@ -1,25 +1,27 @@
 <?php
 
+
 /**
  * Интерфейс за създаване драйвери за вграждане в други обекти
  *
  *
  * @category  bgerp
  * @package   embed
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens2_IOPortIntf extends embed_DriverIntf
 {
-    
     /**
      * Инстанция на класа имплементиращ интерфейса
      */
     public $class;
     
-
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -37,5 +39,14 @@ class sens2_IOPortIntf extends embed_DriverIntf
     public function canSelectDriver($userId = null)
     {
         return $this->class->canSelectDriver($userId = null);
+    }
+    
+    
+    /**
+     * Връща допълнителен идентификатор за порта, който е базиран на данните в драйвера
+     */
+    public function getPortIdent($rec)
+    {
+        return $this->class->getPortIdent($rec);
     }
 }

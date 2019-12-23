@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'purchase_PurchasesDetails'
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   purchase
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class purchase_PurchasesDetails extends deals_DealDetail
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Детайли на покупки';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -85,7 +84,7 @@ class purchase_PurchasesDetails extends deals_DealDetail
      */
     public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount';
     
-
+    
     /**
      * Активен таб
      */
@@ -121,7 +120,7 @@ class purchase_PurchasesDetails extends deals_DealDetail
     /**
      * Да се показва ли вашия номер
      */
-    public $showReffCode = TRUE;
+    public $showReffCode = true;
     
     
     /**
@@ -140,30 +139,29 @@ class purchase_PurchasesDetails extends deals_DealDetail
      */
     public static function on_AfterInputEditForm($mvc, $form)
     {
-    	parent::inputDocForm($mvc, $form);
+        parent::inputDocForm($mvc, $form);
     }
     
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-    	if(($action == 'add') && isset($rec)){
-    		if($requiredRoles != 'no_one'){
-    			$roles = purchase_Setup::get('ADD_BY_PRODUCT_BTN');
-    			if(!haveRole($roles, $userId)){
-    				$requiredRoles = 'no_one';
-    			}
-    		}
-    	}
-    	
-    	if($action == 'importlisted'){
-    		$roles = purchase_Setup::get('ADD_BY_LIST_BTN');
-    		if(!haveRole($roles, $userId)){
-    			$requiredRoles = 'no_one';
-    		}
-    	}
-    	
+        if (($action == 'add') && isset($rec)) {
+            if ($requiredRoles != 'no_one') {
+                $roles = purchase_Setup::get('ADD_BY_PRODUCT_BTN');
+                if (!haveRole($roles, $userId)) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+        
+        if ($action == 'importlisted') {
+            $roles = purchase_Setup::get('ADD_BY_LIST_BTN');
+            if (!haveRole($roles, $userId)) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }

@@ -1,0 +1,44 @@
+<div class='document' style="margin-bottom: 20px;">
+    <div  class='clearfix21 antetka'>
+        <div class="avatar fleft" style="position: relative; top: 2px; left: 2px;">[#ExternalThreadViewAvatar#]</div>
+        <div class="em-holder" style='width: auto; float:left;margin-left:10px;'>
+            <div class="small">
+                    <!--ET_BEGIN fromEml-->          
+                    <div>
+                       |От|*: <b>[#fromEml#]</b>
+                    </div>
+                    <!--ET_END fromEml-->
+                    <!--ET_BEGIN AllTo-->          
+                    <div>|До|*: <b>[#AllTo#]</b></div>
+                    <!--ET_END AllTo-->
+                    <!--ET_BEGIN AllCc-->          
+                    <div>|Кп|*:<b>[#AllCc#]</b></div>
+                    <!--ET_END AllCc-->
+                    <!--ET_BEGIN date-->          
+                    <div>|На|*: <b>[#date#]</b></div>
+                    <!--ET_END date-->
+            </div>
+        </div>
+        <!--ET_BEGIN files-->
+        <div class="sm-att" >
+            <div class='attachments small'>
+                <div class="aHeader">|Прикачени файлове|*:</div>
+                <div style='display:block; margin:5px 0; max-height: 198px; overflow-y: auto;'>[#files#]</div>
+            </div>
+        </div>
+        <!--ET_END files--> 
+        <div class="clearfix21"></div>
+    </div>
+    <div style='clear: both;'></div>
+
+   
+    <div style='padding:6px 10px 10px;'>
+        <!--ET_BEGIN subject-->          
+        <h3 class='richtext-title'>|Относно|*: [#subject#]</h3>
+        <!--ET_END subject-->
+        <!--ET_BEGIN textPart--> 
+        <div>[#textPart#]</div>
+        <!--ET_END textPart--> 
+    </div>
+    <div class="clearfix21"></div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

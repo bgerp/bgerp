@@ -1,21 +1,21 @@
 <?php
 
 
-
 /**
  * Рефрешване на рендиранията на нотификации и последни
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see plg_RefreshRows
  */
 class bgerp_RefreshRowsPlg extends core_Plugin
 {
-    
     /**
      * Колко време да стои в лога записа
      */
@@ -27,9 +27,9 @@ class bgerp_RefreshRowsPlg extends core_Plugin
      * Абонира извикването на функцията по AJAX
      *
      * @param core_Mvc $mvc
-     * @param core_Et $tpl
+     * @param core_Et  $tpl
      */
-    function on_AfterRender($mvc, &$tpl)
+    public function on_AfterRender($mvc, &$tpl)
     {
         // Ако не се тегли по AJAX
         if (!Request::get('ajax_mode')) {
@@ -82,18 +82,24 @@ class bgerp_RefreshRowsPlg extends core_Plugin
      * Преди извикване на екшъна
      *
      * @param core_Mvc $mvc
-     * @param array $res
-     * @param string $action
+     * @param array    $res
+     * @param string   $action
      */
-    function on_BeforeAction($mvc, &$res, $action)
+    public function on_BeforeAction($mvc, &$res, $action)
     {
         // Ако няма да се рендира
-        if ($action != 'render') return ;
+        if ($action != 'render') {
+            
+            return ;
+        }
         
         $ajaxMode = Request::get('ajax_mode');
         
         // Ако заявката не е по ajax
-        if (!$ajaxMode) return ;
+        if (!$ajaxMode) {
+            
+            return ;
+        }
         
         if (!isset($res)) {
             $res = array();
@@ -109,7 +115,10 @@ class bgerp_RefreshRowsPlg extends core_Plugin
         $tpl = $mvc->render();
         
         // Ако липсва шаблона, да не се изпълнява
-        if (!$tpl) return FALSE;
+        if (!$tpl) {
+            
+            return false;
+        }
         
         // Вземаме съдържанието на шаблона
         $status = static::getContent($tpl);
@@ -129,10 +138,12 @@ class bgerp_RefreshRowsPlg extends core_Plugin
         // Вземаме съдържанието от предишния запис
         $savedHash = Mode::get($nameHash);
         
-        if(empty($savedHash)) $savedHash = md5($savedHash);
+        if (empty($savedHash)) {
+            $savedHash = md5($savedHash);
+        }
         
         // Ако има промяна
-        if($statusHash != $savedHash) {
+        if ($statusHash != $savedHash) {
             
             // Записваме новата стойност, за да не се извлича следващия път за този таб
             Mode::setPermanent($nameHash, $statusHash);
@@ -142,7 +153,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
             // Добавяме резултата
             $resObj = new stdClass();
             $resObj->func = 'html';
-            $resObj->arg = array('id' => $divId, 'html' => $status, 'replace' => TRUE);
+            $resObj->arg = array('id' => $divId, 'html' => $status, 'replace' => true);
             $res[] = $resObj;
             
             // Форсираме рефреша след връщане назад
@@ -155,20 +166,20 @@ class bgerp_RefreshRowsPlg extends core_Plugin
             
             // Добавя всички функции в масива, които ще се виката
             if (!empty($runAfterAjaxArr)) {
-            
+                
                 // Да няма повтарящи се функции
                 $runAfterAjaxArr = array_unique($runAfterAjaxArr);
-            
-                foreach ((array)$runAfterAjaxArr as $runAfterAjax) {
+                
+                foreach ((array) $runAfterAjaxArr as $runAfterAjax) {
                     $jqResObj = new stdClass();
                     $jqResObj->func = $runAfterAjax;
-            
+                    
                     $res[] = $jqResObj;
                 }
             }
         }
         
-        return FALSE;
+        return false;
     }
     
     
@@ -176,12 +187,12 @@ class bgerp_RefreshRowsPlg extends core_Plugin
      * Връща URL-то за рефрешване
      *
      * @param core_Mvc $mvc
-     * @param array $res
-     * @param array $url
+     * @param array    $res
+     * @param array    $url
      *
      * @return array
      */
-    function on_AfterGetRefreshRowsUrl($mvc, &$res, $url)
+    public function on_AfterGetRefreshRowsUrl($mvc, &$res, $url)
     {
         $url['Ctr'] = $mvc;
         $url['Act'] = 'render';
@@ -198,10 +209,13 @@ class bgerp_RefreshRowsPlg extends core_Plugin
      *
      * @return string
      */
-    static function getContent($tpl)
+    public static function getContent($tpl)
     {
         // Ако не е обект или няма съдържание
-        if (!$tpl instanceof core_ET || !$tpl) return $tpl;
+        if (!$tpl instanceof core_ET || !$tpl) {
+            
+            return $tpl;
+        }
         
         // Клонираме, за да не променяме оригиналния обект
         $cTpl = clone $tpl;
@@ -222,15 +236,15 @@ class bgerp_RefreshRowsPlg extends core_Plugin
      * Връща хеша от URL-то и времето на извикване на страницата
      *
      * @param array $refreshUrl
-     * @param integer $hitTime
+     * @param int   $hitTime
      */
-    static function getNameHash($refreshUrl, $hitTime)
+    public static function getNameHash($refreshUrl, $hitTime)
     {
         // От URL-то и hitTime генерираме хеша за името
         $nameHash = md5(toUrl($refreshUrl) . $hitTime);
         
         // Името на хеша, с който е записан в сесията
-        $nameHash = "BGERP_REFRESH_ROWS_" . $nameHash;
+        $nameHash = 'BGERP_REFRESH_ROWS_' . $nameHash;
         
         return $nameHash;
     }
@@ -240,10 +254,10 @@ class bgerp_RefreshRowsPlg extends core_Plugin
      * Функция по подразбиране, за връщане на хеша на резултата
      *
      * @param core_Mvc $mvc
-     * @param string $res
-     * @param string $status
+     * @param string   $res
+     * @param string   $status
      */
-    function on_AfterGetContentHash($mvc, &$res, &$status)
+    public function on_AfterGetContentHash($mvc, &$res, &$status)
     {
         $res = md5(trim($status));
     }
@@ -253,9 +267,9 @@ class bgerp_RefreshRowsPlg extends core_Plugin
      * Връща id, което ще се използва за обграждащия div на таблицата, който ще се замества по AJAX
      *
      * @param core_Mvc $mvc
-     * @param string $res
+     * @param string   $res
      */
-    function on_AfterGetDivId($mvc, &$res)
+    public function on_AfterGetDivId($mvc, &$res)
     {
         $res = $mvc->className . '_PortalTable';
     }

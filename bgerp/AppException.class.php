@@ -5,6 +5,7 @@ class bgerp_AppException extends Exception
     
     public $message;
     
+    
     /**
      * Конструктор
      */
@@ -20,17 +21,19 @@ class bgerp_AppException extends Exception
     /**
      * Генерира exception от съотв. клас, в случай че зададеното условие не е изпълнено
      *
-     * @param boolean $condition
+     * @param bool   $condition
      * @param string $message
-     * @param array $options
+     * @param array  $options
+     *
      * @throws static
      */
     public static function expect($condition, $message, $options = array())
     {
-        if (!(boolean)$condition) {
+        if (!(boolean) $condition) {
             throw new static($message, $options);
         }
     }
+    
     
     /**
      * Конвертира към стринг
@@ -47,7 +50,7 @@ class bgerp_AppException extends Exception
         if (empty($redirect)) {
             core_Message::redirect($message, 'page_Error');
         } else {
-            core_App::redirect($redirect, FALSE, $message, 'error');
+            core_App::redirect($redirect, false, $message, 'error');
         }
     }
 }

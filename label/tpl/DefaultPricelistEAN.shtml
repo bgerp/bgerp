@@ -1,0 +1,46 @@
+<style>
+    .label-holder {
+        border-radius: 8px;
+        padding: 2mm 1mm 1mm 1mm;
+        position: relative;
+        width: 62mm;
+        border: 1px transparent;
+    }
+    .label-holder table {
+        height: 30mm;
+        width: 62mm;
+        border-collapse: collapse;
+    }
+    .label-holder table tr > td {
+        padding: 0 1mm;
+        font-size: 11px;
+    }
+    .barcode img {
+        max-width: 48mm;
+        height:auto;
+    }
+    .bold {
+        font-weight: bold;
+    }
+</style>
+<div class="label-holder">
+    <table cellpadding="0">
+        <tr>
+            <td class="no-border-left big-text" >
+                <div style='padding-top: 1px; height:8mm; min-height:8mm;' align="center"> [#NAME#] - [#CODE#]</div>
+            </td>
+        </tr>
+        <tr>
+            <td valign="middle" align="center" class="no-border-left bold">
+                [#CATALOG_PRICE#] [#CATALOG_CURRENCY#]
+
+            </td>
+        </tr>
+        <tr>
+            <td class="no-border-left no-border-top barcode" align="center" style="height: 51px;">
+                [#EAN#]
+            </td>
+        </tr>
+
+    </table>
+</div>

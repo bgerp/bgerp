@@ -1,29 +1,27 @@
 <?php
 
 
-
 /**
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_PersonalizationSourceIntf
 {
-    
-    
     /**
      * Връща масив с ключове имената на плейсхолдърите и съдържание - типовете им
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return array
      */
-    function getPersonalizationDescr($id)
+    public function getPersonalizationDescr($id)
     {
-        
         return $this->class->getPersonalizationDescr($id);
     }
     
@@ -31,14 +29,13 @@ class bgerp_PersonalizationSourceIntf
     /**
      * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value
      *
-     * @param integer $id
-     * @param integer $limit
+     * @param int $id
+     * @param int $limit
      *
      * @return array
      */
-    function getPresonalizationArr($id, $limit = 0)
+    public function getPresonalizationArr($id, $limit = 0)
     {
-        
         return $this->class->getPresonalizationArr($id, $limit);
     }
     
@@ -46,14 +43,13 @@ class bgerp_PersonalizationSourceIntf
     /**
      * Връща вербално представяне на заглавието на дадения източник за персонализирани данни
      *
-     * @param integer $id
-     * @param boolean $verbal
+     * @param int  $id
+     * @param bool $verbal
      *
      * @return string
      */
-    function getPersonalizationTitle($id, $verbal = FALSE)
+    public function getPersonalizationTitle($id, $verbal = false)
     {
-        
         return $this->class->getPersonalizationTitle($id, $verbal);
     }
     
@@ -61,14 +57,13 @@ class bgerp_PersonalizationSourceIntf
     /**
      * Връща TRUE или FALSE дали потребителя може да използва дадения източник на персонализация
      *
-     * @param integer $id
-     * @param integer $userId
+     * @param int $id
+     * @param int $userId
      *
-     * @return boolean
+     * @return bool
      */
-    function canUsePersonalization($id, $userId = NULL)
+    public function canUsePersonalization($id, $userId = null)
     {
-        
         return $this->class->canUsePersonalization($id, $userId);
     }
     
@@ -77,13 +72,12 @@ class bgerp_PersonalizationSourceIntf
      * Връща масив за SELECT с всички възможни източници за персонализация от даден клас,
      * които са достъпни за посочения потребител
      *
-     * @param integer $userId
+     * @param int $userId
      *
      * @return array
      */
-    function getPersonalizationOptions($userId = NULL)
+    public function getPersonalizationOptions($userId = null)
     {
-        
         return $this->class->getPersonalizationOptions($userId);
     }
     
@@ -92,14 +86,13 @@ class bgerp_PersonalizationSourceIntf
      * Връща масив за SELECT с всички възможни източници за персонализация от даден клас,
      * за съответния запис,
      * които са достъпни за посочения потребител
-     * 
-     * @param integer $srcId
-     * 
+     *
+     * @param int $srcId
+     *
      * @return array
      */
-    function getPersonalizationOptionsForId($srcId)
+    public function getPersonalizationOptionsForId($srcId)
     {
-        
         return $this->class->getPersonalizationOptionsForId($srcId);
     }
     
@@ -107,13 +100,12 @@ class bgerp_PersonalizationSourceIntf
     /**
      * Връща линк, който сочи към източника за персонализация
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return core_ET
      */
-    function getPersonalizationSrcLink($id)
+    public function getPersonalizationSrcLink($id)
     {
-        
         return $this->class->getPersonalizationSrcLink($id);
     }
     
@@ -121,13 +113,12 @@ class bgerp_PersonalizationSourceIntf
     /**
      * Връща езика за източника на персонализация
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */
-    function getPersonalizationLg($id)
+    public function getPersonalizationLg($id)
     {
-        
         return $this->class->getPersonalizationLg($id);
     }
 }

@@ -7,25 +7,25 @@
  *
  * @category  bgerp
  * @package   bglocal
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bglocal_interface_FreeShipping extends core_BaseClass
 {
-
-
-	/**
-	 * Поддържани интерфейси
-	 */
-	public $interfaces = 'cond_TransportCalc';
-
-
+    /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'cond_TransportCalc';
+    
+    
     /**
      * Заглавие
      */
-    public $title = "Безплатна доставка до България";
+    public $title = 'Безплатна доставка до България';
     
     
     /**
@@ -37,34 +37,40 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     /**
      * Определяне на обемното тегло, на база на обема на товара
      *
-     * @param double $weight  - Тегло на товара
-     * @param double $volume  - Обем  на товара
+     * @param float $weight         - Тегло на товара
+     * @param float $volume         - Обем  на товара
+     * @param int   $deliveryTermId - Условие на доставка
+     * @param array $params         - допълнителни параметри
      *
-     * @return double         - Обемно тегло на товара
+     * @return float - Обемно тегло на товара
      */
-    public function getVolumicWeight($weight, $volume)
+    public function getVolumicWeight($weight, $volume, $deliveryTermId, $params)
     {
-    	return NULL;
+        $m = 1;
+        if($volume * 33 < $weight) {
+            $m = 1000;
+        }
+
+        return max($weight, $volume * $m);
     }
     
     
     /**
      * Определяне цената за транспорт при посочените параметри
      *
-     * @param int $deliveryTermId    - условие на доставка
-     * @param double $singleWeight   - тегло
-     * @param double $singleVolume   - обем
-     * @param int $totalWeight       - Общо тегло на товара
-     * @param int $totalVolume       - Общ обем на товара
-     * @param array $params          - Други параметри
+     * @param int   $deliveryTermId     - условие на доставка
+     * @param float $volumicWeight      - единичното обемно тегло
+     * @param int   $totalVolumicWeight - Общото обемно тегло
+     * @param array $params             - други параметри
      *
      * @return array
-     * 			['fee']              - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
-     * 			['deliveryTime']     - срока на доставка в секунди ако го има
+     *               ['fee']          - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
+     *               ['deliveryTime'] - срока на доставка в секунди ако го има
+     *               ['explain']      - текстово обяснение на изчислението
      */
-    public function getTransportFee($deliveryTermId, $singleWeight, $singleVolume, $totalWeight, $totalVolume, $params)
+    public function getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params)
     {
-    	return array('fee' => 0);
+        return array('fee' => 0);
     }
     
     
@@ -72,19 +78,22 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      * Добавя полета за доставка към форма
      *
      * @param core_FieldSet $form
-     * @param string|NULL $userId
+     * @param string|NULL   $userId
+     *
      * @return void
      */
-    public function addFields(core_FieldSet &$form, $userId = NULL)
+    public function addFields(core_FieldSet &$form, $userId = null)
     {
-    	$bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
-    	
-    	$form->rec->deliveryCountry = $bgId;
-    	$form->setReadOnly('deliveryCountry');
-    	$form->setField('deliveryCountry', 'mandatory');
-    	$form->setField('deliveryPCode', 'mandatory');
-    	$form->setField('deliveryPlace', 'mandatory');
-    	$form->setField('deliveryAddress', 'mandatory');
+        $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+        
+        $form->rec->deliveryCountry = $bgId;
+        $form->setReadOnly('deliveryCountry');
+        $form->setField('deliveryCountry', 'mandatory');
+        $form->setField('deliveryPCode', 'mandatory');
+        $form->setField('deliveryPlace', 'mandatory');
+        $form->setField('deliveryAddress', 'mandatory');
+        
+        $form->setDefault('invoiceCountry', $bgId);
     }
     
     
@@ -95,7 +104,7 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      */
     public function getFields()
     {
-    	return array();
+        return array();
     }
     
     
@@ -103,11 +112,11 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      * Проверява форма
      *
      * @param core_FieldSet $form
+     *
      * @return void
      */
     public function checkForm(core_FieldSet &$form)
     {
-    	
     }
     
     
@@ -115,10 +124,45 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      * Рендира информацията
      *
      * @param stdClass rec
+     *
      * @return core_ET $tpl
      */
     public function renderDeliveryInfo($rec)
     {
-    	return new core_ET("");
+        return new core_ET('');
+    }
+    
+    
+    /**
+     * Добавя промени по изгледа на количката във външната част
+     *
+     * @param stdClass $termRec
+     * @param stdClass $cartRec
+     * @param stdClass $cartRow
+     * @param core_ET $tpl
+     *
+     * @return boolean
+     */
+    public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
+    {
+        $bgName = drdata_Countries::getCountryName('BG', core_Lg::getCurrent());
+        
+        $block = new core_ET(tr("|*<div>|Безплатна доставка на територията на|* <b>{$bgName}</b>|*</div>"));
+        $tpl->append($block, 'CART_FOOTER');
+        
+        return true;
+    }
+    
+    
+    /**
+     * При упдейт на количката в е-магазина, какво да се  изпълнява
+     *
+     * @param stdClass $cartRec
+     *
+     * @return void
+     */
+    public function onUpdateCartMaster(&$cartRec)
+    {
+        $cartRec->freeDelivery = 'yes';
     }
 }

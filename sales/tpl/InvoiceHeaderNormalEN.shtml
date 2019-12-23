@@ -74,7 +74,7 @@
                                                 <!--ET_END MyCompanyVatNo-->
                                                 <!--ET_BEGIN uicId-->
                                                 <tr>
-                                                    <td class="aright nowrap"><small>Таx ID:</small></td>
+                                                    <td class="aright nowrap"><small>Tax ID:</small></td>
                                                     <td><span class="bigData" style='padding-left:5px;'>[#uicId#]</span></td>
                                                 </tr>
                                                 <!--ET_END uicId-->

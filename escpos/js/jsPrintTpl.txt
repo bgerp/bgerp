@@ -1,0 +1,26 @@
+/**
+ * Отпечатва подадения стринг
+ * 
+ * @param escPrintOnSuccess - функция, която да се извика при успех
+ * @param escPrintOnError - функция, която да се извика при грешка
+ */
+function escPrint(escPrintOnSuccess, escPrintOnError) {
+    try {
+        $.ajax({   async: true,
+                   type: "GET",
+                   url: [#serverUrl#],
+                   crossDomain: true,
+                   cache: false,
+                   data: {printerIp: [#printerIp#], printerPort: [#printerPort#], printText: [#printText#]},
+               }).done(function(res) {
+                    escPrintOnSuccess(res);
+               }).fail(function(res){
+                    escPrintOnError(res);
+               });
+    } catch (ex) {
+        escPrintOnError(ex.message);
+    }
+}
+
+// Стартираме горната функция
+escPrint(escPrintOnSuccess, escPrintOnError);

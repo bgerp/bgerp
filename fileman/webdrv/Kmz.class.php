@@ -3,29 +3,30 @@
 
 /**
  * Драйвер за работа с .kmz файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Kmz extends fileman_webdrv_Kml
 {
-    
-    
-	/**
+    /**
      * Връща всички табове, които ги има за съответния файл
-     * 
+     *
      * @param object $fRec - Записите за файла
-     * 
+     *
      * @return array
-     * 
+     *
      * @Override
+     *
      * @see fileman_webdrv_Office::getTabs
      */
-    static function getTabs($fRec)
+    public static function getTabs($fRec)
     {
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
@@ -37,12 +38,12 @@ class fileman_webdrv_Kmz extends fileman_webdrv_Kml
         $contentStr = static::getArchiveContent($fRec, $path);
         
         // Таб за съдържанието
-		$tabsArr['content'] = (object) 
-			array(
-				'title'   => 'Съдържание',
-				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr("Съдържание") . "</div>{$contentStr}</div></div>",
-				'order' => 7,
-			);
+        $tabsArr['content'] = (object)
+            array(
+                'title' => 'Съдържание',
+                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='legend'>" . tr('Съдържание') . "</div><div class='webdrvFieldset'>{$contentStr}</div></div>",
+                'order' => 7,
+            );
         
         return $tabsArr;
     }
@@ -50,26 +51,26 @@ class fileman_webdrv_Kmz extends fileman_webdrv_Kml
     
     /**
      * Преглед на kml файла
-     * 
+     *
      * @param object $fRec - Записите за файла
-     * 
+     *
      * @return ET
      */
     public static function renderView($fRec)
     {
         $kml = fileman_Indexes::getInfoContentByFh($fRec->fileHnd, 'kml');
         
-        $error = FALSE;
+        $error = false;
         
-        if ($kml === FALSE) {
+        if ($kml === false) {
             
             // throw fileman_Exception - ако размера е над допустимия за обработка,
             // трябва да го прихванеш
             try {
                 $archiveInst = fileman_webdrv_Archive::getArchiveInst($fRec);
-            } catch(fileman_Exception $e) {
+            } catch (fileman_Exception $e) {
                 self::logWarning($e->getMessage());
-                $error = TRUE;
+                $error = true;
             }
             
             if (!$error) {
@@ -77,48 +78,55 @@ class fileman_webdrv_Kmz extends fileman_webdrv_Kml
                     $entriesArr = $archiveInst->getEntries();
                 } catch (ErrorException $e) {
                     self::logWarning($e->getMessage());
-                    $error = TRUE;
+                    $error = true;
                 }
             }
             
             if (!$error) {
                 foreach ($entriesArr as $key => $entry) {
                     $size = $entry->getSize();
-                
-                    if (!$size) continue;
-                
+                    
+                    if (!$size) {
+                        continue;
+                    }
+                    
                     // Гледаме размера след разархивиране да не е много голям
                     // Защита от "бомби" - от препълване на сървъра
-                    if ($size > ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT) continue;
-                
+                    if ($size > archive_Setup::get('MAX_LEN')) {
+                        continue;
+                    }
+                    
                     $path = $entry->getPath();
-                
+                    
                     $ext = pathinfo($path, PATHINFO_EXTENSION);
-                
-                    if (!$ext) continue;
-                
+                    
+                    if (!$ext) {
+                        continue;
+                    }
+                    
                     $ext = strtolower($ext);
-                
-                    if ($ext != 'kml') continue;
-                
+                    
+                    if ($ext != 'kml') {
+                        continue;
+                    }
+                    
                     // След като открием файла който ще пратим към VT
                     try {
                         $extractedPath = $archiveInst->extractEntry($path);
                     } catch (ErrorException $e) {
                         continue;
                     }
-                
+                    
                     if (!is_file($extractedPath)) {
                         continue;
                     }
                     $kml = fileman::absorb($extractedPath, 'archive');
-                
+                    
                     if ($kml) {
                         $archiveInst->deleteTempPath();
                         break;
-                    } else {
-                        continue;
                     }
+                    continue;
                 }
                 
                 $params = array();
@@ -143,9 +151,8 @@ class fileman_webdrv_Kmz extends fileman_webdrv_Kml
         if ($kmlRec) {
             
             return parent::renderView($kmlRec);
-        } else {
-            
-            return tr("Грешка при показване на KML файл");
         }
+        
+        return tr('Грешка при показване на KML файл');
     }
 }

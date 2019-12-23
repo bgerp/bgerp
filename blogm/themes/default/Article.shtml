@@ -1,10 +1,11 @@
+<div class='blogm-article-title'>[#title#]</div>
 <div class='blogm-article-info'>
     <span class='blogm-comments-cnt linkWithIcon'>[#commentsCnt#]</span>
     [#publishedOn#], [#author#] |в|* [#categories#] 
 </div>
-<div class='blogm-article-title'>[#title#]</div>
 <div class='blogm-article-body'>
     [#body#]
+    [#prevNextLinks#]
 </div>
 <!--ET_BEGIN SHARE_TOOLBAR-->
 [#SHARE_TOOLBAR#]

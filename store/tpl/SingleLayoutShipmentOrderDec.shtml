@@ -15,6 +15,13 @@
                <!--ET_BEGIN state-->
                <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                <!--ET_END state-->
+               <!--ET_BEGIN storeReadiness-->
+               <div class="document-block"><span class='block-caption'>Налично в склад</span>: <span class='block-instock'>[#storeReadiness#]</span></div>
+               <!--ET_END storeReadiness-->
+
+               <!--ET_BEGIN zoneReadiness-->
+               <div class="document-block"><span class='block-caption'>В зона [#zoneId#]</span>: <span class='block-readiness'>[#zoneReadiness#]</span></div>
+               <!--ET_END zoneReadiness-->
             </td>
             <td class="cell custom-header-bg" style='width:35%;'><b>|Доставчик|*</b></td>
          </tr>
@@ -71,7 +78,7 @@
                   <!--ET_END deliveryTime-->
                   <!--ET_BEGIN fromContainerId-->
                   <tr>
-                     <td colspan='2'><span class='quiet'>|Към фактура|*:</span> [#fromContainerId#]</td>
+                     <td class='quiet aright'>|Към|*[#fromContainerName#]:</td><td>[#fromContainerId#]</td>
                   </tr>
                   <!--ET_END fromContainerId-->                            
                   <!--ET_BEGIN deliveryAddressBlock-->
@@ -85,30 +92,45 @@
                   <!--ET_END deliveryAddressBlock-->
                   <!--ET_BEGIN lineId-->
                   <tr>
-                     <td class='quiet nowrap aright'>|Транспорт|*: </td>
+                     <td class='quiet nowrap aright'>|Транспорт|*:</td>
                      <td>[#lineId#]</td>
                   </tr>
                   <!--ET_END lineId-->
+
+                  <!--ET_BEGIN lineNotes-->
+                  <tr>
+                     <td class='quiet nowrap aright'>|Забележки|*:</td>
+                     <td>[#lineNotes#]</td>
+                  </tr>
+                  <!--ET_END lineNotes-->
                   <!--ET_BEGIN note-->
                   <tr>
-                     <td colspan="2">
+                     <td colspan="2" >
                         <hr>
                         [#note#]
                      </td>
                   </tr>
                   <!--ET_END note-->
                   <tr>
-                     <td colspan="2">
+                     <td colspan="2" >
                         <hr>
                      </td>
                   </tr>
+                  <!--ET_END deliveryTable-->
+                  <tr>
+                     <td colspan="2" >
+                        <div>
+                           <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span> <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
+                        </div>
+                     </td>
+                  </tr>
+                  <!--ET_BEGIN logisticInfo-->
+                  <tr>
+                     <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*:</span> [#logisticInfo#]</td>
+                  </tr>
+                  <!--ET_END logisticInfo-->
                </table>
                <!--ET_END delivery_table-->
-               <div class='clearfix21' style='margin-bottom: 5px;'>
-                  <div>
-                     <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span><span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
-                  </div>
-               </div>
             </td>
             <td>
                <table class='centered special-borders' style='width:100%;'>
@@ -153,7 +175,7 @@
       class="linkWithIcon more-btn">|Декларация за доставка|*</a>
    <div class='clearfix21 richtextHide' id='[#id#]'>
       <div class="indent">|Ние|*, [#toCompany#]<!--ET_BEGIN inlineContragentAddress-->, |с адрес|*: [#inlineContragentAddress#]<!--ET_END inlineContragentAddress--><!--ET_BEGIN vatNo-->, |ЕИК|*: [#vatNo#]<!--ET_END vatNo-->,</div>
-      <div>|потвърждаваме|*, |че|* |продуктите|* <!--ET_BEGIN invoiceHandler-->|упоменати във фактура|* № <b>[#invoiceHandler#]</b><!--ET_END invoiceHandler--> |са получени|*<!--ET_BEGIN inlineDeliveryAddress-->|на посочения адрес|*: [#inlineDeliveryAddress#]<!--ET_END inlineDeliveryAddress-->.</div>
+      <div>|потвърждаваме|*, |че|* |продуктите|* <!--ET_BEGIN invoiceHandler-->|упоменати във фактура|* № <b>[#invoiceHandler#]</b><!--ET_END invoiceHandler--> |са получени|* <!--ET_BEGIN inlineDeliveryAddress-->|на посочения адрес|*: [#inlineDeliveryAddress#]<!--ET_END inlineDeliveryAddress-->.</div>
       <table class="fleft signature-table" style='width: 30%'>
          <tr>
             <td style='width: 1%'>|Дата|*:  </td>

@@ -41,7 +41,7 @@
                 <tr>
                     <td class='aleft' style='padding-left:10px;padding-top: 10px;width:67%;'>
                         <!--ET_BEGIN fromContainerId-->
-                     	<span class='quiet nowrap'>|Към фактура|*</span>:&nbsp;&nbsp;&nbsp;[#fromContainerId#]
+                     	<span class='quiet nowrap'>|Към|* [#fromContainerName#]</span>:&nbsp;&nbsp;&nbsp;[#fromContainerId#]
                      	<!--ET_END fromContainerId-->
                     	<!--ET_BEGIN termDate-->
                      	<div class='richtext-holder'><span class='quiet'>|Срок|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
@@ -95,9 +95,9 @@
                                 <td></td>
                                 <td>
                                 <span class='sign_names nowrap'>
-                                <!--ET_BEGIN activatedBy-->
-                                ( [#activatedBy#] )
-                                <!--ET_END activatedBy-->
+                                <!--ET_BEGIN issuer-->
+                                ( [#issuer#] )
+                                <!--ET_END issuer-->
                                 </span>
                                 </td>
                             </tr>

@@ -6,53 +6,50 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_AssignPlg extends core_Plugin
 {
-    
-    
     /**
      * Кой може да възлага
      */
-    var $canAssign = 'doc, admin, ceo';
+    public $canAssign = 'doc, admin, ceo';
     
     
     /**
      * Кой може да променя активирани записи
      */
-    var $canChangerec = 'doc, admin, ceo';
+    public $canChangerec = 'doc, admin, ceo';
     
     
-    /**
-     * 
-     */
-    var $loadList = 'change_Plugin';
+    public $loadList = 'change_Plugin';
     
     
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$mvc)
+    public function on_AfterDescription(&$mvc)
     {
         // Ако няма такова поле
-        if(!$mvc->fields['assign']) {
+        if (!$mvc->fields['assign']) {
             // Добавяме в модела
             $mvc->FLD('assign', 'keylist(mvc=core_Users, select=nick)', 'caption=Възлагане на, changable, before=sharedUsers, optionsFunc=doc_AssignPlg::getUsersForAssign');
         }
         
         // Ако няма такова поле
-        if(!$mvc->fields['assignedOn']) {
+        if (!$mvc->fields['assignedOn']) {
             
             // Добавяме в модела
             $mvc->FLD('assignedOn', 'datetime(format=smartTime)', 'caption=Възложено->На,input=none');
         }
         
         // Ако няма такова поле
-        if(!$mvc->fields['assignedBy']) {
+        if (!$mvc->fields['assignedBy']) {
             
             // Добавяме в модела
             $mvc->FLD('assignedBy', 'user', 'caption=Възложено->От,input=none');
@@ -69,29 +66,32 @@ class doc_AssignPlg extends core_Plugin
         
         // Към възложените потребители, добавяме споделените в ричтекста
         if ($form->isSubmitted()) {
-            
             $assignedUsersArrAll = array();
             
-            foreach ((array)$mvc->fields as $name => $field) {
+            foreach ((array) $mvc->fields as $name => $field) {
                 if ($field->type instanceof type_Richtext) {
-                    
-                    if ($field->type->params['nickToLink'] == 'no') continue;
+                    if ($field->type->params['nickToLink'] == 'no') {
+                        continue;
+                    }
                     
                     $usersArr = rtac_Plugin::getNicksArr($rec->$name);
-                    if (empty($usersArr)) continue;
+                    if (empty($usersArr)) {
+                        continue;
+                    }
                     
                     $assignedUsersArrAll = array_merge($assignedUsersArrAll, $usersArr);
                 }
             }
             
             if (!empty($assignedUsersArrAll)) {
-                
-                foreach ((array)$assignedUsersArrAll as $nick) {
+                foreach ((array) $assignedUsersArrAll as $nick) {
                     $nick = strtolower($nick);
                     $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
                     
                     // Партнюрите да не са споделение
-                    if (core_Users::haveRole('partner', $id)) continue;
+                    if (core_Users::haveRole('partner', $id)) {
+                        continue;
+                    }
                     
                     $rec->assign = type_Keylist::addKey($rec->assign, $id);
                 }
@@ -102,18 +102,21 @@ class doc_AssignPlg extends core_Plugin
     
     /**
      * Прихваща извикването на AfterInputChanges в change_Plugin
-     * 
+     *
      * @param core_MVc $mvc
-     * @param object $oldRec - Стария запис
-     * @param object $newRec - Новия запис
+     * @param object   $oldRec - Стария запис
+     * @param object   $newRec - Новия запис
      */
-    function on_AfterInputChanges($mvc, $oldRec, $newRec)
+    public function on_AfterInputChanges($mvc, $oldRec, $newRec)
     {
         // Вземаме всички записи
-        $rec = $mvc->fetch($oldRec->id, '*', FALSE);
+        $rec = $mvc->fetch($oldRec->id, '*', false);
         
         // Ако няма промяне, връщаме
-        if (($oldRec->assign == $newRec->assign)) return ;
+        if (($oldRec->assign == $newRec->assign)) {
+            
+            return ;
+        }
         
         $cu = core_Users::getCurrent();
         
@@ -126,7 +129,6 @@ class doc_AssignPlg extends core_Plugin
         
         $removedUsersArr = array_diff($oldAssignedArr, $newAssignedArr);
         if (!empty($removedUsersArr)) {
-            
             unset($removedUsersArr[$cu]);
             
             foreach ($removedUsersArr as $oldAssigned) {
@@ -174,13 +176,16 @@ class doc_AssignPlg extends core_Plugin
     /**
      * Изпраща нотификация до възложения потребител
      */
-    static function on_AfterNotificateAssigned($mvc, $res, $iRec, $notifyUsersArr)
+    public static function on_AfterNotificateAssigned($mvc, $res, $iRec, $notifyUsersArr)
     {
         $cu = core_Users::getCurrent();
         
         unset($notifyUsersArr[$cu]);
         
-        if (empty($notifyUsersArr)) return ;
+        if (empty($notifyUsersArr)) {
+            
+            return ;
+        }
         
         // Вербалния ник на потребителя
         $nick = core_Users::getVerbal($cu, 'nick');
@@ -189,8 +194,8 @@ class doc_AssignPlg extends core_Plugin
         $docHnd = $mvc->getHandle($iRec->id);
         
         // Титлата на документа в долния регистър
-        $docSingleTitleLower = mb_strtolower($mvc->singleTitle); 
-
+        $docSingleTitleLower = mb_strtolower($mvc->singleTitle);
+        
         // Заглавието на сигнала във НЕвербален вид
         $title = str::limitLen($mvc->getDocumentRow($iRec->id)->recTitle, 90);
         
@@ -209,19 +214,19 @@ class doc_AssignPlg extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = NULL)
+    public static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = null)
     {
         if ($rec->assign) {
             if (!isset($rec->assignedOn) && !isset($rec->assignedBy)) {
-                $update = FALSE;
+                $update = false;
                 if ($rec->id) {
-                    $oRec = $mvc->fetch($rec->id, NULL, FALSE);
+                    $oRec = $mvc->fetch($rec->id, null, false);
                 } else {
-                    $update = TRUE;
+                    $update = true;
                 }
                 
                 if ($rec->assign != $oRec->assign) {
-                    $update = TRUE;
+                    $update = true;
                 }
                 
                 if ($update) {
@@ -233,10 +238,10 @@ class doc_AssignPlg extends core_Plugin
     }
     
     
-	/**
+    /**
      * Вербалните стойности на датата и възложителя
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if ($rec->assignedBy) {
             $row->assignedBy = crm_Profiles::createLink($rec->assignedBy);
@@ -249,9 +254,9 @@ class doc_AssignPlg extends core_Plugin
                 $row->assign .= crm_Profiles::createLink($aId);
             }
         }
-
+        
         if ($rec->assignedDate) {
-            $row->assignedDate = dt::mysql2verbal($rec->assignedDate, 'd-m-Y');    
+            $row->assignedDate = dt::mysql2verbal($rec->assignedDate, 'd-m-Y');
         }
     }
     
@@ -259,9 +264,9 @@ class doc_AssignPlg extends core_Plugin
     /**
      * Потребителя, на когото е възложена задачата
      */
-    function on_AfterGetShared($mvc, &$shared, $id)
+    public function on_AfterGetShared($mvc, &$shared, $id)
     {
-        $assignedRec = $mvc->fetch($id, 'assign', FALSE);
+        $assignedRec = $mvc->fetch($id, 'assign', false);
         
         $assignedUsersArr = array();
         if ($assignedRec->assign) {
@@ -278,7 +283,7 @@ class doc_AssignPlg extends core_Plugin
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Определяме правата за възлагане
         if ($action == 'assign') {
@@ -293,10 +298,7 @@ class doc_AssignPlg extends core_Plugin
     }
     
     
-    /**
-     * 
-     */
-    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         // Ако няма възложено на
         if (!$data->row->assign) {
@@ -312,12 +314,12 @@ class doc_AssignPlg extends core_Plugin
      * Преди записване на клонирания запис
      *
      * @param core_Mvc $mvc
-     * @param object $rec
-     * @param object $nRec
+     * @param object   $rec
+     * @param object   $nRec
      *
      * @see plg_Clone
      */
-    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    public function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {
         unset($nRec->assignedOn);
         unset($nRec->assignedBy);
@@ -326,9 +328,9 @@ class doc_AssignPlg extends core_Plugin
     
     /**
      * Връща всички потребители, на които може да се възлага документа
-     * 
+     *
      * @param type_Keylist $type
-     * @param NULL|array $options
+     * @param NULL|array   $options
      */
     public static function getUsersForAssign($type, $options)
     {
@@ -339,7 +341,7 @@ class doc_AssignPlg extends core_Plugin
         
         $resArr = core_Cache::get($type, $handle, $keepMinute, $depends);
         
-        if ($resArr === FALSE) {
+        if ($resArr === false) {
             $uQuery = core_Users::getQuery();
             
             $uQuery->where("#state != 'rejected'");
@@ -399,7 +401,7 @@ class doc_AssignPlg extends core_Plugin
     
     /**
      * Подготовка на формата за добавяне/редактиране
-     * 
+     *
      * @param core_Mvc $mvc
      * @param stdClass $res
      * @param stdClass $data
@@ -418,10 +420,10 @@ class doc_AssignPlg extends core_Plugin
     
     /**
      * Връща потребителите по подразбиране за споделяне
-     * 
-     * @param core_Mvc $mvc
+     *
+     * @param core_Mvc    $mvc
      * @param NULL|string $res
-     * @param stdClass $rec
+     * @param stdClass    $rec
      */
     public static function on_AfterGetDefaultAssignUsers($mvc, &$res, $rec)
     {
@@ -431,7 +433,7 @@ class doc_AssignPlg extends core_Plugin
             $folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
         }
         
-        $assignUsers = NULL;
+        $assignUsers = null;
         
         if ($folderId) {
             
@@ -448,15 +450,16 @@ class doc_AssignPlg extends core_Plugin
             $mQuery->where("#state != 'rejected'");
             $mQuery->where("#state != 'draft'");
             
-            $mQuery->orderBy("#createdOn", 'DESC');
+            $mQuery->orderBy('#createdOn', 'DESC');
             $mQuery->limit($minLimit);
             
             $mQuery->show('assign');
             
             if ($mQuery->count() >= $minLimit) {
                 while ($mRec = $mQuery->fetch()) {
-                    
-                    if (!$mRec->assign) break;
+                    if (!$mRec->assign) {
+                        break;
+                    }
                     
                     // Уеднакяваме полето за възложени
                     $assignArr = type_Keylist::toArray($mRec->assign);

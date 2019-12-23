@@ -1,7 +1,3 @@
-.cms-row {
-	padding-top: 30px;
-}
-
 .blog-browse-header {
 	font-size:1.2em;
 	margin-bottom:1em;
@@ -12,12 +8,11 @@
 
 
 .blogm-article-title, .blogm-article-title a {
-	font-size:2em;
+	font-size:1.8em;
 	line-height:130%;
 	font-weight:bold;
 	margin-top:10px;
 	margin-bottom:10px;
-    color:#333;
 }
 
 
@@ -28,8 +23,8 @@
 }
 
 .blogm-article-info {
-	font-size:0.75em;
-	padding:3px;
+	font-size:1em;
+	padding:5px;
 	
 	 /* fallback */ 
 	 background-color: #eee; 
@@ -53,6 +48,11 @@
 	margin-bottom:6px;
 }
 
+.blogmBrowseImg {
+    float:right;
+    margin-left:10px;
+}
+
 #sBtn{
 	background-image:url('../../../img/search.png');
 	width:25px;
@@ -69,6 +69,15 @@
 }
 
 .blogm-article-body .richtext {
+	font-size:1em;
+    color:#333;
+}
+
+.narrow .blogm-browse-article .blogm-article-body {
+	font-size:0.95em;
+}
+
+.wide .blogm-article-body .richtext {
 	font-size:1.1em;
     color:#333;
 }

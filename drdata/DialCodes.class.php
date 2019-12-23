@@ -1,44 +1,44 @@
 <?php
 
 
-
 /**
  * Клас 'drdata_DialCodes' -
  *
  *
  * @category  vendors
  * @package   drdata
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class drdata_DialCodes extends core_Manager {
-    
-    
+class drdata_DialCodes extends core_Manager
+{
     /**
      * Заглавие
      */
-    var $title = 'Телефонни кодове';
+    public $title = 'Телефонни кодове';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
+    public $canList = 'admin';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'drdata_Wrapper,plg_RowTools2';
+    public $loadList = 'drdata_Wrapper,plg_RowTools2';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         // Декларираме полетата
         $this->FLD('country', 'varchar', 'caption=Страна->Наименование');
@@ -51,11 +51,11 @@ class drdata_DialCodes extends core_Manager {
         $this->setDbIndex('country');
     }
     
-
+    
     /**
      * Изчистване на данните преди запис
      */
-    function on_BeforeImportRec($mvc, $rec)
+    public function on_BeforeImportRec($mvc, $rec)
     {
         $rec->areaCode = trim($rec->areaCode);
     }
@@ -64,20 +64,20 @@ class drdata_DialCodes extends core_Manager {
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMVC(&$mvc, &$res)
+    public static function on_AfterSetupMVC(&$mvc, &$res)
     {
         // Вкарваме първия източник на данни
-        $file = "drdata/data/DialingCodes.dat";
+        $file = 'drdata/data/DialingCodes.dat';
         
         // Колонките на файла с данни отнесени към полетата на модела
         $fields = array('country', 'countryCode', 'area', 'areaCode');
         
-        // Разделителят е специфичен     
+        // Разделителят е специфичен
         $format = array('delimiter' => '|');
         
         // Импорт на данните
-        $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields, NULL, $format);        
-
+        $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields, null, $format);
+        
         $res .= $cntObj->html;
     }
 }

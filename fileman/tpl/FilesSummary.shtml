@@ -3,7 +3,7 @@
     	<!--ET_BEGIN filesInfo-->
     		[#filesInfo#]
 	        <tr>
-	            <th colspan="2">|Файлове|*:</th>
+	            <td colspan="2"><strong>|Файлове|*:</strong></td>
 	        </tr>
 	        <!--ET_BEGIN fileSize-->
 		        <tr class='border-top'>
@@ -23,22 +23,28 @@
         <!--ET_BEGIN bdInfo-->
         	[#bdInfo#]
 	        <tr >
-	            <th colspan="2">|БД|*:</th>
+	            <td colspan="2"><strong>|База данни|*</strong>:</td>
 	        </tr>
-	        
-	        <!--ET_BEGIN sqlSize-->
+	        <!--ET_BEGIN rowCnt-->
 		        <tr class='border-top'>
-		            <td class='quiet'>|Размер|*:</td>
-		            <td class='aright'>[#sqlSize#]</td>
+		            <td class='quiet'>|Таблици|*:</td>
+		            <td class='aright'>[#tablesCnt#] |бр.|*</td>
 		        </tr>
-	        <!--ET_END sqlSize-->
-	        
+	        <!--ET_END rowCnt-->
 	        <!--ET_BEGIN rowCnt-->
 		        <tr>
 		            <td class='quiet'>|Редове|*:</td>
 		            <td class='aright'>[#rowCnt#] |бр.|*</td>
 		        </tr>
 	        <!--ET_END rowCnt-->
+	        
+	        <!--ET_BEGIN sqlSize-->
+		        <tr>
+		            <td class='quiet'>|Размер|*:</td>
+		            <td class='aright'>[#sqlSize#]</td>
+		        </tr>
+	        <!--ET_END sqlSize-->
+	        
         <!--ET_END bdInfo-->
     </table>
 </div>

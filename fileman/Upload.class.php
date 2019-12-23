@@ -7,40 +7,37 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_Upload extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'fileman_DialogWrapper';
+    public $loadList = 'fileman_DialogWrapper';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Качвания на файлове';
+    public $title = 'Качвания на файлове';
     
     
-    /**
-     *
-     */
-    var $canAdd = 'every_one';
+    public $canAdd = 'every_one';
     
     
     /**
      * @todo Чака за документация...
      */
-    function act_Dialog()
+    public function act_Dialog()
     {
         // Дали ще качаваме много файлове едновременно
-        $allowMultiUpload = FALSE;
+        $allowMultiUpload = false;
         
         Request::setProtected('callback, bucketId');
         
@@ -48,11 +45,11 @@ class fileman_Upload extends core_Manager
         if ($callback = Request::get('callback', 'identifier')) {
             
             // Ако файловете ще се добавят в richText
-            if (stripos($callback, 'placeFile_') !== FALSE) {
+            if (stripos($callback, 'placeFile_') !== false) {
                 
                 // Позволяваме множествено добавяне
-                $allowMultiUpload = TRUE;
-            } 
+                $allowMultiUpload = true;
+            }
         }
         
         // Вземаме id' то на кофата
@@ -66,33 +63,30 @@ class fileman_Upload extends core_Manager
         
         // Ако е стартрино качването
         if (Request::get('Upload')) {
-            
             $resEt = new ET();
             
             // Обхождаме качените файлове
-            foreach ((array)$_FILES as $inputName => $inputArr) {
-                
-                $fh = NULL;
+            foreach ((array) $_FILES as $inputName => $inputArr) {
+                $fh = null;
                 
                 // Масив с грешките
                 $err = array();
                 
                 $fRec = new stdClass();
                 
-                foreach ((array)$inputArr['name'] as $id => $inpName) {
+                foreach ((array) $inputArr['name'] as $id => $inpName) {
                     
                     // Ако файла е качен успешно
-                    if($_FILES[$inputName]['name'][$id] && $_FILES[$inputName]['tmp_name'][$id]) {
+                    if ($_FILES[$inputName]['name'][$id] && $_FILES[$inputName]['tmp_name'][$id]) {
                         
                         // Ако има кофа
-                        if($bucketId) {
+                        if ($bucketId) {
                             
                             // Вземаме инфото на обекта, който ще получи файла
                             $Buckets = cls::get('fileman_Buckets');
                             
                             // Ако файла е валиден по размер и разширение - добавяме го към собственика му
-                            if($Buckets->isValid($err, $bucketId, $_FILES[$inputName]['name'][$id], $_FILES[$inputName]['tmp_name'][$id])) {
-                                
+                            if ($Buckets->isValid($err, $bucketId, $_FILES[$inputName]['name'][$id], $_FILES[$inputName]['tmp_name'][$id])) {
                                 try {
                                     $bucketName = fileman_Buckets::fetchField($bucketId, 'name');
                                     
@@ -104,7 +98,7 @@ class fileman_Upload extends core_Manager
                                 
                                 $resEt->append($Buckets->getInfoAfterAddingFile($fh));
                                 
-                                if($callback && !$_FILES[$inputName]['error'][$id]) {
+                                if ($callback && !$_FILES[$inputName]['error'][$id]) {
                                     if (isset($fh)) {
                                         $fRec = fileman_Files::fetchByFh($fh);
                                     }
@@ -117,27 +111,26 @@ class fileman_Upload extends core_Manager
                     }
                     
                     // Ако има грешка в $_FILES за съответния файл
-                    if($_FILES[$inputName]['error'][$id]) {
+                    if ($_FILES[$inputName]['error'][$id]) {
                         // Ако са възникнали грешки при качването - записваме ги в променливата $err
-                        switch($_FILES[$inputName]['error'][$id]) {
-                            case 1 : $err[] = tr('Достигнато е ограничението за размер на файла в "php.ini"'); break;
-                            case 2 : $err[] = tr('Размерът на файла е над "MAX_FILE_SIZE"'); break;
-                            case 3 : $err[] = tr('Не е качен целия файл'); break;
-                            case 4 : $err[] = tr('Не е качен файл'); break;
-                            case 6 : $err[] = tr('Не може да се намери временната директория'); break;
-                            case 7 : $err[] = tr('Грешка при записване на файла'); break;
+                        switch ($_FILES[$inputName]['error'][$id]) {
+                            case 1: $err[] = tr('Достигнато е ограничението за размер на файла в "php.ini"'); break;
+                            case 2: $err[] = tr('Размерът на файла е над "MAX_FILE_SIZE"'); break;
+                            case 3: $err[] = tr('Не е качен целия файл'); break;
+                            case 4: $err[] = tr('Не е качен файл'); break;
+                            case 6: $err[] = tr('Не може да се намери временната директория'); break;
+                            case 7: $err[] = tr('Грешка при записване на файла'); break;
                         }
                     }
                     
                     $success = true;
                     
                     // Ако има грешки, показваме ги в прозореца за качване
-                    if(!empty($err)) {
+                    if (!empty($err)) {
+                        $error = new ET("<div class='upload-error'><ul>{$_FILES[$inputName]['name'][$id]}[#ERR#]</ul></div>");
                         
-                        $error = new ET("<div class='upload-еrror'><ul>{$_FILES[$inputName]['name'][$id]}[#ERR#]</ul></div>");
-                        
-                        foreach($err as $e) {
-                            $error->append("<li>" . tr($e) . "</li>", 'ERR');
+                        foreach ($err as $e) {
+                            $error->append('<li>' . tr($e) . '</li>', 'ERR');
                             fileman_Files::logWarning('Грешка при добавяне на файл: ' . $e);
                             $success = false;
                         }
@@ -151,7 +144,7 @@ class fileman_Upload extends core_Manager
             }
             
             if (Request::get('ajax_mode')) {
-                core_App::outputJson(array("success" => $success, "res" => $resEt->getContent()));
+                core_App::outputJson(array('success' => $success, 'res' => $resEt->getContent()));
             } else {
                 $add->prepend($resEt);
             }
@@ -174,14 +167,13 @@ class fileman_Upload extends core_Manager
     
     /**
      * Връща линк към подадения обект
-     * 
-     * @param integer $objId
-     * 
+     *
+     * @param int $objId
+     *
      * @return core_ET
      */
     public static function getLinkForObject($objId)
     {
-        
         return ht::createLink(get_called_class(), array());
     }
     
@@ -189,9 +181,8 @@ class fileman_Upload extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function renderDialog_($tpl)
+    public function renderDialog_($tpl)
     {
-        
         return $tpl;
     }
     
@@ -199,9 +190,8 @@ class fileman_Upload extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function getProgressTpl($allowMultiUpload=FALSE, $maxAllowedFileSize=0)
+    public function getProgressTpl($allowMultiUpload = false, $maxAllowedFileSize = 0)
     {
-        
         $uploadStr = tr('Качване') . ':';
         
         $multiple = '';
@@ -216,25 +206,25 @@ class fileman_Upload extends core_Manager
             <form id="uploadform" enctype="multipart/form-data" method="post">
                 <span class="uploaded-filenames"> </span>
                 <div id="inputDiv">
-                    <input id="ulfile" class="ulfile" name="ulfile[]" ' . $multiple . ' type="file" size="1" onchange="afterSelectFile(this, ' . $allowMultiUpload . ', ' . (int)$maxAllowedFileSize . ');" [#ACCEPT#]>
+                    <input id="ulfile" class="ulfile" name="ulfile[]" ' . $multiple . ' type="file" size="1" onchange="afterSelectFile(this, ' . $allowMultiUpload . ', ' . (int) $maxAllowedFileSize . ');" [#ACCEPT#]>
                     <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Файл') . '</button>
                     <input type="button" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button btn-disabled" id="uploadBtn" disabled="disabled"/>
                 </div>
             </form>');
-
+        
         $currUrl = getCurrentUrl();
         $currUrl['Upload'] = '1';
         $currUrl['ajax_mode'] = '1';
         $uploadUrl = toUrl($currUrl);
         $uploadUrl = json_encode($uploadUrl);
         
-        $crossImg = sbf('img/16/delete.png', "");
+        $crossImg = sbf('img/16/delete.png', '');
         $crossImg = json_encode($crossImg);
         
         $uploadErrStr = tr('Грешка при качване на файл') . ': ';
         $uploadErrStr = json_encode($uploadErrStr);
         
-        $fileSizeErr = tr("Файлът е над допустимия размер");
+        $fileSizeErr = tr('Файлът е над допустимия размер');
         $fileSizeErr = json_encode($fileSizeErr);
         
         $tpl->appendOnce("var uploadUrl = {$uploadUrl}; var crossImgPng = {$crossImg}; var uploadErrStr = {$uploadErrStr}; var fileSizeErr = {$fileSizeErr}; var allowMultiupload = {$allowMultiUpload};", 'SCRIPTS');

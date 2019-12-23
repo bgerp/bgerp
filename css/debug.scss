@@ -1,0 +1,229 @@
+body.wide {
+    overflow: hidden;
+}
+.headerLine {
+    padding: 10px;
+    background-color: #333;
+    .debugActions {
+        display: inline-block;
+        margin-right: 10px;
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+}
+
+.wide form {
+    width: 230px;
+    margin-left: 5px;
+    overflow: hidden;
+}
+
+.narrow .debugPreview, .narrow .debugList {
+    display: block;
+    width: 100%;
+    flex: auto;
+}
+
+.narrow .listFilter {
+    margin-left: 20px;
+    padding-bottom: 10px;
+    float: left;
+    input {
+        width: 300px;
+    }
+}
+
+.narrow .search-fields {
+    position: relative;
+    left: 8px;
+}
+
+.narrow #filter {
+    width: 28px;
+    height: 29px;
+    background-color: transparent !important;
+    background-image: url('../img/16/find.png');
+    background-repeat: no-repeat;
+    position: relative;
+    left: -30px;
+}
+
+.narrow .toolbar, .narrow   div.hFormField {
+    float: left;
+    display: inline-block;
+    margin: 0 !important;
+}
+
+.narrow .aright {
+    border-top: 1px solid #666;
+    margin-top: 10px;
+    padding-top: 10px;
+    float: none;
+    width: 100%;
+}
+
+.narrow .headerLine {
+    font-size: 0.85em;
+    .debugActions {
+        margin-right: 5px;
+    }
+    span {
+        margin: 0 5px;
+    }
+}
+
+.narrow .linksGroup {
+    clear: both;
+    margin-bottom: 20px;
+    height: 200px;
+    overflow-y: auto;
+}
+
+.narrow form:after {
+    clear: both;
+}
+.debugLink {
+    display: block;
+    padding: 5px 5px 5px 20px;
+    font-size: 0.8em;
+    color: #ccc !important;
+    position: relative;
+    border-top: 1px dotted #666;
+    &.current {
+      color: #AE508D !important;
+       &:before {
+           content: "\bb \20";
+           position: absolute;
+           left: 7px;
+           top: 3px;
+       }
+    }
+    &.same {
+      color: #2ca2bd !important;
+    }
+}
+
+.narrow .debug_block {
+    display: block !important;
+}
+
+.debugPreview {
+    padding: 0;
+}
+.wide .debugHolder {
+    resize: horizontal;
+    overflow: hidden;
+    display: flex;
+}
+.debugList {
+    display: block;
+    background-color: #333;
+    width: 270px;
+    overflow-y: auto;
+    resize: horizontal;
+    min-width: 10px !important;
+}
+
+.wide .debugPreview {
+    flex: auto;
+    width: 85%;
+    height: 1000px;
+    overflow: auto;
+}
+.hFormField {
+    position: relative;
+    width: 100%;
+    input, select, .select2-container--default .select2-selection--single{
+        border: none;
+        outline: none;
+    }
+}
+.listFilter {
+    display: block;
+    margin: 10px;
+    input {
+        width: 193px;
+        background-color: #fff !important;
+        border-radius: 2px;
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+    background-color: #F5F5F5;
+}
+
+::-webkit-scrollbar-thumb {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,1);
+    border-radius: 15px;
+}
+
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    background-color: #F5F5F5;
+}
+
+#filter {
+    margin: 0;
+    width: 10px;
+    background-position: center;
+    height:26px;
+}
+.headerLine {
+    color: #eee;
+    a, span {
+      color: #eee !important;
+      display: inline-block;
+      margin-right: 20px;
+    }
+}
+
+.aright {
+    float: right;
+    text-align: right;
+    display: inline-block;
+}
+
+.debugList .select2-container {
+    min-width: 230px;
+}
+
+.debugList .debugOpt {
+    width: 100% !important;
+}
+
+.narrow .other-fileds {
+    width: 300px;
+    margin-left: 8px;
+}
+
+.narrow .hFormField {
+    padding-bottom: 5px;
+}
+
+.narrow .debugList .select2-container {
+    min-width: 100%;
+}
+
+.search-fields {
+    .hFormField {
+        width: auto;
+    }
+}
+
+.narrow .debugIframe {
+    height: 600px !important;
+    width: 100%;
+}
+
+.other-fileds {
+    display: none;
+    .hFormField .debugField{
+        width: 100% !important;
+        float: none;
+    }
+}

@@ -37,12 +37,21 @@
     height: 100%;
     width: 200px;
     z-index: 1000;
-    overflow-y: auto;
+}
+
+.wide .sidemenu-left {
+    overflow-y: scroll;
+}
+
+.wide .sidemenu-right {
+  overflow-y: auto;
 }
 
 .narrow .sidemenu {
     width: 170px;
+    overflow-y: auto;
 }
+
 /*движение на менюто*/
 .sidemenu-left {
     left: -200px;
@@ -174,12 +183,14 @@ body {
 .portal {
     margin-top: 0;
     margin-bottom: 15px;
-    background-color: #fff !important;
     border-radius: 2px;
     box-shadow: 0 2px 5px 0 rgba(0,0,0,.16),0 2px 10px 0 rgba(0,0,0,.12);
     -webkit-transition: -webkit-transform 300ms ease-in-out,opacity 300ms;
     transition: transform 300ms ease-in-out,opacity 300ms;
     padding: 0px 15px 15px;
+    &.defaultPortal {
+
+    }
     &.detail-info {
         border-radius: 5px;
     }
@@ -187,20 +198,194 @@ body {
        margin-left: -15px;
        margin-right: -15px;
        padding: 10px 15px 10px;
-       background: #f1f1f1 !important;
        border: none;
+       background: #f1f1f1;
        position: relative;
        top: 0;
        border-radius: 0 !important;
        box-shadow: 0 1px 0 0 rgba(0,0,0,.1);
        margin-bottom: 20px;
     }
+    .pages a {
+        background-color: rgba(255, 255, 255, 0.3);
+        border-color: #bbb;
+    }
 }
+
+.defaultPortal {
+    .tab-link {
+        background: #eee;
+        &.activeTab, &:hover {
+            color: #000;
+            background: #fff;
+        }
+    }
+    .portal {
+        box-shadow: none;
+        border: none;
+        .legend {
+            background-color:#fff;
+        }
+    }
+}
+.color-lightgray {
+    .portal {
+        background-color: #fff;
+    }
+    span&, .legend, li& {
+        background: #f1f1f1;
+        color: #000;
+        a {
+            color: #333;
+        }
+    }
+}
+
+.color-darkgray {
+    .portal {
+        background-color: #e1e1e1;
+    }
+    span&, .legend, li& {
+        background-color: #333;
+        color: #eee;
+        a {
+            color: #bbb;
+        }
+    }
+}
+
+.color-lightgreen {
+    .portal {
+        background-color: #e6f4e0;
+    }
+    span&, .legend, li& {
+        background-color: #7ac15b;
+        color: #222;
+        a {
+            color: #444;
+        }
+    }
+}
+
+.color-darkgreen {
+    .portal {
+        background-color: #dae6d5;
+    }
+    span&, .legend, li& {
+        background-color: #375d26;
+        color: #eee;
+        a {
+            color: #ccc;
+        }
+    }
+}
+
+.color-darkblue {
+    .portal {
+        background-color: #eceaf9;
+    }
+    span&, .legend, li& {
+        background-color: #261e75;
+        color: #FFF;
+        a {
+            color: #ccc;
+        }
+    }
+}
+
+.color-lightblue {
+    .portal {
+        background-color: #dbedf9;
+    }
+    span&, .legend, li& {
+        background-color: #2085ca;
+        color: #FFF;
+        a {
+            color: #ccc;
+        }
+    }
+}
+
+.color-lightred {
+    .portal {
+        background-color: #fce8e8;
+    }
+    span&, .legend, li& {
+        background-color: #ea5757;
+        color: #FFF;
+        a {
+            color: #ccc;
+        }
+    }
+}
+
+.color-darkred {
+    .portal {
+        background-color: #f4dbdb;
+    }
+    span&, .legend, li& {
+        background-color: #6b1e1e;
+        color: #FFF;
+        a {
+          color: #ccc;
+        }
+    }
+}
+
+.color-purple {
+    .portal {
+        background-color: #ecdff1;
+    }
+    span&, .legend, li& {
+        background-color: #6d417b;
+        color: #FFF;
+        a {
+            color: #ccc;
+        }
+    }
+}
+
+.color-pink {
+    .portal {
+        background-color: #f5daf0;
+    }
+    span&, .legend, li& {
+        background-color: #c147aa;
+        color: #FFF;
+        a {
+            color: #ccc;
+        }
+    }
+}
+
+.color-yellow {
+    .portal {
+        background-color: #f8f7e2;
+    }
+    span&, .legend, li& {
+        background-color: #eaea6b;
+        color: #333;
+        a {
+            color: #555;
+        }
+    }
+}
+
+.color-orange {
+    .portal {
+        background-color: #fbefe3;
+    }
+    span&, .legend, li& {
+        background-color: #E48027;
+        color: #fff;
+        a {
+            color: #444;
+        }
+    }
+}
+
 .narrow .portal {
-  box-shadow: none;
-  border:none !important;
   .legend {
-      background: #fff !important;
       border: 1px solid #ccc;
       box-shadow: none;
 
@@ -380,18 +565,27 @@ body {
 }
 
 .inner-fav-panel {
-    padding: 15px;
+    padding: 12px;
 }
-
+.narrow .inner-fav-panel {
+    padding: 8px;
+    .bookmarkText {
+      font-size: 0.95em;
+      margin-right: 3px;
+    }
+}
 .sideBarTitle {
     color: #fffb99;
 }
 
 .bookmarkText {
     margin-right: 5px;
-    font-size: 1.1em;
+    font-size: 1.05em;
 }
-
+.bookmarkLink img {
+    width: 20px;
+    height: 20px;
+}
 .inner-fav-panel {
     position: relative;
 }
@@ -405,7 +599,7 @@ body {
     display: inline-block;
     float: right;
     top: 10px;
-    margin-left: 15px;
+    margin-left: 3px;
     opacity: 0.8;
     transition: opacity 0.5s;
     img {
@@ -415,8 +609,23 @@ body {
         opacity: 1
     }
 }
+
+.narrow .bookmarkText {
+    top: 3px;
+    position: relative;
+}
+
+.narrow .bookmark-links {
+    margin-top: 0px !important;
+    ul{
+      margin-top: 7px !important;
+    }
+
+}
+
 .narrow .bookmarkLink {
-	margin-left: 10px;
+	margin-left: 6px;
+    margin-top: 2px;
 	img {
 	   width: 18px;
 	   height: 18px;
@@ -1058,6 +1267,72 @@ form[method="post"] input[type="submit"] {
     }
     &:last-child {
         border-radius: 0 5px 5px 0 !important;
+    }
+}
+
+// slipe на табовете в мобилен
+
+.swipe-tab-content .portal table.listTable {
+    transform: translate3d(0, 0, 0);
+}
+
+.sub-header {
+    height: 44px;
+}
+.swipe-tab-content {
+    display: none;
+    z-index: 100;
+}
+.swipe-tab {
+    display: none;
+}
+.swipe-tabs-container, .swipe-tab-content {
+    outline: none !important;
+}
+$swipe-tab-color: #757575;
+$swipe-active-tab-color: #000;
+.slick-initialized {
+    .swipe-tab-content {
+        position: relative;
+        min-height: 365px;
+
+        @media screen and (min-width: 767px) {
+            min-height: 500px;
+        }
+    }
+    .portal {
+        margin-top: 0 !important;
+        box-shadow: none;
+        border: none !important;
+        border-radius: 0 !important;
+    }
+    .swipe-tab {
+        outline: none;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        height: 42px;
+        vertical-align: baseline;
+        overflow-y: hidden;
+        background: none;
+        border: 0;
+        color: $swipe-tab-color;
+        cursor: pointer;
+        text-align: center;
+        border-bottom: 2px solid rgba($swipe-active-tab-color, 0);
+        transition: all 0.5s;
+        text-overflow: ellipsis;
+
+        &:hover {
+            color: $swipe-active-tab-color;
+        }
+
+        &.active-tab {
+            border-bottom-color: $swipe-active-tab-color;
+            color: $swipe-active-tab-color;
+            font-weight: bold;
+        }
+
     }
 }
 

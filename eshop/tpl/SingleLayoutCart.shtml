@@ -1,0 +1,230 @@
+<div class="singleView">
+   [#SingleToolbar#]
+   <h2 class="block_title [#STATE_CLASS#]" style='padding:5px'>[#SingleIcon#] |Кошница|* <b style="color:green;display:inline-block;word-break:break-all">№[#id#]</b></h2>
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Информация|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN ip-->
+            <tr>
+               <td class="title-style" style='width:150px'>IP:</td>
+               <td> [#ip#]</td>
+            </tr>
+            <!--ET_END ip-->
+            <!--ET_BEGIN brid-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Браузър|*:</td>
+               <td>[#brid#]</td>
+            </tr>
+            <!--ET_END brid-->
+            
+            <!--ET_BEGIN domainId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Домейн|*:</td>
+               <td>[#domainId#]</td>
+            </tr>
+            <!--ET_END domainId-->
+            
+            <!--ET_BEGIN userId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Потребител|*:</td>
+               <td>[#userId#]</td>
+            </tr>
+            <!--ET_END userId-->
+            <!--ET_BEGIN activatedOn-->
+            <tr>
+               <td class="title-style quiet">|Активиране|*:</td>
+               <td>[#activatedOn#]</td>
+            </tr>
+            <!--ET_END activatedOn-->
+            <!--ET_BEGIN saleId-->
+            <tr>
+               <td class="title-style">|Продажба|*:</td>
+               <td>[#saleId#]</td>
+            </tr>
+            <!--ET_END saleId-->
+            <tr>
+               <td class="title-style quiet">|Създаване|*:</td>
+               <td>|от|* [#createdBy#] |на|* [#createdOn#]</td>
+            </tr>
+            <tr>
+               <td class="title-style quiet">|Модифициране|*:</td>
+               <td>|от|* [#modifiedBy#] |на|* [#modifiedOn#]</td>
+            </tr>
+            <tr>
+               <td class="title-style">|Брой артикули|*:</td>
+               <td>[#productCount#]</td>
+            </tr>
+            <!--ET_BEGIN delitionTime-->
+            <tr>
+               <td class="title-style quiet">|Изтриване|*:</td>
+               <td>[#delitionTime#]</td>
+            </tr>
+            <!--ET_END delitionTime-->
+            <!--ET_BEGIN timeToNotifyBeforeDeletion-->
+            <tr>
+               <td class="title-style quiet">|Нотификация|*:</td>
+               <td>[#timeToNotifyBeforeDeletion#]</td>
+            </tr>
+            <!--ET_END timeToNotifyBeforeDeletion-->
+            <!--ET_BEGIN isNotified-->
+            <tr>
+               <td class="title-style quiet nowrap">|Незавършена поръчка|*:</td>
+               <td>[#isNotified#]</td>
+            </tr>
+            <!--ET_END isNotified-->
+         </table>
+      </div>
+   </fieldset>
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Общи данни|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN totalNoVat-->
+            <tr>
+               <td class="title-style nowrap"  style='width:150px'>|Стойност без ДДС|*: </td>
+               <td style ='text-indent:10px'>[#totalNoVat#]</td>
+            </tr>
+            <!--ET_END totalNoVat-->
+            <!--ET_BEGIN deliveryNoVat-->
+            <tr>
+               <td class="title-style nowrap" style='width:150px'>|Доставка без ДДС|*: </td>
+               <td style ='text-indent:10px'> [#deliveryNoVat#]</td>
+            </tr>
+            <!--ET_END deliveryNoVat-->
+            <!--ET_BEGIN vatAmount-->
+            <tr>
+               <td class="title-style nowrap"  style='width:150px'>|Начислен ДДС|*: </td>
+               <td style ='text-indent:10px'>[#vatAmount#]</td>
+            </tr>
+            <!--ET_END vatAmount-->
+            <!--ET_BEGIN total-->
+            <tr>
+               <td style='width:150px'><b>|Общо|*</b>: </td>
+               <td style ='text-indent:10px'>[#total#]</td>
+            </tr>
+            <!--ET_END total-->
+         </table>
+      </div>
+   </fieldset>
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Контактни данни|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN personNames-->
+            <tr>
+               <td style='width:150px'><span class="title-style">|Имена|*:</span></td>
+               <td> [#personNames#]</td>
+            </tr>
+            <!--ET_END personNames-->
+            <!--ET_BEGIN email-->
+            <tr>
+               <td><span class="title-style">|Имейл|*:</span></td>
+               <td>[#email#]</td>
+            </tr>
+            <!--ET_END email-->
+            <!--ET_BEGIN tel-->
+            <tr>
+               <td><span class="title-style">|Телефон|*:</span> </td>
+               <td>[#tel#]</td>
+            </tr>
+            <!--ET_END tel-->
+         </table>
+      </div>
+   </fieldset>
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Доставка|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+         <!--ET_BEGIN deliveryInfo-->
+            [#deliveryInfo#]
+            <tr>
+               <td style='width:150px'><span class="title-style nowrap">|Условие|*:</span></td>
+               <td>[#termId#]</td>
+            </tr>
+            <tr>
+               <td style='width:150px'><span class="title-style nowrap">|Доставка|*:</span></td>
+               <td>[#deliveryCountry#], [#deliveryPCode#] [#deliveryPlace#], [#deliveryAddress#]</td>
+            </tr>
+            <!--ET_END deliveryInfo-->
+            <!--ET_BEGIN deliveryTime-->
+            <tr>
+               <td style='width:150px'><span class="title-style nowrap">|Срок|*:</span></td>
+               <td>[#deliveryTime#]</td>
+            </tr>
+            <!--ET_END deliveryTime-->
+            <!--ET_BEGIN instruction-->
+            <tr>
+               <td style='width:150px'><span class="title-style nowrap">|Уточнения|*:</span></td>
+               <td>[#instruction#]</td>
+            </tr>
+            <!--ET_END instruction-->
+         </table>
+      </div>
+   </fieldset>
+   <!--ET_BEGIN paymentInfo-->
+   [#paymentInfo#]
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Данни за фактуриране|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN paymentId-->
+            <tr>
+               <td style='width:150px'><span class="title-style">|Начин на плащане|*: </span></td>
+               <td> [#paymentId#]</td>
+            </tr>
+            <!--ET_END paymentId-->
+            <tr>
+               <td><span class="title-style">|Вид фактуриране|*:</span> </td>
+               <td>[#makeInvoice#]</td>
+            </tr>
+            <!--ET_BEGIN invoiceNames-->
+            <tr>
+               <td><span class="title-style nowrap">|Наименовани|*:</span> </td>
+               <td>[#invoiceNames#]</td>
+            </tr>
+            <!--ET_END invoiceNames-->
+            <!--ET_BEGIN invoiceVatNo-->
+            <tr>
+               <td><span class="title-style nowrap">|ДДС №|*:</span> </td>
+               <td>[#invoiceVatNo#]</td>
+            </tr>
+            <!--ET_END invoiceVatNo-->
+            <!--ET_BEGIN invoiceUicNo-->
+            <tr>
+               <td><span class="title-style nowrap">|ЕИК №|*:</span> </td>
+               <td>[#invoiceUicNo#]</td>
+            </tr>
+            <!--ET_END invoiceUicNo-->
+            <!--ET_BEGIN invoiceCountry-->
+            <tr>
+               <td><span class="title-style nowrap">|Държава|*:</span> </td>
+               <td>[#invoiceCountry#]</td>
+            </tr>
+            <!--ET_END invoiceCountry-->
+            <!--ET_BEGIN invoicePCode-->
+            <tr>
+               <td><span class="title-style nowrap">|П. код|*:</span> </td>
+               <td>[#invoicePCode#]</td>
+            </tr>
+            <!--ET_END invoicePCode-->
+            <!--ET_BEGIN invoicePlace-->
+            <tr>
+               <td><span class="title-style nowrap">|Град|*:</span> </td>
+               <td>[#invoicePlace#]</td>
+            </tr>
+            <!--ET_END invoicePlace-->
+            <!--ET_BEGIN invoiceAddress-->
+            <tr>
+               <td><span class="title-style nowrap">|Адрес|*:</span> </td>
+               <td>[#invoiceAddress#]</td>
+            </tr>
+            <!--ET_END invoiceAddress-->
+         </table>
+      </div>
+   </fieldset>
+   <!--ET_END paymentInfo-->
+   <div style='margin-top:10px'>
+      [#DETAILS#]
+   </div>
+</div>

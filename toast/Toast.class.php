@@ -1,31 +1,30 @@
 <?php 
 
-
 /**
  * Плъгин за визуализиране на статус съобщенията, като toast съобщянията при Android
  *
  * @category  vendors
  * @package   toast
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class toast_Toast extends core_Plugin
 {
-    
-    
     /**
      * Абонира за показване на статус съобщения
-     * 
+     *
      * Изпълнява се преди Subscribe_ метода
      * Ако javascript' а не е активен, прескача изпълнението на метода.
      * Ако е активен тогава се изпълнява.
-     * 
-     * @param object $mvc
+     *
+     * @param object  $mvc
      * @param core_ET $tpl
      */
-    function on_AfterSubscribe(&$mvc, &$tpl)
+    public function on_AfterSubscribe(&$mvc, &$tpl)
     {
         if (!$tpl) {
             //Създаваме шаблона
@@ -44,23 +43,24 @@ class toast_Toast extends core_Plugin
     
     /**
      * Връща javascript за показване на статус съобщения
-     * 
-     * @param integer $hitTime - Timestamp на показване на страницата
-     * @param integer $idleTime - Време на бездействие на съответния таб
-     * @param string $hitId - Уникално ID на хита
-     * 
-     * @return boolean - FALSE за да не се изпълняват другите
+     *
+     * @param int    $hitTime  - Timestamp на показване на страницата
+     * @param int    $idleTime - Време на бездействие на съответния таб
+     * @param string $hitId    - Уникално ID на хита
+     *
+     * @return bool - FALSE за да не се изпълняват другите
      */
-    static function on_BeforeGetStatusesData($mvc, &$resStatus, $hitTime, $idleTime, $hitId=NULL)
+    public static function on_BeforeGetStatusesData($mvc, &$resStatus, $hitTime, $idleTime, $hitId = null)
     {
         // Всички активни статуси за текущия потребител
-        $notifArr = status_Messages::getStatuses($hitTime, $idleTime, 4, TRUE, $hitId);
+        $notifArr = status_Messages::getStatuses($hitTime, $idleTime, 4, true, $hitId);
         
         // Броя на намерените статуси
         $countArr = count($notifArr);
         
         $resStatus = array();
         
+        $bStayTime = 0;
         foreach ($notifArr as $val) {
             
             // Всеки следващ статус със закъсенине + 1 секунди
@@ -70,7 +70,7 @@ class toast_Toast extends core_Plugin
             if (($countArr > 3) || (mb_strlen(strip_tags($val['text'])) > 150)) {
                 
                 // Статусите да са лепкави (да не се премахват след определено време от екрана)
-                $sticky = TRUE;
+                $sticky = true;
                 $stayTime = 10000;
             } else {
                 
@@ -86,8 +86,8 @@ class toast_Toast extends core_Plugin
             $statusData['text'] = $val['text'];
             $statusData['type'] = $val['type'];
             $statusData['timeOut'] = $timeOut;
-            $statusData['isSticky'] = (int)$sticky;
-            $statusData['stayTime'] = $stayTime;
+            $statusData['isSticky'] = (int) $sticky;
+            $statusData['stayTime'] = $stayTime + $bStayTime;
             
             $toastObj = new stdClass();
             $toastObj->func = 'showToast';
@@ -98,41 +98,43 @@ class toast_Toast extends core_Plugin
             if ($soundNotifObj = $mvc->getSoundNotifications($val['type'])) {
                 $resStatus[] = $soundNotifObj;
             }
+            
+            $bStayTime += $stayTime;
         }
         
-        return FALSE;
+        return false;
     }
-        
+    
     
     /**
      * В зависимост от типа определяме дали статуса е да лепкав или не (да не се маха от екрана)
-     * 
+     *
      * @param string $type - Типа на статуса
-     * 
-     * @return boolean - Дали статус съобщението да е лепкаво или не
+     *
+     * @return bool - Дали статус съобщението да е лепкаво или не
      */
-    static function isSticky($type)
+    public static function isSticky($type)
     {
         // В зависимост от типа определяме дали е да лепкав или не
         switch ($type) {
             case 'success':
-                $sticky = FALSE;
+                $sticky = false;
             break;
             
             case 'notice':
-                $sticky = FALSE;
+                $sticky = false;
             break;
             
             case 'warning':
-                $sticky = TRUE;
+                $sticky = true;
             break;
             
             case 'error':
-                $sticky = TRUE;
+                $sticky = true;
             break;
             
             default:
-                $sticky = TRUE;
+                $sticky = true;
             break;
         }
         
@@ -142,21 +144,21 @@ class toast_Toast extends core_Plugin
     
     /**
      * Определя дали е статуса да е лепкав в зависимост от подадения тип
-     * 
+     *
      * @param string $type - Типа на статуса
-     * 
-     * @return integer - Колко дълго да се показва статуса на екрана
+     *
+     * @return int - Колко дълго да се показва статуса на екрана
      */
-    static function getStayTime($type)
+    public static function getStayTime($type)
     {
         // В зависимост от типа определяме времето на престой на екрана
         switch ($type) {
             case 'success':
-                $time = 7000;
+                $time = 6000;
             break;
             
             case 'notice':
-                $time = 12000;
+                $time = 8000;
             break;
             
             case 'warning':
@@ -178,13 +180,12 @@ class toast_Toast extends core_Plugin
     
     /**
      * За съвместимост със старите версии
-     * 
+     *
      * @todo Може да се премахне
      * VI.14
      */
-    function act_getStatuses()
+    public function act_getStatuses()
     {
-        
         return array();
     }
 }

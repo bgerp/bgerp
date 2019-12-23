@@ -54,16 +54,18 @@
 			                <tr>
 			                    <td class='aleft' style='padding-left:10px;padding-top: 10px;width:67%;'>
 			                        <!--ET_BEGIN fromContainerId-->
-                    				<span class='quiet nowrap'>|Към фактура|*</span>:&nbsp;&nbsp;&nbsp;[#fromContainerId#]
+                    				<span class='quiet nowrap'>|Към|* [#fromContainerName#]</span>:&nbsp;&nbsp;&nbsp;[#fromContainerId#]
                      				<!--ET_END fromContainerId-->
 			                    	<!--ET_BEGIN termDate-->
                      				<div class='richtext-holder'><span class='quiet'>|Срок|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
                      				<!--ET_END termDate-->
 			                    </td>
-			                    <td style='padding-left:10px; padding-top: 10px;'>
-			                        <span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
-			                    </td>
 			                </tr>
+                            <tr>
+                                <td style='padding-left:10px; padding-top: 10px;'>
+                                    <span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
+                                </td>
+                            </tr>
 			            </table>
 			            </td>
 			            </tr>
@@ -102,9 +104,9 @@
 			                     <!--ET_BEGIN depositor-->
                                       <div>|Получил|*: [#beneficiary#]</div>
                                  <!--ET_END depositor-->
-                                 <!--ET_BEGIN activatedBy-->
-                                      <div>|Касиер|*: [#activatedBy#]</div>
-                                  <!--ET_END activatedBy-->
+                                 <!--ET_BEGIN issuer-->
+                                      <div>|Касиер|*: [#issuer#]</div>
+                                  <!--ET_END issuer-->
                                 </td>
 			                </tr>
 			            </table>

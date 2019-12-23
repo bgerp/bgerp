@@ -1,0 +1,12 @@
+<div class='scrolling-holder' [#STYLE#]>
+	<fieldset class='top-tab-content'>
+	<legend class='groupTitle nowrap'>[#title#] [#AddLink#]</legend>
+		<div class='detail-info portal [#TAB_STATE#]'>
+		    <div class='groupList clearfix21'>
+		    <!--ET_BEGIN content-->
+		        [#content#]
+		    <!--ET_END content-->
+		    </div>
+	    </div>
+	</fieldset>
+</div>

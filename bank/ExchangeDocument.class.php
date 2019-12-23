@@ -1,20 +1,20 @@
 <?php 
 
-
 /**
  * Документ за Смяна на валута
  *
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bank_ExchangeDocument extends core_Master
 {
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -26,26 +26,26 @@ class bank_ExchangeDocument extends core_Master
      *
      * @see acc_plg_DocumentSummary
      */
-    public $amountIsInNotInBaseCurrency = TRUE;
+    public $amountIsInNotInBaseCurrency = true;
     
     
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Банкови обмени на валути";
+    public $title = 'Банкови обмени на валути';
     
     
     /**
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_Contable,
-         plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, doc_SharablePlg';
+         plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, bgerp_plg_Blank, doc_SharablePlg';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "valior, title=Документ, reason, creditCurrency=Обменени->Валута, creditQuantity=Обменени->Сума, debitCurrency=Получени->Валута, debitQuantity=Получени->Сума, state, createdOn, createdBy";
+    public $listFields = 'valior, title=Документ, reason, creditCurrency=Обменени->Валута, creditQuantity=Обменени->Сума, debitCurrency=Получени->Валута, debitQuantity=Получени->Сума, state, createdOn, createdBy';
     
     
     /**
@@ -69,13 +69,7 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = "Sv";
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'bank, ceo';
+    public $abbr = 'Sv';
     
     
     /**
@@ -117,7 +111,7 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "4.7|Финанси";
+    public $newBtnGroup = '4.7|Финанси';
     
     
     /**
@@ -141,9 +135,17 @@ class bank_ExchangeDocument extends core_Master
     
     
     /**
+     * Дефолтен брой копия при печат
+     *
+     * @var int
+     */
+    public $defaultCopiesOnPrint = 2;
+    
+    
+    /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
         $this->FLD('reason', 'varchar(255)', 'caption=Основание,input,mandatory');
@@ -155,7 +157,10 @@ class bank_ExchangeDocument extends core_Master
         $this->FLD('debitPrice', 'double(smartRound,decimals=2)', 'input=none');
         $this->FLD('equals', 'double(smartRound,decimals=2)', 'input=none,caption=Общо,summary=amount');
         $this->FLD('rate', 'double(smartRound,decimals=5)', 'input=none');
-        $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none'
+        $this->FLD(
+            'state',
+            'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
+            'caption=Статус, input=none'
         );
         $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
     }
@@ -164,12 +169,15 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-    	if($requiredRoles == 'no_one') return;
-    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'peroFrom')){
-    		$requiredRoles = 'no_one';
-    	}
+        if ($requiredRoles == 'no_one') {
+            
+            return;
+        }
+        if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'peroFrom')) {
+            $requiredRoles = 'no_one';
+        }
     }
     
     
@@ -189,12 +197,13 @@ class bank_ExchangeDocument extends core_Master
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
         if ($action != 'add') {
+            
             return;
         }
         
-        if($folderId = Request::get('folderId', 'int')){
-            if($folderId != bank_OwnAccounts::fetchField(bank_OwnAccounts::getCurrent(), 'folderId')){
-                redirect(array('bank_OwnAccounts', 'list'), FALSE, "|Документът не може да се създаде в папката на неактивна сметка");
+        if ($folderId = Request::get('folderId', 'int')) {
+            if ($folderId != bank_OwnAccounts::fetchField(bank_OwnAccounts::getCurrent(), 'folderId')) {
+                redirect(array('bank_OwnAccounts', 'list'), false, '|Документът не може да се създаде в папката на неактивна сметка');
             }
         }
     }
@@ -221,12 +230,11 @@ class bank_ExchangeDocument extends core_Master
      */
     public static function on_AfterInputEditForm($mvc, $form)
     {
-        if ($form->isSubmitted()){
-            
+        if ($form->isSubmitted()) {
             $rec = &$form->rec;
             
-            if(!$rec->creditQuantity || !$rec->debitQuantity) {
-                $form->setError("creditQuantity, debitQuantity", "Трябва да са въведени и двете суми !!!");
+            if (!$rec->creditQuantity || !$rec->debitQuantity) {
+                $form->setError('creditQuantity, debitQuantity', 'Трябва да са въведени и двете суми !!!');
                 
                 return;
             }
@@ -234,7 +242,7 @@ class bank_ExchangeDocument extends core_Master
             $creditAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom);
             $debitAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
             
-            if($creditAccInfo->currencyId == $debitAccInfo->currencyId) {
+            if ($creditAccInfo->currencyId == $debitAccInfo->currencyId) {
                 $form->setWarning('peroFrom, peroTo', 'Валутите са едни и същи, няма смяна на валута !!!');
             }
             
@@ -247,20 +255,20 @@ class bank_ExchangeDocument extends core_Master
             $rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
             $rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
             
-            if($msg = currency_CurrencyRates::checkAmounts($rec->creditQuantity, $rec->debitQuantity, $rec->valior, $cCode, $dCode)){
-            	$form->setError('debitQuantity', $msg);
+            if ($msg = currency_CurrencyRates::checkAmounts($rec->creditQuantity, $rec->debitQuantity, $rec->valior, $cCode, $dCode)) {
+                $form->setError('debitQuantity', $msg);
             }
             
             // Каква е равностойноста на обменената сума в основната валута за периода
-            if($dCode == acc_Periods::getBaseCurrencyCode($rec->valior)){
+            if ($dCode == acc_Periods::getBaseCurrencyCode($rec->valior)) {
                 $rec->equals = $rec->creditQuantity * $rec->rate;
             } else {
-                $rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, NULL);
+                $rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, null);
             }
             
             $bankRec = bank_OwnAccounts::fetch($rec->peroTo);
-            if($bankRec->autoShare == 'yes'){
-            	$rec->sharedUsers = keylist::removeKey($bankRec->operators, core_Users::getCurrent());
+            if ($bankRec->autoShare == 'yes') {
+                $rec->sharedUsers = keylist::removeKey($bankRec->operators, core_Users::getCurrent());
             }
         }
     }
@@ -278,10 +286,9 @@ class bank_ExchangeDocument extends core_Master
         $row->creditCurrency = currency_Currencies::getCodeById($creditAccInfo->currencyId);
         $row->debitCurrency = currency_Currencies::getCodeById($debitAccInfo->currencyId);
         
-        if($fields['-single']) {
-            
-            $row->peroTo = bank_OwnAccounts::getHyperLink($rec->peroTo, TRUE);
-            $row->peroFrom = bank_OwnAccounts::getHyperLink($rec->peroFrom, TRUE);
+        if ($fields['-single']) {
+            $row->peroTo = bank_OwnAccounts::getHyperLink($rec->peroTo, true);
+            $row->peroFrom = bank_OwnAccounts::getHyperLink($rec->peroFrom, true);
         }
     }
     
@@ -294,17 +301,20 @@ class bank_ExchangeDocument extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        return core_Cache::getOrCalc('BankExchDocCanAddToFolder', $folderId, function($folderId)
-        {
-            $Be = cls::get('bank_ExchangeDocument');
-            
-            if($folderId == bank_ExchangeDocument::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'bank_OwnAccounts') {
+        return core_Cache::getOrCalc('BankExchDocCanAddToFolder', 
+                                     $folderId, 
+                                     function ($folderId) 
+                                     {
+                                        $Be = cls::get('bank_ExchangeDocument');
+                                        if ($folderId == bank_ExchangeDocument::getDefaultFolder(null, false) || 
+                                            doc_Folders::fetchCoverClassName($folderId) == 'bank_OwnAccounts') {
                 
-                return TRUE;
-            }
-
-            return FALSE;
-        });
+                                            return true;
+                                        }
+            
+                                        return false;
+                                      }
+                                      );
     }
     
     
@@ -313,7 +323,8 @@ class bank_ExchangeDocument extends core_Master
      * посочената нишка
      *
      * @param int $threadId key(mvc=doc_Threads)
-     * @return boolean
+     *
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {

@@ -1,43 +1,42 @@
 <?php 
 
-
 /**
  * Мениджира детайлите на поръчка (Details)
  *
  *
  * @category  bgerp
  * @package   catering
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class catering_RequestDetails extends core_Detail
 {
-    
-    
     /**
      * Заглавие
      */
-    var $title = "Детайли на поръчка";
+    public $title = 'Детайли на поръчка';
     
     
     /**
      * Заглавие в единично число
      */
-    public $singleTitle = "Детайл на поръчка";
+    public $singleTitle = 'Детайл на поръчка';
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Кетъринг";
+    public $pageMenu = 'Кетъринг';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, 
+    public $loadList = 'plg_Created, plg_RowTools2, 
                      catering_Wrapper, plg_Sorting, 
                      Menu=catering_Menu, 
                      MenuDetails=catering_MenuDetails,
@@ -49,43 +48,43 @@ class catering_RequestDetails extends core_Detail
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'requestId';
+    public $masterKey = 'requestId';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num, personId, companyName, menuDetailsId, quantity, price=Цена';
+    public $listFields = 'num, personId, companyName, menuDetailsId, quantity, price=Цена';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
      */
-    var $tabName = "catering_Requests";
+    public $tabName = 'catering_Requests';
     
     
     /**
      * Кой  може да пише?
      */
-    var $canWrite = 'catering, ceo, user';
+    public $canWrite = 'catering, ceo, user';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'catering, ceo, user';
+    public $canRead = 'catering, ceo, user';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('requestId', 'key(mvc=catering_Requests)', 'caption=Поръчка, input=hidden, silent');
         $this->FLD('menuDetailsId', 'key(mvc=catering_MenuDetails)', 'caption=Избор, notSorting');
@@ -108,7 +107,7 @@ class catering_RequestDetails extends core_Detail
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         // Check current user roles
         if (!haveRole('ceo,catering')) {
@@ -140,7 +139,7 @@ class catering_RequestDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         // Prepare $personId
         if (!haveRole('ceo,catering')) {
@@ -148,7 +147,7 @@ class catering_RequestDetails extends core_Detail
             
             // set form title
             $personName = $mvc->EmployeesList->getPersonNameForCurrentUser();
-            $data->form->title = "Добавяне на запис в \"Детайли на поръчка\" за служител|* " . $personName;
+            $data->form->title = 'Добавяне на запис в "Детайли на поръчка" за служител|* ' . $personName;
             
             // set hidden 'personId'
             // $data->form->setHidden('personId', $personId);
@@ -158,7 +157,7 @@ class catering_RequestDetails extends core_Detail
         } else {
             $queryEmployeesList = $mvc->EmployeesList->getQuery();
             
-            while($recEmployeesList = $queryEmployeesList->fetch("1=1")) {
+            while ($recEmployeesList = $queryEmployeesList->fetch('1=1')) {
                 $selectOptEmployeesList[$recEmployeesList->id] = crm_Persons::fetchField($recEmployeesList->personId, 'name');
             }
         }
@@ -182,7 +181,7 @@ class catering_RequestDetails extends core_Detail
         $queryMenu->orderBy('companyId', 'ASC');
         $queryMenu->orderBy('repeatDay', 'ASC');
         
-        while($rec = $queryMenu->fetch($where)) {
+        while ($rec = $queryMenu->fetch($where)) {
             $menuArr[$rec->id] = $rec;
         }
         
@@ -192,11 +191,11 @@ class catering_RequestDetails extends core_Detail
         $menuDetailsArr = array();
         
         // Prepare $menuDetailsArr
-        foreach($menuArr as $k => $v) {
+        foreach ($menuArr as $k => $v) {
             $queryMenuDetails = $mvc->MenuDetails->getQuery();
             
-            while($rec = $queryMenuDetails->fetch("#menuId = {$k}")) {
-            	$menuDetailsArr[$rec->id] = new stdClass();
+            while ($rec = $queryMenuDetails->fetch("#menuId = {$k}")) {
+                $menuDetailsArr[$rec->id] = new stdClass();
                 $menuDetailsArr[$rec->id]->companyId = $mvc->Menu->fetchField("#id = {$k}", 'companyId');
                 $menuDetailsArr[$rec->id]->companyIdCrmCompanies = catering_Companies::fetchField("#id = {$menuDetailsArr[$rec->id]->companyId}", 'companyId');
                 $menuDetailsArr[$rec->id]->companyName = crm_Companies::fetchField("#id = {$menuDetailsArr[$rec->id]->companyIdCrmCompanies}", 'name');
@@ -204,9 +203,9 @@ class catering_RequestDetails extends core_Detail
                 $menuDetailsArr[$rec->id]->food = $rec->food;
                 $menuDetailsArr[$rec->id]->price = $rec->price;
                 
-                $selectOptFood[$rec->id] = "Фирма: \"" . $menuDetailsArr[$rec->id]->companyName . "\"- " .
-                $menuDetailsArr[$rec->id]->food . " - Цена: "
-                . number_format($menuDetailsArr[$rec->id]->price, 2, '.', ' ') . " лв";
+                $selectOptFood[$rec->id] = 'Фирма: "' . $menuDetailsArr[$rec->id]->companyName . '"- ' .
+                $menuDetailsArr[$rec->id]->food . ' - Цена: '
+                . number_format($menuDetailsArr[$rec->id]->price, 2, '.', ' ') . ' лв';
             }
         }
         
@@ -233,7 +232,7 @@ class catering_RequestDetails extends core_Detail
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Prpare 'No'
         static $num;
@@ -244,8 +243,8 @@ class catering_RequestDetails extends core_Detail
         $personName = crm_Persons::fetchField($rec->personId, 'name');
         
         if ($lastPersonId == $rec->personId) {
-            $row->personId = "<div style='color: #777777;'>" . $personName . "</div>";
-            $num += 1;
+            $row->personId = "<div style='color: #777777;'>" . $personName . '</div>';
+            ++$num;
         } else {
             $row->personId = $personName;
             $num = 1;
@@ -268,7 +267,7 @@ class catering_RequestDetails extends core_Detail
         
         // Prepare 'Цена'
         $priceForOne = $mvc->MenuDetails->fetchField($rec->menuDetailsId, 'price');
-        $row->price = "<div style='text-align: right; width: 70px;'>" . number_format($priceForOne * $rec->quantity, 2, '.', ' ') . " лв</div>";
+        $row->price = "<div style='text-align: right; width: 70px;'>" . number_format($priceForOne * $rec->quantity, 2, '.', ' ') . ' лв</div>';
     }
     
     
@@ -276,10 +275,10 @@ class catering_RequestDetails extends core_Detail
      * Запис в Requests на 'totalPrice'
      *
      * @param core_Mvc $mvc
-     * @param int $id
+     * @param int      $id
      * @param stdClass $rec
      */
-    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
     {
         $mvc->Requests->calcTotal($rec->requestId);
     }
@@ -288,12 +287,12 @@ class catering_RequestDetails extends core_Detail
     /**
      * Преди изтриване на запис
      */
-    static function on_BeforeDelete($mvc, &$numRows, $query, $cond)
+    public static function on_BeforeDelete($mvc, &$numRows, $query, $cond)
     {
         $queryTmp = clone ($query);
         
         while ($recTmp = $queryTmp ->fetch($cond)) {
-            $query->masterIdList[$recTmp->requestId] = TRUE;
+            $query->masterIdList[$recTmp->requestId] = true;
         }
     }
     
@@ -301,9 +300,9 @@ class catering_RequestDetails extends core_Detail
     /**
      * @todo Чака за документация...
      */
-    static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    public static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
-        foreach($query->masterIdList as $id => $dummy) {
+        foreach ($query->masterIdList as $id => $dummy) {
             $mvc->Requests->calcTotal($id);
         }
     }
@@ -316,7 +315,7 @@ class catering_RequestDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         // Проверка за state на заявката
         $requestId = $data->masterId;

@@ -1,0 +1,15 @@
+<table style="width: 100%">
+    <tr>
+        <td style="width: 20%; text-align: center;">
+            [#QR_CODE#]
+            <div style="margin-top: 10px;">[#MyCompany#]</div>
+        </td>
+        <td><div style="margin-bottom: 10px;">
+            <b> [#title#] - [#plannedQuantity#][#measureId#]</b>
+            </div>
+            [#productDescription#]
+            <div style="font-size: 0.85em">[#PARAMS#]</div>
+        </td>
+    </tr>
+</table>
+<hr>

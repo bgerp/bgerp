@@ -1,0 +1,205 @@
+body{
+    background-color:#fff;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+html {
+    height: 99.9%;
+}
+
+.externalPage {
+    position: relative;
+    min-height: 100%;
+}
+#cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a {
+    color: white;
+}
+.wide .narrowCenter, header {
+    text-align: center;
+    height: auto !important;
+    max-height: 300px;
+}
+
+.wide .fadein {
+  display: inline-block;
+    position: relative;
+}
+
+.wide  .headerImg{
+    height: 300px;
+    width: auto;
+    float: none;
+
+}
+#cmsBottom {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+#maincontent {
+    background-color:white;
+    padding-top: 0 !important;
+    padding-bottom: 38px !important
+}
+
+#cmsNavigation .nav_item a {
+    color:#336;
+}
+
+#cmsNavigation .sel_page a {
+    color:#334;
+    background:#ddf;
+    border:solid 1px #ccf;
+}
+
+#cmsNavigation .level1 {
+    color:#333;
+}
+
+.richtext h2 {
+    background-color: #ddf;
+    padding:5px;
+}
+.wide .app-name{
+    top: 21%;
+    left: 2%;
+}
+
+.wide #maincontent {
+    min-height: auto;
+}
+.fourcol, #cmsMenu a, .formTable{
+    margin-left: 0 !important;
+}
+#login-form {
+    padding-left: 0 !important;
+}
+.loginIcon, .searchContent {
+    margin-right: 0 !important;
+}
+
+.wide .app-name {
+    left: 0 !important;
+}
+@media handheld, only screen and (max-width: 600px) {
+    .wide .app-name {
+        font-size: 3.7em;
+        top: 24%;
+    }
+}
+.gdpr {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    margin-left: -40px;
+    font-size: 0.7em;
+    color: #ccc;
+}
+#cmsMenu {
+    float: left;
+    width: 100%;
+}
+
+.centerContent {
+    clear: both;
+    position: relative;
+    width: 1200px;
+    margin: 0 auto;
+    float: none;
+}
+.centerFixed {
+    position: absolute;
+    width: 1200px;
+    left: 20%;
+    top: 0;
+}
+#searchform {
+    margin-bottom: 20px;
+}
+header {
+    position: relative;
+}
+
+.wide .externalPage .formTable {
+    float: left;
+}
+
+.narrow .app-name {
+    bottom: 35px;
+    top: auto;
+}
+
+header img {
+    width: 100%;
+    height: auto;
+}
+.foorterAdd {
+    top: -2px !important;
+}
+.narrow header {
+    min-height: 90px;
+}
+.narrow .narrowCenter {
+    width: 1200px;
+    margin: 0 auto;
+}
+.wide .socialBtns {
+    top: -6px;
+}
+.cms-row {
+    padding-bottom: 20px;
+}
+.soc-following {
+    padding: 7px 7px 7px 2px;
+}
+@media handheld, only screen and (max-width: 1200px) {
+    .wide  .headerImg{
+        width: 100% !important;
+        height: auto !important;
+        position: relative;
+        display: block;
+    }
+    .wide .fadein {
+        display: block;
+    }
+    .narrow .externalPage #maincontent {
+        min-height: 410px;
+    }
+    .centerContent, .narrow .narrowCenter, .centerFixed {
+        width: 100%;
+        margin: 0;
+        display: block;
+    }
+    .centerFixed {
+        left: 0
+    }
+    .narrow .externalPage #maincontent {
+        padding: 0px 3px 3px;
+    }
+    .narrow .cms-row {
+        padding-top: 15px;
+    }
+    #cmsMenu {
+        box-sizing: border-box;
+        padding-left: 2%;
+        padding-right: 2%;
+        font-size: 0.9em;
+    }
+    #cmsBottom {
+        box-sizing: border-box;
+        padding-left: 1%;
+        padding-right: 1%;
+    }
+    .foorterAdd {
+        top: -5px !important;
+        position: relative;
+    }
+    .soc-following {
+        padding-top: 2px;
+    }
+    .narrow .externalPage .vertical .formTable {
+        padding: 15px 10px 0px;
+    }
+}

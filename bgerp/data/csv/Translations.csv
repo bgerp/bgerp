@@ -6,7 +6,7 @@ en, за месец, for month
 en,"Адреси, на коит_9359",List of unsubscribes
 en,"Ако не желаете да получавате повече информация от нас, използвайте следната връзка", "If you no longer want to receive information from us, follow the link"
 en,"Ако не желаете да получавате повече информация от нас, моля натиснете","If you no longer want to receive information from us, please click"
-en,"Благодаря за Вашето запитване","Thank you for your inquiry"
+en,"Благодаря за Вашето запитване","Thank you for your еnquiry"
 en,"получено на","received on"
 en,"получено на","received on"
 en,"чрез нашия уеб сайт","through our web site"
@@ -17,7 +17,7 @@ en,"Класове, имащи _436a",Classes with interfaces
 en,"Логнете се, за да видите нишката",Login to see the thread
 en,"Свали като PDF",Download as PDF
 en,"Свали като",Download as
-en,"Можете да нaтиснете","You can click"
+en,"Можете да натиснете","You can click"
 en,"Моля, въведете _c6b3",Please enter the contact details of the company
 en,"Моля, въведете _dfd8",Please enter the contact details of the person
 en,"Моля, изберете _8a6d","Please, choose a folder"
@@ -56,8 +56,8 @@ en,Contact card,Contact card
 en,CRM Файлове,CRM files
 en,CSV за импорт,CSV for import
 en,CSV контактни данни,CSV contact data
-en,cмяна),change)
-en,cмяна,change
+en,смяна),change)
+en,смяна,change
 en,fromTo,fromTo
 en,g/cm3,g/cm3
 en,GLN код,GLN code
@@ -77,15 +77,15 @@ en,K,K
 en,kg/L,kg/l
 en,kg/m3,kg/m3
 en,kWh,kWh
-en,Kлючовото поле _0236,The key field for the list
-en,Kп,Cp
+en,Ключовото поле _0236,The key field for the list
+en,Кп,Cc
 en,last,last
 en,MD5,MD5
 en,MKB код,ICD code
 en,normal,normal
 en,on time,on time
-en,Oператори,Operators
-en,Oписание,Description
+en,Оператори,Operators
+en,Описание,Description
 en,PDF файлове,PDF files
 en,PDF-и на документи,PDFs of documents
 en,Pixlr,Pixlr
@@ -95,9 +95,9 @@ en,SMS-и,SMS
 en,SMTP сървър,SMTP server
 en,SNM « Сайт,SNM « Site
 en,title,title
-en,Tаблица,Table
-en,Tел. код,Tel. code
-en,Tърсене на доку_d783,Document search
+en,Таблица,Table
+en,Тел. код,Tel. code
+en,Търсене на доку_d783,Search documents
 en,URL адрес,URL address
 en,URL на услугата,Service URL
 en,VAT,VAT
@@ -502,12 +502,15 @@ en,Добави,Add
 en,Добавки към публичната страница,Supplements public page
 en,Добавки,Additions
 en,Добавяне,Add
+en,Добавяне в,Add in
 en,Добавяне на вр_ef44b,Add link
 en,Добавяне на документ/и от системата,Add document/s from the system
 en,Добавяне на за_4524f,"Add an entry in ""Catering Companies"""
 en,Добавяне на запис,Add a new record
 en,Добавяне на картинка,Add a picture
 en,Добавяне на ко_1ce3b,Add a comment to document
+en,Добавяне на прогрес към задачата,Add a progress to the task
+en,Добавяне на прогрес към задача,Add a progress to task
 en,Добавяне на но_877ab,Adding new document to this thread
 en,Добавяне на но_972cc,Add a new location
 en,Добавяне на но_a245f,Add new Reminder
@@ -529,7 +532,7 @@ en,Документи за п_120a1,Documents to complete the sales
 en,Документи за п_c1496,Documents to complete the purchases
 en,Документи,Documents
 en,Документите,The documents
-en,Документът е с_10cde,Created by the system
+en,Документът е с_10cde,Powered by
 en,Домейн,Domain
 en,Домейни,Domains
 en,Допустими разширения,Allowed extensions
@@ -539,6 +542,7 @@ en,Допълнително,Additionally
 en,Доставени,Delivered
 en,Доставено,Delivered
 en,Доставка,Delivery
+en,доставка,shipping
 en,Доставки,Supply
 en,Доставчик,Supplier
 en,Доставчици,Suppliers
@@ -563,6 +567,7 @@ en,Е-маг,E-shop
 en,ЕАН,EAN
 en,ЕГН,EGN
 en,ЕИК,UIC
+en,ЕИК №,TAX ID
 en,Език на интерф_82872,Interface language after logging
 en,Език,Language
 en,Езици,Languages
@@ -591,6 +596,7 @@ en,Живот,Lifetime
 en,Журнал,Journal
 en,Жълт фон,Yellow background
 en,ЗДДС №,VAT ID
+en,ДДС №,VAT ID
 en,За артикул,For article
 en,За всички потр_93adb,For all users
 en,За да изпратит_e780e,You must fill the field
@@ -609,14 +615,16 @@ en,Забранени,Prohibited
 en,Заглавие,Title
 en,Заглавия,Headings
 en,Заготовки,Preformed
-en,Заданиe,Assignment
+en,Задание,Assignment
 en,Задания за про_80703,Assignments for production
 en,Задания,Assignments
 en,Задача за прои_b5dd5,Manufacturing task
 en,Задача,Task
 en,Задачи за прои_01a40,Manufacturing assignments
 en,Задачи към,Tasks for
+en,Задачи към мен,Tasks for me
 en,Задачи от,Tasks from
+en,Задачи от мен,Tasks from me
 en,Задачи,Tasks
 en,Задачите на,Tasks of
 en,Задължения,Duties
@@ -651,6 +659,7 @@ en,Зареждане EURIBOR,Load EURIBOR
 en,Зареждане SOFIBID _633f,Load SOFIBID & SOFIBOR
 en,Заскладено,Stored
 en,Затваряне,Close
+en,Затвори,Close
 en,Затворен,Closed
 en,Затворено,Closed
 en,Заявка,Request
@@ -694,8 +703,8 @@ en,Изпратени факс_d0b0,Sent faxes
 en,Изпратено на,Sent on
 en,Изпратено,Sent
 en,Изпрати,Send
-en,Изпращане на и_4908a,Email sending
-en,Изпращане,Sending
+en,Изпращане на и_4908a,Send an email
+en,Изпращане,Send
 en,Изпращания зае_bf5b,Batch sending
 en,Изпращания,Sendings
 en,Изпращач на из_e9a0d,Sender of outgoing emails
@@ -877,7 +886,6 @@ en,Кофа,Bucket
 en,Кофи за файлове,File Buckets
 en,Кофи,Buckets
 en,Кош,Bin
-en,Кп,Cp
 en,Краен срок за п_0995,Deadline for payment
 en,Краен срок,Deadline
 en,Краен час,Due time
@@ -956,6 +964,7 @@ en,Логове,Logs
 en,Локации на кон_142df,Locations of partners
 en,Локации,Locations
 en,Локация,Location
+en,локация,location
 en,МВР по страната,MVR in Bulgaria
 en,МВР,MVR
 en,МКП,MOQ
@@ -1062,7 +1071,7 @@ en,Назад,Back
 en,Назначени,Hired
 en,Назначения,Hires
 en,Наименование,Name
-en,НаименованиеBG,NameBG
+en,Наименование BG,NameBG
 en,Наистина ли же_0a920,Do you really like to delete the document?
 en,Наистина ли же_250da,Do you really want to remove all records?
 en,Наистина ли же_2a886,Do you really want the document to be accounted?
@@ -1079,7 +1088,7 @@ en,Наистина ли ис_9f50b,Are you sure you want to ACTIVATE the docume
 en,Наистина ли желаете документът да бъде контиран?,Are you sure you want to post the document?
 en,Наклонен текст,Italic
 en,Наличност,Availability
-en,Наличности,Stock
+en,Наличности,Inventory
 en,Напишете името_d3f1,Write the name of each field on a separate line
 en,Напомняне,Reminder
 en,Напомняния,Reminders
@@ -1129,7 +1138,7 @@ en,Неномериран списък,Unnumbered list
 en,Непарсируеми,Unparsable
 en,Неплатени,Unpaid
 en,Непознат форма_627b,Unknown format for duration
-en,Непопълнено за_dfe6,Blank required field
+en,Непопълнено за_dfe6,Empty mandatory field
 en,Непрозрачност,Opacity
 en,Неработен,Playday
 en,Неразгледани и_cb5d,Pending notifications
@@ -1151,8 +1160,9 @@ en,Нов проект,New Project
 en,Нов търговски _b9167,New point of sale
 en,Нов,New
 en,Нов...,New...
+en,Добави...,Add...
 en,Нова валута,New currency
-en,Нова локация на ,New location on 
+en,Нова локация на ,New location of 
 en,Нова нишка,New thread
 en,Нова папка на л_4ecb,New person folder
 en,Нова папка на ф_bbf2,New company folder
@@ -1223,7 +1233,7 @@ en,Общ брой палети,Total number of pallets
 en,Общ обем,Total volume
 en,Обем,Volume
 en,Общ,Shared
-en,Общa сума,Total
+en,Обща сума,Total
 en,Общи,General
 en,Общо тегло,Total weight
 en,Общо,Total
@@ -1481,7 +1491,7 @@ en,Последни 3 мец.,Last 3 months
 en,Последни файлове,Latest Files
 en,Последни,Last
 en,Последно добав_b214,Last added
-en,Последно добавенo,Last added
+en,Последно добавено,Last added
 en,Последно изпол_e4e1,Last use
 en,Последно изчис_7770,Last calculated
 en,Последно логване,Last login
@@ -1548,7 +1558,7 @@ en,Препратки,References
 en,Препращане на _8c56a,Forwarding email
 en,Препращане,Forward
 en,Препращания,Forwardings
-en,Пресроченo,Overdue
+en,Пресрочено,Overdue
 en,Претенции за р_46c2e,Claims for reclamation
 en,Префикс,Prefix
 en,Прехвърляне на салдо,Balance Transfers
@@ -1720,7 +1730,7 @@ en,Разходни докум_4dc4,Expenditure documents
 en,Разходни касов_8e6a,Debit cash orders
 en,Разширения,File extensions
 en,Разширено,Extensively
-en,Ранг,Рank
+en,Ранг,Rank
 en,Рег. номер,Reg. number
 en,Регион,Region
 en,Регистрация,Registration
@@ -1739,7 +1749,7 @@ en,Редактиране на_7b58,Edit of user profile
 en,Редактиране на_8821,Editing user login information
 en,Редактиране на_8a70,Edit user data
 en,Редактиране на_a0d5,Editing label from teplate
-en,Редактиране на_b8ea,Record editing
+en,Редактиране на_b8ea,Edit a record
 en,Редактиране,Edit
 en,Редакция,Edit
 en,Редактиране на профила,Edit profile
@@ -1849,7 +1859,7 @@ en,Снимка,Picture
 en,Снимки,Pictures
 en,Собственици,Owners
 en,Сорс,Source
-en,Соц,Soc
+en,Соц,Social
 en,Спам,Spam
 en,Специалност,Speciality
 en,Спецификации,Specifications
@@ -1883,9 +1893,10 @@ en,Статистика,Statistic
 en,Статия,Article
 en,Статус на съоб_e3628,Message status
 en,Статус,Status
-en,Стелаж №,Stillage №
-en,Стелажи в СКЛАД,Stillages in Warehouse
-en,Стелажи,Stillages
+en,Стелаж №,Rack №
+en,Стелаж,Rack
+en,Стелажи в СКЛАД,Racks in Warehouse
+en,Стелажи,Racks
 en,Стойност по по_acbfc,Default value
 en,Стойност,Value
 en,Стойности,Values
@@ -1936,8 +1947,8 @@ en,Събития,Events
 en,Съблюдаване на,Compliance
 en,Съблюдаване,Observation
 en,Събудено,Awakened
-en,Събуждане,Awake
-en,Събуждане на,Awake
+en,Събуждане,Wake up
+en,Събуждане на,Wake up
 en,Съвет,Advice
 en,Съгласно сделка,According to deal
 en,Съгласно сделки,According to deals
@@ -1948,7 +1959,7 @@ en,Съдържа се в,Contained in
 en,Съдържание,Content
 en,Създаване на н_9b9a7,Create a new authorization for online service
 en,Създаване на,Creating a
-en,Създаване,Creation
+en,Създаване,Create
 en,Създаване->На,Created->On
 en,Създаване->От,Created->By
 en,Създаден на,Created on
@@ -2030,7 +2041,7 @@ en,Транспортна линия,Transport line
 en,Транспортна фирма,Transport company
 en,Транспортни линии,Transport lines
 en,Транспортни средства,Means of transport
-en,Трансфери,Store receipts
+en,Трансфери,Transfers
 en,Труд,Labor
 en,Трудов договор,Employment Contract
 en,Трудов стаж,Work experience
@@ -2091,6 +2102,7 @@ en,Факс,Fax
 en,Факсове,Faxes
 en,Фактура за про_288aa,Sale invoice
 en,Фактура,Invoice
+en,фактура,invoice
 en,Фактури за про_aec89,Sales Invoice
 en,Фактури,Invoices
 en,Фактурирани,Invoiced
@@ -2256,7 +2268,7 @@ en,и друг документ,and other document
 en,и,and
 en,използване,use
 en,използвания,uses
-en,изпращане,sending
+en,изпращане,send
 en,изпращания,sents
 en,изход,exit
 en,изходящ имейл,outgoing e-mail
@@ -2306,9 +2318,9 @@ en,март,March
 en,мг,mg
 en,мес.,month
 en,месец,month
-en,месецa,months
-en,месецa-ден от н_9f9b7,month-day from the beginning of the month
-en,месецa-ден от н_d94c7,month-day from the beginning of the week
+en,месеца,months
+en,месеца-ден от н_9f9b7,month-day from the beginning of the month
+en,месеца-ден от н_d94c7,month-day from the beginning of the week
 en,месеца,months
 en,метър,meter
 en,мил.амп,mA
@@ -2380,7 +2392,7 @@ en,са преместени в,are moved to
 en,само за администраторите на сайта,Site Administrators Only
 en,сваляне,download
 en,сваляния,downloads
-en,седм.,week
+en,седм.,weeks
 en,седмица,week
 en,седмици,weeks
 en,сек.,s
@@ -2451,6 +2463,7 @@ en,тегло,weight
 en,дължина,length
 en,Дължина,Length
 en,Включено ДДС в цените, Prices are with applied VAT
+en,с включено ДДС, with applied VAT
 en,До 1 месец след фактуриране, Until 1 month after invoicing
 en,50% авансово и 50% до 30 дни след фактуриране, 50% downpayment and 50% until 30 days after invoicing
 en,50% авансово и 50% до 10 дни след фактуриране, 50% downpayment and 50% until 10 days after invoicing
@@ -2492,6 +2505,7 @@ en,Универсален артикул,General item
 en,Добавяне или промяна на файлове,Add or change files
 en,Грешка при експорт,Export error
 en,Кошница,Basket
+en,Кошници,Baskets
 en,Количка,Cart
 en,Печат на документа,Document printing
 en,Експорт на документа,Document exporting
@@ -2515,7 +2529,7 @@ en,Текстът е над допустимите,Text is over allowed
 en,Неправилен формат на данните,Invalid data format
 en,палети,pallets
 en,палета,pallets
-en,Палети,pallets
+en,Палети,Pallets
 en,Палета,pallets
 en,Кашон,carton
 en,кашона,cartons
@@ -2528,11 +2542,14 @@ en,Товара,loads
 en,ЛЕ,LU
 en,На посочения от вас имейл ще получите линк за избор на паролата за достъп,"At the email you specify, you will receive a link to select the password"
 en,Регистриране на нов потребител в,Register new user in
-en,"След като попълните полетата по-долу, натиснете бутона 'Регистрирай'","After filling in the fields below, click the 'Register'"
+en,"След като попълните полетата по-долу натиснете бутона 'Регистрирай'","After filling in the fields below, click the 'Register'"
+en,Регистрирай,Register
 en,Активиране на акаунт,Account activation
 en,"За съжаление възникна грешка и не успяхме да изпратим имейла за активиране. Опитайте по-късно или се свържете със системния администратор","Unfortunately, there was an error and we were unable to send the activation email. Try it later or contact your system administrator"
-en,Вече има регистриран потребител с този имейл,There is already a registered user with this email
-en,"Вече има регистриран потребител с този ник. Изберете друг, например","There is already a registered user with this nick. Choose another, for example"
+en,"Има вече такъв потребител. Ако това сте Вие, може да се логнете от","There is already a registered user with this email. If this is you, you may log in from"
+en,"Вече има регистриран потребител с този имейл. Ако това сте Вие, може да се логнете от","There is already a registered user with this email. If this is you, you may log in from"
+en,"Вече има регистриран потребител с този ник. Ако това сте Вие, може да се логнете от","There is already a registered user with this nick. If this is you, you may log in from"
+en,"Изберете друг, например","Choose another e.g."
 en,"Моля проверете всички папки, в т.ч. и папката за СПАМ, за имейл със заглавие 'Activation'","Please check all folders, incl. and the SPAM folder for an email with the subject 'Activation'"
 en,В него се съдържат инструкции за активиране на вашата сметка,It contains instructions for activating your account
 en,"Ако не откриете писмото, опитайте да се регистрирате чрез друг ваш имейл адрес или направете опит с този след няколко дни","If you do not find the letter, try signing up with another email address or try this one within a few days"
@@ -2618,13 +2635,13 @@ en,СИСТЕМНИ ДАННИ,SYSTEM DATA
 en,Сгрешено или изтекло съобщение,Wrong or expired message
 en,Статии в,Articles in
 en,Bags.BG,Extrapack OOD
-en,Отчети и доклади,за любителите на цифрите
-en,Неполучени,върнати писма
-en,Логнете се,за да видите нишката
+en,"Отчети и доклади,за любителите на цифрите","Records and reports for lovers of numbers"
+en,"Неполучени,върнати писма","Not received, returned mails"
+en,"Логнете се,за да видите нишката","Login to see the thread"
 en,"Не, благодаря","No, thanks!"
 en,Отворени сделки,Open deals
 en,Системата,The System
-en,Изпратете запитване за,Send inquiry about
+en,Изпратете запитване за,Send an enquiry about
 en,общо тегло,total weight
 en,тегло на ролка,roll weight
 en,тегло на 1 кв. м,weight per sq. m.
@@ -2719,7 +2736,7 @@ en,Възложено,Assigned
 en,коментар към,comment to
 en,прогрес към,progress to
 en,Купи,Buy
-en,"Изглежда, че има регистриран потребител с този имейл. Моля преди да продължите да се логнете","There seems to be a user with this email. Please login before you continue",
+en,"Изглежда, че има регистриран потребител с този имейл. Моля преди да продължите да се логнете","There seems to be a user with this email. Please login before you continue"
 en,Ако вече имате потребител,If you already have a user
 en,Поръчано / Доставено,Ordered / Delivered
 en,Разполагаемо,Available
@@ -2734,5 +2751,152 @@ en,представител,representative
 en,Изход от системата,Exit system
 en,Назад към магазина,Return to store
 en,Наистина ли желаете да премахнете артикула?,Do you really like to remove this product?
-en,"Ако имате акаунт, моля логнете се от","If you have an account, please login from"
+en,"Ако имате регистрация, моля логнете се от","If you have an account, please login from"
 en,Времето за разпознаване е изтекло. Пробвайте с друг код,Recognition time has expired. Try another code
+en,прогрес,progress
+en,Продължи,Continue
+en,за,for
+en,Вижте цялата нишка от имейли,See the entire email thread
+en,Повече от едномерен масив в URL-то не се поддържа,More than one-dimensional array in URL is not supported
+en,Очаква масив,Expected array
+en,Артикули в е-магазина,Products in the e-shop
+en,Е-Магазин,E-Shop
+en,Е-артикул,E-Product
+en,Вече има продукт със същия код,There is product with the same code
+en,Несъществуващ клас,Non-existing class
+en,Преглед във външната част,Veiw in the outer web site
+en,Нов продукт,New product
+en,Листване в е-магазина,Listing in the e-shop
+en,Добавяне към,Add to
+en,Нямате права да свързвате артикула,You do not have sufficient rights to create the article
+en,Артикулът вече е свързан с е-магазина на текущия домейн,The product is already linked with current domain e-shop
+en,Артикулът е свързан с онлайн магазина,The product is linked with the e-shop
+en,Листване на артикула към е-магазина,Listing of product in the e-shop
+en,Изчерпано,Out of stock
+en,Всички складове,All stores
+en,Хронология на движенията,Chronology of movements
+en,"Сигурни ли сте, че искате да изтриете партидната дефиниция","Do you really want to delete the batch definition"
+en,Изтриване на нова партидна дефиниция,Delete batch definition
+en,Добавяне на нова партидна дефиниция,Add new batch definition
+en,Палет-места,Pallet spaces
+en,Брой палети на една основа,Number of pallets on one base
+en,Стелажи в склад,Rack in the wharehouse
+en,Невалиден синтаксис,Non-valide syntax
+en,Несъществуващ номер на стeлаж в този склад,No rack number in this store
+en,Несъществуващ ред на стeлажа,No rack row
+en,Несъществуваща колона на стeлажа,No rack column
+en,Мястото е неизползваемо,The place is unusable
+en,Информацията за запазени или неизползваеми места извън новите размери ще бъде изтрита,All the information for reserved or unusable places outide the new sizes will be deleted
+en,Запазено място,Reserved place
+en,Запазено място за,Reserved place for
+en,Очаква се палет,Pallet is expected
+en,Предстои преместване,Expected movement
+en,Палетно складово стопанство,Rack storage 
+en,Връзка между ЕН-то и палетния склад,Link between the shipment order and rack storage
+en,Модел,Model
+en,Въведете IP адреса на устройството,Please input IP address of device
+en,До два месеца след фактуриране,Until 2 months after invoicing
+en,Направете поръчка,Place order
+en,"Печелите безплатна доставка, защото поръчката ви надвишава","You win free shipping, because your order is above"
+en,"Безплатна доставка, съгласно ""Общите условия""","Free shipping under the ""Terms of Service"""
+en,"Безплатна доставка при поръчка над","Free shipping if order is above"
+en,"Безплатна доставка на територията на","Free shipping on the territory of"
+en,за да спечелите,to win
+en,Добавете артикули на обща стойност,Add items with total value of
+en,Невалиден VAT номер,Invalid VAT ID
+en,Игнорирай предупреждението,Ignore the warning
+en,Редактиране на данните за поръчка,Edit order details
+en,кутия,box
+en,бандерол,banderole
+en,по договори,according to contracts
+en,по фактури,according to invoices
+en,по фактура,according to invoice
+en,по проформи,according to proforma invoices
+en,по проформа,according to proforma invoice
+en,Данъчно събитие,Tax event
+en,Дълготраен материален актив,Tangible fixed asset
+en,Дълготраен нематериален актив,Intangible fixed asset
+en,Дълготрайни нематериални активи,Intangible fixed assets
+en,Търсене на баркод,Search barcodes
+en,"Избрано е плащане по банков път. Моля, преведете дължимата сума по сметка","You've selected bank payment. Please transfer the amount to be paid to the following account"
+en,"Плащането трябва да се извърши по следния начин","Payment must be made in the following way"
+en,"Благодарим за поръчката","Thank you for your order"
+en,"Изпратихме Ви имейл с инструкции за плащането","We've sent you an email with payment instructions"
+en,Нов файл,New file
+en,Без фактура,Without invoice
+en,"Премахване на всички артикули","Remove all items"
+en,"ч.","h"
+en,Без фактуриране,Without invoice
+en,Титуляр,Holder
+en,"Може да свалите попълнено платежно нареждане","You can download a filled payment order"
+en,Информация за плащането,Payment information
+en,Поръчката е направена успешно,The order was placed successfully
+en,Вижте също,See also
+en,Фактура на лице,Person invoice
+en,Фактура на фирма,Company invoice
+en,Фактуриране,Billing
+en,"Има проблем при изчислението на доставката. Моля, обърнете се към нас","There is a problem with the delivery calculation. Please, contact us"
+en,Липсва двубуквен префикс,Missing two-letter prefix
+en,"Поръчката ще бъде изпълнена след получаване на плащането","The order will be completed after the payment is received"
+en,Данни за фактуриране,Billing information
+en,Липсват данните за фактуриране,Missing billing information
+en,"Нямате избрани артикули","You haven't selected any items"
+en,изпращане на запитването,send the enquiry
+en,Безплатна,Free
+en,Безплатно,Free
+en,безплатна,free
+en,безплатно,free
+en,"Моля, завършете поръчката, като направите плащането от бутона","Place the order after you make a payment from"
+en,"Ако имате клиентска карта, може да я въведете от","If you have a client card, you may input it from"
+en,Невалиден номер на карта,The card number is not valid
+en,Картата вече не е активна,The card is no longer active
+en,Въвеждане на клиентска карта,Input client card
+en,Въведи,Enter
+en,Сканирай,Scan
+en,Регистриране на нов акаунт на партньор,Register a new partner account
+en,Справка,Report
+en,Отсъствия,Absences
+en,Без партида,Without batch
+en,Никът трябва да е поне,The nick must be
+en,Нова,New
+en,Плати,Pay
+en,Избор на терминал в,Select terminal in
+en,Терминал,Terminal
+en,ПИН,PIN
+en,ПИН код,PIN code
+en,Известяване за добавен документ в нишка,Notification for added document in thread
+en,Известяване при нов документ,Notification for a new document
+en,Известяване при контиране,Notification for conto
+en,Известяване на споделените потребители на папка,Notify shared users to a folder
+en,Известяване за създадени документи,Notification of created documents
+en,Превеждане на имейли от,Translate emails from
+en,Автоматично попълване на имейлите в полето копие,Automatically fill in the emails in the copy field
+en,когато са до,when they are up
+en,Дължина на артикула в името на продажбата,Length of the item in the name of the sale
+en,Типове събития,Event types
+en,които да се показват в календара,to display on the calendar
+en,Клавиши за бързо избиране на бутони,Buttons for quick button selection
+en,Изчакване преди сигнализация за нови известия,Waiting before signaling for new notifications
+en,Блокиране на сигнализация за нови известия,Block alert for new notifications
+en,Формат за експорт на CSV,CSV export format
+en,Получаване на нотификации от отдалечени системи,Get notifications from remote systems
+en,Критични,Critical
+en,Спешни,Urgent
+en,Нормални,Normal
+en,Задължително,Mandatory
+en,Портал,Portal
+en,Свързване,Connect
+en,Свързване на онлайн услуга,Connect an online service
+en,Свързване на онлайн услуги,Connect online services
+en,Краен срок за,Deadline for
+en,Възложено на,Assigned to
+en,Този продукт вече не се предлага,This item is no longer available
+en,Страна за доставка,Delivery country
+en,Пощенски код за доставка,Post code for delivery
+en,В момента количеството не е налично в склада,Quantity is currently unabailable
+en,Свържете се с нас,Contact us
+en,До 30 дни след фактуриране с 1% отстъпка при плащане до 10 дни,Up to 30 days after invoicing with 1% discount up to 10 days
+en,До 30 дни след фактуриране с 1.5% отстъпка при плащане до 10 дни,Up to 30 days after invoicing with 1.5% discount up to 10 days
+en,"Опитайте пак! Имаше проблем при завършването на поръчката! Ако все още имате проблем, свържете се с нас.","Try again! There was a problem placing your order! If you still can't place the order, contact us."
+en,Поръчайте,Order
+en,Избраното количество не е налично,The selected quantity is not available

@@ -1,26 +1,26 @@
 <?php
 
 
-
 /**
  * Клас 'expert_Plugin' -
  *
  *
  * @category  vendors
  * @package   expert
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class expert_Plugin extends core_Plugin {
-    
-    
+class expert_Plugin extends core_Plugin
+{
     /**
      * Извиква се преди изпълняването на екшън
      */
-    function on_BeforeAction(&$mvc, &$content, $act)
+    public function on_BeforeAction(&$mvc, &$content, $act)
     {
         $method = 'exp_' . $act;
         
@@ -32,12 +32,12 @@ class expert_Plugin extends core_Plugin {
             // Даваме му команда
             $content = $mvc->$method($exp);
             
-            if($content == 'DIALOG') {
+            if ($content == 'DIALOG') {
                 $content = $exp->getResult();
             }
             
-            if($content == 'FAIL') {
-                if($exp->onFail) {
+            if ($content == 'FAIL') {
+                if ($exp->onFail) {
                     $content = $mvc->onFail($exp);
                 } else {
                     $exp->setRedirect();
@@ -47,8 +47,8 @@ class expert_Plugin extends core_Plugin {
                 }
             }
             
-            if($content == 'SUCCESS') {
-                if($exp->onSuccess) {
+            if ($content == 'SUCCESS') {
+                if ($exp->onSuccess) {
                     $content = $mvc->onSuccess($exp);
                 } else {
                     $exp->setRedirect();
@@ -60,7 +60,7 @@ class expert_Plugin extends core_Plugin {
             
             $content = $mvc->renderWrapping($content);
             
-            return FALSE;
+            return false;
         }
     }
 }

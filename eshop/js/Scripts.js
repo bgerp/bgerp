@@ -4,8 +4,6 @@ function copyValToPlaceholder()
 		var changeVal = $(this).attr("data-updateonchange");
 		
 		$placeholder = $(this).val();
-		console.log($placeholder);
-		if(!$placeholder) return;
 		
 		var element = $("input[name="+ changeVal +"]");
 		if (element.length <= 0) return;
@@ -13,11 +11,12 @@ function copyValToPlaceholder()
 		element.attr("placeholder", $placeholder);
 	});
 	
+	$('select[name=deliveryCountry]').trigger('change');
+	
 	$('select[name=deliveryCountry]').bind('change', function() {
 		var changeVal = $(this).attr("data-updateonchange");
 		
 		var $placeholder = $('select[name=deliveryCountry] option:selected').text();
-		if(!$placeholder) return;
 		
 		var element = $("select[name="+ changeVal +"");
 		if (element.length <= 0) return;
@@ -26,13 +25,46 @@ function copyValToPlaceholder()
 		element.select2();
 	});
 	
-	$('select[name=deliveryCountry]').trigger('change');
 	$('.updateonchange').trigger('keyup');
+}
+
+function refreshInvoiceFields()
+{
+	//Триене на символи от формата за търсене
+	$(document.body).on('change', 'select[name=makeInvoice]', function(e){
+			var changeVal = $(this).attr("data-updateonchange");
+		
+		var $placeholder = $('select[name=deliveryCountry] option:selected').text();
+		
+		var element = $("select[name="+ changeVal +"");
+		if (element.length <= 0) return;
+		
+		element.attr("data-placeholder", $placeholder);
+		element.select2();
+	});
+}
+
+/**
+ * Динамична ширина на полето за количество
+ */
+function changeInputWidth()
+{
+	$('.option-quantity-input').each(function () {
+		$(this).css( "width", 12 + $(this).val().length * 10);
+	});
+}
+
+
+function render_changeInputWidth()
+{
+	changeInputWidth();
 }
 
 
 function eshopActions() {
 
+	changeInputWidth();
+	
 	// Изтриване на ред от кошницата
 	$(document.body).on("click", '.remove-from-cart', function(event){
 		
@@ -76,36 +108,47 @@ function eshopActions() {
 	});
 	
 	// Време за изчакване
-	var timeout1;
-	
+	var timeout1 = [];
+	disableBtns();
 	// Ъпдейт на кошницата след промяна на к-то
 	$(document.body).on('keyup', ".option-quantity-input", function(e){
-		
-		//this.value = this.value.replace(/[^0-9\.]/g,'');
 		$(this).removeClass('inputError');
 		var packQuantity = $(this).val();
 		
-		var max = $(this).attr("data-maxquantity");
-		
-		$aboveMax = max && parseFloat(packQuantity) > parseFloat(max);
-		
-		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1 || $aboveMax)){
+		var max = parseFloat($(this).attr("data-maxquantity"));
+		var aboveMax = max && parseFloat(packQuantity) > parseFloat(max);
+
+		var idProd = $(this).attr('name');
+
+		if(aboveMax){
+			var maxReachedText = $(this).attr("data-maxquantity-reached-text");
+			clearTimeout(timeout1[idProd]);
+
+			timeout1[idProd] = setTimeout(function(){
+				render_showToast({timeOut: 100, text: maxReachedText, isSticky: true, stayTime: 8000, type: 'error'});
+			}, 2000);
+		}
+		disableBtns();
+		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1 || aboveMax)){
 			$(this).addClass('inputError');
+			
 		} else {
 			$(this).removeClass('inputError');
+			changeInputWidth();
 			var url = $(this).attr("data-url");
 		    if(!url) return;
 		    var data = {packQuantity:packQuantity};
-		    
+
 		    // След всяко натискане на бутон изчистваме времето на изчакване
-			clearTimeout(timeout1);
-			
+			clearTimeout(timeout1[idProd]);
+
 			// Правим Ajax заявката като изтече време за изчакване
-			timeout1 = setTimeout(function(){
+			timeout1[idProd] = setTimeout(function(){
 				resObj = new Object();
 				resObj['url'] = url;
 				getEfae().process(resObj, data);
 			}, 2000);
+
 		}
 	});
 	
@@ -115,36 +158,50 @@ function eshopActions() {
 		
 		var packQuantity = $(this).val();
 		
-		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1)){
+		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 0)){
 			$(this).addClass('inputError');
 		}
 	});
 
 	// Бутоните за +/- да променят количеството
 	$(document.body).on('click tap', ".btnUp, .btnDown",  function(){
+		var data = {type:'error'};
+		render_clearStatuses(data)
+		
 		var input = $(this).siblings('.option-quantity-input');
-		
-		var max = input.attr("data-maxquantity");
-		
+
+		var max = parseFloat(input.attr("data-maxquantity"));
 		var val = parseFloat($(input).val());
 		var step = $(this).hasClass('btnUp') ? 1 : -1;
-		
-		if (val + step > 0 && (!max || step == -1 || (max && val + step <= max))) {
-			$(input).val(val + step);
-			
-			if(max && val >= max) return;
+		var valNew = parseFloat(val) + parseFloat(step);
+        var update = $(input).hasClass('autoUpdate');
+
+		if (valNew > 0 && (!max || step == -1 || (max && val + step <= max))) {
+			$(input).val(valNew);
+            if(update) {
+			    $(input).css( "color", "green");
+                $("#cart-view-table").css("cursor", "progress");
+            }
+			changeInputWidth();
 		}
-
-		// Ръчно инвоукване на ивент на инпут полето
-		input.keyup();
+        
+        if(update) {
+            // Ръчно инвоукване на ивент на инпут полето
+            input.keyup();
+        }
 	});
-	
-	
-	
 
-	$('.eshop-product .eshop-btn').on('click', function () {
+
+
+
+	$('.eshop-product .eshop-btn, .eshop-product-list .eshop-btn').on('click', function () {
+		if($('.eshop-product-option').hasClass('inputError')) return;
 		var cart = $('.logoutBlock #cart-external-status');
-		var imgtodrag = $('.eshop-product-images').find("img").eq(0);
+		if($('.eshop-product-list').length) {
+			var imgtodrag = $(this).closest('.eshop-product-list').find('.eshop-product-image');
+		} else {
+			var imgtodrag = $('.product-image').eq(0);
+		}
 		if (imgtodrag) {
 			var imgclone = imgtodrag.clone()
 				.offset({
@@ -174,4 +231,34 @@ function eshopActions() {
 			});
 		}
 	});
-};
+}
+
+/**
+ * Забраняване на бутоните от кошницата според количеството
+ */
+function disableBtns() {
+	$(".option-quantity-input").each(function(){
+		if ($(this).attr('data-maxquantity') && $(this).val() >= parseFloat($(this).attr('data-maxquantity'))) {
+			$(this).siblings('.btnUp').addClass('quiet');
+			$(this).siblings('.btnUp').css("pointer-events", "none");
+		} else {
+			$(this).siblings('.btnDown').removeClass('quiet');
+			$(this).siblings('.btnDown').css("pointer-events", "auto");
+		}
+		if($(this).val() == 1) {
+			$(this).siblings('.btnDown').addClass('quiet');
+			$(this).siblings('.btnDown').css("pointer-events", "none");
+		} else {
+			$(this).siblings('.btnDown').removeClass('quiet');
+			$(this).siblings('.btnDown').css("pointer-events", "auto");
+		}
+	});
+}
+
+/**
+ * Забраняване на бутоните от кошницата според количеството
+ */
+function render_disableBtns(data)
+{
+	disableBtns();
+}

@@ -13,6 +13,10 @@
                             <!--ET_BEGIN state-->
                             <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                             <!--ET_END state-->
+                            
+                            <!--ET_BEGIN zoneReadiness-->
+               				<div class="document-block"><span class='block-caption'>|В зона|* [#zoneId#]</span>: <span class='block-readiness'>[#zoneReadiness#]</span></div>
+               				<!--ET_END zoneReadiness-->
                         </td>
                         <td class="cell custom-header-bg" style='width:35%;'><b>|Доверител|*</b></td>
                     </tr>
@@ -48,21 +52,21 @@
                 <tbody>
                     <tr>
                         <td class="topCell first vtop" style='width:50%;'>
-                            <table class='shipment-table'>
+                            <table class='shipment-table' style="width: 100%;">
                                 <tr>
-                                    <td class='quiet nowrap aright'>|Валута|*:</td>
+                                    <td class='quiet nowrap aright' style="width: 1%">|Валута|*:</td>
                                     <td>[#currencyId#]</td>
                                 </tr>
                                 <!--ET_BEGIN storeId-->
                                 <tr>
-                                    <td class='quiet nowrap aright'>|От склад|*:</td>
+                                    <td class='quiet nowrap aright' style="width: 1%">|От склад|*:</td>
                                     <td>[#storeId#]</td>
                                 </tr>
                                 <!--ET_END storeId-->
 
                                 <!--ET_BEGIN lineId-->
                                 <tr>
-                                    <td class='quiet nowrap aright'>|Транспорт|*:</td>
+                                    <td class='quiet nowrap aright' style="width: 1%">|Транспорт|*:</td>
                                     <td>[#lineId#]</td>
                                 </tr>
                                 <!--ET_END lineId-->
@@ -80,13 +84,19 @@
                                     <td>[#volume#]</td>
                                 </tr>
                                 <!--ET_END volume-->
-                                
+
+                                 <!--ET_BEGIN lineNotes-->
+                                <tr>
+                                    <td colspan="2"> <hr></td>
+                                </tr>
+                                <tr>
+                                     <td class='quiet nowrap'>|Забележки|*: </td>
+                                     <td>[#lineNotes#]</td>
+                                </tr>
+                                <!--ET_END lineNotes-->
                                 <!--ET_BEGIN logisticInfo-->
                   				<tr>
-                     				<td colspan="2" ><hr><span class='quiet'>|Логистични единици|*</span></td>
-                  				</tr>
-                  				<tr>
-                  					<td colspan="2" >[#logisticInfo#]</td>
+                     				<td colspan="2"> <hr><span class='quiet' >|Логистични единици|*</span>: [#logisticInfo#]</td>
                   				</tr>
                   				<!--ET_END logisticInfo-->
                   				

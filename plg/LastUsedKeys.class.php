@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'plg_LastUsedKeys' - Кога за последно са използвани ключовете
  *
@@ -13,56 +12,60 @@
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_LastUsedKeys extends core_Plugin
 {
-    
-    
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
+    public function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
         // Ако липсва масив за полетата, на които трябва да се записва последното използване
         // той се съставя, като се обхождат всички ключови полета
-        if(empty($mvc->lastUsedKeys)) {
-            foreach($mvc->fields as $name => $field) {
-                if(($field->type instanceof type_Key) || ($field->type instanceof type_Key2) || ($field->type instanceof type_Keylist)) {
+        if (empty($mvc->lastUsedKeys)) {
+            foreach ($mvc->fields as $name => $field) {
+                if (($field->type instanceof type_Key) || ($field->type instanceof type_Key2) || ($field->type instanceof type_Keylist)) {
                     $mvc->lastUsedKeys[] = $name;
                 }
             }
-            $mvc->noCheckLastUsedField = FALSE;
+            $mvc->noCheckLastUsedField = false;
             $mvc->logDebug('Не е дефиниран lastUsedKeys');
         } else {
             $mvc->lastUsedKeys = arr::make($mvc->lastUsedKeys);
             
-            foreach($mvc->lastUsedKeys as $field) {
-                expect(isset($mvc->fields[$field]),
+            foreach ($mvc->lastUsedKeys as $field) {
+                expect(
+                    isset($mvc->fields[$field]),
                     'Полето в lastUsedFields не принадлежи на модела',
-                    $field);
-                expect(($mvc->fields[$field]->type instanceof type_Key) ||
+                    $field
+                );
+                expect(
+                    ($mvc->fields[$field]->type instanceof type_Key) ||
                     ($mvc->fields[$field]->type instanceof type_Keylist) || (($mvc->fields[$field]->type instanceof type_Key2)),
                     'Полето в lastUsedFields не е key или keylist',
-                    $field);
+                    $field
+                );
             }
-            if ($mvc->noCheckLastUsedField !== FALSE) {
-                $noCheckLastUsedField = TRUE;
+            if ($mvc->noCheckLastUsedField !== false) {
+                $noCheckLastUsedField = true;
             } else {
-                $noCheckLastUsedField = FALSE;
+                $noCheckLastUsedField = false;
             }
         }
         
-        foreach($mvc->lastUsedKeys as $field) {
-            if($rec->{$field}) {
+        foreach ($mvc->lastUsedKeys as $field) {
+            if ($rec->{$field}) {
                 if (($mvc->fields[$field]->type instanceof type_Key) || ($mvc->fields[$field]->type instanceof type_Key2)) {
                     $usedClass = cls::get($mvc->fields[$field]->type->params['mvc']);
                     
-                    if($noCheckLastUsedField || isset($usedClass->fields['lastUsedOn'])) {
+                    if ($noCheckLastUsedField || isset($usedClass->fields['lastUsedOn'])) {
                         $usedRec = new stdClass();
                         
                         // id' то трябва да е над 0
@@ -75,14 +78,14 @@ class plg_LastUsedKeys extends core_Plugin
                     }
                 }
                 
-                if($mvc->fields[$field]->type instanceof type_Keylist) {
+                if ($mvc->fields[$field]->type instanceof type_Keylist) {
                     $usedClass = cls::get($mvc->fields[$field]->type->params['mvc']);
                     
-                    if($noCheckLastUsedField || isset($usedClass->fields['lastUsedOn'])) {
+                    if ($noCheckLastUsedField || isset($usedClass->fields['lastUsedOn'])) {
                         $keysArr = keylist::toArray($rec->{$field});
                         
-                        if(count($keysArr)) {
-                            foreach($keysArr as $key) {
+                        if (count($keysArr)) {
+                            foreach ($keysArr as $key) {
                                 $usedRec = new stdClass();
                                 
                                 // id' то трябва да е над 0

@@ -50,7 +50,7 @@ body {
     margin: 0px 0px 20px;
     line-height: 1.3em;
     background: none !important;
-    font-size: 1.4em;
+    font-size: 1.3em;
     font-weight: bold;
 }
 .bulletinFields {
@@ -244,8 +244,12 @@ body {
         max-height: 140px;
     }
     .logImg {
-        margin: 5% 5% 0 5% ;
-        max-width: 90%
+        max-height: 60px;
+        width: auto;
+        margin: 10px auto 0;
+    }
+    .bulletinReg .push_button {
+        margin-bottom: 10px !important;
     }
     .bulletinFields .rowBulletin input {
         font-size: 0.9em;
@@ -259,6 +263,24 @@ body {
         right: 5px;
         top: 5px;
     }
+
+}
+@media handheld, only screen and (orientation:landscape) {
+    .txt {
+        font-size: 0.8em !important;
+        line-height: 0.8em !important;
+    }
+    .richtext {
+        margin-bottom: 0 !important;
+    }
+    .logImg {
+        max-height: 50px;
+    }
+    .bulletinReg .push_button {
+        margin-bottom: 10px !important;
+        padding: .1em .2em;
+        font-size: 0.8em !important;
+    }
 }
 
 @media handheld, only screen and (max-width: 640px) and (orientation:landscape) {
@@ -267,7 +289,7 @@ body {
         margin-bottom: 15px;
     }
     .push_button {
-        margin: 0px auto !important;
+        margin: 0px auto 10px !important;
     }
     .logImgLeft {
         max-height: 100px;
@@ -295,6 +317,9 @@ body {
     .bulletinFields {
         clear: both;
         max-width: 300px;
+    }
+    .bulletinInner .richtext {
+        font-size: 1.1em !important;
     }
     .bulletinError{
         margin-top: 5px;

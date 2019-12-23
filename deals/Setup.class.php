@@ -8,79 +8,76 @@ defIfNot('DEALS_BALANCE_TOLERANCE', '0.01');
 
 
 /**
+ * Кой потребител да излиза като съставител на документите
+ */
+defIfNot('DEALS_ISSUER', 'activatedBy');
+
+
+/**
  * class deals_Setup
  *
  *
  * @category  bgerp
  * @package   deals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class deals_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Екшън - входна точка в пакета.
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Необходими пакети
      */
-    var $depends = 'drdata=0.1';
+    public $depends = 'drdata=0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Помощни класове за бизнес документите";
+    public $info = 'Помощни класове за бизнес документите';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
-            'deals_OpenDeals',
-        );
-
+    public $managers = array(
+        'deals_OpenDeals',
+    );
+    
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
-    		'DEALS_BALANCE_TOLERANCE' => array("percent(min=0)", 'caption=Процент за допустимо разминаване в салдото според сумата->Процент'),
+    public $configDescription = array(
+        'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Процент за допустимо разминаване в салдото според сумата->Процент'),
+        'DEALS_ISSUER' => array('enum(createdBy=Създателят,activatedBy=Активиралият)', 'caption=Съставител на бизнес документи->Избор'),
+    
     );
+    
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "deals_reports_ArrearsImpl,deals_reports_ReportPaymentDocuments";
-    
-    
-     /**
-     * Роли за достъп до модула
-     */
-    var $roles = 'dealJoin';
+    public $defClasses = 'deals_reports_ReportPaymentDocuments';
     
     
     /**
-     * Де-инсталиране на пакета
+     * Роли за достъп до модула
      */
-    function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
+    public $roles = 'dealJoin';
 }

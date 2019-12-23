@@ -64,18 +64,18 @@
         </tr>
         <tr>
             <td><span class="title-style">|Период|*</span> </td>
-            <td> [#period#]</td>
+            <td> [#fetchingPeriod#]</td>
         </tr>
-        <!--ET_BEGIN lastFetchAll-->
         <tr>
-            <td class="title-style">|Последно източване|*</td>
-            <td>[#lastFetchAll#]</td>
+            <td class="title-style">|Изтриване|*</td>
+            <td>[#deleteAfterPeriod#]</td>
         </tr>
-        <!--ET_END lastFetchAll-->
+        <!--ET_BEGIN imapFlag-->
         <tr>
-            <td class="title-style">|Изтриване|*?</td>
-            <td>[#deleteAfterRetrieval#]</td>
+            <td class="title-style">|Маркиране|*</td>
+            <td>[#imapFlag#]</td>
         </tr>
+        <!--ET_END imapFlag-->
     </table>
     <table class="styled-table" style='width:99%'>
         <tr>

@@ -1,14 +1,5 @@
 <div class='scrolling-holder'>
 	<fieldset class='top-tab-content'>
-	<legend class='groupTitle'>[#priceListTitle#]</legend>
-		<div class='detail-info portal [#TAB_STATE#]'>
-		    <div class='groupList clearfix21'>
-		        [#LISTS#]
-		    </div>
-	    </div>
-	</fieldset>
-	
-	<fieldset class='top-tab-content' style='margin-top:10px'>
 	<legend class='groupTitle'>[#condTitle#]</legend>
 		<div class='detail-info portal [#TAB_STATE#]'>
 		    <div class='groupList clearfix21'>
@@ -16,9 +7,17 @@
 		    </div>
 	    </div>
 	</fieldset>
-	
+
 	<fieldset class='top-tab-content' style='margin-top:10px'>
-	<legend class='groupTitle'>[#cardTitle#]</legend>
+	<legend class='groupTitle'>[#priceListTitle#]</legend>
+		<div class='detail-info portal [#TAB_STATE#]'>
+		    <div class='groupList clearfix21'>
+		        [#LISTS#]
+		    </div>
+	    </div>
+	</fieldset>
+	<fieldset class='top-tab-content' style='margin-top:10px'>
+	<legend class='groupTitle'>[#cardTitle#] [#addCardBtn#]</legend>
 		<div class='detail-info portal [#TAB_STATE#]'>
 		    <div class='groupList clearfix21'>
 		        [#CARDS#]

@@ -17,22 +17,25 @@
 								<td>[#storeId#]</td>
 							</tr>
 							<tr>
+								<td class='dt'>|Контрагент|*:</td>
+								<td>[#contragent#]</td>
+							</tr>
+							
+							<tr>
+								<td class='dt'>|Плащания|*:</td>
+								<td>[#payments#]</td>
+							</tr>
+							<tr>
 								<td class='dt'>|Политика|*:</td>
 								<td>[#policyId#]</td>
 							</tr>
-							<!--ET_BEGIN CloseTime-->
-							<tr>
-								<td class='dt'>|Затваряне на нишките|*:</td>
-								<td>|Автоматично след|* [#CloseTime#]</td>
-							</tr>
-							<!--ET_END CloseTime-->
 						</table>
 				</div>
 			</fieldset>
 			
 			<!--ET_BEGIN Receipts-->
 			<fieldset class="detail-info">
-				<legend class="groupTitle">|Чакащи бележки|*</legend>
+				<legend class="groupTitle">|Чакащи бележки|* ([#waitingCount#])</legend>
 				[#Receipts#]
 			</fieldset>
 			<!--ET_END Receipts-->
