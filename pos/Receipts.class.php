@@ -1921,6 +1921,8 @@ class pos_Receipts extends core_Master
      */
     protected function on_AfterGetDisplayPrice($mvc, &$res, $priceWithoutVat, $vat, $discountPercent, $pointId, $quantity)
     {
+        $quantity = !empty($quantity) ? $quantity : 1;
+        
         if (empty($res)) {
             $res = $priceWithoutVat * $quantity * (1 + $vat);
             if (!empty($discountPercent)) {
