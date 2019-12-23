@@ -33,10 +33,10 @@ class core_Backup extends core_Mvc
         $pass = core_Setup::get('BACKUP_PASS');
         
         // Форсираме директориите
-        $curDir = self::getDir('current');
-        $pastDir = self::getDir('past');
+        $curDir = $this->getDir('current');
+        $pastDir = $this->getDir('past');
         $workDir = core_Setup::get('BACKUP_WORK_DIR');
-        $sqlDir = self::getExportCsvDir();
+        $sqlDir = $this->getExportCsvDir();
         
         // Определяме всички mvc класове, на които ще правим бекъп
         $mvcArr = core_Classes::getOptionsByInterface('core_ManagerIntf');
@@ -44,7 +44,7 @@ class core_Backup extends core_Mvc
         $files = array();
         $lockTables = '';
         
-        foreach ($mvcArr as $classId => $className) {
+        foreach ($mvcArr as $className) {
             if (!cls::load($className, true)) {
                 continue;
             }
@@ -62,26 +62,26 @@ class core_Backup extends core_Mvc
         $lockTables = trim($lockTables, ',');
         
         // Пускаме завесата
-        core_SystemLock::block('Процес на архивиране на данните', $time = 600); // 10 мин.
+        core_SystemLock::block('Процес на архивиране на данните', 600); // 10 мин.
         
         $this->db->query('FLUSH TABLES');
         
         $this->db->query("LOCK TABLES {$lockTables}");
         
         // Флъшваме всичко, каквото има от SQL лога
-        self::cron_FlushSqlLog();
+        $this->cron_FlushSqlLog();
         
         // Ако в `current` има нещо - преместваме го в `past`
-        if (!self::isDirEmpty($curDir)) {
+        if (!$this->isDirEmpty($curDir)) {
             // Изтриваме директорията past
-            self::deleteDirectory($pastDir);
+            $this->deleteDirectory($pastDir);
             
             // Преименуваме текущата директория на past
             rename($curDir, $pastDir);
         }
         
         // Създаваме празна текуща директория
-        core_Os::forceDir($curDir);
+        core_Os::forceDir($curDir, 0645);
         
         foreach ($instArr as $table => $inst) {
             core_App::setTimeLimit(120);
@@ -129,7 +129,7 @@ class core_Backup extends core_Mvc
                     $query->where($where = ('id BETWEEN ' . ($i + 1) . ' AND ' . ($i + $inst->backupMaxRows)));
                     $query->show('crc32backup');
                     $rec = $query->fetch();
-                    self::backupTable($table, abs($rec->crc32backup), $sqlDir, $workDir, $curDir, $pastDir, $where, $files);
+                    $this->backupTable($table, abs($rec->crc32backup), $sqlDir, $workDir, $curDir, $pastDir, $where, $files);
                 }
             } else {
                 $query = "SELECT * 
@@ -280,7 +280,7 @@ class core_Backup extends core_Mvc
     {
         $dir = self::normDir(core_Setup::get('BACKUP_PATH')) . '/' . $subDir;
         
-        if (core_Os::forceDir($dir)) {
+        if (core_Os::forceDir($dir, 0747)) {
             
             return $dir;
         }
@@ -330,7 +330,7 @@ class core_Backup extends core_Mvc
     {
         static $path;
         if (!$path) {
-            core_Os::forceDir($wDir = self::normDir(core_Setup::get('BACKUP_WORK_DIR')));
+            core_Os::forceDir($wDir = self::normDir(core_Setup::get('BACKUP_WORK_DIR')), 0747); // Да може mysql-a да пише вътре
             $path = $wDir . '/' . EF_DB_NAME . '.log.sql';
         }
         
