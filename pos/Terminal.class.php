@@ -168,7 +168,7 @@ class pos_Terminal extends peripheral_Terminal
         if (!Mode::is('printing')) {
             
             // Задаване на празна обвивка
-            Mode::set('wrapper', 'pos_tpl_terminal_Empty');
+            Mode::set('wrapper', 'page_Empty');
             
             $defaultOperation = Mode::get("currentOperation{$rec->id}") ? Mode::get("currentOperation{$rec->id}") : (($rec->state == 'draft') ? 'add' : 'receipts');
             $defaultSearchString = Mode::get("currentSearchString{$rec->id}");
