@@ -845,11 +845,13 @@ function countR($arr)
 {
     if(!is_array($arr) && !empty($arr)) {
         
-        if(BGERP_GIT_BRANCH == 'dev') {
+        if(defined('BGERP_GIT_BRANCH') && BGERP_GIT_BRANCH == 'dev') {
             print_r($arr);
-            bp();
-            die('countR - this is not an array');
-        } else return 1;
+            die(' - countR - this is not an array');
+        } else {
+
+            return 1;
+        }
     }
 
     return empty($arr) ? 0 : count($arr);

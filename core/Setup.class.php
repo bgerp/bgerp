@@ -96,7 +96,7 @@ defIfNot('CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT', 1209600);
 
 
 /**
- * 
+ *
  * 30 дни
  */
 defIfNot('CORE_STOP_BLOCKING_LOGIN_PERIOD', 2592000);
@@ -198,6 +198,12 @@ defIfNot('CORE_MAX_ROWS_FOR_PRINTING', 1000);
 
 
 /**
+ * Забрана за записване на паролата
+ */
+defIfNot('CORE_ALLOW_PASS_SAVE', 'yes');
+
+
+/**
  * Версия на кода, към която са актуални данните в базата
  * По дефолт, стойността е равна на версия "Ореляк" - последната,
  * която носи всички миграции. Тази константа не трябва да се
@@ -212,6 +218,48 @@ define('CORE_LAST_DB_VERSION', '18.25-Shabran');
  * а само с: core_setup::CURRENT_VERSION
  */
 define('CORE_CODE_VERSION', '19.51-Vezhen');
+
+
+/**
+ * Включена ли е бекъп функционалността?
+ */
+defIfNot('CORE_BACKUP_ENABLED', false);
+
+
+/**
+ * Парола за архиви
+ */
+defIfNot('CORE_BACKUP_PASS', '');
+
+
+/**
+ * Работна директория за бекъпите
+ */
+defIfNot('CORE_BACKUP_WORK_DIR', EF_TEMP_PATH . '/backup_work');
+
+
+/**
+ * Път до текущия и миналия бекъп
+ */
+defIfNot('CORE_BACKUP_PATH', EF_UPLOADS_PATH . '/backup');
+
+
+/**
+ * Колко минути е периода за флъшване на SQL лога
+ */
+defIfNot('CORE_BACKUP_SQL_LOG_FLUSH_PERIOD', 60 * 60);
+
+
+/**
+ * Колко колко минути е периода за пълен бекъп?
+ */
+defIfNot('CORE_BACKUP_CREATE_FULL_PERIOD', (60 * 24) * 60);
+
+
+/**
+ * В колко минути след периода да започва пълният бекъп?
+ */
+defIfNot('CORE_BACKUP_CREATE_FULL_OFFSET', (60 * 3 + 50) * 60);
 
 
 /**
@@ -312,6 +360,8 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_SUCCESS_LOGIN_AUTOCOMPLETE' => array('int', 'caption=Запомняне на потребителя при логване от един браузър->Брой логвания'),
         
+        'CORE_ALLOW_PASS_SAVE' => array('enum(yes=Да,no=Не)', 'caption=Запомняне в бразузъра на паролата за логин->Разрешено'),
+        
         'CORE_LOGIN_LOG_FETCH_DAYS_LIMIT' => array('time(suggestions=1 месец|45 дни|2 месеца|3 месеца)', 'caption=Колко време назад да се търси в лога->Време'),
         
         'CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT' => array('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Колко време назад да се търси в лога за first_login->Време'),
@@ -331,7 +381,20 @@ class core_Setup extends core_ProtoSetup
         'CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM' => array('enum(yes=Да, no=Не)', 'caption=Дали да може да се регистрират нови потребители от логин формата->Избор'),
         
         'CORE_RESET_PASSWORD_FROM_LOGIN_FORM' => array('enum(yes=Да, no=Не)', 'caption=Дали да може да се ресетват пароли от логин формата->Избор'),
-    
+        
+        'CORE_BACKUP_ENABLED' => array('enum(no=Не, yes=Да)', 'caption=Настройки за бекъп->Включен бекъп'),
+        
+        'CORE_BACKUP_PASS' => array('password', 'caption=Настройки за бекъп->Ключ за криптиране'),
+        
+        'CORE_BACKUP_SQL_LOG_FLUSH_PERIOD' => array('time', 'caption=Настройки за бекъп->Запис на SQL лог през'),
+        
+        'CORE_BACKUP_CREATE_FULL_PERIOD' => array('time', 'caption=Настройки за бекъп->Пълен бекъп през'),
+        
+        'CORE_BACKUP_CREATE_FULL_OFFSET' => array('time', 'caption=Настройки за бекъп->Изместване'),
+        
+        'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
+        
+        'CORE_BACKUP_WORK_DIR' => array('varchar', 'caption=Настройки за бекъп->Работна директория,readOnly'),
     );
     
     
@@ -399,6 +462,9 @@ class core_Setup extends core_ProtoSetup
      */
     public function install()
     {
+        // Спираме SQL лога, ако има такъв
+        core_Db::$sqlLogEnebled = false;
+        
         $html .= parent::install();
         
         if (CORE_OVERWRITE_HTAACCESS) {
@@ -466,27 +532,26 @@ class core_Setup extends core_ProtoSetup
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
         
-        cls::load('core_Backup');
-        if(BGERP_BACKUP_ENABLED) {
+        if (CORE_BACKUP_ENABLED) {
             // Нагласяване Крон да прави пълен бекъп
             $rec = new stdClass();
             $rec->systemId = 'Backup_Create';
             $rec->description = 'Създаване на бекъп';
             $rec->controller = 'core_Backup';
             $rec->action = 'Create';
-            $rec->period = BGERP_BACKUP_CREATE_FULL_PERIOD;
-            $rec->offset = BGERP_BACKUP_CREATE_FULL_OFFSET;
+            $rec->period = round(core_Setup::get('BACKUP_CREATE_FULL_PERIOD') / 60);
+            $rec->offset = round(core_Setup::get('BACKUP_CREATE_FULL_OFFSET') / 60);
             $rec->delay = 20;
             $rec->timeLimit = 1800;
             $html .= core_Cron::addOnce($rec);
-
+            
             // Нагласяване Крон да се флъшва sql лога
             $rec = new stdClass();
             $rec->systemId = 'Sql_Log_Flush';
             $rec->description = 'Флъшване на SQL лога';
             $rec->controller = 'core_Backup';
             $rec->action = 'FlushSqlLog';
-            $rec->period = BGERP_BACKUP_SQL_LOG_FLUSH_PERIOD;
+            $rec->period = round(core_Setup::get('BACKUP_SQL_LOG_FLUSH_PERIOD') / 60);
             $rec->offset = 0;
             $rec->delay = 2;
             $rec->timeLimit = 20;
@@ -495,12 +560,12 @@ class core_Setup extends core_ProtoSetup
             core_Cron::delete("#systemId = 'Backup_Create'");
             core_Cron::delete("#systemId = 'Sql_Log_Flush'");
         }
-
+        
         
         // Регистрираме класовете, които не може да се регистрират автоматично
         $html .= core_Classes::add('core_Classes');
         $html .= core_Classes::add('core_Interfaces');
-
+        
         $html .= core_Classes::add('core_page_Internal');
         $html .= core_Classes::add('core_page_InternalModern');
         
@@ -559,6 +624,15 @@ class core_Setup extends core_ProtoSetup
     public function getCommonCss()
     {
         return $res;
+    }
+    
+    
+    /**
+     * Поверява дали конфига е добре настроен
+     */
+    public function checkConfig()
+    {
+        return core_Backup::checkConfig();
     }
     
     
