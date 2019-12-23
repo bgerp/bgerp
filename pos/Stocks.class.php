@@ -108,6 +108,7 @@ class pos_Stocks extends core_Manager
             $bQuery->in('storeId', $usedStores);
             $bQuery->show('productId,quantity,storeId,batch');
             $bQuery->where("#state != 'closed'");
+            $bQuery->orderBy('id', 'ASC');
             while($batchRec = $bQuery->fetch()){
                 $batchArr["{$batchRec->productId}|{$batchRec->storeId}"]["{$batchRec->batch}"] = $batchRec->quantity;
             }
@@ -148,7 +149,6 @@ class pos_Stocks extends core_Manager
             while ($rec = $closeQuery->fetch()) {
                 $rec->state = 'closed';
                 $rec->quantity = 0;
-                
                 $self->save($rec);
             }
         }
