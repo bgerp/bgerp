@@ -350,7 +350,7 @@ class cms_Feeds extends core_Manager
         
         $img = ht::createElement('img', array('src' => $src, 'alt' => 'RSS Feeds', 'width' => 24, 'height' => 24));
         
-        $link = ht::createLink($img, $url, null, array('class' => 'soc-following noSelect'));
+        $link = ht::createLink($img, $url, null, array('class' => 'soc-following noSelect', 'title' => 'RSS Feeds'));
         
         // Добавяме линка към шаблона
         $tpl->append($link);
