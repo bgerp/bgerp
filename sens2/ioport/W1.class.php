@@ -43,6 +43,7 @@ class sens2_ioport_W1 extends sens2_ioport_Abstract
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('unitId', 'varchar(32)', 'caption=Unit ID,mandatory');
+        $fieldset->FLD('variable', 'varchar(32)', 'caption=Променлива,placeholoder=value');
         parent::addFields($fieldset);
     }
     

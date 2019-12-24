@@ -155,10 +155,13 @@ class unipi_Evoc
     /**
      * Търси за записи в evocJson, които отговарят на посочените критерии и после им връща стойността
      */
-    public function searchValues($circuit, $dev = null)
+    public function searchValues($circuit, $dev = null, $variable = null)
     {
         $res = array();
-
+        
+        if(!is_string($variable)) {
+            $variable = 'value';
+        }
         foreach ($this->json_data as $field)
         { 
             if(is_array($field)) {
@@ -166,7 +169,7 @@ class unipi_Evoc
                 if($dev && $dev != $field['dev']) continue;
                
                 $key = (int) str_replace($circuit, '', $field['circuit']);
-                $res[$key] = $field['value'];
+                $res[$key] = $field[$variable];
             }
         }
       
