@@ -392,13 +392,9 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_BACKUP_CREATE_FULL_OFFSET' => array('time', 'caption=Настройки за бекъп->Изместване'),
         
-//         'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
+        'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
         
-//         'CORE_BACKUP_WORK_DIR' => array('varchar', 'caption=Настройки за бекъп->Работна директория,readOnly'),
-    
-        'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите'),
-        
-        'CORE_BACKUP_WORK_DIR' => array('varchar', 'caption=Настройки за бекъп->Работна директория'),
+        'CORE_BACKUP_WORK_DIR' => array('varchar', 'caption=Настройки за бекъп->Работна директория,readOnly'),
     );
     
     
@@ -536,6 +532,9 @@ class core_Setup extends core_ProtoSetup
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
         
+        // Използваме и задаваме отделен файлов флаг за това, дали се прави SQL лог
+        $flagDoSqlLog = core_Backup::normDir(core_Setup::get('BACKUP_WORK_DIR')) . '/' . core_Backup::getFlagDoSqlLog();
+        
         if (core_Setup::get('BACKUP_ENABLED') == 'yes') {
             // Нагласяване Крон да прави пълен бекъп
             $rec = new stdClass();
@@ -566,12 +565,15 @@ class core_Setup extends core_ProtoSetup
                     core_Backup::normDir(core_Setup::get('BACKUP_PATH')) . '/' . 'current',
                     core_Backup::normDir(core_Setup::get('BACKUP_PATH')) . '/' . 'past',
                     core_Backup::normDir(core_Setup::get('BACKUP_WORK_DIR')),
-                ));
+                )
             
+            );
             
+            file_put_contents($flagDoSqlLog, 'OK');
         } else {
             core_Cron::delete("#systemId = 'Backup_Create'");
             core_Cron::delete("#systemId = 'Sql_Log_Flush'");
+            @delete($flagDoSqlLog);
         }
         
         

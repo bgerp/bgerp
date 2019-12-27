@@ -32,7 +32,7 @@ class core_Backup extends core_Mvc
         // Мета-данни за бекъпа
         $description = array();
         $description['times']['start'] = dt::now();
-
+        
         // Парола за създаване на архивните файлове
         $pass = core_Setup::get('BACKUP_PASS');
         
@@ -79,9 +79,9 @@ class core_Backup extends core_Mvc
         if (!$this->isDirEmpty($curDir)) {
             // Изтриваме директорията past
             $this->deleteDirectory($pastDir);
-
+            
             // Преименуваме текущата директория на past
-            if(!@rename($curDir, $pastDir)) {
+            if (!@rename($curDir, $pastDir)) {
                 sleep(1);
                 rename($curDir, $pastDir);
             }
@@ -92,7 +92,7 @@ class core_Backup extends core_Mvc
         
         // Масив за всички генерирани файлове
         $files = array();
-
+        
         foreach ($instArr as $table => $inst) {
             core_App::setTimeLimit(120);
             
@@ -128,7 +128,7 @@ class core_Backup extends core_Mvc
                     $query->where($where = ('id BETWEEN ' . ($i + 1) . ' AND ' . ($i + $inst->backupMaxRows)));
                     $query->show('crc32backup');
                     $rec = $query->fetch();
-                    if($rec->crc32backup > 0) {
+                    if ($rec->crc32backup > 0) {
                         $this->backupTable($table, abs($rec->crc32backup), $sqlDir, $workDir, $curDir, $pastDir, $where, $files);
                     }
                 }
@@ -167,20 +167,20 @@ class core_Backup extends core_Mvc
             debug::log('Компресиране на ' . basename($dest));
             archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
         }
-         
+        
         // Копираме или компресираме файловете с експортатите данни
         foreach ($files as $path => $dest) {
             if (file_exists($dest)) {
                 unlink($dest);
             }
-            if(substr($path, -4) == '.zip') {
+            if (substr($path, -4) == '.zip') {
                 debug::log('Файлът `' . basename($dest) . '` се копира без промени от прешишния бекъп');
                 copy($path, $dest);
             } else {
                 debug::log('Компресиране на ' . basename($dest));
                 archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
             }
-
+            
             $file = basename($dest);
             $description['files'][] = $dest;
         }
@@ -205,15 +205,15 @@ class core_Backup extends core_Mvc
         
         // всема стойностите на някои константи
         $constArr = array('EF_SALT', 'EF_USERS_PASS_SALT', 'EF_USERS_HASH_FACTOR');
-        foreach($constArr as $const) {
-            if(defined($const)) {
+        foreach ($constArr as $const) {
+            if (defined($const)) {
                 $description['const'][$const] = constant($const);
             }
         }
-
+        
         // Записваме времето за финиширане на бекъпа
         $description['times']['finish'] = dt::now();
-
+        
         // Записване на файла с описанието на бекъпа
         if ($descriptionStr = json_encode($description)) {
             $path = $workDir . '/description.json';
@@ -225,10 +225,9 @@ class core_Backup extends core_Mvc
             debug::log('Компресиране на ' . basename($dest));
             archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
         }
-
     }
     
-
+    
     /**
      * Прави бекъп файл на конкретна таблица
      */
@@ -257,9 +256,9 @@ class core_Backup extends core_Mvc
             
             // Таблицата не е променяна, нама да променяме и ZIP файла
             if ($lmtTable < filemtime($past) || strlen($suffix)) {
-                debug::log("Таблица `{$fileName}` е бeз промени");
+                debug::log("Таблица `{$fileName}` е без промени");
                 $files[$past] = $dest;
-
+                
                 return;
             }
         }
@@ -271,7 +270,7 @@ class core_Backup extends core_Mvc
                     FROM `{$table}` 
                     WHERE {$where}";
         debug::log("Експорт в CSV на таблица `{$fileName}`");
-
+        
         $this->db->query($query);
         if ($sqlPath != $path) {
             expect(file_exists($sqlPath));
@@ -290,16 +289,16 @@ class core_Backup extends core_Mvc
         $db = cls::get('core_Db');
         
         $mysqlCsvPath = $db->getVariable('secure_file_priv');
-
+        
         if ($mysqlCsvPath === '') {
             
             return self::normDir(core_Setup::get('BACKUP_WORK_DIR'));
         }
         
-        if ($mysqlCsvPath != 'NULL' ) {
+        if ($mysqlCsvPath != 'NULL') {
             core_Os::forceDir(core_Backup::normDir($mysqlCsvPath), 0747);
-            if(is_dir($mysqlCsvPath) && is_readable($mysqlCsvPath) && is_writable($mysqlCsvPath)) {
-            
+            if (is_dir($mysqlCsvPath) && is_readable($mysqlCsvPath) && is_writable($mysqlCsvPath)) {
+                
                 return self::normDir($mysqlCsvPath);
             }
         }
@@ -325,8 +324,7 @@ class core_Backup extends core_Mvc
      */
     public static function addSqlLog($sql)
     {
-        if (core_Setup::get('BACKUP_ENABLED') == 'yes') {
-            $path = self::getSqlLogPath();
+        if ($path = self::getSqlLogPath()) {
             @file_put_contents($path, $sql . ";\n\r", FILE_APPEND);
         }
     }
@@ -352,6 +350,10 @@ class core_Backup extends core_Mvc
             $curDir = self::getDir('current');
             $dest = $curDir . '/' . $newFile . '.zip';
             archive_Adapter::compressFile($newPath, $dest, core_Setup::get('BACKUP_PASS'), '-sdel');
+            
+            // Регенерираме файлов флаг за това, дали се прави SQL лог
+            $flagDoSqlLog = core_Backup::normDir(core_Setup::get('BACKUP_WORK_DIR')) . '/' . core_Backup::getFlagDoSqlLog();
+            file_put_contents($flagDoSqlLog, 'OK');
         }
     }
     
@@ -362,11 +364,27 @@ class core_Backup extends core_Mvc
     public static function getSqlLogPath()
     {
         static $path;
-        if (!$path) {
-            core_Os::forceDir($wDir = self::normDir(core_Setup::get('BACKUP_WORK_DIR')), 0747); // Да може mysql-a да пише вътре
-            $path = $wDir . '/' . EF_DB_NAME . '.log.sql';
+        
+        if (!isset($path)) {
+            $wDir = self::normDir(core_Setup::get('BACKUP_WORK_DIR'));
+            if (file_exists($wDir . '/' . self::getFlagDoSqlLog())) {
+                $path = $wDir . '/' . EF_DB_NAME . '.log.sql';
+            } else {
+                $path = false;
+            }
         }
-
+        
+        return $path;
+    }
+    
+    
+    /**
+     * Връща името на флага за правене или не на записи
+     */
+    public static function getFlagDoSqlLog()
+    {
+        $path = crc32(EF_SALT . 'BKP') . '.doSqlLog';
+        
         return $path;
     }
     
@@ -381,7 +399,7 @@ class core_Backup extends core_Mvc
             
             // Масив за съобщенията
             $log = array();
-
+            
             // Път от където да възстановяваме
             $path = BGERP_BACKUP_RESTORE_PATH;
             
@@ -400,14 +418,14 @@ class core_Backup extends core_Mvc
                 
                 return false;
             }
-
+            
             // Подготвяме структурата на базата данни
             $path = self::normDir($path) . '/';
-
+            
             $descPath = self::unzipToTemp($path . 'description.json.zip', $pass, $log);
             $description = json_decode(file_get_contents($descPath));
             unlink($descPath);
-           
+            
             // Подготвяме структурата на базата данни
             $dbStructZip = $path . 'db_structure.sql.zip';
             $dbStructSql = self::unzipToTemp($dbStructZip, $pass, $log);
@@ -426,7 +444,7 @@ class core_Backup extends core_Mvc
                 $dest = self::unzipToTemp($src, $pass, $log);
                 $log[] = 'msg: Импортиране на ' . $table;
                 $sql = "LOAD DATA INFILE '{$dest}' INTO TABLE `{$table}` FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n'";
-                $db->query($sql);  
+                $db->query($sql);
                 unlink($dest);
             }
             
@@ -453,30 +471,30 @@ class core_Backup extends core_Mvc
             die;
         }
     }
-
-
+    
+    
     /**
      * Разархивира файл във времена директория и връща път до него
-     * 
-     * @param string       $path Пътя до зипнатия файл
-     * @param string|null  $pass Парола за разархивиране
      *
-     * @return string            Пътят в темп директорията до файла
+     * @param string      $path Пътя до зипнатия файл
+     * @param string|null $pass Парола за разархивиране
+     *
+     * @return string Пътят в темп директорията до файла
      */
     public static function unzipToTemp($path, $pass, &$log)
     {
         $temp = self::normDir(EF_TEMP_PATH) . '/backup/';
         $file = basename($path);
         $tempPath = $temp . substr($file, 0, -4);
-           
+        
         expect(file_exists($path), $path);
-        if(file_exists($tempPath)) {
+        if (file_exists($tempPath)) {
             unlink($tempPath);
         }
         $log[] = "msg: Разкомпресиране на `{$file}`";
         archive_Adapter::uncompress($path, $temp, $pass);
         expect(file_exists($tempPath));
-
+        
         return $tempPath;
     }
     
