@@ -451,7 +451,10 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             if(empty($rec->storeId)){
-                $rec->storeId = static::getDefaultStoreId($rec->productId, $rec->quantity, $receiptRec->pointId);
+                $rec->storeId = static::getDefaultStoreId($receiptRec->pointId, $rec->productId, $rec->quantity, $rec->value);
+                if(empty($rec->storeId)){
+                    expect(false,  "Артикулът не е наличен в нито един склад свързан с POS-а");
+                }
             }
             
             $error = '';
@@ -906,25 +909,43 @@ class pos_ReceiptDetails extends core_Detail
     
     /**
      * Връща дефолтния склад, от който ще се експедира артикула
+     * това е склада с най-голямо количество от тези избрани в точката
      * 
-     * @param int $productId
-     * @param double $quantity
-     * @param int $pointId
-     * 
-     * @return int
+     * @param int $pointId           - ид на точка
+     * @param int $productId         - ид на артикул
+     * @param double $quantity       - количество
+     * @param int|null $packagingId  - ид на опаковка
+     * @return NULL|int              - ид на дефолтния склад или null, ако няма такъв с налично количество
      */
-    public static function getDefaultStoreId($productId, $quantity, $pointId)
+    private static function getDefaultStoreId($pointId, $productId, $quantity, $packagingId = null)
     {
-        // Ако в някой от складовете има достатъчно количество, връща се първия склад
+        // Извличане на всички налични количества в склада
         $stores = pos_Points::getStores($pointId);
-        foreach ($stores as $storeId){
-            $inStock = pos_Stocks::getQuantityByStore($productId, $storeId);
-            if($quantity <= $inStock){
-                
-                return $storeId;
+        $quantityArr = array();
+        array_walk($stores, function($storeId) use(&$quantityArr, $productId) {
+            $quantityArr[$storeId] = pos_Stocks::getQuantityByStore($productId, $storeId);
+        });
+        
+        // Сортират се във низходящ ред, и се взима най-голямото к-во и склада в който е
+        arsort($quantityArr);
+        $storeIdWithMostQuantity = key($quantityArr);
+        $inStock = $quantityArr[$storeIdWithMostQuantity];
+        
+        // Ако не може да се продават неналични артикули, проверява се дали количеството е налично
+        $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
+        if($notInStockChosen != 'yes'){
+            $quantityInPack = 1;
+            if(isset($packagingId)){
+                $packRec = cat_products_Packagings::getPack($productId, $packagingId);
+                $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             }
+            $expectedQuantity = $quantityInPack * $quantity;
+           
+            // Ако количеството е налично, връща се ако не склада е null
+            return ($expectedQuantity <= $inStock) ? $storeIdWithMostQuantity : null;
         }
         
-        return key($stores);
+        // Връщане на склада с най-голямо к-во, ако може да се продават неналични артикули
+        return $storeIdWithMostQuantity;
     }
 }

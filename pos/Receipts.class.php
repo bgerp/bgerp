@@ -618,10 +618,11 @@ class pos_Receipts extends core_Master
         $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
         $quantityInStock = pos_Stocks::getQuantityByStore($rec->productId, $rec->storeId, $rec->batch);
         $quantityInPack = ($pRec) ? $pRec->quantity : 1;
-        $quantityInStock -= $rec->quantity * $quantityInPack;
+        $quantityInStock -= round($rec->quantity * $quantityInPack, 2);
+        $quantityInStock = round($quantityInStock, 2);
         
         if ($quantityInStock < 0) {
-            $error = 'Количеството не е налично в склад|*: ' . store_Stores::getTitleById($rec->storeId);
+            $error = "Количеството не е налично в склад|*: " . store_Stores::getTitleById($rec->storeId);
             
             return false;
         }
