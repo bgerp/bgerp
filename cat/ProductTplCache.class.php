@@ -73,7 +73,7 @@ class cat_ProductTplCache extends core_Master
     /**
      * На участъци от по колко записа да се бекъпва?
      */
-    public $backupMaxRows = 100000;
+    public $backupMaxRows = 10000;
     
     
     /**

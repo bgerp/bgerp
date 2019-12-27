@@ -124,6 +124,19 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'last,state,lastState';
+    
+    
+    
+    /**
      * Описание на модела на нишките от контейнери за документи
      */
     public function description()

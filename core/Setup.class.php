@@ -235,7 +235,7 @@ defIfNot('CORE_BACKUP_PASS', '');
 /**
  * Работна директория за бекъпите
  */
-defIfNot('CORE_BACKUP_WORK_DIR', EF_TEMP_PATH . '/backup_work');
+defIfNot('CORE_BACKUP_WORK_DIR', EF_UPLOADS_PATH . '/backup_work');
 
 
 /**

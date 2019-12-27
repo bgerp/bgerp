@@ -111,7 +111,7 @@ class doc_Containers extends core_Manager
     /**
      * На участъци от по колко записа да се бекъпва?
      */
-    public $backupMaxRows = 500000;
+    public $backupMaxRows = 100000;
     
     
     /**

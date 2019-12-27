@@ -71,8 +71,20 @@ class fileman_Files extends core_Master
     
     
     public $loadList = 'plg_Sorting, plg_GroupByDate';
+
+
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
     
     
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'modifiedOn';
+    
+
     /**
      * Описание на модела (таблицата)
      */
