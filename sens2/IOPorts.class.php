@@ -38,7 +38,7 @@ class sens2_IOPorts extends embed_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'slot,name,driverClass=Тип,portIdent,state';
+    public $listFields = 'name,driverClass=Тип,slot,portIdent,state';
     
     
     /**
