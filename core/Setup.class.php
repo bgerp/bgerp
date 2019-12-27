@@ -561,9 +561,9 @@ class core_Setup extends core_ProtoSetup
             $rec->timeLimit = 20;
             $html .= core_Cron::addOnce($rec);
             
-            core_Os::forceDir(core_Backup::normDir(core_Setup::get('BACKUP_PATH')) . '/' . 'current', 0777);
-            core_Os::forceDir(core_Backup::normDir(core_Setup::get('BACKUP_PATH')) . '/' . 'past', 0777);
-            core_Os::forceDir(core_Backup::normDir(core_Setup::get('BACKUP_WORK_DIR')), 0777);
+            $html .= core_Os::forceDir(core_Backup::normDir(core_Setup::get('BACKUP_PATH')) . '/' . 'current', 0777);
+            $html .= core_Os::forceDir(core_Backup::normDir(core_Setup::get('BACKUP_PATH')) . '/' . 'past', 0777);
+            $html .= core_Os::forceDir(core_Backup::normDir(core_Setup::get('BACKUP_WORK_DIR')), 0777);
             
             
         } else {
