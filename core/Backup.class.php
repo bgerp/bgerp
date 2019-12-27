@@ -290,15 +290,18 @@ class core_Backup extends core_Mvc
         $db = cls::get('core_Db');
         
         $mysqlCsvPath = $db->getVariable('secure_file_priv');
-        
+
         if ($mysqlCsvPath === '') {
             
             return self::normDir(core_Setup::get('BACKUP_WORK_DIR'));
         }
         
-        if ($mysqlCsvPath != 'NULL' && is_dir($mysqlCsvPath) && is_readable($mysqlCsvPath) && is_writable($mysqlCsvPath)) {
+        if ($mysqlCsvPath != 'NULL' ) {
+            core_Os::forceDir(core_Backup::normDir($mysqlCsvPath), 0747);
+            if(is_dir($mysqlCsvPath) && is_readable($mysqlCsvPath) && is_writable($mysqlCsvPath)) {
             
-            return self::normDir($mysqlCsvPath);
+                return self::normDir($mysqlCsvPath);
+            }
         }
     }
     
@@ -322,7 +325,7 @@ class core_Backup extends core_Mvc
      */
     public static function addSqlLog($sql)
     {
-        if (defined('CORE_BACKUP_ENABLED') && CORE_BACKUP_ENABLED == 'yes') {
+        if (core_Setup::get('BACKUP_ENABLED') == 'yes') {
             $path = self::getSqlLogPath();
             @file_put_contents($path, $sql . ";\n\r", FILE_APPEND);
         }
@@ -363,7 +366,7 @@ class core_Backup extends core_Mvc
             core_Os::forceDir($wDir = self::normDir(core_Setup::get('BACKUP_WORK_DIR')), 0747); // Да може mysql-a да пише вътре
             $path = $wDir . '/' . EF_DB_NAME . '.log.sql';
         }
-        
+
         return $path;
     }
     
