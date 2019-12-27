@@ -223,7 +223,7 @@ define('CORE_CODE_VERSION', '19.51-Vezhen');
 /**
  * Включена ли е бекъп функционалността?
  */
-defIfNot('CORE_BACKUP_ENABLED', false);
+defIfNot('CORE_BACKUP_ENABLED', 'no');
 
 
 /**
@@ -392,9 +392,13 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_BACKUP_CREATE_FULL_OFFSET' => array('time', 'caption=Настройки за бекъп->Изместване'),
         
-        'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
+//         'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
         
-        'CORE_BACKUP_WORK_DIR' => array('varchar', 'caption=Настройки за бекъп->Работна директория,readOnly'),
+//         'CORE_BACKUP_WORK_DIR' => array('varchar', 'caption=Настройки за бекъп->Работна директория,readOnly'),
+    
+        'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите'),
+        
+        'CORE_BACKUP_WORK_DIR' => array('varchar', 'caption=Настройки за бекъп->Работна директория'),
     );
     
     
@@ -532,7 +536,7 @@ class core_Setup extends core_ProtoSetup
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
         
-        if (CORE_BACKUP_ENABLED) {
+        if (core_Setup::get('BACKUP_ENABLED') == 'yes') {
             // Нагласяване Крон да прави пълен бекъп
             $rec = new stdClass();
             $rec->systemId = 'Backup_Create';
@@ -556,6 +560,12 @@ class core_Setup extends core_ProtoSetup
             $rec->delay = 2;
             $rec->timeLimit = 20;
             $html .= core_Cron::addOnce($rec);
+            
+            core_Os::forceDir(core_Backup::normDir(core_Setup::get('BACKUP_PATH')) . '/' . 'current', 0777);
+            core_Os::forceDir(core_Backup::normDir(core_Setup::get('BACKUP_PATH')) . '/' . 'past', 0777);
+            core_Os::forceDir(core_Backup::normDir(core_Setup::get('BACKUP_WORK_DIR')), 0777);
+            
+            
         } else {
             core_Cron::delete("#systemId = 'Backup_Create'");
             core_Cron::delete("#systemId = 'Sql_Log_Flush'");
