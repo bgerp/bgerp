@@ -573,7 +573,7 @@ class core_Setup extends core_ProtoSetup
         } else {
             core_Cron::delete("#systemId = 'Backup_Create'");
             core_Cron::delete("#systemId = 'Sql_Log_Flush'");
-            @delete($flagDoSqlLog);
+            @unlink($flagDoSqlLog);
         }
         
         
