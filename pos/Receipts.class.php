@@ -792,13 +792,6 @@ class pos_Receipts extends core_Master
         expect($id = Request::get('id', 'int'));
         $this->requireRightFor('revert', $id);
         
-        //$foundArr = $this->findReceiptByNumber($id, true);
-        if (!is_object($foundArr['rec'])) {
-            //core_Statuses::newStatus($foundArr['notFoundError'], 'error');
-            
-            //return followRetUrl();
-        }
-        
         $newReceiptId = $this->createNew($id);
         $this->logWrite('Създаване на сторнираща бележка', $id);
         
