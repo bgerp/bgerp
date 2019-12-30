@@ -926,26 +926,39 @@ class pos_ReceiptDetails extends core_Detail
             $quantityArr[$storeId] = pos_Stocks::getQuantityByStore($productId, $storeId);
         });
         
-        // Сортират се във низходящ ред, и се взима най-голямото к-во и склада в който е
-        arsort($quantityArr);
-        $storeIdWithMostQuantity = key($quantityArr);
-        $inStock = $quantityArr[$storeIdWithMostQuantity];
+        // Кой е основния склад и какво количество е в него
+        $firstStoreId = key($quantityArr);
+        $quantityInDefaultStore = $quantityArr[$firstStoreId];
         
-        // Ако не може да се продават неналични артикули, проверява се дали количеството е налично
+        // Ако е забранена продажбата на неналични артикули
         $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
         if($notInStockChosen != 'yes'){
+            
+            // Изчисляване на нужното количество в основната мярка
             $quantityInPack = 1;
             if(isset($packagingId)){
                 $packRec = cat_products_Packagings::getPack($productId, $packagingId);
                 $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             }
-            $expectedQuantity = $quantityInPack * $quantity;
-           
-            // Ако количеството е налично, връща се ако не склада е null
+            $expectedQuantity = round($quantityInPack * $quantity, 2);
+            
+            // Ако в основния е налична, връща се той
+            if($expectedQuantity <= $quantityInDefaultStore){
+                
+                return $firstStoreId;
+            }
+            
+            // Ако не е налична в основния, връща се склада с най-голямо количество където е налична
+            // ако няма се връща null
+            unset($quantityArr[$firstStoreId]);
+            arsort($quantityArr);
+            $storeIdWithMostQuantity = key($quantityArr);
+            $inStock = $quantityArr[$storeIdWithMostQuantity];
+            
             return ($expectedQuantity <= $inStock) ? $storeIdWithMostQuantity : null;
         }
         
         // Връщане на склада с най-голямо к-во, ако може да се продават неналични артикули
-        return $storeIdWithMostQuantity;
+        return $firstStoreId;
     }
 }
