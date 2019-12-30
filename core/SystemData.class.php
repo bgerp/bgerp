@@ -61,7 +61,7 @@ class core_SystemData
      */
     public static function getSize($name)
     {
-        return @filesize(self::getPath($name), $value);
+        return @filesize(self::getPath($name));
 
     }
     
