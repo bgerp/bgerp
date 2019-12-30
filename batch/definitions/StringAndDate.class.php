@@ -35,7 +35,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         $fieldset->FLD('delimiter', 'enum(&#x20;=Интервал,.=Точка,&#44;=Запетая,&#47;=Наклонена,&#45;=Тире)', 'caption=Разделител');
         $fieldset->FLD('prefix', 'varchar(3)', 'caption=Префикс');
         $fieldset->FLD('autoValue', 'enum(yes=Автоматично,no=Без)', 'caption=Генериране');
-        $fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец)', 'caption=Срок по подразбиране,unit=след текущата дата');
+        $fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец,nullIfEmpty)', 'caption=Срок по подразбиране,unit=след текущата дата');
     }
     
     
