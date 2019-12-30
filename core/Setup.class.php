@@ -233,12 +233,6 @@ defIfNot('CORE_BACKUP_PASS', '');
 
 
 /**
- * Работна директория за бекъпите
- */
-defIfNot('CORE_BACKUP_WORK_DIR', EF_UPLOADS_PATH . '/backup_work');
-
-
-/**
  * Път до текущия и миналия бекъп
  */
 defIfNot('CORE_BACKUP_PATH', EF_UPLOADS_PATH . '/backup');
@@ -393,8 +387,6 @@ class core_Setup extends core_ProtoSetup
         'CORE_BACKUP_CREATE_FULL_OFFSET' => array('time', 'caption=Настройки за бекъп->Изместване'),
         
         'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
-        
-        'CORE_BACKUP_WORK_DIR' => array('varchar', 'caption=Настройки за бекъп->Работна директория,readOnly'),
     );
     
     
@@ -532,9 +524,6 @@ class core_Setup extends core_ProtoSetup
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
         
-        // Използваме и задаваме отделен файлов флаг за това, дали се прави SQL лог
-        $flagDoSqlLog = core_Backup::normDir(core_Setup::get('BACKUP_WORK_DIR')) . '/' . core_Backup::getFlagDoSqlLog();
-        
         if (core_Setup::get('BACKUP_ENABLED') == 'yes') {
             // Нагласяване Крон да прави пълен бекъп
             $rec = new stdClass();
@@ -559,21 +548,19 @@ class core_Setup extends core_ProtoSetup
             $rec->delay = 2;
             $rec->timeLimit = 20;
             $html .= core_Cron::addOnce($rec);
-            
             $html .= core_Os::createDirectories(
                 array(
-                    core_Backup::normDir(core_Setup::get('BACKUP_PATH')) . '/' . 'current',
-                    core_Backup::normDir(core_Setup::get('BACKUP_PATH')) . '/' . 'past',
-                    core_Backup::normDir(core_Setup::get('BACKUP_WORK_DIR')),
+                    core_Backup::getDir('current'),
+                    core_Backup::getDir('past'),
+                    core_Backup::getDir('sql_log'),
+                    core_Backup::getDir('backup_work'),
                 )
-            
             );
-            
-            file_put_contents($flagDoSqlLog, 'OK');
+            core_SystemData::set('flagDoSqlLog');
         } else {
             core_Cron::delete("#systemId = 'Backup_Create'");
             core_Cron::delete("#systemId = 'Sql_Log_Flush'");
-            @unlink($flagDoSqlLog);
+            core_SystemData::set('removeDoSqlLog');
         }
         
         

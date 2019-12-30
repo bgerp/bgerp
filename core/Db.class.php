@@ -258,13 +258,11 @@ class core_Db
         $this->checkForErrors('изпълняване на заявка', $silent, $link);
         DEBUG::stopTimer('DB::query()');
         
-        try {
-            if ($replication && self::$sqlLogEnebled) {
-                if ($link->affected_rows > 0 || stripos($sqlQuery, 'truncate') !== false) {
-                    core_Backup::addSqlLog($sqlQuery);
-                }
+        if ($replication && self::$sqlLogEnebled) {
+            if ($link->affected_rows > 0 || stripos($sqlQuery, 'truncate') !== false) {
+                core_Backup::addSqlLog($sqlQuery);
             }
-        } catch(Exception $e) {}
+        }
         
         return $dbRes;
     }
