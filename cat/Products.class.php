@@ -325,6 +325,17 @@ class cat_Products extends embed_Manager
      */
     public $canExport = 'catImpEx, admin';
     
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 20000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'modifiedOn,state';
+    
     
     /**
      * Описание на модела

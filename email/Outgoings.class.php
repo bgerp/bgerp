@@ -191,6 +191,17 @@ class email_Outgoings extends core_Master
      */
     protected static $errShowNotifyStr = array('recipients failed');
     
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'modifiedOn,state,lastSendedOn';
+    
     
     /**
      * Описание на модела

@@ -75,7 +75,19 @@ class sens2_DataLogs extends core_Manager
      */
     // public $simplePaging = true;
 
-
+    
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 500000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'time';
+    
+    
     /**
      * Описание на модела
      */

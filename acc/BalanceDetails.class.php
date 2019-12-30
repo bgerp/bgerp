@@ -111,6 +111,17 @@ class acc_BalanceDetails extends core_Detail
      */
     protected $idType = 'bigint';
     
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 300000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'blAmount';
+    
     
     /**
      * Описание на модела
