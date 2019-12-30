@@ -1246,9 +1246,9 @@ class draw_Designs extends core_Master
             }
         }
         
-        $form->input(null, 'silent');
-        
         $form->method = 'GET';
+        
+        $form->input(null, 'silent');
         
         $form->toolbar->addSbBtn('Обнови', 'default', false, 'ef_icon=img/16/arrow_refresh.png');
         $form->toolbar->addSbBtn('SVG', 'svg', false, 'ef_icon=fileman/icons/16/svg.png');
