@@ -86,7 +86,7 @@ class core_SystemData
     /**
      * Връща пътя до файла
      */
-    private function getPath($name)
+    private static function getPath($name)
     {
         core_Os::forceDir($dir = core_Os::normalizeDir(EF_UPLOADS_PATH) . '/data');
 
