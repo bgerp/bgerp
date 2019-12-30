@@ -309,6 +309,7 @@ abstract class deals_DealDetail extends doc_Detail
             }
             
             // Проверка на к-то
+            $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
                 $form->setError('packQuantity', $warning);
             }
@@ -348,6 +349,7 @@ abstract class deals_DealDetail extends doc_Detail
             }
             
             // Проверка на цената
+            $msg = null;
             if (!deals_Helper::isPriceAllowed($price, $rec->quantity, $rec->autoPrice, $msg)) {
                 $form->setError('packPrice,packQuantity', $msg);
             }
@@ -443,7 +445,6 @@ abstract class deals_DealDetail extends doc_Detail
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $recs = &$data->recs;
-        $rows = &$data->rows;
         
         if (!count($recs)) {
             
@@ -585,6 +586,7 @@ abstract class deals_DealDetail extends doc_Detail
                     }
                 }
                 
+                $warning = null;
                 if (!deals_Helper::checkQuantity($packagingId, $packQuantity, $warning)) {
                     $error3[$warning][] = "quantity{$lId}";
                 }
@@ -705,8 +707,6 @@ abstract class deals_DealDetail extends doc_Detail
             $title = str_replace(',', ' ', $title);
             $caption = '|' . $title . '|*';
             $caption .= ' |' . cat_UoM::getShortName($lRec->packagingId);
-            
-            $listId = ($saleRec->priceListId) ? $saleRec->priceListId : null;
             
             // Проверка дали вече не просъства в продажбата
             $res = array_filter($recs, function (&$e) use ($lRec) {

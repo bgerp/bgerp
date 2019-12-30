@@ -140,7 +140,7 @@ abstract class deals_ClosedDeals extends core_Master
         $docs = array();
         
         // Намираме записите в които участва перото
-        $entries = acc_Journal::getEntries($dealItem, $item);
+        $entries = acc_Journal::getEntries($dealItem);
         
         // Намираме документите, които имат транзакции към перото
         if (count($entries)) {

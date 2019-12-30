@@ -1387,6 +1387,11 @@ class core_Mvc extends core_FieldSet
         
         //Debug::log("Start $class->{$method}");
         
+        if ($me instanceof stdClass) {
+            
+            return ;
+        }
+        
         $res = $me->__call($method, $args);
         
         //Debug::log("Finish $class->{$method}");

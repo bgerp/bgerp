@@ -28,6 +28,8 @@ class core_Backup extends core_Mvc
      */
     public function cron_Create()
     {
+        core_Debug::$isLogging = false;
+        
         if (core_Setup::get('BACKUP_ENABLED') != 'yes') {
             
             return;
@@ -231,6 +233,7 @@ class core_Backup extends core_Mvc
                 $crc = 'SUM(' . trim($expr, ' +') . ')';
                 $n = 1;
                 for ($i = 0; $i <= $maxId; $i += $inst->backupMaxRows) {
+                    core_App::setTimeLimit(120);
                     $query = $inst->getQuery();
                     $query->XPR('crc32backup', 'int', $crc);
                     $query->where($where = ('id BETWEEN ' . ($i + 1) . ' AND ' . ($i + $inst->backupMaxRows)));

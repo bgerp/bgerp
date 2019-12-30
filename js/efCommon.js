@@ -3934,10 +3934,9 @@ function render_setFocus(data){
 /**
  * Затваря отвореното контекстно меню
  */
-function render_closeContextMenu(data)
+function render_closeContextMenu()
 {
     if ($('.iw-mTrigger').contextMenu) {
-        console.log(data);
     	$('.iw-mTrigger').contextMenu('close');
     }
 }
@@ -5279,8 +5278,7 @@ function mailServerSettings() {
 function startUrlFromDataAttr(obj, stopOnClick)
 {    
 	if (this.event) {
-        
-        this.event.preventDefault();
+        stopBtnDefault(this.event);
 	}
  
 	resObj = new Object();
@@ -5289,11 +5287,12 @@ function startUrlFromDataAttr(obj, stopOnClick)
 	if (stopOnClick) {
 		$(obj).css('pointer-events', 'none');
 	}
-	getEfae().waitPeriodicAjaxCall = 0;
 
 	getEfae().process(resObj);
 	
-    render_closeContextMenu(1);
+	getEfae().waitPeriodicAjaxCall = 0;
+	
+    render_closeContextMenu();
 	
 	return false;
 }
