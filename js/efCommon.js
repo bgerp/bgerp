@@ -3937,7 +3937,6 @@ function render_setFocus(data){
 function render_closeContextMenu(data)
 {
     if ($('.iw-mTrigger').contextMenu) {
-        console.log(data);
     	$('.iw-mTrigger').contextMenu('close');
     }
 }
